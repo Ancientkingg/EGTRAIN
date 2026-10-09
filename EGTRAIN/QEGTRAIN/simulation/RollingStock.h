@@ -1280,8 +1280,9 @@ public:
 							Xob = n->X;
 							Vob = TargetSpeedForMA;
 							// Below the speed that one braking step removes the braking curve has no length, so its start lies at the
-							// authority. A train that reaches a stop authority within this step brakes now instead of accelerating past it.
-							if (TargetSpeedForMA == 0 && n->X > S && S + V * timestep >= n->X)
+							// authority. A train that reaches a stop authority within this step brakes now instead of accelerating past it:
+							// its braking point is no later than its own position.
+							if (TargetSpeedForMA == 0 && n->X > S && S + V * timestep >= n->X && (BrakeDistToNode == -1 || BrakeDistToNode > S))
 								BrakeDistToNode = S;
 						}
 					}
