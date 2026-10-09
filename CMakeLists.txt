@@ -934,6 +934,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_release_version
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py)
+	add_test(NAME test_release_assets
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py)
 	add_test(NAME test_ci_workflow
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_ci_workflow.py)
 	add_test(NAME test_signalling_bounds
@@ -1040,7 +1042,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
-		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version
+		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke)
 	egtrain_label_tests(integration
