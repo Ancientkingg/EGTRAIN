@@ -629,6 +629,7 @@ std::vector<Separation> measureSeparations(const std::vector<TrainTrack>& tracks
 // or has no planned arrival, has no delay in the results and is not counted.
 std::vector<std::string> findStatisticsViolations(const Observation& obs, const std::vector<TimetableResultRow>& rows) {
 	std::vector<std::string> failures;
+	int compared = 0;
 	for (const Line& line : obs) {
 		const bool late = line.key.rfind("stats ", 0) == 0;
 		if (!late && line.key.rfind("signed_stats ", 0) != 0)
@@ -646,6 +647,8 @@ std::vector<std::string> findStatisticsViolations(const Observation& obs, const 
 		}
 		const std::string file = late ? "Stats_Stations.txt" : "Pos&Neg_Stats_Stations.txt";
 		for (const Field& field : line.fields) {
+			if (field.name == "Total_Delay" || field.name == "N_StopTrains")
+				++compared;
 			if (field.name == "Total_Delay" && std::fabs(field.real - expectedTotal) > std::max(0.5, 1e-5 * std::fabs(expectedTotal)))
 				failures.push_back(file + " reports a total delay of " + formatReal(field.real) + " s at " + station
 					+ ", the timetable results give " + formatReal(expectedTotal) + " s");
@@ -654,6 +657,9 @@ std::vector<std::string> findStatisticsViolations(const Observation& obs, const 
 					+ ", the timetable results give an arrival delay for " + std::to_string(expectedCount));
 		}
 	}
+	const bool anyDelay = std::any_of(rows.begin(), rows.end(), [](const TimetableResultRow& row) { return row.arrivalDelaySeconds.available; });
+	if (anyDelay && compared == 0)
+		failures.push_back("the station statistics hold no station row to compare with the timetable results");
 	return failures;
 }
 

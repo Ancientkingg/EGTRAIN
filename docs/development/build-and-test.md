@@ -394,7 +394,9 @@ one fact: some key words, then `name=value` fields.
   just before and after its start and end, how many signal-failure authorities
   exist and which sections are blocked.
 - `stats`: the rows of `TrainTrajectories/Stats_Stations.txt`, which holds six
-  significant digits. An early arrival counts there as a delay of 0.
+  significant digits. An early arrival counts there as a delay of 0 in the
+  total and in `N_StopTrains`. The average and deviation cover the delayed
+  trains only.
 - `signed_stats`: the same rows of `TrainTrajectories/Pos&Neg_Stats_Stations.txt`,
   where early arrivals are negative delays.
 
