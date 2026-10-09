@@ -98,6 +98,13 @@ properties, performance, speed limits and stops. Missing values mean no category
 unknown strings survive canonical folder and bundle persistence. Legacy export
 cannot represent this field and omits it.
 
+The optional service `visualization_color` is a display colour written as
+`#RRGGBB`. It has no effect on the simulation. The model keeps the text as
+loaded and the writer omits it when empty. Folder and bundle persistence
+preserve it; legacy export omits it. A non-empty value in any other form
+gives the warning `scene.service.color.invalid`, which does not block Run, and
+the default train colour is used for that service.
+
 Passenger journey windows use absolute seconds from midnight. They are not
 random passenger draws or simulation results. DAS and RouteChoice CSV files
 are read only by explicit legacy import and written only by explicit legacy

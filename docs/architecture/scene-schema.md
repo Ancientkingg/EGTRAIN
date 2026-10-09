@@ -173,6 +173,16 @@ unknown strings exactly. Category does not affect simulation or inferred train
 display types. Folder and bundle saves preserve it; legacy export omits it
 because the old format has no category field.
 
+`visualization_color` is an optional string in schema V1 that sets a display
+colour for the service. The accepted form is `#RRGGBB`, with six hexadecimal
+digits in either case, for example `#3C8DD2`. The loader keeps the text as
+written. It is for display only and does not affect the simulation. The writer
+omits it when unset, so a scene without it is saved unchanged. Folder and
+bundle saves preserve it; legacy export omits it because the old format has
+no field for it. Any other non-empty text gives the validation warning
+`scene.service.color.invalid`, and the default train colour is used for that
+service.
+
 Optional runtime controls are:
 
 - `performance_percent`: percentage, default `100.0`, finite range `1..100`.

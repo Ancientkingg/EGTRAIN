@@ -178,6 +178,33 @@ std::string sceneOutputDirectoryComponent(const std::string& sceneName) {
 	return sceneName;
 }
 
+bool sceneParseVisualizationColor(const std::string& text, int* red, int* green, int* blue) {
+	if (text.size() != 7 || text[0] != '#')
+		return false;
+	int channel[3] = {};
+	for (std::size_t index = 1; index < text.size(); ++index) {
+		// Compared by range: the <cctype> tests can accept other characters in some locales.
+		const char character = text[index];
+		int digit = 0;
+		if (character >= '0' && character <= '9')
+			digit = character - '0';
+		else if (character >= 'a' && character <= 'f')
+			digit = character - 'a' + 10;
+		else if (character >= 'A' && character <= 'F')
+			digit = character - 'A' + 10;
+		else
+			return false;
+		channel[(index - 1) / 2] = channel[(index - 1) / 2] * 16 + digit;
+	}
+	if (red)
+		*red = channel[0];
+	if (green)
+		*green = channel[1];
+	if (blue)
+		*blue = channel[2];
+	return true;
+}
+
 double sceneServiceScheduledEntry(const SceneService& service, int occurrence) {
 	const double entry = service.hasEntryTime ? service.entryTimeSeconds
 			: (!service.stops.empty() && service.stops.front().hasPlannedDeparture
@@ -1414,6 +1441,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			stringField(value, "id", "services.json", path, service.id);
 			stringField(value, "operating_code", "services.json", path, service.operatingCode, false);
 			stringField(value, "category", "services.json", path, service.category, false);
+			stringField(value, "visualization_color", "services.json", path, service.visualizationColor, false);
 			stringField(value, "composition", "services.json", path, service.composition);
 			stringField(value, "route", "services.json", path, service.route);
 			numberField(value, "performance_percent", "services.json", path,

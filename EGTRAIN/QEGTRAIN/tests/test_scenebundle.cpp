@@ -354,6 +354,21 @@ int main(int argc, char** argv) {
 						"missing, preset and unknown category values round-trip exactly");
 			}
 		}
+		categoryScene.services.front().category.clear();
+		const fs::path colorFolder = temp.path / "color";
+		const fs::path colorBundle = temp.path / "color.egscene";
+		for (const char* color : {"", "#3c8dd2", "#3C8DD2", "not-a-colour"}) {
+			categoryScene.services.front().visualizationColor = color;
+			ok &= expect(saveScene(categoryScene, colorFolder.string()).success()
+					&& saveSceneBundle(categoryScene, colorBundle.string()).success(),
+					"colour fixtures save as folder and bundle");
+			for (const fs::path& path : {colorFolder, colorBundle}) {
+				const SceneLoadResult loaded = loadScenePath(path.string());
+				ok &= expect(!hasErrors(loaded.diagnostics) && !loaded.scene.services.empty()
+						&& loaded.scene.services.front().visualizationColor == color,
+						"missing, valid and invalid service colours round-trip exactly");
+			}
+		}
 	}
 	const fs::path firstBundle = temp.path / "first.egscene";
 	const fs::path secondBundle = temp.path / "second.egscene";
