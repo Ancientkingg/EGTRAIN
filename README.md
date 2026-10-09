@@ -20,6 +20,9 @@ Download a platform package and one or more `.egscene` case studies from the
 Unpack the application for your platform, launch `QEGTRAIN`, then choose
 **File > Open Case Study...** and **Run Scene**. The release page provides
 macOS, Windows, and Linux application packages plus the six canonical scenes.
+The Windows package is not code signed, so Windows may warn before it starts the
+program; [Code signing](docs/development/code-signing.md) explains the state and
+how to check a download.
 
 For a source checkout, launch without arguments to open the Netherlands scene,
 or use `-n 1` through `-n 6` to select another included case study. See
