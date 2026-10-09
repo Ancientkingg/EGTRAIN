@@ -14,7 +14,7 @@ case-specific drawing branches.
 | Station/platform node | Shared preview/runtime square at later station endpoints, with the historical platform/interchange/ordinary colors. White platform bars follow passenger-GUI mode; preview has no passenger counters. Station and name layers do not hide structural squares. |
 | Station name and pictogram | White name, scene-sized font (`station_size / 5`) centered at the authored station anchor plus its derived decoration offset. A white station-building SVG above it at scene scale, parented to its authored structural node where available for artwork hits. Preview artwork keeps its own canonical station identity; position-only artwork has no invented node. The map key and menus use the same shape in a dark variant. |
 | Signal | Each authored direction has its own scene-sized aspect head (red Stop, yellow Caution, green Proceed), white cosmetic post and white base. No viewport slots, grouping, sectors, multiplicity labels or direction ticks. Transparent device-space hit geometry retains signal inspection at Fit. Selection does not overwrite aspects. |
-| Train and passengers | Historical train polygons (passenger yellow, sprinter green, intercity yellow, high-speed blue, freight brown) and original scene-sized `pax_icon.png` passenger glyph, also used by the map key. Passenger information callouts remain separate operational overlays; no train category badge is drawn. |
+| Train and passengers | Historical train polygons in one default yellow, (235,210,55) with outline (110,90,20), whatever the rolling-stock type. A service colour replaces the fill and darkens it for the outline. The map key has a "Train" row in the default yellow when a train uses it, then one row per other fill colour labelled with the service ids that use it (the first three, then "and N more"; the tooltip lists all). Original scene-sized `pax_icon.png` passenger glyph, also used by the map key. Passenger information callouts remain separate operational overlays; no train category badge is drawn. |
 
 Contrast against the canvas `#101a22` (WCAG relative-luminance contrast ratio,
 (L1 + 0.05) / (L2 + 0.05)). The grid is deliberately close to the canvas (1.16:1).
@@ -27,7 +27,7 @@ Contrast against the canvas `#101a22` (WCAG relative-luminance contrast ratio,
 | Connection, station name | White | 17.60 |
 | Selected track | Blue (0,0,255) | 2.05 |
 | Signal Stop, Caution, Proceed | Red, yellow, green | 4.40, 16.39, 12.83 |
-| Train high-speed, sprinter, intercity, passenger, freight | (40,130,210), (40,170,110), (235,190,45), (235,210,55), (120,95,70) | 4.37, 5.92, 10.01, 11.57, 2.95 |
+| Train default | (235,210,55) | 11.57 |
 | Track state prepared, occupied, blocked | `#4C8DAE`, `#D05A47`, `#D6A13A` | 4.80, 4.39, 7.56 |
 
 Operational prepared, occupied and blocked states remain in scene data and

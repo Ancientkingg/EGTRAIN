@@ -88,17 +88,36 @@ int trackStatePriority(TrackOperationalState state) {
 	}
 }
 
+QColor defaultTrainFill() {
+	return QColor(235, 210, 55);
+}
+
+QColor defaultTrainOutline() {
+	return QColor(110, 90, 20);
+}
+
 TrainVisual classifyTrainType(const std::string& type, const std::string& description) {
 	std::string text = lower(type + " " + description);
+	const QColor fill = defaultTrainFill();
+	const QColor outline = defaultTrainOutline();
 	if (containsAny(text, {"freight", "cargo", "goederen"}))
-		return {TrainVisualKind::Freight, QColor(120, 95, 70), QColor(70, 55, 40), classifyTrainBadgeShape(TrainVisualKind::Freight), ":/icons/train-freight.svg"};
+		return {TrainVisualKind::Freight, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Freight), ":/icons/train-freight.svg"};
 	if (containsAny(text, {"ice", "hst", "highspeed", "high speed"}))
-		return {TrainVisualKind::HighSpeed, QColor(40, 130, 210), QColor(15, 70, 120), classifyTrainBadgeShape(TrainVisualKind::HighSpeed), ":/icons/train-high-speed.svg"};
+		return {TrainVisualKind::HighSpeed, fill, outline, classifyTrainBadgeShape(TrainVisualKind::HighSpeed), ":/icons/train-high-speed.svg"};
 	if (containsAny(text, {"sprinter", "spr"}))
-		return {TrainVisualKind::Sprinter, QColor(40, 170, 110), QColor(20, 90, 60), classifyTrainBadgeShape(TrainVisualKind::Sprinter), ":/icons/train-sprinter.svg"};
+		return {TrainVisualKind::Sprinter, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Sprinter), ":/icons/train-sprinter.svg"};
 	if (containsAny(text, {"intercity", " ic", "ic "}))
-		return {TrainVisualKind::Intercity, QColor(235, 190, 45), QColor(120, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Intercity), ":/icons/train-intercity.svg"};
-	return {TrainVisualKind::Passenger, QColor(235, 210, 55), QColor(110, 90, 20), classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
+		return {TrainVisualKind::Intercity, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Intercity), ":/icons/train-intercity.svg"};
+	return {TrainVisualKind::Passenger, fill, outline, classifyTrainBadgeShape(TrainVisualKind::Passenger), ":/icons/train-passenger.svg"};
+}
+
+TrainVisual resolveTrainVisual(const std::string& type, const std::string& description, const QColor& serviceColour) {
+	TrainVisual visual = classifyTrainType(type, description);
+	if (serviceColour.isValid()) {
+		visual.fill = serviceColour;
+		visual.outline = serviceColour.darker(200);
+	}
+	return visual;
 }
 
 SignalCueKind classifySignalCue(int code) {

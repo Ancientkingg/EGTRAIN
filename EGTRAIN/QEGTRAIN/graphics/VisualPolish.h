@@ -46,7 +46,11 @@ TrackVisual freeTrackVisual();
 TrackVisual classifyTrackSpeed(double speedLimitMetersPerSecond);
 TrackStateVisual classifyTrackState(TrackOperationalState state);
 int trackStatePriority(TrackOperationalState state);
+QColor defaultTrainFill();
+QColor defaultTrainOutline();
 TrainVisual classifyTrainType(const std::string& type, const std::string& description);
+TrainVisual resolveTrainVisual(const std::string& type, const std::string& description,
+	const QColor& serviceColour = QColor());
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 int trainBadgeCornerRadius(TrainBadgeShape shape);
 SignalVisual classifySignalAspect(int code);

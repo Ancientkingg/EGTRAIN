@@ -12878,6 +12878,30 @@ void MainWindow::runVisualPolishE2E() {
 		ok = false;
 		failures << "map key did not refresh when trains entered the network";
 	}
+	const auto mapKeyHasRow = [&mapKeyEntriesBeforeFit](const QString& label) {
+		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
+			[&label](const NetworkLegendEntry& entry) {
+				return entry.kind == NetworkLegendEntryKind::Train && entry.label == label;
+			});
+	};
+	if (!mapKeyHasRow(QStringLiteral("Train"))) {
+		ok = false;
+		failures << "map key has no Train row";
+	}
+	if (mapKeyHasRow(QStringLiteral("Sprinter")) || mapKeyHasRow(QStringLiteral("Intercity"))) {
+		ok = false;
+		failures << "map key still has rows named after train kinds";
+	}
+	if (!allTrains.isEmpty()) {
+		const TrainItemGroup* firstTrain = allTrains.first();
+		const TrainBodyItem* firstBody = firstTrain && firstTrain->trainPolygonItemList
+				&& !firstTrain->trainPolygonItemList->isEmpty()
+			? firstTrain->trainPolygonItemList->first() : nullptr;
+		if (!firstBody || firstBody->brush().color() != defaultTrainFill()) {
+			ok = false;
+			failures << "train body is not painted in the default fill";
+		}
+	}
 	const auto hasOperationalLegendEntry = [&mapKeyEntriesBeforeFit](const QString& label) {
 		return std::any_of(mapKeyEntriesBeforeFit.cbegin(), mapKeyEntriesBeforeFit.cend(),
 			[&label](const NetworkLegendEntry& entry) { return entry.label == label; });
@@ -24043,7 +24067,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 
 // draws a train
 void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width) {
-	TrainVisual visual = classifyTrainType(train.type, train.description);
+	TrainVisual visual = resolveTrainVisual(train.type, train.description);
 	QPen pen = QPen(visual.outline);
 	pen.setWidthF(3 * presentationScale());
 
@@ -24082,6 +24106,8 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	trainPolygonGroup->trainId = train.id;
 	trainPolygonGroup->trainDescription = train.description;
 	trainPolygonGroup->trainType = train.type;
+	trainPolygonGroup->fillColor = visual.fill;
+	trainPolygonGroup->outlineColor = visual.outline;
 	trainPolygonGroup->trainLength = train.length;
 	trainPolygonGroup->wagonCount = train.wagonCount;
 	trainPolygonGroup->currentOnboardPassengers = train.currentOnboardPassengers;
@@ -26177,7 +26203,6 @@ void MainWindow::updateTrainPosition(int t) {
 						QString::fromStdString(state.operatingCode), QString::fromStdString(state.type));
 					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
 					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
-					badge->setTrainVisual(classifyTrainType(state.type, state.description));
 					badge->setReversed(state.reversedDirection);
 					const bool promoted = isTrainOverlayPromoted(train);
 					badge->setPromoted(promoted);
@@ -27610,7 +27635,8 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSelectedTrack = preview && m_previewHasSelectedTrack;
 	for (const TrainItemGroup* train : allTrains) {
 		if (train)
-			content.trainVisuals << classifyTrainType(train->trainType, train->trainDescription);
+			content.trains << NetworkLegendTrain{train->fillColor, train->outlineColor,
+				QString::fromStdString(train->serviceId)};
 	}
 	for (const StationOverlayItem* station : m_stationOverlays) {
 		if (station)
