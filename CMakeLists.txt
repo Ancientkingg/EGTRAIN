@@ -928,10 +928,14 @@ if(EGTRAIN_BUILD_TESTS)
 		add_test(NAME test_creator_acceptance_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh)
 		set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
-		set_tests_properties(test_csv_export_smoke test_lebanon_scene_smoke test_creator_acceptance_smoke
-			PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>")
+		add_test(NAME test_editor_smoke
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/editor_smoke.sh)
+		set_tests_properties(test_editor_smoke PROPERTIES TIMEOUT 180)
+		# The scripts get the built application, scene_tool and a platform plugin that needs no display.
+		set_tests_properties(test_csv_export_smoke test_lebanon_scene_smoke test_creator_acceptance_smoke test_editor_smoke
+			PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>;QT_QPA_PLATFORM=offscreen")
 	else()
-		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_lebanon_scene_smoke, test_creator_acceptance_smoke)")
+		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_lebanon_scene_smoke, test_creator_acceptance_smoke, test_editor_smoke)")
 	endif()
 	if(APPLE)
 		add_test(NAME test_package_contents_smoke
@@ -1059,7 +1063,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
-		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
+		test_creator_acceptance_smoke test_editor_smoke test_package_contents_smoke test_headless_scene_smoke
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
@@ -1067,7 +1071,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_elidedlabel
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
-		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
+		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke
 		test_package_contents_smoke)
 	egtrain_label_tests(slow test_gui_autostart_smoke)
 
