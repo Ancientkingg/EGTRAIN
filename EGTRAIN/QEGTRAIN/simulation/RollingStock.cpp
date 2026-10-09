@@ -96,7 +96,6 @@ Train::Train() {
 	IsTrainInFollowingMode = IsTrainDecoupling = IsInUnintentionalDecoupling = false;
 	LeadingTrainInFollowingMode = "None";
 	CurrentServiceStopPlatform = "None";
-	XCurrentServiceStop = -1;
 	TotalEnergyConsumed = 0;
 	TotalEnergySubstationRequest = 0;
 	TotalEnergyConsWithRegBrak = 0;
@@ -1736,57 +1735,6 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 
 	// did not find position correctly
 	return -1;
-}
-
-// unlock single track (unlock signalling_block_sections for a train passing a single track)
-void Train::unlockSingleTrack(Section* BS, int Blocks, int t) {
-	for (int l = 0; l < singleTrackLimits.size(); l++) {
-		// single track occupied by this train
-		if (std::get<2>(singleTrackLimits[l]) == (type + std::to_string(ID))) {
-			// signalling_block_sections occupied by the train
-			// collect all signalling_block_sections from head to tail
-			int hTail = 0, hHead = 0;
-			for (int h = 0; h < Blocks; h++) {
-				if (((instant_spatial_position[t - (int)(S_delay / timestep)] - train_length) < BS[h].end_node.X * 1000) && ((instant_spatial_position[t - (int)(S_delay / timestep)] - train_length) >= BS[h].start_node.X * 1000)) {
-					hTail = h;
-				}
-				if ((instant_spatial_position[t - (int)(S_delay / timestep)] < BS[h].end_node.X * 1000) && (instant_spatial_position[t - (int)(S_delay / timestep)] >= BS[h].start_node.X * 1000)) {
-					hHead = h;
-					break;
-				}
-			}
-
-			// release end of single track (2 signalling_block_sections to avoid yellow and red signals)
-			if (((hHead < (Blocks - 1)) && ((!train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<0>(singleTrackLimits[l])))) || ((!train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<0>(singleTrackLimits[l])))) {
-				int hRelease = hHead + 1;
-
-				// changes on previous signalling_block_sections
-				if (hRelease > 0) {
-					snprintf(BS[hRelease - 1].state, sizeof(BS[hRelease - 1].state), "%s", "green");
-					for (int k = 0; k < BS[hRelease - 1].total_arcs; k++) {
-						BS[hRelease - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-
-					// revert changes to speeds (there is no section to take them from after the last section of the route)
-					if (hRelease < Blocks) {
-						double MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].speedLimit;
-						if (BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
-							MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit;
-						}
-
-						// the speed limit at the end of block section BLS[h] is MinSpeedLim
-						BS[hRelease - 1].arcs_in_signalling_block_section[BS[hRelease - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
-					}
-				}
-
-				// changes on signalling_block_sections itself
-				if (hRelease < Blocks) {
-					BS[hRelease].code = 270;
-					BS[hRelease].exit_speed = 0;
-				}
-			}
-		}
-	}
 }
 
 // function to protect all station areas

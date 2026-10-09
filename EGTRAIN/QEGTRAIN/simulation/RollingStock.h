@@ -392,12 +392,10 @@ public:
 	static int clampStationCount(int requested, const string& trainId);				// Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations] = {};							// Cached block section index for each station (avoids full-route scan every timestep)
 	int stationArc[kMaxTimetableStations] = {};										// Cached Arc index within block section for each station
-	bool ServiceStopBehindATrain = false;											// Never set. A train that waits behind another train at a platform makes its own stop there once the train ahead has left.
 	bool StoppedForServiceStop = false;												// This variable is true when the train is stopping at a station to perform a service stop
 	string CurrentServiceStop;														// This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
 	string CurrentServiceStopPlatform;												// Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
 
-	double XCurrentServiceStop;							  // This is the relative abscissa on the route of the train of a service Stop when the train is stopping behind another train at the same platform
 	double StationArrivals[kMaxTimetableStations];		  // This variable is the time instant in which the train actually enters a station
 	string StationArrivalNames[kMaxTimetableStations];	  // Preserves served station names for post-run arrival analysis.
 	double StationDelay[kMaxTimetableStations];			  // This variable represent the arrival delay of a train at a certain station
@@ -853,33 +851,6 @@ public:
 		Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
 		IsInUnintentionalDecoupling = false;
 		CounterFollowingMode = 0;
-	}
-
-	bool checkIfTrainCanDepartAfterHavingServiceStopBehindATrain(int t) {
-		bool CanTrainDepartFromServiceStop = false;
-		double dep_time = 0;
-		double stoptime = 0;
-		double TimeStopped = 0;
-		for (int s = 0; s < numStations; s++) {
-			if (Stations[s].stationName == this->CurrentServiceStop) {
-				Stations[s].StepStopped++;
-				recordCurrentServiceStopArrival(t);
-				TimeStopped = Stations[s].StepStopped;
-				dep_time = ScheduledDepartures[s];
-				stoptime = Stations[s].StopTime;
-				if (Stations[s].StepStopped > Stations[s].StopTime) {
-					stoptime = 0;
-				}
-			}
-		}
-		if ((TimeStopped <= stoptime) || (t <= dep_time)) {
-			CanTrainDepartFromServiceStop = false;
-		}
-
-		else {
-			CanTrainDepartFromServiceStop = true;
-		}
-		return CanTrainDepartFromServiceStop;
 	}
 
 	// Function to compute the braking distance in a faster way using the closed formula and average gradient and curvature values (This function has shown the best match to simulated braking curves)
@@ -2043,8 +2014,7 @@ public:
 
 					// Stopping at a station for an estabilished dwell time
 					if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && (As.endNode.station == 1)) {
-						this->StoppedForServiceStop = true;	   // Stating that the train is stopping at a station to perform a service stop
-						this->ServiceStopBehindATrain = false; // Stating that the train is the first to stop at a platform so it is not stopping behind any other train.
+						this->StoppedForServiceStop = true; // Stating that the train is stopping at a station to perform a service stop
 						Eq[time_seconds] = 5;
 						double stoptime = 0;
 						double dep_time = 0;
@@ -2052,7 +2022,6 @@ public:
 						for (int s = 0; s < numStations; s++) {
 							if (Stations[s].stationName == As.endNode.stationName) {
 								this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
-								this->XCurrentServiceStop = instant_spatial_position[time_seconds];
 								this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
 								recordCurrentServiceStopArrival(time_seconds);
 
@@ -2163,122 +2132,21 @@ public:
 					}
 					// if noone of the previous conditions is verified it means that the train is stopped at an ETCS3 EoA
 					else if (this->IsTrainStoppedForEoA == 1) {
-						bool CanDepartFromServiceStopBehindATrain = true; // This variable sets whether the train stopping at a station behind another train at the same platform can depart because it has performed already the entire stop time. This is set to true by default
 						Eq[time_seconds] = 321;
-						// if the train is stopping behind a train at the same platform of a station
-						if ((StoppedForServiceStop == 1) && (ServiceStopBehindATrain == 1)) {
-							CanDepartFromServiceStopBehindATrain = checkIfTrainCanDepartAfterHavingServiceStopBehindATrain(time_seconds); // Check if the train can depart from the service stop because it has performed the entire stop time or the scheduled departure time has been reached
-						}
 						// Check if the EoA given at the previous instant is still valid
 						this->checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
 
-						if (this->IsTrainStoppedForEoA == 1) { // if the train is stopped behind a valid MA or it is stopping because of a service stop behind another train at the same platform
+						if (this->IsTrainStoppedForEoA == 1) { // if the train is stopped behind a valid MA
 							instant_train_speed[time_seconds] = 0;
 							instant_spatial_position[time_seconds] = Last_Received_MA.RelativePosEoA - 0.0001;
 							Eq[time_seconds] = 323;
 						} else {
-
-							if ((StoppedForServiceStop == 1) && (ServiceStopBehindATrain == 1)) {
-								if (CanDepartFromServiceStopBehindATrain == 0) { // if the train cannot depart because it needs to satsfy a service stop behind another train at the same platform
-									instant_train_speed[time_seconds] = 0;
-									instant_spatial_position[time_seconds] = XCurrentServiceStop - 0.0001;
-									Eq[time_seconds] = 324;
-								}
-
-								else {
-									instant_train_speed[time_seconds] = 0.0001;
-									instant_spatial_position[time_seconds] = XCurrentServiceStop + 0.0001;
-									Eq[time_seconds] = 325;
-									StoppedForServiceStop = false;
-									ServiceStopBehindATrain = false; // then reset its stopping parameters to false
-									// Add the service stop the train has performed behind a leader train to Timetabling points so that after the simulation has finished we can transfer the info on where the train has stopped back to the dynamic array Stations to compute arrival delays
-									TrainEvent NewServiceStop;
-									NewServiceStop.SuccessorID = CurrentServiceStop;
-									NewServiceStop.Position = XCurrentServiceStop;
-									TimetablePoints.push_back(NewServiceStop);
-									for (int s = 0; s < numStations; s++) {
-										if (Stations[s].stationName == CurrentServiceStop) { // delete the station it already stopped at from the list of Stations
-											Stations[s].stationName = "None";
-										}
-									}
-									CurrentServiceStop = "None"; // reset CurrentServiceStop to None
-									XCurrentServiceStop = -1;
-								}
-							} else {
-								instant_train_speed[time_seconds] = 0.0001;
-								instant_spatial_position[time_seconds] = Last_Received_MA.RelativePosEoA + 0.0001;
-								BrakingForEoA = false;
-								Eq[time_seconds] = 326;
-							}
-						}
-
-						instant_train_power_consumption[time_seconds] = 0;
-						instant_train_tractive_effort[time_seconds] = 0;
-						train_energy_consumption(time_seconds);
-						counter = 0;
-					}
-
-					// if the train was stopped for an EoA behind a train and was performing a service stop but did not finish its stop yet when the leading train ahead had left
-					else if ((IsTrainStoppedForEoA == 0) && (StoppedForServiceStop == 1) && (ServiceStopBehindATrain == 1) && (IsTrainInFollowingMode == 0)) {
-						bool CanDepartFromServiceStopBehindATrain = true;
-						CanDepartFromServiceStopBehindATrain = checkIfTrainCanDepartAfterHavingServiceStopBehindATrain(time_seconds); // Check if the train can depart from the service stop because it has performed the entire stop time or the scheduled departure time has been reached
-						if (CanDepartFromServiceStopBehindATrain == 0) {
-							instant_train_speed[time_seconds] = 0;
-							instant_spatial_position[time_seconds] = XCurrentServiceStop - 0.0001;
-							Eq[time_seconds] = 327;
-						} else {
-							instant_spatial_position[time_seconds] = XCurrentServiceStop + 0.0001;
 							instant_train_speed[time_seconds] = 0.0001;
-							Eq[time_seconds] = 328;
-							StoppedForServiceStop = false;
-							ServiceStopBehindATrain = false; // then reset its stopping parameters to false
-							// Add the service stop the train has performed behind a leader train to Timetabling points so that after the simulation has finished we can transfer the info on where the train has stopped back to the dynamic array Stations to compute arrival delays
-							TrainEvent NewServiceStop;
-							NewServiceStop.SuccessorID = CurrentServiceStop;
-							NewServiceStop.Position = XCurrentServiceStop;
-							TimetablePoints.push_back(NewServiceStop);
-							for (int s = 0; s < numStations; s++) {
-								if (Stations[s].stationName == CurrentServiceStop) { // delete the station it already stopped at from the list of Stations
-									Stations[s].stationName = "None";
-								}
-							}
-							CurrentServiceStop = "None"; // reset CurrentServiceStop to None
-							XCurrentServiceStop = -1;
+							instant_spatial_position[time_seconds] = Last_Received_MA.RelativePosEoA + 0.0001;
+							BrakingForEoA = false;
+							Eq[time_seconds] = 326;
 						}
-						instant_train_power_consumption[time_seconds] = 0;
-						instant_train_tractive_effort[time_seconds] = 0;
-						train_energy_consumption(time_seconds);
-						counter = 0;
-					}
-					// if the train was stopped for an EoA behind a train and was performing a service stop but did not finish its stop yet when the leading train ahead had left
-					// if the train is in following mode then when the train ahead (leader) departs also this train will depart independently from the time it has been stopped at the station
-					else if ((IsTrainStoppedForEoA == 0) && (StoppedForServiceStop == 1) && (ServiceStopBehindATrain == 1) && (IsTrainInFollowingMode == 1)) {
-						// if the train ahead is already departed then let the follower train to depart together with the leader since they are coupled
-						if (Last_Received_MA.TrainInfo.StoppedForServiceStop == 0) {
-							instant_spatial_position[time_seconds] = XCurrentServiceStop + 0.0001;
-							instant_train_speed[time_seconds] = 0.0001;
-							Eq[time_seconds] = 340;
-							StoppedForServiceStop = false;
-							ServiceStopBehindATrain = false; // then reset its stopping parameters to false
-							// Add the service stop the train has performed behind a leader train to Timetabling points so that after the simulation has finished we can transfer the info on where the train has stopped back to the dynamic array Stations to compute arrival delays
-							TrainEvent NewServiceStop;
-							NewServiceStop.SuccessorID = CurrentServiceStop;
-							NewServiceStop.Position = XCurrentServiceStop;
-							TimetablePoints.push_back(NewServiceStop);
-							for (int s = 0; s < numStations; s++) {
-								if (Stations[s].stationName == CurrentServiceStop) { // delete the station it already stopped at from the list of Stations
-									Stations[s].stationName = "None";
-								}
-							}
-							CurrentServiceStop = "None"; // reset CurrentServiceStop to None
-							XCurrentServiceStop = -1;
-						}
-						// else if the train ahead is not departed yet then let the follower staying stopped at the service stop behind the leader
-						else {
-							instant_spatial_position[time_seconds] = XCurrentServiceStop - 0.0001;
-							instant_train_speed[time_seconds] = 0;
-							Eq[time_seconds] = 341;
-						}
+
 						instant_train_power_consumption[time_seconds] = 0;
 						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);
@@ -2364,7 +2232,7 @@ public:
 
 	// Function to compute the passing time of a train over each timetable point (i.e. stations, junctions and or relevant signals)
 	void ComputeTimetablingPoints() {
-		if (TimetablePoints.empty() == 1) { // if the timetablepoints are still empty this means that the train did not follow any other train in Virtual Coupling and that stopped at stations
+		if (TimetablePoints.empty() == 1) {
 			for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
 				for (int j = 0; j < train_route[indexOfRoute].sequence_of_block_sections[i].total_arcs; j++) {
 					if (train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
@@ -2376,41 +2244,6 @@ public:
 						computeArrivalAndDepartureAtLocation(train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
 						// Compute the arrival and departure times of the train from the location and push it back into the TimeTablePoints List
 						this->TimetablePoints.push_back(TTPoint);
-					}
-				}
-			}
-		} else { // if instead the train stopped behind another train in Virtual Coupling, then we need to transfer the Timetable points back to the Stations
-			int s = 0;
-			for (list<TrainEvent>::iterator q = TimetablePoints.begin(); q != TimetablePoints.end(); q++) {
-				q->trainDescription = trainDescription;
-				// Retransfer the information of the performed stop to the Stations Array
-				Stations[s].stationName = q->SuccessorID;
-				Stations[s].X = q->Position / 1000; // In the array Stations position of Stations are given in Km that is why here we divide by 1000 since the attribute position is instead in m
-				// Compute the Arrival and Departure at the stations
-				computeArrivalAndDepartureAtLocation(q->Position, *q);
-				s++; // increase the counter of the Stations array by 1 position
-			}
-			// Now compute it also for the TimetablingPoints where the train did not stop but just passed through
-			for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-				for (int j = 0; j < train_route[indexOfRoute].sequence_of_block_sections[i].total_arcs; j++) {
-					if (train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
-						bool IsAlreadythere = false;
-						for (list<TrainEvent>::iterator d = TimetablePoints.begin(); d != TimetablePoints.end(); d++) {
-							if (train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName == d->SuccessorID) {
-								IsAlreadythere = true;
-								break; // break the loop over the Timetable points so over d
-							}
-						}
-						if (IsAlreadythere == 0) { // Only if the stationName Node was not already in the list of Timetabling Points then we add another timetabling point to the list
-							TrainEvent TTPoint;
-							TTPoint.SuccessorID = train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName; // this is the name of the location of the timetable point
-							TTPoint.Position = train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X;
-							TTPoint.trainDescription = this->trainDescription; // Assigning the trainDescription to the Train Event
-																			   // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
-							computeArrivalAndDepartureAtLocation(train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
-							// Compute the arrival and departure times of the train from the location and push it back into the TimeTablePoints List
-							this->TimetablePoints.push_back(TTPoint);
-						}
 					}
 				}
 			}
@@ -2592,18 +2425,6 @@ public:
 								lockSwitchesWhileTrainTraverses((instant_spatial_position[delayedIndex] + ETCS3SafetyMargin), (instant_spatial_position[delayedIndex] - train_length - ETCS3SafetyMargin), instant_train_speed[delayedIndex], LastTrainAcceleration, BS[h], trainDescription, train_route[indexOfRoute], "Front");
 							}
 							break;
-						}
-					}
-				}
-				// In case the train is stopping at a station to perform a service stop communicate all this information to the corresponding Movement Authorities
-				if ((instant_train_speed[delayedIndex] == 0) && (this->StoppedForServiceStop == 1)) {
-					if (ETCS_MA.size() > 0) {
-						for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-							if (it->TrainInfo.trainDescription == this->trainDescription) {
-								it->TrainInfo.StoppedForServiceStop = this->StoppedForServiceStop;
-								it->TrainInfo.CurrentStoppedStation = this->CurrentServiceStop;
-								it->TrainInfo.ServiceStopBehindATrain = this->ServiceStopBehindATrain;
-							}
 						}
 					}
 				}
@@ -3628,9 +3449,6 @@ public:
 	void recordEarliestActiveTrajectoryIndex(int index) {
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
-
-	// unlock single track (unlock signalling_block_sections for a train passing a single track)
-	void unlockSingleTrack(Section* BS, int Blocks, int t);
 
 	// set vector sizes with length of simulation from user input
 	void setTrainVectorSizesFromInput(int vec_size);
