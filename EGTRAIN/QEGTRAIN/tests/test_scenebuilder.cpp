@@ -1,11 +1,15 @@
 #include "scene/SceneModel.h"
+#include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 Logger owl;
 
@@ -527,6 +531,243 @@ static bool runTinyBuilderChecks() {
 }
 
 
+constexpr int kUnsetLevel = -99999999;
+constexpr int kMissingSection = -2;
+
+// One 1 km block per kilometre on a track, named "<prefix>b.0", "<prefix>b.1", and so on,
+// with a route over all of them.
+static void addLine(SceneModel& scene, const std::string& track, const std::string& prefix, int blockCount) {
+	scene.tracks.push_back({track});
+	for (int index = 0; index <= blockCount; ++index)
+		scene.nodes.push_back({prefix + "n." + std::to_string(index), track, static_cast<double>(index), 0.0});
+	SceneRoute route;
+	route.id = "route." + prefix + track;
+	for (int index = 0; index < blockCount; ++index) {
+		const std::string number = std::to_string(index);
+		scene.arcs.push_back({prefix + "a." + number, track, prefix + "n." + number,
+			prefix + "n." + std::to_string(index + 1), 0.0, 0.0, 20.0});
+		scene.blocks.push_back({prefix + "b." + number, track, 1.0});
+		route.blocks.push_back(prefix + "b." + number);
+	}
+	scene.routes.push_back(route);
+}
+
+static SceneModel lineScene(int blockCount, bool reversedRoute = false) {
+	SceneModel scene;
+	scene.name = "area-line";
+	addLine(scene, "line", "", blockCount);
+	if (reversedRoute)
+		std::reverse(scene.routes.back().blocks.begin(), scene.routes.back().blocks.end());
+	return scene;
+}
+
+static SceneModel twoLineScene(int blockCount) {
+	SceneModel scene;
+	scene.name = "area-two-lines";
+	addLine(scene, "line.a", "a.", blockCount);
+	addLine(scene, "line.b", "b.", blockCount);
+	return scene;
+}
+
+static std::map<std::string, int> builtSectionLevels() {
+	std::map<std::string, int> levels;
+	for (int index = 0; index < Blocks; ++index)
+		levels[signalling_block_sections[index].ID] = signalling_block_sections[index].SignallingLevel;
+	return levels;
+}
+
+static std::map<std::string, int> builtRouteLevels(std::size_t routeIndex) {
+	std::map<std::string, int> levels;
+	if (routeIndex >= train_route.size())
+		return levels;
+	const Route& route = train_route[routeIndex];
+	for (int index = 0; index < route.N_Block_Sections; ++index)
+		levels[route.sequence_of_block_sections[index].ID] = route.sequence_of_block_sections[index].SignallingLevel;
+	return levels;
+}
+
+// The levels of the sections "<prefix>b.0", "<prefix>b.1", ... as built, in that order.
+static std::vector<int> levelsOfLine(const std::string& prefix, std::size_t count) {
+	const std::map<std::string, int> levels = builtSectionLevels();
+	std::vector<int> result;
+	for (std::size_t index = 0; index < count; ++index) {
+		const auto found = levels.find("@" + prefix + "b." + std::to_string(index) + "@");
+		result.push_back(found == levels.end() ? kMissingSection : found->second);
+	}
+	return result;
+}
+
+// Builds the scene and returns the levels of the single track "b.<i>" sections.
+static std::vector<int> buildLineLevels(const SceneModel& scene, std::size_t count, bool& built) {
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	built = !hasErrors(diagnostics) && static_cast<std::size_t>(Blocks) == count;
+	return levelsOfLine("", count);
+}
+
+static bool lineLevelsAre(const SceneModel& scene, const std::vector<int>& expected, const std::string& message) {
+	bool built = false;
+	const std::vector<int> levels = buildLineLevels(scene, expected.size(), built);
+	return expect(built && levels == expected, message);
+}
+
+// The section names in the validator's missing-level warning, and whether it names all of them.
+static std::set<std::string> namedUncoveredSections(const SceneModel& scene, bool& complete) {
+	std::set<std::string> names;
+	complete = true;
+	for (const SceneDiagnostic& diagnostic : validateRunnableScene(scene)) {
+		if (diagnostic.code != "scene.signalling.level.missing")
+			continue;
+		const std::string marker = "without signalling: ";
+		const std::size_t begin = diagnostic.message.find(marker);
+		if (begin == std::string::npos) {
+			complete = false;
+			continue;
+		}
+		std::string list = diagnostic.message.substr(begin + marker.size());
+		complete = list.find(" more") == std::string::npos;
+		const std::size_t end = list.find(" (track");
+		if (end != std::string::npos)
+			list.resize(end);
+		for (std::size_t position = 0; position < list.size();) {
+			std::size_t comma = list.find(", ", position);
+			if (comma == std::string::npos)
+				comma = list.size();
+			names.insert(list.substr(position, comma - position));
+			position = comma + 2;
+		}
+	}
+	return names;
+}
+
+// The route sections that the built runtime left without a level.
+static std::set<std::string> builtUncoveredRouteSections() {
+	std::set<std::string> ids;
+	for (std::size_t route = 0; route < train_route.size(); ++route) {
+		for (const auto& [id, level] : builtRouteLevels(route))
+			if (level == kUnsetLevel)
+				ids.insert(id);
+	}
+	return ids;
+}
+
+static bool driftGuard(const SceneModel& scene, std::size_t uncovered, const std::string& what) {
+	bool complete = false;
+	const std::set<std::string> named = namedUncoveredSections(scene, complete);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	const std::set<std::string> unset = builtUncoveredRouteSections();
+	return expect(!hasErrors(diagnostics) && complete && named == unset && unset.size() == uncovered, what);
+}
+
+static bool runAreaMappingChecks() {
+	bool ok = true;
+	using Levels = std::vector<int>;
+	const int u = kUnsetLevel;
+
+	// Network-wide areas and containment.
+	SceneModel scene = lineScene(4);
+	scene.signallingAreas = {{"all", 0.0, 4.0, 2, {}}};
+	ok &= lineLevelsAre(scene, {2, 2, 2, 2}, "a network-wide area gives every section its level");
+	if (!hasErrors(buildInfrastructureAndSignallingFromScene(scene)))
+		ok &= expect(builtRouteLevels(0) == builtSectionLevels() && builtRouteLevels(0).size() == 4,
+			"the route sections carry the levels of the same sections");
+	scene.signallingAreas = {{"head", 0.0, 2.0, 3, {}}};
+	ok &= lineLevelsAre(scene, {3, 3, u, u}, "a section that ends at the area end is inside");
+	scene.signallingAreas = {{"head", 0.0, 2.5, 3, {}}};
+	ok &= lineLevelsAre(scene, {3, 3, u, u}, "a section that crosses the area end is not inside");
+	scene.signallingAreas = {{"tail", 0.5, 4.0, 3, {}}};
+	ok &= lineLevelsAre(scene, {u, 3, 3, 3}, "a section that crosses the area start is not inside");
+	scene.signallingAreas = {{"middle", 1.0, 3.0, 5, {}}};
+	ok &= lineLevelsAre(scene, {u, 5, 5, u}, "an area from one section edge to another covers the sections between");
+	scene.signallingAreas = {{"adjacent-a", 0.0, 2.0, 1, {}}, {"adjacent-b", 2.0, 4.0, 4, {}}};
+	ok &= lineLevelsAre(scene, {1, 1, 4, 4}, "adjacent areas that meet on a section edge split the sections");
+	scene.signallingAreas = {{"adjacent-a", 0.0, 2.5, 1, {}}, {"adjacent-b", 2.5, 4.0, 4, {}}};
+	ok &= lineLevelsAre(scene, {1, 1, u, 4}, "a section that crosses the edge between two areas stays unset");
+	scene.signallingAreas.push_back({"bridge", 1.5, 3.5, 4, {}});
+	ok &= lineLevelsAre(scene, {1, 1, 4, 4}, "a third area that contains the straddling section decides it");
+
+	// Edge tolerance of 1e-8 km on both edges.
+	scene.signallingAreas = {{"end", 0.0, 2.0 - 5e-9, 3, {}}};
+	ok &= lineLevelsAre(scene, {3, 3, u, u}, "an area end just inside the tolerance still contains the section");
+	scene.signallingAreas = {{"end", 0.0, 2.0 - 1e-7, 3, {}}};
+	ok &= lineLevelsAre(scene, {3, u, u, u}, "an area end outside the tolerance does not contain the section");
+	scene.signallingAreas = {{"start", 1.0 + 5e-9, 4.0, 3, {}}};
+	ok &= lineLevelsAre(scene, {u, 3, 3, 3}, "an area start just inside the tolerance still contains the section");
+	scene.signallingAreas = {{"start", 1.0 + 1e-7, 4.0, 3, {}}};
+	ok &= lineLevelsAre(scene, {u, u, 3, 3}, "an area start outside the tolerance does not contain the section");
+
+	// An area that covers no section changes nothing.
+	scene.signallingAreas = {{"inside-one", 1.2, 1.8, 5, {}}};
+	ok &= lineLevelsAre(scene, {u, u, u, u}, "an area inside one section covers no section");
+	scene.signallingAreas = {{"beyond", 10.0, 12.0, 5, {}}};
+	ok &= lineLevelsAre(scene, {u, u, u, u}, "an area beyond the track covers no section");
+	scene.signallingAreas = {{"all", 0.0, 4.0, 2, {}}, {"inside-one", 1.2, 1.8, 5, {}},
+		{"beyond", 10.0, 12.0, 5, {}}};
+	ok &= lineLevelsAre(scene, {2, 2, 2, 2}, "areas that cover no section leave the other areas as they are");
+
+	// Track scope overrides the network-wide level on its own track.
+	SceneModel tracks = twoLineScene(3);
+	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-a", 0.0, 3.0, 4, "line.a"}};
+	bool built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({1, 1, 1}),
+		"a track-scoped area overrides the network-wide area on its track only");
+	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 1.0, 5, "line.b"}};
+	built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	ok &= expect(built && levelsOfLine("a.", 3) == Levels({1, 1, 1}) && levelsOfLine("b.", 3) == Levels({5, 1, 1}),
+		"a track-scoped area overrides only the sections it contains");
+	tracks.signallingAreas = {{"track-a", 0.0, 3.0, 4, "line.a"}};
+	built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({u, u, u}),
+		"a track-scoped area leaves the other tracks without a level");
+
+	// A route used in reverse has the same levels on its sections.
+	SceneModel forward = lineScene(4);
+	forward.signallingAreas = {{"low", 0.0, 2.0, 1, {}}, {"high", 2.0, 3.0, 4, {}}};
+	SceneModel reverse = lineScene(4, true);
+	reverse.signallingAreas = forward.signallingAreas;
+	bool forwardBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(forward)) && train_route.size() == 1
+		&& !train_route.front().reversed_direction;
+	const std::map<std::string, int> forwardLevels = builtRouteLevels(0);
+	bool reverseBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(reverse)) && train_route.size() == 1
+		&& train_route.front().reversed_direction;
+	const std::map<std::string, int> reverseLevels = builtRouteLevels(0);
+	ok &= expect(forwardBuilt && reverseBuilt && forwardLevels.size() == 4
+			&& forwardLevels.at("@b.0@") == 1 && forwardLevels.at("@b.2@") == 4
+			&& forwardLevels.at("@b.3@") == u,
+		"the forward route carries the levels of its sections");
+	ok &= expect(reverseBuilt && reverseLevels == forwardLevels,
+		"a route used in reverse has the same levels on its sections");
+	ok &= expect(reverseBuilt && reverseLevels == builtSectionLevels(),
+		"the reversed route sections equal the built sections by ID");
+
+	// The validator's missing-level warning names the route sections that the build leaves without a level.
+	SceneModel drift = lineScene(5);
+	drift.signallingAreas = {{"head", 0.0, 3.0, 2, {}}};
+	ok &= driftGuard(drift, 2, "the warning names the route sections left without a level");
+	drift.signallingAreas = {{"head", 0.0, 2.5, 2, {}}};
+	ok &= driftGuard(drift, 3, "the warning and the build agree on a section that crosses the area end");
+	drift.signallingAreas = {{"head", 0.0, 3.0 - 5e-9, 2, {}}};
+	ok &= driftGuard(drift, 2, "the warning and the build agree inside the edge tolerance");
+	drift.signallingAreas = {{"head", 0.0, 3.0 - 1e-7, 2, {}}};
+	ok &= driftGuard(drift, 3, "the warning and the build agree outside the edge tolerance");
+	drift.signallingAreas = {{"tail", 1.0 + 1e-7, 5.0, 2, {}}};
+	ok &= driftGuard(drift, 2, "the warning and the build agree at the area start");
+	drift.signallingAreas.clear();
+	ok &= driftGuard(drift, 5, "the warning and the build agree when there is no area");
+	drift.signallingAreas = {{"all", 0.0, 5.0, 2, {}}};
+	ok &= driftGuard(drift, 0, "the warning and the build agree when every section is covered");
+	drift.signallingAreas = {{"head", 0.0, 3.0, 2, {}}};
+	std::reverse(drift.routes.front().blocks.begin(), drift.routes.front().blocks.end());
+	ok &= driftGuard(drift, 2, "the warning and the build agree on a reversed route");
+	SceneModel scoped = twoLineScene(3);
+	scoped.signallingAreas = {{"track-a", 0.0, 3.0, 4, "line.a"}};
+	ok &= driftGuard(scoped, 3, "the warning and the build agree on a track-scoped area");
+	scoped.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 2.0, 5, "line.b"}};
+	ok &= driftGuard(scoped, 0, "the warning and the build agree when a track-scoped area adds to a network-wide one");
+	scoped.signallingAreas = {{"cover", 0.0, 2.0, 1, {}}, {"track-b-tail", 1.0 + 1e-7, 3.0, 5, "line.b"}};
+	ok &= driftGuard(scoped, 1, "the warning and the build agree when the track-scoped area misses a start edge");
+	return ok;
+}
+
 static bool runLongTrackChecks() {
 	bool ok = true;
 	constexpr int arcCount = 1600;
@@ -621,6 +862,7 @@ static bool runRouteStorageChecks() {
 
 int main() {
 	bool ok = runTinyBuilderChecks();
+	ok &= runAreaMappingChecks();
 	ok &= runLongTrackChecks();
 	ok &= runManySectionsChecks();
 	ok &= runRouteStorageChecks();

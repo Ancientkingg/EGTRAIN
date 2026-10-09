@@ -3,6 +3,7 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdlib>
@@ -322,6 +323,40 @@ static bool testNewSceneRoundTrip(const fs::path& root) {
 	return ok;
 }
 
+// Every level from 0 to 5, with and without a track, in file order.
+static bool testSignallingAreaRoundTrip(const fs::path& root) {
+	SceneModel expected = makeNewSceneModel();
+	expected.tracks = {{"area-track-a"}, {"area-track-b"}};
+	for (int level = 0; level <= 5; ++level) {
+		SceneSignallingArea area;
+		area.id = "area-" + std::to_string(level);
+		area.startKm = 1.5 * level;
+		area.endKm = 1.5 * level + 1.25;
+		area.level = level;
+		if (level % 3 == 1)
+			area.trackId = "area-track-a";
+		else if (level % 3 == 2)
+			area.trackId = "area-track-b";
+		expected.signallingAreas.push_back(area);
+	}
+	const fs::path bundle = root / "areas.egscene";
+	bool ok = expect(saveSceneBundle(expected, bundle.string()).success(), "scene with areas saves as bundle");
+	const SceneLoadResult loaded = loadScenePath(bundle.string());
+	ok &= expect(!hasErrors(loaded.diagnostics), "bundle with areas has no structural diagnostics");
+	ok &= expect(loaded.scene.signallingAreas.size() == expected.signallingAreas.size(),
+		"bundle keeps every signalling area");
+	for (std::size_t index = 0; index < std::min(loaded.scene.signallingAreas.size(),
+									expected.signallingAreas.size());
+		++index) {
+		const SceneSignallingArea& want = expected.signallingAreas[index];
+		const SceneSignallingArea& got = loaded.scene.signallingAreas[index];
+		ok &= expect(got.id == want.id && got.startKm == want.startKm && got.endKm == want.endKm
+				&& got.level == want.level && got.trackId == want.trackId,
+			"bundle keeps area id, range, level and track exactly");
+	}
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage: test_scenebundle <scene-directory>\n";
@@ -335,6 +370,7 @@ int main(int argc, char** argv) {
 		ok &= testExtractionCleanup(source.scene);
 	TempDir temp;
 	ok &= testNewSceneRoundTrip(temp.path);
+	ok &= testSignallingAreaRoundTrip(temp.path);
 	SceneModel categoryScene = source.scene;
 	if (!categoryScene.services.empty()) {
 		const fs::path categoryFolder = temp.path / "category";

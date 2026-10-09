@@ -743,6 +743,60 @@ int main(int argc, char** argv) {
 	ok &= expect(!hasCode(validateRunnableScene(noRoutes), levelMissing),
 		"a scene without routes has no route sections to report");
 
+	// The warning does not depend on the direction of the route and follows the builder at the area edges.
+	auto levelMissingMessage = [&](const SceneModel& candidate) {
+		const SceneDiagnostic* warning = nullptr;
+		const auto candidateDiagnostics = validateRunnableScene(candidate);
+		warning = findCode(candidateDiagnostics, levelMissing);
+		return warning == nullptr ? std::string() : warning->message;
+	};
+	SceneModel reversedLevels = clean;
+	reversedLevels.routes[0].blocks = {"block-2", "block-1"};
+	ok &= expect(buildSceneRouteTraversal(reversedLevels, reversedLevels.routes[0]).direction == -1,
+		"the test route runs in decreasing chainage");
+	reversedLevels.signallingAreas.clear();
+	ok &= expect(contains(levelMissingMessage(reversedLevels), "2 of 2 route sections have no signalling level")
+			&& contains(levelMissingMessage(reversedLevels), "@block-2@, @block-1@"),
+		"a reversed route without areas names its sections in route order");
+	reversedLevels.signallingAreas = {{"partial", 0.0, 1.5, 2, {}}};
+	const std::string reversedPartial = levelMissingMessage(reversedLevels);
+	ok &= expect(contains(reversedPartial, "1 of 2 route sections has no signalling level")
+			&& contains(reversedPartial, "@block-2@") && !contains(reversedPartial, "@block-1@"),
+		"a reversed route gets the same warning as the forward route");
+	reversedLevels.signallingAreas = {{"all", 0.0, 2.0, 2, {}}};
+	ok &= expect(levelMissingMessage(reversedLevels).empty(), "a reversed route covered by an area has no warning");
+
+	SceneModel edges = clean;
+	edges.signallingAreas = {{"first", 0.0, 1.0, 2, {}}};
+	std::string edgeMessage = levelMissingMessage(edges);
+	ok &= expect(contains(edgeMessage, "1 of 2 route sections") && contains(edgeMessage, "@block-2@")
+			&& !contains(edgeMessage, "@block-1@"),
+		"a section that ends exactly at the area end is covered");
+	edges.signallingAreas = {{"first", 0.0, 1.0 - 5e-9, 2, {}}};
+	ok &= expect(contains(levelMissingMessage(edges), "1 of 2 route sections"),
+		"an area end just inside the tolerance still covers the section");
+	edges.signallingAreas = {{"first", 0.0, 1.0 - 1e-7, 2, {}}};
+	ok &= expect(contains(levelMissingMessage(edges), "2 of 2 route sections"),
+		"an area end outside the tolerance does not cover the section");
+	edges.signallingAreas = {{"second", 1.0 + 5e-9, 2.0, 2, {}}};
+	edgeMessage = levelMissingMessage(edges);
+	ok &= expect(contains(edgeMessage, "1 of 2 route sections") && contains(edgeMessage, "@block-1@")
+			&& !contains(edgeMessage, "@block-2@"),
+		"an area start just inside the tolerance still covers the section");
+	edges.signallingAreas = {{"second", 1.0 + 1e-7, 2.0, 2, {}}};
+	ok &= expect(contains(levelMissingMessage(edges), "2 of 2 route sections"),
+		"an area start outside the tolerance does not cover the section");
+	edges.signallingAreas = {{"first", 0.0, 1.0, 2, {}}, {"second", 1.0, 2.0, 3, {}}};
+	ok &= expect(levelMissingMessage(edges).empty() && !hasCode(validateRunnableScene(edges), "scene.signalling_area.conflict"),
+		"adjacent areas that meet on a section edge cover both sections without a conflict");
+	edges.signallingAreas = {{"first", 0.0, 1.5, 2, {}}, {"second", 1.5, 2.0, 3, {}}};
+	edgeMessage = levelMissingMessage(edges);
+	ok &= expect(contains(edgeMessage, "1 of 2 route sections") && contains(edgeMessage, "@block-2@"),
+		"a section that crosses the edge between two areas is reported");
+	edges.signallingAreas.push_back({"bridge", 0.5, 2.0, 3, {}});
+	ok &= expect(levelMissingMessage(edges).empty(),
+		"a third area that contains the straddling section removes the warning");
+
 	const std::string noEffect = "scene.single_track.no_effect";
 	SceneModel restricted = clean;
 	restricted.singleTrackRestrictions = {{"block-1", "block-2", "block-1", "block-2"}};
