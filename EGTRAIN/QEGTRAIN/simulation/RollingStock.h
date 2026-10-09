@@ -1293,45 +1293,129 @@ public:
 		return MinBX;
 	}
 
-	// Function to draw the braking curve which must be followed by the train
-	virtual void DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
-		int t;
-		Section Block;
-		Arc Ab;
+	// Function to draw the braking curve which must be followed by the train.
+	// The curve ends at X0 with the speed V2 and is integrated backwards until it reaches the speed V1. It is stored in driving order in Sbrak and Vbrak,
+	// and BrakStep is the index of its last entry. When there is no such curve, because it leaves the route or does not reach V1 within the steps,
+	// the function returns false and BrakStep is -1. This also holds for V1 <= V2, where there is nothing to brake.
+	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
 		double U[2000];
 		double X[2000]; // Definition of Temporary variables Vector U=Speed, X=Abscissa
-		double DX;		// Final Abscissa deriving from inverse integration of the Braking Curve
 		U[0] = V2;
 		X[0] = X0 - 0.002; // The train stops at two metres from the objective point
+		BrakStep = -1;
 		if (V1 > V2) {
+			int t;
 			for (t = 1; t < 2000; t++) {
+				int BlockIdx = 0;
 				for (int h = 0; h < Blocks; h++) {
 					if ((X[t - 1] < BS[h].end_node.X * 1000) && (X[t - 1] >= BS[h].start_node.X * 1000)) { // Selection of the right Block Section
-						Block = BS[h];
+						BlockIdx = h;
+						break;
 					}
 				}
+				const Section& Block = BS[BlockIdx];
+				const Arc* Ab = nullptr;
 				for (int j = 0; j < Block.total_arcs; j++) {
 					if ((X[t - 1] < Block.arcs_in_signalling_block_section[j].endNode.X * 1000) && (X[t - 1] >= Block.arcs_in_signalling_block_section[j].startNode.X * 1000)) { // Selection of the right Arc of the Block Section
-						Ab = Block.arcs_in_signalling_block_section[j];
+						Ab = &Block.arcs_in_signalling_block_section[j];
+						break;
 					}
 				}
+				if (Ab == nullptr) // X[t - 1] is outside the route, so entry t cannot be computed
+					return false;
 				// Inverse integration of the real Braking Curve
-				U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature)) * timestep / (total_train_mass * massFactor);
-				X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature));
-			}
-			for (t = 0; t < 2000; t++) {
-				if (U[t] >= V1) {
-					DX = X[t];
-					BrakStep = t;
+				U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab->gradient, Ab->curvature)) * timestep / (total_train_mass * massFactor);
+				X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab->gradient, Ab->curvature));
+				if (U[t] >= V1)
 					break;
-				}
 			}
-
-			for (int t = 0; t <= BrakStep; t++) {
+			if (t == 2000) // not reached in 1,999 steps
+				return false;
+			BrakStep = t;
+			for (t = 0; t <= BrakStep; t++) {
 				Sbrak[t] = X[BrakStep - t];
 				Vbrak[t] = U[BrakStep - t];
 			}
 		}
+		return BrakStep >= 0;
+	}
+
+	// Moves the train from time_seconds - 1 to time_seconds in the braking phase towards the point (Xobmin, Vobmin).
+	// The train follows the braking curve. When there is no curve that reaches its speed, it brakes with the full braking force for one step.
+	// As is the arc of the head of the train.
+	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
+		counter++;
+		if (counter == 1) {
+			if (DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobmin, Xobmin, BS, Blocks)) {
+				double m1, m2;
+				m1 = (instant_train_speed[time_seconds - 1] - instant_train_speed[time_seconds - 2]) / (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]); // angular coefficient of acceleration curve
+				m2 = (Vbrak[1] - Vbrak[0]) / (Sbrak[1] - Sbrak[0]);																																  // angular coefficient of braking curve
+				instant_spatial_position[time_seconds - 1] = (m1 * instant_spatial_position[time_seconds - 2] - instant_train_speed[time_seconds - 2] + Vbrak[1] - m2 * Sbrak[1]) / (m1 - m2);	  // Intersection abscissa
+				instant_train_speed[time_seconds - 1] = instant_train_speed[time_seconds - 2] + m1 * (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]);	  // Intersection speed
+
+				for (int t = 0; t <= BrakStep; t++) {
+					if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
+						brakingPoint = t;
+						break;
+					}
+				}
+				instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
+				if (instant_train_speed[time_seconds] < 0)
+					instant_train_speed[time_seconds] = 0;
+
+				instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
+				Eq[time_seconds] = 55;
+			} else {
+				fullBrakingStep(time_seconds, As);
+			}
+		} else {
+			Eq[time_seconds] = 52;
+			if (BrakStep >= 0) {
+				instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
+				if (instant_train_speed[time_seconds] < 0)
+					instant_train_speed[time_seconds] = 0;
+				instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
+			}
+			if ((BrakStep < 0) || (instant_spatial_position[time_seconds] < instant_spatial_position[time_seconds - 1])) {
+				counter = 1;
+				if (DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobmin, Xobmin, BS, Blocks)) {
+					for (int t = 0; t <= BrakStep; t++) {
+						if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
+							brakingPoint = t;
+							break;
+						}
+					}
+					instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
+					if (instant_train_speed[time_seconds] < 0)
+						instant_train_speed[time_seconds] = 0;
+					instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
+					Eq[time_seconds] = 53;
+				} else {
+					fullBrakingStep(time_seconds, As);
+				}
+			}
+
+			// Condition to state if because of a too steep gradient during braking we reach a speed lower than Vobmin that force the train to reaccelerate afterwards (the reacelleration is part of the braking curve in this case)
+			if ((BrakStep >= 0) && (instant_train_speed[time_seconds] < Vobmin)) {
+				this->GradientExceptionInBraking = true;
+			} else {
+				this->GradientExceptionInBraking = false;
+			}
+		}
+	}
+
+	// One step of braking with the full braking force, for a train that has no braking curve to follow.
+	// The deceleration is the one of the braking curve: the full braking force plus the resistances at the speed of the train and the gradient and
+	// curvature of the arc As, divided by the mass with its mass factor. On a descent steeper than the braking force holds it is negative and the train gains speed.
+	// The new speed is not below zero and the train advances by the mean of the old and the new speed.
+	void fullBrakingStep(int time_seconds, const Arc& As) {
+		const double speed = instant_train_speed[time_seconds - 1];
+		const double mass = total_train_mass * massFactor;
+		const double deceleration = (mass * max_train_decelaration + total_train_resistances(speed, As.gradient, As.curvature)) / mass;
+		instant_train_speed[time_seconds] = std::max(0.0, speed - deceleration * timestep);
+		instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + (speed + instant_train_speed[time_seconds]) / 2 * timestep;
+		GradientExceptionInBraking = false;
+		Eq[time_seconds] = 54;
 	}
 
 	// Function for printing Train Trajectory Data
@@ -1676,62 +1760,7 @@ public:
 						 (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000) &&
 						 (instant_train_speed[time_seconds - 1] > 0)) {
 
-					counter++;
-					double Vobj = 0, Xobj = 0;
-
-					if (counter == 1) {
-						Vobj = Vobmin;
-						Xobj = Xobmin;
-						DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobj, Xobj, train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
-						double m1, m2;
-						m1 = (instant_train_speed[time_seconds - 1] - instant_train_speed[time_seconds - 2]) / (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]); // angular coefficient of acceleration curve
-						m2 = (Vbrak[1] - Vbrak[0]) / (Sbrak[1] - Sbrak[0]);																																  // angular coefficient of braking curve
-						instant_spatial_position[time_seconds - 1] = (m1 * instant_spatial_position[time_seconds - 2] - instant_train_speed[time_seconds - 2] + Vbrak[1] - m2 * Sbrak[1]) / (m1 - m2);	  // Intersection abscissa
-						instant_train_speed[time_seconds - 1] = instant_train_speed[time_seconds - 2] + m1 * (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]);	  // Intersection speed
-
-						for (int t = 0; t <= BrakStep; t++) {
-							if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
-								brakingPoint = t;
-								break;
-							}
-						}
-						instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-						if (instant_train_speed[time_seconds] < 0)
-							instant_train_speed[time_seconds] = 0;
-
-						instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-						Eq[time_seconds] = 55;
-					} else {
-						Eq[time_seconds] = 52;
-						instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-						if (instant_train_speed[time_seconds] < 0)
-							instant_train_speed[time_seconds] = 0;
-						instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-						if (instant_spatial_position[time_seconds] < instant_spatial_position[time_seconds - 1]) {
-							counter = 1;
-							Vobj = Vobmin;
-							Xobj = Xobmin;
-							DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobj, Xobj, train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
-							for (int t = 0; t <= BrakStep; t++) {
-								if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
-									brakingPoint = t;
-									break;
-								}
-							}
-							instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-							if (instant_train_speed[time_seconds] < 0)
-								instant_train_speed[time_seconds] = 0;
-							instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-							Eq[time_seconds] = 53;
-						}
-
-						// Condition to state if because of a too steep gradient during braking we reach a speed lower than Vobmin that force the train to reaccelerate afterwards (the reacelleration is part of the braking curve in this case)
-						if (instant_train_speed[time_seconds] < Vobmin) {
-							this->GradientExceptionInBraking = true;
-						} else {
-							this->GradientExceptionInBraking = false;
-						}
-					}
+					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
 
 					// if two braking curves are both restrictive
 					/*if ((Xobj!=Xobmin)||(Vobj!=Vobmin)||((Xobj!=Xobmin)&&(Vobj!=Vobmin))){counter=1;
