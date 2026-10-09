@@ -2,7 +2,7 @@
 
 This page says what the simulation does at each signalling level, how a
 signalling area gives a section its level, and how signalling areas differ from
-block sections and from the areas of the capacity analysis. It describes the
+block sections and from the scope of a capacity analysis. It describes the
 code, not a real railway. The names of the levels are labels for what the model
 does. Nothing here is checked against a source about a real system; see
 [What is not established](#what-is-not-established).
@@ -515,12 +515,12 @@ Tests: `tests/test_scenebuilder.cpp` (`runAreaMappingChecks`),
 Three things that are easy to confuse are all about stretches of track. They are
 independent. Changing one does not change the others.
 
-| | Signalling area | Physical block section | Capacity-analysis area |
+| | Signalling area | Physical block section | Scope of a capacity analysis |
 | --- | --- | --- | --- |
-| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A stretch for which a capacity result is computed |
+| What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a block range that the user chooses for one analysis |
 | Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the scene. There is no such object |
 | Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `signalling_block_sections` and the route copies | The capacity analysis dialog: route, first and last block, trains and period, from the blocking times of the run (`diagrams/CapacityAnalysis`) |
-| What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the capacity result |
+| What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 
 Areas are measured against block sections, never the other way round. A
