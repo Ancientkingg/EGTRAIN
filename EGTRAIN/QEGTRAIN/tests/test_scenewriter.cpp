@@ -1,5 +1,6 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/StagedDirectory.h"
 #include "scene/StopInsertion.h"
 
 #include <algorithm>
@@ -827,6 +828,125 @@ static bool checkSavePublication() {
 	return ok;
 }
 
+// The staged directory helper: creation, removal when the object goes out of scope, and publication in each outcome.
+static bool checkStagedDirectory() {
+	bool ok = true;
+	using Files = std::map<std::string, std::string>;
+	const auto put = [](const fs::path& path, const std::string& bytes) {
+		std::ofstream output(path, std::ios::binary);
+		output << bytes;
+	};
+
+	{
+		TempDir temp;
+		StagedDirectory staged;
+		const std::error_code created = createStagedDirectory(temp.path, "scene.staging-", true, staged);
+		ok &= expect(!created && fs::is_directory(staged.path) && fs::is_empty(staged.path) && staged.path.parent_path() == temp.path
+				&& staged.path.filename().string().rfind("scene.staging-", 0) == 0,
+			"staged directory is created empty in the parent with the prefix");
+#ifndef _WIN32
+		const fs::perms groupAndOther = fs::status(staged.path).permissions() & (fs::perms::group_all | fs::perms::others_all);
+		ok &= expect(groupAndOther == fs::perms::none, "owner-only staged directory has no group and no other permission bits");
+#endif
+		StagedDirectory plain;
+		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", false, plain) && fs::is_directory(plain.path),
+			"staged directory without the owner-only mode is created");
+	}
+
+	{
+		TempDir temp;
+		fs::path discardedPath, releasedPath;
+		{
+			StagedDirectory discarded, released;
+			ok &= expect(!createStagedDirectory(temp.path, "discarded-", false, discarded)
+					&& !createStagedDirectory(temp.path, "released-", false, released),
+				"staged directories are created");
+			discardedPath = discarded.path;
+			releasedPath = released.path;
+			released.release();
+			ok &= expect(released.path.empty(), "release clears the path");
+		}
+		ok &= expect(!discardedPath.empty() && !fs::exists(discardedPath), "staged directory is removed when it goes out of scope");
+		ok &= expect(!releasedPath.empty() && fs::is_directory(releasedPath), "released directory stays on disk");
+	}
+
+	{
+		TempDir temp;
+		const fs::path destination = temp.path / "scene";
+		StagedDirectory staged;
+		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged), "staged directory is created for the first publication");
+		put(staged.path / "new.txt", "new\n");
+		const StagedPublishResult published = publishStagedDirectory(staged, destination, fs::path());
+		ok &= expect(published.step == StagedPublishStep::Published && !published.error && !published.restoreError
+				&& !published.removeBackupError,
+			"publication into an absent destination succeeds");
+		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}
+				&& staged.path.empty() && entryNames(temp.path) == std::set<std::string>{"scene"},
+			"published destination holds the staged files and nothing else is left");
+	}
+
+	{
+		TempDir temp;
+		const fs::path destination = temp.path / "scene";
+		fs::create_directory(destination);
+		put(destination / "old.txt", "old\n");
+		StagedDirectory staged;
+		fs::path backup;
+		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
+				&& !uniqueSiblingPath(temp.path, "scene.backup-", backup) && !fs::exists(backup)
+				&& backup.filename().string().rfind("scene.backup-", 0) == 0,
+			"staged directory and backup name are reserved");
+		put(staged.path / "new.txt", "new\n");
+		const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
+		ok &= expect(published.step == StagedPublishStep::Published && !published.error && !published.restoreError
+				&& !published.removeBackupError,
+			"publication over an existing destination succeeds");
+		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"new.txt", "new\n"}}
+				&& entryNames(temp.path) == std::set<std::string>{"scene"},
+			"replaced destination holds only the new files and no backup is left");
+	}
+
+	{
+		// The staging directory is gone, so the rename into place fails and the old destination is moved back.
+		TempDir temp;
+		const fs::path destination = temp.path / "scene";
+		fs::create_directory(destination);
+		put(destination / "old.txt", "old\n");
+		StagedDirectory staged;
+		fs::path backup;
+		ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
+				&& !uniqueSiblingPath(temp.path, "scene.backup-", backup),
+			"staged directory and backup name are reserved for the failing rename");
+		fs::remove_all(staged.path);
+		const StagedPublishResult failed = publishStagedDirectory(staged, destination, backup);
+		ok &= expect(failed.step == StagedPublishStep::Rename && failed.error && !failed.restoreError && !failed.removeBackupError,
+			"failed rename into place is reported as the Rename step");
+		ok &= expect(fs::is_directory(destination) && readDirectoryBytes(destination) == Files{{"old.txt", "old\n"}}
+				&& entryNames(temp.path) == std::set<std::string>{"scene"},
+			"failed rename into place restores the old destination and leaves no backup");
+	}
+
+	{
+		TempDir temp;
+		const fs::path destination = temp.path / "scene";
+		fs::path stagingPath;
+		{
+			StagedDirectory staged;
+			fs::path backup;
+			ok &= expect(!createStagedDirectory(temp.path, "scene.staging-", true, staged)
+					&& !uniqueSiblingPath(temp.path, "scene.backup-", backup),
+				"staged directory and backup name are reserved for the missing destination");
+			stagingPath = staged.path;
+			const StagedPublishResult published = publishStagedDirectory(staged, destination, backup);
+			ok &= expect(published.step == StagedPublishStep::MoveToBackup && published.error && !fs::exists(destination),
+				"missing destination is reported as the MoveToBackup step");
+			ok &= expect(fs::is_directory(stagingPath), "staging directory is still owned after a failed move to the backup");
+		}
+		ok &= expect(entryNames(temp.path).empty(), "staging directory is removed after a failed move to the backup");
+	}
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	bool ok = true;
 	TempDir temp;
@@ -1455,6 +1575,7 @@ int main(int argc, char** argv) {
 		ok &= checkPopulatedScene(populatedTemp);
 	}
 	ok &= checkSavePublication();
+	ok &= checkStagedDirectory();
 
 	if (!ok)
 		return 1;
