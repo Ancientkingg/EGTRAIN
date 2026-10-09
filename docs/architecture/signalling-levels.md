@@ -188,6 +188,18 @@ copies of the other direction (`updateSingleTrackLocks`,
 does to a train depends on the level, as the sections below say. Cases:
 `single-track-level-*`.
 
+**Double switches.** A double switch is two route sections: a first half with a
+virtual signal at its end and a second half with one at its start. A train that
+covers a half puts both halves, the plain blocks named in their ids and the
+sections whose ids contain those block ids in `BlocksOccupied`.
+`unlockDoubleSwitches` then gives every second half of a route copy that has
+code 0 the code 270 and exit speed 0, and the section before it state `green`.
+The section after the double switch is not held by that lock: when it shares a
+plain block with the double switch, as the first half of a second double switch
+does, `Train::Det_Section_Occupied_By_Train` takes it out again if only the lock
+put it there. The crossover chain test runs two double switches in a row; see
+[Characterization tests](../development/build-and-test.md#characterization-tests).
+
 ## Levels
 
 | Level | Train separation | Stops before an occupied section | Blocking times | Single-track restriction |

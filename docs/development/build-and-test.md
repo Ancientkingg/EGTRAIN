@@ -369,7 +369,7 @@ has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
 
 ```bash
-cmake --build build --target test_characterization
+cmake --build build --target test_characterization test_crossover_chain
 ctest --test-dir build -L characterization --output-on-failure
 ```
 
@@ -393,6 +393,26 @@ Three more entries run committed scenes this way: `characterization_repeat_paimp
 and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, labelled
 `slow`). They fail when a run leaves state behind that changes a later run of the
 same scene, which is what a change to the global runtime arrays can cause.
+
+`test_crossover_chain` is a separate executable, because the harness above is
+tied to the line fixture (its length, its block size and the station at 8 km).
+It runs the scene `tests/fixtures/scenes/crossovers`: a chain of five tracks
+with two crossovers that follow each other directly, so that the second half of
+the first crossover and the first half of the second one share one long block.
+The rolling stock and the timetable are copied from the line fixture. Platform
+B lies inside the second crossover, and `F1` reaches it long before its planned
+departure, so `F1` stands in the crossover while `F2` arrives. The geometry is
+synthetic. For each of the levels 0, 1, 2 and 5, one CTest entry
+(`characterization_crossover_chain_level_0`, `-1`, `-2`, `-5`) sets a
+network-wide area of that level and runs train `F1` alone, train `R1` alone in
+the opposite direction, and `F1` with `F2` behind it. A train alone has to reach
+its last platform and stand only at platforms. The follower has to reach it too,
+stay behind the rear of `F1`, and not enter the second crossover while `F1` is
+in it. At levels 0, 1 and 2 it also has to wait in the second half of the first
+crossover meanwhile; at level 5 it waits further back, in front of the first
+crossover, and that is not checked. The levels 3 and 4 are not run, because a
+train alone does not stop in front of the second crossover there. The test reads
+no golden file.
 
 ### Reading a golden file
 

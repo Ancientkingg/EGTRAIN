@@ -147,3 +147,21 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 set_property(TEST characterization_repeat_netherlands APPEND PROPERTY LABELS slow)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
+
+# Two crossovers that follow each other directly, at the fixed block levels. A
+# separate executable: the harness above is tied to the line fixture.
+add_executable(test_crossover_chain ${SRC_DIR}/tests/characterization/test_crossover_chain.cpp)
+target_link_libraries(test_crossover_chain PRIVATE egtrain_dispatch egtrain_diagrams egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+
+set(EGTRAIN_CROSSOVER_CHAIN_FIXTURE ${SRC_DIR}/tests/fixtures/scenes/crossovers)
+foreach(level 0 1 2 5)
+	add_test(NAME characterization_crossover_chain_level_${level}
+		COMMAND test_crossover_chain --fixture ${EGTRAIN_CROSSOVER_CHAIN_FIXTURE} --level ${level}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+	list(APPEND EGTRAIN_CROSSOVER_CHAIN_TESTS characterization_crossover_chain_level_${level})
+endforeach()
+
+set_tests_properties(${EGTRAIN_CROSSOVER_CHAIN_TESTS} PROPERTIES
+	LABELS "characterization;unit"
+	TIMEOUT 60
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
