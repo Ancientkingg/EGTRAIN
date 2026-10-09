@@ -58,6 +58,10 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	entry-order-level-0
 	entry-order-level-1
 	entry-order-level-2
+	sf-late-level-none
+	sf-late-level-0
+	sf-late-level-3
+	sf-retarget-level-0
 	late-leader-level-3
 	late-leader-level-4
 	single-track-level-none

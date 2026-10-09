@@ -118,6 +118,41 @@
                 }
             ],
             "name": "Signal failure entered"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-late",
+            "incidents": [
+                {
+                    "end_seconds": 600.0,
+                    "id": "inc.late",
+                    "start_seconds": 188.0,
+                    "target": "2-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure late"
+        },
+        {
+            "entrance_delays": [],
+            "id": "signal-failure-retarget",
+            "incidents": [
+                {
+                    "end_seconds": 1200.0,
+                    "id": "inc.re.a",
+                    "start_seconds": 600.0,
+                    "target": "6-B0",
+                    "type": "signal_failure"
+                },
+                {
+                    "end_seconds": 1200.0,
+                    "id": "inc.re.b",
+                    "start_seconds": 752.0,
+                    "target": "5-B0",
+                    "type": "signal_failure"
+                }
+            ],
+            "name": "Signal failure retarget"
         }
     ]
 }

@@ -237,6 +237,14 @@ std::vector<CaseSpec> buildCaseTable() {
 	// blocked, so L1 has to enter first.
 	for (int level = 0; level <= 2; ++level)
 		cases.push_back({"entry-order-level-" + std::to_string(level), "signal-failure-first", {"F2", "L1"}, level, ""});
+	// The failure starts when F1 is 316 m before the failed section at top speed, closer than its braking distance of
+	// 767 m, so F1 cannot stop in front of it and has to brake with full force from where it is.
+	cases.push_back({"sf-late-level-none", "signal-failure-late", {"F1"}, kNoSignallingArea, ""});
+	for (int level : {0, 3})
+		cases.push_back({"sf-late-level-" + std::to_string(level), "signal-failure-late", {"F1"}, level, ""});
+	// F1 brakes to 11.1 m/s at the end of 4-B0 for the failure of 6-B0. At 752 s, 23 m before that point, the failure of 5-B0
+	// turns the target into a stop, which F1 cannot reach.
+	cases.push_back({"sf-retarget-level-0", "signal-failure-retarget", {"F1"}, 0, ""});
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});

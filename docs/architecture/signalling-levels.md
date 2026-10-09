@@ -104,7 +104,9 @@ A code changes what a following train does in four ways.
    speed limit and the signal speed limit of the first arc of the next section.
    A train looks at its own section and the eight after it
    (`europeanVitalComputerWithListsImproved`) and brakes along a braking curve
-   so that it has the end speed at the end of each of them.
+   so that it has the end speed at the end of each of them. A train that is
+   closer to a target than its braking distance cannot follow the curve. It
+   brakes with full force from where it is, and its position never goes back.
 3. **Hold at a red state.** A train that stands within 4 m of the end of an arc
    waits there while the state of its section is `red`. A train that has
    finished its dwell at a platform at the end of a block waits in the same way.
@@ -162,6 +164,12 @@ each step:
   is failed.
 - A train that is already inside the section when the failure starts is not
   stopped: the authority lies behind it (`sf-entered-level-none`).
+- A train that is closer to the authority than its braking distance when the
+  failure starts brakes with full force until it passes the authority. The
+  authority then lies behind it as for a train inside the section, so the train
+  accelerates again and runs through the failed section (`sf-late-level-*`).
+  The same holds when a second failure turns a speed target into a stop at the
+  point the train is about to reach (`sf-retarget-level-0`).
 - On the first step after the incident has ended, the failed sections are handed
   to the release function.
 - The heads of a failed section show the failure, and its track is drawn as
@@ -169,7 +177,8 @@ each step:
 
 Cases: `sf-forward-level-*` and `sf-reverse-level-*` for the levels 0 to 5 and
 none; `sf-adjacent-level-*`, `sf-staggered-level-*`, `sf-last-level-*` and
-`sf-first-level-*` for the levels 0, 1, 2 and none; `sf-entered-level-none`.
+`sf-first-level-*` for the levels 0, 1, 2 and none; `sf-entered-level-none`;
+`sf-late-level-none`, `-0` and `-3`; `sf-retarget-level-0`.
 
 **Single-track restrictions.** While a train of one direction is inside a
 single-track stretch, the sections of the stretch count as occupied for the route
@@ -557,6 +566,11 @@ Limits that no issue tracks:
   braking leader as its target. No case covers either.
 - The routines of levels 1 and 2 clear the wrong section after writing code 270
   (see levels 1 and 2). It has no effect with one level.
+- A train that cannot stop before a stop target passes it. The target then lies
+  behind the train, so nothing holds it in front of the failed or occupied
+  section that the target protected, and the train can end inside a section
+  that another train occupies. The model does not hold the train that takes the
+  section.
 - When several authorities compete at levels 3 and 4 or at a signal failure, the
   closest one is chosen with a braking distance whose formula subtracts the
   squared target speed only after dividing it (`V^2 - Vt^2 / (2 a)`). The effect
