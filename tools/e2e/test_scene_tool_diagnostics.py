@@ -33,6 +33,21 @@ def main() -> None:
         if context not in proc.stdout:
             raise SystemExit(f"grouped diagnostic lost context: {context}")
 
+    runnable = subprocess.run(
+        [scene_tool, "validate", "--runnable", root / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if runnable.returncode != 0:
+        raise SystemExit(runnable.stdout)
+    if "scene.signalling.level.missing" not in runnable.stdout:
+        raise SystemExit(f"validate --runnable lost the run checks: {runnable.stdout}")
+    if "scene.signalling.level.missing" in proc.stdout:
+        raise SystemExit("validate printed a run check")
+
 
 if __name__ == "__main__":
     main()

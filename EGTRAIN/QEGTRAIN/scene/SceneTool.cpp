@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 				  << "  scene_tool pack <scene-directory> <output.egscene>\n"
 				  << "  scene_tool unpack <input.egscene> <output-directory>\n"
 				  << "  scene_tool export <scene-path> <outDir>\n"
-				  << "  scene_tool validate <scene-path>\n";
+				  << "  scene_tool validate [--runnable] <scene-path>\n";
 		return 1;
 	}
 
@@ -101,14 +101,16 @@ int main(int argc, char** argv) {
 		printDiags(res.diagnostics);
 		return res.success() ? 0 : 1;
 	} else if (cmd == "validate") {
-		if (argc < 3) {
-			std::cerr << "Usage: scene_tool validate <scene-path>\n";
+		const bool runnable = argc >= 3 && std::string(argv[2]) == "--runnable";
+		const int pathIndex = runnable ? 3 : 2;
+		if (argc <= pathIndex) {
+			std::cerr << "Usage: scene_tool validate [--runnable] <scene-path>\n";
 			return 1;
 		}
-		const SceneLoadResult loaded = loadScenePath(argv[2]);
+		const SceneLoadResult loaded = loadScenePath(argv[pathIndex]);
 		auto diags = loaded.diagnostics;
 		if (!hasErrors(diags)) {
-			const auto semantic = validateScene(loaded.scene);
+			const auto semantic = runnable ? validateRunnableScene(loaded.scene) : validateScene(loaded.scene);
 			diags.insert(diags.end(), semantic.begin(), semantic.end());
 		}
 		printDiags(diags);
