@@ -9,8 +9,13 @@
 #include <functional>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
 #include <vector>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -383,6 +388,84 @@ int main() {
 			});
 			ok &= expect(hasDiag(wrappedRegion.diagnostics, "scene.views.row", SceneSeverity::Warning),
 				"Out-of-range station region id skips the row");
+		}
+		// An import publishes its staging directory in one rename. The entries of a private root show every staging or
+		// backup sibling that an import leaves.
+		{
+			TempDir publishRoot;
+			const fs::path root(publishRoot.dir);
+			const auto entryNames = [](const fs::path& directory) {
+				std::set<std::string> names;
+				for (const auto& entry : fs::directory_iterator(directory))
+					names.insert(entry.path().filename().string());
+				return names;
+			};
+			const fs::path published = root / "scene";
+			writeText(published / "marker.txt", "marker\n");
+			const auto replaced = importLegacyScene(legacyDir.dir, published.string(), "Paimpol");
+			ok &= expect(replaced.success() && replaced.wroteScene && fs::exists(published / "scene.json")
+					&& !fs::exists(published / "marker.txt"),
+				"Import over an existing directory replaces the whole directory");
+			ok &= expect(entryNames(root) == std::set<std::string>{"scene"},
+				"Import over an existing directory leaves no staging or backup sibling");
+			const fs::path fresh = root / "fresh";
+			const auto created = importLegacyScene(legacyDir.dir, fresh.string(), "Paimpol");
+			ok &= expect(created.success() && created.wroteScene && fs::exists(fresh / "scene.json"),
+				"Import into an absent destination succeeds");
+			ok &= expect(entryNames(root) == std::set<std::string>{"scene", "fresh"},
+				"Import into an absent destination leaves no staging sibling");
+#ifndef _WIN32
+			// An import keeps the default mode of a new directory.
+			const fs::path probe = root / "probe";
+			fs::create_directory(probe);
+			ok &= expect(fs::status(published).permissions() == fs::status(probe).permissions(),
+				"Imported scene directory has the default mode of a new directory");
+			fs::remove(probe);
+
+			// A read-only parent refuses the staging directory. This does not apply to root.
+			TempDir readOnlyRoot;
+			const fs::path readOnlyParent(readOnlyRoot.dir);
+			fs::permissions(readOnlyParent, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
+			if (access(readOnlyParent.c_str(), W_OK) != 0) {
+				const fs::path blocked = readOnlyParent / "scene";
+				const auto refused = importLegacyScene(legacyDir.dir, blocked.string(), "Paimpol");
+				bool reported = false;
+				for (const auto& diagnostic : refused.diagnostics) {
+					reported = reported
+						|| (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.import.missing"
+							&& diagnostic.message.rfind("Cannot create staging directory", 0) == 0);
+				}
+				ok &= expect(!refused.wroteScene && reported, "Import into a read-only parent reports the staging directory");
+				ok &= expect(!fs::exists(blocked), "Failed import creates no destination");
+			}
+			fs::permissions(readOnlyParent, fs::perms::owner_all, fs::perm_options::replace);
+
+			// A backup that cannot be emptied is reported as a warning and the import still succeeds. This does not apply to root.
+			TempDir keptRoot;
+			const fs::path keptScene = fs::path(keptRoot.dir) / "scene";
+			const fs::path locked = keptScene / "locked";
+			writeText(locked / "keep.txt", "keep\n");
+			fs::permissions(locked, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
+			if (access(locked.c_str(), W_OK) != 0) {
+				const auto kept = importLegacyScene(legacyDir.dir, keptScene.string(), "Paimpol");
+				fs::path backup;
+				for (const auto& diagnostic : kept.diagnostics) {
+					if (diagnostic.severity == SceneSeverity::Warning && diagnostic.code == "scene.import.cleanup"
+						&& diagnostic.message.rfind("Could not remove import backup", 0) == 0)
+						backup = diagnostic.file;
+				}
+				ok &= expect(kept.success() && fs::exists(keptScene / "scene.json"),
+					"Import still succeeds when the backup cannot be removed");
+				ok &= expect(!backup.empty() && fs::exists(backup / "locked" / "keep.txt"),
+					"Import warns about the backup that it could not remove");
+				if (!backup.empty()) {
+					std::error_code backupModeError;
+					fs::permissions(backup / "locked", fs::perms::owner_all, fs::perm_options::replace, backupModeError);
+				}
+			}
+			std::error_code lockedModeError;
+			fs::permissions(locked, fs::perms::owner_all, fs::perm_options::replace, lockedModeError);
+#endif
 		}
 		fs::remove(legacy / "Passengers/RouteChoiceFC_EQ1.csv");
 		const auto partialResult = importLegacyScene(legacyDir.dir, partialOutput.dir, "Paimpol");

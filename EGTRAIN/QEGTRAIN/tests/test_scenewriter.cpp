@@ -776,6 +776,57 @@ static bool checkPopulatedScene(const TempDir& temp) {
 	return ok;
 }
 
+static std::set<std::string> entryNames(const fs::path& directory) {
+	std::set<std::string> names;
+	for (const auto& entry : fs::directory_iterator(directory))
+		names.insert(entry.path().filename().string());
+	return names;
+}
+
+// A save publishes its staging directory as the scene directory. The entries of a private root show every staging or
+// backup sibling that a save leaves.
+static bool checkSavePublication() {
+	bool ok = true;
+	TempDir temp;
+	const fs::path root = temp.path;
+	const fs::path destination = root / "scene";
+	const SceneModel scene = completeScene();
+
+	const SceneSaveResult first = saveScene(scene, destination.string());
+	printErrors(first.diagnostics, "publication first save");
+	ok &= expect(first.success(), "save into an absent destination succeeds");
+	{
+		std::ofstream marker(destination / "marker.txt", std::ios::binary);
+		marker << "marker\n";
+	}
+	const SceneSaveResult second = saveScene(scene, destination.string());
+	printErrors(second.diagnostics, "publication second save");
+	ok &= expect(second.success() && fs::exists(destination / "marker.txt"), "save over an existing destination succeeds");
+	ok &= expect(entryNames(root) == std::set<std::string>{"scene"}, "saves leave no staging or backup sibling");
+
+#ifndef _WIN32
+	// The published directory is the staging directory, so it keeps its owner-only mode.
+	const fs::perms groupAndOther = fs::status(destination).permissions() & (fs::perms::group_all | fs::perms::others_all);
+	ok &= expect(groupAndOther == fs::perms::none, "saved scene directory has no group and no other permission bits");
+
+	// A read-only parent refuses the staging directory. This does not apply to root.
+	fs::permissions(root, fs::perms::owner_read | fs::perms::owner_exec, fs::perm_options::replace);
+	if (access(root.c_str(), W_OK) != 0) {
+		const fs::path other = root / "other";
+		const SceneSaveResult refused = saveScene(scene, other.string());
+		const bool reported = std::any_of(refused.diagnostics.begin(), refused.diagnostics.end(), [](const SceneDiagnostic& diagnostic) {
+			return diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.save.write"
+				&& diagnostic.message.rfind("Cannot create a private scene staging directory", 0) == 0;
+		});
+		ok &= expect(!refused.success() && reported, "save into a read-only parent reports the staging directory");
+		ok &= expect(!fs::exists(other), "failed save creates no destination");
+		ok &= expect(entryNames(root) == std::set<std::string>{"scene"}, "failed save leaves no staging sibling");
+	}
+	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
+#endif
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	bool ok = true;
 	TempDir temp;
@@ -1403,6 +1454,7 @@ int main(int argc, char** argv) {
 		TempDir populatedTemp;
 		ok &= checkPopulatedScene(populatedTemp);
 	}
+	ok &= checkSavePublication();
 
 	if (!ok)
 		return 1;
