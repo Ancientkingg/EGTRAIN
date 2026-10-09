@@ -673,6 +673,9 @@ def main() -> None:
         or "      - uses: actions/checkout@v4\n" not in assets_job
     ):
         missing.append("package check release assets job after the version and package jobs, on ubuntu-latest with a checkout")
+    # The release job runs the script from its checkout, so the checkout has to come first.
+    if not 0 <= release_job.find("      - uses: actions/checkout@v4\n") < release_job.find("      - name: Build the release assets\n"):
+        missing.append("release job checkout before the step that builds the release assets")
     if re.findall(r"^      - name: (.+)$", assets_job, re.MULTILINE) != [
         "Download all artifacts",
         "List downloaded files",
