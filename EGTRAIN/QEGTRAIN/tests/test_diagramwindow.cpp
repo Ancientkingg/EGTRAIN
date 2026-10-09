@@ -301,6 +301,150 @@ static bool exerciseTrainFilterKeysInWindow() {
 	return ok;
 }
 
+// Two trains with a solid and a dashed line each, and a fill for the first train.
+struct ColoredChart {
+	QChart* chart = new QChart;
+	QLineSeries* solid[2] = {};
+	QLineSeries* dashed[2] = {};
+	QAreaSeries* fill = nullptr;
+	QPen solidPen[2];
+	QPen dashedPen[2];
+	QPen fillPen;
+	QBrush fillBrush;
+};
+
+static ColoredChart makeColoredChart() {
+	ColoredChart built;
+	const QColor base[2] = {QColor(200, 40, 40), QColor(30, 90, 200)};
+	for (int train = 0; train < 2; ++train) {
+		const QString id = train == 0 ? "A" : "B";
+		const double offset = train * 60;
+		built.solidPen[train] = QPen(base[train], 3.0);
+		built.dashedPen[train] = QPen(base[train], 2.0, Qt::DashLine);
+		auto* solid = new QLineSeries;
+		solid->setName("Train " + id + " (simulated)");
+		solid->setProperty("trainId", id);
+		solid->setPen(built.solidPen[train]);
+		solid->append(10, 10 + offset);
+		solid->append(60, 20 + offset);
+		auto* dashed = new QLineSeries;
+		dashed->setName("Train " + id + " (planned)");
+		dashed->setProperty("trainId", id);
+		dashed->setPen(built.dashedPen[train]);
+		dashed->append(10, 25 + offset);
+		dashed->append(60, 30 + offset);
+		built.chart->addSeries(solid);
+		built.chart->addSeries(dashed);
+		built.solid[train] = solid;
+		built.dashed[train] = dashed;
+	}
+	auto* upper = new QLineSeries;
+	auto* lower = new QLineSeries;
+	upper->append(70, 50);
+	upper->append(90, 50);
+	lower->append(70, 40);
+	lower->append(90, 40);
+	built.fill = new QAreaSeries(upper, lower);
+	built.fill->setProperty("trainId", "A");
+	built.fillBrush = QBrush(QColor(200, 40, 40, 65));
+	built.fillPen = QPen(QColor(200, 40, 40), 1.5);
+	built.fill->setBrush(built.fillBrush);
+	built.fill->setPen(built.fillPen);
+	built.chart->addSeries(built.fill);
+	built.chart->createDefaultAxes();
+	built.chart->axes(Qt::Horizontal).first()->setRange(0, 100);
+	built.chart->axes(Qt::Vertical).first()->setRange(0, 140);
+	return built;
+}
+
+// A pen with the colour of a train: same width, dash pattern and cap as before.
+static bool isRecoloured(const QPen& pen, const QPen& before, const QColor& color) {
+	QPen expected = before;
+	expected.setColor(color);
+	return pen == expected;
+}
+
+static QColor swatchAt(const QListWidget* list, int row) {
+	const QIcon icon = list->item(row)->icon();
+	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
+}
+
+static bool exerciseTrainColors() {
+	const QColor green(60, 180, 75);
+	bool ok = true;
+	for (const bool beforeChart : {false, true}) {
+		const char* when = beforeChart ? " (map set before the chart)" : " (map set after the chart)";
+		const auto note = [&](const char* text) { return (std::string(text) + when); };
+		DiagramWindow window("Train colours");
+		const ColoredChart built = makeColoredChart();
+		const QHash<QString, QColor> colors{{"A", green}, {"Z", QColor(1, 2, 3)}, {"B", QColor()}};
+		if (beforeChart) window.setTrainColors(colors);
+		window.setChart(built.chart);
+		if (!beforeChart) window.setTrainColors(colors);
+		window.show();
+		QApplication::processEvents();
+		auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+		auto* view = window.findChild<QChartView*>();
+		if (!expect(list && view && list->count() == 2, "the coloured chart lists two trains"))
+			return false;
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
+				&& built.solid[0]->pen().widthF() == 3.0 && built.dashed[0]->pen().widthF() == 2.0
+				&& built.solid[0]->pen().style() == Qt::SolidLine && built.dashed[0]->pen().style() == Qt::DashLine,
+			note("the line series of a coloured train take its colour and keep width and dash pattern").c_str());
+		ok &= expect(built.fill->brush().color() == QColor(green.red(), green.green(), green.blue(), 65)
+				&& built.fill->pen().color() == green && built.fill->pen().widthF() == 1.5,
+			note("the area series of a coloured train takes its colour and keeps the fill alpha").c_str());
+		ok &= expect(built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1],
+			note("the series of a train with an invalid colour keep their pens").c_str());
+		ok &= expect(swatchAt(list, 0) == green && swatchAt(list, 1) == built.solidPen[1].color(),
+			note("each filter swatch is the colour of the first series of its train").c_str());
+
+		// Pin train A by clicking its solid line, then clear the pin.
+		const QPoint sample = view->mapFromScene(built.chart->mapToScene(
+			built.chart->mapToPosition(QPointF(10, 10), built.solid[0])));
+		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == green
+				&& built.solid[1]->pen().color().alpha() < 255,
+			note("pinning a coloured train emphasises it in its colour and mutes the other train").c_str());
+		QMetaObject::invokeMethod(&window, "clearPin");
+		ok &= expect(isRecoloured(built.solid[0]->pen(), built.solidPen[0], green)
+				&& isRecoloured(built.dashed[0]->pen(), built.dashedPen[0], green)
+				&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
+				&& built.fill->brush().color().alpha() == 65,
+			note("clearing the pin leaves the colour of the coloured train").c_str());
+	}
+
+	// A map that names no train of the chart, or only invalid colours, changes nothing.
+	DiagramWindow window("Unchanged colours");
+	const ColoredChart built = makeColoredChart();
+	window.setChart(built.chart);
+	window.setTrainColors({{"Z", green}, {"A", QColor()}, {"B", QColor()}});
+	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(built.solid[0]->pen() == built.solidPen[0] && built.dashed[0]->pen() == built.dashedPen[0]
+			&& built.solid[1]->pen() == built.solidPen[1] && built.dashed[1]->pen() == built.dashedPen[1]
+			&& built.fill->pen() == built.fillPen && built.fill->brush() == built.fillBrush
+			&& list && swatchAt(list, 0) == built.solidPen[0].color() && swatchAt(list, 1) == built.solidPen[1].color(),
+		"an unknown train id and an invalid colour change nothing");
+
+	// Colours for the train list only: the swatch changes, every series keeps its look.
+	DiagramWindow listOnly("List colours");
+	const ColoredChart kept = makeColoredChart();
+	listOnly.setChart(kept.chart);
+	listOnly.setTrainListColors({{"A", green}});
+	auto* keptList = listOnly.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(kept.solid[0]->pen() == kept.solidPen[0] && kept.dashed[0]->pen() == kept.dashedPen[0]
+			&& kept.solid[1]->pen() == kept.solidPen[1] && kept.dashed[1]->pen() == kept.dashedPen[1]
+			&& kept.fill->pen() == kept.fillPen && kept.fill->brush() == kept.fillBrush,
+		"list colours leave the series of a coloured train as they were");
+	ok &= expect(keptList && swatchAt(keptList, 0) == green && swatchAt(keptList, 1) == kept.solidPen[1].color(),
+		"list colours give the coloured train its swatch and leave the other swatch");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -791,6 +935,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(window.findChild<QLabel*>("diagramContext")->isHidden(), "empty context stays hidden");
 	ok &= exerciseTrainFilter();
 	ok &= exerciseTrainFilterKeysInWindow();
+	ok &= exerciseTrainColors();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

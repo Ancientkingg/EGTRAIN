@@ -6,6 +6,7 @@
 #include <QHash>
 #include <QPen>
 #include <QBrush>
+#include <QColor>
 #include <QPointer>
 #include <QPointF>
 #include <QString>
@@ -46,6 +47,20 @@ public:
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString());
 	void setRollingStockSubject(bool on);
+	// Paints the series of each listed train in its colour: the pen colour of a
+	// line series, the brush colour (alpha kept) and pen colour of an area series.
+	// Width and dash pattern stay as the chart builder set them. Train ids are the
+	// group ids (the "trainId" property, or the series name); a train that is not
+	// listed, or has an invalid colour, keeps its chart colours. The colours become
+	// the base look of the series, so selecting and clearing a train keeps them,
+	// and the train filter swatch shows them. Set before or after setChart. A later
+	// call does not undo colours an earlier call applied and resets the train
+	// filter to all trains visible.
+	void setTrainColors(const QHash<QString, QColor>& colors);
+	// Shows the colour of each listed train in the train filter only and leaves
+	// the series as the chart builder painted them, for a chart whose series
+	// colours have a meaning of their own.
+	void setTrainListColors(const QHash<QString, QColor>& colors);
 	// Format one axis as HH:MM:SS with an offset; true selects X or Y, false
 	// restores numeric formatting. Set before or after setChart. Bounds and
 	// reversal come from the caller; reset restores the bounds at setChart.
@@ -89,6 +104,7 @@ private:
 	QAbstractSeries* inspectAt(const QPoint& viewportPosition);
 	void clearTooltip();
 	void navigate(double factor, const QPointF& chartPosition, const QPointF& pan = {});
+	void applyTrainColors(const QHash<QString, QColor>& colors, bool paintSeries);
 	void rebuildFilterGroups();
 	void pinTrain(const QString& trainId);
 	void refreshEmphasis();
@@ -112,6 +128,8 @@ private:
 	QVector<SeriesGroup> m_groups;
 	QHash<QAbstractSeries*, QPen> m_basePens;
 	QHash<QAbstractSeries*, QBrush> m_baseBrushes;
+	QHash<QString, QColor> m_trainColors;
+	bool m_paintTrainSeries = true;
 	QPoint m_pressPosition;
 	QPointer<QAbstractAxis> m_clockAxis;
 	QPointer<QValueAxis> m_numericAxis; // detached while its clock axis is displayed
