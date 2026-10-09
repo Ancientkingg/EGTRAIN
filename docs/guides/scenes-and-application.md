@@ -274,7 +274,14 @@ Service visualization colour, directly below Category, sets the colour of the
 service's trains. Choose... opens a colour dialog; Default removes the colour.
 Without a colour, every train is drawn in the default yellow. The colour applies
 to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
-replay, and the Map key lists it with the service id. A stored value that is not
+replay, and the Map key lists it with the service id. In the result windows of
+a run, the lines of those trains in the speed, time, distance and tractive
+effort diagrams, the delay diagram, the timetable graph and the train-path
+graph take the colour with their line widths and dash patterns unchanged, and
+the train filter shows it as the swatch of each train; the timetable table
+shows the swatch too. Trains without a colour keep the chart colours. The
+blocking-time charts keep the colours that show the block types and show the
+service colour in the train filter only. A stored value that is not
 a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
 you choose a colour or press Default; trains of that service use the default
 yellow. Changing the colour counts as a scene edit, so it discards the run

@@ -287,6 +287,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
+    ${SRC_DIR}/diagrams/TrainColors.cpp
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
 target_link_libraries(egtrain_diagrams
     PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets Qt5::Charts egtrain_sim)

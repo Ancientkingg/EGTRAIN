@@ -109,21 +109,30 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	layout->addWidget(m_contextLabel);
 	layout->addWidget(m_table, 1);
 
-	QStringList trainOrder;
 	QSet<QString> seen;
 	for (const TimetableResultRow& row : m_rows) {
 		const QString id = QString::fromStdString(row.trainId);
 		if (!seen.contains(id)) {
 			seen.insert(id);
-			trainOrder.append(id);
+			m_trainOrder.append(id);
 		}
 	}
-	QVector<QPair<QString, QColor>> trains;
-	for (const QString& id : trainOrder)
-		trains.append({id, QColor()});
-	m_trainsButton->setTrains(trains);
+	fillTrainFilter();
 
 	fillTable();
+}
+
+void TimetableTableWindow::setTrainColors(const QHash<QString, QColor>& colors) {
+	m_trainColors = colors;
+	fillTrainFilter();
+	applyTrainVisibility();
+}
+
+void TimetableTableWindow::fillTrainFilter() {
+	QVector<QPair<QString, QColor>> trains;
+	for (const QString& id : m_trainOrder)
+		trains.append({id, m_trainColors.value(id)});
+	m_trainsButton->setTrains(trains);
 }
 
 void TimetableTableWindow::setRunProvenance(RunProvenance provenance) {

@@ -20,6 +20,7 @@
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
+#include "diagrams/TrainColors.h"
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
 #include "util/PlaybackProfiler.h"
@@ -27520,6 +27521,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
@@ -27551,6 +27553,7 @@ void MainWindow::showTimetableTable() {
 	auto* window = new TimetableTableWindow(m_completedTimetableResults,
 		m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
+	window->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	window->setRunProvenance(m_completedRunProvenance);
 	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
@@ -27600,6 +27603,7 @@ void MainWindow::showDelayDiagram() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
 	attachRunProvenance(win, m_completedRunProvenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
@@ -27789,6 +27793,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	win->setPresentation(heading,
 		QString("Reference: %1 | %2 | 0 s = run start; time downward")
 			.arg(QString::fromStdString(reference.ID), completedRunContext(m_completedRunProvenance)),
@@ -27977,6 +27982,8 @@ void MainWindow::showBlockingTimeDiagram() {
 	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	// The envelope colours show the block type, so only the train list takes the service colours.
+	win->setTrainListColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
 								 "Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation.")
 							 .arg(omitted);
@@ -28232,6 +28239,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	DiagramWindow* window = new DiagramWindow("Compressed blocking-time diagram", this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	window->setChart(chart);
+	window->setTrainListColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	const QString note = "Shifted calculated envelopes, not recorded movement. "
 						 "Unmapped/incomplete blocks omitted; no extrapolation.";
 	window->setPresentation("Compressed blocking-time diagram",

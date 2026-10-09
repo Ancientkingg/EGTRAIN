@@ -45,6 +45,25 @@ QPen mutedPen(const QPen& base) {
 	return pen;
 }
 
+// Takes the colour of a train for a line or area series and keeps its widths,
+// dash patterns and the alpha of an area fill.
+void paintSeries(QAbstractSeries* series, const QColor& color) {
+	if (auto* xy = qobject_cast<QXYSeries*>(series)) {
+		QPen pen = xy->pen();
+		pen.setColor(color);
+		xy->setPen(pen);
+	} else if (auto* area = qobject_cast<QAreaSeries*>(series)) {
+		QBrush brush = area->brush();
+		QColor fill = color;
+		fill.setAlpha(brush.color().alpha());
+		brush.setColor(fill);
+		area->setBrush(brush);
+		QPen pen = area->pen();
+		pen.setColor(color);
+		area->setPen(pen);
+	}
+}
+
 bool writeArtifact(const QString& path, const std::string& bytes) {
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly))
@@ -214,6 +233,30 @@ void DiagramWindow::setRollingStockSubject(bool on) {
 	m_readout->setText(on
 			? QStringLiteral("Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.")
 			: QStringLiteral("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid."));
+}
+
+void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {
+	applyTrainColors(colors, true);
+}
+
+void DiagramWindow::setTrainListColors(const QHash<QString, QColor>& colors) {
+	applyTrainColors(colors, false);
+}
+
+void DiagramWindow::applyTrainColors(const QHash<QString, QColor>& colors, bool paintSeries) {
+	m_trainColors = colors;
+	m_paintTrainSeries = paintSeries;
+	if (!m_view || !m_view->chart())
+		return;
+	// The rebuild records the series as they are, so first undo a pin emphasis.
+	for (QAbstractSeries* series : m_view->chart()->series()) {
+		if (auto* xy = qobject_cast<QXYSeries*>(series))
+			xy->setPen(m_basePens.value(series, xy->pen()));
+		else if (auto* area = qobject_cast<QAreaSeries*>(series))
+			area->setBrush(m_baseBrushes.value(series, area->brush()));
+	}
+	rebuildFilterGroups();
+	applyTrainVisibility();
 }
 
 void DiagramWindow::setChart(QChart* chart) {
@@ -424,12 +467,15 @@ void DiagramWindow::rebuildFilterGroups() {
 	QHash<QString, int> indexByTrain;
 	const auto seriesList = chart->series();
 	for (QAbstractSeries* series : seriesList) {
+		const QString trainId = groupIdForSeries(series);
+		const QColor trainColor = m_trainColors.value(trainId);
+		if (m_paintTrainSeries && trainColor.isValid())
+			paintSeries(series, trainColor);
 		if (auto* xy = qobject_cast<QXYSeries*>(series))
 			m_basePens.insert(series, xy->pen());
 		if (auto* area = qobject_cast<QAreaSeries*>(series))
 			m_baseBrushes.insert(series, area->brush());
 
-		const QString trainId = groupIdForSeries(series);
 		int groupIndex;
 		auto it = indexByTrain.find(trainId);
 		if (it == indexByTrain.end()) {
@@ -449,8 +495,8 @@ void DiagramWindow::rebuildFilterGroups() {
 	QVector<QPair<QString, QColor>> trains;
 	trains.reserve(m_groups.size());
 	for (const SeriesGroup& group : m_groups) {
-		QColor swatch;
-		if (!group.members.isEmpty()) {
+		QColor swatch = m_trainColors.value(group.trainId);
+		if (!swatch.isValid() && !group.members.isEmpty()) {
 			if (auto* xy = qobject_cast<QXYSeries*>(group.members.first()))
 				swatch = xy->pen().color();
 		}
