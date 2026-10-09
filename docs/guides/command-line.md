@@ -18,6 +18,7 @@ For the executable paths of a local build see [Run a local build](../development
 | `-TSM` | 0 or 1 | 0 | Legacy output, off by default; any nonzero number counts as on. At every simulation step it tries to send the traffic state to a ZeroMQ peer on port 5555 of the local machine. The messages are unversioned and this is not a supported interface; see [External state sharing (legacy)](../architecture/external-sharing.md). |
 | `-RC` | 0 or 1 | 0 | Legacy output, off by default; any nonzero number counts as on. At every simulation step it tries to send the passengers' route choice requests to a ZeroMQ peer on port 5556 of the local machine. The messages are unversioned and this is not a supported interface; see [External state sharing (legacy)](../architecture/external-sharing.md). |
 | `--interactive` (also `-interactive`) | none | off | Restores the legacy questions: asks on standard input for each of `-n`, `-g`, `-pax`, `-TSM` and `-RC` that the command line leaves out; `-pax` is asked only when the window is on. Without `--interactive` the defaults of this table apply. |
+| `--detailed-trajectories` | none | off | Also writes the per-train files in `TEMP` and `TrainTrajectories/TrainPathDiagram.txt`; see [Run output](run-output.md#detailed-trajectories). |
 | `--seed` | a whole number from 1 to 2147483646 | 789350715 | Sets the seed of the random draws; see [Random seed](#random-seed). Any other value stops the start with `ERROR: --seed requires a whole number from 1 to 2147483646.` and exit code 1. |
 
 The values of `-n`, `-h`, `-g`, `-pax`, `-TSM` and `-RC` are read as whole numbers, those of `-b` and `-c` as decimal numbers. There is no `--help`, and an unknown option is ignored.
@@ -29,6 +30,7 @@ QEGTRAIN -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
 QEGTRAIN --scene path/to/case.egscene
 QEGTRAIN --interactive
 QEGTRAIN --seed 789350715
+QEGTRAIN -n 2 -g 0 --detailed-trajectories
 ```
 
 ## Case study numbers
@@ -58,7 +60,7 @@ With neither `-n` nor `--scene`, the window opens the **Open a Case** window ove
 
 ## Output folder
 
-By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. [Run a local build](../development/build-and-test.md#run-a-local-build) states the same rule.
+By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. [Run a local build](../development/build-and-test.md#run-a-local-build) states the same rule. [Run output](run-output.md) lists the files of a run.
 
 ```bash
 QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene

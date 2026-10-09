@@ -124,7 +124,7 @@ CSV files use a comma separator, a header row, a decimal point, and an empty fie
 
 ## Find the output and recover from a failed run
 
-Choose File > Set Output Folder to pick where the run writes its text output. The per-train trajectory files and the energy files land there. The folder applies from the next run, and the command is unavailable while a run is active.
+Choose File > Set Output Folder to pick where the run writes its text output. The energy files, the station statistics and the train service path diagram land there. The folder applies from the next run, and the command is unavailable while a run is active.
 
 If a run stops with an error:
 
