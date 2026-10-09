@@ -5,7 +5,7 @@
 extern Logger owl;
 double timestep = 1;
 // double times = 0;
-double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling System Speed Codes (for Track Circuit Sisgnalling System: blockSets.A.connections.connections.)
+double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling speed limits in m/s, see Infrastructure.h
 int numTrackLines = 0;										   // This is the total number of TrackLines
 
 list<StationPlatform> AllStationPlatforms; // This is a global list containing all Station platforms existing in the modelled network

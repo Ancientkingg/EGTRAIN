@@ -151,7 +151,7 @@ public:
 	double XEndSwitch;					  // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)
 	double GeoXBegNode;					  // Geographic X coordinate of start node
 	double GeoXEndNode;					  // Geographic X coordinate of end node
-	int SignallingLevel;				  // Signalling level: 0=conventional, 1=ETCS L1, 2=ETCS L2, 3=ETCS L3 (default -99999999)
+	int SignallingLevel;				  // Signalling level 0 to 5, named in scene/SignallingLevelNames.h; -99999999 means no level (default)
 	double ETCS3BrakingPoints[40];		  // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
 	string ETCS3BrakingPointsTrainID[40]; // Train IDs for each ETCS3 braking point
 	int N_ETCS3BrakingPoints;			  // Number of ETCS3 braking points on this section
@@ -319,7 +319,7 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 // --- InfraElementsList: set up list of infrastructure element events ---
 void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes);
 
-// --- MovementAuthority: ETCS Level 3 Movement Authority ---
+// --- MovementAuthority: end of authority for levels 3 and 4, and for a failed signal at every level ---
 class MovementAuthority {
 public:
 	string BSID;				   // Block section ID
@@ -391,7 +391,7 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 // Set infrastructure speed limits (from infrastructure, not signalling)
 void setInfraSpeedLimits(Section* BS, int Blocks);
 
-// --- BACC Mixed Signalling (level 4) ---
+// --- BACC Mixed Signalling (level 5) ---
 void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks);
 
 void setBlockSpeed1MixedSignalling(Section* BLS, int Blocks);
@@ -423,7 +423,7 @@ void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks);
 
 void relEtcsLev2MixedSignalling(Section* BS, int blockIndex);
 
-// --- ETCS L3 Mixed Signalling (level 3) ---
+// --- ETCS L3 Mixed Signalling (levels 3 and 4) ---
 void rbcSendsMasToRouteMixedSignalling(Route& R);
 
 void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
