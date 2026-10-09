@@ -1356,7 +1356,8 @@ public:
 	}
 
 	// Moves the train from time_seconds - 1 to time_seconds in the braking phase towards the point (Xobmin, Vobmin).
-	// The train follows the braking curve. When there is no curve that reaches its speed, it brakes with the full braking force for one step.
+	// The train follows the braking curve. When there is no curve that reaches its speed, or no point of the curve lies ahead of the train,
+	// it brakes with the full braking force for one step. Its position never goes back.
 	// As is the arc of the head of the train.
 	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
 		counter++;
@@ -1365,15 +1366,25 @@ public:
 				double m1, m2;
 				m1 = (instant_train_speed[time_seconds - 1] - instant_train_speed[time_seconds - 2]) / (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]); // angular coefficient of acceleration curve
 				m2 = (Vbrak[1] - Vbrak[0]) / (Sbrak[1] - Sbrak[0]);																																  // angular coefficient of braking curve
-				instant_spatial_position[time_seconds - 1] = (m1 * instant_spatial_position[time_seconds - 2] - instant_train_speed[time_seconds - 2] + Vbrak[1] - m2 * Sbrak[1]) / (m1 - m2);	  // Intersection abscissa
-				instant_train_speed[time_seconds - 1] = instant_train_speed[time_seconds - 2] + m1 * (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]);	  // Intersection speed
-
+				const double intersection = (m1 * instant_spatial_position[time_seconds - 2] - instant_train_speed[time_seconds - 2] + Vbrak[1] - m2 * Sbrak[1]) / (m1 - m2);					  // Intersection abscissa
+				const double intersectionSpeed = instant_train_speed[time_seconds - 2] + m1 * (intersection - instant_spatial_position[time_seconds - 2]);
+				bool pointAhead = false;
 				for (int t = 0; t <= BrakStep; t++) {
-					if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
+					if ((Vbrak[t] < intersectionSpeed) && (Sbrak[t] > intersection)) {
 						brakingPoint = t;
+						pointAhead = true;
 						break;
 					}
 				}
+				if (intersection < instant_spatial_position[time_seconds - 2] || !pointAhead) {
+					// The curve starts behind the last two positions, or none of its points lies ahead of the train: the train cannot stop at the
+					// target and never moves back. It brakes with full force from where it is and tries the curve again in the next step.
+					fullBrakingStep(time_seconds, As);
+					counter = 0;
+					return;
+				}
+				instant_spatial_position[time_seconds - 1] = intersection;
+				instant_train_speed[time_seconds - 1] = intersectionSpeed;
 				instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
 				if (instant_train_speed[time_seconds] < 0)
 					instant_train_speed[time_seconds] = 0;
@@ -1393,20 +1404,27 @@ public:
 			}
 			if ((BrakStep < 0) || (instant_spatial_position[time_seconds] < instant_spatial_position[time_seconds - 1])) {
 				counter = 1;
+				bool pointAhead = false;
 				if (DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobmin, Xobmin, BS, Blocks)) {
 					for (int t = 0; t <= BrakStep; t++) {
 						if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
 							brakingPoint = t;
+							pointAhead = true;
 							break;
 						}
 					}
+				}
+				if (pointAhead) {
 					instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
 					if (instant_train_speed[time_seconds] < 0)
 						instant_train_speed[time_seconds] = 0;
 					instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
 					Eq[time_seconds] = 53;
 				} else {
+					// There is no curve, or none of its points lies ahead of the train, which is at the target. The train brakes with full force from where
+					// it is and the curve is drawn again in the next step.
 					fullBrakingStep(time_seconds, As);
+					BrakStep = -1;
 				}
 			}
 
