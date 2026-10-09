@@ -197,6 +197,7 @@ endforeach()
 # classes, so AUTOMOC stays on. A target that uses one class of a library also gets the other
 # classes of that library, because their moc code is in one object. None depends on MainWindow.
 add_library(egtrain_graphics STATIC
+    ${SRC_DIR}/graphics/FollowCamera.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
@@ -704,6 +705,13 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkview PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_followcamera ${SRC_DIR}/tests/test_followcamera.cpp)
+    target_include_directories(test_followcamera PRIVATE ${SRC_DIR})
+    target_link_libraries(test_followcamera PRIVATE egtrain_graphics egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    add_test(NAME test_followcamera COMMAND test_followcamera)
+    set_tests_properties(test_followcamera PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_compactdoublespinbox
         ${SRC_DIR}/tests/test_compactdoublespinbox.cpp)
     target_link_libraries(test_compactdoublespinbox PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
@@ -989,7 +997,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
 			test_dialoglayout test_choicecombo test_timeprogressbar test_highlighteffect
-			test_consolestream test_qt_resource_images test_followavailability)
+			test_consolestream test_qt_resource_images test_followavailability test_followcamera)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
@@ -1019,7 +1027,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
-		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview
+		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview test_followcamera
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
@@ -1038,7 +1046,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-		test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo
+		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke
