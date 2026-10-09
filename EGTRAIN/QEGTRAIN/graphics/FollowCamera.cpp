@@ -64,6 +64,7 @@ void FollowCamera::adoptViewCenter() {
 	if (m_moving || !m_view)
 		return;
 	m_position = viewCenter();
+	m_stall = Stall();
 	m_withinLag = false;
 }
 
@@ -80,6 +81,12 @@ FollowCamera::Stall FollowCamera::moveTo(const QPointF& desired) {
 	return stall;
 }
 
+// The distance to the target over the axes that are not clamped by the view.
+qreal FollowCamera::distanceToTarget(const Stall& stall) const {
+	const QPointF delta = m_target - m_position;
+	return std::hypot(stall.x ? 0.0 : delta.x(), stall.y ? 0.0 : delta.y());
+}
+
 void FollowCamera::follow(const QPointF& target, bool snap) {
 	if (!m_view || !std::isfinite(target.x()) || !std::isfinite(target.y()))
 		return;
@@ -93,7 +100,7 @@ void FollowCamera::follow(const QPointF& target, bool snap) {
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
 	const bool jump = !first && distanceBetween(m_position, target) > kSnapFraction * std::max(visible.width(), visible.height());
 	if (snap || first || jump) {
-		moveTo(target);
+		m_stall = moveTo(target);
 		m_withinLag = true;
 		m_timer.stop();
 		return;
@@ -109,7 +116,7 @@ void FollowCamera::follow(const QPointF& target, bool snap) {
 void FollowCamera::settle() {
 	if (!m_view || !m_hasTarget)
 		return;
-	moveTo(m_target);
+	m_stall = moveTo(m_target);
 	m_withinLag = true;
 	m_timer.stop();
 }
@@ -117,6 +124,7 @@ void FollowCamera::settle() {
 void FollowCamera::stop() {
 	m_timer.stop();
 	m_hasTarget = false;
+	m_stall = Stall();
 	m_withinLag = true;
 	m_intervalMs = kDefaultIntervalMs;
 }
@@ -134,20 +142,23 @@ void FollowCamera::tick() {
 	const QSizeF visible = m_view->mapToScene(m_view->viewport()->rect()).boundingRect().size();
 	const qreal maxLag = kMaxLagFraction * std::min(visible.width(), visible.height());
 	const QPointF delta = m_target - m_position;
-	const qreal distance = distanceBetween(m_position, m_target);
+	const QPointF free(m_stall.x ? 0.0 : delta.x(), m_stall.y ? 0.0 : delta.y());
+	const qreal distance = std::hypot(free.x(), free.y());
 
-	QPointF next = m_target;
+	// The part of the free distance that is left after this step. A clamped axis asks for the target.
+	qreal remainingFraction = 0.0;
 	if (distance >= reached) {
 		const qreal tau = std::clamp(kTauPerInterval * m_intervalMs, kMinTauMs, kMaxTauMs);
-		next = m_position + delta * (1.0 - std::exp(-stepMs / tau));
-		const qreal remaining = distanceBetween(next, m_target);
+		remainingFraction = std::exp(-stepMs / tau);
+		const qreal remaining = distance * remainingFraction;
 		if (m_withinLag && remaining > maxLag)
-			next = m_target - delta * (maxLag / distance);
+			remainingFraction = maxLag / distance;
 		else if (remaining < reached)
-			next = m_target;
+			remainingFraction = 0.0;
 	}
-	const Stall stall = moveTo(next);
-	if (distanceBetween(m_position, m_target) <= maxLag)
+	const Stall stall = moveTo(m_target - free * remainingFraction);
+	m_stall = stall;
+	if (distanceToTarget(stall) <= maxLag)
 		m_withinLag = true;
 
 	const bool doneX = stall.x || std::abs(m_target.x() - m_position.x()) < reached;

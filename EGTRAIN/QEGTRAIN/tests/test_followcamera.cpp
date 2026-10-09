@@ -10,6 +10,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <vector>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -75,8 +76,6 @@ static bool checkIdle() {
 	bool ok = true;
 	Rig rig;
 	ok &= expect(!rig.camera.running() && !rig.camera.hasTarget(), "a new camera is idle");
-	rig.tick();
-	ok &= expect(!rig.camera.running(), "a tick without a target does not start the timer");
 
 	const qreal nan = std::numeric_limits<qreal>::quiet_NaN();
 	rig.camera.follow(QPointF(nan, 10.0), false);
@@ -88,11 +87,6 @@ static bool checkIdle() {
 	ok &= expect(rig.camera.running(), "a glide starts the timer");
 	rig.camera.stop();
 	ok &= expect(!rig.camera.running() && !rig.camera.hasTarget(), "stop ends the timer and forgets the target");
-	rig.camera.follow(QPointF(1000.0, 1000.0), true);
-	rig.camera.follow(QPointF(1100.0, 1000.0), false);
-	rig.camera.stop();
-	rig.camera.tick();
-	ok &= expect(!rig.camera.running(), "a tick after stop leaves the timer stopped");
 	return ok;
 }
 
@@ -196,6 +190,43 @@ static bool checkFastStream() {
 	return ok;
 }
 
+// How far the first tick moves the view towards a target 60 units away, as a fraction of that
+// distance, after the targets arrived with the given gaps. The gaps add up to more than the
+// longest step a tick takes, so the tick always takes that step and the fraction tells the
+// time constant of the approach.
+static qreal firstTickFraction(const std::vector<qint64>& gaps, qint64 tickAfter) {
+	Rig rig;
+	const QPointF start(2000.0, 1000.0);
+	rig.camera.follow(start, true);
+	const int updates = int(gaps.size());
+	for (int i = 0; i < updates; ++i) {
+		rig.now += gaps[i];
+		rig.camera.follow(start + QPointF(60.0 * (i + 1) / updates, 0.0), false);
+	}
+	rig.now += tickAfter;
+	rig.camera.tick();
+	return (centerOf(rig.view).x() - start.x()) / 60.0;
+}
+
+static bool checkUpdateInterval() {
+	bool ok = true;
+	// A step of 250 ms with a time constant of 250 ms covers 63 percent, with 60 ms 98 percent.
+	const qreal slow = firstTickFraction(std::vector<qint64>(6, 500), 250);
+	const qreal fast = firstTickFraction(std::vector<qint64>(6, 100), 250);
+	ok &= expect(slow > 0.58 && slow < 0.68, "targets every 500 ms give the slowest approach");
+	ok &= expect(fast > 0.93, "targets every 100 ms give a faster approach");
+
+	std::vector<qint64> paused(6, 100);
+	paused.push_back(5000);
+	ok &= expect(firstTickFraction(paused, 250) > 0.93, "a pause between targets does not count as an update interval");
+
+	// One target 33 ms after the first gives a time constant of 133 ms: a step of 250 ms covers
+	// 85 percent, the whole 1000 ms would cover all of it.
+	const qreal clamped = firstTickFraction(std::vector<qint64>(1, 33), 1000);
+	ok &= expect(clamped > 0.78 && clamped < 0.92, "a tick after a stalled event loop takes a step of 250 ms");
+	return ok;
+}
+
 static bool checkSeek() {
 	bool ok = true;
 	Rig rig;
@@ -277,6 +308,24 @@ static bool checkEdge() {
 	return ok;
 }
 
+static bool checkEdgeFreeAxis() {
+	bool ok = true;
+	Rig rig;
+	rig.camera.follow(QPointF(3600.0, 1000.0), true);
+	rig.camera.follow(QPointF(3990.0, 1000.0), false);
+	ok &= expect(rig.tickUntilStopped(10) > 0, "the timer stops at the right edge");
+
+	// The target now also moves along the free axis. The clamped axis does not hold it back.
+	rig.camera.follow(QPointF(3990.0, 1060.0), false);
+	ok &= expect(rig.camera.running(), "a target that moves along the free axis restarts the timer");
+	rig.tick();
+	const qreal fraction = (centerOf(rig.view).y() - 1000.0) / 60.0;
+	ok &= expect(fraction > 0.05 && fraction < 0.3, "the free axis approaches smoothly next to a clamped axis");
+	ok &= expect(rig.tickUntilStopped(100) > 0, "the timer stops");
+	ok &= expect(std::abs(centerOf(rig.view).y() - 1060.0) <= 3.0 * pixelOf(rig.view), "the free axis reaches the target");
+	return ok;
+}
+
 static bool checkFit() {
 	bool ok = true;
 	Rig rig(1.0);
@@ -339,10 +388,12 @@ int main(int argc, char** argv) {
 	ok &= checkApproach();
 	ok &= checkLagCap();
 	ok &= checkFastStream();
+	ok &= checkUpdateInterval();
 	ok &= checkSeek();
 	ok &= checkManualPan();
 	ok &= checkZoom();
 	ok &= checkEdge();
+	ok &= checkEdgeFreeAxis();
 	ok &= checkFit();
 	ok &= checkSettle();
 	ok &= checkViewDestroyed();

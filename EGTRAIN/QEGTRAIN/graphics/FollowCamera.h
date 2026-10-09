@@ -19,6 +19,7 @@
 // or the view cannot get closer to it. A snap moves the view at once.
 //
 // The controller reads the real centre back after every move to detect a clamped axis, and
+// leaves a clamped axis out of the distance, the step and the lag cap of the free axis. It
 // adopts the centre after a pan, a zoom or a resize by the user as the new starting point, so
 // the next glide returns from there.
 class FollowCamera : public QObject {
@@ -43,7 +44,6 @@ public:
 
 	bool running() const { return m_timer.isActive(); }
 	bool hasTarget() const { return m_hasTarget; }
-	QPointF target() const { return m_target; }
 	// Replaces the millisecond clock. An empty function restores the real clock.
 	void setClock(Clock clock);
 
@@ -57,6 +57,7 @@ private:
 	QPointF viewCenter() const;
 	qreal pixelSize() const;
 	Stall moveTo(const QPointF& desired);
+	qreal distanceToTarget(const Stall& stall) const;
 	void adoptViewCenter();
 
 	QPointer<NetworkView> m_view;
@@ -65,6 +66,7 @@ private:
 	Clock m_clock;
 	QPointF m_position;
 	QPointF m_target;
+	Stall m_stall;
 	bool m_hasTarget = false;
 	bool m_withinLag = true;
 	bool m_moving = false;
