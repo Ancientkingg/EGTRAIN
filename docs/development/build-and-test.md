@@ -833,27 +833,35 @@ The visual and render smoke artifacts include:
   fails when one of them is in the app, starts a copy of the app with the same
   script, and prints the number of files and bytes of the app before and
   after the removal in its job summary. After the three packages are built,
-  the job `release-assets` downloads the artifacts, unpacks the Windows zip into
-  a directory, runs `tools/release/build_release_assets.py` on them and compares
-  the Windows file list of the manifest it wrote with the member list of the
-  Windows zip. A green check therefore also proves that the script accepts the
-  three real packages, builds the portable Windows archive and a manifest that
-  the application accepts by its rules for the file list and the package sizes,
-  and that the assets it writes are exactly the eleven that a release publishes.
+  the job `release-assets` downloads the artifacts and runs
+  `tools/release/build_release_assets.py` on them with the command line of the
+  release job (`--artifacts artifacts --output release-assets`). The Windows
+  package arrives as a directory with `QEGTRAIN.exe` at its top level. A green
+  check therefore also proves that the script accepts the three real packages,
+  builds the portable Windows archive and a manifest that the application
+  accepts by its rules for the file list and the package sizes, and that the
+  assets it writes are exactly the eleven that a release publishes.
   It does not prove a release: nothing is signed with real credentials (the
   macOS bundle carries the same ad-hoc signature as in a release), nothing is
-  published, and the check has read permission only. The release job builds its
-  own manifest in its own steps. The package check does not extract the archive
-  on Windows; only the unit test of the script extracts an archive that it
-  builds, on the Windows leg of the CMake workflow. A release still runs only
-  from `release.yml`. A newer push to the pull request cancels the running check.
+  published, and the check has read permission only. It does not prove the
+  release job either: that job runs only on a push to `production` or a `v*`
+  tag, so its steps (the script step, the glob that publishes
+  `release-assets/*`, the creation of the release) are first run by a release.
+  The package check does not extract the archive on Windows; only the unit test
+  of the script extracts an archive that it builds, on the Windows leg of the
+  CMake workflow. A release still runs only from `release.yml`. A newer push to
+  the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
   release. The three package jobs are in `.github/workflows/package.yml`, which
-  `release.yml` calls from its `package` job with the selected version; the
-  release job publishes the artifacts that these jobs upload. Before building,
-  the pipeline increments the highest patch version
+  `release.yml` calls from its `package` job with the selected version. The
+  Windows package job uploads the assembled directory as the artifact
+  `QEGTRAIN-windows-x64-payload`. The release job builds the files of the
+  release from the downloaded artifacts with
+  `tools/release/build_release_assets.py` and publishes the files it writes; the
+  archive `QEGTRAIN-windows-x64.zip` is written only by the script. Before
+  building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
@@ -923,7 +931,7 @@ python3 tools/release/build_release_assets.py --version X.Y.Z --artifacts DIR --
 makes them when it is given no artifact name:
 
 - `QEGTRAIN-windows-x64-payload/`: the assembled Windows package, with
-  `QEGTRAIN.exe` at its top level
+  `QEGTRAIN.exe` at its top level, uploaded by the Windows package job
 - `QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip`
 - `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
 - `EGTRAIN-scenes/`: the seven `.egscene` files
@@ -938,7 +946,10 @@ the payload, one member per file with forward slashes, no directory entries and
 no top-level folder. The `sha256` and `size` of each package in the manifest come
 from the file in `--output`. The `files` of the Windows entry are the members of
 the archive, sorted by their full path as a string (`a.b` comes before `a/b`).
-The script prints the name and size of each file.
+The script prints the name and size of each file. The release job and the
+package check run it with `--artifacts artifacts --output release-assets` on the
+artifacts they download, and the release job publishes the files of the output
+directory.
 
 Every input is checked before `--output` is created:
 

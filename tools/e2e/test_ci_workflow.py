@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import sys
 from pathlib import Path
 
 
@@ -39,6 +40,11 @@ def step_block(job: str, name: str) -> str:
 
 
 def main() -> None:
+    # The release script names the artifact directories and the scene bundles that the workflows must agree with.
+    # Other tests import this file, so the script is imported here and not at module level.
+    sys.path.insert(0, str(ROOT / "tools/release"))
+    import build_release_assets
+
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
@@ -164,7 +170,7 @@ def main() -> None:
             ('VALUE "ProductVersion", "@PROJECT_VERSION@\\0"', windows_resource),
             ('VERSION="$(tr -d \'\\r\\n\' < build/EGTRAIN_VERSION)"', package_only),
             ('project(EGTRAIN VERSION ${EGTRAIN_VERSION} LANGUAGES', cmake),
-            ('version="${{ needs.version.outputs.version }}"', release_only),
+            ("          VERSION: ${{ needs.version.outputs.version }}\n", release_only),
         )
     ):
         missing.append("single-source application version propagation")
@@ -285,11 +291,19 @@ def main() -> None:
         )
     ):
         missing.append("seven deterministic release scene bundles")
-    if any(
-        f"artifacts/EGTRAIN-scenes/{name}.egscene" not in release_workflow
-        for name in scene_names
-    ) or "artifacts/EGTRAIN-scenes/*.egscene" not in release_workflow:
-        missing.append("scene bundles in published release assets")
+    # The macOS package job packs the bundles that the release script reads, and the release job publishes every file
+    # that the script wrote, failing when the glob matches none.
+    scene_bundle_step = step_block(job_block(package_only, "package-macos"), "Generate scene bundles")
+    packed_scenes = re.search(r"\n          scenes=\(\n((?:            \S+\n)+)          \)\n", scene_bundle_step)
+    if not packed_scenes or set(packed_scenes.group(1).split()) != set(build_release_assets.SCENES):
+        missing.append("scene bundles packed by the package workflow are the scenes that the release script reads")
+    release_job = job_block(release_only, "release")
+    prepare_step = step_block(release_job, "Prepare release")
+    if (
+        "          files: release-assets/*\n" not in prepare_step
+        or "          fail_on_unmatched_files: true\n" not in prepare_step
+    ):
+        missing.append("release published from the files of the output directory, failing when none matches")
     if "python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6 7" not in release_workflow:
         missing.append("production headless smoke of all seven canonical scenes")
     if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
@@ -309,27 +323,20 @@ def main() -> None:
         )
     ):
         missing.append("packaged update helper verification")
-    if any(
-        value not in release_workflow
-        for value in (
-            "update-manifest.json",
-            'QEGTRAIN-macos-arm64.zip",sha256:$mac_sha',
-            'QEGTRAIN-windows-x64.zip",sha256:$windows_sha',
-            'QEGTRAIN-linux-x86_64.AppImage",sha256:$linux_sha',
-            'if [[ "$count" != "11" ]]',
-        )
-    ):
-        missing.append("release update manifest and exact package checksums")
-    if any(
-        value not in release_workflow
-        for value in (
-            "unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\\\' '/' | grep -v '/$'",
-            "jq -e 'index(\"QEGTRAIN.exe\")' <<< \"$windows_files\"",
-            '--argjson windows_files "$windows_files"',
-            "size:$windows_size,files:$windows_files}",
-        )
-    ):
-        missing.append("Windows package file list in the update manifest")
+    # The release job downloads the artifacts, builds the release assets with the script and publishes them. The manifest,
+    # its hashes and the Windows archive come from the script only.
+    if re.findall(r"^      - name: (.+)$", release_job, re.MULTILINE) != [
+        "Download all artifacts",
+        "List downloaded files",
+        "Set release metadata",
+        "Build the release assets",
+        "Prepare release",
+        "Publish complete release",
+    ]:
+        missing.append("release job steps: download, list, metadata, build the release assets, prepare, publish")
+    for word in ("sha256", "shasum", "Get-FileHash", "unzip", "Compress-Archive", "stat -c", "update-manifest"):
+        if any(word.lower() in text.lower() for text in (release_only, package_only, package_check)):
+            missing.append(f"no {word} in the workflows, as the manifest, its hashes and the archive come from the script only")
     if (
         any(f"os: {runner}\n" not in workflow for runner in ("macos-latest", "windows-latest", "ubuntu-latest"))
         or "      fail-fast: false\n" not in workflow
@@ -445,16 +452,16 @@ def main() -> None:
         missing.append("package workflow with read permission and no credentials")
     if job_ids(package_only) != ["package-macos", "package-windows", "package-linux"]:
         missing.append("package workflow jobs: package-macos, package-windows, package-linux")
-    for artifact, file in (
-        ("QEGTRAIN-macos-arm64", "QEGTRAIN-macos-arm64.zip"),
-        ("QEGTRAIN-windows-x64", "QEGTRAIN-windows-x64.zip"),
-        ("QEGTRAIN-linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage"),
-    ):
-        if (
-            f"          name: {artifact}\n          path: " not in package_only
-            or release_only.count(f"            artifacts/{artifact}/{file}\n") != 2
+    # The release script reads one artifact directory for each package that has one, the Windows payload and the scene
+    # bundles. The package workflow uploads exactly those names, and each package as the file that the script publishes.
+    for _key, file, directory in build_release_assets.PACKAGES:
+        if directory and not re.search(
+            rf"^          name: {re.escape(directory)}\n          path: (?:\S*/)?{re.escape(file)}\n", package_only, re.MULTILINE
         ):
-            missing.append(f"package artifact {artifact} downloaded by the release job")
+            missing.append(f"package artifact {directory} uploaded as the file {file} that the release script reads")
+    for directory in (build_release_assets.WINDOWS_PAYLOAD, build_release_assets.SCENES_ARTIFACT):
+        if f"          name: {directory}\n          path: " not in package_only:
+            missing.append(f"package artifact {directory} uploaded under the name that the release script reads")
     # The application draws with the raster engine, so the Windows package job leaves out the software OpenGL, ANGLE,
     # Direct3D compiler, Qt Quick, QML and virtual keyboard files, fails when one is present and starts a copy of the package.
     windows_job = job_block(package_only, "package-windows")
@@ -477,7 +484,7 @@ def main() -> None:
         missing.append("windeployqt options of the Windows package job that leave out the OpenGL, ANGLE, Direct3D compiler, Qt Quick and virtual keyboard files")
     if package_deploy != start_deploy:
         missing.append("the same windeployqt line in the Windows package job and in the Windows package start check")
-    windows_steps = ("Assemble package", "Verify the package is complete", "Report package size", "Start the package", "Zip", "Upload artifact")
+    windows_steps = ("Assemble package", "Verify the package is complete", "Report package size", "Start the package", "Upload artifact")
     windows_step_names = re.findall(r"^      - name: (.+)$", windows_job, re.MULTILINE)
     step_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in windows_steps]
     if -1 in step_positions or step_positions != sorted(step_positions):
@@ -500,8 +507,20 @@ def main() -> None:
         or not 0 <= windows_job.find("uses: actions/setup-python@v5") < windows_job.find("name: Start the package")
     ):
         missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
-    if "Compress-Archive -Path dist/QEGTRAIN/* -DestinationPath QEGTRAIN-windows-x64.zip" not in step_block(windows_job, "Zip"):
-        missing.append("Windows package zip of the directory that is built")
+    # The job uploads the directory that it verified, sized and started, with its hidden files. It writes no archive:
+    # the release job writes the portable archive from the uploaded files.
+    if step_block(windows_job, "Upload artifact") != (
+        "name: Upload artifact\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: QEGTRAIN-windows-x64-payload\n"
+        "          path: dist/QEGTRAIN\n"
+        "          include-hidden-files: true\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows package upload of the directory that is built, with its hidden files, as the payload artifact")
+    if "zip" in windows_job.lower():
+        missing.append("Windows package job without an archive")
     # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
     # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
     # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the package.
@@ -633,7 +652,20 @@ def main() -> None:
     if job_block(package_check, "package") != "  package:\n" + version_call:
         missing.append("package check calls the package workflow with the selected version")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
-    # jobs. It uploads and publishes nothing, and it has the permissions of the workflow.
+    # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
+    # are those of the release job, so the package check runs what a release runs.
+    download_step = (
+        "name: Download all artifacts\n"
+        "        uses: actions/download-artifact@v4\n"
+        "        with:\n"
+        "          path: artifacts"
+    )
+    build_step = (
+        "name: Build the release assets\n"
+        "        env:\n"
+        "          VERSION: ${{ needs.version.outputs.version }}\n"
+        '        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets\n'
+    )
     assets_job = job_block(package_check, "release-assets")
     if (
         re.findall(r"^    needs: (.+)$", assets_job, re.MULTILINE) != ["[version, package]"]
@@ -641,53 +673,28 @@ def main() -> None:
         or "      - uses: actions/checkout@v4\n" not in assets_job
     ):
         missing.append("package check release assets job after the version and package jobs, on ubuntu-latest with a checkout")
+    # The release job runs the script from its checkout, so the checkout has to come first.
+    if not 0 <= release_job.find("      - uses: actions/checkout@v4\n") < release_job.find("      - name: Build the release assets\n"):
+        missing.append("release job checkout before the step that builds the release assets")
     if re.findall(r"^      - name: (.+)$", assets_job, re.MULTILINE) != [
         "Download all artifacts",
         "List downloaded files",
-        "Unpack the Windows package",
         "Build the release assets",
-        "Compare the Windows file list with the artifact",
         "List the release assets",
     ]:
-        missing.append("package check release assets steps: download, list, unpack, build, compare, list")
-    if step_block(assets_job, "Download all artifacts").rstrip("\n") != (
-        "name: Download all artifacts\n"
-        "        uses: actions/download-artifact@v4\n"
-        "        with:\n"
-        "          path: artifacts"
-    ):
+        missing.append("package check release assets steps: download, list, build, list")
+    if step_block(assets_job, "Download all artifacts").rstrip("\n") != download_step:
         missing.append("package check release assets download of all artifacts into artifacts")
-    if step_block(assets_job, "Build the release assets") != (
-        "name: Build the release assets\n"
-        "        env:\n"
-        "          VERSION: ${{ needs.version.outputs.version }}\n"
-        '        run: python3 tools/release/build_release_assets.py --version "$VERSION" --artifacts artifacts --output release-assets\n'
-    ):
+    if step_block(assets_job, "Build the release assets") != build_step:
         missing.append("package check release assets script run with the selected version")
-    unpack_step = step_block(assets_job, "Unpack the Windows package")
-    compare_step = step_block(assets_job, "Compare the Windows file list with the artifact")
-    if any(
-        command not in step
-        for step, commands in (
-            (
-                unpack_step,
-                (
-                    "mkdir artifacts/QEGTRAIN-windows-x64-payload\n",
-                    "unzip -q artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip -d artifacts/QEGTRAIN-windows-x64-payload\n",
-                ),
-            ),
-            (
-                compare_step,
-                (
-                    "unzip -Z1 artifacts/QEGTRAIN-windows-x64/QEGTRAIN-windows-x64.zip | tr '\\\\' '/' | grep -v '/$' | LC_ALL=C sort > \"$RUNNER_TEMP/zip-files.txt\"\n",
-                    "jq -r '.assets[\"windows-x64\"].files[]' release-assets/update-manifest.json > \"$RUNNER_TEMP/manifest-files.txt\"\n",
-                    'diff "$RUNNER_TEMP/zip-files.txt" "$RUNNER_TEMP/manifest-files.txt"\n',
-                ),
-            ),
-        )
-        for command in commands
+    if step_block(release_job, "Download all artifacts") != step_block(assets_job, "Download all artifacts") or (
+        step_block(release_job, "Download all artifacts").rstrip("\n") != download_step
     ):
-        missing.append("package check release assets unpack of the Windows zip and comparison of its file list with the manifest")
+        missing.append("release job download of all artifacts into artifacts, as the package check does")
+    if step_block(release_job, "Build the release assets") != build_step or (
+        step_block(release_job, "Build the release assets") != step_block(assets_job, "Build the release assets")
+    ):
+        missing.append("release job script run with the selected version, with the command line of the package check")
     if not assets_job or any(word in assets_job for word in ("upload-artifact", "permissions:", "if:")):
         missing.append("package check release assets job without an upload, a permissions block or a condition")
     if (
