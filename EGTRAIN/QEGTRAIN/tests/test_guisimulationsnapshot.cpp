@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -658,5 +659,24 @@ int main() {
 		many.record(frame);
 	}
 	require(many.size() == 9000 && !many.truncated() && many.firstTime() == 0, "the number of frames is limited");
+
+	// The window receives the history by move. A moved history gives the same frames back, and it
+	// still records: the string table of the new object serves a frame that is recorded afterwards.
+	GuiReplayHistory source;
+	std::vector<GuiSimulationSnapshot> kept;
+	for (int t = 0; t < 50; t += GuiReplayHistory::cadenceSeconds) {
+		kept.push_back(sampleSnapshot(t, 3, 600));
+		source.record(shared(kept.back()));
+	}
+	GuiReplayHistory moved(std::move(source));
+	GuiReplayHistory assigned;
+	assigned = std::move(moved);
+	kept.push_back(sampleSnapshot(50, 3, 600));
+	assigned.record(shared(kept.back()));
+	require(assigned.size() == kept.size(), "a moved history did not keep its frames or refused a new one");
+	for (const GuiSimulationSnapshot& expected : kept) {
+		const auto back = assigned.atOrBefore(expected.timestep);
+		require(back && sameSnapshot(*back, expected), "a frame of a moved history did not come back as recorded");
+	}
 	return 0;
 }

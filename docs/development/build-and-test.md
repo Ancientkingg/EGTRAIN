@@ -568,7 +568,7 @@ frames would need as ordinary snapshot objects.
 | Scene | Frames | Covers (s) | Accounted | As complete snapshots |
 |---|---|---|---|---|
 | Lebanon | 721 | 0-3599 | 0.6 MiB | 10.8 MiB |
-| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.6 MiB | 32.5 MiB |
+| Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.7 MiB | 32.5 MiB |
 | Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
 | Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
 | Copenhagen | 1601 | 0-7999 | 78.9 MiB | 489 MiB |
@@ -576,9 +576,9 @@ frames would need as ordinary snapshot objects.
 
 Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
 of heap in use, so a run of about 13000 simulated seconds fills the budget.
-Recording a frame took 1 to 35 microseconds (Copenhagen and Netherlands: 20 to 35), once per five
-steps, on the simulation thread; rebuilding a frame took 1 to 54 microseconds on
-the interface thread.
+Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
+30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
+34 microseconds on the interface thread.
 
 ## Close, New and Open during a run
 
