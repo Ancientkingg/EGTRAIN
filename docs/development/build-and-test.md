@@ -458,16 +458,14 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name three open issues. #534 covers a following train that stops at
-the position of the leading train at a station at level 4 after a signal
-failure (`sf-forward-level-4`, `sf-reverse-level-4`). #564 covers a level 4
-train that enters right behind another one and stops at its platform position
-(`same-entry-level-4`). #551 covers the single-track cases in which `R1` is
-not held in front of the restricted section because the restriction has no
-effect at levels 3 and 4 (`single-track-level-3`, `-4`). Without their markers
-the cases of #534 and #564 fail the check for overlapping trains, and those of
-#551 the check that opposing trains are not inside a single-track section
-together. The checks apply to every unmarked case.
+The markers name two open issues. #564 covers a level 4 train that enters right
+behind another one and stops at its platform position (`same-entry-level-4`).
+#551 covers the single-track cases in which `R1` is not held in front of the
+restricted section because the restriction has no effect at levels 3 and 4
+(`single-track-level-3`, `-4`). Without their markers the case of #564 fails
+the check for overlapping trains, and those of #551 the check that opposing
+trains are not inside a single-track section together. The checks apply to
+every unmarked case.
 
 ## Simulation Smoke Test
 

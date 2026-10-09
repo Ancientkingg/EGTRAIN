@@ -1279,6 +1279,10 @@ public:
 							BrakeDistToNode = BrakDist_Block(V, TargetSpeedForMA, n->X, BS, Blocks);
 							Xob = n->X;
 							Vob = TargetSpeedForMA;
+							// Below the speed that one braking step removes the braking curve has no length, so its start lies at the
+							// authority. A train that reaches a stop authority within this step brakes now instead of accelerating past it.
+							if (TargetSpeedForMA == 0 && n->X > S && S + V * timestep >= n->X)
+								BrakeDistToNode = S;
 						}
 					}
 					// if the Braking Point is not a MA then compute the Braking distance because of a static or signalling speed restriction
