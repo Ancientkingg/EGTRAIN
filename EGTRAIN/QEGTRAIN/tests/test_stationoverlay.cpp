@@ -12,6 +12,7 @@
 #include <QImage>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPixmap>
 
 #include <algorithm>
 #include <cmath>
@@ -45,6 +46,73 @@ static bool sendContextMenu(NetworkScene& scene, QGraphicsView& view, const QPoi
 	event.setWidget(view.viewport());
 	scene.contextMenuEvent(&event);
 	return event.isAccepted();
+}
+
+namespace {
+constexpr qreal kPresentation = 0.4;
+
+struct StationRig {
+	StationNodeItem* node = nullptr;
+	StationOverlayItem* overlay = nullptr;
+	QGraphicsPixmapItem* picture = nullptr;
+	QGraphicsTextItem* name = nullptr;
+};
+
+// Builds a station as the application does: a scene-scaled pictogram above the
+// artwork point and a name centred on it, both children or siblings of the node.
+StationRig addStationRig(QGraphicsScene& scene, const QString& stationName, const QPointF& anchor,
+	int platformCount, const QPointF& artworkOffset = QPointF()) {
+	StationRig rig;
+	const QPointF artwork = anchor + artworkOffset;
+	rig.node = new StationNodeItem(QRectF(-10.0, -10.0, 20.0, 20.0));
+	rig.node->setPos(anchor);
+	scene.addItem(rig.node);
+	rig.overlay = new StationOverlayItem(stationName, anchor, classifyStation());
+	rig.overlay->setSceneDecoration(true);
+	scene.addItem(rig.overlay);
+	QPixmap pixmap(300, 300);
+	pixmap.fill(Qt::white);
+	rig.picture = scene.addPixmap(pixmap);
+	rig.picture->setScale(kPresentation);
+	rig.picture->setPos(artwork.x() - 150.0 * kPresentation, artwork.y() - 300.0 * kPresentation);
+	rig.picture->setAcceptedMouseButtons(Qt::NoButton);
+	QFont font;
+	font.setPixelSize(60);
+	rig.name = scene.addText(stationName, font);
+	rig.name->setScale(kPresentation);
+	rig.name->setPos(artwork - QPointF(rig.name->boundingRect().width() * kPresentation / 2.0, rig.name->boundingRect().height() * kPresentation / 2.0));
+	rig.name->setAcceptedMouseButtons(Qt::NoButton);
+	rig.overlay->attachArtwork(rig.picture, rig.name, platformCount);
+	const QPointF picturePosition = rig.picture->scenePos();
+	rig.picture->setParentItem(rig.node);
+	rig.picture->setPos(rig.node->mapFromScene(picturePosition));
+	return rig;
+}
+
+QPointF pictureAnchorInScene(const StationRig& rig) {
+	const QPixmap& pixmap = rig.picture->pixmap();
+	return rig.picture->mapToScene(rig.picture->offset() + QPointF(pixmap.width() / 2.0, pixmap.height()));
+}
+
+QPointF nameAnchorInScene(const StationRig& rig) {
+	return rig.name->mapToScene(QPointF(rig.name->boundingRect().width() / 2.0, 0.0));
+}
+
+QRectF deviceRect(const QTransform& transform, const QGraphicsItem* item) {
+	return transform.mapRect(item->sceneBoundingRect());
+}
+
+void applyAll(const QList<StationRig>& rigs, qreal viewScale) {
+	for (const StationRig& rig : rigs)
+		rig.overlay->applyViewScale(viewScale);
+}
+
+QList<bool> hiddenNames(const QList<StationRig>& rigs) {
+	QList<bool> hidden;
+	for (const StationRig& rig : rigs)
+		hidden.append(rig.overlay->isNameHiddenByCollision());
+	return hidden;
+}
 }
 
 int main(int argc, char* argv[]) {
@@ -348,6 +416,193 @@ int main(int argc, char* argv[]) {
 		ok &= expect(clicks == 1, "scene-scaled artwork resolves to its semantic station node");
 		sendContextMenu(scene, view, QPointF(100.0, 0.0));
 		ok &= expect(contextTarget == &station, "artwork context menu resolves to its station node");
+	}
+
+
+	{
+		const qreal natural = 300.0 * kPresentation;
+		ok &= expect(StationOverlayItem::readableItemScale(300.0, kPresentation, 1.0, 24.0) == kPresentation,
+			"a scene size above the minimum is unchanged");
+		const qreal small = StationOverlayItem::readableItemScale(300.0, kPresentation, 0.01, 24.0);
+		ok &= expect(std::abs(small * 300.0 * 0.01 - 24.0) < 1e-9, "below the minimum the size on screen is exact");
+		ok &= expect(StationOverlayItem::readableItemScale(300.0, 0.2, 0.01, 24.0) == small,
+			"below the minimum the size does not depend on the scene scale");
+		const qreal crossover = 24.0 / natural;
+		const qreal below = StationOverlayItem::readableItemScale(300.0, kPresentation, crossover * 0.999, 24.0);
+		const qreal above = StationOverlayItem::readableItemScale(300.0, kPresentation, crossover * 1.001, 24.0);
+		ok &= expect(std::abs(below - above) / above < 0.01, "the size has no jump at the crossover");
+		qreal previous = 0.0;
+		bool monotonic = true;
+		for (qreal viewScale : {0.001, 0.005, 0.01, 0.05, crossover, 0.5, 1.0, 4.0}) {
+			const qreal onScreen = StationOverlayItem::readableItemScale(300.0, kPresentation, viewScale, 24.0)
+				* 300.0 * viewScale;
+			monotonic = monotonic && onScreen >= previous;
+			previous = onScreen;
+		}
+		ok &= expect(monotonic, "the size on screen never shrinks when zooming in");
+	}
+
+	{
+		QGraphicsScene scene;
+		QGraphicsView view(&scene);
+		const StationRig rig = addStationRig(scene, "Paimpol", QPointF(100.0, 200.0), 2, QPointF(0.0, 40.0));
+		rig.overlay->setSourceIdentities({{-3.0, 7}});
+		ok &= expect(QLineF(pictureAnchorInScene(rig), QPointF(100.0, 240.0)).length() < 1e-6,
+			"the pictogram stands on its artwork point after the node became its parent");
+		const QPointF pictureAnchor = pictureAnchorInScene(rig);
+		const QPointF nameAnchor = nameAnchorInScene(rig);
+		const QRectF naturalPicture = rig.picture->sceneBoundingRect();
+		const QRectF naturalName = rig.name->sceneBoundingRect();
+		ok &= expect(rig.overlay->pictureItem() == rig.picture && rig.overlay->nameItem() == rig.name
+				&& rig.overlay->platformCount() == 2,
+			"the overlay links its artwork");
+		view.setTransform(QTransform::fromScale(0.01, 0.01));
+		rig.overlay->applyViewScale(0.01);
+		const QTransform device = view.viewportTransform();
+		const qreal pictureHeight = deviceRect(device, rig.picture).height();
+		ok &= expect(pictureHeight >= 23.5 && pictureHeight < 25.0,
+			"the pictogram is 24 pixels high on screen at a small view scale");
+		const qreal fontPixels = rig.name->font().pixelSize() * rig.name->sceneTransform().m22() * device.m22();
+		ok &= expect(std::abs(fontPixels - 12.0) < 0.12 && deviceRect(device, rig.name).height() >= 12.0,
+			"the name has a 12 pixel font on screen at a small view scale");
+		bool stable = true;
+		for (qreal viewScale : {0.005, 0.01, 0.05, 0.2, 1.0, 3.0, 0.01}) {
+			view.setTransform(QTransform::fromScale(viewScale, viewScale));
+			rig.overlay->applyViewScale(viewScale);
+			stable = stable && QLineF(pictureAnchorInScene(rig), pictureAnchor).length() < 1e-6
+				&& QLineF(nameAnchorInScene(rig), nameAnchor).length() < 1e-6
+				&& rig.overlay->stableAnchor() == QPointF(100.0, 200.0)
+				&& rig.picture->parentItem() == rig.node
+				&& rig.overlay->matchesSourceIdentity(-3.0, 7)
+				&& rig.overlay->sourceIdentityCount() == 1;
+		}
+		ok &= expect(stable, "anchors, parent and identity are unchanged across view scales");
+		rig.overlay->applyViewScale(1.0);
+		const auto sameRect = [](const QRectF& a, const QRectF& b) {
+			return QLineF(a.topLeft(), b.topLeft()).length() < 1e-6
+				&& QLineF(a.bottomRight(), b.bottomRight()).length() < 1e-6;
+		};
+		ok &= expect(rig.picture->transform().isIdentity() && rig.name->transform().isIdentity()
+				&& sameRect(rig.picture->sceneBoundingRect(), naturalPicture)
+				&& sameRect(rig.name->sceneBoundingRect(), naturalName),
+			"the scene size returns at a large view scale");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		view.resize(240, 180);
+		view.setTransform(QTransform::fromScale(0.01, 0.01));
+		const StationRig rig = addStationRig(scene, "ClickStation", QPointF(0.0, 0.0), 1, QPointF(0.0, 300.0));
+		int clicks = 0;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode,
+			[&](StationNodeItem* item) { if (item == rig.node) ++clicks; });
+		const QPointF inside(500.0, -500.0);
+		ok &= expect(!rig.picture->sceneBoundingRect().contains(inside), "the click point is outside the scene-sized pictogram");
+		sendLeftClick(scene, view, inside);
+		ok &= expect(clicks == 0, "a click beside the scene-sized pictogram selects nothing");
+		rig.overlay->applyViewScale(0.01);
+		ok &= expect(rig.picture->sceneBoundingRect().contains(inside), "the enlarged pictogram covers the click point");
+		sendLeftClick(scene, view, inside);
+		ok &= expect(clicks == 1, "a click inside the enlarged pictogram selects its station");
+	}
+
+	{
+		QGraphicsScene scene;
+		const QTransform small = QTransform::fromScale(0.01, 0.01);
+		QList<StationRig> rigs;
+		rigs << addStationRig(scene, "Alpha", QPointF(0.0, 0.0), 1)
+			 << addStationRig(scene, "Beta", QPointF(200.0, 0.0), 3)
+			 << addStationRig(scene, "Gamma", QPointF(400.0, 0.0), 2);
+		applyAll(rigs, 0.01);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({true, false, true}),
+			"of three overlapping names the one of the station with most platforms stays");
+		ok &= expect(std::all_of(rigs.cbegin(), rigs.cend(), [](const StationRig& rig) {
+			return rig.picture->isVisible() && rig.overlay->isVisible();
+		}),
+			"colliding names never hide a pictogram");
+		const QList<bool> first = hiddenNames(rigs);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == first, "the collision result is the same when run twice");
+		StationOverlayItem::resolveNameCollisions({rigs[2].overlay, rigs[1].overlay, rigs[0].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == first, "the collision result does not depend on the list order");
+		QTransform panned = small;
+		panned.translate(4000.0, -2500.0);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, panned);
+		ok &= expect(hiddenNames(rigs) == first, "panning does not change which names are hidden");
+		rigs[0].overlay->setFollowed(true);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({false, true, true}),
+			"a followed station ranks above one with more platforms");
+		rigs[2].overlay->setSelected(true);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({false, true, false}),
+			"selected and followed stations both keep their name");
+		rigs[0].overlay->setFollowed(false);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay}, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({true, true, false}),
+			"a selected station ranks above all others");
+		rigs[2].overlay->setSelected(false);
+		applyAll(rigs, 1.0);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay, rigs[2].overlay},
+			QTransform::fromScale(1.0, 1.0));
+		ok &= expect(hiddenNames(rigs) == QList<bool>({false, false, false}),
+			"all names are visible after zooming in");
+	}
+
+	{
+		// Equal priority except for the position: the tie break must not follow the viewport.
+		QGraphicsScene scene;
+		const QTransform small = QTransform::fromScale(0.01, 0.01);
+		QList<StationRig> rigs;
+		rigs << addStationRig(scene, "Near", QPointF(1000.0, 0.0), 2)
+			 << addStationRig(scene, "Far", QPointF(1200.0, 0.0), 2);
+		applyAll(rigs, 0.01);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay}, small);
+		const QList<bool> first = hiddenNames(rigs);
+		ok &= expect(first.count(true) == 1, "of two equal stations with overlapping names one stays");
+		QTransform panned = small;
+		panned.translate(-3000.0, 0.0);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay, rigs[1].overlay}, panned);
+		ok &= expect(hiddenNames(rigs) == first, "panning does not reorder equal stations");
+	}
+
+	{
+		// The name of the upper station lies on the pictogram of the lower one. The names
+		// themselves are apart, so only the pictogram can hide the upper name.
+		QGraphicsScene scene;
+		const QTransform small = QTransform::fromScale(0.01, 0.01);
+		QList<StationRig> rigs;
+		rigs << addStationRig(scene, "Upper", QPointF(0.0, 0.0), 5)
+			 << addStationRig(scene, "Lower", QPointF(0.0, 2200.0), 1);
+		applyAll(rigs, 0.01);
+		const QRectF upperName = deviceRect(small, rigs[0].name);
+		const QRectF lowerName = deviceRect(small, rigs[1].name);
+		const QRectF lowerPicture = deviceRect(small, rigs[1].picture);
+		const QRectF upperPicture = deviceRect(small, rigs[0].picture);
+		if (!expect(upperName.intersects(lowerPicture) && !upperName.adjusted(-3.0, -3.0, 3.0, 3.0).intersects(lowerName)
+					&& !lowerName.adjusted(-3.0, -3.0, 3.0, 3.0).intersects(upperPicture),
+				"the upper name lies on the lower pictogram and the names are apart"))
+			return 1;
+		const QList<StationOverlayItem*> both{rigs[0].overlay, rigs[1].overlay};
+		StationOverlayItem::resolveNameCollisions(both, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({true, false}),
+			"a name gives way to the pictogram of another station, even of one that ranks lower");
+		ok &= expect(rigs[0].picture->isVisible() && rigs[1].picture->isVisible(),
+			"a name on a pictogram hides no pictogram");
+		rigs[0].overlay->setSelected(true);
+		StationOverlayItem::resolveNameCollisions(both, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({false, false}),
+			"a selected station keeps its name on the pictogram of another station");
+		rigs[0].overlay->setSelected(false);
+		rigs[1].picture->setVisible(false);
+		StationOverlayItem::resolveNameCollisions(both, small);
+		ok &= expect(hiddenNames(rigs) == QList<bool>({false, false}),
+			"a hidden pictogram hides no name");
+		rigs[1].picture->setVisible(true);
+		StationOverlayItem::resolveNameCollisions({rigs[0].overlay}, small);
+		ok &= expect(hiddenNames(rigs).first() == false, "the own pictogram of a station does not hide its name");
 	}
 
 	if (!ok)

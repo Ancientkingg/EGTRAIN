@@ -14,8 +14,11 @@ pre-restoration state, not as acceptance captures for this change:
 
 Canonical authored geometry and Fit padding remain in use, so comparisons must
 distinguish geometry from symbol presentation. Station artwork uses a
-station-building SVG while retaining the historical scene-space anchor and
-size. The historical passenger PNG is restored as a separate resource; train
+station-building SVG while retaining the historical scene-space anchor, offset
+and parent. Its size on screen is at least 24 px for the pictogram and 12 px for
+the name, so stations stay locatable at Fit; above that the scene size applies.
+Overlapping names are hidden by priority and pictograms are never hidden. The
+historical passenger PNG is restored as a separate resource; train
 polygon colors use the original `VisualPolish.cpp` palette. The original
 renderer did not paint a train category badge or speed label over the locomotive.
 

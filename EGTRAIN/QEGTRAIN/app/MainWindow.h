@@ -200,7 +200,7 @@ public:
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal presentationScale = 1.0, QPointF decorationOffset = QPointF());
+		qreal presentationScale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);

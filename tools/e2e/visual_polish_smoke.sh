@@ -21,7 +21,7 @@ DPR2_COMMAND_BAR_1024_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1024-e2e.p
 DPR2_COMMAND_BAR_1200_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1200-e2e.png"
 DPR2_COMMAND_BAR_1440_SHOT="${TMPDIR:-/tmp}/qegtrain-command-bar-dpr2-1440-e2e.png"
 STATION_OUT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e"
-STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay-copenhagen"
+STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay"
 STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
 COLOR_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.log"
 COLOR_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.png"
@@ -163,21 +163,14 @@ for case in 1 2 3 4 5 6; do
 	scene_name="${SCENE_NAMES[$((case - 1))]}"
 	scene_path="$SCENE_ROOT/$scene_name"
 	station_out="${STATION_OUT_BASE}-${case}.log"
-	if [[ "$case" == "3" ]]; then
-		rm -f "${STATION_SHOT_BASE}-dpr1-fit.png" "${STATION_SHOT_BASE}-dpr1-3x.png" "${STATION_SHOT_BASE}-dpr1-12x.png"
-		QT_QPA_PLATFORM=offscreen \
-		QT_SCALE_FACTOR=1 \
-		QEGTRAIN_AUTOSTART=1 \
-		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-		QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-dpr1" \
-		"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
-	else
-		QT_QPA_PLATFORM=offscreen \
-		QT_SCALE_FACTOR=1 \
-		QEGTRAIN_AUTOSTART=1 \
-		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-			"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
-	fi
+	shot_base="${STATION_SHOT_BASE}-${scene_name}-dpr1"
+	rm -f "${shot_base}-fit.png" "${shot_base}-3x.png" "${shot_base}-12x.png"
+	QT_QPA_PLATFORM=offscreen \
+	QT_SCALE_FACTOR=1 \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_STATION_OVERLAYS=1 \
+	QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="$shot_base" \
+	"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
 	grep -q "E2E_STATION_OVERLAY_OK" "$station_out"
 	grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$station_out"
 	grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$station_out"
@@ -185,6 +178,15 @@ for case in 1 2 3 4 5 6; do
 	grep -q "E2E_STATION_ARTWORK_CLICK_OK" "$station_out"
 	grep -q "E2E_STATION_NO_GHOST_CONTEXT_OK" "$station_out"
 	grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$station_out"
+	grep -q "E2E_STATION_MIN_SIZE_OK" "$station_out"
+	grep -q "E2E_STATION_ANCHOR_STABLE_OK" "$station_out"
+	grep -q "E2E_STATION_NAME_COLLISION_OK" "$station_out"
+	grep -q "E2E_STATION_SCENE_SIZE_OK" "$station_out"
+	grep -q "E2E_STATION_NAMES_TOGGLE_OK" "$station_out"
+	grep -q "E2E_STATION_SELECTED_NAME_OK" "$station_out"
+	test -s "${shot_base}-fit.png"
+	test -s "${shot_base}-3x.png"
+	test -s "${shot_base}-12x.png"
 	if [[ "$case" == "1" ]]; then
 		grep -q "E2E_NETHERLANDS_SIGNALS_INDIVIDUAL_OK" "$station_out"
 	fi
@@ -192,19 +194,17 @@ for case in 1 2 3 4 5 6; do
 		grep -q "E2E_STATION_OVERLAY_DPR_1.0" "$station_out"
 		grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$station_out"
 		grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$station_out"
-		test -s "${STATION_SHOT_BASE}-dpr1-fit.png"
-		test -s "${STATION_SHOT_BASE}-dpr1-3x.png"
-		test -s "${STATION_SHOT_BASE}-dpr1-12x.png"
+		grep -q "E2E_STATION_SELECTED_NAME_OK was_hidden=1" "$station_out"
 	fi
 	done
 echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4,5,6}.log"
 
-rm -f "${STATION_SHOT_BASE}-dpr2-fit.png" "${STATION_SHOT_BASE}-dpr2-3x.png" "${STATION_SHOT_BASE}-dpr2-12x.png"
+rm -f "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
 QT_QPA_PLATFORM=offscreen \
 QT_SCALE_FACTOR=2 \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-dpr2" \
+QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-Copenhagen-dpr2" \
 "$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
 grep -q "E2E_STATION_OVERLAY_OK" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$STATION_DPR2_OUT"
@@ -216,9 +216,11 @@ grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_OVERLAY_DPR_2.0" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$STATION_DPR2_OUT"
 grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$STATION_DPR2_OUT"
-test -s "${STATION_SHOT_BASE}-dpr2-fit.png"
-test -s "${STATION_SHOT_BASE}-dpr2-3x.png"
-test -s "${STATION_SHOT_BASE}-dpr2-12x.png"
+grep -q "E2E_STATION_MIN_SIZE_OK" "$STATION_DPR2_OUT"
+grep -q "E2E_STATION_NAME_COLLISION_OK" "$STATION_DPR2_OUT"
+test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png"
+test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png"
+test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
 echo "station overlay Copenhagen DPR2 passed: ${STATION_DPR2_OUT}"
 
 "$ROOT/tools/e2e/scene_render_smoke.sh"
