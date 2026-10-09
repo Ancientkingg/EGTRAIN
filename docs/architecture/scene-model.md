@@ -139,6 +139,22 @@ imported rows from otherwise identical authored rows.
 order, counting consecutive visits of one station once. The service editor's
 route choices and the reference-route chooser of the diagrams use it.
 
+`scene/StopInsertion` adds a stop at a chosen position of a timetable without
+disturbing the others. `sceneStopInsertionWindow` returns the route visits
+that lie strictly between the neighbouring stops: they start after the last
+resolved stop before the position and end at the visit of the first resolved
+stop at or after it, resolved over the whole timetable. The stations of those
+visits, and their platforms, are the choices for the new stop, so a station
+whose only visit lies after the next stop is not offered. A stop before the
+position that is neither resolved nor off-route context leaves no window and is
+named in the result. `insertSceneStop` resolves a copy of the service with the
+new stop and inserts it only when the new stop resolves and every stop that
+resolved before still does; otherwise the service is unchanged and the error
+names the stops concerned. Two stops with the same station and platform inside
+one window bind to its visits in order. `sceneServiceTraversal` and
+`sceneRemainingStopTraversal` build the traversal and the visits left after the
+resolved stops before an index.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals
