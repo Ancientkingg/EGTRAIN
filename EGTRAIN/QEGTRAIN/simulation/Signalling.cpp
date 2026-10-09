@@ -4060,6 +4060,14 @@ void relAtbMixedSignalling(Section* BS, int blockIndex) {
 	}
 }
 
+namespace {
+// Whether the routine of a level writes the aspect of a section behind an occupied one: when the section has that
+// level, or when it has no level and the occupied section has that level.
+bool levelWritesAspectBehind(int level, const Section& occupied, const Section& behind) {
+	return behind.SignallingLevel == level || (behind.SignallingLevel == kSignallingLevelUnset && occupied.SignallingLevel == level);
+}
+} // namespace
+
 // ETCS Level 1 Signalling System - Italian Version (SCMT)
 
 void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks) {
@@ -4101,14 +4109,14 @@ void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks) {
 					BS[h].code = 0;
 					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
 				}
-				if (BS[h].SignallingLevel == 1) {
+				if (levelWritesAspectBehind(1, BS[h], BS[h - 1])) {
 					BS[h - 1].code = 75;
 					strcpy_s(BS[h - 1].state, "red");
 					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
 						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 1) {
+				if (levelWritesAspectBehind(1, BS[h], BS[h - 2])) {
 					BS[h - 2].code = 180;
 					strcpy_s(BS[h - 2].state, "yellow");
 					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
@@ -4122,25 +4130,25 @@ void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks) {
 					BS[h].code = 0;
 					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
 				}
-				if (BS[h].SignallingLevel == 1) {
+				if (levelWritesAspectBehind(1, BS[h], BS[h - 1])) {
 					BS[h - 1].code = 75;
 					strcpy_s(BS[h - 1].state, "red");
 					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
 						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 1) {
+				if (levelWritesAspectBehind(1, BS[h], BS[h - 2])) {
 					BS[h - 2].code = 180;
 					strcpy_s(BS[h - 2].state, "yellow");
 					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
 						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 1) {
+				if (levelWritesAspectBehind(1, BS[h], BS[h - 3])) {
 					BS[h - 3].code = 270;
 					strcpy_s(BS[h - 3].state, "green");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
+					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
+						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
 			}
@@ -4220,14 +4228,14 @@ void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks) {
 					BS[h].code = 0;
 					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
 				}
-				if (BS[h].SignallingLevel == 2) {
+				if (levelWritesAspectBehind(2, BS[h], BS[h - 1])) {
 					BS[h - 1].code = 75;
 					strcpy_s(BS[h - 1].state, "red");
 					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
 						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 2) {
+				if (levelWritesAspectBehind(2, BS[h], BS[h - 2])) {
 					BS[h - 2].code = 180;
 					strcpy_s(BS[h - 2].state, "yellow");
 					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
@@ -4241,25 +4249,25 @@ void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks) {
 					BS[h].code = 0;
 					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
 				}
-				if (BS[h].SignallingLevel == 2) {
+				if (levelWritesAspectBehind(2, BS[h], BS[h - 1])) {
 					BS[h - 1].code = 75;
 					strcpy_s(BS[h - 1].state, "red");
 					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
 						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 2) {
+				if (levelWritesAspectBehind(2, BS[h], BS[h - 2])) {
 					BS[h - 2].code = 180;
 					strcpy_s(BS[h - 2].state, "yellow");
 					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
 						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
-				if (BS[h].SignallingLevel == 2) {
+				if (levelWritesAspectBehind(2, BS[h], BS[h - 3])) {
 					BS[h - 3].code = 270;
 					strcpy_s(BS[h - 3].state, "green");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
+					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
+						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 				}
 			}

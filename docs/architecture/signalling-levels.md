@@ -284,13 +284,9 @@ way at both levels. The levels differ in the blocking times only.
   `single-track-level-2`, `R1` waits 161 s.
 - **Window.** Red, yellow, green, green, as at level 0.
 - **Difference from level 0.** Levels 1 and 2 write no 11.111 m/s limit. They
-  also test the level of the occupied section instead of the level of the
-  section they write (see
+  also write the chain onto a section without a level behind an occupied section
+  of their level, which level 0 does not (see
   [Sections of different levels](#sections-of-different-levels-on-one-route)).
-  In both routines, the loop that follows the write of code 270 on the third
-  section behind an occupied section clears the signal speed limit of the second
-  section behind it, not of the third. With one level on the line this changes
-  nothing, because every limit is 999. No issue tracks it.
 
 ### Level 3 (`3 ETCS Level 3 moving block`)
 
@@ -388,20 +384,24 @@ failures. It adds a following mode.
 
 A route can cross sections of several levels. This is what the code does at the
 border. The cases `border-*` pin it on the characterization line for a border at
-8 km between levels 0 and 2, 2 and 0, 0 and 3, and 0 and 1. From level 0 into
-level 1 or 2 the block before the border is not protected while a train is in it
-(#602).
+8 km between levels 0 and 2, 2 and 0, 0 and 3, and 0 and 1. The cases
+`border-0-2-near-fwd` and `border-0-1-near-fwd` have the border at 4 km, the
+edge between `1-B0` and `2-B0`, so that the first section of the second level
+is the third section of the route. On both sides of a border between level 0
+and level 1 or 2, a section that a train occupies keeps code 0 and the section
+before it shows 75, as inside one level. A level 0 section that shows 75 next to
+a section of level 1 or 2 keeps its 11.111 m/s limit (`test_operationsbuilder`).
+No case has a border with level 4 or 5, or between levels 1 and 2.
 
 - Which sections a routine writes on:
-  - Levels 0 and 5 test the level of the section they write. They write the
-    chain behind an occupied section when the sections behind have their level,
-    whatever the level of the occupied section. They set code 0 on the occupied
-    section only when it has their level.
-  - Levels 1 and 2 test the level of the occupied section. The exception is
-    the code 75 on the first section of a route when the second is occupied; it
-    tests the level of the first section. An occupied section of level 1 or 2
-    writes the chain on the sections behind it whatever their level, including
-    no level.
+  - Levels 0, 1, 2 and 5 test the level of the section they write. They write
+    the chain behind an occupied section when the sections behind have their
+    level, whatever the level of the occupied section. They set code 0 on the
+    occupied section only when it has their level.
+  - Levels 1 and 2 also write the chain onto a section without a level behind
+    an occupied section of their level. The first section of a route is the
+    exception: an occupied second section gives it code 75 only when the first
+    section has the level of the routine.
   - Levels 3 and 4 write code 0 on an occupied section of their level and
     nothing else.
 - A speed pass sets the end speed of the sections of its own level. It reads
@@ -546,9 +546,6 @@ level is a project decision. Assigning levels to the other two scenes is #459.
 
 Open on this version:
 
-- #602: at a border from level 0 to level 1 or 2 the block before the border
-  shows 75 while a train is in it (`border-0-1-fwd`, `border-0-2-fwd`,
-  `border-2-0-rev`).
 - #459: two committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
@@ -564,8 +561,6 @@ Limits that no issue tracks:
   a leader that stops, also one that only brakes for a speed restriction. A
   train that lost its coupling unintentionally still takes the speed of a
   braking leader as its target. No case covers either.
-- The routines of levels 1 and 2 clear the wrong section after writing code 270
-  (see levels 1 and 2). It has no effect with one level.
 - A train that cannot stop before a stop target passes it. The target then lies
   behind the train, so nothing holds it in front of the failed or occupied
   section that the target protected, and the train can end inside a section

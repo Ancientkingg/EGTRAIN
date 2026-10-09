@@ -79,7 +79,9 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	border-2-0-rev
 	border-0-3-fwd
 	border-0-3-rev
-	border-0-1-fwd)
+	border-0-1-fwd
+	border-0-2-near-fwd
+	border-0-1-near-fwd)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}

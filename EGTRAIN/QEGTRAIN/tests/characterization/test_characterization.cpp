@@ -177,6 +177,8 @@ constexpr double kNoBorder = -1.0;
 constexpr double kFixtureLengthKm = 16.0;
 // Station B, a section edge of the fixture.
 constexpr double kBorderKm = 8.0;
+// The edge between 1-B0 and 2-B0. The first section behind the border is the third section of the route.
+constexpr double kNearBorderKm = 4.0;
 
 struct CaseSpec {
 	std::string name;
@@ -194,12 +196,9 @@ struct CaseSpec {
 	int secondLevel = kNoSignallingArea;
 };
 
-// Cases whose current behaviour is wrong, with the open issue that describes it.
-const std::map<std::string, std::string> kKnownWrong = {
-	{"border-0-1-fwd", "#602 the block before the border shows 75 while a train is in it"},
-	{"border-0-2-fwd", "#602 the block before the border shows 75 while a train is in it"},
-	{"border-2-0-rev", "#602 the block before the border shows 75 while a train is in it"},
-};
+// Cases whose current behaviour is wrong, as "#<issue> <reason>" with the open issue that describes it. The table is
+// empty while no case is known wrong.
+const std::map<std::string, std::string> kKnownWrong = {};
 
 std::string knownWrongMarker(const std::string& name) {
 	const auto found = kKnownWrong.find(name);
@@ -258,11 +257,12 @@ std::vector<CaseSpec> buildCaseTable() {
 	// F1 holds the restricted section and F2 follows it in the same direction: the restriction does not delay F2.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
-	// Two following services over a border between two levels at station B (8 km). The names give the level on the A side
-	// and on the C side; fwd runs from A to C, rev from C to A.
+	// Two following services over a border between two levels, at station B (8 km) unless the entry gives another
+	// position. The names give the level on the A side and on the C side; fwd runs from A to C, rev from C to A.
 	const struct {
 		int west, east;
 		bool reverse;
+		double borderKm = kBorderKm;
 	} borders[] = {
 		{0, 2, false},
 		{0, 2, true},
@@ -271,13 +271,15 @@ std::vector<CaseSpec> buildCaseTable() {
 		{0, 3, false},
 		{0, 3, true},
 		{0, 1, false},
+		{0, 2, false, kNearBorderKm},
+		{0, 1, false, kNearBorderKm},
 	};
 	for (const auto& border : borders) {
 		const std::string name = "border-" + std::to_string(border.west) + "-" + std::to_string(border.east)
-			+ (border.reverse ? "-rev" : "-fwd");
+			+ (border.borderKm == kBorderKm ? "" : "-near") + (border.reverse ? "-rev" : "-fwd");
 		CaseSpec spec{name, "baseline", border.reverse ? std::vector<std::string>{"R1", "R2"} : std::vector<std::string>{"F1", "F2"},
 			border.west, knownWrongMarker(name)};
-		spec.borderKm = kBorderKm;
+		spec.borderKm = border.borderKm;
 		spec.secondLevel = border.east;
 		cases.push_back(spec);
 	}
