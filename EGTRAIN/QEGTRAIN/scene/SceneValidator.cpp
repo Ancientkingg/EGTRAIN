@@ -270,9 +270,12 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 	std::string fix = "In Infrastructure > Signalling area add a network-wide area covering "
 		+ coordinateText(minimumStart) + " to " + coordinateText(maximumEnd)
 		+ " km, or a track-scoped area for each track listed";
-	const std::vector<std::string> stretches = uncoveredStretches(scene, uncovered, trackIds);
-	if (!stretches.empty())
-		fix += ". Without a level: " + namedItems(stretches);
+	// Without any area every stretch is uncovered and the range above says it all.
+	if (!scene.signallingAreas.empty()) {
+		const std::vector<std::string> stretches = uncoveredStretches(scene, uncovered, trackIds);
+		if (!stretches.empty())
+			fix += ". Without a level: " + namedItems(stretches);
+	}
 	diagnostics.warning("scene.signalling.level.missing", message, "signalling.json", "scene", scene.name,
 		"signalling_areas", uncovered.front()->id, fix);
 }

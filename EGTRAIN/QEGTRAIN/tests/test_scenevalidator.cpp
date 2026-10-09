@@ -956,10 +956,9 @@ int main(int argc, char** argv) {
 	// The warning about route sections without a level names the stretches and the areas next to them.
 	const auto stretchNone = findAll(validateRunnableScene(noAreas), levelMissing);
 	const std::string stretchNoneFix = "In Infrastructure > Signalling area add a network-wide area covering "
-									   "0.000000 to 2.000000 km, or a track-scoped area for each track listed. "
-									   "Without a level: track-1 0.000000 to 2.000000 km";
+									   "0.000000 to 2.000000 km, or a track-scoped area for each track listed";
 	ok &= expect(stretchNone.size() == 1 && stretchNone[0].suggestedFix == stretchNoneFix,
-		"without areas the stretch is named without neighbours");
+		"without areas the fix gives the range of the network and no list of stretches");
 	const auto stretchPartial = findAll(validateRunnableScene(partialArea), levelMissing);
 	const std::string stretchPartialMessage =
 		"1 of 2 route sections has no signalling level and runs without signalling: @block-2@ (track track-1)";

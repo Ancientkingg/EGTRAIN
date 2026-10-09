@@ -114,8 +114,9 @@ applies areas after base and switch sections exist and before routes copy them.
 A section with no matching area retains the unset signalling value. The loader
 and writer never create a default level. Runnable validation reports the route
 sections without a level in one `scene.signalling.level.missing` warning;
-sections that are on no route are not reported. The warning's suggested fix
-lists the stretches of each track without a level and the areas next to each.
+sections that are on no route are not reported. When the scene has areas, the
+warning's suggested fix lists the stretches of each track without a level and
+the areas next to each.
 
 Area diagnostics name the area and give the values behind them:
 
