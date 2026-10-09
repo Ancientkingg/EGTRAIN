@@ -36,6 +36,7 @@ required_markers=(
 	E2E_TRACK_PREVIEW_RUN_GATED_OK
 	E2E_TRACK_PREVIEW_SAVE_RELOAD_OK
 	E2E_TRACK_PREVIEW_STRUCTURAL_REJECTION_OK
+	E2E_SELECTION_CUE_PREVIEW_OK
 )
 missing_markers=()
 for marker in "${required_markers[@]}"; do

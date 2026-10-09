@@ -1,5 +1,7 @@
 #include "widgets/NetworkLegendWidget.h"
 
+#include "graphics/items/SelectionCueItem.h"
+
 #include <QApplication>
 #include <QImage>
 #include <QLabel>
@@ -177,7 +179,7 @@ int main(int argc, char* argv[]) {
 			&& previewEntries.at(8).label == "Unavailable signal"
 			&& previewEntries.at(9).label == "Failed signal",
 		"preview key explains every operational signal aspect");
-	ok &= expect(previewEntries.at(3).color == QColor(Qt::blue)
+	ok &= expect(previewEntries.at(3).color == kSelectionCueColor
 			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
 

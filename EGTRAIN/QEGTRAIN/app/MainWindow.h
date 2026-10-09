@@ -377,8 +377,8 @@ private:
 	QLineEdit* trainWagonsText;
 	QFormLayout* trainFormLayout;
 
-	// effect on clicked item
-	HighlightEffect* effect;
+	// effect on clicked item; the item deletes it with itself
+	QPointer<HighlightEffect> effect;
 
 	// MainWindow creates the worker and thread. Qt owns deletion through deleteLater connections.
 	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.

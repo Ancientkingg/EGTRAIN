@@ -46,6 +46,7 @@ public:
 	~NetworkScene();
 
 	void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
 	void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 signals:
@@ -64,6 +65,8 @@ signals:
 private:
 	QTransform viewTransformFor(QWidget* widget) const;
 	QGraphicsItem* semanticItemAt(const QPointF& scenePos, QWidget* widget) const;
+
+	bool m_pressedOnEmptyCanvas = false;
 };
 
 #endif // NETWORKSCENE_H

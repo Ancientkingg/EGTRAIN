@@ -1,8 +1,9 @@
 #include "graphics/NetworkScene.h"
 
+#include "graphics/items/HighlightEffect.h"
+
 #include <QApplication>
 #include <QContextMenuEvent>
-#include <QGraphicsColorizeEffect>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsTextItem>
@@ -18,18 +19,32 @@ static bool expect(bool condition, const char* message) {
 	return condition;
 }
 
-static void sendLeftClick(NetworkScene& scene, QGraphicsView& view, const QPointF& scenePos) {
-	QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
+static void fillLeftButtonEvent(QGraphicsSceneMouseEvent& event, QGraphicsView& view, const QPointF& pressScenePos,
+	const QPointF& scenePos) {
 	event.setButton(Qt::LeftButton);
-	event.setButtons(Qt::LeftButton);
 	event.setPos(view.mapFromScene(scenePos));
 	event.setScenePos(scenePos);
 	event.setScreenPos(view.viewport()->mapToGlobal(view.mapFromScene(scenePos)));
-	event.setButtonDownPos(Qt::LeftButton, event.pos());
-	event.setButtonDownScenePos(Qt::LeftButton, scenePos);
-	event.setButtonDownScreenPos(Qt::LeftButton, event.screenPos());
+	event.setButtonDownPos(Qt::LeftButton, view.mapFromScene(pressScenePos));
+	event.setButtonDownScenePos(Qt::LeftButton, pressScenePos);
+	event.setButtonDownScreenPos(Qt::LeftButton, view.viewport()->mapToGlobal(view.mapFromScene(pressScenePos)));
 	event.setWidget(view.viewport());
-	scene.mousePressEvent(&event);
+}
+
+// A left press at one scene position and the release at another.
+static void sendLeftDrag(NetworkScene& scene, QGraphicsView& view, const QPointF& pressScenePos,
+	const QPointF& releaseScenePos) {
+	QGraphicsSceneMouseEvent press(QEvent::GraphicsSceneMousePress);
+	fillLeftButtonEvent(press, view, pressScenePos, pressScenePos);
+	press.setButtons(Qt::LeftButton);
+	scene.mousePressEvent(&press);
+	QGraphicsSceneMouseEvent release(QEvent::GraphicsSceneMouseRelease);
+	fillLeftButtonEvent(release, view, pressScenePos, releaseScenePos);
+	scene.mouseReleaseEvent(&release);
+}
+
+static void sendLeftClick(NetworkScene& scene, QGraphicsView& view, const QPointF& scenePos) {
+	sendLeftDrag(scene, view, scenePos, scenePos);
 }
 
 static bool sendContextMenu(NetworkScene& scene, QGraphicsView& view,
@@ -146,6 +161,29 @@ int main(int argc, char* argv[]) {
 		sendLeftClick(scene, view, QPointF(100.0, 100.0));
 		ok &= expect(entitySignals == 0, "empty click emits no entity signal");
 		ok &= expect(disableHighlight == 1, "empty click disables highlight once");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+
+		TrackLineItem track(QLineF(-60.0, 0.0, 60.0, 0.0));
+		scene.addItem(&track);
+
+		int arcClicks = 0;
+		int disableHighlight = 0;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem*) { ++arcClicks; });
+		QObject::connect(&scene, &NetworkScene::DisableHighlight, [&]() { ++disableHighlight; });
+
+		sendLeftDrag(scene, view, QPointF(100.0, 100.0), QPointF(60.0, 80.0));
+		ok &= expect(disableHighlight == 0, "a drag from empty canvas keeps the highlight");
+		sendLeftDrag(scene, view, QPointF(100.0, 100.0), QPointF(100.5, 100.0));
+		ok &= expect(disableHighlight == 1, "a release one pixel from the press on empty canvas is a click");
+		sendLeftDrag(scene, view, QPointF(0.0, 0.0), QPointF(100.0, 100.0));
+		ok &= expect(arcClicks == 1 && disableHighlight == 1, "a drag from a track selects it and disables no highlight");
+		sendLeftDrag(scene, view, QPointF(0.0, 0.0), QPointF(0.0, 0.0));
+		ok &= expect(arcClicks == 2 && disableHighlight == 1, "a click on a track after an empty click disables no highlight");
 	}
 
 	{
@@ -459,9 +497,46 @@ int main(int argc, char* argv[]) {
 			ok &= expect(paintTrack() == speed.color(),
 				"ordinary track keeps historical speed color in every operational state");
 		}
-		track.setGraphicsEffect(new QGraphicsColorizeEffect);
-		ok &= expect(paintTrack() == QColor(Qt::blue),
-			"selected track paints historical blue instead of an operational underlay");
+		track.setGraphicsEffect(new HighlightEffect(Qt::blue, 1.0));
+		ok &= expect(paintTrack() == speed.color(), "a selected track keeps its speed colour");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		scaleView(view);
+		auto* node = new NodeItem(QRectF(-4.5, -4.5, 9.0, 9.0));
+		auto* track = new TrackLineItem(QLineF(-60, 0, 60, 0));
+		auto* station = new StationNodeItem(QRectF(30, -10, 20, 20));
+		scene.addItem(track);
+		scene.addItem(node);
+		scene.addItem(station);
+		const QList<QPointF> points = {QPointF(0, 0), QPointF(0, 12), QPointF(40, 0), QPointF(-40, 10), QPointF(80, 80)};
+		QString clicked;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnNode, [&](NodeItem*) { clicked += "node "; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnStationNode, [&](StationNodeItem*) { clicked += "station "; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem*) { clicked += "arc "; });
+		QObject::connect(&scene, &NetworkScene::DisableHighlight, [&]() { clicked += "none "; });
+		const auto pick = [&]() {
+			clicked.clear();
+			for (const QPointF& point : points)
+				sendLeftClick(scene, view, point);
+			return clicked;
+		};
+		const QString before = pick();
+		ok &= expect(before.contains("node") && before.contains("station") && before.contains("arc") && before.contains("none"),
+			"the clicks reach every kind of item");
+		auto* effect = new HighlightEffect(Qt::blue, 1.0);
+		node->setGraphicsEffect(effect);
+		ok &= expect(pick() == before, "a cue on a node does not change what a click picks");
+		effect->setViewScale(2.0);
+		track->setGraphicsEffect(effect);
+		station->setGraphicsEffect(effect);
+		ok &= expect(pick() == before, "a cue does not change what a click picks");
+		ok &= expect(effect->cue() && effect->cue()->shape().isEmpty(), "the cue has no shape");
+		QList<QGraphicsItem*> underCue = scene.items(effect->cue()->targetRect().center(), Qt::IntersectsItemShape,
+			Qt::DescendingOrder, view.viewportTransform());
+		ok &= expect(!underCue.contains(effect->cue()), "the cue is not found by a hit test");
 	}
 
 	{
