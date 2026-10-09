@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <initializer_list>
 #include <iostream>
 #include <limits>
 #include <set>
@@ -50,6 +51,16 @@ static const SceneDiagnostic* findCode(const std::vector<SceneDiagnostic>& diagn
 			return &diagnostic;
 	}
 	return nullptr;
+}
+
+static std::vector<SceneDiagnostic> findAll(const std::vector<SceneDiagnostic>& diagnostics,
+	const std::string& code) {
+	std::vector<SceneDiagnostic> found;
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.code == code)
+			found.push_back(diagnostic);
+	}
+	return found;
 }
 
 static bool contains(const std::string& text, const std::string& part) {
@@ -642,6 +653,23 @@ int main(int argc, char** argv) {
 	invalidAreaRange.signallingAreas = {{"area", 1.0, 1.0, 2, {}}};
 	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
 		"signalling area ranges must increase");
+	auto rangeErrors = findAll(validateScene(invalidAreaRange), "scene.signalling_area.range");
+	const std::string rangeMessage = "Signalling area area has start_km 1.000000 and end_km 1.000000; "
+									 "start_km must be finite and below end_km (blocks of the network cover 0.000000 to 2.000000 km)";
+	ok &= expect(rangeErrors.size() == 1 && rangeErrors[0].message == rangeMessage,
+		"the range error names the area, both values and the extent of the network");
+	SceneModel trackWithoutBlocks = clean;
+	trackWithoutBlocks.tracks.push_back({"track-2"});
+	trackWithoutBlocks.signallingAreas = {{"other", 1.0, 0.5, 2, "track-2"}};
+	rangeErrors = findAll(validateScene(trackWithoutBlocks), "scene.signalling_area.range");
+	ok &= expect(rangeErrors.size() == 1 && contains(rangeErrors[0].message, "(track track-2 has no blocks)"),
+		"the range error of an area on a track without blocks says so");
+	SceneModel invalidTrackRange = clean;
+	invalidTrackRange.signallingAreas = {{"scoped", 2.5, 1.0, 2, "track-1"}};
+	rangeErrors = findAll(validateScene(invalidTrackRange), "scene.signalling_area.range");
+	ok &= expect(rangeErrors.size() == 1 && contains(rangeErrors[0].message, "start_km 2.500000 and end_km 1.000000")
+			&& contains(rangeErrors[0].message, "(blocks of track track-1 cover 0.000000 to 2.000000 km)"),
+		"the range error of a track-scoped area gives the extent of that track");
 	invalidAreaRange.signallingAreas[0].startKm = std::numeric_limits<double>::quiet_NaN();
 	ok &= expect(hasCode(validateScene(invalidAreaRange), "scene.signalling_area.range"),
 		"signalling area coordinates must be finite");
@@ -649,11 +677,20 @@ int main(int argc, char** argv) {
 	invalidAreaLevel.signallingAreas = {{"area", 0.0, 1.0, 6, {}}};
 	ok &= expect(hasCode(validateScene(invalidAreaLevel), "scene.signalling_area.level"),
 		"signalling area levels must be between zero and five");
+	const auto levelErrors = findAll(validateScene(invalidAreaLevel), "scene.signalling_area.level");
+	ok &= expect(levelErrors.size() == 1 && levelErrors[0].message == "Signalling area area has level 6; the level must be between 0 and 5",
+		"the level error names the area and the offending level");
 	SceneModel unknownAreaTrack = clean;
 	unknownAreaTrack.signallingAreas = {{"area", 0.0, 1.0, 2, "missing-track"}};
 	ok &= expect(hasCodeAndPath(validateScene(unknownAreaTrack), "scene.ref.unresolved",
 					 "signalling_areas[0].track"),
 		"signalling area track references must resolve");
+	const auto unknownTrackDiagnostics = validateScene(unknownAreaTrack);
+	const auto unknownTrackErrors = findAll(unknownTrackDiagnostics, "scene.ref.unresolved");
+	const std::string unknownTrackMessage = "Signalling area area refers to unknown track missing-track "
+											"(tracks of the network: track-1; blocks of the network cover 0.000000 to 2.000000 km)";
+	ok &= expect(unknownTrackErrors.size() == 1 && unknownTrackErrors[0].message == unknownTrackMessage,
+		"the unknown track error names the area, the track, the known tracks and the extent of the network");
 	SceneModel overlapWithoutSharedSection = clean;
 	overlapWithoutSharedSection.signallingAreas = {
 		{"first", 0.0, 1.5, 2, {}}, {"second", 1.0, 2.0, 3, {}}};
@@ -798,6 +835,170 @@ int main(int argc, char** argv) {
 	ok &= expect(levelMissingMessage(edges).empty(),
 		"a third area that contains the straddling section removes the warning");
 
+	// Conflicts are reported once for each pair of areas, with the number of sections and where they lie.
+	const std::string conflictCode = "scene.signalling_area.conflict";
+	const auto pairDiagnostics = findAll(validateRunnableScene(conflictingNetworkAreas), conflictCode);
+	ok &= expect(pairDiagnostics.size() == 1 && pairDiagnostics[0].itemId == "second"
+			&& pairDiagnostics[0].relatedId == "first" && pairDiagnostics[0].path == "signalling_areas[1]"
+			&& pairDiagnostics[0].message == "Signalling area first (2 ETCS Level 2 fixed block) and signalling area "
+											 "second (3 ETCS Level 3 moving block) assign different levels to 4 runtime sections, the first being "
+											 "@block-1@, between 0.000000 and 2.000000 km",
+		"two areas that disagree about two sections give one conflict that names both areas, levels and the sections");
+	SceneModel singleConflict = clean;
+	singleConflict.signallingAreas = {{"wide", 0.0, 2.0, 0, {}}, {"narrow", 1.0, 2.0, 5, {}}};
+	const auto singleConflictDiagnostics = findAll(validateRunnableScene(singleConflict), conflictCode);
+	const std::string singleConflictMessage = "Signalling area wide (0 ATB fixed block) and signalling area narrow "
+											  "(5 BACC track circuits) assign different levels to 1 runtime section: "
+											  "@block-2@, between 1.000000 and 2.000000 km";
+	ok &= expect(singleConflictDiagnostics.size() == 1 && singleConflictDiagnostics[0].message == singleConflictMessage,
+		"a conflict about one section names that section and its range");
+	ok &= expect(findAll(validateRunnableScene(clean), conflictCode).empty()
+			&& findAll(validateRunnableScene(overlapWithoutSharedSection), conflictCode).empty(),
+		"areas that agree or share no complete section give no conflict");
+	SceneModel sameLevelOverlap = clean;
+	sameLevelOverlap.signallingAreas = {{"a", 0.0, 2.0, 2, {}}, {"b", 0.0, 2.0, 2, "track-1"}, {"c", 1.0, 2.0, 2, {}}};
+	ok &= expect(findAll(validateRunnableScene(sameLevelOverlap), conflictCode).empty(),
+		"overlapping areas with the same level give no conflict");
+
+	// An area edge inside a route section leaves that section out of the area.
+	const std::string splitCode = "scene.signalling_area.splits_section";
+	SceneModel splitEnd = clean;
+	splitEnd.signallingAreas = {{"head", 0.0, 1.5, 2, {}}};
+	const auto splitEndDiagnostics = validateRunnableScene(splitEnd);
+	const auto splitEndWarnings = findAll(splitEndDiagnostics, splitCode);
+	ok &= expect(splitEndWarnings.size() == 1 && splitEndWarnings[0].severity == SceneSeverity::Warning
+			&& splitEndWarnings[0].file == "signalling.json" && splitEndWarnings[0].itemId == "head"
+			&& splitEndWarnings[0].path == "signalling_areas[0].end_km" && splitEndWarnings[0].relatedId == "@block-2@"
+			&& splitEndWarnings[0].message == "The end of signalling area head (1.500000 km) lies inside route section "
+											  "@block-2@ (1.000000 to 2.000000 km), so the section is not part of the area"
+			&& contains(splitEndWarnings[0].suggestedFix, "1.000000 or 2.000000 km")
+			&& !hasErrors(splitEndDiagnostics) && !hasCode(validateScene(splitEnd), splitCode),
+		"an area end inside a route section gives one warning that names the section, the edge and the section range");
+	SceneModel splitStart = clean;
+	splitStart.signallingAreas = {{"tail", 0.5, 2.0, 2, {}}};
+	const auto splitStartWarnings = findAll(validateRunnableScene(splitStart), splitCode);
+	ok &= expect(splitStartWarnings.size() == 1 && splitStartWarnings[0].path == "signalling_areas[0].start_km"
+			&& splitStartWarnings[0].message == "The start of signalling area tail (0.500000 km) lies inside route section "
+												"@block-1@ (0.000000 to 1.000000 km), so the section is not part of the area",
+		"an area start inside a route section gives one warning");
+	SceneModel splitBoth = clean;
+	splitBoth.signallingAreas = {{"inner", 0.5, 1.5, 2, {}}};
+	ok &= expect(findAll(validateRunnableScene(splitBoth), splitCode).size() == 2,
+		"each edge that cuts a section gives its own warning");
+	SceneModel splitOffRoute = clean;
+	splitOffRoute.routes[0].blocks = {"block-1"};
+	splitOffRoute.signallingAreas = {{"head", 0.0, 1.5, 2, {}}};
+	ok &= expect(findAll(validateRunnableScene(splitOffRoute), splitCode).empty(),
+		"an edge inside a section that is on no route gives no warning");
+	for (const SceneSignallingArea& area : {SceneSignallingArea{"exact", 0.0, 1.0, 2, {}},
+			 SceneSignallingArea{"inside", 0.0, 1.0 - 5e-9, 2, {}}, SceneSignallingArea{"start", 1.0 + 5e-9, 2.0, 2, {}},
+			 SceneSignallingArea{"all", 0.0, 2.0, 2, "track-1"}}) {
+		SceneModel aligned = clean;
+		aligned.signallingAreas = {area};
+		ok &= expect(findAll(validateRunnableScene(aligned), splitCode).empty(),
+			"an area edge on a section edge, within the tolerance, gives no warning");
+	}
+	SceneModel splitMany = clean;
+	splitMany.tracks.push_back({"track-2"});
+	splitMany.nodes.push_back({"node-4", "track-2", 0.0, 1.0});
+	splitMany.nodes.push_back({"node-5", "track-2", 2.0, 1.0});
+	splitMany.arcs.push_back({"arc-3", "track-2", "node-4", "node-5", 0.0, 0.0, 35.0});
+	splitMany.blocks.push_back({"block-3", "track-2", 2.0});
+	splitMany.routes[0].blocks = {"block-1", "block-2", "block-3"};
+	splitMany.signallingAreas = {{"head", 0.0, 1.5, 2, {}}};
+	const auto splitManyWarnings = findAll(validateRunnableScene(splitMany), splitCode);
+	ok &= expect(splitManyWarnings.size() == 1 && contains(splitManyWarnings[0].message, "@block-2@ (1.000000 to 2.000000 km)")
+			&& contains(splitManyWarnings[0].message, "; @block-3@ is cut the same way"),
+		"an edge that cuts sections of several tracks gives one warning that names the others");
+
+	// An area that contains no complete section.
+	const std::string emptyCode = "scene.signalling_area.empty";
+	SceneModel emptyArea = clean;
+	emptyArea.signallingAreas = {{"far", 5.0, 6.0, 2, {}}, {"a", 0.0, 2.0, 2, {}}};
+	const auto emptyDiagnostics = validateRunnableScene(emptyArea);
+	const auto emptyWarnings = findAll(emptyDiagnostics, emptyCode);
+	ok &= expect(emptyWarnings.size() == 1 && emptyWarnings[0].severity == SceneSeverity::Warning
+			&& emptyWarnings[0].file == "signalling.json" && emptyWarnings[0].itemId == "far"
+			&& emptyWarnings[0].path == "signalling_areas[0]"
+			&& emptyWarnings[0].message == "Signalling area far (5.000000 to 6.000000 km) contains no complete section; "
+										   "blocks of the network cover 0.000000 to 2.000000 km"
+			&& !hasErrors(emptyDiagnostics) && !hasCode(validateScene(emptyArea), emptyCode),
+		"an area outside the network gives one warning with the extent of the network");
+	SceneModel insideSection = clean;
+	insideSection.signallingAreas = {{"small", 0.2, 0.8, 2, {}}, {"a", 0.0, 2.0, 2, {}}};
+	const auto insideWarnings = findAll(validateRunnableScene(insideSection), emptyCode);
+	ok &= expect(insideWarnings.size() == 1 && insideWarnings[0].itemId == "small"
+			&& findAll(validateRunnableScene(insideSection), splitCode).size() == 2,
+		"an area inside one section contains no section and its edges cut that section");
+	SceneModel trackExtent = clean;
+	trackExtent.signallingAreas = {{"far", 5.0, 6.0, 2, "track-1"}, {"a", 0.0, 2.0, 2, {}}};
+	const auto trackExtentWarnings = findAll(validateRunnableScene(trackExtent), emptyCode);
+	ok &= expect(trackExtentWarnings.size() == 1
+			&& contains(trackExtentWarnings[0].message, "blocks of track track-1 cover 0.000000 to 2.000000 km"),
+		"a track-scoped area outside its track gives the extent of that track");
+	SceneModel unusableAreas = clean;
+	unusableAreas.signallingAreas = {{"inverted", 2.0, 0.0, 2, {}}, {"level", 0.0, 2.0, 7, {}},
+		{"track", 0.0, 2.0, 2, "missing-track"}, {"a", 0.0, 2.0, 2, {}}};
+	const auto unusableDiagnostics = validateRunnableScene(unusableAreas);
+	ok &= expect(findAll(unusableDiagnostics, emptyCode).empty() && findAll(unusableDiagnostics, splitCode).empty(),
+		"areas that are already invalid get no empty or split warning");
+	SceneModel edgesAdjacent = clean;
+	edgesAdjacent.signallingAreas = {{"first", 0.0, 1.0, 2, {}}, {"second", 1.0, 2.0, 3, {}}};
+	SceneModel alignedAreas = clean;
+	alignedAreas.signallingAreas = {{"network", 0.0, 2.0, 2, {}}, {"track", 0.0, 2.0, 4, "track-1"}};
+	for (const SceneModel* correct : std::initializer_list<const SceneModel*>{&clean, &alignedAreas, &edgesAdjacent}) {
+		const auto correctDiagnostics = validateRunnableScene(*correct);
+		ok &= expect(!hasCode(correctDiagnostics, emptyCode) && !hasCode(correctDiagnostics, splitCode)
+				&& !hasCode(correctDiagnostics, conflictCode),
+			"a correct scene gets no area warning");
+	}
+
+	// The warning about route sections without a level names the stretches and the areas next to them.
+	const auto stretchNone = findAll(validateRunnableScene(noAreas), levelMissing);
+	const std::string stretchNoneFix = "In Infrastructure > Signalling area add a network-wide area covering "
+									   "0.000000 to 2.000000 km, or a track-scoped area for each track listed. "
+									   "Without a level: track-1 0.000000 to 2.000000 km";
+	ok &= expect(stretchNone.size() == 1 && stretchNone[0].suggestedFix == stretchNoneFix,
+		"without areas the stretch is named without neighbours");
+	const auto stretchPartial = findAll(validateRunnableScene(partialArea), levelMissing);
+	const std::string stretchPartialMessage =
+		"1 of 2 route sections has no signalling level and runs without signalling: @block-2@ (track track-1)";
+	const std::string stretchPartialFix = "or a track-scoped area for each track listed. Without a level: "
+										  "track-1 1.000000 to 2.000000 km (after area partial)";
+	ok &= expect(stretchPartial.size() == 1 && stretchPartial[0].message == stretchPartialMessage
+			&& contains(stretchPartial[0].suggestedFix, stretchPartialFix),
+		"a stretch after an area names that area");
+	SceneModel gapBetween = conflictingDerivedAreas;
+	gapBetween.routes[0].blocks = {"block-3"};
+	gapBetween.signallingAreas = {{"left", 0.0, 3.0, 2, "track-2"}, {"right", 4.0, 5.0, 2, {}}};
+	const auto stretchBetween = findAll(validateRunnableScene(gapBetween), levelMissing);
+	const std::string stretchBetweenFix =
+		". Without a level: track-2 3.000000 to 4.000000 km (between area left and area right)";
+	ok &= expect(stretchBetween.size() == 1 && contains(stretchBetween[0].suggestedFix, stretchBetweenFix),
+		"a stretch between two areas names both");
+	SceneModel gapBefore = conflictingDerivedAreas;
+	gapBefore.routes[0].blocks = {"block-1", "block-2", "block-3"};
+	gapBefore.signallingAreas = {{"right", 4.0, 5.0, 2, {}}};
+	const auto stretchBefore = findAll(validateRunnableScene(gapBefore), levelMissing);
+	const std::string stretchBeforeFix = "track-1 0.000000 to 2.000000 km (before area right), "
+										 "track-2 3.000000 to 4.000000 km (before area right)";
+	ok &= expect(stretchBefore.size() == 1 && contains(stretchBefore[0].suggestedFix, stretchBeforeFix),
+		"each track gets its own stretch, before the area that follows it");
+	const auto stretchInside = findAll(validateRunnableScene(splitBoth), levelMissing);
+	ok &= expect(stretchInside.size() == 1 && contains(stretchInside[0].suggestedFix, "track-1 0.000000 to 2.000000 km (area inner lies inside it)"),
+		"a stretch with an area inside it says so");
+	SceneModel gapRuns = clean;
+	gapRuns.blocks = {{"block-1", "track-1", 1.0}, {"block-2", "track-1", 1.0}, {"block-3", "track-1", 1.0}};
+	gapRuns.nodes.push_back({"node-4", "track-1", 3.0, 0.0});
+	gapRuns.arcs.push_back({"arc-3", "track-1", "node-3", "node-4", 0.0, 0.0, 35.0});
+	gapRuns.routes[0].blocks = {"block-1", "block-2", "block-3"};
+	gapRuns.signallingAreas = {{"middle", 1.0, 2.0, 2, {}}};
+	const auto stretchRuns = findAll(validateRunnableScene(gapRuns), levelMissing);
+	ok &= expect(stretchRuns.size() == 1 && contains(stretchRuns[0].message, "2 of 3 route sections have no signalling level")
+			&& contains(stretchRuns[0].suggestedFix, "track-1 0.000000 to 1.000000 km (before area middle), "
+													 "track-1 2.000000 to 3.000000 km (after area middle)"),
+		"separate uncovered stretches of one track are listed one by one");
+
 	// The names of the signalling levels.
 	const std::pair<int, const char*> levelLabels[] = {
 		{kSignallingLevelUnset, "No signalling"}, {0, "0 ATB fixed block"},
@@ -864,19 +1065,14 @@ int main(int argc, char** argv) {
 		"conflicts of the network-wide scope come before those of the track scope");
 	const auto conflictingRun = validateRunnableScene(conflicting);
 	std::vector<std::string> conflictErrors;
-	std::size_t conflictErrorCount = 0;
-	for (const SceneDiagnostic& diagnostic : conflictingRun) {
-		if (diagnostic.code != "scene.signalling_area.conflict")
-			continue;
-		++conflictErrorCount;
-		if (diagnostic.relatedId.find('/') == std::string::npos) // Leave out the switch sections.
-			conflictErrors.push_back(diagnostic.itemId + " " + diagnostic.path + " " + diagnostic.relatedId + " "
-				+ diagnostic.file + " " + diagnostic.itemType);
+	for (const SceneDiagnostic& diagnostic : findAll(conflictingRun, "scene.signalling_area.conflict")) {
+		ok &= expect(diagnostic.severity == SceneSeverity::Error && diagnostic.file == "signalling.json"
+				&& diagnostic.itemType == "signalling_area",
+			"an area conflict is an error on the signalling file");
+		conflictErrors.push_back(diagnostic.itemId + " " + diagnostic.path + " " + diagnostic.relatedId);
 	}
-	ok &= expect(conflictErrors == std::vector<std::string>{"c signalling_areas[2] a -> @block-1@ signalling.json signalling_area", "c signalling_areas[2] a -> @block-2@ signalling.json signalling_area", "t2 signalling_areas[5] t1 -> @block-2@ signalling.json signalling_area"}
-			&& conflictErrorCount >= 3,
-		"the validator reports the first conflict of each scope for each section");
-
+	ok &= expect(conflictErrors == std::vector<std::string>{"c signalling_areas[2] a", "d signalling_areas[3] a", "t2 signalling_areas[5] t1"},
+		"the validator reports one conflict for each pair of areas that disagree about a section");
 	SceneModel agreeing = clean;
 	agreeing.signallingAreas = {{"a", 0.0, 2.0, 2, {}}, {"b", 0.0, 1.5, 2, {}}};
 	ok &= expect(sectionOf(analyze(agreeing), "@block-1@").conflicts.empty() && sectionOf(analyze(agreeing), "@block-1@").decidingArea == 0,

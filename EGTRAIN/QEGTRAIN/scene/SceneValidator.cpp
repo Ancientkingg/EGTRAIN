@@ -136,6 +136,95 @@ std::string namedItems(const std::vector<std::string>& values) {
 	return text;
 }
 
+std::string coordinateText(double coordinate) {
+	return formatSceneSectionCoordinate(coordinate);
+}
+
+// The name of a signalling area in a message; an area without an ID is named by its place in the file.
+std::string areaName(const SceneModel& scene, std::size_t index) {
+	const std::string& id = scene.signallingAreas[index].id;
+	return id.empty() ? "signalling_areas[" + std::to_string(index) + "]" : id;
+}
+
+// Whether the analysis of the signalling areas takes the area into account.
+bool isUsableSignallingArea(const SceneSignallingArea& area) {
+	return std::isfinite(area.startKm) && std::isfinite(area.endKm) && area.startKm < area.endKm
+		&& area.level >= 0 && area.level <= 5;
+}
+
+// The extent of the blocks of one track, or of the whole network when the track ID is empty.
+std::string blockExtentText(const SceneSectionInventory& inventory, const std::string& trackId) {
+	bool found = false;
+	double start = 0.0;
+	double end = 0.0;
+	for (const SceneSectionDescriptor& section : inventory.sections) {
+		if (section.connectionDerived || (!trackId.empty() && section.firstTrackId != trackId))
+			continue;
+		start = found ? std::min(start, section.startKm) : section.startKm;
+		end = found ? std::max(end, section.endKm) : section.endKm;
+		found = true;
+	}
+	const std::string subject = trackId.empty() ? "the network" : "track " + trackId;
+	if (!found)
+		return subject + " has no blocks";
+	return "blocks of " + subject + " cover " + coordinateText(start) + " to " + coordinateText(end) + " km";
+}
+
+// The signalling areas on the two sides of a stretch of one track: the usable area of that track that ends
+// last at or before the end of the stretch, and the one that starts first at or after its start. Empty when
+// there is none.
+std::string neighbouringAreasText(const SceneModel& scene, const std::string& trackId, double startKm, double endKm) {
+	constexpr std::size_t kNone = std::numeric_limits<std::size_t>::max();
+	std::size_t before = kNone;
+	std::size_t after = kNone;
+	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
+		const SceneSignallingArea& area = scene.signallingAreas[index];
+		if (!isUsableSignallingArea(area) || (!area.trackId.empty() && area.trackId != trackId))
+			continue;
+		if (area.endKm <= endKm + kNativeCoordinateTolerance
+			&& (before == kNone || area.endKm > scene.signallingAreas[before].endKm))
+			before = index;
+		if (area.startKm >= startKm - kNativeCoordinateTolerance
+			&& (after == kNone || area.startKm < scene.signallingAreas[after].startKm))
+			after = index;
+	}
+	if (before == kNone && after == kNone)
+		return "";
+	if (before == after)
+		return "area " + areaName(scene, before) + " lies inside it";
+	if (before == kNone)
+		return "before area " + areaName(scene, after);
+	if (after == kNone)
+		return "after area " + areaName(scene, before);
+	return "between area " + areaName(scene, before) + " and area " + areaName(scene, after);
+}
+
+// The stretches of each track that the uncovered sections make up, with the areas next to each stretch.
+std::vector<std::string> uncoveredStretches(const SceneModel& scene,
+	const std::vector<const SceneSectionDescriptor*>& uncovered, const std::vector<std::string>& trackIds) {
+	std::vector<std::string> stretches;
+	for (const std::string& trackId : trackIds) {
+		std::vector<const SceneSectionDescriptor*> onTrack;
+		for (const SceneSectionDescriptor* section : uncovered) {
+			if (section->firstTrackId == trackId || section->secondTrackId == trackId)
+				onTrack.push_back(section);
+		}
+		std::sort(onTrack.begin(), onTrack.end(), [](const SceneSectionDescriptor* left, const SceneSectionDescriptor* right) {
+			return left->startKm < right->startKm;
+		});
+		for (std::size_t index = 0; index < onTrack.size();) {
+			const double start = onTrack[index]->startKm;
+			double end = onTrack[index]->endKm;
+			for (++index; index < onTrack.size() && onTrack[index]->startKm <= end + kNativeCoordinateTolerance; ++index)
+				end = std::max(end, onTrack[index]->endKm);
+			const std::string neighbours = neighbouringAreasText(scene, trackId, start, end);
+			stretches.push_back(trackId + " " + coordinateText(start) + " to " + coordinateText(end) + " km"
+				+ (neighbours.empty() ? "" : " (" + neighbours + ")"));
+		}
+	}
+	return stretches;
+}
+
 // Runtime sections on a route that no signalling area covers keep the unset
 // signalling level, so trains there run without signalling.
 void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInventory& inventory,
@@ -178,11 +267,104 @@ void reportUncoveredRouteSections(const SceneModel& scene, const SceneSectionInv
 		+ namedItems(sectionIds);
 	if (!trackIds.empty())
 		message += (trackIds.size() == 1 ? " (track " : " (tracks ") + namedItems(trackIds) + ")";
+	std::string fix = "In Infrastructure > Signalling area add a network-wide area covering "
+		+ coordinateText(minimumStart) + " to " + coordinateText(maximumEnd)
+		+ " km, or a track-scoped area for each track listed";
+	const std::vector<std::string> stretches = uncoveredStretches(scene, uncovered, trackIds);
+	if (!stretches.empty())
+		fix += ". Without a level: " + namedItems(stretches);
 	diagnostics.warning("scene.signalling.level.missing", message, "signalling.json", "scene", scene.name,
-		"signalling_areas", uncovered.front()->id,
-		"In Infrastructure > Signalling area add a network-wide area covering "
-			+ formatSceneSectionCoordinate(minimumStart) + " to " + formatSceneSectionCoordinate(maximumEnd)
-			+ " km, or a track-scoped area for each track listed");
+		"signalling_areas", uncovered.front()->id, fix);
+}
+
+// One error per pair of areas that give sections of one scope different levels.
+void reportSignallingAreaConflicts(const SceneModel& scene, const SceneSectionInventory& inventory,
+	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	struct PairConflict {
+		std::size_t firstArea;
+		std::size_t area;
+		std::size_t sectionCount = 0;
+		std::string firstSectionId;
+		double startKm = 0.0;
+		double endKm = 0.0;
+	};
+	std::vector<PairConflict> pairs;
+	std::unordered_set<std::string> seenSectionIds;
+	for (const SceneSectionDescriptor& descriptor : inventory.sections) {
+		const SceneSectionSignalling* section = signalling.section(descriptor.id);
+		if (section == nullptr || !seenSectionIds.insert(descriptor.id).second)
+			continue;
+		for (const SceneSignallingAreaConflict& conflict : section->conflicts) {
+			auto pair = std::find_if(pairs.begin(), pairs.end(), [&](const PairConflict& candidate) {
+				return candidate.firstArea == conflict.firstArea && candidate.area == conflict.area;
+			});
+			if (pair == pairs.end()) {
+				pairs.push_back({conflict.firstArea, conflict.area, 0, descriptor.id, descriptor.startKm, descriptor.endKm});
+				pair = std::prev(pairs.end());
+			}
+			++pair->sectionCount;
+			pair->startKm = std::min(pair->startKm, descriptor.startKm);
+			pair->endKm = std::max(pair->endKm, descriptor.endKm);
+		}
+	}
+	for (const PairConflict& pair : pairs) {
+		const SceneSignallingArea& first = scene.signallingAreas[pair.firstArea];
+		const SceneSignallingArea& second = scene.signallingAreas[pair.area];
+		std::string message = "Signalling area " + areaName(scene, pair.firstArea) + " ("
+			+ signallingLevelName(first.level) + ") and signalling area " + areaName(scene, pair.area) + " ("
+			+ signallingLevelName(second.level) + ") assign different levels to ";
+		message += pair.sectionCount == 1 ? "1 runtime section: " : std::to_string(pair.sectionCount) + " runtime sections, the first being ";
+		message += pair.firstSectionId + ", between " + coordinateText(pair.startKm) + " and "
+			+ coordinateText(pair.endKm) + " km";
+		diagnostics.error("scene.signalling_area.conflict", message, "signalling.json", "signalling_area",
+			second.id, "signalling_areas[" + std::to_string(pair.area) + "]", first.id,
+			"Give the two areas the same level, or change their ranges or tracks so that they share no complete section");
+	}
+}
+
+// Warnings for usable areas that cut through route sections at an edge or contain no section at all.
+void reportSignallingAreaShapes(const SceneModel& scene, const SceneSectionInventory& inventory,
+	const SceneSignallingAnalysis& signalling, DiagnosticBuilder& diagnostics) {
+	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
+		const SceneSignallingArea& area = scene.signallingAreas[index];
+		const bool knownTrack = area.trackId.empty()
+			|| std::any_of(scene.tracks.begin(), scene.tracks.end(), [&](const SceneTrack& track) { return track.id == area.trackId; });
+		if (!isUsableSignallingArea(area) || !knownTrack)
+			continue;
+		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
+		const SceneAreaSignalling& result = signalling.areas[index];
+		for (const bool atStart : {true, false}) {
+			std::vector<std::string> splitIds;
+			for (const std::string& id : atStart ? result.sectionsSplitByStart : result.sectionsSplitByEnd) {
+				const SceneSectionSignalling* section = signalling.section(id);
+				if (section != nullptr && section->onRoute)
+					splitIds.push_back(id);
+			}
+			const SceneSectionDescriptor* split = splitIds.empty() ? nullptr : inventory.exact(splitIds.front());
+			if (split == nullptr)
+				continue;
+			const std::string edge = atStart ? "start" : "end";
+			std::string message = "The " + edge + " of signalling area " + areaName(scene, index) + " ("
+				+ coordinateText(atStart ? area.startKm : area.endKm) + " km) lies inside route section "
+				+ split->id + " (" + coordinateText(split->startKm) + " to " + coordinateText(split->endKm)
+				+ " km), so the section is not part of the area";
+			if (splitIds.size() > 1) {
+				splitIds.erase(splitIds.begin());
+				message += "; " + namedItems(splitIds) + (splitIds.size() == 1 ? " is" : " are") + " cut the same way";
+			}
+			diagnostics.warning("scene.signalling_area.splits_section", message, "signalling.json",
+				"signalling_area", area.id, path + (atStart ? ".start_km" : ".end_km"), split->id,
+				"Move the " + edge + " of the area to " + coordinateText(split->startKm) + " or "
+					+ coordinateText(split->endKm) + " km, the edges of the section");
+		}
+		if (result.sectionCount == 0)
+			diagnostics.warning("scene.signalling_area.empty",
+				"Signalling area " + areaName(scene, index) + " (" + coordinateText(area.startKm) + " to "
+					+ coordinateText(area.endKm) + " km) contains no complete section; "
+					+ blockExtentText(inventory, area.trackId),
+				"signalling.json", "signalling_area", area.id, path, area.trackId,
+				"Make the area cover at least one complete block section, or delete it");
+	}
 }
 
 // A single-track restriction closes its sections to trains of the opposite direction through the signal
@@ -818,20 +1000,33 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 	for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
 		const SceneSignallingArea& area = scene.signallingAreas[index];
 		const std::string path = "signalling_areas[" + std::to_string(index) + "]";
+		const std::string name = areaName(scene, index);
+		const bool knownTrack = hasId(trackIds, area.trackId);
 		if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm)
 			|| !(area.startKm < area.endKm))
 			diagnostics.error("scene.signalling_area.range",
-				"Signalling area start_km and end_km must be finite with start_km below end_km",
+				"Signalling area " + name + " has start_km " + coordinateText(area.startKm) + " and end_km "
+					+ coordinateText(area.endKm) + "; start_km must be finite and below end_km ("
+					+ blockExtentText(sectionInventory, knownTrack ? area.trackId : "") + ")",
 				"signalling.json", "signalling_area", area.id, path, area.id,
 				"Use a finite increasing coordinate range");
 		if (area.level < 0 || area.level > 5)
-			diagnostics.error("scene.signalling_area.level", "Signalling area level must be between 0 and 5",
+			diagnostics.error("scene.signalling_area.level",
+				"Signalling area " + name + " has level " + std::to_string(area.level)
+					+ "; the level must be between 0 and 5",
 				"signalling.json", "signalling_area", area.id, path + ".level", area.trackId,
 				"Use a signalling level from 0 through 5");
-		if (!area.trackId.empty() && !hasId(trackIds, area.trackId))
-			diagnostics.error("scene.ref.unresolved", "Signalling area refers to unknown track",
+		if (!area.trackId.empty() && !knownTrack) {
+			std::vector<std::string> trackNames;
+			for (const SceneTrack& track : scene.tracks)
+				trackNames.push_back(track.id);
+			diagnostics.error("scene.ref.unresolved",
+				"Signalling area " + name + " refers to unknown track " + area.trackId + " (tracks of the network: "
+					+ (trackNames.empty() ? "none" : namedItems(trackNames)) + "; "
+					+ blockExtentText(sectionInventory, "") + ")",
 				"signalling.json", "signalling_area", area.id, path + ".track", area.trackId,
 				"Add the track or leave track blank for a network-wide area");
+		}
 	}
 	std::unordered_set<std::string> routeIds;
 	collectIds(scene.routes, "signalling.json", "route", "routes", diagnostics, routeIds);
@@ -1611,22 +1806,8 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 				return section == nullptr ? std::string() : section->id;
 			};
 			const SceneSignallingAnalysis signalling = analyzeSignallingAreas(scene, sectionInventory);
-			for (const SceneSectionSignalling& section : signalling.sections) {
-				for (const bool trackScoped : {false, true}) {
-					const auto conflict = std::find_if(section.conflicts.begin(), section.conflicts.end(),
-						[trackScoped](const SceneSignallingAreaConflict& candidate) {
-							return candidate.trackScoped == trackScoped;
-						});
-					if (conflict == section.conflicts.end())
-						continue;
-					diagnostics.error("scene.signalling_area.conflict",
-						"Multiple signalling areas assign different levels to one runtime section",
-						"signalling.json", "signalling_area", scene.signallingAreas[conflict->area].id,
-						"signalling_areas[" + std::to_string(conflict->area) + "]",
-						scene.signallingAreas[conflict->firstArea].id + " -> " + section.sectionId,
-						"Adjust area ranges, levels, or track scope");
-				}
-			}
+			reportSignallingAreaConflicts(scene, sectionInventory, signalling, diagnostics);
+			reportSignallingAreaShapes(scene, sectionInventory, signalling, diagnostics);
 			reportUncoveredRouteSections(scene, sectionInventory, signalling, diagnostics);
 			reportInactiveSingleTrackRestrictions(scene, sectionInventory, signalling, diagnostics);
 

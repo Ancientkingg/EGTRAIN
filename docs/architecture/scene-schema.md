@@ -114,7 +114,25 @@ applies areas after base and switch sections exist and before routes copy them.
 A section with no matching area retains the unset signalling value. The loader
 and writer never create a default level. Runnable validation reports the route
 sections without a level in one `scene.signalling.level.missing` warning;
-sections that are on no route are not reported.
+sections that are on no route are not reported. The warning's suggested fix
+lists the stretches of each track without a level and the areas next to each.
+
+Area diagnostics name the area and give the values behind them:
+
+- `scene.signalling_area.range` (error): the message shows `start_km`, `end_km`
+  and the extent of the blocks of the network or of the area's track.
+- `scene.signalling_area.level` (error): the message shows the level that lies
+  outside 0 to 5.
+- `scene.ref.unresolved` on `signalling_areas[].track` (error): the message
+  names the unknown track and lists the tracks of the network.
+- `scene.signalling_area.conflict` (error, runnable validation): one error for
+  each pair of areas that give sections different levels, with the number of
+  sections, the first one, its km range and the name of both levels.
+- `scene.signalling_area.splits_section` (warning, runnable validation): one
+  warning for each area edge that lies inside a route section, naming the
+  section and its km positions, because that section is not part of the area.
+- `scene.signalling_area.empty` (warning, runnable validation): the area
+  contains no complete section; the message shows the extent of the blocks.
 
 Validation reports the arcs of a route that its trains cannot brake or start on
 in one `scene.route.gradient.steep` warning per route and composition that a
