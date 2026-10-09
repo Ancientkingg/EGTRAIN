@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
 		}
 		ok &= checkText(dialog.windowTitle(), "Reference route", "dialog title");
 		const auto* context = dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
-		ok &= check(context && context->text() == "Reference route for train paths:", "dialog prompt names the purpose");
+		ok &= check(context && context->text() == "Reference route for train paths:", "dialog context line names the purpose");
 	}
 	{
 		RouteReferenceDialog dialog(twins, "timetable");
