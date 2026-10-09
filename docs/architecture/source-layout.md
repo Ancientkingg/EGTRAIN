@@ -26,7 +26,7 @@ docs/                     Guides and architecture, development, product, telemet
 | Folder | Holds |
 | --- | --- |
 | `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `resources.qrc` |
-| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `Infrastructure`, `Signalling`, `Capacity`, `Optimisation`, `Passengers`, `NumberGenerator`, `DispatchDecision`, `InitialParameters` |
+| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `DispatchDecision`, `InitialParameters` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneDiagnostic`, `SceneTool` |
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
