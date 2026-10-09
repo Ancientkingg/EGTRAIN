@@ -174,6 +174,7 @@ def occurrence_errors(timetable_text: str, duration_seconds: float, service_id: 
     previous_arrival = None
     for run in range(1, count + 1):
         train = f"{service_id}-{run}"
+        # The order is compared with the run before only when that run reached Hvs.
         earlier_arrival, previous_arrival = previous_arrival, None
         if train not in trains:
             errors.append(f"{train} is missing")

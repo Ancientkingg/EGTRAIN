@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import check_scene_structure, case_command, occurrence_errors, route_errors, run_command, scene_output_dir
+from headless_smoke import NO_ARRIVAL, check_scene_structure, case_command, occurrence_errors, route_errors, run_command, scene_output_dir
 
 
 def timetable_sample(*runs: tuple[str, list[str], list[int], list[int]]) -> str:
@@ -49,17 +49,23 @@ def main() -> None:
     errors = occurrence_errors(timetable_sample(*runs), 8000, "IC", 4)
     if errors:
         raise SystemExit(f"complete occurrences reported errors: {errors}")
-    errors = occurrence_errors(timetable_sample(runs[0], runs[1], runs[3]), 8000, "IC", 4)
-    if not errors or "IC-3" not in errors[0]:
-        raise SystemExit(f"missing occurrence 3 was not reported: {errors}")
-    wrong_end = ("IC-3", ["Hvs", "Asd"], [5100, 5400], [5160, 5460])
-    errors = occurrence_errors(timetable_sample(runs[0], runs[1], wrong_end, runs[3]), 8000, "IC", 4)
-    if not errors or "IC-3" not in errors[0]:
-        raise SystemExit(f"occurrence 3 that does not end at Hvs was not reported: {errors}")
-    early = ("IC-2", stations, [1920, 1400], [1980, 1460])
-    errors = occurrence_errors(timetable_sample(runs[0], early, runs[2], runs[3]), 8000, "IC", 4)
-    if not errors or "IC-2" not in errors[0]:
-        raise SystemExit(f"occurrence 2 that reaches Hvs before occurrence 1 was not reported: {errors}")
+    # One run is replaced or left out at a time. Exactly one error must name that run and the cause.
+    changes = [
+        (2, None, "IC-3", "is missing"),
+        (2, ("IC-3", ["Hvs", "Asd"], [5100, 5400], [5160, 5460]), "IC-3", "does not end at Hvs"),
+        (1, ("IC-2", stations, [1920, 1400], [1980, 1460]), "IC-2", "not after the arrival"),
+        (0, ("IC-1", stations, [120, NO_ARRIVAL], [180, NO_ARRIVAL]), "IC-1", "not above 0"),
+        (0, ("IC-1", stations, [120, 0], [180, 60]), "IC-1", "not above 0"),
+        (1, ("IC-2", stations, [1920], [1980, 3360]), "IC-2", "fewer arrival or departure times"),
+        (1, ("IC-2", stations, [1920, 3300], [1980]), "IC-2", "fewer arrival or departure times"),
+        (1, ("IC-2", stations, [1920, 3300], [1980, 3200]), "IC-2", "departs from Hvs"),
+        (3, ("IC-4", stations, [5520, 6900], [5580, 8000]), "IC-4", "departs from Hvs"),
+    ]
+    for position, run, train, cause in changes:
+        replaced = runs[:position] + ([run] if run else []) + runs[position + 1 :]
+        errors = occurrence_errors(timetable_sample(*replaced), 8000, "IC", 4)
+        if len(errors) != 1 or not errors[0].startswith(train) or cause not in errors[0]:
+            raise SystemExit(f"{train} ({cause}) was not reported as the only error: {errors}")
 
     proc = run_command(
         [
