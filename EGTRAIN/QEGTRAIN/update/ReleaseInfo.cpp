@@ -23,14 +23,30 @@ QString releaseNotes(const QJsonObject& object) {
 	return notes;
 }
 
-QString expectedAssetName(const QString& platform) {
-	if (platform == QStringLiteral("macos-arm64"))
-		return QStringLiteral("QEGTRAIN-macos-arm64.zip");
-	if (platform == QStringLiteral("windows-x64"))
-		return QStringLiteral("QEGTRAIN-windows-x64.zip");
-	if (platform == QStringLiteral("linux-x86_64"))
-		return QStringLiteral("QEGTRAIN-linux-x86_64.AppImage");
-	return {};
+// The package names that each distribution key accepts. %1 stands for the release version.
+struct AssetPattern {
+	const char* distribution;
+	const char* name;
+};
+
+constexpr AssetPattern kAssetPatterns[] = {
+	{"windows-x64", "QEGTRAIN-windows-x64.zip"},
+	{"windows-x64", "EGTRAIN-Portable-%1-x64.zip"},
+	{"windows-x64-installer", "EGTRAIN-Setup-%1-x64.exe"},
+	{"macos-arm64", "QEGTRAIN-macos-arm64.zip"},
+	{"macos-arm64", "EGTRAIN-%1-macOS-arm64.dmg"},
+	{"linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage"}};
+
+bool matchesAssetPattern(const AssetPattern& pattern, const QString& name, const QString& version) {
+	return QString::fromLatin1(pattern.name).replace(QStringLiteral("%1"), version) == name;
+}
+
+// True when the name fits a pattern of any distribution for this release version.
+bool isKnownPackageName(const QString& name, const QString& version) {
+	for (const AssetPattern& pattern : kAssetPatterns)
+		if (matchesAssetPattern(pattern, name, version))
+			return true;
+	return false;
 }
 
 bool validHttpsGitHubUrl(const QUrl& url) {
@@ -84,7 +100,7 @@ const ReleaseAsset* StableRelease::asset(const QString& name) const {
 	return nullptr;
 }
 
-QString updatePlatformKey() {
+QString updateDistributionKey() {
 #if defined(Q_OS_MACOS)
 	const QString architecture = QSysInfo::currentCpuArchitecture().toLower();
 	return architecture == QStringLiteral("arm64") || architecture == QStringLiteral("aarch64")
@@ -105,12 +121,25 @@ QString updatePlatformKey() {
 #endif
 }
 
-QString updatePackageName(const QString& platform) {
-	return expectedAssetName(platform);
-}
-
 QString updateManifestAssetName() {
 	return QStringLiteral("update-manifest.json");
+}
+
+bool isUpdateAssetName(const QString& distribution, const QString& name, const QString& version) {
+	if (version.isEmpty())
+		return false;
+	for (const AssetPattern& pattern : kAssetPatterns)
+		if (distribution == QLatin1String(pattern.distribution) && matchesAssetPattern(pattern, name, version))
+			return true;
+	return false;
+}
+
+bool releaseHasUpdatePackage(const StableRelease& release, const QString& distribution) {
+	const QString version = formatSemanticVersion(release.version);
+	for (const ReleaseAsset& asset : release.assets)
+		if (isUpdateAssetName(distribution, asset.name, version))
+			return true;
+	return false;
 }
 
 bool isExpectedReleaseAssetUrl(const QString& tag, const QString& name, const QUrl& url) {
@@ -166,12 +195,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 					continue;
 				const QJsonObject asset = rawAsset.toObject();
 				const QString name = asset.value(QStringLiteral("name")).toString();
-				const QStringList allowedNames = {
-					updateManifestAssetName(),
-					updatePackageName(QStringLiteral("macos-arm64")),
-					updatePackageName(QStringLiteral("windows-x64")),
-					updatePackageName(QStringLiteral("linux-x86_64"))};
-				if (!allowedNames.contains(name))
+				if (name != updateManifestAssetName() && !isKnownPackageName(name, formatSemanticVersion(*version)))
 					continue;
 				const QUrl downloadUrl(asset.value(QStringLiteral("browser_download_url")).toString());
 				if (isExpectedReleaseAssetUrl(tag, name, downloadUrl))
@@ -187,7 +211,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 }
 
 std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
-	const QString& expectedTag, const QString& platform, QString* error) {
+	const QString& expectedTag, const QString& distribution, QString* error) {
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
 	if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
@@ -206,12 +230,11 @@ std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
 		return std::nullopt;
 	}
 	const QJsonObject assets = root.value(QStringLiteral("assets")).toObject();
-	const QJsonObject entry = assets.value(platform).toObject();
-	const QString expectedName = expectedAssetName(platform);
+	const QJsonObject entry = assets.value(distribution).toObject();
 	const QString asset = entry.value(QStringLiteral("name")).toString();
 	const QString sha256 = entry.value(QStringLiteral("sha256")).toString();
 	const double rawSize = entry.value(QStringLiteral("size")).toDouble(-1.0);
-	if (expectedName.isEmpty() || asset != expectedName) {
+	if (!isUpdateAssetName(distribution, asset, expectedVersion)) {
 		setManifestError(error, QStringLiteral("Update manifest has no valid package for this platform."));
 		return std::nullopt;
 	}
@@ -231,7 +254,7 @@ std::optional<UpdateManifest> parseUpdateManifest(const QByteArray& json,
 		setManifestError(error, QStringLiteral("Update manifest has an invalid file list."));
 		return std::nullopt;
 	}
-	return UpdateManifest{expectedVersion, platform, asset, sha256, static_cast<qint64>(rawSize), files};
+	return UpdateManifest{expectedVersion, distribution, asset, sha256, static_cast<qint64>(rawSize), files};
 }
 
 bool isUpdateAvailable(const SemanticVersion& current, const StableRelease& release) {

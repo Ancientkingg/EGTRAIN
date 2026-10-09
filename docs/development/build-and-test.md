@@ -655,6 +655,29 @@ The visual and render smoke artifacts include:
   among the CMake baseline, existing stable tags, and reserved release versions.
   All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
+  `update-manifest.json` has one entry per distribution key under `assets`, each with
+  `name`, `sha256` and `size`. The running copy picks its entry by key and downloads
+  the asset that `name` gives. The keys are `windows-x64` (portable package), `windows-x64-installer`,
+  `macos-arm64` and `linux-x86_64`; the running copy uses the portable package key
+  on Windows and no installer key yet. The updater accepts a `name` only when it
+  fits a pattern of its key, where `<version>` is the version of the manifest,
+  which must equal the release tag without its leading `v`. The same patterns
+  decide which release assets the update check keeps (`kAssetPatterns` in
+  `update/ReleaseInfo.cpp`). The table lists the names a release may use; a name
+  outside it needs a new application:
+
+  | Key | Accepted names |
+  | --- | --- |
+  | `windows-x64` | `QEGTRAIN-windows-x64.zip`, `EGTRAIN-Portable-<version>-x64.zip` |
+  | `windows-x64-installer` | `EGTRAIN-Setup-<version>-x64.exe` |
+  | `macos-arm64` | `QEGTRAIN-macos-arm64.zip`, `EGTRAIN-<version>-macOS-arm64.dmg` |
+  | `linux-x86_64` | `QEGTRAIN-linux-x86_64.AppImage` |
+
+  A name with a path separator, another version or another kind of file is
+  rejected. The manifest has no field for the kind of package; the key and the
+  pattern decide it. The manifest of a published release keeps working because
+  its names are in the table. Staging handles the archives and the AppImage only;
+  the installer and the disk image are recognised but not staged yet.
   `update-manifest.json` also lists the files of the Windows package. Before
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
