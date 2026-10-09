@@ -342,8 +342,12 @@ failures. It adds a following mode.
   `follow-level-4` lists none.
 - **Single-track restriction.** Has an effect, as at level 3
   (`single-track-level-4`, `single-track-follow-level-4`).
-- **Known wrong.** In `same-entry-level-4`, two trains that enter one after the
-  other end at the same position at 8 km (#564).
+- **A leader that slows down.** A train that is not coupled yet treats a leader
+  that is slowing down as a leader that stops. The end of authority moves to
+  where the leader comes to a stand, estimated with the braking curve of the
+  follower from the speed of the leader, and its target speed is 0. In
+  `same-entry-level-4` the second train stops 50 m behind the rear of the first
+  at the platform and moves up when the first has left.
 
 ### Level 5 (`5 BACC track circuits`)
 
@@ -531,8 +535,6 @@ decision. Assigning levels to the other three scenes is #459.
 
 Open on this version:
 
-- #564: at level 4, two trains that enter one after the other end at the same
-  position at a platform (`same-entry-level-4`).
 - #459: three committed scenes have no signalling area.
 - #439 lists the preservation of areas through legacy export and import as an
   acceptance criterion. The legacy export writes `TrackLines/AreasCaseStudy.txt`
@@ -545,6 +547,10 @@ Limits that no issue tracks:
 - No test mixes levels on one route.
 - The characterization cases do not record whether a train of level 4 enters the
   following mode.
+- At level 4 a train that is not coupled treats every leader that slows down as
+  a leader that stops, also one that only brakes for a speed restriction. A
+  train that lost its coupling unintentionally still takes the speed of a
+  braking leader as its target. No case covers either.
 - The routines of levels 1 and 2 clear the wrong section after writing code 270
   (see levels 1 and 2). It has no effect with one level.
 - When several authorities compete at levels 3 and 4 or at a signal failure, the
