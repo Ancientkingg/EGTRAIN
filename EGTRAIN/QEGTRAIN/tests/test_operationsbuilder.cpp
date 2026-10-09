@@ -569,11 +569,9 @@ static bool regionalTrainStorageTests() {
 	const Regional* const keptStorage = regional_train.data();
 	SceneModel rejected = completeScene();
 	ok &= expect(hasErrors(buildOperationsFromScene(rejected, "scenario.missing"))
-			&& regional_train.data() == keptStorage && regional_train.size() == 2,
+			&& regional_train.data() == keptStorage && regional_train.size() == 2
+			&& regional_train[0].Stations != nullptr,
 			"a rejected build leaves the train storage untouched");
-
-	numRegions = 0;
-	ok &= expect(regional_train.size() == 2, "hiding the trains does not resize the train storage");
 
 	resetNativeOperationsState();
 	ok &= expect(numRegions == 0 && regional_train.empty() && regional_train.capacity() == 0,

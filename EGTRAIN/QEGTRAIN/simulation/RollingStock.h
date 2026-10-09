@@ -3624,10 +3624,9 @@ public:
 // so both types must have the same size.
 static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
 
-// One element per train of the loaded scene (numRegions of them, or more while numRegions is
-// masked). The storage is created once per build and never grows or reallocates while the
-// trains are live: a Regional owns its Stations buffer through a raw pointer, so it must not
-// be copied or moved.
+// One element per train of the loaded scene. The storage is created once per build and never
+// grows or reallocates while the trains are live: a Regional owns its Stations buffer through
+// a raw pointer, so it must not be copied or moved.
 extern std::vector<Regional> regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
