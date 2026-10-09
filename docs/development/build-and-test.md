@@ -316,7 +316,7 @@ A case is a scenario, a set of services and a level. The case table is in
 | `sf-adjacent-level-none`, `-0` to `-2` | trains `F1` and `F2` with failures on the adjacent sections `4-B0` and `5-B0` from 400 s to 1000 s |
 | `sf-staggered-level-none`, `-0` to `-2` | the same trains and sections, with the failure on `4-B0` ending at 700 s and the one on `5-B0` at 1000 s |
 | `sf-last-level-none`, `-0` to `-2` | the same trains with a failure on `7-B0`, the last section of the route, from 400 s to 1000 s |
-| `sf-first-level-none`, `-0` to `-2` | the same trains with a failure on `0-B0`, the first section of the route, from 0 s to 400 s, while both trains still wait to enter |
+| `sf-first-level-none`, `-0` to `-2` | the same trains with a failure on `0-B0`, the first section of the route, from 0 s to 400 s; both trains wait to enter until the failure has ended, at every level; without a signalling level they enter together at 402 s, as nothing separates trains there |
 | `same-entry-level-none`, `-0` to `-5` | trains `T1` and `F1`, both due at 60 s at the entry of the same route, without an incident; without a signalling level both enter at 60 s, as nothing separates trains there; at levels 0 to 5 `F1` enters after `T1` has moved on |
 | `entry-order-level-0` to `-2` | trains `F2` and `L1` on the `sf-first` scenario; `F2` is listed before `L1` in the scene but `L1` is due first, so `L1` enters first when the failure ends |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
@@ -444,13 +444,11 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name four open issues. #534 covers a following train that stops at
+The markers name three open issues. #534 covers a following train that stops at
 the position of the leading train at a station at level 4 after a signal
 failure (`sf-forward-level-4`, `sf-reverse-level-4`). #564 covers a level 4
 train that enters right behind another one and stops at its platform position
-(`same-entry-level-4`). #539 covers two trains that stop at 2 km and stay there
-after a failure on the first section has ended, without a signalling level
-(`sf-first-level-none`). #551 covers the single-track cases in which `R1` is
+(`same-entry-level-4`). #551 covers the single-track cases in which `R1` is
 not held in front of the restricted section because the restriction has no
 effect at levels 3 and 4 (`single-track-level-3`, `-4`). Without their markers
 the cases of #534 and #564 fail the check for overlapping trains, and those of
