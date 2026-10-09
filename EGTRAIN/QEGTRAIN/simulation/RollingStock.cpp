@@ -1434,6 +1434,60 @@ void Occupy_Block_Sections_Of_Route(int i) {
 			owl << "Train : " << regional_train[j].trainDescription << std::endl;
 		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections, train_route[regional_train[j].indexOfRoute].N_Block_Sections);
 	}
+	updateSingleTrackLocks(i);
+}
+
+// A single-track section is held by the direction of the trains that are in it, from the protected section before
+// the first plain section to the protected section after the last one. Trains of the other direction see the whole
+// zone as occupied and wait in front of it. Trains of the same direction are not affected and follow under the
+// normal signalling rules. When a section changes holder or becomes free, its sections are released.
+void updateSingleTrackLocks(int step) {
+	if (singleTrackLimits.empty())
+		return;
+	if (singleTrackHeld.size() != singleTrackLimits.size())
+		singleTrackHeld.assign(singleTrackLimits.size(), 0);
+	if (timestep <= 0)
+		return;
+	const int index = step - static_cast<int>(S_delay / timestep);
+	std::vector<int> forward(singleTrackLimits.size(), 0), backward(singleTrackLimits.size(), 0);
+	for (int k = 0; k < numRegions; ++k) {
+		const Train& train = regional_train[k];
+		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())
+			|| !singleTrackRouteHasZone(train.indexOfRoute))
+			continue;
+		if (train.OutOfSimulation || step < train.departure_time || !train.CanEnter
+			|| index < 0 || index >= static_cast<int>(train.instant_spatial_position.size()))
+			continue;
+		const double head = train.instant_spatial_position[index];
+		const double tail = head - train.train_length;
+		const bool reversed = train_route[train.indexOfRoute].reversed_direction;
+		for (std::size_t l = 0; l < singleTrackLimits.size(); ++l)
+			// the zone is occupied from the tail to the head, as in Det_Section_Occupied_By_Train
+			for (const auto& interval : singleTrackZone(l, train.indexOfRoute).intervals)
+				if (interval.first <= head && tail < interval.second) {
+					(reversed ? backward : forward)[l]++;
+					break;
+				}
+	}
+	for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
+		int held = 0;
+		if (singleTrackHeld[l] > 0 && forward[l] > 0)
+			held = 1;
+		else if (singleTrackHeld[l] < 0 && backward[l] > 0)
+			held = -1;
+		else if (forward[l] > 0)
+			held = 1;
+		else if (backward[l] > 0)
+			held = -1;
+		if (held != singleTrackHeld[l]) {
+			// release the sections of the zone: they return to clear unless a train or a failure occupies them
+			for (int r = 0; r < static_cast<int>(train_route.size()); ++r)
+				for (const std::string& id : singleTrackZone(l, r).sectionIDs)
+					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), id) == BlocksConnected.end())
+						BlocksConnected.push_back(id);
+			singleTrackHeld[l] = held;
+		}
+	}
 }
 
 // Function to Print out the blocking times of all the Trains

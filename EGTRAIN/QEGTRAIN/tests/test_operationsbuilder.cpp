@@ -579,6 +579,155 @@ static bool regionalTrainStorageTests() {
 	return ok;
 }
 
+// A single-track section is held by the direction of the trains in it. Trains of the other direction see
+// its sections as occupied, trains of the same direction do not, and the sections are released when it
+// changes holder or becomes free.
+static bool singleTrackLockTests() {
+	bool ok = true;
+	std::vector<Route> savedRoutes;
+	savedRoutes.swap(train_route);
+	const auto savedLimits = singleTrackLimits;
+	const auto savedOccupied = BlocksOccupied;
+	const auto savedConnected = BlocksConnected;
+	const auto savedHeld = singleTrackHeld;
+	const int savedRegions = numRegions;
+	const double savedTimestep = timestep;
+	const double savedDelay = S_delay;
+	timestep = 1.0;
+	S_delay = 0.0;
+
+	// Two routes over sections lock.0 to lock.5 of 2 km: route 0 forward, route 1 the same sections reversed.
+	train_route.resize(2);
+	for (int r = 0; r < 2; ++r) {
+		Route& route = train_route[r];
+		route.N_Block_Sections = 6;
+		route.reversed_direction = (r == 1);
+		const std::vector<Section> sections = boundarySections(6);
+		for (int b = 0; b < 6; ++b) {
+			route.sequence_of_block_sections[b] = sections[b];
+			route.sequence_of_block_sections[b].ID = "lock." + std::to_string(r == 0 ? b : 5 - b);
+		}
+	}
+	singleTrackLimits.clear();
+	singleTrackLimits.emplace_back("lock.1", "lock.4", "", "lock.0", "lock.5");
+	resetSingleTrackLocks();
+
+	// The zone of a route is derived once: neighbouring sections form one interval of route position.
+	ok &= expect(singleTrackZone(0, 0).intervals.size() == 1 && singleTrackZone(0, 0).intervals[0].first == 0.0
+			&& singleTrackZone(0, 0).intervals[0].second == 12000.0 && singleTrackZone(0, 0).sectionIDs.size() == 6,
+			"neighbouring zone sections merge into one interval");
+	ok &= expect(singleTrackZone(0, 1).sectionIDs.size() == 6 && singleTrackZone(0, 1).sectionIDs.front() == "lock.5",
+			"the zone sections of a route are listed in route order");
+	ok &= expect(singleTrackZone(1, 0).intervals.empty() && singleTrackZone(0, 2).intervals.empty(),
+			"a limit or a route that does not exist has no zone");
+
+	auto place = [](int k, int route, double head, bool active) {
+		Regional& train = regional_train[k];
+		train.indexOfRoute = route;
+		train.departure_time = 0.0;
+		train.CanEnter = true;
+		train.OutOfSimulation = !active;
+		train.train_length = 70.0;
+		train.instant_spatial_position = {head - 100.0, head};
+	};
+	auto has = [](const std::list<std::string>& list, const std::string& id) {
+		return std::find(list.begin(), list.end(), id) != list.end();
+	};
+	numRegions = 2;
+	place(0, 0, 3000.0, true);   // forward, in lock.1
+	place(1, 1, 3000.0, false);  // reversed, not in the network
+	BlocksOccupied.clear();
+	BlocksConnected.clear();
+
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 1, "a forward train in the section holds it forward");
+	ok &= expect(has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.3") && has(BlocksConnected, "lock.5"),
+			"the sections are released when the holder changes, so that stale aspects are reset");
+	ok &= expect(occupySingleTrackForRoute(0) == 0 && BlocksOccupied.empty(),
+			"a route in the direction of the holder is not affected");
+	ok &= expect(occupySingleTrackForRoute(1) == 6 && BlocksOccupied.size() == 6 && has(BlocksOccupied, "lock.5")
+			&& has(BlocksOccupied, "lock.0"),
+			"a route against the holder sees the protected and plain sections as occupied");
+	BlocksOccupied.clear();
+	BlocksOccupied.push_back("lock.2");
+	ok &= expect(occupySingleTrackForRoute(1) == 5 && BlocksOccupied.size() == 6,
+			"a section that is occupied already is not added twice");
+	BlocksOccupied.clear();
+
+	// A second forward train follows: still held forward, nothing new is released, the follower is not affected.
+	place(1, 0, 1000.0, true);   // forward, in lock.0 (the protected section before the first plain section)
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(), "a following train in the same direction keeps the holder");
+
+	// A train against the holder enters while the first one is still inside: the holder stays.
+	place(1, 1, 3000.0, true);   // reversed, in lock.4
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "the first holder is kept when a train of the other direction is inside as well");
+
+	// The forward train leaves: the section passes to the reversed train, and is released on the change.
+	place(0, 0, 3000.0, false);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1 && has(BlocksConnected, "lock.2"), "the section passes to the remaining direction and is released");
+	ok &= expect(occupySingleTrackForRoute(0) == 6 && occupySingleTrackForRoute(1) == 0,
+			"now the forward route is held back and the reversed route is not");
+	BlocksOccupied.clear();
+
+	// Nobody is left: the section is free and is released once.
+	place(1, 1, 3000.0, false);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0 && has(BlocksConnected, "lock.1"), "a section without trains is free and released");
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(BlocksConnected.empty() && occupySingleTrackForRoute(0) == 0
+			&& occupySingleTrackForRoute(1) == 0, "a free section is not released again and holds nobody back");
+
+	// A train in the protected section before the first plain section already holds the section.
+	place(0, 0, 100.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "a train in the protected section before the section already holds it");
+	place(0, 0, 100.0, false);
+	updateSingleTrackLocks(1);
+
+	// A zone with gaps keeps one interval per run of neighbouring sections, and a train in a gap is not inside.
+	singleTrackLimits.clear();
+	singleTrackLimits.emplace_back("lock.2", "lock.3", "", "lock.0", "lock.5");
+	resetSingleTrackLocks();
+	ok &= expect(singleTrackZone(0, 0).intervals.size() == 3 && singleTrackZone(0, 0).sectionIDs.size() == 4,
+			"separate zone sections give separate intervals");
+	place(0, 0, 3000.0, true);   // forward, in lock.1, between the protected and the plain sections
+	place(1, 1, 3000.0, false);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 0, "a train between zone sections does not hold the zone");
+	place(0, 0, 5000.0, true);   // forward, in lock.2
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "a train in a zone section holds the zone");
+	place(0, 0, 50.0, true);     // forward, in lock.0 with the rear before the start of the route
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "a train whose rear is before the start of the route is inside the first section");
+	place(0, 0, 5000.0, false);
+	updateSingleTrackLocks(1);
+
+	// New routes are not read through the zones of the old ones.
+	train_route.resize(1);
+	ok &= expect(singleTrackZone(0, 1).intervals.empty() && singleTrackZone(0, 0).intervals.size() == 3,
+			"the zones follow the current routes");
+	resetSingleTrackLocks();
+
+	timestep = savedTimestep;
+	S_delay = savedDelay;
+	numRegions = savedRegions;
+	singleTrackLimits = savedLimits;
+	singleTrackHeld = savedHeld;
+	BlocksOccupied = savedOccupied;
+	BlocksConnected = savedConnected;
+	resetSingleTrackLocks();
+	train_route.swap(savedRoutes);
+	return ok;
+}
+
 int main() {
 	bool ok = generatorTests();
 	SceneModel scene = completeScene();
@@ -1464,6 +1613,7 @@ int main() {
 	ok &= noFileAccessTests(completeScene());
 	ok &= routeBoundaryTests();
 	ok &= regionalTrainStorageTests();
+	ok &= singleTrackLockTests();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

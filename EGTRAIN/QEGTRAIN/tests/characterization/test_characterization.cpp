@@ -180,6 +180,8 @@ struct CaseSpec {
 	// Empty, or "#<issue> <reason>" for behaviour that is pinned but wrong.
 	// The golden file carries the same text in its header.
 	std::string knownWrong;
+	// Declares the single-track restriction blocks 1-B0 to 4-B0, protected by 0-B0 and 5-B0.
+	bool singleTrack = false;
 };
 
 // Cases whose current behaviour is wrong, with the open issue that describes it.
@@ -193,6 +195,9 @@ const struct {
 	{"sf-first-level-2", "#540 F1 and F2 enter in the same second after the failure and run at the same position"},
 	{"sf-forward-level-4", "#534 F2 stops at the position of F1 at C"},
 	{"sf-reverse-level-4", "#534 R2 stops at the position of R1 at A"},
+	{"single-track-level-none", "#530 R1 and S1 meet on the single-track section, nothing separates them without a signalling level"},
+	{"single-track-level-3", "#530 R1 and S1 meet on the single-track section, level 3 ignores the restriction"},
+	{"single-track-level-4", "#530 R1 and S1 meet on the single-track section, level 4 ignores the restriction"},
 };
 
 std::string knownWrongMarker(const std::string& name) {
@@ -230,6 +235,13 @@ std::vector<CaseSpec> buildCaseTable() {
 	// L1 stays 100 s at C, so F2 is held behind it at C.
 	for (int level = 3; level <= 4; ++level)
 		cases.push_back({"late-leader-level-" + std::to_string(level), "baseline", {"L1", "F2"}, level, ""});
+	// S1 runs from A to B and R1 from C to A over the restricted section: R1 has to wait in front of it.
+	const std::string singleTrackNone = "single-track-level-none";
+	cases.push_back({singleTrackNone, "baseline", {"S1", "R1"}, kNoSignallingArea, knownWrongMarker(singleTrackNone), true});
+	for (int level = 0; level <= 5; ++level) {
+		const std::string name = "single-track-level-" + std::to_string(level);
+		cases.push_back({name, "baseline", {"S1", "R1"}, level, knownWrongMarker(name), true});
+	}
 	return cases;
 }
 
@@ -606,6 +618,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		area.level = spec.level;
 		loaded.scene.signallingAreas = {area};
 	}
+	if (spec.singleTrack)
+		loaded.scene.singleTrackRestrictions = {{"1-B0", "4-B0", "0-B0", "5-B0"}};
 	SceneRunSelection selection;
 	for (const std::string& service : spec.services)
 		selection.insert({service, 1});
@@ -800,7 +814,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 std::string describeRun(const CaseSpec& spec, int horizon) {
 	return "scenario=" + spec.scenario + " services=" + joinSet(spec.services)
 		+ " level=" + (spec.level == kNoSignallingArea ? std::string("none") : std::to_string(spec.level))
-		+ " horizon=" + std::to_string(horizon);
+		+ (spec.singleTrack ? " single_track=1" : "") + " horizon=" + std::to_string(horizon);
 }
 
 std::string knownWrongText(const CaseSpec& spec) {

@@ -277,7 +277,7 @@ The characterization tests pin what the simulation core does today, so that
 refactors of movement, signalling and global state show up as a reviewable
 diff. They drive the real `DispatchController` in the test process on the small
 scene `EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line` ("Characterization Line"):
-one track of 16 km in eight blocks of 2 km, three stations, six services and
+one track of 16 km in eight blocks of 2 km, three stations, seven services and
 seven scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
 `signal-failure-adjacent`, `signal-failure-staggered`, `signal-failure-last`,
 `signal-failure-first`).
@@ -299,8 +299,9 @@ A case is a scenario, a set of services and a level. The case table is in
 | `sf-last-level-none`, `-0` to `-2` | the same trains with a failure on `7-B0`, the last section of the route, from 400 s to 1000 s |
 | `sf-first-level-none`, `-0` to `-2` | the same trains with a failure on `0-B0`, the first section of the route, from 0 s to 400 s, while both trains still wait to enter |
 | `late-leader-level-3`, `-4` | trains `L1` and `F2`; `L1` is `F1` with a dwell of 100 s at C, so `F2` is held behind it there |
+| `single-track-level-none`, `-0` to `-5` | train `S1` from A to B and `R1` from C to A, with a single-track restriction from `1-B0` to `4-B0`, protected by `0-B0` and `5-B0`; at levels 0, 1, 2 and 5 `R1` waits in front of the section while `S1` is in it |
 
-All 40 cases run in CTest. They are listed in
+All 47 cases run in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -413,12 +414,15 @@ commit. The markers are in the `kKnownWrong` table of
 grep -rn "known-wrong: #" EGTRAIN/QEGTRAIN/tests/characterization/expected
 ```
 
-The markers name three open issues. #534 covers a following train that stops at
+The markers name four open issues. #534 covers a following train that stops at
 the position of the leading train at the last station at level 4
 (`sf-forward-level-4`, `sf-reverse-level-4`). #539 covers two trains that stop
 at 2 km and stay there after a failure on the first section has ended, without
 a signalling level (`sf-first-level-none`). #540 covers two trains that wait at
 the entry of a route and enter in the same second (`sf-first-level-0` to `-2`).
+#530 covers the single-track cases in which `R1` is not held in front of the
+restricted section because the restriction has no effect there: without a
+signalling level and at levels 3 and 4 (`single-track-level-none`, `-3`, `-4`).
 Without their markers the cases of #534 and #540 fail the check for overlapping
 trains. The checks apply to every unmarked case.
 
