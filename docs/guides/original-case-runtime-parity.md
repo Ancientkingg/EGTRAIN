@@ -72,13 +72,21 @@ second pair.
 
 | Case | Served rows baseline / native | Comparison |
 | --- | ---: | --- |
-| Netherlands | 10 / 10 | same station set; some occurrence totals are lower after planned waits are honored |
+| Netherlands | 10 / 0 | the scene has no planned arrival at any stop, so no station has an arrival delay |
 | Paimpol | 9 / 9 | same station set |
-| Copenhagen | 93 / 92 | native run has no served `BuddingeReverse` row within the horizon; the station, platform, and service stop remain canonical |
-| Milano-Brescia | 13 / 13 | sets differ: legacy output includes `MelzoScalo3-5`, while native output includes `MorengoBariano`; the representative 17-stop sequence is identical |
+| Copenhagen | 93 / 90 | native run counts no train at `BallerupStorage`, `HellerupStorage` and `BuddingeReverse`: no stop there has a planned arrival |
+| Milano-Brescia | 13 / 12 | sets differ: legacy output includes `MelzoScalo3-5`, while native output includes `MorengoBariano` and no longer counts `Romano1p`, whose one planned arrival has no available delay; the representative 17-stop sequence is identical |
+
+Served rows are the station rows of `Stats_Stations.txt` with at least one
+counted train. The native runs count a train at a stop only when its timetable
+point has an arrival, the arrival that `TimetablePoints.txt` reports. The
+baseline column holds the counts of the pre-cutover runtime, which counted the
+arrival recorded during the run.
 
 These differences are recorded rather than converted into fabricated equality.
 The focused regression asserts exact network counts, stable station/route ID
 sets, expanded train counts, representative path endpoints, ordered stops, and
-arrival tolerances. The existing smoke additionally requires real movement and
-served arrivals for all four original cases, without legacy runtime staging.
+arrival tolerances. The existing smoke additionally requires real movement for
+all four original cases and served arrivals for Paimpol, Copenhagen, and
+Milano-Brescia, without legacy runtime staging. For Netherlands it requires that
+no station counts a train.

@@ -2043,6 +2043,9 @@ void nativeResetRuntime() {
 	derivedSectionsExceedPlan = false;
 	for (int i = 0; i < kNativeMaxStations; ++i)
 		StationArray[i] = Stations();
+	// The fictitious station of the delay statistics at the final stop of every train
+	Final_Station = Stations();
+	Final_Station.stationName = "Final_Station";
 }
 
 bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {

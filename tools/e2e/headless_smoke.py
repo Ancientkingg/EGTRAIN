@@ -22,7 +22,9 @@ SCENES = {
 }
 
 ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
-ASSERT_STATION_ARRIVALS = {1, 2, 3, 4, 5}
+# The Netherlands scene has no planned arrival at any stop, so no station has an arrival delay.
+ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
+ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose committed scene gives every route section a signalling level.
 SIGNALLING_COVERED = {2, 6}
 
@@ -257,6 +259,23 @@ def check_station_arrivals(case_id: int = 3, out_base: Path = RUN_DIR) -> None:
     print(f"PASS case {case_id} has {rows} served station rows")
 
 
+def check_no_station_delays(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """A scene without planned arrivals counts no train at any station."""
+    output = scene_output_dir(case_id, out_base) / "TrainTrajectories"
+    for name in ("Stats_Stations.txt", "Pos&Neg_Stats_Stations.txt"):
+        rows = 0
+        for line in (output / name).read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
+            parts = line.split()
+            if len(parts) < 11 or parts[0].startswith("Ent_") or parts[0] in {"DwT_Dist", "TOTALS"}:
+                continue
+            rows += 1
+            if float(parts[10]) != 0:
+                raise SystemExit(f"case {case_id} counts {parts[10]} trains at {parts[0]} in {name} without a planned arrival")
+        if rows == 0:
+            raise SystemExit(f"case {case_id} has no station rows in {name}")
+    print(f"PASS case {case_id} counts no train at any station")
+
+
 def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> None:
     output = scene_output_dir(case_id, out_base) / "TrainTrajectories"
     for name in ("Stats_Stations.txt", "Pos&Neg_Stats_Stations.txt"):
@@ -366,6 +385,8 @@ def main() -> None:
     for case_id in selected:
         if case_id in ASSERT_STATION_ARRIVALS:
             check_station_arrivals(case_id)
+        if case_id in ASSERT_NO_STATION_DELAYS:
+            check_no_station_delays(case_id)
 
 
 if __name__ == "__main__":

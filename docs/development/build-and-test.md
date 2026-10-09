@@ -400,7 +400,22 @@ one fact: some key words, then `name=value` fields.
   just before and after its start and end, how many signal-failure authorities
   exist and which sections are blocked.
 - `stats`: the rows of `TrainTrajectories/Stats_Stations.txt`, which holds six
-  significant digits.
+  significant digits. An early arrival counts there as a delay of 0 in the
+  total and in `N_StopTrains`. The average and deviation cover the delayed
+  trains only.
+- `signed_stats`: the same rows of `TrainTrajectories/Pos&Neg_Stats_Stations.txt`,
+  where early arrivals are negative delays.
+
+Both files take the arrival of a stop from its timetable point, the arrival that
+`TimetablePoints.txt`, the timetable results, the diagrams and the CSV export
+report, so a `result` line and a station row show the same delay. A train that
+did not reach a stop, and a stop without a planned arrival, have no delay and are
+counted in neither file. A stop with no timetable point keeps the arrival
+recorded during the run. A station row without such a train holds `-1` in the
+average, deviation, maximum, cumulative and percentage columns and 0 in
+`Total_Delay` and the train counts. The
+`Final_Station` row is the same statistic for the last stop of every train. The
+first station of the network is not printed and not in `TOTALS`.
 
 Integers and strings must match exactly. Floats match within an absolute
 tolerance of 1e-4 and a relative tolerance of 1e-9, and the statistics rows
@@ -413,11 +428,14 @@ re-recorded golden cannot hide them: speed never above the 36.11 m/s limit, no
 backward movement, acceleration and braking within what the rolling stock can do,
 no faster run to station B than the top speed allows, planned dwell and
 departure times kept, stops only at a platform, a block boundary or behind
-another train, and no overlap of two trains. In a single-track case `S1` and
-`R1` are never inside the restricted section at the same time. A case without a
-signalling area is not checked for overlap or for the single-track section: a
-scene without a signalling level does not separate trains, and validation warns
-about it (`scene.signalling.level.missing`, `scene.single_track.no_effect`).
+another train, no overlap of two trains, and in every station row of `stats`
+and `signed_stats` a `Total_Delay` and an `N_StopTrains` that equal the sum and
+the number of the arrival delays of its `result` lines (only the late ones in the
+sum for `stats`). In a single-track case `S1` and `R1` are never inside the
+restricted section at the same time. A case without a signalling area is not
+checked for overlap or for the single-track section: a scene without a
+signalling level does not separate trains, and validation warns about it
+(`scene.signalling.level.missing`, `scene.single_track.no_effect`).
 The `-level-none` goldens therefore show trains at one position.
 
 The signal states that the simulation hands to the window are checked at every

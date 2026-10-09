@@ -1666,12 +1666,15 @@ int main() {
 	ok &= expect(!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations)
 			&& numRegions == 3,
 		"station statistics fixture builds three trains");
+	ok &= expect(Final_Station.stationName == "Final_Station",
+		"building a scene names the fictitious station of the final-station statistics");
 	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && numRegions == 3) {
 		Stations statistics;
 		statistics.stationName = "Final_Station";
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
 			regional_train[trainIndex].numStations = 1;
 			regional_train[trainIndex].StationArrivals[0] = -1;
+			regional_train[trainIndex].ScheduledArrivals[0] = 0;
 			regional_train[trainIndex].StationDelay[0] = -1;
 			regional_train[trainIndex].StationConsecDelay[0] = -1;
 		}
@@ -1770,6 +1773,68 @@ int main() {
 				finiteExport = false;
 		}
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
+
+		// The statistics take the arrival of the timetable point, the one the timetable results report.
+		Train& train = regional_train[0];
+		TrainEvent point;
+		point.SuccessorID = train.stationNameForArrivalStats(0);
+		point.Time = 94;
+		train.TimetablePoints.clear();
+		train.TimetablePoints.push_back(point);
+		train.StationArrivals[0] = 90; // recorded while the train was still braking into the station
+		train.Determine_Actual_Station_Arrivals();
+		ok &= expect(train.StationArrivals[0] == 94, "the delay statistics take the arrival of the timetable point");
+		train.TimetablePoints.front().Time = -10000;
+		train.Determine_Actual_Station_Arrivals();
+		ok &= expect(train.StationArrivals[0] == -1, "a stop whose timetable point has no arrival has no arrival");
+		train.TimetablePoints.clear();
+
+		// A station served twice takes the timetable points in the order of the calls.
+		const int singleStop = train.numStations;
+		train.numStations = 2;
+		train.StationArrivalNames[0] = train.StationArrivalNames[1] = "Probe";
+		TrainEvent firstCall;
+		firstCall.SuccessorID = "Probe";
+		firstCall.Time = 94;
+		TrainEvent secondCall = firstCall;
+		secondCall.Time = 300;
+		train.TimetablePoints.push_back(firstCall);
+		train.TimetablePoints.push_back(secondCall);
+		train.StationArrivals[0] = train.StationArrivals[1] = -1;
+		train.Determine_Actual_Station_Arrivals();
+		ok &= expect(train.StationArrivals[0] == 94 && train.StationArrivals[1] == 300,
+			"each call at a station takes its own timetable point");
+		train.TimetablePoints.clear();
+		train.StationArrivalNames[0] = train.StationArrivalNames[1] = "None";
+		train.numStations = singleStop;
+
+		// A stop without a planned arrival has no arrival delay.
+		train.StationArrivals[0] = 100;
+		train.ScheduledArrivals[0] = -1;
+		train.StationDelay[0] = -1;
+		train.computeArrivalDelaysAtStations();
+		ok &= expect(train.StationDelay[0] == -1, "a stop without a planned arrival has no arrival delay");
+		train.Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(train.StationDelay[0] == -1 && statistics.N_Stopped_Trains == 0,
+			"a stop without a planned arrival is not in the signed statistics");
+
+		// A train that did not arrive has no arrival delay and is not counted as punctual.
+		train.StationArrivals[0] = -1;
+		train.ScheduledArrivals[0] = 90;
+		train.computeArrivalDelaysAtStations();
+		ok &= expect(train.StationDelay[0] == -1 && train.StationArrivals[0] == -1,
+			"a train that did not arrive has no arrival delay");
+		train.Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(train.StationDelay[0] == -1 && statistics.N_Stopped_Trains == 0,
+			"a train that did not arrive is not in the signed statistics");
+
+		train.StationArrivals[0] = 100;
+		train.Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
+		calculatePosAndNegDelayStatsAtStation(statistics);
+		ok &= expect(train.StationDelay[0] == 10 && statistics.N_Stopped_Trains == 1 && statistics.Av_Arrival_Delay == 10,
+			"a stop with a planned arrival is in the signed statistics");
 	}
 	ok &= passengerRateTests();
 	ok &= brakingPointTests();
