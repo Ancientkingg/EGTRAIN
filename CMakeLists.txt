@@ -95,7 +95,9 @@ add_library(egtrain_miniz STATIC
     ${SRC_DIR}/io/third_party/miniz/miniz.c)
 target_compile_definitions(egtrain_miniz PUBLIC MINIZ_NO_TIME)
 target_include_directories(egtrain_miniz PUBLIC ${SRC_DIR})
-set_target_properties(egtrain_miniz PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON)
+set_target_properties(egtrain_miniz PROPERTIES
+    C_STANDARD 99 C_STANDARD_REQUIRED ON
+    AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 
 # Path-qualified includes (e.g. graphics/items/NodeItem.h) resolve against SRC_DIR
 include_directories(${SRC_DIR})
@@ -107,6 +109,62 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
+# --- Model libraries ---
+# Each source below is compiled once. The libraries are static, so a target that links one gets
+# only the objects it references. A target that links egtrain_sim defines `Logger owl` itself.
+add_library(egtrain_pugixml STATIC ${SRC_DIR}/io/third_party/pugixml.cpp)
+
+add_library(egtrain_util STATIC
+    ${SRC_DIR}/util/CsvWriter.cpp
+    ${SRC_DIR}/util/Logger.cpp
+    ${SRC_DIR}/util/PlaybackProfiler.cpp
+    ${SRC_DIR}/util/SpeedFormat.cpp
+    ${SRC_DIR}/util/TimeFormat.cpp
+    ${SRC_DIR}/util/TrajectoryUtil.cpp
+    ${SRC_DIR}/util/Version.cpp)
+target_link_libraries(egtrain_util PRIVATE nlohmann_json::nlohmann_json)
+
+# No Qt: scene_tool links this library.
+add_library(egtrain_scene STATIC
+    ${SRC_DIR}/scene/SceneBundle.cpp
+    ${SRC_DIR}/scene/SceneCompatibility.cpp
+    ${SRC_DIR}/scene/SceneDiagnostic.cpp
+    ${SRC_DIR}/scene/SceneExporter.cpp
+    ${SRC_DIR}/scene/SceneImporter.cpp
+    ${SRC_DIR}/scene/SceneMigration.cpp
+    ${SRC_DIR}/scene/SceneModel.cpp
+    ${SRC_DIR}/scene/SceneValidator.cpp
+    ${SRC_DIR}/scene/SceneWriter.cpp
+    ${SRC_DIR}/scene/SectionInventory.cpp
+    ${SRC_DIR}/scene/TrackPreview.cpp)
+target_link_libraries(egtrain_scene
+    PUBLIC nlohmann_json::nlohmann_json
+    PRIVATE egtrain_miniz)
+
+add_library(egtrain_sim STATIC
+    ${SRC_DIR}/simulation/Infrastructure.cpp
+    ${SRC_DIR}/simulation/InitialParameters.cpp
+    ${SRC_DIR}/simulation/NumberGenerator.cpp
+    ${SRC_DIR}/simulation/Optimisation.cpp
+    ${SRC_DIR}/simulation/Passengers.cpp
+    ${SRC_DIR}/simulation/RollingStock.cpp
+    ${SRC_DIR}/simulation/Signalling.cpp
+    ${SRC_DIR}/simulation/Simulation.cpp)
+target_link_libraries(egtrain_sim
+    PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json
+    PRIVATE Qt5::Widgets)  # Simulation.h includes QApplication, QEventLoop and QTimer
+
+add_library(egtrain_railml STATIC ${SRC_DIR}/io/RailMLParser.cpp)
+target_link_libraries(egtrain_railml
+    PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
+    PRIVATE cppzmq)
+
+foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_railml)
+    target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
+    set_target_properties(${egtrain_lib} PROPERTIES
+        AUTOMOC OFF AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
+endforeach()
+
 # --- Sources ---
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/ConnectionItem.cpp
@@ -114,9 +172,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/widgets/AboutDialog.cpp
     ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
-    ${SRC_DIR}/simulation/Infrastructure.cpp
-    ${SRC_DIR}/simulation/InitialParameters.cpp
-    ${SRC_DIR}/io/RailMLParser.cpp
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/graphics/items/HighlightEffect.cpp
@@ -129,21 +184,10 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/graphics/items/StationOverlayItem.cpp
     ${SRC_DIR}/graphics/NetworkScene.cpp
     ${SRC_DIR}/graphics/NetworkView.cpp
-    ${SRC_DIR}/simulation/NumberGenerator.cpp
-    ${SRC_DIR}/simulation/Optimisation.cpp
-    ${SRC_DIR}/util/Logger.cpp
-    ${SRC_DIR}/util/PlaybackProfiler.cpp
     ${SRC_DIR}/graphics/items/PassengerItem.cpp
-    ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/graphics/items/PlatformItem.cpp
-    ${SRC_DIR}/io/third_party/pugixml.cpp
-    ${SRC_DIR}/simulation/RollingStock.cpp
-    ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/graphics/items/SignalItem.cpp
-    ${SRC_DIR}/simulation/Simulation.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp
-    ${SRC_DIR}/util/TimeFormat.cpp
-    ${SRC_DIR}/util/Version.cpp
 	${SRC_DIR}/update/ReleaseInfo.cpp
 	${SRC_DIR}/update/UpdateChecker.cpp
 	${SRC_DIR}/update/UpdateSettings.cpp
@@ -155,34 +199,20 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/telemetry/TelemetryOperation.cpp
 	${SRC_DIR}/update/UpdatePreparation.cpp
 	${SRC_DIR}/update/SelfUpdater.cpp
-	${SRC_DIR}/scene/SceneDiagnostic.cpp
-	${SRC_DIR}/scene/SceneModel.cpp
-	${SRC_DIR}/scene/SectionInventory.cpp
-	${SRC_DIR}/scene/SceneBundle.cpp
-	${SRC_DIR}/scene/SceneCompatibility.cpp
-	${SRC_DIR}/scene/SceneMigration.cpp
-	${SRC_DIR}/scene/SceneValidator.cpp
-	${SRC_DIR}/scene/SceneImporter.cpp
-	${SRC_DIR}/scene/SceneWriter.cpp
-	${SRC_DIR}/scene/TrackPreview.cpp
 	${SRC_DIR}/widgets/TimeProgressBar.cpp
     ${SRC_DIR}/graphics/items/TrainItemGroup.cpp
     ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
     ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
-    ${SRC_DIR}/util/SpeedFormat.cpp
-    ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
-    ${SRC_DIR}/util/TrajectoryUtil.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
     ${SRC_DIR}/graphics/VisualPolish.cpp
-    ${SRC_DIR}/scene/SceneExporter.cpp
 )
 
 set(EGTRAIN_HEADERS
@@ -300,6 +330,11 @@ target_include_directories(QEGTRAIN PRIVATE
 )
 
 target_link_libraries(QEGTRAIN PRIVATE
+    egtrain_railml
+    egtrain_sim
+    egtrain_scene
+    egtrain_util
+    nlohmann_json::nlohmann_json
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
@@ -308,8 +343,6 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Network
 )
 
-target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
-target_link_libraries(QEGTRAIN PRIVATE egtrain_miniz)
 message(STATUS "ZeroMQ + nlohmann_json found - traffic-state sharing enabled")
 
 add_executable(egtrain_update_helper
@@ -348,8 +381,8 @@ endif()
 
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
-    set_target_properties(QEGTRAIN PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
+        PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
 else()
     message(STATUS "LTO: not supported by this toolchain (${EGTRAIN_IPO_ERROR})")
@@ -363,17 +396,9 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000000")
 endif()
 
-add_executable(scene_tool
-	${SRC_DIR}/scene/SceneTool.cpp
-	${SRC_DIR}/scene/SceneDiagnostic.cpp
-	${SRC_DIR}/scene/SceneModel.cpp
-	${SRC_DIR}/scene/SectionInventory.cpp
-	${SRC_DIR}/scene/SceneBundle.cpp
-	${SRC_DIR}/scene/SceneValidator.cpp
-	${SRC_DIR}/scene/SceneImporter.cpp
-	${SRC_DIR}/scene/SceneExporter.cpp
-	${SRC_DIR}/scene/SceneWriter.cpp)
-target_link_libraries(scene_tool PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+add_executable(scene_tool ${SRC_DIR}/scene/SceneTool.cpp)
+target_link_libraries(scene_tool PRIVATE egtrain_scene)
+set_target_properties(scene_tool PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 
 # --- Unit tests (opt-in) ---
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
@@ -422,14 +447,12 @@ if(EGTRAIN_BUILD_TESTS)
     enable_testing()
     find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
     message(STATUS "Python3: ${Python3_EXECUTABLE}")
-    add_executable(test_timeformat
-        ${SRC_DIR}/tests/test_timeformat.cpp
-        ${SRC_DIR}/util/TimeFormat.cpp)
+    add_executable(test_timeformat ${SRC_DIR}/tests/test_timeformat.cpp)
+    target_link_libraries(test_timeformat PRIVATE egtrain_util)
     add_test(NAME test_timeformat COMMAND test_timeformat)
 
-    add_executable(test_version
-        ${SRC_DIR}/tests/test_version.cpp
-        ${SRC_DIR}/util/Version.cpp)
+    add_executable(test_version ${SRC_DIR}/tests/test_version.cpp)
+    target_link_libraries(test_version PRIVATE egtrain_util)
     add_test(NAME test_version COMMAND test_version)
 
     add_executable(test_telemetryconsent
@@ -500,9 +523,8 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_updatechecker
         ${SRC_DIR}/tests/test_updatechecker.cpp
         ${SRC_DIR}/update/ReleaseInfo.cpp
-        ${SRC_DIR}/update/UpdateSettings.cpp
-        ${SRC_DIR}/util/Version.cpp)
-    target_link_libraries(test_updatechecker PRIVATE Qt5::Core Qt5::Network)
+        ${SRC_DIR}/update/UpdateSettings.cpp)
+    target_link_libraries(test_updatechecker PRIVATE egtrain_util Qt5::Core Qt5::Network)
     add_test(NAME test_updatechecker COMMAND test_updatechecker)
 
     add_executable(test_updatestaging
@@ -515,66 +537,29 @@ if(EGTRAIN_BUILD_TESTS)
     target_include_directories(test_guisimulationsnapshot PRIVATE ${SRC_DIR})
     add_test(NAME test_guisimulationsnapshot COMMAND test_guisimulationsnapshot)
 
-	add_executable(test_trackpreview
-		${SRC_DIR}/tests/test_trackpreview.cpp
-		${SRC_DIR}/scene/TrackPreview.cpp
-		${SRC_DIR}/scene/SectionInventory.cpp)
-	target_link_libraries(test_trackpreview PRIVATE nlohmann_json::nlohmann_json)
+	add_executable(test_trackpreview ${SRC_DIR}/tests/test_trackpreview.cpp)
+	target_link_libraries(test_trackpreview PRIVATE egtrain_scene)
 	add_test(NAME test_trackpreview COMMAND test_trackpreview)
 
-    add_executable(test_speedformat
-        ${SRC_DIR}/tests/test_speedformat.cpp
-        ${SRC_DIR}/util/SpeedFormat.cpp)
+    add_executable(test_speedformat ${SRC_DIR}/tests/test_speedformat.cpp)
+    target_link_libraries(test_speedformat PRIVATE egtrain_util)
     add_test(NAME test_speedformat COMMAND test_speedformat)
 
-    add_executable(test_trajectory
-        ${SRC_DIR}/tests/test_trajectory.cpp
-        ${SRC_DIR}/util/TrajectoryUtil.cpp)
+    add_executable(test_trajectory ${SRC_DIR}/tests/test_trajectory.cpp)
+    target_link_libraries(test_trajectory PRIVATE egtrain_util)
     add_test(NAME test_trajectory COMMAND test_trajectory)
 
     add_executable(test_runresults
         ${SRC_DIR}/tests/test_runresults.cpp
-        ${SRC_DIR}/diagrams/RunResults.cpp
-        ${SRC_DIR}/simulation/Infrastructure.cpp
-        ${SRC_DIR}/simulation/InitialParameters.cpp
-        ${SRC_DIR}/simulation/NumberGenerator.cpp
-        ${SRC_DIR}/simulation/Optimisation.cpp
-        ${SRC_DIR}/simulation/Passengers.cpp
-        ${SRC_DIR}/simulation/RollingStock.cpp
-        ${SRC_DIR}/simulation/Signalling.cpp
-        ${SRC_DIR}/simulation/Simulation.cpp
-        ${SRC_DIR}/util/Logger.cpp
-        ${SRC_DIR}/util/TrajectoryUtil.cpp
-        ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/scene/SectionInventory.cpp)
-    target_include_directories(test_runresults PRIVATE ${SRC_DIR})
-    target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+        ${SRC_DIR}/diagrams/RunResults.cpp)
+    target_link_libraries(test_runresults PRIVATE egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_runresults COMMAND test_runresults)
 
     add_executable(test_simulationworker
         ${SRC_DIR}/tests/test_simulationworker.cpp
         ${SRC_DIR}/app/DispatchController.cpp
-        ${SRC_DIR}/io/RailMLParser.cpp
-        ${SRC_DIR}/io/third_party/pugixml.cpp
-        ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/scene/SceneValidator.cpp
-        ${SRC_DIR}/scene/SectionInventory.cpp
-        ${SRC_DIR}/simulation/Infrastructure.cpp
-        ${SRC_DIR}/simulation/InitialParameters.cpp
-        ${SRC_DIR}/simulation/NumberGenerator.cpp
-        ${SRC_DIR}/simulation/Optimisation.cpp
-        ${SRC_DIR}/simulation/Passengers.cpp
-        ${SRC_DIR}/simulation/RollingStock.cpp
-        ${SRC_DIR}/simulation/Signalling.cpp
-        ${SRC_DIR}/simulation/Simulation.cpp
-        ${SRC_DIR}/simulation/SimulationWorker.cpp
-        ${SRC_DIR}/util/Logger.cpp
-        ${SRC_DIR}/util/PlaybackProfiler.cpp
-        ${SRC_DIR}/util/TrajectoryUtil.cpp)
-    target_include_directories(test_simulationworker PRIVATE ${SRC_DIR})
-    target_link_libraries(test_simulationworker PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+        ${SRC_DIR}/simulation/SimulationWorker.cpp)
+    target_link_libraries(test_simulationworker PRIVATE egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
 
     add_executable(test_blockingtimediagram
@@ -590,9 +575,8 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_routediagramcoordinates
         ${SRC_DIR}/tests/test_routediagramcoordinates.cpp
-        ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
-        ${SRC_DIR}/util/CsvWriter.cpp)
-    target_include_directories(test_routediagramcoordinates PRIVATE ${SRC_DIR})
+        ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp)
+    target_link_libraries(test_routediagramcoordinates PRIVATE egtrain_util)
     add_test(NAME test_routediagramcoordinates COMMAND test_routediagramcoordinates)
 
     add_executable(test_diagramwindow
@@ -603,10 +587,9 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/telemetry/TelemetryConsent.cpp
         ${SRC_DIR}/tests/test_diagramwindow.cpp
         ${SRC_DIR}/diagrams/DiagramWindow.cpp
-        ${SRC_DIR}/diagrams/TrainFilterButton.cpp
-        ${SRC_DIR}/util/TimeFormat.cpp)
+        ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
     target_include_directories(test_diagramwindow PRIVATE ${SRC_DIR})
-    target_link_libraries(test_diagramwindow PRIVATE Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    target_link_libraries(test_diagramwindow PRIVATE egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     target_compile_definitions(test_diagramwindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_diagramwindow COMMAND test_diagramwindow)
@@ -622,11 +605,8 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_timetabletablewindow.cpp
         ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
         ${SRC_DIR}/diagrams/TrainFilterButton.cpp
-        ${SRC_DIR}/diagrams/RunResults.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/util/TrajectoryUtil.cpp
-        ${SRC_DIR}/util/TimeFormat.cpp)
-    target_link_libraries(test_timetabletablewindow PRIVATE Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets nlohmann_json::nlohmann_json)
+        ${SRC_DIR}/diagrams/RunResults.cpp)
+    target_link_libraries(test_timetabletablewindow PRIVATE egtrain_scene egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets)
     target_compile_definitions(test_timetabletablewindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
     add_test(NAME test_timetabletablewindow COMMAND test_timetabletablewindow)
@@ -684,10 +664,8 @@ if(EGTRAIN_BUILD_TESTS)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_playbackprofiler
-        ${SRC_DIR}/tests/test_playbackprofiler.cpp
-        ${SRC_DIR}/util/PlaybackProfiler.cpp)
-    target_include_directories(test_playbackprofiler PRIVATE ${SRC_DIR})
-    target_link_libraries(test_playbackprofiler PRIVATE nlohmann_json::nlohmann_json)
+        ${SRC_DIR}/tests/test_playbackprofiler.cpp)
+    target_link_libraries(test_playbackprofiler PRIVATE egtrain_util)
     add_test(NAME test_playbackprofiler COMMAND test_playbackprofiler)
     add_test(NAME test_playback_profile
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/performance/test_playback_profile.py)
@@ -695,13 +673,12 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_networkview
         ${SRC_DIR}/tests/test_networkview.cpp
         ${SRC_DIR}/graphics/NetworkView.cpp
-        ${SRC_DIR}/util/PlaybackProfiler.cpp
         ${SRC_DIR}/graphics/items/TrackLineItem.cpp
         ${SRC_DIR}/graphics/items/VirtualArcItem.cpp
         ${SRC_DIR}/graphics/items/ConnectionItem.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_include_directories(test_networkview PRIVATE ${SRC_DIR})
-    target_link_libraries(test_networkview PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    target_link_libraries(test_networkview PRIVATE egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_networkview COMMAND test_networkview)
     set_tests_properties(test_networkview PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -737,10 +714,8 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_timeprogressbar
         ${SRC_DIR}/tests/test_timeprogressbar.cpp
-        ${SRC_DIR}/widgets/TimeProgressBar.cpp
-        ${SRC_DIR}/util/TimeFormat.cpp)
-    target_include_directories(test_timeprogressbar PRIVATE ${SRC_DIR})
-    target_link_libraries(test_timeprogressbar PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+        ${SRC_DIR}/widgets/TimeProgressBar.cpp)
+    target_link_libraries(test_timeprogressbar PRIVATE egtrain_util Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_timeprogressbar COMMAND test_timeprogressbar)
     set_tests_properties(test_timeprogressbar PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -753,10 +728,8 @@ if(EGTRAIN_BUILD_TESTS)
 	    set_tests_properties(test_highlighteffect PROPERTIES
 	        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-    add_executable(test_csvwriter
-        ${SRC_DIR}/tests/test_csvwriter.cpp
-        ${SRC_DIR}/util/CsvWriter.cpp)
-    target_include_directories(test_csvwriter PRIVATE ${SRC_DIR})
+    add_executable(test_csvwriter ${SRC_DIR}/tests/test_csvwriter.cpp)
+    target_link_libraries(test_csvwriter PRIVATE egtrain_util)
     add_test(NAME test_csvwriter COMMAND test_csvwriter)
 
     add_executable(test_tractioncurve
@@ -784,116 +757,51 @@ if(EGTRAIN_BUILD_TESTS)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-    add_executable(test_scenevalidator
-        ${SRC_DIR}/tests/test_scenevalidator.cpp
-        ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/scene/SectionInventory.cpp
-        ${SRC_DIR}/scene/SceneValidator.cpp)
-    target_link_libraries(test_scenevalidator PRIVATE nlohmann_json::nlohmann_json)
+    add_executable(test_scenevalidator ${SRC_DIR}/tests/test_scenevalidator.cpp)
+    target_link_libraries(test_scenevalidator PRIVATE egtrain_scene)
     add_test(NAME test_scenevalidator
         COMMAND test_scenevalidator ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
-    add_executable(test_sceneimporter
-        ${SRC_DIR}/tests/test_sceneimporter.cpp
-        ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/scene/SectionInventory.cpp
-        ${SRC_DIR}/scene/SceneValidator.cpp
-        ${SRC_DIR}/scene/SceneImporter.cpp)
-    target_link_libraries(test_sceneimporter PRIVATE nlohmann_json::nlohmann_json)
+    add_executable(test_sceneimporter ${SRC_DIR}/tests/test_sceneimporter.cpp)
+    target_link_libraries(test_sceneimporter PRIVATE egtrain_scene)
 	add_test(NAME test_sceneimporter COMMAND test_sceneimporter)
 
-	add_executable(test_scenewriter
-		${SRC_DIR}/tests/test_scenewriter.cpp
-		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SceneWriter.cpp)
-	target_link_libraries(test_scenewriter PRIVATE nlohmann_json::nlohmann_json)
+	add_executable(test_scenewriter ${SRC_DIR}/tests/test_scenewriter.cpp)
+	target_link_libraries(test_scenewriter PRIVATE egtrain_scene)
 	add_test(NAME test_scenewriter
 		COMMAND test_scenewriter ${SRC_DIR}/Scenes)
 
-	add_executable(test_sceneexporter
-        ${SRC_DIR}/tests/test_sceneexporter.cpp
-        ${SRC_DIR}/scene/SceneDiagnostic.cpp
-        ${SRC_DIR}/scene/SceneModel.cpp
-        ${SRC_DIR}/scene/SectionInventory.cpp
-        ${SRC_DIR}/scene/SceneBundle.cpp
-        ${SRC_DIR}/scene/SceneWriter.cpp
-        ${SRC_DIR}/scene/SceneValidator.cpp
-        ${SRC_DIR}/scene/SceneExporter.cpp)
-    target_link_libraries(test_sceneexporter PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_executable(test_sceneexporter ${SRC_DIR}/tests/test_sceneexporter.cpp)
+	target_link_libraries(test_sceneexporter PRIVATE egtrain_scene)
 	add_test(NAME test_sceneexporter COMMAND test_sceneexporter)
 
-	add_executable(test_scenebundle
-		${SRC_DIR}/tests/test_scenebundle.cpp
-		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SceneBundle.cpp
-		${SRC_DIR}/scene/SceneWriter.cpp)
-	target_link_libraries(test_scenebundle PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_executable(test_scenebundle ${SRC_DIR}/tests/test_scenebundle.cpp)
+	target_link_libraries(test_scenebundle PRIVATE egtrain_scene)
 	add_test(NAME test_scenebundle
 		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
-	add_executable(test_scenecompatibility
-		${SRC_DIR}/tests/test_scenecompatibility.cpp
-		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SectionInventory.cpp
-		${SRC_DIR}/scene/SceneBundle.cpp
-		${SRC_DIR}/scene/SceneCompatibility.cpp
-		${SRC_DIR}/scene/SceneMigration.cpp
-		${SRC_DIR}/scene/SceneWriter.cpp)
-	target_link_libraries(test_scenecompatibility PRIVATE nlohmann_json::nlohmann_json egtrain_miniz)
+	add_executable(test_scenecompatibility ${SRC_DIR}/tests/test_scenecompatibility.cpp)
+	target_link_libraries(test_scenecompatibility PRIVATE egtrain_scene)
 	add_test(NAME test_scenecompatibility
 		COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
-	add_executable(test_scenebuilder
-		${SRC_DIR}/tests/test_scenebuilder.cpp
-		${SRC_DIR}/simulation/Infrastructure.cpp
-		${SRC_DIR}/simulation/InitialParameters.cpp
-		${SRC_DIR}/simulation/NumberGenerator.cpp
-		${SRC_DIR}/util/Logger.cpp
-		${SRC_DIR}/simulation/Signalling.cpp
-		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SectionInventory.cpp)
-	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
-	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
+	add_executable(test_scenebuilder ${SRC_DIR}/tests/test_scenebuilder.cpp)
+	target_link_libraries(test_scenebuilder PRIVATE egtrain_sim)
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
 	add_executable(test_operationsbuilder
 		${SRC_DIR}/tests/test_operationsbuilder.cpp
 		${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
-		${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
-		${SRC_DIR}/util/CsvWriter.cpp
-		${SRC_DIR}/simulation/Infrastructure.cpp
-		${SRC_DIR}/simulation/InitialParameters.cpp
-		${SRC_DIR}/simulation/NumberGenerator.cpp
-		${SRC_DIR}/simulation/Optimisation.cpp
-		${SRC_DIR}/simulation/Passengers.cpp
-		${SRC_DIR}/simulation/RollingStock.cpp
-		${SRC_DIR}/simulation/Signalling.cpp
-		${SRC_DIR}/simulation/Simulation.cpp
-		${SRC_DIR}/util/Logger.cpp
-		${SRC_DIR}/util/TrajectoryUtil.cpp
-		${SRC_DIR}/scene/SceneDiagnostic.cpp
-		${SRC_DIR}/scene/SceneModel.cpp
-		${SRC_DIR}/scene/SectionInventory.cpp)
-	target_include_directories(test_operationsbuilder PRIVATE ${SRC_DIR})
-	target_link_libraries(test_operationsbuilder PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
+		${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp)
+	target_link_libraries(test_operationsbuilder PRIVATE egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
 	# Behaviour characterization of the simulation core (see tests/characterization).
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
 
-	add_executable(test_railmlparser
-		${SRC_DIR}/tests/test_railmlparser.cpp
-		${SRC_DIR}/io/RailMLParser.cpp
-		${SRC_DIR}/io/third_party/pugixml.cpp
-		${SRC_DIR}/simulation/InitialParameters.cpp)
-	target_include_directories(test_railmlparser PRIVATE ${SRC_DIR})
-	target_link_libraries(test_railmlparser PRIVATE cppzmq nlohmann_json::nlohmann_json)
+	add_executable(test_railmlparser ${SRC_DIR}/tests/test_railmlparser.cpp)
+	# The test defines initial_variables, so egtrain_sim's Infrastructure.cpp member must stay out of the link.
+	target_link_libraries(test_railmlparser PRIVATE egtrain_railml egtrain_sim cppzmq nlohmann_json::nlohmann_json)
 	add_test(NAME test_railmlparser COMMAND test_railmlparser)
 	add_test(NAME test_route_choice_missing_data
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
