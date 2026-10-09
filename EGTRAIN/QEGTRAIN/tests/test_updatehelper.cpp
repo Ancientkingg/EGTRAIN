@@ -1,8 +1,11 @@
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QFile>
+#include <QFileInfo>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <QThread>
 
 #include <iostream>
 
@@ -24,13 +27,193 @@ static QByteArray readFile(const QString& path) {
 	return file.readAll();
 }
 
+static const QString kProbeSuffix =
+#if defined(Q_OS_WIN)
+	QStringLiteral(".exe");
+#else
+	QString();
+#endif
+
+// Copies the probe program into directory as "app" and gives it a behavior file.
+static bool writeInstallation(const QString& directory, const QString& program, const QString& label,
+	const QString& log, const QString& behavior) {
+	if (!QDir().mkpath(directory))
+		return false;
+	const QString app = QDir(directory).filePath("app" + kProbeSuffix);
+	return QFile::copy(program, app)
+		&& writeFile(QDir(directory).filePath("behavior.txt"),
+			QStringLiteral("label=%1\nlog=%2\n%3\n").arg(label, log, behavior).toUtf8());
+}
+
+static QStringList logLines(const QString& log) {
+	QStringList lines = QString::fromUtf8(readFile(log)).split('\n');
+	lines.removeAll(QString());
+	return lines;
+}
+
+static bool waitForLogLine(const QString& log, const QString& line, int timeoutMs = 10000) {
+	QElapsedTimer timer;
+	timer.start();
+	while (timer.elapsed() < timeoutMs) {
+		if (logLines(log).contains(line))
+			return true;
+		QThread::msleep(50);
+	}
+	return false;
+}
+
+// Window for the scenarios in which the new version fails at once. The helper returns as soon
+// as the process has ended, so a long window only gives a slow machine room.
+constexpr int kFailureObserveMs = 10000;
+
+struct HelperRun {
+	int exitCode = -1;
+	qint64 milliseconds = 0;
+};
+
+// One update of root/install by root/stage, with root/install.egtrain-old as the backup.
+static HelperRun runHelper(const QString& helper, const QString& root, int observeMs) {
+	const QDir directory(root);
+	QProcess process;
+	process.setProgram(helper);
+	process.setArguments({
+		"--parent-pid", "0", "--current", directory.filePath("install"),
+		"--staged", directory.filePath("stage"),
+		"--backup", directory.filePath("install.egtrain-old"),
+		"--launch", directory.filePath("install/app" + kProbeSuffix),
+		"--observe-ms", QString::number(observeMs)});
+	QElapsedTimer timer;
+	timer.start();
+	process.start();
+	HelperRun result;
+	if (!process.waitForFinished(60000) || process.exitStatus() != QProcess::NormalExit)
+		return result;
+	result.milliseconds = timer.elapsed();
+	result.exitCode = process.exitCode();
+	return result;
+}
+
+static bool installationIs(const QString& root, const QString& directory, const char* label) {
+	return readFile(QDir(root).filePath(directory + "/behavior.txt")).contains(label);
+}
+
+// A new version that exits with a failure code is replaced by the previous installation.
+static bool testEarlyFailureRollsBack(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
+		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=exit\ncode=3"),
+		"early failure fixtures are writable");
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
+	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version exits with an error");
+	ok &= expect(installationIs(root, "install", "label=old"), "early failure restores the previous installation");
+	ok &= expect(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old")), "early failure consumes the backup");
+#if !defined(Q_OS_WIN)
+	// On Windows a scanner can hold the crashed files, so the best-effort removal may lag.
+	ok &= expect(!QFileInfo::exists(QDir(root).filePath("install.egtrain-old.failed")),
+		"early failure removes the failed installation");
+#endif
+	ok &= expect(waitForLogLine(log, "old started"), "early failure starts the previous version again");
+	const QStringList lines = logLines(log);
+	ok &= expect(lines.indexOf("new started") >= 0 && lines.indexOf("new started") < lines.indexOf("old started"),
+		"the new version ran before the previous one");
+#if defined(Q_OS_WIN)
+	QThread::msleep(300);
+#endif
+	return ok;
+}
+
+// A new version that keeps running is installed, and the helper ends after the observation window.
+static bool testRunningVersionIsInstalled(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 1500;
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
+		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=sleep\nms=6000"),
+		"running version fixtures are writable");
+	const HelperRun run = runHelper(helper, root, observeMs);
+	ok &= expect(run.exitCode == 0, "helper succeeds while the new version keeps running");
+	ok &= expect(run.milliseconds >= observeMs - 100, "helper watches the new version for the whole window");
+	ok &= expect(run.milliseconds < observeMs + 4000, "helper does not wait for the new version to end");
+	if (!ok)
+		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
+	ok &= expect(installationIs(root, "install", "label=new"), "running version stays installed");
+	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "running version keeps the backup");
+	ok &= expect(waitForLogLine(log, "new done"), "running version finishes");
+	ok &= expect(!logLines(log).contains("old started"), "previous version is not started again");
+#if defined(Q_OS_WIN)
+	QThread::msleep(300);
+#endif
+	return ok;
+}
+
+// A new version that exits with code 0 right away counts as started and ends the helper early.
+static bool testCleanQuickExitIsInstalled(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 6000;
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
+		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=exit\ncode=0"),
+		"quick exit fixtures are writable");
+	const HelperRun run = runHelper(helper, root, observeMs);
+	ok &= expect(run.exitCode == 0, "helper succeeds when the new version exits cleanly");
+	ok &= expect(run.milliseconds < observeMs - 500, "helper does not sit out the window after a clean exit");
+	if (!ok)
+		std::cerr << "helper ran for " << run.milliseconds << " ms with a window of " << observeMs << " ms\n";
+	ok &= expect(installationIs(root, "install", "label=new"), "clean exit stays installed");
+	ok &= expect(installationIs(root, "install.egtrain-old", "label=old"), "clean exit keeps the backup");
+	ok &= expect(!logLines(log).contains("old started"), "previous version is not started after a clean exit");
+	return ok;
+}
+
+#if defined(Q_OS_WIN)
+// A crash at startup is detected and does not leave an error dialog open.
+static bool testCrashRollsBack(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
+		&& writeInstallation(QDir(root).filePath("stage"), program, "new", log, "mode=crash"),
+		"crash fixtures are writable");
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
+	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version crashes");
+	ok &= expect(installationIs(root, "install", "label=old"), "crash restores the previous installation");
+	ok &= expect(waitForLogLine(log, "old started"), "crash starts the previous version again");
+	QThread::msleep(300);
+	return ok;
+}
+
+// A package without an imported DLL fails in the loader and is replaced by the previous installation.
+static bool testMissingDllRollsBack(const QString& helper, const QString& dllProbe, const QString& dll,
+	const QString& root) {
+	const QDir directory(root);
+	const QString dllName = QFileInfo(dll).fileName();
+	bool ok = expect(QDir().mkpath(directory.filePath("install")) && QDir().mkpath(directory.filePath("stage"))
+		&& QFile::copy(dllProbe, directory.filePath("install/app.exe"))
+		&& QFile::copy(dll, directory.filePath("install/" + dllName))
+		&& QFile::copy(dllProbe, directory.filePath("stage/app.exe"))
+		&& writeFile(directory.filePath("stage/new-marker"), "new"),
+		"missing DLL fixtures are writable");
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs);
+	ok &= expect(run.exitCode != 0 && run.exitCode != -1, "helper fails when the new version cannot load a DLL");
+	ok &= expect(QFileInfo::exists(directory.filePath("install/" + dllName)),
+		"loader failure restores the previous installation");
+	ok &= expect(!QFileInfo::exists(directory.filePath("install/new-marker")),
+		"loader failure removes the new installation");
+	ok &= expect(!QFileInfo::exists(directory.filePath("install.egtrain-old")), "loader failure consumes the backup");
+	QThread::msleep(500);
+	return ok;
+}
+#endif
+
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 	if (argc == 1)
 		return 0;
-	if (argc != 2)
+#if defined(Q_OS_WIN)
+	if (argc != 5)
 		return 2;
+#else
+	if (argc != 3)
+		return 2;
+#endif
 	const QString helper = QString::fromLocal8Bit(argv[1]);
+	const QString probe = QString::fromLocal8Bit(argv[2]);
 	QTemporaryDir temp;
 	if (!temp.isValid())
 		return 1;
@@ -91,5 +274,20 @@ int main(int argc, char** argv) {
 		"helper installs a staged directory");
 	ok &= expect(readFile(QDir(currentDir).filePath("marker")) == QByteArray("new"),
 		"new directory is active after helper success");
+
+	const auto scenarioRoot = [&temp](const char* name) {
+		const QString root = QDir(temp.path()).filePath(name);
+		QDir().mkpath(root);
+		return root;
+	};
+	ok &= testEarlyFailureRollsBack(helper, probe, scenarioRoot("early-failure"));
+	ok &= testRunningVersionIsInstalled(helper, probe, scenarioRoot("running"));
+	ok &= testCleanQuickExitIsInstalled(helper, probe, scenarioRoot("quick-exit"));
+#if defined(Q_OS_WIN)
+	const QString dllProbe = QString::fromLocal8Bit(argv[3]);
+	const QString dll = QString::fromLocal8Bit(argv[4]);
+	ok &= testCrashRollsBack(helper, probe, scenarioRoot("crash"));
+	ok &= testMissingDllRollsBack(helper, dllProbe, dll, scenarioRoot("missing-dll"));
+#endif
 	return ok ? 0 : 1;
 }

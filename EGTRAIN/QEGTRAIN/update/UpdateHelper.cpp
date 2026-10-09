@@ -23,8 +23,17 @@ using ArgumentString = std::string;
 
 namespace {
 
+// How long a launched application is watched for an early failure.
+#if defined(_WIN32)
+constexpr unsigned kDefaultObserveMs = 3000;
+#else
+constexpr unsigned kDefaultObserveMs = 500;
+#endif
+constexpr unsigned long kMaxObserveMs = 10 * 60 * 1000;
+
 struct Arguments {
 	unsigned long long parentPid = 0;
+	unsigned observeMs = kDefaultObserveMs;
 	std::filesystem::path current;
 	std::filesystem::path staged;
 	std::filesystem::path backup;
@@ -66,6 +75,18 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 		} else if (name == "--launch") {
 #endif
 			result.launch = value;
+#if defined(_WIN32)
+		} else if (name == L"--observe-ms") {
+			wchar_t* end = nullptr;
+			const unsigned long milliseconds = std::wcstoul(value.c_str(), &end, 10);
+#else
+		} else if (name == "--observe-ms") {
+			char* end = nullptr;
+			const unsigned long milliseconds = std::strtoul(value.c_str(), &end, 10);
+#endif
+			if (value.empty() || !end || *end != '\0' || milliseconds > kMaxObserveMs)
+				return false;
+			result.observeMs = static_cast<unsigned>(milliseconds);
 		} else {
 			return false;
 		}
@@ -106,21 +127,40 @@ bool movePath(const std::filesystem::path& from, const std::filesystem::path& to
 	return !error;
 }
 
+// Starts the application and watches it for observeMs. A process that exits with a
+// non-zero code inside the window failed to start. One that exits with code 0 or is
+// still running when the window ends started. observeMs == 0 does not watch.
 #if defined(_WIN32)
-bool launch(const std::filesystem::path& executable) {
+bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 	const std::wstring path = executable.wstring();
 	STARTUPINFOW startup{};
 	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process{};
-	if (!CreateProcessW(path.c_str(), nullptr, nullptr, nullptr, FALSE,
-		CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, nullptr, &startup, &process))
+	// The child inherits the error mode. Without these flags a missing DLL or a crash
+	// can leave a modal dialog open and the process alive, which would look like a good start.
+	const UINT previousMode = SetErrorMode(0);
+	SetErrorMode(previousMode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+	const BOOL created = CreateProcessW(path.c_str(), nullptr, nullptr, nullptr, FALSE,
+		CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, nullptr, &startup, &process);
+	SetErrorMode(previousMode);
+	if (!created)
 		return false;
 	CloseHandle(process.hThread);
+	bool started = true;
+	if (observeMs > 0) {
+		const DWORD status = WaitForSingleObject(process.hProcess, observeMs);
+		if (status == WAIT_OBJECT_0) {
+			DWORD exitCode = 1;
+			started = GetExitCodeProcess(process.hProcess, &exitCode) && exitCode == 0;
+		} else if (status != WAIT_TIMEOUT) {
+			started = false;
+		}
+	}
 	CloseHandle(process.hProcess);
-	return true;
+	return started;
 }
 #else
-bool launch(const std::filesystem::path& executable) {
+bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 	const pid_t child = fork();
 	if (child < 0)
 		return false;
@@ -128,7 +168,9 @@ bool launch(const std::filesystem::path& executable) {
 		execl(executable.c_str(), executable.c_str(), static_cast<char*>(nullptr));
 		_exit(127);
 	}
-	for (int attempt = 0; attempt < 20; ++attempt) {
+	// The window is measured on the clock: a sleep can take much longer than asked on a busy machine.
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(observeMs);
+	while (std::chrono::steady_clock::now() < deadline) {
 		int status = 0;
 		const pid_t result = waitpid(child, &status, WNOHANG);
 		if (result == child)
@@ -141,6 +183,34 @@ bool launch(const std::filesystem::path& executable) {
 }
 #endif
 
+// Renames a path, retrying while a scanner or a dying process still holds a file in it.
+bool movePathWithRetries(const std::filesystem::path& from, const std::filesystem::path& to) {
+	for (int attempt = 0; attempt < 15; ++attempt) {
+		if (attempt > 0)
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		if (movePath(from, to))
+			return true;
+	}
+	return false;
+}
+
+// Replaces the installation that failed to start with the backup. The failed one is
+// renamed aside first, so a file that is still locked cannot leave a half-deleted
+// installation. If the backup cannot be renamed back, the failed one is put back.
+void restoreBackup(const Arguments& arguments) {
+	std::filesystem::path failed = arguments.backup;
+	failed += ".failed";
+	removePath(failed);
+	if (!movePathWithRetries(arguments.current, failed))
+		return;
+	if (movePathWithRetries(arguments.backup, arguments.current)) {
+		removePath(failed);
+		launch(arguments.launch, 0);
+	} else {
+		movePathWithRetries(failed, arguments.current);
+	}
+}
+
 bool transactionalInstall(const Arguments& arguments) {
 	std::error_code error;
 	if (!std::filesystem::exists(arguments.current, error)
@@ -150,18 +220,16 @@ bool transactionalInstall(const Arguments& arguments) {
 		return false;
 
 	if (!movePath(arguments.current, arguments.backup)) {
-		launch(arguments.launch);
+		launch(arguments.launch, 0);
 		return false;
 	}
 	if (!movePath(arguments.staged, arguments.current)) {
 		movePath(arguments.backup, arguments.current);
-		launch(arguments.launch);
+		launch(arguments.launch, 0);
 		return false;
 	}
-	if (!launch(arguments.launch)) {
-		removePath(arguments.current);
-		if (movePath(arguments.backup, arguments.current))
-			launch(arguments.launch);
+	if (!launch(arguments.launch, arguments.observeMs)) {
+		restoreBackup(arguments);
 		return false;
 	}
 	// Keep one recoverable installation until a later update proves this one usable.
@@ -174,7 +242,7 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	Arguments arguments;
 	if (!parseArguments(argc, argv, arguments)) {
 		std::cerr << "usage: egtrain_update_helper --parent-pid PID --current PATH "
-			"--staged PATH --backup PATH --launch PATH\n";
+			"--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS]\n";
 		return 2;
 	}
 	std::error_code workingDirectoryError;
