@@ -26,7 +26,7 @@ ASSERT_MOVEMENT = {1, 2, 3, 4, 5}
 ASSERT_STATION_ARRIVALS = {2, 3, 4, 5}
 ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 6}
+SIGNALLING_COVERED = {2, 5, 6}
 
 # d3f5c7005c7030ba3745c8a41b0572e61974bd15 is the last pre-cutover
 # runtime baseline. These checks keep one representative observable per
