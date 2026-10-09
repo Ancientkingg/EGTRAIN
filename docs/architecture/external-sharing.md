@@ -18,7 +18,7 @@ This page describes the code as it is. Function names are given so that a mainta
 
 ## When it sends
 
-`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it sends one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and after `printCurrentPassengerStatus`, and before the signalling clean-up of the same step. The traffic-state message goes first.
+`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and after `printCurrentPassengerStatus`, and before the signalling clean-up of the same step. The traffic-state message goes first.
 
 At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop and the step delay are read through `SimulationWorker::active()`, so they exist only in a run in the window and not in a `-g 0` run. In a window run the step loop runs on the worker thread (`MainWindow::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
 
@@ -98,7 +98,7 @@ routeChoiceRequest            currentTime
 
 `person_id` is the key of the passenger in the payload, and `trip_id` is always `1`. The four elements of a passenger are children of the root, one after the other; `origin`, `destination` and `departure_time` are not inside `person`. With no passenger in the payload the root is empty.
 
-`currentTime` is the start time of day plus `t` seconds, on the local calendar date of the machine when the message is made. `lastOccupationTime` and `expectedEntranceTime` are the start time of day plus `lastOccTime` or `depTime` seconds on the same date, without `t`. The start time of day is 23300 s in `trafficStateMonitoring_xml` and `initial_variables.startingSimulationTime` in `routeChoice_xml`. Every time is written as `YYYY-MM-DD HH:MM:SS.000 CEST`, with the literal text `CEST`.
+`currentTime` is local midnight of the day on which the message is made, plus the start time of day, plus `t` seconds; a sum past 24 hours gives the next day. `lastOccupationTime` and `expectedEntranceTime` are counted the same way, with `lastOccTime` or `depTime` seconds in place of `t`. The start time of day is 23300 s in `trafficStateMonitoring_xml` and `initial_variables.startingSimulationTime` in `routeChoice_xml`. Every time is written as `YYYY-MM-DD HH:MM:SS.000 CEST`, with the literal text `CEST`.
 
 ## Known limits
 
