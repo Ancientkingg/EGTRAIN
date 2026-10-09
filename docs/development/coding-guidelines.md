@@ -161,10 +161,12 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
 arrays of 100 or more elements and raw pointers, and its `CONFIRMED_OBSERVERS` table names
 the pointers known to be non-owning. `test_ownership_inventory` runs the scanner on the real
 tree and a fixture, and `test_raii_contract` checks that the delay statistics in
-`simulation/Simulation.cpp` use `std::vector` instead of `new double[]` and that the retired
-`setupEgtrain` and `prepareSimulation` stay out of `app/DispatchController.cpp`. When
-`test_raii_contract` fails, remove the raw allocation or the restored path instead of
-editing the test; when `test_ownership_inventory` fails after a pointer in
+`simulation/Simulation.cpp` use `std::vector` instead of `new double[]`, that the retired
+`setupEgtrain` and `prepareSimulation` stay out of `app/DispatchController.cpp` and that
+`runSimulation` writes each train trajectory file once, as its last stage, and leaves
+`BlockingTimes.txt` to `ComputeBlockingTimesInMixedSignallingForAllTrains`. When
+`test_raii_contract` fails, remove the raw allocation, the restored path or the repeated
+write instead of editing the test; when `test_ownership_inventory` fails after a pointer in
 `CONFIRMED_OBSERVERS` was renamed or removed, update the table and the test in the same change.
 
 ## Error reporting
