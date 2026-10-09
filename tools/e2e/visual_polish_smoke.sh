@@ -188,12 +188,12 @@ QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
 	"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
 grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$SIGNAL_HEADS_OUT"
 # Assignment has no signalling area and heads that no route reaches; Lebanon has
-# a level 0 area and mostly heads that no route reaches.
+# a level 0 area and mostly heads that no route reaches. Both runs are too short
+# for a pause to take effect before the run ends, so they do not pause.
 for SIGNAL_CASE in Assignment_Gvc_Gdg_Ut:none Lebanon:any; do
 QT_QPA_PLATFORM=offscreen \
 QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_SIGNAL_HEADS="${SIGNAL_CASE#*:}" \
-QEGTRAIN_E2E_PAUSE_STEPS=100,300 \
 	"$APP" --scene "$SCENE_ROOT/${SIGNAL_CASE%:*}" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
 grep -q "E2E_SIGNAL_HEADS_OK mode=${SIGNAL_CASE#*:}" "$SIGNAL_HEADS_OUT"
 done
