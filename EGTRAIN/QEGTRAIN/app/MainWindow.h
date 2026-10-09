@@ -139,6 +139,7 @@ struct StableRelease;
 #include "widgets/InfoDockWidget.h"
 #include "graphics/items/HighlightEffect.h"
 #include "widgets/TimeProgressBar.h"
+#include "widgets/ElidedLabel.h"
 
 // EGTRAIN files
 #include "simulation/Infrastructure.h"
@@ -147,6 +148,7 @@ struct StableRelease;
 #include "app/DispatchController.h"
 #include "app/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
+#include "app/FollowAvailability.h"
 
 #include <QThread>
 #include <QToolBar>
@@ -395,6 +397,11 @@ private:
 	QLabel* m_speedLabel;
 	QAction* m_followAction = nullptr;
 	QComboBox* m_followTrainCombo = nullptr;
+	// Says in one sentence whether the selected train is followed, and why not.
+	ElidedLabel* m_followStatusLabel = nullptr;
+	// What each row of the train list shows: the phase of its train and whether the displayed
+	// snapshot holds the train. A row is written again only when this changes.
+	QVector<std::optional<std::pair<FollowPhase, bool>>> m_followRowShown;
 	QPointer<QMenu> m_sceneContextMenu;
 	QPointer<AboutDialog> m_aboutDialog;
 	int m_followTrainIndex = -1;
@@ -695,6 +702,12 @@ private:
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
+	// What followAvailability needs to know about the train of a row of the train list.
+	FollowAvailabilityInput followInput(int row) const;
+	// Writes the list entries, the status label and the Follow control from followAvailability
+	// and returns its answer for the selected train.
+	FollowAvailability updateFollowAvailability();
+	bool trainHasGeometry(int trainIndex) const;
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
 	void setupUpdateActions();

@@ -41,6 +41,21 @@ if [[ ! -x "$APP" ]]; then
 	exit 1
 fi
 
+# The checks of the Follow explanation in a live run, each of which prints its marker when it holds.
+FOLLOW_LIVE_MARKERS=(E2E_FOLLOW_NOT_ENTERED_OK E2E_FOLLOW_STATUS_WIDTH_OK E2E_FOLLOW_ENTERED_OK E2E_FOLLOW_LIST_STABLE_OK E2E_FOLLOW_LAYER_OK E2E_FOLLOW_LIVE_END_OK)
+# The same in the replay of a completed run, and after the case is reset.
+FOLLOW_REPLAY_MARKERS=(E2E_FOLLOW_REPLAY_BEFORE_OK E2E_FOLLOW_REPLAY_DURING_OK E2E_FOLLOW_REPLAY_AFTER_OK E2E_FOLLOW_SELECT_OK E2E_FOLLOW_RESET_OK)
+require_markers() {
+	local log="$1" marker
+	shift
+	for marker in "$@"; do
+		if ! grep -q "$marker" "$log"; then
+			echo "missing marker $marker in $log" >&2
+			exit 1
+		fi
+	done
+}
+
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 export QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR"
 rm -f "$SHOT" "$MEDIUM_SHOT" "$DENSE_SHOT" "$SELECTED_SHOT" "$FOLLOW_SHOT" "$CONTEXT_SHOT" \
@@ -67,6 +82,7 @@ grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
 grep -q "E2E_SELECTION_CUE_FIT_OK" "$OUT"
 grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$OUT"
 grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$OUT"
+require_markers "$OUT" "${FOLLOW_LIVE_MARKERS[@]}"
 test -s "$SHOT"
 test -s "$DENSE_SHOT"
 test -s "$MEDIUM_SHOT"
@@ -139,6 +155,7 @@ grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$DPR2_OUT"
 grep -q "E2E_SELECTION_CUE_FIT_OK" "$DPR2_OUT"
 grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$DPR2_OUT"
 grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$DPR2_OUT"
+require_markers "$DPR2_OUT" "${FOLLOW_LIVE_MARKERS[@]}"
 test -s "$DPR2_SHOT"
 test -s "${DPR2_SHOT%.png}-medium.png"
 test -s "${DPR2_SHOT%.png}-dense.png"
@@ -155,6 +172,7 @@ QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
 	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
 grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
+require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}"
 echo "operational completion and rerun e2e passed"
 
 # Signal heads on three copies of the line fixture with two services: one with a

@@ -155,10 +155,26 @@ The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
 JSON-only settings. During playback, choose a train in **Train to follow** and
 activate **Follow** to center the network view on it immediately, including
-while paused. A selected train that has not departed yet remains armed and the
-status bar reports that Follow is waiting for departure. Follow is cleared when
-it is disabled, when playback exits, or when the selected train is no longer
-available; it never silently switches to another train.
+while paused.
+
+The list names the state of each train. A train that has not entered the network
+shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
+the schedule, not the actual entry. After that a train is "(running)",
+"(finished)", "(hidden)" while the Trains layer is off, or "(no position)" when
+it has none to draw. The label at the right of the status bar says in one
+sentence whether the selected train is followed and why not, and the tooltips of
+**Follow** and of the list say the same. A train that has not entered yet remains
+armed: the view does not move, and Follow starts when the train enters. While the
+Trains layer is off the view does not move either, and it returns to the train
+when the layer is switched on. Before a case has run, and in a case without
+services, **Follow** is disabled and its tooltip says why.
+
+In a live run Follow is switched off when the selected train leaves the network,
+and a train that has left cannot be chosen. In the replay of a completed run
+Follow stays on after the selected train has left, and continues when you go back
+in time. Follow is also cleared when it is disabled, when playback exits, or when
+the selected train is no longer available; it never silently switches to another
+train.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
