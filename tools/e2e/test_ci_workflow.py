@@ -11,6 +11,8 @@ def main() -> None:
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
+    format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
     main_cpp = (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8")
     windows_resource = (ROOT / "EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
@@ -344,6 +346,15 @@ def main() -> None:
         cmake,
     ):
         missing.append("64-bit Windows configure check")
+    # The format check installs the clang-format version that tools/format.py accepts.
+    format_version = re.search(r'^CLANG_FORMAT_VERSION = "([0-9.]+)"$', format_script, re.MULTILINE)
+    if (
+        not format_version
+        or f"pip install 'clang-format=={format_version.group(1)}'" not in format_workflow
+        or "run: python3 tools/format.py\n" not in format_workflow
+        or "  pull_request:\n" not in format_workflow
+    ):
+        missing.append("format check on pull requests with the clang-format version of tools/format.py")
     if missing:
         raise SystemExit("CI workflows are missing: " + ", ".join(missing))
 

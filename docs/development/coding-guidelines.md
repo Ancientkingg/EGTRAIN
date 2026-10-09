@@ -7,9 +7,22 @@ This guide records the conventions that new code follows. The newer modules (`sc
 `simulation/`. These rules do not ask for a rename of legacy code.
 
 Formatting follows `.clang-format` and `.editorconfig` in the repository root.
-`clang-format --dry-run --Werror <files>` reports where a file differs from the style.
-The vendored code in `io/third_party/` is listed in `.clang-format-ignore` and is not
-reformatted.
+`python3 tools/format.py --fix` formats every C++ source under `EGTRAIN/QEGTRAIN`, and
+`python3 tools/format.py` checks them and lists the files that differ. The pull request
+checks run the same check. The script needs clang-format 23.1.3, because other releases
+format some constructs differently: `python3 -m pip install clang-format==23.1.3`
+installs it, and the environment variable `CLANG_FORMAT` names the executable when it is
+not the `clang-format` on `PATH`. The vendored code in `io/third_party/` is listed in
+`.clang-format-ignore` and is not reformatted.
+
+The formatter keeps the line breaks of the author and sets no column limit. It keeps a
+break before a binary operator, and a break inside an argument only when that argument
+starts on a line of its own. A statement that is wrapped elsewhere comes out as one long
+line, so wrap it at one of those places.
+
+`.git-blame-ignore-revs` lists the commits that only changed the format.
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them, and
+the blame view of GitHub skips them without a setting.
 
 `.clang-tidy` selects the static checks. CMake writes `build/compile_commands.json` with
 the Makefile and Ninja generators, and `clang-tidy -p build <file>` reads it. With the
