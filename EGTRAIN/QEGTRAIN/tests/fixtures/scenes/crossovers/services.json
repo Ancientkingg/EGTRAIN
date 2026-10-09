@@ -1,0 +1,88 @@
+{
+    "services": [
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 60.0,
+            "id": "F1",
+            "operating_code": "F1",
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 120.0,
+                    "platform": "A.platform.1",
+                    "station": "A"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 181.0,
+                    "planned_departure_seconds": 241.0,
+                    "platform": "B.platform.1",
+                    "station": "B"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 364.0,
+                    "platform": "C.platform.1",
+                    "station": "C"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 120.0,
+            "id": "F2",
+            "operating_code": "F2",
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 180.0,
+                    "platform": "A.platform.1",
+                    "station": "A"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 241.0,
+                    "planned_departure_seconds": 301.0,
+                    "platform": "B.platform.1",
+                    "station": "B"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 424.0,
+                    "platform": "C.platform.1",
+                    "station": "C"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 60.0,
+            "id": "R1",
+            "operating_code": "R1",
+            "route": "route1",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 120.0,
+                    "platform": "C.platform.1",
+                    "station": "C"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 181.0,
+                    "planned_departure_seconds": 241.0,
+                    "platform": "B.platform.1",
+                    "station": "B"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 364.0,
+                    "platform": "A.platform.1",
+                    "station": "A"
+                }
+            ]
+        }
+    ]
+}
