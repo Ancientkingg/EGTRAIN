@@ -118,9 +118,12 @@ void ColorChoiceButton::resetColor() {
 }
 
 void ColorChoiceButton::openColorDialog() {
-	QColorDialog dialog(m_swatchColor.isValid() ? m_swatchColor : defaultTrainFill(), this);
+	QColorDialog dialog(this);
 	dialog.setWindowTitle("Service visualization colour");
+	// The colour is set after the option: a dialog that switches from the native
+	// panel to the Qt one does not keep a colour it was given before.
 	dialog.setOption(QColorDialog::DontUseNativeDialog);
+	dialog.setCurrentColor(m_swatchColor.isValid() ? m_swatchColor : defaultTrainFill());
 	if (dialog.exec() == QDialog::Accepted)
 		chooseColor(dialog.selectedColor());
 }
