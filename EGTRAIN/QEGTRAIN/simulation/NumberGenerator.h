@@ -1,19 +1,23 @@
 #ifndef Data_NumberGenerator_hpp_
 #define Data_NumberGenerator_hpp_
 
-#define IA 16807
-#define IM 2147483647
-#define AM (1.0 / IM)
-#define IQ 127773
-#define IR 2836
-#define NTAB 32
-#define NDIV (1 + (IM - 1) / NTAB)
-#define EPS 1.2e-7
-#define RNMX (1.0 - EPS)
-
 class NumberGenerator {
 public:
-	// Seeds from 1 to kMaxRandomSeed are valid. 0 and IM lead to the all-zero state, in which
+	// The state advances by multiplying with kIa modulo kIm. kIq is kIm / kIa and kIr is kIm % kIa, so that the
+	// product needs no larger type. The next result is taken from a table of kNtab entries, from the entry that
+	// the previous result selects through kNdiv. getUniformFloat limits the draw on the unit interval to kRnmx
+	// before it scales it to the requested interval.
+	static constexpr int kIa = 16807;
+	static constexpr int kIm = 2147483647;
+	static constexpr double kAm = 1.0 / kIm;
+	static constexpr int kIq = 127773;
+	static constexpr int kIr = 2836;
+	static constexpr int kNtab = 32;
+	static constexpr int kNdiv = 1 + (kIm - 1) / kNtab;
+	static constexpr double kEps = 1.2e-7;
+	static constexpr double kRnmx = 1.0 - kEps;
+
+	// Seeds from 1 to kMaxRandomSeed are valid. 0 and kIm lead to the all-zero state, in which
 	// getGaussianFloat does not return.
 	explicit NumberGenerator(unsigned long inSeed);
 
@@ -26,14 +30,14 @@ public:
 
 private:
 	long iy;
-	long iv[NTAB];
+	long iv[kNtab];
 	long idum;
 
 	int iset;
 	double gset;
 };
 
-constexpr unsigned long kMaxRandomSeed = IM - 1;
+constexpr unsigned long kMaxRandomSeed = NumberGenerator::kIm - 1;
 
 // The generator that drives the passenger sampling of the prepared run.
 NumberGenerator& runNumberGenerator();
