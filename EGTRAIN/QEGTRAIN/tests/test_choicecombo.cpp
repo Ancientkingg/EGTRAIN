@@ -14,6 +14,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QToolTip>
 
 #include <algorithm>
 #include <iostream>
@@ -91,11 +92,19 @@ struct StopForm {
     QList<ChoiceComboBox*> combos() const { return {station, platform, mode}; }
 };
 
-bool tooltipMatches(QComboBox* combo)
+// The text of the tip that the combo shows when the pointer rests on it.
+QString shownTip(QComboBox* combo)
 {
     QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), combo->mapToGlobal(QPoint(4, 4)));
     QApplication::sendEvent(combo, &help);
-    return combo->toolTip() == combo->currentText();
+    const QString text = QToolTip::text();
+    QToolTip::hideText();
+    return text;
+}
+
+bool tooltipMatches(QComboBox* combo)
+{
+    return shownTip(combo) == combo->currentText();
 }
 
 void press(QComboBox* combo, int key)
@@ -151,16 +160,39 @@ bool exerciseSelection()
     bool ok = true;
     for (ChoiceComboBox* combo : f.combos())
         ok &= check(tooltipMatches(combo), "tooltip is not the current text");
-    ok &= check(f.platform->currentText() == choiceName(95) && f.platform->toolTip() == choiceName(95),
+    ok &= check(f.platform->currentText() == choiceName(95) && shownTip(f.platform) == choiceName(95),
                 "tooltip is not the full text of a long item");
 
     f.platform->setCurrentIndex(1);
     press(f.platform, Qt::Key_Down);
-    ok &= check(f.platform->currentIndex() == 2 && f.platform->toolTip() == choiceName(95),
+    ok &= check(f.platform->currentIndex() == 2 && shownTip(f.platform) == choiceName(95),
                 "Down did not select the next item or update the tooltip");
     press(f.platform, Qt::Key_Up);
-    ok &= check(f.platform->currentIndex() == 1 && f.platform->toolTip() == choiceName(31),
+    ok &= check(f.platform->currentIndex() == 1 && shownTip(f.platform) == choiceName(31),
                 "Up did not select the previous item or update the tooltip");
+    {
+        const QSignalBlocker blocker(f.platform);
+        f.platform->setCurrentIndex(0);
+    }
+    ok &= check(shownTip(f.platform) == QStringLiteral("(no platform)") && f.platform->toolTip().isEmpty(),
+                "a selection made with signals blocked left an old tooltip");
+    return ok;
+}
+
+bool exerciseElision()
+{
+    const QRect screen(0, 0, 1280, 800);
+    StopForm f(screen, 1.0, QStringLiteral("p95"));
+    bool ok = check(f.platform->displayText() == choiceName(95), "a text that fits its field is elided");
+    f.dialog.resize(420, f.dialog.height());
+    QApplication::processEvents();
+    const QString shown = f.platform->displayText();
+    ok &= check(f.platform->width() < f.platform->sizeHint().width(), "the field did not shrink with the dialog");
+    ok &= check(shown != choiceName(95) && shown.contains(QChar(0x2026))
+                    && shown.startsWith(choiceName(3)) && shown.endsWith(choiceName(95).right(3)),
+                "a text wider than its field is not elided in the middle");
+    ok &= check(f.platform->fontMetrics().horizontalAdvance(shown) <= f.platform->width(),
+                "the elided text is wider than the field");
     return ok;
 }
 
@@ -182,7 +214,7 @@ bool exerciseInvalidChoice()
                     "invalid platform lost its text or data");
         ok &= check(f.platform->itemData(index, Qt::ToolTipRole).toString() == kExplanation,
                     "invalid platform item lost its explanation");
-        ok &= check(tooltipMatches(f.platform) && f.platform->toolTip() == shown,
+        ok &= check(shownTip(f.platform) == shown,
                     "tooltip of the invalid item is not its full text");
         f.platform->showPopup();
         QApplication::processEvents();
@@ -211,6 +243,7 @@ int main(int argc, char** argv)
     const bool scaledSmall = exerciseLayout(QRect(0, 0, 1280, 800), 1.5);
     const bool large = exerciseLayout(QRect(0, 0, 1920, 1080), 1.5);
     const bool selection = exerciseSelection();
+    const bool elision = exerciseElision();
     const bool invalid = exerciseInvalidChoice();
-    return small && scaledSmall && large && selection && invalid ? 0 : 1;
+    return small && scaledSmall && large && selection && elision && invalid ? 0 : 1;
 }
