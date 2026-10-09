@@ -30,6 +30,7 @@ use the canonical model.
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
 - [Scene bundle format](architecture/scene-bundle.md)
 - [Release testing checklist](development/release-testing-checklist.md)
+- [Code signing](development/code-signing.md)
 - [Usage and diagnostics wire contract](telemetry/README.md)
 
 Keep new documentation short, concrete, and current.
