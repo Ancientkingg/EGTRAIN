@@ -181,6 +181,19 @@ view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
+In a live run the view glides after the followed train instead of jumping with every
+update. At each step of a timer it moves a part of the way to the latest position, and
+faster when updates come faster, so that it stays less than a third of the visible
+area behind the train. When the run is paused, the view settles on the train and then
+stops. In the replay of a completed run the view moves to the train at once at every
+seek and every step of the playback, because the replay holds a frame every five seconds
+and a glide would show motion that was not recorded. Switching Follow on and choosing
+another train also move the view at once. Dragging the canvas, zooming with the wheel
+and resizing the window do not switch Follow off: in a live run the view returns to the
+train with a glide at the next update. The zoom buttons of the toolbar and **Fit** keep
+the train in view: after a zoom the view is centered on the train at once. Stop and
+switching Follow off stop the view where it is. The train itself moves as before.
+
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens and a light blue ring marks the item. The ring keeps its size at
