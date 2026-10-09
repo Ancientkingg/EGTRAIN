@@ -406,12 +406,6 @@ void DispatchController::runSimulation() {
 	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC);
 	cout << "TimeElapsed is : " << TimeElapsed;
 
-	for (int i = 0; i < numRegions; i++) {
-		if (stoppedHere())
-			return;
-		regional_train[i].PrintTrajectory();
-	}
-
 	Print_Implemented_Order_For_All_OL(Folder_RI_PH);
 
 	// Compute passage times at timetable points
@@ -454,8 +448,6 @@ void DispatchController::runSimulation() {
 	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + bufferTime), 0.5, 50, Folder_RI_PH, 0, recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
 	PrintTrainPathDiagram(regional_train.data(), numRegions, Folder_RI_PH);
-
-	PrintTrainBlockingTimes(Folder_RI_PH);
 
 	PrintTimetablePoints(Folder_RI_PH);
 
