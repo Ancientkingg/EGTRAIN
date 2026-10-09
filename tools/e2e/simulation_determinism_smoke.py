@@ -27,7 +27,7 @@ def run_app(app: Path, scene: Path, run_root: Path, extra: list[str]) -> subproc
     output = run_root / "output"
     output.mkdir(parents=True)
     env = os.environ.copy()
-    env.update({"OMP_NUM_THREADS": "4", "QT_QPA_PLATFORM": "offscreen", "QEGTRAIN_OUTPUT_DIR": str(output)})
+    env.update({"QT_QPA_PLATFORM": "offscreen", "QEGTRAIN_OUTPUT_DIR": str(output)})
     command = [str(app), "--scene", str(scene), "-g", "0", "-TSM", "0", "-RC", "0", *extra]
     return subprocess.run(command, cwd=run_root, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           text=True, encoding="utf-8", errors="replace", timeout=RUN_TIMEOUT)
@@ -81,7 +81,6 @@ def main() -> None:
             env = os.environ.copy()
             env.update(
                 {
-                    "OMP_NUM_THREADS": "4",
                     "QT_QPA_PLATFORM": "offscreen",
                     "QEGTRAIN_OUTPUT_DIR": str(output),
                 }

@@ -103,25 +103,6 @@ include_directories(${SRC_DIR})
 # --- Dependencies ---
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 
-# OpenMP is required because project headers include omp.h.
-if(APPLE)
-    # AppleClang doesn't support -fopenmp directly; use -Xpreprocessor.
-    # Locate Homebrew's libomp on Apple Silicon and Intel Macs.
-    find_path(EGTRAIN_OPENMP_INCLUDE omp.h
-        HINTS /opt/homebrew/opt/libomp/include /usr/local/opt/libomp/include)
-    find_library(EGTRAIN_OPENMP_LINK_LIBRARIES omp
-        HINTS /opt/homebrew/opt/libomp/lib /usr/local/opt/libomp/lib)
-    if(EGTRAIN_OPENMP_INCLUDE AND EGTRAIN_OPENMP_LINK_LIBRARIES)
-        set(EGTRAIN_OPENMP_COMPILE_OPTIONS "-Xpreprocessor;-fopenmp")
-        message(STATUS "OpenMP: using Homebrew libomp (${EGTRAIN_OPENMP_LINK_LIBRARIES})")
-    else()
-        message(FATAL_ERROR "OpenMP libomp not found. Install libomp.")
-    endif()
-else()
-    find_package(OpenMP REQUIRED)
-    set(EGTRAIN_OPENMP_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
-endif()
-
 # --- ZeroMQ / nlohmann_json ---
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -316,9 +297,6 @@ target_include_directories(QEGTRAIN PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/EGTRAIN/QEGTRAIN  # for AUTOUIC generated headers
     ${CMAKE_CURRENT_BINARY_DIR}                    # fallback for generated files
 )
-if(EGTRAIN_OPENMP_INCLUDE)
-    target_include_directories(QEGTRAIN PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-endif()
 
 target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Core
@@ -328,22 +306,6 @@ target_link_libraries(QEGTRAIN PRIVATE
     Qt5::Svg
     Qt5::Network
 )
-
-if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-    target_compile_options(QEGTRAIN PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-endif()
-if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-    target_link_libraries(QEGTRAIN PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-elseif(OpenMP_CXX_FOUND)
-    target_link_libraries(QEGTRAIN PRIVATE OpenMP::OpenMP_CXX)
-endif()
-if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-    message(STATUS "OpenMP: enabled")
-elseif(OpenMP_CXX_FOUND)
-    message(STATUS "OpenMP found via CMake: ${OpenMP_CXX_FLAGS}")
-else()
-    message(STATUS "OpenMP not found - parallel regions will compile as single-threaded")
-endif()
 
 target_link_libraries(QEGTRAIN PRIVATE cppzmq nlohmann_json::nlohmann_json)
 target_link_libraries(QEGTRAIN PRIVATE egtrain_miniz)
@@ -587,17 +549,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/scene/SectionInventory.cpp)
     target_include_directories(test_runresults PRIVATE ${SRC_DIR})
     target_link_libraries(test_runresults PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_runresults PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
-    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-        target_compile_options(test_runresults PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-    endif()
-    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-        target_link_libraries(test_runresults PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-    elseif(OpenMP_CXX_FOUND)
-        target_link_libraries(test_runresults PRIVATE OpenMP::OpenMP_CXX)
-    endif()
     add_test(NAME test_runresults COMMAND test_runresults)
 
     add_executable(test_simulationworker
@@ -623,17 +574,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/util/TrajectoryUtil.cpp)
     target_include_directories(test_simulationworker PRIVATE ${SRC_DIR})
     target_link_libraries(test_simulationworker PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
-    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-        target_compile_options(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-    endif()
-    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-        target_link_libraries(test_simulationworker PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-    elseif(OpenMP_CXX_FOUND)
-        target_link_libraries(test_simulationworker PRIVATE OpenMP::OpenMP_CXX)
-    endif()
     add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
 
     add_executable(test_blockingtimediagram
@@ -688,17 +628,6 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_timetabletablewindow PRIVATE Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets nlohmann_json::nlohmann_json)
     target_compile_definitions(test_timetabletablewindow PRIVATE
         EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
-    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-        target_compile_options(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-    endif()
-    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-        target_link_libraries(test_timetabletablewindow PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-    elseif(OpenMP_CXX_FOUND)
-        target_link_libraries(test_timetabletablewindow PRIVATE OpenMP::OpenMP_CXX)
-    endif()
     add_test(NAME test_timetabletablewindow COMMAND test_timetabletablewindow)
     set_tests_properties(test_timetabletablewindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
@@ -732,17 +661,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/items/PassengerItem.cpp)
     target_include_directories(test_stationoverlay PRIVATE ${SRC_DIR})
     target_link_libraries(test_stationoverlay PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
-    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-        target_compile_options(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-    endif()
-    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-        target_link_libraries(test_stationoverlay PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-    elseif(OpenMP_CXX_FOUND)
-        target_link_libraries(test_stationoverlay PRIVATE OpenMP::OpenMP_CXX)
-    endif()
     add_test(NAME test_stationoverlay COMMAND test_stationoverlay)
     set_tests_properties(test_stationoverlay PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -758,9 +676,6 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/items/TrainBodyItem.cpp
         ${SRC_DIR}/graphics/items/PassengerItem.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_networkscene_selection PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
     target_link_libraries(test_networkscene_selection PRIVATE
         Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_networkscene_selection COMMAND test_networkscene_selection)
@@ -785,18 +700,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/graphics/items/ConnectionItem.cpp
         ${SRC_DIR}/graphics/VisualPolish.cpp)
     target_include_directories(test_networkview PRIVATE ${SRC_DIR})
-    if(EGTRAIN_OPENMP_INCLUDE)
-        target_include_directories(test_networkview PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-    endif()
     target_link_libraries(test_networkview PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
-    if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-        target_compile_options(test_networkview PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-    endif()
-    if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-        target_link_libraries(test_networkview PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-    elseif(OpenMP_CXX_FOUND)
-        target_link_libraries(test_networkview PRIVATE OpenMP::OpenMP_CXX)
-    endif()
     add_test(NAME test_networkview COMMAND test_networkview)
     set_tests_properties(test_networkview PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
@@ -947,17 +851,6 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_include_directories(test_scenebuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_scenebuilder PRIVATE nlohmann_json::nlohmann_json)
-	if(EGTRAIN_OPENMP_INCLUDE)
-		target_include_directories(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-	endif()
-	if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-		target_compile_options(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-	endif()
-	if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-		target_link_libraries(test_scenebuilder PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-	elseif(OpenMP_CXX_FOUND)
-		target_link_libraries(test_scenebuilder PRIVATE OpenMP::OpenMP_CXX)
-	endif()
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
 	add_executable(test_operationsbuilder
@@ -980,17 +873,6 @@ if(EGTRAIN_BUILD_TESTS)
 		${SRC_DIR}/scene/SectionInventory.cpp)
 	target_include_directories(test_operationsbuilder PRIVATE ${SRC_DIR})
 	target_link_libraries(test_operationsbuilder PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts cppzmq nlohmann_json::nlohmann_json)
-	if(EGTRAIN_OPENMP_INCLUDE)
-		target_include_directories(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_INCLUDE})
-	endif()
-	if(EGTRAIN_OPENMP_COMPILE_OPTIONS)
-		target_compile_options(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_COMPILE_OPTIONS})
-	endif()
-	if(EGTRAIN_OPENMP_LINK_LIBRARIES)
-		target_link_libraries(test_operationsbuilder PRIVATE ${EGTRAIN_OPENMP_LINK_LIBRARIES})
-	elseif(OpenMP_CXX_FOUND)
-		target_link_libraries(test_operationsbuilder PRIVATE OpenMP::OpenMP_CXX)
-	endif()
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
 	# Behaviour characterization of the simulation core (see tests/characterization).
@@ -1131,6 +1013,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_pe_image_size
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
+	add_test(NAME test_package_start_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_start_smoke.py)
 	# A 32-bit configure stops with the message that names the supported platform.
 	if(WIN32 AND CMAKE_GENERATOR MATCHES "Visual Studio")
 		add_test(NAME test_win32_configure_rejected
@@ -1173,7 +1057,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version
 		test_ci_workflow test_signalling_bounds test_windows_subsystem_config test_raii_contract
-		test_ownership_inventory test_measure_peak_rss test_pe_image_size)
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics

@@ -13,11 +13,16 @@ launch fail here as it would on a machine without a developer setup.
 2. With a window, in startup timing mode: the application opens the scene,
    prepares a run, paints it and exits.
 
+Before the launches it checks that no file of the package is an OpenMP runtime
+library or names one. QEGTRAIN does not use OpenMP, and the package ships no
+such library, so an executable that asks for one would not start everywhere.
+
 --platform sets QT_QPA_PLATFORM for the second launch. Without it the platform
 plugin of the package is used, which is what a user gets.
 """
 import argparse
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -27,6 +32,8 @@ RUN_TIMEOUT_SECONDS = 120
 HORIZON_SECONDS = "120"
 # Variables that point a process at a developer installation of Qt or vcpkg.
 DEVELOPER_PREFIXES = ("QT_", "QML", "QT5", "VCPKG", "CMAKE_")
+# File names of the OpenMP runtime of MSVC, LLVM, Intel and GCC.
+OPENMP_RUNTIME = re.compile(rb"vcomp\d+d?\.dll|lib(?:i?omp|gomp)[\w.]*?\.(?:dll|dylib|so)", re.IGNORECASE)
 
 
 def find_package_layout(package: Path):
@@ -40,6 +47,18 @@ def find_package_layout(package: Path):
         if executable.is_file():
             return executable, scenes / "Paimpol"
     raise SystemExit(f"no QEGTRAIN executable in {package}")
+
+
+def check_no_openmp_runtime(package: Path) -> None:
+    for path in sorted(package.rglob("*")):
+        if not path.is_file():
+            continue
+        if OPENMP_RUNTIME.match(path.name.encode()):
+            raise SystemExit(f"the package contains an OpenMP runtime library: {path}")
+        named = OPENMP_RUNTIME.search(path.read_bytes())
+        if named:
+            raise SystemExit(f"{path} names the OpenMP runtime library {named.group().decode()}")
+    print(f"PASS no OpenMP runtime library in {package}")
 
 
 def clean_environment() -> dict:
@@ -76,6 +95,7 @@ def main() -> None:
     executable, scene = find_package_layout(package)
     if not (scene / "scene.json").is_file():
         raise SystemExit(f"the package has no Paimpol scene at {scene}")
+    check_no_openmp_runtime(package)
 
     with tempfile.TemporaryDirectory(prefix="qegtrain-package-") as temp:
         env = clean_environment()

@@ -8,7 +8,6 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 - CMake 3.16 or newer
 - C++17 compiler
 - Qt 5 Core, Gui, Widgets, Charts, and Svg
-- OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
 - Python 3.9 or newer, found by `find_package(Python3)` at configure time;
   CTest runs its Python tests with that interpreter. On Windows, set
@@ -35,7 +34,7 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON
 On macOS with Homebrew Qt 5:
 
 ```bash
-brew install qt@5 libomp zeromq cppzmq nlohmann-json
+brew install qt@5 zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
 ```
 
@@ -44,7 +43,7 @@ On Ubuntu:
 ```bash
 sudo apt-get install -y build-essential cmake \
   qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-  libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
+  libzmq3-dev cppzmq-dev nlohmann-json3-dev
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 ```
 
@@ -239,7 +238,9 @@ the Qt and vcpkg variables from the environment and leaves only the Windows
 directories on `PATH`, so a DLL or plugin that is missing from the package
 fails the launch. It starts the packaged program twice: headless on Paimpol to
 the end of a 120 s run, and with a window in startup timing mode, where the
-program opens the scene, prepares a run, paints it and exits.
+program opens the scene, prepares a run, paints it and exits. Before the
+launches it fails when a file of the package is an OpenMP runtime library or
+names one (`vcomp140.dll` on Windows): the package ships none.
 
 ### Windows image size
 

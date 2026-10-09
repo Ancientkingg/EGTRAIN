@@ -102,7 +102,6 @@ Requirements:
 - CMake 3.16 or newer
 - C++17 compiler
 - Qt 5 Core, Gui, Widgets, Charts, and Svg
-- OpenMP runtime
 - ZeroMQ, cppzmq, and nlohmann-json
 
 Configure and build from the repository root:
@@ -116,7 +115,7 @@ On macOS with Homebrew Qt 5, install the dependencies if they are not already
 available:
 
 ```bash
-brew install qt@5 libomp zeromq cppzmq nlohmann-json
+brew install qt@5 zeromq cppzmq nlohmann-json
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
 cmake --build build
 ```

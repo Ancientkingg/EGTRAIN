@@ -56,7 +56,7 @@ jobs:
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install Qt
-        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+        run: brew install qt@5 zeromq cppzmq nlohmann-json
 
       - name: Configure
         run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}" -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
@@ -128,7 +128,7 @@ jobs:
         run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
 
       - name: Install Qt
-        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+        run: brew install qt@5 zeromq cppzmq nlohmann-json
 
       - name: Configure
         run: >
@@ -167,7 +167,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: brew install qt@5 libomp zeromq cppzmq nlohmann-json
+        run: brew install qt@5 zeromq cppzmq nlohmann-json
 
       - name: Configure
         run: >
@@ -186,7 +186,7 @@ jobs:
         run: |
           set -euxo pipefail
           # macdeployqt copies the Qt frameworks and plugins into the bundle and
-          # also relocates the non-Qt dependencies (libomp, libzmq, libsodium)
+          # also relocates the non-Qt dependencies (libzmq, libsodium)
           # into Contents/Frameworks, rewriting every reference to
           # @executable_path so the app runs without Homebrew.
           "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
@@ -212,7 +212,6 @@ jobs:
           test -f "$APP/Contents/PlugIns/imageformats/libqsvg.dylib"
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
-          find "$APP" -iname 'libomp*.dylib' | grep -q . || { echo "ERROR: libomp not bundled"; exit 1; }
           find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
           # The main executable (no install-id line) and every bundled dylib
           # (skip the header and their own install-id line) must not reference
@@ -434,7 +433,7 @@ jobs:
           sudo apt-get install -y \
             build-essential cmake patchelf wget file desktop-file-utils \
             qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev libomp-dev
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
 
       - name: Configure
         run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
