@@ -52,7 +52,9 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	sf-reverse-level-2
 	sf-reverse-level-3
 	sf-reverse-level-4
-	sf-reverse-level-5)
+	sf-reverse-level-5
+	late-leader-level-3
+	late-leader-level-4)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}
@@ -72,6 +74,7 @@ add_test(NAME characterization_repeatable
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-0"
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#single-train"
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-reverse-level-3"
+		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#late-leader-level-4"
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#follow-level-3"
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 list(APPEND EGTRAIN_CHARACTERIZATION_TESTS characterization_repeatable)

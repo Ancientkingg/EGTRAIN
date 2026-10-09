@@ -393,7 +393,7 @@ public:
 	static int clampStationCount(int requested, const string& trainId); // Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations];		// Cached block section index for each station (avoids full-route scan every timestep)
 	int stationArc[kMaxTimetableStations];				   // Cached Arc index within block section for each station
-	bool ServiceStopBehindATrain = false; // This variable is true only if the train is stopping at a station behind another train. We admit that in moving block operations maximum two trains can perform a service stop queueing one after each other at the same platform
+	bool ServiceStopBehindATrain = false; // Never set. A train that waits behind another train at a platform makes its own stop there once the train ahead has left.
 	bool StoppedForServiceStop = false;   // This variable is true when the train is stopping at a station to perform a service stop
 	string CurrentServiceStop;		   // This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
 	string CurrentServiceStopPlatform; // Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
@@ -805,6 +805,27 @@ public:
 				IsTrainStoppedForEoA = true;
 			}
 		}
+	}
+
+	// A leader that reports no movement authority any more cannot be followed. Its last one would keep
+	// this train in following mode, with the leader's last speed and acceleration as its target.
+	void leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
+		if (IsTrainInFollowingMode == 0)
+			return;
+		for (const MovementAuthority& authority : ETCS_MA)
+			if (authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
+				return;
+		cout << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
+		VCmsgTimestep.push_back(time_seconds);
+		VCmsgTrain.push_back(trainDescription);
+		VCmsgText.push_back("Train is now decoupled");
+		MovementAuthority ResetPredictedMAToDecoupleAt;
+		IsTrainInFollowingMode = false;
+		LeadingTrainInFollowingMode = "None";
+		IsTrainDecoupling = false;
+		Predicted_MA_To_DecoupleAt = ResetPredictedMAToDecoupleAt;
+		IsInUnintentionalDecoupling = false;
+		CounterFollowingMode = 0;
 	}
 
 	bool checkIfTrainCanDepartAfterHavingServiceStopBehindATrain(int t) {
@@ -1567,6 +1588,8 @@ public:
 					recordDirectSignalFailure(Last_MA_StoppedAt, time_seconds * timestep);
 				}
 
+				leaveFollowingModeWhenLeaderIsGone(time_seconds);
+
 				// Calculating the most severe value of Train Braking Distance at time instant i
 				double Braking_Distance = 0;
 				// Braking_Distance = BraKDistCompWithLists(instant_spatial_position[i - 1], instant_train_speed[i - 1], (i - 1), train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
@@ -1943,29 +1966,6 @@ public:
 				// Standing Train Conditions
 				if (instant_train_speed[time_seconds - 1] == 0) {
 
-					// In case the train is in following mode and stops behind another train at station (this condition is needed when the train does not stop because of an EoA but because it was in following mode and the train ahead stopped)
-					if (IsTrainInFollowingMode == 1) {
-						// the content of this if condition is needed to set the train to StoppedForServiceStop behind a train to true
-						if (this->StoppedForServiceStop == 0) { // if the train is not yet stopped for a service performed behind another train
-																// if the train ahead is stopped at a station and it is the first train on the platform
-							if ((Last_Received_MA.TrainInfo.StoppedForServiceStop == 1) &&
-								(Last_Received_MA.TrainInfo.ServiceStopBehindATrain == 0) &&
-								(Last_Received_MA.type == "TrainEnd")) // from this if statement we can remove the statement relative to TypePart=="TrainEnd" because when the train is coupled in following mode it can get within the safety margin distance from the leader and see only its Front
-							{
-								for (int s = 0; s < numStations; s++) {
-									if (Stations[s].stationName == Last_Received_MA.TrainInfo.CurrentStoppedStation) {
-										StoppedForServiceStop = true;
-										ServiceStopBehindATrain = true;
-										this->CurrentServiceStop = Stations[s].stationName;					// Setting the name of the station the train is currently stopping at
-										this->XCurrentServiceStop = instant_spatial_position[time_seconds]; // When the train is in following mode and it is stopped at a station the LastReceived_MA.RelativePos might be a safety margin from the front of the train ahead for this reason in this case we put the current position instant_spatial_position[i] as the location where the train needs to perform the stop
-										this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
-										recordCurrentServiceStopArrival(time_seconds);
-									}
-								}
-							}
-						}
-					}
-
 					// Stopping at a station for an estabilished dwell time
 					if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && (As.endNode.station == 1)) {
 						this->StoppedForServiceStop = true;	   // Stating that the train is stopping at a station to perform a service stop
@@ -2086,24 +2086,6 @@ public:
 					else if (this->IsTrainStoppedForEoA == 1) {
 						bool CanDepartFromServiceStopBehindATrain = true; // This variable sets whether the train stopping at a station behind another train at the same platform can depart because it has performed already the entire stop time. This is set to true by default
 						Eq[time_seconds] = 321;
-						// the content of this if condition is needed to set the train to StoppedForServiceStop behind a train to true
-						if (this->StoppedForServiceStop == 0) { // if the train is not yet stopped for a service performed behind another train
-							// if the train ahead is stopped at a station and it is the first train on the platform
-							if ((Last_Received_MA.TrainInfo.StoppedForServiceStop == 1) && (Last_Received_MA.TrainInfo.ServiceStopBehindATrain == 0) && (Last_Received_MA.type == "TrainEnd") && (Last_Received_MA.typePart == "Tale")) {
-								for (int s = 0; s < numStations; s++) {
-									if (Stations[s].stationName == Last_Received_MA.TrainInfo.CurrentStoppedStation) {
-										StoppedForServiceStop = true;
-										ServiceStopBehindATrain = true;
-										this->CurrentServiceStop = Stations[s].stationName; // Setting the name of the station the train is currently stopping at
-										this->XCurrentServiceStop = Last_Received_MA.RelativePosEoA;
-										this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
-										recordCurrentServiceStopArrival(time_seconds);
-
-										cout << " At time " << time_seconds << " Train " << this->trainDescription << "is stopping at: " << CurrentServiceStop << " at " << CurrentServiceStopPlatform << "\n";
-									}
-								}
-							}
-						}
 						// if the train is stopping behind a train at the same platform of a station
 						if ((StoppedForServiceStop == 1) && (ServiceStopBehindATrain == 1)) {
 							CanDepartFromServiceStopBehindATrain = checkIfTrainCanDepartAfterHavingServiceStopBehindATrain(time_seconds); // Check if the train can depart from the service stop because it has performed the entire stop time or the scheduled departure time has been reached
