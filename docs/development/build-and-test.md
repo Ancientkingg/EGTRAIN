@@ -781,22 +781,27 @@ own E2E code and prints a marker:
   interval, so that they do not depend on wall time. `E2E_FOLLOW_CAMERA_GLIDE_OK` (a frame
   does not move the view, a tick moves it part of the way to the train, and without further
   frames, as in a paused run, the view settles on the train and the timer stops),
-  `E2E_FOLLOW_CAMERA_PAN_OK` (after a pan of the user and after a resize of the window,
-  Follow stays on and the next frame starts a glide from where the view was left, which
-  ends on the train), `E2E_FOLLOW_CAMERA_ZOOM_OK` (the zoom of the toolbar centres the view on the train at
-  once while the view lags behind it, and Fit keeps the train in view),
+  `E2E_FOLLOW_CAMERA_RESUME_OK` (the first frame after a long pause does not move the view
+  and starts a glide from where the view is), `E2E_FOLLOW_CAMERA_PAN_OK` (after a pan of
+  the user and after a resize of the window, Follow stays on and the next frame starts a
+  glide from where the view was left, which ends on the train),
+  `E2E_FOLLOW_CAMERA_ZOOM_OK` (the zoom of the toolbar, in and out, centres the view on the
+  train at once while the view lags behind it, and Fit stops the camera),
   `E2E_FOLLOW_CAMERA_CUT_OK` (choosing another train, and switching Follow on with the
-  view panned away from the train, move the view to the train at once) and
-  `E2E_FOLLOW_CAMERA_STOP_OK` (switching Follow off and the end of the followed train stop
-  the timer and forget the target). The older check of the follow animation reads the
-  centre of the view after the camera has settled, so that it still requires the view to
-  end on the train.
+  view panned away from the train, move the view to the train at once),
+  `E2E_FOLLOW_CAMERA_STOP_OK` (switching Follow off, switching the Trains layer off, a
+  train with no position on the map and the end of the followed train stop the timer and
+  forget the target; with the layer on again and the position back, the view is on the
+  train at once) and `E2E_FOLLOW_CAMERA_RUN_STOP_OK` (the Stop button ends a glide in
+  progress). The check of the follow animation reads the centre of the view once the glide
+  has ended, so it requires the view to end on the train.
 - In the replay of the Assignment run (`visual_polish_smoke.sh`):
   `E2E_FOLLOW_REPLAY_BEFORE_OK`, `E2E_FOLLOW_REPLAY_DURING_OK` and
   `E2E_FOLLOW_REPLAY_AFTER_OK` (Follow stays on and the view moves only while the
   train runs; before the entry the train has a hidden item with the geometry of its
-  run, away from the view, which the view must not move to; seeking within the run
-  does not write the list), `E2E_FOLLOW_REPLAY_LAYER_OK` (Trains layer off and on
+  run, away from the view, which the view must not move to; after the train has left,
+  the camera holds no target; seeking within the run does not write the list),
+  `E2E_FOLLOW_REPLAY_LAYER_OK` (Trains layer off and on
   again with Follow on), `E2E_FOLLOW_SELECT_ON_OK` and `E2E_FOLLOW_SELECT_OK` (the
   arrow keys of the list with Follow on and off) and `E2E_FOLLOW_RESET_OK` (Follow is
   off after the scenario changes). `E2E_FOLLOW_CAMERA_REPLAY_OK` (after the user has

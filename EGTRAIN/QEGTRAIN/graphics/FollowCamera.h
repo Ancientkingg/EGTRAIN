@@ -44,6 +44,9 @@ public:
 
 	bool running() const { return m_timer.isActive(); }
 	bool hasTarget() const { return m_hasTarget; }
+	// True while the controller itself moves the view, so that a slot of viewportChanged() can
+	// tell this move from a pan, a zoom or a resize by the user.
+	bool movingView() const { return m_moving; }
 	// Replaces the millisecond clock. An empty function restores the real clock.
 	void setClock(Clock clock);
 
