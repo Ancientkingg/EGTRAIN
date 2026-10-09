@@ -224,11 +224,47 @@ The committed scenes contain only canonical structured data. Historical source
 filenames remain as compact provenance in `source` and `import_report`; full
 legacy trees are not duplicated.
 
+### Scene versions in use
+
+Every build so far has written `schema_version` 1, and `bundle_version` 1 in a
+bundle. The loader has accepted no other value since it was introduced
+(`loadScene` in `SceneModel.cpp`, `loadSceneBundle` in `SceneBundle.cpp`), so no
+older version number exists. The older scenes that exist differ from today's in
+layout, not in number. The format has grown only by optional keys and optional
+files, such as `views.json`, `saved_with_app_version`, `signalling_areas` in
+`signalling.json`, and the service keys `category` and `visualization_color`.
+None of them changed a number.
+
+The probe reads only `scene.json` (directory) or the bundle manifest. A scene
+with `schema_version` 1, and `bundle_version` 1 in a bundle, is current
+whatever its layout. The table lists the classes of scene and what the
+application does when one is opened from its window. `--scene` and
+`scene_tool validate` load the path without probing, so they do not show these
+dialogs: they report the loader's diagnostics and exit with code 1 when the
+loader reports errors. Automated runs do not show the dialogs either.
+
+| Class | How it is recognised | What the application does |
+| --- | --- | --- |
+| Current layout | Directory: `schema_version` 1 in `scene.json`, with the railway in `infrastructure.json` (nodes, arcs and the other sections of the [Scene Schema Reference](scene-schema.md)), written by build main-81.1 or later. Bundle: `format` `"egscene"`, `bundle_version` 1 and `schema_version` 1 in the manifest, written by build main-82.1 or later. The Paimpol scene of main-81.1 and the released Paimpol bundles of main-82.1, production-107.1 and v1.0.2 have these numbers and pass `scene_tool validate` without errors. Builds main-78.1 to main-80.1 wrote the keys of this layout but shipped their case studies in the draft layout; no scene saved by them was checked, so they are in neither class. | Supported. Opens directly, with no copy and no dialog. The loader also accepts the historical aliases listed in [Scene Schema Reference](scene-schema.md#historical-compatibility-aliases). |
+| Draft layout | Saved by builds before the canonical model of 2026-08-08 (main-77.1 and earlier). `infrastructure.json` has empty `nodes` and `arcs`; the simulator read the railway from a `legacy/` text tree. Scenes made by the importer of those builds also have a `legacy_source` key in `scene.json`. `schema_version` is 1, like today's, so the number does not separate these scenes. Neither `legacy/` nor an empty `infrastructure.json` identifies the layout alone: a current scene may carry a `legacy/` directory, and no code reads `legacy_source`. | Deliberately unsupported: these scenes are not converted and no migration is provided. No code recognises the layout, so the probe calls such a scene current and the loader decides; the outcome depends on the content. The Paimpol case study of main-77.1 loads without loader errors, the validator reports errors for it (for example `scene.ref.unresolved` in `signalling.json`), and Run stays disabled; removing `legacy_source` and `legacy/` changes none of this. When the loader does report errors, the dialog is "Cannot Open Scene" with the first error and "Error count: N". Use the current case studies, or convert the original legacy input folder again with **File > Load Legacy Case...** or `scene_tool import`. |
+| Number below 1 | `schema_version` below 1 in `scene.json`; in a bundle, `schema_version` or `bundle_version` below 1. | Deliberately unsupported. The scene is not opened and the dialog is titled "Older Scene Not Supported". |
+| Newer | `schema_version` above 1 (directory or bundle), or `bundle_version` above 1 (bundle). | Never downgraded. The scene is not opened; the dialog is "Newer Scene" with **Check for Updates...** and **Cancel**. |
+| Unreadable | `schema_version` missing, not an integer, or outside the integer range; a directory without a readable `scene.json`; in a bundle also a missing or non-integer `bundle_version`, a `format` other than `"egscene"`, a bad manifest, or an unsafe archive. | The scene is not opened. The dialog is "Cannot Open Scene" with the first diagnostic. The same title is used when a scene passes the probe and the loader then reports errors; the text then ends with "Error count: N", so the title alone does not mean that a version is unreadable. |
+| Upgradable | A number below the current one for which the registry holds a migration path. No such number exists today: the production registry is empty. | The dialog is "Older Scene" with **Upgrade a Copy...** and **Cancel**; the upgrade writes a copy and leaves the original unchanged. The registry is empty because the inventory above found nothing to convert, so neither a migration nor a no-op migration is registered. |
+
+A version number changes only for a change that makes existing scenes
+unreadable. The change that does it registers the migration step for the
+previous number and adds a scene of that number as a test fixture, in the same
+change. Optional keys, optional files and new validation warnings never change
+a number. This is a rule for changes to the format.
+
 ## Bundle format (v2)
 
 The transparent `.egscene` transport container packages the existing V1 JSON
-files without changing `SceneModel` or the V1 schema. Its manifest and safety
-rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
+files without changing `SceneModel` or the V1 schema. Here "V2" names the
+container and "V1" the data schema; the container's own number is
+`bundle_version` 1, and the data inside has `schema_version` 1. Its manifest and
+safety rules are documented in [V2 Transparent Scene Bundle](scene-bundle.md).
 Directories remain the editable source of truth; bundle loading extracts to a
 temporary directory and reuses `loadScene`.
 

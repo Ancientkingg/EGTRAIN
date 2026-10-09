@@ -7,6 +7,11 @@ use deflate or store compression. Encryption and passwords are not supported.
 The archive is a transport container only: it loads into the existing V1
 `SceneModel` and does not introduce a second scene representation.
 
+The name V2 refers to the container. The container's own number is
+`bundle_version` 1, and the data inside has `schema_version` 1. Which bundles
+and scenes open is described in the
+[Compatibility boundary](scene-model.md#compatibility-boundary).
+
 ## Root layout
 
 Entries are files at the archive root. Bundle version 1 contains exactly these

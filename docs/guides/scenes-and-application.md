@@ -52,8 +52,11 @@ future releases. Windows and macOS build 111 can update in place.
 
 Application version, scene schema version, and bundle version are independent.
 The saved-with application version is provenance and does not by itself prompt
-for an upgrade. Older scenes can be upgraded to a copy; the original directory
-or ZIP remains unchanged. Newer schema or bundle versions require a newer app.
+for an upgrade. An upgrade to a copy is offered only for a scene version that
+has a registered migration, and none exists today; when one is offered, the
+original directory or ZIP remains unchanged. Newer schema or bundle versions
+require a newer app. The [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
+lists which scenes open.
 
 ## Review what loaded
 
