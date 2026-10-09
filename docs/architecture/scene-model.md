@@ -149,8 +149,8 @@ whose only visit lies after the next stop is not offered. A stop before the
 position that is neither resolved nor off-route context leaves no window and is
 named in the result. `insertSceneStop` resolves a copy of the service with the
 new stop and inserts it only when the new stop resolves and every stop that
-resolved before still does; otherwise the service is unchanged and the error
-names the stops concerned. Two stops with the same station and platform inside
+resolved before still resolves to the same route visit; otherwise the service
+is unchanged and the error names the stops concerned. Two stops with the same station and platform inside
 one window bind to its visits in order. `sceneServiceTraversal` and
 `sceneRemainingStopTraversal` build the traversal and the visits left after the
 resolved stops before an index.

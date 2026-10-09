@@ -367,6 +367,14 @@ int main() {
 		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 2).visits)
 					== Names({"station-b"}),
 				"a stop that is off-route context does not bound the window");
+		ok &= expect(stationsOf(sceneStopInsertionWindow(off, off.services[0], 1).visits)
+					== Names({"station-b"}),
+				"a stop that is off-route context after the position does not bound the window");
+		const SceneModel empty = withStops(line, {});
+		const auto whole = sceneStopInsertionWindow(empty, empty.services[0], 0);
+		ok &= expect(whole.ok && stationsOf(whole.visits)
+					== Names({"station-a", "station-b", "station-c", "station-d"}),
+				"an empty timetable offers every station of the route");
 	}
 
 	if (!ok)
