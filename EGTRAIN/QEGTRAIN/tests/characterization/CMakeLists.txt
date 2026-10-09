@@ -174,7 +174,7 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 300
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-set_property(TEST characterization_repeat_netherlands APPEND PROPERTY LABELS slow)
+set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol APPEND PROPERTY LABELS slow)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
 

@@ -436,8 +436,8 @@ build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
     --repeat-files EGTRAIN/QEGTRAIN/Scenes/Paimpol EGTRAIN/QEGTRAIN/Scenes/Paimpol
 ```
 
-Three entries run this way. `characterization_repeat_files_paimpol` and
-`characterization_repeat_files_lebanon_milano` run the sequences of
+Three entries run this way. `characterization_repeat_files_paimpol` (labelled
+`slow`) and `characterization_repeat_files_lebanon_milano` run the sequences of
 `characterization_repeat_paimpol` and `characterization_repeat_lebanon_milano`.
 `characterization_repeat_files_fixture` runs `sf-forward-level-3` twice,
 `single-track-level-4`, and `sf-forward-level-3` again on the line fixture,
