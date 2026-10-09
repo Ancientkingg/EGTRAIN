@@ -196,13 +196,23 @@ static bool generatorTests() {
 	const int integerB[] = {71, 78, 84, 9, 89, 67};
 	const double gaussianB[] = {0.91194289224928671, 0.68028894411965013, 0.29900609005941814, 0.68283721049533164};
 	const double scaledB[] = {11.823885784498573, 11.3605778882393};
+	// Draws at both ends of the valid seed range: seed 1 and the largest seed.
+	const double uniformC[] = {0.41599935685098144, 0.091964890757559287, 0.75641048595142113, 0.52970019333516261};
+	const int integerC[] = {41, 9, 75, 52, 93, 38};
+	const double gaussianC[] = {-0.83685380259280617, -0.17227992407322446, 0.18711744825407453, 1.6154398490064397};
+	const double scaledC[] = {8.3262923948143879, 9.6554401518535506};
+	const double uniformD[] = {0.93315776248143878, 0.61649792251014057, 0.58251402554219311, 0.31322728763950397};
+	const int integerD[] = {93, 61, 58, 31, 29, 8};
+	const double gaussianD[] = {0.17116944175794566, 0.63643514664920209, -1.7312639403219627, 0.76485239833256835};
+	const double scaledD[] = {10.342338883515891, 11.272870293298404};
 	const struct {
 		unsigned long seed;
 		const double* uniform;
 		const int* integer;
 		const double* gaussian;
 		const double* scaled;
-	} recorded[] = {{kSeedA, uniformA, integerA, gaussianA, scaledA}, {789350715, uniformB, integerB, gaussianB, scaledB}};
+	} recorded[] = {{kSeedA, uniformA, integerA, gaussianA, scaledA}, {789350715, uniformB, integerB, gaussianB, scaledB},
+		{1, uniformC, integerC, gaussianC, scaledC}, {kMaxRandomSeed, uniformD, integerD, gaussianD, scaledD}};
 	for (const auto& row : recorded) {
 		NumberGenerator uniform(row.seed);
 		for (int index = 0; index < 4; ++index)
@@ -222,6 +232,27 @@ static bool generatorTests() {
 	NumberGenerator first(kSeedA), second(kSeedA);
 	second.getUniformFloat();
 	ok &= expect(first.getUniformFloat() != second.getUniformFloat(), "draws advance the generator");
+
+	ok &= expect(kMaxRandomSeed == 2147483646UL, "the largest seed is the number given for --seed");
+
+	// The 1286th draw of seed 1 is the first one that reaches the upper limit of 1 - 1.2e-7. The value
+	// before the limit is applied is 2147483531 / 2147483647.
+	const double aroundLimit[] = {0.51375901117630252, 0.961920628306419};
+	NumberGenerator limit(1);
+	for (int index = 0; index < 1284; ++index)
+		limit.getUniformFloat();
+	ok &= expect(close(limit.getUniformFloat(), aroundLimit[0], 1e-15), "the draw before the upper limit matches");
+	ok &= expect(close(limit.getUniformFloat(), 1.0 - 1.2e-7, 1e-15), "a draw above 1 - 1.2e-7 is limited to 1 - 1.2e-7");
+	ok &= expect(close(limit.getUniformFloat(), aroundLimit[1], 1e-15), "the draw after the upper limit matches");
+
+	// Restarting the run generator from a seed repeats its draws, and the default seed restores its initial state.
+	seedRunNumberGenerator(kSeedA);
+	const double firstRunDraw = runNumberGenerator().getUniformFloat();
+	ok &= expect(close(firstRunDraw, uniformA[0], 1e-15), "the run generator starts from the seed it is given");
+	runNumberGenerator().getUniformFloat();
+	seedRunNumberGenerator(kSeedA);
+	ok &= expect(close(runNumberGenerator().getUniformFloat(), firstRunDraw, 1e-15), "restarting the run generator repeats its draws");
+	seedRunNumberGenerator(kDefaultRandomSeed);
 	return ok;
 }
 
