@@ -18,7 +18,7 @@ tools/performance/        Startup timing and playback profiling scripts
 tools/golden_master/      Token-wise comparison of output files against a baseline directory
 tools/format.py           Checks or applies the code format of the C++ sources
 docs/                     Guides and architecture, development, product, telemetry and UI documentation
-.github/workflows/        GitHub Actions workflows for build and test, format, packages and releases
+.github/workflows/        GitHub Actions workflows: build and test, format, packages, releases and the telemetry contract check
 ```
 
 ## Folders

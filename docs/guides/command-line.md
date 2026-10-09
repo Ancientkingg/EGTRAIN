@@ -11,8 +11,8 @@ For the executable paths of a local build see [Run a local build](../development
 | `-n` | 1 to 6 | 1 | Selects the case study; see [Case study numbers](#case-study-numbers). Any other value stops the start with exit code 1 and the message `ERROR: Unknown case study id`, followed by the valid ids, also when `--scene` is given. |
 | `--scene` | a scene folder or an `.egscene` file | the folder that `-n` selects | Decides which scene loads. A missing value, or a value that starts with `-`, stops the start with exit code 1. |
 | `-h` | seconds | `simulation_settings.duration_seconds` of the scene | The simulation horizon. It is not help. A value below 1 makes the scene fail the runnable check, so the start stops. |
-| `-b` | seconds | `simulation_settings.buffer_time_seconds` of the scene, 0 if the scene has none | Overrides the buffer time of the scene. |
-| `-c` | percent | `simulation_settings.recovery_time_percent` of the scene, 0 if the scene has none | Overrides the recovery time of the scene. |
+| `-b` | seconds | `simulation_settings.buffer_time_seconds` of the scene, rounded to a whole number; 0 if the scene has none | Overrides the buffer time of the scene. |
+| `-c` | percent | `simulation_settings.recovery_time_percent` of the scene, rounded to a whole number; 0 if the scene has none | Overrides the recovery time of the scene. |
 | `-g` | 0 or 1 | 1 | `-g 0` runs without a window and exits when the run ends. Any other nonzero number counts as 1. |
 | `-pax` | 0 or 1 | 0 | Read only when `-g` is 1; any nonzero number counts as 1. In the window, `-pax 1` creates the passenger markers, counters and platform bars, so the Passengers layer in the Case and Layers dock has nothing to show without it; the list of passengers waiting at a platform is updated at every time step with `-pax 1` and at the boarding step of a train without it; the provenance file records the value as `pax_mode`. |
 | `-TSM` | 0 or 1 | 0 | Legacy option; any nonzero number counts as on. Its question under `--interactive` asks whether EGTRAIN shares the traffic state at port 5555. |
@@ -92,6 +92,6 @@ Usage:
 
 Each command exits with 0 on success and 1 otherwise. There is no `migrate` command.
 
-The macOS and Windows packages contain `scene_tool` next to the application: `QEGTRAIN-Lebanon/scene_tool` in the extracted macOS folder and `scene_tool.exe` in the extracted Windows folder. Otherwise build it from source; see [Build And Test](../development/build-and-test.md).
+The macOS and Windows packages contain `scene_tool` next to the application: `QEGTRAIN-Lebanon/scene_tool` in the extracted macOS folder and `scene_tool.exe` in the extracted Windows folder. A build from source also produces it; see [Build And Test](../development/build-and-test.md).
 
 [Opening an `.egscene` case study](opening-a-case-study.md#instructor-and-command-line-use) has examples of `pack`, `validate` and `unpack`, including the rule that the unpack destination must be a new path.
