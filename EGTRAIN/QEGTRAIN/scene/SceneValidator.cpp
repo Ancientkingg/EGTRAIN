@@ -1,5 +1,6 @@
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevel.h"
 #include "simulation/RuntimeLimits.h"
 
 #include <algorithm>
@@ -149,7 +150,7 @@ std::string areaName(const SceneModel& scene, std::size_t index) {
 // Whether the analysis of the signalling areas takes the area into account.
 bool isUsableSignallingArea(const SceneSignallingArea& area) {
 	return std::isfinite(area.startKm) && std::isfinite(area.endKm) && area.startKm < area.endKm
-		&& area.level >= 0 && area.level <= 5;
+		&& isValidSignallingLevel(area.level);
 }
 
 // The extent of the blocks of one track, or of the whole network when the track ID is empty.
@@ -1011,7 +1012,7 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					+ blockExtentText(sectionInventory, knownTrack ? area.trackId : "") + ")",
 				"signalling.json", "signalling_area", area.id, path, area.id,
 				"Use a finite increasing coordinate range");
-		if (area.level < 0 || area.level > 5)
+		if (!isValidSignallingLevel(area.level))
 			diagnostics.error("scene.signalling_area.level",
 				"Signalling area " + name + " has level " + std::to_string(area.level)
 					+ "; the level must be between 0 and 5",

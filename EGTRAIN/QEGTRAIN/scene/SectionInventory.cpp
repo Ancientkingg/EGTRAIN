@@ -1,4 +1,5 @@
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevel.h"
 
 #include <algorithm>
 #include <cmath>
@@ -673,7 +674,7 @@ SceneSignallingAnalysis analyzeSignallingAreas(const SceneModel& scene, const Sc
 			for (std::size_t index = 0; index < scene.signallingAreas.size(); ++index) {
 				const SceneSignallingArea& area = scene.signallingAreas[index];
 				if (!std::isfinite(area.startKm) || !std::isfinite(area.endKm) || !(area.startKm < area.endKm)
-					|| area.level < 0 || area.level > 5 || area.trackId.empty() == trackScoped)
+					|| !isValidSignallingLevel(area.level) || area.trackId.empty() == trackScoped)
 					continue;
 				if (trackScoped && area.trackId != section.firstTrackId && area.trackId != section.secondTrackId)
 					continue;
