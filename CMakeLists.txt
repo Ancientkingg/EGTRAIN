@@ -53,6 +53,7 @@ endif()
 option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanitizer for local debug checks" OFF)
 option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
 option(EGTRAIN_ENABLE_TELEMETRY "Enable consent UI for packaged interactive builds" OFF)
+option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
 option(EGTRAIN_ISOLATED_TELEMETRY_SMOKE "Enable isolated numeric-loopback application smoke hook" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE AND (NOT EGTRAIN_BUILD_TESTS OR NOT EGTRAIN_PACKAGED_BUILD))
     message(FATAL_ERROR "Isolated telemetry smoke requires EGTRAIN_BUILD_TESTS and EGTRAIN_PACKAGED_BUILD")
@@ -215,7 +216,7 @@ target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 #   egtrain_telemetry        no hooks: the application and the diagram window tests
 #   egtrain_telemetry_hooks  all three hooks, for every telemetry test (tests only)
 #   egtrain_telemetry_smoke  the sender hook: the application in the isolated smoke build
-# A target links exactly one of them.
+# A target links at most one of them.
 set(EGTRAIN_TELEMETRY_SOURCES
     ${SRC_DIR}/telemetry/TelemetryConsent.cpp
     ${SRC_DIR}/telemetry/TelemetryEvent.cpp
@@ -248,8 +249,9 @@ target_link_libraries(egtrain_dispatch
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
 
 # DiagramWindow and TimetableTableWindow call telemetry::OperationObservation, whose symbols do
-# not depend on the hooks, so this library is built without them in every configuration. The moc
-# object of the library references both windows, so a target that uses TrainFilterButton,
+# not depend on the hooks, so this library links no telemetry flavour. In the isolated telemetry
+# smoke configuration it is built with the sender hook, as the rest of the application is. The
+# moc object of the library references both windows, so a target that uses TrainFilterButton,
 # DiagramWindow or TimetableTableWindow also links one telemetry library.
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
@@ -264,6 +266,9 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/TrainFilterButton.cpp)
 target_link_libraries(egtrain_diagrams
     PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets Qt5::Charts egtrain_sim)
+if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
+    target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
+endif()
 
 foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
@@ -449,7 +454,6 @@ target_link_libraries(scene_tool PRIVATE egtrain_scene)
 set_target_properties(scene_tool PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 
 # --- Unit tests (opt-in) ---
-option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_sources(QEGTRAIN PRIVATE ${SRC_DIR}/app/TelemetrySmokeSupport.cpp)
     target_compile_definitions(QEGTRAIN PRIVATE EGTRAIN_ISOLATED_TELEMETRY_SMOKE=1)
