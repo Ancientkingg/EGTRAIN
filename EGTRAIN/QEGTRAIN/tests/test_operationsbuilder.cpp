@@ -22,6 +22,17 @@
 #include <string>
 #include <vector>
 
+#if defined(__SANITIZE_ADDRESS__)
+#define TEST_ADDRESS_SANITIZER 1
+#elif defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define TEST_ADDRESS_SANITIZER 1
+#endif
+#endif
+#ifdef TEST_ADDRESS_SANITIZER
+#include <sanitizer/asan_interface.h>
+#endif
+
 Logger owl;
 
 static bool expect(bool condition, const std::string& message) {
@@ -296,6 +307,148 @@ static bool passengerRateTests() {
 	ok &= expect(near(highPlatform - lowPlatform, static_cast<double>(beta1) + beta3),
 			"platform congestion above 0.65 adds its terms to the dwell time");
 
+	return ok;
+}
+
+// Block sections of 2 km on the heap, in an array of exactly n, so that a sanitizer reports an
+// access before the first or after the last section. The speed limit and the train length are
+// the ones of the characterization line scene.
+static std::vector<Section> boundarySections(int n) {
+	std::vector<Section> sections(n);
+	for (int i = 0; i < n; ++i) {
+		Section& section = sections[i];
+		section.ID = "@boundary." + std::to_string(i) + "@";
+		section.start_node.X = 2.0 * i;
+		section.end_node.X = 2.0 * (i + 1);
+		section.total_arcs = 1;
+		section.arcs_in_signalling_block_section[0].speedLimit = 36.111111111111;
+	}
+	return sections;
+}
+
+// A train whose delayed position at index 1 is headPosition, on a route that is reversed or not.
+static void placeBoundaryTrain(Train& train, double headPosition) {
+	train.type = "T";
+	train.ID = 1.0;
+	train.indexOfRoute = 0;
+	train.train_length = 70.0;
+	train.departure_time = 0.0;
+	train.CanEnter = true;
+	train.OutOfSimulation = false;
+	train.instant_spatial_position = {headPosition - 100.0, headPosition};
+}
+
+// The sections before and after a train that sits on the first or the last section of its route
+// are not read: a virtual signal at the start of the first section, and a single-track limit on
+// the last section in both directions.
+static bool routeBoundaryTests() {
+	bool ok = true;
+	std::vector<Route> savedRoutes;
+	savedRoutes.swap(train_route);
+	train_route.resize(1);
+	train_route[0].x_of_end_node = 100.0;
+	const double savedTimestep = timestep;
+	const double savedDelay = S_delay;
+	const auto savedLimits = singleTrackLimits;
+	const auto savedOccupied = BlocksOccupied;
+	const auto savedConnected = BlocksConnected;
+	timestep = 1.0;
+	S_delay = 0.0;
+
+	{
+		// The tail is in the second section of the route, which follows a first section that starts with a
+		// virtual signal. The first section is the second half of a double switch over two global sections.
+		// The section before the route is a double switch too and is poisoned for a sanitizer, so that
+		// reading it is reported, and it releases visibly when it is read in a plain build.
+		const int savedBlocks = Blocks;
+		const Section savedFirst = signalling_block_sections[0];
+		const Section savedSecond = signalling_block_sections[1];
+		Blocks = 2;
+		signalling_block_sections[0].ID = "@boundary.a@";
+		signalling_block_sections[1].ID = "@boundary.b@";
+		std::vector<Section> storage = boundarySections(3);
+		Section* sections = storage.data() + 1;
+		storage[0].ID = "@boundary.a@-2.0/@boundary.b@-2.0";
+		sections[0].ID = "@boundary.a@-1.0/@boundary.b@-1.0";
+		sections[0].start_node.virtualSignal = true;
+		Train train;
+		placeBoundaryTrain(train, 5000.0);
+		BlocksOccupied.clear();
+		BlocksConnected.clear();
+#ifdef TEST_ADDRESS_SANITIZER
+		ASAN_POISON_MEMORY_REGION(&storage[0], sizeof(Section));
+#endif
+		train.Det_Section_Occupied_By_Train(1, sections, 2);
+#ifdef TEST_ADDRESS_SANITIZER
+		ASAN_UNPOISON_MEMORY_REGION(&storage[0], sizeof(Section));
+#endif
+		const bool beforeRouteUntouched = std::find(BlocksConnected.begin(), BlocksConnected.end(), storage[0].ID) == BlocksConnected.end();
+		signalling_block_sections[0] = savedFirst;
+		signalling_block_sections[1] = savedSecond;
+		Blocks = savedBlocks;
+		ok &= expect(BlocksOccupied.size() == 1 && BlocksOccupied.front() == sections[1].ID && beforeRouteUntouched,
+				"a first section that starts with a virtual signal has no double switch before it to release");
+	}
+
+	// A single-track limit on one section, with the sections before it restricted.
+	auto restrictedSections = [](int count) {
+		std::vector<Section> sections = boundarySections(count);
+		for (Section& section : sections) {
+			snprintf(section.state, sizeof(section.state), "%s", "red");
+			section.arcs_in_signalling_block_section[0].signalSpeedLimit = 0.0;
+			section.code = 180;
+			section.exit_speed = 20.0;
+		}
+		return sections;
+	};
+	auto isReleased = [](const Section& section) {
+		return std::string(section.state) == "green" && section.arcs_in_signalling_block_section[0].signalSpeedLimit == 999;
+	};
+	auto isStillRestricted = [](const Section& section) {
+		return std::string(section.state) == "red" && section.arcs_in_signalling_block_section[0].signalSpeedLimit == 0.0
+				&& section.code == 180 && section.exit_speed == 20.0;
+	};
+
+	for (const bool reversed : {false, true}) {
+		const std::string direction = reversed ? "reversed" : "forward";
+		train_route[0].reversed_direction = reversed;
+		{
+			// The limit is on the last section and the train is on it: the section before the missing one is released.
+			std::vector<Section> sections = restrictedSections(3);
+			Train train;
+			placeBoundaryTrain(train, 5000.0);
+			singleTrackLimits.clear();
+			singleTrackLimits.emplace_back(reversed ? sections[2].ID : "", reversed ? "" : sections[2].ID,
+					train.type + std::to_string(train.ID), "", "");
+			train.unlockSingleTrack(sections.data(), static_cast<int>(sections.size()), 1);
+			ok &= expect(isReleased(sections[2]) && sections[2].arcs_in_signalling_block_section[0].speedInBraking == 0.0
+					&& sections[2].code == 180 && sections[2].exit_speed == 20.0
+					&& isStillRestricted(sections[0]) && isStillRestricted(sections[1]),
+					"a " + direction + " single-track limit on the last section releases that section only");
+		}
+		{
+			// The limit is on the section after the train: that section is reset and the train section is released.
+			std::vector<Section> sections = restrictedSections(3);
+			sections[2].arcs_in_signalling_block_section[0].signalSpeedLimit = 999;
+			Train train;
+			placeBoundaryTrain(train, 3000.0);
+			singleTrackLimits.clear();
+			singleTrackLimits.emplace_back(reversed ? sections[2].ID : "", reversed ? "" : sections[2].ID,
+					train.type + std::to_string(train.ID), "", "");
+			train.unlockSingleTrack(sections.data(), static_cast<int>(sections.size()), 1);
+			ok &= expect(isReleased(sections[1]) && sections[1].arcs_in_signalling_block_section[0].speedInBraking == 36.111111111111
+					&& sections[2].code == 270 && sections[2].exit_speed == 0.0
+					&& isStillRestricted(sections[0]) && std::string(sections[2].state) == "red",
+					"a " + direction + " single-track limit on the next section resets that section");
+		}
+	}
+
+	timestep = savedTimestep;
+	S_delay = savedDelay;
+	singleTrackLimits = savedLimits;
+	BlocksOccupied = savedOccupied;
+	BlocksConnected = savedConnected;
+	train_route.swap(savedRoutes);
 	return ok;
 }
 
@@ -1181,6 +1334,7 @@ int main() {
 	}
 	ok &= seedTests(completeScene());
 	ok &= noFileAccessTests(completeScene());
+	ok &= routeBoundaryTests();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

@@ -1694,7 +1694,7 @@ void Train::unlockSingleTrack(Section* BS, int Blocks, int t) {
 			}
 
 			// release end of single track (2 signalling_block_sections to avoid yellow and red signals)
-			if (((hHead < (Blocks - 1)) && (!train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<0>(singleTrackLimits[l]))) || ((!train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<0>(singleTrackLimits[l])))) {
+			if (((hHead < (Blocks - 1)) && ((!train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead + 1].ID == std::get<0>(singleTrackLimits[l])))) || ((!train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<1>(singleTrackLimits[l])) || (train_route[indexOfRoute].reversed_direction && BS[hHead].ID == std::get<0>(singleTrackLimits[l])))) {
 				int hRelease = hHead + 1;
 
 				// changes on previous signalling_block_sections
@@ -1704,19 +1704,23 @@ void Train::unlockSingleTrack(Section* BS, int Blocks, int t) {
 						BS[hRelease - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 
-					// revert changes to speeds
-					double MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].speedLimit;
-					if (BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
-						MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit;
-					}
+					// revert changes to speeds (there is no section to take them from after the last section of the route)
+					if (hRelease < Blocks) {
+						double MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].speedLimit;
+						if (BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
+							MinSpeedLim = BS[hRelease].arcs_in_signalling_block_section[0].signalSpeedLimit;
+						}
 
-					// the speed limit at the end of block section BLS[h] is MinSpeedLim
-					BS[hRelease - 1].arcs_in_signalling_block_section[BS[hRelease - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
+						// the speed limit at the end of block section BLS[h] is MinSpeedLim
+						BS[hRelease - 1].arcs_in_signalling_block_section[BS[hRelease - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
+					}
 				}
 
 				// changes on signalling_block_sections itself
-				BS[hRelease].code = 270;
-				BS[hRelease].exit_speed = 0;
+				if (hRelease < Blocks) {
+					BS[hRelease].code = 270;
+					BS[hRelease].exit_speed = 0;
+				}
 			}
 		}
 	}
