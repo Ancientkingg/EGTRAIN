@@ -266,6 +266,8 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	operationsTime = elapsed(checkpoint, next);
 	checkpoint = next;
 
+	if (!nextRunOutputFolder_.empty())
+		initial_variables.OutputMainFolder = nextRunOutputFolder_;
 	if (initial_variables.OutputMainFolder.empty())
 		initial_variables.OutputMainFolder = "Output";
 	ensureDirectory(initial_variables.OutputMainFolder);

@@ -45,6 +45,10 @@ public:
 	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
 	// True when the last run executed every stage, also if a stop arrived after its last check.
 	bool lastRunCompleted() const { return runCompleted_; }
+	// Output folder that prepareScene applies to the run it prepares. Call these on the GUI
+	// thread; a run keeps the folder it was prepared with.
+	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
+	const std::string& nextRunOutputFolder() const { return nextRunOutputFolder_; }
 
 signals:
 	void iterationFinished(int timestep);
@@ -63,6 +67,7 @@ private:
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
 	GuiReplayHistory replayCandidate_;
 	std::atomic<bool> runCompleted_{false};
+	std::string nextRunOutputFolder_;
 };
 
 // simulation object (global variable)
