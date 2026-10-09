@@ -3,9 +3,11 @@
 
 Reads SizeOfImage from the PE optional header. Windows maps an EXE image as one
 view and refuses to start one near 2 GiB ("not a valid Win32 application"), so
-this is checked after every Windows build. No third-party modules.
+this is checked after every Windows build. The stack reserve of the header can
+be checked too. No third-party modules.
 
 Usage: pe_image_size.py FILE --max-bytes N [--machine x64] [--subsystem windows]
+           [--stack-reserve BYTES]
 Exit status: 0 within limits, 1 a limit or expectation failed, 2 not a PE file.
 """
 import argparse
@@ -65,6 +67,7 @@ def main(argv=None):
     parser.add_argument("--max-bytes", type=int, required=True)
     parser.add_argument("--machine", choices=sorted(MACHINES.values()))
     parser.add_argument("--subsystem", choices=sorted(SUBSYSTEMS.values()))
+    parser.add_argument("--stack-reserve", type=int, help="expected SizeOfStackReserve in bytes")
     args = parser.parse_args(argv)
     try:
         info = read_pe_header(args.exe)
@@ -82,6 +85,8 @@ def main(argv=None):
         failures.append(f"machine {info['machine']} is not {args.machine}")
     if args.subsystem and info["subsystem"] != args.subsystem:
         failures.append(f"subsystem {info['subsystem']} is not {args.subsystem}")
+    if args.stack_reserve is not None and info["stack_reserve"] != args.stack_reserve:
+        failures.append(f"stack reserve {info['stack_reserve']} is not {args.stack_reserve}")
     for failure in failures:
         print(f"FAIL: {failure}", file=sys.stderr)
     return 1 if failures else 0

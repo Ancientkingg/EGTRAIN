@@ -446,7 +446,13 @@ if(WIN32)
     if(TARGET Qt5::WinMain)
         target_link_libraries(QEGTRAIN PRIVATE Qt5::WinMain)
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10000000000")
+    # The main thread gets the 8 MiB it has on macOS and Linux. The reserve of an executable is
+    # also the stack size of each thread that is started without one, so only the application
+    # has it and the other executables keep the linker default.
+    set(EGTRAIN_STACK_RESERVE_BYTES 8388608)
+    if(MSVC)
+        target_link_options(QEGTRAIN PRIVATE /STACK:${EGTRAIN_STACK_RESERVE_BYTES})
+    endif()
 endif()
 
 add_executable(scene_tool ${SRC_DIR}/scene/SceneTool.cpp)
@@ -888,13 +894,18 @@ if(EGTRAIN_BUILD_TESTS)
 	set_tests_properties(test_headless_scene_smoke PROPERTIES TIMEOUT 150)
 
 	# A Windows EXE image near 2 GiB fails to start, so the limit is checked on every Windows build.
+	# The stack reserve is checked with it: the application has its own, scene_tool the linker default.
 	if(WIN32)
 		set(EGTRAIN_MAX_PE_IMAGE_BYTES 1600000000 CACHE STRING
 			"Fail test_windows_image_size when QEGTRAIN.exe SizeOfImage exceeds this many bytes")
 		add_test(NAME test_windows_image_size
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py
 				$<TARGET_FILE:QEGTRAIN> --max-bytes ${EGTRAIN_MAX_PE_IMAGE_BYTES}
-				--machine x64 --subsystem windows)
+				--machine x64 --subsystem windows --stack-reserve ${EGTRAIN_STACK_RESERVE_BYTES})
+		add_test(NAME test_windows_default_stack
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/pe_image_size.py
+				$<TARGET_FILE:scene_tool> --max-bytes ${EGTRAIN_MAX_PE_IMAGE_BYTES}
+				--machine x64 --subsystem console --stack-reserve 1048576)
 	endif()
 	add_test(NAME test_pe_image_size
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
@@ -951,7 +962,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_package_contents_smoke test_headless_scene_smoke
-		test_windows_image_size test_win32_configure_rejected)
+		test_windows_image_size test_windows_default_stack test_win32_configure_rejected)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection

@@ -201,6 +201,7 @@ platform.
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
 | `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
+| `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
@@ -278,6 +279,16 @@ python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 160
 
 The first output line shows the measured size. The CI workflow prints the same
 line in the job summary.
+
+The same header holds the stack reserve. `QEGTRAIN.exe` is linked with 8 MiB,
+the size the main thread has on macOS and Linux, and `test_windows_image_size`
+checks that value. The other executables keep the linker default of 1 MiB, which
+`test_windows_default_stack` checks on `scene_tool.exe`. On Windows the reserve
+of an executable is also the stack size of every thread that is started without
+one, so it is set for the application only. Measured on macOS: each of the six
+committed scenes runs headless with the stack of the main thread limited to
+128 KB, and none starts with 64 KB. To repeat it, run `ulimit -s 128` in a shell
+and then the application with `--scene <scene folder> -g 0 -TSM 0 -RC 0`.
 
 ## Characterization tests
 
