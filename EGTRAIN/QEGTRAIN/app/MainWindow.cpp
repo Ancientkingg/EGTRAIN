@@ -17915,6 +17915,8 @@ void MainWindow::runEditorSmokeE2E() {
 						// A unique reachable platform is already chosen by the dialog.
 						entered.platformId = dialog->findChild<QComboBox*>("stopEditorPlatformCombo")
 							->currentData().toString().toStdString();
+						if (!stop.platformId.empty() && entered.platformId != stop.platformId)
+							facetFailure(facetOk, "timetable", QString("%1: the platform of the inserted stop is not offered").arg(what));
 					}, opener);
 					if (!accepted || stops.size() != before.size() + 1) {
 						facetFailure(facetOk, "timetable", QString("%1: insert was not applied").arg(what));

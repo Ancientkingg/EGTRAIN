@@ -297,13 +297,14 @@ timetable" or "After stop k" for each stop, so a station that occurs twice has t
 entries. The station and platform choices are the route visits between the
 neighbouring stops of that position. Add Stop opens after the last stop, or at the
 last position that has choices when the destination is already in the timetable.
-Insert After Selected opens the dialog after the selected row. A position whose
-neighbouring stops leave no station visit, or follow a stop that does not resolve,
-shows the reason and blocks Accept. Accept inserts only when the new stop resolves
-and no other stop changes its route visit; otherwise the dialog stays open with the
-reason and the timetable is unchanged. Existing stops keep their times, and the
-new stop gets the times entered in the dialog. Removing every row gives a service
-with no scheduled calls.
+Insert After Selected needs a selected row and opens the dialog after it. When no
+position has a station visit, Add Stop shows a message and opens no dialog. A
+position whose neighbouring stops leave no station visit, or follow a stop that
+does not resolve, shows the reason and blocks Accept. Accept inserts only when the
+new stop resolves and no other stop changes its route visit; otherwise the dialog
+stays open with the reason and the timetable is unchanged. Existing stops keep
+their times, and the new stop gets the times entered in the dialog. Removing every
+row gives a service with no scheduled calls.
 Blank planned times are absent, while `0` is simulation zero. Use Elapsed for
 seconds from zero or Clock for case-base time: with base `08:00:00`, `90` seconds
 is `08:01:30`. Enter `+1d 00:00:00` for next midnight. Merely switching mode or
