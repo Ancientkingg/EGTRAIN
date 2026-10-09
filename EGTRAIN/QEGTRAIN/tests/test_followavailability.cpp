@@ -191,6 +191,21 @@ int main() {
 			"Follow did not stay on for a train that finished in a replay");
 	}
 
+	// The view glides to a train in a live run and cuts to it in a replay, and only while it moves
+	// to the train at all.
+	{
+		const FollowAvailability live = followAvailability(withFollow(runOf(train, 1550), true));
+		require(live.canAct && live.glide, "the view did not glide to a train that runs in a live run");
+		const FollowAvailability replay = followAvailability(inReplay(withFollow(runOf(train, 1550), true)));
+		require(replay.canAct && !replay.glide, "the view glided to a train in a replay");
+		require(!followAvailability(runOf(train, 1550)).glide, "the view glided to a train with Follow off");
+		require(!followAvailability(withFollow(runOf(train, 1549), true)).glide, "the view glided to a train that has not entered");
+		FollowAvailabilityInput hidden = withFollow(runOf(train, 2000), true);
+		hidden.trainsLayerVisible = false;
+		require(!followAvailability(hidden).glide, "the view glided to a train hidden by the layer switch");
+		require(!followAvailability(withFollow(runOf(finished, 3000), true)).glide, "the view glided to a train that has left");
+	}
+
 	// The Trains layer and a missing geometry only matter for a train in the network.
 	{
 		FollowAvailabilityInput hidden = runOf(train, 2000);
