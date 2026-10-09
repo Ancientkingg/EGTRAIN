@@ -163,6 +163,7 @@ inspector opens and a light blue ring marks the item. The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
 clicking an empty part of the canvas or closing the inspector removes it.
+Dragging the canvas pans the view and keeps the selection.
 
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed

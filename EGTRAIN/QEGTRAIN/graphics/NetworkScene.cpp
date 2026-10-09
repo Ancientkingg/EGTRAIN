@@ -1,5 +1,6 @@
 #include "graphics/NetworkScene.h"
 
+#include <QApplication>
 #include <QGraphicsView>
 #include <limits>
 
@@ -93,11 +94,21 @@ void NetworkScene::mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) {
 		else if (PassengerItem* passenger = qgraphicsitem_cast<PassengerItem*>(item))
 			emit MousePressedOnPassenger(passenger);
 
-		if (!item)
-			emit DisableHighlight();
+		m_pressedOnEmptyCanvas = !item;
 	}
 
 	emit MousePressedOnScene();
+}
+
+// A click on empty canvas clears the selection. A drag that starts there pans the view and keeps it.
+void NetworkScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) {
+	QGraphicsScene::mouseReleaseEvent(mouseEvent);
+	if (mouseEvent->button() != Qt::LeftButton || !m_pressedOnEmptyCanvas)
+		return;
+	m_pressedOnEmptyCanvas = false;
+	const QPoint moved = mouseEvent->screenPos() - mouseEvent->buttonDownScreenPos(Qt::LeftButton);
+	if (moved.manhattanLength() < QApplication::startDragDistance())
+		emit DisableHighlight();
 }
 
 void NetworkScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event) {

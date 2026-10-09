@@ -15633,6 +15633,11 @@ void MainWindow::runVisualPolishE2E() {
 		emptyEvent.setScenePos(contentBounds.bottomRight() + QPointF(1000.0, 1000.0));
 		emptyEvent.setWidget(networkView->viewport());
 		scene->mousePressEvent(&emptyEvent);
+		QGraphicsSceneMouseEvent emptyRelease(QEvent::GraphicsSceneMouseRelease);
+		emptyRelease.setButton(Qt::LeftButton);
+		emptyRelease.setScenePos(emptyEvent.scenePos());
+		emptyRelease.setWidget(networkView->viewport());
+		scene->mouseReleaseEvent(&emptyRelease);
 		QApplication::processEvents();
 		if (effect || (infoDockWidget && infoDockWidget->isVisible())) {
 			ok = false;
@@ -20021,6 +20026,11 @@ void MainWindow::runTrackPreviewE2E() {
 			event.setScenePos(scenePos);
 			event.setWidget(networkView->viewport());
 			scene->mousePressEvent(&event);
+			QGraphicsSceneMouseEvent release(QEvent::GraphicsSceneMouseRelease);
+			release.setButton(Qt::LeftButton);
+			release.setScenePos(scenePos);
+			release.setWidget(networkView->viewport());
+			scene->mouseReleaseEvent(&release);
 			QApplication::processEvents();
 		};
 		int clicked = 0;
