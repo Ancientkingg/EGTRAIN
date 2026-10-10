@@ -1103,6 +1103,14 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"Choose contiguous sections or add the missing declared connection");
 			}
 		}
+		// A route marked reversed has to list its sections in reverse order.
+		if (route.reversed && routeSections.size() == route.blocks.size()
+			&& sceneRouteDirection(scene, routeSections) > 0) {
+			diagnostics.error("scene.route.direction",
+				"Route " + route.id + " is marked reversed but its sections do not run in reverse order",
+				"signalling.json", "route", route.id, path + ".reversed", "",
+				"List the sections in reverse order or remove reversed");
+		}
 		if (!blockIds.empty()) {
 			for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
 				const std::string blockPath = path + ".blocks[" + std::to_string(blockIndex) + "]";

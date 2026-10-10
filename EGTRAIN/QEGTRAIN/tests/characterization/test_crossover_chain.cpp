@@ -98,13 +98,23 @@ void checkChain(const Route& route, Outcome& outcome) {
 }
 
 // Loads the fixture, runs the given services at one level and copies what the tests need out of the simulation.
-Outcome runServices(const std::string& fixture, int level, const std::vector<std::string>& services) {
+Outcome runServices(const std::string& fixture, int level, const std::vector<std::string>& services,
+	const std::vector<std::string>& reversedRoutes = {}) {
 	Outcome outcome;
 	SceneLoadResult loaded = loadScene(fixture);
 	if (hasErrors(loaded.diagnostics)) {
 		for (const SceneDiagnostic& diagnostic : loaded.diagnostics)
 			outcome.problems.push_back(toDisplayText(diagnostic));
 		return outcome;
+	}
+	for (const std::string& id : reversedRoutes) {
+		auto route = std::find_if(loaded.scene.routes.begin(), loaded.scene.routes.end(),
+			[&id](const SceneRoute& candidate) { return candidate.id == id; });
+		if (route == loaded.scene.routes.end()) {
+			outcome.problems.push_back("cannot mark unknown route " + id + " reversed");
+			return outcome;
+		}
+		route->reversed = true;
 	}
 	SceneSignallingArea area;
 	area.id = "area.all";
@@ -224,8 +234,8 @@ bool inside(const Trajectory& train, int t, double start, double end) {
 
 // A train alone on the chain, in one direction.
 void checkLoneTrain(const std::string& assertion, const std::string& fixture, int level, const std::string& service,
-	std::vector<std::string>& failures) {
-	const Outcome outcome = runServices(fixture, level, {service});
+	std::vector<std::string>& failures, const std::vector<std::string>& reversedRoutes = {}) {
+	const Outcome outcome = runServices(fixture, level, {service}, reversedRoutes);
 	for (const std::string& problem : outcome.problems)
 		failures.push_back(assertion + ": " + problem);
 	if (!outcome.problems.empty())
@@ -310,6 +320,17 @@ int main(int argc, char** argv) {
 	checkLoneTrain("lone forward train F1", fixture, level, "F1", failures);
 	checkLoneTrain("lone reverse train R1", fixture, level, "R1", failures);
 	checkFollower(fixture, level, failures);
+	checkLoneTrain("marked reverse train R1", fixture, level, "R1", failures, {"route1"});
+	const Outcome refused = runServices(fixture, level, {"F1"}, {"route0"});
+	const bool directionError = std::any_of(refused.problems.begin(), refused.problems.end(), [](const std::string& problem) {
+		return problem.find("scene.route.direction") != std::string::npos && problem.find("route0") != std::string::npos;
+	});
+	if (!directionError || !refused.trains.empty()) {
+		std::string message = "marked forward route route0 must be refused; trains: " + std::to_string(refused.trains.size());
+		for (const std::string& problem : refused.problems)
+			message += "; " + problem;
+		failures.push_back(message);
+	}
 
 	const std::string name = "crossover chain at level " + std::to_string(level);
 	for (const std::string& failure : failures)
