@@ -196,18 +196,14 @@ QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
     background: #f8fafb;
 }
 
-QLabel#dialogHeading, QLabel#runReviewHeading {
+QLabel#dialogHeading {
     background: transparent;
     color: #24313a;
     font-weight: 600;
 }
 
-QLabel#runReviewHeading {
-    font-size: 20px;
-}
-
 QLabel#dialogContext, QLabel#diagramContext, QLabel#timetableContext,
-QLabel#runReviewContext, QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
+QLabel#runReviewFactLabel, QLabel[dialogHelp="true"] {
     background: transparent;
     color: #5b6871;
 }
@@ -369,13 +365,7 @@ QLabel#infrastructureGuidance {
     color: #5b6871;
 }
 
-QLabel#resultSummaryHeading {
-    color: #24313a;
-    font-size: 17px;
-    font-weight: 600;
-}
-
-QLabel#resultContextText, QLabel#delayComparisonContext {
+QLabel#resultContextText {
     color: #5b6871;
 }
 
