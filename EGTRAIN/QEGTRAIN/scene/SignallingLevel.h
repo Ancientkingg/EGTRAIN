@@ -11,7 +11,8 @@ enum class SignallingLevel : int {
 	Bacc = 5
 };
 
-// The level of a runtime section that no signalling area covers.
+// The level of a runtime section that no signalling area covers. The editor also stores it as the level
+// of an area whose signalling system is not chosen yet.
 inline constexpr int kSignallingLevelUnset = -99999999;
 
 // The number stored for a level.

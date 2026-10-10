@@ -1003,7 +1003,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					+ blockExtentText(sectionInventory, knownTrack ? area.trackId : "") + ")",
 				"signalling.json", "signalling_area", area.id, path, area.id,
 				"Use a finite increasing coordinate range");
-		if (!isValidSignallingLevel(area.level))
+		// An area whose system is not chosen holds kSignallingLevelUnset.
+		if (area.level == kSignallingLevelUnset)
+			diagnostics.error("scene.signalling_area.level",
+				"Signalling area " + name + " has no signalling system; choose one of the levels 0 to 5",
+				"signalling.json", "signalling_area", area.id, path + ".level", area.trackId,
+				"Choose a signalling system for the area in Infrastructure > Signalling area");
+		else if (!isValidSignallingLevel(area.level))
 			diagnostics.error("scene.signalling_area.level",
 				"Signalling area " + name + " has level " + std::to_string(area.level)
 					+ "; the level must be between 0 and 5",

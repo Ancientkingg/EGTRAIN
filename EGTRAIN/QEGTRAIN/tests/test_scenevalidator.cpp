@@ -1098,6 +1098,24 @@ int main(int argc, char** argv) {
 		"an area of level -1 has an invalid level");
 	ok &= expect(findAll(validateRunnableScene(invalidAreaLevel), emptyCode).empty(),
 		"an area with an invalid level takes no part in the warning about empty areas");
+	SceneModel unchosenAreaSystem = clean;
+	unchosenAreaSystem.signallingAreas = {{"area", 0.0, 1.0, kSignallingLevelUnset, "track-1"}};
+	const auto unchosenSystemErrors = findAll(validateScene(unchosenAreaSystem), "scene.signalling_area.level");
+	ok &= expect(unchosenSystemErrors.size() == 1 && unchosenSystemErrors[0].severity == SceneSeverity::Error
+			&& unchosenSystemErrors[0].message == "Signalling area area has no signalling system; choose one of the levels 0 to 5"
+			&& unchosenSystemErrors[0].file == "signalling.json" && unchosenSystemErrors[0].itemType == "signalling_area"
+			&& unchosenSystemErrors[0].itemId == "area" && unchosenSystemErrors[0].path == "signalling_areas[0].level"
+			&& unchosenSystemErrors[0].relatedId == "track-1"
+			&& unchosenSystemErrors[0].suggestedFix == "Choose a signalling system for the area in Infrastructure > Signalling area",
+		"an area without a chosen signalling system has its own message and fix");
+	SceneModel nearUnsetLevel = clean;
+	nearUnsetLevel.signallingAreas = {{"area", 0.0, 1.0, kSignallingLevelUnset + 1, "track-1"}};
+	const auto nearUnsetErrors = findAll(validateScene(nearUnsetLevel), "scene.signalling_area.level");
+	ok &= expect(nearUnsetErrors.size() == 1
+			&& nearUnsetErrors[0].message == "Signalling area area has level -99999998; the level must be between 0 and 5"
+			&& nearUnsetErrors[0].relatedId == "track-1"
+			&& nearUnsetErrors[0].suggestedFix == "Use a signalling level from 0 through 5",
+		"any other level outside 0 to 5 keeps the level message and fix");
 
 	// Which area decides the level of each section.
 	auto analyze = [](const SceneModel& candidate) {
@@ -1210,6 +1228,19 @@ int main(int argc, char** argv) {
 	ok &= expect(!unusableCounted && sectionOf(unusableAnalysis, "@block-1@").level == kSignallingLevelUnset
 			&& sectionOf(unusableAnalysis, "@block-1@").conflicts.empty(),
 		"areas with an empty range or a level outside 0 to 5 take no part");
+
+	SceneModel unchosenSystemAnalysis = clean;
+	unchosenSystemAnalysis.signallingAreas = {{"unchosen", 0.0, 1.5, kSignallingLevelUnset, {}}, {"chosen", 0.0, 2.0, 2, {}}};
+	const SceneSignallingAnalysis unchosenAnalysis = analyze(unchosenSystemAnalysis);
+	const auto unchosenRun = validateRunnableScene(unchosenSystemAnalysis);
+	ok &= expect(unchosenAnalysis.areas[0].sectionCount == 0 && unchosenAnalysis.areas[0].sectionsSplitByStart.empty()
+			&& unchosenAnalysis.areas[0].sectionsSplitByEnd.empty() && sectionOf(unchosenAnalysis, "@block-1@").level == 2
+			&& sectionOf(unchosenAnalysis, "@block-1@").decidingArea == 1 && sectionOf(unchosenAnalysis, "@block-1@").conflicts.empty()
+			&& sectionOf(unchosenAnalysis, "@block-2@").conflicts.empty(),
+		"an area without a chosen system takes no part in the analysis");
+	ok &= expect(findAll(unchosenRun, "scene.signalling_area.conflict").empty() && findAll(unchosenRun, splitCode).empty()
+			&& findAll(unchosenRun, emptyCode).empty() && findAll(unchosenRun, "scene.signalling_area.level").size() == 1,
+		"an area without a chosen system gives no conflict, split or empty warning");
 
 	SceneModel offRoute = clean;
 	offRoute.routes[0].blocks = {"block-1"};

@@ -1,5 +1,6 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/SignallingLevel.h"
 #include "scene/StagedDirectory.h"
 #include "scene/StopInsertion.h"
 
@@ -1059,6 +1060,23 @@ int main(int argc, char** argv) {
 	ok &= expect(absentAreasReloaded.signals.size() == 1
 			&& absentAreasReloaded.signals[0].protectedSection.empty(),
 		"ID-only signal input round-trips without inventing a binding");
+	SceneModel unchosenSystem = completeScene();
+	unchosenSystem.signallingAreas[0].level = kSignallingLevelUnset;
+	const fs::path unchosenSystemPath = temp.path / "unchosen-signalling-system";
+	ok &= expect(saveScene(unchosenSystem, unchosenSystemPath.string()).success(),
+		"scene with an area whose signalling system is not chosen saves");
+	json unchosenSignalling;
+	{
+		std::ifstream input(unchosenSystemPath / "signalling.json");
+		input >> unchosenSignalling;
+	}
+	ok &= expect(unchosenSignalling["signalling_areas"].size() == 1
+			&& unchosenSignalling["signalling_areas"][0]["level"] == kSignallingLevelUnset,
+		"writer emits the level of an area whose signalling system is not chosen");
+	SceneModel unchosenReloaded;
+	ok &= expect(loadHasNoErrors(unchosenSystemPath, unchosenReloaded) && unchosenReloaded.signallingAreas.size() == 1
+			&& unchosenReloaded.signallingAreas[0].level == kSignallingLevelUnset,
+		"an area whose signalling system is not chosen keeps its level through save and load");
 
 	json services;
 	{
