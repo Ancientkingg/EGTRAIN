@@ -159,8 +159,10 @@ therefore saved only through step 5, **Save Case Study As...**.
    button that keeps the current case: **Continue** when a case is loaded and
    **Cancel** when none is.
 2. Open a downloaded `.egscene` through **File > Open Case Study...**.
-3. Confirm the network renders and Loaded Data shows identity, versions,
-   category counts, scenarios, validation, runtime, and result readiness.
+3. Confirm the network renders. Show Loaded Data with **View > Loaded Data**
+   (the entry is checked while the dock is shown) and confirm that it shows
+   identity, versions, category counts, scenarios, validation, runtime, and
+   result readiness.
 4. Select or edit a scenario and confirm the run review names that scenario.
 5. Use **Save Case Study As...** to write a working copy outside the package.
    The dialog proposes the downloaded bundle itself: give the copy a new name
@@ -171,7 +173,8 @@ therefore saved only through step 5, **Save Case Study As...**.
    which prints nothing when the files are equal. On Windows, run
    `fc /b <original> <copy>` in a command prompt, not in PowerShell, where `fc`
    is another command; it reports no differences when the files are equal.
-6. Run a short simulation from the working copy.
+6. Run a short simulation from the working copy: choose **Simulation > Run**,
+   then **Run simulation** in the review window.
 7. Open timetable, delay, speed, and blocking-time results where the case
    supports them. Confirm timetable output separates planned and simulated
    arrival and departure values.
