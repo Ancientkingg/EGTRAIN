@@ -121,6 +121,7 @@ struct StableRelease;
 
 // custom GUI files
 #include "graphics/NetworkView.h"
+#include "graphics/FollowCamera.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/VirtualArcItem.h"
@@ -399,6 +400,8 @@ private:
 	QComboBox* m_followTrainCombo = nullptr;
 	// Says in one sentence whether the selected train is followed, and why not.
 	ElidedLabel* m_followStatusLabel = nullptr;
+	// Moves the view to the followed train. It belongs to the network view.
+	FollowCamera* m_followCamera = nullptr;
 	// What each row of the train list shows: the phase of its train and whether the displayed
 	// snapshot holds the train. A row is written again only when this changes.
 	QVector<std::optional<std::pair<FollowPhase, bool>>> m_followRowShown;
@@ -729,6 +732,8 @@ private:
 	void handleSelfUpdateFinished(bool success, const QString& error);
 	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
 	void centerSceneItem(QGraphicsItem* item);
+	// Moves the view to the followed train at once, or stops the camera when the view does not follow it.
+	void cutToFollowedTrain(const FollowAvailability& following);
 	void setFollowTrain(int trainIndex);
 	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 	TrainItemGroup* resolveTrainItem(int trainIndex) const;

@@ -11,10 +11,11 @@
 //
 // The window asks this unit whether the control is offered (controlEnabled), whether Follow
 // can be switched on for the train (canArm), whether it has to be switched off (switchOff),
-// whether the view and the station emphasis follow the train (canAct) and which text is
-// shown (entryText, statusText). The sentences are true whether Follow is on or off. They
-// say the state of the train first and the part about Follow last, so that a status area
-// that is too narrow elides the part about Follow first.
+// whether the view and the station emphasis follow the train (canAct), whether the view
+// glides to the train or cuts to it (glide) and which text is shown (entryText, statusText).
+// The sentences are true whether Follow is on or off. They say the state of the train first
+// and the part about Follow last, so that a status area that is too narrow elides the part
+// about Follow first.
 
 enum class FollowPhase {
 	NoServices,	   // the case defines no services
@@ -64,6 +65,9 @@ struct FollowAvailability {
 	bool switchOff = false;
 	// Follow is on and the view moves to the train now.
 	bool canAct = false;
+	// The view glides to the train. A live run delivers a position every step, so the view can
+	// move between them. A replay holds a frame every few seconds, so the view cuts to the train.
+	bool glide = false;
 };
 
 inline FollowPhase followPhase(const FollowAvailabilityInput& in) {
@@ -144,6 +148,7 @@ inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) 
 	out.controlEnabled = out.phase != FollowPhase::NoServices && out.phase != FollowPhase::NoRun;
 	out.switchOff = in.followOn && !out.canArm;
 	out.canAct = in.followOn && out.phase == FollowPhase::Running;
+	out.glide = out.canAct && !in.replay;
 	return out;
 }
 

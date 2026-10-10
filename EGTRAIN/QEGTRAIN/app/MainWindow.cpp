@@ -2244,6 +2244,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// set network view
 	networkView = new NetworkView(centralWidget);
 	networkView->setObjectName("networkView");
+	m_followCamera = new FollowCamera(networkView, networkView);
 	// QGraphicsView accepts drops by default. Disable that path so drops over
 	// the viewport route to MainWindow without changing its pan interaction.
 	networkView->setAcceptDrops(false);
@@ -2333,6 +2334,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	scene = new NetworkScene(networkView);
 	networkView->setScene(scene);
 	connect(networkView, &NetworkView::viewportChanged, this, [this]() {
+		// The camera changes the position of the view and never its scale, so the overlays and the zoom
+		// label stay as they are. The station of the followed train is refreshed with the frame.
+		if (m_followCamera->movingView())
+			return;
 		updateViewportOverlays();
 		updateZoomStatus();
 	});
@@ -2359,6 +2364,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			// worker may still publish one queued snapshot while it exits; the
 			// delivery guard below drops it instead of repainting these states.
 			clearOperationalTrackStates();
+			m_followCamera->stop();
 		}
 	});
 	connect(infoDockWidget, &InfoDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
@@ -2600,8 +2606,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				&& (m_replayActive ? replayTrainHasPosition(it.key()) : !(*trainIt)->outOfSimulation));
 		}
 		updateViewportOverlays();
-		if (updateFollowAvailability().canAct)
-			centerSceneItem(resolveTrainItem(m_followTrainIndex));
+		cutToFollowedTrain(updateFollowAvailability());
 	});
 	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_trainSpeedLabelsVisible = checked;
@@ -12732,6 +12737,14 @@ void MainWindow::centerSceneItem(QGraphicsItem* item) {
 		networkView->centerOn(item->sceneBoundingRect().center());
 }
 
+void MainWindow::cutToFollowedTrain(const FollowAvailability& following) {
+	const TrainItemGroup* item = following.canAct ? resolveTrainItem(m_followTrainIndex) : nullptr;
+	if (item)
+		m_followCamera->follow(item->sceneBoundingRect().center(), true);
+	else
+		m_followCamera->stop();
+}
+
 void MainWindow::setFollowTrain(int trainIndex) {
 	const auto synchronizeButton = [this]() {
 		if (m_toolBar && m_followAction) {
@@ -12749,6 +12762,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 			m_followAction->setChecked(false);
 		}
 		m_followTrainIndex = -1;
+		m_followCamera->stop();
 		synchronizeButton();
 		updateViewportOverlays();
 		updateFollowAvailability();
@@ -12784,8 +12798,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	updateViewportOverlays();
 
 	const FollowAvailability following = updateFollowAvailability();
-	if (following.canAct)
-		centerSceneItem(resolveTrainItem(trainIndex));
+	cutToFollowedTrain(following);
 	statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
 }
 
@@ -13539,6 +13552,15 @@ void MainWindow::runReplaySignalsE2E() {
 	QCoreApplication::exit(0);
 }
 
+namespace {
+// Pans the view by a third of its width, as a drag of the user does, to the side that has room.
+void panViewAway(NetworkView* view) {
+	QScrollBar* bar = view->horizontalScrollBar();
+	const int distance = view->viewport()->width() / 3;
+	bar->setValue(bar->value() + distance <= bar->maximum() ? bar->value() + distance : bar->value() - distance);
+}
+}
+
 void MainWindow::runVisualPolishE2E() {
 	if (m_e2eFinished)
 		return;
@@ -13602,6 +13624,8 @@ void MainWindow::runVisualPolishE2E() {
 	TrainBodyItem* selectedTrainBody = nullptr;
 	QPen selectedTrainPen;
 	QBrush selectedTrainBrush;
+	// The train that the check of the entry makes run on the route of the followed train.
+	int enteredTrainIndex = -1;
 
 	if (!m_speedSlider || !m_speedLabel) {
 		ok = false;
@@ -15476,6 +15500,7 @@ void MainWindow::runVisualPolishE2E() {
 						networkView->viewport()->rect().center());
 					m_snapshot = entrySnapshot;
 					updateTrainPosition(futureEntryTime);
+					enteredTrainIndex = futureFollowIndex;
 					QApplication::processEvents();
 					TrainItemGroup* enteredTrain = resolveTrainItem(futureFollowIndex);
 					const QPointF enteredCenter = enteredTrain
@@ -15680,8 +15705,25 @@ void MainWindow::runVisualPolishE2E() {
 						selectedTrain->sceneBoundingRect().center()));
 				const QPointF initialBodyCenter = selectedTrainBody->sceneBoundingRect().center();
 
+				// The camera runs on a clock of the check. A frame arrives while the clock stands still, and
+				// each tick advances it by one timer interval.
+				const auto cameraClock = std::make_shared<qint64>(0);
+				m_followCamera->setClock([cameraClock]() { return *cameraClock; });
+				const auto tickCamera = [this, cameraClock]() {
+					*cameraClock += FollowCamera::tickIntervalMs;
+					m_followCamera->tick();
+				};
+				const auto viewCentre = [this]() { return networkView->mapToScene(networkView->viewport()->rect().center()); };
+				const auto pixelsBetween = [this](const QPointF& from, const QPointF& to) {
+					return QLineF(networkView->mapFromScene(from), networkView->mapFromScene(to)).length();
+				};
+				setFollowTrain(selectedTrain->index);
+				const QPointF cameraBefore = viewCentre();
+
 				m_snapshot = movedSnapshot;
 				updateTrainPosition(movedSnapshot->timestep);
+				const QPointF movedTarget = clampedCameraCenter(m_prevTrainPositions.value(selectedTrain->index));
+				const QPointF cameraAfterFrame = viewCentre();
 				QVariantAnimation* firstAnimation = m_trainAnimations.value(selectedTrain->index, nullptr);
 				if (!firstAnimation || firstAnimation->state() != QAbstractAnimation::Running
 					|| firstAnimation->duration() <= 0 || selectedTrain->pos().manhattanLength() <= 0.5) {
@@ -15693,10 +15735,47 @@ void MainWindow::runVisualPolishE2E() {
 				if (firstAnimation)
 					firstAnimation->setCurrentTime(firstAnimation->duration() / 2);
 
-				// A second, distinct delivery interrupts the 120 ms transition while
-				// replacing the polygons; the body and badge must move together.
+				// A live frame moves the view towards the train and does not jump to it. With no further
+				// frame, as when the run is paused, the view settles on the train and the timer stops.
+				const qreal distanceToMoved = pixelsBetween(cameraBefore, movedTarget);
+				const bool runningAfterFrame = m_followCamera->running();
+				tickCamera();
+				const qreal distanceAfterTick = pixelsBetween(viewCentre(), movedTarget);
+				bool nearer = true;
+				qreal previousDistance = distanceAfterTick;
+				for (int ticks = 1; m_followCamera->running() && ticks < 200; ++ticks) {
+					tickCamera();
+					const qreal distance = pixelsBetween(viewCentre(), movedTarget);
+					nearer = nearer && distance <= previousDistance + 1.5;
+					previousDistance = distance;
+				}
+				const bool glided = distanceToMoved > 20.0 && runningAfterFrame && pixelsBetween(cameraBefore, cameraAfterFrame) <= 1.0
+					&& distanceAfterTick > 3.0 && distanceAfterTick < distanceToMoved - 3.0 && nearer;
+				const bool pauseSettled = !m_followCamera->running() && previousDistance <= 3.0;
+				if (!glided || !pauseSettled) {
+					ok = false;
+					failures << QString("a live frame did not move the view towards the train in a glide (toTarget=%1px afterFrame=%2 running=%3 "
+										"afterTick=%4px nearer=%5 settled=%6px running=%7)")
+									.arg(distanceToMoved, 0, 'f', 1)
+									.arg(pixelsBetween(cameraBefore, cameraAfterFrame), 0, 'f', 1)
+									.arg(runningAfterFrame)
+									.arg(distanceAfterTick, 0, 'f', 1)
+									.arg(nearer)
+									.arg(previousDistance, 0, 'f', 1)
+									.arg(m_followCamera->running());
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_GLIDE_OK\n");
+					std::fflush(stdout);
+				}
+
+				// The first frame after a long pause, as when a run is resumed, does not move the view, and the view
+				// then glides from where it is. This frame is also a second, distinct delivery: it interrupts the
+				// 120 ms transition while replacing the polygons, and the body and badge must move together.
+				*cameraClock += 5000;
+				const QPointF cameraPaused = viewCentre();
 				m_snapshot = interruptedSnapshot;
 				updateTrainPosition(interruptedSnapshot->timestep);
+				const QPointF cameraResumed = viewCentre();
 				QVariantAnimation* replacementAnimation = m_trainAnimations.value(selectedTrain->index, nullptr);
 				// Stopped animations are deleted later; no events have run since
 				// the first pointer was captured, so its stopped state is inspectable.
@@ -15716,6 +15795,26 @@ void MainWindow::runVisualPolishE2E() {
 					? QLineF(interruptedBadge->scenePos(), selectedTrain->sceneBoundingRect().center()).length()
 					: std::numeric_limits<qreal>::max();
 				const QPointF interruptedTargetCenter = m_prevTrainPositions.value(selectedTrain->index);
+				const qreal resumeDistance = pixelsBetween(cameraResumed, clampedCameraCenter(interruptedTargetCenter));
+				const bool resumeRunning = m_followCamera->running();
+				tickCamera();
+				const qreal resumeAfterTick = pixelsBetween(viewCentre(), clampedCameraCenter(interruptedTargetCenter));
+				if (resumeDistance <= 20.0 || pixelsBetween(cameraPaused, cameraResumed) > 1.0 || !resumeRunning || resumeAfterTick <= 3.0
+					|| resumeAfterTick >= resumeDistance - 3.0) {
+					ok = false;
+					failures << QString("the first frame after a pause moved the view or did not start a glide (toTarget=%1px moved=%2px running=%3 afterTick=%4px)")
+									.arg(resumeDistance, 0, 'f', 1)
+									.arg(pixelsBetween(cameraPaused, cameraResumed), 0, 'f', 1)
+									.arg(resumeRunning)
+									.arg(resumeAfterTick, 0, 'f', 1);
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_RESUME_OK\n");
+					std::fflush(stdout);
+				}
+				// The view glides to the new place of the train, which is not where the interrupted
+				// animation shows it. It is read where the glide ends.
+				for (int ticks = 0; m_followCamera->running() && ticks < 200; ++ticks)
+					tickCamera();
 				const QPointF interruptedCameraCenter = networkView->mapToScene(
 					networkView->viewport()->rect().center());
 
@@ -15760,6 +15859,194 @@ void MainWindow::runVisualPolishE2E() {
 									.arg(finalGroupCenter.y(), 0, 'f', 2);
 				}
 
+				// A pan of the user and a resize of the window do not switch Follow off. The next frame starts a glide from
+				// where the user left the view, and the view ends on the train.
+				const auto followedCentre = [this, selectedTrain]() { return m_prevTrainPositions.value(selectedTrain->index); };
+				const auto glideEndsOnTrain = [&]() {
+					for (int ticks = 0; m_followCamera->running() && ticks < 200; ++ticks)
+						tickCamera();
+					return pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre())) <= 3.0;
+				};
+				panViewAway(networkView);
+				const QPointF cameraPannedAway = viewCentre();
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				const qreal panDistance = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				const bool panKept = panDistance > 20.0 && pixelsBetween(cameraPannedAway, viewCentre()) <= 1.0 && m_followCamera->running();
+				tickCamera();
+				const qreal panDistanceAfterTick = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				const bool panGlided = panKept && panDistanceAfterTick > 3.0 && panDistanceAfterTick < panDistance - 3.0 && glideEndsOnTrain();
+				m_snapshot = interruptedSnapshot;
+				updateTrainPosition(interruptedSnapshot->timestep);
+				tickCamera();
+				const QSize viewportBeforeResize = networkView->viewport()->size();
+				resize(1100, 760);
+				QApplication::processEvents();
+				const bool viewportResized = networkView->viewport()->size() != viewportBeforeResize;
+				const bool glideGoesOnAfterResize = m_followCamera->running();
+				const bool resizeGlided = viewportResized && glideGoesOnAfterResize && glideEndsOnTrain();
+				resize(1200, 800);
+				QApplication::processEvents();
+				if (!panGlided || !resizeGlided) {
+					ok = false;
+					failures << QString("a pan or a resize while following did not lead to a glide back to the train (pan: %1px then %2px, glided=%3, resize: viewport changed=%4, running=%5, ends on the train=%6)")
+									.arg(panDistance, 0, 'f', 1)
+									.arg(panDistanceAfterTick, 0, 'f', 1)
+									.arg(panGlided)
+									.arg(viewportResized)
+									.arg(glideGoesOnAfterResize)
+									.arg(resizeGlided);
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_PAN_OK\n");
+					std::fflush(stdout);
+				}
+
+				// A zoom of the toolbar, in or out, centres the view on the train at once, although the view lags behind it in
+				// a glide. Fit shows the whole network and stops the camera.
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				tickCamera();
+				const qreal lagBeforeZoomIn = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				zoomIn();
+				const qreal offAfterZoomIn = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				const bool zoomInCentred = lagBeforeZoomIn > 20.0 && offAfterZoomIn <= 3.0 && !m_followCamera->running();
+				m_snapshot = interruptedSnapshot;
+				updateTrainPosition(interruptedSnapshot->timestep);
+				tickCamera();
+				const qreal lagBeforeZoomOut = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				zoomOut();
+				const qreal offAfterZoomOut = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
+				const bool zoomOutCentred = lagBeforeZoomOut > 20.0 && offAfterZoomOut <= 3.0 && !m_followCamera->running();
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				tickCamera();
+				const bool glidingBeforeFit = m_followCamera->running();
+				fitView();
+				const bool fitStopped = glidingBeforeFit && !m_followCamera->running();
+				if (!zoomInCentred || !zoomOutCentred || !fitStopped) {
+					ok = false;
+					failures << QString("the toolbar zoom did not centre the view on the followed train, or Fit did not stop the camera "
+										"(in: lag=%1px after=%2px, out: lag=%3px after=%4px, running before Fit=%5 after Fit=%6)")
+									.arg(lagBeforeZoomIn, 0, 'f', 1)
+									.arg(offAfterZoomIn, 0, 'f', 1)
+									.arg(lagBeforeZoomOut, 0, 'f', 1)
+									.arg(offAfterZoomOut, 0, 'f', 1)
+									.arg(glidingBeforeFit)
+									.arg(m_followCamera->running());
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_ZOOM_OK\n");
+					std::fflush(stdout);
+				}
+				// Fit left no scroll range. Zoom in again so that the view can move.
+				networkView->zoomBy(6.0);
+				setFollowTrain(selectedTrain->index);
+
+				// A change of the followed train cuts to the new train and does not sweep across the map. The other train
+				// is the one of the entry check, put where the followed train was at first, so that a glide could reach it.
+				auto cutSnapshot = std::make_shared<GuiSimulationSnapshot>(*movedSnapshot);
+				for (GuiTrainState& state : cutSnapshot->trains) {
+					if (state.index != enteredTrainIndex)
+						continue;
+					state.routeIndex = baseState->routeIndex;
+					state.reversedDirection = baseState->reversedDirection;
+					state.wagonCount = baseState->wagonCount;
+					state.length = baseState->length;
+					state.routeAxisPosition = baseState->routeAxisPosition;
+					state.wagonHeadPositions = baseState->wagonHeadPositions;
+					state.wagonTailPositions = baseState->wagonTailPositions;
+					state.outOfSimulation = false;
+				}
+				m_snapshot = cutSnapshot;
+				updateTrainPosition(cutSnapshot->timestep);
+				TrainItemGroup* otherTrain = resolveTrainItem(enteredTrainIndex);
+				if (otherTrain) {
+					stopTrainAnimation(otherTrain->index);
+					otherTrain->setPos(QPointF(0.0, 0.0));
+				}
+				tickCamera();
+				const QPointF cameraBeforeCut = viewCentre();
+				if (otherTrain)
+					setFollowTrain(otherTrain->index);
+				const bool cutToOther = otherTrain && m_followTrainIndex == otherTrain->index && !m_followCamera->running()
+					&& pixelsBetween(viewCentre(), clampedCameraCenter(otherTrain->sceneBoundingRect().center())) <= 3.0
+					&& pixelsBetween(cameraBeforeCut, viewCentre()) > 20.0;
+				// Zoom in further so that the next checks see a move of the view.
+				networkView->zoomBy(4.0);
+				setFollowTrain(selectedTrain->index);
+
+				// Switching Follow off, and the end of the followed train, stop the camera and leave the view where it is.
+				// Switching it on again with the view away from the train moves the view to the train at once.
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				tickCamera();
+				const bool glidingBeforeOff = m_followCamera->running();
+				const QPointF cameraBeforeOff = viewCentre();
+				m_followAction->setChecked(false);
+				tickCamera();
+				const bool offStopped = glidingBeforeOff && !m_followCamera->running() && !m_followCamera->hasTarget()
+					&& pixelsBetween(cameraBeforeOff, viewCentre()) <= 0.5;
+				panViewAway(networkView);
+				const QPointF cameraPanned = viewCentre();
+				setFollowTrain(selectedTrain->index);
+				const bool cutOnSwitchOn = !m_followCamera->running() && pixelsBetween(cameraPanned, viewCentre()) > 20.0
+					&& pixelsBetween(viewCentre(), clampedCameraCenter(selectedTrain->sceneBoundingRect().center())) <= 3.0;
+				if (!cutToOther || !cutOnSwitchOn) {
+					ok = false;
+					failures << QString("the view did not move to the train at once (other train: %1, switching Follow on: %2, running=%3)")
+									.arg(cutToOther)
+									.arg(cutOnSwitchOn)
+									.arg(m_followCamera->running());
+				} else {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_CUT_OK\n");
+					std::fflush(stdout);
+				}
+
+				// Switching the Trains layer off, and a train with no position on the map, stop the camera. With the layer
+				// on again, and when the train has its position back, the view moves to the train at once.
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				const bool glidingBeforeLayer = m_followCamera->running();
+				m_trainLayerCheck->setChecked(false);
+				const bool layerStopped = glidingBeforeLayer && !m_followCamera->running() && !m_followCamera->hasTarget();
+				m_trainLayerCheck->setChecked(true);
+				const bool layerCut = m_followCamera->hasTarget() && !m_followCamera->running()
+					&& pixelsBetween(viewCentre(), clampedCameraCenter(selectedTrain->sceneBoundingRect().center())) <= 3.0;
+				updateTrainPosition(movedSnapshot->timestep);
+				const bool glidingBeforeBlind = m_followCamera->running();
+				auto blindSnapshot = std::make_shared<GuiSimulationSnapshot>(*movedSnapshot);
+				for (GuiTrainState& state : blindSnapshot->trains)
+					if (state.index == selectedTrain->index)
+						state.routeIndex = -1;
+				m_snapshot = blindSnapshot;
+				updateTrainPosition(blindSnapshot->timestep);
+				const bool blindStopped = glidingBeforeBlind && !m_followCamera->running() && !m_followCamera->hasTarget()
+					&& m_followAction->isChecked() && m_followTrainIndex == selectedTrain->index;
+				m_snapshot = movedSnapshot;
+				updateTrainPosition(movedSnapshot->timestep);
+				const bool blindCut = m_followCamera->hasTarget() && !m_followCamera->running()
+					&& pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre())) <= 3.0;
+				if (!layerStopped || !layerCut || !blindStopped || !blindCut) {
+					ok = false;
+					failures << QString("the Trains layer or a train with no position did not stop the camera, or the view did not cut back to the train "
+										"(layer: gliding before=%1 stopped=%2 cut back=%3, no position: gliding before=%4 stopped=%5 cut back=%6)")
+									.arg(glidingBeforeLayer)
+									.arg(layerStopped)
+									.arg(layerCut)
+									.arg(glidingBeforeBlind)
+									.arg(blindStopped)
+									.arg(blindCut);
+				}
+				m_snapshot = interruptedSnapshot;
+				updateTrainPosition(interruptedSnapshot->timestep);
+				const bool glidingBeforeEnd = m_followCamera->running();
+				if (!offStopped || !glidingBeforeEnd) {
+					ok = false;
+					failures << QString("switching Follow off did not stop the camera (gliding before=%1, stopped=%2, gliding before the end=%3)")
+									.arg(glidingBeforeOff)
+									.arg(offStopped)
+									.arg(glidingBeforeEnd);
+				}
+
 				// Exiting the followed train disables Follow rather than retaining a
 				// stale target, and the target can be restored without retargeting.
 				auto exitedSnapshot = std::make_shared<GuiSimulationSnapshot>(*interruptedSnapshot);
@@ -15776,12 +16063,19 @@ void MainWindow::runVisualPolishE2E() {
 					|| statusBar()->currentMessage() != exitedName + " has left the network. Follow is switched off.") {
 					ok = false;
 					failures << "follow exit did not disable with explicit status";
+				} else if (glidingBeforeEnd && (m_followCamera->running() || m_followCamera->hasTarget())) {
+					ok = false;
+					failures << "follow exit did not stop the camera";
 				} else if (m_followStatusLabel->text() != exitedSentence || m_followTrainCombo->itemText(exitedComboIndex) != exitedName + " (finished)"
 					|| !m_followAction->isEnabled() || m_followTrainCombo->currentIndex() != exitedComboIndex) {
 					ok = false;
 					failures << "follow exit did not explain itself in the label and the list";
 				} else {
 					std::fprintf(stdout, "E2E_FOLLOW_LIVE_END_OK\n");
+					std::fflush(stdout);
+				}
+				if (offStopped && layerStopped && blindStopped && glidingBeforeEnd && !m_followCamera->running() && !m_followCamera->hasTarget()) {
+					std::fprintf(stdout, "E2E_FOLLOW_CAMERA_STOP_OK\n");
 					std::fflush(stdout);
 				}
 				if (exitedComboIndex >= 0)
@@ -15795,6 +16089,8 @@ void MainWindow::runVisualPolishE2E() {
 				}
 				m_snapshot = interruptedSnapshot;
 				updateTrainPosition(interruptedSnapshot->timestep);
+				m_followCamera->stop();
+				m_followCamera->setClock({});
 				setFollowTrain(selectedTrain->index);
 			}
 		}
@@ -15987,8 +16283,26 @@ void MainWindow::runVisualPolishE2E() {
 			connect(&simulation, &DispatchController::snapshotAvailable,
 				this, &MainWindow::waitForUpdates,
 				static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::UniqueConnection));
+			// Stop ends a glide of the camera where the view is. Follow is switched off again at once, so that the
+			// message of the stopped run is the last one.
+			bool glidingAtStop = false;
+			if (selectedTrain && m_followAction) {
+				setFollowTrain(selectedTrain->index);
+				m_followCamera->follow(networkView->mapToScene(networkView->viewport()->rect().center() + QPoint(100, 0)), false);
+				glidingAtStop = m_followCamera->running();
+			}
 			if (ui->actionSimulationStop)
 				ui->actionSimulationStop->trigger();
+			const bool stopEndedGlide = glidingAtStop && !m_followCamera->running() && !m_followCamera->hasTarget();
+			if (m_followAction)
+				m_followAction->setChecked(false);
+			if (!stopEndedGlide) {
+				ok = false;
+				failures << QString("Stop did not end the glide of the camera (gliding before=%1)").arg(glidingAtStop);
+			} else {
+				std::fprintf(stdout, "E2E_FOLLOW_CAMERA_RUN_STOP_OK\n");
+				std::fflush(stdout);
+			}
 			if (lifecycleTrack->operationalState() != TrackOperationalState::Free
 				|| !lifecycleTrack->isSelected()) {
 				ok = false;
@@ -24734,6 +25048,24 @@ void MainWindow::onSimulationFinished() {
 			std::fprintf(stdout, "E2E_FOLLOW_REPLAY_DURING_OK\n");
 			std::fflush(stdout);
 
+			// A seek and a step of the playback cut to the train: the view is on the train at once and no glide
+			// runs, also when the user has panned the view away from the train.
+			panViewAway(networkView);
+			const QPointF cameraPanned = viewCentre();
+			seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
+			const bool seekCut = !m_followCamera->running() && pixelsBetween(cameraPanned, viewCentre()) > 20.0 && viewOnTrain(followedIndex);
+			panViewAway(networkView);
+			const QPointF cameraPannedAgain = viewCentre();
+			m_replayTimer->start();
+			const bool stepDelivered = QMetaObject::invokeMethod(m_replayTimer, "timeout");
+			m_replayTimer->stop();
+			const bool stepCut = stepDelivered && !m_followCamera->running() && pixelsBetween(cameraPannedAgain, viewCentre()) > 20.0
+				&& viewOnTrain(followedIndex);
+			if (!seekCut || !stepCut)
+				return fail("a seek or a step of the playback did not cut to the train");
+			std::fprintf(stdout, "E2E_FOLLOW_CAMERA_REPLAY_OK\n");
+			std::fflush(stdout);
+
 			// The Trains layer off: the sentence and the list say so, the station emphasis goes, and the view stays
 			// where the user put it, also when the time moves on. On again: the view returns to the train.
 			const auto stationEmphasised = [this]() {
@@ -24788,6 +25120,9 @@ void MainWindow::onSimulationFinished() {
 				|| m_followTrainCombo->itemText(followedRow) != name + " (finished)" || !m_followAction->isEnabled()
 				|| pixelsBetween(cameraAway, viewCentre()) > 0.5)
 				return fail("after the train has left");
+			// The camera has forgotten the train, so no later zoom or Fit can move the view to it.
+			if (m_followCamera->hasTarget() || m_followCamera->running())
+				return fail("after the train has left, the camera still holds the train");
 			seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
 			if (!stillFollowing() || sentence() != name + " is running. The view follows it." || !viewOnTrain(followedIndex))
 				return fail("after going back");
@@ -25031,7 +25366,7 @@ void MainWindow::onSimulationFinished() {
 			selectScenario(static_cast<int>(m_sceneModel.scenarios.size()) - 1);
 			if (m_replayTimer->isActive() || !m_completedReplay.empty() || m_snapshot
 				|| !m_showingTrackPreview || !allTrains.isEmpty() || !m_activeTrackItems.empty()
-				|| m_followTrainIndex >= 0 || m_replayBar->isVisible()) {
+				|| m_followTrainIndex >= 0 || m_followCamera->hasTarget() || m_followCamera->running() || m_replayBar->isVisible()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: scenario retained historical graphics\n");
 				QCoreApplication::exit(2);
 				return;
@@ -27488,6 +27823,7 @@ void MainWindow::fitView() {
 			networkView->fitToBounds(m_previewFitBounds);
 		else
 			networkView->fitToTopology();
+		m_followCamera->settle();
 	}
 	updateViewportOverlays();
 	updateZoomStatus();
@@ -28022,6 +28358,8 @@ void MainWindow::updateTrainPosition(int t) {
 	if (!m_snapshot)
 		return;
 	bool legendNeedsUpdate = false;
+	// The camera was given the position of the followed train in this update.
+	bool followedTrainMoved = false;
 	for (auto* group : m_vcMessageItems)
 		if (group)
 			group->setVisible(false);
@@ -28145,8 +28483,15 @@ void MainWindow::updateTrainPosition(int t) {
 					if (badge)
 						badge->setPos(badgeCenter);
 				}
-				if (networkView && m_followTrainIndex == train && followAvailabilityOf(train).canAct)
-					networkView->centerOn(newCenter);
+				if (m_followTrainIndex == train) {
+					const FollowAvailability following = followAvailabilityOf(train);
+					if (following.canAct) {
+						m_followCamera->follow(newCenter, !following.glide);
+						followedTrainMoved = true;
+					} else {
+						m_followCamera->stop();
+					}
+				}
 			}
 			// hide train whose simulation is finished
 			else {
@@ -28154,6 +28499,8 @@ void MainWindow::updateTrainPosition(int t) {
 				trainItem->hide();
 				if (m_trainBadges.contains(train))
 					m_trainBadges[train]->setVisible(false);
+				if (m_followTrainIndex == train)
+					m_followCamera->stop();
 			}
 		}
 		// new train starting; >= not == because the frame throttle may drop
@@ -28167,8 +28514,10 @@ void MainWindow::updateTrainPosition(int t) {
 			TrainItemGroup* newTrain = resolveTrainItem(train);
 			if (firstTrain && !m_replayActive && newTrain && newTrain->isVisible())
 				centerSceneItem(newTrain);
-			if (newTrain && m_followTrainIndex == train && followAvailabilityOf(train).canAct)
-				centerSceneItem(newTrain);
+			if (m_followTrainIndex == train) {
+				cutToFollowedTrain(followAvailabilityOf(train));
+				followedTrainMoved = true;
+			}
 		}
 	}
 	for (const GuiSectionState& state : m_snapshot->sectionStates)
@@ -28176,6 +28525,9 @@ void MainWindow::updateTrainPosition(int t) {
 			applySectionState(state, TrackOperationalState::Blocked);
 	if (legendNeedsUpdate)
 		updateNetworkLegend();
+	// A move of the camera does not refresh the overlays, so the station of the followed train is refreshed here.
+	if (followedTrainMoved)
+		updateViewportOverlays();
 	updateFollowAvailability();
 }
 
@@ -28668,13 +29020,16 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 void MainWindow::zoomIn() {
 	if (!networkView)
 		return;
-	if (networkView->zoomBy(1.15) && !m_previewFitBounds.isEmpty())
-		networkView->centerOn(m_previewZoomFocus);
+	if (networkView->zoomBy(1.15)) {
+		if (!m_previewFitBounds.isEmpty())
+			networkView->centerOn(m_previewZoomFocus);
+		m_followCamera->settle();
+	}
 }
 
 void MainWindow::zoomOut() {
-	if (networkView)
-		networkView->zoomBy(1.0 / 1.15);
+	if (networkView && networkView->zoomBy(1.0 / 1.15))
+		m_followCamera->settle();
 }
 
 void MainWindow::fitToView() {

@@ -351,6 +351,37 @@ static bool checkSettle() {
 	return ok;
 }
 
+static bool checkMovingView() {
+	bool ok = true;
+	Rig rig;
+	int byCamera = 0;
+	int byUser = 0;
+	QObject::connect(&rig.view, &NetworkView::viewportChanged, [&]() {
+		if (rig.camera.movingView())
+			++byCamera;
+		else
+			++byUser;
+	});
+	ok &= expect(!rig.camera.movingView(), "an idle camera is not moving the view");
+
+	rig.camera.follow(QPointF(1000.0, 1000.0), true);
+	ok &= expect(byCamera == 1 && byUser == 0, "a snap is reported as a move of the camera");
+	rig.camera.follow(QPointF(1060.0, 1000.0), false);
+	rig.tick();
+	ok &= expect(byCamera == 2 && byUser == 0, "a tick is reported as a move of the camera");
+	rig.camera.settle();
+	ok &= expect(byCamera == 3 && byUser == 0, "settle is reported as a move of the camera");
+	ok &= expect(!rig.camera.movingView(), "the camera has stopped moving the view when a call returns");
+
+	QScrollBar* bar = rig.view.horizontalScrollBar();
+	bar->setValue(bar->value() - 50);
+	ok &= expect(byCamera == 3 && byUser > 0, "a pan of the user is not reported as a move of the camera");
+	const int afterPan = byUser;
+	rig.view.zoomBy(1.5);
+	ok &= expect(byCamera == 3 && byUser > afterPan, "a zoom of the user is not reported as a move of the camera");
+	return ok;
+}
+
 static bool checkViewDestroyed() {
 	bool ok = true;
 	QGraphicsScene scene;
@@ -396,6 +427,7 @@ int main(int argc, char** argv) {
 	ok &= checkEdgeFreeAxis();
 	ok &= checkFit();
 	ok &= checkSettle();
+	ok &= checkMovingView();
 	ok &= checkViewDestroyed();
 	return ok ? 0 : 1;
 }
