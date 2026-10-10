@@ -1,6 +1,11 @@
 #include "widgets/DialogLayout.h"
 
 #include <QApplication>
+#include <QAction>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QToolBar>
+#include <QToolButton>
 #include <QFile>
 #include <QFileInfo>
 #include <QHeaderView>
@@ -15,6 +20,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
+#include <map>
+#include <string>
+#include <utility>
 
 namespace {
 bool check(bool condition, const char* message) {
@@ -296,6 +304,174 @@ bool exerciseNarrowBody() {
 	ok &= check(manyWords->height() >= manyWords->heightForWidth(manyWords->width()), "a label with a long text is not as tall as its wrapped text");
 	return ok;
 }
+struct ControlLook {
+	QRgb face;
+	QRgb ink;
+};
+
+int colorDifference(QRgb left, QRgb right) {
+	return std::abs(qRed(left) - qRed(right)) + std::abs(qGreen(left) - qGreen(right)) + std::abs(qBlue(left) - qBlue(right));
+}
+
+// The common interior colour is the face; the strongest contrast in the text strip is the ink.
+// The strip excludes borders, the combo arrow and the check box indicator, including at high DPI.
+ControlLook controlLook(QWidget* widget) {
+	const QPixmap grab = widget->grab();
+	const QImage image = grab.toImage();
+	const qreal ratio = grab.devicePixelRatio();
+	auto pixels = [ratio](const QRect& rect) {
+		return QRect(qRound(rect.x() * ratio), qRound(rect.y() * ratio), qRound(rect.width() * ratio), qRound(rect.height() * ratio));
+	};
+	const QRect interior = pixels(widget->rect().adjusted(3, 3, -3, -3));
+	std::map<QRgb, int> counts;
+	for (int y = interior.top(); y <= interior.bottom(); ++y)
+		for (int x = interior.left(); x <= interior.right(); ++x)
+			++counts[image.pixel(x, y)];
+	const QRgb face = std::max_element(counts.begin(), counts.end(), [](const auto& left, const auto& right) {
+		return left.second < right.second;
+	})->first;
+	const QRect text = pixels(QRect(32, 8, widget->width() - 62, widget->height() - 16));
+	QRgb ink = face;
+	for (int y = text.top(); y <= text.bottom(); ++y)
+		for (int x = text.left(); x <= text.right(); ++x)
+			if (colorDifference(image.pixel(x, y), face) > colorDifference(ink, face))
+				ink = image.pixel(x, y);
+	return {face, ink};
+}
+
+bool sameLook(const ControlLook& left, const ControlLook& right) {
+	return left.face == right.face && left.ink == right.ink;
+}
+
+bool checkLooks(bool condition, const std::string& message, const ControlLook& left, const ControlLook& right) {
+	auto describe = [](const ControlLook& look) {
+		return QStringLiteral("face=%1 ink=%2").arg(look.face, 8, 16, QLatin1Char('0')).arg(look.ink, 8, 16, QLatin1Char('0')).toStdString();
+	};
+	return check(condition, (message + ": " + describe(left) + " versus " + describe(right)).c_str());
+}
+
+enum class ControlKind { PushButton,
+	ComboBox,
+	LineEdit,
+	ReadOnly,
+	ToolButton,
+	CheckedToolButton,
+	CheckBox };
+
+std::pair<ControlLook, ControlLook> controlLooks(ControlKind kind, bool presentation, bool inherited) {
+	QWidget panel;
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* fields = new QVBoxLayout(body);
+	const QString text = QStringLiteral("MMMM MMMM");
+	QWidget* control = nullptr;
+	QAction* action = nullptr;
+	if (kind == ControlKind::PushButton) {
+		auto* button = new QPushButton(text, body);
+		button->setAutoDefault(false);
+		control = button;
+	} else if (kind == ControlKind::ComboBox) {
+		auto* combo = new QComboBox(body);
+		combo->addItem(text);
+		control = combo;
+	} else if (kind == ControlKind::LineEdit || kind == ControlKind::ReadOnly) {
+		auto* edit = new QLineEdit(text, body);
+		edit->setReadOnly(kind == ControlKind::ReadOnly);
+		control = edit;
+	} else if (kind == ControlKind::CheckBox) {
+		control = new QCheckBox(text, body);
+	} else {
+		auto* toolbar = new QToolBar(body);
+		fields->addWidget(toolbar);
+		action = new QAction(text, toolbar);
+		action->setCheckable(kind == ControlKind::CheckedToolButton);
+		action->setChecked(kind == ControlKind::CheckedToolButton);
+		toolbar->addAction(action);
+		auto* button = qobject_cast<QToolButton*>(toolbar->widgetForAction(action));
+		button->setAutoRaise(true);
+		button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+		control = button;
+	}
+	control->setFont(qApp->font());
+	control->setFocusPolicy(Qt::NoFocus);
+	control->setFixedSize(150, 48);
+	if (!action)
+		fields->addWidget(control);
+	if (presentation) {
+		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);
+		DialogLayout::install(dialog, QStringLiteral("Control states"), QString(), body, buttons, QRect(0, 0, 1920, 1080));
+		dialog.show();
+	} else {
+		auto* layout = new QVBoxLayout(&panel);
+		layout->addWidget(body);
+		panel.show();
+	}
+	QApplication::processEvents();
+	control->setFixedSize(150, 48);
+	QApplication::processEvents();
+	const ControlLook enabled = controlLook(control);
+	if (inherited)
+		body->setEnabled(false);
+	else if (action)
+		action->setEnabled(false);
+	else
+		control->setEnabled(false);
+	QApplication::processEvents();
+	return {enabled, controlLook(control)};
+}
+
+bool exerciseDisabledControls() {
+	bool ok = true;
+	const std::pair<ControlKind, const char*> controls[] = {
+		{ControlKind::PushButton, "push button"}, {ControlKind::ComboBox, "combo box"},
+		{ControlKind::LineEdit, "line edit"}, {ControlKind::ToolButton, "tool button"}, {ControlKind::CheckBox, "check box"}};
+	for (const auto& entry : controls) {
+		const auto plain = controlLooks(entry.first, false, false);
+		const auto dialog = controlLooks(entry.first, true, false);
+		const auto parent = controlLooks(entry.first, false, true);
+		const std::string name = entry.second;
+		ok &= checkLooks(colorDifference(plain.first.face, plain.first.ink) >= 90,
+			"an enabled " + name + " draws text distinct from its face", plain.first, plain.second);
+		ok &= checkLooks(qGray(plain.second.ink) >= qGray(plain.first.ink) + 30,
+			"a disabled " + name + " has lighter text", plain.first, plain.second);
+		const bool box = entry.first == ControlKind::PushButton || entry.first == ControlKind::ComboBox || entry.first == ControlKind::LineEdit;
+		if (box) {
+			ok &= checkLooks(plain.first.face != plain.second.face,
+				"a disabled " + name + " has a different face", plain.first, plain.second);
+			ok &= checkLooks(sameLook(plain.second, dialog.second) && qGray(plain.second.ink) >= qGray(plain.first.ink) + 30,
+				"a disabled " + name + " looks the same inside and outside a dialog", plain.second, dialog.second);
+		}
+		ok &= checkLooks(sameLook(parent.second, plain.second) && qGray(parent.second.ink) >= qGray(parent.first.ink) + 30,
+			"a " + name + " disabled only because its parent is disabled looks like a disabled one", parent.second, plain.second);
+	}
+	const auto readOnly = controlLooks(ControlKind::ReadOnly, false, false);
+	ok &= checkLooks(sameLook(readOnly.first, readOnly.second), "a disabled read-only line edit keeps its read-only look", readOnly.first, readOnly.second);
+	const auto checked = controlLooks(ControlKind::CheckedToolButton, false, false);
+	ok &= checkLooks(sameLook(checked.first, checked.second), "a disabled checked tool button keeps its checked look", checked.first, checked.second);
+
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	auto* primary = buttons->button(QDialogButtonBox::Ok);
+	primary->setText(QStringLiteral("MMMM MMMM"));
+	primary->setFocusPolicy(Qt::NoFocus);
+	primary->setFont(qApp->font());
+	buttons->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
+	buttons->button(QDialogButtonBox::Cancel)->setFocusPolicy(Qt::NoFocus);
+	DialogLayout::install(dialog, QStringLiteral("Default action"), QString(), body, buttons, QRect(0, 0, 1920, 1080));
+	dialog.show();
+	QApplication::processEvents();
+	primary->setFixedSize(150, 48);
+	primary->setDefault(true);
+	QApplication::processEvents();
+	const ControlLook enabledDefault = controlLook(primary);
+	primary->setEnabled(false);
+	QApplication::processEvents();
+	const ControlLook disabledDefault = controlLook(primary);
+	ok &= checkLooks(qGray(disabledDefault.face) >= qGray(enabledDefault.face) + 30,
+		"a disabled default button keeps its lighter face", enabledDefault, disabledDefault);
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -316,5 +492,6 @@ int main(int argc, char** argv) {
 	const bool indicators = exerciseItemViewIndicators();
 	const bool messages = exerciseInlineMessages();
 	const bool narrow = exerciseNarrowBody();
-	return small && scaledSmall && large && indicators && messages && narrow ? 0 : 1;
+	const bool disabled = exerciseDisabledControls();
+	return small && scaledSmall && large && indicators && messages && narrow && disabled ? 0 : 1;
 }
