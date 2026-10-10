@@ -150,13 +150,13 @@ If a run stops with an error:
 ./scene_tool validate Scenes/Lebanon
 ```
 
-On Windows the command is `scene_tool.exe`. `validate` prints the same errors the Scene Validation dock shows. With `--runnable` it also runs the checks the application makes before a run.
+On Windows the command is `scene_tool.exe`. `validate --runnable` prints the errors the Scene Validation dock shows, which include the checks the application makes before a run. Without `--runnable` it leaves those checks out.
 
 ## Before you present
 
 Run this once on the presentation machine before the session.
 
-- [ ] The package launches with no missing-library error. Note the Open a Case window and, at the first start, the update question, which appear before the main window can be used.
+- [ ] The package launches with no missing-library error. Note the Open a Case window and, at the first start, the question about update checks if it appears.
 - [ ] The Lebanon scene opens, from `Scenes/Lebanon` or from `Lebanon.egscene`, and the network draws.
 - [ ] The supplied teaching baseline runs once without edits.
 - [ ] A working copy is saved with File > Save Case Study As... before the first edit.
