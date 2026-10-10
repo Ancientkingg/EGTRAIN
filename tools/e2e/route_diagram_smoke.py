@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Offscreen native-builder and route-chart regression for route diagrams."""
+"""Offscreen native-builder and route-chart regression for route diagrams.
+
+Usage: route_diagram_smoke.py [APP [TEST_EXECUTABLE_DIR]]
+
+APP is the QEGTRAIN executable, build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN by default.
+TEST_EXECUTABLE_DIR holds test_operationsbuilder, test_routediagramcoordinates and
+test_diagramwindow, build/ by default.
+"""
 from pathlib import Path
 import csv
 import json
@@ -11,13 +18,15 @@ import tempfile
 
 root = Path(__file__).resolve().parents[2]
 build = root / "build"
+app = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else build / "QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+test_directory = Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else build
 env = dict(os.environ, QT_QPA_PLATFORM="offscreen")
 for executable, evidence in (
     ("test_operationsbuilder", "native forward/reverse route diagram coordinates passed"),
     ("test_routediagramcoordinates", "route coordinate projection passed"),
     ("test_diagramwindow", "all DiagramWindow tests passed"),
 ):
-    program = build / executable
+    program = test_directory / executable
     if not program.is_file():
         sys.exit(f"missing {program}; build the focused targets first")
     result = subprocess.run([str(program)], cwd=root, env=env, text=True,
@@ -27,7 +36,6 @@ for executable, evidence in (
         sys.exit(f"{executable} failed or omitted {evidence!r}:\n{output[-4000:]}")
     print(f"PASS {executable}: {evidence}")
 
-app = build / "QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 scene = root / "EGTRAIN/QEGTRAIN/Scenes/Paimpol"
 if not app.is_file():
     sys.exit(f"missing {app}; build QEGTRAIN first")

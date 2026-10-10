@@ -230,6 +230,8 @@ platform.
 | --- | --- | --- | --- | --- |
 | `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
 | `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
+| `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
+| `test_visual_polish_smoke` | yes | no | no | A Bash script, registered on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
@@ -239,13 +241,20 @@ platform.
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
-The five Bash smokes (`test_csv_export_smoke`, `test_lebanon_scene_smoke`,
-`test_creator_acceptance_smoke`, `test_editor_smoke` and
-`test_dialog_presentation_contract`) read the application path from `QEGTRAIN_APP`.
-`test_lebanon_scene_smoke`, `test_creator_acceptance_smoke` and
-`test_dialog_presentation_contract` also read the `scene_tool` path from
-`QEGTRAIN_SCENE_TOOL`. CTest sets both from the build targets. Run by hand
-without them, the scripts use the macOS paths under `build/`.
+Every Bash smoke in the table except `test_package_contents_smoke` reads the
+application path from `QEGTRAIN_APP`; `test_visual_polish_smoke` passes it on to
+the scripts it runs. `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`
+and `test_dialog_presentation_contract` also read the `scene_tool` path from
+`QEGTRAIN_SCENE_TOOL`. CTest sets these variables from the build targets. Run by
+hand without them, the scripts use the macOS paths under `build/`.
+`test_route_diagram_smoke` reads no variable: CTest passes the application and
+the directory of the test executables as the two arguments of
+`route_diagram_smoke.py`, which uses the paths under `build/` when it gets none.
+
+`test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`,
+`test_route_diagram_smoke` and `test_visual_polish_smoke` are not registered in a
+build with `EGTRAIN_ENABLE_SANITIZERS=ON`: the time limits of their scripts are set
+for an uninstrumented build.
 
 `test_dialog_presentation_contract` runs `creator_acceptance_smoke.sh --dialog-contract`,
 which starts the creator acceptance run and then checks the case chooser and the Run
@@ -846,7 +855,15 @@ a step of its own.
 tools/e2e/visual_polish_smoke.sh
 ```
 
-Run this after UI or rendering changes.
+Run this after UI or rendering changes. On macOS CTest runs the same script as
+`test_visual_polish_smoke`. The other GUI smokes are CTest tests of their own,
+`test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`
+and `test_route_diagram_smoke` (see [Platform coverage](#platform-coverage)), and
+`ctest --test-dir build -R <name> --output-on-failure` starts one. CTest gives these
+tests and `test_visual_polish_smoke` a settings folder below `build/settings` and an output
+folder below `build/output`; `visual_polish_smoke.sh` replaces the settings folder with a
+temporary one. The release workflow also runs `scene_render_smoke.sh`, `track_preview_smoke.sh` and
+`visual_polish_smoke.sh` as steps of their own.
 
 The script also runs the signal head checks. `QEGTRAIN_E2E_SIGNAL_HEADS` names
 what the run must show: `levels` (heads take stop, caution and proceed and
@@ -940,6 +957,11 @@ The visual and render smoke artifacts include:
 - `qegtrain-scene-render-e2e.png` and `qegtrain-scene-render-e2e.log`
 - `ctest.log`, `qegtrain-editor-smoke-e2e.log`, and
   `qegtrain-gui-autostart-smoke.log`
+
+The failure artifact of the pull request check holds only `ctest.log` and the
+GUI autostart log, so the output of a failed smoke is what its script prints into
+`ctest.log`. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
+most of its checks, so run it locally to read its logs.
 
 ## CI and release branches
 
