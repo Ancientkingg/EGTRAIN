@@ -10,14 +10,14 @@ using legacy files.
 
 ## Window flow
 
-- Start state: the main window opens with no scene selected. `New Case Study...`, `Open Case Study...`, `Open Scene Folder...`, recent scenes, `Load Legacy Case...`, and `Quit` are available. Save, scene edit panes, and scene Run are disabled until a scene opens.
+- Start state: a scene is already loaded when the window first shows. `app/main.cpp` loads and validates the scene that the startup options name (Netherlands by default) and opens it in the window. Unless a startup option such as `-n` or `--scene` skips it, the window then shows the case chooser **Open a Case** over that scene. [Startup of the window](../guides/command-line.md#startup-of-the-window) lists the options. The chooser lists **Bundled cases** (scene folders and `.egscene` files in a `Scenes` folder in the working directory or next to the executable, and in `../Resources/Scenes` and `../share/EGTRAIN/Scenes` relative to the executable) and **Recent cases**. **Other ways to open...** offers `New Case Study...`, `Open Scene Folder...` and `Import Legacy Case...`. **Continue** keeps the loaded scene and **Open** opens the selected case. The toolbar button **Open Case** shows the same chooser later. A window without a scene exists only in the creator acceptance smoke test (`tools/e2e/creator_acceptance_smoke.sh` sets `QEGTRAIN_E2E_CREATOR_ACCEPTANCE`). There Save, the scene edit panes, and scene Run are disabled until a scene is created or opened.
 - New scene: `New Case Study...` creates the smallest structurally valid `SceneModel`. It remains editable and saveable while semantic diagnostics identify the railway data still required for Run.
 - Open scene: `Open Case Study...` selects an `.egscene` bundle; `Open Scene Folder...` selects an editable canonical directory. Both load the same canonical JSON into `SceneModel` and add the selected path to the recent-scenes list in `QSettings`. Normal mode opens quietly; `View > Advanced / Developer details` persists the choice and exposes the automatic Loaded Data and full validation detail. The existing Loaded Data and Validation View actions remain explicit in either mode. File, recent-scene, drop, and chooser opens resolve focused edits through one Save, Discard, or Cancel decision after the target is selected. Cancelled pickers and failed loads retain the current scene; teardown starts only after the incoming scene loads successfully.
 - Compatibility: opening probes schema, bundle, and descriptive saved-with metadata before loading. Current scenes open directly; older scenes offer only an explicit upgrade copy when a registered migration reaches the current format, and are otherwise reported as unsupported and not opened (no migration is registered today); newer scenes offer **Check for Updates...** and Cancel. Automated/headless flows do not show these dialogs or start network checks. [Compatibility boundary](scene-model.md#compatibility-boundary) lists which scenes open.
 - Validation: opening a scene populates the validation panel with `SceneDiagnostic` entries. Structural errors are shown first. Semantic validation runs only when structural loading has no errors; the full table remains available from the View menu and Loaded Data diagnostics. Normal mode keeps actionable errors and readiness visible while omitting automatic non-blocking warning counts; advanced mode also shows the summary counts and technical inventory.
 - Edit panes: after a valid enough model loads, the editor panes show scene data from `SceneModel`. V1 edits update `SceneModel`; they do not edit legacy files directly.
 - Save: `Save Scene` writes back to the opened bundle or directory. `Save Case Study As...` writes a portable `.egscene`; `Save Scene As Folder...` writes canonical JSON to a directory.
-- Run handoff: Run revalidates the current model. Error diagnostics block Run. If validation passes, the shared native setup builds the existing runtime globals directly from that model.
+- Run handoff: Run revalidates the current model. Error diagnostics block Run, and so does a run with no selected service occurrence. If validation passes, the review window **Run simulation** opens. It names the scene and the scenario and shows the selected services, the start clock, the duration and the active incidents. Only its button **Run simulation** goes on: the shared native setup then builds the existing runtime globals directly from the model.
 - Back to results: after the run, students can inspect speed, time, applied tractive effort, blocking-time, timetable, delay, and capacity results. Existing tables and diagrams provide CSV or PNG export where applicable. Run Results keeps the completed-run identity and, when relevant, the delay baseline identity beside the baseline/compare actions; the adjacent message states the next valid action or why a control is disabled. A valid comparison with no positive additional final-arrival delay reports that zero result explicitly.
 
 `Load Legacy Case...` is an explicit conversion action. It reads a selected
@@ -30,14 +30,14 @@ opens without a second prompt.
 
 | Area | Contents | Enabled state |
 |---|---|---|
-| File menu | `Open Case Study...`, `Open Scene Folder...`, `Save Scene`, `Save Case Study As...`, `Save Scene As Folder...`, recent scenes, `Load Legacy Case...`, `Quit` | Open, recent scenes, legacy case picker, and Quit are always enabled. Save is enabled when a scene is loaded and dirty. Both Save As actions are enabled when a scene is loaded. |
-| Simulation menu and toolbar | `Run`, `Pause`, `Stop`, speed control | Run is enabled when a runnable scene is loaded and no scene error diagnostics are current. Pause and Stop are enabled only while simulation is running. |
-| Central view | Existing network view and progress bar | Empty at startup. Shows canonical scene infrastructure after open and simulation state after setup and run. |
-| Editor docks | Case settings, infrastructure, rolling stock units, compositions, services and timetable, incidents | Enabled for a new or opened canonical scene. A legacy case must first be imported as a scene. |
+| File menu | `New Case Study...`, `Open Case Study...`, `Open Scene Folder...`, `Save Scene`, `Save Case Study As...`, `Save Scene As Folder...`, `Run Scene`, `Recent Scenes`, `Load Legacy Case...`, `Quit`, `Set Output Folder...` | New, Open, Open Scene Folder, the legacy case picker, and Quit are always enabled. An open, New or legacy import during a run waits until the run has stopped ([Close, New and Open during a run](../development/build-and-test.md#close-new-and-open-during-a-run)). Recent Scenes is enabled when the list has entries. Save is enabled when a scene is loaded. Both Save As actions are enabled when a scene is loaded. Run Scene follows Run. Set Output Folder is disabled while a run is active. |
+| Simulation menu and toolbar | `Run`, `Pause`, `Stop`, speed control | Run is enabled when a scene is loaded, no run is active and no scene error diagnostics are current. Pause and Stop are enabled only while simulation is running. |
+| Central view | Existing network view and progress bar | Shows canonical scene infrastructure after open and simulation state after setup and run. |
+| Editor docks | Case settings, infrastructure, rolling stock units, compositions, services and timetable, incidents, passengers | Enabled for a new or opened canonical scene. The Infrastructure, Services and Passengers docks are disabled while a run is active. A legacy case must first be imported as a scene. |
 | Validation panel | Dockable table of diagnostics | Available from View in every mode. Updated on open, edit, save, and pre-run validation; automatic summary detail is richer in Advanced mode. |
 | Loaded Data panel | Case/source metadata, parsed category counts, scenarios, provenance, validation status, editor links, runtime and result readiness | Automatically raised after scene open only in Advanced mode; the existing View action remains explicit. Item activation reuses the existing network view, validation table, and domain editors. |
 | Existing info dock | Read-only selected item details for nodes, stations, arcs, connections, signals, trains | Enabled when the network view has selectable items. It stays read-only outside explicit editor controls. |
-| Status bar | Current scene name, scene path, dirty state, validation summary, run state | Always visible. Scene-specific fields are empty before a scene opens. Normal mode calls out actionable validation errors; Advanced mode also shows warning/info counts. |
+| Status bar | Transient messages, for example `Scene loaded: <name> (N services, M routes)`, `Running scene: <name>` and `Simulation complete - open the Diagrams menu for results`; three permanent fields: the follow status of the selected train, the validation summary and the zoom of the network view | Always visible. The scene name and the unsaved mark are in the window title. Normal mode calls out actionable validation errors; Advanced mode also shows warning/info counts. |
 
 ## Validation lifecycle
 
@@ -56,35 +56,43 @@ and entrance-delay counts in normal mode; an invalid scenario remains marked
 ## Simulation handoff mechanics
 
 Run uses the current `SceneModel`, including unsaved editor changes.
-`DispatchController::prepareScene` invokes the infrastructure/signalling builder,
-then the operations builder, and prepares the configured output directory. It
-does not serialize, export, or stage a second input representation.
+`DispatchController::prepareScene` clears the previous runtime state, checks
+that the scene is runnable, invokes the infrastructure/signalling builder, then
+the operations builder, and prepares the configured output directory. An error
+found before the output directory is prepared resets the runtime state. It does
+not serialize, export, or stage a second input representation.
 
 Simulation parameters are canonical:
 
 - `numTrackLines`: number of entries in `infrastructure.json.tracks`.
 - `N_Routes`: number of routes in `signalling.json`.
 - `startingSimulationTime`: `scene.json.base_time`, converted from `HH:MM:SS`.
-- `times`: `scene.json.simulation_settings.duration_seconds`.
+- `times`: `scene.json.simulation_settings.duration_seconds`, or the value of `-h`
+  when that option is given (see [Options](../guides/command-line.md#options)).
 
-After these values are set, the existing sequence runs in the current main window:
+`DispatchController::prepareScene` sets these values from the scene. Run calls
+it in the current main window with this sequence:
 
 ```text
 teardownGUI
-simulation.resetState
 simulation.prepareScene(SceneModel)
 setupGUI
 ```
 
-Only after setup succeeds does the simulation worker start.
-Case replacement waits for the old worker to stop and ignores any queued
-completion from that worker. Disabled scenario controls are not pending edits.
+Only after setup succeeds does the simulation worker start. Opening or creating
+a scene calls `teardownGUI` and `simulation.resetState` before it replaces the
+current scene. Case replacement waits for the old worker to stop and ignores any
+queued completion from that worker. Disabled scenario controls are not pending
+edits.
 
 The Loaded Data panel reports one global runtime state instead of claiming each
 input file built a separate runtime model. It is `Not built` after open or an
-edit, `Ready` after `prepareScene` succeeds, and `Failed` with builder
-diagnostics after preparation fails. Completed simulation output is reported as
-available, but remains outside canonical input.
+edit, `Ready` after `prepareScene` succeeds, `Running` while the worker runs,
+`Completed` when a run ends with results, `Stopped` when a stop request ends a
+run before it completes, and `Failed` with builder diagnostics after preparation
+fails. `Failed` also covers a run that ends without results and without a stop
+request, and a run whose scene changed while it ran. Completed simulation output
+is reported as available, but remains outside canonical input.
 
 ## V1 edit panes
 

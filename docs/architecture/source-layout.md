@@ -17,6 +17,7 @@ tools/memory/             Peak-memory measurement and the ownership inventory
 tools/performance/        Startup timing and playback profiling scripts
 tools/golden_master/      Token-wise comparison of output files against a baseline directory
 tools/format.py           Checks or applies the code format of the C++ sources
+tools/docs/               Checks the Markdown documentation
 docs/                     Guides and architecture, development, product, telemetry and UI documentation
 .github/workflows/        GitHub Actions workflows: build and test, format, packages, releases and the telemetry contract check
 ```
@@ -26,17 +27,17 @@ docs/                     Guides and architecture, development, product, telemet
 | Folder | Holds |
 | --- | --- |
 | `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `resources.qrc` |
-| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `DispatchDecision`, `InitialParameters` |
-| `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneDiagnostic`, `SceneTool` |
+| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
+| `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `SceneTool` |
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
-| `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar` |
-| `diagrams/` | Chart windows: `DiagramWindow`, `BlockingTimeDiagram` |
+| `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `ElidedLabel` |
+| `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `CapacityAnalysis`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
-| `util/` | Cross-cutting helpers and the logger: `Util`, `TimeUtil`, `TrajectoryUtil`, `portability`, `Log`, `Logger`, `SpeedFormat`, `TimeFormat` |
+| `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
-| `tests/` | Unit tests |
+| `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases and the test `fixtures/` |
 
 ## Includes
 
@@ -99,7 +100,6 @@ after what they draw.
 | --- | --- |
 | `myQGraphicsScene` | `NetworkScene` |
 | `myQGraphicsView` | `NetworkView` |
-| `myQGraphicsItem` | `BaseNetworkItem` |
 | `myQGraphicsEllipseItem` | `NodeItem` |
 | `myQGraphicsRectItem` | `StationNodeItem` |
 | `myQGraphicsLineItem` | `TrackLineItem` |
@@ -117,7 +117,6 @@ after what they draw.
 | `EGTRAIN` (class) | `DispatchController` |
 | `IOClass` (file) | `RailMLParser` |
 | `Owl` | `Logger` |
-| `dispDecision` | `DispatchDecision` |
 | `initial_parameters` | `InitialParameters` |
 
 The `EGTRAIN` rename touched the class only. The project name, the `QEGTRAIN`
