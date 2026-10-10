@@ -38,7 +38,7 @@ Provenance names two things. Each export of results (**Export CSV...**, **Export
 
 ### Output folder
 
-The output folder is the folder where a run writes its text output. **File > Set Output Folder...** chooses it for the next run. [Output folder](command-line.md#output-folder) gives the default and the environment variable that replaces it. The exports (**Export CSV...**, **Export PNG...**) ask for their own path and are not written there.
+The output folder is the folder where a run writes its text output. **File > Set Output Folder...** chooses it for the next run. [Output folder](command-line.md#output-folder) gives the default and the environment variable that replaces it. [Run output files](run-output.md) lists the files of a run. The exports (**Export CSV...**, **Export PNG...**) ask for their own path and are not written there.
 
 ## Checking, running and results
 
@@ -78,7 +78,7 @@ A scenario is a named set of incidents and entrance delays; a case study can hol
 
 ### Baseline
 
-The word baseline has two meanings. The baseline scenario has the ID `baseline` and the name "Baseline"; a new case study starts with it, with no incidents and no entrance delays, and loading a scene without `scenarios.json` creates a scenario with that ID and name. The delay baseline is a completed run without incidents and entrance delays that you freeze with **Set delay baseline** in the dock **Run Results**, so that **Compare delays** can compare a later run with incidents against it. An edit of the case clears the delay baseline and selecting another scenario does not ([delay comparison against a baseline](delay-analysis.md#delay-comparison-against-a-baseline)).
+The word baseline has two meanings. The baseline scenario has the ID `baseline` and the name "Baseline"; a new case study starts with it, with no incidents and no entrance delays, and loading a scene without `scenarios.json` creates a scenario with that ID and name. The delay baseline is a completed run without incidents and entrance delays that you freeze with **Set delay baseline** in the dock **Run Results**, so that **Compare delays** can compare a later run with incidents against it. An edit of the case, creating a case study and opening another one clear the delay baseline, and selecting another scenario does not ([delay comparison against a baseline](delay-analysis.md#delay-comparison-against-a-baseline)).
 
 ### Incident
 
@@ -150,7 +150,7 @@ The dock **Infrastructure** (**Editors > Infrastructure**) has a chooser **Entit
 | Nodes | A point of a track, with `x_km` and `y_km`. | `infrastructure.json` |
 | Arcs | Join two nodes of a track (`from`, `to`) and carry the curvature radius, the gradient (percent, used unchanged as rise per length) and the speed limit (m/s). | `infrastructure.json` |
 | Blocks | Follow each other along a track, each with `length_km`. A block is the part of a track that a train occupies and the unit in which aspects are written ([block sections](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas)). A block ID cannot contain "/". | `infrastructure.json` |
-| Connections | Join two nodes (`from`, `to`), with an optional speed limit; each makes a switch section ([how an area gives sections their level](../architecture/signalling-levels.md#how-an-area-gives-sections-their-level)). | `infrastructure.json` |
+| Connections | Join two nodes (`from`, `to`), with an optional speed limit; a connection makes a switch section for each pair of blocks that hold its two nodes ([how an area gives sections their level](../architecture/signalling-levels.md#how-an-area-gives-sections-their-level)). | `infrastructure.json` |
 | Stations | `id`, `name`, an optional `position_km` and platforms. | `stations.json` |
 | Platforms | `id`, node IDs and an optional `length_m` and `width_m`, which set the passenger capacity ([stations.json](../architecture/scene-schema.md#stationsjson) gives the defaults). | `stations.json` |
 | Signals | `id` and an optional `protected_section`, used to resolve the targets of signal failures; the heads on the canvas show the aspect of a section (see [Signal head](#signal-head)). | `signalling.json` |
@@ -192,4 +192,4 @@ A delay is, in the timetable results, the simulated time minus the planned time,
 
 ### Capacity analysis
 
-Capacity analysis is the window opened by **Diagrams > Capacity analysis...** or **Run Results > Open result view... > Capacity** after a run. It works on one route and a range of blocks that you choose and on the blocking times of the trains you select, not on signalling areas, so it has data only for sections that have blocking times ([block sections and capacity areas](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas)). The table in [exercise sequence](../product/assignment-workflow.md#exercise-sequence) names its results: the minimum headway and the scheduled headway of an ordered pair of trains, the compressed timetable, critical blocks, buffer times and capacity consumption. In this window "headway" names a result of an ordered pair of trains, not the setting **Repeat Headway (s)** of a service, and the buffer there is a result as well, not the case setting **Buffer (s)**.
+Capacity analysis is the window opened by **Diagrams > Capacity analysis...** or **Run Results > Open result view... > Capacity** after a run. It works on one route and a range of blocks that you choose and on the blocking times of the trains you select, not on signalling areas, so it has data only for sections that have blocking times ([block sections and capacity areas](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas)). The table in [exercise sequence](../product/assignment-workflow.md#exercise-sequence) names its results: the minimum headway and the scheduled headway of an ordered pair of trains, the compressed timetable, critical blocks, buffer times and capacity consumption. In this window "headway" names a result of an ordered pair of trains, not the setting **Repeat Headway (s)** of a service, and the buffer there is a result as well, not the case setting **Buffer (s)**. [How capacity is analysed](capacity-analysis.md) states what the window computes.
