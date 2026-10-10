@@ -6837,10 +6837,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			systemCombo->setAccessibleName(QStringLiteral("Signalling system for %1").arg(areaId));
 			systemCombo->setToolTip(QStringLiteral("Choose the signalling system of the sections inside this area"));
 			systemCombo->setFocusPolicy(Qt::StrongFocus);
-			{
-				const QSignalBlocker systemBlocker(systemCombo);
-				populateSignallingSystemCombo(systemCombo, area.level);
-			}
+			populateSignallingSystemCombo(systemCombo, area.level);
 			connect(systemCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
 				[this, row, systemCombo](int) {
 					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
@@ -6866,10 +6863,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			trackCombo->setAccessibleName(QStringLiteral("Track for %1").arg(areaId));
 			trackCombo->setToolTip(QStringLiteral("Choose the track this area applies to, or all tracks"));
 			trackCombo->setFocusPolicy(Qt::StrongFocus);
-			{
-				const QSignalBlocker trackBlocker(trackCombo);
-				populateSignallingAreaTrackCombo(trackCombo, m_sceneModel, sectionInventory, area.trackId);
-			}
+			populateSignallingAreaTrackCombo(trackCombo, m_sceneModel, sectionInventory, area.trackId);
 			connect(trackCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
 				[this, row, trackCombo](int) {
 					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
