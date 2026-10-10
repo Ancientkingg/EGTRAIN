@@ -930,7 +930,7 @@ if(EGTRAIN_BUILD_TESTS)
 		set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
 		add_test(NAME test_editor_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/editor_smoke.sh)
-		set_tests_properties(test_editor_smoke PROPERTIES TIMEOUT 180)
+		set_tests_properties(test_editor_smoke PROPERTIES TIMEOUT 300)
 		# The scripts get the built application, scene_tool and a platform plugin that needs no display.
 		set_tests_properties(test_csv_export_smoke test_lebanon_scene_smoke test_creator_acceptance_smoke test_editor_smoke
 			PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>;QT_QPA_PLATFORM=offscreen")

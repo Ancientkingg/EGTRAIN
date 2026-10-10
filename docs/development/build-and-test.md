@@ -239,7 +239,9 @@ platform.
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
-The Bash smokes in the table read the application path from `QEGTRAIN_APP`.
+The four Bash smokes (`test_csv_export_smoke`, `test_lebanon_scene_smoke`,
+`test_creator_acceptance_smoke` and `test_editor_smoke`) read the application
+path from `QEGTRAIN_APP`.
 `test_lebanon_scene_smoke` and `test_creator_acceptance_smoke` also read the
 `scene_tool` path from `QEGTRAIN_SCENE_TOOL`. CTest sets both from the build
 targets. Run by hand without them, the scripts use the macOS paths under `build/`.
