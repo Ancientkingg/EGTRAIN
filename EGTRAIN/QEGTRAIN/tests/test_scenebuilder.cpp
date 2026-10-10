@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <list>
 #include <map>
 #include <set>
 #include <string>
@@ -1458,6 +1459,137 @@ static bool runSignallingMessageChecks() {
 	return ok;
 }
 
+// The ids that occupyBlockAndConnected, occupyDoubleSwitch, releaseDoubleSwitch and releaseLastBlockAndConnected add to BlocksOccupied
+// and BlocksConnected: the section, its connected sections and, for a diverging switch, the two block ids of its name, in this order
+// and each id once.
+static bool runOccupancyListChecks() {
+	bool ok = true;
+	using IdList = std::list<std::string>;
+	const auto joined = [](const IdList& ids) {
+		std::string text;
+		for (const std::string& id : ids)
+			text += (text.empty() ? "'" : ", '") + id + "'";
+		return text;
+	};
+	const auto listsAre = [&](const IdList& wantedOccupied, const IdList& wantedConnected, const std::string& what) {
+		ok &= expect(BlocksOccupied == wantedOccupied && BlocksConnected == wantedConnected,
+			what + "\n  occupied: " + joined(BlocksOccupied) + "\n  connected: " + joined(BlocksConnected));
+	};
+	const auto startWith = [](const IdList& occupied, const IdList& connected) {
+		BlocksOccupied = occupied;
+		BlocksConnected = connected;
+	};
+	const auto describe = [](Section& target, const std::string& id, const std::vector<std::string>& linked, bool diverging = false) {
+		target.ID = id;
+		target.withSwitchDiv = diverging;
+		target.N_ConnectedBS = static_cast<int>(linked.size());
+		for (std::size_t index = 0; index < linked.size(); ++index)
+			target.IDConnectedBS[index] = linked[index];
+	};
+	std::vector<Section> halves(2);
+	Section& current = halves[0];
+	Section& previous = halves[1];
+
+	// A section is added to BlocksOccupied after the connected sections that are listed already, and the previous section is released.
+	describe(current, "occ.main", {"occ.c1", "occ.c2"});
+	describe(previous, "occ.prev", {});
+	startWith({"occ.c1"}, {});
+	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "an occupied section adds itself and the connected sections that are missing");
+	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "a second occupation of the same sections adds no id twice");
+
+	// The connected sections of the previous section are added to BlocksConnected when the train tail crosses its end node, before the
+	// previous section itself.
+	describe(previous, "occ.prev", {"prev.c1"});
+	previous.end_node.X = 2.0;
+	startWith({}, {});
+	occupyBlockAndConnected(current, previous, 2001.0, 1999.0);
+	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"prev.c1", "occ.prev"}, "the tail crossing the end of the previous section connects its sections first");
+	startWith({}, {});
+	occupyBlockAndConnected(current, previous, 2002.0, 2001.0);
+	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"occ.prev", "prev.c1"},
+		"the tail past the end of the previous section connects its sections after the section");
+
+	// A section with the largest number of connected sections.
+	describe(current, "big.main", {"big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"});
+	describe(previous, "occ.prev", {});
+	startWith({}, {});
+	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	listsAre({"big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"}, {"occ.prev"},
+		"a section with ten connected sections adds all eleven ids");
+	startWith({"big.c9"}, {});
+	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	listsAre({"big.c9", "big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8"}, {"occ.prev"},
+		"the last connected section of ten is skipped when it is listed already");
+
+	// A released section without a switch adds itself and its connected sections to BlocksConnected only.
+	describe(current, "rel.main", {"rel.c1", "rel.c2"});
+	startWith({}, {"rel.c2"});
+	releaseLastBlockAndConnected(current);
+	listsAre({}, {"rel.c2", "rel.main", "rel.c1"}, "a released section adds itself and the connected sections that are missing");
+
+	// A released section with a diverging switch also adds the two block ids of its name, before the connected sections.
+	const std::string switchId = "@sw.a@-1.000000/@sw.b@-2.000000";
+	describe(current, switchId, {"sw.c1", "sw.c2"}, true);
+	startWith({}, {"sw.c1"});
+	releaseLastBlockAndConnected(current);
+	listsAre({}, {"sw.c1", switchId, "@sw.a@", "@sw.b@", "sw.c2"}, "a released section with a switch adds the two blocks of its name");
+	describe(current, switchId, {"sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"}, true);
+	startWith({}, {});
+	releaseLastBlockAndConnected(current);
+	listsAre({}, {switchId, "@sw.a@", "@sw.b@", "sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"},
+		"a released section with a switch and ten connected sections adds thirteen ids");
+
+	// A switch whose name holds no two block ids changes nothing.
+	describe(current, "sw.without.blocks", {"sw.c1"}, true);
+	startWith({"kept.occupied"}, {"kept.connected"});
+	releaseLastBlockAndConnected(current);
+	listsAre({"kept.occupied"}, {"kept.connected"}, "a section with a switch and a name without two blocks changes neither list");
+
+	// A double switch: two switch halves, each with its two blocks in the section list.
+	resetNativeInfrastructureState();
+	signalling_block_sections = std::vector<Section>(4);
+	Blocks = static_cast<int>(signalling_block_sections.size());
+	describe(signalling_block_sections[0], "@dsA@", {"a.c"});
+	describe(signalling_block_sections[1], "@dsB@", {"b.c"});
+	describe(signalling_block_sections[2], "@dsC@", {"c.c"});
+	describe(signalling_block_sections[3], "@dsD@", {"d.c"});
+	const std::string firstId = "@dsA@-1.000000/@dsB@-2.000000";
+	const std::string secondId = "@dsC@-3.000000/@dsD@-4.000000";
+	describe(current, firstId, {"s1.c"});
+	describe(previous, secondId, {});
+	const IdList fullOccupied = {firstId, "s1.c", "@dsA@", "@dsB@", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"};
+	startWith({}, {});
+	occupyDoubleSwitch(current, previous);
+	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"}, "a double switch occupies both halves, their blocks and the sections connected to them");
+	startWith({firstId}, {});
+	occupyDoubleSwitch(current, previous);
+	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"},
+		"a double switch whose first half is listed already still adds the sections connected to it");
+
+	current.withSwitchDiv = true;
+	previous.withSwitchDiv = false;
+	startWith({}, {});
+	releaseDoubleSwitch(current, previous);
+	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId}, "a released double switch with a switch on its first half only");
+	current.withSwitchDiv = false;
+	startWith({}, {});
+	releaseDoubleSwitch(current, previous);
+	listsAre({}, {firstId, "s1.c", secondId}, "a released double switch without a switch on either half");
+	current.withSwitchDiv = true;
+	previous.withSwitchDiv = true;
+	startWith({}, {});
+	releaseDoubleSwitch(current, previous);
+	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"},
+		"a released double switch with a switch on both halves");
+
+	BlocksOccupied.clear();
+	BlocksConnected.clear();
+	resetNativeInfrastructureState();
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
@@ -1467,5 +1599,6 @@ int main() {
 	ok &= runValueSemanticsChecks();
 	ok &= runTrackDetectionBorderNameChecks();
 	ok &= runSignallingMessageChecks();
+	ok &= runOccupancyListChecks();
 	return ok ? 0 : 1;
 }
