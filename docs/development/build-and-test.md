@@ -432,6 +432,15 @@ The stub cases add the routes `routeStubIn` and `routeStubOut` and the services
 `U1` and `D1` to the scene in the test, because a route with `4-B0` or `5-B0` in
 the fixture would add a movement authority to the cases with a signal failure on
 those sections.
+
+The passenger cases add station `P`, services `Q1` to `Q3` and passengers in the
+test. Transfer cases also add `Platform_4` on B: its numeric label reaches the
+walking time calculation, while `B.platform.1` reads as 0. Only transfer cases
+have this platform, because its node adds a second timetable point named B.
+Their B stops have no planned arrival. The cases set `PAX_GUI` directly with
+the window off; the [command line](../guides/command-line.md) reads `-pax` only
+with `-g 1`.
+
 All railway and rolling-stock values are copied from the committed Assignment
 scene. The signalling level is not part of the scene. The test sets it with one
 network-wide signalling area, so one scene covers levels 0 to 5 and "none". The
@@ -469,8 +478,10 @@ A case is a scenario, a set of services and a level. The case table is in
 | `border-0-3-fwd`, `border-0-3-rev` | the same trains with level 0 from A to 8 km and level 3 from 8 km to C |
 | `border-0-1-fwd` | trains `F1` and `F2` with level 0 from A to 8 km and level 1 from 8 km to C |
 | `border-0-2-near-fwd`, `border-0-1-near-fwd` | trains `F1` and `F2` with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in `2-B0` has the level 0 sections `1-B0` and `0-B0` behind it |
+| `pax-board-gui0`, `pax-board-gui1`, `pax-full-gui0`, `pax-full-gui1` | `Q1` boards passengers at P, including ties and an entry during the stop; a later entry stays at P. Full cases cut ties with three seats at P and B; alighting at B frees seats before boarding |
+| `pax-transfer-gui0`, `pax-transfer-gui1` | `Q1` connects to `Q2` on the same platform and to `Q3` on another label; a passenger also starts a second journey on `Q3` |
 
-All 75 cases run in CTest. They are listed in
+Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
 has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
@@ -617,10 +628,34 @@ one fact: some key words, then `name=value` fields.
   trains only.
 - `signed_stats`: the same rows of `TrainTrajectories/Pos&Neg_Stats_Stations.txt`,
   where early arrivals are negative delays.
+- `pax <id> state`: changes in network membership, status, active journey and trip,
+  waiting station and platform, awaited and boarded trains, and arrival station.
+- `gui_platform <station> <platform>`: changes in the ordered passenger IDs sent
+  to the window; `-` means empty.
+- `gui_passenger <id>`: changes in status, waiting platform, next train and next
+  destination sent to the window.
+- `onboard <train>`: changes in onboard count and capacity sent to the window.
+- `journey <passenger> <journey>` and `trip <passenger> <trip>`: final start and
+  completion flags, actual times and arrival delay, plus walking and waiting
+  times for journeys. Passenger times are absolute seconds of the day; trace
+  `t` values are steps of the run.
+- `file PassengerStatus.txt` and `file JourneyDelays.txt`: every line of the two
+  passenger files, as whitespace separated tokens.
 
-Both files take the arrival of a stop from its timetable point, the arrival that
-`TimetablePoints.txt`, the timetable results, the diagrams and the CSV export
-report, so a `result` line and a station row show the same delay. A train that
+Passenger traces store the first snapshot and print only later changes, in step
+order. Passenger windows have equal ends, so no golden depends on the seed.
+
+Transfers to a platform with another label never complete: the passenger stays
+on the arrival platform. Waiting time is accumulated for the first journey
+only. With `PAX_GUI` off the persistent platform lists stay empty. The snapshot
+part for passengers who just left never matches when the base time is at or
+above the horizon. A station with platforms on two nodes of one route has one
+timetable point per node; result rows and statistics for a stop at that station
+read the first point. See [Delay analysis](../guides/delay-analysis.md#limits).
+
+Both station statistics files take the arrival of a stop from its timetable
+point, the arrival that `TimetablePoints.txt`, the timetable results, the
+diagrams and the CSV export report, so a `result` line and a station row show the same delay. A train that
 did not reach a stop, and a stop without a planned arrival, have no delay and are
 counted in neither file. A stop with no timetable point keeps the arrival
 recorded during the run. A station row without such a train holds `-1` in the

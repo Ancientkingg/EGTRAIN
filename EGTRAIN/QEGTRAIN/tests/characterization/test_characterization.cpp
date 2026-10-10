@@ -7,6 +7,9 @@
 // tests/characterization/expected. Integers and strings must match exactly,
 // floats within an absolute and a relative tolerance.
 //
+// Passenger cases add deterministic journeys and record boarding, transfers,
+// platform lists and the passenger files of the real run.
+//
 //   test_characterization --fixture DIR --expect DIR --case NAME
 //   test_characterization --repeat SCENE[#CASE]...
 //   test_characterization --repeat-files SCENE[#CASE]...
@@ -34,6 +37,7 @@
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Optimisation.h"
+#include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
@@ -218,6 +222,9 @@ struct CaseSpec {
 	// The border has to lie on a section edge.
 	double borderKm = kNoBorder;
 	int secondLevel = kNoSignallingArea;
+	std::string passengers;
+	bool paxGui = false;
+	int capacity = 0;
 };
 
 // Cases whose current behaviour is wrong, as "#<issue> <reason>" with the open issue that describes it. The table is
@@ -326,6 +333,16 @@ std::vector<CaseSpec> buildCaseTable() {
 		spec.borderKm = border.borderKm;
 		spec.secondLevel = border.east;
 		cases.push_back(spec);
+	}
+	for (const std::string& set : {"board", "full", "transfer"}) {
+		for (bool gui : {false, true}) {
+			CaseSpec spec{"pax-" + set + "-gui" + (gui ? "1" : "0"), "baseline",
+				set == "transfer" ? std::vector<std::string>{"Q1", "Q2", "Q3"} : std::vector<std::string>{"Q1"}, kNoSignallingArea, ""};
+			spec.passengers = set;
+			spec.paxGui = gui;
+			spec.capacity = set == "full" ? 3 : 0;
+			cases.push_back(spec);
+		}
 	}
 	return cases;
 }
@@ -467,6 +484,50 @@ private:
 	std::vector<std::string> problems_;
 };
 
+// Stores the first snapshot, then records only changes in passenger state.
+class PassengerTrace {
+public:
+	void record(const GuiSimulationSnapshot& snapshot) {
+		const auto observe = [this, &snapshot](Line line) {
+			const auto previous = previous_.find(line.key);
+			if (initialized_ && (previous == previous_.end() || !sameLine(previous->second, line))) {
+				Line changed = line;
+				changed.fields.insert(changed.fields.begin(), integerField("t", snapshot.timestep));
+				lines_.push_back(std::move(changed));
+			}
+			previous_[line.key] = std::move(line);
+		};
+		for (const Passenger& p : AllDailyPassengers)
+			observe({"pax " + p.ID + " state",
+				{integerField("in", p.IsIntheNetwork), textField("status", p.CurrentStatus),
+					textField("journey", p.current_JourneyID), textField("trip", p.current_TripID),
+					textField("waiting", p.Current_WaitingStationID + "/" + p.Current_WaitingStationPlatformID),
+					textField("to_wait", p.Current_Train_To_Wait), textField("boarded", p.Current_Train_Boarded),
+					textField("arrival", p.Current_Arrival_Station)}});
+		for (const GuiPlatformState& platform : snapshot.platforms) {
+			std::string ids;
+			for (const std::string& id : platform.passengerIds)
+				ids += (ids.empty() ? "" : ",") + id;
+			observe({"gui_platform " + platform.stationId + " " + platform.platformId, {textField("ids", ids)}});
+		}
+		for (const GuiPassengerState& p : snapshot.passengers)
+			observe({"gui_passenger " + p.id,
+				{textField("status", p.status), textField("platform", p.waitingPlatform),
+					textField("next_train", p.nextTrain), textField("next_destination", p.nextDestination)}});
+		for (const GuiTrainState& train : snapshot.trains)
+			observe({"onboard " + train.description,
+				{integerField("n", train.currentOnboardPassengers), integerField("max", train.maxOnboardPassengers)}});
+		initialized_ = true;
+	}
+
+	const Observation& lines() const { return lines_; }
+
+private:
+	bool initialized_ = false;
+	std::map<std::string, Line> previous_;
+	Observation lines_;
+};
+
 // Reads the signalling state after every simulated second through the same
 // signal the GUI uses.
 class StepRecorder : public QObject {
@@ -490,8 +551,8 @@ public:
 		std::vector<std::vector<std::pair<int, double>>> changes;
 	};
 
-	StepRecorder(const std::vector<int>& routes, const std::set<int>& boundarySteps)
-		: boundarySteps_(boundarySteps) {
+	StepRecorder(const std::vector<int>& routes, const std::set<int>& boundarySteps, PassengerTrace* passengers)
+		: boundarySteps_(boundarySteps), passengers_(passengers) {
 		for (int routeIndex : routes) {
 			RouteCodes route;
 			route.routeIndex = routeIndex;
@@ -511,6 +572,8 @@ public:
 		const int step = snapshot->timestep;
 		++callbacks_;
 		signalChecker_.check(*snapshot);
+		if (passengers_)
+			passengers_->record(*snapshot);
 		for (RouteCodes& route : routes_) {
 			const Route& source = train_route[route.routeIndex];
 			for (int b = 0; b < source.N_Block_Sections; ++b) {
@@ -547,6 +610,7 @@ private:
 	std::vector<Boundary> boundaries_;
 	int callbacks_ = 0;
 	SnapshotSignalChecker signalChecker_;
+	PassengerTrace* passengers_;
 };
 
 struct TrainTrack {
@@ -891,6 +955,86 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 	return failures;
 }
 
+constexpr int kPassengerBaseTime = 7 * 60 * 60;
+
+void addPassengerSet(SceneModel& scene, const std::string& set) {
+	SceneStation station;
+	station.id = station.name = "P";
+	station.hasPosition = true;
+	station.positionKm = 4.0;
+	station.platforms = {{"P.platform.1", {"B0.node.3"}}};
+	scene.stations.push_back(station);
+	const bool transfer = set == "transfer";
+	if (transfer) {
+		// The numeric label reaches walking time; its own node adds a second timetable point at B.
+		for (SceneStation& b : scene.stations)
+			if (b.id == "B")
+				b.platforms.push_back({"Platform_4", {"B0.node.4"}});
+	}
+	const auto service = [](const std::string& id, double entry, double departureB, double arrivalC,
+							 bool stopP, const std::string& platformB, double arrivalB, bool omitArrivalB) {
+		SceneService train;
+		train.id = train.operatingCode = id;
+		train.composition = "SLT_Sprinter";
+		train.route = "route0";
+		train.hasEntryTime = true;
+		train.entryTimeSeconds = entry;
+		train.stops.push_back({"A", "A.platform.1", false, true, 0, entry + 60, 0});
+		if (stopP)
+			train.stops.push_back({"P", "P.platform.1", true, true, 400, 460, 60});
+		// Only transfer cases omit B's arrival: results use its first node, before the standing stop.
+		train.stops.push_back({"B", platformB, !omitArrivalB, true, arrivalB, departureB, 60});
+		train.stops.push_back({"C", "C.platform.1", true, false, arrivalC, 0, 60});
+		return train;
+	};
+	scene.services.push_back(service("Q1", 60, 820, 1250, true, "B.platform.1", 760, transfer));
+	if (transfer) {
+		scene.services.push_back(service("Q2", 20, 1000, 1400, false, "B.platform.1", 760, true));
+		scene.services.push_back(service("Q3", 500, 960, 1450, false, "Platform_4", 900, true));
+	}
+	const auto journey = [](const std::string& id, int entry, int arrival, const std::string& from,
+							 const std::string& to, const std::vector<std::string>& services) {
+		ScenePassengerJourney j;
+		j.id = id;
+		j.activity = "test";
+		j.originStationId = from;
+		j.destinationStationId = to;
+		j.plannedDepartureStartSeconds = j.plannedDepartureEndSeconds = kPassengerBaseTime + entry;
+		j.plannedArrivalStartSeconds = j.plannedArrivalEndSeconds = kPassengerBaseTime + arrival;
+		for (size_t i = 0; i < services.size(); ++i)
+			j.legs.push_back({id + ".leg." + std::to_string(i + 1), i == 0 ? from : "B",
+				i + 1 == services.size() ? to : "B", services[i], 1});
+		return j;
+	};
+	if (set == "board") {
+		// Equal entry times pin ties; b5 boards during the stop and b6 stays stranded.
+		const int entries[] = {100, 150, 100, 200, 300, 480};
+		for (int i = 0; i < 6; ++i) {
+			const std::string id = "b" + std::to_string(i + 1);
+			scene.passengers.push_back({id, {journey(id + ".1", entries[i], 760, "P", "B", {"Q1"})}});
+		}
+	} else if (set == "full") {
+		// Three seats cut the f1/f3 tie; f5 enters while the train is full.
+		const int entriesP[] = {180, 120, 180, 150, 300};
+		for (int i = 0; i < 5; ++i) {
+			const std::string id = "f" + std::to_string(i + 1);
+			scene.passengers.push_back({id, {journey(id + ".1", entriesP[i], 760, "P", "B", {"Q1"})}});
+		}
+		// Alighting frees three seats at B and cuts the f6/f8 tie.
+		const int entriesB[] = {600, 560, 600, 580};
+		for (int i = 0; i < 4; ++i) {
+			const std::string id = "f" + std::to_string(i + 6);
+			scene.passengers.push_back({id, {journey(id + ".1", entriesB[i], 1250, "B", "C", {"Q1"})}});
+		}
+	} else {
+		// x1 transfers to Q2; x2 walks 120 s but stays on the arrival platform and never boards Q3.
+		scene.passengers.push_back({"x1", {journey("x1.1", 150, 1400, "P", "C", {"Q1", "Q2"})}});
+		scene.passengers.push_back({"x2", {journey("x2.1", 160, 1450, "P", "C", {"Q1", "Q3"})}});
+		// Waiting time is accumulated only for the first journey; y1.2 starts at Platform_4.
+		scene.passengers.push_back({"y1", {journey("y1.1", 170, 760, "P", "B", {"Q1"}), journey("y1.2", 650, 1450, "B", "C", {"Q3"})}});
+	}
+}
+
 // Driver for one run. Everything read from the simulation globals happens
 // here, so the next run starts from whatever prepareScene resets. The files of
 // the run go to a temporary folder that is removed when the run ends, or, with
@@ -958,6 +1102,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	}
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
+	if (!spec.passengers.empty())
+		addPassengerSet(loaded.scene, spec.passengers);
 	SceneRunSelection selection;
 	for (const std::string& service : spec.services)
 		selection.insert({service, 1});
@@ -975,6 +1121,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
+	initial_variables.PAX_GUI = spec.paxGui;
 	// --repeat-files compares every file of the kept folders, so these runs write the detailed files too.
 	initial_variables.exportDetailedTrajectories = !keptOutputDir.empty();
 	initial_variables.OutputMainFolder = outputDir;
@@ -993,6 +1140,14 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		outcome.error = "the harness indexes trajectories by whole seconds; timestep is " + formatReal(timestep) + "\n";
 		return outcome;
 	}
+
+	if (!spec.passengers.empty() && initial_variables.startingSimulationTime != kPassengerBaseTime) {
+		outcome.error = "passenger windows require a base time of 07:00:00\n";
+		return outcome;
+	}
+	if (spec.capacity > 0)
+		for (int i = 0; i < numRegions; ++i)
+			regional_train[i].MAX_OnBoard_Passengers = spec.capacity;
 
 	std::vector<int> routesInUse;
 	for (int i = 0; i < numRegions; ++i) {
@@ -1013,7 +1168,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		}
 	}
 
-	StepRecorder recorder(routesInUse, boundarySteps);
+	PassengerTrace passengers;
+	StepRecorder recorder(routesInUse, boundarySteps, spec.passengers.empty() ? nullptr : &passengers);
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder, [&recorder]() { recorder.onSnapshotAvailable(); }, Qt::DirectConnection);
 	const int horizon = static_cast<int>(initial_variables.times);
 	simulation.runSimulation();
@@ -1158,6 +1314,44 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		return outcome;
 	}
 
+	if (!spec.passengers.empty()) {
+		obs.insert(obs.end(), passengers.lines().begin(), passengers.lines().end());
+		for (const Passenger& p : AllDailyPassengers) {
+			for (const Journey& j : p.Journeys) {
+				add("journey " + p.ID + " " + j.ID,
+					{integerField("started", j.IsJourneyStarted), integerField("completed", j.IsJourneyCompleted),
+						realField("dep", j.Actual_Departure_Time), realField("arr", j.Actual_Arrival_Time),
+						realField("walking", j.Walkingtime), realField("waiting", j.Waitingtime),
+						integerField("delay", j.totalJourneyArrivalDelay)});
+				for (const Trip& trip : j.Trips)
+					add("trip " + p.ID + " " + trip.TripID,
+						{integerField("started", trip.IsTripStarted), integerField("completed", trip.IsTripCompleted),
+							integerField("dep", trip.Actual_Departure_Time), integerField("arr", trip.Actual_Arrival_Time),
+							integerField("delay", trip.totalArrivalDelay)});
+			}
+		}
+		for (const std::string& name : {"PassengerStatus.txt", "JourneyDelays.txt"}) {
+			std::ifstream in(outputDir + "/PassengerStatus/" + name);
+			if (!in) {
+				outcome.error = "the run wrote no PassengerStatus/" + name + "\n";
+				return outcome;
+			}
+			std::string text;
+			while (std::getline(in, text)) {
+				if (!text.empty() && text.back() == '\r')
+					text.pop_back();
+				std::vector<Field> fields;
+				for (const std::string& word : splitWords(text))
+					fields.push_back(textField("", word));
+				add("file " + name, std::move(fields));
+			}
+			if (in.bad()) {
+				outcome.error = "cannot read PassengerStatus/" + name + "\n";
+				return outcome;
+			}
+		}
+	}
+
 	if (checkInvariants) {
 		outcome.invariantFailures = findInvariantViolations(spec, tracks, separations, rows);
 		const std::vector<std::string> statisticsFailures = findStatisticsViolations(obs, rows);
@@ -1186,6 +1380,7 @@ std::string describeRun(const CaseSpec& spec, int horizon) {
 		+ describeRestriction(spec)
 		+ (spec.borderKm == kNoBorder ? std::string()
 									  : " border_km=" + formatReal(spec.borderKm) + " level_after=" + std::to_string(spec.secondLevel))
+		+ (spec.passengers.empty() ? std::string() : " passengers=" + spec.passengers + " pax_gui=" + (spec.paxGui ? "1" : "0") + " capacity=" + (spec.capacity > 0 ? std::to_string(spec.capacity) : "built"))
 		+ " horizon=" + std::to_string(horizon);
 }
 
