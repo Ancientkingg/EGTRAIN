@@ -27,7 +27,7 @@ ASSERT_MOVEMENT = {1, 2, 3, 4, 5, 7}
 ASSERT_STATION_ARRIVALS = {2, 3, 4, 5, 7}
 ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 4, 5, 6, 7}
+SIGNALLING_COVERED = {2, 3, 4, 5, 6, 7}
 # The files that the Amsterdam to Hilversum scene shares with the Netherlands scene.
 NETHERLANDS_FILES = ("infrastructure.json", "rolling_stock.json", "scenarios.json", "stations.json", "views.json")
 # The service of the Amsterdam to Hilversum scene whose runs must all reach Hilversum.

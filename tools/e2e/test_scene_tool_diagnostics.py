@@ -43,9 +43,10 @@ def main() -> None:
     )
     if runnable.returncode != 0:
         raise SystemExit(runnable.stdout)
-    if "scene.signalling.level.missing" not in runnable.stdout:
+    # Only the runnable layer reports a clipped final block.
+    if "scene.native.block.clipped" not in runnable.stdout:
         raise SystemExit(f"validate --runnable lost the run checks: {runnable.stdout}")
-    if "scene.signalling.level.missing" in proc.stdout:
+    if "scene.native.block.clipped" in proc.stdout:
         raise SystemExit("validate printed a run check")
 
 
