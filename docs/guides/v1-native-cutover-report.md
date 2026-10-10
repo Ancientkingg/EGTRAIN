@@ -29,7 +29,7 @@ reflect empty active source files, not dropped records.
 - Paimpol `Draisy-traction.txt` contains two overlapping three-row alternatives.
   The prior validated scene selected the second group. The canonical unit keeps
   those three rows; its import report records three converted and three skipped.
-- Paimpol B4 arc 108 named node 1 as its start after arcs 100–107 already form
+- Paimpol B4 arc 108 named node 1 as its start after arcs 100 to 107 already form
   the consecutive 1→2→…→9 chain. V1 corrects that lone endpoint to 9→10,
   matching the ordered nodes, the adjacent B0/B1 files, and the linear
   TrackLine runtime model.

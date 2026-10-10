@@ -15,7 +15,7 @@ and new representations coexist without making the native loader the normal
 runtime path.
 
 Both that revision and the current native revision were built with tests
-enabled and run headlessly for cases 1–4 with `-g 0 -TSM 0 -RC 0`. The retained
+enabled and run headlessly for cases 1 to 4 with `-g 0 -TSM 0 -RC 0`. The retained
 observables are the canonical structure, `EnergyConsumptionPerTrain.txt`,
 `TrainServicePathDiagram.txt`, `TimetablePoints.txt`, and
 `Stats_Stations.txt`. PR #302 separately established conversion parity; its
