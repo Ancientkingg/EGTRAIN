@@ -703,6 +703,36 @@ def main() -> None:
         or not re.search(r"egtrain_label_tests\(unit\b[^)]*\btest_release_assets\b", cmake)
     ):
         missing.append("release assets unit test registered in CTest with the unit label")
+    # The Linux package job extracts the AppImage that it built into a directory under RUNNER_TEMP and starts it through its
+    # AppRun on a virtual display, with the platform plugin that the image holds. Every package job starts its package with
+    # the same script.
+    linux_job = job_block(package_only, "package-linux")
+    linux_steps = ("Build AppImage", "Verify AppImage contents", "Start the package", "Upload artifact")
+    linux_step_names = re.findall(r"^      - name: (.+)$", linux_job, re.MULTILINE)
+    linux_positions = [linux_step_names.index(name) if name in linux_step_names else -1 for name in linux_steps]
+    if -1 in linux_positions or linux_positions != sorted(linux_positions):
+        missing.append("Linux package steps in the order " + ", ".join(linux_steps))
+    linux_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", step_block(linux_job, "Install dependencies"))
+    linux_apt_packages = linux_install.group(1).replace("\\", " ").split() if linux_install else []
+    if "xvfb" not in linux_apt_packages or "xauth" not in linux_apt_packages:
+        missing.append("Linux package job that installs xvfb and xauth for the virtual display")
+    linux_start = step_block(linux_job, "Start the package")
+    linux_python = next((block for block in linux_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
+    if (
+        not linux_start.strip().endswith(
+            'xvfb-run -a -s "-screen 0 1920x1080x24" python3 tools/release/package_start_smoke.py "$start/squashfs-root"')
+        or 'PYTHONUTF8: "1"' not in linux_start
+        or 'start="$RUNNER_TEMP/package-start"\n' not in linux_start
+        or '(cd "$start" && "$image" --appimage-extract >/dev/null)\n' not in linux_start
+        or 'find "$start/squashfs-root/usr/plugins" -type f | sort\n' not in linux_start
+        or "python-version: '3.12'" not in linux_python
+        or not 0 <= linux_job.find("uses: actions/setup-python@v5") < linux_job.find("name: Start the package")
+    ):
+        missing.append("Linux package start of the extracted AppImage under RUNNER_TEMP on a virtual display with Python set up")
+    if "QT_QPA_PLATFORM" in linux_job or "QT_PLUGIN_PATH" in linux_job:
+        missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
+    if package_only.count("tools/release/package_start_smoke.py") != 3:
+        missing.append("package start script in the three package jobs")
     publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit", "environment:")
     if (
         any(word in text for text in (package_check, package_only) for word in publishing)

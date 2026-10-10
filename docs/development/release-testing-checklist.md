@@ -92,16 +92,21 @@ What the jobs prove today:
   the package in its job summary.
 - The Package Linux job extracts the AppImage and checks the executable,
   the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
+  It then starts the extracted image through its `AppRun` on a virtual display,
+  after it has checked that every Qt 5 and ZeroMQ library of the programs and
+  plugins comes from the image and not from the runner.
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
-- The Package macOS job starts a copy of the app in the directory it zips, and
-  the Package Windows job starts a copy of the directory it uploads, both with
-  `tools/release/package_start_smoke.py` (step **Start the package**). The
-  Package Linux job does not start the application from the package it builds.
-  The Windows leg of the CMake workflow starts a Windows package assembled in
-  that workflow (step **Start an assembled Windows package**). None of these
-  starts the released zip itself.
+- The Package macOS job starts a copy of the app in the directory it zips, the
+  Package Windows job starts a copy of the directory it uploads, and the Package
+  Linux job starts the extracted AppImage, all with
+  `tools/release/package_start_smoke.py` (step **Start the package**). All three
+  also run the CSV export and the PNG export of the Paimpol scene through the
+  test hooks of the application. The Windows leg of the CMake workflow starts a
+  Windows package assembled in that workflow (step **Start an assembled Windows
+  package**). None of this starts the released file itself, and none of it shows
+  how the SVG icons look or typing into text fields.
 
 None of this shows the GUI student workflow.
 
