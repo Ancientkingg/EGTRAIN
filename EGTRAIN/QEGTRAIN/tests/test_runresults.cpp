@@ -795,6 +795,69 @@ int main() {
 			"delay sidecar failure does not publish the artifact");
 	}
 
+	{
+		const auto savedRoutes = train_route;
+		const double savedTimestep = timestep;
+		const std::string savedOutputFolder = initial_variables.OutputMainFolder;
+		QTemporaryDir temp;
+		ok &= expect(temp.isValid() && QDir().mkpath(temp.filePath("TEMP")),
+			"temporary directory for trajectory export is available");
+		if (!temp.isValid())
+			return 1;
+		initial_variables.OutputMainFolder = temp.path().toStdString();
+		timestep = 1;
+		train_route.clear();
+		train_route.resize(2);
+		train_route[1].reversed_direction = true;
+		train_route[1].OriginalRefReversedRoute = 1000.0;
+		const double positions[2][4] = {{100, 110, 130, 160}, {900, 890, 870, 840}};
+		const double tails[2][4] = {{16, 26, 46, 76}, {984, 974, 954, 924}};
+		for (int direction = 0; direction < 2; ++direction) {
+			auto train = std::make_unique<Train>();
+			train->trainDescription = direction == 0 ? "tail-forward" : "tail-reversed";
+			train->indexOfRoute = direction;
+			train->train_length = 84.0;
+			train->setTrainVectorSizesFromInput(4);
+			train->earliestActiveTrajectoryIndex = 0;
+			train->instant_spatial_position = {100, 110, 130, 160};
+			train->PrintTrajectory();
+			QByteArray bytes;
+			const QString path = temp.filePath("TEMP/Traj_Train_" + QString::fromStdString(train->trainDescription) + ".txt");
+			ok &= expect(readBytes(path, bytes), "exported trajectory can be read");
+			auto lines = bytes.split('\n');
+			if (!lines.isEmpty() && lines.last().isEmpty())
+				lines.removeLast();
+			ok &= expect(lines.size() == 5, "trajectory export has a header and four data rows");
+			if (lines.size() != 5)
+				continue;
+			const auto header = lines.first().split('\t');
+			ok &= expect(header.size() > 3 && header[2] == "Position[m]" && header[3] == "Tail_Position[m]",
+				"trajectory position and tail columns are identified by the header");
+			double previousPosition = std::numeric_limits<double>::infinity();
+			for (int index = 0; index < 4; ++index) {
+				QByteArray line = lines[index + 1];
+				if (line.endsWith('\r'))
+					line.chop(1);
+				const auto cells = line.split('\t');
+				ok &= expect(cells.size() == 8, "trajectory row keeps all cells including an empty block");
+				if (cells.size() != 8)
+					continue;
+				const double position = cells[2].toDouble();
+				const double tail = cells[3].toDouble();
+				ok &= expect(closeTo(cells[0].toDouble(), index), "trajectory time follows the sample index");
+				ok &= expect(closeTo(position, positions[direction][index]), direction == 0 ? "forward trajectory writes the front position" : "reversed trajectory writes the reflected front position");
+				ok &= expect(closeTo(tail, tails[direction][index]), direction == 0 ? "forward trajectory writes the rear position" : "reversed trajectory writes the rear position");
+				ok &= expect(closeTo(tail - position, direction == 0 ? -84.0 : 84.0), direction == 0 ? "forward tail is one train length below the front" : "reversed tail is one train length above the front");
+				if (direction == 1)
+					ok &= expect(position < previousPosition, "reversed trajectory positions fall");
+				previousPosition = position;
+			}
+		}
+		train_route = savedRoutes;
+		timestep = savedTimestep;
+		initial_variables.OutputMainFolder = savedOutputFolder;
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all RunResults tests passed\n";

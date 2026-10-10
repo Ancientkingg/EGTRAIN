@@ -1475,12 +1475,13 @@ public:
 				}
 			}
 		} else { // If instead the train runs on a reversed route then subtract the instant_spatial_position[i] from the Total Length of the route
+			// Written positions fall on a reversed route, so the tail is the position plus the train length.
 			for (const auto& segment : segments) {
 				if (!firstSegment)
 					trainout << "\n";
 				firstSegment = false;
 				for (int i = segment.first; i <= segment.last; i++) {
-					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] - train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
+					trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] + train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
 				}
 			}
 		}
