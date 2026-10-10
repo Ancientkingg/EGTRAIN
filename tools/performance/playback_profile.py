@@ -14,16 +14,22 @@ from pathlib import Path
 PREFIX = "QEGTRAIN_PLAYBACK_PROFILE "
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMPUTE_PATH = "worker/playback_step/compute"
+SIGNALLING_PATH = f"{COMPUTE_PATH}/infrastructure_signalling_cleanup"
 COMPUTE_CHILDREN = {
     f"{COMPUTE_PATH}/passenger_entry_platform_refresh",
     f"{COMPUTE_PATH}/train_movement",
     f"{COMPUTE_PATH}/train_passenger_state_payload",
     f"{COMPUTE_PATH}/passenger_status_output",
-    f"{COMPUTE_PATH}/infrastructure_signalling_cleanup",
+    SIGNALLING_PATH,
+}
+SIGNALLING_CHILDREN = {
+    f"{SIGNALLING_PATH}/release_mixed_signalling",
+    f"{SIGNALLING_PATH}/activate_mixed_signalling",
 }
 PATHS = {
     COMPUTE_PATH,
     *COMPUTE_CHILDREN,
+    *SIGNALLING_CHILDREN,
     "worker/playback_step/snapshot_build_publish",
     "worker/playback_step/snapshot_build_publish/build_gui_snapshot",
     "worker/playback_step/snapshot_build_publish/mailbox_publish",
@@ -42,6 +48,7 @@ PATHS = {
 PARENTS = {
     COMPUTE_PATH: ("worker", ""),
     **{path: ("worker", COMPUTE_PATH) for path in COMPUTE_CHILDREN},
+    **{path: ("worker", SIGNALLING_PATH) for path in SIGNALLING_CHILDREN},
     "worker/playback_step/snapshot_build_publish": ("worker", ""),
     "worker/playback_step/snapshot_build_publish/build_gui_snapshot":
         ("worker", "worker/playback_step/snapshot_build_publish"),
@@ -212,7 +219,8 @@ def validate_trial(records: list[dict], *, trial: int, view: str, duration_ms: i
                 <= aggregate["calls"] * aggregate["max_ns"]):
             raise ValueError("invalid aggregate totals")
     compute_calls = aggregates_by_path[COMPUTE_PATH]["calls"]
-    if any(aggregates_by_path[path]["calls"] != compute_calls for path in COMPUTE_CHILDREN):
+    if any(aggregates_by_path[path]["calls"] != compute_calls
+           for path in COMPUTE_CHILDREN | SIGNALLING_CHILDREN):
         raise ValueError("compute child calls must match compute calls")
 
     minimum = 1 if structural else 100
