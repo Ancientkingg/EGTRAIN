@@ -11,6 +11,7 @@
 #endif
 #include "simulation/Signalling.h"
 #include "simulation/RuntimeLimits.h"
+#include "util/Log.h"
 #include "util/TrajectoryUtil.h"
 
 // GUI - Virtual Coupling notifications
@@ -206,7 +207,7 @@ public:
 		}
 		// In case no name has been assigned to the infrastructure element then throw an error
 		if (NameOfInfraElement.empty() == 1) {
-			cout << "ERROR 988: Name of InfraElement has not been assigned in the function to update the status of infrastructure elements for Block Section " << this->BlockID << " on Route of Train " << TrainName << "\n";
+			EG_LOG(SimSetup, Error) << "ERROR 988: Name of InfraElement has not been assigned in the function to update the status of infrastructure elements for Block Section " << this->BlockID << " on Route of Train " << TrainName << "\n";
 		}
 
 		else {
@@ -270,7 +271,7 @@ public:
 		}
 
 		if (ElementFound == 0) {
-			cout << "Error: Element " << NameOfInfraElement << " Not Found\n";
+			EG_LOG(SimSetup, Error) << "Error: Element " << NameOfInfraElement << " Not Found\n";
 		}
 
 		if (NeededInfraElementPosition != LastInfraElementPosition) { // The Infra Element will be not in position if NeededInfraElementPosition does not coincide with the LastInfraElementPosition
@@ -657,8 +658,8 @@ public:
 		int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
 
 		if ((IndexOL >= 0) && (IndexOL < N_OrderLists) && (IndexOL < 20) && (OL[IndexOL].numTeList > 0)) {
-			cout << "this is the indexOL TRUE \n"
-				 << IndexOL;
+			EG_LOG(SimStep, Info) << "this is the indexOL TRUE \n"
+								  << IndexOL;
 			for (int j = 1; j < OL[IndexOL].numTeList; j++) { // Determining which is the previous train in the list
 				if (trainDescription == OL[IndexOL].TE[j].trainDescription)
 					PreviousTrain = OL[IndexOL].TE[j - 1].trainDescription;
@@ -790,7 +791,7 @@ public:
 				// In particular to update this value it is necessary that the train has passed with all its length train_length the checklist Node to guarantee a safe train separation
 				if ((instant_spatial_position[i - 1] - train_length <= RelativeChecklistPos) && (instant_spatial_position[i] - train_length > RelativeChecklistPos)) {
 					OL[IndexOrderList].LastEnteredTrain = trainDescription;
-					cout << OL[IndexOrderList].LastEnteredTrain << "\n";
+					EG_LOG(SimStep, Info) << OL[IndexOrderList].LastEnteredTrain << "\n";
 				}
 			}
 		}
@@ -882,7 +883,7 @@ public:
 		for (const MovementAuthority& authority : ETCS_MA)
 			if (authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
 				return;
-		cout << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
+		EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
 		VCmsgTimestep.push_back(time_seconds);
 		VCmsgTrain.push_back(trainDescription);
 		VCmsgText.push_back("Train is now decoupled");
@@ -958,7 +959,7 @@ public:
 		if (V2 > V1) {
 			V_Step = (V2 - V1) / N_V_Steps;
 		} else {
-			cout << "ERROR: Train " << this->trainDescription << " is trying to compute an average acceleration distance with a target speed V2 lower than the starting speed V1. A braking curve should be computed in this case. Please check the reason why this is happening\n";
+			EG_LOG(SimEvents, Error) << "ERROR: Train " << this->trainDescription << " is trying to compute an average acceleration distance with a target speed V2 lower than the starting speed V1. A braking curve should be computed in this case. Please check the reason why this is happening\n";
 		}
 
 		if (V_Step > 0) {
@@ -1008,7 +1009,7 @@ public:
 			} else { // In case also the rescue acceleration distance is negative that means that the train cannot accelerate on this section because resistances are larger than tractive effort
 					 // At this point use the cruising mode for the train and the acceleration distance is 0 therefore
 
-				cout << "Train " << this->trainDescription << " has air resistances larger than tractive effort on this section with V1: " << V1 << " V2: " << V2 << " X1: " << X1 << " X2: " << X2 << ". The Cruising mode will be applied since trains cannot accelerate\n";
+				EG_LOG(SimEvents, Warning) << "Train " << this->trainDescription << " has air resistances larger than tractive effort on this section with V1: " << V1 << " V2: " << V2 << " X1: " << X1 << " X2: " << X2 << ". The Cruising mode will be applied since trains cannot accelerate\n";
 				AccelerationTime = -99999;
 
 				// Then if it is because the speed difference is very small and lower than 0.1 m/s
@@ -2213,7 +2214,7 @@ public:
 					IsTrainInFollowingMode = true;													   // And the activation of the following mode
 					LeadingTrainInFollowingMode = Predicted_MA_To_CoupleAt.TrainInfo.trainDescription; // Setting the trainDescription of the train which is leading during Virtual Coupling
 																									   // Sending a message that train is in following mode
-					cout << "At time instant " << time_seconds << " train " << trainDescription << " is virtually coupled to train " << LeadingTrainInFollowingMode << "\n";
+					EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is virtually coupled to train " << LeadingTrainInFollowingMode << "\n";
 
 					//-------------------------------
 					// GUI notification
@@ -2230,7 +2231,7 @@ public:
 						&& (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
 						&& (Predicted_MA_To_DecoupleAt.type == "TrainUncoupled")) {
 
-						cout << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
+						EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " intentionally decoupled from train " << LeadingTrainInFollowingMode << " because of diverging routes\n";
 
 						//-------------------------------
 						// GUI notification
@@ -2258,7 +2259,7 @@ public:
 						IsInUnintentionalDecoupling = true; // Originally I had IsTrainInFollowingMode = false;
 						CounterFollowingMode = 0;			// set also the CounterFollowingMode to 0 again
 
-						cout << "At time instant " << time_seconds << " train " << trainDescription << " is unintentionally decoupling from train " << LeadingTrainInFollowingMode << " because it could not reach the same speeds\n";
+						EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is unintentionally decoupling from train " << LeadingTrainInFollowingMode << " because it could not reach the same speeds\n";
 
 						//-------------------------------
 						// GUI notification
@@ -2341,7 +2342,7 @@ public:
 								this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
 								recordCurrentServiceStopArrival(time_seconds);
 
-								cout << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
+								EG_LOG(SimStep, Info) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
 
 								stoptime = Stations[s].StopTime;
 								dep_time = ScheduledDepartures[s];
@@ -2824,11 +2825,6 @@ public:
 			BlockTime[N_BlockSections].EndOccTime = BlockTime[N_BlockSections].EndOccTime + BlockTime[N_BlockSections].RunTimeMargin;
 		}
 
-		else {
-			eglogger << "\n\nWARNING 11: The absolute and the percentage Running Time Supplements are both different from 0 or both equal to 0\n\n"
-					 << std::endl;
-		}
-
 		if ((BlockTime[N_BlockSections].StartRunTime < 0) || (BlockTime[N_BlockSections].StartOccTime < 0) || (BlockTime[N_BlockSections].EndOccTime < BlockTime[N_BlockSections].StartOccTime)) {
 			BlockTime[N_BlockSections].IsComplete = false;
 		}
@@ -3007,17 +3003,12 @@ public:
 					}
 
 					if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-						cout << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+						EG_LOG(SimSetup, Warning) << "Warning 987: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
 					}
 					// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 					BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
 					// Shift the EndOccTime of the RunTimeMargin only if the block section is not the first
 					BlockTime[N_BlockSections].EndRunTime = BlockTime[N_BlockSections].EndRunTime + BlockTime[N_BlockSections].RunTimeMargin;
-				}
-
-				else {
-
-					eglogger << "\n\nWARNING 2: Percentage and absolute Running Time Supplements are both equal to 0 or both different from 0\n\n";
 				}
 
 				// In some case it can happen an exception when the station is too close to the end of the train journey (i.e. the end of its route) and the train length is longer than the distance between the station and the end of the journey
@@ -3332,7 +3323,7 @@ public:
 					}
 
 					if (RunTimeBetweenConsLocations < 0) { // Throwing an exception in case of negative running time between two consecutive infrastructure elements
-						cout << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
+						EG_LOG(SimSetup, Warning) << "Warning: Train " << this->trainDescription << " has a negative running time between infrastructure element " << BlockTime[0].ConnectedBlockingTimeID << " and the previous infrastructure element on the route. Please check what happened\n";
 					}
 					// In this way the RunTimeBetweenConsecutive locations will be 0 for the first location and different from 0 for the other locations
 					BlockTime[N_BlockSections].RunTimeMargin = ceil(RunTimeBetweenConsLocations * PercentRTSupplement / 100);
@@ -3341,7 +3332,7 @@ public:
 				}
 
 				else {
-					cout << "\n\nWARNING 5: Percentage and absolute Running Time Supplements are both equal to 0 or both different from 0\n\n";
+					EG_LOG(SimSetup, Warning) << "\n\nWARNING 5: Percentage and absolute Running Time Supplements are both equal to 0 or both different from 0\n\n";
 				}
 
 				// In some case it can happen an exception when the station is too close to the end of the train journey (i.e. the end of its route) and the train length is longer than the distance between the station and the end of the journey

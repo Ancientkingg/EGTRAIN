@@ -229,12 +229,19 @@ to the console directly.
   the console dock shows it. `eglog::setSink` replaces it; a sink must not call the logging
   core.
 - `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
-  `owl`; both appear in `simulation/` and `app/DispatchController.cpp`. Nothing calls
-  `Logger::init`, so neither writes anything.
-- `simulation/` prints to `std::cout` and `std::cerr`. `MainWindow` installs a Qt message
+  `owl`; both are used only in `app/DispatchController.cpp` (the definitions and declarations
+  of `owl` elsewhere are not uses). Nothing calls `Logger::init`, so neither writes anything.
+- `simulation/` writes through `EG_LOG`, except for one `std::fprintf` to `stderr` before
+  `std::abort()` in `BlockingTimeList::checkIndex`. `MainWindow` installs a Qt message
   handler that sends `qWarning()` and other Qt messages to `std::cout`, and `ConsoleWidget`
   shows both streams in the Console Log dock. The command-line entry points
   (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`.
+- The code in `simulation/` uses `sim.setup` for the set-up of a run (the selected case, the
+  route set-up) and for problems found in the scene data or the model while it is built or
+  while the blocking times are computed. It uses `sim.events` for virtual coupling and
+  following mode, arrivals, departures and the failure to write an arrival message,
+  `sim.step` for messages written once per step or per occurrence in the trajectory code, and
+  `sim.pax` for passengers.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file

@@ -6,6 +6,8 @@
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "util/Log.h"
+#include "util/timeutil.hpp"
 
 // The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
 #include <QDir>
@@ -2575,6 +2577,261 @@ static bool singleTrackLockTests() {
 	return ok;
 }
 
+// The messages of the rolling stock, passenger and run settings code are messages of the logging core. A sink collects them, because
+// the console shows neither the category nor the level, and each text is compared with the exact wording, quirks included (two spaces
+// where a name is empty, no space after "Train", a number that follows a line end).
+static bool runRollingStockMessageChecks() {
+	using eglog::Category;
+	using eglog::Level;
+	bool ok = true;
+	struct Message {
+		Category category;
+		Level level;
+		std::string text;
+	};
+	// Collects the messages and puts the default sink and the default rules back on every path out of the function.
+	struct Capture {
+		std::vector<Message> messages;
+		Capture() {
+			eglog::setSink([this](Category category, Level level, const std::string& text) { this->messages.push_back(Message{category, level, text}); });
+		}
+		~Capture() {
+			eglog::setSink({});
+			eglog::configure("");
+		}
+		std::vector<Message> take() {
+			std::vector<Message> taken;
+			taken.swap(messages);
+			return taken;
+		}
+	} capture;
+	const auto visible = [](std::string text) {
+		for (std::size_t at = 0; (at = text.find_first_of("\r\n", at)) != std::string::npos; at += 2)
+			text.replace(at, 1, text[at] == '\r' ? "\\r" : "\\n");
+		return text;
+	};
+	const auto shows = [&](const std::vector<Message>& found, const std::vector<Message>& wanted, const std::string& what) {
+		bool same = found.size() == wanted.size();
+		for (std::size_t index = 0; same && index < found.size(); ++index)
+			same = found[index].category == wanted[index].category && found[index].level == wanted[index].level
+				&& found[index].text == wanted[index].text;
+		std::string described;
+		if (!same) {
+			const auto describe = [&](const std::string& title, const std::vector<Message>& messages) {
+				described += "\n  " + title + ":";
+				for (const Message& message : messages)
+					described += std::string("\n    ") + eglog::categoryName(message.category) + " " + eglog::levelName(message.level)
+						+ " '" + visible(message.text) + "'";
+			};
+			describe("found", found);
+			describe("wanted", wanted);
+		}
+		ok &= expect(same, what + described);
+	};
+
+	// The settings of a run: a case number that selects a case study, and one that selects nothing.
+	InitialParameters parameters(0);
+	shows(capture.take(), {}, "run settings without a case write nothing");
+	parameters.set_case(2);
+	shows(capture.take(), {{Category::SimSetup, Level::Info, "\nSelected Case study: 2\n"}}, "a selected case study");
+	ok &= expect(!parameters.name.empty(), "a selected case study has a name");
+	parameters.set_case(99);
+	shows(capture.take(), {{Category::SimSetup, Level::Warning, "No case selected"}}, "a case number that selects nothing");
+	ok &= expect(parameters.name.empty(), "a case number that selects nothing clears the name");
+
+	// A timetable with more stations than the arrays hold is cut to the limit.
+	const int limit = Train::kMaxTimetableStations;
+	ok &= expect(Train::clampStationCount(limit - 1, "T1") == limit - 1 && Train::clampStationCount(limit, "T1") == limit,
+		"a station count within the limit is kept");
+	shows(capture.take(), {}, "a station count within the limit");
+	ok &= expect(Train::clampStationCount(limit + 5, "T1") == limit, "a station count over the limit is cut to the limit");
+	shows(capture.take(),
+		{{Category::SimSetup, Level::Warning,
+			"Train T1 serves " + std::to_string(limit + 5) + " stations but the timetable arrays hold " + std::to_string(limit)
+				+ "; dropping the last 5 stops\n"}},
+		"a station count over the limit");
+
+	// The arrival message goes to a folder. A folder that does not exist is an error and no file appears.
+	QTemporaryDir folder;
+	ok &= expect(folder.isValid(), "temporary folder for the arrival message");
+	Train train;
+	train.trainDescription = "T1";
+	train.printTrainArrDepMsg("A", "arr", 0, 1, folder.filePath("missing").toStdString());
+	shows(capture.take(),
+		{{Category::SimEvents, Level::Error, "Error2 opening file to write arr/dep message\n"}},
+		"an arrival message to a folder that does not exist");
+	ok &= expect(QDir(folder.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty(),
+		"no file appears for an arrival message to a folder that does not exist");
+	train.printTrainArrDepMsg("A", "arr", 0, 1, folder.path().toStdString());
+	shows(capture.take(), {}, "an arrival message to a folder that exists");
+	ok &= expect(QDir(folder.path()).exists("EGTRAINOutput.txt"), "the arrival message is written to the folder that exists");
+
+	// A blocking time with no name has no recorded events either.
+	BlockingTimes blocking;
+	blocking.BlockID.clear();
+	blocking.LocationWithSwitch = false;
+	blocking.checkIfLastInfraElementStatusIsInLineWithTrainNeeds("T1", {});
+	shows(capture.take(),
+		{{Category::SimSetup, Level::Error,
+			 "ERROR 988: Name of InfraElement has not been assigned in the function to update the status of infrastructure elements "
+			 "for Block Section  on Route of Train T1\n"},
+			{Category::SimSetup, Level::Error, "Error: Element  Not Found\n"}},
+		"a blocking time with no name");
+	blocking.BlockID = "B1";
+	blocking.checkIfLastInfraElementStatusIsInLineWithTrainNeeds("T1", {});
+	shows(capture.take(), {{Category::SimSetup, Level::Error, "Error: Element B1 Not Found\n"}}, "a blocking time of an element with no events");
+
+	// A train whose leader reports no movement authority any more leaves following mode, whether the message is on or off.
+	const auto savedAuthorities = ETCS_MA;
+	const auto savedMessageTimes = VCmsgTimestep;
+	const auto savedMessageTrains = VCmsgTrain;
+	const auto savedMessageTexts = VCmsgText;
+	ETCS_MA.clear();
+	const auto follow = [&train] {
+		train.IsTrainInFollowingMode = true;
+		train.LeadingTrainInFollowingMode = "L1";
+	};
+	follow();
+	train.leaveFollowingModeWhenLeaderIsGone(7);
+	shows(capture.take(),
+		{{Category::SimEvents, Level::Info, "At time instant 7 train T1 is decoupled from train L1, which reports no position any more\n"}},
+		"a train whose leader reports no position any more");
+	ok &= expect(!train.IsTrainInFollowingMode && train.LeadingTrainInFollowingMode == "None", "a train whose leader is gone leaves following mode");
+	ok &= expect(eglog::configure("sim.events=false"), "the rule that switches sim.events off is well formed");
+	follow();
+	train.leaveFollowingModeWhenLeaderIsGone(7);
+	shows(capture.take(), {}, "a train whose leader is gone with sim.events off");
+	ok &= expect(!train.IsTrainInFollowingMode, "a train whose leader is gone leaves following mode with sim.events off");
+	eglog::configure("");
+	train.leaveFollowingModeWhenLeaderIsGone(7);
+	shows(capture.take(), {}, "a train that is not in following mode");
+	ETCS_MA = savedAuthorities;
+	VCmsgTimestep = savedMessageTimes;
+	VCmsgTrain = savedMessageTrains;
+	VCmsgText = savedMessageTexts;
+
+	// A target speed under the starting speed is an error, and the train then cannot accelerate on the section.
+	ok &= expect(train.AccelerationTimeFollowingMode(10, 5, 0, 100, nullptr, 0) == -99999, "no acceleration time for a target speed under the starting speed");
+	shows(capture.take(),
+		{{Category::SimEvents, Level::Error,
+			 "ERROR: Train T1 is trying to compute an average acceleration distance with a target speed V2 lower than the starting speed V1. "
+			 "A braking curve should be computed in this case. Please check the reason why this is happening\n"},
+			{Category::SimEvents, Level::Warning,
+				"Train T1 has air resistances larger than tractive effort on this section with V1: 10 V2: 5 X1: 0 X2: 100. "
+				"The Cruising mode will be applied since trains cannot accelerate\n"}},
+		"a target speed under the starting speed");
+
+	// A passenger who alights where the next trip of the journey does not start.
+	train.StoppedForServiceStop = true;
+	train.CurrentServiceStop = "S1";
+	train.CurrentServiceStopPlatform = "P1";
+	Passenger alighting;
+	alighting.ID = "Pax1";
+	alighting.CurrentStatus = "OnBoard";
+	alighting.Current_Train_Boarded = "T1";
+	alighting.Current_Arrival_Station = "S1";
+	alighting.current_TripID = "A1";
+	alighting.current_JourneyID = "J1";
+	Journey journey;
+	journey.ID = "J1";
+	Trip firstTrip;
+	firstTrip.TripID = "A1";
+	firstTrip.Arr_Station_ID = "S1";
+	Trip nextTrip;
+	nextTrip.TripID = "A2";
+	nextTrip.Dep_Station_ID = "S2";
+	journey.Trips = {firstTrip, nextTrip};
+	alighting.Journeys.push_back(journey);
+	std::list<Passenger> passengers{alighting};
+	Simulate_Train_Passenger_Interactions(10, 0, train, passengers, {});
+	shows(capture.take(),
+		{{Category::SimPax, Level::Warning,
+			"Warning: Passenger Pax1will depart from a station different than the one planned for active trip A2 in journey J1\n"}},
+		"a passenger who alights where the next trip does not start");
+
+	// A passenger who waits for a train that is full. The waiting list of the platform is the one given when PAX_GUI is set.
+	const bool savedPaxGui = initial_variables.PAX_GUI;
+	initial_variables.PAX_GUI = true;
+	StationPlatform platform;
+	platform.ID = "P1";
+	platform.StationID = "S1";
+	platform.Current_List_Pax_On_Platform.push_back({"Pax2", 0.0});
+	Passenger waiting;
+	waiting.ID = "Pax2";
+	waiting.CurrentStatus = "OnPlatform";
+	waiting.Current_Train_To_Wait = "T1";
+	waiting.Current_WaitingStationID = "S1";
+	passengers = {waiting};
+	train.MAX_OnBoard_Passengers = 0;
+	train.Current_OnBoard_Passengers = 0;
+	Simulate_Train_Passenger_Interactions(10, 0, train, passengers, {platform});
+	initial_variables.PAX_GUI = savedPaxGui;
+	shows(capture.take(),
+		{{Category::SimPax, Level::Info, "Call RouteChoice model as passenger ID: Pax2 could not board train T1 as it was full\n"}},
+		"a passenger who waits for a train that is full");
+
+	// A route of one section from 0 to 10 km, a section with order list 3 and a train that crosses the checklist node at 1 km.
+	const int savedOrderLists = N_OrderLists;
+	const int savedOrderListTrains = OL[3].numTeList;
+	const std::string savedLastEntered = OL[3].LastEnteredTrain;
+	std::vector<Route> savedRoutes;
+	savedRoutes.swap(train_route);
+	train_route.resize(1);
+	train_route[0].N_Block_Sections = 1;
+	train_route[0].reversed_direction = false;
+	train_route[0].sequence_of_block_sections.resize(1);
+	Section& routeSection = train_route[0].sequence_of_block_sections[0];
+	routeSection.start_node.X = 0.0;
+	routeSection.end_node.X = 10.0;
+	routeSection.GeoXBegNode = 0.0;
+	N_OrderLists = 4;
+	OL[3].numTeList = 1;
+	std::vector<Section> entrance(1);
+	entrance[0].total_arcs = 1;
+	entrance[0].arcs_in_signalling_block_section[0].startNode.X = 1.0;
+	entrance[0].arcs_in_signalling_block_section[0].startNode.indexOrderList = 3;
+	entrance[0].arcs_in_signalling_block_section[0].startNode.respectOrder = 1;
+	train.CanEnter = true;
+	train.checkEntrance(0, entrance.data());
+	shows(capture.take(), {{Category::SimStep, Level::Info, "this is the indexOL TRUE \n3"}}, "a train that enters at a section with an order list");
+	train.instant_spatial_position = {900.0, 1100.0};
+	train.Update_LastEnteredTrain_For_All_OL_Improved(1, entrance[0]);
+	shows(capture.take(), {{Category::SimStep, Level::Info, "T1\n"}}, "a train that crosses the checklist node of an order list");
+	ok &= expect(OL[3].LastEnteredTrain == "T1", "the train that crossed the checklist node is the last that entered");
+
+	// Arrival at the last station and departure from the first: the position of the train is read from the route.
+	QTemporaryDir output;
+	ok &= expect(output.isValid() && QDir(output.path()).mkdir("Rescheduling"), "temporary output folder");
+	const std::string savedOutputFolder = initial_variables.OutputMainFolder;
+	initial_variables.OutputMainFolder = output.path().toStdString();
+	train.Stations.resize(2);
+	train.Stations[0].stationName = "A";
+	train.Stations[0].X = 1.0;
+	train.Stations[1].stationName = "B";
+	train.Stations[1].X = 2.0;
+	train.numStations = 2;
+	train.instant_spatial_position = {500.0, 1000.0, 1500.0, 1750.0, 2000.0};
+	train.instant_train_speed = {0.0, 5.0, 5.0, 0.0, 0.0};
+	const auto checkAt = [&](int second) {
+		train.checkTrainArrDep(0, second);
+		return capture.take();
+	};
+	shows(checkAt(0), {}, "a train at the start of the route");
+	shows(checkAt(2), {}, "a train between the stations");
+	shows(checkAt(1),
+		{{Category::SimEvents, Level::Info, "\n>>> T1 DEPARTED from A at t = 1 - " + simulationTime(1, initial_variables.startingSimulationTime) + "\n"}},
+		"a train that departs from its first station");
+	shows(checkAt(4),
+		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, initial_variables.startingSimulationTime) + "\n"}},
+		"a train that arrives at its last station");
+	initial_variables.OutputMainFolder = savedOutputFolder;
+	OL[3].LastEnteredTrain = savedLastEntered;
+	OL[3].numTeList = savedOrderListTrains;
+	N_OrderLists = savedOrderLists;
+	train_route.swap(savedRoutes);
+	return ok;
+}
+
 int main() {
 	bool ok = generatorTests();
 	SceneModel scene = completeScene();
@@ -3549,6 +3806,7 @@ int main() {
 	ok &= levelBorderAspectTests();
 	ok &= regionalTrainStorageTests();
 	ok &= singleTrackLockTests();
+	ok &= runRollingStockMessageChecks();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

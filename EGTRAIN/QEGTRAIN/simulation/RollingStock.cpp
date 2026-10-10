@@ -3,6 +3,7 @@
 #include "scene/SectionInventory.h"
 #include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
+#include "util/Log.h"
 
 #include <thread>
 #include <chrono>
@@ -1409,17 +1410,14 @@ void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double 
 int Train::clampStationCount(int requested, const string& trainId) {
 	if (requested <= kMaxTimetableStations)
 		return requested;
-	std::cerr << "Train " << trainId << " serves " << requested << " stations but the timetable arrays hold "
-			  << kMaxTimetableStations << "; dropping the last " << requested - kMaxTimetableStations << " stops\n";
+	EG_LOG(SimSetup, Warning) << "Train " << trainId << " serves " << requested << " stations but the timetable arrays hold "
+							  << kMaxTimetableStations << "; dropping the last " << requested - kMaxTimetableStations << " stops\n";
 	return kMaxTimetableStations;
 }
-extern Logger owl;
 // Function to Determine for each Route the Block Sections that are occupied by trains
 //(This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(int i) {
 	for (int j = 0; j < numRegions; j++) {
-		if ((regional_train[j].trainDescription == "B-Farum-HojeTaastrup_1-1") || (regional_train[j].trainDescription == "B-HojeTaastrup-Farum_2-1"))
-			owl << "Train : " << regional_train[j].trainDescription << std::endl;
 		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections.data(), train_route[regional_train[j].indexOfRoute].N_Block_Sections);
 	}
 	updateSingleTrackLocks(i);
@@ -1689,12 +1687,12 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
 		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.OutputMainFolder + "/Rescheduling");
-		cout << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << endl;
+		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
 	else if (((std::fabs(X - Stations[0].X) < 0.001) || (std::fabs(std::fabs(X - Stations[0].X) - train_length / 1000) < 0.001)) && (t >= 1) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] != 0)) { // position tolerance of 1m
 		// printTrainArrDepMsg(Stations[0].stationName, "dep", trainIdx, t, "Input_EGTRAIN/Rescheduling");
-		cout << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << endl;
+		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
 	}
 }
 
@@ -1756,7 +1754,7 @@ void Train::printTrainArrDepMsg(std::string stationName, std::string msgType, in
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	} else // error opening file
 	{
-		std::cout << "Error2 opening file to write arr/dep message\n";
+		EG_LOG(SimEvents, Error) << "Error2 opening file to write arr/dep message\n";
 	}
 }
 
