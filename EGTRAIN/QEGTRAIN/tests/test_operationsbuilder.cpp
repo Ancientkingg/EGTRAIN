@@ -818,6 +818,10 @@ static bool singleTrackLockTests() {
 		for (int b = 0; b < 6; ++b) {
 			route.sequence_of_block_sections[b] = sections[b];
 			route.sequence_of_block_sections[b].ID = "lock." + std::to_string(r == 0 ? b : 5 - b);
+			Arc& arc = route.sequence_of_block_sections[b].arcs_in_signalling_block_section[0];
+			arc.startNode.X = 2.0 * b;
+			arc.endNode.X = 2.0 * (b + 1);
+			arc.gradient = arc.curvature = 0.0;
 		}
 	}
 	singleTrackLimits.clear();
@@ -841,6 +845,24 @@ static bool singleTrackLockTests() {
 		train.OutOfSimulation = !active;
 		train.train_length = 70.0;
 		train.instant_spatial_position = {head - 100.0, head};
+		train.instant_train_speed = {36.111111111111, 36.111111111111};
+		// SLT_Sprinter values from the unchanged characterization fixture.
+		train.trainDescription = "lock-train-" + std::to_string(k);
+		train.Start_Node_X = 0.0;
+		train.total_train_mass = train.mass_of_traction_unit = 151000.0;
+		train.massFactor = 1.09;
+		train.max_train_speed = 36.111111111111;
+		train.max_train_decelaration = train.Jerk = 0.75;
+		train.frontal_wagon_area = 1.45;
+		train.resistanceCoefficient = 0.004;
+		train.velocityIntervals = 2;
+		train.Vlb[0] = 0.0;
+		train.Vub[0] = train.Vlb[1] = 8.611111111111;
+		train.Vub[1] = train.max_train_speed;
+		train.C0[0] = 209000.0;
+		train.C0[1] = 324607.2915;
+		train.C1[1] = -17671.4923;
+		train.C2[1] = 292.9005;
 	};
 	auto has = [](const std::list<std::string>& list, const std::string& id) {
 		return std::find(list.begin(), list.end(), id) != list.end();
@@ -912,11 +934,145 @@ static bool singleTrackLockTests() {
 	place(0, 0, 100.0, false);
 	updateSingleTrackLocks(1);
 
+	// Reserve before the last braking opportunity; retain the owner through a temporary stop.
+	place(0, 0, -50.0, true);
+	place(1, 1, -50.0, true);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1 && has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.5"),
+		"two running trains about to enter reserve forward and release the zone sections");
+	place(0, 0, -200.0, true);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(),
+		"a reservation survives its owner slowing or stopping before entry");
+	place(0, 0, 50.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "the forward train keeps the reservation once inside");
+
+	for (int runningRoute : {0, 1}) {
+		resetSingleTrackLocks();
+		place(0, runningRoute, -50.0, true);
+		place(1, 1 - runningRoute, 0.0, true);
+		regional_train[1].CanEnter = false;
+		regional_train[1].departure_time = 2.0;
+		regional_train[1].Start_Node_X = 0.0;
+		regional_train[1].train_length = 70.0;
+		updateSingleTrackLocks(1);
+		BlocksOccupied.clear();
+		ok &= expect(singleTrackHeld[0] == 1 && occupySingleTrackForRoute(1) == 6,
+			"a running train and an opposing entry due next step reserve forward and hold the reversed route");
+		BlocksOccupied.clear();
+		regional_train[1].departure_time = 3.0;
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1), "retargeting a waiting entry cancels it but does not cancel the running request");
+		place(1, 1 - runningRoute, -50.0, false);
+		resetSingleTrackLocks();
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1), "one approaching direction reserves before its braking opportunity");
+	}
+
+	// Waiting entries need no previous trajectory sample, even at the first step.
+	for (int k = 0; k < 2; ++k) {
+		place(k, k, 0.0, true);
+		regional_train[k].CanEnter = false;
+		regional_train[k].departure_time = 1.0;
+		regional_train[k].Start_Node_X = 0.0;
+		regional_train[k].instant_spatial_position.clear();
+	}
+	updateSingleTrackLocks(0);
+	ok &= expect(singleTrackHeld[0] == 1, "opposing entries due at the first step reserve without trajectory samples");
+
+	// An existing reversed holder is not displaced by two opposing requests.
+	const int savedApproachRegions = numRegions;
+	regional_train.resize(3);
+	numRegions = 3;
+	place(0, 1, 50.0, true);
+	place(1, 0, -50.0, true);
+	place(2, 1, -50.0, true);
+	singleTrackHeld[0] = -1;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1, "a reversed holder inside keeps the zone while both directions approach");
+	regional_train.resize(2);
+	numRegions = savedApproachRegions;
+	place(0, 0, -50.0, false);
+	place(1, 1, -50.0, false);
+	updateSingleTrackLocks(1);
+
 	// A held section gives the routes against the holder an End of Authority in front of the zone at level 3 and 4,
 	// once per step, and none for the holder's direction.
 	singleTrackLimits.clear();
 	singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.1", "lock.4");
 	resetSingleTrackLocks();
+	place(0, 0, 1950.0, true);
+	place(1, 1, 1950.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "opposing running trains reserve at an interior zone boundary");
+	for (double previous : {1950.0, 2000.0}) {
+		regional_train[0].instant_spatial_position[0] = previous;
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == 1, "an existing reservation does not depend on the last displacement");
+	}
+	// A follower already committed to this direction must survive the leader's clearance while it waits outside.
+	resetSingleTrackLocks();
+	regional_train.resize(3);
+	numRegions = 3;
+	place(0, 0, 3500.0, true);
+	place(1, 0, 1950.0, true);
+	place(2, 1, 1000.0, false);
+	updateSingleTrackLocks(1);
+	place(0, 0, 3500.0, false);
+	regional_train[1].instant_train_speed = {0.0, 0.0};
+	place(2, 1, 1950.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "a committed follower keeps the direction after its leader clears, even while stopped");
+	regional_train[1].OutOfSimulation = true;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1, "termination cancels the last pending owner and gives the opponent its turn");
+	regional_train[2].departure_time = 10.0;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0, "changing the owner's entry identity cancels its reservation");
+	place(2, 1, 1950.0, true);
+	updateSingleTrackLocks(1);
+	regional_train[2].indexOfRoute = -1;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0, "a removed route cancels its pending owner");
+	place(2, 1, 1950.0, true);
+	updateSingleTrackLocks(1);
+	regional_train.resize(2);
+	numRegions = 2;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0, "removing a pending train releases the zone");
+	place(0, 0, 1950.0, true);
+	updateSingleTrackLocks(1);
+	train_route[0].x_of_end_node += 1.0;
+	regional_train[0].instant_spatial_position[1] = 1000.0;
+	regional_train[0].instant_train_speed[1] = 0.0;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0, "a changed destination cancels a pending reservation");
+	train_route[0].x_of_end_node -= 1.0;
+	place(0, 0, 1999.5, true);
+	regional_train[0].instant_train_speed = {0.0, 0.0};
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "a stationary train can consume its braking opportunity by accelerating next step");
+	place(0, 0, 10100.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0, "passage of the reserved interval releases its owner");
+	struct FailedBrakingLookup : Regional {
+		double result = -1, requestedSpeed = 0;
+		double BrakDist_Block(double speed, double, double, Section*, int) override {
+			requestedSpeed = speed;
+			return result;
+		}
+	} probe;
+	static_cast<Train&>(probe) = regional_train[0];
+	for (double result : {-1.0, std::numeric_limits<double>::quiet_NaN(), -10.0}) {
+		probe.result = result;
+		ok &= expect(probe.needsSingleTrackReservation(1000.0, 0.0, 2000.0,
+						 train_route[0].sequence_of_block_sections.data(), 6),
+			"failed, non-finite or before-origin braking points request conservatively");
+		ok &= expect(probe.requestedSpeed > 0, "reservation braking lookup includes possible next-step acceleration from rest");
+	}
 	const auto savedAuthorities = ETCS_MA;
 	std::vector<std::vector<int>> savedLevels;
 	for (const Route& route : train_route) {
@@ -942,7 +1098,12 @@ static bool singleTrackLockTests() {
 	setLevel(2);
 	ETCS_MA.clear();
 	Apply_Single_Track_Authorities_Mixed_Signalling();
-	ok &= expect(ETCS_MA.empty(), "a zone of fixed-block sections is held by its aspects and gets no authority");
+	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().ReversedDirection,
+		"fixed-block trains also get a direction-filtered entry authority");
+	setLevel(kSignallingLevelUnset);
+	ETCS_MA.clear();
+	Apply_Single_Track_Authorities_Mixed_Signalling();
+	ok &= expect(ETCS_MA.empty(), "a section without signalling gets no single-track authority");
 	setLevel(4);
 	place(0, 0, 3500.0, false);
 	place(1, 1, 3500.0, true); // reversed, in lock.4
@@ -968,6 +1129,7 @@ static bool singleTrackLockTests() {
 	ok &= expect(singleTrackZone(0, 0).intervals.size() == 3 && singleTrackZone(0, 0).sectionIDs.size() == 4,
 		"separate zone sections give separate intervals");
 	place(0, 0, 3000.0, true); // forward, in lock.1, between the protected and the plain sections
+	regional_train[0].instant_train_speed = {0.0, 0.0};
 	place(1, 1, 3000.0, false);
 	updateSingleTrackLocks(1);
 	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 0, "a train between zone sections does not hold the zone");
@@ -979,6 +1141,84 @@ static bool singleTrackLockTests() {
 	ok &= expect(singleTrackHeld[0] == 1, "a train whose rear is before the start of the route is inside the first section");
 	place(0, 0, 5000.0, false);
 	updateSingleTrackLocks(1);
+
+	// At level 5 the next disconnected interval's approach must already be committed when the tail clears
+	// the first interval. Drive the real movement and signalling routines across that clearance and the gap.
+	setLevel(5);
+	for (Route& route : train_route)
+		route.x_of_end_node = route.sequence_of_block_sections.back().end_node.X;
+	resetSingleTrackLocks();
+	place(0, 1, 2000.0, true);
+	place(1, 0, 0.0, true);
+	regional_train[1].CanEnter = false;
+	constexpr int steps = 65;
+	for (Regional& train : regional_train) {
+		const double head = train.instant_spatial_position[1];
+		const double speed = train.CanEnter ? train.instant_train_speed[1] : 0.0;
+		train.setTrainVectorSizesFromInput(steps);
+		train.instant_spatial_position[0] = head - speed * timestep;
+		train.instant_spatial_position[1] = head;
+		train.instant_train_speed[0] = train.instant_train_speed[1] = speed;
+	}
+	const int savedRouteCount = N_Routes;
+	N_Routes = static_cast<int>(train_route.size());
+	ETCS_MA.clear();
+	auto signalStep = [](int step) {
+		BlocksOccupied.clear();
+		Occupy_Block_Sections_Of_Route(step);
+		ETCS_MA.clear();
+		Apply_Single_Track_Authorities_Mixed_Signalling();
+		releaseMixedSignallingSystem();
+		activateMixedSignallingSystem();
+	};
+	signalStep(1);
+	ok &= expect(singleTrackReservations[0].size() == 2
+			&& singleTrackReservations[0][1].interval == std::make_pair(4000.0, 8000.0),
+		"the moving holder commits the next interval before clearing the first, but not the distant third interval");
+	bool retainedAcrossGap = true, safeApproach = true, waiterHeld = true, crossedGap = false;
+	double largestSpeedDrop = 0.0;
+	Regional& holder = regional_train[0];
+	for (int step = 2; step < steps; ++step) {
+		const double previousHead = holder.instant_spatial_position[step - 1];
+		const double previousSpeed = holder.instant_train_speed[step - 1];
+		const double deceleration = holder.max_train_decelaration
+			+ holder.total_train_resistances(previousSpeed, 0.0, 0.0) / (holder.total_train_mass * holder.massFactor);
+		holder.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		largestSpeedDrop = std::max(largestSpeedDrop, previousSpeed - holder.instant_train_speed[step]);
+		safeApproach &= holder.instant_train_speed[step - 1] == previousSpeed
+			&& previousSpeed - holder.instant_train_speed[step] <= deceleration * timestep + 1e-9
+			&& holder.instant_spatial_position[step] >= previousHead;
+		regional_train[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		waiterHeld &= !regional_train[1].CanEnter;
+		signalStep(step);
+		const double head = holder.instant_spatial_position[step];
+		if (head - holder.train_length >= 2000.0 && head < 4000.0) {
+			crossedGap = true;
+			retainedAcrossGap &= singleTrackHeld[0] == -1
+				&& train_route[1].sequence_of_block_sections[1].arcs_in_signalling_block_section[0].signalSpeedLimit >= holder.instant_train_speed[step];
+		}
+	}
+	ok &= expect(crossedGap && retainedAcrossGap && waiterHeld,
+		"the moving reversed holder retains direction and its approach speed limit across the gap while the forward opponent waits");
+	ok &= expect(safeApproach, "gap handover neither rewrites the previous speed nor exceeds physical deceleration; largest speed drop=" + std::to_string(largestSpeedDrop));
+	ok &= expect(holder.instant_spatial_position.back() - holder.train_length >= 4000.0,
+		"the moving holder reaches the next disconnected interval without an instantaneous stop");
+	N_Routes = savedRouteCount;
+	ETCS_MA = savedAuthorities;
+
+	// At level 2 the same next interval is still beyond braking lookahead, so clearing the first releases it.
+	setLevel(2);
+	resetSingleTrackLocks();
+	place(0, 1, 2000.0, true);
+	place(1, 0, 0.0, true);
+	regional_train[1].CanEnter = false;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1 && singleTrackReservations[0].size() == 1,
+		"a distant next stretch outside braking lookahead is not committed");
+	place(0, 1, 2070.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1,
+		"tail clearance releases the direction to a waiting opponent when the distant next stretch is uncommitted");
 
 	// New routes are not read through the zones of the old ones.
 	train_route.resize(1);

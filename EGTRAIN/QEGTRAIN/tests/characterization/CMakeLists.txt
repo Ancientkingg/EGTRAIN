@@ -75,6 +75,50 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	single-track-follow-level-4
 	stub-departure-first-level-0
 	stub-arrival-first-level-0
+	stub-tie-level-0
+	stub-tie-level-1
+	stub-tie-level-2
+	stub-tie-level-3
+	stub-tie-level-4
+	stub-tie-level-5
+	running-tie-level-0
+	running-forward-first-level-0
+	running-reverse-first-level-0
+	running-follower-level-0
+	running-through-level-0
+	stub-breakdown-level-0
+	stub-zero-level-0
+	running-tie-level-1
+	running-forward-first-level-1
+	running-reverse-first-level-1
+	running-follower-level-1
+	running-through-level-1
+	stub-zero-level-1
+	running-tie-level-2
+	running-forward-first-level-2
+	running-reverse-first-level-2
+	running-follower-level-2
+	running-through-level-2
+	stub-zero-level-2
+	running-tie-level-3
+	running-forward-first-level-3
+	running-reverse-first-level-3
+	running-follower-level-3
+	running-through-level-3
+	stub-zero-level-3
+	running-tie-level-4
+	running-forward-first-level-4
+	running-reverse-first-level-4
+	running-follower-level-4
+	running-through-level-4
+	stub-breakdown-level-4
+	stub-zero-level-4
+	running-tie-level-5
+	running-forward-first-level-5
+	running-reverse-first-level-5
+	running-follower-level-5
+	running-through-level-5
+	stub-zero-level-5
 	border-0-2-fwd
 	border-0-2-rev
 	border-2-0-fwd

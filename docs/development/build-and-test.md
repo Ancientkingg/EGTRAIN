@@ -489,6 +489,13 @@ A case is a scenario, a set of services and a level. The case table is in
 | `single-track-follow-level-3`, `-4` | trains `F1` and `F2` in the same direction through the restricted section; the output equals `follow-level-3` and `-4`, because the restriction does not delay a train that follows the holder |
 | `stub-departure-first-level-0` | trains `D1` (due at 60 s) and `U1` (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over `5-B0` to `7-B0`, protected by `4-B0` and `7-B0`; `D1` runs out of the stub and `U1` into it, and `U1` waits at the entry of its route until `D1` has left the stub |
 | `stub-arrival-first-level-0` | the same stub with `U1` due at 60 s and `D1` due at 160 s; `D1` waits at the entry of its route until `U1` has left the stub |
+| `stub-tie-level-0` to `-5` | the same stub with both trains due at 60 s; the forward route of `U1` reserves the free stub at 59 s, and `D1` waits outside until `U1` has left; both reach their last stop |
+| `stub-zero-level-0` to `-5` | the same stub with both trains due at step zero; step zero initializes trajectories and reserves before the first movement; both finish without overlap |
+| `running-tie-level-0` to `-5` | S1 runs from A to B and a copy of R1 runs from C to B on existing blocks 7 to 4; both are moving and requesting when the free 4000 to 12000 m stretch is first reserved, and both finish without opposing overlap |
+| `running-forward-first-level-0` to `-5`, `running-reverse-first-level-0` to `-5` | the same approaches with one entry 3 s later and capped at the existing 40 km/h approach speed; both are moving at different speeds, giving each direction a turn at priority |
+| `running-follower-level-0` to `-5` | F2 follows S1 to B while R1 waits; all finish without opposing zone overlap |
+| `stub-breakdown-level-0`, `-4` | the forward owner is held at its origin by a breakdown from 60 to 120 s; its reservation survives, the opposing train waits, and both finish |
+| `running-through-level-0` to `-5` | the original full-route F1 and R1 on the line without a passing loop; no opposing zone overlap, but both cannot finish because the waiting loser occupies the winner's exit track |
 | `border-0-2-fwd`, `border-0-2-rev` | level 0 from A to 8 km and level 2 from 8 km to C; `F1` and `F2` run from A to C, `R1` and `R2` from C to A, so a `rev` case enters on the C side and `border-0-2-rev` mirrors `border-2-0-fwd` |
 | `border-2-0-fwd`, `border-2-0-rev` | the same trains with level 2 from A to 8 km and level 0 from 8 km to C |
 | `border-0-3-fwd`, `border-0-3-rev` | the same trains with level 0 from A to 8 km and level 3 from 8 km to C |
@@ -699,7 +706,9 @@ station row of `stats` and `signed_stats` a `Total_Delay` and an `N_StopTrains`
 that equal the sum and the number of the arrival delays of its `result` lines
 (only the late ones in the sum for `stats`). In a `single-track-*` case `S1` and
 `R1` are never inside the restricted section at the same time. In a stub case
-both trains reach their last stop and are never inside the stub together. A case
+both trains reach their last stop and are never inside the stub together. The
+terminating running approaches also must all reach their last stop, and every
+running case checks opposing zone overlap at every shared step. A case
 without a signalling area is not checked for overlap or for the single-track
 section: a scene without a signalling level does not separate trains, and
 validation warns about it (`scene.signalling.level.missing`,

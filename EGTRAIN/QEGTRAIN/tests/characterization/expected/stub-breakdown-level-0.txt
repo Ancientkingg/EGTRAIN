@@ -1,0 +1,75 @@
+# egtrain-characterization 1
+# case: stub-breakdown-level-0
+# run: scenario=baseline services=U1,D1 level=0 stub=5-B0,7-B0,4-B0,7-B0 arrival_entry=60.000000 departure_entry=60.000000 horizon=1500
+# known-wrong: none
+run steps=1500 trains=2
+train U1-1 active start=120 end=439
+train U1-1 sample t=120 x=8000.615074 v=1.230149
+train U1-1 sample t=180 x=9278.266026 v=31.292706
+train U1-1 sample t=240 x=11394.638283 v=36.111111
+train U1-1 sample t=300 x=13561.304949 v=36.111111
+train U1-1 sample t=360 x=15627.589337 v=25.137617
+train U1-1 sample t=420 x=15999.999900 v=0.000000
+train U1-1 sample t=439 x=16000.000100 v=0.000000
+train U1-1 stop t_first=391 t_last=439 x=15999.998000 dwell=48
+train U1-1 braking t=347 x=15248.861328 v=36.111111 stop_t=391
+train D1-1 active start=441 end=760
+train D1-1 sample t=441 x=0.615074 v=1.230149
+train D1-1 sample t=501 x=1278.266026 v=31.292706
+train D1-1 sample t=561 x=3394.638283 v=36.111111
+train D1-1 sample t=621 x=5561.304949 v=36.111111
+train D1-1 sample t=681 x=7627.589337 v=25.137617
+train D1-1 sample t=741 x=7999.999900 v=0.000000
+train D1-1 sample t=760 x=8000.000100 v=0.000000
+train D1-1 stop t_first=712 t_last=760 x=7999.998000 dwell=48
+train D1-1 braking t=668 x=7248.861328 v=36.111111 stop_t=712
+aspect routeStubIn @4-B0@ 0:270 120:0 204:75 259:180 315:270 440:0 761:270
+aspect routeStubIn @5-B0@ 0:270 202:0 259:75 315:180 440:0 761:270
+aspect routeStubIn @6-B0@ 0:270 257:0 315:75 440:0 761:270
+aspect routeStubIn @7-B0@ 0:270 313:0 761:270
+aspect routeStubOut @7-B0@ 0:270 59:0 440:270 441:0 525:75 580:180 636:270
+aspect routeStubOut @6-B0@ 0:270 59:0 440:270 523:0 580:75 636:180 761:270
+aspect routeStubOut @5-B0@ 0:270 59:0 440:270 578:0 636:75 761:270
+aspect routeStubOut @4-B0@ 0:270 59:0 440:270 634:0 761:270
+result U1-1 B planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
+result U1-1 C planned_arr=370.000000 planned_dep=n/a sim_arr=391.000000 sim_dep=438.000000 arr_delay=21.000000 dep_delay=n/a
+result D1-1 C planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
+result D1-1 B planned_arr=370.000000 planned_dep=n/a sim_arr=712.000000 sim_dep=759.000000 arr_delay=342.000000 dep_delay=n/a
+run_result U1-1 start=120.000000 end=439.000000 travel=319.000000
+run_result D1-1 start=441.000000 end=760.000000 travel=319.000000
+network start=120.000000 end=760.000000 travel=640.000000
+train U1-1 direct_incident count=1 ids=hold-owner first_time=60.000000 first_location=8000.000000
+blocktime U1-1 n=4 complete=4
+blocktime U1-1 @4-B0@ level=-99999999 complete=1 start_occ=119.000000 end_occ=206.000000 start_run=119.000000 end_run=201.000000 end_clear=203.000000
+blocktime U1-1 @5-B0@ level=-99999999 complete=1 start_occ=113.500000 end_occ=261.000000 start_run=201.000000 end_run=256.000000 end_clear=258.000000
+blocktime U1-1 @6-B0@ level=-99999999 complete=1 start_occ=195.500000 end_occ=317.000000 start_run=256.000000 end_run=312.000000 end_clear=314.000000
+blocktime U1-1 @7-B0@ level=-99999999 complete=1 start_occ=250.500000 end_occ=441.000000 start_run=312.000000 end_run=438.000000 end_clear=438.000000
+train D1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
+blocktime D1-1 n=4 complete=4
+blocktime D1-1 @7-B0@ level=-99999999 complete=1 start_occ=440.000000 end_occ=527.000000 start_run=440.000000 end_run=522.000000 end_clear=524.000000
+blocktime D1-1 @6-B0@ level=-99999999 complete=1 start_occ=434.500000 end_occ=582.000000 start_run=522.000000 end_run=577.000000 end_clear=579.000000
+blocktime D1-1 @5-B0@ level=-99999999 complete=1 start_occ=516.500000 end_occ=638.000000 start_run=577.000000 end_run=633.000000 end_clear=635.000000
+blocktime D1-1 @4-B0@ level=-99999999 complete=1 start_occ=571.500000 end_occ=762.000000 start_run=633.000000 end_run=759.000000 end_clear=759.000000
+incident hold-owner type=train_breakdown target=U1 start=60.000000 has_end=1 end=120.000000 sections=-
+boundary t=59 authorities=1 blocked=-
+authority t=59 part=Front section=@7-B0@ pos=16000.000000 reversed=1
+boundary t=60 authorities=1 blocked=-
+authority t=60 part=Front section=@7-B0@ pos=16000.000000 reversed=1
+boundary t=120 authorities=1 blocked=-
+authority t=120 part=Front section=@7-B0@ pos=16000.000000 reversed=1
+boundary t=121 authorities=1 blocked=-
+authority t=121 part=Front section=@7-B0@ pos=16000.000000 reversed=1
+stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats B Av_Delay=342.000000 Std_Delay=0.000000 Total_Delay=342.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=342.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=100.000000 Perc_Delayed_5min=100.000000 N_StopTrains=1.000000 N_DelTrains=1.000000
+stats C Av_Delay=21.000000 Std_Delay=0.000000 Total_Delay=21.000000 Max_Tot_Delay=21.000000 Cum_Cons_Delay=21.000000 Max_Cons_Delay=21.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=1.000000 N_DelTrains=1.000000
+stats TOTALS Av_Delay=181.500000 Std_Delay=0.000000 Total_Delay=363.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=363.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=50.000000 Perc_Delayed_5min=50.000000
+stats Final_Station Av_Delay=181.500000 Std_Delay=226.981000 Total_Delay=363.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=363.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=50.000000 Perc_Delayed_5min=50.000000 N_StopTrains=2.000000 N_DelTrains=2.000000
+signed_stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+signed_stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+signed_stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+signed_stats B Av_Delay=342.000000 Std_Delay=0.000000 Total_Delay=342.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=342.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=100.000000 Perc_Delayed_5min=100.000000 N_StopTrains=1.000000 N_DelTrains=1.000000
+signed_stats C Av_Delay=21.000000 Std_Delay=0.000000 Total_Delay=21.000000 Max_Tot_Delay=21.000000 Cum_Cons_Delay=21.000000 Max_Cons_Delay=21.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=1.000000 N_DelTrains=1.000000
+signed_stats TOTALS Av_Delay=181.500000 Std_Delay=0.000000 Total_Delay=363.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=363.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=50.000000 Perc_Delayed_5min=50.000000
+signed_stats Final_Station Av_Delay=181.500000 Std_Delay=226.981000 Total_Delay=363.000000 Max_Tot_Delay=342.000000 Cum_Cons_Delay=363.000000 Max_Cons_Delay=342.000000 Perc_Delayed=100.000000 Perc_Delayed_3min=50.000000 Perc_Delayed_5min=50.000000 N_StopTrains=2.000000 N_DelTrains=2.000000

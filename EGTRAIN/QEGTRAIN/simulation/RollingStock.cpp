@@ -1425,40 +1425,60 @@ void Occupy_Block_Sections_Of_Route(int i) {
 	updateSingleTrackLocks(i);
 }
 
-// A single-track section is held by the direction of the trains that are in it, from the protected section before
-// the first plain section to the protected section after the last one. Trains of the other direction see the whole
-// zone as occupied and wait in front of it. Trains of the same direction are not affected and follow under the
-// normal signalling rules. When a section changes holder or becomes free, its sections are released.
+// Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
+// same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
 void updateSingleTrackLocks(int step) {
-	if (singleTrackLimits.empty())
+	if (singleTrackLimits.empty() || timestep <= 0)
 		return;
 	if (singleTrackHeld.size() != singleTrackLimits.size())
 		singleTrackHeld.assign(singleTrackLimits.size(), 0);
-	if (timestep <= 0)
-		return;
+	if (singleTrackReservations.size() != singleTrackLimits.size())
+		singleTrackReservations.resize(singleTrackLimits.size());
 	const int index = step - static_cast<int>(S_delay / timestep);
 	std::vector<int> forward(singleTrackLimits.size(), 0), backward(singleTrackLimits.size(), 0);
-	for (int k = 0; k < numRegions; ++k) {
-		const Train& train = regional_train[k];
-		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())
+	std::vector<std::vector<SingleTrackReservation>> requests(singleTrackLimits.size());
+	std::vector<int> retainedDirection(singleTrackLimits.size(), 0);
+	for (int k = 0; k < numRegions && k < static_cast<int>(regional_train.size()); ++k) {
+		Train& train = regional_train[k];
+		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())
 			|| !singleTrackRouteHasZone(train.indexOfRoute))
 			continue;
-		if (train.OutOfSimulation || step < train.departure_time || !train.CanEnter
-			|| index < 1 || index >= static_cast<int>(train.instant_spatial_position.size()))
+		Route& route = train_route[train.indexOfRoute];
+		const bool waiting = !train.CanEnter;
+		if (!waiting && (step < train.departure_time || index < 0 || index >= static_cast<int>(train.instant_spatial_position.size())))
 			continue;
-		const double head = train.instant_spatial_position[index];
+		const double head = waiting ? train.Start_Node_X * 1000 : train.instant_spatial_position[index];
 		const double tail = head - train.train_length;
-		const bool reversed = train_route[train.indexOfRoute].reversed_direction;
-		for (std::size_t l = 0; l < singleTrackLimits.size(); ++l)
-			// the zone is occupied from the tail to the head, as in Det_Section_Occupied_By_Train
-			for (const auto& interval : singleTrackZone(l, train.indexOfRoute).intervals)
-				if (interval.first <= head && tail < interval.second) {
-					(reversed ? backward : forward)[l]++;
+		if (!std::isfinite(head))
+			continue;
+		const double speed = !waiting && index < static_cast<int>(train.instant_train_speed.size())
+			? train.instant_train_speed[index]
+			: 0.0;
+		for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
+			const auto& intervals = singleTrackZone(l, train.indexOfRoute).intervals;
+			for (const auto& interval : intervals) {
+				if (!waiting && interval.first <= head && tail < interval.second) {
+					(route.reversed_direction ? backward : forward)[l]++;
 					break;
 				}
+			}
+			for (const auto& interval : intervals) {
+				if (tail >= interval.second)
+					continue;
+				const auto& pending = singleTrackReservations[l];
+				const bool retained = std::any_of(pending.begin(), pending.end(), [&](const SingleTrackReservation& owner) {
+					return owner.trainIndex == k && owner.routeIndex == train.indexOfRoute && owner.trainDescription == train.trainDescription
+						&& owner.departureTime == train.departure_time && owner.origin == train.Start_Node_X
+						&& owner.destination == route.x_of_end_node && owner.interval == interval;
+				});
+				if (retained)
+					retainedDirection[l] = route.reversed_direction ? -1 : 1;
+				if (retained || ((!waiting || step + 1 >= train.departure_time) && train.needsSingleTrackReservation(head, speed, interval.first, route.sequence_of_block_sections.data(), route.N_Block_Sections)))
+					requests[l].push_back({k, train.indexOfRoute, train.trainDescription, train.departure_time, train.Start_Node_X, route.x_of_end_node, interval});
+			}
+		}
 	}
 	for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
-		// the holder keeps the section while its direction is inside; a free section goes to the forward direction first
 		int held = 0;
 		if (singleTrackHeld[l] < 0 && backward[l] > 0)
 			held = -1;
@@ -1466,8 +1486,18 @@ void updateSingleTrackLocks(int step) {
 			held = 1;
 		else if (backward[l] > 0)
 			held = -1;
+		auto direction = [](const SingleTrackReservation& owner) { return train_route[owner.routeIndex].reversed_direction ? -1 : 1; };
+		if (held == 0)
+			held = retainedDirection[l];
+		if (held == 0)
+			for (const auto& request : requests[l])
+				if (direction(request) > 0 || held == 0)
+					held = direction(request); // forward wins only simultaneous requests on a free zone
+		singleTrackReservations[l].clear();
+		for (const auto& request : requests[l])
+			if (direction(request) == held)
+				singleTrackReservations[l].push_back(request);
 		if (held != singleTrackHeld[l]) {
-			// release the sections of the zone: they return to clear unless a train or a failure occupies them
 			for (int r = 0; r < static_cast<int>(train_route.size()); ++r)
 				for (const std::string& id : singleTrackZone(l, r).sectionIDs)
 					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), id) == BlocksConnected.end())

@@ -448,8 +448,19 @@ extern std::vector<std::tuple<std::string, std::string, std::string, std::string
 
 // Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
 // opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed
-// route, 0 when it is free. Routes running against the holder see the sections of the zone as occupied.
+// route, 0 when it is free. Pending entries reserve before their last braking opportunity; forward wins
+// simultaneous requests on a free zone. Routes against the holder see it as occupied.
 extern std::vector<int> singleTrackHeld;
+
+// Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted
+// train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears.
+struct SingleTrackReservation {
+	int trainIndex, routeIndex;
+	std::string trainDescription;
+	double departureTime, origin, destination;
+	std::pair<double, double> interval;
+};
+extern std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
 
 // Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
 // neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
@@ -466,7 +477,7 @@ const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex);
 bool singleTrackRouteHasZone(int routeIndex);
 // Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
 std::size_t occupySingleTrackForRoute(int routeIndex);
-// Sets singleTrackHeld from the positions of the trains and releases the zone of every limit that changed (RollingStock.cpp).
+// Updates occupancy and pending entry reservations. Every changed zone is released (RollingStock.cpp).
 void updateSingleTrackLocks(int step);
 
 // --- StationBoundarySection: protects entrance of main stations ---

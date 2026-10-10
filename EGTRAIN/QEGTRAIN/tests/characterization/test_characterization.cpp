@@ -216,6 +216,8 @@ struct CaseSpec {
 	// routeStubIn and routeStubOut and the services U1 (runs into the stub) and D1 (runs out of it) to the scene, due
 	// at these times in seconds. Each route lies inside the stub.
 	bool stub = false;
+	bool runningConflict = false;
+	bool runningThrough = false;
 	double arrivalEntry = 0.0;
 	double departureEntry = 0.0;
 	// With a border, the area from 0 km to borderKm has the level and the area from borderKm to the end has secondLevel.
@@ -290,23 +292,58 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
 	// The stub is the line from station B (8 km) to its closed end at station C. U1 runs into it and D1 out of it, so
 	// they meet head to head. The stub has no passing loop, so the protected end block repeats the end block. The
-	// first train of a case is due 100 s before the second. Without the restriction the two trains meet at a block
-	// edge and stand there until the end of the run.
+	// first train of the ordering cases is due 100 s before the second. In the tie cases both are due at 60 s.
+	// Without the restriction the two trains can meet at a block edge and stand until the end of the run.
 	const struct {
 		const char* name;
 		std::vector<std::string> services;
 		double arrivalEntry, departureEntry;
+		int level;
 	} stubs[] = {
-		{"stub-departure-first-level-0", {"D1", "U1"}, 160.0, 60.0},
-		{"stub-arrival-first-level-0", {"U1", "D1"}, 60.0, 160.0},
+		{"stub-departure-first-level-0", {"D1", "U1"}, 160.0, 60.0, 0},
+		{"stub-arrival-first-level-0", {"U1", "D1"}, 60.0, 160.0, 0},
+		{"stub-tie-level-0", {"U1", "D1"}, 60.0, 60.0, 0},
+		{"stub-tie-level-1", {"U1", "D1"}, 60.0, 60.0, 1},
+		{"stub-tie-level-2", {"U1", "D1"}, 60.0, 60.0, 2},
+		{"stub-tie-level-3", {"U1", "D1"}, 60.0, 60.0, 3},
+		{"stub-tie-level-4", {"U1", "D1"}, 60.0, 60.0, 4},
+		{"stub-tie-level-5", {"U1", "D1"}, 60.0, 60.0, 5},
 	};
 	for (const auto& stub : stubs) {
-		CaseSpec spec{stub.name, "baseline", stub.services, 0, knownWrongMarker(stub.name), true};
+		CaseSpec spec{stub.name, "baseline", stub.services, stub.level, knownWrongMarker(stub.name), true};
 		spec.restriction = {"5-B0", "7-B0", "4-B0", "7-B0"};
 		spec.stub = true;
 		spec.arrivalEntry = stub.arrivalEntry;
 		spec.departureEntry = stub.departureEntry;
 		cases.push_back(spec);
+	}
+	// Both trains approach an interior restriction at line speed. Asymmetric entries exercise each winner and a
+	// follower that commits while its leader still holds the stretch.
+	for (int level = 0; level <= 5; ++level) {
+		for (const std::string& variant : {"tie", "forward-first", "reverse-first", "follower"}) {
+			CaseSpec spec{"running-" + variant + "-level-" + std::to_string(level), "baseline",
+				variant == "follower" ? std::vector<std::string>{"S1", "F2", "R1"} : std::vector<std::string>{"S1", "R1"}, level, "", true};
+			spec.restriction = {"3-B0", "4-B0", "2-B0", "5-B0"};
+			spec.runningConflict = true;
+			spec.arrivalEntry = variant == "reverse-first" ? 63.0 : 60.0;
+			spec.departureEntry = variant == "forward-first" ? 63.0 : variant == "follower" ? 120.0
+																							: 60.0;
+			cases.push_back(spec);
+		}
+		CaseSpec through{"running-through-level-" + std::to_string(level), "baseline", {"F1", "R1"}, level, "", true};
+		through.restriction = {"3-B0", "4-B0", "2-B0", "5-B0"};
+		through.runningConflict = through.runningThrough = true;
+		cases.push_back(through);
+		CaseSpec zero{"stub-zero-level-" + std::to_string(level), "baseline", {"U1", "D1"}, level, "", true};
+		zero.restriction = {"5-B0", "7-B0", "4-B0", "7-B0"};
+		zero.stub = true;
+		cases.push_back(zero);
+		if (level == 0 || level == 4) {
+			CaseSpec held = zero;
+			held.name = "stub-breakdown-level-" + std::to_string(level);
+			held.arrivalEntry = held.departureEntry = 60.0;
+			cases.push_back(held);
+		}
 	}
 	// Two following services over a border between two levels, at station B (8 km) unless the entry gives another
 	// position. The names give the level on the A side and on the C side; fwd runs from A to C, rev from C to A.
@@ -883,9 +920,17 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			const bool onBoundary = offset < kStopTolerance || kBlockLength - offset < kStopTolerance;
 			bool behindTrain = false;
 			for (const TrainTrack& other : tracks) {
-				if (&other == &track || other.routeIndex != track.routeIndex || stop.first < other.first
-					|| stop.first > other.last)
+				if (&other == &track || stop.first < other.first || stop.first > other.last)
 					continue;
+				if (other.routeIndex != track.routeIndex) {
+					// On the through line there is no passing loop. A winner can stop 50 m before the opposing head
+					// outside the zone; this is a stop behind a real train, not an arbitrary mid-block stop.
+					if (spec.runningThrough && train_route[other.routeIndex].reversed_direction != train_route[track.routeIndex].reversed_direction) {
+						const double opposingHead = kFixtureLengthKm * 1000 - (*other.position)[stop.first];
+						behindTrain = behindTrain || (opposingHead >= stop.position && opposingHead - stop.position <= kFollowMargin);
+					}
+					continue;
+				}
 				const double rear = (*other.position)[stop.first] - other.length;
 				behindTrain = behindTrain || (rear >= stop.position && rear - stop.position <= kFollowMargin);
 			}
@@ -899,7 +944,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			if (separation.overlap && separation.gap < 0.0)
 				fail(separation.follower + " overlaps " + separation.leader + " by "
 					+ formatReal(-separation.gap) + " m at t=" + std::to_string(separation.step));
-	if (spec.singleTrack && !spec.stub && !waived && spec.level != kNoSignallingArea) {
+	if (spec.singleTrack && !spec.stub && !spec.runningConflict && !waived && spec.level != kNoSignallingArea) {
 		// S1 runs on routeAB and R1 on route1, so the check above does not pair them. The restricted section with its
 		// protected sections is 0-B0 to 5-B0: the whole of routeAB (0 to 8000 m) for S1 and 4000 to 16000 m for R1.
 		const TrainTrack* forward = nullptr;
@@ -921,17 +966,34 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				}
 			}
 	}
-	if (spec.stub && !waived) {
-		// Both trains reach their last stop. Each route lies completely inside the stub, so a train is in the stub from
-		// its entry to its last step, and the two are never in it together.
+	if ((spec.stub || (spec.runningConflict && !spec.runningThrough)) && !waived)
 		for (const TrainTrack& track : tracks) {
 			const TimetableResultRow* last = nullptr;
 			for (const TimetableResultRow& row : rows)
 				if (row.trainId == track.name)
 					last = &row;
-			if (last == nullptr || !last->simulatedArrivalSeconds.available)
+			if (!last || !last->simulatedArrivalSeconds.available)
 				fail(track.name + " does not reach its last stop");
 		}
+	if (spec.runningConflict && !waived) {
+		// Full through routes have no passing loop. They must stay out of the opposing zone, but cannot both finish.
+		for (size_t i = 0; i < tracks.size(); ++i)
+			for (size_t j = i + 1; j < tracks.size(); ++j) {
+				const TrainTrack& a = tracks[i];
+				const TrainTrack& b = tracks[j];
+				if (train_route[a.routeIndex].reversed_direction == train_route[b.routeIndex].reversed_direction)
+					continue;
+				for (int t = std::max(a.first, b.first); t <= std::min(a.last, b.last); ++t) {
+					const double ah = (*a.position)[t], bh = (*b.position)[t];
+					if (ah >= 4000.0 && ah - a.length < (spec.runningThrough ? 12000.0 : 8000.0) && bh >= 4000.0 && bh - b.length < (spec.runningThrough ? 12000.0 : 8000.0)) {
+						fail(a.name + " and " + b.name + " are inside the single-track section together at t=" + std::to_string(t));
+						break;
+					}
+				}
+			}
+	}
+	if (spec.stub && !waived) {
+		// Each route lies completely inside the stub, so opposing trains are never active together.
 		for (size_t i = 0; i < tracks.size(); ++i)
 			for (size_t j = i + 1; j < tracks.size(); ++j) {
 				const int together = std::max(tracks[i].first, tracks[j].first);
@@ -1100,6 +1162,38 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		loaded.scene.services.push_back(stubService("U1", in.id, spec.arrivalEntry, "B", "C"));
 		loaded.scene.services.push_back(stubService("D1", out.id, spec.departureEntry, "C", "B"));
 	}
+	if (spec.runningConflict && !spec.runningThrough) {
+		SceneRoute reverse;
+		reverse.id = "routeCB";
+		reverse.blocks = {"7-B0", "6-B0", "5-B0", "4-B0"};
+		loaded.scene.routes.push_back(reverse);
+	}
+	if (spec.runningConflict && !spec.runningThrough)
+		for (SceneService& service : loaded.scene.services) {
+			if (service.id != "S1" && service.id != "R1" && service.id != "F2")
+				continue;
+			service.route = service.id == "R1" ? "routeCB" : "routeAB";
+			service.stops.erase(std::remove_if(service.stops.begin(), service.stops.end(), [&](const SceneStop& stop) {
+				return stop.stationId == (service.id == "R1" ? "A" : "C");
+			}),
+				service.stops.end());
+			const double entry = service.id == "S1" ? spec.arrivalEntry : service.id == "R1" ? spec.departureEntry
+																							 : service.entryTimeSeconds;
+			const double offset = entry - service.entryTimeSeconds;
+			if (entry == 63.0) {
+				service.hasMaximumSpeed = true;
+				service.maximumSpeedKmh = signalCode1 * 3.6; // the existing 40 km/h approach speed
+			}
+			service.entryTimeSeconds = entry;
+			for (SceneStop& stop : service.stops) {
+				if (stop.hasPlannedArrival)
+					stop.plannedArrivalSeconds += offset;
+				if (stop.hasPlannedDeparture)
+					stop.plannedDepartureSeconds += offset;
+			}
+		}
+	if (spec.name.find("stub-breakdown-") == 0)
+		loaded.scene.scenarios[0].incidents.push_back({"hold-owner", "train_breakdown", "U1", 60.0, 120.0});
 	if (spec.singleTrack)
 		loaded.scene.singleTrackRestrictions = {{spec.restriction[0], spec.restriction[1], spec.restriction[2], spec.restriction[3]}};
 	if (!spec.passengers.empty())
@@ -1170,7 +1264,32 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 
 	PassengerTrace passengers;
 	StepRecorder recorder(routesInUse, boundarySteps, spec.passengers.empty() ? nullptr : &passengers);
-	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder, [&recorder]() { recorder.onSnapshotAvailable(); }, Qt::DirectConnection);
+	int reservationStep = -1;
+	bool movingTie = false;
+	int reservationDirection = 0, movingApproaches = 0;
+	std::vector<double> approachSpeeds;
+	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder, [&]() {
+		recorder.onSnapshotAvailable();
+		if (!spec.runningConflict || reservationStep >= 0 || singleTrackHeld.empty() || singleTrackHeld[0] == 0)
+			return;
+		reservationStep = recorder.callbacks() - 1;
+		reservationDirection = singleTrackHeld[0];
+		int movingRequests = 0;
+		for (Train& train : regional_train) {
+			if (train.trainDescription != (spec.runningThrough ? "F1-1" : "S1-1") && train.trainDescription != "R1-1")
+				continue;
+			Route& route = train_route[train.indexOfRoute];
+			const double head = train.instant_spatial_position[reservationStep];
+			const double speed = train.instant_train_speed[reservationStep];
+			if (train.CanEnter && speed > 0 && head < 4000.0) {
+				++movingApproaches;
+				approachSpeeds.push_back(speed);
+			}
+			if (train.CanEnter && speed > 0 && head < 4000.0
+				&& train.needsSingleTrackReservation(head, speed, 4000.0, route.sequence_of_block_sections.data(), route.N_Block_Sections))
+				++movingRequests;
+		}
+		movingTie = movingRequests == 2; }, Qt::DirectConnection);
 	const int horizon = static_cast<int>(initial_variables.times);
 	simulation.runSimulation();
 	QObject::disconnect(&simulation, &DispatchController::snapshotAvailable, &recorder, nullptr);
@@ -1194,6 +1313,19 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	};
 
 	add("run", {integerField("steps", horizon), integerField("trains", numRegions)});
+	if (spec.runningConflict) {
+		add("reservation", {integerField("first_step", reservationStep), integerField("moving_tie", movingTie), integerField("direction", reservationDirection)});
+		if (checkInvariants && (spec.name.find("running-forward-first-") == 0 || spec.name.find("running-reverse-first-") == 0)
+			&& (reservationDirection != (spec.name.find("running-forward-first-") == 0 ? 1 : -1)
+				|| movingApproaches != 2 || std::abs(approachSpeeds[0] - approachSpeeds[1]) < 0.001)) {
+			outcome.error = "asymmetric moving approaches did not retain their requesting direction\n";
+			return outcome;
+		}
+		if (checkInvariants && spec.name.find("running-tie-") == 0 && !movingTie) {
+			outcome.error = "opposing entry requests did not coincide while both trains were moving\n";
+			return outcome;
+		}
+	}
 
 	std::vector<const Train*> trains;
 	for (int i = 0; i < numRegions; ++i)

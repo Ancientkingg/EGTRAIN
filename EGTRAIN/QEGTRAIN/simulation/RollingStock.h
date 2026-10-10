@@ -1050,6 +1050,64 @@ public:
 		return BX;
 	}
 
+	// Request before the next movement can consume the last opportunity to brake for the entry. The movement
+	// bound uses the same force/resistance model and starting-effort bound as acceleration and virtual coupling.
+	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count) {
+		if (head >= entry)
+			return true;
+		if (!std::isfinite(speed) || speed < 0 || total_train_mass <= 0 || massFactor <= 0 || !std::isfinite(max_train_speed))
+			return true;
+		double nextSpeed = speed;
+		bool foundArc = false;
+		for (int b = 0; b < count && !foundArc; ++b)
+			for (int a = 0; a < sections[b].total_arcs; ++a) {
+				const Arc& arc = sections[b].arcs_in_signalling_block_section[a];
+				if (head < arc.startNode.X * 1000 || head >= arc.endNode.X * 1000)
+					continue;
+				const double acceleration = (std::max(tractiveEffort(speed), tractiveEffort(0))
+												- total_train_resistances(speed, arc.gradient, arc.curvature))
+					/ (total_train_mass * massFactor);
+				if (!std::isfinite(acceleration))
+					return true; // no safe movement bound
+				nextSpeed = std::min(max_train_speed, speed + std::max(0.0, acceleration) * timestep);
+				foundArc = true;
+				break;
+			}
+		if (!foundArc || !std::isfinite(nextSpeed))
+			return true;
+		const double nextHead = head + std::max(speed, nextSpeed) * timestep;
+		if (nextHead >= entry)
+			return true;
+		auto needsBraking = [&](double target, double targetSpeed) {
+			if (nextSpeed <= targetSpeed)
+				return false;
+			if (nextHead >= target)
+				return true;
+			const double brakingStart = BrakDist_Block(nextSpeed, targetSpeed, target, sections, count);
+			if (!std::isfinite(brakingStart) || brakingStart == -1)
+				return true; // a failed lookup cannot establish a later safe request
+			if (brakingStart < sections[0].start_node.X * 1000)
+				return true; // the last braking opportunity precedes the route origin
+			return nextHead >= brakingStart;
+		};
+		// Fixed-block locks also constrain the approach blocks. Reserve before those speed targets become too late,
+		// rather than introducing a speed cap on a train already in the block carrying it.
+		for (int b = 0; b < count; ++b)
+			if (sections[b].start_node.X * 1000 == entry) {
+				if (b > 0 && sections[b - 1].SignallingLevel == 0
+					&& needsBraking(sections[b - 1].start_node.X * 1000, signalCode1))
+					return true;
+				if (b > 0 && sections[b - 1].SignallingLevel == 5
+					&& needsBraking(sections[b - 1].start_node.X * 1000, 0))
+					return true;
+				if (b > 1 && sections[b - 2].SignallingLevel == 5
+					&& needsBraking(sections[b - 2].start_node.X * 1000, signalCode1))
+					return true;
+				break;
+			}
+		return needsBraking(entry, 0);
+	}
+
 	// This Function simulate the capacity of the train driver to react to the first most severe service limit (i.e. it calculates the braking distance and the braking point for satisfying the most severe running operation limit)
 	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks) {
 		int N_BrakP;
