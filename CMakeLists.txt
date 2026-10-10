@@ -238,6 +238,11 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 
+# Recovery copies of a scene with unsaved edits, kept below a folder that the caller names.
+# Only test_recoverystore links it.
+add_library(egtrain_recovery STATIC ${SRC_DIR}/recovery/RecoveryStore.cpp)
+target_link_libraries(egtrain_recovery PUBLIC Qt5::Core egtrain_scene)
+
 # The test hooks change the layout of TelemetrySender, TelemetryConsent and TelemetryQueue, so a
 # build with hooks compiles the same sources again, by design:
 #   egtrain_telemetry        no hooks: the application and the diagram window tests
@@ -300,7 +305,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
 endif()
 
-foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update ${EGTRAIN_TELEMETRY_LIBS}
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
@@ -309,7 +314,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -483,7 +488,7 @@ endif()
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
     set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
-        egtrain_graphics egtrain_widgets egtrain_update egtrain_dispatch egtrain_diagrams
+        egtrain_graphics egtrain_widgets egtrain_update egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
@@ -618,6 +623,13 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
+    add_executable(test_recoverystore ${SRC_DIR}/tests/test_recoverystore.cpp)
+    target_link_libraries(test_recoverystore PRIVATE egtrain_recovery Qt5::Core)
+    add_test(NAME test_recoverystore COMMAND test_recoverystore)
+    # The same program, started again as the child that holds or loses a copy.
+    add_test(NAME test_recoverystore_process COMMAND test_recoverystore --processes)
+    set_tests_properties(test_recoverystore_process PROPERTIES TIMEOUT 120)
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
@@ -1062,7 +1074,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_timeformat test_version test_log test_speedformat test_trajectory test_csvwriter
 			test_playbackprofiler
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
-			test_telemetrynetwork test_updatechecker test_updatestaging
+			test_telemetrynetwork test_updatechecker test_updatestaging test_recoverystore
 			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility
@@ -1096,7 +1108,7 @@ if(EGTRAIN_BUILD_TESTS)
 	endfunction()
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
-		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
+		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_recoverystore
 		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
@@ -1110,7 +1122,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
 	egtrain_label_tests(integration
-		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper
+		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure

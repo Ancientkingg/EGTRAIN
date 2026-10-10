@@ -37,7 +37,7 @@ so that the standard library headers are found. `io/third_party/` has its own
 target that links a library does not get them.
 
 - Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_update`,
-  `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
+  `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
   `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
   warning fails the build.
@@ -92,6 +92,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `util/` | Helpers shared by several folders: formatting, CSV output, versions, profiling |
 | `update/` | Release check, package download, self-update and the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
+| `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names |
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/` |
 | `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `golden_master/`, `memory/`, `performance/`, `release/`) |
 

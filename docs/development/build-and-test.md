@@ -89,7 +89,8 @@ built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_update`,
 tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
 every test that pulls in Infrastructure, Signalling or RollingStock from
-`egtrain_sim` define the global `Logger owl`.
+`egtrain_sim` define the global `Logger owl`. `egtrain_recovery` holds
+`RecoveryStore`, and `test_recoverystore` is the only target that links it.
 
 Two things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
@@ -171,6 +172,19 @@ The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
 both enter the same `DispatchController::prepareScene` path.
 
+`test_recoverystore` checks `RecoveryStore` in one process: the layout of an
+instance folder, writing and replacing a copy, a failed write that keeps the
+previous copy, the copies that an ended instance left behind, the choice of the
+newest complete bundle, unusable and unknown records, pruning, the limit of 20
+kept instances, clear and close, adopt and discard, and the comparison of a
+source with its copy. A case that needs POSIX permissions skips itself on
+Windows and when the process may write into a read-only folder anyway.
+`test_recoverystore_process` (label `integration`) starts the test program again
+as a child that writes a copy and holds its lock, and as a child that ends
+without a clean close. The parent checks that a scan lists nothing for the
+running child, that it lists the copy once the child was killed or has ended,
+and that a new store can adopt that copy.
+
 ### Test labels
 
 Every test has exactly one of `unit` or `integration`. Configuration fails
@@ -179,7 +193,8 @@ when a test has neither or both.
 - `unit`: runs in-process or is a static check. It starts no QEGTRAIN,
   `scene_tool`, update helper, or socket server.
 - `integration`: starts or inspects a built program (`QEGTRAIN`, `scene_tool`,
-  `egtrain_update_helper`) or talks to a loopback server.
+  `egtrain_update_helper`, or a test that starts its own executable as a child)
+  or talks to a loopback server.
 - `gui`: needs a Qt platform plugin (the tests use `offscreen`) or launches
   QEGTRAIN in GUI mode. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.

@@ -37,6 +37,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
+| `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases and the test `fixtures/` |
 
 ## Includes
@@ -67,12 +68,14 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
 | `egtrain_update` | `update/ReleaseInfo`, `UpdatePreparation`, `UpdateSettings` | Qt Core, `egtrain_util` |
+| `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
 `egtrain_miniz` holds the vendored zip code. The first five libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
+`egtrain_recovery` is linked by `test_recoverystore` only.
 
 The telemetry sources also build with test hooks, which add members and a constructor
 parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours
