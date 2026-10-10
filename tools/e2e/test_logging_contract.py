@@ -79,7 +79,6 @@ ALLOWED = {
     "simulation/InitialParameters.cpp": {"cout": 2},
     "simulation/RollingStock.cpp": {"cout": 3, "cerr": 1, "owl": 1},
     "simulation/RollingStock.h": {"cout": 15, "fprintf": 1, "eglogger": 2},
-    "simulation/Signalling.cpp": {"cout": 26, "cerr": 1, "owl": 7, "eglogger": 5},
     "simulation/Simulation.cpp": {"cout": 2},
     "util/Logger.hpp": {"cout": 2},
 }

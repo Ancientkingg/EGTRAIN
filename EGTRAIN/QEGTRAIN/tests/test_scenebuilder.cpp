@@ -2,6 +2,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
+#include "util/Log.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1172,6 +1173,291 @@ static bool runTrackDetectionBorderNameChecks() {
 	return ok;
 }
 
+// The messages of simulation/Signalling.cpp are sim.setup messages of the logging core. A sink collects them, because the console
+// shows neither the category nor the level, and each text is compared with the exact wording, quirks included (a missing space,
+// a tail that is written twice, "ahving").
+static bool runSignallingMessageChecks() {
+	bool ok = true;
+	struct Logged {
+		eglog::Category category;
+		eglog::Level level;
+		std::string text;
+	};
+	struct Expected {
+		eglog::Level level;
+		std::string text;
+	};
+	// Collects the messages and puts the default sink and the default rules back on every path out of the function.
+	struct Capture {
+		std::vector<Logged> messages;
+		Capture() {
+			eglog::setSink([this](eglog::Category category, eglog::Level level, const std::string& text) { this->messages.push_back(Logged{category, level, text}); });
+		}
+		~Capture() {
+			eglog::setSink({});
+			eglog::configure("");
+		}
+		std::vector<Logged> take() {
+			std::vector<Logged> taken;
+			taken.swap(messages);
+			return taken;
+		}
+	} capture;
+	const eglog::Level infoLevel = eglog::Level::Info;
+	const eglog::Level warningLevel = eglog::Level::Warning;
+	const eglog::Level errorLevel = eglog::Level::Error;
+	const auto visible = [](std::string text) {
+		for (std::size_t at = 0; (at = text.find_first_of("\r\n", at)) != std::string::npos; at += 2)
+			text.replace(at, 1, text[at] == '\r' ? "\\r" : "\\n");
+		return text;
+	};
+	const auto shows = [&](const std::vector<Logged>& found, const std::vector<Expected>& wanted, const std::string& what) {
+		bool same = found.size() == wanted.size();
+		for (std::size_t index = 0; same && index < found.size(); ++index)
+			same = found[index].category == eglog::Category::SimSetup && found[index].level == wanted[index].level
+				&& found[index].text == wanted[index].text;
+		std::string described;
+		if (!same) {
+			described = "\n  found:";
+			for (const Logged& message : found)
+				described += std::string("\n    ") + eglog::categoryName(message.category) + " " + eglog::levelName(message.level)
+					+ " '" + visible(message.text) + "'";
+			described += "\n  wanted:";
+			for (const Expected& message : wanted)
+				described += std::string("\n    sim.setup ") + eglog::levelName(message.level) + " '" + visible(message.text) + "'";
+		}
+		ok &= expect(same, what + described);
+	};
+
+	// The route setup of a build: the progress text of each route, then the line end, also without routes.
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())), "the scene with one route builds");
+	shows(capture.take(), {{infoLevel, "\rCreating Scene Route : 0 route.tiny"}, {infoLevel, "\n"}}, "the route setup of a scene with one route");
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(stableConnectionScene())), "the scene without routes builds");
+	shows(capture.take(), {{infoLevel, "\n"}}, "the route setup of a scene without routes");
+	resetNativeInfrastructureState();
+	capture.take();
+
+	// A cut abscissa outside the section is an error. The failed cut replaces the section by a default one, so the id is a constant.
+	const auto cut = [&](const std::string& part, double abscissa, double xStartSwitch, double xEndSwitch) {
+		Section section;
+		section.ID = "@Cut@";
+		section.withSwitchDiv = true;
+		section.XStartSwitch = xStartSwitch;
+		section.XEndSwitch = xEndSwitch;
+		section.end_node.X = 10.0;
+		section.total_arcs = 1;
+		section.arcs_in_signalling_block_section[0].endNode.X = 10.0;
+		section.CutBlockSection(part, abscissa);
+		delete[] section.nodelist_of_nodes_in_signalling_section;
+		return capture.take();
+	};
+	shows(cut("CutEnd", 12.5, 2.0, 4.0),
+		{{errorLevel, "ERROR: The Block Section @Cut@ cannot be cut in the inserted abscissa 12.5\n\n"}},
+		"a cut outside the section");
+	ok &= expect(eglog::configure("sim.setup=false"), "the rule that switches sim.setup off is well formed");
+	shows(cut("CutEnd", 12.5, 2.0, 4.0), {}, "a cut outside the section with sim.setup off");
+	eglog::configure("");
+
+	// Valid cuts of a section of length 10 with a diverging switch from 2 to 4, where the cut touches or removes a switch edge.
+	const std::string endEdgeCut = " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, "
+								   "please consider repositioning the final edge of this switch or the starting edge of the switch "
+								   "of the next block section in the route\n";
+	const std::string startEdgeCut = " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, "
+									 "please consider repositioning the starting edge of this switch or the final edge of the switch "
+									 "of the previous block section in the route\n";
+	shows(cut("CutEnd", 4.0, 2.0, 4.0),
+		{{infoLevel, "Cutting Block Section: @Cut@ at the ending edge of its diverging switch\n\n"}},
+		"a cut at the end of the switch");
+	shows(cut("CutEnd", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}}, "a cut inside the switch");
+	shows(cut("CutEnd", 1.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section: @Cut@" + endEdgeCut}}, "a cut before the switch");
+	shows(cut("CutBegin", 2.0, 2.0, 4.0),
+		{{infoLevel, "Cutting Block Section: @Cut@at the starting edge of its diverging switch\n\n"}},
+		"a cut at the start of the switch");
+	shows(cut("CutBegin", 3.0, 2.0, 4.0), {{warningLevel, "Warning: Block Section : @Cut@" + startEdgeCut}}, "a cut inside the switch from the start");
+	shows(cut("CutBegin", 3.0, 4.0, 2.0),
+		{{errorLevel, "ERROR: Block Section: @Cut@ has Ending Edge of diverging switch with a progressive inferior to its Starting Egde. "
+					  "Problems in cutting the block section. PLease correct Switch on the infrastructure\n\n"}},
+		"a cut of a switch that ends before it starts");
+
+	// The elements that a train crosses between 4 and 6 and that miss a name.
+	const auto crossing = [&](const InfraElement& element) {
+		std::list<InfraElement> elements(1);
+		elements.front() = element;
+		UpdateInfrastructureElementStatus(elements, 10, 4.0, 6.0, 0.0, "T1");
+		return capture.take();
+	};
+	InfraElement divergingSwitch;
+	divergingSwitch.XCoordinate = 5.0;
+	divergingSwitch.IsSwitch = true;
+	divergingSwitch.withSwitchDiv = true;
+	shows(crossing(divergingSwitch),
+		{{warningLevel, "Warning: Diverging Switch: Noneat position 5 on Route of Train T1 has no SwitchName. Please investigate on it\n"},
+			{warningLevel, "Warning: Position not found for connected Point of Switch: None on Route of TrainT1\n"}},
+		"a diverging switch with no name and no connected point");
+	divergingSwitch.ID = "sw1";
+	divergingSwitch.XConnectedPoint = 7.0;
+	shows(crossing(divergingSwitch),
+		{{warningLevel, "Warning: Diverging Switch: sw1at position 5 on Route of Train T1 has no SwitchName. Please investigate on it\n"}},
+		"a diverging switch with no switch name");
+	divergingSwitch.SwitchName = "@s@Point";
+	divergingSwitch.XConnectedPoint = -1;
+	shows(crossing(divergingSwitch),
+		{{warningLevel, "Warning: Position not found for connected Point of Switch: sw1 on Route of TrainT1\n"}},
+		"a diverging switch with no connected point");
+	InfraElement unnamed;
+	unnamed.XCoordinate = 5.0;
+	shows(crossing(unnamed),
+		{{warningLevel, "Warning: Infrastructure Element at position 5 on Route of Train T1 has no ID. Please investigate on it\n"}},
+		"an element with no id");
+
+	// The track detection section borders of one hand-made section per call. A switch section has the tokens of two blocks in its id.
+	const auto oneSection = [](const std::string& id, bool withSwitch, double xStartSwitch, double xEndSwitch, double endX) {
+		std::vector<Section> sections(1);
+		sections[0].ID = id;
+		sections[0].withSwitchDiv = withSwitch;
+		sections[0].XStartSwitch = xStartSwitch;
+		sections[0].XEndSwitch = xEndSwitch;
+		sections[0].end_node.X = endX;
+		return sections;
+	};
+	const auto addArc = [](Section& target, double startX, double endX, int startConnections, const std::string& startName, int endConnections) {
+		Arc& added = target.arcs_in_signalling_block_section[target.total_arcs++];
+		added.startNode.X = startX;
+		added.startNode.numConnections = startConnections;
+		added.startNode.tdsbId = startName;
+		added.endNode.X = endX;
+		added.endNode.numConnections = endConnections;
+	};
+	const auto borders = [&](std::vector<Section>& sections) {
+		setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(sections.data(), static_cast<int>(sections.size()));
+		return capture.take();
+	};
+	const std::string switchId = "@Be@-1.000000/@Bf@-2.000000";
+	const std::string noEndName = " has End Node with no name, a name will be automatically assigned to it "
+								  "and need to manually check congruency in case of timetable compression\n";
+	const std::string noBeginningName = "Warning: Block " + switchId + " has Beginning Node with no name. A name will be automatically assigned to it "
+																	   "and need to manually check congruency in case of timetable compression\n";
+	const std::string startingNode = "ERROR: in Block Section" + switchId + " the starting Node has a position ";
+	std::vector<Section> plain = oneSection("@P1@", false, 0.0, 0.0, 20.0);
+	addArc(plain[0], -9.0, -7.2345678, 0, "", 0);
+	addArc(plain[0], -7.2345678, 20.0, 0, "", 1);
+	shows(borders(plain), {{warningLevel, "Warning: Block @P1@" + noEndName}}, "the last node of a section without a switch has no name");
+	const double wholeStart = 20.1234567;
+	const double wholeEnd = 20.7654321;
+	std::vector<Section> whole = oneSection(switchId, true, wholeStart, wholeEnd, wholeEnd);
+	addArc(whole[0], wholeStart, wholeEnd, 0, "", 0);
+	shows(borders(whole), {{warningLevel, noBeginningName}}, "the first node of the first arc is the start of the switch and has no name");
+	const double xStart = 40.2222222;
+	const double xEnd = 40.8888888;
+	std::vector<Section> beforeSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
+	addArc(beforeSwitch[0], 40.0, 41.0, 1, "", 0);
+	shows(borders(beforeSwitch),
+		{{warningLevel, noBeginningName}},
+		"the first node of the first arc is a switch before the switch of the section and has no name");
+	std::vector<Section> named = oneSection(switchId, true, xStart, xEnd, 50.0);
+	addArc(named[0], 40.0, 41.0, 1, "@Q@", 0);
+	shows(borders(named),
+		{{warningLevel, "Warning: The initial Node of Block Section: " + switchId + "is also a switch: Changing its TDSB ID accordingly in: @Q@Point\n"}},
+		"the first node of the first arc is a switch and has a name");
+	ok &= expect(named[0].arcs_in_signalling_block_section[0].startNode.tdsbId == "@Q@Point", "the name in the message is the name of the node");
+	std::vector<Section> afterSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
+	addArc(afterSwitch[0], 41.5, 45.0, 1, "", 0);
+	shows(borders(afterSwitch),
+		{{warningLevel, noBeginningName}, {errorLevel, startingNode + "that goes after the end of the Switch\n"}},
+		"the first node of the first arc is a switch after the switch of the section");
+	std::vector<Section> insideSwitch = oneSection(switchId, true, xStart, xEnd, 50.0);
+	addArc(insideSwitch[0], 40.5, 41.0, 1, "", 0);
+	shows(borders(insideSwitch),
+		{{warningLevel, noBeginningName}, {errorLevel, startingNode + "in between the start and the end of the switch\n"}},
+		"the first node of the first arc is a switch inside the switch of the section");
+	const std::string aheadId = "@Bc@-1.000000/@Bd@-2.000000";
+	const double aheadStart = 30.5555556;
+	std::vector<Section> ahead = oneSection(aheadId, true, aheadStart, 31.4444444, aheadStart);
+	addArc(ahead[0], 29.0, aheadStart, 0, "", 0);
+	shows(borders(ahead),
+		{{warningLevel, "Warning: Check correctness of Block Section:" + aheadId + " its ending Node is the start of the switch "
+																				   "on the same block section\n\n"}},
+		"the last node of the section is the start of its switch");
+	std::vector<Section> between = oneSection(switchId, true, xStart, xEnd, 50.0);
+	addArc(between[0], 40.0, 40.5, 0, "", 1);
+	const std::string betweenSwitchEdges = " Node at position: 40.5 is a switch defined in between the start (XStartSwitch) "
+										   "and the end (XEndSwitch) of the diverging switch. A name will be automatically assigned to it\n";
+	shows(borders(between),
+		{{warningLevel, "WARNING: in Block Section" + switchId + betweenSwitchEdges}},
+		"the end node of an arc is a switch inside the switch of the section");
+
+	// A switch edge with a one-token name cannot be read as a diverging switch. Three of the four messages write the tail twice.
+	const auto edge = [] {
+		Section made;
+		made.ID = "@S1@";
+		made.withSwitchDiv = true;
+		return made;
+	};
+	const auto switchName = [&](bool reversed, const Section& made) {
+		Route route;
+		route.ID = "R1";
+		route.reversed_direction = reversed;
+		route.setListInfrastructureElementsForRoute(made);
+		return capture.take();
+	};
+	const std::string tail = " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+	Section startEdge = edge();
+	startEdge.start_node.tdsbId = "AB";
+	startEdge.start_node.numConnections = 1;
+	shows(switchName(false, startEdge),
+		{{warningLevel, "Warning: Switch at starting Node: AB on Block Section @S1@for Route R1 that has reversed = 0" + tail}},
+		"a switch at the start of a section");
+	Section arcEdge = edge();
+	arcEdge.total_arcs = 1;
+	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbId = "AB";
+	arcEdge.arcs_in_signalling_block_section[0].endNode.tdsbGeoCoordX = 0.0;
+	arcEdge.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
+	shows(switchName(false, arcEdge),
+		{{warningLevel, "Warning: Switch at end of one of the arcs: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
+		"a switch at the end of an arc");
+	Section reversedEdge = edge();
+	reversedEdge.total_arcs = 1;
+	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbId = "AB";
+	reversedEdge.arcs_in_signalling_block_section[0].startNode.tdsbGeoCoordX = 0.0;
+	reversedEdge.arcs_in_signalling_block_section[0].startNode.numConnections = 1;
+	shows(switchName(true, reversedEdge),
+		{{warningLevel, "Warning: Switch at one of the beginning nodes: AB on Block Section @S1@for RouteR1that has reversed = 1" + tail + tail}},
+		"a switch at the start of an arc of a reversed route");
+	Section endEdge = edge();
+	endEdge.end_node.tdsbId = "AB";
+	endEdge.end_node.numConnections = 1;
+	shows(switchName(false, endEdge),
+		{{warningLevel, "Warning: Switch at ending Node: AB on Block Section @S1@for RouteR1that has reversed = 0" + tail + tail}},
+		"a switch at the end of a section");
+
+	// The switch of a section is connected to blocks that are not the section.
+	Section unknownBlock;
+	unknownBlock.ID = "@C@";
+	unknownBlock.total_arcs = 1;
+	unknownBlock.arcs_in_signalling_block_section[0].endNode.X = 1.0;
+	unknownBlock.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
+	unknownBlock.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.push_back("@A@-1.000000/@B@-2.000000");
+	lockSwitchesOnAllConnectedSections(1010.0, 990.0, 10.0, 0.0, unknownBlock, "now", "next", "T1", false, "None");
+	ETCS_MA.clear();
+	shows(capture.take(),
+		{{errorLevel, "\n\nError: there is not Block ahving the same ID of Block signalling_block_sections in Function: "
+					  "lockSwitchesOnAllConnectedSections...Please investigate on that\n\n"}},
+		"a switch connected to blocks that are not the section");
+
+	// A section whose id is part of the ids of eleven others has more connected sections than it can hold.
+	signalling_block_sections = std::vector<Section>(12);
+	Blocks = static_cast<int>(signalling_block_sections.size());
+	signalling_block_sections[0].ID = "@Cap@";
+	for (std::size_t index = 1; index < signalling_block_sections.size(); ++index)
+		signalling_block_sections[index].ID = "@Cap@-" + std::to_string(index);
+	setDependenciesBetweenBlocks();
+	resetNativeInfrastructureState();
+	shows(capture.take(),
+		{{errorLevel, "ERROR: Block section @Cap@ has more than 10 connected block sections\n"}},
+		"a section with more connected sections than it holds");
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
@@ -1180,5 +1466,6 @@ int main() {
 	ok &= runRouteStorageChecks();
 	ok &= runValueSemanticsChecks();
 	ok &= runTrackDetectionBorderNameChecks();
+	ok &= runSignallingMessageChecks();
 	return ok ? 0 : 1;
 }
