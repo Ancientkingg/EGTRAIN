@@ -445,6 +445,74 @@ static bool exerciseTrainColors() {
 	return ok;
 }
 
+// A chart with one line series per name and two points each.
+static QChart* makeNamedChart(const QStringList& names) {
+	auto* chart = new QChart;
+	for (const QString& name : names) {
+		auto* line = new QLineSeries;
+		line->setName(name);
+		line->append(10, 10);
+		line->append(20, 20);
+		chart->addSeries(line);
+	}
+	chart->createDefaultAxes();
+	return chart;
+}
+
+static QString navigationHelp(const DiagramWindow& window) {
+	return window.findChild<QLabel*>("diagramNavigationHelp")->text();
+}
+
+// The help line mentions planned lines only when the chart has a planned series, and
+// the rolling-stock subject never does.
+static bool exerciseNavigationHelp() {
+	const QString general = QStringLiteral(
+		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	const QString withPlanned = QStringLiteral(
+		"Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.");
+	const QString inputTraction = QStringLiteral(
+		"Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; "
+		"pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	const QStringList plannedNames{"Train A (planned arrival)", "Train A (simulated arrival)"};
+	const QStringList plainNames{"Train A", "Train B (arrival delay)", "Train A (recorded trajectory)"};
+	bool ok = true;
+
+	DiagramWindow empty("Help without chart");
+	ok &= expect(navigationHelp(empty) == general, "help of a window without a chart has no planned sentence");
+
+	DiagramWindow planned("Help with planned series");
+	planned.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(planned) == withPlanned, "help of a chart with a planned series has the planned sentence");
+
+	DiagramWindow plain("Help without planned series");
+	plain.setChart(makeNamedChart(plainNames));
+	ok &= expect(navigationHelp(plain) == general, "help of a chart without a planned series has no planned sentence");
+
+	DiagramWindow replaced("Help after replacing the chart");
+	replaced.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(replaced) == withPlanned, "help has the planned sentence for the first chart");
+	replaced.setChart(makeNamedChart(plainNames));
+	ok &= expect(navigationHelp(replaced) == general, "help drops the planned sentence when the chart is replaced");
+	replaced.setChart(makeNamedChart(plannedNames));
+	ok &= expect(navigationHelp(replaced) == withPlanned, "help gets the planned sentence back for the third chart");
+
+	DiagramWindow upper("Help with an upper-case name");
+	upper.setChart(makeNamedChart({"TRAIN A (PLANNED REFERENCE)"}));
+	ok &= expect(navigationHelp(upper) == withPlanned, "the planned name test ignores letter case in the help");
+
+	DiagramWindow input("Help of an input traction curve");
+	input.setProperty("inputTrainUnitId", QStringLiteral("Unit A"));
+	input.setChart(makeNamedChart({"Unit planned"}));
+	ok &= expect(navigationHelp(input) == inputTraction, "input traction help wins over a planned series");
+	input.setRollingStockSubject(false);
+	ok &= expect(navigationHelp(input) == withPlanned, "help follows the chart after the rolling-stock subject is switched off");
+	input.setRollingStockSubject(true);
+	ok &= expect(navigationHelp(input) == inputTraction, "help is the input traction text again after the subject is switched on");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -936,6 +1004,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseTrainFilter();
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
+	ok &= exerciseNavigationHelp();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

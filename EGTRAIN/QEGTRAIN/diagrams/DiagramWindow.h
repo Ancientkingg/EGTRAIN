@@ -42,6 +42,7 @@ class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
+	// The navigation help is built from the series the chart has when it is set.
 	void setChart(QChart* chart); // takes ownership
 	// Presentation only: concise warning separate from bounded subject/run context.
 	void setPresentation(const QString& heading, const QString& context,
@@ -111,6 +112,7 @@ private:
 	QStringList visibleTrainIds() const;
 	QString groupIdForSeries(QAbstractSeries* series) const;
 	void updateReadout(const QPointF& value, const QString& seriesName);
+	void refreshNavigationHelp();
 
 	QPointer<QChartView> m_view;
 	QPointer<QLabel> m_readout;
@@ -120,6 +122,7 @@ private:
 	QPointer<QPushButton> m_clearPinButton;
 	QPointer<QLabel> m_warningLabel;
 	QPointer<QLabel> m_contextLabel;
+	bool m_rollingStockSubject = false;
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;

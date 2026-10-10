@@ -100,6 +100,12 @@ QPen emphasisedPen(const QPen& base) {
 	return pen;
 }
 
+// Planned series are drawn dashed and make the navigation help mention planned
+// lines; both rules use this one test of the series name.
+bool isPlannedSeries(const QAbstractSeries* series) {
+	return series->name().contains("planned", Qt::CaseInsensitive);
+}
+
 } // namespace
 
 DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
@@ -182,12 +188,11 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 	topBar->addWidget(m_csvButton);
 	topBar->addWidget(exportPngBtn);
 
-	m_readout = new QLabel("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; "
-						   "pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid.",
-		this);
+	m_readout = new QLabel(this);
 	m_readout->setObjectName("diagramNavigationHelp");
 	m_readout->setWordWrap(true);
 	m_readout->setTextFormat(Qt::PlainText);
+	refreshNavigationHelp();
 	m_warningLabel = new QLabel(this);
 	m_warningLabel->setObjectName("diagramWarning");
 	m_warningLabel->setTextFormat(Qt::PlainText);
@@ -227,12 +232,30 @@ void DiagramWindow::setPresentation(const QString& heading, const QString& conte
 }
 
 void DiagramWindow::setRollingStockSubject(bool on) {
+	m_rollingStockSubject = on;
 	m_trainsButton->setVisible(!on);
 	m_clearPinButton->setVisible(!on);
 	m_pinLabel->setVisible(!on);
-	m_readout->setText(on
-			? QStringLiteral("Input tractive effort by speed. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.")
-			: QStringLiteral("Hover to inspect; click to select. Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets. Planned: dashed; actual: solid."));
+	refreshNavigationHelp();
+}
+
+// The sentence about planned lines is there only when the shown chart has a planned series.
+void DiagramWindow::refreshNavigationHelp() {
+	if (!m_readout) return;
+	const QString navigation = QStringLiteral(
+		"Drag to zoom; two-finger scroll to pan; pinch or Ctrl+wheel to zoom. +/- zoom, arrows pan, Home resets.");
+	if (m_rollingStockSubject) {
+		m_readout->setText(QStringLiteral("Input tractive effort by speed. ") + navigation);
+		return;
+	}
+	QString text = QStringLiteral("Hover to inspect; click to select. ") + navigation;
+	const QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (chart) {
+		const auto seriesList = chart->series();
+		if (std::any_of(seriesList.begin(), seriesList.end(), isPlannedSeries))
+			text += QStringLiteral(" Planned: dashed; actual: solid.");
+	}
+	m_readout->setText(text);
 }
 
 void DiagramWindow::setTrainColors(const QHash<QString, QColor>& colors) {
@@ -280,6 +303,7 @@ void DiagramWindow::setChart(QChart* chart) {
 	// Existing input-traction callers tag their windows before setting the chart.
 	// Keep the explicit API for future callers and avoid a train-only filter here.
 	if (property("inputTrainUnitId").isValid()) setRollingStockSubject(true);
+	refreshNavigationHelp();
 	rebuildFilterGroups();
 	if (chart)
 		for (auto* axis : chart->axes())
@@ -348,7 +372,7 @@ void DiagramWindow::applyChartStyle(QChart* chart) {
 	for (QAbstractSeries* series : seriesList) {
 		if (auto* xy = qobject_cast<QXYSeries*>(series)) {
 			QPen pen = xy->pen();
-			if (series->name().contains("planned", Qt::CaseInsensitive))
+			if (isPlannedSeries(series))
 				pen.setStyle(Qt::DashLine);
 			xy->setPen(pen);
 			if (pen.widthF() < 2.0) {
