@@ -99,7 +99,9 @@ Required root arrays are `signals` and `routes`.
   route marked `reversed` whose sections run forward.
 - `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,
   and integer `level` from 0 through 5; optional `track` refers to a canonical
-  track ID. The array is optional.
+  track ID. The array is optional. The editor writes -99999999 as the level of an
+  area whose system is not chosen yet; the loader reads the number and
+  validation reports it.
 - `block_dependencies[]`: `{ "block": string, "depends_on": string }`.
 - `single_track_restrictions[]`: preferred explicit
   `start_block`, `end_block`, `protected_start_block`, and
@@ -127,7 +129,8 @@ Area diagnostics name the area and give the values behind them:
 - `scene.signalling_area.range` (error): the message shows `start_km`, `end_km`
   and the extent of the blocks of the network or of the area's track.
 - `scene.signalling_area.level` (error): the message shows the level that lies
-  outside 0 to 5.
+  outside 0 to 5. An area without a chosen system gets the message "has no
+  signalling system" instead.
 - `scene.ref.unresolved` on `signalling_areas[].track` (error): the message
   names the unknown track and lists the tracks of the network.
 - `scene.signalling_area.conflict` (error, runnable validation): one error for
