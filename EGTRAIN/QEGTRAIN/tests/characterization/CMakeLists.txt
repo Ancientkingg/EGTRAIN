@@ -83,7 +83,13 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	border-0-3-rev
 	border-0-1-fwd
 	border-0-2-near-fwd
-	border-0-1-near-fwd)
+	border-0-1-near-fwd
+	pax-board-gui0
+	pax-board-gui1
+	pax-full-gui0
+	pax-full-gui1
+	pax-transfer-gui0
+	pax-transfer-gui1)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}
