@@ -16,4 +16,108 @@ The reference-route chooser for the timetable graph and train paths is a list di
 
 Composition membership uses the standard single-choice `QInputDialog`. File selection, warnings and confirmations retain `QFileDialog` and `QMessageBox`.
 
-`tools/e2e/dialog_presentation_contract.py` checks review cancellation and mode-dependent details against a built application and a creator-acceptance scene. Widget tests cover bounded dimensions, enlarged fonts, scrolling and keyboard access to the fixed footer.
+`test_dialog_presentation_contract` checks the case chooser and the Run simulation dialog in the built application; [Checks](#checks) says what it covers. Widget tests cover bounded dimensions, enlarged fonts, scrolling and keyboard access to the fixed footer.
+
+## Inventory
+
+Each row names the code that builds a dialog or prompt, so that a change to it finds the row to update. "Checked by" names the tests that open it. Where a row says that no test opens it, neither CTest nor a smoke script does.
+
+### Custom dialogs
+
+These are `QDialog` windows. Unless a row says otherwise, the dialog is modal and `DialogLayout::install` builds it. The options dialog and the results window of the capacity analysis have the same window title, Capacity analysis.
+
+| Dialog | Code | Layout and labels | Default button | Checked by | Differs from the contract |
+| --- | --- | --- | --- | --- | --- |
+| Open a Case | `MainWindow::showStartupChooser` in `app/MainWindow.cpp` | A list of cases in groups and an "Other ways to open..." menu button. The left button reads Continue while a case is loaded and Cancel otherwise. No status or help label. | Open | The dialog contract (the chooser launch) and `test_case_chooser_contract`. | The group headings and the Unavailable rows are disabled list items. With no other recent case, the list shows a second heading row instead of a message. |
+| Run simulation | `MainWindow::showRunReview` in `app/MainWindow.cpp` | A grid of facts, a status label, a Run details toggle with the details text and, with advanced details on, the buttons Loaded Data and Validation. | Run simulation, which also takes the first focus. | The dialog contract. | The status label is styled through its object name `runReviewStatus` and the property `warning`, not through `dialogStatus`. |
+| Add timetable stop and Edit timetable stop | `MainWindow::editStop` in `app/MainWindow.cpp`; one dialog, the title differs | `ChoiceComboBox` for the insert position (when adding), the station, the platform and the planned time display, then `DialogLayout::fitWidthToContent`. Line edits for the planned times and the dwell. The error label is always in the layout. | None set. | The editor smoke and the creator acceptance run open the dialog, change fields and accept it; the editor smoke also cancels it. `test_choicecombo` builds a copy of the form and does not open this dialog. CTest runs all three, as `test_editor_smoke`, `test_creator_acceptance_smoke` and `test_choicecombo`. | The error label takes its colour from an inline style sheet. The eligibility label and the base time label have no help or status property. |
+| Blocking-time scope | `chooseBlockingTimeScope`, a free function in `app/MainWindow.cpp` | Plain `QComboBox` for the route and the first and last block, spin boxes for the interval. No help text. | None set. | No test opens it. `MainWindow::showBlockingTimeDiagram` does not open it while the E2E dialog suppression is active. | Plain `QComboBox` for route and block ids. No help text. |
+| Capacity analysis (options) | `chooseCapacityAnalysisScope`, a free function in `app/MainWindow.cpp` | Plain `QComboBox` for the route, the first and last block and the cycle closing occurrence, a spin box for the period, a note and a list of occurrences with check boxes. | None set. | The creator acceptance run opens it, selects the cycle closing occurrence and accepts it. `test_creator_acceptance_smoke` and `test_dialog_presentation_contract` both run it. | The note is a `QLabel` without a help property. Its validation failures are separate `QMessageBox::information` boxes over the dialog, not inline status. |
+| Incident delay comparison | `MainWindow::showDelayComparison` in `app/MainWindow.cpp` | A table and an Export CSV button in the body, Close in the footer. `QMessageBox::warning` boxes stop the cases of no delay baseline and of a rejected comparison before it opens. | None set. Close is the only footer button. | The creator acceptance run opens it with delay rows and without. It checks the size limit, that the table and the Export CSV button are in the scrolled body, and that Close stays visible below the body with a font 1.5 times larger and a long context line. | None. |
+| Capacity analysis (results) | `MainWindow::showCapacityAnalysis` in `app/MainWindow.cpp` | Not modal, deleted on close. A Calculation details toggle, tabs with tables, export and diagram buttons in the body, Close in the footer. The cases that stop before it opens are `QMessageBox::information` boxes. | None set. Close is the only footer button. | The creator acceptance run opens it, reads the tables, exports the CSV and applies the same size and Close checks as for the delay comparison. | None. |
+| Reference route chooser | `RouteReferenceDialog` in `diagrams/RouteReferenceChoice.cpp` | A list with wrapping rows, widened by `DialogLayout::fitWidthToContent`. | OK | `test_routereferencechoice`. | None. |
+| About EGTRAIN | `AboutDialog` in `widgets/AboutDialog.cpp` | Not modal. Text sections and link buttons. The failure label uses `dialogStatus` with the value `warning` when a link cannot be opened. | Close | `test_aboutdialog`. | None. |
+| Help improve EGTRAIN (privacy) | `TelemetryConsentDialog` in `telemetry/TelemetryConsentDialog.cpp` | Two check boxes and explanatory text. The status label uses `dialogStatus` with the value `error` when the choices cannot be saved. | Not now. Save choices is not an auto default. | `test_telemetryconsent`. | None. |
+| Diagram windows | `DiagramWindow` in `diagrams/DiagramWindow.cpp` | Not modal. A `QDialog` with its own layout that sets `dialogPresentation` by hand. A top bar of buttons, context and warning labels, the chart. No button box. | None set. | `test_diagramwindow`. | Does not use `DialogLayout::install`. The heading is the window title and there is no footer. |
+| Timetable table window | `TimetableTableWindow` in `diagrams/TimetableTableWindow.cpp` | Not modal. The same construction as the diagram windows, with a table in place of the chart. | None set. | `test_timetabletablewindow`. | Does not use `DialogLayout::install`. The heading is the window title and there is no footer. |
+
+### Qt dialogs outside the layout
+
+These use the standard Qt classes and `DialogLayout` does not apply to them.
+
+| Kind | Code | Treatment |
+| --- | --- | --- |
+| `QMessageBox::question` | The delete functions of the [prompts table](#prompts-with-several-buttons-or-a-default-that-matters), `MainWindow::saveSceneAsToDirectory` and the legacy import question in `MainWindow::showStartupChooser` | Yes and No buttons. Every call makes No the default button. |
+| `QMessageBox::warning` with one OK button | `handleUpdateCheckFinished` and `handleSelfUpdateFinished` (update failures), `MainWindow::setDelayBaseline`, `MainWindow::showDelayComparison`, `MainWindow::setStartTime` (Invalid Time), and the export failures in `saveCsvInteractive`, `MainWindow::setupRunResultsDock`, `DiagramWindow::exportCsv`, `DiagramWindow::exportPng`, `TimetableTableWindow::exportCsv` and `TimetableTableWindow::exportPng` | Called directly, so the E2E dialog suppression does not hide them. |
+| `QMessageBox::critical` | `MainWindow::copyScenePassthroughFiles` (Cannot Save Scene) | Called directly, so the E2E dialog suppression does not hide it. |
+| `QMessageBox::information` | `chooseCapacityAnalysisScope`, `MainWindow::showCapacityAnalysis`, `MainWindow::showCompressedBlockingTimeDiagram`, `MainWindow::showBlockingTimeDiagram` (No Data), `MainWindow::addUnitToComposition` (no rolling stock units), `MainWindow::plotSelectedCompositionUnitTraction`, `MainWindow::addStop`, `MainWindow::importScenario` (Scenario ID adjusted), `MainWindow::showPrivacySettings`, the update results in `handleUpdateCheckFinished` and `handleSelfUpdateFinished`, and "Nothing to export" in `saveCsvInteractive`, `DiagramWindow` and `TimetableTableWindow` | OK button. Called directly, so the E2E dialog suppression does not hide them. |
+| `showBlockingError` | A free function in `app/MainWindow.cpp`, called for failures to open, upgrade, save, run and import scenes, for rejected ID edits, for refused deletions and for scenario import and export | Shows `QMessageBox::critical`, or `QMessageBox::warning` when its `warningIcon` argument is true. While the E2E dialog suppression is active it shows nothing and prints `E2E_DIALOG_SUPPRESSED: <title>: <message>` to standard error. |
+| `QInputDialog` | `MainWindow::addUnitToComposition` (`getItem`, titled Add Rolling Stock Unit, one choice among the unit ids) and `MainWindow::setStartTime` (`getText`, titled Start Time) | `setStartTime` validates after the dialog has closed and reports a bad value in a `QMessageBox::warning` titled Invalid Time. The editor smoke answers the Add Rolling Stock Unit dialog. |
+| `QColorDialog` | `ColorChoiceButton::openColorDialog` in `widgets/ColorChoiceButton.cpp` | Qt's own dialog; the native one is switched off. No test opens it. |
+| `QProgressDialog` | `MainWindow::startSelfUpdate` | Window modal, titled EGTRAIN Update. See the [prompts table](#prompts-with-several-buttons-or-a-default-that-matters). |
+| `QFileDialog` | `getOpenFileName`, `getSaveFileName` and `getExistingDirectory` in `app/MainWindow.cpp`, `DiagramWindow` and `TimetableTableWindow` | The platform chooser, left as the platform draws it. |
+| `QMessageBox::critical` in `main()` | `app/main.cpp` | Shown when the scene that the application starts with fails to load or to validate. The main window does not exist yet, so the application style sheet is not loaded. |
+
+### Prompts with several buttons or a default that matters
+
+Message boxes with custom buttons, a default button that matters, or a failure that a person has to read. A prompt that no test opens needs a scene or an environment that makes the code reach it; "When it opens" says which. The delete prompts need a loaded scene and a selected item. No test reads the default button of a message box.
+
+| Prompt | Code | Buttons and default | When it opens | Checked by |
+| --- | --- | --- | --- | --- |
+| Unsaved Scene | `MainWindow::maybeSaveScene` | `QMessageBox::warning` with Save, Discard and Cancel. Save is the default. | Closing the window, creating a case, opening a scene, importing a legacy case and starting a self update ask first when the scene has unsaved changes. | `test_scene_drop` marks the scene changed, drops a file and presses Cancel. The editor smoke answers Discard and Cancel. |
+| Older Scene | `MainWindow::openSceneDirectory` | Question icon. Upgrade a Copy... (accept role) and Cancel (reject role). No default is set. | The compatibility probe classifies the scene as OlderMigratable: its schema or bundle layout number is below the current one and the migration registry has a path. The production registry has no step and both current numbers are 1, so no scene reaches the box. While the E2E dialog suppression is active, the box is replaced by a status bar message. | No test opens it. |
+| Newer Scene | `MainWindow::openSceneDirectory` | Question icon. Check for Updates... (accept role) and Cancel (reject role). No default is set. | The probe classifies the scene as Newer: the schema number is above the current one or, for a bundle, the bundle layout number is. While the E2E dialog suppression is active, the box is replaced by a status bar message. | No test opens it. |
+| Linked source changed | `MainWindow::processTrainUnitSourceFile` | Question icon. Reload (accept role) and Keep local (reject role). Keep local is the default. | A parameter or traction file that a rolling stock unit links to changes on disk, and either local edits of the unit conflict with the new values or the change arrived during a run. | The editor smoke changes a linked file under a conflicting local edit and answers Keep local. It also checks that an unchanged file does not prompt. |
+| Automatically Check for EGTRAIN Updates? | `MainWindow::maybePromptForUpdateChecks` | Question icon. Check Automatically (accept role) and Don't Check Automatically (reject role). Check Automatically is the default. | At startup, after the chooser and the privacy dialog, when the automatic check setting has never been saved and the environment does not suppress updates (`updatesSuppressedByEnvironment`, which every `QEGTRAIN_E2E_` variable triggers). | No test opens it. |
+| EGTRAIN <version> is Available | `MainWindow::handleUpdateCheckFinished` | Information icon. Update and Restart (accept role, offered only when the self updater can install the release), Open Release Page (accept role), Later (reject role) and Stop Checking (destructive role). No default is set. The informative text is the release notes. | An update check finishes with a release that is newer than the installed version. The check runs at startup when automatic checks are on, and on request from the Help menu or from the Newer Scene box. After a manual check the function also shows OK boxes when the check fails, when the installed version is invalid and when EGTRAIN is up to date. | No test opens it. |
+| EGTRAIN Update (progress) | `MainWindow::startSelfUpdate` | `QProgressDialog`, window modal, with a Cancel button. No default is set. Cancel while the update is being prepared is ignored and the dialog is shown again; at other times it cancels the update. | The person picks Update and Restart and `maybeSaveScene` lets the update go on. | No test opens it. |
+| EGTRAIN Update (result) | `MainWindow::handleSelfUpdateFinished` | `QMessageBox::warning` when the update was not installed, `QMessageBox::information` that EGTRAIN will restart, and `QMessageBox::warning` when the installer cannot start. OK only. | The self updater finishes. | No test opens it. |
+| Failure prompts through `showBlockingError` | `showBlockingError` in `app/MainWindow.cpp` | `QMessageBox::critical` or `QMessageBox::warning`. OK only. | A scene cannot be opened, upgraded, saved, run or imported, an ID edit is rejected, a deletion is refused because other items refer to the item, or a scenario cannot be imported or exported. | No test opens it. The E2E dialog suppression prints the message to standard error instead. |
+| Failure prompts called directly | `QMessageBox::warning`, `critical` and `information` in `app/MainWindow.cpp`, `DiagramWindow` and `TimetableTableWindow` | OK only. | A save, export or analysis step fails or has nothing to show. | No test opens them. The E2E dialog suppression does not hide them. |
+| Save Scene As Folder (overwrite) | `MainWindow::saveSceneAsToDirectory` | `QMessageBox::question`. Yes and No. No is the default. | The folder chosen in the file chooser exists, is not empty and holds no `scene.json`. | No test opens it. |
+| Import Legacy Case | `MainWindow::showStartupChooser` | `QMessageBox::question` over the chooser. Yes and No. No is the default. | The person picks Import Legacy Case... in the Other ways to open menu. | No test opens it. `test_case_chooser_contract` reads the menu texts only. |
+| Delete Passenger | `MainWindow::deletePassenger` | `QMessageBox::question`. Yes and No. No is the default. | A passenger is selected and no run is going. | The editor smoke answers Yes. |
+| Delete Journey | `MainWindow::deletePassengerJourney` | `QMessageBox::question`. Yes and No. No is the default. | A journey of the selected passenger is selected and no run is going. | The editor smoke answers Yes. |
+| Delete Leg | `MainWindow::deletePassengerLeg` | `QMessageBox::question`. Yes and No. No is the default. | A leg of the selected journey is selected and no run is going. | The editor smoke answers Yes. |
+| Delete infrastructure entity | `MainWindow::deleteInfrastructureEntity` | `QMessageBox::question`. Yes and No. No is the default. | A row of the infrastructure table is selected, no run is going and no other item refers to it. | The editor smoke answers Yes. |
+| Delete Rolling Stock Unit | `MainWindow::deleteTrainUnit` | `QMessageBox::question`. Yes and No. No is the default. | A unit is selected and no composition refers to it. | The editor smoke answers Yes. |
+| Delete Composition | `MainWindow::deleteComposition` | `QMessageBox::question`. Yes and No. No is the default. | A composition is selected and no service refers to it. | The editor smoke answers Yes. |
+| Delete Service | `MainWindow::deleteService` | `QMessageBox::question`. Yes and No. No is the default. | A service is selected and no operation reference refers to it. | The editor smoke answers Yes. |
+| Delete Entrance Delay | `MainWindow::deleteEntranceDelay` | `QMessageBox::question`. Yes and No. No is the default. | An entrance delay of the selected scenario is selected and no run is going. | The editor smoke answers Yes. |
+| Delete Scenario | `MainWindow::deleteScenario` | `QMessageBox::question`. Yes and No. No is the default. | The selected scenario is not the default scenario, the scene names a valid default scenario and no run is going. | The editor smoke answers Yes. |
+| Delete Incident | `MainWindow::deleteIncident` | `QMessageBox::question`. Yes and No. No is the default. | An incident of the selected scenario is selected. | The editor smoke answers Yes. |
+
+## Checks
+
+These unit tests build dialogs without the application: `test_dialoglayout` for `DialogLayout`, `test_aboutdialog`, `test_telemetryconsent`, `test_routereferencechoice`, `test_choicecombo` for `ChoiceComboBox` and a copy of the timetable stop form, `test_diagramwindow`, `test_timetabletablewindow` and `test_colorchoicebutton` for the colour button.
+
+`test_dialog_presentation_contract` checks the case chooser and the Run simulation dialog in the built application on the offscreen platform. It runs `tools/e2e/creator_acceptance_smoke.sh --dialog-contract`. The script starts the creator acceptance run, which saves a scene, and then starts `tools/e2e/dialog_presentation_contract.py` with the application and that scene. The `scene_tool` validations and the data checks of the default mode of the smoke do not run in this mode. CTest registers the test on macOS and Linux and not on Windows, because the scene comes from a Bash script. The pull request checks run it, and so do the validation and sanitizer jobs of the release workflow. It has the labels integration, gui and slow.
+
+To run it by hand, set `QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL` to the built programs, then run:
+
+```bash
+bash tools/e2e/creator_acceptance_smoke.sh --dialog-contract
+```
+
+For the case chooser the script checks that:
+
+- the first row is the group heading Bundled cases and is not enabled;
+- the row that is selected when the dialog opens, which is the first enabled row with a case path, is the first bundled case, whose name the script reads from the first folder of `EGTRAIN/QEGTRAIN/Scenes`;
+- Open is enabled;
+- the left button reads Continue while a case is loaded;
+- the loaded case and the scene revision are unchanged.
+
+For the Run simulation dialog the script starts the application for each variant of the saved scene. The variants change which service runs enter during the period (including none), the warnings, the incident configuration, the length of the case and scenario names (including markup characters and an 18 point font) and the signalling area. Each variant runs with advanced details off and on, and the dialog is closed with the Cancel button and with Escape. The script checks:
+
+- the fact values, the details text, the context line, and the status text with its warning flag;
+- the validation counts and the incident configuration text, which appear only with advanced details on;
+- that Run simulation is the default button and has the first focus;
+- that the dialog stays within 90 percent by 80 percent of the available screen with the footer visible in the collapsed, expanded, scrolled and collapsed again states, and that the footer does not move when the body scrolls;
+- that Tab moves from the body to the footer and Shift+Tab moves back;
+- the state of the details toggle;
+- a size limit with the large font;
+- that Cancel and Escape start no run and leave the scene unchanged.
+
+The script does not open the other dialogs of the inventory.
+
+Only a person on a real desktop can check the native button order and the default and focus states on each platform, enlarged text, a 1280 by 800 window, and the prompts of the [prompts table](#prompts-with-several-buttons-or-a-default-that-matters) that no test opens.
