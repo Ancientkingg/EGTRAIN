@@ -756,13 +756,14 @@ memory and the oldest frames were dropped, the label says from which time the re
 starts, as a clock time and in seconds, and that the earlier part was not kept because
 the run is larger than the replay memory, and the tooltip of Start says that it goes to
 the first kept time. When not even one frame fits, the row says that there is no replay
-and the slider and Play are disabled. A replay seek explicitly restores historical
-operational overlays; normal completion does not. A new run or scene/scenario edit
-clears replay and returns active replay to the authoring preview. Train, station and
-signal inspections remain selected across seeks; future or exited trains do not appear
-on layer toggles or drive Follow station emphasis. Follow stays on after the followed
-train has left at the displayed time and continues when the replay goes back; in a live
-run it is switched off at that point. Unsuccessful and stopped runs have no replay, and a
+and the slider and Play are disabled. A replay
+seek explicitly restores historical operational overlays; normal completion does
+not. A new run or scene/scenario edit clears replay and returns active replay to
+the authoring preview. Train, station and signal inspections remain selected
+across seeks; future or exited trains do not appear on layer toggles or drive
+Follow station emphasis. Follow stays on after the followed train has left at the
+displayed time and continues when the replay goes back; in a live run it is
+switched off at that point. Unsuccessful and stopped runs have no replay, and a
 stopped run keeps no results either.
 Passenger journey details are unavailable in replay; snapshot scalar counts
 and statuses remain visible.
@@ -784,18 +785,18 @@ the field is stored.
 
 The budget is 128 MiB of accounted payload and there is no frame count limit. When
 a run does not fit, the oldest frames are dropped and the history reports the
-interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`).
-`app/ReplayCoverage.h` turns that into the words of the row for a whole run, for a run
-whose first part was dropped and for a run that cannot be replayed, and into the
-tooltip of Start; the window reads the history, asks for the text and writes it into the
-label and the tooltip. Accounting includes the layouts, the string table and the
-capacities of the frame arrays, not allocator bookkeeping, container nodes,
-shared-pointer control blocks or the rebuilt snapshots that callers hold, so 128 MiB is
-**not** a precise resident-memory limit; for the scenes below the heap in use was 1.1
-times the accounted bytes. If one frame, with its layout and strings, exceeds the
-budget, replay is unavailable with an explanation; the simulation continues. A run
-without a window (`-g 0`) builds no snapshots and no replay frames, because nothing
-reads them.
+interval it still covers (`firstTime`, `lastTime`, `evictedBeforeTime`). Accounting
+includes the layouts, the string table and the capacities of the frame arrays,
+not allocator bookkeeping, container nodes, shared-pointer control blocks or the
+rebuilt snapshots that callers hold, so 128 MiB is **not** a precise
+resident-memory limit; for the scenes below the heap in use was 1.1 times the
+accounted bytes. If one frame, with its layout and strings, exceeds the budget,
+replay is unavailable with an explanation; the simulation continues. A run without
+a window (`-g 0`) builds no snapshots and no replay frames, because nothing reads
+them. `app/ReplayCoverage.h` turns the interval the history still covers into the words of
+the row for a whole run, for a run whose first part was dropped and for a run that cannot
+be replayed, and into the tooltip of Start; the window reads the history, asks for the
+text and writes it into the label and the tooltip.
 
 Measured on a full run of each committed scene at the default horizon (`-g 1`,
 `-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
@@ -897,11 +898,20 @@ fills the row after a run. The slider covers the kept interval, the label gives 
 a clock time and in seconds and says why the earlier part is missing, the tooltip of Start
 says that it goes to the first kept time, Start, a time before the kept interval and the
 end of the slider select the frames of that interval, and a change of the start time moves
-the clock in the sentence and in the tooltip. The history of the run is put back afterwards. `E2E_REPLAY_ROW_UNAVAILABLE_OK`: a history that kept no frame, because one frame
-did not fit its budget, gives the sentence "No replay" and a slider and Play that are disabled.
+the clock in the sentence and in the tooltip. The history of the run is put back afterwards.
+`E2E_REPLAY_ROW_UNAVAILABLE_OK`: a history that kept no frame, because one frame did not
+fit its budget, gives the sentence "No replay" and a slider and Play that are disabled.
 The wording is covered by `test_replaycoverage`: a whole run, a run whose first part was
 dropped, a run that cannot be replayed, a first kept time of 0, a run of one frame and a clock
 that wraps over midnight.
+
+A real scene is checked with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. The window runs the scene
+to its end at its own horizon, applies the checks of `E2E_REPLAY_ROW_WHOLE_OK` to the
+history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with the number of
+frames, the last time and the accounted bytes and budget. `visual_polish_smoke.sh` does so
+for Milano_Brescia, Paimpol and Netherlands, so a history that drops the first part of one
+of them fails the script. No committed scene is larger than the budget at its own horizon,
+which is why the dropped row is built from a smaller budget in the Assignment run.
 
 The explanation of Follow is checked by several smoke scripts. `app/FollowAvailability.h`
 decides whether the control is offered, whether Follow can be switched on, whether it has

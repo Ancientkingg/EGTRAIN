@@ -155,7 +155,7 @@ When a run has finished, the **Replay** row appears under the network. **Start**
 **Play**, **End** and the slider go back through the run, and each selection shows the
 last recorded frame at or before that time; a frame is recorded every five simulated
 seconds. The label says which frame is shown and which part of the run the replay holds,
-as in "Replay at 1234 s: whole run, 0 to 7999 s, a frame every 5 s." The replay has 128
+as in "Replay at 1230 s: whole run, 0 to 7999 s, a frame every 5 s." The replay has 128
 MiB of memory. A run that is larger than that loses its oldest frames, and the label says
 from which time the replay starts, for example "Replay: starts at 10:00:20 (7220 s), ends
 at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger

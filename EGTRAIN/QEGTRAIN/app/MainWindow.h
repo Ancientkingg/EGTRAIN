@@ -1007,6 +1007,8 @@ private:
 	void runVisualPolishE2E();
 	void checkSignalHeadsE2E();
 	void runReplaySignalsE2E();
+	bool checkReplayWholeRunE2E(int middle, QString& failure);
+	bool replaySliderCovers(int from, int to) const;
 	bool checkReplayRowE2E(int middle, QString& failure);
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();

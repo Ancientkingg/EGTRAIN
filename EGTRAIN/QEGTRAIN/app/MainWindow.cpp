@@ -13458,28 +13458,17 @@ void MainWindow::checkSignalHeadsE2E() {
 	});
 }
 
-// Checks the replay row of the finished run: the row of the whole run as the completion wrote it,
-// the sentence while a frame is selected, and the row for a history that dropped its first part
-// and for one that kept no frame. Those histories are built here, the first from the frames of
-// the run with a budget that holds about half of them, and go through the code that fills the row
-// after a run. The history of the run is put back, and the window shows the frame at the middle
-// again.
-bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
-	const int first = m_completedReplay.firstTime();
+// Checks the replay row of a run that was kept whole, as the completion wrote it: the slider covers
+// 0 s to the last time, the row says so, the sentence follows a selected frame and Start goes to 0 s.
+bool MainWindow::checkReplayWholeRunE2E(int middle, QString& failure) {
 	const int last = m_completedReplay.lastTime();
 	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
 	const auto fail = [&failure](const QString& why) {
 		failure = why;
 		return false;
 	};
-	const auto sliderCovers = [this](int from, int to) {
-		return m_replaySlider->minimum() == from && m_replaySlider->maximum() == to && m_replaySlider->value() == to
-			&& m_replaySlider->isEnabled() && m_replayPlayButton->isEnabled();
-	};
-
-	// The whole run: the row as the completion wrote it, and the sentence for a selected frame.
 	const QString whole = QStringLiteral("whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
-	if (first != 0 || m_completedReplay.truncated() || !sliderCovers(0, last))
+	if (m_completedReplay.firstTime() != 0 || m_completedReplay.truncated() || !replaySliderCovers(0, last))
 		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
 	if (m_replayLabel->text() != QStringLiteral("Replay: ") + whole || !m_replayStartButton->toolTip().isEmpty())
 		return fail(QStringLiteral("the row of a whole run says '%1' with the tooltip '%2'").arg(m_replayLabel->text(), m_replayStartButton->toolTip()));
@@ -13494,6 +13483,29 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1'").arg(m_replayLabel->text()));
 	std::fprintf(stdout, "E2E_REPLAY_ROW_WHOLE_OK label=\"%s\"\n", qPrintable(wholeText));
 	std::fflush(stdout);
+	return true;
+}
+
+bool MainWindow::replaySliderCovers(int from, int to) const {
+	return m_replaySlider->minimum() == from && m_replaySlider->maximum() == to && m_replaySlider->value() == to && m_replaySlider->isEnabled()
+		&& m_replayPlayButton->isEnabled();
+}
+
+// Checks the replay row of the finished run: the row of the whole run, and the row for a history
+// that dropped its first part and for one that kept no frame. Those histories are built here, the
+// first from the frames of the run with a budget that holds about half of them, and go through the
+// code that fills the row after a run. The history of the run is put back, and the window shows
+// the frame at the middle again.
+bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
+	if (!checkReplayWholeRunE2E(middle, failure))
+		return false;
+	const int first = m_completedReplay.firstTime();
+	const int last = m_completedReplay.lastTime();
+	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
+	const auto fail = [&failure](const QString& why) {
+		failure = why;
+		return false;
+	};
 
 	// The same run with its first part dropped.
 	std::vector<std::shared_ptr<const GuiSimulationSnapshot>> frames;
@@ -13512,7 +13524,7 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 	GuiReplayHistory run = std::move(m_completedReplay);
 	m_completedReplay = std::move(kept);
 	showReplayBar();
-	const auto droppedRow = [this, last, &cadence, &sliderCovers]() -> QString {
+	const auto droppedRow = [this, last, &cadence]() -> QString {
 		const int from = m_completedReplay.firstTime();
 		const QString memory = QString::fromStdString(replayMemoryText(m_completedReplay.budgetBytes()));
 		// The sentence after "Replay: " and the tooltip of Start for a start clock.
@@ -13526,7 +13538,7 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
 		};
 		const auto [dropped, tip] = words(m_startOffsetSeconds);
-		if (!sliderCovers(from, last))
+		if (!replaySliderCovers(from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
 		if (m_replayLabel->text() != QStringLiteral("Replay: ") + dropped)
 			return QStringLiteral("the row says '%1'").arg(m_replayLabel->text());
@@ -13566,6 +13578,7 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 		large->passengers.front().id = std::string(2u << 20, 'x');
 		refused.record(large);
 		m_completedReplay = std::move(refused);
+		m_replayBar->hide();
 		showReplayBar();
 		const QString expected = QStringLiteral("No replay: one moment of this run needs more than the replay memory (1 MiB).");
 		if (!m_completedReplay.oversize() || !m_completedReplay.empty() || !m_replayBar->isVisible() || m_replayLabel->text() != expected
@@ -24913,6 +24926,20 @@ void MainWindow::onSimulationFinished() {
 		std::fprintf(preview ? stdout : stderr, preview ? "E2E_OPERATIONAL_DISCARD_OK\n" : "E2E_OPERATIONAL_DISCARD_FAIL: preview legend\n");
 		std::fflush(preview ? stdout : stderr);
 		QCoreApplication::exit(preview ? 0 : 2);
+		return;
+	}
+
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_REPLAY_WHOLE_RUN")) {
+		// A scene run to its end is replayed from 0 s however large it is.
+		QString problem = QStringLiteral("the run left no replay");
+		const bool whole = !m_completedReplay.empty() && m_replayBar->isVisible() && checkReplayWholeRunE2E(m_completedReplay.lastTime() / 2, problem);
+		if (whole)
+			std::fprintf(stdout, "E2E_REPLAY_WHOLE_RUN_OK frames=%zu last=%d bytes=%zu budget=%zu\n", m_completedReplay.size(), m_completedReplay.lastTime(),
+				m_completedReplay.payloadBytes(), m_completedReplay.budgetBytes());
+		else
+			std::fprintf(stderr, "E2E_REPLAY_WHOLE_RUN_FAIL: %s\n", qPrintable(problem));
+		std::fflush(whole ? stdout : stderr);
+		QCoreApplication::exit(whole ? 0 : 2);
 		return;
 	}
 

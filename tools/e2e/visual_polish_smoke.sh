@@ -185,6 +185,21 @@ grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
 require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
 echo "operational completion and rerun e2e passed"
 
+# A committed scene run to its end keeps every frame, however large it is: the replay row covers the
+# whole run. Milano_Brescia has many trains, Paimpol has passengers and Netherlands has the largest frames.
+for scene in Milano_Brescia Paimpol Netherlands; do
+	WHOLE_OUT="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
+	QT_QPA_PLATFORM=offscreen \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+		"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 -TSM 0 -RC 0 >"$WHOLE_OUT" 2>&1 || {
+		tail -5 "$WHOLE_OUT" >&2
+		exit 1
+	}
+	require_markers "$WHOLE_OUT" E2E_REPLAY_WHOLE_RUN_OK
+done
+echo "whole run replay of the committed scenes passed"
+
 # Signal heads on three copies of the line fixture with two services: one with a
 # level 0 signalling area (heads take stop, caution and proceed and return), one
 # in which a signal fails from 400 s to 1000 s, and one without any signalling
