@@ -489,6 +489,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		return regional_train[a].departure_time < regional_train[b].departure_time;
 	});
 	std::vector<int> movementOrder;
+	int lastStep = -1;
 
 	for (int t = 0; t < initial_variables.times; t++) {
 		// pause/stop/speed from GUI
@@ -500,6 +501,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			if (int delay = sw->delayMs())
 				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 		}
+		lastStep = t;
 		{
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 			clock_t startEGTRAIN = clock(); // EGTRAIN start time
@@ -589,13 +591,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				}
 			}
 
-			{
-				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_status_output", "worker",
-					"worker/playback_step/compute");
-				// Print Passenger Status after the simulation
-				printCurrentPassengerStatus(t, initial_variables.startingSimulationTime, AllDailyPassengers, (initial_variables.OutputMainFolder + "/PassengerStatus"));
-			}
-
 			// for the ZeroMQbroker
 			if (initial_variables.TSM) {
 				jsmsg["time"] = t;
@@ -651,6 +646,10 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 		publishSimulationSnapshot(t);
 	}
+	// The file holds passengers in the network at the last step that ran, including a stopped run.
+	// Write it once because each write replaces the file.
+	if (lastStep >= 0)
+		printCurrentPassengerStatus(lastStep, initial_variables.startingSimulationTime, AllDailyPassengers, initial_variables.OutputMainFolder + "/PassengerStatus");
 }
 
 void DispatchController::printLastTrainServicePathDiagram() {
