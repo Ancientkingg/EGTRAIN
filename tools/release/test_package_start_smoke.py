@@ -250,10 +250,12 @@ class LddParserTests(unittest.TestCase):
 
 
 class LddOutputTests(unittest.TestCase):
+    PLUGIN = Path("usr/plugins/platforms/libqxcb.so")
+
     def run_ldd(self, returncode, stdout="", stderr=""):
         completed = subprocess.CompletedProcess(["/usr/bin/ldd"], returncode, stdout.encode(), stderr.encode())
         with mock.patch.object(subprocess, "run", return_value=completed) as run:
-            text = package_start_smoke.ldd_output(Path("usr/plugins/platforms/libqxcb.so"))
+            text = package_start_smoke.ldd_output(self.PLUGIN)
         return text, run
 
     def raised(self, returncode, stdout="", stderr=""):
@@ -275,21 +277,21 @@ class LddOutputTests(unittest.TestCase):
 
     def test_failure_without_a_listing_names_the_file_and_shows_standard_error(self):
         message = self.raised(2, "", "ldd: error while loading shared libraries\n")
-        self.assertIn("usr/plugins/platforms/libqxcb.so", message)
+        self.assertIn(str(self.PLUGIN), message)
         self.assertIn("exited with 2", message)
         self.assertIn("error while loading shared libraries", message)
 
     def test_missing_tool_names_the_file(self):
         with mock.patch.object(subprocess, "run", side_effect=FileNotFoundError("no ldd")):
             with self.assertRaises(SystemExit) as raised:
-                package_start_smoke.ldd_output(Path("usr/bin/QEGTRAIN"))
-        self.assertIn("usr/bin/QEGTRAIN", str(raised.exception))
+                package_start_smoke.ldd_output(self.PLUGIN)
+        self.assertIn(str(self.PLUGIN), str(raised.exception))
 
     def test_command_and_environment(self):
         with mock.patch.dict(os.environ, {"LD_LIBRARY_PATH": "/opt/qt/lib", "QT_PLUGIN_PATH": "/opt/qt/plugins"}):
             _, run = self.run_ldd(0, LDD_TEXT)
             expected = package_start_smoke.clean_environment()
-        self.assertEqual(run.call_args.args[0], ["/usr/bin/ldd", str(Path("usr/plugins/platforms/libqxcb.so"))])
+        self.assertEqual(run.call_args.args[0], ["/usr/bin/ldd", str(self.PLUGIN)])
         self.assertTrue(run.call_args.kwargs["env"] == expected, "ldd does not get the environment of clean_environment()")
         self.assertFalse("LD_LIBRARY_PATH" in run.call_args.kwargs["env"])
 
@@ -415,10 +417,27 @@ class LinuxLibrariesTests(unittest.TestCase):
         self.assertIn("3 ELF files", self.run_check())
         self.assertEqual(len(self.asked), 3)
 
+    def test_link_is_not_an_elf_file(self):
+        self.add("usr/bin/QEGTRAIN")
+        path = self.app_dir / "usr/bin/QEGTRAIN"
+        self.assertTrue(package_start_smoke.is_elf_file(path))
+        with mock.patch.object(Path, "is_symlink", return_value=True):
+            self.assertFalse(package_start_smoke.is_elf_file(path))
+
     def test_app_dir_without_an_elf_file_fails(self):
         self.add_other("usr/bin/qt.conf", b"[Paths]\n")
         self.assertIn("no ELF file below usr/bin or usr/plugins", self.failure())
         self.assertEqual(self.asked, [])
+
+    def test_elf_files_that_list_no_qt_or_zeromq_library_fail(self):
+        self.add("usr/bin/QEGTRAIN", [("libc.so.6", "/lib/x86_64-linux-gnu/libc.so.6")])
+        self.assertIn("ldd lists no Qt or ZeroMQ library for any ELF file", self.failure())
+
+    def test_elf_file_that_ldd_does_not_list_fails(self):
+        self.add("usr/bin/QEGTRAIN")
+        with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as raised:
+            package_start_smoke.check_linux_libraries(self.app_dir, lambda path: "\tnot a dynamic executable\n")
+        self.assertIn("ldd lists no Qt or ZeroMQ library", str(raised.exception))
 
     def test_all_problems_are_listed_in_one_message(self):
         self.add_closed_app_dir()
@@ -477,8 +496,9 @@ class CsvExportTests(unittest.TestCase):
 
     def test_header_without_a_comma_fails(self):
         (self.directory / "trajectory.csv").write_text("time\n0\n", encoding="utf-8")
-        self.assertIn("first line of", self.failure())
-        self.assertIn("trajectory.csv has no comma", self.failure())
+        message = self.failure()
+        self.assertIn("first line of", message)
+        self.assertIn("trajectory.csv has no comma", message)
 
     def test_file_that_is_not_utf8_fails(self):
         (self.directory / "trajectory.csv").write_bytes(b"time,position\n\xff\xfe,1\n")
@@ -560,6 +580,29 @@ class AppDirTests(unittest.TestCase):
     def test_package_of_another_kind(self):
         self.add("QEGTRAIN.exe")
         self.assertIsNone(package_start_smoke.find_app_dir(self.package))
+
+
+class LaunchTests(unittest.TestCase):
+    def launch(self, **keywords):
+        completed = subprocess.CompletedProcess(["program"], 0, b"output\n")
+        with mock.patch.object(subprocess, "run", return_value=completed) as run:
+            text = package_start_smoke.launch(["program"], Path("."), {}, "window start", **keywords)
+        return text, run
+
+    def test_time_limit_is_the_run_limit_unless_one_is_given(self):
+        text, run = self.launch()
+        self.assertEqual(text, "output\n")
+        self.assertEqual(run.call_args.kwargs["timeout"], package_start_smoke.RUN_TIMEOUT_SECONDS)
+        _, run = self.launch(timeout=package_start_smoke.EXPORT_TIMEOUT_SECONDS)
+        self.assertEqual(run.call_args.kwargs["timeout"], 240)
+
+    def test_timeout_names_the_limit_that_was_used_and_shows_the_output(self):
+        expired = subprocess.TimeoutExpired(["program"], 240, output=b"last output\n")
+        with mock.patch.object(subprocess, "run", side_effect=expired):
+            with self.assertRaises(SystemExit) as raised:
+                package_start_smoke.launch(["program"], Path("."), {}, "CSV export", timeout=240)
+        self.assertIn("CSV export timed out after 240s", str(raised.exception))
+        self.assertIn("last output", str(raised.exception))
 
 
 class MainTests(unittest.TestCase):
@@ -657,6 +700,9 @@ class MainTests(unittest.TestCase):
                 self.assertEqual(command[command.index("--scene") + 1], str(self.package / "Scenes" / "Paimpol"))
                 self.assertEqual(command[command.index("-h") + 1], "8000")
                 self.assertEqual(command[command.index("-g") + 1], "1")
+                for option in ("-pax", "-TSM", "-RC"):
+                    self.assertEqual(command[command.index(option) + 1], "0")
+                self.assertEqual(launch["cwd"], self.package)
                 self.assertFalse("QT_PLUGIN_PATH" in launch["env"])
         directories = {launch["env"]["QEGTRAIN_OUTPUT_DIR"] for launch in self.launches.values()}
         self.assertEqual(len(directories), 4)

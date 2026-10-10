@@ -27,8 +27,8 @@ everywhere. For a package with QEGTRAIN.app it also checks the dependencies of t
 Mach-O file loads is a system library or a file of the app, and every Mach-O file of the app is loaded by some
 other file, or is the program or a plugin, which Qt loads by name. For the extracted directory of an AppImage it
 reads the libraries of every ELF file below usr/bin and usr/plugins with ldd and fails unless each Qt 5 and
-ZeroMQ library that such a file loads is a file of the directory: a machine that has its own Qt 5 would
-otherwise start an image that lacks one of its libraries.
+ZeroMQ library that such a file loads is a file of the directory, and unless ldd lists at least one: a machine
+that has its own Qt 5 would otherwise start an image that lacks one of its libraries.
 
 --platform sets QT_QPA_PLATFORM for the launches with a window: the window start and both exports. The headless run
 does not get it. Without it the platform plugin of the package is used, which is what a user gets.
@@ -232,21 +232,26 @@ def is_elf_file(path: Path) -> bool:
 
 def check_linux_libraries(app_dir: Path, run_ldd=ldd_output) -> None:
     """Fails unless every Qt 5 and ZeroMQ library that an ELF file below usr/bin or usr/plugins loads is a file of
-    the directory. The plugins are read as well, because a platform plugin loads libraries that the program does not."""
+    the directory, and ldd lists at least one such library. The plugins are read as well, because a platform plugin
+    loads libraries that the program does not."""
     root = app_dir.resolve()
     elf = sorted(path for top in ("usr/bin", "usr/plugins") for path in (root / top).rglob("*") if is_elf_file(path))
     if not elf:
         raise SystemExit(f"no ELF file below usr/bin or usr/plugins in {app_dir}")
     problems = []
+    listed = 0
     for holder in elf:
         label = holder.relative_to(root).as_posix()
         for name, target in parse_ldd(run_ldd(holder)):
             if not name.startswith(BUNDLED_LIBRARY_PREFIXES):
                 continue
+            listed += 1
             if target == "not found":
                 problems.append(f"{label}: {name} is not found")
             elif root not in Path(target).resolve().parents:
                 problems.append(f"{label}: {name} resolves to {target}, outside the package")
+    if not listed:
+        problems.append("ldd lists no Qt or ZeroMQ library for any ELF file")
     if problems:
         raise SystemExit(f"the Qt and ZeroMQ libraries of {app_dir} do not resolve inside it:\n" + "\n".join(problems))
     print(f"PASS Qt and ZeroMQ libraries of {app_dir} resolve inside it: {len(elf)} ELF files")

@@ -315,7 +315,7 @@ requires the marker that the application prints (`E2E_CSV_EXPORT_OK`,
 `trajectory.csv`, `timetable.csv` and `run_summary.csv`, each not empty, with a
 header line and a data line, and the PNG files `timetable_graph.png`,
 `train_path_graph.png` and `route_reference_chooser.png`, each with a PNG
-signature. It does not check what the files contain or how the images look.
+signature. It does not check the values in the files or how the images look.
 
 Before the launches the script fails when a file of the package is an OpenMP
 runtime library or names one (`vcomp140.dll` on Windows): the package ships
@@ -364,14 +364,15 @@ makes the same launches as for Windows: the headless run, the window start, the
 CSV export and the PNG export.
 
 Before the launches the script runs `ldd` on every ELF file below `usr/bin` and
-`usr/plugins` and fails unless each Qt 5 and ZeroMQ library that such a file
-loads is a file of the extracted image. The runner has the Qt 5 packages that
-the build needs, so an image that lacks a Qt library would otherwise still start
-there with the library of the runner. The plugins are read as well as the
-programs, because the platform plugin loads Qt libraries that the program does
-not. The job sets no platform plugin variable, and the script removes every Qt
-variable and `LD_LIBRARY_PATH` from the environment of the launches, so the
-image starts with the platform plugin that it holds, which is what a user gets.
+`usr/plugins`. It fails unless each Qt 5 and ZeroMQ library that such a file
+loads is a file of the extracted image, and it fails when `ldd` lists no such
+library at all. The runner has the Qt 5 packages that the build needs, so an
+image that lacks a Qt library would otherwise still start there with the
+library of the runner. The plugins are read as well as the programs, because
+the platform plugin loads Qt libraries that the program does not. The job sets
+no platform plugin variable, and the script removes every Qt variable and
+`LD_LIBRARY_PATH` from the environment of the launches, so the image starts with
+the platform plugin that it holds.
 
 ### Windows image size
 
@@ -976,11 +977,11 @@ The visual and render smoke artifacts include:
   typing into text fields, the native file dialogs, or a start on a machine
   without Qt or a display server; the clean-install rehearsal in the
   [release testing checklist](release-testing-checklist.md) covers them. After
-  the three packages are built,
-  the job `release-assets` downloads the artifacts and runs
-  `tools/release/build_release_assets.py` on them with the command line of the
-  release job (`--artifacts artifacts --output release-assets`). The Windows
-  package arrives as a directory with `QEGTRAIN.exe` at its top level. A green
+  the three packages are built, the job `release-assets` downloads the
+  artifacts and runs `tools/release/build_release_assets.py` on them with the
+  command line of the release job
+  (`--artifacts artifacts --output release-assets`). The Windows package
+  arrives as a directory with `QEGTRAIN.exe` at its top level. A green
   check therefore also proves that the script accepts the three real packages,
   builds the portable Windows archive and a manifest that the application
   accepts by its rules for the file list and the package sizes, and that the
