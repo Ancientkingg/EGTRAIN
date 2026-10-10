@@ -224,7 +224,7 @@ ctest --test-dir build -L scene-v2 --output-on-failure
 
 CMake prints one `Windows: skipping ...` status line at configure time for each
 group of tests it leaves out. `yes` below means the test is registered on that
-platform.
+platform, and `partly` that it is registered and only some of its checks run there.
 
 | Test | macOS | Linux | Windows | Reason |
 | --- | --- | --- | --- | --- |
@@ -240,6 +240,7 @@ platform.
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
+| `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `test_visual_polish_smoke` passes it on to
@@ -1227,6 +1228,62 @@ uploads the package.
 The test is `tools/release/test_release_assets.py`. It builds a small artifact
 tree, runs the script on it and checks the rules directly. Run it with
 `ctest --test-dir build -R test_release_assets --output-on-failure`.
+
+### Disk image script
+
+`tools/release/make_dmg.py` builds the macOS disk image from a finished
+`QEGTRAIN.app`:
+
+```bash
+python3 tools/release/make_dmg.py --version X.Y.Z --app PATH/QEGTRAIN.app --output DIR
+```
+
+The image is `DIR/EGTRAIN-<version>-macOS-arm64.dmg`, one of the names in the
+table of accepted names above. It is a compressed, read-only (UDZO) HFS+ image
+with the volume name `EGTRAIN`. The volume holds `QEGTRAIN.app` and
+`Applications`, a symbolic link to `/Applications` to drag the app onto, and
+nothing else: no scene folder, no `.egscene` file, no `scene_tool` and no guide.
+The script copies the bundle with `ditto`, as the package job does, and does not
+change it afterwards, so a signed app keeps a valid signature. The script prints
+the name and size of the image.
+
+These checks run before the script creates anything:
+
+- the version has the form `X.Y.Z` that `tools/release/version.py` accepts;
+- `--app` is a directory named `QEGTRAIN.app` that holds `Contents/Info.plist`
+  and the directory `Contents/MacOS`;
+- `--output` is not a file, and the image does not exist in it yet. The script
+  never overwrites a file;
+- `ditto` and `hdiutil` are on the path. Both are macOS tools, so the script
+  runs only on macOS.
+
+Then it creates `--output` if needed, stages the app and the link in a temporary
+folder that it removes on every exit, and runs `hdiutil create` on the folder.
+Each tool gets 120 seconds, and only its exit status decides whether it worked:
+`hdiutil` prints deprecation notices on standard error and still exits with 0.
+When `hdiutil` fails or times out, the script removes the partly written image
+and exits with the command and its error text.
+
+Two images made from the same bundle have the same file name, volume name and
+contents. The script does not promise equal image bytes. It sets no Finder
+layout, background picture, volume icon or licence text, and it does not sign,
+notarize or upload anything. The release workflow does not call it yet: the
+package job still publishes `QEGTRAIN-macos-arm64.zip`.
+
+The test is `tools/release/test_make_dmg.py`. On macOS it signs a small fixture
+bundle (a program that exits with 0, a data file and a symbolic link inside the
+bundle), builds the image and mounts it read-only below a temporary folder. It
+checks the file name, the format, the volume name, the entries at the top of the
+volume, that no `.egscene` file or `Scenes` folder outside the app is on the
+volume, and that the app in the image equals the fixture in its paths, file
+bytes, link targets and permission bits. It also checks that
+`codesign --verify --deep --strict` passes on the app in the image and on a
+`ditto` copy taken from it, and that the copy runs. On every platform it checks
+the file name against `kAssetPatterns` in `update/ReleaseInfo.cpp`, the input
+rules, the message for a missing tool, and the command lines, the link and the
+handling of a failing or timed-out command, with stand-ins for `ditto` and
+`hdiutil`. Run it with
+`ctest --test-dir build -R test_make_dmg --output-on-failure`.
 
 ### Dependency caches
 

@@ -12,7 +12,7 @@ EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed belo
 EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
 EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
 tools/e2e/                Smoke tests and Python tests
-tools/release/            Version, package check and release asset scripts
+tools/release/            Version, package check, release asset and disk image scripts
 tools/memory/             Peak-memory measurement and the ownership inventory
 tools/performance/        Startup timing and playback profiling scripts
 tools/golden_master/      Token-wise comparison of output files against a baseline directory
