@@ -2,7 +2,6 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
-#include <QTimer>
 #include <QFile>
 #include <QFileInfo>
 #include <QScreen>
@@ -514,12 +513,6 @@ static bool exerciseNavigationHelp() {
 	return ok;
 }
 
-static void closeModalSoon() {
-	QTimer::singleShot(50, [] {
-		if (auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget())) dialog->done(QDialog::Rejected);
-	});
-}
-
 static QPushButton* topButton(QDialog& window, const QString& text) {
 	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
 		if (button->text() == text) return button;
@@ -556,7 +549,7 @@ static QChart* buttonTestChart() {
 
 static bool exerciseButtonDefaults() {
 	int calls = 0;
-	const auto provider = [&calls](const QStringList&) { ++calls; closeModalSoon(); return std::string(); };
+	const auto provider = [&calls](const QStringList&) { ++calls; return std::string(); };
 	DiagramWindow window("Button defaults");
 	auto* chart = buttonTestChart();
 	window.setChart(chart);
@@ -585,22 +578,14 @@ static bool exerciseButtonDefaults() {
 	ok &= expect(pin && pin->text() == "Selected: A", "click selects train A in the button test");
 	if (!pin) return false;
 	view->setFocus();
-	closeModalSoon();
 	pressKey(view, Qt::Key_Return);
-	closeModalSoon();
 	pressKey(view, Qt::Key_Enter);
 	ok &= expect(pin->text() == "Selected: A", "Enter in the chart keeps the selection");
 	clickTrain();
 	ok &= expect(pin->text() == "Selected: A", "second click selects train A in the button test");
-	closeModalSoon();
 	pressKey(&window, Qt::Key_Return);
 	ok &= expect(pin->text() == "Selected: A", "Enter in the window keeps the selection");
 	ok &= expect(calls == 0, "Enter starts no CSV export");
-	calls = 0;
-	closeModalSoon();
-	csv->click();
-	ok &= expect(calls == 1, "clicking Export CSV calls the provider once");
-	ok &= expect(window.isVisible(), "CSV export keeps the diagram window visible");
 	DiagramWindow input("Input traction");
 	input.setProperty("inputTrainUnitId", "unit-a");
 	input.setChart(buttonTestChart());

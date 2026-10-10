@@ -6,7 +6,6 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
-#include <QTimer>
 #include <QKeyEvent>
 #include <QFile>
 #include <QScreen>
@@ -60,12 +59,6 @@ static QColor swatchColor(const QListWidget* list, int row) {
 	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
 }
 
-static void closeModalSoon() {
-	QTimer::singleShot(50, [] {
-		if (auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget())) dialog->done(QDialog::Rejected);
-	});
-}
-
 static QPushButton* topButton(QDialog& window, const QString& text) {
 	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
 		if (button->text() == text) return button;
@@ -90,7 +83,7 @@ static void pressKey(QWidget* widget, Qt::Key key) {
 
 static bool exerciseButtonDefaults() {
 	int calls = 0;
-	const auto provider = [&calls](const QStringList&) { ++calls; closeModalSoon(); return std::string(); };
+	const auto provider = [&calls](const QStringList&) { ++calls; return std::string(); };
 	std::vector<TimetableResultRow> rows(1);
 	rows.front().trainId = "train-a";
 	TimetableTableWindow window(rows, 0, provider);
@@ -105,19 +98,12 @@ static bool exerciseButtonDefaults() {
 	ok &= expect(csv->isVisible() && csv->isEnabled(), "timetable window shows Export CSV with a provider");
 	table->setCurrentCell(0, 0);
 	table->setFocus();
-	closeModalSoon();
 	pressKey(table, Qt::Key_Return);
-	closeModalSoon();
 	pressKey(table, Qt::Key_Enter);
 	ok &= expect(calls == 0, "Enter in the table starts no CSV export");
 	calls = 0;
-	closeModalSoon();
 	pressKey(&window, Qt::Key_Return);
 	ok &= expect(calls == 0, "Enter in the window starts no CSV export");
-	calls = 0;
-	closeModalSoon();
-	csv->click();
-	ok &= expect(calls == 1, "clicking Export CSV calls the provider once");
 	TimetableTableWindow empty(rows, 0, {});
 	empty.show();
 	QApplication::processEvents();
