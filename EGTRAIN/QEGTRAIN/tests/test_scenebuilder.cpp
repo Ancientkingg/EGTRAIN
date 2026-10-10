@@ -1191,7 +1191,7 @@ static bool runSignallingMessageChecks() {
 	struct Capture {
 		std::vector<Logged> messages;
 		Capture() {
-			eglog::setSink([this](eglog::Category category, eglog::Level level, const std::string& text) { messages.push_back({category, level, text}); });
+			eglog::setSink([this](eglog::Category category, eglog::Level level, const std::string& text) { this->messages.push_back(Logged{category, level, text}); });
 		}
 		~Capture() {
 			eglog::setSink({});
