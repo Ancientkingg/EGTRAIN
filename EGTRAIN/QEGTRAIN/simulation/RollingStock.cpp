@@ -457,21 +457,6 @@ int nativeResolveRuntimeSection(const std::string& runtimeSectionId) {
 	return -1;
 }
 
-void nativeClearRegionalTrain(Regional& train) {
-	delete[] train.Stations;
-	train.Stations = nullptr;
-}
-
-void nativeClearRegionalTrains() {
-	for (Regional& train : regional_train)
-		nativeClearRegionalTrain(train);
-}
-
-// Frees the Stations buffers before regional_train is destroyed at exit.
-struct RegionalTrainExitCleanup {
-	~RegionalTrainExitCleanup() { nativeClearRegionalTrains(); }
-} regionalTrainExitCleanup;
-
 void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vectorSize) {
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
@@ -522,7 +507,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.TotalInputDelays = plan.entranceDelay;
 	train.Initialise_Gibson_Dwell_Time_Parameters(7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562);
 	train.numStations = static_cast<int>(plan.stops.size());
-	train.Stations = new Node[train.numStations];
+	train.Stations.resize(plan.stops.size());
 	for (int index = 0; index < train.numStations; ++index) {
 		train.Stations[index] = plan.stops[index].node;
 		train.Stations[index].stationName = plan.stops[index].stationName;
@@ -558,7 +543,6 @@ void prepareNativeOperationsState() {
 
 void resetNativeOperationsState() {
 	prepareNativeOperationsState();
-	nativeClearRegionalTrains();
 	regional_train = std::vector<Regional>();
 }
 
@@ -1391,7 +1375,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	N_OrderLists = 0;
 	// The new storage exists before the old trains are released.
 	std::vector<Regional> storage(trains.size());
-	nativeClearRegionalTrains();
 	regional_train = std::move(storage);
 	numRegions = static_cast<int>(trains.size());
 	N_Train = 0;
@@ -1599,7 +1582,7 @@ void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin) {
 
 // check train arrival/departure at/from destination/origin
 void Train::checkTrainArrDep(int trainIdx, int t) {
-	if (numStations <= 0 || Stations == nullptr)
+	if (numStations <= 0 || Stations.empty())
 		return;
 
 	// add X to last station if needed (initialized as 0 in the beginning)
@@ -1765,7 +1748,7 @@ void protectStationAreas(int i) {
 				if (hHead < 0)
 					continue;
 
-				const std::string stationName = regional_train[k].numStations > 0 && regional_train[k].Stations != nullptr
+				const std::string stationName = regional_train[k].numStations > 0 && !regional_train[k].Stations.empty()
 					? regional_train[k].Stations[regional_train[k].numStations - 1].stationName
 					: std::string();
 				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
@@ -1777,7 +1760,7 @@ void protectStationAreas(int i) {
 					for (int tr = 0; tr < numRegions; tr++) {
 						if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type)
 							continue;
-						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations == nullptr)
+						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations.empty())
 							continue;
 						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName
 							&& regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)

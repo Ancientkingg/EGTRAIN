@@ -975,7 +975,7 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 		const Train& train = regional_train[i];
 		if (!scope.trainIds.empty() && std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainDescription) == scope.trainIds.end())
 			continue;
-		if (!train.Stations)
+		if (train.Stations.empty())
 			continue;
 		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
@@ -1340,7 +1340,7 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 
 	// A boundary stop is the authored reference when its route position matches
 	// the selected section entry. The 5 m tolerance is the native route tolerance.
-	if (train.Stations && reference->PosStart >= 0.0) {
+	if (!train.Stations.empty() && reference->PosStart >= 0.0) {
 		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
 		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
 			const double stationPosition = train.stationRoutePositionMeters(stationIndex);

@@ -779,7 +779,7 @@ static bool regionalTrainStorageTests() {
 	SceneModel rejected = completeScene();
 	ok &= expect(hasErrors(buildOperationsFromScene(rejected, "scenario.missing"))
 			&& regional_train.data() == keptStorage && regional_train.size() == 2
-			&& regional_train[0].Stations != nullptr,
+			&& !regional_train[0].Stations.empty(),
 		"a rejected build leaves the train storage untouched");
 
 	resetNativeOperationsState();
@@ -1107,7 +1107,7 @@ int main() {
 	offRouteStation.station = true;
 	offRouteStation.stationName = "Outside";
 	Train routeMembershipProbe;
-	routeMembershipProbe.Stations = &offRouteStation;
+	routeMembershipProbe.Stations.push_back(offRouteStation);
 	routeMembershipProbe.numStations = 1;
 	routeMembershipProbe.indexOfRoute = regional_train[0].indexOfRoute;
 	ok &= expect(!routeMembershipProbe.stationIsOnRoute(0)

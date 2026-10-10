@@ -386,8 +386,8 @@ public:
 	bool direction;
 	bool GradientExceptionInBraking; // This variable is true when because of a too steep gradient the braking curve computed by the function DrawBrakingCurve has a point having a speed lower than the final speed V2 (in this case the train will first decrease its speed to this value lower than V2 and then reaccelerate to V2)
 	std::vector<double> BX;
-	Node* Stations = nullptr;
-	int numStations;																// Station is a dynamic array contating all Station Node for the train and int numStations is the Number of Stations (i.e. the dimension of Stations Array)
+	std::vector<Node> Stations;														// Stop nodes of the train in service order
+	int numStations;																// Number of stops in use; equals Stations.size() for a train built from a scene
 	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
 	static int clampStationCount(int requested, const string& trainId);				// Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations] = {};							// Cached block section index for each station (avoids full-route scan every timestep)
@@ -3353,7 +3353,7 @@ public:
 	}
 
 	bool stationIsOnRoute(int stationIndex, const vector<string>& allowedBlockIds = {}) const {
-		if (!Stations || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
+		if (Stations.empty() || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
 			return false;
 		const string& stationName = Stations[stationIndex].stationName;
 		if (stationName.empty() || stationName == "None")
@@ -3531,9 +3531,8 @@ public:
 // so both types must have the same size.
 static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
 
-// One element per train of the loaded scene. The storage is created once per build and never
-// grows or reallocates while the trains are live: a Regional owns its Stations buffer through
-// a raw pointer, so it must not be copied or moved.
+// One element per train of the loaded scene. The storage is created once per build and does not
+// grow while the trains are live.
 extern std::vector<Regional> regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
