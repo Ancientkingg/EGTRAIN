@@ -23,14 +23,14 @@ train D1-1 sample t=360 x=7999.999900 v=0.000000
 train D1-1 sample t=379 x=8000.000100 v=0.000000
 train D1-1 stop t_first=331 t_last=379 x=7999.998000 dwell=48
 train D1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
-aspect routeStubIn @4-B0@ 0:270 60:0 380:270 381:0 465:75 520:180 576:270
-aspect routeStubIn @5-B0@ 0:270 60:0 380:270 463:0 520:75 576:180 701:270
-aspect routeStubIn @6-B0@ 0:270 60:0 380:270 518:0 576:75 701:270
-aspect routeStubIn @7-B0@ 0:270 60:0 380:270 574:0 701:270
-aspect routeStubOut @7-B0@ 0:270 60:0 144:75 199:180 255:270 381:0 701:270
-aspect routeStubOut @6-B0@ 0:270 142:0 199:75 255:180 380:270 381:0 701:270
-aspect routeStubOut @5-B0@ 0:270 197:0 255:75 380:270 381:0 701:270
-aspect routeStubOut @4-B0@ 0:270 253:0 380:270 381:0 701:270
+aspect routeStubIn @4-B0@ 0:270 59:0 380:270 381:0 465:75 520:180 576:270
+aspect routeStubIn @5-B0@ 0:270 59:0 380:270 463:0 520:75 576:180 701:270
+aspect routeStubIn @6-B0@ 0:270 59:0 380:270 518:0 576:75 701:270
+aspect routeStubIn @7-B0@ 0:270 59:0 380:270 574:0 701:270
+aspect routeStubOut @7-B0@ 0:270 60:0 144:75 199:180 255:270 380:0 701:270
+aspect routeStubOut @6-B0@ 0:270 142:0 199:75 255:180 380:0 701:270
+aspect routeStubOut @5-B0@ 0:270 197:0 255:75 380:0 701:270
+aspect routeStubOut @4-B0@ 0:270 253:0 701:270
 result U1-1 B planned_arr=n/a planned_dep=220.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result U1-1 C planned_arr=470.000000 planned_dep=n/a sim_arr=652.000000 sim_dep=699.000000 arr_delay=182.000000 dep_delay=n/a
 result D1-1 C planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a

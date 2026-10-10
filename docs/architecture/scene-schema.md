@@ -185,27 +185,32 @@ before keeps it, and the forward direction holds it when nobody did. The stretch
 is released when the last train of the holding direction has left it, and then
 passes to the other direction if a train of that direction is inside.
 
-When nobody is inside and both directions are about to enter in the next step,
-the model reserves the stretch for the forward direction. A running train is
-about to enter when advancing its head by its last displacement (or zero if it
-moved backwards) would make the train overlap the stretch. A train that has not
-entered asks when it is due by the next step and the train at its entry point
-would overlap the stretch. It still asks if another reason prevents its entry.
-One asking direction alone does not reserve the stretch. The reservation is
-recalculated each step and ends as soon as either direction no longer asks,
-unless a train has entered and holds the stretch.
+A free stretch is reserved before an approaching train's next movement could
+consume its last opportunity to brake. The calculation uses the existing inverse
+braking curve and an upper bound on next-step speed from the train's starting
+tractive effort, mass, resistances and current arc. It includes the approach
+speed targets of fixed-block signalling. A stationary train can ask when it could
+accelerate into this braking window. A due route entry asks without trajectory
+samples. One requesting direction reserves the stretch; simultaneous requests
+on a free stretch go to the forward direction. Occupied holders keep priority.
 
-At signalling levels 0, 1, 2 and 5 the restriction acts through the signal
-aspects of the sections (see [Signalling levels](signalling-levels.md)). At levels 3 and 4 a train does not follow the aspects,
-so each route against the holder gets an end of authority at the end of the
-section before the first section of the stretch on that route, as long as the
-stretch is held and that first section has level 3 or 4. The train stops there
-and continues when the stretch is released. Without a signalling level the
-restriction does not keep opposing trains apart and they can still meet. A
-level 3 or 4 train in front of a held section of another level stops at the end
-of its own section. A train that has to wait needs a route that gives it
-somewhere to wait outside the stretch, such as the loop track of a station. On
-a route without one it stops on the track that the other train needs.
+Pending entries retain the reservation through slowing, dwell, breakdowns and
+other temporary stops. Same-direction followers can commit before their leader
+clears. Passage, termination, removal or a changed route, destination or entry
+identity cancels that owner's reservation. A failed or non-finite braking lookup,
+or a braking point before the route origin, requests conservatively rather than
+assuming that the train can wait until later.
+
+At signalling levels 0 to 5 each route against the holder gets an end of authority
+at the end of the section before each signalled stretch on that route. If the
+stretch starts at the route origin, the authority is at that origin. The authority
+uses the existing direction filter, so the holder and same-direction followers
+ignore it. The opposing train stops and continues when the stretch is released.
+Fixed-block aspects remain in effect too. Without a signalling level the
+restriction does not keep opposing trains apart. A train that has to wait needs
+a route that gives it somewhere to wait outside the stretch, such as a loop.
+On a through route without a loop it stops on the track that the other train
+needs; a reservation prevents zone overlap but cannot create a passing place.
 
 A stub track is a track that trains enter and leave at one end. It has no loop at
 its closed end, so a restriction over a stub gives `protected_end_block` the same

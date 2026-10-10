@@ -3,30 +3,23 @@
 # run: scenario=baseline services=S1,R1 level=5 single_track=1 horizon=1500
 # known-wrong: none
 run steps=1500 trains=2
-train R1-1 active start=60 end=981
-train R1-1 sample t=60 x=0.615074 v=1.230149
-train R1-1 sample t=120 x=627.247841 v=11.111000
-train R1-1 sample t=180 x=1293.907841 v=11.111000
-train R1-1 sample t=240 x=1947.721596 v=9.529964
-train R1-1 sample t=300 x=1999.999900 v=0.000000
-train R1-1 sample t=360 x=1999.999900 v=0.000000
-train R1-1 sample t=420 x=2647.187669 v=25.869722
-train R1-1 sample t=480 x=4600.197152 v=36.111111
-train R1-1 sample t=540 x=6766.863819 v=36.111111
-train R1-1 sample t=600 x=7999.999900 v=0.000000
-train R1-1 sample t=660 x=7999.999900 v=0.000000
-train R1-1 sample t=720 x=9216.137764 v=30.838151
-train R1-1 sample t=780 x=11322.419374 v=36.111111
-train R1-1 sample t=840 x=13489.086041 v=36.111111
-train R1-1 sample t=900 x=15576.464266 v=26.840902
-train R1-1 sample t=960 x=15999.999900 v=0.000000
-train R1-1 sample t=981 x=16000.000100 v=0.000000
-train R1-1 stop t_first=252 t_last=381 x=1999.998000 dwell=129
-train R1-1 braking t=238 x=1928.171994 v=11.111000 stop_t=252
-train R1-1 stop t_first=598 t_last=661 x=7999.998000 dwell=63
-train R1-1 braking t=554 x=7248.861328 v=36.111111 stop_t=598
-train R1-1 stop t_first=933 t_last=981 x=15999.998000 dwell=48
-train R1-1 braking t=889 x=15248.861328 v=36.111111 stop_t=933
+train R1-1 active start=381 end=1033
+train R1-1 sample t=381 x=0.615074 v=1.230149
+train R1-1 sample t=441 x=1278.266026 v=31.292706
+train R1-1 sample t=501 x=3394.638283 v=36.111111
+train R1-1 sample t=561 x=5561.304949 v=36.111111
+train R1-1 sample t=621 x=7627.589337 v=25.137617
+train R1-1 sample t=681 x=7999.999900 v=0.000000
+train R1-1 sample t=741 x=8381.477027 v=22.268637
+train R1-1 sample t=801 x=10202.974930 v=36.111111
+train R1-1 sample t=861 x=12369.641596 v=36.111111
+train R1-1 sample t=921 x=14536.308263 v=36.111111
+train R1-1 sample t=981 x=15995.257810 v=3.162144
+train R1-1 sample t=1033 x=16000.000100 v=0.000000
+train R1-1 stop t_first=652 t_last=713 x=7999.998000 dwell=61
+train R1-1 braking t=608 x=7248.861328 v=36.111111 stop_t=652
+train R1-1 stop t_first=985 t_last=1033 x=15999.998000 dwell=48
+train R1-1 braking t=941 x=15248.861328 v=36.111111 stop_t=985
 train S1-1 active start=60 end=379
 train S1-1 sample t=60 x=0.615074 v=1.230149
 train S1-1 sample t=120 x=1278.266026 v=31.292706
@@ -37,26 +30,26 @@ train S1-1 sample t=360 x=7999.999900 v=0.000000
 train S1-1 sample t=379 x=8000.000100 v=0.000000
 train S1-1 stop t_first=331 t_last=379 x=7999.998000 dwell=48
 train S1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
-aspect route1 @7-B0@ 0:270 60:0 392:751 466:75 521:180 672:270
-aspect route1 @6-B0@ 0:270 60:751 380:270 381:0 466:751 521:75 672:180 746:270
-aspect route1 @5-B0@ 0:270 60:0 380:270 464:0 521:751 672:75 746:180 801:270
-aspect route1 @4-B0@ 0:270 60:0 380:270 519:0 672:751 746:75 801:180 857:270
-aspect route1 @3-B0@ 0:270 60:0 380:270 661:0 746:751 801:75 857:180 981:270
-aspect route1 @2-B0@ 0:270 60:0 380:270 744:0 801:751 857:75 981:270
-aspect route1 @1-B0@ 0:270 60:0 380:270 799:0 857:751 981:270
-aspect route1 @0-B0@ 0:270 60:0 380:270 855:0 981:270
-aspect routeAB @0-B0@ 0:270 60:0 144:751 199:75 255:180 379:270 464:0 982:270
-aspect routeAB @1-B0@ 0:270 142:0 199:751 255:75 379:270 464:0 982:270
-aspect routeAB @2-B0@ 0:270 197:0 255:751 379:270 464:0 982:270
-aspect routeAB @3-B0@ 0:270 253:0 379:270 464:0 982:270
+aspect route1 @7-B0@ 0:270 59:75 380:270 381:0 465:751 520:75 576:180 724:270
+aspect route1 @6-B0@ 0:270 59:751 380:270 463:0 520:751 576:75 724:180 798:270
+aspect route1 @5-B0@ 0:270 59:0 380:270 518:0 576:751 724:75 798:180 853:270
+aspect route1 @4-B0@ 0:270 59:0 380:270 574:0 724:751 798:75 853:180 909:270
+aspect route1 @3-B0@ 0:270 59:0 380:270 713:0 798:751 853:75 909:180 1033:270
+aspect route1 @2-B0@ 0:270 59:0 380:270 796:0 853:751 909:75 1033:270
+aspect route1 @1-B0@ 0:270 59:0 380:270 851:0 909:751 1033:270
+aspect route1 @0-B0@ 0:270 59:0 380:270 907:0 1033:270
+aspect routeAB @0-B0@ 0:270 60:0 144:751 199:75 255:180 379:270 389:0 1034:270
+aspect routeAB @1-B0@ 0:270 142:0 199:751 255:75 379:270 389:0 1034:270
+aspect routeAB @2-B0@ 0:270 197:0 255:751 379:270 389:0 1034:270
+aspect routeAB @3-B0@ 0:270 253:0 379:270 389:0 1034:270
 result R1-1 C planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
-result R1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=598.000000 sim_dep=660.000000 arr_delay=-2.000000 dep_delay=0.000000
-result R1-1 A planned_arr=1100.000000 planned_dep=n/a sim_arr=933.000000 sim_dep=980.000000 arr_delay=-167.000000 dep_delay=n/a
+result R1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=652.000000 sim_dep=712.000000 arr_delay=52.000000 dep_delay=52.000000
+result R1-1 A planned_arr=1100.000000 planned_dep=n/a sim_arr=985.000000 sim_dep=1032.000000 arr_delay=-115.000000 dep_delay=n/a
 result S1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result S1-1 B planned_arr=600.000000 planned_dep=n/a sim_arr=331.000000 sim_dep=378.000000 arr_delay=-269.000000 dep_delay=n/a
-run_result R1-1 start=60.000000 end=981.000000 travel=921.000000
+run_result R1-1 start=381.000000 end=1033.000000 travel=652.000000
 run_result S1-1 start=60.000000 end=379.000000 travel=319.000000
-network start=60.000000 end=981.000000 travel=921.000000
+network start=60.000000 end=1033.000000 travel=973.000000
 train R1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime R1-1 n=0 complete=0
 train S1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
@@ -64,14 +57,14 @@ blocktime S1-1 n=0 complete=0
 stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
-stats B Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=0.000000 Max_Cons_Delay=0.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+stats B Av_Delay=52.000000 Std_Delay=0.000000 Total_Delay=52.000000 Max_Tot_Delay=52.000000 Cum_Cons_Delay=52.000000 Max_Cons_Delay=52.000000 Perc_Delayed=50.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=1.000000
 stats C Av_Delay=-1.000000 Std_Delay=-1.000000 Total_Delay=0.000000 Max_Tot_Delay=-1.000000 Cum_Cons_Delay=-1.000000 Max_Cons_Delay=-1.000000 Perc_Delayed=-1.000000 Perc_Delayed_3min=-1.000000 Perc_Delayed_5min=-1.000000 N_StopTrains=0.000000 N_DelTrains=0.000000
-stats TOTALS Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=0.000000 Max_Cons_Delay=0.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
+stats TOTALS Av_Delay=52.000000 Std_Delay=0.000000 Total_Delay=52.000000 Max_Tot_Delay=52.000000 Cum_Cons_Delay=52.000000 Max_Cons_Delay=52.000000 Perc_Delayed=50.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
 stats Final_Station Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=0.000000 Max_Cons_Delay=0.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 signed_stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 signed_stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 signed_stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
-signed_stats B Av_Delay=-135.500000 Std_Delay=188.798000 Total_Delay=-271.000000 Max_Tot_Delay=-2.000000 Cum_Cons_Delay=-271.000000 Max_Cons_Delay=-2.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+signed_stats B Av_Delay=-108.500000 Std_Delay=226.981000 Total_Delay=-217.000000 Max_Tot_Delay=52.000000 Cum_Cons_Delay=-217.000000 Max_Cons_Delay=52.000000 Perc_Delayed=50.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=1.000000
 signed_stats C Av_Delay=-1.000000 Std_Delay=-1.000000 Total_Delay=0.000000 Max_Tot_Delay=-1.000000 Cum_Cons_Delay=-1.000000 Max_Cons_Delay=-1.000000 Perc_Delayed=-1.000000 Perc_Delayed_3min=-1.000000 Perc_Delayed_5min=-1.000000 N_StopTrains=0.000000 N_DelTrains=0.000000
-signed_stats TOTALS Av_Delay=-135.500000 Std_Delay=188.798000 Total_Delay=-271.000000 Max_Tot_Delay=-2.000000 Cum_Cons_Delay=-271.000000 Max_Cons_Delay=-2.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
-signed_stats Final_Station Av_Delay=-218.000000 Std_Delay=72.124900 Total_Delay=-436.000000 Max_Tot_Delay=-167.000000 Cum_Cons_Delay=-436.000000 Max_Cons_Delay=-167.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
+signed_stats TOTALS Av_Delay=-108.500000 Std_Delay=226.981000 Total_Delay=-217.000000 Max_Tot_Delay=52.000000 Cum_Cons_Delay=-217.000000 Max_Cons_Delay=52.000000 Perc_Delayed=50.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000
+signed_stats Final_Station Av_Delay=-192.000000 Std_Delay=108.894000 Total_Delay=-384.000000 Max_Tot_Delay=-115.000000 Cum_Cons_Delay=-384.000000 Max_Cons_Delay=-115.000000 Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000

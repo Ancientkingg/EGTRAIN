@@ -4525,6 +4525,7 @@ void setRouteVirtualSignals() {
 std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 
 std::vector<int> singleTrackHeld;
+std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
 static std::vector<SingleTrackZone> singleTrackZones; // index: limit * route count + route
 static std::size_t singleTrackZoneLimits = 0, singleTrackZoneRoutes = 0;
 static std::vector<char> singleTrackRouteZone; // 1 when any limit has a zone on the route
@@ -4532,6 +4533,7 @@ static bool singleTrackZonesDerived = false;
 
 void resetSingleTrackLocks() {
 	singleTrackHeld.clear();
+	singleTrackReservations.clear();
 	singleTrackZones.clear();
 	singleTrackRouteZone.clear();
 	singleTrackZonesDerived = false;
@@ -4797,11 +4799,8 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 	}
 }
 
-// A single-track section that is held (singleTrackHeld) gets an End of Authority in front of its sections on every
-// route that runs against the holder, in the way of a signal failure, so that level 3 and 4 trains of the other
-// direction wait in front of it. Fixed-block trains wait for the aspects that the lock sets. Trains of the holder's
-// direction ignore the authority, because it is made for the direction of the other routes. Where a route has
-// several separate stretches of the section, each stretch whose first section on the route has level 3 or 4 gets one.
+// Each signalled stretch on a route against the holder gets a direction-filtered entry stop authority. Fixed-block
+// aspects alone may become restrictive after a train has passed their braking point, so levels 0..5 all obey it.
 void Apply_Single_Track_Authorities_Mixed_Signalling() {
 	for (std::size_t l = 0; l < singleTrackHeld.size() && l < singleTrackLimits.size(); ++l) {
 		if (singleTrackHeld[l] == 0)
@@ -4820,7 +4819,7 @@ void Apply_Single_Track_Authorities_Mixed_Signalling() {
 				const bool inZone = section.ID == zone[next];
 				if (inZone) {
 					++next;
-					if (!previousInZone && (section.SignallingLevel == 3 || section.SignallingLevel == 4))
+					if (!previousInZone && section.SignallingLevel >= 0 && section.SignallingLevel <= 5)
 						addEndOfAuthorityBeforeSection(route, b, description);
 				}
 				previousInZone = inZone;

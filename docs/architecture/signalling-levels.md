@@ -188,11 +188,15 @@ single-track stretch, the sections of the stretch count as occupied for the rout
 copies of the other direction (`updateSingleTrackLocks`,
 `occupySingleTrackForRoute`). The stretch is described in
 [Single-track restrictions](scene-schema.md#single-track-restrictions). What this
-does to a train depends on the level, as the sections below say. When the stretch
-is free and both directions are about to enter next step, the model reserves it
-for the forward direction. Cases: `single-track-level-*`,
+does to a train depends on the level, as the sections below say. An approaching
+train reserves before its next movement could consume the last opportunity to
+brake for the entry or the approach aspects. One request is enough; simultaneous
+requests on a free stretch go to the forward direction. Pending owners retain
+the stretch through temporary stops. Every opposing route gets a direction-filtered
+entry stop authority at levels 0 to 5, in addition to its aspects. Cases: `single-track-level-*`,
 `stub-departure-first-level-0`, `stub-arrival-first-level-0` and
-`stub-tie-level-0` to `-5` for a restriction over a stub track.
+`stub-tie-level-0` to `-5` and `stub-zero-level-0` to `-5` for a restriction
+over a stub track; `running-tie-level-0` to `-5` for two moving approaches.
 
 **Double switches.** A double switch is two route sections: a first half with a
 virtual signal at its end and a second half with one at its start. A train that
@@ -435,7 +439,7 @@ No case has a border with level 4 or 5, or between levels 1 and 2.
   an authority on the first section of the route whatever the level of that
   section (`ReportPositionToRBC`). A train of any level reads authorities on its own section and the
   eight after it where the section has level 3 or 4, or where a signal failure
-  has made one.
+  or single-track restriction has made one.
 - The entry rule is the rule of the level of the first section of the route.
 - A release does not depend on the level.
 - The blocking times of a section follow its own level.
@@ -600,15 +604,6 @@ Limits that no issue tracks:
   closest one is chosen with a braking distance whose formula subtracts the
   squared target speed only after dividing it (`V^2 - Vt^2 / (2 a)`). The effect
   is not measured.
-- The single-track reservation predicts one step from a running train's last
-  displacement. A train standing just before the stretch does not ask if that
-  displacement is zero, even if it starts next step. A running train that loses
-  a reservation cannot stop before the stretch when its braking distance is
-  longer than the remaining distance. In a two-running-train tie on the line
-  fixture at level 0, the reversed train enters the closed stretch and stops
-  inside it; both trains then stand head to head. The reservation does not
-  prevent that overlap. A train due to enter still asks when a failure,
-  breakdown, order list or another authority prevents its entry.
 - A stub track has no rule of its own. Without a single-track restriction,
   trains of opposite directions on it pass through each other or, when they meet
   at a block edge, stand head to head until the end of the run. The restriction

@@ -23,10 +23,10 @@ train D1-1 sample t=681 x=7999.999900 v=0.000000
 train D1-1 sample t=700 x=8000.000100 v=0.000000
 train D1-1 stop t_first=652 t_last=700 x=7999.998000 dwell=48
 train D1-1 braking t=608 x=7248.861328 v=36.111111 stop_t=652
-aspect routeStubIn @4-B0@ 0:270 60:0 144:270 381:0 701:270
-aspect routeStubIn @5-B0@ 0:270 142:0 199:270 381:0 701:270
-aspect routeStubIn @6-B0@ 0:270 197:0 255:270 381:0 701:270
-aspect routeStubIn @7-B0@ 0:270 253:0 380:270 381:0 701:270
+aspect routeStubIn @4-B0@ 0:270 60:0 144:270 380:0 701:270
+aspect routeStubIn @5-B0@ 0:270 142:0 199:270 380:0 701:270
+aspect routeStubIn @6-B0@ 0:270 197:0 255:270 380:0 701:270
+aspect routeStubIn @7-B0@ 0:270 253:0 701:270
 aspect routeStubOut @7-B0@ 0:270 59:0 380:270 381:0 465:270
 aspect routeStubOut @6-B0@ 0:270 59:0 380:270 463:0 520:270
 aspect routeStubOut @5-B0@ 0:270 59:0 380:270 518:0 576:270
