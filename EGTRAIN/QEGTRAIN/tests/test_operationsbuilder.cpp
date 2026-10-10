@@ -638,10 +638,11 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 		sections[i].code = 270;
 		sections[i].arcs_in_signalling_block_section[0].signalSpeedLimit = 999;
 	}
-	BlocksOccupied = {sections[tail].ID, sections[tail + 1].ID};
-	atbMixedSignalling(signalCode1, signalCode3, sections.data(), 8);
-	etcsLev1MixedSignalling(signalCode3, sections.data(), 8);
-	etcsLev2MixedSignalling(signalCode3, sections.data(), 8);
+	std::vector<char> occupied(8, 0);
+	occupied[tail] = occupied[tail + 1] = 1;
+	atbMixedSignalling(signalCode1, signalCode3, sections.data(), 8, occupied.data());
+	etcsLev1MixedSignalling(signalCode3, sections.data(), 8, occupied.data());
+	etcsLev2MixedSignalling(signalCode3, sections.data(), 8, occupied.data());
 	return sections;
 }
 
@@ -649,7 +650,6 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 // chain of their own level, on both sides of the border.
 static bool levelBorderAspectTests() {
 	bool ok = true;
-	const auto savedOccupied = BlocksOccupied;
 	const auto limit = [](const Section& section) { return section.arcs_in_signalling_block_section[0].signalSpeedLimit; };
 	const auto chain = [](const std::vector<Section>& sections, int first, int last) {
 		std::string codes;
@@ -685,7 +685,6 @@ static bool levelBorderAspectTests() {
 	}
 	std::vector<Section> sections = borderAspects(kSignallingLevelUnset, 0, 4);
 	ok &= expect(chain(sections, 1, 5) == "270 270 270 0 0 ", "a section without a level takes no chain behind an occupied section of level 0");
-	BlocksOccupied = savedOccupied;
 	return ok;
 }
 

@@ -5,7 +5,10 @@
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
+#include <iterator>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -3728,7 +3731,7 @@ void setInfraSpeedLimits(Section* BS, int Blocks) {
 	}
 }
 
-void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks) {
+void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks, const char* occupied) {
 	// The aspects are rebuilt from the occupied sections on every step, so start from clear.
 	// Otherwise a restriction stays on a section that nothing rewrites afterwards: the last
 	// sections of the route once the last train has left, and the sections around a failed
@@ -3743,18 +3746,7 @@ void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int
 		}
 	}
 	for (int h = Blocks - 1; h >= 0; h--) {
-		bool IsOccupied = false;
-		list<string>::iterator it;
-		// Determine if the Block Section is Occupied (i.e. check if its ID is present within the BlocksOccupied list)
-		if (BlocksOccupied.empty() != 1) {
-			for (it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
-				if (*it == BS[h].ID) {
-					IsOccupied = true;
-					break;
-				}
-			}
-		}
-		if (IsOccupied == 1) {
+		if (occupied[h] != 0) {
 			if (h == 0) {
 				if (BS[h].SignallingLevel == 5) {
 					BS[h].code = 0;
@@ -3897,22 +3889,10 @@ void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex) {
 
 // ATB Signalling system - National Dutch System.
 
-void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks) {
+void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks, const char* occupied) {
 
 	for (int h = Blocks - 1; h >= 0; h--) {
-		bool IsOccupied = false;
-		list<string>::iterator it;
-		// Determine if the Block Section is Occupied (i.e. check if its ID is present within the BlocksOccupied list)
-		if (BlocksOccupied.empty() != 1) {
-			for (it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
-				if (*it == BS[h].ID) {
-					IsOccupied = true;
-					break;
-				}
-			}
-		}
-
-		if (IsOccupied == 1) {
+		if (occupied[h] != 0) {
 			if (h == 0) {
 				if (BS[h].SignallingLevel == 0) {
 					BS[h].code = 0;
@@ -4027,21 +4007,10 @@ bool levelWritesAspectBehind(int level, const Section& occupied, const Section& 
 
 // ETCS Level 1 Signalling System - Italian Version (SCMT)
 
-void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks) {
+void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied) {
 
 	for (int h = Blocks - 1; h >= 0; h--) {
-		bool IsOccupied = false;
-		list<string>::iterator it;
-		// Determine if the Block Section is Occupied (i.e. check if its ID is present within the BlocksOccupied list)
-		if (BlocksOccupied.empty() != 1) {
-			for (it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
-				if (*it == BS[h].ID) {
-					IsOccupied = true;
-					break;
-				}
-			}
-		}
-		if (IsOccupied == 1) {
+		if (occupied[h] != 0) {
 			if (h == 0) {
 				if (BS[h].SignallingLevel == 1) {
 					BS[h].code = 0;
@@ -4146,21 +4115,10 @@ void relEtcsLev1MixedSignalling(Section* BS, int blockIndex) {
 	}
 }
 
-void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks) {
+void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied) {
 
 	for (int h = Blocks - 1; h >= 0; h--) {
-		bool IsOccupied = false;
-		list<string>::iterator it;
-		// Determine if the Block Section is Occupied (i.e. check if its ID is present within the BlocksOccupied list)
-		if (BlocksOccupied.empty() != 1) {
-			for (it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
-				if (*it == BS[h].ID) {
-					IsOccupied = true;
-					break;
-				}
-			}
-		}
-		if (IsOccupied == 1) {
+		if (occupied[h] != 0) {
 			if (h == 0) {
 				if (BS[h].SignallingLevel == 2) {
 					BS[h].code = 0;
@@ -4266,21 +4224,10 @@ void relEtcsLev2MixedSignalling(Section* BS, int blockIndex) {
 }
 
 // Marks the occupied sections of levels 3 and 4 with code 0, so that the routines of the other levels see them. The movement authorities are made by ReportPositionToRBC.
-void rbcSendsMasToRouteMixedSignalling(Route& R) {
+void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied) {
 	// Occupying the block section in order to be seen by the other signalling system as well
 	for (int h = R.N_Block_Sections - 1; h >= 0; h--) {
-		bool IsOccupied = false;
-		list<string>::iterator it;
-		// Determine if the Block Section is Occupied (i.e. check if its ID is present within the BlocksOccupied list)
-		if (BlocksOccupied.empty() != 1) {
-			for (it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
-				if (*it == R.sequence_of_block_sections[h].ID) {
-					IsOccupied = true;
-					break;
-				}
-			}
-		}
-		if (IsOccupied == 1) {
+		if (occupied[h] != 0) {
 			if ((R.sequence_of_block_sections[h].SignallingLevel == 3) || (R.sequence_of_block_sections[h].SignallingLevel == 4)) {
 				R.sequence_of_block_sections[h].code = 0;
 				R.sequence_of_block_sections[h].exit_speed = R.sequence_of_block_sections[h].arcs_in_signalling_block_section[R.sequence_of_block_sections[h].total_arcs - 1].speedInBraking;
@@ -4409,34 +4356,56 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks) {
 
 /***********************************************************************************************************************************************************************************************************/
 
+namespace {
+// Sets flags[h] to 1 when the ID of section h of the route is in ids, otherwise to 0. The views in ids point into BlocksOccupied.
+void setOccupiedFlags(const Route& route, const std::unordered_set<std::string_view>& ids, std::vector<char>& flags) {
+	flags.assign(route.N_Block_Sections, 0);
+	if (ids.empty())
+		return;
+	for (int h = 0; h < route.N_Block_Sections; h++)
+		flags[h] = ids.count(route.sequence_of_block_sections[h].ID) != 0 ? 1 : 0;
+}
+} // namespace
+
 // Function to activate mixed signalling areas
 void activateMixedSignallingSystem() {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
+	// The set holds views of the entries of BlocksOccupied, so the entries a route adds leave the set before they leave the list.
+	std::unordered_set<std::string_view> occupiedIds;
+	occupiedIds.reserve(BlocksOccupied.size());
+	occupiedIds.insert(BlocksOccupied.begin(), BlocksOccupied.end());
+	std::vector<char> occupied;
 	for (int i = 0; i < N_Routes; i++) {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
 		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
+		const auto firstAdded = std::prev(BlocksOccupied.end(), static_cast<std::ptrdiff_t>(singleTrackAdded));
+		occupiedIds.insert(firstAdded, BlocksOccupied.end());
+		setOccupiedFlags(train_route[i], occupiedIds, occupied);
+		for (auto added = firstAdded; added != BlocksOccupied.end(); ++added)
+			occupiedIds.erase(*added);
 		// Set all the speed limits coming from the Infrastructure
 		setInfraSpeedLimits(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and Signal Speed Limits for BACC
-		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections,
+			occupied.data());
 		setBlockSpeed1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and signal speed limits for ATB
-		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
 		setBlockSpeedAtbMixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and signal speed limits for ETCS Level 1
-		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
 		setBlockSpeedEtcsLev1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Set the aspect of signals and signal speed limits for ETCS Level 2
-		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
 		setBlockSpeedEtcsLev2MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
-		rbcSendsMasToRouteMixedSignalling(train_route[i]);
+		rbcSendsMasToRouteMixedSignalling(train_route[i], occupied.data());
 		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
 		for (; singleTrackAdded > 0; --singleTrackAdded)
