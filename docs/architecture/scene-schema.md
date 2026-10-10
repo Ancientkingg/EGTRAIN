@@ -180,10 +180,9 @@ all its sections as occupied and wait in front of it, at the loop if their route
 has one. Trains of the same direction are not held and follow under the normal
 signalling rules. The direction of a train follows the order of the sections of its
 route; the optional `reversed` flag has to agree.
-If trains of both directions are inside, the direction that held the stretch
-before keeps it, and the forward direction holds it when nobody did. The stretch
-is released when the last train of the holding direction has left it, and then
-passes to the other direction if a train of that direction is inside.
+If trains of both directions are already inside, the previous holder keeps
+priority; without a previous holder, the forward direction wins. Pending
+reservations can keep the stretch held after the last occupant leaves.
 
 A free stretch is reserved before an approaching train's next movement could
 consume its last opportunity to brake. The calculation uses the existing inverse
