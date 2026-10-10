@@ -175,6 +175,7 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/simulation/RollingStock.cpp
+    ${SRC_DIR}/simulation/RollingStockBlockingTimes.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/simulation/Simulation.cpp)
 target_link_libraries(egtrain_sim
