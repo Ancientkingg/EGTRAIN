@@ -310,7 +310,7 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 		if (!trainPtr)
 			continue;
 		const Train& train = *trainPtr;
-		if (!train.Stations || train.numStations <= 0)
+		if (train.Stations.empty() || train.numStations <= 0)
 			continue;
 		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
 		if (train.numStations > Train::kMaxTimetableStations) {

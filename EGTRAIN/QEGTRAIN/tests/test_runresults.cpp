@@ -57,7 +57,7 @@ static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
 	auto train = std::make_unique<Train>();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
-	train->Stations = new Node[stations.size()];
+	train->Stations.resize(stations.size());
 	for (std::size_t index = 0; index < stations.size(); ++index) {
 		train->Stations[index].stationName = stations[index];
 		train->StationArrivalNames[index] = stations[index];
@@ -70,7 +70,7 @@ static std::unique_ptr<Regional> makeRegionalTimetableTrain(const std::string& i
 	auto train = std::make_unique<Regional>();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
-	train->Stations = new Node[stations.size()];
+	train->Stations.resize(stations.size());
 	for (std::size_t index = 0; index < stations.size(); ++index) {
 		train->Stations[index].stationName = stations[index];
 		train->StationArrivalNames[index] = stations[index];
@@ -316,6 +316,25 @@ int main() {
 		const auto rows = buildTimetableResults(trains);
 		ok &= expect(static_cast<int>(rows.size()) == Train::kMaxTimetableStations,
 			"over-cap train yields exactly kMaxTimetableStations rows");
+	}
+
+	{
+		auto original = makeTimetableTrain("copy-original", {"A", "B"});
+		auto copied = std::make_unique<Train>(*original);
+		auto assigned = std::make_unique<Train>();
+		*assigned = *original;
+		ok &= expect(
+			copied->numStations == 2 && copied->Stations[0].stationName == "A" && copied->Stations[1].stationName == "B"
+				&& assigned->numStations == 2 && assigned->Stations[0].stationName == "A"
+				&& assigned->Stations[1].stationName == "B",
+			"a copy of a train starts with the stops of the original");
+		copied->Stations[0].stationName = "Changed";
+		assigned->Stations[1].stationName = "ChangedToo";
+		ok &= expect(
+			original->Stations[0].stationName == "A" && original->Stations[1].stationName == "B"
+				&& copied->Stations[0].stationName == "Changed" && copied->Stations[1].stationName == "B"
+				&& assigned->Stations[0].stationName == "A" && assigned->Stations[1].stationName == "ChangedToo",
+			"a copy of a train keeps its own stop list");
 	}
 
 	ok &= expect(Train::clampStationCount(Train::kMaxTimetableStations - 6, "under") == Train::kMaxTimetableStations - 6,

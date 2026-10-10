@@ -39,7 +39,7 @@ RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
 // native operations builder. Never substitute the map X fallback from Train.
 std::optional<double> routeDiagramStopPosition(const Train& train, int index,
 	const RouteDiagramPath& source, const RouteDiagramProjection& projection) {
-	if (!train.Stations || index < 0 || index >= train.numStations) return {};
+	if (train.Stations.empty() || index < 0 || index >= train.numStations) return {};
 	const Node& stop = train.Stations[index];
 	if (stop.sceneNodeId.empty()) return {};
 	for (const auto& node : source.nodes)

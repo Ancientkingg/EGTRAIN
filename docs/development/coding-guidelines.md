@@ -151,9 +151,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
 - `simulation/` uses `new T[n]` with `delete[]`, fixed-size global arrays and `extern`
   globals. Do not add more. `regional_train` is a `std::vector<Regional>` created with the
   number of trains of the scene (`extern` in `simulation/RollingStock.h`); `Max_N_Reg` is
-  only the limit that validation and the editor enforce on that number. A `Regional` owns
-  its `Stations` buffer through a raw pointer, so the vector is created once per build and
-  never grown, copied or reallocated while the trains are live. A `Route` holds the sections
+  only the limit that validation and the editor enforce on that number. A `Train` keeps
+  the stops of its service in a `std::vector<Node>`, and `regional_train` is created once
+  per build and not grown while the trains are live. A `Route` holds the sections
   of its route in a `std::vector<Section>` with exactly `N_Block_Sections` elements, set when
   the route is built; code that takes a `Section*` and a count gets `data()` and that count.
 
