@@ -33,7 +33,9 @@ public:
 	// pax info group icon pointer
 	QGraphicsItemGroup* paxInfoItem;
 
-	// pointer to list of polygons
+	// the body items of the train. The bodies are children of the group; the group owns
+	// the list and deletes it in its destructor. A caller that deletes the list itself
+	// sets this pointer to null first.
 	QList<TrainBodyItem*>* trainPolygonItemList;
 
 	// QGraphicsItemGroup caches its child bounds. Notify the scene before a
