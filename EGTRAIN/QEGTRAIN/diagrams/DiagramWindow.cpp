@@ -172,12 +172,16 @@ DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
 
 	m_csvButton = new QPushButton("Export CSV...", this);
 	m_csvButton->setToolTip("Write the raw data of the visible trains to a CSV file");
-	m_csvButton->setEnabled(false);
+	m_csvButton->hide();
 	connect(m_csvButton, &QPushButton::clicked, this, &DiagramWindow::exportCsv);
 
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", this);
 	exportPngBtn->setToolTip("Save the chart as an image");
 	connect(exportPngBtn, &QPushButton::clicked, this, &DiagramWindow::exportPng);
+
+	// No button of the window is a default button, so Enter presses none.
+	for (QPushButton* button : findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		button->setAutoDefault(false);
 
 	QHBoxLayout* topBar = new QHBoxLayout();
 	topBar->addWidget(m_trainsButton);
@@ -333,7 +337,7 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 	m_csvProvider = std::move(provider);
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
-		m_csvButton->setEnabled(static_cast<bool>(m_csvProvider));
+		m_csvButton->setVisible(static_cast<bool>(m_csvProvider));
 }
 
 void DiagramWindow::setProvenanceWriter(

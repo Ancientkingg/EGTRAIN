@@ -513,6 +513,106 @@ static bool exerciseNavigationHelp() {
 	return ok;
 }
 
+static QPushButton* topButton(QDialog& window, const QString& text) {
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		if (button->text() == text) return button;
+	return nullptr;
+}
+
+static bool buttonFlags(QDialog& window, const QString& prefix) {
+	bool ok = true;
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
+		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
+	}
+	return ok;
+}
+
+static QChart* buttonTestChart() {
+	auto* chart = new QChart;
+	auto* a = new QLineSeries;
+	a->setName("Train A");
+	a->setProperty("trainId", "A");
+	a->append(20, 30);
+	a->append(40, 50);
+	chart->addSeries(a);
+	auto* b = new QLineSeries;
+	b->setName("Train B");
+	b->setProperty("trainId", "B");
+	b->append(70, 20);
+	b->append(80, 30);
+	chart->addSeries(b);
+	chart->createDefaultAxes();
+	for (auto* axis : chart->axes()) qobject_cast<QValueAxis*>(axis)->setRange(0, 100);
+	return chart;
+}
+
+static bool exerciseButtonDefaults() {
+	int calls = 0;
+	const auto provider = [&calls](const QStringList&) { ++calls; return std::string(); };
+	DiagramWindow window("Button defaults");
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setCsvProvider(provider, "buttons.csv");
+	window.show();
+	QApplication::processEvents();
+	auto* csv = topButton(window, "Export CSV...");
+	auto* reset = topButton(window, "Reset zoom");
+	auto* png = topButton(window, "Export PNG...");
+	auto* view = window.findChild<QChartView*>();
+	bool ok = expect(csv && reset && png && topButton(window, "Clear selection") && view, "diagram window has its top bar buttons");
+	if (!ok) return false;
+	ok &= buttonFlags(window, "diagram window button");
+	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows Export CSV with a provider");
+	const auto clickTrain = [&] {
+		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), chart->series().first())));
+		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+	};
+	clickTrain();
+	QLabel* pin = nullptr;
+	for (auto* label : window.findChildren<QLabel*>(QString(), Qt::FindDirectChildrenOnly))
+		if (label->text().startsWith("Selected:")) pin = label;
+	ok &= expect(pin && pin->text() == "Selected: A", "click selects train A in the button test");
+	if (!pin) return false;
+	view->setFocus();
+	pressKey(view, Qt::Key_Return);
+	pressKey(view, Qt::Key_Enter);
+	ok &= expect(pin->text() == "Selected: A", "Enter in the chart keeps the selection");
+	clickTrain();
+	ok &= expect(pin->text() == "Selected: A", "second click selects train A in the button test");
+	pressKey(&window, Qt::Key_Return);
+	ok &= expect(pin->text() == "Selected: A", "Enter in the window keeps the selection");
+	ok &= expect(calls == 0, "Enter starts no CSV export");
+	DiagramWindow input("Input traction");
+	input.setProperty("inputTrainUnitId", "unit-a");
+	input.setChart(buttonTestChart());
+	input.show();
+	QApplication::processEvents();
+	auto* inputCsv = topButton(input, "Export CSV...");
+	auto* inputReset = topButton(input, "Reset zoom");
+	auto* inputPng = topButton(input, "Export PNG...");
+	if (!expect(inputCsv && inputReset && inputPng, "rolling stock window has its top bar buttons")) return false;
+	ok &= expect(inputCsv->isHidden(), "a window without a provider has no Export CSV button");
+	ok &= expect(inputReset->isVisible() && inputPng->isVisible(), "a window without a provider keeps Reset zoom and Export PNG");
+	ok &= buttonFlags(input, "rolling stock window button");
+	DiagramWindow late("Late provider");
+	late.setChart(buttonTestChart());
+	late.show();
+	QApplication::processEvents();
+	auto* lateCsv = topButton(late, "Export CSV...");
+	if (!expect(lateCsv, "late provider window has its CSV button")) return false;
+	late.setCsvProvider(provider, "late.csv");
+	QApplication::processEvents();
+	ok &= expect(lateCsv->isVisible() && lateCsv->isEnabled(), "setCsvProvider shows Export CSV");
+	late.setCsvProvider({}, QString());
+	QApplication::processEvents();
+	ok &= expect(lateCsv->isHidden(), "an empty provider hides Export CSV again");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -1005,6 +1105,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseTrainFilterKeysInWindow();
 	ok &= exerciseTrainColors();
 	ok &= exerciseNavigationHelp();
+	ok &= exerciseButtonDefaults();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

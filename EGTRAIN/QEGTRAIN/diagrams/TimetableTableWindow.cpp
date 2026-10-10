@@ -75,12 +75,16 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 
 	QPushButton* csvButton = new QPushButton("Export CSV...", this);
 	csvButton->setToolTip("Write the rows of the visible trains to a CSV file");
-	csvButton->setEnabled(static_cast<bool>(m_csvProvider));
+	csvButton->setVisible(static_cast<bool>(m_csvProvider));
 	connect(csvButton, &QPushButton::clicked, this, &TimetableTableWindow::exportCsv);
 
 	QPushButton* pngButton = new QPushButton("Export PNG...", this);
 	pngButton->setToolTip("Save the table as an image");
 	connect(pngButton, &QPushButton::clicked, this, &TimetableTableWindow::exportPng);
+
+	// No button of the window is a default button, so Enter presses none.
+	for (QPushButton* button : findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		button->setAutoDefault(false);
 
 	QHBoxLayout* topBar = new QHBoxLayout();
 	topBar->addWidget(m_trainsButton);

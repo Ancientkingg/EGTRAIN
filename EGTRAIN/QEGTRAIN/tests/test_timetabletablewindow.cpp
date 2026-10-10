@@ -6,6 +6,7 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
+#include <QKeyEvent>
 #include <QFile>
 #include <QScreen>
 #include <QLabel>
@@ -58,6 +59,63 @@ static QColor swatchColor(const QListWidget* list, int row) {
 	return icon.isNull() ? QColor() : icon.pixmap(12, 12).toImage().pixelColor(6, 6);
 }
 
+static QPushButton* topButton(QDialog& window, const QString& text) {
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly))
+		if (button->text() == text) return button;
+	return nullptr;
+}
+
+static bool buttonFlags(QDialog& window, const QString& prefix) {
+	bool ok = true;
+	for (auto* button : window.findChildren<QPushButton*>(QString(), Qt::FindDirectChildrenOnly)) {
+		ok &= expect(!button->autoDefault(), qPrintable(prefix + " is not auto default: " + button->text()));
+		ok &= expect(!button->isDefault(), qPrintable(prefix + " is not the default: " + button->text()));
+	}
+	return ok;
+}
+
+static void pressKey(QWidget* widget, Qt::Key key) {
+	QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier);
+	QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier);
+	QApplication::sendEvent(widget, &press);
+	QApplication::sendEvent(widget, &release);
+}
+
+static bool exerciseButtonDefaults() {
+	int calls = 0;
+	const auto provider = [&calls](const QStringList&) { ++calls; return std::string(); };
+	std::vector<TimetableResultRow> rows(1);
+	rows.front().trainId = "train-a";
+	TimetableTableWindow window(rows, 0, provider);
+	window.show();
+	QApplication::processEvents();
+	auto* csv = topButton(window, "Export CSV...");
+	auto* png = topButton(window, "Export PNG...");
+	auto* table = window.findChild<QTableWidget*>();
+	bool ok = expect(csv && png && table, "timetable window has its top bar buttons");
+	if (!ok) return false;
+	ok &= buttonFlags(window, "timetable window button");
+	ok &= expect(csv->isVisible() && csv->isEnabled(), "timetable window shows Export CSV with a provider");
+	table->setCurrentCell(0, 0);
+	table->setFocus();
+	pressKey(table, Qt::Key_Return);
+	pressKey(table, Qt::Key_Enter);
+	ok &= expect(calls == 0, "Enter in the table starts no CSV export");
+	calls = 0;
+	pressKey(&window, Qt::Key_Return);
+	ok &= expect(calls == 0, "Enter in the window starts no CSV export");
+	TimetableTableWindow empty(rows, 0, {});
+	empty.show();
+	QApplication::processEvents();
+	auto* emptyCsv = topButton(empty, "Export CSV...");
+	auto* emptyPng = topButton(empty, "Export PNG...");
+	if (!expect(emptyCsv && emptyPng, "timetable window without provider has its top bar buttons")) return false;
+	ok &= expect(emptyCsv->isHidden(), "a timetable window without a provider has no Export CSV button");
+	ok &= expect(emptyPng->isVisible(), "a timetable window without a provider keeps Export PNG");
+	ok &= buttonFlags(empty, "timetable window without provider button");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
@@ -99,5 +157,6 @@ int main(int argc, char** argv) {
 			&& swatchColor(list, 0) == QColor(60, 141, 210) && !swatchColor(list, 1).isValid(),
 		"a train of a coloured service has its swatch and another train has none");
 	ok &= exerciseTrainColorsForRun();
+	ok &= exerciseButtonDefaults();
 	return ok ? 0 : 1;
 }
