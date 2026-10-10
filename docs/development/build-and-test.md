@@ -295,13 +295,31 @@ After the tests, the Windows CI leg assembles the files of the release package
 in a temporary directory: `QEGTRAIN.exe`, the vcpkg DLLs, the Qt DLLs and
 plugins that `windeployqt` adds, and the scenes. It then runs
 `tools/release/package_start_smoke.py` on that directory. The script removes
-the Qt and vcpkg variables from the environment and leaves only the Windows
-directories on `PATH`, so a DLL or plugin that is missing from the package
-fails the launch. It starts the packaged program twice: headless on Paimpol to
-the end of a 120 s run, and with a window in startup timing mode, where the
-program opens the scene, prepares a run, paints it and exits. Before the
-launches it fails when a file of the package is an OpenMP runtime library or
-names one (`vcomp140.dll` on Windows): the package ships none.
+the Qt, vcpkg and library path variables from the environment and leaves only
+the Windows directories on `PATH`, so a DLL or plugin that is missing from the
+package fails the launch. It starts the packaged program in this order:
+
+1. Headless on Paimpol to the end of a 120 s run.
+2. With a window in startup timing mode, where the program opens the scene,
+   prepares a run, paints it and exits.
+3. The CSV export.
+4. The PNG export.
+
+The two export launches run Paimpol with a window and a horizon of 8000 s,
+with the autostart hook and one export hook of the application each:
+`QEGTRAIN_E2E_EXPORT_DIR` for the CSV files and `QEGTRAIN_E2E_ROUTE_DIAGRAM`
+for the PNG files. The hook writes into a new temporary directory and then
+exits the application, so each export is a launch of its own. The script
+requires the marker that the application prints (`E2E_CSV_EXPORT_OK`,
+`E2E_ROUTE_DIAGRAM_OK`) and the files that the hook names: the CSV files
+`trajectory.csv`, `timetable.csv` and `run_summary.csv`, each not empty, with a
+header line and a data line, and the PNG files `timetable_graph.png`,
+`train_path_graph.png` and `route_reference_chooser.png`, each with a PNG
+signature. It does not check what the files contain or how the images look.
+
+Before the launches the script fails when a file of the package is an OpenMP
+runtime library or names one (`vcomp140.dll` on Windows): the package ships
+none.
 
 The assembly uses the same `windeployqt` options as the Windows package job
 (`--no-opengl-sw`, `--no-angle`, `--no-system-d3d-compiler`,
@@ -325,13 +343,35 @@ library (under `/System/Library/` or `/usr/lib/`) or a file inside the app, and
 every library inside the app is loaded by some file. The search starts at the
 files in `Contents/MacOS` and `Contents/PlugIns`, which no load command names:
 the system starts a program, and Qt finds a plugin by its directory. The script
-then starts the app twice as for Windows: headless on Paimpol, and with a window
-in startup timing mode. Only the window start loads the cocoa platform plugin of
-the bundle.
+then starts the app as for Windows: the headless run, the window start, the CSV
+export and the PNG export. Only the launches with a window load the cocoa
+platform plugin of the bundle.
 
 The macOS package keeps `QtDBus` and `QtPrintSupport`, which the cocoa platform
 plugin loads, the print support and bearer plugins, and the image format
 plugins other than WebP and TIFF.
+
+### Linux package start
+
+The Linux package job extracts the AppImage that it built into a directory under
+the runner temporary directory, so the file that is uploaded stays as built. The
+job installs `xvfb` and `xauth` with the build tools. In step **Start the
+package** it lists the plugin files of the extracted image in its log and runs
+`tools/release/package_start_smoke.py` on the directory with `xvfb-run`, which
+gives the program a virtual X display. The script starts the directory through
+its `AppRun`, as the AppImage runtime does after it has mounted the image, and
+makes the same launches as for Windows: the headless run, the window start, the
+CSV export and the PNG export.
+
+Before the launches the script runs `ldd` on every ELF file below `usr/bin` and
+`usr/plugins` and fails unless each Qt 5 and ZeroMQ library that such a file
+loads is a file of the extracted image. The runner has the Qt 5 packages that
+the build needs, so an image that lacks a Qt library would otherwise still start
+there with the library of the runner. The plugins are read as well as the
+programs, because the platform plugin loads Qt libraries that the program does
+not. The job sets no platform plugin variable, and the script removes every Qt
+variable and `LD_LIBRARY_PATH` from the environment of the launches, so the
+image starts with the platform plugin that it holds, which is what a user gets.
 
 ### Windows image size
 
@@ -927,7 +967,16 @@ The visual and render smoke artifacts include:
   and TIFF plugins with their libraries, from the app before the signature,
   fails when one of them is in the app, starts a copy of the app with the same
   script, and prints the number of files and bytes of the app before and
-  after the removal in its job summary. After the three packages are built,
+  after the removal in its job summary. The Linux package job extracts its
+  AppImage and starts the extracted image with the same script on a virtual
+  display, after the script has checked that every Qt 5 and ZeroMQ library of
+  the programs and plugins comes from the image. The start in each of the three
+  package jobs includes the CSV and PNG exports of Paimpol through the test
+  hooks of the application. The check does not show how the SVG icons look,
+  typing into text fields, the native file dialogs, or a start on a machine
+  without Qt or a display server; the clean-install rehearsal in the
+  [release testing checklist](release-testing-checklist.md) covers them. After
+  the three packages are built,
   the job `release-assets` downloads the artifacts and runs
   `tools/release/build_release_assets.py` on them with the command line of the
   release job (`--artifacts artifacts --output release-assets`). The Windows
