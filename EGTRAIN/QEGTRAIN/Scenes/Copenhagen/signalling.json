@@ -3715,7 +3715,40 @@
             "id": "route23"
         }
     ],
+    "signalling_areas": [
+        {
+            "end_km": 79.0,
+            "id": "network",
+            "level": 0,
+            "start_km": 0.0
+        }
+    ],
     "signals": [],
-    "single_track_restrictions": [],
+    "single_track_restrictions": [
+        {
+            "end_block": "2-B25",
+            "protected_end_block": "2-B25",
+            "protected_start_block": "@41-B21@-49.580000/@0-B25@-49.601000",
+            "start_block": "1-B25"
+        },
+        {
+            "end_block": "2-B26",
+            "protected_end_block": "1-B26",
+            "protected_start_block": "@1-B90@-49.695000/@1-B26@-49.701000",
+            "start_block": "@41-B21@-49.580000/@0-B25@-49.601000"
+        },
+        {
+            "end_block": "2-B8",
+            "protected_end_block": "2-B8",
+            "protected_start_block": "5-B9",
+            "start_block": "5-B9"
+        },
+        {
+            "end_block": "234-B0",
+            "protected_end_block": "234-B0",
+            "protected_start_block": "226-B0",
+            "start_block": "226-B0"
+        }
+    ],
     "station_boundaries": []
 }

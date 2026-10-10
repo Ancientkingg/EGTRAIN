@@ -1,5 +1,6 @@
 {
   "base_time": "06:28:20",
+  "description": "Signalling: one network-wide area, level 0. Placeholder conventional fixed-block signalling, not the national system. Four single-track restrictions keep trains of opposite directions apart at Hellerup (two), Hoje Taastrup and Farum; they are set for the timetable of this scene.",
   "import_report": [
     {
       "category": "legacy_root",

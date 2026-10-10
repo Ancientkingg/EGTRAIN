@@ -553,29 +553,31 @@ section only to resolve signal failures. See the
 | --- | --- | --- |
 | `Netherlands` | none | no level |
 | `Assignment_Gvc_Gdg_Ut` | one network-wide area, 0 to 165 km, level 0 | `0 ATB fixed block` |
-| `Copenhagen` | none | no level |
+| `Copenhagen` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
 | `Milano_Brescia` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
 | `Paimpol` | one network-wide area, 0 to 38 km, level 0 | `0 ATB fixed block` |
 | `Lebanon` | one network-wide area, 0 to 121 km, level 0 | `0 ATB fixed block` |
 | `Amsterdam_Hilversum_Student` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 
-The scene descriptions of `Paimpol`, `Lebanon` and `Milano_Brescia` call their
-area a placeholder. The descriptions of `Assignment_Gvc_Gdg_Ut` and
-`Amsterdam_Hilversum_Student` say that the level is a project decision.
-Assigning levels to the other two scenes is #459.
+The scene descriptions of `Paimpol`, `Lebanon`, `Milano_Brescia` and
+`Copenhagen` call their area a placeholder. The descriptions of
+`Assignment_Gvc_Gdg_Ut` and `Amsterdam_Hilversum_Student` say that the level is
+a project decision. `Netherlands` is the one scene left without an area (#459).
+
+`Copenhagen` also has four single-track restrictions, two at Hellerup, one at
+Hoje Taastrup and one at Farum. With the area and without them an arriving and a
+departing train stand head to head at each of these places until the end of the
+run, with the trains behind them queued. The entries are set for the timetable
+of the scene.
 
 ## Known limits and open issues
 
 Open on this version:
 
-- #459: two committed scenes have no signalling area.
+- #459: the committed scene `Netherlands` has no signalling area.
 - #439: the legacy import reports `TrackLines/AreasCaseStudy.txt` in the import
   report and in a warning and does not convert its rows, so a scene imported
   from such a case has no signalling area until the user adds one.
-- #590: without a restriction, trains of opposite directions on a stub track
-  pass through each other or, when they meet at a block edge, stand head to head
-  until the end of the run. The restriction keeps them apart (`stub-*` cases).
-  `Copenhagen` has no area and no restriction yet.
 
 Limits that no issue tracks:
 
@@ -594,6 +596,11 @@ Limits that no issue tracks:
   closest one is chosen with a braking distance whose formula subtracts the
   squared target speed only after dividing it (`V^2 - Vt^2 / (2 a)`). The effect
   is not measured.
+- A stub track has no rule of its own. Without a single-track restriction,
+  trains of opposite directions on it pass through each other or, when they meet
+  at a block edge, stand head to head until the end of the run. The restriction
+  keeps them apart (`stub-*` cases). `Copenhagen` has restrictions at Hellerup,
+  Hoje Taastrup and Farum, and they are set for its timetable.
 
 ## What is not established
 
