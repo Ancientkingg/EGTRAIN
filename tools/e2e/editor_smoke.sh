@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 ALT_SCENE="${QEGTRAIN_E2E_SCENE_ALT:-$ROOT/EGTRAIN/QEGTRAIN/Scenes/Copenhagen}"
 OUT="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e"
 LOG="${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log"
@@ -16,7 +16,7 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ ! -x "$APP" ]]; then
-	echo "QEGTRAIN app is not built" >&2
+	echo "QEGTRAIN app not found or not executable: $APP" >&2
 	exit 1
 fi
 
@@ -30,12 +30,6 @@ if [[ ! -d "$ALT_SCENE" ]]; then
 	echo "Alternate scene not found: $ALT_SCENE" >&2
 	exit 1
 fi
-
-if ! ctest --test-dir "$ROOT/build" -R '^test_scene' --output-on-failure --no-tests=error; then
-	echo "scene tests failed" >&2
-	exit 1
-fi
-echo "scene tests passed"
 
 mkdir -p "$OUT"
 
@@ -69,6 +63,7 @@ required_markers=(
 	E2E_EDITOR_INCIDENT_OK
 	E2E_EDITOR_VALIDATION_OK
 	E2E_EDITOR_SAVE_RELOAD_OK
+	E2E_EDITOR_LAYOUT_OK
 )
 missing_markers=()
 for marker in "${required_markers[@]}"; do

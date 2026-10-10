@@ -229,6 +229,7 @@ platform.
 | Test | macOS | Linux | Windows | Reason |
 | --- | --- | --- | --- | --- |
 | `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
+| `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
@@ -238,9 +239,12 @@ platform.
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
-The three Bash smokes read the application and `scene_tool` paths from
-`QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL`; CTest sets both from the build
-targets. Run by hand without them, they use the macOS paths under `build/`.
+The four Bash smokes (`test_csv_export_smoke`, `test_lebanon_scene_smoke`,
+`test_creator_acceptance_smoke` and `test_editor_smoke`) read the application
+path from `QEGTRAIN_APP`.
+`test_lebanon_scene_smoke` and `test_creator_acceptance_smoke` also read the
+`scene_tool` path from `QEGTRAIN_SCENE_TOOL`. CTest sets both from the build
+targets. Run by hand without them, the scripts use the macOS paths under `build/`.
 
 `test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
@@ -758,6 +762,35 @@ and the current scene is replaced only then, so an open that fails leaves it in
 place. `test_close_during_run_smoke` closes the window during an autostarted
 run: the close request has to return with the run still stopping, and the
 application has to exit by itself afterwards.
+
+## Editor Smoke Test
+
+```bash
+tools/e2e/editor_smoke.sh
+```
+
+The script starts the application with the editor smoke hook and a settings
+folder of its own. The first argument is an optional scene directory; the
+default is `Assignment_Gvc_Gdg_Ut`, and `QEGTRAIN_E2E_SCENE_ALT` names the
+second scene, `Copenhagen` by default. The application creates, edits,
+validates, saves and reloads cases through the editors. It then checks their
+layout: the main window does not grow beyond 1280 by 800 pixels when an editor
+dock is shown at the normal and at 1.5 times the font size, a floated dock stays
+within 750 by 600 and keeps its scroll area, and the Add button of the
+Passengers editor is in view.
+
+The smoke passes when the application exits with status 0, prints
+`E2E_EDITOR_SMOKE_OK` and prints the marker of every facet, the last being
+`E2E_EDITOR_LAYOUT_OK`. The application output goes to
+`${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log`. On a failure the script prints
+the end of that log, which holds `E2E_EDITOR_SMOKE_FAIL: <facet>: <message>`
+when the application reported the failure.
+
+CTest runs the script as `test_editor_smoke` on macOS and Linux with
+`QT_QPA_PLATFORM=offscreen`. Run it alone with
+`ctest --test-dir build -R test_editor_smoke --output-on-failure`. The script
+takes the application from `QEGTRAIN_APP`. The release workflow also runs it as
+a step of its own.
 
 ## GUI Smoke Test
 
