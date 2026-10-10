@@ -25,7 +25,6 @@ def records(*, paints=1, structural=True):
         "worker/playback_step/compute/passenger_entry_platform_refresh": 10,
         "worker/playback_step/compute/train_movement": 10,
         "worker/playback_step/compute/train_passenger_state_payload": 10,
-        "worker/playback_step/compute/passenger_status_output": 10,
         "worker/playback_step/compute/infrastructure_signalling_cleanup": 10,
         "worker/playback_step/compute/infrastructure_signalling_cleanup/release_mixed_signalling": 3,
         "worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling": 4,
@@ -126,7 +125,7 @@ class PlaybackProfileTests(unittest.TestCase):
         trial = records()
         totals = profile.self_totals(trial)
         self.assertEqual(totals["gui/snapshot_delivery"], 10)
-        self.assertEqual(totals[profile.COMPUTE_PATH], 50)
+        self.assertEqual(totals[profile.COMPUTE_PATH], 60)
 
     def test_compute_children_are_direct_mandatory_paths_with_matching_calls(self):
         trial = records()
@@ -192,7 +191,7 @@ class PlaybackProfileTests(unittest.TestCase):
     def test_compute_children_must_reconcile_with_parent(self):
         bad = records()
         parent = next(record for record in bad if record.get("path") == profile.COMPUTE_PATH)
-        set_total(parent, 49)
+        set_total(parent, 39)
         parent.update({"p95_ns": 5, "max_ns": 5})
         with self.assertRaisesRegex(ValueError, "direct children exceed"):
             profile.validate_trial(bad, trial=1, view="fit", duration_ms=50,

@@ -18,7 +18,7 @@ This page describes the code as it is. Function names are given so that a mainta
 
 ## When it sends
 
-`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and after `printCurrentPassengerStatus`, and before the signalling clean-up of the same step. The traffic-state message goes first.
+`DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and before the signalling clean-up of the same step. The traffic-state message goes first.
 
 At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop and the step delay are read through `SimulationWorker::active()`, so they exist only in a run in the window and not in a `-g 0` run. In a window run the step loop runs on the worker thread (`MainWindow::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
 
@@ -111,7 +111,7 @@ routeChoiceRequest            currentTime
 ## What is not an interface
 
 - `read_rttp_train_view` and `read_rttp_infra_view` in `io/RailMLParser.cpp` read an RTTP XML text and print what they find to standard output. They are not declared in `io/RailMLParser.h`, and the application does not call them. Only `tests/test_railmlparser.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
-- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` rewrites `PassengerStatus/PassengerStatus.txt` in the output folder at every step. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
+- The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
 - The application opens no listening socket, local server or named pipe, and the ZeroMQ code only connects. The reply of a module is printed and not used. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window.
 

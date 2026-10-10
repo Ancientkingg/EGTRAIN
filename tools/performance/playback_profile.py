@@ -19,7 +19,6 @@ COMPUTE_CHILDREN = {
     f"{COMPUTE_PATH}/passenger_entry_platform_refresh",
     f"{COMPUTE_PATH}/train_movement",
     f"{COMPUTE_PATH}/train_passenger_state_payload",
-    f"{COMPUTE_PATH}/passenger_status_output",
     SIGNALLING_PATH,
 }
 SIGNALLING_CHILDREN = {
