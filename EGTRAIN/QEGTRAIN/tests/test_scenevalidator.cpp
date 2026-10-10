@@ -500,6 +500,47 @@ int main(int argc, char** argv) {
 	directionChange.routes[0].blocks = {"block-1", "block-2", "block-1"};
 	ok &= expect(hasCode(validateScene(directionChange), "scene.route.direction"),
 		"a route cannot change direction between connected sections");
+	SceneModel markedForward = clean;
+	markedForward.routes[0].reversed = true;
+	for (const auto& diagnostics : {validateScene(markedForward), validateRunnableScene(markedForward)}) {
+		const auto errors = findAll(diagnostics, "scene.route.direction");
+		ok &= expect(errors.size() == 1 && errors[0].severity == SceneSeverity::Error
+				&& errors[0].itemId == "route-1" && errors[0].path == "routes[0].reversed"
+				&& contains(errors[0].message, "route-1") && errors[0].file == "signalling.json"
+				&& errors[0].itemType == "route"
+				&& errors[0].suggestedFix == "List the sections in reverse order or remove reversed",
+			"plain and runnable validation reject a marked forward route with its id and flag path");
+	}
+	const auto unmarkedReverseDiagnostics = validateScene(reverseRoute);
+	ok &= expect(!hasCode(unmarkedReverseDiagnostics, "scene.route.direction"),
+		"an unmarked reverse route has no direction error");
+	reverseRoute.routes[0].reversed = true;
+	const auto markedReverseDiagnostics = validateScene(reverseRoute);
+	ok &= expect(!hasCode(markedReverseDiagnostics, "scene.route.direction")
+			&& markedReverseDiagnostics.size() == unmarkedReverseDiagnostics.size()
+			&& std::equal(markedReverseDiagnostics.begin(), markedReverseDiagnostics.end(),
+				unmarkedReverseDiagnostics.begin(), [](const SceneDiagnostic& left, const SceneDiagnostic& right) {
+					return toDisplayText(left) == toDisplayText(right);
+				}),
+		"a marked reverse route has the same diagnostics as an unmarked reverse route");
+	SceneModel markedShort = clean;
+	markedShort.routes.push_back({"route-short", {"block-1"}, false, "", true});
+	const auto shortErrors = findAll(validateScene(markedShort), "scene.route.direction");
+	ok &= expect(shortErrors.size() == 1 && shortErrors[0].severity == SceneSeverity::Error
+			&& shortErrors[0].itemId == "route-short" && shortErrors[0].path == "routes[1].reversed",
+		"only the marked one-section route is rejected at its own index");
+	directionChange.routes[0].reversed = true;
+	const auto changeErrors = findAll(validateScene(directionChange), "scene.route.direction");
+	ok &= expect(changeErrors.size() == 1 && changeErrors[0].itemId == "route-1"
+			&& changeErrors[0].path == "routes[0].blocks",
+		"a marked direction-changing route gets no second direction error");
+	SceneModel markedUnresolved = clean;
+	markedUnresolved.routes[0].blocks = {"block-1", "missing-block"};
+	markedUnresolved.routes[0].reversed = true;
+	const auto unresolvedDiagnostics = validateScene(markedUnresolved);
+	ok &= expect(hasCode(unresolvedDiagnostics, "scene.ref.unresolved")
+			&& !hasCode(unresolvedDiagnostics, "scene.route.direction"),
+		"a marked route with an unresolved section gets no direction error");
 	SceneModel switchTopology;
 	switchTopology.tracks = {{"switch-a"}, {"switch-b"}, {"switch-c"}};
 	switchTopology.nodes = {{"a.0", "switch-a", 0.0, 0.0}, {"a.1", "switch-a", 1.0, 0.0},

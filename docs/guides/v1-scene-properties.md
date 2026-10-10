@@ -64,6 +64,8 @@ A direct base-block incident target remains compatible; a target matching both
 a signal and section is rejected as ambiguous. A route has `id`, a
 string-array `blocks`, and optional `corridor` and `reversed`; its block tokens
 are authored in forward or reverse order and are never silently sorted.
+Validation reports `scene.route.direction` for a route marked `reversed` whose
+sections run forward.
 Continuity is required inside one connected region. A scene with legacy-import
 provenance retains historical cross-region coordinate jumps with a warning;
 newly authored scenes require a declared connection. Compound tokens must be

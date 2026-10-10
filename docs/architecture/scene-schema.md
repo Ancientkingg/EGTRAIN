@@ -94,7 +94,9 @@ Required root arrays are `signals` and `routes`.
   targets remain supported. A signal-failure target that matches both a signal
   ID and a section reference is ambiguous and invalid.
 - `routes[]`: required `id` and string-array `blocks`; optional string
-  `corridor` and boolean `reversed`.
+  `corridor` and boolean `reversed`. A route runs in reverse when its sections
+  are listed in reverse order. Validation reports `scene.route.direction` for a
+  route marked `reversed` whose sections run forward.
 - `signalling_areas[]`: required `id`, numeric `start_km`, numeric `end_km`,
   and integer `level` from 0 through 5; optional `track` refers to a canonical
   track ID. The array is optional.
@@ -174,7 +176,8 @@ by the sections of the stretch that it contains.
 While a train is in the stretch, trains on routes of the opposite direction see
 all its sections as occupied and wait in front of it, at the loop if their route
 has one. Trains of the same direction are not held and follow under the normal
-signalling rules. The direction of a train is the `reversed` flag of its route.
+signalling rules. The direction of a train follows the order of the sections of its
+route; the optional `reversed` flag has to agree.
 If trains of both directions are inside, the direction that held the stretch
 before keeps it, and the forward direction holds it when nobody did. The stretch
 is released when the last train of the holding direction has left it, and then

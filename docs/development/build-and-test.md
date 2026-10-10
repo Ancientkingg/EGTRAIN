@@ -581,7 +581,10 @@ in it. At levels 0, 1 and 2 it also has to wait in the second half of the first
 crossover meanwhile; at level 5 it waits further back, in front of the first
 crossover, and that is not checked. The levels 3 and 4 are not run, because a
 train alone does not stop in front of the second crossover there. The test reads
-no golden file.
+no golden file. Each level also runs `R1` on a route marked `reversed` with
+its sections in reverse order, with the same expectations, and refuses `F1` on
+a route marked `reversed` with its sections in forward order with
+`scene.route.direction`.
 
 `test_signalling_aspects` is a third executable, because it needs no scene and
 no Qt. It builds routes of up to seven sections by hand in the global route
