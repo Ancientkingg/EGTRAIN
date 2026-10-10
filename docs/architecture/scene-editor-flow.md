@@ -110,9 +110,14 @@ surface.
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
 | Passengers | Passenger IDs; journeys, absolute time windows, and station endpoints; ordered service-occurrence legs; append import from the exact DAS and RouteChoice file pair | Row-specific import outcomes and validation diagnostics |
 
-The signalling area table of the Infrastructure pane shows the level as a number
-from 0 to 5. [Signalling levels](signalling-levels.md) names each level and says
-what it does.
+The signalling area table of the Infrastructure pane has a list for the
+signalling system and a list for the track. The system list holds the six levels
+with the names of [Signalling levels](signalling-levels.md), which also says what
+each level does. The track list holds "(all tracks)" and each track of the scene
+with the extent of its blocks. A value that does not exist is listed first as
+"Invalid level N" or "Invalid track: X". An area whose system is not chosen lists
+"Choose a signalling system" first. A new area starts with the extent of the
+network and no system, and the case cannot run until a system is chosen.
 
 Rolling-stock links are UI session state, not scene schema. The watcher keeps an
 absolute selected file and its parent directory armed through atomic replacement,

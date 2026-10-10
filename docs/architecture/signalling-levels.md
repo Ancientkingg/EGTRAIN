@@ -34,7 +34,8 @@ in code font. They are the characterization cases in
 The level numbers and the check that a number is a level are defined in
 `scene/SignallingLevel.h`. The labels are defined in
 `scene/SignallingLevelNames.h`. The validation message about areas that give one
-section different levels shows them. The editor shows the number.
+section different levels shows them. The editor shows the labels of the levels
+0 to 5 in its list of signalling systems.
 
 | Value | Label | One line from the program |
 | --- | --- | --- |
@@ -499,7 +500,7 @@ Checks on the areas themselves, in `scene/SceneValidator.cpp`:
 | Code | Severity | When |
 | --- | --- | --- |
 | `scene.signalling_area.range` | error | `start_km` or `end_km` is not finite, or `start_km` is not below `end_km` |
-| `scene.signalling_area.level` | error | the level is not from 0 to 5 |
+| `scene.signalling_area.level` | error | the level is not from 0 to 5; an area whose system is not chosen (stored as -99999999) has its own message |
 | `scene.ref.unresolved` | error | the `track` does not exist |
 | `scene.signalling_area.conflict` | error | see above |
 | `scene.signalling_area.splits_section` | warning | an edge of the area lies inside a route section |

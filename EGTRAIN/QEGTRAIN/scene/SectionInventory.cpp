@@ -396,6 +396,18 @@ SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene) {
 	return inventory;
 }
 
+SceneBlockExtent sceneBlockExtent(const SceneSectionInventory& inventory, const std::string& trackId) {
+	SceneBlockExtent extent;
+	for (const SceneSectionDescriptor& section : inventory.sections) {
+		if (section.connectionDerived || (!trackId.empty() && section.firstTrackId != trackId))
+			continue;
+		extent.startKm = extent.found ? std::min(extent.startKm, section.startKm) : section.startKm;
+		extent.endKm = extent.found ? std::max(extent.endKm, section.endKm) : section.endKm;
+		extent.found = true;
+	}
+	return extent;
+}
+
 bool sceneSectionsOverlap(const std::string& leftId, double leftStart, double leftEnd,
 	const std::string& rightId, double rightStart, double rightEnd) {
 	if (!((rightStart >= leftStart && rightStart < leftEnd)

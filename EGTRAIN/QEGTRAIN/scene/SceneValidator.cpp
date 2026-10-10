@@ -155,20 +155,11 @@ bool isUsableSignallingArea(const SceneSignallingArea& area) {
 
 // The extent of the blocks of one track, or of the whole network when the track ID is empty.
 std::string blockExtentText(const SceneSectionInventory& inventory, const std::string& trackId) {
-	bool found = false;
-	double start = 0.0;
-	double end = 0.0;
-	for (const SceneSectionDescriptor& section : inventory.sections) {
-		if (section.connectionDerived || (!trackId.empty() && section.firstTrackId != trackId))
-			continue;
-		start = found ? std::min(start, section.startKm) : section.startKm;
-		end = found ? std::max(end, section.endKm) : section.endKm;
-		found = true;
-	}
+	const SceneBlockExtent extent = sceneBlockExtent(inventory, trackId);
 	const std::string subject = trackId.empty() ? "the network" : "track " + trackId;
-	if (!found)
+	if (!extent.found)
 		return subject + " has no blocks";
-	return "blocks of " + subject + " cover " + coordinateText(start) + " to " + coordinateText(end) + " km";
+	return "blocks of " + subject + " cover " + coordinateText(extent.startKm) + " to " + coordinateText(extent.endKm) + " km";
 }
 
 // The signalling areas on the two sides of a stretch of one track: the usable area of that track that ends
@@ -1012,7 +1003,13 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					+ blockExtentText(sectionInventory, knownTrack ? area.trackId : "") + ")",
 				"signalling.json", "signalling_area", area.id, path, area.id,
 				"Use a finite increasing coordinate range");
-		if (!isValidSignallingLevel(area.level))
+		// An area whose system is not chosen holds kSignallingLevelUnset.
+		if (area.level == kSignallingLevelUnset)
+			diagnostics.error("scene.signalling_area.level",
+				"Signalling area " + name + " has no signalling system; choose one of the levels 0 to 5",
+				"signalling.json", "signalling_area", area.id, path + ".level", area.trackId,
+				"Choose a signalling system for the area in Infrastructure > Signalling area");
+		else if (!isValidSignallingLevel(area.level))
 			diagnostics.error("scene.signalling_area.level",
 				"Signalling area " + name + " has level " + std::to_string(area.level)
 					+ "; the level must be between 0 and 5",
