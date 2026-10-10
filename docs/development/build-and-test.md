@@ -518,8 +518,8 @@ and the computation time accumulated over the process, so it differs from run to
 run. As with `--repeat`, a step has to appear twice. A difference is reported
 with the run, the step, the file and the first differing line, and the folders
 of a failed test are kept; the message names them. The fresh run is
-`--single STEP --output-dir DIR`, which can also be used by hand. The folder
-must not exist yet, because some files are written in append mode.
+`--single STEP --output-dir DIR`, which can also be used by hand. Use a new or
+empty folder, because a run replaces only the files it writes.
 
 ```bash
 build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \

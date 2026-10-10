@@ -27,6 +27,12 @@ void ensureDirectory(const string& path) {
 	}
 }
 
+// Remove an existing file without reporting a failure.
+void removeRunOutput(const string& path) {
+	std::error_code error;
+	std::filesystem::remove(path, error);
+}
+
 // The step range of a signal failure in the simulation (see
 // Apply_Signal_Failures_Mixed_Signalling): from the start, and to the end when
 // the incident has one.
@@ -293,6 +299,9 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	ensureDirectory(initial_variables.OutputMainFolder + "/PassengerStatus");
 	ensureDirectory(initial_variables.OutputMainFolder + "/Rescheduling");
 	ensureDirectory(initial_variables.OutputMainFolder + "/TrainTrajectories/RoutesGenerated");
+	// Train::printTrainServicePathDiagram and Train::printTrainArrDepMsg append, so each run starts without their files.
+	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
+	removeRunOutput(initial_variables.OutputMainFolder + "/Rescheduling/EGTRAINOutput.txt");
 	Folder_RI_PH = initial_variables.OutputMainFolder + "/TrainTrajectories";
 	outputTime = elapsed(checkpoint, now());
 	reportDetail("success");

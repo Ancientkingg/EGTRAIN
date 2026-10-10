@@ -12,6 +12,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QFileInfo>
 #include <QObject>
 #include <QTemporaryDir>
@@ -60,12 +61,12 @@ struct RunObservation {
 // the stop at the given point. A folder in chosenDuringRun is set as the output
 // folder of the next run once the worker thread has started.
 void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed,
-	const QString& chosenDuringRun = QString()) {
+	const QString& chosenDuringRun = QString(), int horizonSeconds = kHorizonSeconds) {
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
 	initial_variables.durationOverride = true;
-	initial_variables.times = kHorizonSeconds;
+	initial_variables.times = horizonSeconds;
 	initial_variables.OutputMainFolder = outputDir.toStdString();
 	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
@@ -225,6 +226,41 @@ int main(int argc, char** argv) {
 		ok &= expect(observed.stopRequested, "stop after completion: stop request kept");
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("stop after completion: ") + file);
+	}
+
+	{
+		QTemporaryDir output;
+		// Allow a few hundred seconds after the first terminal arrival at 1659 s.
+		constexpr int kArrivalHorizonSeconds = 2000;
+		const char* const files[] = {"TrainTrajectories/TrainServicePathDiagram.txt", "Rescheduling/EGTRAINOutput.txt"};
+		QByteArray firstContents[2];
+		const auto readOutput = [&](const char* name) {
+			QFile file(output.filePath(QString::fromUtf8(name)));
+			ok &= expect(file.open(QIODevice::ReadOnly | QIODevice::Text), std::string(name) + ": opens for reading");
+			return file.readAll();
+		};
+		simulation.setSnapshotsEnabled(false);
+		for (int run = 0; run < 2; ++run) {
+			RunObservation observed;
+			runScene(loaded.scene, output.path(), StopAt::Never, observed, QString(), kArrivalHorizonSeconds);
+			ok &= expect(observed.prepared && observed.completed, "reused output folder: run prepared and completed");
+			simulation.printLastTrainServicePathDiagram();
+			for (int i = 0; i < 2; ++i) {
+				const QByteArray content = readOutput(files[i]);
+				ok &= expect(content.count('\n') > 0, std::string(files[i]) + ": contains at least one line");
+				if (run == 0)
+					firstContents[i] = content;
+				else
+					ok &= expect(content == firstContents[i], std::string(files[i]) + ": second run equals first (lines " + std::to_string(firstContents[i].count('\n')) + ", " + std::to_string(content.count('\n')) + ")");
+			}
+		}
+		simulation.setSnapshotsEnabled(true);
+		SceneModel invalid = loaded.scene;
+		invalid.services.clear();
+		const auto diagnostics = simulation.prepareScene(invalid);
+		ok &= expect(hasErrors(diagnostics), "reused output folder: scene without services fails preparation");
+		for (int i = 0; i < 2; ++i)
+			ok &= expect(readOutput(files[i]) == firstContents[i], std::string(files[i]) + ": failed preparation keeps earlier output");
 	}
 
 	{
