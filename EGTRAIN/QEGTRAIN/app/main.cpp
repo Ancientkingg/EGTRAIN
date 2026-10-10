@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
+#include "app/SceneOpenRequest.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
 #include "update/SelfUpdater.h"
@@ -36,6 +37,10 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 	}
 	return 0;
 }
+
+// The options that take a value. It must name every option that is read with getCmdOption: the
+// value of an option that is missing here would count as a file name.
+static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax", "-TSM", "-RC", "--seed", "--scene"};
 
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
@@ -181,6 +186,45 @@ void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
 		std::cerr << toDisplayText(diagnostic) << '\n';
 }
 
+// A scene that cannot be opened is reported on standard error and, in a window launch that no
+// script started, in a message box.
+static void reportCannotOpen(const QString& what, const QString& reason, bool showBox) {
+	const QString message = QStringLiteral("Cannot open %1: %2").arg(what, reason);
+	std::cerr << "ERROR: " << message.toStdString() << '\n';
+	if (showBox && !updatesSuppressedByEnvironment())
+		QMessageBox::warning(nullptr, "Cannot Open Case Study", message);
+}
+
+// The scene that the command line names. The arguments come from the application object, not
+// from the narrow argv, so a file name that is not in the local code page stays intact.
+// --scene wins over a file name.
+struct SceneRequest {
+	QString path;
+	bool positional = false; // path came from a file name argument
+	bool rejected = false;	 // a file name argument was reported and path is empty
+};
+
+static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
+	SceneRequest request;
+	const QStringList arguments = QCoreApplication::arguments();
+	if (sceneOption) {
+		request.path = optionValue(arguments, QStringLiteral("--scene"));
+		return request;
+	}
+	const QStringList positional = positionalArguments(arguments, optionsWithValue);
+	if (positional.isEmpty())
+		return request;
+	const SceneOpenChoice choice = classifyOpenPaths(positional);
+	if (!choice.rejection.isEmpty()) {
+		reportCannotOpen(positional.join(QStringLiteral(", ")), choice.rejection, showBox);
+		request.rejected = true;
+		return request;
+	}
+	request.path = choice.path;
+	request.positional = true;
+	return request;
+}
+
 Logger owl;
 int main(int argc, char* argv[]) {
 	beginStartupTiming();
@@ -263,18 +307,31 @@ int main(int argc, char* argv[]) {
 			window.openGUI();
 			return application.exec();
 		}
-		const QString scenePath = resolveScenePath(
-			sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
-		const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
-		SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
-		if (startupTimingEnabled())
-			recordStartupTiming(QStringLiteral("canonical_load"), 0, -1,
-				startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
-				QStringLiteral("main"), true);
-		if (!hasErrors(loaded.diagnostics)) {
-			const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
-				effectiveDurationOverride);
-			loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
+		const SceneRequest request = readSceneRequest(sceneOption, true);
+		const auto preload = [&effectiveDurationOverride](const QString& path) {
+			const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
+			SceneLoadResult loaded = loadScenePath(path.toStdString());
+			if (startupTimingEnabled())
+				recordStartupTiming(QStringLiteral("canonical_load"), 0, -1,
+					startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
+					QStringLiteral("main"), true);
+			if (!hasErrors(loaded.diagnostics)) {
+				const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
+					effectiveDurationOverride);
+				loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
+			}
+			return loaded;
+		};
+		QString scenePath = resolveScenePath(request.path, defaultName);
+		SceneLoadResult loaded = preload(scenePath);
+		bool openedFromFileName = request.positional;
+		if (openedFromFileName && hasErrors(loaded.diagnostics)) {
+			// A file name that does not load is reported and the usual start follows.
+			printSceneDiagnostics(loaded.diagnostics);
+			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true);
+			openedFromFileName = false;
+			scenePath = resolveScenePath(QString(), defaultName);
+			loaded = preload(scenePath);
 		}
 		if (hasErrors(loaded.diagnostics)) {
 			printSceneDiagnostics(loaded.diagnostics);
@@ -282,6 +339,9 @@ int main(int argc, char* argv[]) {
 				QString::fromStdString(toDisplayText(loaded.diagnostics.front())));
 			return 1;
 		}
+		// An opened file counts as an explicit scene, so the chooser stays closed.
+		if (openedFromFileName)
+			initial_variables.nArgProvided = true;
 		setStartupTimingPreloadIdentity(scenePath, loaded);
 		initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
 		InputMainFolder.clear();
@@ -298,8 +358,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	QCoreApplication application(argc, argv);
-	const QString scenePath = resolveScenePath(
-		sceneOption ? QString::fromLocal8Bit(sceneArgument) : QString(), defaultName);
+	const SceneRequest request = readSceneRequest(sceneOption, false);
+	if (request.rejected)
+		return 1;
+	const QString scenePath = resolveScenePath(request.path, defaultName);
 	SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 	if (!hasErrors(loaded.diagnostics)) {
 		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},

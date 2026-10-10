@@ -21,13 +21,16 @@ For the executable paths of a local build see [Run a local build](../development
 | `--detailed-trajectories` | none | off | Also writes the per-train files in `TEMP` and `TrainTrajectories/TrainPathDiagram.txt`; see [Run output](run-output.md#detailed-trajectories). |
 | `--seed` | a whole number from 1 to 2147483646 | 789350715 | Sets the seed of the random draws; see [Random seed](#random-seed). Any other value stops the start with `ERROR: --seed requires a whole number from 1 to 2147483646.` and exit code 1. |
 
-The values of `-n`, `-h`, `-g`, `-pax`, `-TSM` and `-RC` are read as whole numbers, those of `-b` and `-c` as decimal numbers. There is no `--help`, and an unknown option is ignored.
+The values of `-n`, `-h`, `-g`, `-pax`, `-TSM` and `-RC` are read as whole numbers, those of `-b` and `-c` as decimal numbers. There is no `--help`. An unknown option is ignored, but the word after it is read as a file name.
+
+A file name without an option opens that file, as `--scene` does. Exactly one `.egscene` file is accepted. A file of another kind, a file that does not exist, a directory and several files are reported and not opened: a window launch shows the message **Cannot Open Case Study**, and a headless launch prints `ERROR: Cannot open ...` and exits with 1. A bundle that does not load is reported the same way in a window launch; a headless launch prints the scene diagnostics and exits with 1, as it does for `--scene`. A window launch then starts as it does without a file name. When `--scene` is also given, `--scene` wins and the file name is ignored. A file name that starts with `-` is read as an option.
 
 Examples, where `QEGTRAIN` stands for the executable of your build or package:
 
 ```bash
 QEGTRAIN -n 3 -h 8000 -g 1 -pax 0 -TSM 0 -RC 0
 QEGTRAIN --scene path/to/case.egscene
+QEGTRAIN path/to/case.egscene
 QEGTRAIN --interactive
 QEGTRAIN --seed 789350715
 QEGTRAIN -n 2 -g 0 --detailed-trajectories
@@ -50,7 +53,7 @@ The scene folder `Amsterdam_Hilversum_Student` has no `-n` number. Start it with
 
 ## Startup of the window
 
-With neither `-n` nor `--scene`, the window opens the **Open a Case** window over the case that the program has already loaded: Netherlands, or the case whose number you typed when `--interactive` asked for it. With `-n` or `--scene` it does not open that window.
+With neither `-n` nor `--scene`, and no file name that opens, the window opens the **Open a Case** window over the case that the program has already loaded: Netherlands, or the case whose number you typed when `--interactive` asked for it. With `-n`, `--scene` or a file name that opens it does not open that window. A file name that does not open shows the message **Cannot Open Case Study** and the program then starts as without a file name: it loads the default case, or the case of `-n`, and opens the **Open a Case** window unless `-n` is given.
 
 `-n` and the default case find their scene folder by name: first in `Scenes` next to the executable, then in `../Resources/Scenes` (the macOS app), `../share/EGTRAIN/Scenes` and `../../EGTRAIN/QEGTRAIN/Scenes`, each relative to the folder of the executable; an error in the scene stops the start (see [Exit codes](#exit-codes)).
 
@@ -69,7 +72,7 @@ QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
 ## Exit codes
 
 - 0: a run without a window that finished.
-- 1: a bad argument, a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1.
+- 1: a bad argument, a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
 
 ## scene_tool
 

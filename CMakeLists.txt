@@ -243,6 +243,11 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 
+# What a command line asks the application to open. Qt Core only; the application and
+# test_sceneopenrequest link it.
+add_library(egtrain_sceneopen STATIC ${SRC_DIR}/app/SceneOpenRequest.cpp)
+target_link_libraries(egtrain_sceneopen PUBLIC Qt5::Core)
+
 # Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the
 # controller that writes them in the background. Only the recovery tests link it.
 add_library(egtrain_recovery STATIC
@@ -312,7 +317,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
 endif()
 
-foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
@@ -321,7 +326,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_recovery egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_sceneopen egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -443,6 +448,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_graphics
     ${EGTRAIN_APP_TELEMETRY}
     egtrain_update
+    egtrain_sceneopen
     egtrain_railml
     egtrain_sim
     egtrain_scene
@@ -496,7 +502,7 @@ endif()
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
     set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
-        egtrain_graphics egtrain_widgets egtrain_update egtrain_recovery egtrain_dispatch egtrain_diagrams
+        egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
@@ -882,6 +888,10 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenebundle
 		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+	add_executable(test_sceneopenrequest ${SRC_DIR}/tests/test_sceneopenrequest.cpp)
+	target_link_libraries(test_sceneopenrequest PRIVATE egtrain_sceneopen Qt5::Core)
+	add_test(NAME test_sceneopenrequest COMMAND test_sceneopenrequest)
+
 	add_executable(test_scenecompatibility ${SRC_DIR}/tests/test_scenecompatibility.cpp)
 	target_link_libraries(test_scenecompatibility PRIVATE egtrain_scene)
 	add_test(NAME test_scenecompatibility
@@ -920,9 +930,11 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scene_tool_diagnostics
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_scene_tool_diagnostics.py $<TARGET_FILE:scene_tool>)
 	add_test(NAME test_startup_launch_contract
-		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN>)
-	# Cover two 60-second child launches, two 8-second PTY checks, and cleanup.
-	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 150)
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN> $<TARGET_FILE:scene_tool>)
+	# Cover two 60-second child launches, two 8-second PTY checks, one more 60-second launch that
+	# may hang, the other launches of the file name checks (6 seconds here, four times that
+	# allowed) and cleanup.
+	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 240)
 	if(NOT WIN32)
 		add_test(NAME test_case_chooser_contract
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/case_chooser_contract.py
@@ -1108,7 +1120,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_distribution
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
-			test_scenecompatibility
+			test_scenecompatibility test_sceneopenrequest
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
@@ -1149,7 +1161,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
-		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
+		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_sceneopenrequest test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script

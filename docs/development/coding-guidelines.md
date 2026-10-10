@@ -37,7 +37,7 @@ so that the standard library headers are found. `io/third_party/` has its own
 target that links a library does not get them.
 
 - Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_update`,
-  `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
+  `egtrain_sceneopen`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
   `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
   warning fails the build.

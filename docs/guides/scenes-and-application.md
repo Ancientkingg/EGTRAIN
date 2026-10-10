@@ -14,7 +14,8 @@ panel, full validation counts, and technical inventories. The existing View
 actions can still open Loaded Data or Validation explicitly in normal mode.
 Use
 `Save Case Study As...` for a new bundle. From the command line, `--scene`
-accepts the same bundle or directory path.
+accepts the same bundle or directory path, and a bundle file name alone opens
+the bundle too.
 
 The application loads the six required JSON files, accepts optional scenarios,
 passengers, display metadata in `views.json`, and historical
