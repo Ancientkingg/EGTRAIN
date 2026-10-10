@@ -188,8 +188,11 @@ single-track stretch, the sections of the stretch count as occupied for the rout
 copies of the other direction (`updateSingleTrackLocks`,
 `occupySingleTrackForRoute`). The stretch is described in
 [Single-track restrictions](scene-schema.md#single-track-restrictions). What this
-does to a train depends on the level, as the sections below say. Cases:
-`single-track-level-*`, and `stub-*` for a restriction over a stub track.
+does to a train depends on the level, as the sections below say. When the stretch
+is free and both directions are about to enter next step, the model reserves it
+for the forward direction. Cases: `single-track-level-*`,
+`stub-departure-first-level-0`, `stub-arrival-first-level-0` and
+`stub-tie-level-0` to `-5` for a restriction over a stub track.
 
 **Double switches.** A double switch is two route sections: a first half with a
 virtual signal at its end and a second half with one at its start. A train that
@@ -597,6 +600,15 @@ Limits that no issue tracks:
   closest one is chosen with a braking distance whose formula subtracts the
   squared target speed only after dividing it (`V^2 - Vt^2 / (2 a)`). The effect
   is not measured.
+- The single-track reservation predicts one step from a running train's last
+  displacement. A train standing just before the stretch does not ask if that
+  displacement is zero, even if it starts next step. A running train that loses
+  a reservation cannot stop before the stretch when its braking distance is
+  longer than the remaining distance. In a two-running-train tie on the line
+  fixture at level 0, the reversed train enters the closed stretch and stops
+  inside it; both trains then stand head to head. The reservation does not
+  prevent that overlap. A train due to enter still asks when a failure,
+  breakdown, order list or another authority prevents its entry.
 - A stub track has no rule of its own. Without a single-track restriction,
   trains of opposite directions on it pass through each other or, when they meet
   at a block edge, stand head to head until the end of the run. The restriction

@@ -448,7 +448,8 @@ extern std::vector<std::tuple<std::string, std::string, std::string, std::string
 
 // Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
 // opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed
-// route, 0 when it is free. Routes running against the holder see the sections of the zone as occupied.
+// route, 0 when it is free. A free zone is also reserved +1 for the next step when both directions are about to
+// enter, from their last displacement or a due entry point in the zone. Routes against the holder see it as occupied.
 extern std::vector<int> singleTrackHeld;
 
 // Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
@@ -466,7 +467,8 @@ const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex);
 bool singleTrackRouteHasZone(int routeIndex);
 // Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
 std::size_t occupySingleTrackForRoute(int routeIndex);
-// Sets singleTrackHeld from the positions of the trains and releases the zone of every limit that changed (RollingStock.cpp).
+// Sets singleTrackHeld from the positions of the trains, reserving a free zone forward only for opposing requests
+// to enter next step. Reservations are recalculated each step; every changed zone is released (RollingStock.cpp).
 void updateSingleTrackLocks(int step);
 
 // --- StationBoundarySection: protects entrance of main stations ---

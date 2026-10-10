@@ -290,18 +290,25 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back({"single-track-follow-level-" + std::to_string(level), "baseline", {"F1", "F2"}, level, "", true});
 	// The stub is the line from station B (8 km) to its closed end at station C. U1 runs into it and D1 out of it, so
 	// they meet head to head. The stub has no passing loop, so the protected end block repeats the end block. The
-	// first train of a case is due 100 s before the second. Without the restriction the two trains meet at a block
-	// edge and stand there until the end of the run.
+	// first train of the ordering cases is due 100 s before the second. In the tie cases both are due at 60 s.
+	// Without the restriction the two trains can meet at a block edge and stand until the end of the run.
 	const struct {
 		const char* name;
 		std::vector<std::string> services;
 		double arrivalEntry, departureEntry;
+		int level;
 	} stubs[] = {
-		{"stub-departure-first-level-0", {"D1", "U1"}, 160.0, 60.0},
-		{"stub-arrival-first-level-0", {"U1", "D1"}, 60.0, 160.0},
+		{"stub-departure-first-level-0", {"D1", "U1"}, 160.0, 60.0, 0},
+		{"stub-arrival-first-level-0", {"U1", "D1"}, 60.0, 160.0, 0},
+		{"stub-tie-level-0", {"U1", "D1"}, 60.0, 60.0, 0},
+		{"stub-tie-level-1", {"U1", "D1"}, 60.0, 60.0, 1},
+		{"stub-tie-level-2", {"U1", "D1"}, 60.0, 60.0, 2},
+		{"stub-tie-level-3", {"U1", "D1"}, 60.0, 60.0, 3},
+		{"stub-tie-level-4", {"U1", "D1"}, 60.0, 60.0, 4},
+		{"stub-tie-level-5", {"U1", "D1"}, 60.0, 60.0, 5},
 	};
 	for (const auto& stub : stubs) {
-		CaseSpec spec{stub.name, "baseline", stub.services, 0, knownWrongMarker(stub.name), true};
+		CaseSpec spec{stub.name, "baseline", stub.services, stub.level, knownWrongMarker(stub.name), true};
 		spec.restriction = {"5-B0", "7-B0", "4-B0", "7-B0"};
 		spec.stub = true;
 		spec.arrivalEntry = stub.arrivalEntry;

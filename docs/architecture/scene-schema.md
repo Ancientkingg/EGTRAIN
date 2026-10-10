@@ -168,9 +168,8 @@ second topology model.
 
 ### Single-track restrictions
 
-A restriction keeps trains of opposite directions out of a single-track
-stretch. `start_block` and `end_block` are the first and last plain sections of
-the stretch, in either order. `protected_start_block` and
+A restriction holds a single-track stretch for one direction. `start_block` and
+`end_block` are the first and last plain sections of the stretch, in either order. `protected_start_block` and
 `protected_end_block` are the sections at its two ends where a passing loop
 joins it. The stretch consists of these four sections and every section between
 `start_block` and `end_block` on a route that contains both. A route is affected
@@ -185,6 +184,16 @@ If trains of both directions are inside, the direction that held the stretch
 before keeps it, and the forward direction holds it when nobody did. The stretch
 is released when the last train of the holding direction has left it, and then
 passes to the other direction if a train of that direction is inside.
+
+When nobody is inside and both directions are about to enter in the next step,
+the model reserves the stretch for the forward direction. A running train is
+about to enter when advancing its head by its last displacement (or zero if it
+moved backwards) would make the train overlap the stretch. A train that has not
+entered asks when it is due by the next step and the train at its entry point
+would overlap the stretch. It still asks if another reason prevents its entry.
+One asking direction alone does not reserve the stretch. The reservation is
+recalculated each step and ends as soon as either direction no longer asks,
+unless a train has entered and holds the stretch.
 
 At signalling levels 0, 1, 2 and 5 the restriction acts through the signal
 aspects of the sections (see [Signalling levels](signalling-levels.md)). At levels 3 and 4 a train does not follow the aspects,

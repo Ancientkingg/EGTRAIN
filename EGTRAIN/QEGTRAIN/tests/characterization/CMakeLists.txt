@@ -75,6 +75,12 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	single-track-follow-level-4
 	stub-departure-first-level-0
 	stub-arrival-first-level-0
+	stub-tie-level-0
+	stub-tie-level-1
+	stub-tie-level-2
+	stub-tie-level-3
+	stub-tie-level-4
+	stub-tie-level-5
 	border-0-2-fwd
 	border-0-2-rev
 	border-2-0-fwd

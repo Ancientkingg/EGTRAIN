@@ -912,11 +912,84 @@ static bool singleTrackLockTests() {
 	place(0, 0, 100.0, false);
 	updateSingleTrackLocks(1);
 
+	// Reserve a free zone only when both directions would enter in the next step.
+	place(0, 0, -50.0, true);
+	place(1, 1, -50.0, true);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1 && has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.5"),
+		"two running trains about to enter reserve forward and release the zone sections");
+	place(0, 0, -200.0, true);
+	BlocksConnected.clear();
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 0 && has(BlocksConnected, "lock.0"),
+		"a reservation ends and releases the sections when the forward train no longer asks");
+	place(0, 0, 50.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "the forward train keeps the reservation once inside");
+
+	for (int runningRoute : {0, 1}) {
+		resetSingleTrackLocks();
+		place(0, runningRoute, -50.0, true);
+		place(1, 1 - runningRoute, 0.0, true);
+		regional_train[1].CanEnter = false;
+		regional_train[1].departure_time = 2.0;
+		regional_train[1].Start_Node_X = 0.0;
+		regional_train[1].train_length = 70.0;
+		updateSingleTrackLocks(1);
+		BlocksOccupied.clear();
+		ok &= expect(singleTrackHeld[0] == 1 && occupySingleTrackForRoute(1) == 6,
+			"a running train and an opposing entry due next step reserve forward and hold the reversed route");
+		BlocksOccupied.clear();
+		regional_train[1].departure_time = 3.0;
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == 0, "an entry not due next step does not ask for the zone");
+		place(1, 1 - runningRoute, -50.0, false);
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == 0, "one approaching direction does not reserve the zone");
+	}
+
+	// Waiting entries need no previous trajectory sample, even at the first step.
+	for (int k = 0; k < 2; ++k) {
+		place(k, k, 0.0, true);
+		regional_train[k].CanEnter = false;
+		regional_train[k].departure_time = 1.0;
+		regional_train[k].Start_Node_X = 0.0;
+		regional_train[k].instant_spatial_position.clear();
+	}
+	updateSingleTrackLocks(0);
+	ok &= expect(singleTrackHeld[0] == 1, "opposing entries due at the first step reserve without trajectory samples");
+
+	// An existing reversed holder is not displaced by two opposing requests.
+	const int savedApproachRegions = numRegions;
+	regional_train.resize(3);
+	numRegions = 3;
+	place(0, 1, 50.0, true);
+	place(1, 0, -50.0, true);
+	place(2, 1, -50.0, true);
+	singleTrackHeld[0] = -1;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1, "a reversed holder inside keeps the zone while both directions approach");
+	regional_train.resize(2);
+	numRegions = savedApproachRegions;
+	place(0, 0, -50.0, false);
+	place(1, 1, -50.0, false);
+	updateSingleTrackLocks(1);
+
 	// A held section gives the routes against the holder an End of Authority in front of the zone at level 3 and 4,
 	// once per step, and none for the holder's direction.
 	singleTrackLimits.clear();
 	singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.1", "lock.4");
 	resetSingleTrackLocks();
+	place(0, 0, 1950.0, true);
+	place(1, 1, 1950.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1, "opposing running trains reserve at an interior zone boundary");
+	for (double previous : {1950.0, 2000.0}) {
+		regional_train[0].instant_spatial_position[0] = previous;
+		updateSingleTrackLocks(1);
+		ok &= expect(singleTrackHeld[0] == 0, "a stopped or backward-moving train outside does not ask for the zone");
+	}
 	const auto savedAuthorities = ETCS_MA;
 	std::vector<std::vector<int>> savedLevels;
 	for (const Route& route : train_route) {

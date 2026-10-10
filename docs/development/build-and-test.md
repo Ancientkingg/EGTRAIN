@@ -489,6 +489,7 @@ A case is a scenario, a set of services and a level. The case table is in
 | `single-track-follow-level-3`, `-4` | trains `F1` and `F2` in the same direction through the restricted section; the output equals `follow-level-3` and `-4`, because the restriction does not delay a train that follows the holder |
 | `stub-departure-first-level-0` | trains `D1` (due at 60 s) and `U1` (due at 160 s) on a stub track, the closed end of the line from station B to station C, with a single-track restriction over `5-B0` to `7-B0`, protected by `4-B0` and `7-B0`; `D1` runs out of the stub and `U1` into it, and `U1` waits at the entry of its route until `D1` has left the stub |
 | `stub-arrival-first-level-0` | the same stub with `U1` due at 60 s and `D1` due at 160 s; `D1` waits at the entry of its route until `U1` has left the stub |
+| `stub-tie-level-0` to `-5` | the same stub with both trains due at 60 s; the forward route of `U1` reserves the free stub at 59 s, and `D1` waits outside until `U1` has left; both reach their last stop |
 | `border-0-2-fwd`, `border-0-2-rev` | level 0 from A to 8 km and level 2 from 8 km to C; `F1` and `F2` run from A to C, `R1` and `R2` from C to A, so a `rev` case enters on the C side and `border-0-2-rev` mirrors `border-2-0-fwd` |
 | `border-2-0-fwd`, `border-2-0-rev` | the same trains with level 2 from A to 8 km and level 0 from 8 km to C |
 | `border-0-3-fwd`, `border-0-3-rev` | the same trains with level 0 from A to 8 km and level 3 from 8 km to C |
