@@ -228,7 +228,7 @@ platform.
 
 | Test | macOS | Linux | Windows | Reason |
 | --- | --- | --- | --- | --- |
-| `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
+| `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
 | `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
@@ -239,12 +239,18 @@ platform.
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
 
-The four Bash smokes (`test_csv_export_smoke`, `test_lebanon_scene_smoke`,
-`test_creator_acceptance_smoke` and `test_editor_smoke`) read the application
-path from `QEGTRAIN_APP`.
-`test_lebanon_scene_smoke` and `test_creator_acceptance_smoke` also read the
-`scene_tool` path from `QEGTRAIN_SCENE_TOOL`. CTest sets both from the build
-targets. Run by hand without them, the scripts use the macOS paths under `build/`.
+The five Bash smokes (`test_csv_export_smoke`, `test_lebanon_scene_smoke`,
+`test_creator_acceptance_smoke`, `test_editor_smoke` and
+`test_dialog_presentation_contract`) read the application path from `QEGTRAIN_APP`.
+`test_lebanon_scene_smoke`, `test_creator_acceptance_smoke` and
+`test_dialog_presentation_contract` also read the `scene_tool` path from
+`QEGTRAIN_SCENE_TOOL`. CTest sets both from the build targets. Run by hand
+without them, the scripts use the macOS paths under `build/`.
+
+`test_dialog_presentation_contract` runs `creator_acceptance_smoke.sh --dialog-contract`,
+which starts the creator acceptance run and then checks the case chooser and the Run
+simulation dialog in the built application, as [Dialog presentation](../ui/dialog-presentation.md#checks)
+describes.
 
 `test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and

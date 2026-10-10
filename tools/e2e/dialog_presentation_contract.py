@@ -51,6 +51,18 @@ def launch(app: Path, settings: Path, scene: Optional[Path] = None,
     return values
 
 
+def first_bundled_case() -> str:
+    """The text of the first bundled row of the chooser: the name in scene.json of the first folder of Scenes
+    in the order of QDir::Name, or that folder name with blanks for underscores when the name is missing."""
+    # The chooser also lists .egscene files in Scenes; the folder holds none, so only folders are read.
+    scenes = ROOT / "EGTRAIN/QEGTRAIN/Scenes"
+    folder = next(path for path in sorted(scenes.iterdir(), key=lambda path: path.name)
+                  if (path / "scene.json").exists())
+    name = json.loads((folder / "scene.json").read_text(encoding="utf-8")).get("name")
+    name = name.strip() if isinstance(name, str) else ""
+    return name or folder.name.replace("_", " ")
+
+
 def expected_review(scene: Path) -> tuple:
     """Fixture-derived expectations: the excess dwell warning, the missing signalling level warning and
     the warning for each single-track restriction that has no effect without a level."""
@@ -180,7 +192,7 @@ def main() -> None:
         chooser = launch(app, settings)
         assert chooser["E2E_STARTUP_CHOOSER_GROUP"] == "Bundled cases", chooser
         assert chooser["E2E_STARTUP_CHOOSER_GROUP_SELECTABLE"] == "no", chooser
-        assert chooser["E2E_STARTUP_CHOOSER_FIRST"] == "Amsterdam_Hilversum_Student", chooser
+        assert chooser["E2E_STARTUP_CHOOSER_FIRST"] == first_bundled_case(), chooser
         assert chooser["E2E_STARTUP_CHOOSER_OPEN_ENABLED"] == "yes", chooser
         assert chooser["E2E_STARTUP_CHOOSER_ACTION"] == "Continue", chooser
         assert chooser["E2E_STARTUP_CHOOSER_UNCHANGED"] == "yes", chooser
