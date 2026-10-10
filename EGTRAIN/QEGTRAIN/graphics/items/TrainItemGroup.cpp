@@ -16,6 +16,7 @@ TrainItemGroup::TrainItemGroup(QGraphicsItem* parent)
 }
 
 TrainItemGroup::~TrainItemGroup() {
+	delete trainPolygonItemList;
 }
 
 void TrainItemGroup::prepareForChildGeometryChange() {

@@ -419,6 +419,32 @@ int main(int argc, char* argv[]) {
 		std::cout << "nearest colour distance " << nearest << "\n";
 	}
 
+	// A train group frees the list of its body items. A copy of the list shares its data with the group's list,
+	// so the copy is detached only after the group has deleted its list. Nothing touches the group's list after the copy.
+	{
+		const auto makeGroup = []() {
+			auto* made = new TrainItemGroup;
+			made->trainPolygonItemList = new QList<TrainBodyItem*>();
+			for (const QRectF& rect : {QRectF(-40.0, -4.0, 36.0, 8.0), QRectF(4.0, -4.0, 36.0, 8.0)})
+				made->trainPolygonItemList->push_back(new TrainBodyItem(QPolygonF(rect), made));
+			return made;
+		};
+
+		TrainItemGroup* group = makeGroup();
+		const QList<TrainBodyItem*> probe = *group->trainPolygonItemList;
+		ok &= expect(!probe.isDetached(), "the probe shares the body list while the group is alive");
+		delete group;
+		ok &= expect(probe.isDetached(), "deleting a train group frees its body list");
+
+		QGraphicsScene scene;
+		TrainItemGroup* sceneGroup = makeGroup();
+		scene.addItem(sceneGroup);
+		const QList<TrainBodyItem*> sceneProbe = *sceneGroup->trainPolygonItemList;
+		ok &= expect(!sceneProbe.isDetached(), "the probe shares the body list of a group in a scene");
+		scene.clear();
+		ok &= expect(sceneProbe.isDetached(), "clearing the scene frees the body list of its train groups");
+	}
+
 	if (!ok)
 		return 1;
 
