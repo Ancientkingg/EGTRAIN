@@ -350,13 +350,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake patchelf wget file desktop-file-utils \
             qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
-            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev xvfb xauth
 
       - name: Configure
         run: cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}" -DCMAKE_BUILD_TYPE=Release -DEGTRAIN_PACKAGED_BUILD=ON
@@ -451,6 +455,21 @@ jobs:
           find squashfs-root -name 'libQt5Network.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
+
+      - name: Start the package
+        # The AppImage is extracted into a directory of its own and started from there through its AppRun, on a virtual
+        # X display, with the platform plugin that the image holds. The file that is uploaded stays as built.
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          set -euo pipefail
+          start="$RUNNER_TEMP/package-start"
+          rm -rf "$start"
+          mkdir -p "$start"
+          image="$PWD/QEGTRAIN-linux-x86_64.AppImage"
+          (cd "$start" && "$image" --appimage-extract >/dev/null)
+          find "$start/squashfs-root/usr/plugins" -type f | sort
+          xvfb-run -a -s "-screen 0 1920x1080x24" python3 tools/release/package_start_smoke.py "$start/squashfs-root"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
