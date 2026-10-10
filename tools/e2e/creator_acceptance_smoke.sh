@@ -3,9 +3,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PREVIEW_ONLY=0
+DIALOG_CONTRACT=0
 if [[ "${1:-}" == "--preview-infrastructure" ]]; then
 	PREVIEW_ONLY=1
 	export QEGTRAIN_E2E_PREVIEW_ONLY=1 QEGTRAIN_E2E_PREVIEW_PARITY=1
+elif [[ "${1:-}" == "--dialog-contract" ]]; then
+	DIALOG_CONTRACT=1
 fi
 APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE_TOOL="${QEGTRAIN_SCENE_TOOL:-$ROOT/build/scene_tool}"
@@ -118,6 +121,12 @@ if [[ "$APP_EXIT" -ne 0 ]] || ! grep -Fqx E2E_CREATOR_ACCEPTANCE_OK "$LOG" \
 	echo "--- log tail ---" >&2
 	tail -40 "$LOG" >&2 || true
 	exit 1
+fi
+
+if [[ "$DIALOG_CONTRACT" -eq 1 ]]; then
+	python3 "$ROOT/tools/e2e/dialog_presentation_contract.py" "$APP" "$FOLDER"
+	echo "creator acceptance dialog contract passed"
+	exit 0
 fi
 
 "$SCENE_TOOL" validate "$FOLDER"
