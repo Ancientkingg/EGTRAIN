@@ -697,6 +697,7 @@ private:
 	QWidget* m_replayBar = nullptr;
 	QSlider* m_replaySlider = nullptr;
 	QLabel* m_replayLabel = nullptr;
+	QLabel* m_replayCoverageLabel = nullptr;
 	QPushButton* m_replayStartButton = nullptr;
 	QPushButton* m_replayPlayButton = nullptr;
 	QTimer* m_replayTimer = nullptr;
@@ -1009,6 +1010,7 @@ private:
 	void runReplaySignalsE2E();
 	bool checkReplayWholeRunE2E(int middle, QString& failure);
 	bool replaySliderCovers(int from, int to) const;
+	QSize replayRowSizeAt(int time);
 	bool checkReplayRowE2E(int middle, QString& failure);
 	void runStationOverlayE2E();
 	void runEditorSmokeE2E();

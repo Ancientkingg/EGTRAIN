@@ -2261,8 +2261,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	mainLayout->addWidget(progressBar);
 	m_replayBar = new QWidget(centralWidget);
 	m_replayBar->setObjectName("completedReplayBar");
-	auto* replayLayout = new QHBoxLayout(m_replayBar);
+	auto* replayLayout = new QVBoxLayout(m_replayBar);
 	replayLayout->setContentsMargins(4, 2, 4, 2);
+	auto* replayControls = new QHBoxLayout();
 	m_replayStartButton = new QPushButton("Start", m_replayBar);
 	auto* replayEnd = new QPushButton("End", m_replayBar);
 	m_replayPlayButton = new QPushButton("Play", m_replayBar);
@@ -2271,14 +2272,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_replaySlider->setAccessibleName("Replay time");
 	m_replaySlider->setFocusPolicy(Qt::StrongFocus);
 	m_replaySlider->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("000000000000")));
+	// The selected time sits beside the slider on one line. It keeps the width of its longest text, so the
+	// slider does not change its width while the user seeks.
 	m_replayLabel = new QLabel(m_replayBar);
-	m_replayLabel->setWordWrap(true);
-	m_replayLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	replayLayout->addWidget(m_replayStartButton);
-	replayLayout->addWidget(m_replayPlayButton);
-	replayLayout->addWidget(replayEnd);
-	replayLayout->addWidget(m_replaySlider, 1);
-	replayLayout->addWidget(m_replayLabel, 1);
+	m_replayLabel->setMinimumWidth(fontMetrics().horizontalAdvance(QStringLiteral("Replay at 000000 s")));
+	// The coverage has a row of its own and is the same for every selected time.
+	m_replayCoverageLabel = new QLabel(m_replayBar);
+	m_replayCoverageLabel->setWordWrap(true);
+	m_replayCoverageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	replayControls->addWidget(m_replayStartButton);
+	replayControls->addWidget(m_replayPlayButton);
+	replayControls->addWidget(replayEnd);
+	replayControls->addWidget(m_replaySlider, 1);
+	replayControls->addWidget(m_replayLabel);
+	replayLayout->addLayout(replayControls);
+	replayLayout->addWidget(m_replayCoverageLabel);
 	mainLayout->addWidget(m_replayBar);
 	m_replayBar->hide();
 	m_replayTimer = new QTimer(this);
@@ -13459,7 +13467,8 @@ void MainWindow::checkSignalHeadsE2E() {
 }
 
 // Checks the replay row of a run that was kept whole, as the completion wrote it: the slider covers
-// 0 s to the last time, the row says so, the sentence follows a selected frame and Start goes to 0 s.
+// 0 s to the last time, which is the end of the run, the row says so, the texts follow a selected
+// frame, Start goes to 0 s and the row keeps its size while the selection moves.
 bool MainWindow::checkReplayWholeRunE2E(int middle, QString& failure) {
 	const int last = m_completedReplay.lastTime();
 	const QString cadence = QString::number(GuiReplayHistory::cadenceSeconds);
@@ -13467,21 +13476,42 @@ bool MainWindow::checkReplayWholeRunE2E(int middle, QString& failure) {
 		failure = why;
 		return false;
 	};
-	const QString whole = QStringLiteral("whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
+	const QString whole = QStringLiteral("Whole run, 0 to %1 s, a frame every %2 s.").arg(last).arg(cadence);
 	if (m_completedReplay.firstTime() != 0 || m_completedReplay.truncated() || !replaySliderCovers(0, last))
 		return fail(QStringLiteral("the slider of a whole run does not cover 0 to %1 s").arg(last));
-	if (m_replayLabel->text() != QStringLiteral("Replay: ") + whole || !m_replayStartButton->toolTip().isEmpty())
-		return fail(QStringLiteral("the row of a whole run says '%1' with the tooltip '%2'").arg(m_replayLabel->text(), m_replayStartButton->toolTip()));
-	const QString wholeText = m_replayLabel->text();
+	const auto finalFrame = m_completedReplay.atOrBefore(last);
+	if (!finalFrame || finalFrame->timestep != last || finalFrame->totalTimesteps - 1 != last)
+		return fail(QStringLiteral("the last kept frame, at %1 s, is not the last timestep of a run of %2 timesteps")
+				.arg(last)
+				.arg(finalFrame ? finalFrame->totalTimesteps : 0));
+	if (m_replayLabel->text() != QStringLiteral("Replay") || m_replayCoverageLabel->text() != whole || !m_replayStartButton->toolTip().isEmpty())
+		return fail(QStringLiteral("the row of a whole run says '%1' and '%2' with the tooltip '%3'")
+				.arg(m_replayLabel->text(), m_replayCoverageLabel->text(), m_replayStartButton->toolTip()));
 	m_replaySlider->setValue(middle);
 	const auto shown = m_completedReplay.atOrBefore(middle);
-	if (m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(shown->timestep) + whole)
-		return fail(QStringLiteral("a whole run says '%1' for the frame at %2 s").arg(m_replayLabel->text()).arg(shown->timestep));
+	if (m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(shown->timestep) || m_replayCoverageLabel->text() != whole)
+		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
+				.arg(m_replayLabel->text(), m_replayCoverageLabel->text())
+				.arg(shown->timestep));
 	m_replayStartButton->click();
 	if (m_replayRequestedTime != 0 || !m_snapshot || m_snapshot->timestep != 0 || m_replaySlider->value() != 0
-		|| m_replayLabel->text() != QStringLiteral("Replay at 0 s: ") + whole)
-		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1'").arg(m_replayLabel->text()));
-	std::fprintf(stdout, "E2E_REPLAY_ROW_WHOLE_OK label=\"%s\"\n", qPrintable(wholeText));
+		|| m_replayLabel->text() != QStringLiteral("Replay at 0 s") || m_replayCoverageLabel->text() != whole)
+		return fail(QStringLiteral("Start of a whole run did not go to 0 s, the row says '%1' and '%2'")
+				.arg(m_replayLabel->text(), m_replayCoverageLabel->text()));
+	const QSize size = replayRowSizeAt(0);
+	const QSize sizeInMiddle = replayRowSizeAt(middle);
+	const QSize sizeAtEnd = replayRowSizeAt(last);
+	if (sizeInMiddle != size || sizeAtEnd != size)
+		return fail(QStringLiteral("the row of a whole run is %1 x %2 at 0 s, %3 x %4 at %5 s and %6 x %7 at %8 s (slider width x row height)")
+				.arg(size.width())
+				.arg(size.height())
+				.arg(sizeInMiddle.width())
+				.arg(sizeInMiddle.height())
+				.arg(middle)
+				.arg(sizeAtEnd.width())
+				.arg(sizeAtEnd.height())
+				.arg(last));
+	std::fprintf(stdout, "E2E_REPLAY_ROW_WHOLE_OK label=\"%s\" slider_width=%d row_height=%d\n", qPrintable(whole), size.width(), size.height());
 	std::fflush(stdout);
 	return true;
 }
@@ -13489,6 +13519,15 @@ bool MainWindow::checkReplayWholeRunE2E(int middle, QString& failure) {
 bool MainWindow::replaySliderCovers(int from, int to) const {
 	return m_replaySlider->minimum() == from && m_replaySlider->maximum() == to && m_replaySlider->value() == to && m_replaySlider->isEnabled()
 		&& m_replayPlayButton->isEnabled();
+}
+
+// Selects the frame at the time and returns the width of the slider and the height of the row once
+// the layout has settled. Neither changes with the selected time.
+QSize MainWindow::replayRowSizeAt(int time) {
+	seekReplay(time);
+	QApplication::processEvents();
+	QApplication::processEvents();
+	return QSize(m_replaySlider->width(), m_replayBar->height());
 }
 
 // Checks the replay row of the finished run: the row of the whole run, and the row for a history
@@ -13527,10 +13566,10 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 	const auto droppedRow = [this, last, &cadence]() -> QString {
 		const int from = m_completedReplay.firstTime();
 		const QString memory = QString::fromStdString(replayMemoryText(m_completedReplay.budgetBytes()));
-		// The sentence after "Replay: " and the tooltip of Start for a start clock.
+		// The second text and the tooltip of Start for a start clock.
 		const auto words = [from, last, &cadence, &memory](long long offset) {
 			const QString start = QString::fromStdString(formatSimTime(from, offset)) + QStringLiteral(" (%1 s)").arg(from);
-			const QString sentence = QStringLiteral("starts at %1, ends at %2 s, a frame every %3 s. The earlier part was not kept because the run is "
+			const QString sentence = QStringLiteral("Starts at %1, ends at %2 s, a frame every %3 s. The earlier part was not kept because the run is "
 													"larger than the replay memory (%4).")
 										 .arg(start)
 										 .arg(last)
@@ -13540,31 +13579,47 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 		const auto [dropped, tip] = words(m_startOffsetSeconds);
 		if (!replaySliderCovers(from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
-		if (m_replayLabel->text() != QStringLiteral("Replay: ") + dropped)
-			return QStringLiteral("the row says '%1'").arg(m_replayLabel->text());
+		if (m_replayLabel->text() != QStringLiteral("Replay") || m_replayCoverageLabel->text() != dropped)
+			return QStringLiteral("the row says '%1' and '%2'").arg(m_replayLabel->text(), m_replayCoverageLabel->text());
 		if (m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("Start says '%1'").arg(m_replayStartButton->toolTip());
-		const QString row = m_replayLabel->text();
+		const QString row = m_replayCoverageLabel->text();
 		m_replayStartButton->click();
 		if (m_replayRequestedTime != from || !m_snapshot || m_snapshot->timestep != from || m_replaySlider->value() != from
-			|| m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(from) + dropped)
-			return QStringLiteral("Start did not go to %1 s, the row says '%2'").arg(from).arg(m_replayLabel->text());
+			|| m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(from) || m_replayCoverageLabel->text() != dropped)
+			return QStringLiteral("Start did not go to %1 s, the row says '%2' and '%3'").arg(from).arg(m_replayLabel->text(), m_replayCoverageLabel->text());
 		seekReplay(0);
 		if (m_replayRequestedTime != from || m_snapshot->timestep != from)
 			return QStringLiteral("a time before the kept interval did not select %1 s").arg(from);
 		m_replaySlider->setValue(last);
-		if (m_replayRequestedTime != last || m_snapshot->timestep != last || m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(last) + dropped)
-			return QStringLiteral("the end of the slider did not select %1 s, the row says '%2'").arg(last).arg(m_replayLabel->text());
+		if (m_replayRequestedTime != last || m_snapshot->timestep != last || m_replayLabel->text() != QStringLiteral("Replay at %1 s").arg(last)
+			|| m_replayCoverageLabel->text() != dropped)
+			return QStringLiteral("the end of the slider did not select %1 s, the row says '%2' and '%3'")
+				.arg(last)
+				.arg(m_replayLabel->text(), m_replayCoverageLabel->text());
+		// The long sentence has the width of the row to itself, and the row keeps its size while the selection moves.
+		const QSize size = replayRowSizeAt(from);
+		const QSize sizeAtEnd = replayRowSizeAt(last);
+		if (sizeAtEnd != size)
+			return QStringLiteral("the row with a dropped first part is %1 x %2 at %3 s and %4 x %5 at %6 s (slider width x row height)")
+				.arg(size.width())
+				.arg(size.height())
+				.arg(from)
+				.arg(sizeAtEnd.width())
+				.arg(sizeAtEnd.height())
+				.arg(last);
+		seekReplay(last);
 		// A change of the start time moves the clock in the sentence and in the tooltip.
 		const long long offsetBefore = m_startOffsetSeconds;
 		setStartOffset(offsetBefore + 3600);
 		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
-		const bool moved = m_replayLabel->text() == QStringLiteral("Replay at %1 s: ").arg(last) + movedSentence && m_replayStartButton->toolTip() == movedTip
-			&& movedTip != tip;
+		const bool moved = m_replayLabel->text() == QStringLiteral("Replay at %1 s").arg(last) && m_replayCoverageLabel->text() == movedSentence
+			&& m_replayStartButton->toolTip() == movedTip && movedTip != tip;
 		setStartOffset(offsetBefore);
-		if (!moved || m_replayLabel->text() != QStringLiteral("Replay at %1 s: ").arg(last) + dropped || m_replayStartButton->toolTip() != tip)
+		if (!moved || m_replayCoverageLabel->text() != dropped || m_replayStartButton->toolTip() != tip)
 			return QStringLiteral("a change of the start time did not move the clock in the row");
-		std::fprintf(stdout, "E2E_REPLAY_ROW_DROPPED_OK from=%d label=\"%s\" start_tooltip=\"%s\"\n", from, qPrintable(row), qPrintable(tip));
+		std::fprintf(stdout, "E2E_REPLAY_ROW_DROPPED_OK from=%d label=\"%s\" start_tooltip=\"%s\" slider_width=%d row_height=%d\n", from, qPrintable(row),
+			qPrintable(tip), size.width(), size.height());
 		std::fflush(stdout);
 		return QString();
 	};
@@ -13580,12 +13635,20 @@ bool MainWindow::checkReplayRowE2E(int middle, QString& failure) {
 		m_completedReplay = std::move(refused);
 		m_replayBar->hide();
 		showReplayBar();
-		const QString expected = QStringLiteral("No replay: one moment of this run needs more than the replay memory (1 MiB).");
-		if (!m_completedReplay.oversize() || !m_completedReplay.empty() || !m_replayBar->isVisible() || m_replayLabel->text() != expected
-			|| m_replaySlider->isEnabled() || m_replayPlayButton->isEnabled() || !m_replayStartButton->toolTip().isEmpty())
-			return QStringLiteral("the row says '%1', the slider is %2, Play is %3, Start says '%4'")
-				.arg(m_replayLabel->text(), m_replaySlider->isEnabled() ? "enabled" : "disabled", m_replayPlayButton->isEnabled() ? "enabled" : "disabled", m_replayStartButton->toolTip());
-		std::fprintf(stdout, "E2E_REPLAY_ROW_UNAVAILABLE_OK label=\"%s\"\n", qPrintable(expected));
+		const QString expected = QStringLiteral("One moment of this run needs more than the replay memory (1 MiB).");
+		if (!m_completedReplay.oversize() || !m_completedReplay.empty() || !m_replayBar->isVisible() || m_replayLabel->text() != QStringLiteral("No replay")
+			|| m_replayCoverageLabel->text() != expected || m_replaySlider->isEnabled() || m_replayPlayButton->isEnabled()
+			|| !m_replayStartButton->toolTip().isEmpty())
+			return QStringLiteral("the row says '%1' and '%2', the slider is %3, Play is %4, Start says '%5'")
+				.arg(m_replayLabel->text(), m_replayCoverageLabel->text(), m_replaySlider->isEnabled() ? "enabled" : "disabled",
+					m_replayPlayButton->isEnabled() ? "enabled" : "disabled", m_replayStartButton->toolTip());
+		// The slider shows no interval of the run before it.
+		if (m_replaySlider->minimum() != 0 || m_replaySlider->maximum() != 0 || m_replaySlider->value() != 0)
+			return QStringLiteral("the slider still covers %1 to %2 s with the handle at %3 s")
+				.arg(m_replaySlider->minimum())
+				.arg(m_replaySlider->maximum())
+				.arg(m_replaySlider->value());
+		std::fprintf(stdout, "E2E_REPLAY_ROW_UNAVAILABLE_OK label=\"No replay\" coverage=\"%s\"\n", qPrintable(expected));
 		std::fflush(stdout);
 		return QString();
 	};
@@ -22994,20 +23057,22 @@ void MainWindow::clearReplay() {
 	simulation.resetReplayCandidate();
 }
 
-// Writes the sentence of the replay row and the tooltip of Start for the history of the run, with
-// the time of the displayed frame when there is one. It returns whether the slider and Play can be used.
+// Writes the texts of the replay row and the tooltip of Start for the history of the run, with the
+// time of the displayed frame when there is one. It returns whether the slider and Play can be used.
 bool MainWindow::writeReplayText(std::optional<int> shownTime) {
 	const ReplayBarText bar = replayBarText(replayCoverageOf(m_completedReplay, m_startOffsetSeconds), shownTime);
-	m_replayLabel->setText(QString::fromStdString(bar.label));
+	m_replayLabel->setText(QString::fromStdString(bar.selected));
+	m_replayCoverageLabel->setText(QString::fromStdString(bar.coverage));
 	m_replayStartButton->setToolTip(QString::fromStdString(bar.startTip));
 	return bar.usable;
 }
 
 // Writes the replay row for the history of the finished run: the interval of the slider, the
-// sentence, the tooltip of Start and whether the slider and Play can be used.
+// texts, the tooltip of Start and whether the slider and Play can be used. A history without
+// frames gives an empty slider.
 void MainWindow::showReplayBar() {
-	if (!m_completedReplay.empty()) {
-		m_replayRequestedTime = m_completedReplay.lastTime();
+	m_replayRequestedTime = m_completedReplay.lastTime();
+	{
 		const QSignalBlocker blocker(m_replaySlider);
 		m_replaySlider->setRange(m_completedReplay.firstTime(), m_completedReplay.lastTime());
 		m_replaySlider->setValue(m_replayRequestedTime);

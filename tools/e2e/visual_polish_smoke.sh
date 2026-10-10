@@ -186,8 +186,8 @@ require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MA
 echo "operational completion and rerun e2e passed"
 
 # A committed scene run to its end keeps every frame, however large it is: the replay row covers the
-# whole run. Milano_Brescia has many trains, Paimpol has passengers and Netherlands has the largest frames.
-for scene in Milano_Brescia Paimpol Netherlands; do
+# whole run. The scenes go from Lebanon, with the smallest frames, to Copenhagen, with the largest.
+for scene in Lebanon Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands Copenhagen; do
 	WHOLE_OUT="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
 	QT_QPA_PLATFORM=offscreen \
 	QEGTRAIN_AUTOSTART=1 \

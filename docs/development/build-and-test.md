@@ -749,14 +749,17 @@ After a successful, unchanged full run, the Replay row appears under the network
 Start, End, Play/Pause, the slider, its arrow keys and mouse wheel seek only the
 latest completed run. Play advances one requested simulation second per wall
 second; each selection displays the last recorded frame at or before that time,
-not interpolated positions. The label reports the selected frame time, the interval
-that is kept and the five-second sampling cadence; the slider covers exactly that
-interval and Start goes to its first time. When the run is larger than the replay
-memory and the oldest frames were dropped, the label says from which time the replay
-starts, as a clock time and in seconds, and that the earlier part was not kept because
-the run is larger than the replay memory, and the tooltip of Start says that it goes to
-the first kept time. When not even one frame fits, the row says that there is no replay
-and the slider and Play are disabled. A replay
+not interpolated positions. The label beside the slider names the selected frame
+time and keeps the width of its longest text, so the slider does not change its width
+while the selection moves. The text below the controls does not depend on the selected
+time, so the row keeps its height while the user seeks. It reports the interval that is
+kept and the five-second sampling cadence; the slider covers exactly that interval and
+Start goes to its first time. When the run is larger than the replay memory and the
+oldest frames were dropped, the text says from which time the replay starts, as a clock
+time and in seconds, and that the earlier part was not kept because the run is larger
+than the replay memory, and the tooltip of Start says that it goes to the first kept
+time. When not even one frame fits, the label says "No replay", the text says why, the
+slider is empty and the slider and Play are disabled. A replay
 seek explicitly restores historical operational overlays; normal completion does
 not. A new run or scene/scenario edit clears replay and returns active replay to
 the authoring preview. Train, station and signal inspections remain selected
@@ -796,7 +799,7 @@ a window (`-g 0`) builds no snapshots and no replay frames, because nothing read
 them. `app/ReplayCoverage.h` turns the interval the history still covers into the words of
 the row for a whole run, for a run whose first part was dropped and for a run that cannot
 be replayed, and into the tooltip of Start; the window reads the history, asks for the
-text and writes it into the label and the tooltip.
+texts and writes them into the two labels and the tooltip.
 
 Measured on a full run of each committed scene at the default horizon (`-g 1`,
 `-pax 0`, Apple silicon, release build). "Complete snapshots" is what the same
@@ -814,9 +817,11 @@ committed Milano_Brescia and Copenhagen scenes have one.
 | Netherlands | 1601 | 0-7999 | 32.7 MiB | 346 MiB |
 
 Copenhagen is the largest: 196 trains, 78.9 MiB accounted for the whole run, 89 MiB
-of heap in use, so a run of about 13000 simulated seconds fills the budget. Copenhagen
-with a horizon of 20000 s (`-h 20000`) is larger than the budget, and shows the row for a
-run whose first part was dropped.
+of heap in use. A frame holds all the trains of the run, so a longer horizon, which adds
+trains, makes every frame larger: with a horizon of 20000 s (`-h 20000`) Copenhagen has
+476 trains and about 98 KiB a frame, against 50 KiB at the default horizon. The budget then
+holds the last 1340 frames, from 13305 s to 19999 s (134144845 of 134217728 bytes), and the
+row shows the run whose first part was dropped.
 Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
 30), once per five steps, on the simulation thread; rebuilding a frame took 1 to
 34 microseconds on the interface thread.
@@ -889,29 +894,32 @@ makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
 none) and also runs Paimpol, Assignment and Lebanon.
 
 The replay row is checked in the Assignment run of the script, in the same window code as
-the other replay checks. `E2E_REPLAY_ROW_WHOLE_OK`: the slider covers 0 to the last time,
-the label says that the whole run is kept and from where to where, Start has no tooltip and
-goes to 0 s, and the label names the selected frame. `E2E_REPLAY_ROW_DROPPED_OK`: the
+the other replay checks. `E2E_REPLAY_ROW_WHOLE_OK`: the slider covers 0 to the last time, the
+last time is the last timestep of the run, the text below the controls says that the whole run
+is kept and from where to where, Start has no tooltip and goes to 0 s, the label beside the
+slider names the selected frame, and the width of the slider and the height of the row are the
+same with the first, the middle and the last frame selected. `E2E_REPLAY_ROW_DROPPED_OK`: the
 product has no setting for the budget, so the check builds a second history from the frames
 of the run, with a budget that holds about half of them, and hands it to the code that
-fills the row after a run. The slider covers the kept interval, the label gives the start as
+fills the row after a run. The slider covers the kept interval, the text gives the start as
 a clock time and in seconds and says why the earlier part is missing, the tooltip of Start
 says that it goes to the first kept time, Start, a time before the kept interval and the
-end of the slider select the frames of that interval, and a change of the start time moves
-the clock in the sentence and in the tooltip. The history of the run is put back afterwards.
-`E2E_REPLAY_ROW_UNAVAILABLE_OK`: a history that kept no frame, because one frame did not
-fit its budget, gives the sentence "No replay" and a slider and Play that are disabled.
-The wording is covered by `test_replaycoverage`: a whole run, a run whose first part was
-dropped, a run that cannot be replayed, a first kept time of 0, a run of one frame and a clock
-that wraps over midnight.
+end of the slider select the frames of that interval, the row keeps its size while the
+selection moves, and a change of the start time moves the clock in the text and in the
+tooltip. The history of the run is put back afterwards. `E2E_REPLAY_ROW_UNAVAILABLE_OK`: a
+history that kept no frame, because one frame did not fit its budget, gives the label "No
+replay", an empty slider, and a slider and Play that are disabled. The wording is covered by
+`test_replaycoverage`: a whole run, a run whose first part was dropped, a run that cannot be
+replayed, a first kept time of 0, a run of one frame and a clock that wraps over midnight.
 
 A real scene is checked with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. The window runs the scene
 to its end at its own horizon, applies the checks of `E2E_REPLAY_ROW_WHOLE_OK` to the
 history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with the number of
 frames, the last time and the accounted bytes and budget. `visual_polish_smoke.sh` does so
-for Milano_Brescia, Paimpol and Netherlands, so a history that drops the first part of one
-of them fails the script. No committed scene is larger than the budget at its own horizon,
-which is why the dropped row is built from a smaller budget in the Assignment run.
+for all six committed scenes, so a history that drops the first part of one of them, or
+ends before the last timestep of the run, fails the script. No committed scene is larger
+than the budget at its own horizon, which is why the dropped row is built from a smaller
+budget in the Assignment run.
 
 The explanation of Follow is checked by several smoke scripts. `app/FollowAvailability.h`
 decides whether the control is offered, whether Follow can be switched on, whether it has

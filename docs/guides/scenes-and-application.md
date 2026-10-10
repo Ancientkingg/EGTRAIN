@@ -151,17 +151,18 @@ are cleared when the case or scenario changes and are rebuilt only by a new
 run, so a result window is never presented as belonging to a newly selected
 scenario.
 
-When a run has finished, the **Replay** row appears under the network. **Start**,
-**Play**, **End** and the slider go back through the run, and each selection shows the
-last recorded frame at or before that time; a frame is recorded every five simulated
-seconds. The label says which frame is shown and which part of the run the replay holds,
-as in "Replay at 1230 s: whole run, 0 to 7999 s, a frame every 5 s." The replay has 128
-MiB of memory. A run that is larger than that loses its oldest frames, and the label says
-from which time the replay starts, for example "Replay: starts at 10:00:20 (7220 s), ends
-at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger
-than the replay memory (128 MiB)." The slider then covers only the kept part, **Start**
-goes to its first time, and the tooltip of **Start** says so. If not even one moment of
-the run fits, the label says "No replay" and the slider and **Play** are disabled.
+When a run has finished without being stopped, the **Replay** row appears under the
+network. **Start**, **Play**, **End** and the slider move through the run, and each
+selection shows the last recorded frame at or before that time; a frame is recorded every
+five simulated seconds. Beside the slider the row names the frame that is shown, as in
+"Replay at 1230 s", and below the controls it says which part of the run the replay holds,
+as in "Whole run, 0 to 7999 s, a frame every 5 s." The replay has 128 MiB of memory. A run
+that is larger than that loses its oldest frames, and the text says from which time the
+replay starts, for example "Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every
+5 s. The earlier part was not kept because the run is larger than the replay memory
+(128 MiB)." The slider then covers only the kept part, **Start** goes to its first time,
+and the tooltip of **Start** says so. If not even one moment of the run fits, the row says
+"No replay" with the reason, and the slider and **Play** are disabled.
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden

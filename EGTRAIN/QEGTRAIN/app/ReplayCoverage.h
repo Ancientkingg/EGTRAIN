@@ -10,11 +10,12 @@
 
 // The words of the replay row: which part of the run the replay holds, and why it is not all of
 // it. The window reads the history into a ReplayCoverage, asks for the text and writes it into
-// the label of the row and the tooltip of the Start button.
+// the two labels of the row and the tooltip of the Start button.
 //
-// The sentence starts with the selected time, when there is one, then says which interval is
-// kept and how often, and last why the first part of the run is missing. The interval is the one
-// the slider covers, and Start goes to its first time.
+// The first text names the selected time, when there is one. The second says which interval is
+// kept and how often, and last why the first part of the run is missing. It does not depend on the
+// selected time, so the row keeps its height while the user seeks. The interval is the one the
+// slider covers, and Start goes to its first time.
 
 enum class ReplayCoverageKind {
 	WholeRun,	// every frame of the run is kept
@@ -35,8 +36,10 @@ struct ReplayCoverage {
 };
 
 struct ReplayBarText {
-	// Sentence for the label of the row.
-	std::string label;
+	// For the label beside the slider: "Replay at 1230 s", "Replay" while no frame is selected, or "No replay".
+	std::string selected;
+	// For the label below the controls: the kept interval and why the rest of the run is missing.
+	std::string coverage;
 	// Tooltip of the Start button. It is empty while Start goes to the start of the run.
 	std::string startTip;
 	// The slider and the Play button can be used.
@@ -51,7 +54,6 @@ inline ReplayCoverage replayCoverageOf(const GuiReplayHistory& history, long lon
 		out.kind = history.truncated() ? ReplayCoverageKind::FromLater : ReplayCoverageKind::WholeRun;
 	out.firstTime = history.firstTime();
 	out.lastTime = history.lastTime();
-	out.cadenceSeconds = GuiReplayHistory::cadenceSeconds;
 	out.budgetBytes = history.budgetBytes();
 	out.clockOffsetSeconds = clockOffsetSeconds;
 	return out;
@@ -72,21 +74,22 @@ inline ReplayBarText replayBarText(const ReplayCoverage& coverage, std::optional
 	ReplayBarText out;
 	const std::string memory = replayMemoryText(coverage.budgetBytes);
 	if (coverage.kind == ReplayCoverageKind::Unavailable) {
-		out.label = "No replay: one moment of this run needs more than the replay memory (" + memory + ").";
+		out.selected = "No replay";
+		out.coverage = "One moment of this run needs more than the replay memory (" + memory + ").";
 		return out;
 	}
 	out.usable = true;
-	const std::string head = shownTime ? "Replay at " + std::to_string(*shownTime) + " s: " : "Replay: ";
+	out.selected = shownTime ? "Replay at " + std::to_string(*shownTime) + " s" : "Replay";
 	const bool oneFrame = coverage.firstTime >= coverage.lastTime;
 	const std::string first = std::to_string(coverage.firstTime);
 	const std::string last = std::to_string(coverage.lastTime);
 	const std::string cadence = "a frame every " + std::to_string(coverage.cadenceSeconds) + " s";
 	if (coverage.kind == ReplayCoverageKind::WholeRun) {
-		out.label = head + "whole run, " + (oneFrame ? "one frame at " + first + " s" : first + " to " + last + " s, " + cadence) + ".";
+		out.coverage = "Whole run, " + (oneFrame ? "one frame at " + first + " s" : first + " to " + last + " s, " + cadence) + ".";
 		return out;
 	}
 	const std::string start = formatSimTime(coverage.firstTime, coverage.clockOffsetSeconds) + " (" + first + " s)";
-	out.label = head + (oneFrame ? "one frame at " + start : "starts at " + start + ", ends at " + last + " s, " + cadence)
+	out.coverage = (oneFrame ? "One frame at " + start : "Starts at " + start + ", ends at " + last + " s, " + cadence)
 		+ ". The earlier part was not kept because the run is larger than the replay memory (" + memory + ").";
 	out.startTip = "Go to the first kept time, " + start + ". The earlier part of the run was not kept.";
 	return out;
