@@ -19,6 +19,7 @@ class TrainFilterButton;
 
 // Planned versus simulated timetable as a filterable, sortable table with the
 // same train dropdown and export pair the chart windows use.
+// The CSV button is shown only when the constructor gets a CSV provider.
 class TimetableTableWindow : public QDialog {
 	Q_OBJECT
 public:

@@ -70,7 +70,7 @@ public:
 
 	// Supply raw source data for CSV export. The provider receives the ids of the
 	// trains currently visible so it can export only what the user is looking at.
-	// An empty return means there is nothing to export. Enables the CSV button.
+	// An empty return means there is nothing to export. The CSV button is shown only while a provider is set.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName);
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
