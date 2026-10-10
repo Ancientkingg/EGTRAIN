@@ -254,6 +254,21 @@ void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string&
 	item->setData(PreviewGraphics::Id, QString::fromStdString(id));
 }
 
+// The pen of a connection, shared by the preview before Run and a run.
+QPen connectionPen(int width) {
+	QPen pen(Qt::white);
+	pen.setWidth(width);
+	pen.setCosmetic(true);
+	return pen;
+}
+
+// The outline of a signal head, a hairline at every zoom, shared by the preview before Run and a run.
+QPen signalHeadPen() {
+	QPen pen;
+	pen.setWidth(0);
+	return pen;
+}
+
 constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 // The name of a train in the train list, to which the entry text adds a state.
 constexpr int kFollowNameRole = Qt::UserRole + 1;
@@ -4683,6 +4698,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		previewBounds.setBottom(qMax(previewBounds.bottom(), point.y()));
 	};
 	std::map<std::string, std::pair<const TrackPreviewLine*, qreal>> tracks;
+	std::vector<const TrackPreviewLine*> drawnLines;
 	for (std::size_t index = 0; index < preview.lines.size(); ++index) {
 		const auto& line = preview.lines[index];
 		if (line.points.size() < 2 || std::any_of(line.points.begin(), line.points.end(), [](const auto& point) {
@@ -4691,7 +4707,34 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			continue;
 		const qreal offset = static_cast<qreal>(line.displayOffset);
 		tracks[line.id] = {&line, offset};
+		drawnLines.push_back(&line);
+		for (const auto& point : line.points)
+			includePreviewPoint(QPointF(point.x, point.y + offset));
+	}
 
+	for (const auto& connection : preview.connections) {
+		const auto first = tracks.find(connection.firstTrackId);
+		const auto second = tracks.find(connection.secondTrackId);
+		if (first == tracks.end() || second == tracks.end())
+			continue;
+
+		QPointF start;
+		QPointF end;
+		if (!previewPointAtNode(*first->second.first, connection.firstNodeId, first->second.second, start) || !previewPointAtNode(*second->second.first, connection.secondNodeId, second->second.second, end))
+			continue;
+
+		auto* item = new ConnectionItem(QLineF(start, end));
+		item->setPen(connectionPen(line_width));
+		tagPreviewItem(item, "connection", connection.id);
+		scene->addItem(item);
+		includePreviewPoint(start);
+		includePreviewPoint(end);
+	}
+
+	// A run adds the connections first and the track lines after them, so a track is drawn over a connection.
+	for (const TrackPreviewLine* drawn : drawnLines) {
+		const auto& line = *drawn;
+		const qreal offset = static_cast<qreal>(line.displayOffset);
 		for (std::size_t point = 1; point < line.points.size(); ++point) {
 			const auto arc = std::find_if(sceneModel.arcs.begin(), sceneModel.arcs.end(), [&](const SceneArc& candidate) {
 				return candidate.trackId == line.id
@@ -4711,32 +4754,6 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				arc == sceneModel.arcs.end() ? line.id : arc->id);
 			scene->addItem(item);
 		}
-		for (const auto& point : line.points)
-			includePreviewPoint(QPointF(point.x, point.y + offset));
-	}
-
-	for (const auto& connection : preview.connections) {
-		const auto first = tracks.find(connection.firstTrackId);
-		const auto second = tracks.find(connection.secondTrackId);
-		if (first == tracks.end() || second == tracks.end())
-			continue;
-
-		QPointF start;
-		QPointF end;
-		if (!previewPointAtNode(*first->second.first, connection.firstNodeId, first->second.second, start) || !previewPointAtNode(*second->second.first, connection.secondNodeId, second->second.second, end))
-			continue;
-
-		QPen pen(Qt::white);
-		pen.setWidth(2);
-		pen.setCosmetic(true);
-		pen.setCapStyle(Qt::RoundCap);
-		auto* item = new ConnectionItem(QLineF(start, end));
-		item->setPen(pen);
-		tagPreviewItem(item, "connection", connection.id);
-		scene->addItem(item);
-		item->setZValue(0.5);
-		includePreviewPoint(start);
-		includePreviewPoint(end);
 	}
 
 	const auto memberships = previewStationMemberships(sceneModel);
@@ -4950,6 +4967,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 					.arg(signal.rawX, 0, 'g', 10)
 					.arg(QString::fromStdString(signal.sectionId))
 					.arg(canonicalIds.isEmpty() ? QString() : QStringLiteral("; signal ID %1").arg(canonicalIds.join(", "))));
+			glyph->setPen(signalHeadPen());
 			glyph->setZValue(3.0);
 			glyph->setPos(head);
 			glyph->setAspectCode(180);
@@ -26553,13 +26571,9 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 
 // draws a connection
 void MainWindow::paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection) {
-	QPen pen(Qt::white);
-	pen.setWidth(pen_width);
-	pen.setCosmetic(true);
-
 	// draws a line from start to end with a given line width
 	ConnectionItem* line = new ConnectionItem(QLineF(start.x(), start.y(), end.x(), end.y()));
-	line->setPen(pen);
+	line->setPen(connectionPen(pen_width));
 
 	// add connection pointer to line item
 	line->connection = connection;
@@ -26599,8 +26613,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	penPost.setCosmetic(true);
 
 	// plate
-	QPen penPlate = QPen();
-	penPlate.setWidth(0);
+	const QPen penPlate = signalHeadPen();
 	// draws using rectangle with center on top-left corner (center_x,center_y,width,height)
 	const qreal diameter = size * (previewLine ? presentationScale() : 1.0);
 	QRectF rect = QRectF(0, 0, diameter, diameter);
@@ -27316,8 +27329,49 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 		}
 		return true;
 	};
+	// The pens, the z values and the stacking order that the preview and a run share, in the view that 'mode' names.
+	const auto checkInfrastructurePaint = [&](const char* mode) {
+		const QString modeName = QString::fromLatin1(mode);
+		const auto reject = [&](const QString& primitive) {
+			failure = QStringLiteral("%1 %2").arg(modeName, primitive);
+			return false;
+		};
+		int connectionCount = 0, trackCount = 0, headCount = 0;
+		for (auto* item : scene->items(Qt::AscendingOrder)) {
+			if (auto* connection = qgraphicsitem_cast<ConnectionItem*>(item)) {
+				const QPen pen = connection->pen();
+				if (pen.color() != QColor(Qt::white) || pen.width() != 2 || !pen.isCosmetic() || pen.capStyle() != Qt::SquareCap)
+					return reject(QStringLiteral("connection pen is not white, 2 wide, cosmetic with a square cap"));
+				if (!qFuzzyIsNull(connection->zValue()))
+					return reject(QStringLiteral("connection z is not 0"));
+				if (trackCount > 0)
+					return reject(QStringLiteral("connection is drawn over a track line"));
+				++connectionCount;
+			} else if (auto* track = qgraphicsitem_cast<TrackLineItem*>(item)) {
+				if (!qFuzzyIsNull(track->zValue()))
+					return reject(QStringLiteral("track line z is not 0"));
+				++trackCount;
+			} else if (auto* head = qgraphicsitem_cast<SignalItem*>(item)) {
+				const QPen pen = head->pen();
+				if (pen.color() != QColor(Qt::black) || pen.width() != 0 || pen.style() != Qt::SolidLine)
+					return reject(QStringLiteral("signal head pen is not a black solid hairline"));
+				++headCount;
+			}
+		}
+		std::fprintf(stdout, "\nE2E_INFRASTRUCTURE_PAINT_ITEMS mode=%s connections=%d tracks=%d heads=%d\n", mode, connectionCount, trackCount, headCount);
+		std::fflush(stdout);
+		if (!connectionCount)
+			return reject(QStringLiteral("has no connection"));
+		if (!trackCount)
+			return reject(QStringLiteral("has no track line"));
+		if (!headCount)
+			return reject(QStringLiteral("has no signal head"));
+		return true;
+	};
 	markSceneDirty();
 	renderTrackPreview(m_sceneModel);
+	if (!checkInfrastructurePaint("preview"))
+		return false;
 	if (measuredPresentation && !checkPresentation()) {
 		failure = "preview measured presentation dimensions or physical signal endpoints mismatch";
 		return false;
@@ -27345,6 +27399,10 @@ bool MainWindow::checkPreviewRuntimeParityE2E(QString& failure, bool measuredPre
 	if (!m_worker || m_showingTrackPreview || held() || m_sceneContextMenu
 		|| !m_previewSelectedStationId.isEmpty() || !nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
+		return false;
+	}
+	if (!checkInfrastructurePaint("prepared run")) {
+		clearSimulationWorker(true);
 		return false;
 	}
 	if (measuredPresentation && !checkPresentation()) {

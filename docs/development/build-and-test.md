@@ -1058,6 +1058,14 @@ own E2E code and prints a marker:
   the frame after the end of the followed train is a copy of the frame in which it
   runs, with the train marked as left.
 
+`tools/e2e/creator_acceptance_smoke.sh --preview-infrastructure` compares the items of
+the preview before Run with those of the prepared run (sizes, head positions, pens, z
+values and stacking order). It reads `QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL` like the
+other Bash smokes (the paragraph below the table "Platform coverage" gives the defaults)
+and prints `creator preview infrastructure smoke passed`. CTest runs the script only
+without the option, as `test_creator_acceptance_smoke`, which checks the items of the
+preview but does not compare them with a run.
+
 ## Smoke artifacts
 
 Smoke scripts write temporary diagnostics below `${TMPDIR:-/tmp}`; on Windows
