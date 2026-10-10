@@ -2954,23 +2954,22 @@ list<MovementAuthority> ETCS_MA; // This is the list of all the movement authori
 // Function to Occupy a Block Section and all the Block sections connected with it
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
 	int NumBlocksToFind = BLS.N_ConnectedBS + 1;
-	string* IDToAdd = new string[NumBlocksToFind]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksOccupied list and the test to check if the ID is present in the BlocksConnected
-	bool* IsThere = new bool[NumBlocksToFind];
+	// The section and the sections connected to it, to add to BlocksOccupied
+	std::vector<string> IDToAdd(NumBlocksToFind);
 	string IDToFree[20];
 	bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 	IDToAdd[0] = BLS.ID;
-	IsThere[0] = false;
 	for (int i = 1; i < NumBlocksToFind; i++) {
 		IDToAdd[i] = BLS.IDConnectedBS[i - 1];
-		IsThere[i] = false;
 	}
 	// Filling in the BlocksOccupied list
 	for (int i = 0; i < NumBlocksToFind; i++) {
+		bool IsThere = false;
 		for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
 			if (*it == IDToAdd[i])
-				IsThere[i] = true;
+				IsThere = true;
 		}
-		if (IsThere[i] == 0) {
+		if (IsThere == 0) {
 			BlocksOccupied.push_back(IDToAdd[i]);
 		}
 	}
@@ -3013,9 +3012,6 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 
 	// release previously occupied signalling_block_sections TESTE!!!
 	releaseLastBlockAndConnected(BLSPrev);
-
-	delete[] IDToAdd;
-	delete[] IsThere;
 }
 
 // Function to occupy a double switch
@@ -3032,28 +3028,24 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 		// occupy compound signalling_block_sections
 		{
 			int NumBlocksToFind = BLS.N_ConnectedBS + 1;
-			string* IDToAdd = new string[NumBlocksToFind];
-			bool* IsThere = new bool[NumBlocksToFind]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksOccupied list and the test to check if the ID is present in the BlocksConnected
+			// The section and the sections connected to it, to add to BlocksOccupied
+			std::vector<string> IDToAdd(NumBlocksToFind);
 			string IDToFree[20];
 			bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 			IDToAdd[0] = BLS.ID;
-			IsThere[0] = false;
 			for (int i = 1; i < NumBlocksToFind; i++) {
 				IDToAdd[i] = BLS.IDConnectedBS[i - 1];
-				IsThere[i] = false;
 			}
 			// Filling in the BlocksOccupied list
 			for (int i = 0; i < NumBlocksToFind; i++) {
+				bool IsThere = false;
 				for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
 					if (*it == IDToAdd[i])
-						IsThere[i] = true;
+						IsThere = true;
 				}
-				if (IsThere[i] == 0)
+				if (IsThere == 0)
 					BlocksOccupied.push_back(IDToAdd[i]);
 			}
-
-			delete[] IDToAdd;
-			delete[] IsThere;
 		}
 
 		{
@@ -3099,28 +3091,24 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 				// occupy compound signalling_block_sections
 				int NumBlocksToFind = BLS.N_ConnectedBS + 1;
-				string* IDToAdd = new string[NumBlocksToFind];
-				bool* IsThere = new bool[NumBlocksToFind]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksOccupied list and the test to check if the ID is present in the BlocksConnected
+				// The section and the sections connected to it, to add to BlocksOccupied
+				std::vector<string> IDToAdd(NumBlocksToFind);
 				string IDToFree[20];
 				bool IsInBlocksConnected[20]; // These variables are relative to the signalling_block_sections connected to the BLSPrev that have to be freed
 				IDToAdd[0] = BLS.ID;
-				IsThere[0] = false;
 				for (int i = 1; i < NumBlocksToFind; i++) {
 					IDToAdd[i] = BLS.IDConnectedBS[i - 1];
-					IsThere[i] = false;
 				}
 				// Filling in the BlocksOccupied list
 				for (int i = 0; i < NumBlocksToFind; i++) {
+					bool IsThere = false;
 					for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
 						if (*it == IDToAdd[i])
-							IsThere[i] = true;
+							IsThere = true;
 					}
-					if (IsThere[i] == 0)
+					if (IsThere == 0)
 						BlocksOccupied.push_back(IDToAdd[i]);
 				}
-
-				delete[] IDToAdd;
-				delete[] IsThere;
 			}
 		}
 	}
@@ -3137,12 +3125,12 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
 		const auto& BLS = *doubleSwitchBS[switchIndex];
 
-		string* IDToAdd;
 		// Load the BLS ID and the ones of the connected Blocks in the BlocksConnected list when the former has not a diverging switch
 		if (BLS.withSwitchDiv == 0) {
 			int NumBlocksToFind = BLS.N_ConnectedBS + 1;
-			IDToAdd = new string[NumBlocksToFind];
-			bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
+			// The section and the sections connected to it, to add to BlocksConnected
+			std::vector<string> IDToAdd(NumBlocksToFind);
+			bool IsInBlocksConnected[40]; // The test to see if that ID is present in the BlocksConnected
 			IDToAdd[0] = BLS.ID;
 			IsInBlocksConnected[0] = false;
 			for (int i = 0; i < BLS.N_ConnectedBS; i++) {
@@ -3163,8 +3151,9 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 		// if instead BLS has a diverging switch not only its ID and the one of the connected blocks must be put, but also the ones of the BlockID1 and BlockID2(see ActivateSwitch function above) in the BlocksConnected list
 		else {
 			int NumBlocksToFind = BLS.N_ConnectedBS + 3;
-			IDToAdd = new string[NumBlocksToFind];
-			bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
+			// The section, the two blocks of its name and the sections connected to it, to add to BlocksConnected
+			std::vector<string> IDToAdd(NumBlocksToFind);
+			bool IsInBlocksConnected[40]; // The test to see if that ID is present in the BlocksConnected
 			IDToAdd[0] = BLS.ID;
 			IsInBlocksConnected[0] = false; // The first element of the array is the ID of BLS
 			const ConnectedSectionIdentity& identity = identities[switchIndex];
@@ -3191,7 +3180,6 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			releaseLastBlockAndConnected(*branchSections[switchIndex][0]);
 			releaseLastBlockAndConnected(*branchSections[switchIndex][1]);
 		}
-		delete[] IDToAdd;
 	}
 }
 
@@ -3340,12 +3328,12 @@ void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDP
 
 // Function to Release the Last Block Section and the other connected Blocks when the train exits simulation
 void releaseLastBlockAndConnected(const Section& BLS) {
-	string* IDToAdd;
 	// Load the BLS ID and the ones of the connected Blocks in the BlocksConnected list when the former has not a diverging switch
 	if (BLS.withSwitchDiv == 0) {
 		int NumBlocksToFind = BLS.N_ConnectedBS + 1;
-		IDToAdd = new string[NumBlocksToFind];
-		bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
+		// The section and the sections connected to it, to add to BlocksConnected
+		std::vector<string> IDToAdd(NumBlocksToFind);
+		bool IsInBlocksConnected[40]; // The test to see if that ID is present in the BlocksConnected
 		IDToAdd[0] = BLS.ID;
 		IsInBlocksConnected[0] = false;
 		for (int i = 0; i < BLS.N_ConnectedBS; i++) {
@@ -3366,13 +3354,13 @@ void releaseLastBlockAndConnected(const Section& BLS) {
 	// if instead BLS has a diverging switch not only its ID and the one of the connected blocks must be put, but also the ones of the BlockID1 and BlockID2(see ActivateSwitch function above) in the BlocksConnected list
 	else {
 		int NumBlocksToFind = BLS.N_ConnectedBS + 3;
-		IDToAdd = new string[NumBlocksToFind];
-		bool IsInBlocksConnected[40]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksConnected
+		// The section, the two blocks of its name and the sections connected to it, to add to BlocksConnected
+		std::vector<string> IDToAdd(NumBlocksToFind);
+		bool IsInBlocksConnected[40]; // The test to see if that ID is present in the BlocksConnected
 		IDToAdd[0] = BLS.ID;
 		IsInBlocksConnected[0] = false; // The first element of the array is the ID of BLS
 		ConnectedSectionIdentity identity;
 		if (!parseConnectedSectionIdentity(BLS.ID, identity)) {
-			delete[] IDToAdd;
 			return;
 		}
 		// Adding ID of Connected Block Sections to the lists BlocksOccupied and BlocksConnected
@@ -3394,7 +3382,6 @@ void releaseLastBlockAndConnected(const Section& BLS) {
 				BlocksConnected.push_back(IDToAdd[i]);
 		}
 	}
-	delete[] IDToAdd;
 }
 
 // Function to generate MA on Connected Block Sections when a train crosses a connected Node on a block section,
