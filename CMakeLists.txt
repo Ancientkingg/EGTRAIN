@@ -282,6 +282,7 @@ target_link_libraries(egtrain_dispatch
 # moc object of the library references both windows, so a target that uses TrainFilterButton,
 # DiagramWindow or TimetableTableWindow also links one telemetry library.
 add_library(egtrain_diagrams STATIC
+    ${SRC_DIR}/diagrams/AreaCapacity.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
@@ -661,6 +662,10 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_capacityanalysis ${SRC_DIR}/tests/test_capacityanalysis.cpp)
     target_link_libraries(test_capacityanalysis PRIVATE egtrain_diagrams)
     add_test(NAME test_capacityanalysis COMMAND test_capacityanalysis)
+
+    add_executable(test_areacapacity ${SRC_DIR}/tests/test_areacapacity.cpp)
+    target_link_libraries(test_areacapacity PRIVATE egtrain_diagrams)
+    add_test(NAME test_areacapacity COMMAND test_areacapacity)
 
     add_executable(test_routediagramcoordinates ${SRC_DIR}/tests/test_routediagramcoordinates.cpp)
     target_link_libraries(test_routediagramcoordinates PRIVATE egtrain_diagrams egtrain_util)
@@ -1059,7 +1064,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility
-			test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
+			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
@@ -1091,7 +1096,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
 		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
-		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
+		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview test_followcamera
