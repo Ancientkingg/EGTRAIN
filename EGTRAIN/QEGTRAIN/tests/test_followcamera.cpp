@@ -7,15 +7,34 @@
 #include <QScrollBar>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <initializer_list>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <numeric>
+#include <sstream>
+#include <string>
+#include <utility>
 #include <vector>
 
-static bool expect(bool condition, const char* message) {
+// The measured numbers go with the message, so that a failure on another platform can be read from its log.
+static bool expect(bool condition, const char* message, const std::string& detail = std::string()) {
 	if (!condition)
-		std::cerr << "failed: " << message << "\n";
+		std::cerr << "failed: " << message << (detail.empty() ? "" : " (" + detail + ")") << "\n";
 	return condition;
+}
+
+static std::string measured(std::initializer_list<std::pair<const char*, qreal>> values) {
+	std::ostringstream text;
+	text << std::fixed << std::setprecision(2);
+	const char* separator = "";
+	for (const auto& value : values) {
+		text << separator << value.first << "=" << value.second;
+		separator = " ";
+	}
+	return text.str();
 }
 
 static QPointF centerOf(const NetworkView& view) {
@@ -71,6 +90,151 @@ struct Rig {
 		return -1;
 	}
 };
+
+// Where the targets of a stream lie along y.
+static const qreal kStreamY = 1000.0;
+
+// The view and the target along x after one tick of the camera, and whether its timer still runs.
+struct TickRecord {
+	qint64 ms;
+	qreal center;
+	qreal target;
+	bool running;
+};
+
+// Delivers a stream of updates the way the window and the timer of the camera do. The target moves
+// along x to the right by a step given in device pixels, so that the rounding of the view to whole
+// pixels is the same small part of the step in every stream. The timer ticks every tickIntervalMs from
+// the moment it starts, and an update goes before a tick on the same millisecond. The event loop does
+// not run: only the clock of the rig drives the ticks.
+struct Stream {
+	Rig& rig;
+	const qreal pixel;
+	qreal target;
+	qint64 nextTickMs = 0;
+	std::vector<qint64> updateMs;
+	std::vector<TickRecord> ticks;
+
+	Stream(Rig& source, qreal startX)
+		: rig(source), pixel(pixelOf(source.view)), target(startX) {
+		rig.camera.stop();
+		rig.now = 0;
+		rig.camera.follow(QPointF(target, kStreamY), true);
+		updateMs.push_back(0);
+	}
+
+	void tickOnce() {
+		rig.now = nextTickMs;
+		rig.camera.tick();
+		nextTickMs += FollowCamera::tickIntervalMs;
+		ticks.push_back({rig.now, centerOf(rig.view).x(), target, rig.camera.running()});
+	}
+
+	// Runs the ticks that fall before the given time while the timer runs.
+	void tickBefore(qint64 ms) {
+		while (rig.camera.running() && nextTickMs < ms)
+			tickOnce();
+	}
+
+	// Runs the ticks until the timer stops. Returns false when it does not stop.
+	bool runOut(int limit = 2000) {
+		for (int i = 0; i < limit && rig.camera.running(); ++i)
+			tickOnce();
+		return !rig.camera.running();
+	}
+
+	// An update gapMs after the previous one that moves the target by stepPx.
+	void update(qint64 gapMs, qreal stepPx) {
+		const qint64 ms = updateMs.back() + gapMs;
+		tickBefore(ms);
+		rig.now = ms;
+		target += stepPx * pixel;
+		const bool wasRunning = rig.camera.running();
+		rig.camera.follow(QPointF(target, kStreamY), false);
+		if (!wasRunning && rig.camera.running())
+			nextTickMs = ms + FollowCamera::tickIntervalMs;
+		updateMs.push_back(ms);
+	}
+
+	// The moves of the view per tick in device pixels, for the ticks from fromMs up to toMs.
+	std::vector<qreal> moves(qint64 fromMs, qint64 toMs) const {
+		std::vector<qreal> result;
+		for (std::size_t i = 1; i < ticks.size(); ++i) {
+			if (ticks[i].ms >= fromMs && ticks[i].ms < toMs)
+				result.push_back((ticks[i].center - ticks[i - 1].center) / pixel);
+		}
+		return result;
+	}
+
+	// The time of the first tick from afterMs on that leaves the timer stopped, or -1.
+	qint64 stopMs(qint64 afterMs) const {
+		for (const TickRecord& tick : ticks) {
+			if (tick.ms >= afterMs && !tick.running)
+				return tick.ms;
+		}
+		return -1;
+	}
+
+	// The largest distance the view lags behind the target, in device pixels.
+	qreal largestLag() const {
+		qreal lag = 0.0;
+		for (const TickRecord& tick : ticks)
+			lag = std::max(lag, (tick.target - tick.center) / pixel);
+		return lag;
+	}
+
+	// The largest distance the view is beyond the target, in device pixels.
+	qreal largestOvershoot() const {
+		qreal overshoot = 0.0;
+		for (const TickRecord& tick : ticks)
+			overshoot = std::max(overshoot, (tick.center - tick.target) / pixel);
+		return overshoot;
+	}
+
+	// How far the view is from the last target, in device pixels.
+	qreal offTarget() const {
+		return distance(centerOf(rig.view), QPointF(target, kStreamY)) / pixel;
+	}
+};
+
+struct MoveStats {
+	int count = 0;
+	qreal smallest = 0.0;
+	qreal largest = 0.0;
+	qreal mean = 0.0;
+
+	qreal ratio() const { return smallest > 0.0 ? largest / smallest : std::numeric_limits<qreal>::infinity(); }
+};
+
+static MoveStats statsOf(const std::vector<qreal>& moves) {
+	MoveStats stats;
+	if (moves.empty())
+		return stats;
+	stats.count = int(moves.size());
+	stats.smallest = *std::min_element(moves.begin(), moves.end());
+	stats.largest = *std::max_element(moves.begin(), moves.end());
+	stats.mean = std::accumulate(moves.begin(), moves.end(), 0.0) / qreal(moves.size());
+	return stats;
+}
+
+static std::string describe(const MoveStats& stats) {
+	return measured({{"ticks", qreal(stats.count)}, {"smallest", stats.smallest}, {"largest", stats.largest}, {"ratio", stats.ratio()}, {"mean", stats.mean}});
+}
+
+// The view stays behind the target by no more than the lag cap, and does not pass it.
+static bool expectBehindTarget(const Stream& stream, const std::string& label) {
+	const qreal lag = stream.largestLag();
+	const qreal cap = maxLagOf(stream.rig.view) / stream.pixel;
+	bool ok = expect(lag <= cap + 3.0, "the view stays within the lag cap of the target", label + " " + measured({{"lag", lag}, {"cap", cap}}));
+	const qreal past = stream.largestOvershoot();
+	ok &= expect(past <= 2.0, "the view does not pass the target", label + " " + measured({{"overshoot", past}}));
+	return ok;
+}
+
+static bool expectOnTarget(const Stream& stream, const char* message, const std::string& label) {
+	const qreal off = stream.offTarget();
+	return expect(off <= 3.0, message, label + " " + measured({{"off", off}}));
+}
 
 static bool checkIdle() {
 	bool ok = true;
@@ -190,40 +354,216 @@ static bool checkFastStream() {
 	return ok;
 }
 
-// How far the first tick moves the view towards a target 60 units away, as a fraction of that
-// distance, after the targets arrived with the given gaps. The gaps add up to more than the
-// longest step a tick takes, so the tick always takes that step and the fraction tells the
-// time constant of the approach.
-static qreal firstTickFraction(const std::vector<qint64>& gaps, qint64 tickAfter) {
-	Rig rig;
-	const QPointF start(2000.0, 1000.0);
-	rig.camera.follow(start, true);
-	const int updates = int(gaps.size());
-	for (int i = 0; i < updates; ++i) {
-		rig.now += gaps[i];
-		rig.camera.follow(start + QPointF(60.0 * (i + 1) / updates, 0.0), false);
-	}
-	rig.now += tickAfter;
-	rig.camera.tick();
-	return (centerOf(rig.view).x() - start.x()) / 60.0;
+// Regular updates of a train at constant speed move the view at one speed, between the updates and
+// across them. The first updates are skipped: the estimate of the update interval starts at a default.
+static bool checkEvenGlideOf(Rig& rig, qint64 gapMs, qreal stepPx, int updates, int skipped, qint64 minSpanMs) {
+	bool ok = true;
+	Stream stream(rig, 500.0);
+	for (int i = 1; i < updates; ++i)
+		stream.update(gapMs, stepPx);
+	const qint64 from = stream.updateMs[std::size_t(skipped)];
+	const MoveStats moves = statsOf(stream.moves(from, stream.updateMs.back()));
+	const std::string label = "gap " + std::to_string(gapMs) + " ms, " + describe(moves);
+	ok &= expect(stream.updateMs.back() - from >= minSpanMs, "the measured part of the stream is long enough", label);
+	ok &= expect(moves.count > 0 && moves.smallest > 0.0, "the view moves in every tick between and across updates", label);
+	ok &= expect(moves.largest <= 1.25 * moves.smallest, "the largest move per tick is at most 1.25 times the smallest", label);
+	ok &= expectBehindTarget(stream, label);
+	return ok;
 }
 
-static bool checkUpdateInterval() {
+static bool checkEvenGlide() {
+	Rig rig;
+	bool ok = checkEvenGlideOf(rig, 500, 120.0, 17, 3, 5000);
+	ok &= checkEvenGlideOf(rig, 40, 21.0, 51, 12, 1000);
+	return ok;
+}
+
+// After the last update the view reaches the target one glide later, and the timer stops. The glide takes
+// the gap between updates, and at least two timer steps. The last update meets different offsets of the
+// tick grid with the number of updates.
+static bool checkEndOfUpdatesOf(Rig& rig, qint64 gapMs, qreal stepPx, int updates) {
+	Stream stream(rig, 500.0);
+	for (int i = 1; i < updates; ++i)
+		stream.update(gapMs, stepPx);
+	const bool stopped = stream.runOut();
+	const qint64 last = stream.updateMs.back();
+	const qint64 glideMs = std::max<qint64>(gapMs, 2 * FollowCamera::tickIntervalMs);
+	const qint64 delay = stream.stopMs(last) - last;
+	const qint64 earliest = glideMs - 2;
+	const qint64 latest = glideMs + FollowCamera::tickIntervalMs + 1;
+	const std::string label = "gap " + std::to_string(gapMs) + " ms, " + std::to_string(updates) + " updates, the timer stopped " + std::to_string(delay)
+		+ " ms after the last update, expected " + std::to_string(earliest) + " to " + std::to_string(latest);
+
 	bool ok = true;
-	// A step of 250 ms with a time constant of 250 ms covers 63 percent, with 60 ms 98 percent.
-	const qreal slow = firstTickFraction(std::vector<qint64>(6, 500), 250);
-	const qreal fast = firstTickFraction(std::vector<qint64>(6, 100), 250);
-	ok &= expect(slow > 0.58 && slow < 0.68, "targets every 500 ms give the slowest approach");
-	ok &= expect(fast > 0.93, "targets every 100 ms give a faster approach");
+	ok &= expect(stopped && delay >= earliest && delay <= latest, "the timer stops one glide after the last update", label);
+	ok &= expectOnTarget(stream, "the view ends on the last target", label);
+	ok &= expect(stream.largestOvershoot() <= 2.0, "the view does not pass the target", label);
+	return ok;
+}
 
-	std::vector<qint64> paused(6, 100);
-	paused.push_back(5000);
-	ok &= expect(firstTickFraction(paused, 250) > 0.93, "a pause between targets does not count as an update interval");
+static bool checkEndOfUpdates() {
+	Rig rig;
+	bool ok = true;
+	for (int updates = 24; updates <= 32; ++updates) {
+		ok &= checkEndOfUpdatesOf(rig, 500, 120.0, updates);
+		ok &= checkEndOfUpdatesOf(rig, 100, 120.0, updates);
+		ok &= checkEndOfUpdatesOf(rig, 40, 21.0, updates);
+	}
+	return ok;
+}
 
-	// One target 33 ms after the first gives a time constant of 133 ms: a step of 250 ms covers
-	// 85 percent, the whole 1000 ms would cover all of it.
-	const qreal clamped = firstTickFraction(std::vector<qint64>(1, 33), 1000);
-	ok &= expect(clamped > 0.78 && clamped < 0.92, "a tick after a stalled event loop takes a step of 250 ms");
+// A change of the step takes effect at once: the glide of the update with the new step covers the new
+// distance in the same time. The even move per tick follows from the step and the gap of 500 ms.
+static bool checkSpeedChangeOf(const char* name, qreal firstStepPx, qreal secondStepPx) {
+	bool ok = true;
+	Rig rig;
+	Stream stream(rig, 500.0);
+	for (int i = 0; i < 12; ++i)
+		stream.update(500, firstStepPx);
+	const std::size_t change = stream.updateMs.size();
+	for (int i = 0; i < 8; ++i)
+		stream.update(500, secondStepPx);
+	stream.runOut();
+
+	const qint64 from = stream.updateMs[change];
+	const qreal even = secondStepPx * FollowCamera::tickIntervalMs / 500.0;
+	const std::vector<qreal> interval = stream.moves(from, from + 500);
+	const MoveStats first = statsOf(interval);
+	const MoveStats later = statsOf(std::vector<qreal>(interval.begin() + (interval.empty() ? 0 : 1), interval.end()));
+	const std::string label = std::string(name) + ": " + measured({{"even", even}}) + ", " + describe(first) + ", from the second tick "
+		+ measured({{"mean", later.mean}});
+	ok &= expect(first.count > 2, "the interval of the new step has ticks", label);
+	ok &= expect(first.largest <= 1.3 * even + 1.0, "no tick after the change moves the view much more than the new even move", label);
+	ok &= expect(std::abs(later.mean - even) <= 0.15 * even, "the mean move after the change is the new even move", label);
+	ok &= expect(stream.largestOvershoot() <= 2.0, "the view does not pass the target", label);
+	return ok;
+}
+
+// After the last moving update the updates go on with an unchanged target. The view finishes with moves
+// of a pixel or less and then stands.
+static bool checkTrainStands() {
+	bool ok = true;
+	Rig rig;
+	Stream stream(rig, 500.0);
+	for (int i = 0; i < 12; ++i)
+		stream.update(500, 80.0);
+	const qint64 lastMoving = stream.updateMs.back();
+	for (int i = 0; i < 8; ++i)
+		stream.update(500, 0.0);
+	stream.runOut();
+
+	const qint64 end = std::numeric_limits<qint64>::max();
+	const MoveStats small = statsOf(stream.moves(lastMoving + 500 + 2 * FollowCamera::tickIntervalMs, end));
+	const MoveStats still = statsOf(stream.moves(lastMoving + 1500 + 2 * FollowCamera::tickIntervalMs, end));
+	const std::string label = "from one interval on " + describe(small) + "; from three intervals on " + describe(still);
+	ok &= expect(stream.largestOvershoot() <= 2.0, "a train that stands is not passed by the view", label);
+	ok &= expect(small.largest <= 1.01 && small.smallest >= -1.01, "one interval after the last move no tick moves the view by more than a pixel", label);
+	ok &= expect(still.largest < 0.01 && still.smallest > -0.01, "three intervals after the last move the view does not move", label);
+	ok &= expectOnTarget(stream, "the view is on the target of the train that stands", label);
+	return ok;
+}
+
+static bool checkSpeedChange() {
+	bool ok = checkSpeedChangeOf("a step that doubles", 80.0, 160.0);
+	ok &= checkSpeedChangeOf("a step that halves", 160.0, 80.0);
+	ok &= checkTrainStands();
+	return ok;
+}
+
+// Updates that come a little early or late do not make the view surge: the largest move per tick stays
+// close to the mean, and the view never passes the target.
+static bool checkIrregularGaps() {
+	bool ok = true;
+	Rig rig;
+	Stream stream(rig, 500.0);
+	for (int i = 1; i < 25; ++i)
+		stream.update(i % 2 == 1 ? 450 : 550, 120.0);
+	const MoveStats moves = statsOf(stream.moves(stream.updateMs[4], stream.updateMs.back()));
+	const std::string label = describe(moves);
+	ok &= expect(moves.count > 0 && moves.largest <= 1.4 * moves.mean, "the largest move per tick is at most 1.4 times the mean", label);
+	ok &= expect(moves.smallest >= 0.0, "the view never moves backwards", label);
+	ok &= expectBehindTarget(stream, label);
+	return ok;
+}
+
+// A pause between updates is not an update interval: the first update after it moves nothing by itself
+// and the view reaches the new target about one update interval later.
+static bool checkPauseThenUpdate() {
+	bool ok = true;
+	Rig rig;
+	Stream stream(rig, 500.0);
+	for (int i = 0; i < 10; ++i)
+		stream.update(100, 120.0);
+	stream.tickBefore(stream.updateMs.back() + 5000);
+	ok &= expect(!rig.camera.running(), "the timer stops while no update comes");
+
+	const qreal before = centerOf(rig.view).x();
+	stream.update(5000, 120.0);
+	const qreal moved = std::abs(centerOf(rig.view).x() - before) / stream.pixel;
+	ok &= expect(moved < 0.5, "the first update after a pause does not move the view", measured({{"moved", moved}}));
+	ok &= expect(rig.camera.running(), "the first update after a pause starts the timer");
+
+	const bool stopped = stream.runOut();
+	const qint64 last = stream.updateMs.back();
+	const qint64 delay = stream.stopMs(last) - last;
+	const qint64 earliest = 100 - FollowCamera::tickIntervalMs;
+	const qint64 latest = 100 + 2 * FollowCamera::tickIntervalMs;
+	const std::string label = "the timer stopped " + std::to_string(delay) + " ms after the update, expected " + std::to_string(earliest) + " to "
+		+ std::to_string(latest);
+	ok &= expect(stopped && delay >= earliest && delay <= latest, "the pause does not become the update interval", label);
+	ok &= expectOnTarget(stream, "the view ends on the target after the pause", label);
+	return ok;
+}
+
+// A pan of the user late in a glide is adopted as the new starting point, and the view returns to the
+// target over one update interval from there.
+static bool checkPanLateInGlide() {
+	bool ok = true;
+	Rig rig;
+	Stream stream(rig, 1000.0);
+	for (int i = 0; i < 5; ++i)
+		stream.update(500, 120.0);
+	const qint64 last = stream.updateMs.back();
+	stream.tickBefore(last + 450);
+	stream.tickOnce();
+	ok &= expect(rig.camera.running(), "the glide is still under way when the user pans");
+
+	const qint64 panMs = rig.now;
+	QScrollBar* bar = rig.view.horizontalScrollBar();
+	bar->setValue(bar->value() - 450);
+	const qreal panned = centerOf(rig.view).x();
+	const qreal toTarget = stream.target - panned;
+	stream.tickOnce();
+	const qreal fraction = (centerOf(rig.view).x() - panned) / toTarget;
+	ok &= expect(fraction > 0.03 && fraction < 0.10, "the next tick covers one step of a glide over an update interval", measured({{"fraction", fraction}}));
+
+	const bool stopped = stream.runOut();
+	const qint64 delay = stream.stopMs(panMs + 1) - panMs;
+	const std::string label = "the timer stopped " + std::to_string(delay) + " ms after the pan";
+	ok &= expect(stopped && delay <= 500 + 2 * FollowCamera::tickIntervalMs, "the view is back on the target one update interval after the pan", label);
+	ok &= expectOnTarget(stream, "the view ends on the target after the pan", label);
+	return ok;
+}
+
+// A tick long after the last one takes a step of at most 250 ms. A tick after the arrival moves the view
+// onto the target and not past it.
+static bool checkStalledTick() {
+	bool ok = true;
+	Rig rig;
+	const QPointF a(2000.0, 1000.0);
+	const QPointF target = a + QPointF(80.0, 0.0);
+	rig.camera.follow(a, true);
+	rig.camera.follow(target, false);
+	rig.now = 1000;
+	rig.camera.tick();
+	const qreal fraction = (centerOf(rig.view).x() - a.x()) / 80.0;
+	ok &= expect(fraction > 0.45 && fraction < 0.55, "a tick after a stalled event loop takes a step of 250 ms", measured({{"fraction", fraction}}));
+
+	rig.now = 1033;
+	rig.camera.tick();
+	const qreal off = distance(centerOf(rig.view), target) / pixelOf(rig.view);
+	ok &= expect(off <= 3.0, "a tick after the arrival moves the view onto the target", measured({{"off", off}}));
+	ok &= expect(!rig.camera.running(), "the timer stops when the target is reached");
 	return ok;
 }
 
@@ -419,7 +759,13 @@ int main(int argc, char** argv) {
 	ok &= checkApproach();
 	ok &= checkLagCap();
 	ok &= checkFastStream();
-	ok &= checkUpdateInterval();
+	ok &= checkEvenGlide();
+	ok &= checkEndOfUpdates();
+	ok &= checkSpeedChange();
+	ok &= checkIrregularGaps();
+	ok &= checkPauseThenUpdate();
+	ok &= checkPanLateInGlide();
+	ok &= checkStalledTick();
 	ok &= checkSeek();
 	ok &= checkManualPan();
 	ok &= checkZoom();

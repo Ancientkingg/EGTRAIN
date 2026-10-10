@@ -7,11 +7,10 @@
 #include <utility>
 
 namespace {
-// The time constant of the approach is half the interval between targets, within these bounds.
-constexpr qreal kMinTauMs = 60.0;
-constexpr qreal kMaxTauMs = 250.0;
-constexpr qreal kTauPerInterval = 0.5;
+// The estimated interval between targets before two targets have been seen.
 constexpr qreal kDefaultIntervalMs = 500.0;
+// The view takes at least this long to reach a target: a glide shorter than two timer steps is a cut.
+constexpr qint64 kMinGlideMs = 2 * FollowCamera::tickIntervalMs;
 // A longer gap between targets (a pause) is not an update interval.
 constexpr qint64 kMaxIntervalMs = 2000;
 // A step longer than this (a stalled event loop) is treated as this long.
@@ -60,10 +59,17 @@ qreal FollowCamera::pixelSize() const {
 	return scale > 0.0 ? 1.0 / scale : 1.0;
 }
 
+// How long the view takes to reach a target that has just arrived.
+qint64 FollowCamera::glideDurationMs() const {
+	return std::max<qint64>(std::llround(m_intervalMs), kMinGlideMs);
+}
+
 void FollowCamera::adoptViewCenter() {
 	if (m_moving || !m_view)
 		return;
 	m_position = viewCenter();
+	m_lastTickMs = nowMs();
+	m_arrivalMs = m_lastTickMs + glideDurationMs();
 	m_stall = Stall();
 	m_withinLag = false;
 }
@@ -107,6 +113,7 @@ void FollowCamera::follow(const QPointF& target, bool snap) {
 	}
 	if (interval > 0 && interval <= kMaxIntervalMs)
 		m_intervalMs = 0.5 * (m_intervalMs + interval);
+	m_arrivalMs = now + glideDurationMs();
 	if (!m_timer.isActive()) {
 		m_lastTickMs = now;
 		m_timer.start();
@@ -136,6 +143,7 @@ void FollowCamera::tick() {
 	}
 	const qint64 now = nowMs();
 	const qreal stepMs = qreal(std::clamp<qint64>(now - m_lastTickMs, 0, kMaxStepMs));
+	const qreal leftMs = qreal(m_arrivalMs - m_lastTickMs);
 	m_lastTickMs = now;
 
 	const qreal reached = kReachedPixels * pixelSize();
@@ -145,11 +153,12 @@ void FollowCamera::tick() {
 	const QPointF freeDelta(m_stall.x ? 0.0 : delta.x(), m_stall.y ? 0.0 : delta.y());
 	const qreal distance = std::hypot(freeDelta.x(), freeDelta.y());
 
-	// The part of the free distance that is left after this step. A clamped axis asks for the target.
+	// The part of the free distance that is left after this step: the view covers the same part of
+	// the way in every step until the arrival. A clamped axis asks for the target.
 	qreal remainingFraction = 0.0;
 	if (distance >= reached) {
-		const qreal tau = std::clamp(kTauPerInterval * m_intervalMs, kMinTauMs, kMaxTauMs);
-		remainingFraction = std::exp(-stepMs / tau);
+		if (leftMs > stepMs)
+			remainingFraction = 1.0 - stepMs / leftMs;
 		const qreal remaining = distance * remainingFraction;
 		if (m_withinLag && remaining > maxLag)
 			remainingFraction = maxLag / distance;

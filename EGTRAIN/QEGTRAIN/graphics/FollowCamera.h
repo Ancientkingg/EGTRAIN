@@ -13,10 +13,12 @@
 // Moves the centre of a NetworkView towards a target scene position. It owns neither a
 // train nor a snapshot: the caller passes positions in and the controller moves the view.
 //
-// A glide follows the target with an exponential approach driven by a timer of its own.
-// The time constant comes from the interval between targets, the distance to the target is
-// capped to a fraction of the visible scene, and the timer stops when the target is reached
-// or the view cannot get closer to it. A snap moves the view at once.
+// A glide follows the target with a timer of its own. The view moves at a constant speed and
+// reaches the newest target one estimated update interval after that target arrived, and never
+// sooner than two timer steps. It is about one update behind a train that moves at constant
+// speed, and moves at one speed between updates and across them. The distance to the target is
+// capped to a fraction of the visible scene, and the timer stops when the target is reached or
+// the view cannot get closer to it. A snap moves the view at once.
 //
 // The controller reads the real centre back after every move to detect a clamped axis, and
 // leaves a clamped axis out of the distance, the step and the lag cap of the free axis. It
@@ -61,6 +63,7 @@ private:
 	qreal pixelSize() const;
 	Stall moveTo(const QPointF& desired);
 	qreal distanceToTarget(const Stall& stall) const;
+	qint64 glideDurationMs() const;
 	void adoptViewCenter();
 
 	QPointer<NetworkView> m_view;
@@ -76,6 +79,7 @@ private:
 	qreal m_intervalMs;
 	qint64 m_lastTargetMs = 0;
 	qint64 m_lastTickMs = 0;
+	qint64 m_arrivalMs = 0;
 };
 
 #endif // FOLLOWCAMERA_H

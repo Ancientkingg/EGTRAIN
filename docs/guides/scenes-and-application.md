@@ -181,10 +181,11 @@ view does not move. Follow is also cleared when the run ends, when
 it is disabled, when playback exits, or when the selected train is no longer
 available; it never silently switches to another train.
 
-In a live run the view glides after the followed train. At each step of a timer it
-moves a part of the way to the latest position, and faster when updates come faster,
-so that it stays less than a third of the visible area behind the train. When the run
-is paused, the view settles on the train and then stops. In the replay of a completed
+In a live run the view glides after the followed train. It moves at an even speed and
+reaches each new position of the train about one update interval after that position
+arrived, so it is about one update behind the train and stays less than a third of the
+visible area behind it. When the run is paused, the view reaches the last position and
+stops. In the replay of a completed
 run the view moves to the train at once at every seek and every step of the playback,
 because the replay holds a frame every five seconds and a glide would show motion that
 was not recorded. Switching Follow on and choosing another train also move the view at
