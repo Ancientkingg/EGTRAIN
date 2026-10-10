@@ -1,9 +1,12 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
 import playback_profile as profile
+
+SIGNALLING_SOURCE = profile.REPO_ROOT / "EGTRAIN" / "QEGTRAIN" / "simulation" / "Signalling.cpp"
 
 
 def records(*, paints=1, structural=True):
@@ -24,6 +27,8 @@ def records(*, paints=1, structural=True):
         "worker/playback_step/compute/train_passenger_state_payload": 10,
         "worker/playback_step/compute/passenger_status_output": 10,
         "worker/playback_step/compute/infrastructure_signalling_cleanup": 10,
+        "worker/playback_step/compute/infrastructure_signalling_cleanup/release_mixed_signalling": 3,
+        "worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling": 4,
         "worker/playback_step/snapshot_build_publish": 30,
         "worker/playback_step/snapshot_build_publish/build_gui_snapshot": 10,
         "worker/playback_step/snapshot_build_publish/mailbox_publish": 10,
@@ -41,7 +46,7 @@ def records(*, paints=1, structural=True):
     aggregates = [{
         "type": "aggregate", "path": path, "lane": profile.PARENTS[path][0],
         "parent": profile.PARENTS[path][1], "calls": 10, "total_ns": total,
-        "min_ns": 1, "median_ns": 2, "p95_ns": min(10, total), "max_ns": min(10, total),
+        "min_ns": 1 if total >= 10 else 0, "median_ns": 2, "p95_ns": min(10, total), "max_ns": min(10, total),
     } for path, total in totals.items()]
     completion = {
         "type": "completion", "observed_ns": 50_000_000, "start_timestep": 1, "end_timestep": 2,
@@ -136,6 +141,53 @@ class PlaybackProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "compute child calls"):
             profile.validate_trial(trial, trial=1, view="fit", duration_ms=50,
                                    delay_ms=0, structural=True)
+
+    def test_signalling_children_are_mandatory_worker_paths_with_matching_calls(self):
+        trial = records()
+        aggregates = {record["path"]: record for record in trial
+                      if record["type"] == "aggregate"}
+        self.assertEqual(len(profile.SIGNALLING_CHILDREN), 2)
+        self.assertIn(profile.SIGNALLING_PATH, profile.COMPUTE_CHILDREN)
+        self.assertTrue(profile.SIGNALLING_CHILDREN <= profile.MANDATORY_PATHS)
+        for path in profile.SIGNALLING_CHILDREN:
+            self.assertEqual(profile.PARENTS[path], ("worker", profile.SIGNALLING_PATH))
+            self.assertEqual(aggregates[path]["calls"], aggregates[profile.COMPUTE_PATH]["calls"])
+
+        for path in sorted(profile.SIGNALLING_CHILDREN):
+            with self.subTest(path=path):
+                bad = records()
+                next(record for record in bad if record.get("path") == path)["calls"] -= 1
+                with self.assertRaisesRegex(ValueError, "compute child calls"):
+                    profile.validate_trial(bad, trial=1, view="fit", duration_ms=50,
+                                           delay_ms=0, structural=True)
+
+    def test_signalling_cleanup_self_time_leaves_out_only_its_two_children(self):
+        trial = records()
+        aggregates = {record["path"]: record for record in trial
+                      if record["type"] == "aggregate"}
+        totals = profile.self_totals(trial)
+        children = sum(aggregates[path]["total_ns"] for path in profile.SIGNALLING_CHILDREN)
+        self.assertEqual(children, 7)
+        self.assertEqual(totals[profile.SIGNALLING_PATH],
+                         aggregates[profile.SIGNALLING_PATH]["total_ns"] - children)
+        self.assertEqual(totals[profile.SIGNALLING_PATH], 3)
+        for path in profile.SIGNALLING_CHILDREN:
+            self.assertEqual(totals[path], aggregates[path]["total_ns"])
+
+    def test_signalling_scopes_in_source_match_harness_paths(self):
+        text = SIGNALLING_SOURCE.read_text(encoding="utf-8")
+        scope = re.compile(r'\s*QEGTRAIN_PROFILE_SCOPE\(\s*"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\s*\)\s*;')
+        for function, name in (("releaseMixedSignallingSystem", "release_mixed_signalling"),
+                               ("activateMixedSignallingSystem", "activate_mixed_signalling")):
+            with self.subTest(function=function):
+                expected = f"{profile.SIGNALLING_PATH}/{name}"
+                self.assertIn(expected, profile.SIGNALLING_CHILDREN)
+                signature = text.find(f"void {function}()")
+                self.assertNotEqual(signature, -1)
+                body = text[text.index("{", signature) + 1:]
+                match = scope.match(body)
+                self.assertIsNotNone(match, f"{function} does not start with its profiler scope")
+                self.assertEqual(match.groups(), (expected, "worker", profile.SIGNALLING_PATH))
 
     def test_compute_children_must_reconcile_with_parent(self):
         bad = records()

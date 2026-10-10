@@ -1,6 +1,7 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -4444,6 +4445,8 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks) {
 
 // Function to activate mixed signalling areas
 void activateMixedSignallingSystem() {
+	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling", "worker",
+		"worker/playback_step/compute/infrastructure_signalling_cleanup");
 	for (int i = 0; i < N_Routes; i++) {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
 		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
@@ -4477,6 +4480,8 @@ void activateMixedSignallingSystem() {
 
 // Function to Release all block sections in mixed signalling areas
 void releaseMixedSignallingSystem() {
+	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/release_mixed_signalling", "worker",
+		"worker/playback_step/compute/infrastructure_signalling_cleanup");
 	for (int t = 0; t < N_Routes; t++) {
 		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections.data(), train_route[t].N_Block_Sections);
 	}
