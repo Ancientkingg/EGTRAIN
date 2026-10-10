@@ -155,20 +155,11 @@ bool isUsableSignallingArea(const SceneSignallingArea& area) {
 
 // The extent of the blocks of one track, or of the whole network when the track ID is empty.
 std::string blockExtentText(const SceneSectionInventory& inventory, const std::string& trackId) {
-	bool found = false;
-	double start = 0.0;
-	double end = 0.0;
-	for (const SceneSectionDescriptor& section : inventory.sections) {
-		if (section.connectionDerived || (!trackId.empty() && section.firstTrackId != trackId))
-			continue;
-		start = found ? std::min(start, section.startKm) : section.startKm;
-		end = found ? std::max(end, section.endKm) : section.endKm;
-		found = true;
-	}
+	const SceneBlockExtent extent = sceneBlockExtent(inventory, trackId);
 	const std::string subject = trackId.empty() ? "the network" : "track " + trackId;
-	if (!found)
+	if (!extent.found)
 		return subject + " has no blocks";
-	return "blocks of " + subject + " cover " + coordinateText(start) + " to " + coordinateText(end) + " km";
+	return "blocks of " + subject + " cover " + coordinateText(extent.startKm) + " to " + coordinateText(extent.endKm) + " km";
 }
 
 // The signalling areas on the two sides of a stretch of one track: the usable area of that track that ends

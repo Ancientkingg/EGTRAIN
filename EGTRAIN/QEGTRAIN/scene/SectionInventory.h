@@ -128,6 +128,15 @@ struct SceneSignallingAnalysis {
 
 SceneSectionInventory buildSceneSectionInventory(const SceneModel& scene);
 
+// The extent of the blocks of one track, or of the whole network when the track ID is empty.
+// Sections that a connection derives are left out; found is false when there is no block.
+struct SceneBlockExtent {
+	bool found = false;
+	double startKm = 0.0;
+	double endKm = 0.0;
+};
+SceneBlockExtent sceneBlockExtent(const SceneSectionInventory& inventory, const std::string& trackId);
+
 // Which signalling area decides the level of each section. A section belongs to an area when it lies
 // completely inside the area's range on its own track chainage; a track-scoped area applies to the
 // sections of its track and overrides the network-wide areas. When areas of one scope disagree, the

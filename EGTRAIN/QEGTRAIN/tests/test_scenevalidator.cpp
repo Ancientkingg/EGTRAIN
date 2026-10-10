@@ -766,6 +766,24 @@ int main(int argc, char** argv) {
 					 "scene.signalling_area.conflict"),
 		"different track scopes cannot conflict on one derived switch section");
 
+	// The extent of the blocks of the network and of one track. The connection derives a section of track-1
+	// that reaches into the blocks of track-2, so a derived section would stretch the extent of track-1.
+	const SceneSectionInventory extentInventory = buildSceneSectionInventory(conflictingDerivedAreas);
+	bool derivedReachesPastTrack = false;
+	for (const SceneSectionDescriptor& section : extentInventory.sections)
+		derivedReachesPastTrack |= section.connectionDerived && section.firstTrackId == "track-1" && section.endKm > 2.0;
+	const SceneBlockExtent networkExtent = sceneBlockExtent(extentInventory, "");
+	ok &= expect(networkExtent.found && networkExtent.startKm == 0.0 && networkExtent.endKm == 4.0,
+		"the extent of the blocks of the network spans all tracks");
+	const SceneBlockExtent firstTrackExtent = sceneBlockExtent(extentInventory, "track-1");
+	ok &= expect(derivedReachesPastTrack && firstTrackExtent.found && firstTrackExtent.startKm == 0.0 && firstTrackExtent.endKm == 2.0,
+		"the extent of the blocks of a track leaves out the sections that a connection derives");
+	const SceneBlockExtent secondTrackExtent = sceneBlockExtent(extentInventory, "track-2");
+	ok &= expect(secondTrackExtent.found && secondTrackExtent.startKm == 3.0 && secondTrackExtent.endKm == 4.0,
+		"the extent of the blocks of another track is its own");
+	const SceneBlockExtent unknownTrackExtent = sceneBlockExtent(extentInventory, "no-such-track");
+	ok &= expect(!unknownTrackExtent.found, "an unknown track has no block extent");
+
 	const std::string levelMissing = "scene.signalling.level.missing";
 	SceneModel noAreas = clean;
 	noAreas.signallingAreas.clear();
