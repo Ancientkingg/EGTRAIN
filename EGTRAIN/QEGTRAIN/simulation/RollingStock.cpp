@@ -1475,7 +1475,6 @@ void updateSingleTrackLocks(int step) {
 					retainedDirection[l] = route.reversed_direction ? -1 : 1;
 				if (retained || ((!waiting || step + 1 >= train.departure_time) && train.needsSingleTrackReservation(head, speed, interval.first, route.sequence_of_block_sections.data(), route.N_Block_Sections)))
 					requests[l].push_back({k, train.indexOfRoute, train.trainDescription, train.departure_time, train.Start_Node_X, route.x_of_end_node, interval});
-				break; // only the next unpassed stretch can be pending for this train
 			}
 		}
 	}

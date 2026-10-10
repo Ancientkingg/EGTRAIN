@@ -1142,6 +1142,84 @@ static bool singleTrackLockTests() {
 	place(0, 0, 5000.0, false);
 	updateSingleTrackLocks(1);
 
+	// At level 5 the next disconnected interval's approach must already be committed when the tail clears
+	// the first interval. Drive the real movement and signalling routines across that clearance and the gap.
+	setLevel(5);
+	for (Route& route : train_route)
+		route.x_of_end_node = route.sequence_of_block_sections.back().end_node.X;
+	resetSingleTrackLocks();
+	place(0, 1, 2000.0, true);
+	place(1, 0, 0.0, true);
+	regional_train[1].CanEnter = false;
+	constexpr int steps = 65;
+	for (Regional& train : regional_train) {
+		const double head = train.instant_spatial_position[1];
+		const double speed = train.CanEnter ? train.instant_train_speed[1] : 0.0;
+		train.setTrainVectorSizesFromInput(steps);
+		train.instant_spatial_position[0] = head - speed * timestep;
+		train.instant_spatial_position[1] = head;
+		train.instant_train_speed[0] = train.instant_train_speed[1] = speed;
+	}
+	const int savedRouteCount = N_Routes;
+	N_Routes = static_cast<int>(train_route.size());
+	ETCS_MA.clear();
+	auto signalStep = [](int step) {
+		BlocksOccupied.clear();
+		Occupy_Block_Sections_Of_Route(step);
+		ETCS_MA.clear();
+		Apply_Single_Track_Authorities_Mixed_Signalling();
+		releaseMixedSignallingSystem();
+		activateMixedSignallingSystem();
+	};
+	signalStep(1);
+	ok &= expect(singleTrackReservations[0].size() == 2
+			&& singleTrackReservations[0][1].interval == std::make_pair(4000.0, 8000.0),
+		"the moving holder commits the next interval before clearing the first, but not the distant third interval");
+	bool retainedAcrossGap = true, safeApproach = true, waiterHeld = true, crossedGap = false;
+	double largestSpeedDrop = 0.0;
+	Regional& holder = regional_train[0];
+	for (int step = 2; step < steps; ++step) {
+		const double previousHead = holder.instant_spatial_position[step - 1];
+		const double previousSpeed = holder.instant_train_speed[step - 1];
+		const double deceleration = holder.max_train_decelaration
+			+ holder.total_train_resistances(previousSpeed, 0.0, 0.0) / (holder.total_train_mass * holder.massFactor);
+		holder.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		largestSpeedDrop = std::max(largestSpeedDrop, previousSpeed - holder.instant_train_speed[step]);
+		safeApproach &= holder.instant_train_speed[step - 1] == previousSpeed
+			&& previousSpeed - holder.instant_train_speed[step] <= deceleration * timestep + 1e-9
+			&& holder.instant_spatial_position[step] >= previousHead;
+		regional_train[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		waiterHeld &= !regional_train[1].CanEnter;
+		signalStep(step);
+		const double head = holder.instant_spatial_position[step];
+		if (head - holder.train_length >= 2000.0 && head < 4000.0) {
+			crossedGap = true;
+			retainedAcrossGap &= singleTrackHeld[0] == -1
+				&& train_route[1].sequence_of_block_sections[1].arcs_in_signalling_block_section[0].signalSpeedLimit >= holder.instant_train_speed[step];
+		}
+	}
+	ok &= expect(crossedGap && retainedAcrossGap && waiterHeld,
+		"the moving reversed holder retains direction and its approach speed limit across the gap while the forward opponent waits");
+	ok &= expect(safeApproach, "gap handover neither rewrites the previous speed nor exceeds physical deceleration; largest speed drop=" + std::to_string(largestSpeedDrop));
+	ok &= expect(holder.instant_spatial_position.back() - holder.train_length >= 4000.0,
+		"the moving holder reaches the next disconnected interval without an instantaneous stop");
+	N_Routes = savedRouteCount;
+	ETCS_MA = savedAuthorities;
+
+	// At level 2 the same next interval is still beyond braking lookahead, so clearing the first releases it.
+	setLevel(2);
+	resetSingleTrackLocks();
+	place(0, 1, 2000.0, true);
+	place(1, 0, 0.0, true);
+	regional_train[1].CanEnter = false;
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == -1 && singleTrackReservations[0].size() == 1,
+		"a distant next stretch outside braking lookahead is not committed");
+	place(0, 1, 2070.0, true);
+	updateSingleTrackLocks(1);
+	ok &= expect(singleTrackHeld[0] == 1,
+		"tail clearance releases the direction to a waiting opponent when the distant next stretch is uncommitted");
+
 	// New routes are not read through the zones of the old ones.
 	train_route.resize(1);
 	ok &= expect(singleTrackZone(0, 1).intervals.empty() && singleTrackZone(0, 0).intervals.size() == 3,
