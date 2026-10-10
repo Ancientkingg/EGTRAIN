@@ -414,7 +414,7 @@ has a golden file. Any case can also be run by hand with `--case`. Each case is
 its own CTest entry and process, labelled `characterization` and `unit`:
 
 ```bash
-cmake --build build --target test_characterization test_crossover_chain
+cmake --build build --target test_characterization test_crossover_chain test_signalling_aspects
 ctest --test-dir build -L characterization --output-on-failure
 ```
 
@@ -492,6 +492,38 @@ crossover meanwhile; at level 5 it waits further back, in front of the first
 crossover, and that is not checked. The levels 3 and 4 are not run, because a
 train alone does not stop in front of the second crossover there. The test reads
 no golden file.
+
+`test_signalling_aspects` is a third executable, because it needs no scene and
+no Qt. It builds routes of up to seven sections by hand in the global route
+list and calls the release and the activation of the mixed signalling
+(`releaseMixedSignallingSystem` and `activateMixedSignallingSystem`, in the
+order of a step) and the release of the last section
+(`relLastSectionMixedSignalling`). After a step it writes the code, state, signal
+speed limit, speed in braking and exit speed of every section: one line per
+case, with the group, the parameters, a `|` and one token
+`code:state:signal:braking:exit` per section. The header of the golden file
+`tests/characterization/expected/signalling-aspects.txt` explains the fields.
+The groups are uniform levels, two levels with a border, three or more levels,
+sweeps of a moving train that carry the state from step to step, the release
+functions, other signal speeds and a held single-track zone. The cases are in
+the file, and the comparison is exact text, without a tolerance. The speed
+limits of the sections are numbers of the test, not railway data. The test also checks, without the golden file, the aspects of one step for
+every level, and that a step leaves the lists of occupied and connected sections
+as they were. A change of the aspect routines that is not meant to change
+behaviour has to leave the file as it is. The file has no `# case:` line and no
+`# known-wrong:` line, because it is not a case of the table. It is recorded
+with `EGTRAIN_UPDATE_EXPECTATIONS=1`, like the others. The command in
+"Changing an expectation deliberately" that runs every characterization test
+records it too; this command records it alone:
+
+```bash
+EGTRAIN_UPDATE_EXPECTATIONS=1 build/EGTRAIN/QEGTRAIN/tests/characterization/test_signalling_aspects \
+    --expect EGTRAIN/QEGTRAIN/tests/characterization/expected/signalling-aspects.txt
+```
+
+The test does not call diverging switches, double switches, station boundaries,
+signal failures or the authorities of levels 3 and 4. Its CTest entry is
+`characterization_signalling_aspects`, labelled `characterization` and `unit`.
 
 ### Reading a golden file
 

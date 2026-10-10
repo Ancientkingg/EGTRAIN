@@ -195,3 +195,11 @@ set_tests_properties(${EGTRAIN_CROSSOVER_CHAIN_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT 60
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Aspects of the mixed signalling routines on routes built by hand. No Qt: only the simulation library.
+add_executable(test_signalling_aspects ${SRC_DIR}/tests/characterization/test_signalling_aspects.cpp)
+target_link_libraries(test_signalling_aspects PRIVATE egtrain_sim)
+add_test(NAME characterization_signalling_aspects
+	COMMAND test_signalling_aspects --expect ${EGTRAIN_CHARACTERIZATION_EXPECTED}/signalling-aspects.txt
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(characterization_signalling_aspects PROPERTIES LABELS "characterization;unit" TIMEOUT 60)
