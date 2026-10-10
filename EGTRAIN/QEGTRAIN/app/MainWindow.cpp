@@ -25230,6 +25230,15 @@ void MainWindow::onSimulationFinished() {
 	}
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION")) {
+		const QStringList timeHeaders{"Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)"};
+		for (int i = 0; i < timeHeaders.size(); ++i) {
+			const auto* header = m_runResultsTable ? m_runResultsTable->horizontalHeaderItem(4 + i) : nullptr;
+			if (!header || header->text() != timeHeaders[i]) {
+				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: run results time header\n");
+				QCoreApplication::exit(2);
+				return;
+			}
+		}
 		const bool clean = m_runtimeStatus == QStringLiteral("Completed") && m_snapshot
 			&& (m_operationalLifecycleE2eCompletions == 0
 				|| m_snapshot != m_operationalLifecycleE2eFirstFrame)
@@ -26785,7 +26794,7 @@ void MainWindow::setupRunResultsDock() {
 	m_runResultsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_runResultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_runResultsTable->setColumnCount(11);
-	m_runResultsTable->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start", "End", "Travel time",
+	m_runResultsTable->setHorizontalHeaderLabels({"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)", "Travel time (h:mm:ss)",
 		"Energy (kWh)", "Energy with regen (kWh)",
 		"Substation (kWh)", "Substation with regen (kWh)"});
 	m_runResultsTable->setAlternatingRowColors(true);
@@ -26899,8 +26908,8 @@ void MainWindow::refreshRunResults() {
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
 	m_runResultsTable->setHorizontalHeaderLabels(
-		{"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (s)", "End time (s)",
-			"Travel time (s)", "Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
+		{"Train", "Operating code", "Performance (%)", "Maximum speed (km/h)", "Start time (hh:mm:ss)", "End time (hh:mm:ss)",
+			"Travel time (h:mm:ss)", "Energy consumed (kWh)", "Energy consumed with regenerative braking (kWh)",
 			"Substation request (kWh)", "Substation request with regenerative braking (kWh)"});
 	m_runResultsTable->setRowCount(static_cast<int>(results.trains.size()) + 1);
 
