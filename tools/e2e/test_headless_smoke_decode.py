@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -7,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from headless_smoke import (
     NO_ARRIVAL,
     case_command,
+    check_no_position_jump,
     check_scene_matches_netherlands,
     check_scene_structure,
     occurrence_errors,
@@ -25,7 +27,61 @@ def timetable_sample(*runs: tuple[str, list[str], list[int], list[int]]) -> str:
     )
 
 
+def check_position_cases() -> None:
+    header = "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock\n"
+    forward = [float(i * 10) for i in range(20)]
+    reverse = list(reversed(forward))
+    cases = [
+        ("a", "FWD", forward, "0", None, None),
+        ("b", "REV", reverse, "1", None, None),
+        ("c", "FWD", forward[:9] + [forward[8] - 2] + forward[10:], "0", None, "against its direction of travel"),
+        ("d", "REV", reverse[:9] + [reverse[8] + 2] + reverse[10:], "1", None, "against its direction of travel"),
+        ("e", "REV", reverse, "0", None, "against its direction of travel"),
+        ("f", "FWD", forward[:9] + [forward[8] - 0.05] + forward[10:], "0", None, None),
+        ("g1", "FWD", forward, "other", None, "direction of travel is unknown"),
+        ("g2", "FWD", forward, None, None, "direction of travel is unknown"),
+        ("g3", "FWD", [], "other", None, None),
+        ("h", "FWD", forward[:9] + [forward[8] - 100] + forward[10:], "0", None, "m/s allows"),
+        ("i", "FWD", forward[:10] + [forward[9] - 2 + i * 10 for i in range(10)], "0", 10, None),
+    ]
+    deviations = []
+    for letter, train, positions, flag, gap, expected in cases:
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            output = scene_output_dir(1, base)
+            trajectory = output / "TEMP" / f"Traj_Train_{train}.txt"
+            diagram = output / "TrainTrajectories/TrainServicePathDiagram.txt"
+            trajectory.parent.mkdir(parents=True)
+            diagram.parent.mkdir(parents=True)
+            rows = header
+            for time, position in enumerate(positions):
+                if time == gap:
+                    rows += "\n"
+                rows += f"{time}\t10\t{position}\t0\t0\t0\t0\tblock\n"
+            trajectory.write_bytes(rows.encode("utf-8"))
+            if flag is not None:
+                name = "OTHER" if flag == "other" else train
+                direction = "0" if flag == "other" else flag
+                diagram.write_bytes(f"{name}\t1\t{direction}\tA\t0\t10\n".encode("utf-8"))
+            try:
+                check_no_position_jump(1, base)
+            except SystemExit as exc:
+                message = str(exc.code)
+                if expected is None or expected not in message or trajectory.name not in message:
+                    deviations.append(f"{letter}: unexpected failure: {message}")
+                elif letter in ("g1", "g2") and str(diagram) not in message:
+                    deviations.append(f"{letter}: missing diagram path: {message}")
+            except Exception as exc:
+                deviations.append(f"{letter}: {type(exc).__name__}: {exc}")
+            else:
+                if expected is not None:
+                    deviations.append(f"{letter}: passed, expected {expected}")
+    if deviations:
+        raise SystemExit("position cases failed:\n" + "\n".join(deviations))
+
+
 def main() -> None:
+    check_position_cases()
     for case_id in range(1, 5):
         check_scene_structure(case_id)
     check_scene_matches_netherlands(7)

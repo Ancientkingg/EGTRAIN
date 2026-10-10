@@ -34,6 +34,8 @@ NETHERLANDS_FILES = ("infrastructure.json", "rolling_stock.json", "scenarios.jso
 OCCURRENCE_SERVICE = "IC_ASD_HVS_DEMO"
 # The arrival that TimetablePoints.txt holds for a stop the train did not reach.
 NO_ARRIVAL = -10000
+# Allow small printed-position differences against the route direction.
+BACKWARD_TOLERANCE_M = 0.1
 
 # d3f5c7005c7030ba3745c8a41b0572e61974bd15 is the last pre-cutover
 # runtime baseline. These checks keep one representative observable per
@@ -359,15 +361,33 @@ def check_finite_station_statistics(case_id: int, out_base: Path = RUN_DIR) -> N
     print(f"PASS case {case_id} station statistics are finite")
 
 
+def route_directions(case_id: int, out_base: Path = RUN_DIR) -> dict[str, bool]:
+    path = scene_output_dir(case_id, out_base) / "TrainTrajectories/TrainServicePathDiagram.txt"
+    if not path.exists():
+        return {}
+    directions = {}
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        cells = line.split("\t")
+        if len(cells) >= 3:
+            directions[cells[0]] = cells[2] == "1"
+    return directions
+
+
 def check_no_position_jump(case_id: int, out_base: Path = RUN_DIR) -> None:
-    """A train never moves farther in one step than its maximum speed allows."""
+    """Check the speed bound and reject steps against the direction of travel.
+
+    A train keeps the direction of its route for the whole run.
+    """
     scene_dir = SCENE_DIR / SCENES[case_id]
     rolling = json.loads((scene_dir / "rolling_stock.json").read_text(encoding="utf-8"))
     max_speed = max(unit["physical"]["max_speed_ms"] for unit in rolling["train_units"])
     files = sorted((scene_output_dir(case_id, out_base) / "TEMP").glob("Traj_Train_*.txt"))
     if not files:
         raise SystemExit(f"case {case_id} has no train trajectory files")
+    directions = route_directions(case_id, out_base)
+    diagram = scene_output_dir(case_id, out_base) / "TrainTrajectories/TrainServicePathDiagram.txt"
     for path in files:
+        train = path.name[len("Traj_Train_"):-len(".txt")]
         previous = None
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines()[1:]:
             cells = line.split("\t")
@@ -375,13 +395,24 @@ def check_no_position_jump(case_id: int, out_base: Path = RUN_DIR) -> None:
                 previous = None
                 continue
             current = (float(cells[0]), float(cells[2]))
+            if previous is not None and train not in directions:
+                raise SystemExit(f"case {case_id} train {path.name}: direction of travel is unknown in {diagram}")
             if previous is not None and abs(current[1] - previous[1]) > max_speed * (current[0] - previous[0]) + 0.5:
                 raise SystemExit(
                     f"case {case_id} train {path.name} moved from {previous[1]} m at {previous[0]} s "
                     f"to {current[1]} m at {current[0]} s, more than {max_speed} m/s allows"
                 )
+            if previous is not None:
+                step = current[1] - previous[1]
+                if directions[train]:
+                    step = -step
+                if step < -BACKWARD_TOLERANCE_M:
+                    raise SystemExit(
+                        f"case {case_id} train {path.name} moved from {previous[1]} m at {previous[0]} s "
+                        f"to {current[1]} m at {current[0]} s, against its direction of travel"
+                    )
             previous = current
-    print(f"PASS case {case_id} trains move at most their maximum speed per step")
+    print(f"PASS case {case_id} trains move at most their maximum speed per step and do not move against their direction of travel")
 
 
 def check_amsterdam_hilversum_occurrences(case_id: int, out_base: Path = RUN_DIR) -> None:

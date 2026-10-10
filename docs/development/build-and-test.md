@@ -767,9 +767,13 @@ The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
 Amsterdam_Hilversum_Student, which has no `-n` number and is case 7 of the
 script. It checks clean native execution and the available trajectory/station
 evidence. For every scene it also requires that no train moves farther in one
-step than the highest maximum speed of the scene's rolling stock allows. The
-script starts every run with `--detailed-trajectories`, because that check reads
-`TEMP/Traj_Train_*.txt`.
+step than the highest maximum speed of the scene's rolling stock allows, and
+that no train steps against the direction of its route by more than 0.1 m. The
+direction comes from the flag in the train's row in
+`TrainTrajectories/TrainServicePathDiagram.txt`. The script starts every run with
+`--detailed-trajectories`, because those checks read `TEMP/Traj_Train_*.txt`.
+CTest runs the position checks in `test_headless_smoke_decode` on trajectory
+files that the test writes.
 
 For Amsterdam_Hilversum_Student the script also checks that every occurrence
 of its service reaches Hilversum, one after the other, and that the five files
