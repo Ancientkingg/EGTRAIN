@@ -38,6 +38,7 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneImporter.h"
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevelNames.h"
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
@@ -139,6 +140,16 @@ protected:
 			}
 		}
 		QSlider::mousePressEvent(event);
+	}
+};
+
+// A combo box that ignores the mouse wheel, so the wheel scrolls the view behind it.
+class NoWheelComboBox : public QComboBox {
+public:
+	using QComboBox::QComboBox;
+protected:
+	void wheelEvent(QWheelEvent* event) override {
+		event->ignore();
 	}
 };
 
@@ -625,6 +636,57 @@ void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& in
 		selected = combo->count() - 1;
 	}
 	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));
+}
+
+bool sceneHasTrack(const SceneModel& scene, const std::string& trackId) {
+	return std::any_of(scene.tracks.begin(), scene.tracks.end(),
+		[&trackId](const SceneTrack& track) { return track.id == trackId; });
+}
+
+// The signalling systems in level order. A stored level that is no system gets one item on top that stands for it.
+void populateSignallingSystemCombo(QComboBox* combo, int current) {
+	if (!combo)
+		return;
+	combo->clear();
+	if (!isValidSignallingLevel(current)) {
+		const bool unchosen = current == kSignallingLevelUnset;
+		combo->addItem(unchosen ? QStringLiteral("Choose a signalling system")
+								: QString::fromStdString(signallingLevelName(current)),
+			current);
+		combo->setItemData(0,
+			unchosen ? QStringLiteral("No system is chosen yet. Choose the system that governs the sections inside this area.")
+					 : QString::fromStdString(signallingLevelDescription(current)),
+			Qt::ToolTipRole);
+	}
+	for (int level = levelValue(SignallingLevel::Atb); level <= levelValue(SignallingLevel::Bacc); ++level) {
+		combo->addItem(QString::fromStdString(signallingLevelName(level)), level);
+		combo->setItemData(combo->count() - 1, QString::fromStdString(signallingLevelDescription(level)), Qt::ToolTipRole);
+	}
+	combo->setCurrentIndex(combo->findData(current));
+}
+
+// All tracks, then each track of the scene with the extent of its blocks. A track that is no track of the scene
+// gets one item on top.
+void populateSignallingAreaTrackCombo(QComboBox* combo, const SceneModel& scene,
+	const SceneSectionInventory& inventory, const std::string& current) {
+	if (!combo)
+		return;
+	combo->clear();
+	if (!current.empty() && !sceneHasTrack(scene, current))
+		combo->addItem(QStringLiteral("Invalid track: %1").arg(QString::fromStdString(current)),
+			QString::fromStdString(current));
+	combo->addItem(QStringLiteral("(all tracks)"), QString());
+	for (const SceneTrack& track : scene.tracks) {
+		const QString id = QString::fromStdString(track.id);
+		const SceneBlockExtent extent = sceneBlockExtent(inventory, track.id);
+		combo->addItem(extent.found
+				? QStringLiteral("%1 (blocks %2 to %3 km)")
+					  .arg(id, QString::fromStdString(formatSceneSectionCoordinate(extent.startKm)),
+						  QString::fromStdString(formatSceneSectionCoordinate(extent.endKm)))
+				: QStringLiteral("%1 (no blocks)").arg(id),
+			id);
+	}
+	combo->setCurrentIndex(combo->findData(QString::fromStdString(current)));
 }
 
 void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneModel,
@@ -6564,7 +6626,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 	else if (facet == "signals")
 		headers << "ID" << "Protected section";
 	else if (facet == "signalling_areas")
-		headers << "ID" << "Start km" << "End km" << "Level" << "Track ID";
+		headers << "ID" << "Start km" << "End km" << "Signalling system" << "Track";
 	else if (facet == "routes")
 		headers << "ID" << "Sections" << "Has corridor" << "Corridor" << "Reversed";
 	else if (facet == "block_dependencies")
@@ -6769,8 +6831,67 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			setCell(row, 0, QString::fromStdString(area.id));
 			setCell(row, 1, QString::number(area.startKm, 'g', precision));
 			setCell(row, 2, QString::number(area.endKm, 'g', precision));
-			setCell(row, 3, QString::number(area.level));
-			setCell(row, 4, QString::fromStdString(area.trackId));
+			const QString areaId = QString::fromStdString(area.id);
+			auto* systemCombo = new NoWheelComboBox(m_infrastructureTable);
+			systemCombo->setObjectName(QStringLiteral("signallingAreaSystemCombo"));
+			systemCombo->setAccessibleName(QStringLiteral("Signalling system for %1").arg(areaId));
+			systemCombo->setToolTip(QStringLiteral("Choose the signalling system of the sections inside this area"));
+			systemCombo->setFocusPolicy(Qt::StrongFocus);
+			{
+				const QSignalBlocker systemBlocker(systemCombo);
+				populateSignallingSystemCombo(systemCombo, area.level);
+			}
+			connect(systemCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+				[this, row, systemCombo](int) {
+					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
+						return;
+					const int level = systemCombo->currentData().toInt();
+					SceneSignallingArea& editableArea = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
+					if (editableArea.level == level)
+						return;
+					editableArea.level = level;
+					{
+						const QSignalBlocker systemBlocker(systemCombo);
+						for (int index = systemCombo->count() - 1; index >= 0; --index)
+							if (!isValidSignallingLevel(systemCombo->itemData(index).toInt()))
+								systemCombo->removeItem(index);
+						systemCombo->setCurrentIndex(systemCombo->findData(level));
+					}
+					markSceneDirty();
+					refreshValidationPanel();
+				});
+			m_infrastructureTable->setCellWidget(row, 3, systemCombo);
+			auto* trackCombo = new NoWheelComboBox(m_infrastructureTable);
+			trackCombo->setObjectName(QStringLiteral("signallingAreaTrackCombo"));
+			trackCombo->setAccessibleName(QStringLiteral("Track for %1").arg(areaId));
+			trackCombo->setToolTip(QStringLiteral("Choose the track this area applies to, or all tracks"));
+			trackCombo->setFocusPolicy(Qt::StrongFocus);
+			{
+				const QSignalBlocker trackBlocker(trackCombo);
+				populateSignallingAreaTrackCombo(trackCombo, m_sceneModel, sectionInventory, area.trackId);
+			}
+			connect(trackCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+				[this, row, trackCombo](int) {
+					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
+						return;
+					const std::string trackId = trackCombo->currentData().toString().toStdString();
+					SceneSignallingArea& editableArea = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
+					if (editableArea.trackId == trackId)
+						return;
+					editableArea.trackId = trackId;
+					{
+						const QSignalBlocker trackBlocker(trackCombo);
+						for (int index = trackCombo->count() - 1; index >= 0; --index) {
+							const std::string itemTrack = trackCombo->itemData(index).toString().toStdString();
+							if (!itemTrack.empty() && !sceneHasTrack(m_sceneModel, itemTrack))
+								trackCombo->removeItem(index);
+						}
+						trackCombo->setCurrentIndex(trackCombo->findData(QString::fromStdString(trackId)));
+					}
+					markSceneDirty();
+					refreshValidationPanel();
+				});
+			m_infrastructureTable->setCellWidget(row, 4, trackCombo);
 		}
 	} else if (facet == "routes") {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.routes.size()));
@@ -7359,20 +7480,6 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 			parseNumber(area.startKm);
 		} else if (column == 2) {
 			parseNumber(area.endKm);
-		} else if (column == 3) {
-			bool parsed = false;
-			const int level = value.toInt(&parsed);
-			if (!parsed) {
-				refreshInfrastructureTable();
-				return;
-			}
-			if (area.level != level) {
-				area.level = level;
-				changed = true;
-			}
-		} else if (column == 4 && area.trackId != value.toStdString()) {
-			area.trackId = value.toStdString();
-			changed = true;
 		}
 	} else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size())) {
 		SceneRoute& route = m_sceneModel.routes[static_cast<std::size_t>(row)];
@@ -8238,7 +8345,8 @@ void MainWindow::addInfrastructureEntity() {
 		newRow = static_cast<int>(sceneSignals(m_sceneModel).size()) - 1;
 	} else if (facet == "signalling_areas") {
 		id = uniqueInfrastructureId("signalling-area", facet);
-		m_sceneModel.signallingAreas.push_back({id, 0.0, 0.0, 0, {}});
+		const SceneBlockExtent extent = sceneBlockExtent(buildSceneSectionInventory(m_sceneModel), "");
+		m_sceneModel.signallingAreas.push_back({id, extent.startKm, extent.endKm, kSignallingLevelUnset, {}});
 		newRow = static_cast<int>(m_sceneModel.signallingAreas.size()) - 1;
 	} else if (facet == "routes") {
 		id = uniqueInfrastructureId("route", facet);
@@ -17358,28 +17466,97 @@ void MainWindow::runEditorSmokeE2E() {
 							facetFailure(facetOk, "stations/signalling", "signal section choice did not commit");
 					}
 				}
+				// Every edit of the table rebuilds it and deletes the lists, so a list is fetched again after each edit.
+				const auto areaSystemCombo = [&]() { return qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 3)); };
+				const auto areaTrackCombo = [&]() { return qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 4)); };
+				const auto areaLevelError = [this]() {
+					for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics)
+						if (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.signalling_area.level")
+							return QString::fromStdString(diagnostic.message);
+					return QString();
+				};
+				const auto chooseListItem = [](QComboBox* combo, const QVariant& data) {
+					const int index = combo ? combo->findData(data) : -1;
+					if (index < 0)
+						return false;
+					combo->setCurrentIndex(index);
+					QApplication::processEvents();
+					return true;
+				};
+				const int systemCount = levelValue(SignallingLevel::Bacc) - levelValue(SignallingLevel::Atb) + 1;
+				// The six systems in level order after the given number of extra items.
+				const auto systemListHolds = [systemCount](const QComboBox* combo, int extraItems) {
+					if (!combo || combo->count() != systemCount + extraItems)
+						return false;
+					for (int level = levelValue(SignallingLevel::Atb); level <= levelValue(SignallingLevel::Bacc); ++level) {
+						const int item = level - levelValue(SignallingLevel::Atb) + extraItems;
+						if (combo->itemText(item) != QString::fromStdString(signallingLevelName(level)) || combo->itemData(item).toInt() != level)
+							return false;
+					}
+					return true;
+				};
+				// "(all tracks)" and every track of the scene in scene order after the given number of extra items.
+				const auto trackListHolds = [this](const QComboBox* combo, int extraItems) {
+					if (!combo || combo->count() != extraItems + 1 + static_cast<int>(m_sceneModel.tracks.size()))
+						return false;
+					if (combo->itemText(extraItems) != QStringLiteral("(all tracks)") || !combo->itemData(extraItems).toString().isEmpty())
+						return false;
+					for (std::size_t index = 0; index < m_sceneModel.tracks.size(); ++index) {
+						const int item = extraItems + 1 + static_cast<int>(index);
+						const QString id = QString::fromStdString(m_sceneModel.tracks[index].id);
+						if (combo->itemData(item).toString() != id || !combo->itemText(item).startsWith(id + QStringLiteral(" (blocks "))
+							|| !combo->itemText(item).endsWith(QStringLiteral(" km)")))
+							return false;
+					}
+					return true;
+				};
 				if (!addInfrastructureRow("signalling_areas"))
 					facetFailure(facetOk, "stations/signalling", "signalling area row could not be added");
-				const bool signallingAreaStartsInvalid = m_sceneModel.signallingAreas.size() == 1
-					&& m_sceneModel.signallingAreas.front().startKm == 0.0
-					&& m_sceneModel.signallingAreas.front().endKm == 0.0
-					&& m_sceneModel.signallingAreas.front().level == 0
+				const SceneBlockExtent networkExtent = sceneBlockExtent(buildSceneSectionInventory(m_sceneModel), "");
+				const bool signallingAreaStartsUnchosen = m_sceneModel.signallingAreas.size() == 1
+					&& networkExtent.found && networkExtent.startKm == 0.0 && networkExtent.endKm > 0.0
+					&& m_sceneModel.signallingAreas.front().startKm == networkExtent.startKm
+					&& m_sceneModel.signallingAreas.front().endKm == networkExtent.endKm
+					&& m_sceneModel.signallingAreas.front().level == kSignallingLevelUnset
 					&& m_sceneModel.signallingAreas.front().trackId.empty();
-				if (!signallingAreaStartsInvalid)
-					facetFailure(facetOk, "stations/signalling", "Add did not create an inert signalling area row");
+				if (!signallingAreaStartsUnchosen)
+					facetFailure(facetOk, "stations/signalling", "Add did not create a signalling area with the network extent and no chosen system");
+				QString firstSceneError;
+				for (const SceneDiagnostic& diagnostic : m_sceneDiagnostics)
+					if (diagnostic.severity == SceneSeverity::Error) {
+						firstSceneError = QString::fromStdString(diagnostic.message);
+						break;
+					}
+				if (!areaLevelError().contains("has no signalling system") || !m_runSceneAction || m_runSceneAction->isEnabled()
+					|| !m_caseReadinessLabel || firstSceneError.isEmpty() || m_caseReadinessLabel->text() != firstSceneError)
+					facetFailure(facetOk, "stations/signalling", "an area without a chosen system did not block the case with a diagnostic");
+				const QComboBox* newAreaSystem = areaSystemCombo();
+				const QComboBox* newAreaTrack = areaTrackCombo();
+				if (!systemListHolds(newAreaSystem, 1) || newAreaSystem->itemText(0) != QStringLiteral("Choose a signalling system")
+					|| newAreaSystem->currentIndex() != 0 || newAreaSystem->currentText() != QStringLiteral("Choose a signalling system"))
+					facetFailure(facetOk, "stations/signalling", "a new area did not offer the placeholder and the six systems");
+				if (!trackListHolds(newAreaTrack, 0) || newAreaTrack->currentText() != QStringLiteral("(all tracks)")
+					|| newAreaTrack->itemText(1) != QStringLiteral("e2e-main (blocks 0.000000 to 2.000000 km)"))
+					facetFailure(facetOk, "stations/signalling", "a new area did not offer all tracks and every track of the scene");
 				if (!setInfrastructureCell("signalling_areas", 0, 0, "e2e-signalling-area")
 					|| !setInfrastructureCell("signalling_areas", 0, 1, "0.25")
 					|| !setInfrastructureCell("signalling_areas", 0, 2, "1.75")
-					|| !setInfrastructureCell("signalling_areas", 0, 3, "4"))
+					|| !chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::VirtualCoupling)))
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area authoring did not apply");
+				const QComboBox* chosenSystem = areaSystemCombo();
 				const bool networkAreaAuthored = m_sceneModel.signallingAreas.size() == 1
 					&& m_sceneModel.signallingAreas.front().id == "e2e-signalling-area"
-					&& m_sceneModel.signallingAreas.front().level == 4
-					&& m_sceneModel.signallingAreas.front().trackId.empty();
+					&& m_sceneModel.signallingAreas.front().startKm == 0.25
+					&& m_sceneModel.signallingAreas.front().endKm == 1.75
+					&& m_sceneModel.signallingAreas.front().level == levelValue(SignallingLevel::VirtualCoupling)
+					&& m_sceneModel.signallingAreas.front().trackId.empty()
+					&& systemListHolds(chosenSystem, 0) && chosenSystem->currentText() == QStringLiteral("4 Virtual coupling")
+					&& areaLevelError().isEmpty();
 				if (!networkAreaAuthored)
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area was not canonical");
-				if (!setInfrastructureCell("signalling_areas", 0, 4, "e2e-main")
-					|| m_sceneModel.signallingAreas.front().trackId != "e2e-main")
+				if (!chooseListItem(areaTrackCombo(), QStringLiteral("e2e-main"))
+					|| m_sceneModel.signallingAreas.front().trackId != "e2e-main"
+					|| !trackListHolds(areaTrackCombo(), 0) || areaTrackCombo()->currentData().toString() != QStringLiteral("e2e-main"))
 					facetFailure(facetOk, "stations/signalling", "signalling area track-scope edit did not apply");
 				const bool areaTrackRenameUpdated = setInfrastructureCell("tracks", 0, 0, "e2e-main-renamed")
 					&& m_sceneModel.signallingAreas.front().trackId == "e2e-main-renamed"
@@ -17387,6 +17564,56 @@ void MainWindow::runEditorSmokeE2E() {
 					&& m_sceneModel.signallingAreas.front().trackId == "e2e-main";
 				if (!areaTrackRenameUpdated)
 					facetFailure(facetOk, "stations/signalling", "track rename did not preserve signalling-area scope");
+				if (!chooseInfrastructureFacet("signalling_areas")) {
+					facetFailure(facetOk, "stations/signalling", "signalling area lists were unavailable after the track rename");
+				} else {
+					// A mouse wheel over a list scrolls the table and must not change the value. Without the guard a combo box
+					// changes its value (and accepts the event) on a style that scrolls combo boxes, and accepts the event on one
+					// that does not.
+					QComboBox* wheelLists[] = {areaSystemCombo(), areaTrackCombo()};
+					for (QComboBox* list : wheelLists) {
+						if (!list) {
+							facetFailure(facetOk, "stations/signalling", "a signalling area list was missing for the wheel check");
+							continue;
+						}
+						const int indexBefore = list->currentIndex();
+						QWheelEvent wheel(QPointF(list->rect().center()), QPointF(list->mapToGlobal(list->rect().center())),
+							QPoint(), QPoint(0, -120), Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+						QApplication::sendEvent(list, &wheel);
+						QApplication::processEvents();
+						if (list->currentIndex() != indexBefore)
+							facetFailure(facetOk, "stations/signalling", "a mouse wheel changed the value of a signalling area list");
+						if (wheel.isAccepted())
+							facetFailure(facetOk, "stations/signalling", "a signalling area list kept a mouse wheel event instead of handing it on");
+					}
+					// A level or track that does not exist is listed first and goes when a real choice replaces it.
+					m_sceneModel.signallingAreas.front().level = 9;
+					refreshInfrastructureTable();
+					const QComboBox* staleSystem = areaSystemCombo();
+					if (!staleSystem || staleSystem->itemText(0) != QStringLiteral("Invalid level 9")
+						|| staleSystem->currentText() != QStringLiteral("Invalid level 9") || !systemListHolds(staleSystem, 1))
+						facetFailure(facetOk, "stations/signalling", "a stale level was not listed as invalid above the six systems");
+					if (!chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::EtcsLevel2))
+						|| m_sceneModel.signallingAreas.front().level != levelValue(SignallingLevel::EtcsLevel2)
+						|| !systemListHolds(areaSystemCombo(), 0)
+						|| areaSystemCombo()->currentText() != QString::fromStdString(signallingLevelName(levelValue(SignallingLevel::EtcsLevel2))))
+						facetFailure(facetOk, "stations/signalling", "choosing a system did not replace the stale level");
+					m_sceneModel.signallingAreas.front().trackId = "ghost";
+					refreshInfrastructureTable();
+					const QComboBox* staleTrack = areaTrackCombo();
+					if (!staleTrack || staleTrack->itemText(0) != QStringLiteral("Invalid track: ghost")
+						|| staleTrack->currentText() != QStringLiteral("Invalid track: ghost") || !trackListHolds(staleTrack, 1))
+						facetFailure(facetOk, "stations/signalling", "a stale track was not listed as invalid above the tracks");
+					if (!chooseListItem(areaTrackCombo(), QString()) || !m_sceneModel.signallingAreas.front().trackId.empty()
+						|| !trackListHolds(areaTrackCombo(), 0) || areaTrackCombo()->currentText() != QStringLiteral("(all tracks)"))
+						facetFailure(facetOk, "stations/signalling", "choosing all tracks did not replace the stale track");
+					// The values that the save and reload comparison expects.
+					if (!chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::VirtualCoupling))
+						|| !chooseListItem(areaTrackCombo(), QStringLiteral("e2e-main"))
+						|| m_sceneModel.signallingAreas.front().level != levelValue(SignallingLevel::VirtualCoupling)
+						|| m_sceneModel.signallingAreas.front().trackId != "e2e-main")
+						facetFailure(facetOk, "stations/signalling", "the signalling area could not be restored through its lists");
+				}
 				if (!addInfrastructureRow("connections") || !setInfrastructureCell("connections", 0, 0, "e2e-switch") || !setInfrastructureCell("connections", 0, 1, mainNodeIds[1]) || !setInfrastructureCell("connections", 0, 2, yardNodeIds[1]) || !setInfrastructureCell("connections", 0, 3, "true") || !setInfrastructureCell("connections", 0, 4, "9.25"))
 					facetFailure(facetOk, "stations/signalling", "connection field edit did not apply");
 				std::array<std::string, 3> expectedNativeRoute;
@@ -21466,7 +21693,7 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			|| !setCell("signalling_areas", "signalling-area", 0, "creator-signalling-area")
 			|| !setCell("signalling_areas", "creator-signalling-area", 1, "0")
 			|| !setCell("signalling_areas", "creator-signalling-area", 2, "2")
-			|| !setCell("signalling_areas", "creator-signalling-area", 3, "0")) {
+			|| setSection("signalling_areas", 0, 3, QString::fromStdString(signallingLevelName(levelValue(SignallingLevel::Atb)))).isEmpty()) {
 			fail(QStringLiteral("signalling area authoring failed"));
 			return;
 		}
