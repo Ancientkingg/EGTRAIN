@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 LOG="${TMPDIR:-/tmp}/qegtrain-track-preview-e2e.log"
 TMP_ROOT=""
 
@@ -26,6 +26,7 @@ set +e
 cd "$ROOT/EGTRAIN/QEGTRAIN"
 QEGTRAIN_E2E_TRACK_PREVIEW=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
+QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
 "$APP" -n 3 -h 100 -g 1 -pax 0 -TSM 0 -RC 0 >"$LOG" 2>&1
 APP_EXIT=$?
 set -e

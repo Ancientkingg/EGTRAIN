@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-APP="$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+APP="${QEGTRAIN_APP:-$ROOT/build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN}"
 SCENE_ROOT="$ROOT/EGTRAIN/QEGTRAIN/Scenes"
 SCENE="$SCENE_ROOT/Copenhagen"
 OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-e2e.log"
