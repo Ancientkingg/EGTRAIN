@@ -60,6 +60,10 @@ QToolButton#openCaseButton:hover, QToolButton#openCaseButton:focus {
     border-color: #315a70;
 }
 
+QToolButton:disabled {
+    color: #64717a;
+}
+
 QToolButton:checked {
     background: #315a70;
     color: #ffffff;
@@ -136,6 +140,10 @@ QTreeView::indicator:checked:disabled {
 QCheckBox[secondaryLayerToggle="true"] {
     color: #5b6871;
     margin-left: 16px;
+}
+
+QCheckBox:disabled {
+    color: #64717a;
 }
 
 QCheckBox:focus {
@@ -278,10 +286,9 @@ QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus, Q
     outline: 2px solid #315a70;
 }
 
-QDialog[dialogPresentation="true"] QPushButton:disabled,
-QDialog[dialogPresentation="true"] QComboBox:disabled,
-QDialog[dialogPresentation="true"] QLineEdit:disabled,
-QDialog#runReviewDialog QPushButton:disabled {
+QPushButton:disabled,
+QComboBox:disabled,
+QLineEdit:disabled {
     background: #e4e8eb;
     border-color: #c9d3db;
     color: #64717a;

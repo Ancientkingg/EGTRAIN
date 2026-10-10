@@ -4,7 +4,7 @@ Use `widgets/DialogLayout.h` for new or migrated custom `QDialog` forms. Supply 
 
 `DialogLayout::install(dialog, heading, context, body, buttons)` transfers the body and button box to the dialog. It gives the context and body a resizable scroll viewport while keeping the heading and button box outside it. Keyboard focus entering the body scrolls the focused control into view. Heading and context are forced to plain text so authored names are never interpreted as markup. Its size cap uses the current screen's available geometry; the optional rectangle supports deterministic tests. Margins and title font follow the dialog's system font. Supply a `QDialogButtonBox` with task-appropriate roles and let Qt order its buttons for each platform. The helper does not connect buttons, select a default, validate, accept/reject, or mutate a model. The caller must explicitly wire acceptance and rejection, choose a safe default, and preserve its existing transaction/Cancel semantics. Never make a destructive action the Enter default. Use regular `QFileDialog` and `QMessageBox` unchanged rather than applying the custom layout to them.
 
-The stylesheet retains transitional `runReview*` selectors for compatibility; the migrated review uses the shared font-scaled heading. New presentation selectors apply only to dialogs opting into the helper.
+The stylesheet retains transitional `runReview*` selectors for compatibility; the migrated review uses the shared font-scaled heading. New presentation selectors apply only to dialogs opting into the helper. The disabled look applies throughout the application: disabled push buttons, combo boxes and line edits have a grey face, a light border and grey text in dialogs and main-window panels. A disabled default button in a dialog footer keeps its lighter grey. A read-only line edit keeps its read-only look when disabled. Disabled tool buttons and check boxes change only their text colour; checked tool buttons keep their checked look. These rules restyle no other widget.
 
 ## Callers
 
@@ -16,7 +16,7 @@ The reference-route chooser for the timetable graph and train paths is a list di
 
 Composition membership uses the standard single-choice `QInputDialog`. File selection, warnings and confirmations retain `QFileDialog` and `QMessageBox`.
 
-`test_dialog_presentation_contract` checks the case chooser and the Run simulation dialog in the built application; [Checks](#checks) says what it covers. Widget tests cover bounded dimensions, enlarged fonts, scrolling and keyboard access to the fixed footer.
+`test_dialog_presentation_contract` checks the case chooser and the Run simulation dialog in the built application; [Checks](#checks) says what it covers. Widget tests cover bounded dimensions, enlarged fonts, scrolling and keyboard access to the fixed footer, and the look of disabled controls inside and outside dialogs.
 
 ## Inventory
 
