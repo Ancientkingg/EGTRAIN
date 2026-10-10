@@ -9,6 +9,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStyle>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
@@ -102,6 +103,50 @@ inline void fitWidthToContent(QDialog& dialog) {
 	const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
 	dialog.resize(qMin(dialog.maximumWidth(), qMax(dialog.width(), needed)), dialog.height());
+}
+
+// How serious an inline message is. Each value selects one callout of the stylesheet.
+enum class Severity { Neutral,
+	Warning,
+	Error };
+
+namespace detail {
+// Shows text in label as plain wrapped text with the role that the two property values give: a
+// valid value sets that property and an invalid one removes it. The label is styled again, so the
+// new role shows also when the label is already polished, and it is hidden when text is empty.
+inline void showMessage(QLabel* label, const QString& text, const QVariant& status, const QVariant& help) {
+	label->setTextFormat(Qt::PlainText);
+	label->setWordWrap(true);
+	QSizePolicy policy = label->sizePolicy();
+	policy.setHorizontalPolicy(QSizePolicy::Ignored);
+	label->setSizePolicy(policy);
+	label->setText(text);
+	label->setProperty("dialogStatus", status);
+	label->setProperty("dialogHelp", help);
+	label->style()->unpolish(label);
+	label->style()->polish(label);
+	label->setVisible(!text.isEmpty());
+}
+} // namespace detail
+
+// Shows text in label as an inline status of the given severity. The text is plain and wraps, so
+// a long word never widens the dialog. The label has this role only: a call replaces the help or
+// status role of an earlier call, and may be made again to change role or text, also after the
+// dialog is shown. An empty text hides the label. The label must already have a parent widget
+// (the dialog body, the dialog itself or an editor panel), because showing a label without a
+// parent opens a window of its own.
+inline void setStatus(QLabel* label, Severity severity, const QString& text) {
+	static const char* const names[] = {"neutral", "warning", "error"};
+	detail::showMessage(label, text, QString::fromLatin1(names[static_cast<int>(severity)]), QVariant());
+}
+
+// Shows text in label as help text. The text is plain and wraps, so a long word never widens the
+// dialog. The label has this role only: a call replaces the status role of an earlier call, and
+// may be made again to change role or text, also after the dialog is shown. An empty text hides
+// the label. The label must already have a parent widget (the dialog body, the dialog itself or
+// an editor panel), because showing a label without a parent opens a window of its own.
+inline void setHelp(QLabel* label, const QString& text) {
+	detail::showMessage(label, text, QVariant(), true);
 }
 
 } // namespace DialogLayout
