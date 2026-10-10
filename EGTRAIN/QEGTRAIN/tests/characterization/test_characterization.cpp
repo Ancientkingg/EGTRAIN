@@ -895,7 +895,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 // here, so the next run starts from whatever prepareScene resets. The files of
 // the run go to a temporary folder that is removed when the run ends, or, with
 // keptOutputDir, into that folder, which is kept and gets the file that the
-// headless application writes after the run as well.
+// headless application writes after the run and the detailed trajectory files as well.
 RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool checkInvariants, const std::string& keptOutputDir = std::string()) {
 	RunOutcome outcome;
 	SceneLoadResult loaded = loadScene(sceneDir);
@@ -975,6 +975,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
+	// --repeat-files compares every file of the kept folders, so these runs write the detailed files too.
+	initial_variables.exportDetailedTrajectories = !keptOutputDir.empty();
 	initial_variables.OutputMainFolder = outputDir;
 	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();

@@ -244,7 +244,9 @@ targets. Run by hand without them, they use the macOS paths under `build/`.
 
 `test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
-checks the exit code, the `End of Simulation` line and the energy output.
+checks the exit code, the `End of Simulation` line and the energy output. It also
+starts a run with `--detailed-trajectories` and checks that `TEMP/Traj_Train_*.txt`
+and `TrainTrajectories/TrainPathDiagram.txt` appear only in that run.
 
 ### Windows GUI tests
 
@@ -447,9 +449,10 @@ folder), and after the last run every distinct step runs once more in a fresh
 process of the same executable, with the same working directory and
 environment. Every file of every in-process run must then be equal, byte for
 byte, to the file of the fresh run of its step, and both must hold the same set
-of files. The files are the ones a headless run of the application writes,
-including `TrainServicePathDiagram.txt`, which the test writes after the run as
-the application does. `TrainTrajectories/Computing_Times.txt` is the only file
+of files. The files are the ones a headless run of the application writes with
+`--detailed-trajectories`, including `TrainServicePathDiagram.txt`, which the
+test writes after the run as the application does.
+`TrainTrajectories/Computing_Times.txt` is the only file
 whose content is not compared. It has to exist, but it holds wall-clock timings
 and the computation time accumulated over the process, so it differs from run to
 run. As with `--repeat`, a step has to appear twice. A difference is reported
@@ -650,7 +653,9 @@ The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
 Amsterdam_Hilversum_Student, which has no `-n` number and is case 7 of the
 script. It checks clean native execution and the available trajectory/station
 evidence. For every scene it also requires that no train moves farther in one
-step than the highest maximum speed of the scene's rolling stock allows.
+step than the highest maximum speed of the scene's rolling stock allows. The
+script starts every run with `--detailed-trajectories`, because that check reads
+`TEMP/Traj_Train_*.txt`.
 
 For Amsterdam_Hilversum_Student the script also checks that every occurrence
 of its service reaches Hilversum, one after the other, and that the five files

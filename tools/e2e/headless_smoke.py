@@ -100,7 +100,8 @@ def case_command(case_id: int) -> list[str]:
         scene_name = SCENES[case_id]
     except KeyError as exc:
         raise ValueError(f"unknown canonical case id: {case_id}") from exc
-    return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0"]
+    # check_no_position_jump reads TEMP/Traj_Train_*.txt, which only --detailed-trajectories writes.
+    return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
 
 
 def scene_output_dir(case_id: int, out_base: Path = RUN_DIR) -> Path:

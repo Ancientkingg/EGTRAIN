@@ -7,6 +7,7 @@ Choose the route that matches your task.
 - [EGTRAIN releases](https://github.com/Ancientkingg/EGTRAIN/releases)
 - [Opening an `.egscene` case study](guides/opening-a-case-study.md)
 - [Command-line options and scene_tool](guides/command-line.md)
+- [Run output files](guides/run-output.md)
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [Amsterdam to Hilversum student case](guides/amsterdam-hilversum-student-case.md)
 - [How delays are calculated](guides/delay-analysis.md)

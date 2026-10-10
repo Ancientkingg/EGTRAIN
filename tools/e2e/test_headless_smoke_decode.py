@@ -32,9 +32,9 @@ def main() -> None:
 
     command = case_command(3)
     expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
-                "-g", "0", "-TSM", "0", "-RC", "0"]
+                "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
     if command[1:] != expected:
-        raise SystemExit(f"headless case command does not disable the GUI and integrations: {command}")
+        raise SystemExit(f"headless case command is not the expected one (no GUI, no integrations, detailed trajectories): {command}")
 
     assignment_output = scene_output_dir(5, Path("/tmp/qegtrain-smoke"))
     if assignment_output.name != "Assignment Gvc-Gdg-Ut":
