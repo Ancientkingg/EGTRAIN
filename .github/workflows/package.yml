@@ -350,10 +350,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -455,6 +451,11 @@ jobs:
           find squashfs-root -name 'libQt5Network.so*' -print -quit | grep -q .
           find squashfs-root -path '*/imageformats/libqsvg.so' -print -quit | grep -q .
           echo "OK: AppImage contains executable, Qt runtime, and canonical Scenes"
+
+      # Set up here and not at the top of the job: the action exports a library path, and the image is built without it.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Start the package
         # The AppImage is extracted into a directory of its own and started from there through its AppRun, on a virtual
