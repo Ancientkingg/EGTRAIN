@@ -345,6 +345,7 @@ set(EGTRAIN_SOURCES
 set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/widgets/ChoiceComboBox.h
+    ${SRC_DIR}/widgets/EditorLayout.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/io/RailMLParser.h
@@ -778,6 +779,13 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_choicecombo COMMAND test_choicecombo)
     set_tests_properties(test_choicecombo PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_editorlayout ${SRC_DIR}/tests/test_editorlayout.cpp)
+    target_link_libraries(test_editorlayout PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    target_compile_definitions(test_editorlayout PRIVATE
+        EGTRAIN_DIALOG_QSS="${SRC_DIR}/resources/styles/egtrain.qss")
+    add_test(NAME test_editorlayout COMMAND test_editorlayout)
+    set_tests_properties(test_editorlayout PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_elidedlabel ${SRC_DIR}/tests/test_elidedlabel.cpp)
     target_link_libraries(test_elidedlabel PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_elidedlabel COMMAND test_elidedlabel)
@@ -1091,7 +1099,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
-			test_dialoglayout test_choicecombo test_elidedlabel test_timeprogressbar test_highlighteffect
+			test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
@@ -1123,7 +1131,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_elidedlabel test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
@@ -1143,7 +1151,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_elidedlabel
+		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
