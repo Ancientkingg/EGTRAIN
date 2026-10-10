@@ -629,6 +629,11 @@ if(EGTRAIN_BUILD_TESTS)
     target_include_directories(test_followavailability PRIVATE ${SRC_DIR})
     add_test(NAME test_followavailability COMMAND test_followavailability)
 
+    add_executable(test_replaycoverage ${SRC_DIR}/tests/test_replaycoverage.cpp)
+    target_link_libraries(test_replaycoverage PRIVATE egtrain_dispatch egtrain_util)
+    target_include_directories(test_replaycoverage PRIVATE ${SRC_DIR})
+    add_test(NAME test_replaycoverage COMMAND test_replaycoverage)
+
 	add_executable(test_trackpreview ${SRC_DIR}/tests/test_trackpreview.cpp)
 	target_link_libraries(test_trackpreview PRIVATE egtrain_scene)
 	add_test(NAME test_trackpreview COMMAND test_trackpreview)
@@ -1059,7 +1064,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
 			test_dialoglayout test_choicecombo test_elidedlabel test_timeprogressbar test_highlighteffect
-			test_consolestream test_qt_resource_images test_followavailability test_followcamera)
+			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
@@ -1085,7 +1090,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging
-		test_guisimulationsnapshot test_followavailability test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay

@@ -53,6 +53,8 @@ FOLLOW_REPLAY_MARKERS=(
 	E2E_FOLLOW_REPLAY_BEFORE_OK E2E_FOLLOW_REPLAY_DURING_OK E2E_FOLLOW_CAMERA_REPLAY_OK E2E_FOLLOW_REPLAY_LAYER_OK
 	E2E_FOLLOW_SELECT_ON_OK E2E_FOLLOW_REPLAY_AFTER_OK E2E_FOLLOW_SELECT_OK E2E_FOLLOW_RESET_OK
 )
+# The replay row of the Assignment run: the whole run, a history that dropped its first part and one that kept no frame.
+REPLAY_ROW_MARKERS=(E2E_REPLAY_ROW_WHOLE_OK E2E_REPLAY_ROW_DROPPED_OK E2E_REPLAY_ROW_UNAVAILABLE_OK)
 require_markers() {
 	local log="$1" marker
 	shift
@@ -180,8 +182,23 @@ QEGTRAIN_AUTOSTART=1 \
 QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
 	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
 grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
-require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}"
+require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
 echo "operational completion and rerun e2e passed"
+
+# A committed scene run to its end keeps every frame, however large it is: the replay row covers the
+# whole run. The scenes go from Lebanon, with the smallest frames, to Copenhagen, with the largest.
+for scene in Lebanon Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands Copenhagen; do
+	WHOLE_OUT="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
+	QT_QPA_PLATFORM=offscreen \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+		"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 -TSM 0 -RC 0 >"$WHOLE_OUT" 2>&1 || {
+		tail -5 "$WHOLE_OUT" >&2
+		exit 1
+	}
+	require_markers "$WHOLE_OUT" E2E_REPLAY_WHOLE_RUN_OK
+done
+echo "whole run replay of the committed scenes passed"
 
 # Signal heads on three copies of the line fixture with two services: one with a
 # level 0 signalling area (heads take stop, caution and proceed and return), one
