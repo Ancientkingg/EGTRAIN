@@ -416,7 +416,7 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     ]
     trajectory = output_dir / "TrainTrajectories/TrainServicePathDiagram.txt"
     samples = []
-    # A run appends its rows to this file, so in a reused output folder the last row of the train is this run.
+    # A run removes the existing file before writing its rows.
     for line in trajectory.read_text(encoding="utf-8", errors="replace").splitlines():
         cells = line.split("\t")
         if cells[0] != train:
