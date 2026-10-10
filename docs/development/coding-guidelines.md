@@ -46,7 +46,7 @@ target that links a library does not get them.
 - These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
   `egtrain_sim` and `egtrain_railml`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
-- `update/SelfUpdater.cpp`, `update/UpdateChecker.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp` and
+- `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
@@ -104,8 +104,9 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 - `scene/` and `util/` contain no Qt types, and `scene_tool` links no Qt. Code that needs
   Qt goes elsewhere and converts at the boundary, for example with `QString::fromStdString`.
 - New headers use `.h` and `#pragma once`. Guard styles are mixed today (`#ifndef` in
-  `scene/`, `graphics/`, `diagrams/` and `update/`; `#pragma once` in `telemetry/` and part
-  of `widgets/`), and `.hpp` appears only in older `util/` files and the vendored code.
+  `scene/`, `graphics/`, `diagrams/` and most of `update/`; `#pragma once` in `telemetry/`,
+  `update/HttpTransport.h` and part of `widgets/`), and `.hpp` appears only in older `util/`
+  files and the vendored code.
 
 ## Naming
 
@@ -118,7 +119,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 - Functions, methods, variables and parameters: camelCase (`loadScene`,
   `classifyTrackSpeed`). Accessors have no `get` prefix (`stationName()`), setters start
   with `set`, and boolean queries start with `is` or `has` (`isChecking()`).
-- Class data members: `m_` prefix (`m_network`, `m_reply` in `update/UpdateChecker.h`). A
+- Class data members: `m_` prefix (`m_transport`, `m_reply` in `update/UpdateChecker.h`). A
   few classes use a trailing underscore (`app/GuiReplayHistory.h`); new code uses `m_`.
   Public fields of plain data structs have no prefix (`SceneDiagnostic::itemId`).
 - Constants are `constexpr` with a `k` prefix: `kUpdateCheckTimeoutMs` in an anonymous

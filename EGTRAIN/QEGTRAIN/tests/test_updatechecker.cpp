@@ -1,13 +1,19 @@
 #include "update/ReleaseInfo.h"
+#include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
 
 #include <QProcessEnvironment>
 #include <QCoreApplication>
+#include <QEventLoop>
+#include <QPointer>
 #include <QSettings>
 #include <QTemporaryDir>
+#include <QTimer>
 
+#include <deque>
 #include <iostream>
 #include <string>
+#include <utility>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
@@ -21,6 +27,216 @@ static QByteArray releaseJson(const char* tag, bool draft = false, bool prerelea
 		+ ",\"prerelease\":" + (prerelease ? "true" : "false")
 		+ ",\"html_url\":\"https://github.com/Ancientkingg/EGTRAIN/releases/tag/"
 		+ tag + "\",\"body\":\"Notes\"}]";
+}
+
+// Runs the event loop for the given time.
+static void spin(int milliseconds) {
+	QEventLoop loop;
+	QTimer::singleShot(milliseconds, &loop, &QEventLoop::quit);
+	loop.exec();
+}
+
+// What a fake request recorded. It outlives the reply, which the checker releases with deleteLater().
+struct FakeCall {
+	HttpRequest request;
+	int aborts = 0;
+};
+
+class FakeReply : public HttpReply {
+public:
+	FakeReply(FakeCall* call, QObject* parent) : HttpReply(parent), m_call(call) {}
+
+	QByteArray readAll() override { return std::exchange(body, QByteArray()); }
+	void abort() override {
+		++m_call->aborts;
+		emit finished();
+	}
+	bool failed() const override { return failure; }
+	QString errorString() const override { return error; }
+	int statusCode() const override { return status; }
+	qint64 contentLength() const override { return body.size(); }
+
+	int status = 0;
+	bool failure = false;
+	QString error;
+	QByteArray body;
+
+private:
+	FakeCall* m_call;
+};
+
+class FakeTransport : public HttpTransport {
+public:
+	HttpReply* get(const HttpRequest& request) override {
+		calls.push_back(FakeCall{request, 0});
+		auto* reply = new FakeReply(&calls.back(), this);
+		replies.append(reply);
+		return reply;
+	}
+
+	std::deque<FakeCall> calls;
+	QList<QPointer<FakeReply>> replies;
+};
+
+// The reply of the given request, or null once the checker has released it.
+static FakeReply* replyAt(const FakeTransport& transport, int index) {
+	return index < transport.replies.size() ? transport.replies.at(index).data() : nullptr;
+}
+
+struct Answer {
+	int status = 0;
+	bool failure = false;
+	QString error;
+	QByteArray body;
+};
+
+// Finishes the reply of the given request with the answer.
+static bool finishReply(const FakeTransport& transport, int index, const Answer& response) {
+	FakeReply* reply = replyAt(transport, index);
+	if (!reply)
+		return false;
+	reply->status = response.status;
+	reply->failure = response.failure;
+	reply->error = response.error;
+	reply->body = response.body;
+	emit reply->finished();
+	return true;
+}
+
+// Collects the results of a checker.
+struct Results {
+	explicit Results(UpdateChecker& checker) {
+		QObject::connect(&checker, &UpdateChecker::finished, &context, [this](const UpdateCheckResult& result) {
+			list.append(result);
+			if (loop)
+				loop->quit();
+		});
+	}
+
+	// Runs the event loop until a result is there or five seconds have passed.
+	bool wait() {
+		if (!list.isEmpty())
+			return true;
+		QEventLoop eventLoop;
+		QTimer guard;
+		guard.setSingleShot(true);
+		QObject::connect(&guard, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
+		loop = &eventLoop;
+		guard.start(5000);
+		eventLoop.exec();
+		loop = nullptr;
+		return !list.isEmpty();
+	}
+
+	QObject context;
+	QList<UpdateCheckResult> list;
+	QEventLoop* loop = nullptr;
+};
+
+// Runs one check against a reply that finishes with the answer. True when exactly one result arrived.
+static bool runCheck(const Answer& response, UpdateCheckResult* result) {
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 5000);
+	Results results(checker);
+	checker.check();
+	if (!finishReply(transport, 0, response) || !results.wait())
+		return false;
+	*result = results.list.first();
+	return results.list.size() == 1 && !checker.isChecking();
+}
+
+static bool testCheckSuccess() {
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 5000);
+	Results results(checker);
+	checker.check();
+	bool ok = expect(checker.isChecking() && transport.calls.size() == 1u, "a started check sends one request and is pending");
+	if (!ok)
+		return false;
+	const HttpRequest& request = transport.calls.front().request;
+	ok &= expect(request.url == UpdateChecker::releasesUrl(), "the check requests the releases URL");
+	ok &= expect(request.userAgent.startsWith("EGTRAIN/"), "the check sends an EGTRAIN user agent");
+	ok &= expect(request.accept == "application/vnd.github+json", "the check accepts the GitHub JSON type");
+
+	Answer response;
+	response.status = 200;
+	response.body = releaseJson("v1.10.0");
+	ok &= expect(finishReply(transport, 0, response) && results.wait(), "the answer to the check arrives");
+	ok &= expect(results.list.size() == 1 && results.list.first().success && results.list.first().error.isEmpty(),
+		"a release list gives one successful result");
+	ok &= expect(results.list.size() == 1 && results.list.first().release && results.list.first().release->tag == QStringLiteral("v1.10.0"),
+		"the result holds the latest stable release");
+	ok &= expect(!checker.isChecking(), "a finished check is not pending");
+	return ok;
+}
+
+static bool testCheckFailureTexts() {
+	UpdateCheckResult result;
+	Answer response;
+	response.failure = true;
+	response.error = QStringLiteral("boom");
+	bool ok = expect(runCheck(response, &result) && !result.success && !result.release && result.error == QStringLiteral("boom"),
+		"a failed request reports its error text");
+
+	response.error.clear();
+	ok &= expect(runCheck(response, &result) && !result.success && result.error == QStringLiteral("GitHub update check failed."),
+		"a failed request without an error text reports the generic text");
+
+	response = Answer();
+	response.status = 500;
+	ok &= expect(runCheck(response, &result) && !result.success && result.error == QStringLiteral("GitHub returned HTTP 500."),
+		"an HTTP error status is reported with its code");
+
+	response.status = 204;
+	QString parseError;
+	parseLatestStableRelease(QByteArray(), &parseError);
+	const QString expected = parseError.isEmpty() ? QStringLiteral("No stable release was found.") : parseError;
+	ok &= expect(runCheck(response, &result) && !result.success && !result.release && result.error == expected,
+		"an empty answer reports what the release parser reports");
+
+	response.status = 200;
+	response.body = QByteArrayLiteral("not json");
+	ok &= expect(runCheck(response, &result) && !result.success && !result.error.isEmpty(), "an answer that is not JSON fails with a text");
+	return ok;
+}
+
+static bool testCheckTimeout() {
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 30);
+	Results results(checker);
+	checker.check();
+	bool ok = expect(results.wait(), "a check that never finishes times out");
+	spin(50);
+	ok &= expect(results.list.size() == 1, "a timeout gives exactly one result");
+	ok &= expect(!results.list.isEmpty() && !results.list.first().success
+			&& results.list.first().error == QStringLiteral("The update check timed out."),
+		"the timeout result is a failure with the timeout text");
+	ok &= expect(transport.calls.size() == 1u && transport.calls.front().aborts == 1, "a timeout aborts the request once");
+	ok &= expect(!checker.isChecking(), "a timed out check is not pending");
+	return ok;
+}
+
+static bool testCheckWhilePending() {
+	FakeTransport transport;
+	UpdateChecker checker(&transport, 5000);
+	Results results(checker);
+	checker.check();
+	checker.check();
+	bool ok = expect(transport.calls.size() == 2u, "each check sends a request");
+	if (!ok)
+		return false;
+	ok &= expect(transport.calls.front().aborts == 1, "a new check aborts the pending request once");
+	ok &= expect(checker.isChecking(), "the new check is pending");
+	ok &= expect(results.list.isEmpty(), "aborting the pending request gives no result");
+
+	Answer response;
+	response.status = 200;
+	response.body = releaseJson("v1.10.0");
+	ok &= expect(finishReply(transport, 1, response) && results.wait(), "the answer to the new check arrives");
+	spin(50);
+	ok &= expect(results.list.size() == 1 && results.list.first().success, "two checks in a row give one successful result");
+	ok &= expect(transport.calls.back().aborts == 0, "the answered request is not aborted");
+	return ok;
 }
 
 int main(int argc, char** argv) {
@@ -311,6 +527,11 @@ int main(int argc, char** argv) {
 		"manifest accepts 4096 file entries");
 	ok &= expect(parseWindows(",\"files\":[" + executable + "," + maxName + "]").has_value(),
 		"manifest accepts a 260 character entry");
+
+	ok &= testCheckSuccess();
+	ok &= testCheckFailureTexts();
+	ok &= testCheckTimeout();
+	ok &= testCheckWhilePending();
 
 	return ok ? 0 : 1;
 }

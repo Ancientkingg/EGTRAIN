@@ -237,15 +237,17 @@ add_library(egtrain_widgets STATIC
 target_link_libraries(egtrain_widgets
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_graphics egtrain_util)
 
-# The update code that both the application and a test use. UpdateChecker, SelfUpdater and
-# UpdateNotices belong to the application alone.
+# The update code that both the application and a test use. SelfUpdater and UpdateNotices belong
+# to the application alone.
 add_library(egtrain_update STATIC
     ${SRC_DIR}/update/Distribution.cpp
+    ${SRC_DIR}/update/HttpTransport.cpp
     ${SRC_DIR}/update/ReleaseInfo.cpp
+    ${SRC_DIR}/update/UpdateChecker.cpp
     ${SRC_DIR}/update/UpdatePreparation.cpp
     ${SRC_DIR}/update/UpdateRecord.cpp
     ${SRC_DIR}/update/UpdateSettings.cpp)
-target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
+target_link_libraries(egtrain_update PUBLIC Qt5::Core Qt5::Network egtrain_util)
 
 # What a command line asks the application to open. Qt Core only; the application and
 # test_sceneopenrequest link it.
@@ -347,7 +349,7 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_sim, egtrain_railml     legacy code with 104 and 4 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
-#                                   app/main.cpp, update/SelfUpdater.cpp, update/UpdateChecker.cpp,
+#                                   app/main.cpp, update/SelfUpdater.cpp,
 #                                   update/UpdateNotices.cpp and telemetry/TelemetryConsentDialog.cpp
 #                                   build here too
 # A test executable that uses the simulation has no flags either.
@@ -358,7 +360,6 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
-    ${SRC_DIR}/update/UpdateChecker.cpp
     ${SRC_DIR}/update/UpdateNotices.cpp
 )
 
@@ -382,7 +383,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/Simulation.h
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/util/Version.h
-	${SRC_DIR}/update/UpdateChecker.h
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.h
 	${SRC_DIR}/update/SelfUpdater.h
 	${SRC_DIR}/update/UpdateNotices.h
@@ -645,6 +645,11 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)
     add_test(NAME test_updatechecker COMMAND test_updatechecker)
+
+    add_executable(test_httptransport ${SRC_DIR}/tests/test_httptransport.cpp)
+    target_link_libraries(test_httptransport PRIVATE egtrain_update Qt5::Core Qt5::Network)
+    add_test(NAME test_httptransport COMMAND test_httptransport)
+    set_tests_properties(test_httptransport PROPERTIES TIMEOUT 60)
 
     add_executable(test_updatestaging
         ${SRC_DIR}/tests/test_updatestaging.cpp)
@@ -1152,6 +1157,7 @@ if(EGTRAIN_BUILD_TESTS)
 	foreach(egtrain_test
 			test_timeformat test_version test_log test_speedformat test_trajectory test_csvwriter
 			test_playbackprofiler
+			test_httptransport
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
@@ -1205,6 +1211,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
+		test_httptransport
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure

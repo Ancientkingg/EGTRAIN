@@ -6,8 +6,6 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QProcess>
 #include <QTemporaryDir>
 
@@ -49,7 +47,7 @@ QString helperName() {
 } // namespace
 
 SelfUpdater::SelfUpdater(QObject* parent)
-	: QObject(parent), m_network(this), m_timeout(this) {
+	: QObject(parent), m_transport(createHttpTransport(this)), m_timeout(this) {
 	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
 	qRegisterMetaType<UpdatePreparationResult>("UpdatePreparationResult");
 	m_timeout.setSingleShot(true);
@@ -57,7 +55,7 @@ SelfUpdater::SelfUpdater(QObject* parent)
 		if (!m_reply)
 			return;
 		m_cancelRequested = false;
-		QNetworkReply* reply = m_reply;
+		HttpReply* reply = m_reply;
 		m_reply = nullptr;
 		reply->abort();
 		reply->deleteLater();
@@ -182,16 +180,14 @@ void SelfUpdater::requestManifest() {
 		fail(QStringLiteral("The release manifest is missing."));
 		return;
 	}
-	QNetworkRequest request(asset->downloadUrl);
-	request.setHeader(QNetworkRequest::UserAgentHeader,
-		QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
-	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-		QNetworkRequest::NoLessSafeRedirectPolicy);
+	HttpRequest request;
+	request.url = asset->downloadUrl;
+	request.userAgent = QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()).toUtf8();
 	m_manifestData.clear();
-	QNetworkReply* reply = m_network.get(request);
+	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
 	m_timeout.start(kDownloadTimeoutMs);
-	connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
+	connect(reply, &HttpReply::readyRead, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
 		m_timeout.start(kDownloadTimeoutMs);
@@ -199,12 +195,12 @@ void SelfUpdater::requestManifest() {
 		if (m_manifestData.size() > kMaxManifestBytes)
 			fail(QStringLiteral("The update manifest is too large."));
 	});
-	connect(reply, &QNetworkReply::downloadProgress, this,
+	connect(reply, &HttpReply::downloadProgress, this,
 		[this, reply](qint64, qint64) {
 			if (reply == m_reply)
 				m_timeout.start(kDownloadTimeoutMs);
 		});
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &HttpReply::finished, this, [this, reply]() {
 		if (reply == m_reply)
 			handleReply(reply, true);
 	});
@@ -231,15 +227,13 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	}
 	m_manifest = manifest;
 	m_packageBytes = 0;
-	QNetworkRequest request(asset->downloadUrl);
-	request.setHeader(QNetworkRequest::UserAgentHeader,
-		QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
-	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-		QNetworkRequest::NoLessSafeRedirectPolicy);
-	QNetworkReply* reply = m_network.get(request);
+	HttpRequest request;
+	request.url = asset->downloadUrl;
+	request.userAgent = QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()).toUtf8();
+	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
 	m_timeout.start(kDownloadTimeoutMs);
-	connect(reply, &QNetworkReply::readyRead, this, [this, reply]() {
+	connect(reply, &HttpReply::readyRead, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
 		m_timeout.start(kDownloadTimeoutMs);
@@ -254,20 +248,20 @@ void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 		}
 		m_packageBytes += data.size();
 	});
-	connect(reply, &QNetworkReply::downloadProgress, this,
+	connect(reply, &HttpReply::downloadProgress, this,
 		[this, reply](qint64 received, qint64 total) {
 			if (reply != m_reply)
 				return;
 			m_timeout.start(kDownloadTimeoutMs);
 			emit progress(received, total);
 		});
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &HttpReply::finished, this, [this, reply]() {
 		if (reply == m_reply)
 			handleReply(reply, false);
 	});
 }
 
-void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
+void SelfUpdater::handleReply(HttpReply* reply, bool manifestReply) {
 	if (reply != m_reply)
 		return;
 	m_reply = nullptr;
@@ -277,20 +271,20 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 		fail(QStringLiteral("Update cancelled."));
 		return;
 	}
-	if (reply->error() != QNetworkReply::NoError) {
+	if (reply->failed()) {
 		const QString error = reply->errorString();
 		reply->deleteLater();
 		fail(error.isEmpty() ? QStringLiteral("The update download failed.") : error);
 		return;
 	}
-	const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	const int status = reply->statusCode();
 	if (status < 200 || status >= 300) {
 		reply->deleteLater();
 		fail(QStringLiteral("GitHub returned HTTP %1 while downloading the update.").arg(status));
 		return;
 	}
 	if (manifestReply) {
-		const qint64 contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
+		const qint64 contentLength = reply->contentLength();
 		if (contentLength > kMaxManifestBytes) {
 			reply->deleteLater();
 			fail(QStringLiteral("The update manifest is too large."));
@@ -337,7 +331,7 @@ void SelfUpdater::handleReply(QNetworkReply* reply, bool manifestReply) {
 
 void SelfUpdater::fail(const QString& error) {
 	if (m_reply) {
-		QNetworkReply* reply = m_reply;
+		HttpReply* reply = m_reply;
 		m_reply = nullptr;
 		reply->abort();
 		reply->deleteLater();

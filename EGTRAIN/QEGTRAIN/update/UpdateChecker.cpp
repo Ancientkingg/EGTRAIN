@@ -1,18 +1,25 @@
 #include "update/UpdateChecker.h"
 
 #include <QCoreApplication>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 
 namespace {
 constexpr int kUpdateCheckTimeoutMs = 10000;
 }
 
 UpdateChecker::UpdateChecker(QObject* parent)
-	: QObject(parent), m_network(this), m_timeout(this) {
+	: QObject(parent), m_transport(createHttpTransport(this)), m_timeoutMs(kUpdateCheckTimeoutMs), m_timeout(this) {
+	connectTimeout();
+}
+
+UpdateChecker::UpdateChecker(HttpTransport* transport, int timeoutMs, QObject* parent)
+	: QObject(parent), m_transport(transport), m_timeoutMs(timeoutMs), m_timeout(this) {
+	connectTimeout();
+}
+
+void UpdateChecker::connectTimeout() {
 	m_timeout.setSingleShot(true);
 	connect(&m_timeout, &QTimer::timeout, this, [this]() {
-		QNetworkReply* reply = m_reply;
+		HttpReply* reply = m_reply;
 		if (!reply)
 			return;
 		m_reply = nullptr;
@@ -30,35 +37,34 @@ QUrl UpdateChecker::releasesUrl() {
 
 void UpdateChecker::check() {
 	if (m_reply) {
-		QNetworkReply* previous = m_reply;
+		HttpReply* previous = m_reply;
 		m_reply = nullptr;
 		m_timeout.stop();
 		previous->abort();
 		previous->deleteLater();
 	}
 
-	QNetworkRequest request(releasesUrl());
-	request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()));
-	request.setRawHeader("Accept", "application/vnd.github+json");
-	request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-		QNetworkRequest::NoLessSafeRedirectPolicy);
-	QNetworkReply* reply = m_network.get(request);
+	HttpRequest request;
+	request.url = releasesUrl();
+	request.userAgent = QStringLiteral("EGTRAIN/%1").arg(QCoreApplication::applicationVersion()).toUtf8();
+	request.accept = QByteArrayLiteral("application/vnd.github+json");
+	HttpReply* reply = m_transport->get(request);
 	m_reply = reply;
-	m_timeout.start(kUpdateCheckTimeoutMs);
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	m_timeout.start(m_timeoutMs);
+	connect(reply, &HttpReply::finished, this, [this, reply]() {
 		if (reply != m_reply)
 			return;
 		m_reply = nullptr;
 		m_timeout.stop();
 
-		if (reply->error() != QNetworkReply::NoError) {
+		if (reply->failed()) {
 			const QString error = reply->errorString();
 			reply->deleteLater();
 			emit finished(UpdateCheckResult{false, std::nullopt,
 				error.isEmpty() ? QStringLiteral("GitHub update check failed.") : error});
 			return;
 		}
-		const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+		const int status = reply->statusCode();
 		if (status < 200 || status >= 300) {
 			reply->deleteLater();
 			emit finished(UpdateCheckResult{false, std::nullopt,
