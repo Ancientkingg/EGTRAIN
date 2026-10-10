@@ -121,6 +121,7 @@ public:
 		longitude = ob2.longitude;
 		graphX = ob2.graphX;
 		graphY = ob2.graphY;
+		virtualSignal = ob2.virtualSignal;
 		for (int i = 0; i < 6; i++) {
 			connectIdBlockSet[i] = ob2.connectIdBlockSet[i];
 			connectXNode[i] = ob2.connectXNode[i];
