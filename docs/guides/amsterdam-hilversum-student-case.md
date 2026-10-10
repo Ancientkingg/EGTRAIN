@@ -56,16 +56,16 @@ Run 1 alone at 100 % performance.
 
 Every edit of the case removes the current results and hides **Run Results**, so finish all exports of a run before you change an input.
 
-The arrival delay is the simulated arrival minus the planned arrival, so a negative value is an early arrival. The table of **Run Results** has one row per run and a last row **Network total**. Despite the (s) in their headers, **Start time (s)** and **End time (s)** show clock times and **Travel time (s)** shows hours, minutes and seconds. Read them in the form shown.
+The arrival delay is the simulated arrival minus the planned arrival, so a negative value is an early arrival. The table of **Run Results** has one row per run and a last row **Network total**. **Start time (hh:mm:ss)** and **End time (hh:mm:ss)** show clock times; **Travel time (h:mm:ss)** shows a duration. **Export PNG...** uses these displayed formats. **Export CSV...** writes these three columns as numeric seconds, with start and end relative to the simulation start.
 
-Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time from `Asd` departure to `Hvs` arrival, read from **Timetable**, from the whole modelled **Travel time (s)** of the run. Use **Speed / distance** to explain the movement.
+Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time from `Asd` departure to `Hvs` arrival, read from **Timetable**, from the whole modelled **Travel time (h:mm:ss)** of the run. Use **Speed / distance** to explain the movement.
 
 ### 3. Compare lower performance
 
 1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service and timetable** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
 2. On **Run occurrences**, check that the text still contains "Selected: 1" and that the column **Running performance (parameter) %** shows 60. If the selection differs, repeat step 1 of task 2.
 3. Run and export as in task 2, with file names that start with `slower`.
-4. Compare the `Hvs` arrival delay, the whole **Travel time (s)**, **Maximum speed (km/h)** and **Energy consumed (kWh)** with the baseline. Use the same energy column in every comparison.
+4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy consumed (kWh)** with the baseline. Use the same energy column in every comparison.
 
 The percentage multiplies the tractive effort at every speed and the maximum speed of the train. It does not change the mass or the braking effort. Read the journey time from the results; do not derive it from the percentage.
 
@@ -88,10 +88,10 @@ Explain whether the changed delay comes from faster movement, a changed target o
 
 1. On **Run occurrences**, click **Select all**. The text contains "Selected: 4" and "Selected in period: 4". Keep the performance at 60 and the `Hvs` times at 1620 and 1680.
 2. Run as in steps 2 and 3 of task 2. **Selected in period** in **Run simulation** is 4.
-3. Open **Timetable**. Its train filter button reads **Trains (4/4)** while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (s)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
+3. Open **Timetable**. Its train filter button reads **Trains (4/4)** while all four runs are shown. Check that the planned times shift by 30 minutes from run to run and that both stops of every run have simulated times. Note whether the **End time (hh:mm:ss)** of every run in **Run Results** is before 08:41:40, the base time plus the duration of 8000 s. The row **Duration** in **Run simulation** shows the same end.
 4. Click **Export CSV...** in the timetable window and save `revised-four-runs-timetable.csv`.
 
-Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (s)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.
+Report results per run. The **Network total** row spans from the earliest start to the latest end of the selected runs and sums the energy columns, so its **Travel time (h:mm:ss)** is not the travel time of one train. This is a check of the repeat pattern, not a capacity study.
 
 ### 6. Recommend and hand in
 
