@@ -1,6 +1,7 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "util/Log.h"
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
 #include <cmath>
@@ -8,7 +9,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-extern Logger owl;
 
 namespace {
 
@@ -116,7 +116,7 @@ void UpdateInfrastructureElementStatus(const list<InfraElement>& RouteInfrastruc
 
 					if ((i->IsSwitch == 1) && (i->withSwitchDiv == 1)) {
 						if (i->SwitchName == "None") { // throw a warning if it does not have Switch Name
-							cout << "Warning: Diverging Switch: " << i->ID << "at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no SwitchName. Please investigate on it\n";
+							EG_LOG(SimSetup, Warning) << "Warning: Diverging Switch: " << i->ID << "at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no SwitchName. Please investigate on it\n";
 						} else { // in the case it has a SwitchName, then the Switchname will be the ID of the InfraElement
 							InfraElementID = i->SwitchName;
 						}
@@ -125,7 +125,7 @@ void UpdateInfrastructureElementStatus(const list<InfraElement>& RouteInfrastruc
 
 					else {					   // for all the other cases just consider the ID of the element
 						if (i->ID == "None") { // throw a warning in case the infra element does not have a name
-							cout << "Warning: Infrastructure Element at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no ID. Please investigate on it\n";
+							EG_LOG(SimSetup, Warning) << "Warning: Infrastructure Element at position " << i->XCoordinate << " on Route of Train " << TrainName << " has no ID. Please investigate on it\n";
 						} else { // in the case it has a regular name then InfraElement ID is the ID of the element itself
 							InfraElementID = i->ID;
 						}
@@ -179,7 +179,7 @@ void UpdateInfrastructureElementStatus(const list<InfraElement>& RouteInfrastruc
 									}
 								}
 							} else {
-								cout << "Warning: Position not found for connected Point of Switch: " << i->ID << " on Route of Train" << TrainName << "\n";
+								EG_LOG(SimSetup, Warning) << "Warning: Position not found for connected Point of Switch: " << i->ID << " on Route of Train" << TrainName << "\n";
 							}
 						} else {
 							P.InfraElemStatus = "Straight";
@@ -262,7 +262,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 	if ((CuttingAbscissa > this->start_node.X) && (CuttingAbscissa < this->end_node.X)) {
 		IsCutValid = true;
 	} else {
-		cout << "ERROR: The Block Section " << this->ID << " cannot be cut in the inserted abscissa " << CuttingAbscissa << "\n\n";
+		EG_LOG(SimSetup, Error) << "ERROR: The Block Section " << this->ID << " cannot be cut in the inserted abscissa " << CuttingAbscissa << "\n\n";
 	}
 	if (IsCutValid == 1) {
 		if (CutPart == "CutEnd") {
@@ -294,14 +294,14 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					if (this->XEndSwitch <= CuttingAbscissa) { // The XEndSwitch can be put only if there is a XStartSwitch
 						CutSection.XEndSwitch = this->XEndSwitch;
 						if (CuttingAbscissa == this->XEndSwitch) {
-							cout << "Cutting Block Section: " << this->ID << " at the ending edge of its diverging switch\n\n";
+							EG_LOG(SimSetup, Info) << "Cutting Block Section: " << this->ID << " at the ending edge of its diverging switch\n\n";
 						}
 					} else {
-						cout << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
+						EG_LOG(SimSetup, Warning) << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
 						// CutSection.XEndSwitch = CuttingAbscissa;
 					}
 				} else {
-					cout << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
 					// CutSection.withSwitchDiv = false;
 				}
 			}
@@ -376,15 +376,15 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					CutSection.withSwitchDiv = true;
 					CutSection.XStartSwitch = this->XStartSwitch;
 					if (CuttingAbscissa == XStartSwitch) {
-						cout << "Cutting Block Section: " << this->ID << "at the starting edge of its diverging switch\n\n";
+						EG_LOG(SimSetup, Info) << "Cutting Block Section: " << this->ID << "at the starting edge of its diverging switch\n\n";
 					}
 					if (this->XEndSwitch >= CuttingAbscissa) { // The XEndSwitch can be put only if there is a XStartSwitch
 						CutSection.XEndSwitch = this->XEndSwitch;
 					} else {
-						cout << "ERROR: Block Section: " << ID << " has Ending Edge of diverging switch with a progressive inferior to its Starting Egde. Problems in cutting the block section. PLease correct Switch on the infrastructure\n\n";
+						EG_LOG(SimSetup, Error) << "ERROR: Block Section: " << ID << " has Ending Edge of diverging switch with a progressive inferior to its Starting Egde. Problems in cutting the block section. PLease correct Switch on the infrastructure\n\n";
 					}
 				} else {
-					cout << "Warning: Block Section : " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, please consider repositioning the starting edge of this switch or the final edge of the switch of the previous block section in the route\n";
+					EG_LOG(SimSetup, Warning) << "Warning: Block Section : " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, please consider repositioning the starting edge of this switch or the final edge of the switch of the previous block section in the route\n";
 					// CutSection.withSwitchDiv = false;
 				}
 			}
@@ -790,8 +790,8 @@ static void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependenc
 		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
 		auto addConnection = [&](const string& id) {
 			if (section.N_ConnectedBS >= maxConnectedBlocks) {
-				cerr << "ERROR: Block section " << section.ID << " has more than "
-					 << maxConnectedBlocks << " connected block sections\n";
+				EG_LOG(SimSetup, Error) << "ERROR: Block section " << section.ID << " has more than "
+										<< maxConnectedBlocks << " connected block sections\n";
 				return false;
 			}
 			section.IDConnectedBS[section.N_ConnectedBS++] = id;
@@ -848,7 +848,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 							if (BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId.empty() != 1)
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "Point"; // Allocating the name to start_node of arcs_in_signalling_block_section
 							else {
-								eglogger << "Warning: Block " << BS[i].ID << " has Beginning Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "@Beg-" + *it + "@Point";
 							}
 							// Then change also the ID of the first point of the block section
@@ -865,7 +864,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point"; // Changing the name of Node end_node of member
 								else {
-									eglogger << "Warning: Block " << BS[i].ID << " has End Node with no name, a name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].end_node.tdsbId + "@End-" + *it + "@Point";
 								}
 								BS[i].end_node.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId; // Changing also the name of Node end_node of signalling_block_sections[i]
@@ -892,7 +890,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "Point"; // Changing the name of Node end_node of member
 								else {
-									cout << "Warning: Block " << BS[i].ID << " has End Node with no name, a name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
+									EG_LOG(SimSetup, Warning) << "Warning: Block " << BS[i].ID << " has End Node with no name, a name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@End-" + *it + "@Point";
 								}
 								BS[i].end_node.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId; // Changing also the name of Node end_node of signalling_block_sections[i]
@@ -910,10 +908,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 							BS[i].arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordY = BS[i].arcs_in_signalling_block_section[j].endNode.Y * 1000;
 						}
 					}
-					if (BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId.empty() != 1)
-						owl << "BS: " << BS[i].ID << " startNode ID: " << BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId << std::endl;
-					if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
-						owl << "BS: " << BS[i].ID << " endNode ID: " << BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
 				}
 			}
 
@@ -931,7 +925,7 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 								NameTDSB = NameTDSB + BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "/@" + pointcoord2 + "-" + *u + "@Point-Start";
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = NameTDSB;
 							} else {
-								cout << "Warning: Block " << BS[i].ID << " has Beginning Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
+								EG_LOG(SimSetup, Warning) << "Warning: Block " << BS[i].ID << " has Beginning Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 								NameTDSB = NameTDSB + "@Beg-" + *it + "@/@" + pointcoord2 + "-" + *u + "@Point-Start";
 								BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = NameTDSB;
 							}
@@ -946,18 +940,18 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 							if ((BS[i].arcs_in_signalling_block_section[j].startNode.X != BS[i].XStartSwitch) && (BS[i].arcs_in_signalling_block_section[j].startNode.X != BS[i].XEndSwitch)) {
 
 								if (BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId.empty() != 1) {
-									cout << "Warning: The initial Node of Block Section: " << BS[i].ID << "is also a switch: Changing its TDSB ID accordingly in: ";
 									BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "Point"; // Allocating the name to start_node of arcs_in_signalling_block_section
-									cout << BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId << "\n";
+									EG_LOG(SimSetup, Warning) << "Warning: The initial Node of Block Section: " << BS[i].ID << "is also a switch: Changing its TDSB ID accordingly in: "
+															  << BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId << "\n";
 								} else {
-									cout << "Warning: Block " << BS[i].ID << " has Beginning Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
+									EG_LOG(SimSetup, Warning) << "Warning: Block " << BS[i].ID << " has Beginning Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 									if (BS[i].arcs_in_signalling_block_section[j].startNode.X < BS[i].XStartSwitch) {
 										BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId + "@Beg-" + *it + "@Point"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *it)@Point
 									} else if (BS[i].arcs_in_signalling_block_section[j].startNode.X > BS[i].XEndSwitch) {
-										cout << "ERROR: in Block Section" << BS[i].ID << " the starting Node has a position that goes after the end of the Switch\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
+										EG_LOG(SimSetup, Error) << "ERROR: in Block Section" << BS[i].ID << " the starting Node has a position that goes after the end of the Switch\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
 
 									} else if ((BS[i].arcs_in_signalling_block_section[j].startNode.X > BS[i].XStartSwitch) && (BS[i].arcs_in_signalling_block_section[j].startNode.X < BS[i].XEndSwitch)) {
-										cout << "ERROR: in Block Section" << BS[i].ID << " the starting Node has a position in between the start and the end of the switch\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
+										EG_LOG(SimSetup, Error) << "ERROR: in Block Section" << BS[i].ID << " the starting Node has a position in between the start and the end of the switch\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
 									}
 								}
 								// Then change also the ID of the first point of the block section
@@ -984,9 +978,8 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 						BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = NameTDSB;
 						// if this corresponds to the last Node of signalling_block_sections[i]
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].end_node.X) { // change also the name of the last Node
-							cout << "Warning: Check correctness of Block Section:" << BS[i].ID << " its ending Node is the start of the switch on the same block section\n\n";
+							EG_LOG(SimSetup, Warning) << "Warning: Check correctness of Block Section:" << BS[i].ID << " its ending Node is the start of the switch on the same block section\n\n";
 							if (NoNameOfNode == 1) {
-								eglogger << "Warning: Block " << BS[i].ID << " has Ending Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 								NameTDSB = NameTDSB + "@End-" + *it + "@/@" + pointcoord2 + "-" + *u + "@Point-Start";
 								BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = NameTDSB;
 							} else { // the name of the block section is one of the names given in the else condition just above this
@@ -1017,7 +1010,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 						// if this corresponds to the last Node of signalling_block_sections[i]
 						if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].end_node.X) { // change also the name of the last Node
 							if (NoNameOfNode == 1) {
-								eglogger << "Warning: Block " << BS[i].ID << " has Ending Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 								NameTDSB = NameTDSB + "@" + pointcoord1 + "-" + *it + "@/@End-" + *u + "@Point-End";
 								BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = NameTDSB;
 							} else { // the name of the block section is one of the names given in the else condition just above this
@@ -1049,14 +1041,13 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@" + pointcoord + "-" + *u + "@Point"; // Assigning TDSB ID as @end_node.X-BlockSectionID(of *u)@Point
 
 								} else if ((BS[i].arcs_in_signalling_block_section[j].endNode.X > BS[i].XStartSwitch) && (BS[i].arcs_in_signalling_block_section[j].endNode.X < BS[i].XEndSwitch)) {
-									cout << "WARNING: in Block Section" << BS[i].ID << " Node at position: " << BS[i].arcs_in_signalling_block_section[j].endNode.X << " is a switch defined in between the start (XStartSwitch) and the end (XEndSwitch) of the diverging switch. A name will be automatically assigned to it\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
-									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@" + pointcoord + "-" + *u + "@Point";																																   // here it is assumed that the Node is part of the second block section *u connected by the diverging switch of block Section signalling_block_sections[i]
+									EG_LOG(SimSetup, Warning) << "WARNING: in Block Section" << BS[i].ID << " Node at position: " << BS[i].arcs_in_signalling_block_section[j].endNode.X << " is a switch defined in between the start (XStartSwitch) and the end (XEndSwitch) of the diverging switch. A name will be automatically assigned to it\n"; // for nodes different from the starting one this one should have as a name @end_node.X-BlockSectionID(of *u)@Point
+									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId + "@" + pointcoord + "-" + *u + "@Point";																																						// here it is assumed that the Node is part of the second block section *u connected by the diverging switch of block Section signalling_block_sections[i]
 								}
 							}
 							// if this corresponds to the last Node of signalling_block_sections[i]
 							if (BS[i].arcs_in_signalling_block_section[j].endNode.X == BS[i].end_node.X) { // change also the name of the last Node
 								if (NoNameOfNode == 1) {
-									eglogger << "Warning: Block " << BS[i].ID << " has Ending Node with no name. A name will be automatically assigned to it and need to manually check congruency in case of timetable compression\n";
 									NameTDSB = "@End-" + *u + "@Point";
 									BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId = NameTDSB;
 								} else { // the name of the block section is one of the names given in the else condition just above this
@@ -1069,11 +1060,6 @@ void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section*
 							BS[i].arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordY = BS[i].arcs_in_signalling_block_section[j].endNode.Y * 1000;
 						}
 					}
-
-					if (BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId.empty() != 1)
-						owl << "2BS: " << BS[i].ID << " startNode ID: " << BS[i].arcs_in_signalling_block_section[j].startNode.tdsbId << std::endl;
-					if (BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId.empty() != 1)
-						owl << "2BS: " << BS[i].ID << " endNode ID: " << BS[i].arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
 				}
 			}
 		}
@@ -1400,7 +1386,7 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 							TEMP_Elem.SwitchName = SWName;
 						}
 					} else {
-						cout << "Warning: Switch at starting Node: " << BS.start_node.tdsbId << " on Block Section " << BS.ID << "for Route " << this->ID << " that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+						EG_LOG(SimSetup, Warning) << "Warning: Switch at starting Node: " << BS.start_node.tdsbId << " on Block Section " << BS.ID << "for Route " << this->ID << " that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 					}
 				} else {
 					TEMP_Elem.SwitchName = TEMP_Elem.ID; // if the switch is on a Block Section with a Diverging Switch but theis switch is different from the diverging switch then assign its ID to its SwitchName
@@ -1490,8 +1476,8 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 									TEMP_Elem.SwitchName = SWName;
 								}
 							} else {
-								std::cout << "Warning: Switch at end of one of the arcs: " << BS.arcs_in_signalling_block_section[m].endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																		 " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+								EG_LOG(SimSetup, Warning) << "Warning: Switch at end of one of the arcs: " << BS.arcs_in_signalling_block_section[m].endNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																																						 " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 							}
 
 						} else {
@@ -1581,8 +1567,8 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 									TEMP_Elem.SwitchName = SWName;
 								}
 							} else {
-								cout << "Warning: Switch at one of the beginning nodes: " << BS.arcs_in_signalling_block_section[m].startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																																		  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+								EG_LOG(SimSetup, Warning) << "Warning: Switch at one of the beginning nodes: " << BS.arcs_in_signalling_block_section[m].startNode.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																																							   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 							}
 						}
 
@@ -1668,8 +1654,8 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 							TEMP_Elem.SwitchName = SWName;
 						}
 					} else {
-						cout << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
-																																																			  " is a diverging switch with less than 4 characters in its name. Please check why...\n";
+						EG_LOG(SimSetup, Warning) << "Warning: Switch at ending Node: " << BS.end_node.tdsbId << " on Block Section " << BS.ID << "for Route" << this->ID << "that has reversed = " << this->reversed_direction << " is a diverging switch with less than 4 characters in its name. Please check why...\n"
+																																																								   " is a diverging switch with less than 4 characters in its name. Please check why...\n";
 					}
 
 				}
@@ -1923,7 +1909,7 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 	resetSingleTrackLocks();
 
 	for (int i = 0; i < N_Routes; i++) {
-		std::cout << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
+		EG_LOG(SimSetup, Info) << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
 		const int direction = i < static_cast<int>(routeDirections.size()) ? routeDirections[i] : 0;
 		train_route[i].createRouteFromBlockIds(scene.routes[i].blocks, direction);
 		train_route[i].adjustRouteAcrossDiffRegions();
@@ -1935,7 +1921,7 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 			train_route[i].OriginalRefReversedRoute = train_route[i].x_of_end_node * 1000.0;
 		}
 	}
-	std::cout << "\n";
+	EG_LOG(SimSetup, Info) << "\n";
 }
 
 namespace {
@@ -2965,10 +2951,8 @@ double S_delay = 0; // Variable representing the delay of Signalling Systems (in
 list<string> BlocksOccupied;	 // This is the list of the All Blocks Occupied by trains: i.e. Blocks where train are on and blocks which are connected to occupied blocks
 list<string> BlocksConnected;	 // This is the list of all the Blocks Connected with the Blocks occupied by trains. This list is needed in order to release the blocks contained in there when the train on the connected block has left it.
 list<MovementAuthority> ETCS_MA; // This is the list of all the movement authorities provided by the RBC where ETCS is active
-extern Logger owl;
 // Function to Occupy a Block Section and all the Block sections connected with it
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
-	owl << ">>>>>>>>>>>>>BLS.ID " << BLS.ID << " BLS.IDPrev " << BLSPrev.ID << std::endl;
 	int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 	string* IDToAdd = new string[NumBlocksToFind]; // These contain the ID of Block Sections, the test to see if that ID is present in the BlocksOccupied list and the test to check if the ID is present in the BlocksConnected
 	bool* IsThere = new bool[NumBlocksToFind];
@@ -2988,11 +2972,6 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 		}
 		if (IsThere[i] == 0) {
 			BlocksOccupied.push_back(IDToAdd[i]);
-			owl << "BLS.ID " << BLS.ID << " BLS.IDPrev " << BLSPrev.ID << " add " << IDToAdd[i] << std::endl;
-			int counter = 0;
-			for (list<string>::iterator it2 = BlocksOccupied.begin(); it2 != BlocksOccupied.end(); it2++) {
-				owl << "Occupied " << counter << " blcok " << *it2 << std::endl;
-			}
 		}
 	}
 
@@ -3477,7 +3456,7 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 					RightSectionToConsider = BlockID2;
 					RightSwitchEdgeToConsider = SwitchEndPos;
 				} else {
-					cout << "\n\nError: there is not Block ahving the same ID of Block signalling_block_sections in Function: lockSwitchesOnAllConnectedSections...Please investigate on that\n\n";
+					EG_LOG(SimSetup, Error) << "\n\nError: there is not Block ahving the same ID of Block signalling_block_sections in Function: lockSwitchesOnAllConnectedSections...Please investigate on that\n\n";
 				}
 				// Defining MA1 on BlockID1
 				MA1.BSID = RightSectionToConsider;
