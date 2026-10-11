@@ -8,38 +8,38 @@ train F1-1 sample t=402 x=0.615074 v=1.230149
 train F1-1 sample t=462 x=1278.266026 v=31.292706
 train F1-1 sample t=522 x=3394.638283 v=36.111111
 train F1-1 sample t=582 x=5561.304949 v=36.111111
-train F1-1 sample t=642 x=7627.589337 v=25.137617
+train F1-1 sample t=642 x=7645.187238 v=24.562141
 train F1-1 sample t=702 x=7999.999900 v=0.000000
 train F1-1 sample t=762 x=8381.477027 v=22.268637
 train F1-1 sample t=822 x=10202.974930 v=36.111111
 train F1-1 sample t=882 x=12369.641596 v=36.111111
 train F1-1 sample t=942 x=14536.308263 v=36.111111
-train F1-1 sample t=1002 x=15995.257810 v=3.162144
-train F1-1 sample t=1054 x=16000.000100 v=0.000000
+train F1-1 sample t=1002 x=15997.034411 v=2.570291
+train F1-1 sample t=1054 x=16000.000100 v=0.000100
 train F1-1 stop t_first=673 t_last=734 x=7999.998000 dwell=61
-train F1-1 braking t=629 x=7248.861328 v=36.111111 stop_t=673
+train F1-1 braking t=628 x=7222.416060 v=36.111111 stop_t=673
 train F1-1 stop t_first=1006 t_last=1054 x=15999.998000 dwell=48
-train F1-1 braking t=962 x=15248.861328 v=36.111111 stop_t=1006
+train F1-1 braking t=961 x=15222.419374 v=36.111111 stop_t=1006
 train F2-1 active start=542 end=1294
 train F2-1 sample t=542 x=0.615074 v=1.230149
 train F2-1 sample t=602 x=1278.266026 v=31.292706
-train F2-1 sample t=662 x=3376.546422 v=34.677867
-train F2-1 sample t=722 x=4356.021919 v=11.111000
-train F2-1 sample t=782 x=5401.481094 v=27.815766
-train F2-1 sample t=842 x=6527.785593 v=23.793947
-train F2-1 sample t=902 x=7956.451233 v=8.729638
+train F2-1 sample t=662 x=3391.442064 v=34.145633
+train F2-1 sample t=722 x=4355.550000 v=11.111000
+train F2-1 sample t=782 x=5401.009175 v=27.815766
+train F2-1 sample t=842 x=6527.313674 v=23.793947
+train F2-1 sample t=902 x=7963.389807 v=8.036568
 train F2-1 sample t=962 x=7999.999900 v=0.000000
 train F2-1 sample t=1022 x=8890.971577 v=28.248027
 train F2-1 sample t=1082 x=10925.197152 v=36.111111
 train F2-1 sample t=1142 x=13091.863819 v=36.111111
-train F2-1 sample t=1202 x=15248.861328 v=36.111111
+train F2-1 sample t=1202 x=15258.366654 v=35.947280
 train F2-1 sample t=1262 x=15999.999900 v=0.000000
-train F2-1 sample t=1294 x=16000.000100 v=0.000000
+train F2-1 sample t=1294 x=16000.000100 v=0.000100
 train F2-1 stop t_first=913 t_last=974 x=7999.998000 dwell=61
-train F2-1 braking t=874 x=7408.260690 v=31.881548 stop_t=913
+train F2-1 braking t=873 x=7397.315826 v=31.807198 stop_t=913
 train F2-1 stop t_first=1246 t_last=1294 x=15999.998000 dwell=48
-train F2-1 braking t=1202 x=15248.861328 v=36.111111 stop_t=1246
-separation F1-1>F2-1 min_gap_t=743 min_gap=3390.257542
+train F2-1 braking t=1201 x=15222.419374 v=36.111111 stop_t=1246
+separation F1-1>F2-1 min_gap_t=743 min_gap=3390.729462
 aspect route0 @0-B0@ 0:0 401:270 402:0 486:75 541:180 542:0 626:75 697:180 817:270
 aspect route0 @1-B0@ 0:270 484:0 541:75 597:180 624:0 697:75 817:180 985:270
 aspect route0 @2-B0@ 0:270 539:0 597:75 691:0 817:75 985:180 1059:270

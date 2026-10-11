@@ -1425,6 +1425,44 @@ void Occupy_Block_Sections_Of_Route(int i) {
 	updateSingleTrackLocks(i);
 }
 
+// New occupancy at an origin must not close a crossover after an approaching train has lost the
+// opportunity to brake. Use the previous sample for every train, independent of movement order, and
+// the existing next-step braking lookahead. No reservation survives a train safely stopping outside.
+bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
+	if (step <= 0 || timestep <= 0)
+		return false;
+	for (Train& approaching : regional_train) {
+		if (&approaching == this || !approaching.CanEnter || approaching.OutOfSimulation || step < approaching.departure_time
+			|| approaching.indexOfRoute < 0 || approaching.indexOfRoute >= static_cast<int>(train_route.size()))
+			continue;
+		Route& route = train_route[approaching.indexOfRoute];
+		for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
+			const Section& first = route.sequence_of_block_sections[b];
+			const Section& second = route.sequence_of_block_sections[b + 1];
+			const Section& exit = route.sequence_of_block_sections[b + 2];
+			if (!(first.SignallingLevel == 0 || first.SignallingLevel == 1 || first.SignallingLevel == 2 || first.SignallingLevel == 5)
+				|| !first.end_node.virtualSignal || !second.start_node.virtualSignal)
+				continue;
+			if (origin.ID != exit.ID
+				&& std::find(origin.IDConnectedBS, origin.IDConnectedBS + origin.N_ConnectedBS, exit.ID) == origin.IDConnectedBS + origin.N_ConnectedBS)
+				continue;
+			const int previous = step - 1;
+			if (previous >= static_cast<int>(approaching.instant_spatial_position.size()) || previous >= static_cast<int>(approaching.instant_train_speed.size()))
+				return true;
+			const double head = approaching.instant_spatial_position[previous];
+			const double speed = approaching.instant_train_speed[previous];
+			if (!std::isfinite(head) || !std::isfinite(speed))
+				return true;
+			if (head - approaching.train_length >= exit.end_node.X * 1000)
+				continue;
+			if (approaching.needsSingleTrackReservation(head, speed, first.start_node.X * 1000,
+					route.sequence_of_block_sections.data(), route.N_Block_Sections))
+				return true;
+		}
+	}
+	return false;
+}
+
 // Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
 // same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
 void updateSingleTrackLocks(int step) {

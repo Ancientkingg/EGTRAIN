@@ -7,30 +7,30 @@ reservation first_step=124 moving_tie=1 direction=1
 train R1-1 active start=60 end=661
 train R1-1 sample t=60 x=0.615074 v=1.230149
 train R1-1 sample t=120 x=1278.266026 v=31.292706
-train R1-1 sample t=180 x=2311.577919 v=11.111000
-train R1-1 sample t=240 x=2978.237919 v=11.111000
-train R1-1 sample t=300 x=3644.897919 v=11.111000
-train R1-1 sample t=360 x=3999.999900 v=0.000000
+train R1-1 sample t=180 x=2311.106000 v=11.111000
+train R1-1 sample t=240 x=2977.766000 v=11.111000
+train R1-1 sample t=300 x=3644.426000 v=11.111000
+train R1-1 sample t=360 x=3999.998000 v=0.000000
 train R1-1 sample t=420 x=4647.187669 v=25.869722
 train R1-1 sample t=480 x=6600.197152 v=36.111111
-train R1-1 sample t=540 x=7999.208327 v=1.579862
+train R1-1 sample t=540 x=7999.619899 v=1.168569
 train R1-1 sample t=600 x=7999.999900 v=0.000000
 train R1-1 sample t=660 x=7999.999900 v=0.000000
-train R1-1 sample t=661 x=8000.000100 v=0.000000
+train R1-1 sample t=661 x=8000.000100 v=0.000100
 train R1-1 stop t_first=340 t_last=381 x=3999.998000 dwell=41
-train R1-1 braking t=326 x=3928.171994 v=11.111000 stop_t=340
+train R1-1 braking t=325 x=3922.201000 v=11.111000 stop_t=340
 train R1-1 stop t_first=542 t_last=661 x=7999.998000 dwell=119
-train R1-1 braking t=498 x=7248.861328 v=36.111111 stop_t=542
+train R1-1 braking t=498 x=7250.197152 v=36.111111 stop_t=542
 train S1-1 active start=60 end=379
 train S1-1 sample t=60 x=0.615074 v=1.230149
 train S1-1 sample t=120 x=1278.266026 v=31.292706
 train S1-1 sample t=180 x=3394.638283 v=36.111111
 train S1-1 sample t=240 x=5561.304949 v=36.111111
-train S1-1 sample t=300 x=7627.589337 v=25.137617
+train S1-1 sample t=300 x=7645.187238 v=24.562141
 train S1-1 sample t=360 x=7999.999900 v=0.000000
-train S1-1 sample t=379 x=8000.000100 v=0.000000
+train S1-1 sample t=379 x=8000.000100 v=0.000100
 train S1-1 stop t_first=331 t_last=379 x=7999.998000 dwell=48
-train S1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
+train S1-1 braking t=286 x=7222.416060 v=36.111111 stop_t=331
 aspect routeAB @0-B0@ 0:270 60:0 144:75 199:180 255:270 380:180 662:270
 aspect routeAB @1-B0@ 0:270 142:0 199:75 255:180 380:75 662:270
 aspect routeAB @2-B0@ 0:270 197:0 255:75 380:0 662:270

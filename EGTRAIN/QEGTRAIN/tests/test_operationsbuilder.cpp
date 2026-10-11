@@ -9,6 +9,7 @@
 
 // The Qt headers come before the undef: Qt defines `signals`, and the scene model has a member of that name.
 #include <QDir>
+#include <QFileInfo>
 #include <QTemporaryDir>
 #ifdef signals
 #undef signals
@@ -17,10 +18,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -347,6 +350,14 @@ static TEST_NOINLINE void poisonStack(double value) {
 		junk[index] = value;
 }
 
+static bool brakingTargetAdmissible(Train& train, double head, double speed, double targetSpeed, Section* sections, int count) {
+	const Arc* arc = train.brakingArc(head, sections, count);
+	if (!arc)
+		return false;
+	const double maximum = std::max(0.0, speed + (train.tractiveEffort(speed) - train.total_train_resistances(speed, arc->gradient, arc->curvature)) / (train.total_train_mass * train.massFactor) * timestep);
+	return std::isfinite(targetSpeed) && targetSpeed >= std::max(0.0, speed - (train.max_train_decelaration + train.total_train_resistances(speed, arc->gradient, arc->curvature) / (train.total_train_mass * train.massFactor)) * timestep) && targetSpeed <= maximum;
+}
+
 static bool brakingPointTests() {
 	bool ok = true;
 	const double savedTimestep = timestep;
@@ -355,23 +366,28 @@ static bool brakingPointTests() {
 	Train train = brakingTrain(1.0);
 	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
 
-	// The curve reaches the current speed inside the route: the braking point is interpolated
-	// between the two steps around that speed.
-	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 5000.0, route.data(), 1), 4601.818895),
-		"braking point of a stop from 30 m/s on a flat route");
-	ok &= expect(at(train.BrakDist_Block(30.0, 10.0, 5000.0, route.data(), 1), 4644.466708),
-		"braking point of a slowdown from 30 to 10 m/s on a flat route");
-	ok &= expect(train.BrakDist_Block(10.0, 10.0, 5000.0, route.data(), 1) == 5000.0
-			&& train.BrakDist_Block(10.0, 30.0, 5000.0, route.data(), 1) == 5000.0,
-		"no braking is needed when the current speed does not exceed the target speed");
+	// Solve the braking point with the declared actual-start forward model.
+	for (double targetSpeed : {0.0, 10.0}) {
+		const double point = train.BrakDist_Block(30, targetSpeed, 5000, route.data(), 1);
+		double end, endSpeed;
+		bool reaches = false;
+		if (targetSpeed == 0)
+			reaches = train.predictBraking(point, 30, 0, route.data(), 1, end) && at(end, 4999.998);
+		else {
+			train.DrawBrakingCurve(30, targetSpeed, 5000, route.data(), 1);
+			reaches = train.predictBrakingPrefix(point, 30, train.BrakStep - 1, route.data(), 1, end, endSpeed)
+				&& (4999.998 - end) / timestep <= targetSpeed && brakingTargetAdmissible(train, end, endSpeed, (4999.998 - end) / timestep, route.data(), 1);
+		}
+		ok &= expect(point > 0 && point < 5000 && reaches, "braking point reaches its actual endpoint with admissible terminal force");
+	}
 
-	// The curve passes the start of the route before it reaches the current speed: the braking
-	// point lies before the route and is the last abscissa that was computed.
+	ok &= expect(train.BrakDist_Block(10, 10, 5000, route.data(), 1) == 5000
+			&& train.BrakDist_Block(10, 30, 5000, route.data(), 1) == 5000,
+		"no braking is needed below target speed");
 	std::vector<Section> later = brakingRoute(2.0, 12.0, 0.0);
-	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 100.0, route.data(), 1), -9.763361),
-		"a braking curve that leaves the route at its start gives a braking point before the route");
-	ok &= expect(at(train.BrakDist_Block(30.0, 0.0, 2100.0, later.data(), 1), 1990.236639),
-		"the start of the route is the one of the first section");
+	const double beforeOrigin = train.BrakDist_Block(30, 0, 100, route.data(), 1);
+	ok &= expect(beforeOrigin < 0 && at(train.BrakDist_Block(30, 0, 2100, later.data(), 1), beforeOrigin + 2000),
+		"inverse leaving route at entry retains its computed upstream coordinate");
 
 	// The braking force cannot hold the train on a steep descent: the curve runs forward and
 	// leaves the route at its end.
@@ -390,7 +406,7 @@ static bool brakingPointTests() {
 		const double start = train.BrakDist_Block(30.0, 0.0, 100.0, route.data(), 1);
 		poisonStack(value);
 		const double end = train.BrakDist_Block(30.0, 10.0, 5000.0, steep.data(), 1);
-		ok &= expect(at(start, -9.763361) && end == -1,
+		ok &= expect(at(start, beforeOrigin) && end == -1,
 			"the braking point of a curve that leaves the route does not depend on the stack");
 	}
 	timestep = savedTimestep;
@@ -576,6 +592,1285 @@ static bool brakingCurveTests() {
 			"the braking-point search gives a braking point before the train for the second case");
 	}
 	timestep = savedTimestep;
+	return ok;
+}
+
+// Native inverse states and non-grid entry must obey actual-start force sampling.
+// The pre-reuse linear lookup and predictor bodies are kept as exact differential references.
+struct LinearBrakingReference : Train {
+	const Arc* brakingArc(double head, Section* sections, int count) const {
+		for (int b = 0; b < count; ++b)
+			for (int j = 0; j < sections[b].total_arcs; ++j) {
+				const Arc& arc = sections[b].arcs_in_signalling_block_section[j];
+				if (head >= arc.startNode.X * 1000 && head < arc.endNode.X * 1000)
+					return &arc;
+			}
+		return nullptr;
+	}
+
+	bool predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
+		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
+		for (int step = 0; step < 1999; ++step) {
+			end = head; // An above-target route exit can reject a shooting bracket, never validate a plan.
+			if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
+				return false;
+			if (positions) {
+				positions->push_back(head);
+				speeds->push_back(speed);
+			}
+			if (speed <= targetSpeed) {
+				end = head;
+				return true;
+			}
+			const Arc* arc = brakingArc(head, sections, count);
+			if (!arc)
+				return false;
+			speed = brakingCurveSpeed(speed, *arc);
+			head += speed * timestep;
+		}
+		return false;
+	}
+
+	bool predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
+		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
+		if (steps < 0 || steps >= 1999)
+			return false;
+		for (int step = 0; step <= steps; ++step) {
+			end = head;
+			endSpeed = speed;
+			if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
+				return false;
+			if (positions) {
+				positions->push_back(head);
+				speeds->push_back(speed);
+			}
+			if (step == steps)
+				return true;
+			const Arc* arc = brakingArc(head, sections, count);
+			if (!arc)
+				return false;
+			speed = brakingCurveSpeed(speed, *arc);
+			head += speed * timestep;
+		}
+		return false;
+	}
+};
+
+static bool brakingLookupReuseTests() {
+	bool ok = true;
+	const double savedTimestep = timestep;
+	Train train = brakingTrain(1);
+	LinearBrakingReference reference;
+	static_cast<Train&>(reference) = train;
+	const auto exact = [](double a, double b) { return std::memcmp(&a, &b, sizeof(double)) == 0; };
+	const auto exactVector = [](const std::vector<double>& a, const std::vector<double>& b) {
+		return a.size() == b.size() && std::memcmp(a.data(), b.data(), a.size() * sizeof(double)) == 0;
+	};
+	const auto compare = [&](std::vector<Section>& route, double head, double speed, int steps) {
+		Section* sections = route.data();
+		const int count = static_cast<int>(route.size());
+		double end = -123, oldEnd = end, endSpeed = -456, oldSpeed = endSpeed;
+		std::vector<double> positions{-123}, speeds{-456}, oldPositions = positions, oldSpeeds = speeds;
+		bool result = train.predictBraking(head, speed, 0, sections, count, end, &positions, &speeds);
+		bool oldResult = reference.predictBraking(head, speed, 0, sections, count, oldEnd, &oldPositions, &oldSpeeds);
+		ok &= expect(result == oldResult && exact(end, oldEnd) && exactVector(positions, oldPositions) && exactVector(speeds, oldSpeeds),
+			"complete predictor equals old linear reference, including partial arrays and failure endpoint");
+		end = oldEnd = -123;
+		positions = oldPositions = {-123};
+		speeds = oldSpeeds = {-456};
+		result = train.predictBrakingPrefix(head, speed, steps, sections, count, end, endSpeed, &positions, &speeds);
+		oldResult = reference.predictBrakingPrefix(head, speed, steps, sections, count, oldEnd, oldSpeed, &oldPositions, &oldSpeeds);
+		ok &= expect(result == oldResult && exact(end, oldEnd) && exact(endSpeed, oldSpeed)
+				&& exactVector(positions, oldPositions) && exactVector(speeds, oldSpeeds),
+			"fixed prefix equals old linear reference, including validation and failure outputs");
+		result = train.predictBraking(head, speed, 15, sections, count, end);
+		oldResult = reference.predictBraking(head, speed, 15, sections, count, oldEnd);
+		ok &= expect(result == oldResult && exact(end, oldEnd), "positive completion without vectors equals linear reference");
+		result = train.predictBrakingPrefix(head, speed, steps, sections, count, end, endSpeed);
+		oldResult = reference.predictBrakingPrefix(head, speed, steps, sections, count, oldEnd, oldSpeed);
+		ok &= expect(result == oldResult && exact(end, oldEnd) && exact(endSpeed, oldSpeed), "prefix without vectors equals linear reference");
+	};
+	// An earlier-listed future-start overlap must interrupt reuse of the later-listed arc.
+	auto overlap = brakingRouteOfTwoArcs(0.06, 0.1, 0.02, -0.005);
+	overlap[0].arcs_in_signalling_block_section[0].startNode.X = 0.03;
+	overlap[0].arcs_in_signalling_block_section[1].startNode.X = 0;
+	double upper;
+	ok &= expect(train.brakingArc(10, overlap.data(), 1, &upper) == reference.brakingArc(10, overlap.data(), 1) && upper == 30,
+		"reuse ends at earlier-listed future start, not selected overlapping arc end");
+	double lookupHead = 0, safeUpper = 0;
+	const Arc* reused = nullptr;
+	for (double head : {10.0, std::nextafter(30.0, 0.0), 30.0, 45.0, std::nextafter(60.0, 0.0), 60.0, 80.0, 10.0, 100.0}) {
+		if (!reused || head < lookupHead || !(head < safeUpper)) {
+			reused = train.brakingArc(head, overlap.data(), 1, &safeUpper);
+			lookupHead = head;
+		}
+		ok &= expect(reused == reference.brakingArc(head, overlap.data(), 1), "safe interval keeps exact first match across overlap, boundary and backward movement");
+	}
+	std::vector<std::vector<Section>> routes{brakingRouteOfTwoArcs(0.03, 0.1, 0.02, -0.005), overlap};
+	auto gap = routes[0];
+	gap[0].arcs_in_signalling_block_section[1].startNode.X = 0.04;
+	routes.push_back(gap);
+	// First-match order also holds across sections whose coordinate order differs.
+	std::vector<Section> crossSection{brakingRoute(0.03, 0.06, 0.02)[0], brakingRoute(0, 0.1, -0.005)[0]};
+	routes.push_back(crossSection);
+	for (double dt : {1.0, 0.0, -1.0}) {
+		timestep = dt; // Zero/backward malformed timesteps must retain their old behavior.
+		for (auto& route : routes)
+			for (double head : {-1.0, 0.0, 10.0, std::nextafter(30.0, 0.0), 30.0, 35.0, 40.0, 60.0, 100.0})
+				for (int steps : {-1, 0, 1, 12, 1998, 1999})
+					compare(route, head, 30, steps);
+	}
+	timestep = 1;
+	compare(overlap, 10, 0, 12);
+	compare(overlap, 10, -1, 12);
+	compare(overlap, std::numeric_limits<double>::quiet_NaN(), 30, 12);
+	compare(overlap, 10, std::numeric_limits<double>::infinity(), 12);
+	// The existing positive-target inverse really dips below its ceiling and recovers.
+	auto recovery = brakingRouteOfTwoArcs(4.9, 10, 0.02, -0.2);
+	ok &= expect(train.DrawBrakingCurve(35, 15, 5000, recovery.data(), 1), "differential positive prefix uses native recovery fixture");
+	if (train.BrakStep >= 0) {
+		compare(recovery, train.Sbrak[0], train.Vbrak[0], train.BrakStep - 1);
+		std::vector<double> positions, speeds;
+		double end, endSpeed;
+		bool below = false, recovered = false;
+		const bool predicted = train.predictBrakingPrefix(train.Sbrak[0], train.Vbrak[0], train.BrakStep - 1,
+			recovery.data(), 1, end, endSpeed, &positions, &speeds);
+		for (std::size_t k = 1; k < speeds.size(); ++k) {
+			below |= speeds[k] < 15;
+			recovered |= below && speeds[k] > speeds[k - 1];
+		}
+		ok &= expect(predicted && below && recovered, "exact differential prefix includes below-ceiling gradient recovery");
+	}
+	timestep = savedTimestep;
+	return ok;
+}
+
+// Fractions shift the entry coordinate, not a linearly interpolated nonlinear flow.
+static bool forwardBrakingTests() {
+	bool ok = true;
+	const double savedTimestep = timestep;
+	timestep = 1;
+	std::vector<std::vector<Section>> routes;
+	for (double gradient : {0.0, 0.005, -0.005})
+		routes.push_back(brakingRoute(0, 10, gradient));
+	for (const auto gradients : {std::pair<double, double>{0, 0.005}, {0.005, 0}, {0, -0.005}, {-0.005, 0}}) {
+		auto route = brakingRouteOfTwoArcs(4.99, 10, gradients.first, gradients.second);
+		routes.push_back(route);
+		route[0].arcs_in_signalling_block_section[0].curvature = 500;
+		route[0].arcs_in_signalling_block_section[1].curvature = 1000;
+		routes.push_back(route);
+	}
+	for (std::size_t routeIndex = 0; routeIndex < routes.size(); ++routeIndex) {
+		auto& route = routes[routeIndex];
+		Train native = brakingTrain(1);
+		ok &= expect(native.DrawBrakingCurve(30, 0, 5000, route.data(), 1), "actual-start inverse is drawable");
+		if (native.BrakStep < 0)
+			continue;
+		for (int k = 0; k < native.BrakStep; ++k) {
+			const double head = native.Sbrak[k], speed = native.Vbrak[k];
+			const Arc* arc = native.brakingArc(head, route.data(), 1);
+			ok &= expect(arc && near(native.Vbrak[k + 1], native.brakingCurveSpeed(speed, *arc))
+					&& near(native.Sbrak[k + 1], head + native.Vbrak[k + 1] * timestep),
+				"every inverse native step solves the actual-start forward equation");
+		}
+		for (double fraction : {0.0, 0.35, 0.8}) {
+			Train train = brakingTrain(1);
+			train.Sbrak = native.Sbrak;
+			train.Vbrak = native.Vbrak;
+			train.BrakStep = native.BrakStep;
+			train.counter = 1;
+			const int k = routeIndex < 3 ? 3 : std::max(0, native.BrakStep - 6);
+			const double speed = native.Vbrak[k];
+			const double head = native.Sbrak[k] - fraction * speed * timestep;
+			train.instant_spatial_position = {head - speed, head, -1};
+			train.instant_train_speed = {speed, speed, -1};
+			train.Eq.assign(3, 0);
+			train.Xobmin = 5000;
+			train.Vobmin = 0;
+			bool stopped = false;
+			for (int step = 0; step < 100; ++step) {
+				const double oldHead = train.instant_spatial_position[1], oldSpeed = train.instant_train_speed[1];
+				const Arc* arc = train.brakingArc(oldHead, route.data(), 1);
+				if (!arc) {
+					ok &= expect(false, "feasible continuation remains on route");
+					break;
+				}
+				const double minimum = train.brakingCurveSpeed(oldSpeed, *arc);
+				const double maximum = std::max(0.0, oldSpeed + (train.tractiveEffort(oldSpeed) - train.total_train_resistances(oldSpeed, arc->gradient, arc->curvature)) / (train.total_train_mass * train.massFactor) * timestep);
+				train.brakingStep(2, *arc, route.data(), 1);
+				const double nextHead = train.instant_spatial_position[2], nextSpeed = train.instant_train_speed[2];
+				std::ostringstream context;
+				context.precision(17);
+				context << "route=" << routeIndex << " fraction=" << fraction << " step=" << step << " head=" << oldHead
+						<< " speed=" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << train.Eq[2];
+				ok &= expect(train.Eq[2] != 54, "feasible continuation does not take late fallback: " + context.str());
+				ok &= expect(nextSpeed >= minimum - 1e-9 && nextSpeed <= maximum + 1e-9 && near(nextHead, oldHead + nextSpeed * timestep)
+						&& nextHead >= oldHead && nextHead <= 5000 && (step == 0 || near(nextSpeed, minimum)),
+					"actual-speed force, full subsequent model steps and right-endpoint distance: " + context.str());
+				ok &= expect(train.instant_spatial_position[1] == oldHead && train.instant_train_speed[1] == oldSpeed,
+					"continuation leaves prior samples immutable");
+				if (nextSpeed == 0) {
+					ok &= expect(near(nextHead, 4999.998), "native/non-grid complete stop retains real anchor: " + context.str());
+					stopped = true;
+					break;
+				}
+				train.instant_spatial_position[1] = nextHead;
+				train.instant_train_speed[1] = nextSpeed;
+			}
+			ok &= expect(stopped, "feasible native/non-grid continuation completes its stop");
+		}
+	}
+	// The old downstream-sampled state is genuinely late under the corrected flow.
+	{
+		auto route = brakingRouteOfTwoArcs(4.99, 10, 0, 0.005);
+		Train train = brakingTrain(1);
+		const double head = 4989.1453539500844, speed = 5.4322173106653109;
+		double end;
+		ok &= expect(train.predictBraking(head, speed, 0, route.data(), 1, end) && end > 4999.998,
+			"old native state is late for the actual-start right-endpoint flow");
+		const auto run = brakingRun(train, route, head, speed, 0, 5000, 6);
+		ok &= expect(run.eq[2] == 54 && near(run.position.back(), 5002.9173234323098) && run.speed.back() == 0,
+			"separate legacy late-target mean-position fallback is unchanged");
+	}
+	// The terminal vertical step and a duplicate zero-speed state require no geometry snap.
+	{
+		auto route = brakingRoute(0, 10, 0);
+		Train train = brakingTrain(1);
+		const auto run = brakingRun(train, route, 4999.998, 0.35, 0, 5000, 2);
+		ok &= expect(run.speed[2] == 0 && run.speed[3] == 0 && run.position[2] == 4999.998 && run.position[3] == 4999.998,
+			"vertical and degenerate zero-speed terminals retain their coordinate");
+	}
+	// A changed target is redrawn from the actual state, never from a rewritten past.
+	{
+		auto route = brakingRoute(0, 10, 0);
+		Train train = brakingTrain(1);
+		train.Xob.assign(3, 5000);
+		train.Vob.assign(3, 0);
+		train.Xobmin = 4500;
+		train.Vobmin = 0;
+		train.counter = 1;
+		train.instant_spatial_position = {4780, 4800, -1};
+		train.instant_train_speed = {20, 20, -1};
+		train.Eq.assign(3, 0);
+		train.brakingStep(2, route[0].arcs_in_signalling_block_section[0], route.data(), 1);
+		ok &= expect(train.Eq[2] == 54 && train.instant_spatial_position[1] == 4800 && train.instant_train_speed[1] == 20
+				&& train.instant_spatial_position[2] > 4800,
+			"changed late target preserves immutable history and fallback");
+	}
+	// Fold and nonfinite branches are rejected explicitly, not selected by root order.
+	{
+		auto route = brakingRoute(0, 10, 0);
+		Train train = brakingTrain(1);
+		double head, speed;
+		ok &= expect(!train.inverseBrakingStep(5000, std::numeric_limits<double>::quiet_NaN(), route.data(), 1, head, speed),
+			"nonfinite inverse is rejected");
+		ok &= expect(!train.inverseBrakingStep(5000, 10000, route.data(), 1, head, speed), "missing inverse branch is rejected");
+	}
+	// Exercise the linear inverse independently of aerodynamic quadratic terms.
+	{
+		struct ConstantResistanceTrain : Train {
+			double total_train_resistances(double, double gradient, double curvature) override {
+				return gradient_resistances(gradient) + curvature_resistances(curvature);
+			}
+		};
+		ConstantResistanceTrain train;
+		static_cast<Train&>(train) = brakingTrain(1);
+		auto route = brakingRoute(0, 100, 0);
+		double head, speed;
+		ok &= expect(train.inverseBrakingStep(5000, 10, route.data(), 1, head, speed) && head == 4990 && speed == 11,
+			"zero-quadratic inverse solves the linear actual-start step");
+		Train quadratic = brakingTrain(1);
+		ok &= expect(!quadratic.inverseBrakingStep(30000, 10000, route.data(), 1, head, speed),
+			"quadratic branch beyond its maximum has no admissible inverse");
+	}
+
+	// A real non-monotone inverse branch dips below its positive target speed,
+	// then recovers on a descent. Reaching the limit early is not sufficient:
+	// the remaining descent cannot hold it even with full braking.
+	{
+		auto route = brakingRouteOfTwoArcs(4.9, 10, 0.02, -0.2);
+		Train train = brakingTrain(1);
+		ok &= expect(train.DrawBrakingCurve(35, 15, 5000, route.data(), 1), "non-monotone native inverse reaches its upstream speed");
+		if (train.BrakStep >= 0) {
+			const double minimum = *std::min_element(train.Vbrak.begin(), train.Vbrak.begin() + train.BrakStep + 1);
+			bool exactModel = true, recovers = false;
+			for (int k = 0; k < train.BrakStep; ++k) {
+				const Arc* arc = train.brakingArc(train.Sbrak[k], route.data(), 1);
+				exactModel &= arc && near(train.Vbrak[k + 1], train.brakingCurveSpeed(train.Vbrak[k], *arc))
+					&& near(train.Sbrak[k + 1], train.Sbrak[k] + train.Vbrak[k + 1] * timestep);
+				recovers |= train.Vbrak[k + 1] > train.Vbrak[k];
+			}
+			const double point = train.BrakDist_Block(35, 15, 5000, route.data(), 1);
+			double firstLimitHead;
+			const bool early = train.predictBraking(train.Sbrak[0], train.Vbrak[0], 15, route.data(), 1, firstLimitHead);
+			const auto& descent = route[0].arcs_in_signalling_block_section[1];
+			const double holdingMinimum = train.brakingCurveSpeed(15, descent);
+			ok &= expect(exactModel && minimum < 15 && recovers && early && firstLimitHead < 4999.998 && holdingMinimum > 15,
+				"native non-monotone branch obeys actual model, but the remaining descent cannot hold its target speed");
+			ok &= expect(point >= 0 && point <= train.Sbrak[0] + 35 * timestep,
+				"valid non-monotone target is not silently omitted by the braking-point producer");
+			for (double fraction : {0.0, 0.35, 0.8}) {
+				Train live = brakingTrain(1);
+				live.Sbrak = train.Sbrak;
+				live.Vbrak = train.Vbrak;
+				live.BrakStep = train.BrakStep;
+				live.counter = 1;
+				const double startSpeed = train.Vbrak[0], start = train.Sbrak[0] - fraction * startSpeed * timestep;
+				live.instant_spatial_position = {start - startSpeed, start, -1};
+				live.instant_train_speed = {startSpeed, startSpeed, -1};
+				live.Eq.assign(3, 0);
+				live.Xob.assign(3, 5000);
+				live.Vob.assign(3, 15);
+				live.Xobmin = 5000;
+				live.Vobmin = 15;
+				bool reached = false, below = false, recovered = false;
+
+				for (int step = 0; step < 100; ++step) {
+					const double oldHead = live.instant_spatial_position[1], oldSpeed = live.instant_train_speed[1];
+					const Arc* arc = live.brakingArc(oldHead, route.data(), 1);
+					if (!arc) break;
+					const double lower = live.brakingCurveSpeed(oldSpeed, *arc);
+					const double upper = std::max(0.0, oldSpeed + (live.tractiveEffort(oldSpeed) - live.total_train_resistances(oldSpeed, arc->gradient, arc->curvature)) / (live.total_train_mass * live.massFactor) * timestep);
+					live.brakingStep(2, *arc, route.data(), 1);
+					const double nextHead = live.instant_spatial_position[2], nextSpeed = live.instant_train_speed[2];
+					std::ostringstream context;
+					context.precision(17);
+					context << "fraction=" << fraction << " step=" << step << " old=" << oldHead << "/" << oldSpeed << " next=" << nextHead << "/" << nextSpeed << " eq=" << live.Eq[2];
+					const bool terminal = near(nextHead, 4999.998) && nextSpeed > 0 && nextSpeed <= 15;
+					ok &= expect(live.Eq[2] != 54 && nextSpeed >= lower - 1e-9 && nextSpeed <= upper + 1e-9
+							&& nextHead >= oldHead && nextHead <= 5000 && near(nextHead, oldHead + nextSpeed * timestep)
+							&& (step == 0 || terminal || near(nextSpeed, lower)),
+						"positive endpoint plan obeys full prefix and admissible terminal force: " + context.str());
+					ok &= expect(live.instant_spatial_position[1] == oldHead && live.instant_train_speed[1] == oldSpeed, "positive continuation keeps history immutable");
+					below |= nextSpeed < 15;
+					recovered |= below && nextSpeed > oldSpeed;
+					if (terminal) {
+						reached = true;
+						break;
+					}
+					if (nextHead > 5000 || nextSpeed == 0)
+						break;
+					live.instant_spatial_position[1] = nextHead;
+					live.instant_train_speed[1] = nextSpeed;
+				}
+				ok &= expect(reached && below && recovered, "native/non-grid non-monotone plan retains target through real recovery");
+			}
+		}
+	}
+
+	timestep = savedTimestep;
+	return ok;
+}
+
+static bool brakingPhaseTests() {
+	bool ok = true;
+	SceneModel scene = completeScene();
+	scene.settings.durationSeconds = 600;
+	scene.services[0].entryTimeSeconds = 0;
+	scene.services[0].hasRepeatCount = true;
+	scene.services[0].repeatCount = 1;
+	scene.services[0].stops.clear();
+	scene.passengers.clear();
+	for (auto& stock : scene.trainUnits)
+		for (auto& band : stock.tractionCurve)
+			band[2] = 10000; // Same native stock as the existing performance movement test.
+	const auto infrastructure = buildInfrastructureAndSignallingFromScene(scene);
+	const auto operations = buildOperationsFromScene(scene, "scenario.base");
+	if (hasErrors(infrastructure) || hasErrors(operations) || numRegions != 1)
+		return expect(false, "phase fixture prepares native train");
+	Train& train = regional_train[0];
+	Route& route = train_route[train.indexOfRoute];
+	route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].speedInBraking = 10;
+	train.CanEnter = true;
+	train.departure_time = 0;
+	train.instant_spatial_position[0] = 690;
+	train.instant_spatial_position[1] = 700;
+	train.instant_train_speed[0] = train.instant_train_speed[1] = 10;
+	train.Xob[1] = 1000;
+	train.Vob[1] = 10;
+	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	ok &= expect(train.instant_train_speed[2] == 10 && train.instant_spatial_position[2] == 710 && train.Eq[2] == 12,
+		"reached speed target is retained until its actual boundary");
+	ok &= expect(train.instant_train_speed[1] == 10 && train.instant_spatial_position[1] == 700,
+		"cruising does not rewrite its prior speed or position");
+	// A sudden current-arc restriction cannot be met by rewriting either endpoint speed.
+	route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].signalSpeedLimit = 5;
+	train.instant_spatial_position[1] = 700;
+	train.instant_train_speed[1] = 10;
+	train.counter = 0;
+	const Arc& arc = route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0];
+	const double minimumSpeed = std::max(0.0, 10 - (train.max_train_decelaration + train.total_train_resistances(10, arc.gradient, arc.curvature) / (train.total_train_mass * train.massFactor)) * timestep);
+	train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+	ok &= expect(train.instant_train_speed[1] == 10 && near(train.instant_train_speed[2], minimumSpeed) && train.Eq[2] == 54
+			&& near(train.instant_spatial_position[2], 700 + (10 + minimumSpeed) / 2 * timestep),
+		"late current speed limit uses the model's full-braking step, not a cap or Eq12 history rewrite");
+	// Retain the original native stock for the executed steep-descent probe below.
+	SceneModel targetScene = scene;
+	targetScene.trainUnits = completeScene().trainUnits;
+	if (hasErrors(buildOperationsFromScene(targetScene, "scenario.base")) || numRegions != 1)
+		return expect(false, "target-selection fixture prepares original native stock");
+	const Train targetStock = regional_train[0];
+	// Measure the real native stock's candidate, not an invented acceleration.
+	const QString fixture = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("fixtures/scenes/crossovers");
+	const auto loaded = loadScene(fixture.toStdString());
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
+		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		return expect(false, "native crossover stock prepares for crossing detection");
+	Train& native = regional_train[0];
+	Route& nativeRoute = train_route[native.indexOfRoute];
+	// Target-selection cases use real native stock, not the high-traction acceleration fixture.
+	{
+		Route& route = nativeRoute;
+		// A satisfied nearby speed target must not mask the farther stop's last braking opportunity.
+		{
+			const Route savedRoute = nativeRoute;
+			for (double ceiling : {10.0, 11.0}) {
+				Train live = native;
+				live.numStations = 0;
+				live.CanEnter = true;
+				live.departure_time = 0;
+				nativeRoute.sequence_of_block_sections = brakingRoute(0, 10, 0);
+				nativeRoute.N_Block_Sections = 1;
+				nativeRoute.x_of_end_node = 10;
+				const double speed = 10;
+				const double point = live.BrakDist_Block(speed, 0, 5000, nativeRoute.sequence_of_block_sections.data(), 1);
+				const double head = point - speed * timestep / 2;
+				const double satisfied = point - speed * timestep / 4;
+				nativeRoute.sequence_of_block_sections = brakingRouteOfTwoArcs(satisfied / 1000, 10, 0, 0);
+				auto& section = nativeRoute.sequence_of_block_sections[0];
+				section.code = 270;
+				for (int k = 0; k < 2; ++k) {
+					section.arcs_in_signalling_block_section[k].speedLimit = speed;
+					section.arcs_in_signalling_block_section[k].signalSpeedLimit = speed;
+				}
+				section.arcs_in_signalling_block_section[0].speedInBraking = ceiling;
+				section.arcs_in_signalling_block_section[1].endNode.X = 5;
+				section.arcs_in_signalling_block_section[1].speedInBraking = 0;
+				live.counter = 0;
+				live.instant_spatial_position[0] = head - speed * timestep;
+				live.instant_spatial_position[1] = head;
+				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
+				live.Xob[1] = live.Vob[1] = 0;
+				ok &= expect(head < satisfied && satisfied < point && head + speed * timestep > point,
+					"satisfied positive target precedes stop BX crossed by this movement");
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				ok &= expect(live.Xob[2] == 5000 && live.Vob[2] == 0 && live.Eq[2] == 55,
+					"equal/below-ceiling demand selects restrictive stop rather than satisfied target");
+				bool stopped = false;
+				for (int time = 2; time < 100; ++time) {
+					if (time > 2)
+						live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+					ok &= expect(live.instant_spatial_position[0] == head - speed * timestep && live.instant_spatial_position[1] == head
+							&& live.instant_train_speed[0] == speed && live.instant_train_speed[1] == speed,
+						"satisfied-target stop keeps previously published samples immutable");
+					if (live.Eq[time] != 55 && live.Eq[time] != 52 && live.Eq[time] != 53)
+						break;
+					if (live.instant_train_speed[time] == 0) {
+						stopped = true;
+						ok &= expect(near(live.instant_spatial_position[time], 4999.998), "revealed stop reaches its actual zero-speed anchor");
+						break;
+					}
+				}
+				ok &= expect(stopped, "equal/below-ceiling real selector completes the stop without late fallback");
+			}
+			nativeRoute = savedRoute;
+		}
+		// On a supported steep descent, even full braking cannot hold the retained ceiling.
+		{
+			const Route savedRoute = route;
+			route.sequence_of_block_sections = brakingRouteOfTwoArcs(4.9, 10, 0.02, -0.2);
+			route.N_Block_Sections = 1;
+			route.x_of_end_node = 10;
+			auto& section = route.sequence_of_block_sections[0];
+			section.code = 270;
+			for (int k = 0; k < 2; ++k) {
+				auto& running = section.arcs_in_signalling_block_section[k];
+				running.speedLimit = running.signalSpeedLimit = running.speedInBraking = 40;
+			}
+			section.arcs_in_signalling_block_section[1].endNode.X = 5;
+			section.arcs_in_signalling_block_section[1].speedInBraking = 15;
+			Train prepared = targetStock;
+			prepared.CanEnter = true;
+			prepared.departure_time = 0;
+			prepared.g = 9.81;
+			prepared.mass_of_traction_unit = prepared.total_train_mass = 100000;
+			prepared.massFactor = 1.09;
+			prepared.max_train_decelaration = 1;
+			prepared.max_train_speed = 40;
+			for (double speed : {15.0, 14.9}) {
+				Train live = prepared;
+				live.counter = 0;
+				live.instant_spatial_position[0] = 4999.998 - speed * timestep;
+				live.instant_spatial_position[1] = 4999.998;
+				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
+				live.Xob[1] = 5000;
+				live.Vob[1] = 15;
+				const Arc& descent = section.arcs_in_signalling_block_section[1];
+				const double minimum = live.brakingCurveSpeed(speed, descent);
+				const double resistance = live.total_train_resistances(speed, descent.gradient, descent.curvature);
+				const double fullEffort = -live.total_train_mass * live.massFactor * live.max_train_decelaration;
+				ok &= expect(minimum > 15 && resistance < fullEffort,
+					"retained hold/capped acceleration is below the actual-start full-braking bound");
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				ok &= expect(live.Eq[2] == 54 && live.counter == 0 && live.instant_train_speed[2] == minimum
+						&& near(live.instant_spatial_position[2], 4999.998 + (speed + minimum) / 2 * timestep)
+						&& near(live.total_train_mass * live.massFactor * (live.instant_train_speed[2] - speed) / timestep + resistance, fullEffort),
+					"infeasible retained hold/cap uses force-feasible full-model mean-displacement fallback");
+				ok &= expect(live.instant_spatial_position[0] == 4999.998 - speed * timestep && live.instant_spatial_position[1] == 4999.998
+						&& live.instant_train_speed[0] == speed && live.instant_train_speed[1] == speed,
+					"infeasible ceiling fallback preserves published history");
+			}
+			// Start upstream through the real selector; recovery below the ceiling is still an active braking plan.
+			Train live = prepared;
+			ok &= expect(live.DrawBrakingCurve(35, 15, 5000, route.sequence_of_block_sections.data(), 1),
+				"real recovery fixture has a native nonmonotone curve");
+			if (live.BrakStep > 0) {
+				const double head = live.Sbrak[0], speed = live.Vbrak[0];
+				live.counter = 1;
+				live.instant_spatial_position[0] = head - speed * timestep;
+				live.instant_spatial_position[1] = head;
+				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
+				live.Xob[1] = 5000;
+				live.Vob[1] = 15;
+				bool below = false, recovered = false, reached = false;
+				for (int time = 2; time < 100; ++time) {
+					const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
+					live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+					const double nextHead = live.instant_spatial_position[time], nextSpeed = live.instant_train_speed[time];
+					std::ostringstream context;
+					context.precision(17);
+					context << " t=" << time << " old=" << oldHead << "/" << oldSpeed << " next=" << nextHead << "/" << nextSpeed
+							<< " eq=" << live.Eq[time] << " target=" << live.Xob[time] << "/" << live.Vob[time];
+					ok &= expect(live.Eq[time] != 54 && live.Xob[time] == 5000 && live.Vob[time] == 15
+							&& near(nextHead, oldHead + nextSpeed * timestep)
+							&& live.instant_spatial_position[time - 1] == oldHead && live.instant_train_speed[time - 1] == oldSpeed,
+						"real active recovery retains target, right-endpoint plan and immutable history" + context.str());
+					below |= nextSpeed < 15;
+					recovered |= below && nextSpeed > oldSpeed;
+					if (near(nextHead, 4999.998) && nextSpeed > 0 && nextSpeed <= 15) {
+						reached = true;
+						break;
+					}
+					if (nextHead > 5000 || nextSpeed == 0 || live.Eq[time] == 54)
+						break;
+				}
+				ok &= expect(below && recovered && reached, "upstream real selector keeps nonmonotone recovery through its positive endpoint");
+			}
+			route = savedRoute;
+		}
+	}
+	// The phase selector and its current-limit override must agree at a rounded BX.
+	{
+		struct BoundaryTrain : Train {
+			double point = 0;
+			double BrakDist_Block(double, double targetSpeed, double target, Section*, int) override {
+				return target == 2000 && targetSpeed == 0 ? point : -1;
+			}
+		};
+		const Route savedRoute = nativeRoute;
+		for (auto& section : nativeRoute.sequence_of_block_sections)
+			for (int k = 0; k < section.total_arcs; ++k) {
+				auto& running = section.arcs_in_signalling_block_section[k];
+				running.signalSpeedLimit = 5;
+				running.speedInBraking = running.endNode.X == 2 ? 0 : native.max_train_speed;
+			}
+		BoundaryTrain cached;
+		static_cast<Train&>(cached) = native;
+		cached.CanEnter = true;
+		cached.departure_time = 0;
+		cached.Xobmin = 2000;
+		cached.Vobmin = 0;
+		std::vector<double> positions, speeds;
+		double end;
+		const bool drawn = cached.DrawBrakingCurve(10, 0, 2000, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+		const bool predicted = drawn && cached.predictBraking(cached.Sbrak[0], cached.Vbrak[0], 0, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, end, &positions, &speeds);
+		ok &= expect(predicted && near(end, 1999.998) && positions.size() > 3, "boundary fixture has a complete actual-start cached stop");
+		if (predicted) {
+			std::copy(positions.begin(), positions.end(), cached.Sbrak.begin());
+			std::copy(speeds.begin(), speeds.end(), cached.Vbrak.begin());
+			cached.BrakStep = static_cast<int>(positions.size()) - 1;
+		}
+		if (cached.BrakStep > 2) {
+			const double head = cached.Sbrak[1], speed = cached.Vbrak[1];
+			const Arc& arc = *cached.brakingArc(head, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+			const double nextSpeed = cached.brakingCurveSpeed(speed, arc), nextHead = head + nextSpeed * timestep;
+			ok &= expect(nextSpeed == cached.Vbrak[2] && nextHead == cached.Sbrak[2], "cached boundary continuation is the full-model step");
+			for (double point : {head, std::nextafter(head, 0.0), std::nextafter(head, std::numeric_limits<double>::infinity()), head + 1}) {
+				BoundaryTrain live = cached;
+				live.point = point;
+				live.counter = 1;
+				live.GradientExceptionInBraking = false;
+				live.instant_spatial_position[0] = head - speed * timestep;
+				live.instant_spatial_position[1] = head;
+				live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
+				live.Xob[1] = 2000;
+				live.Vob[1] = 0;
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				const bool shortOfPoint = isShortOfBrakingPoint(head, point);
+				ok &= expect(live.instant_spatial_position[1] == head && live.instant_train_speed[1] == speed
+						&& live.BX[2] == point && speed > arc.signalSpeedLimit,
+					"boundary dispatch uses the chosen BX and retains published history");
+				ok &= expect(shortOfPoint
+						? live.Eq[2] == 54 && live.counter == 0 && live.instant_train_speed[2] == nextSpeed
+							&& near(live.instant_spatial_position[2], head + (speed + nextSpeed) / 2 * timestep)
+						: live.Eq[2] == 52 && live.counter == 1 && live.instant_train_speed[2] == nextSpeed
+							&& live.instant_spatial_position[2] == nextHead && live.Sbrak == cached.Sbrak && live.Vbrak == cached.Vbrak,
+					"equivalent rounded BX retains valid full-model cache; genuinely short current-limit state retains fallback");
+			}
+		}
+		nativeRoute = savedRoute;
+	}
+	// Translation and adjacent representable targets cannot turn a valid ceiling
+	// into a rejection merely because subtraction does not invert rounded addition.
+	{
+		const double speed = 21.189627947945194, ceiling = 11.111000000000001;
+		for (double head : {1988.8869999999999, 2488.8870000000002}) {
+			const double endSpeed = 11.349688391781495;
+			const Arc* arc = native.brakingArc(head, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+			const double minimum = native.brakingCurveSpeed(endSpeed, *arc);
+			const double maximum = endSpeed + (native.tractiveEffort(endSpeed) - native.total_train_resistances(endSpeed, arc->gradient, arc->curvature)) / (native.total_train_mass * native.massFactor) * timestep;
+			for (double bound : {minimum, ceiling, maximum}) {
+				const double anchor = head + bound * timestep;
+				for (double adjacent : {head, std::nextafter(head, 0.0), std::nextafter(head, 3000.0)}) {
+					double terminal;
+					const bool constructed = native.constructBrakingTerminal(adjacent, endSpeed, anchor, bound == maximum ? maximum + 1 : ceiling,
+						nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, terminal);
+					const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
+					ok &= expect(constructed && terminal >= minimum && terminal <= maximum && (bound == maximum || terminal <= ceiling)
+							&& std::fabs(adjacent + terminal * timestep - anchor) <= roundoff,
+						"translated/nextafter terminal controls keep exact actual-state bounds and forward roundoff contract");
+				}
+			}
+			double terminal;
+			ok &= expect(!native.constructBrakingTerminal(head, endSpeed, head + (ceiling + 0.001) * timestep, ceiling,
+							 nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, terminal)
+					&& !native.constructBrakingTerminal(head, endSpeed, head + (minimum - 0.001) * timestep, ceiling,
+						nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, terminal)
+					&& !native.constructBrakingTerminal(head, endSpeed, head + minimum * timestep, minimum - 0.001,
+						nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, terminal)
+					&& !native.constructBrakingTerminal(head, endSpeed, std::numeric_limits<double>::quiet_NaN(), ceiling,
+						nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections, terminal),
+				"materially unreachable, empty-interval and nonfinite terminal controls fail closed");
+		}
+
+		ok &= expect(train_route.size() == 2 && train_route[1].reversed_direction, "positive comparison has the actual reverse crossover route");
+		for (double target : {2000.0, 2500.0, std::nextafter(2000.0, 0.0), std::nextafter(2000.0, 3000.0)}) {
+			Route& targetRoute = target == 2500 ? train_route[1] : nativeRoute;
+			const double point = native.BrakDist_Block(speed, ceiling, target, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections);
+			Train live = native;
+			ok &= expect(point >= 0 && live.DrawBrakingCurve(speed, ceiling, target, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections),
+				"equivalent translated/nextafter positive ceiling produces an upstream braking point");
+			if (point < 0 || live.BrakStep < 0) continue;
+			live.Xobmin = target;
+			live.Vobmin = ceiling;
+			const Arc* startArc = live.brakingArc(point, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections);
+			ok &= expect(startArc && live.planPositiveBraking(point, speed, *startArc, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections, live.BrakStep),
+				"positive producer supports a real admissible endpoint plan");
+			const int last = live.BrakStep;
+			if (last < 1) continue;
+			const double end = live.Sbrak[last - 1], endSpeed = live.Vbrak[last - 1], terminal = live.Vbrak[last];
+			const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(target - 0.002));
+			ok &= expect(terminal <= ceiling && brakingTargetAdmissible(live, end, endSpeed, terminal, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections)
+					&& live.Sbrak[last] == end + terminal * timestep && std::fabs(live.Sbrak[last] - (target - 0.002)) <= roundoff,
+				"positive terminal is within exact force/ceiling bounds and forward-computes the anchor within roundoff");
+		}
+	}
+
+	for (int station = 0; station < native.numStations; ++station) {
+		const int block = native.stationBlockSection[station], arc = native.stationArc[station];
+		if (block >= 0 && arc >= 0) {
+			auto& stopArc = nativeRoute.sequence_of_block_sections[block].arcs_in_signalling_block_section[arc];
+			stopArc.endNode.station = 1;
+			stopArc.speedInBraking = 0;
+		}
+	}
+	for (bool accelerating : {false, true}) {
+		const double speed = 10;
+		const double start = native.BrakDist_Block(speed, 0, 2400, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+		const double head = start - (accelerating ? speed * timestep + 1 : speed * timestep / 2);
+		Arc running;
+		for (const auto& section : nativeRoute.sequence_of_block_sections)
+			for (int arc = 0; arc < section.total_arcs; ++arc) {
+				const auto& candidate = section.arcs_in_signalling_block_section[arc];
+				if (head >= candidate.startNode.X * 1000 && head < candidate.endNode.X * 1000)
+					running = candidate;
+			}
+		const double limit = accelerating ? running.speedLimit : speed;
+		for (auto& section : nativeRoute.sequence_of_block_sections)
+			for (int arc = 0; arc < section.total_arcs; ++arc)
+				section.arcs_in_signalling_block_section[arc].signalSpeedLimit = limit;
+		const double acceleration = (native.tractiveEffort(speed) - native.total_train_resistances(speed, running.gradient, running.curvature)) / (native.total_train_mass * native.massFactor);
+		const double candidateSpeed = accelerating ? std::min(limit, speed + acceleration * timestep) : speed;
+		const double candidateHead = head + (speed + candidateSpeed) / 2 * timestep;
+		const double candidateStart = native.BrakDist_Block(candidateSpeed, 0, 2400, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+		ok &= expect(head < start && candidateHead >= candidateStart && (!accelerating || candidateHead < start),
+			"non-braking candidate crosses envelope; acceleration case needs candidate speed as well as position");
+		native.CanEnter = true;
+		native.OutOfSimulation = false;
+		native.departure_time = 0;
+		native.counter = 0;
+		native.instant_spatial_position[0] = head - speed;
+		native.instant_spatial_position[1] = head;
+		native.instant_train_speed[0] = native.instant_train_speed[1] = speed;
+		native.Xob[1] = native.Vob[1] = 0;
+		native.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		ok &= expect(native.Eq[2] == 55 && native.instant_spatial_position[1] == head && native.instant_train_speed[1] == speed,
+			"accelerating/cruising crossing enters the forward curve before the old braking point");
+	}
+	// The obsolete starting-effort bound must not authorize a high-speed phase step.
+	{
+		Train power = native;
+		Arc arc = *power.brakingArc(2350, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+		const double speed = 30, mass = power.total_train_mass * power.massFactor;
+		const double resistance = power.total_train_resistances(speed, arc.gradient, arc.curvature);
+		const double maximum = speed + (power.tractiveEffort(speed) - resistance) / mass * timestep;
+		const double startingMaximum = speed + (power.tractiveEffort(0) - resistance) / mass * timestep;
+		ok &= expect(startingMaximum > maximum, "native high-speed stock has a lower actual-speed effort than starting effort");
+		const double invalid = (maximum + startingMaximum) / 2;
+		power.instant_spatial_position = {2320, 2350, -1};
+		power.instant_train_speed = {speed, speed, -1};
+		power.Eq.assign(3, 0);
+		power.Sbrak[0] = 2350;
+		power.Sbrak[1] = 2350 + invalid * timestep;
+		power.Vbrak[0] = speed;
+		power.Vbrak[1] = invalid;
+		power.BrakStep = 1;
+		power.counter = 1;
+		power.Xob.assign(3, 2400);
+		power.Vob.assign(3, 0);
+		power.Xobmin = 2400;
+		power.Vobmin = 0;
+		power.brakingStep(2, arc, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+		ok &= expect(power.instant_train_speed[2] <= maximum + 1e-9 && power.Eq[2] == 54 && power.instant_train_speed[1] == speed,
+			"actual-speed power-band bound rejects a starting-effort overdraw without rewriting speed");
+		// Reacceleration in the separate late-target fallback also obeys actual effort.
+		arc.gradient = -0.2;
+		power.instant_spatial_position = {970, 1000, -1};
+		power.instant_train_speed = {speed, speed, -1};
+		const double downhillMaximum = speed + (power.tractiveEffort(speed) - power.total_train_resistances(speed, arc.gradient, arc.curvature)) / mass * timestep;
+		power.fullBrakingStep(2, arc);
+		ok &= expect(power.Eq[2] == 54 && power.instant_train_speed[2] > speed && power.instant_train_speed[2] <= downhillMaximum + 1e-9
+				&& near(power.instant_spatial_position[2], 1000 + (speed + power.instant_train_speed[2]) / 2 * timestep),
+			"late-target model reacceleration obeys actual-speed power bound and unchanged mean displacement");
+	}
+
+	// Start upstream and use the real phase selector, with native crossover stock.
+	// The final ten metres change gradient; no fixture file or rolling stock is changed.
+	{
+		Section& last = nativeRoute.sequence_of_block_sections.back();
+		const int index = last.total_arcs - 1;
+		const Arc original = last.arcs_in_signalling_block_section[index];
+		ok &= expect(original.endNode.X == 5 && last.total_arcs < 20, "upstream gradient fixture ends at 5000 metres");
+		last.arcs_in_signalling_block_section[index].endNode.X = 4.99;
+		last.arcs_in_signalling_block_section[index].endNode.station = 0;
+		last.arcs_in_signalling_block_section[index].endNode.stationName = "None";
+		last.arcs_in_signalling_block_section[index].speedInBraking = native.max_train_speed;
+		last.arcs_in_signalling_block_section[index + 1] = original;
+		last.arcs_in_signalling_block_section[index + 1].startNode.X = 4.99;
+		last.arcs_in_signalling_block_section[index + 1].gradient = 0.005;
+		last.arcs_in_signalling_block_section[index + 1].speedInBraking = 0;
+		++last.total_arcs;
+		for (int station = 0; station < native.numStations; ++station)
+			if (native.stationBlockSection[station] == nativeRoute.N_Block_Sections - 1 && native.stationArc[station] == index)
+				native.stationArc[station] = index + 1;
+		for (auto& section : nativeRoute.sequence_of_block_sections)
+			for (int arc = 0; arc < section.total_arcs; ++arc) {
+				auto& running = section.arcs_in_signalling_block_section[arc];
+				running.signalSpeedLimit = native.max_train_speed;
+				running.speedInBraking = running.endNode.station ? 0 : native.max_train_speed;
+			}
+
+		native.CanEnter = true;
+		native.OutOfSimulation = false;
+		native.departure_time = 0;
+		native.counter = 0;
+		native.instant_spatial_position[0] = 4170;
+		native.instant_spatial_position[1] = 4200;
+		native.instant_train_speed[0] = native.instant_train_speed[1] = 30;
+		native.Xob[1] = native.Vob[1] = 0;
+		bool braked = false, stopped = false;
+		for (int time = 2; time < 100; ++time) {
+			const double oldHead = native.instant_spatial_position[time - 1], oldSpeed = native.instant_train_speed[time - 1];
+			native.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			const double nextHead = native.instant_spatial_position[time], nextSpeed = native.instant_train_speed[time];
+			if (native.Eq[time] == 55 || native.Eq[time] == 53 || native.Eq[time] == 52) {
+				const Arc* running = native.brakingArc(oldHead, nativeRoute.sequence_of_block_sections.data(), nativeRoute.N_Block_Sections);
+				const double wheel = native.total_train_mass * native.massFactor * (nextSpeed - oldSpeed) / timestep
+					+ native.total_train_resistances(oldSpeed, running->gradient, running->curvature);
+				ok &= expect(near(native.instant_train_tractive_effort[time], wheel)
+						&& near(native.instant_train_power_consumption[time], wheel * oldSpeed),
+					"feasible curve effort and power use the actual selected speed change");
+			}
+
+			ok &= expect(native.instant_spatial_position[time - 1] == oldHead && native.instant_train_speed[time - 1] == oldSpeed
+					&& nextHead >= oldHead && nextHead <= 5000 && native.Eq[time] != 54,
+				"full upstream phase run stays feasible with immutable history");
+			if (!braked && (native.Eq[time] == 55 || native.Eq[time] == 53 || native.Eq[time] == 52)) {
+				braked = true;
+			}
+			if (nextSpeed == 0) {
+				stopped = true;
+				ok &= expect(braked && near(nextHead, 4999.998), "full upstream real phase run stops at gradient anchor");
+				break;
+			}
+		}
+		ok &= expect(braked && stopped, "upstream run selects braking early and completes real stop");
+	}
+
+	// First service entry must survive movement until the existing passenger phase initializes dwell.
+	{
+		Train service = native;
+		const int station = service.numStations - 1;
+		service.Stations[station].StepStopped = 0;
+		service.Stations[station].StopTime = 0;
+		service.ScheduledDepartures[station] = -1;
+		service.stop = 1;
+		service.instant_spatial_position[1] = service.stationRoutePositionMeters(station) - 0.002;
+		service.instant_train_speed[1] = 0;
+		service.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+		ok &= expect(service.Eq[2] == 5 && service.StoppedForServiceStop && service.Stations[station].StepStopped == 1
+				&& service.stop == 2 && service.instant_train_speed[2] == 0,
+			"zero-authored dwell retains first service entry for the post-movement passenger initializer");
+		std::list<Passenger> passengers;
+		std::list<StationPlatform> platforms;
+		Simulate_Train_Passenger_Interactions(2, initial_variables.startingSimulationTime, service, passengers, platforms);
+		ok &= expect(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
+		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+		ok &= expect(service.StoppedForServiceStop && service.instant_train_speed[3] == 0 && service.stop == 2,
+			"initialized service dwell retains its entry clock and stationary state");
+	}
+	// Live-target lifecycle and interruptions share one native, feasible stop plan.
+	{
+		const Route savedRoute = nativeRoute;
+		nativeRoute.sequence_of_block_sections = brakingRoute(0, 10, 0);
+		nativeRoute.N_Block_Sections = 1;
+		nativeRoute.x_of_end_node = 10;
+		auto& section = nativeRoute.sequence_of_block_sections[0];
+		section.code = 270;
+		section.arcs_in_signalling_block_section[0].endNode.X = 5;
+		section.arcs_in_signalling_block_section[0].speedInBraking = 0;
+		section.arcs_in_signalling_block_section[0].speedLimit = native.max_train_speed;
+		section.arcs_in_signalling_block_section[0].signalSpeedLimit = native.max_train_speed;
+		Train cached = native;
+		cached.numStations = 0;
+		cached.Xobmin = 5000;
+		cached.Vobmin = 0;
+		const double speed = 10;
+		const double head = cached.BrakDist_Block(speed, 0, 5000, nativeRoute.sequence_of_block_sections.data(), 1) - 5;
+		const bool planned = cached.planBraking(head, speed, section.arcs_in_signalling_block_section[0], nativeRoute.sequence_of_block_sections.data(), 1);
+		ok &= expect(planned && cached.BrakStep > 1, "arbitration lifecycle fixture has a feasible native cached stop");
+		if (planned) {
+			cached.counter = 1;
+			cached.instant_spatial_position[1] = head;
+			cached.instant_train_speed[1] = speed;
+			cached.Xob[1] = 5000;
+			cached.Vob[1] = 0;
+			for (int change = 0; change < 4; ++change) {
+				Train live = cached;
+				section.arcs_in_signalling_block_section[0].speedInBraking = change == 0 ? live.max_train_speed : change == 1 ? 12
+																															  : 0;
+				if (change == 2)
+					live.Sbrak[0] += 1; // Not a matching actual state.
+				if (change == 3) {
+					live.Vbrak[1] = speed + 100; // Outside the actual-speed traction bound.
+					live.Sbrak[1] = head + live.Vbrak[1] * timestep;
+				}
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				ok &= expect(change < 2 ? live.Eq[2] == 1 && live.counter == 0 : live.Eq[2] != 52,
+					"cleared/changed incumbent or mismatched/force-invalid cache cannot retain stale braking");
+			}
+			const Section baseSection = section;
+			for (double ceiling : {0.0, 8.0}) {
+				double lowerEnd, proposalEnd;
+				const double minimum = cached.brakingCurveSpeed(speed, baseSection.arcs_in_signalling_block_section[0]);
+				const bool bracket = cached.predictBraking(head + minimum * timestep, minimum, ceiling, nativeRoute.sequence_of_block_sections.data(), 1, lowerEnd)
+					&& cached.predictBraking(cached.Sbrak[1], cached.Vbrak[1], ceiling, nativeRoute.sequence_of_block_sections.data(), 1, proposalEnd);
+				ok &= expect(bracket && lowerEnd < proposalEnd, "native continuation leaves a stricter target opportunity at the previous actual state");
+				const double target = (lowerEnd + proposalEnd) / 2 + 0.002;
+				nativeRoute.sequence_of_block_sections = brakingRouteOfTwoArcs(target / 1000, 5, 0, 0);
+				auto& competing = nativeRoute.sequence_of_block_sections[0];
+				competing.code = 270;
+				for (int arc = 0; arc < competing.total_arcs; ++arc) {
+					competing.arcs_in_signalling_block_section[arc].speedLimit = native.max_train_speed;
+					competing.arcs_in_signalling_block_section[arc].signalSpeedLimit = native.max_train_speed;
+				}
+				competing.arcs_in_signalling_block_section[0].speedInBraking = ceiling;
+				competing.arcs_in_signalling_block_section[1].speedInBraking = 0;
+				Train live = cached;
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				ok &= expect(live.Xob[2] == competing.arcs_in_signalling_block_section[0].endNode.X * 1000 && live.Vob[2] == ceiling && live.Eq[2] != 52
+						&& live.instant_spatial_position[1] == head && live.instant_train_speed[1] == speed,
+					"new stricter stop/positive target interrupts cached proposal from immutable previous actual state");
+				nativeRoute.sequence_of_block_sections = {baseSection};
+			}
+			// The cached stop stays upstream of a descent where a farther positive inverse fails.
+			nativeRoute.sequence_of_block_sections = brakingRouteOfTwoArcs(5, 10, 0, -1);
+			auto& downstream = nativeRoute.sequence_of_block_sections[0];
+			downstream.code = 270;
+			for (int arc = 0; arc < downstream.total_arcs; ++arc) {
+				downstream.arcs_in_signalling_block_section[arc].speedLimit = cached.max_train_speed;
+				downstream.arcs_in_signalling_block_section[arc].signalSpeedLimit = cached.max_train_speed;
+			}
+			downstream.arcs_in_signalling_block_section[0].speedInBraking = 0;
+			downstream.arcs_in_signalling_block_section[1].speedInBraking = 8;
+			Train live = cached;
+			ok &= expect(live.BrakDist_Block(live.Vbrak[1], 8, 10000, nativeRoute.sequence_of_block_sections.data(), 1) == -1,
+				"farther positive inverse is unavailable beyond the feasible cached stop");
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.Xob[2] == 5000 && live.Vob[2] == 0 && live.Eq[2] == 52
+					&& live.instant_spatial_position[2] == cached.Sbrak[1] && live.instant_train_speed[2] == cached.Vbrak[1],
+				"unavailable farther target does not discard a cached plan ending at an earlier stop");
+		}
+		nativeRoute = savedRoute;
+	}
+	// Executed Copenhagen geometry: the terminal ceiling recovery loses the farther stop by millimetres.
+	{
+		const QString path = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("../Scenes/Copenhagen");
+		const auto copenhagen = loadScene(path.toStdString());
+		if (hasErrors(copenhagen.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(copenhagen.scene))
+			|| hasErrors(buildOperationsFromScene(copenhagen.scene, "baseline", {{"A-Hillerod-Hundige", 1}})) || numRegions != 1)
+			return expect(false, "Copenhagen arbitration fixture prepares committed native stock and route");
+		Train live = regional_train[0];
+		Route& route = train_route[live.indexOfRoute];
+		const double head = 30462.886999999988, speed = 10.616039654442153;
+		const double boundary = 30473.999999999989, ceiling = 11.111000000000001, stopTarget = 30544.999999999996;
+		// Native builders precede the aspect speed pass; initialize clear runtime targets before imposing this witness.
+		for (auto& block : route.sequence_of_block_sections) {
+			block.code = 270;
+			for (int index = 0; index < block.total_arcs; ++index)
+				block.arcs_in_signalling_block_section[index].speedInBraking = live.max_train_speed;
+		}
+		for (int station = 0; station < live.numStations; ++station)
+			route.sequence_of_block_sections[live.stationBlockSection[station]].arcs_in_signalling_block_section[live.stationArc[station]].speedInBraking = 0;
+		for (auto& block : route.sequence_of_block_sections)
+			for (int index = 0; index < block.total_arcs; ++index)
+				if (block.arcs_in_signalling_block_section[index].endNode.X * 1000 == boundary)
+					block.arcs_in_signalling_block_section[index].speedInBraking = ceiling;
+		live.numStations = 0;
+		live.CanEnter = true;
+		live.departure_time = 0;
+		live.counter = 1;
+		live.GradientExceptionInBraking = true;
+		live.BrakStep = 1;
+		live.Sbrak[0] = head;
+		live.Vbrak[0] = speed;
+		live.Sbrak[1] = head + ceiling * timestep;
+		live.Vbrak[1] = ceiling;
+		live.instant_spatial_position[1] = head;
+		live.instant_train_speed[1] = speed;
+		live.Xob[1] = boundary;
+		live.Vob[1] = ceiling;
+		const Arc* arc = live.brakingArc(head, route.sequence_of_block_sections.data(), route.N_Block_Sections);
+		double end;
+		ok &= expect(arc && brakingTargetAdmissible(live, head, speed, ceiling, route.sequence_of_block_sections.data(), route.N_Block_Sections)
+				&& live.predictBraking(live.Sbrak[1], ceiling, 0, route.sequence_of_block_sections.data(), route.N_Block_Sections, end)
+				&& end > stopTarget - 0.002,
+			"locally force-valid Copenhagen recovery would consume the competing stop's last opportunity");
+		bool stopped = false;
+		for (int time = 2; time < 100; ++time) {
+			const double oldHead = live.instant_spatial_position[time - 1], oldSpeed = live.instant_train_speed[time - 1];
+			live.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			if (time <= 3) {
+				std::cout.precision(17);
+				std::cout << "Copenhagen arbitration t=" << time << " target=" << live.Xob[time] << "/" << live.Vob[time]
+						  << " state=" << live.instant_spatial_position[time] << "/" << live.instant_train_speed[time] << " eq=" << live.Eq[time] << "\n";
+			}
+			ok &= expect(live.Xob[time] == stopTarget && live.Vob[time] == 0 && live.Eq[time] != 54
+					&& live.instant_spatial_position[time - 1] == oldHead && live.instant_train_speed[time - 1] == oldSpeed
+					&& live.instant_spatial_position[time] == oldHead + live.instant_train_speed[time] * timestep,
+				"Copenhagen stop preempts recovery and retains actual cached continuation despite hypothetical acceleration ceiling");
+			if (live.Eq[time] == 54 || live.Xob[time] != stopTarget)
+				break;
+			if (live.instant_train_speed[time] == 0) {
+				stopped = true;
+				ok &= expect(near(live.instant_spatial_position[time], stopTarget - 0.002), "Copenhagen stop reaches anchored zero without late fallback");
+				break;
+			}
+		}
+		ok &= expect(stopped && live.instant_spatial_position[1] == head && live.instant_train_speed[1] == speed,
+			"two-step Copenhagen arbitration finishes the exact stop without rewriting the initial state");
+	}
+
+	return ok;
+}
+
+// Real movement calls with native stock and in-memory authority snapshots isolate level-4 transitions.
+static bool level4TransitionTests() {
+	bool ok = true;
+	const QString fixture = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("fixtures/scenes/crossovers");
+	const auto loaded = loadScene(fixture.toStdString());
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
+		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		return expect(false, "level-4 transition fixture prepares native crossover stock");
+	const Train stock = regional_train[0];
+	Route& route = train_route[stock.indexOfRoute];
+	const Route savedRoute = route;
+	const auto savedAuthorities = ETCS_MA;
+	for (bool reversed : {false, true}) {
+		route.sequence_of_block_sections = brakingRoute(0, 10, 0);
+		route.N_Block_Sections = 1;
+		route.x_of_end_node = 10;
+		route.reversed_direction = reversed;
+		auto& section = route.sequence_of_block_sections[0];
+		section.ID = "level4.block";
+		section.GeoXBegNode = reversed ? 10000 : 0;
+		section.SignallingLevel = 4;
+		section.code = 270;
+		auto& arc = section.arcs_in_signalling_block_section[0];
+		arc.speedLimit = arc.signalSpeedLimit = arc.speedInBraking = stock.max_train_speed;
+		auto authority = [&](double head, const std::string& leader) {
+			MovementAuthority ma;
+			ma.BSID = section.ID;
+			ma.type = "TrainEnd";
+			ma.typePart = "Tale";
+			ma.ReversedDirection = reversed;
+			ma.RelativePosEoA = head;
+			ma.AbsPosEoA = reversed ? 10000 - head : head;
+			ma.TrainInfo.trainDescription = leader;
+			ma.TrainInfo.NextSectionID = "None";
+			ma.TrainInfo.TrainSpeed = ma.TrainInfo.Acceleration = 0;
+			return ma;
+		};
+		auto actual = [&](double head, double speed) {
+			Train live = stock;
+			live.numStations = 0;
+			live.CanEnter = true;
+			live.OutOfSimulation = false;
+			live.departure_time = 0;
+			live.counter = live.CounterFollowingMode = 0;
+			live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+			live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
+			live.StoppedForServiceStop = false;
+			live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
+			live.instant_train_speed[0] = live.instant_train_speed[1] = speed;
+			live.instant_spatial_position[2] = live.instant_train_speed[2] = -123;
+			live.Eq[2] = -123;
+			live.Xob[1] = live.Vob[1] = 0;
+			return live;
+		};
+		{
+			Train live = actual(1000, 20);
+			auto behind = authority(990, "BEHIND");
+			behind.TrainInfo.TrainSpeed = 35;
+			behind.TrainInfo.Acceleration = -0.5;
+			ETCS_MA = {behind};
+			arc.speedInBraking = 0;
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.Xob[2] == 10000 && !live.BrakingForEoA,
+				"a behind braking Tale cannot project into a forward authority in either direction");
+			arc.speedInBraking = stock.max_train_speed;
+		}
+		{
+			Train live = actual(1000, 10);
+			auto front = authority(1020, "FRONT");
+			front.typePart = "Front";
+			front.TrainInfo.TrainSpeed = 10.01;
+			ETCS_MA = {front};
+			live.IsTrainCoupling = true;
+			live.Predicted_MA_To_CoupleAt = front;
+			arc.signalSpeedLimit = 10;
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(!live.IsTrainInFollowingMode, "same-direction Front cannot activate stale coupling");
+			front.ReversedDirection = !reversed;
+			ETCS_MA = {front};
+			live = actual(1000, 10);
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(near(live.Xob[2], 1020) && live.Vob[2] == 0 && live.BrakingForEoA,
+				"opposing Front remains a stopping authority in either route direction");
+			arc.signalSpeedLimit = stock.max_train_speed;
+		}
+		for (double leaderSpeed : {0.2, 0.0}) {
+			Train live = actual(1000, 10);
+			auto leader = authority(1200, "STOPPING");
+			leader.TrainInfo.TrainSpeed = leaderSpeed;
+			leader.TrainInfo.Acceleration = -0.5;
+			ETCS_MA = {leader};
+			const double raw = live.authorityRoutePosition(leader, section);
+			double end = 0;
+			ok &= expect(live.predictBraking(raw, leaderSpeed, 0, &section, 1, end) && end == raw,
+				"a one-step native stop has no right-endpoint displacement at either leader speed");
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.Xob[2] == raw && live.Vob[2] == 0,
+				"projected stop excludes the inverse anchor holdback and stays fixed when the leader reaches zero");
+		}
+		{
+			const Arc originalArc = arc;
+			const Node originalEnd = section.end_node;
+			const double originalRouteEnd = route.x_of_end_node;
+			arc.endNode.X = section.end_node.X = route.x_of_end_node = 1.001;
+			arc.endNode.station = 1;
+			arc.endNode.stationName = stock.Stations[stock.numStations - 1].stationName;
+			arc.speedInBraking = 0;
+			for (bool dwellComplete : {false, true}) {
+				Train live = actual(1000, 0);
+				live.numStations = 1;
+				live.Stations[0] = stock.Stations[stock.numStations - 1];
+				live.stationBlockSection[0] = live.stationArc[0] = 0;
+				live.Stations[0].StopTime = dwellComplete ? 0 : 3;
+				live.Stations[0].StepStopped = 1;
+				live.ScheduledDepartures[0] = 0;
+				live.stop = 1;
+				live.StoppedForServiceStop = true;
+				live.Last_MA_StoppedAt = live.Last_Received_MA = authority(1000.002, "OLD");
+				live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
+				ETCS_MA = {authority(1000.005, "NEW")};
+				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+				const bool held = live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0
+					&& live.StoppedForServiceStop && live.stop == 1 && near(live.Xob[2], 1000.005);
+				ok &= expect(held, "station hold and departure cannot cross a replacement authority within the station window");
+				if (held && dwellComplete) {
+					ETCS_MA.clear();
+					live.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
+					ok &= expect(!live.StoppedForServiceStop && live.instant_train_speed[3] > 0,
+						"completed station service can depart once the replacement authority clears");
+				}
+			}
+			arc = originalArc;
+			section.end_node = originalEnd;
+			route.x_of_end_node = originalRouteEnd;
+		}
+		const auto saved = authority(1000.002, "SAVED");
+		{
+			Train live = actual(1000, 0);
+			live.Last_MA_StoppedAt = live.Last_Received_MA = saved;
+			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
+			auto failure = authority(1000.001, "signal_failure:test");
+			failure.type = "SignalFailure"; // A synthetic competing snapshot, not a canonical incident position.
+			ETCS_MA = {saved, failure};
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.IsTrainStoppedForEoA && live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0
+					&& live.Last_Received_MA.type == "SignalFailure",
+				"saved Tale holds actual state, not the newly selected failure position");
+		}
+		for (bool replacement : {false, true}) {
+			Train live = actual(1000, 0);
+			live.Last_MA_StoppedAt = live.Last_Received_MA = saved;
+			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
+			live.stop = 1;
+			ETCS_MA.clear();
+			if (replacement)
+				ETCS_MA.push_back(authority(1000.003, "NEW"));
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(!live.IsTrainStoppedForEoA && (replacement ? live.Eq[2] == 54 && live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0 && near(live.Xob[2], 1000.003) && live.BrakingForEoA && live.stop == 1 : live.Eq[2] == 1 && live.instant_spatial_position[2] > 1000 && live.instant_train_speed[2] > 0),
+				"removed saved Tale releases to the actual-state successor, retaining new near Tale or open acceleration");
+		}
+		for (int mismatch = 0; mismatch < 6; ++mismatch) {
+			Train live = actual(1000, 0);
+			live.Last_MA_StoppedAt = saved;
+			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
+			auto changed = saved;
+			if (mismatch == 0) changed.type = "SignalFailure";
+			if (mismatch == 1) changed.typePart = "Front";
+			if (mismatch == 2) changed.ReversedDirection = !reversed;
+			if (mismatch == 3) changed.AbsPosEoA += 1;
+			if (mismatch == 4) live.Last_MA_StoppedAt.RelativePosEoA = 999;
+			if (mismatch == 5) live.Last_MA_StoppedAt.RelativePosEoA = 1005;
+			ETCS_MA = {changed};
+			live.checkIfMovementAuthorityStillValid(0, 1000, section);
+			ok &= expect(!live.IsTrainStoppedForEoA && !live.BrakingForEoA,
+				"saved hold rejects changed identity, moved authority, behind or out-of-range distance");
+		}
+		{
+			Train live = actual(1000, 0);
+			auto behind = authority(999, "BEHIND");
+			live.Last_Received_MA = behind;
+			live.BrakingForEoA = true;
+			ETCS_MA = {behind};
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(!live.IsTrainStoppedForEoA && live.instant_spatial_position[2] > 1000,
+				"a behind authority cannot be captured as a stationary hold");
+		}
+		{
+			// Cache identity uses the same route conversion as the published authority, including mirrored roundoff.
+			const double target = reversed ? section.GeoXBegNode - saved.AbsPosEoA + section.start_node.X * 1000 : saved.AbsPosEoA;
+			const double terminal = target - 0.002;
+			Train live = actual(terminal, 0.1);
+			live.IsTrainInFollowingMode = true;
+			live.LeadingTrainInFollowingMode = saved.TrainInfo.trainDescription;
+			live.CounterFollowingMode = live.counter = 1;
+			live.BrakStep = 1;
+			live.Sbrak[0] = live.Sbrak[1] = terminal;
+			live.Vbrak[0] = 0.1;
+			live.Vbrak[1] = 0;
+			live.Xob[1] = target;
+			live.Vob[1] = 0;
+			ETCS_MA = {saved};
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.Eq[2] == 52 && live.instant_spatial_position[2] == terminal && live.instant_train_speed[2] == 0,
+				"active following cannot replace a native anchored zero-speed terminal");
+		}
+		{
+			Train control = actual(1000, 10);
+			auto front = authority(1020, "FRONT_ONLY");
+			front.typePart = "Front";
+			front.TrainInfo.TrainSpeed = 10;
+			ETCS_MA = {front};
+			arc.signalSpeedLimit = 10;
+			Train live = control;
+			live.IsTrainInFollowingMode = true;
+			live.LeadingTrainInFollowingMode = "FRONT_ONLY";
+			live.CounterFollowingMode = 1;
+			control.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.Eq[2] == control.Eq[2] && live.instant_spatial_position[2] == control.instant_spatial_position[2]
+					&& live.instant_train_speed[2] == control.instant_train_speed[2] && live.counter == control.counter
+					&& live.instant_train_tractive_effort[2] == control.instant_train_tractive_effort[2]
+					&& live.instant_train_energy_consumption[2] == control.instant_train_energy_consumption[2],
+				"an ineligible live Front produces no following proposal and preserves the complete normal result");
+			arc.signalSpeedLimit = stock.max_train_speed;
+		}
+		for (int intent = 0; intent < 3; ++intent) {
+			Train live = actual(1000, 10);
+			auto leader = authority(1020, "LIVE");
+			leader.TrainInfo.TrainSpeed = intent == 0 ? 10 : intent == 1 ? 1
+																		 : 9.9;
+			leader.TrainInfo.Acceleration = intent == 0 ? 0 : intent == 1 ? -0.5
+																		  : -0.9;
+			ETCS_MA = {leader};
+			live.IsTrainInFollowingMode = true;
+			live.LeadingTrainInFollowingMode = "LIVE";
+			live.CounterFollowingMode = 1;
+			arc.signalSpeedLimit = 10;
+			const double minimum = live.brakingCurveSpeed(10, arc);
+			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
+			ok &= expect(live.instant_train_speed[2] >= minimum && live.instant_train_speed[2] <= 10
+					&& (intent == 1 ? live.Eq[2] != 1002 : live.Eq[2] == 1002),
+				"force-invalid leader-relative intent preserves braking; admissible nonbraking following still runs");
+			if (intent != 1) {
+				const double effort = live.total_train_mass * live.massFactor * (live.instant_train_speed[2] - 10) / timestep
+					+ live.total_train_resistances(10, arc.gradient, arc.curvature);
+				ok &= expect(near(live.instant_train_tractive_effort[2], effort)
+						&& near(live.instant_train_power_consumption[2], effort * 10),
+					"accepted following effort and power use its own actual speed change and resistance");
+			}
+			arc.signalSpeedLimit = stock.max_train_speed;
+		}
+	}
+	ETCS_MA.clear();
+	route = savedRoute;
+	{
+		Train service = stock;
+		const int station = service.numStations - 1;
+		const double head = service.stationRoutePositionMeters(station) - 0.002;
+		service.CanEnter = true;
+		service.departure_time = 0;
+		service.counter = 0;
+		service.Stations[station].StepStopped = 0;
+		service.Stations[station].StopTime = 3;
+		service.ScheduledDepartures[station] = 7;
+		service.instant_spatial_position[1] = head;
+		service.instant_train_speed[1] = 0;
+		for (int time = 2; time <= 8; ++time) {
+			service.trajectoryComputationIncludingMovingBlock(time, signalCode1, signalCode2, signalCode3);
+			ok &= expect(service.stop == 2 && service.Xob[time] == service.stationRoutePositionMeters(station),
+				"zero-speed braking fallback preserves the first service entry clock throughout dwell");
+			ok &= expect(time <= 7 ? service.StoppedForServiceStop && service.instant_train_speed[time] == 0
+								   : !service.StoppedForServiceStop && service.instant_train_speed[time] > 0
+						&& service.instant_spatial_position[time] > service.stationRoutePositionMeters(station),
+				"real-path stationary braking completes dwell and scheduled departure without resetting the clock");
+		}
+	}
+	ETCS_MA = savedAuthorities;
 	return ok;
 }
 
@@ -2154,6 +3449,8 @@ int main() {
 	ok &= passengerRateTests();
 	ok &= brakingPointTests();
 	ok &= brakingCurveTests();
+	ok &= forwardBrakingTests();
+	ok &= brakingLookupReuseTests();
 	{
 		const double brakingPoint = 46181.0;
 		const double parked = std::nextafter(brakingPoint - kStopHoldbackM, 0.0);
@@ -2203,6 +3500,8 @@ int main() {
 		}
 		initial_variables.times = savedTimes;
 	}
+	ok &= brakingPhaseTests();
+	ok &= level4TransitionTests();
 	ok &= seedTests(completeScene());
 	ok &= noFileAccessTests(completeScene());
 	ok &= routeBoundaryTests();

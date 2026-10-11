@@ -6,14 +6,14 @@ run steps=1500 trains=1
 train Q1-1 active start=60 end=1154
 train Q1-1 sample t=60 x=0.615074 v=1.230149
 train Q1-1 sample t=120 x=1278.266026 v=31.292706
-train Q1-1 sample t=180 x=3370.437940 v=32.926466
+train Q1-1 sample t=180 x=3385.817167 v=32.566466
 train Q1-1 sample t=240 x=3999.999900 v=0.000000
 train Q1-1 sample t=300 x=3999.999900 v=0.000000
 train Q1-1 sample t=360 x=3999.999900 v=0.000000
 train Q1-1 sample t=420 x=3999.999900 v=0.000000
 train Q1-1 sample t=480 x=4198.366581 v=18.180139
 train Q1-1 sample t=540 x=5878.747817 v=35.497638
-train Q1-1 sample t=600 x=7816.124543 v=17.632825
+train Q1-1 sample t=600 x=7824.647618 v=17.237095
 train Q1-1 sample t=660 x=7999.999900 v=0.000000
 train Q1-1 sample t=720 x=7999.999900 v=0.000000
 train Q1-1 sample t=780 x=7999.999900 v=0.000000
@@ -21,15 +21,15 @@ train Q1-1 sample t=840 x=8198.366581 v=18.180139
 train Q1-1 sample t=900 x=9878.747817 v=35.497638
 train Q1-1 sample t=960 x=12044.641596 v=36.111111
 train Q1-1 sample t=1020 x=14211.308263 v=36.111111
-train Q1-1 sample t=1080 x=15938.191632 v=10.331812
+train Q1-1 sample t=1080 x=15945.285149 v=9.742786
 train Q1-1 sample t=1140 x=15999.999900 v=0.000000
-train Q1-1 sample t=1154 x=16000.000100 v=0.000000
+train Q1-1 sample t=1154 x=16000.000100 v=0.000100
 train Q1-1 stop t_first=220 t_last=461 x=3999.998000 dwell=241
-train Q1-1 braking t=176 x=3248.861328 v=36.111111 stop_t=220
+train Q1-1 braking t=176 x=3250.193838 v=36.111111 stop_t=220
 train Q1-1 stop t_first=622 t_last=821 x=7999.998000 dwell=199
-train Q1-1 braking t=578 x=7248.861328 v=36.111111 stop_t=622
+train Q1-1 braking t=578 x=7250.197152 v=36.111111 stop_t=622
 train Q1-1 stop t_first=1093 t_last=1154 x=15999.998000 dwell=61
-train Q1-1 braking t=1049 x=15248.861328 v=36.111111 stop_t=1093
+train Q1-1 braking t=1048 x=15222.419374 v=36.111111 stop_t=1093
 aspect route0 @0-B0@ 0:270
 aspect route0 @1-B0@ 0:270
 aspect route0 @2-B0@ 0:270
