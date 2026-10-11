@@ -706,7 +706,48 @@ static bool brakingLookupReuseTests() {
 		}
 		ok &= expect(reused == reference.brakingArc(head, overlap.data(), 1), "safe interval keeps exact first match across overlap, boundary and backward movement");
 	}
-	std::vector<std::vector<Section>> routes{brakingRouteOfTwoArcs(0.03, 0.1, 0.02, -0.005), overlap};
+	// Advance through multiple sections before an earlier-listed future arc takes precedence.
+	std::vector<Section> forward{
+		brakingRoute(0.10, 0.12, 0.02)[0],
+		brakingRoute(0.13, 0.125, 0.02)[0], // Invalid interval still contributes its future start.
+		brakingRoute(0, 0.01, -0.005)[0],
+		Section{},
+		brakingRoute(0.01, 0.02, 0.02)[0],
+		brakingRoute(0.02, 0.04, -0.005)[0],
+		brakingRoute(0.05, 0.08, 0.02)[0], // A gap forces conservative restart and later recovery.
+		brakingRoute(0.08, 0.16, -0.005)[0]};
+	forward[3].total_arcs = 0;
+	Train::BrakingArcCursor cursor;
+	for (double head : {0.0, 10.0, 20.0, 35.0, 40.0, 50.0, 80.0,
+			 std::nextafter(100.0, 0.0), 100.0, 119.0, 120.0, 130.0, 150.0, 160.0,
+			 50.0, 20.0, 10.0, 0.0, 150.0}) {
+		double cursorUpper, linearUpper = std::numeric_limits<double>::infinity();
+		const Arc* linear = reference.brakingArc(head, forward.data(), static_cast<int>(forward.size()));
+		for (const Section& section : forward) {
+			bool found = false;
+			for (int j = 0; j < section.total_arcs; ++j) {
+				const Arc& arc = section.arcs_in_signalling_block_section[j];
+				if (&arc == linear) {
+					linearUpper = std::min(linearUpper, arc.endNode.X * 1000);
+					found = true;
+					break;
+				}
+				if (arc.startNode.X * 1000 > head)
+					linearUpper = std::min(linearUpper, arc.startNode.X * 1000);
+			}
+			if (found) break;
+		}
+		ok &= expect(cursor.find(head, forward.data(), static_cast<int>(forward.size()), &cursorUpper) == linear
+				&& exact(cursorUpper, linearUpper),
+			"forward cursor and safe upper equal linear lookup across jumps, gaps, invalid arcs and backtracking");
+		ok &= expect(train.brakingArc(head, forward.data(), static_cast<int>(forward.size()), &upper) == linear
+				&& exact(upper, linearUpper),
+			"one-off lookup retains exact safe upper including no match");
+	}
+	std::vector<Section> shortArcs;
+	for (int k = 0; k < 80; ++k)
+		shortArcs.push_back(brakingRoute(k * 0.002, (k + 1) * 0.002, k % 2 ? -0.005 : 0.02)[0]);
+	std::vector<std::vector<Section>> routes{brakingRouteOfTwoArcs(0.03, 0.1, 0.02, -0.005), overlap, forward, shortArcs};
 	auto gap = routes[0];
 	gap[0].arcs_in_signalling_block_section[1].startNode.X = 0.04;
 	routes.push_back(gap);
