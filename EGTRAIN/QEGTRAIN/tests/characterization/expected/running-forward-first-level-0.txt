@@ -17,21 +17,21 @@ train R1-1 sample t=543 x=5293.867841 v=11.111000
 train R1-1 sample t=603 x=5960.527841 v=11.111000
 train R1-1 sample t=663 x=6627.187841 v=11.111000
 train R1-1 sample t=723 x=7293.847841 v=11.111000
-train R1-1 sample t=783 x=7947.721596 v=9.529964
+train R1-1 sample t=783 x=7955.933859 v=8.783840
 train R1-1 sample t=843 x=7999.999900 v=0.000000
-train R1-1 sample t=856 x=8000.000100 v=0.000000
+train R1-1 sample t=856 x=8000.000100 v=0.000100
 train R1-1 stop t_first=795 t_last=856 x=7999.998000 dwell=61
-train R1-1 braking t=781 x=7928.171994 v=11.111000 stop_t=795
+train R1-1 braking t=780 x=7927.174841 v=11.111000 stop_t=795
 train S1-1 active start=60 end=379
 train S1-1 sample t=60 x=0.615074 v=1.230149
 train S1-1 sample t=120 x=1278.266026 v=31.292706
 train S1-1 sample t=180 x=3394.638283 v=36.111111
 train S1-1 sample t=240 x=5561.304949 v=36.111111
-train S1-1 sample t=300 x=7627.589337 v=25.137617
+train S1-1 sample t=300 x=7645.187238 v=24.562141
 train S1-1 sample t=360 x=7999.999900 v=0.000000
-train S1-1 sample t=379 x=8000.000100 v=0.000000
+train S1-1 sample t=379 x=8000.000100 v=0.000100
 train S1-1 stop t_first=331 t_last=379 x=7999.998000 dwell=48
-train S1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
+train S1-1 braking t=286 x=7222.416060 v=36.111111 stop_t=331
 aspect routeAB @0-B0@ 0:270 60:0 144:75 199:180 255:270 420:180 857:270
 aspect routeAB @1-B0@ 0:270 142:0 199:75 255:180 380:270 420:75 857:270
 aspect routeAB @2-B0@ 0:270 197:0 255:75 380:270 420:0 857:270

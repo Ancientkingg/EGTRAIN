@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
+#include <limits>
 #include <vector>
 extern vector<int> VCmsgTimestep;
 extern vector<string> VCmsgTrain;
@@ -637,6 +638,8 @@ public:
 	//! Check the entrance possibility:
 	//! This Function checks if the train can Enter the simulation
 	//!  (i.e. when time>=departure_time and for the first time signalling_block_sections[0] is free)
+	bool entryConflictsWithCrossover(int step, const Section& origin) const;
+
 	void checkEntrance(int i, Section* BS) {
 		// Where a signalling level applies, one train enters a section per step: a train that entered earlier in
 		// this step has put the section in BlocksOccupied, which the aspect only shows from the next step. The list
@@ -647,6 +650,8 @@ public:
 		if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())
 			return;
 		if (waiting && isFirstSectionFailed(BS[0])) // enters when the failure has ended, at any signalling level
+			return;
+		if (waiting && separated && i >= departure_time && entryConflictsWithCrossover(i, BS[0]))
 			return;
 		string PreviousTrain = "None"; // the previous Train according to the list
 		int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
@@ -807,29 +812,66 @@ public:
 		return false;
 	}
 
-	// Function to check if the End of Authority given by the RBC for ETCS 3 is still valid
-	void checkIfMovementAuthorityStillValid(double V_i_1, double S_i_1, const Section& CurrentBS) {
-		bool IsMAStillValid = false;
-		if ((V_i_1 == 0) && ((this->Last_MA_StoppedAt.RelativePosEoA - S_i_1) < 4) && (CurrentBS.ID == Last_MA_StoppedAt.BSID) && (IsTrainStoppedForEoA == 1)) {
-			if (ETCS_MA.size() > 0) {
-				for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-					if ((it->BSID == Last_MA_StoppedAt.BSID) && (abs(it->AbsPosEoA - Last_MA_StoppedAt.AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == Last_MA_StoppedAt.TrainInfo.trainDescription)) {
-						IsMAStillValid = true; // if the movement authority where the train is stopped at is still valid, then set IsMAStillValid to true
-						break;				   // and break the loop over the ETCS_MA list
-					}
-				}
-			}
+	double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
+		return train_route[indexOfRoute].reversed_direction
+			? section.GeoXBegNode - authority.AbsPosEoA + section.start_node.X * 1000
+			: authority.AbsPosEoA;
+	}
 
-			// if the Ma is no valid anymore then set the variable IsTrainStopped for Eoa to false
-			if (IsMAStillValid == false) {
-				BrakingForEoA = false;
-				IsTrainStoppedForEoA = false;
+	// Resolve only the selected, currently published forward Tale within the EVC's existing scope.
+	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const {
+		const Route& route = train_route[indexOfRoute];
+		int current = -1;
+		for (int block = 0; block < route.N_Block_Sections; ++block)
+			if (head >= route.sequence_of_block_sections[block].start_node.X * 1000
+				&& head < route.sequence_of_block_sections[block].end_node.X * 1000) {
+				current = block;
+				break;
 			}
-			// otherwise set it to true and let the train still be stopped at the EoA
-			else {
-				IsTrainStoppedForEoA = true;
-			}
+		if (current < 0)
+			return nullptr;
+		for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
+			const Section& section = route.sequence_of_block_sections[block];
+			if (section.SignallingLevel != 4 || section.ID != Last_Received_MA.BSID)
+				continue;
+			for (const MovementAuthority& authority : ETCS_MA)
+				if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
+					&& authority.ReversedDirection == route.reversed_direction
+					&& authority.TrainInfo.trainDescription != trainDescription
+					&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
+					&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
+					&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
+					&& abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
+					&& (authority.TrainInfo.NextSectionID == "None"
+						|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
+					leaderHead = authorityRoutePosition(authority, section);
+					if (leaderHead > head)
+						return &authority;
+				}
 		}
+		return nullptr;
+	}
+
+	// Validate before current target selection so an invalid old hold cannot clear new metadata.
+	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section) {
+		if (!IsTrainStoppedForEoA)
+			return;
+		const MovementAuthority& saved = Last_MA_StoppedAt;
+		const double distance = saved.RelativePosEoA - head;
+		const bool applicable = obeysAuthority(saved) && (saved.type != "TrainEnd" || (saved.typePart == "Tale" && saved.ReversedDirection == train_route[indexOfRoute].reversed_direction) || (saved.typePart == "Front" && saved.ReversedDirection != train_route[indexOfRoute].reversed_direction));
+		bool valid = false;
+		if (speed == 0 && distance >= 0 && distance < 4 && section.ID == saved.BSID && applicable)
+			for (const MovementAuthority& authority : ETCS_MA)
+				if (authority.BSID == saved.BSID && authority.type == saved.type && authority.typePart == saved.typePart
+					&& authority.ReversedDirection == saved.ReversedDirection && obeysAuthority(authority)
+					&& authority.TrainInfo.trainDescription == saved.TrainInfo.trainDescription
+					&& abs(authority.AbsPosEoA - saved.AbsPosEoA) < 0.001) {
+					valid = true;
+					break;
+				}
+		IsTrainStoppedForEoA = valid;
+		if (!valid)
+			BrakingForEoA = false;
 	}
 
 	// A leader that reports no movement authority any more cannot be followed. Its last one would keep
@@ -985,69 +1027,295 @@ public:
 		return AccelerationTime;
 	}
 
-	// Calculation of Dynamic Braking Distance with inverse integration of the real Braking Curve considering also Block Sections
-	// Returns the abscissa where the train has to start braking so that it runs at V2 at X0.
-	// When the curve leaves the route at its start, the braking point lies before the route and the last computed abscissa is returned.
-	// When no braking point can be given (the curve leaves the route elsewhere, or does not reach V1 within the steps), -1 is returned,
-	// which the caller treats as "not computed".
-	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks) {
-		double BD;
-		double BX; // Braking Distance
-		int t;
-		int BlockIdx;
-		double U[2000];
-		double X[2000]; // Definition of Temporary variables Vector U=Speed, X=Abscissa
-		double DX;		// Final Abscissa deriving from inverse integration of the Braking Curve
-		U[0] = V2;
-		X[0] = X0 - 0.002; // The train stops at two metres from the objective point
-		if (V1 > V2) {
-			for (t = 1; t < 2000; t++) {
-				BlockIdx = 0;
-				for (int h = 0; h < Blocks; h++) {
-					if ((X[t - 1] < BS[h].end_node.X * 1000) && (X[t - 1] >= BS[h].start_node.X * 1000)) { // Selection of the right Block Section
-						BlockIdx = h;
-						break;
-					}
+	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const {
+		if (safeUpper) *safeUpper = std::numeric_limits<double>::infinity();
+		for (int b = 0; b < count; ++b)
+			for (int j = 0; j < sections[b].total_arcs; ++j) {
+				const Arc& arc = sections[b].arcs_in_signalling_block_section[j];
+				if (head >= arc.startNode.X * 1000 && head < arc.endNode.X * 1000) {
+					if (safeUpper) *safeUpper = std::min(*safeUpper, arc.endNode.X * 1000);
+					return &arc;
 				}
-				bool onArc = false;
-				{
-					const Section& Block = BS[BlockIdx];
-					for (int j = 0; j < Block.total_arcs; j++) {
-						if ((X[t - 1] < Block.arcs_in_signalling_block_section[j].endNode.X * 1000) && (X[t - 1] >= Block.arcs_in_signalling_block_section[j].startNode.X * 1000)) { // Selection of the right Arc of the Block Section
-							const Arc& Ab = Block.arcs_in_signalling_block_section[j];
-							// Inverse integration of the real Braking Curve
-							U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature)) * timestep / (total_train_mass * massFactor);
-							X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab.gradient, Ab.curvature));
-							onArc = true;
-							break;
-						}
-					}
-				}
-				if (!onArc) { // X[t - 1] is outside the route, so entry t is not written
-					if (X[t - 1] < BS[0].start_node.X * 1000)
-						return X[t - 1]; // the braking point lies before the route
-					return -1;
-				}
-				// BUG - does not use interpolation and can lead to incorrect critical braking point
-				/*if (U[t] >= V1) {
-					DX = X[t]; break;
-				}*/
-
-				// bug fix using linear interpolation
-				if (U[t] >= V1) {
-					DX = X[t - 1] + (V1 - U[t - 1]) * (X[t] - X[t - 1]) / (U[t] - U[t - 1]);
-					break;
-				}
+				// An earlier-listed future arc can become the first match before this arc ends.
+				if (safeUpper && arc.startNode.X * 1000 > head)
+					*safeUpper = std::min(*safeUpper, arc.startNode.X * 1000);
 			}
-			if (t == 2000) // not reached in 1,999 steps
-				return -1;
-			BD = X[0] - DX + (max_train_decelaration / (2 * Jerk)) * (V1) + V1 * timestep;
-			BX = DX;
+		return nullptr;
+	}
+
+	// Every curve step samples force at the actual start and uses the right endpoint for distance.
+	double brakingCurveSpeed(double speed, const Arc& arc) {
+		return std::max(0.0, speed - (max_train_decelaration + total_train_resistances(speed, arc.gradient, arc.curvature) / (total_train_mass * massFactor)) * timestep);
+	}
+
+	// Strahl and Sauthoff resistance are quadratic in speed. Invert only the increasing
+	// branch of v - dt*a(v), connected to the ordinary small-dt solution. The other
+	// quadratic root lies beyond the fold and is not a unique inverse flow.
+	// For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the
+	// entire saturated preimage of max(0, q(v)); smaller terminal speeds are valid forward states.
+	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed) {
+		head = nextHead - nextSpeed * timestep;
+		const Arc* arc = brakingArc(head, sections, count);
+		if (!arc || total_train_mass <= 0 || massFactor <= 0 || timestep <= 0 || nextSpeed < 0)
+			return false;
+		const double mass = total_train_mass * massFactor;
+		const double r0 = total_train_resistances(0, arc->gradient, arc->curvature);
+		const double r1 = total_train_resistances(1, arc->gradient, arc->curvature);
+		const double r2 = total_train_resistances(2, arc->gradient, arc->curvature);
+		const double quadratic = (r2 - 2 * r1 + r0) / (2 * mass) * timestep;
+		const double linear = 1 - ((r1 - r0) / mass * timestep - quadratic);
+		const double constant = nextSpeed + (max_train_decelaration + r0 / mass) * timestep;
+		if (!std::isfinite(quadratic) || !std::isfinite(linear) || !std::isfinite(constant) || quadratic < 0)
+			return false;
+		if (quadratic == 0) {
+			if (linear <= 0)
+				return false;
+			speed = constant / linear;
 		} else {
-			BD = 0;
-			BX = X0;
+			const double discriminant = linear * linear - 4 * quadratic * constant;
+			if (linear <= 0 || discriminant <= 0 || !std::isfinite(discriminant))
+				return false; // No finite, unique root on the increasing branch, including the fold.
+			speed = 2 * constant / (linear + std::sqrt(discriminant));
+			if (linear - 2 * quadratic * speed <= 0)
+				return false;
 		}
-		return BX;
+		if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
+			return false;
+		// Refine against the actual resistance expression, avoiding cancellation in
+		// the sampled coefficients. Choose the adjacent non-overshooting inverse.
+		for (int iteration = 0; iteration < 4; ++iteration) {
+			const double residual = speed - (max_train_decelaration + total_train_resistances(speed, arc->gradient, arc->curvature) / mass) * timestep - nextSpeed;
+			const double refined = speed - residual / (linear - 2 * quadratic * speed);
+			if (!std::isfinite(refined) || refined < 0 || linear - 2 * quadratic * refined <= 0)
+				return false;
+			if (refined == speed)
+				break;
+			speed = refined;
+		}
+		if (brakingCurveSpeed(speed, *arc) > nextSpeed)
+			speed = std::nextafter(speed, 0.0);
+		return brakingCurveSpeed(speed, *arc) <= nextSpeed;
+	}
+
+	// Predict complete full-force continuation after a phase-specific first step.
+	// Optional vectors store only a successfully evaluated plan, in driving order.
+	bool predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
+		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
+		const Arc* arc = nullptr;
+		double lookupHead = head, safeUpper = head;
+		for (int step = 0; step < 1999; ++step) {
+			end = head; // An above-target route exit can reject a shooting bracket, never validate a plan.
+			if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
+				return false;
+			if (positions) {
+				positions->push_back(head);
+				speeds->push_back(speed);
+			}
+			if (speed <= targetSpeed) {
+				end = head;
+				return true;
+			}
+			if (!arc || head < lookupHead || !(head < safeUpper)) {
+				arc = brakingArc(head, sections, count, &safeUpper);
+				lookupHead = head;
+			}
+			if (!arc)
+				return false;
+			speed = brakingCurveSpeed(speed, *arc);
+			head += speed * timestep;
+		}
+		return false;
+	}
+
+	// Fixed-length forward prefix for a positive target whose native plan may dip
+	// below the target and recover. Crossing below the target is not completion.
+	bool predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
+		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
+		if (steps < 0 || steps >= 1999)
+			return false;
+		const Arc* arc = nullptr;
+		double lookupHead = head, safeUpper = head;
+		for (int step = 0; step <= steps; ++step) {
+			end = head;
+			endSpeed = speed;
+			if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
+				return false;
+			if (positions) {
+				positions->push_back(head);
+				speeds->push_back(speed);
+			}
+			if (step == steps)
+				return true;
+			if (!arc || head < lookupHead || !(head < safeUpper)) {
+				arc = brakingArc(head, sections, count, &safeUpper);
+				lookupHead = head;
+			}
+			if (!arc)
+				return false;
+			speed = brakingCurveSpeed(speed, *arc);
+			head += speed * timestep;
+		}
+		return false;
+	}
+
+	// Upper end of the reachable terminal-coordinate interval at a positive ceiling.
+	bool brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper) {
+		const Arc* arc = brakingArc(head, sections, count);
+		if (!arc) {
+			upper = head;
+			return false;
+		}
+		const double maximum = std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, arc->gradient, arc->curvature)) / (total_train_mass * massFactor) * timestep);
+		upper = head + std::min(ceiling, maximum) * timestep;
+		return std::isfinite(upper);
+	}
+
+	// Select a new terminal control within the actual-state force interval and ceiling.
+	// Rounded addition need not be exactly inverted by subtraction and division.
+	bool constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal) {
+		const Arc* arc = brakingArc(head, sections, count);
+		if (!arc || !std::isfinite(head) || !std::isfinite(speed) || speed < 0 || !std::isfinite(anchor)
+			|| anchor < head || !std::isfinite(ceiling) || ceiling < 0 || timestep <= 0 || total_train_mass <= 0 || massFactor <= 0)
+			return false;
+		const double mass = total_train_mass * massFactor;
+		const double resistance = total_train_resistances(speed, arc->gradient, arc->curvature), effort = tractiveEffort(speed);
+		if (!std::isfinite(mass) || !std::isfinite(timestep) || !std::isfinite(resistance) || !std::isfinite(effort) || !std::isfinite(max_train_decelaration))
+			return false;
+		const double minimum = brakingCurveSpeed(speed, *arc);
+		const double maximum = std::min(ceiling, std::max(0.0, speed + (effort - resistance) / mass * timestep));
+		if (!std::isfinite(minimum) || !std::isfinite(maximum) || minimum > maximum)
+			return false;
+		terminal = std::clamp((anchor - head) / timestep, minimum, maximum);
+		const double end = head + terminal * timestep;
+		const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
+		return std::isfinite(end) && std::fabs(end - anchor) <= roundoff;
+	}
+
+	bool planPositiveBraking(double head, double speed, const Arc& arc, Section* sections, int count, int suggested) {
+		const double firstMinimum = brakingCurveSpeed(speed, arc);
+		const double firstMaximum = std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, arc.gradient, arc.curvature)) / (total_train_mass * massFactor) * timestep);
+		const double anchor = Xobmin - 0.002;
+		const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
+		double minimumNative = Vobmin;
+		for (int k = 0; k <= BrakStep; ++k)
+			if (Vbrak[k] > 0) minimumNative = std::min(minimumNative, Vbrak[k]);
+		const double phaseSteps = std::ceil(std::max(0.0, Sbrak[0] - head) / (minimumNative * timestep));
+		if (!std::isfinite(phaseSteps))
+			return false;
+		const int extra = phaseSteps >= 1998 ? 1999 : std::max(1, static_cast<int>(phaseSteps) + 1);
+		for (int length = std::max(1, suggested - 1); length <= std::min(1999, suggested + extra); ++length) {
+			double low = firstMinimum, high = firstMaximum, end, endSpeed, upper;
+			if (length == 1) {
+				double terminal;
+				if (!constructBrakingTerminal(head, speed, anchor, Vobmin, sections, count, terminal)) continue;
+				Sbrak[0] = head;
+				Vbrak[0] = speed;
+				Sbrak[1] = head + terminal * timestep;
+				Vbrak[1] = terminal;
+				BrakStep = 1;
+				return true;
+			}
+			if (!std::isfinite(low) || !std::isfinite(high) || low > high || !predictBrakingPrefix(head + low * timestep, low, length - 2, sections, count, end, endSpeed)
+				|| !brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper) || upper > anchor + roundoff) continue;
+			const bool completeUpper = predictBrakingPrefix(head + high * timestep, high, length - 2, sections, count, end, endSpeed);
+			if (!completeUpper) {
+				if (!(end > anchor)) continue;
+				upper = end;
+			} else if (!brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper)) {
+				if (!(end > anchor)) continue;
+				upper = end;
+			}
+			if (upper < anchor) continue;
+			for (int iteration = 0; iteration < 64; ++iteration) {
+				const double middle = low + (high - low) / 2;
+				if (middle == low || middle == high) break;
+				const bool complete = predictBrakingPrefix(head + middle * timestep, middle, length - 2, sections, count, end, endSpeed);
+				if (!complete || !brakingTerminalUpper(end, endSpeed, Vobmin, sections, count, upper)) {
+					if (!(end > anchor)) break;
+					upper = end;
+				}
+				if (upper < anchor) low = middle;
+				else high = middle;
+			}
+			std::vector<double> positions{head}, speeds{speed};
+			if (!predictBrakingPrefix(head + high * timestep, high, length - 2, sections, count, end, endSpeed, &positions, &speeds)) continue;
+			double terminal;
+			if (!constructBrakingTerminal(end, endSpeed, anchor, Vobmin, sections, count, terminal)) continue;
+			positions.push_back(end + terminal * timestep);
+			speeds.push_back(terminal);
+			if (std::fabs(positions.back() - anchor) > roundoff || positions.size() > Sbrak.size()) continue;
+			std::copy(positions.begin(), positions.end(), Sbrak.begin());
+			std::copy(speeds.begin(), speeds.end(), Vbrak.begin());
+			BrakStep = static_cast<int>(positions.size()) - 1;
+			return true;
+		}
+		return false;
+	}
+
+	// Returns an actual-start braking point. Linear interpolation of inverse X/V
+	// samples is not a solution of the nonlinear forward flow.
+	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks) {
+		if (V1 <= V2)
+			return X0;
+		double nextHead = X0 - 0.002, nextSpeed = V2;
+		for (int step = 1; step < 2000; ++step) {
+			double head, speed;
+			if (!inverseBrakingStep(nextHead, nextSpeed, BS, Blocks, head, speed)) {
+				if (head < BS[0].start_node.X * 1000)
+					return head;
+				return -1;
+			}
+			if (speed >= V1) {
+				if (V2 > 0) {
+					const double anchor = X0 - 0.002;
+					double low = head, high = nextHead, end, endSpeed, upper;
+					if (!predictBrakingPrefix(low, V1, step - 1, BS, Blocks, end, endSpeed) || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper) || upper > anchor) return -1;
+					const bool completeUpper = predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed);
+					if (!completeUpper || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+						if (!(end > anchor)) return -1;
+						upper = end;
+					}
+					if (upper < anchor) return -1;
+					for (int iteration = 0; iteration < 64; ++iteration) {
+						const double middle = low + (high - low) / 2;
+						if (middle == low || middle == high) break;
+						const bool complete = predictBrakingPrefix(middle, V1, step - 1, BS, Blocks, end, endSpeed);
+						if (!complete || !brakingTerminalUpper(end, endSpeed, V2, BS, Blocks, upper)) {
+							if (!(end > anchor)) return -1;
+							upper = end;
+						}
+						if (upper < anchor) low = middle;
+						else high = middle;
+					}
+					if (!predictBrakingPrefix(high, V1, step - 1, BS, Blocks, end, endSpeed)) return -1;
+					double terminal;
+					if (!constructBrakingTerminal(end, endSpeed, anchor, V2, BS, Blocks, terminal)) return -1;
+					return high;
+				}
+				double low = head, high = nextHead, end;
+				const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(X0 - 0.002));
+				if (!predictBraking(low, V1, V2, BS, Blocks, end) || end > X0 - 0.002 + roundoff)
+					return -1;
+				const bool completeUpper = predictBraking(high, V1, V2, BS, Blocks, end);
+				if ((!completeUpper && !(end > X0 - 0.002)) || end < X0 - 0.002 - roundoff)
+					return -1;
+				for (int iteration = 0; iteration < 64; ++iteration) {
+					const double middle = low + (high - low) / 2;
+					if (middle == low || middle == high)
+						break;
+					if (!predictBraking(middle, V1, V2, BS, Blocks, end) && !(end > X0 - 0.002))
+						return -1;
+					if (end <= X0 - 0.002)
+						low = middle;
+					else
+						high = middle;
+				}
+				return low; // Conservative side of a boundary discontinuity, not a target snap.
+			}
+			nextHead = head;
+			nextSpeed = speed;
+		}
+		return -1;
 	}
 
 	// Request before the next movement can consume the last opportunity to brake for the entry. The movement
@@ -1108,8 +1376,30 @@ public:
 		return needsBraking(entry, 0);
 	}
 
+	// A cached successor is a proposal only from its exact actual state and historical target.
+	int cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed) {
+		if (counter <= 0 || BrakStep <= 0 || BrakStep >= static_cast<int>(Sbrak.size())
+			|| (previousInstant < static_cast<int>(Xob.size()) && (Xob[previousInstant] != target || Vob[previousInstant] != targetSpeed)))
+			return -1;
+		const double head = instant_spatial_position[previousInstant], speed = instant_train_speed[previousInstant];
+		for (int k = 0; k < BrakStep; ++k) {
+			if (head != Sbrak[k] || speed != Vbrak[k])
+				continue;
+			const double nextSpeed = k == 0 || (targetSpeed > 0 && k + 1 == BrakStep) ? Vbrak[k + 1] : brakingCurveSpeed(speed, arc);
+			const double nextHead = head + nextSpeed * timestep;
+			const double minimum = brakingCurveSpeed(speed, arc);
+			const double maximum = std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, arc.gradient, arc.curvature)) / (total_train_mass * massFactor) * timestep);
+			if (nextSpeed < minimum || nextSpeed > maximum || nextHead != Sbrak[k + 1] || nextSpeed != Vbrak[k + 1])
+				return -1;
+			return k + 1;
+		}
+		return -1;
+	}
+
 	// This Function simulate the capacity of the train driver to react to the first most severe service limit (i.e. it calculates the braking distance and the braking point for satisfying the most severe running operation limit)
-	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks) {
+	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached) {
+		continueCached = false;
+		IsTrainCoupling = false;
 		int N_BrakP;
 		int ArcPos = 0;
 		int BlockPos = 0;
@@ -1192,11 +1482,12 @@ public:
 							bool CanTrainLinkForCoupling = false;	// This variable is a local variable to state whether the train is linking to another train ahead for virtual coupling. This boolean is true only when the closest breaking point is the Train End of a train in the same direction having the next Route section in common on a Bs with Signalling Level 4
 							double PredictedDistanceToCoupling = 0; // This is the Distance need by the train to Couple with the train ahead
 
-							if (train_route[indexOfRoute].reversed_direction == 1) {
-								ETCSBrakingPoint.X = (BS[z + BlockPos].GeoXBegNode - it->AbsPosEoA) + BS[z + BlockPos].start_node.X * 1000;
-							} else {
-								ETCSBrakingPoint.X = it->AbsPosEoA;
-							}
+							ETCSBrakingPoint.X = authorityRoutePosition(*it, BS[z + BlockPos]);
+							// A behind or front end cannot become a forward leader through virtual projection.
+							if (BS[z + BlockPos].SignallingLevel == 4 && it->type == "TrainEnd"
+								&& it->ReversedDirection == train_route[indexOfRoute].reversed_direction
+								&& (it->typePart != "Tale" || !(ETCSBrakingPoint.X > S)))
+								continue;
 
 							if (it->type == "SignalFailure") {
 								// a failed signal or a held single-track section is a stop target at every signalling level
@@ -1231,9 +1522,10 @@ public:
 												// stops behind that point instead of matching the speed of the leader. Without a braking distance (-1) the end of
 												// authority stays where the leader reported it.
 												const double LeaderBrakingStart = BrakDist_Block(it->TrainInfo.TrainSpeed, 0, ETCSBrakingPoint.X, BS, Blocks);
-												const double LeaderStandstill = LeaderBrakingStart < 0
+												// The inverse ends at X - 0.002; its holdback is not forward travel.
+												const double LeaderStandstill = LeaderBrakingStart < 0 || it->TrainInfo.TrainSpeed == 0
 													? ETCSBrakingPoint.X
-													: std::min(2 * ETCSBrakingPoint.X - LeaderBrakingStart, train_route[this->indexOfRoute].x_of_end_node * 1000);
+													: std::min(ETCSBrakingPoint.X + ((ETCSBrakingPoint.X - 0.002) - LeaderBrakingStart), train_route[this->indexOfRoute].x_of_end_node * 1000);
 												PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
 												ETCSBrakingPoint.X = LeaderStandstill;
 												BrakingForEoAModified = true;
@@ -1294,205 +1586,183 @@ public:
 			BrakingPoints.push_back(ClosestETCSBrakingPoint);
 		}
 
-		// Identifying the point with the minimum braking distance
-		if (BrakingPoints.empty() != 1) {
-			for (list<Node>::iterator n = BrakingPoints.begin(); n != BrakingPoints.end(); n++) {
-				double BrakeDistToNode = -1;
-				double Xob, Vob;
-				bool TrainMustStop = Train_Must_Stop_For_OL_Order(n->respectOrder, n->indexOrderList); // Check if there is an order to respect
-																									   // if there is an order to be respected at a given junction/station then compute the braking distance for the train to stop there
-				if (TrainMustStop == 1) {
-
-					BrakeDistToNode = BrakDist_Block(V, 0, n->X * 1000, BS, Blocks);
-					Xob = n->X * 1000;
-					Vob = 0;
-				}
-				// if instead there is no order to be respected compute the Braking distance for the braking points
-				else {
-					// if the braking Node is an ETCS End Of Authority
-					if (n->isSignalled == 1) {
-
-						if (n->stationName == "DecoupleTrain") { // In case the Braking Point is a decouplig point for Virtual Coupling computed by the EVC
-							BrakeDistToNode = BrakDist_Block(V, 0, n->X, BS, Blocks);
-							Xob = n->X;
-							Vob = 0;
-						} else { // otherwise for all the other MAs
-							BrakeDistToNode = BrakDist_Block(V, TargetSpeedForMA, n->X, BS, Blocks);
-							Xob = n->X;
-							Vob = TargetSpeedForMA;
-							// Below the speed that one braking step removes the braking curve has no length, so its start lies at the
-							// authority. A train that reaches a stop authority within this step brakes now instead of accelerating past it:
-							// its braking point is no later than its own position.
-							if (TargetSpeedForMA == 0 && n->X > S && S + V * timestep >= n->X && (BrakeDistToNode == -1 || BrakeDistToNode > S))
-								BrakeDistToNode = S;
-						}
-					}
-					// if the Braking Point is not a MA then compute the Braking distance because of a static or signalling speed restriction
-					else {
-						BrakeDistToNode = BrakDist_Block(V, n->arcSpeedLimit, n->X * 1000, BS, Blocks);
-						Xob = n->X * 1000;
-						Vob = n->arcSpeedLimit;
-					}
-				}
-
-				// If the GradientException is true and there is still the same target point as in the previous instant then
-				if ((this->GradientExceptionInBraking == 1) && (Xob == this->Xob[PreviousInstant]) && (Vob == this->Vob[PreviousInstant])) {
-					MinBX = this->Sbrak[brakingPoint + counter - 1]; // return the next braking point as braking distance
-					Xobmin = Xob;									 // the target point does not change
-					Vobmin = Vob;
-					break; // break the for loop over the braking points
-				}
-
-				else {
-					if (BrakeDistToNode != -1) {
-						if ((BrakeDistToNode < MinBX) && (Xob > S)) {
-							MinBX = BrakeDistToNode;
-							Xobmin = Xob;
-							Vobmin = Vob;
-							this->BrakingForEoA = n->isSignalled;			// In case the train was braking for an ETCS Movement Authority then set BrakingForEoA of the train to true
-							this->IsTrainCoupling = n->virtualCouplingNode; // The train is set to IsTrainCoupling = true when it can follow the train ahead and the train is not already in the following mode
-							if (this->IsTrainInFollowingMode == 1) {
-								if (n->stationName == "DecoupleTrain") {
-									IsTrainDecoupling = true;
-								} else {
-									IsTrainDecoupling = false;
-								}
-							}
-						}
-					}
-				}
+		// Resolve each collected target once, before deciding whether the incumbent is still live.
+		struct Target {
+			Node node;
+			double position, speed;
+		};
+		std::vector<Target> targets;
+		int incumbent = -1;
+		for (const Node& node : BrakingPoints) {
+			const bool mustStop = Train_Must_Stop_For_OL_Order(node.respectOrder, node.indexOrderList);
+			const double position = node.isSignalled && !mustStop ? node.X : node.X * 1000;
+			const double speed = mustStop || (node.isSignalled && node.stationName == "DecoupleTrain") ? 0
+				: node.isSignalled																	   ? TargetSpeedForMA
+																									   : node.arcSpeedLimit;
+			targets.push_back({node, position, speed});
+			if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
+				incumbent = static_cast<int>(targets.size()) - 1;
+		}
+		const Arc& arc = BS[BlockPos].arcs_in_signalling_block_section[ArcPos];
+		const int successor = incumbent < 0 ? -1 : cachedBrakingSuccessor(PreviousInstant, arc, targets[incumbent].position, targets[incumbent].speed);
+		const double proposedSpeed = successor < 0 ? V : Vbrak[successor];
+		const double proposedHead = successor < 0 ? S : Sbrak[successor];
+		int selected = -1;
+		for (int index = 0; index < static_cast<int>(targets.size()); ++index) {
+			const Target& target = targets[index];
+			if (target.position <= S || (target.speed > 0 && proposedSpeed <= target.speed))
+				continue;
+			// A retained stop cannot cross a target beyond its zero-speed endpoint.
+			if (successor >= 0 && targets[incumbent].speed == 0 && Vbrak[BrakStep] == 0
+				&& Sbrak[BrakStep] < target.position)
+				continue;
+			double point = BrakDist_Block(proposedSpeed, target.speed, target.position, BS, Blocks);
+			if (successor >= 0) {
+				if (index == incumbent)
+					continue;
+				if (target.speed == 0) {
+					double end;
+					const double anchor = target.position - 0.002;
+					const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
+					if (predictBraking(proposedHead, proposedSpeed, 0, BS, Blocks, end) && end <= anchor + roundoff)
+						continue;
+				} else if (std::isfinite(point) && point != -1 && proposedHead < point)
+					continue;
+				// A missing prediction cannot establish that the proposed successor is safe.
+				if (!std::isfinite(point) || point == -1)
+					point = S;
+			} else if (target.node.isSignalled && target.speed == 0 && S + V * timestep >= target.position
+				&& (point == -1 || point > S))
+				point = S;
+			if (point != -1 && point < MinBX) {
+				MinBX = point;
+				selected = index;
 			}
+		}
+		// An incompatible successor must be interrupted now, before any nominal acceleration.
+		if (successor >= 0 && selected >= 0)
+			MinBX = std::min(MinBX, S);
+		if (successor >= 0 && selected < 0) {
+			selected = incumbent;
+			continueCached = true;
+			MinBX = BrakDist_Block(V, targets[incumbent].speed, targets[incumbent].position, BS, Blocks);
+			if (MinBX == -1)
+				MinBX = S;
+		}
+		if (selected >= 0) {
+			const Target& target = targets[selected];
+			Xobmin = target.position;
+			Vobmin = target.speed;
+			BrakingForEoA = target.node.isSignalled;
+			IsTrainCoupling = target.node.virtualCouplingNode;
+			if (IsTrainInFollowingMode == 1)
+				IsTrainDecoupling = target.node.stationName == "DecoupleTrain";
 		}
 		return MinBX;
 	}
 
-	// Function to draw the braking curve which must be followed by the train.
-	// The curve ends at X0 with the speed V2 and is integrated backwards until it reaches the speed V1. It is stored in driving order in Sbrak and Vbrak,
-	// and BrakStep is the index of its last entry. When there is no such curve, because it leaves the route or does not reach V1 within the steps,
-	// the function returns false and BrakStep is -1. This also holds for V1 <= V2, where there is nothing to brake.
+	// Native inverse plan shares the exact actual-start step with BrakDist_Block.
 	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks) {
-		double U[2000];
-		double X[2000]; // Definition of Temporary variables Vector U=Speed, X=Abscissa
-		U[0] = V2;
-		X[0] = X0 - 0.002; // The train stops at two metres from the objective point
+		std::vector<double> positions{X0 - 0.002}, speeds{V2};
 		BrakStep = -1;
-		if (V1 > V2) {
-			int t;
-			for (t = 1; t < 2000; t++) {
-				int BlockIdx = 0;
-				for (int h = 0; h < Blocks; h++) {
-					if ((X[t - 1] < BS[h].end_node.X * 1000) && (X[t - 1] >= BS[h].start_node.X * 1000)) { // Selection of the right Block Section
-						BlockIdx = h;
-						break;
-					}
-				}
-				const Section& Block = BS[BlockIdx];
-				const Arc* Ab = nullptr;
-				for (int j = 0; j < Block.total_arcs; j++) {
-					if ((X[t - 1] < Block.arcs_in_signalling_block_section[j].endNode.X * 1000) && (X[t - 1] >= Block.arcs_in_signalling_block_section[j].startNode.X * 1000)) { // Selection of the right Arc of the Block Section
-						Ab = &Block.arcs_in_signalling_block_section[j];
-						break;
-					}
-				}
-				if (Ab == nullptr) // X[t - 1] is outside the route, so entry t cannot be computed
-					return false;
-				// Inverse integration of the real Braking Curve
-				U[t] = U[t - 1] - (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab->gradient, Ab->curvature)) * timestep / (total_train_mass * massFactor);
-				X[t] = X[t - 1] + (total_train_mass * massFactor * U[t - 1] * (U[t] - U[t - 1])) / (-total_train_mass * massFactor * max_train_decelaration - total_train_resistances(U[t - 1], Ab->gradient, Ab->curvature));
-				if (U[t] >= V1)
-					break;
-			}
-			if (t == 2000) // not reached in 1,999 steps
+		if (V1 <= V2)
+			return false;
+		for (int step = 1; step < 2000; ++step) {
+			double head, speed;
+			if (!inverseBrakingStep(positions.back(), speeds.back(), BS, Blocks, head, speed))
 				return false;
-			BrakStep = t;
-			for (t = 0; t <= BrakStep; t++) {
-				Sbrak[t] = X[BrakStep - t];
-				Vbrak[t] = U[BrakStep - t];
+			positions.push_back(head);
+			speeds.push_back(speed);
+			if (speed >= V1) {
+				BrakStep = step;
+				std::reverse_copy(positions.begin(), positions.end(), Sbrak.begin());
+				std::reverse_copy(speeds.begin(), speeds.end(), Vbrak.begin());
+				return true;
 			}
 		}
-		return BrakStep >= 0;
+		return false;
 	}
 
-	// Moves the train from time_seconds - 1 to time_seconds in the braking phase towards the point (Xobmin, Vobmin).
-	// The train follows the braking curve. When there is no curve that reaches its speed, or no point of the curve lies ahead of the train,
-	// it brakes with the full braking force for one step. Its position never goes back.
-	// As is the arc of the head of the train.
-	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
-		counter++;
-		if (counter == 1) {
-			if (DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobmin, Xobmin, BS, Blocks)) {
-				double m1, m2;
-				m1 = (instant_train_speed[time_seconds - 1] - instant_train_speed[time_seconds - 2]) / (instant_spatial_position[time_seconds - 1] - instant_spatial_position[time_seconds - 2]); // angular coefficient of acceleration curve
-				m2 = (Vbrak[1] - Vbrak[0]) / (Sbrak[1] - Sbrak[0]);																																  // angular coefficient of braking curve
-				const double intersection = (m1 * instant_spatial_position[time_seconds - 2] - instant_train_speed[time_seconds - 2] + Vbrak[1] - m2 * Sbrak[1]) / (m1 - m2);					  // Intersection abscissa
-				const double intersectionSpeed = instant_train_speed[time_seconds - 2] + m1 * (intersection - instant_spatial_position[time_seconds - 2]);
-				bool pointAhead = false;
-				for (int t = 0; t <= BrakStep; t++) {
-					if ((Vbrak[t] < intersectionSpeed) && (Sbrak[t] > intersection)) {
-						brakingPoint = t;
-						pointAhead = true;
-						break;
-					}
-				}
-				if (intersection < instant_spatial_position[time_seconds - 2] || !pointAhead) {
-					// The curve starts behind the last two positions, or none of its points lies ahead of the train: the train cannot stop at the
-					// target and never moves back. It brakes with full force from where it is and tries the curve again in the next step.
-					fullBrakingStep(time_seconds, As);
-					counter = 0;
-					return;
-				}
-				instant_spatial_position[time_seconds - 1] = intersection;
-				instant_train_speed[time_seconds - 1] = intersectionSpeed;
-				instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-				if (instant_train_speed[time_seconds] < 0)
-					instant_train_speed[time_seconds] = 0;
-
-				instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-				Eq[time_seconds] = 55;
-			} else {
-				fullBrakingStep(time_seconds, As);
-			}
-		} else {
-			Eq[time_seconds] = 52;
-			if (BrakStep >= 0) {
-				instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-				if (instant_train_speed[time_seconds] < 0)
-					instant_train_speed[time_seconds] = 0;
-				instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-			}
-			if ((BrakStep < 0) || (instant_spatial_position[time_seconds] < instant_spatial_position[time_seconds - 1])) {
-				counter = 1;
-				bool pointAhead = false;
-				if (DrawBrakingCurve(instant_train_speed[time_seconds - 1], Vobmin, Xobmin, BS, Blocks)) {
-					for (int t = 0; t <= BrakStep; t++) {
-						if ((Vbrak[t] < instant_train_speed[time_seconds - 1]) && (Sbrak[t] > instant_spatial_position[time_seconds - 1])) {
-							brakingPoint = t;
-							pointAhead = true;
-							break;
-						}
-					}
-				}
-				if (pointAhead) {
-					instant_train_speed[time_seconds] = Vbrak[brakingPoint + counter - 1];
-					if (instant_train_speed[time_seconds] < 0)
-						instant_train_speed[time_seconds] = 0;
-					instant_spatial_position[time_seconds] = Sbrak[brakingPoint + counter - 1];
-					Eq[time_seconds] = 53;
-				} else {
-					// There is no curve, or none of its points lies ahead of the train, which is at the target. The train brakes with full force from where
-					// it is and the curve is drawn again in the next step.
-					fullBrakingStep(time_seconds, As);
-					BrakStep = -1;
-				}
-			}
-
-			// Condition to state if because of a too steep gradient during braking we reach a speed lower than Vobmin that force the train to reaccelerate afterwards (the reacelleration is part of the braking curve in this case)
-			if ((BrakStep >= 0) && (instant_train_speed[time_seconds] < Vobmin)) {
-				this->GradientExceptionInBraking = true;
-			} else {
-				this->GradientExceptionInBraking = false;
+	// Establish a first speed within the actual force range, then predict every
+	// subsequent full model step. No linear fractional phase is carried forward.
+	bool planBraking(double head, double speed, const Arc& arc, Section* sections, int count) {
+		const double mass = total_train_mass * massFactor;
+		const double resistance = total_train_resistances(speed, arc.gradient, arc.curvature);
+		double low = brakingCurveSpeed(speed, arc);
+		double high = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
+		const double anchor = Xobmin - 0.002;
+		const double roundoff = 8 * std::numeric_limits<double>::epsilon() * std::max(1.0, std::fabs(anchor));
+		double end;
+		if (!std::isfinite(low) || !std::isfinite(high) || high < low
+			|| !predictBraking(head + low * timestep, low, Vobmin, sections, count, end) || end > anchor + roundoff)
+			return false;
+		if (std::fabs(end - anchor) > roundoff) {
+			const bool completeUpper = predictBraking(head + high * timestep, high, Vobmin, sections, count, end);
+			if ((!completeUpper && !(end > anchor)) || end < anchor)
+				return false;
+			for (int iteration = 0; iteration < 64; ++iteration) {
+				const double middle = low + (high - low) / 2;
+				if (middle == low || middle == high)
+					break;
+				if (!predictBraking(head + middle * timestep, middle, Vobmin, sections, count, end) && !(end > anchor))
+					return false;
+				if (end <= anchor)
+					low = middle;
+				else
+					high = middle;
 			}
 		}
+		std::vector<double> positions{head}, speeds{speed};
+		if (!predictBraking(head + low * timestep, low, Vobmin, sections, count, end, &positions, &speeds))
+			return false;
+		// Roundoff only. A gap caused by an arc discontinuity is not a feasible stop.
+		if (Vobmin == 0 && std::fabs(end - anchor) > roundoff)
+			return false;
+		if (positions.size() > Sbrak.size())
+			return false;
+		std::copy(positions.begin(), positions.end(), Sbrak.begin());
+		std::copy(speeds.begin(), speeds.end(), Vbrak.begin());
+		BrakStep = static_cast<int>(positions.size()) - 1;
+		return true;
+	}
+
+	void brakingStep(int time_seconds, const Arc& As, Section* BS, int Blocks) {
+		const double head = instant_spatial_position[time_seconds - 1];
+		const double speed = instant_train_speed[time_seconds - 1];
+		const bool changedTarget = time_seconds - 1 < static_cast<int>(Xob.size())
+			&& (Xob[time_seconds - 1] != Xobmin || Vob[time_seconds - 1] != Vobmin);
+		// Retain a native or forward plan only at a real stored state, never by interpolation.
+		const int successor = cachedBrakingSuccessor(time_seconds - 1, As, Xobmin, Vobmin);
+		if (successor >= 0) {
+			instant_train_speed[time_seconds] = Vbrak[successor];
+			instant_spatial_position[time_seconds] = Sbrak[successor];
+			brakingPoint = successor;
+			Eq[time_seconds] = 52;
+			GradientExceptionInBraking = Vbrak[successor] < Vobmin && successor < BrakStep;
+			return;
+		}
+		const bool newCurve = counter == 0 || changedTarget;
+		const double coverage = std::max(speed, std::max(0.0, speed + (tractiveEffort(speed) - total_train_resistances(speed, As.gradient, As.curvature)) / (total_train_mass * massFactor) * timestep));
+		const bool established = !newCurve || DrawBrakingCurve(coverage, Vobmin, Xobmin, BS, Blocks);
+		int remaining = BrakStep;
+		for (int k = 0; k < BrakStep; ++k)
+			if (head >= Sbrak[k] && head < Sbrak[k + 1]) {
+				remaining = BrakStep - k;
+				break;
+			}
+		const bool planned = established && (Vobmin > 0 ? planPositiveBraking(head, speed, As, BS, Blocks, remaining) : planBraking(head, speed, As, BS, Blocks));
+		if (planned) {
+			instant_train_speed[time_seconds] = Vbrak[1];
+			instant_spatial_position[time_seconds] = Sbrak[1];
+			brakingPoint = 1;
+			Eq[time_seconds] = newCurve ? 55 : 53;
+			counter = 1;
+			GradientExceptionInBraking = Vbrak[1] < Vobmin && BrakStep > 1;
+			return;
+		}
+		fullBrakingStep(time_seconds, As);
+		counter = 0;
+		BrakStep = -1;
 	}
 
 	// One step of braking with the full braking force, for a train that has no braking curve to follow.
@@ -1757,6 +2027,7 @@ public:
 				if ((instant_train_speed[time_seconds - 1] == 0)
 					&& (this->BrakingForEoA == 1)
 					&& (IsTrainStoppedForEoA == 0)
+					&& (this->Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] >= 0)
 					&& (this->Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] < 4)) {
 
 					Last_MA_StoppedAt = Last_Received_MA;
@@ -1764,70 +2035,62 @@ public:
 					recordDirectSignalFailure(Last_MA_StoppedAt, time_seconds * timestep);
 				}
 
+				checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
+
 				leaveFollowingModeWhenLeaderIsGone(time_seconds);
 
-				// Calculating the most severe value of Train Braking Distance at time instant i
-				double Braking_Distance = 0;
-				// Braking_Distance = BraKDistCompWithLists(instant_spatial_position[i - 1], instant_train_speed[i - 1], (i - 1), train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].N_Block_Sections);
-				Braking_Distance = europeanVitalComputerWithListsImproved(
-					instant_spatial_position[time_seconds - 1],
-					instant_train_speed[time_seconds - 1],
-					(time_seconds - 1),
-					train_route[indexOfRoute].sequence_of_block_sections.data(),
-					train_route[indexOfRoute].N_Block_Sections);
-
-				// Acceleration phase
-				if ((isShortOfBrakingPoint(instant_spatial_position[time_seconds - 1], Braking_Distance)
-						&& (instant_train_speed[time_seconds - 1] < V_lim))
-					/*||((instant_spatial_position[i-1]>Braking_Distance)&&(instant_train_speed[i-1]<Vobmin))*/) {
-
-					// The one below in between comments is the previous/original version of the code which did not consider the train crusing when instead the Traction Surplus with respect to the resistance is equal to 0
-					/*
-					instant_train_speed[time_seconds] = instant_train_speed[time_seconds - 1] + (tractiveEffort(instant_train_speed[time_seconds - 1]) -
-						total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature)) / (total_train_mass*massFactor)*timestep;
-
-					if (instant_train_speed[time_seconds] < 0)
-						instant_train_speed[time_seconds] = 0;
-
-					if (instant_train_speed[time_seconds] > V_lim)
-						instant_train_speed[time_seconds] = V_lim;
-
-					instant_spatial_position[time_seconds] =
-						instant_spatial_position[time_seconds - 1] +
-						((total_train_mass*massFactor) / (tractiveEffort(instant_train_speed[time_seconds - 1]) -
-							total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature)))*
-						instant_train_speed[time_seconds - 1] *
-						(instant_train_speed[time_seconds] -
-							instant_train_speed[time_seconds - 1]); */
-
+				const double head = instant_spatial_position[time_seconds - 1];
+				const double speed = instant_train_speed[time_seconds - 1];
+				// Keep a reached speed target until its boundary, but only while it is still present.
+				if (Vob[time_seconds - 1] > 0 && speed <= Vob[time_seconds - 1] && head < Xob[time_seconds - 1])
+					for (const Section& section : train_route[indexOfRoute].sequence_of_block_sections)
+						for (int arc = 0; arc < section.total_arcs; ++arc)
+							if (section.arcs_in_signalling_block_section[arc].endNode.X * 1000 == Xob[time_seconds - 1]
+								&& section.arcs_in_signalling_block_section[arc].speedInBraking == Vob[time_seconds - 1])
+								V_lim = std::min(V_lim, Vob[time_seconds - 1]);
+				const bool accelerating = speed < V_lim;
+				double candidateSpeed = speed, candidateHead = head + speed * timestep;
+				if (accelerating) {
 					// This part of the code below instead has been updated to consider the train crusing (and not accelerating like before) is the Traction Surplus with respect to the motion resistances is null. In other words the train is now considered crusing when traction and resistance forces are equal.
 					double Traction_Surplus = 0;
 					Traction_Surplus = tractiveEffort(instant_train_speed[time_seconds - 1]) - total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature);
 
 					// Compute instant speed
-					instant_train_speed[time_seconds] = instant_train_speed[time_seconds - 1] + (Traction_Surplus) / (total_train_mass * massFactor) * timestep;
+					candidateSpeed = instant_train_speed[time_seconds - 1] + (Traction_Surplus) / (total_train_mass * massFactor) * timestep;
 
-					if (instant_train_speed[time_seconds] < 0)
-						instant_train_speed[time_seconds] = 0;
+					if (candidateSpeed < 0)
+						candidateSpeed = 0;
 
-					if (instant_train_speed[time_seconds] > V_lim)
-						instant_train_speed[time_seconds] = V_lim;
+					if (candidateSpeed > V_lim)
+						candidateSpeed = V_lim;
 
 					double Scruis = 0;
-					Scruis = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds] * timestep;
+					Scruis = instant_spatial_position[time_seconds - 1] + candidateSpeed * timestep;
 
 					// Compute spatial position of the train at current time based on Traction Surplus sign (i.e. whether it is 0, negative or positive)
 					if (Traction_Surplus == 0) {
-						instant_spatial_position[time_seconds] = Scruis;
+						candidateHead = Scruis;
 					} else {
-						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1]
+						candidateHead = instant_spatial_position[time_seconds - 1]
 							+ ((total_train_mass * massFactor) / (Traction_Surplus)) * instant_train_speed[time_seconds - 1]
-								* (instant_train_speed[time_seconds] - instant_train_speed[time_seconds - 1]);
+								* (candidateSpeed - instant_train_speed[time_seconds - 1]);
 
-						if (instant_spatial_position[time_seconds] < Scruis) {
-							instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep + 0.5 * ((instant_train_speed[time_seconds] - instant_train_speed[time_seconds - 1]) / timestep) * pow(timestep, 2);
+						if (candidateHead < Scruis) {
+							candidateHead = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep + 0.5 * ((candidateSpeed - instant_train_speed[time_seconds - 1]) / timestep) * pow(timestep, 2);
 						}
 					}
+				}
+				bool continueCached;
+				const double Braking_Distance = europeanVitalComputerWithListsImproved(head, std::max(speed, candidateSpeed),
+					time_seconds - 1, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections, continueCached);
+				const bool mustBrake = continueCached || speed > V_lim || !isShortOfBrakingPoint(head, Braking_Distance)
+					|| (candidateSpeed > Vobmin && candidateHead >= Braking_Distance);
+				// Check only non-braking candidates; an active plan keeps its own force-bounded step.
+				const bool infeasibleCandidate = !mustBrake && speed > 0 && candidateSpeed < brakingCurveSpeed(speed, As);
+				// Acceleration phase
+				if (!mustBrake && !infeasibleCandidate && accelerating) {
+					instant_train_speed[time_seconds] = candidateSpeed;
+					instant_spatial_position[time_seconds] = candidateHead;
 
 					Eq[time_seconds] = 1;
 					instant_train_tractive_effort[time_seconds] = tractiveEffort(instant_train_speed[time_seconds - 1]);
@@ -1850,11 +2113,15 @@ public:
 				temp=i; stop=i; BX[i]=Braking_Distance;Xob[i]=Xobmin; Vob[i]=Vobmin; counter=0;}*/
 
 				// Braking Phase
-				else if ((instant_spatial_position[time_seconds - 1] >= Braking_Distance)
+				else if ((mustBrake || infeasibleCandidate)
 					&& (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000)
-					&& (instant_train_speed[time_seconds - 1] > 0)) {
+					&& (speed > 0 || (speed == 0 && mustBrake))) {
 
-					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections);
+					if (speed == 0 || infeasibleCandidate || (speed > V_lim && isShortOfBrakingPoint(head, Braking_Distance))) {
+						fullBrakingStep(time_seconds, As);
+						counter = 0;
+					} else
+						brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections);
 
 					// if two braking curves are both restrictive
 					/*if ((Xobj!=Xobmin)||(Vobj!=Vobmin)||((Xobj!=Xobmin)&&(Vobj!=Vobmin))){counter=1;
@@ -1865,15 +2132,22 @@ public:
 					instant_train_speed[i]=Vbrak[brakingPoint+counter-1];    if (instant_train_speed[i]<0)instant_train_speed[i]=0;
 					instant_spatial_position[i]=Sbrak[brakingPoint+counter-1];}*/
 
-					instant_train_tractive_effort[time_seconds] =
-						-(brakingEffort((time_seconds - temp - 1) * timestep)
-							+ gradient_resistances(As.gradient)
-							+ curvature_resistances(As.curvature)
-							- total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
+					if (Eq[time_seconds] == 54) {
+						instant_train_tractive_effort[time_seconds] =
+							-(brakingEffort((time_seconds - temp - 1) * timestep)
+								+ gradient_resistances(As.gradient)
+								+ curvature_resistances(As.curvature)
+								- total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature));
+					} else {
+						instant_train_tractive_effort[time_seconds] = total_train_mass * massFactor * (instant_train_speed[time_seconds] - speed) / timestep
+							+ total_train_resistances(speed, As.gradient, As.curvature);
+					}
 					instant_train_power_consumption[time_seconds] =
 						instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1]; /*Eq[i]=3;*/
 					train_energy_consumption(time_seconds);
-					stop = time_seconds;
+					// A fallback from rest must not restart an active station's dwell clock.
+					if (speed > 0)
+						stop = time_seconds;
 					BX[time_seconds] = Braking_Distance;
 					Xob[time_seconds] = Xobmin;
 					Vob[time_seconds] = Vobmin;
@@ -1887,20 +2161,12 @@ public:
 				BX[i]=Braking_Distance;Xob[i]=Xobmin; Vob[i]=Vobmin; stop=i; counter=0;}*/
 
 				// Cruising Phase
-				else if ((instant_spatial_position[time_seconds - 1] < Braking_Distance) && (instant_train_speed[time_seconds - 1] >= V_lim) && instant_train_speed[time_seconds - 1] > 0) {
-					const bool cappedToLimit = instant_train_speed[time_seconds - 1] > V_lim;
-					if (cappedToLimit)
-						instant_train_speed[time_seconds - 1] = V_lim;
-					instant_train_speed[time_seconds] = V_lim;
-					instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep;
-					const double cruisingEffort = total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature);
-					if (cappedToLimit) {
-						instant_train_tractive_effort[time_seconds - 1] = cruisingEffort;
-						instant_train_power_consumption[time_seconds - 1] = cruisingEffort * instant_train_speed[time_seconds - 1];
-						train_energy_consumption(time_seconds - 1);
-					}
+				else if (!mustBrake && !accelerating && speed > 0) {
+					instant_train_speed[time_seconds] = candidateSpeed;
+					instant_spatial_position[time_seconds] = candidateHead;
+					const double cruisingEffort = total_train_resistances(speed, As.gradient, As.curvature);
 					instant_train_tractive_effort[time_seconds] = cruisingEffort;
-					instant_train_power_consumption[time_seconds] = cruisingEffort * instant_train_speed[time_seconds - 1];
+					instant_train_power_consumption[time_seconds] = cruisingEffort * speed;
 					Eq[time_seconds] = 12;
 					train_energy_consumption(time_seconds);
 					temp = time_seconds;
@@ -1912,9 +2178,15 @@ public:
 					GradientExceptionInBraking = false;
 				}
 
+				double leaderHead = 0;
+				const MovementAuthority* liveLeader = IsTrainCoupling || IsTrainInFollowingMode
+					? currentFollowingAuthority(head, leaderHead)
+					: nullptr;
 				// Determination of Train Coupling phase for Virtual Coupling
-				if ((IsTrainCoupling == 1) && ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1))
-					&& (abs(instant_train_speed[time_seconds] - this->Predicted_MA_To_CoupleAt.TrainInfo.TrainSpeed) < 0.278)
+				if ((IsTrainCoupling == 1) && liveLeader
+					&& liveLeader->TrainInfo.trainDescription == Predicted_MA_To_CoupleAt.TrainInfo.trainDescription
+					&& ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1))
+					&& (abs(instant_train_speed[time_seconds] - liveLeader->TrainInfo.TrainSpeed) < 0.278)
 					&& (abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= 30)) {
 					// When the condition above occurs then the train is transitioning towards the following mode
 					IsInUnintentionalDecoupling = false;
@@ -1962,10 +2234,8 @@ public:
 				if ((IsTrainInFollowingMode == 1) && (IsTrainDecoupling == 0) && (IsInUnintentionalDecoupling == 0)) {
 					CounterFollowingMode++; // This sets the number of time steps that the train is in following mode
 					// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
-					if ((Last_Received_MA.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
-						&& (Last_Received_MA.type == "TrainEnd")
-						&& (Last_Received_MA.typePart == "Tale")
-						&& (Last_Received_MA.RelativePosEoA - instant_spatial_position[time_seconds - 1] > 30)) {
+					if (liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
+						&& leaderHead - head > 30) {
 						IsInUnintentionalDecoupling = true; // Originally I had IsTrainInFollowingMode = false;
 						CounterFollowingMode = 0;			// set also the CounterFollowingMode to 0 again
 
@@ -1979,90 +2249,37 @@ public:
 						//-------------------------------
 					}
 
-					if ((CounterFollowingMode > 1)) {
-						// This function is entered only when the train is in Following mode from more than 1 second
-						// In the istant the train has started following the train ahead its speed and distance are computed according the normal motion above equations
-						double TargetAcceleration = 0;	 // This is the acceleration at the previous instant used by the leading train ahead
-						double TargetFollowingSpeed = 0; // This is the target speed to be followed to couple with the train ahead
-						double Acc_i = 0;				 // This is the acceleration of this strain at current instant i
-
-						// Setting the target speed
-						if (Last_Received_MA.TrainInfo.trainDescription == LeadingTrainInFollowingMode) { // When the train is in following mode the target speed to follow is the speed of the leading train that is given in the LastReceived_MA
-							TargetFollowingSpeed = Last_Received_MA.TrainInfo.TrainSpeed;
-							TargetAcceleration = Last_Received_MA.TrainInfo.Acceleration;
-						} else {
-							cout << " Warning: Train " << trainDescription << " is in Following mode with train " << LeadingTrainInFollowingMode << " but receiving most restrictive MAs from train " << Last_Received_MA.TrainInfo.trainDescription << " . Please do investigate...\n ";
+					// The first coupling step keeps the normal result. Later steps are proposals, not overrides.
+					const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < 4 && (As.endNode.station || As.endNode.respectOrder || !strcmp(Bs.state, "red"))));
+					if (CounterFollowingMode > 1 && liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
+						&& !mustBrake && !infeasibleCandidate && !IsTrainStoppedForEoA && !StoppedForServiceStop && !stationaryHold
+						&& std::isfinite(liveLeader->TrainInfo.TrainSpeed) && std::isfinite(liveLeader->TrainInfo.Acceleration)) {
+						const double mass = total_train_mass * massFactor;
+						const double resistance = total_train_resistances(speed, As.gradient, As.curvature);
+						const double minimum = brakingCurveSpeed(speed, As);
+						const double maximum = std::max(0.0, speed + (tractiveEffort(speed) - resistance) / mass * timestep);
+						const double acceleration = std::max((minimum - speed) / timestep,
+							std::min((maximum - speed) / timestep, liveLeader->TrainInfo.Acceleration));
+						double proposedSpeed = (acceleration < 0 ? liveLeader->TrainInfo.TrainSpeed : speed) + acceleration * timestep;
+						if (acceleration == 0 && liveLeader->TrainInfo.TrainSpeed == 0)
+							proposedSpeed = 0;
+						// Bound the final leader-relative intent by this train's own actual-start force interval.
+						proposedSpeed = std::min(V_lim, std::max(minimum, std::min(maximum, std::max(0.0, proposedSpeed))));
+						const double proposedHead = head + speed * timestep;
+						if (std::isfinite(proposedHead) && std::isfinite(proposedSpeed) && proposedHead >= head && proposedSpeed >= 0
+							&& proposedSpeed >= minimum && proposedSpeed <= maximum && proposedSpeed <= V_lim
+							&& proposedHead <= instant_spatial_position[time_seconds] && proposedSpeed <= instant_train_speed[time_seconds]
+							&& isShortOfBrakingPoint(proposedHead, Braking_Distance)) {
+							instant_spatial_position[time_seconds] = proposedHead;
+							instant_train_speed[time_seconds] = proposedSpeed;
+							instant_train_tractive_effort[time_seconds] = mass * (proposedSpeed - speed) / timestep + resistance;
+							instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * speed;
+							train_energy_consumption(time_seconds);
+							temp = time_seconds;
+							stop = time_seconds;
+							counter = 0;
+							Eq[time_seconds] = 1002;
 						}
-
-						// Computation Acceleration Boundaries of this train given the gradient, curvature and acceleration and deceleration capabilities
-						double MaxAchievableAcc = (tractiveEffort(0) - total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature)) / (total_train_mass * massFactor);
-						double MinAchievableAcc = ((-total_train_mass * massFactor * max_train_decelaration) - total_train_resistances(instant_train_speed[time_seconds - 1], As.gradient, As.curvature)) / (total_train_mass * massFactor);
-
-						/*double MaxAchievableAcc = (tractiveEffort(instant_train_speed[i - 1]) - total_train_resistances(instant_train_speed[i - 1], As.gradient, As.curvature)) / (total_train_mass*massFactor);
-						double MinAchievableAcc = ((-total_train_mass * massFactor * max_train_decelaration) - total_train_resistances(instant_train_speed[i - 1], As.gradient, As.curvature)) / (total_train_mass*massFactor);*/
-						/*
-						Acc_i = TargetAcceleration;
-						instant_train_speed[i] = instant_train_speed[i - 1] + Acc_i * timestep;  //Determining Speed
-
-						if (instant_train_speed[i] < 0) instant_train_speed[i] = 0;   if (instant_train_speed[i] > V_lim) instant_train_speed[i] = V_lim; //Correcting instant_train_speed[i] in case it results lower than 0 or higher than V_lim
-
-						instant_spatial_position[i] = instant_spatial_position[i - 1] + instant_train_speed[i - 1] * timestep;   //Determining distance
-						*/
-
-						if ((TargetAcceleration >= MinAchievableAcc) && (TargetAcceleration <= MaxAchievableAcc)) {
-
-							Acc_i = TargetAcceleration; // if the Acceleration of the Leader is within the boundaries of acceleration achievable by this train then Acc_i is the same acceleration of the leader
-
-						}
-
-						else if (TargetAcceleration < MinAchievableAcc) {
-
-							// In case the acceleration of the leader is lower than the minimum possible acceleration (i.e. deceleration)
-							// then Acc_i is the minimum possible deceleration according to
-							// braking capabilities and conditions of gradient and curvature radius
-							Acc_i = MinAchievableAcc;
-						}
-
-						else if (TargetAcceleration > MaxAchievableAcc) {
-							// in case the Acceleration of the leader is higher than the maximum achievable acceleration
-							// of the train given its acceleration capabilities as well as gradient and curvature conditions,
-							// then Acc_i is the Maximum achievable acceleration
-							Acc_i = MaxAchievableAcc;
-						}
-
-						instant_train_speed[time_seconds] = instant_train_speed[time_seconds - 1] + Acc_i * timestep; // Determining Speed
-
-						// Additional constraint on acceleration and speed when the train ahead is braking to ensure that the train does not collide with the train ahead when braking
-						if (Acc_i < 0) {
-							instant_train_speed[time_seconds] = TargetFollowingSpeed + Acc_i * timestep; // instant_train_speed[i] + MinAchievableAcc * timestep;
-						}
-
-						// in case the leader train ahead is stopped (i.e. its acceleration and speed are both equal to 0)
-						if ((Acc_i == 0) && (TargetFollowingSpeed == 0)) {
-							instant_train_speed[time_seconds] = 0; // Then also the follower train needs to be stopped
-						}
-
-						if (instant_train_speed[time_seconds] < 0) {
-							instant_train_speed[time_seconds] = 0;
-						}
-
-						if (instant_train_speed[time_seconds] > V_lim) {
-							instant_train_speed[time_seconds] = V_lim;
-						} // Correcting instant_train_speed[i] in case it results lower than 0 or higher than V_lim
-
-						instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1] + instant_train_speed[time_seconds - 1] * timestep; // Determining distance
-
-						// Computing power and Energy
-						instant_train_tractive_effort[time_seconds] = Acc_i * total_train_mass * massFactor;
-						instant_train_power_consumption[time_seconds] = instant_train_tractive_effort[time_seconds] * instant_train_speed[time_seconds - 1];
-						train_energy_consumption(time_seconds);
-						temp = time_seconds;
-						stop = time_seconds;
-						BX[time_seconds] = Braking_Distance;
-						Xob[time_seconds] = Xobmin;
-						Vob[time_seconds] = Vobmin;
-						counter = 0;
-						Eq[time_seconds] = 1002;
 					}
 				}
 
@@ -2089,6 +2306,9 @@ public:
 				// Standing Train Conditions
 				if (instant_train_speed[time_seconds - 1] == 0) {
 
+					// A replacement authority's approved stationary step also constrains node handling.
+					const bool authorityHold = IsTrainStoppedForEoA || (mustBrake && BrakingForEoA && instant_train_speed[time_seconds] == 0 && instant_spatial_position[time_seconds] == head);
+
 					// Stopping at a station for an estabilished dwell time
 					if (((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1]) < 4) && (As.endNode.station == 1)) {
 						this->StoppedForServiceStop = true; // Stating that the train is stopping at a station to perform a service stop
@@ -2107,22 +2327,20 @@ public:
 								stoptime = Stations[s].StopTime;
 								dep_time = ScheduledDepartures[s];
 								recordCurrentServiceStopArrival(time_seconds);
+								if (Stations[s].StepStopped == 0)
+									stop = time_seconds;
 								Stations[s].StepStopped++;
 								if (Stations[s].StepStopped > Stations[s].StopTime)
 									stoptime = 0;
 							}
 						}
 
-						// In case the train is also stopped close to the station because of ETCS EoA, then check if the EoA is still valid
-						if (this->IsTrainStoppedForEoA == 1) {
-							this->checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
-						}
 
 						// Check if in this Station the train has also to respect a given OL Order
 						if (As.endNode.respectOrder == 1) {
 							bool Condition_To_Stop_Train = Conditions_To_Stop_Train_For_OL_Order(As.endNode.respectOrder, As.endNode.indexOrderList, Bs);
 							// The train can leave the station only if the previous train has passed, it has satisfied the min dwell time and the signal aspect is non restrictive and there is not condition to stop the train becasue of an ETCS 3 EoA
-							if ((Condition_To_Stop_Train == 0) && ((time_seconds - stop) > stoptime) && (time_seconds > dep_time) && (IsTrainStoppedForEoA == 0)) {
+							if ((Condition_To_Stop_Train == 0) && ((time_seconds - stop) > stoptime) && (time_seconds > dep_time) && (authorityHold == 0)) {
 								instant_train_speed[time_seconds] = 0.0001;
 								instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
 								this->StoppedForServiceStop = false; // Stating that the train is no longer stoppoed at a service station
@@ -2131,7 +2349,7 @@ public:
 							// Otherwise the train has to remain stopped at the station
 							else {
 								instant_train_speed[time_seconds] = 0;
-								instant_spatial_position[time_seconds] = As.endNode.X * 1000 - 0.0001;
+								instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 							}
 						}
 						// If the station Node does not have to respect a specific train order, the train has to be stopped at the station for the dwell time and can depart only after that ensuring that it does not have to respect any ETCS 3 EoA at that station
@@ -2140,9 +2358,9 @@ public:
 							const bool signalAtPlatformIsRed = Bs.total_arcs > 0
 								&& std::fabs(Bs.arcs_in_signalling_block_section[Bs.total_arcs - 1].endNode.X - As.endNode.X) < 1e-9
 								&& strcmp(Bs.state, "red") == 0;
-							if (((time_seconds - stop) <= stoptime) || (time_seconds <= dep_time) || (this->IsTrainStoppedForEoA == 1) || signalAtPlatformIsRed) {
+							if (((time_seconds - stop) <= stoptime) || (time_seconds <= dep_time) || (authorityHold == 1) || signalAtPlatformIsRed) {
 								instant_train_speed[time_seconds] = 0;
-								instant_spatial_position[time_seconds] = As.endNode.X * 1000 - 0.0001;
+								instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 							} else {
 								instant_train_speed[time_seconds] = 0.0001;
 								instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
@@ -2162,12 +2380,8 @@ public:
 						counter = 0;
 						bool Cond_To_Stop_Train = Conditions_To_Stop_Train_For_OL_Order(As.endNode.respectOrder, As.endNode.indexOrderList, Bs);
 
-						// In case the train is also stopped close to the checkpoint because of ETCS 3 EoA, then check if the EoA is still valid
-						if (this->IsTrainStoppedForEoA == 1) {
-							this->checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
-						}
 
-						if ((Cond_To_Stop_Train == 0) && (IsTrainStoppedForEoA == 0)) { // the checkpoint Node can coincide with an ETCS3 EoA, that is why the train can depart from this Node only after having verified that the checkpoint does not coincide with an ETCS3 EoA or that the EoA has been deleted
+						if ((Cond_To_Stop_Train == 0) && (authorityHold == 0)) { // the checkpoint Node can coincide with an ETCS3 EoA, that is why the train can depart from this Node only after having verified that the checkpoint does not coincide with an ETCS3 EoA or that the EoA has been deleted
 							Eq[time_seconds] = 532;
 							instant_train_speed[time_seconds] = 0.0001;
 							instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
@@ -2177,7 +2391,7 @@ public:
 						else {
 							Eq[time_seconds] = 534;
 							instant_train_speed[time_seconds] = 0;
-							instant_spatial_position[time_seconds] = As.endNode.X * 1000 - 0.0001;
+							instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 						}
 
 						instant_train_power_consumption[time_seconds] = 0;
@@ -2188,14 +2402,10 @@ public:
 					// Stopping at a Red Signal
 					else if (As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1] < 4) {
 						Eq[time_seconds] = 6;
-						// In case the train is also stopped close to the signal because of ETCS EoA, then check if the EoA is still valid
-						if (this->IsTrainStoppedForEoA == 1) {
-							this->checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
-						}
 
 						// also a signal can coincide with an ETCS3 EoA, that is why a train must stop at the signal also if this not red but and ETCS 3 EoA exists
-						if ((!strcmp(Bs.state, "red")) || (this->IsTrainStoppedForEoA == 1)) {
-							instant_spatial_position[time_seconds] = As.endNode.X * 1000 - 0.0001;
+						if ((!strcmp(Bs.state, "red")) || (authorityHold == 1)) {
+							instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 							instant_train_speed[time_seconds] = 0;
 						} else {
 							instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
@@ -2209,21 +2419,9 @@ public:
 					}
 					// if noone of the previous conditions is verified it means that the train is stopped at an ETCS3 EoA
 					else if (this->IsTrainStoppedForEoA == 1) {
-						Eq[time_seconds] = 321;
-						// Check if the EoA given at the previous instant is still valid
-						this->checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
-
-						if (this->IsTrainStoppedForEoA == 1) { // if the train is stopped behind a valid MA
-							instant_train_speed[time_seconds] = 0;
-							instant_spatial_position[time_seconds] = Last_Received_MA.RelativePosEoA - 0.0001;
-							Eq[time_seconds] = 323;
-						} else {
-							instant_train_speed[time_seconds] = 0.0001;
-							instant_spatial_position[time_seconds] = Last_Received_MA.RelativePosEoA + 0.0001;
-							BrakingForEoA = false;
-							Eq[time_seconds] = 326;
-						}
-
+						instant_train_speed[time_seconds] = 0;
+						instant_spatial_position[time_seconds] = head;
+						Eq[time_seconds] = 323;
 						instant_train_power_consumption[time_seconds] = 0;
 						instant_train_tractive_effort[time_seconds] = 0;
 						train_energy_consumption(time_seconds);

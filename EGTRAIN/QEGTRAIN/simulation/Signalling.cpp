@@ -4382,6 +4382,16 @@ void activateMixedSignallingSystem() {
 		const auto firstAdded = std::prev(BlocksOccupied.end(), static_cast<std::ptrdiff_t>(singleTrackAdded));
 		occupiedIds.insert(firstAdded, BlocksOccupied.end());
 		setOccupiedFlags(train_route[i], occupiedIds, occupied);
+		// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
+		// route-local occupancy does not propagate recursively through adjacent crossover chains.
+		const Route& route = train_route[i];
+		for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
+			const Section& first = route.sequence_of_block_sections[b];
+			const Section& second = route.sequence_of_block_sections[b + 1];
+			if ((first.SignallingLevel == 0 || first.SignallingLevel == 1 || first.SignallingLevel == 2 || first.SignallingLevel == 5)
+				&& first.end_node.virtualSignal && second.start_node.virtualSignal && occupied[b + 2])
+				occupied[b] = 1;
+		}
 		for (auto added = firstAdded; added != BlocksOccupied.end(); ++added)
 			occupiedIds.erase(*added);
 		// Set all the speed limits coming from the Infrastructure

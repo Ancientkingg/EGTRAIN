@@ -8,28 +8,28 @@ train R1-1 sample t=381 x=0.615074 v=1.230149
 train R1-1 sample t=441 x=1278.266026 v=31.292706
 train R1-1 sample t=501 x=3394.638283 v=36.111111
 train R1-1 sample t=561 x=5561.304949 v=36.111111
-train R1-1 sample t=621 x=7627.589337 v=25.137617
+train R1-1 sample t=621 x=7645.187238 v=24.562141
 train R1-1 sample t=681 x=7999.999900 v=0.000000
 train R1-1 sample t=741 x=8381.477027 v=22.268637
 train R1-1 sample t=801 x=10202.974930 v=36.111111
 train R1-1 sample t=861 x=12369.641596 v=36.111111
 train R1-1 sample t=921 x=14536.308263 v=36.111111
-train R1-1 sample t=981 x=15995.257810 v=3.162144
-train R1-1 sample t=1033 x=16000.000100 v=0.000000
+train R1-1 sample t=981 x=15997.034411 v=2.570291
+train R1-1 sample t=1033 x=16000.000100 v=0.000100
 train R1-1 stop t_first=652 t_last=713 x=7999.998000 dwell=61
-train R1-1 braking t=608 x=7248.861328 v=36.111111 stop_t=652
+train R1-1 braking t=607 x=7222.416060 v=36.111111 stop_t=652
 train R1-1 stop t_first=985 t_last=1033 x=15999.998000 dwell=48
-train R1-1 braking t=941 x=15248.861328 v=36.111111 stop_t=985
+train R1-1 braking t=940 x=15222.419374 v=36.111111 stop_t=985
 train S1-1 active start=60 end=379
 train S1-1 sample t=60 x=0.615074 v=1.230149
 train S1-1 sample t=120 x=1278.266026 v=31.292706
 train S1-1 sample t=180 x=3394.638283 v=36.111111
 train S1-1 sample t=240 x=5561.304949 v=36.111111
-train S1-1 sample t=300 x=7627.589337 v=25.137617
+train S1-1 sample t=300 x=7645.187238 v=24.562141
 train S1-1 sample t=360 x=7999.999900 v=0.000000
-train S1-1 sample t=379 x=8000.000100 v=0.000000
+train S1-1 sample t=379 x=8000.000100 v=0.000100
 train S1-1 stop t_first=331 t_last=379 x=7999.998000 dwell=48
-train S1-1 braking t=287 x=7248.861328 v=36.111111 stop_t=331
+train S1-1 braking t=286 x=7222.416060 v=36.111111 stop_t=331
 aspect route1 @7-B0@ 0:270 59:75 380:270 381:0 465:751 520:75 576:180 724:270
 aspect route1 @6-B0@ 0:270 59:751 380:270 463:0 520:751 576:75 724:180 798:270
 aspect route1 @5-B0@ 0:270 59:0 380:270 518:0 576:751 724:75 798:180 853:270

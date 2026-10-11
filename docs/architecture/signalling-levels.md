@@ -133,6 +133,44 @@ to the level of the last section. Levels 3 and 4 and sections without a level ge
 nothing more. Level 5 also sets all of its sections to clear at the start of
 every step and writes the aspects again (`baccMixedSignalling`).
 
+### Braking steps and published states
+
+`BrakDist_Block` and `DrawBrakingCurve` use the same actual-start force
+sample: resistance is evaluated at the starting speed and arc. A curve step
+uses its right-endpoint speed for displacement (`x1 = x0 + v1 * timestep`).
+The inverse follows the unique increasing branch of that step. Before choosing
+acceleration or cruising, the phase selector checks the proposed position and
+speed against the braking point. A live, force-valid cached successor is the
+default proposal, including gradient recovery. The selector examines all collected
+targets against that actual successor before retaining it; a competing stop or
+speed restriction can interrupt the plan from the previous actual state.
+A retained stop ends before farther targets, so those cannot invalidate its
+stopping prefix. They are reconsidered when that stop is no longer retained.
+Satisfied positive ceilings do not reclaim an already compliant continuation.
+An otherwise non-braking hold or cap below the actual-start full-braking speed
+uses the full-braking fallback, without diverting an already selected plan.
+
+`brakingStep` continues a stored plan only from a matching actual state with
+valid force bounds. Otherwise it predicts a target-reaching continuation from
+that state, without linearly interpolating the nonlinear flow or changing an
+already published position or speed. First-step and positive-target terminal
+controls stay within full braking and traction available at the actual starting
+speed. A positive target is a ceiling, not a required terminal-speed equality;
+a stop retains its anchored zero-speed endpoint. Curve effort and power use
+the selected speed change, and a reached speed ceiling remains in force while
+its target boundary is still present.
+
+A genuinely late target or a state without an admissible plan uses the separate
+full-braking fallback (`fullBrakingStep`), whose displacement uses mean endpoint
+speeds. That fallback does not establish that the train can still reach the
+target. The crossover regression checks live motion, immutable published
+positions and speeds, actual-start force bounds and B stop/arrival/dwell in
+both directions at levels 0, 1, 2 and 5. Its displacement check separately
+recognizes only the prescribed Eq5/Eq6 hold/release endpoints and their actual
+dwell, departure, authority and signal predicates. These legacy coordinate
+transitions are bookkeeping, not physically integrated steps. These finite
+checks do not establish correctness on every route.
+
 ## Common behaviour
 
 **Platforms.** At every level, including none, a train stops at the platform of a
@@ -207,7 +245,16 @@ code 0 the code 270 and exit speed 0, and the section before it state `green`.
 The section after the double switch is not held by that lock: when it shares a
 plain block with the double switch, as the first half of a second double switch
 does, `Train::Det_Section_Occupied_By_Train` takes it out again if only the lock
-put it there. The crossover chain test runs two double switches in a row; see
+put it there. At fixed-block levels 0, 1, 2 and 5, an occupied exit also closes the approach
+before the first half. This route-local check does not propagate recursively
+through a chain of crossovers. Internal unlocking remains in place so a train
+already inside can clear both halves. A departing train cannot enter an origin
+that would occupy the exit after an approaching train has lost its last braking
+opportunity. `checkEntrance` uses the previous trajectory sample and the existing
+single-track next-step braking lookahead, independent of train movement order.
+A train safely stopped outside does not retain this admission protection.
+The crossover chain test runs two double switches in a row and checks late
+origin admission in both directions; see
 [Characterization tests](../development/build-and-test.md#characterization-tests).
 
 ## Levels
@@ -360,8 +407,15 @@ failures. It adds a following mode.
   0.278 m/s from that of the train ahead and it is within 30 m of the authority.
   `follow-level-4`: `F2` stops 50 m behind the tail of `F1`, which stands at
   8000 m.
-- **Following mode.** A coupled train takes the speed and acceleration of the
-  leader. It stops following the leader (unintentional decoupling) when it falls
+- **Following mode.** Coupling requires a currently reported same-direction tail
+  authority ahead of the train, before any virtual projection. A coupled train
+  uses the selected live leader's speed and acceleration as a proposal. After
+  the first coupling step it can publish that proposal only within its own
+  actual-start force bounds and the already approved non-braking position and
+  speed envelope, strictly before the selected braking point. Native braking,
+  full-braking fallback, terminal stops and service holds take precedence.
+  Accepted following effort includes actual-start resistance.
+  It stops following the leader (unintentional decoupling) when it falls
   more than 30 m behind the authority, and it can couple again. It leaves the
   mode when the routes diverge, or when the leader reports no authority any more.
   The characterization cases do not record whether a train enters the following
@@ -374,9 +428,21 @@ failures. It adds a following mode.
 - **A leader that slows down.** A train that is not coupled yet treats a leader
   that is slowing down as a leader that stops. The end of authority moves to
   where the leader comes to a stand, estimated with the braking curve of the
-  follower from the speed of the leader, and its target speed is 0. In
-  `same-entry-level-4` the second train stops 50 m behind the rear of the first
-  at the platform and moves up when the first has left.
+  follower from the speed of the leader, and its target speed is 0. The inverse
+  curve's 2 mm terminal holdback is not part of the predicted travel. At zero
+  leader speed the reported tail remains the target.
+  `same-entry-level-4` checks separation and service stops when a train
+  approaches a leader that brakes for a platform.
+
+A saved stopped authority holds the actual previous position only while its
+identity, direction, position and nonnegative distance below 4 m remain valid.
+Removal or movement releases that hold to the normal actual-state successor,
+not to another authority's position. Station, checkpoint and signal handling
+also respect a newly selected authority's stationary braking step, including
+when the previous saved hold has just been invalidated. From rest, a selected braking constraint
+uses the existing full-braking fallback without restarting a station dwell
+clock. Its force-limited motion on an unholdable descent is not a guarantee
+that the new target can still be respected.
 
 ### Level 5 (`5 BACC track circuits`)
 
