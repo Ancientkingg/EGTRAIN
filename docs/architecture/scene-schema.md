@@ -68,7 +68,9 @@ empty or omitted on input and are emitted by the writer.
 - `nodes[]`: `id`, `track`, numeric `x_km`, numeric `y_km`.
 - `arcs[]`: `id`, `track`, `from`, `to`, numeric `curvature_radius_m`,
   `gradient_percent`, and `speed_limit_ms`. The simulation uses
-  `gradient_percent` unchanged as rise per length.
+  `gradient_percent` unchanged as rise per length: `0.01` means a 1% slope.
+  The key keeps its legacy spelling for compatibility. Loading, editing and
+  saving do not rescale the value; the editor labels it "Gradient (rise/length)".
 - `blocks[]`: `id`, `track`, numeric `length_km`. Block IDs cannot contain `/`,
   which is reserved as the separator in connection-derived section identities.
 - `connections[]`: `id`, `from`, `to`, and optional numeric `speed_limit_ms`.

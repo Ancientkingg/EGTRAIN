@@ -6612,7 +6612,7 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 		headers << "ID" << "Track ID" << "X (km)" << "Y (km)";
 	else if (facet == "arcs")
 		headers << "ID" << "Track ID" << "From node" << "To node"
-				<< "Curvature radius (m)" << "Gradient (%)" << "Speed limit (m/s)";
+				<< "Curvature radius (m)" << "Gradient (rise/length)" << "Speed limit (m/s)";
 	else if (facet == "blocks")
 		headers << "ID" << "Track ID" << "Length (km)" << "Order"
 				<< "Start km" << "End km" << "Coverage";
@@ -27027,7 +27027,7 @@ void MainWindow::setupInfoDockWidget() {
 	arcFormLayout->addRow("Track ID", arcTrackIDText);
 	arcFormLayout->addRow("Length (m)", arcLengthText);
 	arcFormLayout->addRow("Curvature (m)", arcCurvatureText);
-	arcFormLayout->addRow("Gradient", arcGradientText);
+	arcFormLayout->addRow("Gradient (rise/length)", arcGradientText);
 	arcFormLayout->addRow("Speed Limit (m/s)", arcSpeedLimitText);
 	arcFormLayout->addRow("Operational state", arcOperationalStateText);
 	arcFormLayout->addRow("Connected signals", arcConnectedSignalsText);
