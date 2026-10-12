@@ -655,6 +655,111 @@ int main() {
 		ok &= expect(bytes == "existing scene bytes\n", "Malformed import preserves destination");
 	}
 
+	// A sidecar is authoritative, but malformed canonical metadata never replaces a destination.
+	{
+		TempDir legacyDir, output;
+		const fs::path legacy(legacyDir.dir), destination(output.dir);
+		writeText(legacy / "TrackLines/B0/NodiCumPari.txt", "0 0 0\n1 2 0\n");
+		writeText(legacy / "TrackLines/B7/NodiCumPari.txt", "0 0 1\n1 2 1\n");
+		writeText(legacy / "TrackLines/Stations.txt", "0\tOrigin\n");
+		writeText(legacy / "TrackLines/AreasCaseStudy.txt", "edited historical TXT\n");
+		const fs::path sidecar = legacy / "TrackLines/egtrainsignallingareas.json";
+		const json areas = json::parse(R"([{"id":" area\twith spaces ","start_km":-0.125,"end_km":2.125,"level":0},{"id":"main","start_km":0,"end_km":1,"level":5,"track":"B0"},{"id":"other","start_km":1,"end_km":2,"level":4,"track":"B7"}])");
+		const json valid = {{"format_version", 1}, {"signalling_areas", areas}};
+		writeText(sidecar, valid.dump());
+		auto imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+		json signalling, scene;
+		ok &= expect(imported.success() && readJson(destination / "signalling.json", signalling)
+				&& signalling["signalling_areas"] == areas,
+			"Sidecar preserves exact native fields and order regardless of TXT");
+		ok &= expect(!hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning), "Authoritative sidecar suppresses historical nonconversion warning");
+		readJson(destination / "scene.json", scene);
+		int reports = 0;
+		for (const auto& row : scene["import_report"]) {
+			if (row["category"] != "signalling.areas") continue;
+			++reports;
+			ok &= expect(fs::equivalent(row["source_file"].get<std::string>(), sidecar) && row["source_count"] == 3
+					&& row["converted_count"] == 3 && row["skipped_count"] == 0 && row["unresolved_references"] == 0,
+				"Sidecar import report counts actual canonical conversions");
+		}
+		ok &= expect(reports == 1, "One authoritative area report row");
+
+		std::vector<std::string> malformed = {"{", "[]", R"({"format_version":2,"signalling_areas":[]})",
+			R"({"format_version":1.0,"signalling_areas":[]})", R"({"format_version":4294967297,"signalling_areas":[]})",
+			R"({"signalling_areas":[]})", R"({"format_version":1})", R"({"format_version":1,"signalling_areas":{}})"};
+		for (const auto& field : {"id", "start_km", "end_km", "level"}) {
+			json missing = valid;
+			missing["signalling_areas"][0].erase(field);
+			malformed.push_back(missing.dump());
+		}
+		for (const auto& field : {"id", "start_km", "end_km", "level", "track"}) {
+			json badType = valid;
+			badType["signalling_areas"][0][field] = nullptr;
+			malformed.push_back(badType.dump());
+		}
+		for (const auto& mutation : std::vector<json>{
+				 {{"track", "B99"}}, {{"track", "main"}}, {{"level", 4294967297LL}}, {{"level", 1.5}},
+				 {{"level", -99999999}}, {{"level", 6}}, {{"start_km", 3}}, {{"id", ""}}, {{"id", "main"}}}) {
+			json badArea = valid;
+			badArea["signalling_areas"][0].update(mutation);
+			malformed.push_back(badArea.dump());
+		}
+		for (const auto& text : malformed) {
+			writeText(sidecar, text);
+			writeText(destination / "scene.json", "existing scene bytes\n");
+			writeText(destination / "marker", "existing marker\n");
+			imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+			std::ifstream oldScene(destination / "scene.json");
+			std::string bytes((std::istreambuf_iterator<char>(oldScene)), std::istreambuf_iterator<char>());
+			ok &= expect(!imported.success() && !imported.wroteScene && hasErrors(imported.diagnostics)
+					&& bytes == "existing scene bytes\n" && fs::exists(destination / "marker"),
+				"Malformed sidecar preserves existing destination: " + text);
+		}
+		writeText(sidecar, json({{"format_version", 1}, {"signalling_areas", json::array()}}).dump());
+		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+		ok &= expect(imported.success() && readJson(destination / "signalling.json", signalling)
+				&& signalling["signalling_areas"] == json::array(),
+			"Empty sidecar remains authoritative over TXT");
+		fs::remove(sidecar);
+		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+		ok &= expect(imported.success() && hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning)
+				&& readJson(destination / "signalling.json", signalling) && !signalling.contains("signalling_areas"),
+			"Historical absence keeps existing warning and nonconversion");
+
+		// Marked conversion must not collapse directory aliases or rewrite route references.
+		writeText(destination / "scene.json", "existing scene bytes\n");
+		writeText(destination / "marker", "existing marker\n");
+		fs::rename(legacy / "TrackLines/B7", legacy / "TrackLines/B07");
+		json renumbered = valid;
+		renumbered["signalling_areas"][2]["track"] = "B07";
+		for (int variant : {0, 1, 2, 3}) {
+			if (variant == 1) writeText(legacy / "TrackLines/B7/NodiCumPari.txt", "0 0 1\n1 2 1\n");
+			json metadata = renumbered;
+			if (variant == 1) metadata["signalling_areas"].push_back({{"id", "seven"}, {"start_km", 0}, {"end_km", 2}, {"level", 4}, {"track", "B7"}});
+			if (variant == 2) metadata = valid; // Only B7 is scoped; B07 is still a candidate.
+			if (variant == 3) metadata["signalling_areas"] = json::array();
+			writeText(sidecar, metadata.dump());
+			imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+			std::ifstream saved(destination / "scene.json");
+			std::string bytes((std::istreambuf_iterator<char>(saved)), {});
+			std::ifstream marker(destination / "marker");
+			std::string markerBytes((std::istreambuf_iterator<char>(marker)), {});
+			ok &= expect(!imported.success() && !imported.wroteScene && hasDiag(imported.diagnostics, "scene.import.ref", SceneSeverity::Error)
+					&& bytes == "existing scene bytes\n" && markerBytes == "existing marker\n",
+				"Noncanonical or duplicate candidates fail marked import and preserve destination, including empty/unscoped metadata");
+		}
+		fs::remove_all(legacy / "TrackLines/B07");
+		fs::rename(legacy / "TrackLines/B7", legacy / "TrackLines/b7");
+		writeText(sidecar, valid.dump());
+		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+		ok &= expect(imported.success() && readJson(destination / "signalling.json", signalling) && signalling["signalling_areas"] == areas,
+			"A lowercase prefix with canonical decimal suffix still reconstructs correctly");
+		fs::remove(sidecar);
+		writeText(legacy / "EGTRAINSignallingAreas.json", "malformed metadata at an unrecognised root path");
+		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
+		ok &= expect(imported.success() && hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning), "Only the reserved TrackLines sidecar path is recognised");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneImporter tests passed\n";

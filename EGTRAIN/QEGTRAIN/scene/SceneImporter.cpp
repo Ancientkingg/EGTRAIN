@@ -1,5 +1,6 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneValidator.h"
 #include "scene/StagedDirectory.h"
 #include <filesystem>
 #include <fstream>
@@ -1028,6 +1029,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 	fs::path trackRoot = findChild(legacyPath, "TrackLines");
 	if (trackRoot.empty()) trackRoot = findChild(legacyPath, "Tracklines");
+	const fs::path sidecarRoot = findChild(legacyPath, "TrackLines");
+	const fs::path areaSidecar = sidecarRoot.empty() ? fs::path() : findChild(sidecarRoot, "EGTRAINSignallingAreas.json");
+	fs::path noncanonicalTrack;
 	std::vector<std::pair<int, fs::path>> trackDirs;
 	auto scanTrackDirs = [&](const fs::path& root) {
 		std::error_code scanEc;
@@ -1039,7 +1043,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			const std::string number = name.substr(1);
 			if (number.empty() || !std::all_of(number.begin(), number.end(), [](unsigned char c) { return std::isdigit(c); })) continue;
 			int index = 0;
-			if (parseIntegerToken(number, index)) trackDirs.push_back({index, entry.path()});
+			if (parseIntegerToken(number, index)) {
+				trackDirs.push_back({index, entry.path()});
+				if (number != std::to_string(index)) noncanonicalTrack = entry.path();
+			} else noncanonicalTrack = entry.path();
 		}
 	};
 	if (!trackRoot.empty()) scanTrackDirs(trackRoot);
@@ -1047,6 +1054,16 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		scanTrackDirs(legacyPath);
 		if (trackRoot.empty()) trackRoot = legacyPath;
 	}
+	if (!areaSidecar.empty()) {
+		std::set<int> reconstructedTracks;
+		for (const auto& track : trackDirs)
+			if (!reconstructedTracks.insert(track.first).second) noncanonicalTrack = track.second;
+		if (!noncanonicalTrack.empty()) {
+			addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical area conversion requires unique track numbers in canonical decimal spelling", noncanonicalTrack.string());
+			return result;
+		}
+	}
+
 	std::sort(trackDirs.begin(), trackDirs.end(), [](const auto& a, const auto& b) {
 		if (a.first != b.first) return a.first < b.first;
 		return a.second.string() < b.second.string();
@@ -1917,11 +1934,50 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 	}
 
+	// A canonical export sidecar is authoritative. Historical capacity/signalling rows
+	// remain ambiguous and are reported only when that metadata is absent.
+	json signallingAreas;
+	if (!areaSidecar.empty()) {
+		std::string content;
+		std::error_code sidecarEc;
+		if (!fs::is_regular_file(areaSidecar, sidecarEc) || !readFile(areaSidecar, content)) {
+			addDiag(SceneSeverity::Error, "scene.import.areas", "Cannot read canonical signalling area sidecar", areaSidecar.string());
+			return result;
+		}
+		const json sidecar = json::parse(content, nullptr, false);
+		if (!sidecar.is_object() || !sidecar.contains("format_version")
+			|| !sidecar["format_version"].is_number_integer() || sidecar["format_version"] != 1
+			|| !sidecar.contains("signalling_areas")) {
+			addDiag(SceneSeverity::Error, "scene.import.areas", "Malformed or unsupported canonical signalling area sidecar", areaSidecar.string());
+			return result;
+		}
+		signallingAreas = sidecar["signalling_areas"];
+		if (signallingAreas.is_array()) {
+			for (auto& area : signallingAreas) {
+				if (!area.is_object() || !area.contains("track") || !area["track"].is_string() || area["track"] == "") continue;
+				const std::string exportedTrack = area["track"].get<std::string>();
+				const auto track = std::find_if(trackDirs.begin(), trackDirs.end(), [&](const auto& entry) {
+					return "B" + entry.second.filename().string().substr(1) == exportedTrack;
+				});
+				if (track == trackDirs.end()) {
+					addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical signalling area refers to an unknown exported track " + exportedTrack, areaSidecar.string());
+					return result;
+				}
+				area["track"] = "B" + std::to_string(track->first);
+			}
+		}
+		// Field shape and semantics are checked by the native loader/validator in private staging.
+		auto& row = report.row("signalling.areas", areaSidecar.string());
+		if (signallingAreas.is_array()) {
+			row.sourceCount = static_cast<int>(signallingAreas.size());
+			row.convertedCount = row.sourceCount;
+		}
+	}
 	// Legacy area rows combined the signalling level with capacity reporting
 	// and are not converted. The file is reported so that the user adds the
 	// signalling areas in the editor.
 	const fs::path areasPath = trackRoot.empty() ? fs::path() : findChild(trackRoot, "AreasCaseStudy.txt");
-	if (!areasPath.empty()) {
+	if (areaSidecar.empty() && !areasPath.empty()) {
 		const std::string areasSource = areasPath.string();
 		std::string content;
 		readFile(areasPath, content);
@@ -2322,6 +2378,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	}
 	json signalling = {{"signals", json::array()}, {"routes", routes}, {"block_dependencies", blockDependencies},
 		{"single_track_restrictions", singleTrackRestrictions}, {"station_boundaries", stationBoundaries}};
+	if (!areaSidecar.empty()) signalling["signalling_areas"] = signallingAreas;
 	json rollingStock = {{"train_units", trainUnits}, {"compositions", compositions}};
 	json servicesFile = {{"services", services}};
 	json stationsFile = {{"stations", stations}};
@@ -2372,6 +2429,22 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (!allWritten) return result;
 
 	if (hasErrors(result.diagnostics)) return result;
+
+	if (!areaSidecar.empty()) {
+		const auto loaded = loadScene(staged.path.string());
+		// Existing historical imports retain their current policy outside area metadata.
+		const auto appendAreaDiagnostics = [&](const std::vector<SceneDiagnostic>& diagnostics) {
+			for (auto diagnostic : diagnostics) {
+				if (diagnostic.file != "signalling.json" || diagnostic.path.rfind("signalling_areas", 0) != 0) continue;
+				diagnostic.file = areaSidecar.string();
+				result.diagnostics.push_back(std::move(diagnostic));
+			}
+		};
+		appendAreaDiagnostics(loaded.diagnostics);
+		if (hasErrors(result.diagnostics)) return result;
+		appendAreaDiagnostics(validateRunnableScene(loaded.scene));
+		if (hasErrors(result.diagnostics)) return result;
+	}
 
 	std::error_code destinationEc;
 	const bool destinationExists = fs::exists(scenePath, destinationEc);

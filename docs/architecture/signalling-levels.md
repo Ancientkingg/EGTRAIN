@@ -607,10 +607,41 @@ analysis has no data for it.
 Older versions used one row of `TrackLines/AreasCaseStudy.txt` for both the
 signalling level and the statistics of an area (the removed `NetworkArea`
 class). No simulation code reads that file. The legacy export writes the
-signalling areas of the scene to it, one row per area. For a scene without
-areas it writes no file and leaves a copy from the `legacy/` folder of the
-scene as it is. The legacy import reports the file and converts none of its
-rows (see [Known limits](#known-limits-and-open-issues)).
+signalling areas of the scene to it, one row per area, and removes stale or
+copied TXT rows when the scene has no areas. Original passthrough files stay
+untouched.
+
+Every export also writes `TrackLines/EGTRAINSignallingAreas.json`, including
+an empty assignment. This sidecar has integer `format_version: 1` and a
+`signalling_areas` array with the native `id`, `start_km`, `end_km`, `level`
+and optional `track` fields. IDs, array order, bounds and levels are preserved;
+track scope uses the exported `B<n>` directory ID rather than the original
+canonical track ID. Import resolves that directory scope to its reconstructed
+numeric track ID. This legacy representation requires every candidate track
+directory to have a unique integer number in canonical decimal spelling.
+Leading-zero names such as `B07` are refused, even for unscoped tracks or an
+empty assignment, because import would reconstruct `B7` while route references
+can still name `B07`. A lowercase `b` prefix remains accepted by import when
+its numeric suffix reconstructs correctly. Export checks both the canonical
+mapping and actual output directories, including retained or passthrough data;
+it does not renumber aliases or rewrite their references. Native area validation
+applies. An unmappable track fails export rather than dropping an area.
+
+The export destination must not overlap the source or legacy passthrough tree,
+including resolved symlink aliases. Export rejects overlap before deleting
+metadata or changing compatibility files. Export removes an old destination
+sidecar before changing compatibility files and publishes a new one only after
+compatibility generation and track reconstruction checks succeed. The sidecar
+path is reserved from legacy passthrough copying, including case variants
+recognised by import.
+
+A valid sidecar is authoritative on import: editing `AreasCaseStudy.txt` does
+not override it. A malformed sidecar, unsupported version or unresolved track
+fails import without replacing an existing destination. Noncanonical or duplicate
+track numbers also fail a sidecar-marked import before publication. Without a sidecar,
+import still reports the historical TXT file and converts none of its rows.
+This preserves canonical assignments exported by EGTRAIN without interpreting
+ambiguous historical signalling/capacity rows or creating capacity areas.
 
 The Capacity analysis window uses a route and a block range as its scope, not
 signalling areas; [How capacity is analysed](../guides/capacity-analysis.md)
@@ -649,9 +680,9 @@ of the scene.
 Open on this version:
 
 - #459: the committed scene `Netherlands` has no signalling area.
-- #439: the legacy import reports `TrackLines/AreasCaseStudy.txt` in the import
-  report and in a warning and does not convert its rows, so a scene imported
-  from such a case has no signalling area until the user adds one.
+- #439: historical cases without the canonical area sidecar still report
+  `TrackLines/AreasCaseStudy.txt` without converting its rows. They need an
+  explicit signalling assignment; canonical exports preserve their assignment.
 
 Limits that no issue tracks:
 

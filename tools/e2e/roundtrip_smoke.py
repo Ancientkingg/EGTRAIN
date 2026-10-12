@@ -56,36 +56,66 @@ def scene_counts(scene_dir: Path) -> dict[str, int]:
 
 
 def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, exported_dir: Path, reimported_dir: Path) -> None:
-    """The export writes the areas of the scene; the import reports the area file and converts none of it."""
+    """The sidecar preserves the canonical assignment under the exported track mapping."""
     label = f"case {case_id} ({scene_name}) signalling area mismatch"
     areas = json.loads((scene_dir / "signalling.json").read_text()).get("signalling_areas", [])
+    tracks = json.loads((scene_dir / "infrastructure.json").read_text()).get("tracks", [])
+    def is_legacy_id(track_id: str) -> bool:
+        return len(track_id) > 1 and track_id[0] == "B" and all("0" <= c <= "9" for c in track_id[1:])
+
+    used = {track["id"] for track in tracks if is_legacy_id(track["id"])}
+    track_ids = {}
+    fallback = 0
+    for track in tracks:
+        track_id = track["id"]
+        mapped = track_id
+        if not is_legacy_id(track_id):
+            while f"B{fallback}" in used:
+                fallback += 1
+            mapped = f"B{fallback}"
+            fallback += 1
+            used.add(mapped)
+        track_ids[track_id] = mapped
+    expected = [dict(area) for area in areas]
+    for area in expected:
+        if area.get("track"):
+            area["track"] = track_ids[area["track"]]
+        else:
+            area.pop("track", None)
+    sidecar_path = exported_dir / "TrackLines/EGTRAINSignallingAreas.json"
+    sidecar = json.loads(sidecar_path.read_text())
+    if sidecar != {"format_version": 1, "signalling_areas": expected}:
+        raise RuntimeError(f"{label}: sidecar {sidecar} does not match mapped assignment {expected}")
     areas_file = exported_dir / "TrackLines/AreasCaseStudy.txt"
     rows = [line.split("\t") for line in areas_file.read_text().splitlines() if line.strip()] if areas_file.exists() else []
-    if len(rows) != len(areas):
+    if len(rows) != len(areas) or (not areas and areas_file.exists()):
         raise RuntimeError(f"{label}: {len(rows)} exported rows for {len(areas)} areas")
-    for index, (area, row) in enumerate(zip(areas, rows)):
-        columns = 5 if "track" in area else 4
+    for index, (area, row) in enumerate(zip(expected, rows)):
+        columns = 5 if area.get("track") else 4
         if (
             len(row) != columns
             or float(row[1]) != float(area["start_km"])
             or float(row[2]) != float(area["end_km"])
             or float(row[3]) != float(area["level"])
+            or (columns == 5 and row[4] != area["track"][1:])
         ):
             raise RuntimeError(f"{label}: row {index + 1} {row} does not match area {area}")
 
     reimported = json.loads((reimported_dir / "signalling.json").read_text())
-    if reimported.get("signalling_areas"):
-        raise RuntimeError(f"{label}: the import converted {len(reimported['signalling_areas'])} area rows")
+    expected_import = [dict(area) for area in expected]
+    for area in expected_import:
+        if area.get("track"):
+            area["track"] = f"B{int(area['track'][1:])}"
+    if reimported.get("signalling_areas") != expected_import:
+        raise RuntimeError(f"{label}: reimported assignment {reimported.get('signalling_areas')} != {expected_import}")
     report = json.loads((reimported_dir / "scene.json").read_text()).get("import_report", [])
     report_rows = [row for row in report if row["category"] == "signalling.areas"]
-    if rows:
-        if len(report_rows) != 1 or not (
-            report_rows[0]["source_count"] == report_rows[0]["skipped_count"] == len(rows)
-            and report_rows[0]["converted_count"] == 0
-        ):
-            raise RuntimeError(f"{label}: import report rows {report_rows} for {len(rows)} exported rows")
-    elif report_rows:
-        raise RuntimeError(f"{label}: import report rows {report_rows} without an area file")
+    if len(report_rows) != 1 or not (
+        Path(report_rows[0]["source_file"]) == sidecar_path
+        and report_rows[0]["source_count"] == report_rows[0]["converted_count"] == len(expected)
+        and report_rows[0]["skipped_count"] == report_rows[0]["unresolved_references"] == 0
+    ):
+        raise RuntimeError(f"{label}: import report rows {report_rows} for {len(expected)} canonical areas")
 
 
 def main() -> None:

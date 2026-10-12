@@ -1,12 +1,15 @@
 #include "scene/SceneExporter.h"
 #include "scene/SceneModel.h"
 #include <cctype>
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <nlohmann/json.hpp>
+#include <map>
 
 namespace fs = std::filesystem;
 
@@ -38,14 +41,6 @@ struct TempDir {
 		fs::remove_all(dir, ec);
 	}
 };
-
-static bool hasDiagMessage(const std::vector<SceneDiagnostic>& diags, const std::string& code, SceneSeverity sev, const std::string& text) {
-	for (const auto& d : diags) {
-		if (d.code == code && d.severity == sev && d.message.find(text) != std::string::npos)
-			return true;
-	}
-	return false;
-}
 
 // The file as text, so that the line ends of the platform read as "\n".
 static std::string readText(const fs::path& path) {
@@ -623,65 +618,174 @@ int main() {
 		ok &= expect(line == "@0-B0@\t@0-B0@\t1", "Boundary uses the generated legacy block ID");
 	}
 
-	// 21. The areas of the scene are exported in the legacy row format; an area on an unknown track is skipped.
+	// Canonical areas retain their exact fields in a versioned sidecar, using exported track IDs.
 	{
 		TempDir sceneDir, outDir;
-		fs::path scene(sceneDir.dir);
-		writeAreaScene(scene,
-			R"(,"signalling_areas":[{"id":"Fixed block","start_km":0,"end_km":10,"level":0},{"id":"on-main","start_km":2.5,"end_km":5,"level":2,"track":"main"},{"id":"on-b7","start_km":0,"end_km":10,"level":4,"track":"B7"},{"id":"ghost","start_km":0,"end_km":1,"level":1,"track":"missing"}])");
-
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		const std::string areas = R"([{"id":" Fixed\tblock ","start_km":-0.125,"end_km":10.125,"level":0},{"id":"on-main","start_km":2.5,"end_km":5,"level":2,"track":"main"},{"id":"on-b7","start_km":0,"end_km":10,"level":4,"track":"B7"}])";
+		writeAreaScene(scene, ",\"signalling_areas\":" + areas);
+		const fs::path legacy = scene / "legacy" / "tracklines";
+		fs::create_directories(legacy);
+		std::ofstream(legacy / "egtrainsignallingareas.json") << "stale passthrough\n";
+		std::ofstream(legacy / "areascasestudy.txt") << "Network\t-1\t99\t3\n";
+		fs::create_directories(out / "TrackLines");
+		std::ofstream(out / "TrackLines/EGTRAINSignallingAreas.json") << "stale destination\n";
 		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		printErrors(res.diagnostics, "Signalling area export");
-		ok &= expect(res.success(), "Export with an unmappable area still succeeds");
-		const std::string rows = readText(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt");
-		ok &= expect(rows == "Fixed_block\t0\t10\t0\non-main\t2.5\t5\t2\t0\non-b7\t0\t10\t4\t7\n",
-			"Areas are written in scene order with legacy track numbers and no whitespace in the id");
-		ok &= expect(rows.find("Network") == std::string::npos && rows.find("\t3") == std::string::npos,
-			"No network-wide level 3 row is invented");
-		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning, "ghost")
-				&& hasDiagMessage(res.diagnostics, "scene.export.compatibility", SceneSeverity::Warning, "missing"),
-			"An area on an unknown track is skipped with a warning that names the area and the track");
-		ok &= expect(!hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
-			"A scene with areas does not report that it has none");
+		ok &= expect(res.success(), "Canonical area export succeeds");
+		const fs::path sidecar = out / "TrackLines/EGTRAINSignallingAreas.json";
+		auto expected = nlohmann::json::parse(areas);
+		expected[1]["track"] = "B0";
+		ok &= expect(nlohmann::json::parse(readText(sidecar), nullptr, false)
+				== nlohmann::json({{"format_version", 1}, {"signalling_areas", expected}}),
+			"Sidecar retains whitespace IDs, order, exact bounds, levels and mapped scopes");
+		ok &= expect(!std::any_of(fs::directory_iterator(out / "TrackLines"), fs::directory_iterator(), [](const auto& entry) { return entry.path().filename() == "egtrainsignallingareas.json"; }), "Case-insensitive passthrough sidecar is reserved");
+		ok &= expect(readText(out / "TrackLines/AreasCaseStudy.txt") == "_Fixed_block_\t-0.125\t10.125\t0\non-main\t2.5\t5\t2\t0\non-b7\t0\t10\t4\t7\n",
+			"TXT remains legacy compatibility output");
+		ok &= expect(readText(legacy / "egtrainsignallingareas.json") == "stale passthrough\n"
+				&& readText(legacy / "areascasestudy.txt") == "Network\t-1\t99\t3\n",
+			"Passthrough sources are untouched");
+
+		writeAreaScene(scene, "");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success() && !fs::exists(out / "TrackLines/AreasCaseStudy.txt") && !fs::exists(out / "TrackLines/areascasestudy.txt"), "Empty re-export removes stale TXT");
+		ok &= expect(nlohmann::json::parse(readText(sidecar), nullptr, false)
+				== nlohmann::json({{"format_version", 1}, {"signalling_areas", nlohmann::json::array()}}),
+			"Empty re-export publishes empty assignment");
+		TempDir freshOut;
+		res = exportLegacyScene(sceneDir.dir, freshOut.dir);
+		ok &= expect(res.success() && !fs::exists(fs::path(freshOut.dir) / "TrackLines/AreasCaseStudy.txt") && !fs::exists(fs::path(freshOut.dir) / "TrackLines/areascasestudy.txt"), "Empty export removes copied legacy TXT");
+
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["block.a"],"corridor":"bad\tcorridor"}]})";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && !fs::exists(sidecar), "Late compatibility failure cannot copy authoritative passthrough metadata");
+
+		// A compatibility error must leave no sidecar that a subsequent importer could recognise.
+		std::ofstream(sidecar) << "stale destination\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":[]},{"id":"other","blocks":[]}]})";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && !fs::exists(sidecar), "Failed compatibility export removes stale sidecar and publishes none");
+
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"ghost","start_km":0,"end_km":1,"level":1,"track":"missing"}])");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.ref.unresolved") && !fs::exists(sidecar), "Unmappable canonical area fails export");
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"bad","start_km":1,"end_km":0,"level":2}])");
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.signalling_area.range") && !fs::exists(sidecar), "Export reuses native area validation");
+
+		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"large-track","start_km":0,"end_km":1,"level":1,"track":"B999999999999999999999"}])");
+		std::string infrastructure = readText(scene / "infrastructure.json");
+		infrastructure.replace(infrastructure.find("B7"), 2, "B999999999999999999999");
+		std::ofstream(scene / "infrastructure.json") << infrastructure;
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && hasDiag(res.diagnostics, "scene.export.ref") && !fs::exists(sidecar), "Unreconstructible exported track scope fails export");
+
+		writeAreaScene(scene, "");
+		fs::remove(sidecar);
+		fs::create_directories(sidecar);
+		std::ofstream(sidecar / "blocked") << "keep\n";
+		std::ofstream(out / "trainNames.txt") << "untouched\n";
+		res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(!res.success() && readText(out / "trainNames.txt") == "untouched\n"
+				&& readText(sidecar / "blocked") == "keep\n",
+			"Unremovable stale sidecar fails before compatibility mutation");
 	}
 
-	// 22. A scene without areas writes no area file and says so; a copy from the legacy data stays.
-	{
-		TempDir sceneDir, outDir, copyDir, copyOutDir;
-		writeAreaScene(fs::path(sceneDir.dir), "");
-		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		printErrors(res.diagnostics, "No area export");
-		ok &= expect(res.success(), "Export without areas succeeds");
-		ok &= expect(!fs::exists(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt"), "No area file is written without areas");
-		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
-			"The missing area file is reported as information");
-
-		writeAreaScene(fs::path(copyDir.dir), "");
-		fs::create_directories(fs::path(copyDir.dir) / "legacy" / "TrackLines");
-		std::ofstream(fs::path(copyDir.dir) / "legacy" / "TrackLines" / "AreasCaseStudy.txt") << "Kept\t0\t1\t2\n";
-		res = exportLegacyScene(copyDir.dir, copyOutDir.dir);
-		ok &= expect(res.success(), "Export without areas and with a legacy area file succeeds");
-		ok &= expect(readText(fs::path(copyOutDir.dir) / "TrackLines" / "AreasCaseStudy.txt") == "Kept\t0\t1\t2\n",
-			"A legacy area file stays when the scene has no areas");
-		ok &= expect(!hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "has no signalling areas"),
-			"A kept legacy area file is not reported as missing");
+	// Marked conversion refuses every noncanonical candidate, even without scoped areas.
+	for (int variant : {0, 1, 2, 3, 4, 5}) {
+		TempDir sourceDir, outDir;
+		const fs::path source(sourceDir.dir), out(outDir.dir);
+		writeAreaScene(source, "");
+		auto infrastructure = nlohmann::json::parse(readText(source / "infrastructure.json"));
+		auto signalling = nlohmann::json::parse(readText(source / "signalling.json"));
+		if (variant < 4) {
+			infrastructure["tracks"][0]["id"] = "B07";
+			for (const auto& category : {"nodes", "blocks"})
+				for (auto& item : infrastructure[category])
+					if (item["track"] == "main") item["track"] = "B07";
+			// The lone alias has an actual route reference, not just an area.
+			if (variant == 0) {
+				infrastructure["tracks"].erase(1);
+				infrastructure["blocks"].erase(1);
+			}
+			signalling["signalling_areas"] = nlohmann::json::array();
+			if (variant < 3) signalling["signalling_areas"].push_back({{"id", "seven"}, {"start_km", 0}, {"end_km", 1}, {"level", 2}, {"track", variant == 2 ? "B7" : "B07"}});
+			if (variant == 1) signalling["signalling_areas"].push_back({{"id", "other"}, {"start_km", 0}, {"end_km", 1}, {"level", 2}, {"track", "B7"}});
+			std::ofstream(source / "infrastructure.json") << infrastructure.dump();
+			std::ofstream(source / "signalling.json") << signalling.dump();
+		} else {
+			const fs::path alias = (variant == 4 ? out : source / "legacy") / "TrackLines/B07";
+			fs::create_directories(alias);
+			std::ofstream(alias / "NodiCumPari.txt") << "0 0 0\n1 1 0\n";
+		}
+		fs::create_directories(out / "TrackLines");
+		std::ofstream(out / "TrackLines/EGTRAINSignallingAreas.json") << "stale\n";
+		const auto exported = exportLegacyScene(sourceDir.dir, outDir.dir);
+		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.ref")
+				&& !fs::exists(out / "TrackLines/EGTRAINSignallingAreas.json"),
+			"Noncanonical track mapping, unscoped alias, reused output and passthrough alias refuse authoritative export");
 	}
 
-	// 23. The areas of the scene replace an area file from the legacy data.
+	// Reject overlap before cleanup, including resolved source and passthrough aliases.
+	const auto snapshot = [](const fs::path& root) {
+		std::map<std::string, std::string> files;
+		for (const auto& entry : fs::recursive_directory_iterator(root)) {
+			if (!entry.is_regular_file()) continue;
+			std::ifstream input(entry.path(), std::ios::binary);
+			files.emplace(entry.path().lexically_relative(root).string(), std::string(std::istreambuf_iterator<char>(input), {}));
+		}
+		return files;
+	};
+	for (int variant : {0, 1, 2, 3, 4, 5, 6}) {
+		TempDir rootDir;
+		const fs::path root(rootDir.dir), source = root / "source", outside = root / "passthrough";
+		fs::create_directories(source);
+		writeAreaScene(source, "");
+		fs::path passthrough = source / "legacy";
+		std::error_code ec;
+		if (variant == 6) {
+			fs::create_directories(outside);
+			fs::create_directory_symlink(outside, passthrough, ec);
+		} else fs::create_directories(passthrough);
+		if (ec) {
+			std::cout << "skip unsupported passthrough symlink: " << ec.message() << "\n";
+			continue;
+		}
+		fs::create_directories(passthrough / "TrackLines");
+		std::ofstream(passthrough / "TrackLines/AreasCaseStudy.txt") << "original TXT\n";
+		std::ofstream(passthrough / "TrackLines/EGTRAINSignallingAreas.json") << "original sidecar\n";
+		fs::path out;
+		if (variant == 0) out = passthrough;
+		if (variant == 1) out = source;
+		if (variant == 2) out = root;
+		if (variant == 3) out = source / "missing/output";
+		if (variant == 4) {
+			out = root / "alias";
+			fs::create_directory_symlink(passthrough, out, ec);
+		}
+		if (variant == 5) {
+			out = root / "destination";
+			fs::create_directories(out);
+			fs::create_directory_symlink(passthrough / "TrackLines", out / "tracklines", ec);
+		}
+		if (variant == 6) out = outside / "missing/output";
+		if (ec) {
+			std::cout << "skip unsupported output symlink: " << ec.message() << "\n";
+			continue;
+		}
+		const auto sourceBefore = snapshot(source), passthroughBefore = snapshot(passthrough);
+		const auto exported = exportLegacyScene(source.string(), out.string());
+		ok &= expect(!exported.success() && hasDiag(exported.diagnostics, "scene.export.path")
+				&& snapshot(source) == sourceBefore && snapshot(passthrough) == passthroughBefore,
+			"Overlap rejection preserves all canonical and passthrough paths and bytes before cleanup");
+	}
 	{
-		TempDir sceneDir, outDir;
-		fs::path scene(sceneDir.dir);
-		writeAreaScene(scene, R"(,"signalling_areas":[{"id":"whole","start_km":0,"end_km":2,"level":0}])");
-		fs::create_directories(scene / "legacy" / "TrackLines");
-		std::ofstream(scene / "legacy" / "TrackLines" / "AreasCaseStudy.txt") << "Network\t-1\t99\t3\nStale\t0\t1\t3\n";
-
-		auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
-		printErrors(res.diagnostics, "Area over legacy copy export");
-		ok &= expect(res.success(), "Export with areas and a legacy area file succeeds");
-		ok &= expect(readText(fs::path(outDir.dir) / "TrackLines" / "AreasCaseStudy.txt") == "whole\t0\t2\t0\n",
-			"The areas of the scene replace the legacy area file");
-		ok &= expect(hasDiagMessage(res.diagnostics, "scene.export.info", SceneSeverity::Info, "replace"),
-			"Replacing the legacy area file is reported as information");
+		TempDir rootDir;
+		const fs::path source = fs::path(rootDir.dir) / "source", out = fs::path(rootDir.dir) / "sibling/missing/output";
+		fs::create_directories(source);
+		writeAreaScene(source, "");
+		const auto before = snapshot(source);
+		ok &= expect(exportLegacyScene(source.string(), out.string()).success() && snapshot(source) == before,
+			"Non-overlapping sibling export supports missing destination leaves and preserves source bytes");
 	}
 
 	if (!ok)
