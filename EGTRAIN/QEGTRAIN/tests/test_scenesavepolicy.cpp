@@ -112,10 +112,20 @@ int main(int argc, char** argv) {
 	}
 
 	// A resolved filesystem root still contains its descendants (without a doubled slash).
+	QDir filesystemRoot(base);
+	while (!filesystemRoot.isRoot())
+		require(filesystemRoot.cdUp(), "cannot find temporary directory root");
 	const QString rootApp = base + "/root-app";
 	mkdir(rootApp);
-	if (symlink(QDir::rootPath(), rootApp + "/Scenes"))
+	if (symlink(filesystemRoot.absolutePath(), rootApp + "/Scenes"))
 		require(isInstalledScenePath(checkout + "/external.egscene", rootApp), "filesystem-root target lost subtree protection");
+	// On Windows the system drive need not contain the temporary directory.
+	if (filesystemRoot.absolutePath().compare(QDir::rootPath(), Qt::CaseInsensitive) != 0) {
+		const QString systemRootApp = base + "/system-root-app";
+		mkdir(systemRootApp);
+		if (symlink(QDir::rootPath(), systemRootApp + "/Scenes"))
+			require(!isInstalledScenePath(checkout + "/external.egscene", systemRootApp), "different drive was protected");
+	}
 
 	// A dangling root retains only lexical protection, not an invented resolved target.
 	const QString danglingApp = base + "/dangling-app";
