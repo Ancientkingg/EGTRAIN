@@ -12,6 +12,7 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QStyle>
+#include <QProxyStyle>
 #include <QStyleOptionViewItem>
 #include <QGestureEvent>
 #include <QPinchGesture>
@@ -241,6 +242,17 @@ static bool exerciseTrainFilter() {
 	return ok;
 }
 
+class SelectionRequiredStyle : public QProxyStyle {
+public:
+	SelectionRequiredStyle() : QProxyStyle(QStringLiteral("Fusion")) {}
+
+	int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
+		const QWidget* widget = nullptr, QStyleHintReturn* data = nullptr) const override {
+		if (hint == SH_ItemView_MovementWithoutUpdatingSelection) return false;
+		return QProxyStyle::styleHint(hint, option, widget, data);
+	}
+};
+
 // Inside a diagram window the chart shortcuts leave the keys of the open train filter alone.
 static bool exerciseTrainFilterKeysInWindow() {
 	DiagramWindow window("Train filter keys");
@@ -266,6 +278,10 @@ static bool exerciseTrainFilterKeysInWindow() {
 	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
 	if (!expect(view && list && x && list->count() == 3, "a diagram window lists its three trains"))
 		return false;
+	// Require a selection for keyboard navigation, as the macOS style does.
+	auto* navigationStyle = new SelectionRequiredStyle;
+	navigationStyle->setParent(list);
+	list->setStyle(navigationStyle);
 	bool ok = true;
 	const double fullSpan = x->max() - x->min();
 	view->setFocus();

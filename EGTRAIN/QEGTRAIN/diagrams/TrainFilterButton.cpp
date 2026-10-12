@@ -38,7 +38,7 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 	layout->addLayout(quickRow);
 
 	m_list = new QListWidget(panel);
-	m_list->setSelectionMode(QAbstractItemView::NoSelection);
+	m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_list->setMinimumSize(240, 320);
 	connect(m_list, &QListWidget::itemChanged, this, [this](QListWidgetItem*) {
 		if (m_updating)
