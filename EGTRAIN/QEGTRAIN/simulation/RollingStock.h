@@ -1027,20 +1027,47 @@ public:
 		return AccelerationTime;
 	}
 
-	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const {
-		if (safeUpper) *safeUpper = std::numeric_limits<double>::infinity();
-		for (int b = 0; b < count; ++b)
-			for (int j = 0; j < sections[b].total_arcs; ++j) {
-				const Arc& arc = sections[b].arcs_in_signalling_block_section[j];
-				if (head >= arc.startNode.X * 1000 && head < arc.endNode.X * 1000) {
-					if (safeUpper) *safeUpper = std::min(*safeUpper, arc.endNode.X * 1000);
-					return &arc;
+	// Call-local first-match lookup. Earlier future starts invalidate forward progress,
+	// so unordered and overlapping routes retain the linear scan's precedence.
+	struct BrakingArcCursor {
+		const Arc* arc = nullptr;
+		int section = 0, arcIndex = 0;
+		double lookupHead = 0;
+		double earlierFuture = std::numeric_limits<double>::infinity();
+
+		const Arc* find(double head, Section* sections, int count, double* safeUpper = nullptr) {
+			if (arc && head >= lookupHead && head < earlierFuture) {
+				if (head < arc->endNode.X * 1000) {
+					lookupHead = head;
+					if (safeUpper) *safeUpper = std::min(earlierFuture, arc->endNode.X * 1000);
+					return arc;
 				}
-				// An earlier-listed future arc can become the first match before this arc ends.
-				if (safeUpper && arc.startNode.X * 1000 > head)
-					*safeUpper = std::min(*safeUpper, arc.startNode.X * 1000);
+				++arcIndex;
+			} else {
+				section = arcIndex = 0;
+				earlierFuture = std::numeric_limits<double>::infinity();
 			}
-		return nullptr;
+			lookupHead = head;
+			arc = nullptr;
+			for (; section < count; ++section, arcIndex = 0)
+				for (; arcIndex < sections[section].total_arcs; ++arcIndex) {
+					const Arc& candidate = sections[section].arcs_in_signalling_block_section[arcIndex];
+					if (head >= candidate.startNode.X * 1000 && head < candidate.endNode.X * 1000) {
+						arc = &candidate;
+						if (safeUpper) *safeUpper = std::min(earlierFuture, candidate.endNode.X * 1000);
+						return arc;
+					}
+					if (candidate.startNode.X * 1000 > head)
+						earlierFuture = std::min(earlierFuture, candidate.startNode.X * 1000);
+				}
+			if (safeUpper) *safeUpper = earlierFuture;
+			return nullptr;
+		}
+	};
+
+	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const {
+		BrakingArcCursor cursor;
+		return cursor.find(head, sections, count, safeUpper);
 	}
 
 	// Every curve step samples force at the actual start and uses the right endpoint for distance.
@@ -1101,8 +1128,7 @@ public:
 	// Optional vectors store only a successfully evaluated plan, in driving order.
 	bool predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
 		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
-		const Arc* arc = nullptr;
-		double lookupHead = head, safeUpper = head;
+		BrakingArcCursor cursor;
 		for (int step = 0; step < 1999; ++step) {
 			end = head; // An above-target route exit can reject a shooting bracket, never validate a plan.
 			if (!std::isfinite(head) || !std::isfinite(speed) || speed < 0)
@@ -1115,10 +1141,7 @@ public:
 				end = head;
 				return true;
 			}
-			if (!arc || head < lookupHead || !(head < safeUpper)) {
-				arc = brakingArc(head, sections, count, &safeUpper);
-				lookupHead = head;
-			}
+			const Arc* arc = cursor.find(head, sections, count);
 			if (!arc)
 				return false;
 			speed = brakingCurveSpeed(speed, *arc);
@@ -1133,8 +1156,7 @@ public:
 		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr) {
 		if (steps < 0 || steps >= 1999)
 			return false;
-		const Arc* arc = nullptr;
-		double lookupHead = head, safeUpper = head;
+		BrakingArcCursor cursor;
 		for (int step = 0; step <= steps; ++step) {
 			end = head;
 			endSpeed = speed;
@@ -1146,10 +1168,7 @@ public:
 			}
 			if (step == steps)
 				return true;
-			if (!arc || head < lookupHead || !(head < safeUpper)) {
-				arc = brakingArc(head, sections, count, &safeUpper);
-				lookupHead = head;
-			}
+			const Arc* arc = cursor.find(head, sections, count);
 			if (!arc)
 				return false;
 			speed = brakingCurveSpeed(speed, *arc);
