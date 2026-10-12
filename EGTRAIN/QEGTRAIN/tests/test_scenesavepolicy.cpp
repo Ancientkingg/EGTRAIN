@@ -131,6 +131,8 @@ int main(int argc, char** argv) {
 	const QString danglingApp = base + "/dangling-app";
 	mkdir(danglingApp);
 	if (symlink(base + "/absent-target", danglingApp + "/Scenes")) {
+		require(scene_save_policy::resolvedPath(danglingApp + "/Scenes").isEmpty(), "dangling link acquired a resolved spelling");
+		require(scene_save_policy::resolvedPath(danglingApp + "/Scenes/new/sub").isEmpty(), "dangling ancestor acquired a resolved spelling");
 		require(isInstalledScenePath(danglingApp + "/Scenes/new/sub/copy.egscene", danglingApp), "dangling root lost lexical protection");
 		require(!isInstalledScenePath(base + "/absent-target/new/sub/copy.egscene", danglingApp), "dangling root invented a resolved target");
 		require(!isInstalledScenePath(checkout, danglingApp), "empty canonical root protected unrelated data");

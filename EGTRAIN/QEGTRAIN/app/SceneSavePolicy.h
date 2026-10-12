@@ -13,7 +13,8 @@ inline QString resolvedPath(QString path) {
 	for (;;) {
 		const QFileInfo info(path);
 		const QString canonical = info.canonicalFilePath();
-		if (!canonical.isEmpty())
+		// Qt on Windows can return the target spelling of a dangling link.
+		if (!canonical.isEmpty() && QFileInfo::exists(canonical))
 			return QDir::cleanPath(canonical + (suffix.isEmpty() ? QString() : "/" + suffix.join('/')));
 		if (info.exists() || info.isSymLink())
 			return {};
