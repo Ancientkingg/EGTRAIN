@@ -805,9 +805,11 @@ tools/e2e/roundtrip_smoke.py
 
 The roundtrip smoke validates, exports, reimports, and compares high-value
 entity counts for all seven canonical scenes, then runs the small Assignment
-reimport. It also checks that the exported `TrackLines/AreasCaseStudy.txt` has
-one row per signalling area of the scene and that the reimport reports the file
-in `import_report` without converting a row. Normal runs still load the
+reimport. It checks the compatibility rows in `TrackLines/AreasCaseStudy.txt`
+and requires the ordered signalling areas, with their exported track scopes,
+to survive through `TrackLines/EGTRAINSignallingAreas.json`. The import report
+must account for every area. The importer warns about historical area files
+without this sidecar and does not convert their rows. Normal runs load the
 canonical source directory directly.
 
 ## Completed-run replay
