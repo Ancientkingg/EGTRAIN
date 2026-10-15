@@ -11,6 +11,7 @@ folders and the renames so the next reader does not have to reconstruct them.
 EGTRAIN/QEGTRAIN/         C++ Qt application source; the folders are listed below
 EGTRAIN/QEGTRAIN/Scenes/  The committed case studies
 EGTRAIN/QEGTRAIN/tests/   C++ regression tests and their fixtures
+installer/                Inno Setup script of the Windows installer and its README
 tools/e2e/                Smoke tests and Python tests
 tools/release/            Version, package check, release asset and disk image scripts
 tools/memory/             Peak-memory measurement and the ownership inventory

@@ -53,6 +53,7 @@ use the canonical model.
 - [Release testing checklist](development/release-testing-checklist.md)
 - [Release rehearsal record template](development/release-rehearsal-template.md): the blank record to fill in for one candidate while following the checklist.
 - [Code signing](development/code-signing.md)
+- [Windows installer script](../installer/README.md): the parameters of the Inno Setup script, what the installer installs and removes, and how an installed copy is updated.
 - [CI and release branches](development/build-and-test.md#ci-and-release-branches): the pull request checks, the package check and the release workflow.
 
 ## History and records
