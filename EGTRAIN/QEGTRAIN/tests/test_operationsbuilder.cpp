@@ -2666,7 +2666,7 @@ static bool runRollingStockMessageChecks() {
 	shows(capture.take(), {}, "an arrival message to a folder that exists");
 	ok &= expect(QDir(folder.path()).exists("EGTRAINOutput.txt"), "the arrival message is written to the folder that exists");
 
-	// A blocking time with no name has no recorded events either.
+	// A blocking time with no name and no recorded events writes both errors; with a name only the second.
 	BlockingTimes blocking;
 	blocking.BlockID.clear();
 	blocking.LocationWithSwitch = false;
