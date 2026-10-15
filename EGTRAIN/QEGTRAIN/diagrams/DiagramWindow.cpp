@@ -290,6 +290,11 @@ private:
 	QSet<QValueAxis*> m_axes;
 };
 
+// The window header cannot name the file-local overlay type, so it keeps the item as a QGraphicsObject.
+BlockSectionOverlay* sectionOverlayOf(const QPointer<QGraphicsObject>& overlay) {
+	return static_cast<BlockSectionOverlay*>(overlay.data());
+}
+
 } // namespace
 
 DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
@@ -624,7 +629,7 @@ void DiagramWindow::applyTimeAxis() {
 		m_numericAxis = nullptr;
 		m_clockAxis = nullptr;
 	}
-	if (m_sectionOverlay) static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->watchAxes();
+	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
 	if (!m_timeAxis) return;
 	const auto timeAxes = chart->axes(m_timeOrientation);
 	if (timeAxes.isEmpty())
@@ -685,7 +690,7 @@ void DiagramWindow::applyTimeAxis() {
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
 	updateLabels(min, max);
-	if (m_sectionOverlay) static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->watchAxes();
+	if (auto* overlay = sectionOverlayOf(m_sectionOverlay)) overlay->watchAxes();
 }
 
 QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
@@ -913,8 +918,8 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	clearTooltip();
 	auto* chart = m_view->chart();
 	const QPointF cursor = chart->mapFromScene(m_view->mapToScene(position));
-	if (m_sectionOverlay) {
-		const QString text = static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->inspect(cursor, true);
+	if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) {
+		const QString text = overlay->inspect(cursor, true);
 		if (!text.isEmpty()) {
 			m_tooltip->setText(text); // PlainText, so authored ids cannot inject rich text.
 			showTooltip(position);
@@ -985,8 +990,8 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 		sampleIndex = filledIndex;
 	}
 	if (!selected) {
-		if (m_sectionOverlay) {
-			const QString text = static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->inspect(cursor, false);
+		if (const auto* overlay = sectionOverlayOf(m_sectionOverlay)) {
+			const QString text = overlay->inspect(cursor, false);
 			if (!text.isEmpty()) {
 				m_tooltip->setText(text);
 				showTooltip(position);
