@@ -62,14 +62,22 @@ struct SceneConnection {
 	double speedLimitMs = 0.0;
 };
 
+// Platform size used when a platform states none, in metres.
+inline constexpr double kDefaultPlatformLengthM = 100.0;
+inline constexpr double kDefaultPlatformWidthM = 2.5;
+
 struct ScenePlatform {
 	std::string id;
 	std::vector<std::string> nodeIds;
 	bool hasLength = false;
-	double lengthM = 100.0;
+	double lengthM = kDefaultPlatformLengthM;
 	bool hasWidth = false;
-	double widthM = 2.5;
+	double widthM = kDefaultPlatformWidthM;
 };
+
+// Passenger capacity of a platform of this size, before it is rounded to the
+// integer the runtime stores.
+double scenePlatformCapacity(double lengthM, double widthM);
 
 struct SceneStation {
 	std::string id;
@@ -325,6 +333,9 @@ struct SceneModel {
 };
 
 SceneModel makeNewSceneModel();
+
+// The scenario of a case that stores none: no incidents and no entrance delays.
+SceneScenario makeBaselineScenario();
 
 std::string sceneOutputDirectoryComponent(const std::string& sceneName);
 // Accepts exactly "#" followed by six hexadecimal digits in either case.

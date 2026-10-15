@@ -104,6 +104,19 @@ int main() {
 			"Strict physical source accepts the native zero-wagon domain");
 		ok &= expect(parsedTraction.success() && parsedTraction.tractionCurve.size() == 2,
 			"Strict traction source accepts complete rows and blank lines");
+		writeText(physical, "101 52 3 83 1.5 12.5 0.25 0.75 31\n");
+		const auto orderedPhysical = parseTrainPhysicalSourceFile(physical.string());
+		ok &= expect(orderedPhysical.success()
+				&& orderedPhysical.physical.mass_of_traction_unit_kg == 101.0
+				&& orderedPhysical.physical.mass_of_a_wagon_kg == 52.0
+				&& orderedPhysical.physical.number_of_wagons == 3.0
+				&& orderedPhysical.physical.max_speed_ms == 83.0
+				&& orderedPhysical.physical.max_deceleration_ms2 == 1.5
+				&& orderedPhysical.physical.frontal_area_m2 == 12.5
+				&& orderedPhysical.physical.resistance_coefficient == 0.25
+				&& orderedPhysical.physical.jerk_ms3 == 0.75
+				&& orderedPhysical.physical.length_m == 31.0,
+			"Strict physical source assigns the nine values in file order");
 		writeText(physical, "100 50 0 80 1 12 -0.2 0 30 extra\n");
 		ok &= expect(!parseTrainPhysicalSourceFile(physical.string()).success(),
 			"Strict physical source rejects extra tokens");
@@ -244,6 +257,12 @@ int main() {
 					&& rolling["train_units"][0]["source"]["data_file"] == "/vehicle.dat"
 					&& rolling["train_units"][0]["source"]["traction_file"] == "/effort-curve.dat",
 				"Rolling relation follows explicit Trains paths");
+			ok &= expect(rolling["train_units"][0]["physical"]
+					== json({{"mass_of_traction_unit_kg", 1.0}, {"mass_of_a_wagon_kg", 2.0},
+						{"number_of_wagons", 3.0}, {"max_speed_ms", 4.0}, {"max_deceleration_ms2", 5.0},
+						{"frontal_area_m2", 6.0}, {"resistance_coefficient", 7.0}, {"jerk_ms3", 8.0},
+						{"length_m", 9.0}}),
+				"Vehicle data values follow the physical field order");
 			ok &= expect(services["services"][0]["operating_code"] == "FixtureService",
 				"Active legacy train identity is retained separately from the service id");
 			const auto& stops = services["services"][0]["stops"];

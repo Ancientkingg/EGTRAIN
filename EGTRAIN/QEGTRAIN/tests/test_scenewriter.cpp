@@ -1491,6 +1491,28 @@ int main(int argc, char** argv) {
 		"absent optional scene inputs are labelled explicitly");
 	ok &= expect(withoutOptional.scenarios.empty(), "loaded-data refresh does not create canonical input");
 
+	// A scene without scenarios is written with the baseline scenario.
+	{
+		const SceneScenario baseline = makeBaselineScenario();
+		ok &= expect(baseline.id == "baseline" && baseline.name == "Baseline"
+				&& baseline.incidents.empty() && baseline.entranceDelays.empty(),
+			"the baseline scenario has no incidents or entrance delays");
+		TempDir noScenarioDir;
+		SceneModel noScenarios = source;
+		noScenarios.scenarios.clear();
+		noScenarios.defaultScenarioId.clear();
+		const SceneSaveResult noScenarioSave = saveScene(noScenarios, noScenarioDir.path.string());
+		const json noScenarioFile = readJsonFile(noScenarioDir.path / "scenarios.json");
+		ok &= expect(noScenarioSave.success() && noScenarioFile["default_scenario_id"] == "baseline"
+				&& noScenarioFile["scenarios"].size() == 1
+				&& noScenarioFile["scenarios"][0]["id"] == "baseline"
+				&& noScenarioFile["scenarios"][0]["name"] == "Baseline",
+			"a scene without scenarios is saved with the baseline scenario");
+		ok &= expect(makeNewSceneModel().defaultScenarioId == baseline.id
+				&& defaultScenario(noScenarios)->id == baseline.id,
+			"a new scene and an editor request default to the baseline scenario");
+	}
+
 	SceneDiagnostic rollingWarning;
 	rollingWarning.severity = SceneSeverity::Warning;
 	rollingWarning.file = "rolling_stock.json";
