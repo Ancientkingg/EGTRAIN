@@ -52,9 +52,9 @@ void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, string O
 
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<Passenger>& SIMUL_PAX);
 
-void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, list<Passenger> ALL_PAX);
+void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, const list<Passenger>& ALL_PAX);
 
-void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, list<Passenger> ALL_PAX);
+void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, const list<Passenger>& ALL_PAX);
 
 void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS);
 
