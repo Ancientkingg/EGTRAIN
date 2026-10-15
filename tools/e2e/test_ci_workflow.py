@@ -511,7 +511,7 @@ def main() -> None:
     ):
         missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
     # The job uploads the directory that it verified, sized and started, with its hidden files. It writes no archive:
-    # the release job writes the portable archive from the uploaded files.
+    # the finalize job writes the portable archive from the uploaded files.
     if step_block(windows_job, "Upload artifact") != (
         "name: Upload artifact\n"
         "        uses: actions/upload-artifact@v4\n"
@@ -609,8 +609,8 @@ def main() -> None:
         "          if-no-files-found: error\n"
     ):
         missing.append("Windows finalize upload of the portable archive that was started")
-    # The smoke script cannot run in this test. It has to keep the silent switches, the directory, the desktop task, the
-    # start check and the checks of the registry scope and of the manifest, and no hash, no Program Files and no
+    # The smoke script cannot run in this test. It has to keep the silent switches, the directory, the desktop task and
+    # the calls of its start, manifest, registry, upgrade and uninstall checks, and no hash, no Program Files and no
     # /CURRENTUSER, which has no effect while the installer script offers no choice of scope.
     installer_smoke = (ROOT / "tools/release/installer_smoke.ps1").read_text(encoding="utf-8")
     if any(
@@ -620,11 +620,12 @@ def main() -> None:
             '/LOG=`"$log`"',
             '/DIR=`"$Directory`"',
             "'/TASKS=desktopicon'",
-            "package_start_smoke.py",
-            "asInvoker",
-            "HKEY_LOCAL_MACHINE",
-            "HKEY_CURRENT_USER",
-            "-UpgradeInstaller",
+            "Assert-AsInvoker $Installer",
+            "Assert-AsInvoker $UpgradeInstaller",
+            "Invoke-StartSmoke $directory",
+            "Install-Egtrain $UpgradeInstaller 'upgrade-over'",
+            "Assert-Registered $defaultDirectory $UpgradeVersion",
+            "Assert-Survives $outside",
         )
     ) or any(part in installer_smoke.lower() for part in ("/currentuser", "/allusers", "sha256", "get-filehash", "program files")):
         missing.append("installer smoke script with the silent switches, the desktop task, the start check and the checks of scope and manifest")
