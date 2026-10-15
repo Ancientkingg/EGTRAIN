@@ -87,7 +87,8 @@ jobs:
           rm -rf "$APP/Contents/PlugIns/imageformats/libqwebp.dylib" "$APP/Contents/PlugIns/imageformats/libqtiff.dylib"
           rm -rf "$APP/Contents/Frameworks/QtVirtualKeyboard.framework" "$APP/Contents/Frameworks/QtQuick.framework" \
             "$APP/Contents/Frameworks/QtQml.framework" "$APP/Contents/Frameworks/QtQmlModels.framework"
-          rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib "$APP"/Contents/Frameworks/liblzma*.dylib
+          rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libsharpyuv*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib \
+            "$APP"/Contents/Frameworks/liblzma*.dylib
           report_size "after trimming"
 
       - name: Ad-hoc code sign
