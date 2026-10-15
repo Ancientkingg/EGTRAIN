@@ -120,7 +120,7 @@ The [section of the signalling levels page](../architecture/signalling-levels.md
 
 An analysis area is not a stored object. The scope can cross the edges of signalling areas and does not follow them. A block of level 1 or 5, or without a level, has no occupation and drops out without a message.
 
-No simulation code reads `TrackLines/AreasCaseStudy.txt` today. The legacy export writes the signalling areas of the scene to it. The legacy import reports it and converts none of its rows (see the [migration matrix](v1-scene-migration-matrix.md)).
+No simulation code reads `TrackLines/AreasCaseStudy.txt` today. The legacy export writes the signalling areas of the scene to it. The legacy import never converts its TXT rows. Without a sidecar it reports them as skipped; with one it restores the authoritative canonical signalling assignment from the sidecar, not capacity areas (see [Signalling levels](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) and the [migration matrix](v1-scene-migration-matrix.md)).
 
 ## The area calculation the program no longer contains
 

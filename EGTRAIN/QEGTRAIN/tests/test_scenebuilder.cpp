@@ -1,4 +1,9 @@
 #include "scene/SceneModel.h"
+#include "scene/SceneExporter.h"
+#include "scene/SceneImporter.h"
+#include "scene/SceneWriter.h"
+#include <chrono>
+#include <filesystem>
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
@@ -659,6 +664,78 @@ static bool driftGuard(const SceneModel& scene, std::size_t uncovered, const std
 	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	const std::set<std::string> unset = builtUncoveredRouteSections();
 	return expect(!hasErrors(diagnostics) && complete && named == unset && unset.size() == uncovered, what);
+}
+
+// Compare canonical and reimported native assignments, including route copies in both travel directions.
+static bool runAreaRoundtripChecks() {
+	bool ok = true;
+	namespace fs = std::filesystem;
+	const fs::path root = fs::temp_directory_path() / ("area_roundtrip_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+	fs::create_directories(root);
+	struct Cleanup {
+		fs::path path;
+		~Cleanup() {
+			std::error_code ec;
+			fs::remove_all(path, ec);
+		}
+	} cleanup{root};
+	for (int variant : {0, 1, 2, 3}) {
+		const bool reverse = variant % 2 != 0;
+		const bool empty = variant >= 2;
+		SceneModel source = twoLineScene(4);
+		source.schemaVersion = kCurrentSceneSchemaVersion;
+		for (auto& route : source.routes)
+			if (reverse) std::reverse(route.blocks.begin(), route.blocks.end());
+		source.signallingAreas = {{" network area ", 0.0, 4.0, 1, {}},
+			{"head", 0.0, 2.0 - 5e-9, 3, "line.a"}, {"tail", 2.5, 4.0, 4, "line.a"},
+			{"other", 1.0 + 1e-7, 3.0, 5, "line.b"}};
+		if (empty) source.signallingAreas.clear();
+		source.routes[0].id = "route0";
+		source.routes[1].id = "route1";
+		SceneStation origin;
+		origin.id = "Origin";
+		origin.name = "Origin";
+		origin.hasPosition = true;
+		origin.positionKm = 0;
+		source.stations.push_back(origin);
+		const auto built = buildInfrastructureAndSignallingFromScene(source);
+		ok &= expect(!hasErrors(built) && Blocks == 8, "roundtrip source builds");
+		const std::vector<int> base = [&] {
+			auto first = levelsOfLine("a.", 4), second = levelsOfLine("b.", 4);
+			first.insert(first.end(), second.begin(), second.end());
+			return first;
+		}();
+		ok &= expect(base == (empty ? std::vector<int>(8, kUnsetLevel) : std::vector<int>({3, 3, 1, 4, 1, 1, 5, 1})), "roundtrip fixture covers contained, straddling and tolerance boundary sections");
+		const auto routeLevels = [] {
+			std::vector<std::vector<int>> levels;
+			for (const auto& route : train_route) {
+				std::vector<int> row;
+				for (int i = 0; i < route.N_Block_Sections; ++i) row.push_back(route.sequence_of_block_sections[i].SignallingLevel);
+				levels.push_back(row);
+			}
+			return levels;
+		};
+		const auto beforeRoutes = routeLevels();
+		ok &= expect(train_route.size() == 2 && train_route[0].reversed_direction == reverse && train_route[1].reversed_direction == reverse, "source route directions match fixture");
+		const fs::path scene = root / (reverse ? "reverse" : "forward");
+		ok &= expect(saveScene(source, scene.string()).success(), "roundtrip canonical source saves");
+		ok &= expect(exportLegacyScene(scene.string(), (root / "exported").string()).success(), "roundtrip source exports");
+		ok &= expect(importLegacyScene((root / "exported").string(), (root / "imported").string(), "Areas").success(), "roundtrip output imports");
+		const auto loaded = loadScene((root / "imported").string());
+		ok &= expect(!hasErrors(loaded.diagnostics), "roundtrip output loads");
+		const auto after = buildInfrastructureAndSignallingFromScene(loaded.scene);
+		std::vector<int> afterBase;
+		const auto mapped = builtSectionLevels();
+		for (const auto& track : {"B0", "B1"})
+			for (int i = 0; i < 4; ++i) {
+				const auto found = mapped.find("@" + std::to_string(i) + "-" + track + "@");
+				afterBase.push_back(found == mapped.end() ? kMissingSection : found->second);
+			}
+		ok &= expect(!hasErrors(after) && afterBase == base && routeLevels() == beforeRoutes
+				&& train_route.size() == 2 && train_route[0].reversed_direction == reverse && train_route[1].reversed_direction == reverse,
+			"export/import retains base and route assignments in both directions without snapping boundaries");
+	}
+	return ok;
 }
 
 static bool runAreaMappingChecks() {
@@ -1593,6 +1670,7 @@ static bool runOccupancyListChecks() {
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
+	ok &= runAreaRoundtripChecks();
 	ok &= runLongTrackChecks();
 	ok &= runManySectionsChecks();
 	ok &= runRouteStorageChecks();
