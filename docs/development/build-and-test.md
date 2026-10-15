@@ -1357,7 +1357,8 @@ in `update/ReleaseInfo.cpp` as text, looks for the icon file, and checks that:
 - it has only the sections `Setup`, `Tasks`, `Files`, `InstallDelete`, `Icons`
   and `Registry`, so no code, run or uninstall-delete section, and uses only
   the constants `{app}`, `{userpf}`, `{userprograms}` and `{userdesktop}`, so
-  nothing is installed for all users or outside the installation folder;
+  nothing is installed for all users, and only the two shortcuts lie outside
+  the installation folder;
 - the preprocessor lines are the `#ifndef` and `#error` guards for the two
   parameters, and the only macros are `{#Version}` and `{#Payload}`;
 - the `[Setup]` directives that decide the scope have their pinned values: the
