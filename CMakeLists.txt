@@ -840,6 +840,10 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_sceneimporter PRIVATE egtrain_scene)
 	add_test(NAME test_sceneimporter COMMAND test_sceneimporter)
 
+	add_executable(test_scenesavepolicy ${SRC_DIR}/tests/test_scenesavepolicy.cpp)
+	target_link_libraries(test_scenesavepolicy PRIVATE Qt5::Core)
+	add_test(NAME test_scenesavepolicy COMMAND test_scenesavepolicy)
+
 	add_executable(test_scenewriter ${SRC_DIR}/tests/test_scenewriter.cpp)
 	target_link_libraries(test_scenewriter PRIVATE egtrain_scene)
 	add_test(NAME test_scenewriter
@@ -1076,7 +1080,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_recoverystore
 			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
-			test_sceneimporter test_scenewriter test_sceneexporter test_scenebundle
+			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
@@ -1089,7 +1093,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenesavepolicy test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
@@ -1117,7 +1121,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
-		test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
+		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_scenebuilder
 		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)

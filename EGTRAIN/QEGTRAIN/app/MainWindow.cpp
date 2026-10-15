@@ -3,6 +3,7 @@
 #include "app/TelemetrySmokeSupport.h"
 #endif
 #include "app/ReplayCoverage.h"
+#include "app/SceneSavePolicy.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
@@ -5052,7 +5053,7 @@ bool MainWindow::saveSceneToCurrentDir() {
 	if (!m_sceneLoaded)
 		return false;
 	commitPendingEditorValues();
-	if (m_sceneDir.isEmpty())
+	if (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath()))
 		return saveSceneAsToBundle(operation);
 
 	auto result = m_sceneIsBundle
@@ -5074,15 +5075,20 @@ bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& oper
 		return false;
 	commitPendingEditorValues();
 
-	const QString startPath = m_sceneDir.isEmpty() ? QDir::homePath()
-												   : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
+	const QString startPath = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
+																																 : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
 	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
 		"EGTRAIN Case Study (*.egscene)");
 	if (targetPath.isEmpty())
 		return false;
 	if (!targetPath.endsWith(".egscene", Qt::CaseInsensitive))
 		targetPath += ".egscene";
-	targetPath = QFileInfo(targetPath).absoluteFilePath();
+	targetPath = QDir::cleanPath(QFileInfo(targetPath).absoluteFilePath());
+	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
+		operation.exportFinished(telemetry::ExportKind::SceneBundle, false, false, telemetry::Error::InvalidInput);
+		showBlockingError(this, "Cannot Save Scene", "Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.");
+		return false;
+	}
 
 	auto result = saveSceneBundle(m_sceneModel, targetPath.toStdString());
 	if (!result.success())
@@ -5101,13 +5107,18 @@ bool MainWindow::saveSceneAsToDirectory() {
 		return false;
 	commitPendingEditorValues();
 
-	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath()
-												  : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
+	const QString startDir = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
+																																: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
 	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
 
 	QString targetPath = QDir(dir).absolutePath();
+	if (isInstalledScenePath(targetPath, QCoreApplication::applicationDirPath())) {
+		operation.exportFinished(std::nullopt, false, false, telemetry::Error::InvalidInput);
+		showBlockingError(this, "Cannot Save Scene", "Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.");
+		return false;
+	}
 	QDir targetDir(targetPath);
 	if (targetDir.exists()) {
 		bool isNonEmpty = !targetDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).isEmpty();
