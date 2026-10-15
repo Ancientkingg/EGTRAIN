@@ -25,7 +25,9 @@ renderer did not paint a train category badge or speed label over the locomotive
 ## Preview and runtime infrastructure
 
 Normal Open now draws semantic track, connection, ordinary-node and station-node
-items before Run, using the same paint classes as prepared runtime. Preview has
+items before Run, using the same paint classes as prepared runtime. Preview and
+run draw the connections first and the track lines over them with the same pens,
+and a lit signal head has a hairline outline in both. Preview has
 canonical string identities and read-only inspectors, not native simulation
 objects. White platform bars use the existing passenger-GUI mode; preview does
 not invent passenger counters. Inspection does not select an editor row or
