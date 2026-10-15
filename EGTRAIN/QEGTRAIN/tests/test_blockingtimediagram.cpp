@@ -1,7 +1,6 @@
 #include "diagrams/BlockingTimeDiagram.h"
 #include "util/CsvWriter.h"
 
-#include <cmath>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -41,7 +40,8 @@ static bool blockSectionTests() {
 	const double nan = std::numeric_limits<double>::quiet_NaN();
 	const double inf = std::numeric_limits<double>::infinity();
 
-	// Known endpoints: the sections of Assignment_Gvc_Gdg_Ut route0, 32 blocks of 2 km from 0 km.
+	// Synthetic endpoints shaped like Assignment_Gvc_Gdg_Ut route0: 32 blocks of 2 km from 0 km.
+	// tools/e2e/csv_export_smoke.sh checks the real endpoints of that scene against infrastructure.json.
 	std::vector<BlockSectionInput> assignment;
 	for (int k = 0; k < 32; ++k)
 		assignment.push_back({"@" + std::to_string(k) + "-B0@", 2.0 * k, 2.0 * k + 2.0});

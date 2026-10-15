@@ -23228,6 +23228,12 @@ void MainWindow::runCreatorAcceptanceE2E() {
 			fail(QStringLiteral("compressed capacity diagram did not export"));
 			return;
 		}
+		const auto* compressedView = compressed->findChild<QChartView*>();
+		const auto* compressedSections = compressedView ? compressedView->chart()->findChild<QObject*>("blockSectionOverlay") : nullptr;
+		if (!compressedSections || compressedSections->property("sectionCount").toInt() <= 0) {
+			fail(QStringLiteral("compressed capacity diagram has no physical section layer"));
+			return;
+		}
 		capacity->close();
 		QPushButton* compareButton = findChild<QPushButton*>("compareDelayButton");
 		if (!compareButton) {
@@ -30274,10 +30280,12 @@ void MainWindow::showBlockingTimeDiagram() {
 	win->setBlockSections(extents, QString::fromStdString(referencePath.id));
 	// The envelope colours show the block type, so only the train list takes the service colours.
 	win->setTrainListColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
+	const bool nothingPlotted = segments.empty() && plottedPlanned.empty() && trajectoryRows.empty();
 	const QString note = QString("Calculated envelopes, not observed occupation; movement only within scope. "
 								 "Unmapped endpoints/events omitted: %1; incomplete/missing-clearance blocks omitted. No extrapolation. "
 								 "Envelope colours: blue blocks/stations, yellow switches, red conflicts. Neutral lines/strip: physical sections.")
 							 .arg(omitted)
+		+ (nothingPlotted ? QString(" No complete envelope could be projected in this scope.") : QString())
 		+ QString::fromStdString(blockSectionGeometryNote(extents));
 	win->setPresentation("Blocking time: envelopes and trajectories",
 		QString("%1 | %2 to %3 [%4] | Reference: %5")
@@ -30543,7 +30551,9 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 	window->setTrainListColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
 	const QString note = "Shifted calculated envelopes, not recorded movement. "
 						 "Unmapped/incomplete blocks omitted; no extrapolation. "
-						 "Envelope colours: blue blocks/stations, yellow switches, red conflicts, amber capacity-critical touching blocks. Neutral lines/strip: physical sections.";
+						 "Envelope colours: blue blocks/stations, yellow switches, red conflicts, amber capacity-critical touching blocks. "
+						 "Neutral lines/strip: physical sections."
+		+ (segments.empty() ? QString(" No complete compressed envelope could be projected in this scope.") : QString());
 	window->setPresentation("Compressed blocking-time diagram",
 		QString("%1 | cycle %2 to %3 [%4] | Reference: %5")
 			.arg(sectionLabel, QString::fromStdString(result.firstIdentity), QString::fromStdString(result.cycleEndIdentity),

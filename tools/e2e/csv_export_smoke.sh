@@ -262,19 +262,19 @@ assert all(row["Reference section"] == order_of.get(row["Block"]) for row in env
     "an Assignment envelope does not name the section of its block"
 
 # Paimpol: the all-stops service sets the reference route. The express service runs a route with other blocks.
-if os.path.exists(os.path.join(paimpol_output, "blocking_time.csv")):
-    sections, envelopes, rows = check_export("Paimpol export", paimpol_scene, paimpol_output)
-    assert any(row["Reference section"] for row in envelopes), "no Paimpol envelope names a section"
-    express_id, express = service_route(paimpol_scene, 1)
-    unmapped = [row for row in rows if row["Layer"] == UNMAPPED]
-    assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"] and not row["Start X[km]"]
-               and not row["End X[km]"] and not row["Reference section"] for row in unmapped), \
-        "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
-    # The projection does not extrapolate: these express blocks lie before the first or after the last node both routes share.
-    assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@1-B0@", "@122-B0@", "@123-B0@", "@124-B0@"], \
-        "unexpected unmapped Paimpol envelopes"
-    shown = [row["Block"] for row in rows if row["Train"].startswith(express_id + "-") and row["Layer"] in (ENVELOPE, UNMAPPED)]
-    assert sorted(shown) == sorted(f"@{block}@" for block in express), "an express envelope is neither shown nor unmapped"
+assert os.path.exists(os.path.join(paimpol_output, "blocking_time.csv")), "the Paimpol run did not write blocking_time.csv"
+sections, envelopes, rows = check_export("Paimpol export", paimpol_scene, paimpol_output)
+assert any(row["Reference section"] for row in envelopes), "no Paimpol envelope names a section"
+express_id, express = service_route(paimpol_scene, 1)
+unmapped = [row for row in rows if row["Layer"] == UNMAPPED]
+assert all(row["Train"].startswith(express_id + "-") and not row["Position[km]"] and not row["Start X[km]"]
+           and not row["End X[km]"] and not row["Reference section"] for row in unmapped), \
+    "an unmapped Paimpol envelope carries a coordinate or belongs to another service"
+# The projection does not extrapolate: these express blocks lie before the first or after the last node both routes share.
+assert sorted(row["Block"] for row in unmapped) == ["@0-B0@", "@1-B0@", "@122-B0@", "@123-B0@", "@124-B0@"], \
+    "unexpected unmapped Paimpol envelopes"
+shown = [row["Block"] for row in rows if row["Train"].startswith(express_id + "-") and row["Layer"] in (ENVELOPE, UNMAPPED)]
+assert sorted(shown) == sorted(f"@{block}@" for block in express), "an express envelope is neither shown nor unmapped"
 PY
 
 # Exercise the provider installed on the actual blocking-time window, including its train filter.

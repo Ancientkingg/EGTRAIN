@@ -721,7 +721,31 @@ static bool exerciseBlockSections() {
 			}
 		return inspected && redPixels > 10;
 	};
-	ok &= expect(headerPoint(2, 5).y() < chart->plotArea().top(), "strip and geometry notice sit directly above the time plot");
+	// The strip and the geometry notice paint only in the band that ends at the plot area. Compare a grab with and without the
+	// overlay there, and look for the dark notice text in the lower row of the band.
+	const QImage withOverlay = view->grab().toImage();
+	overlay->hide();
+	const QImage withoutOverlay = view->grab().toImage();
+	overlay->show();
+	const auto bandPixels = [&](double fromY, double toY, bool darkText) {
+		const qreal scale = withOverlay.devicePixelRatio();
+		const QRectF plotRect = chart->plotArea();
+		const QPoint from = view->mapFromScene(chart->mapToScene(QPointF(plotRect.left() + 2, fromY)));
+		const QPoint to = view->mapFromScene(chart->mapToScene(QPointF(plotRect.right() - 2, toY)));
+		int count = 0;
+		for (int row = qRound(from.y() * scale); row < qRound(to.y() * scale); ++row)
+			for (int column = qRound(from.x() * scale); column < qRound(to.x() * scale); ++column) {
+				if (!withOverlay.rect().contains(column, row)) continue;
+				const QColor color = withOverlay.pixelColor(column, row);
+				if (darkText ? color.red() + color.green() + color.blue() < 400 : withOverlay.pixel(column, row) != withoutOverlay.pixel(column, row)) ++count;
+			}
+		return count;
+	};
+	const double bandTop = headerPoint(0, 0).y();
+	const double rowHeight = QFontMetricsF(window.font()).height() + 10;
+	ok &= expect(bandPixels(0, bandTop - 2, false) == 0 && bandPixels(bandTop, bandTop + rowHeight, false) > 0
+			&& bandPixels(bandTop + rowHeight, chart->plotArea().top(), true) > 10,
+		"the strip and the geometry notice text paint in the band above the plot and not over the title");
 	// With the overlay hidden, only the chart title paints above the plot. It must end above the strip, so the strip covers none of it.
 	const auto titleExtent = [&](double limitY) {
 		overlay->hide();
@@ -731,14 +755,14 @@ static bool exerciseBlockSections() {
 		const QPoint centre = view->mapFromScene(chart->mapToScene(QPointF(chart->size().width() / 2, 0)));
 		const int limit = view->mapFromScene(chart->mapToScene(QPointF(0, limitY))).y();
 		int count = 0, bottom = -1;
-		for (int y = 0; y < limit; ++y)
+		for (int row = 0; row < limit; ++row)
 			for (int dx = -80; dx <= 80; ++dx) {
-				const QPoint pixel(qRound((centre.x() + dx) * scale), qRound(y * scale));
+				const QPoint pixel(qRound((centre.x() + dx) * scale), qRound(row * scale));
 				if (!image.rect().contains(pixel)) continue;
 				const QColor color = image.pixelColor(pixel);
 				if (color.red() + color.green() + color.blue() < 400) {
 					++count;
-					bottom = y;
+					bottom = row;
 				}
 			}
 		return std::make_pair(count, bottom);
@@ -795,11 +819,11 @@ static bool exerciseBlockSections() {
 		const QImage without = view->grab().toImage();
 		overlay->show();
 		const QPoint boundary = view->mapFromScene(chart->mapToScene(chartPoint(3, 60)));
-		const qreal ratio = with.devicePixelRatio();
+		const qreal pixelRatio = with.devicePixelRatio();
 		int changed = 0;
 		for (int dy = 0; dy < 20; ++dy)
 			for (int dx = -2; dx <= 2; ++dx) {
-				const QPoint pixel(qRound((boundary.x() + dx) * ratio), qRound((boundary.y() + dy) * ratio));
+				const QPoint pixel(qRound((boundary.x() + dx) * pixelRatio), qRound((boundary.y() + dy) * pixelRatio));
 				if (with.rect().contains(pixel) && with.pixel(pixel) != without.pixel(pixel)) ++changed;
 			}
 		return changed > 0;
@@ -820,8 +844,10 @@ static bool exerciseBlockSections() {
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));
 	ok &= expect(x->min() == 0 && x->max() == 10 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
-	const double strip = QFontMetricsF(window.font()).height() + 10;
-	hover(headerPoint(2, strip + 5));
+	hover(headerPoint(6.5, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("@reverse@") && tooltip->text().contains("Directed X: 8 to 5 km"),
+		"a section towards decreasing X reports its directed ends in hover");
+	hover(headerPoint(2, rowHeight + 5));
 	ok &= expect(tooltip->text().contains("@missing<&>@") && tooltip->text().contains("zero length")
 			&& !overlay->property("geometryNotice").toString().isEmpty(),
 		"missing geometry has an in-chart notice with full hover reason");
