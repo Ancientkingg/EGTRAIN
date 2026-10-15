@@ -19,9 +19,10 @@ import build_release_assets
 SCRIPT = Path(__file__).resolve().with_name("build_release_assets.py")
 SCENES = ("Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon",
           "Amsterdam_Hilversum_Student")
-MACOS, WINDOWS, LINUX = "QEGTRAIN-macos-arm64.zip", "QEGTRAIN-windows-x64.zip", "QEGTRAIN-linux-x86_64.AppImage"
+MACOS, LINUX = "QEGTRAIN-macos-arm64.zip", "QEGTRAIN-linux-x86_64.AppImage"
+PORTABLE, INSTALLER = "EGTRAIN-Portable-1.2.3-x64.zip", "EGTRAIN-Setup-1.2.3-x64.exe"
 MANIFEST = "update-manifest.json"
-EXPECTED_NAMES = sorted([MACOS, WINDOWS, LINUX, MANIFEST] + [scene + ".egscene" for scene in SCENES])
+EXPECTED_NAMES = sorted([MACOS, PORTABLE, INSTALLER, LINUX, MANIFEST] + [scene + ".egscene" for scene in SCENES])
 PAYLOAD = {
     "QEGTRAIN.exe": b"MZ executable",
     "egtrain_update_helper.exe": b"MZ helper",
@@ -58,16 +59,20 @@ class ReleaseAssetsTests(unittest.TestCase):
         self.artifacts = self.root / "artifacts"
         self.output = self.root / "release-assets"
         self.payload = self.artifacts / "QEGTRAIN-windows-x64-payload"
+        self.portable = self.artifacts / "EGTRAIN-windows-x64-portable" / PORTABLE
+        self.installer = self.artifacts / "EGTRAIN-windows-x64-installer" / INSTALLER
         self.macos = self.artifacts / "QEGTRAIN-macos-arm64" / MACOS
         self.linux = self.artifacts / "QEGTRAIN-linux-x86_64" / LINUX
         self.scenes = self.artifacts / "EGTRAIN-scenes"
         for name, content in PAYLOAD.items():
             write(self.payload / name, content)
+        build_release_assets.build_portable_archive(self.payload, self.portable.parent, "1.2.3")
+        write(self.installer, b"installer")
         write(self.macos, b"macOS package")
         write(self.linux, b"AppImage")
         for scene in SCENES:
             write(self.scenes / (scene + ".egscene"), scene.encode())
-        write(self.artifacts / "QEGTRAIN-windows-x64" / WINDOWS, b"transport zip")
+        write(self.artifacts / "finalize-windows-diagnostics" / "installer.log", b"log")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -88,7 +93,7 @@ class ReleaseAssetsTests(unittest.TestCase):
         written = self.build()
         self.assertEqual(sorted(os.listdir(self.output)), EXPECTED_NAMES)
         self.assertEqual([path.name for path in written], EXPECTED_NAMES)
-        copies = [(self.macos, MACOS), (self.linux, LINUX)] + [
+        copies = [(self.macos, MACOS), (self.portable, PORTABLE), (self.installer, INSTALLER), (self.linux, LINUX)] + [
             (self.scenes / (scene + ".egscene"), scene + ".egscene") for scene in SCENES]
         for source, name in copies:
             self.assertTrue(filecmp.cmp(source, self.output / name, shallow=False), name)
@@ -99,8 +104,9 @@ class ReleaseAssetsTests(unittest.TestCase):
         manifest = self.manifest()
         self.assertEqual(list(manifest), ["version", "assets"])
         self.assertEqual(manifest["version"], "1.2.3")
-        self.assertEqual(list(manifest["assets"]), ["macos-arm64", "windows-x64", "linux-x86_64"])
-        for key, name in (("macos-arm64", MACOS), ("windows-x64", WINDOWS), ("linux-x86_64", LINUX)):
+        self.assertEqual(list(manifest["assets"]), ["macos-arm64", "windows-x64", "windows-x64-installer", "linux-x86_64"])
+        for key, name in (("macos-arm64", MACOS), ("windows-x64", PORTABLE), ("windows-x64-installer", INSTALLER),
+                          ("linux-x86_64", LINUX)):
             entry = manifest["assets"][key]
             data = (self.output / name).read_bytes()
             self.assertEqual(list(entry)[:3], ["name", "sha256", "size"])
@@ -112,7 +118,7 @@ class ReleaseAssetsTests(unittest.TestCase):
     def test_portable_archive_holds_the_payload_files_in_string_order(self):
         self.build()
         expected = sorted(path.relative_to(self.payload).as_posix() for path in self.payload.rglob("*") if path.is_file())
-        with zipfile.ZipFile(self.output / WINDOWS) as archive:
+        with zipfile.ZipFile(self.output / PORTABLE) as archive:
             names = archive.namelist()
             self.assertEqual(names, expected)
             self.assertEqual(names, self.manifest()["assets"]["windows-x64"]["files"])
@@ -130,9 +136,9 @@ class ReleaseAssetsTests(unittest.TestCase):
 
     def test_file_older_than_1980_is_archived(self):
         os.utime(self.payload / "Qt5Core.dll", (0, 0))
-        self.build()
-        with zipfile.ZipFile(self.output / WINDOWS) as archive:
-            self.assertIn("Qt5Core.dll", archive.namelist())
+        archive = build_release_assets.build_portable_archive(self.payload, self.root / "portable", "1.2.3")
+        with zipfile.ZipFile(archive) as zip_file:
+            self.assertIn("Qt5Core.dll", zip_file.namelist())
 
     def test_payload_without_exe_at_top_level_is_rejected(self):
         (self.payload / "QEGTRAIN.exe").rename(self.payload / "platforms" / "QEGTRAIN.exe")
@@ -161,11 +167,17 @@ class ReleaseAssetsTests(unittest.TestCase):
             platforms.chmod(0o755)
 
     def test_missing_or_empty_package_is_rejected(self):
-        self.macos.unlink()
-        self.assertRejected("missing file " + str(self.macos))
-        write(self.macos, b"macOS package")
-        self.linux.write_bytes(b"")
-        self.assertRejected("empty file " + str(self.linux))
+        for path in (self.macos, self.portable, self.installer, self.linux):
+            with self.subTest(package=path.name):
+                content = path.read_bytes()
+                path.unlink()
+                self.assertRejected("missing file " + str(path))
+                path.write_bytes(b"")
+                self.assertRejected("empty file " + str(path))
+                path.write_bytes(content)
+
+    def test_package_named_for_another_version_is_rejected(self):
+        self.assertRejected("missing file " + str(self.portable.with_name("EGTRAIN-Portable-1.2.4-x64.zip")), "1.2.4")
 
     def test_stray_file_in_an_artifact_directory_is_rejected(self):
         write(self.linux.with_name("notes.txt"), b"x")
@@ -200,19 +212,80 @@ class ReleaseAssetsTests(unittest.TestCase):
         self.assertEqual(sorted(os.listdir(self.output)), EXPECTED_NAMES)
 
     def test_package_sizes_are_checked_at_the_call_sites(self):
-        # The macOS package has 13 bytes and the AppImage 8.
-        with mock.patch.object(build_release_assets, "MAX_PACKAGE_BYTES", 10):
-            self.assertRejected(MACOS)
-        self.macos.write_bytes(b"macOS")
-        with mock.patch.object(build_release_assets, "MAX_PACKAGE_BYTES", 6):
-            self.assertRejected(LINUX)
+        # Each package alone is larger than the limit, which the others stay under.
+        with mock.patch.object(build_release_assets, "MAX_PACKAGE_BYTES", 4096):
+            for path in (self.macos, self.portable, self.installer, self.linux):
+                with self.subTest(package=path.name):
+                    content = path.read_bytes()
+                    path.write_bytes(b"x" * 4097)
+                    self.assertRejected(path.name)
+                    path.write_bytes(content)
 
-    def test_archive_size_is_checked_before_the_manifest_is_written(self):
+    def test_portable_archive_must_hold_exactly_the_payload(self):
+        def rewrite(mutate):
+            members = {name: (self.payload / name).read_bytes() for name in sorted(PAYLOAD)}
+            mutate(members)
+            with zipfile.ZipFile(self.portable, "w") as archive:
+                for name, content in members.items():
+                    archive.writestr(name, content)
+
+        def reverse(members):
+            items = list(members.items())
+            members.clear()
+            members.update(reversed(items))
+
+        changes = (
+            ("missing member", lambda members: members.pop("a.b")),
+            ("extra member", lambda members: members.update({"zz.txt": b"extra"})),
+            ("other bytes", lambda members: members.update({"Qt5Core.dll": b"MZ other"})),
+            ("other order", reverse),
+        )
+        for label, mutate in changes:
+            with self.subTest(label):
+                rewrite(mutate)
+                self.assertRejected(PORTABLE)
+        self.portable.write_bytes(b"not an archive")
+        self.assertRejected("not a readable archive")
+
+    def test_portable_archive_with_a_damaged_member_is_rejected(self):
+        raw = bytearray(self.portable.read_bytes())
+        with zipfile.ZipFile(self.portable) as archive:
+            info = archive.getinfo("QEGTRAIN.exe")
+        extra = int.from_bytes(raw[info.header_offset + 28:info.header_offset + 30], "little")
+        raw[info.header_offset + 30 + len(info.filename) + extra] ^= 0xFF
+        self.portable.write_bytes(bytes(raw))
+        self.assertRejected(PORTABLE)
+
+    def test_portable_archive_alone_is_written_from_the_payload(self):
+        output = self.root / "portable"
+        archive = build_release_assets.build_portable_archive(self.payload, output, "2.0.1")
+        self.assertEqual(archive, output / "EGTRAIN-Portable-2.0.1-x64.zip")
+        self.assertEqual(os.listdir(output), [archive.name])
+        with zipfile.ZipFile(archive) as zip_file:
+            self.assertEqual(zip_file.namelist(), sorted(PAYLOAD))
+            self.assertIsNone(zip_file.testzip())
+
+    def test_portable_archive_alone_checks_its_input_and_output(self):
+        output = self.root / "portable"
+        with self.assertRaises(SystemExit) as raised:
+            build_release_assets.build_portable_archive(self.payload, output, "1.0")
+        self.assertIn("'1.0'", str(raised.exception))
+        (self.payload / "QEGTRAIN.exe").rename(self.payload / "platforms" / "QEGTRAIN.exe")
+        with self.assertRaises(SystemExit) as raised:
+            build_release_assets.build_portable_archive(self.payload, output, "1.2.3")
+        self.assertIn("no QEGTRAIN.exe", str(raised.exception))
+        (self.payload / "platforms" / "QEGTRAIN.exe").rename(self.payload / "QEGTRAIN.exe")
+        self.assertFalse(output.exists())
+        write(output / "keep.txt", b"x")
+        with self.assertRaises(SystemExit) as raised:
+            build_release_assets.build_portable_archive(self.payload, output, "1.2.3")
+        self.assertIn(str(output), str(raised.exception))
+        self.assertEqual(os.listdir(output), ["keep.txt"])
+        shutil.rmtree(output)
         with mock.patch.object(build_release_assets, "MAX_PACKAGE_BYTES", 100):
             with self.assertRaises(SystemExit) as raised:
-                self.build()
-        self.assertIn(WINDOWS, str(raised.exception))
-        self.assertNotIn(MANIFEST, os.listdir(self.output))
+                build_release_assets.build_portable_archive(self.payload, output, "1.2.3")
+        self.assertIn(PORTABLE, str(raised.exception))
 
     def test_runs_as_a_program_from_another_directory(self):
         result = subprocess.run(
@@ -220,16 +293,33 @@ class ReleaseAssetsTests(unittest.TestCase):
             cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stdout)
         lines = result.stdout.splitlines()
-        self.assertTrue(lines[-1].startswith("OK: 11 release assets"), lines[-1])
+        self.assertTrue(lines[-1].startswith("OK: 12 release assets"), lines[-1])
         self.assertEqual(len(lines), len(EXPECTED_NAMES) + 1)
         self.assertIsNone(re.search(r"[0-9a-f]{64}", result.stdout))
+
+    def test_portable_archive_runs_as_a_program_and_the_two_sources_exclude_each_other(self):
+        output = self.root / "portable"
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--version", "1.2.3", "--payload", str(self.payload), "--output", str(output)],
+            cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(os.listdir(output), [PORTABLE])
+        self.assertTrue(result.stdout.splitlines()[-1].startswith("OK: portable archive"), result.stdout)
+        self.assertIsNone(re.search(r"[0-9a-f]{64}", result.stdout))
+        for sources in ([], ["--artifacts", str(self.artifacts), "--payload", str(self.payload)]):
+            with self.subTest(sources=sources):
+                result = subprocess.run(
+                    [sys.executable, str(SCRIPT), "--version", "1.2.3", "--output", str(self.output)] + sources,
+                    cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=120)
+                self.assertEqual(result.returncode, 2, result.stdout)
+                self.assertFalse(self.output.exists())
 
     @unittest.skipUnless(sys.platform == "win32", "extracts the archive with PowerShell as the application does")
     def test_powershell_extracts_the_archive_to_the_payload(self):
         self.build()
         extract = self.root / "extract"
         extract.mkdir()
-        environment = dict(os.environ, EGTRAIN_UPDATE_ZIP=str(self.output / WINDOWS), EGTRAIN_UPDATE_DEST=str(extract))
+        environment = dict(os.environ, EGTRAIN_UPDATE_ZIP=str(self.output / PORTABLE), EGTRAIN_UPDATE_DEST=str(extract))
         command = ("$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:EGTRAIN_UPDATE_ZIP "
                    "-DestinationPath $env:EGTRAIN_UPDATE_DEST -Force")
         subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
@@ -277,9 +367,9 @@ class RuleTests(unittest.TestCase):
 
     def test_package_size_bounds(self):
         for size in (1, 2 * 1024 ** 3):
-            build_release_assets.check_package_size(WINDOWS, size)
+            build_release_assets.check_package_size(PORTABLE, size)
         for size in (0, 2 * 1024 ** 3 + 1):
-            self.assertIn(WINDOWS, exit_message(build_release_assets.check_package_size, WINDOWS, size))
+            self.assertIn(PORTABLE, exit_message(build_release_assets.check_package_size, PORTABLE, size))
 
 
 if __name__ == "__main__":

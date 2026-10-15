@@ -1113,7 +1113,14 @@ most of its checks, so run it locally to read its logs.
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package, starts a copy of the package with
   `tools/release/package_start_smoke.py`, and prints the number of files and
-  bytes of the package in its job summary. The macOS package job removes the
+  bytes of the package in its job summary. The Windows finalize job
+  (`finalize-windows`) then downloads that directory, compiles
+  `installer/egtrain.iss` with Inno Setup into `EGTRAIN-Setup-<version>-x64.exe`,
+  runs `tools/release/installer_smoke.ps1` on it (see
+  [Installer smoke](#installer-smoke)), writes `EGTRAIN-Portable-<version>-x64.zip`
+  from the same directory with `build_release_assets.py --payload`, extracts that
+  archive and starts the extracted program with the same start script, and
+  uploads the installer and the archive. The macOS package job removes the
   virtual keyboard input plugin with the Quick and QML frameworks, and the WebP
   and TIFF plugins with their libraries, from the app before the signature,
   fails when one of them is in the app, starts a copy of the app with the same
@@ -1132,30 +1139,37 @@ most of its checks, so run it locally to read its logs.
   command line of the release job
   (`--artifacts artifacts --output release-assets`). The Windows package
   arrives as a directory with `QEGTRAIN.exe` at its top level. A green
-  check therefore also proves that the script accepts the three real packages,
-  builds the portable Windows archive and a manifest that the application
-  accepts by its rules for the file list and the package sizes, and that the
-  assets it writes are exactly the eleven that a release publishes.
+  check therefore also proves that the script accepts the real packages, the
+  installer and the portable archive, that the archive holds the files of the
+  payload with the same bytes, that the script builds a manifest that the
+  application accepts by its rules for the file list and the package sizes, and
+  that the assets it writes are exactly the twelve that a release publishes.
   It does not prove a release: nothing is signed with real credentials (the
   macOS bundle carries the same ad-hoc signature as in a release), nothing is
   published, and the check has read permission only. It does not prove the
   release job either: that job runs only on a push to `production` or a `v*`
   tag, so its steps (the script step, the glob that publishes
   `release-assets/*`, the creation of the release) are first run by a release.
-  The package check does not extract the archive on Windows; only the unit test
-  of the script extracts an archive that it builds, on the Windows leg of the
-  CMake workflow. A release still runs only from `release.yml`. A newer push to
-  the pull request cancels the running check.
+  The finalize job extracts the archive with Python, not with the PowerShell
+  command that the application uses; only the unit test of the script extracts an
+  archive with that command, on the Windows leg of the CMake workflow. The
+  runner account is an administrator, so the check does not show that a
+  standard user installs without an elevation request. It runs on a machine
+  with the Visual C++ runtime, so it does not show that the package starts on a
+  machine without it. A release still runs only from `release.yml`. A newer push
+  to the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
   release. The three package jobs are in `.github/workflows/package.yml`, which
   `release.yml` calls from its `package` job with the selected version. The
   Windows package job uploads the assembled directory as the artifact
-  `QEGTRAIN-windows-x64-payload`. The release job builds the files of the
-  release from the downloaded artifacts with
+  `QEGTRAIN-windows-x64-payload`, and the Windows finalize job builds the
+  installer and the portable archive from it and uploads them as
+  `EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. The release
+  job builds the files of the release from the downloaded artifacts with
   `tools/release/build_release_assets.py` and publishes the files it writes; the
-  archive `QEGTRAIN-windows-x64.zip` is written only by the script. Before
+  portable archive is written only by the script. Before
   building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
   All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
@@ -1216,10 +1230,12 @@ documentation-only pull requests.
 ### Release assets script
 
 `tools/release/build_release_assets.py` builds the files that a release
-publishes from the artifacts of the package jobs:
+publishes from the artifacts of the package jobs, and writes the portable
+Windows archive for the Windows finalize job:
 
 ```bash
 python3 tools/release/build_release_assets.py --version X.Y.Z --artifacts DIR --output DIR
+python3 tools/release/build_release_assets.py --version X.Y.Z --payload DIR --output DIR
 ```
 
 `--artifacts` holds one directory per artifact, as `actions/download-artifact`
@@ -1227,31 +1243,40 @@ makes them when it is given no artifact name:
 
 - `QEGTRAIN-windows-x64-payload/`: the assembled Windows package, with
   `QEGTRAIN.exe` at its top level, uploaded by the Windows package job
+- `EGTRAIN-windows-x64-portable/EGTRAIN-Portable-X.Y.Z-x64.zip`
+- `EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe`
 - `QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip`
 - `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
 - `EGTRAIN-scenes/`: the seven `.egscene` files
 
 Other directories are ignored. `--output` must not exist or must be an empty
 directory, and the script writes nowhere else. Afterwards it holds exactly the
-eleven files of a release: `QEGTRAIN-macos-arm64.zip`,
-`QEGTRAIN-windows-x64.zip`, `QEGTRAIN-linux-x86_64.AppImage`, the seven
-`.egscene` files and `update-manifest.json`. The macOS package, the AppImage and
-the scene bundles are copies. The Windows archive is written from the files of
-the payload, one member per file with forward slashes, no directory entries and
-no top-level folder. The `sha256` and `size` of each package in the manifest come
-from the file in `--output`. The `files` of the Windows entry are the members of
-the archive, sorted by their full path as a string (`a.b` comes before `a/b`).
-The script prints the name and size of each file. The release job and the
-package check run it with `--artifacts artifacts --output release-assets` on the
-artifacts they download, and the release job publishes the files of the output
-directory.
+twelve files of a release: the four packages named above, the seven `.egscene`
+files and `update-manifest.json`. The packages and the scene bundles are copies.
+The `sha256` and `size` of each package in the manifest come from the file in
+`--output`. The `files` of the `windows-x64` entry are the members of the
+portable archive, sorted by their full path as a string (`a.b` comes before
+`a/b`). The `windows-x64-installer` entry has no `files`. The script prints the
+name and size of each file. The release job and the package check run it with
+`--artifacts artifacts --output release-assets` on the artifacts they download,
+and the release job publishes the files of the output directory.
+
+`--payload` takes the assembled Windows package and writes
+`EGTRAIN-Portable-X.Y.Z-x64.zip` into `--output`: one member per file with forward
+slashes, in the order of the sorted file list, no directory entries and no
+top-level folder. The Windows finalize job runs it on the directory that it also
+gives to Inno Setup, so the installer and the archive hold the same files. The
+`--artifacts` form copies the archive and checks that it has exactly the members
+of the payload artifact, in that order, with the same bytes.
 
 Every input is checked before `--output` is created:
 
 - the version has the form `X.Y.Z` that `tools/release/version.py` accepts;
-- each file above exists and is not empty, the three artifact directories hold
-  no other file, and the payload holds regular files and directories only (a
-  link is an error, and so is a directory that cannot be read);
+- each file above exists and is not empty, the artifact directories hold no other
+  file, and the payload holds regular files and directories only (a link is an
+  error, and so is a directory that cannot be read);
+- the portable archive is a readable archive that holds the files of the payload
+  and nothing else, with the same bytes;
 - the file list of the Windows package has the rules of `parseManifestFiles` in
   `update/ReleaseInfo.cpp`: at most 4096 entries, each path at most 260 UTF-16
   code units, no `:` and no NUL, no empty, `.` or `..` segment, and
@@ -1259,15 +1284,16 @@ Every input is checked before `--output` is created:
   application would read it as a slash, because the list names the members of
   an archive that uses forward slashes only;
 - each package is between 1 byte and 2 GiB, the limit of `parseUpdateManifest`
-  in `update/ReleaseInfo.cpp`. The size of the Windows archive is checked once
-  it is written, before the manifest is.
+  in `update/ReleaseInfo.cpp`. With `--payload` the size of the archive is
+  checked once it is written.
 
 The script does not check the fixed runtime file set (`requiredRuntimeFiles()`
 in `update/WindowsStaging.h`): the Windows package job verifies it before it
 uploads the package.
 
 The test is `tools/release/test_release_assets.py`. It builds a small artifact
-tree, runs the script on it and checks the rules directly. Run it with
+tree, with the portable archive written by the script, runs the script on it and
+checks the rules directly. Run it with
 `ctest --test-dir build -R test_release_assets --output-on-failure`.
 
 ### Disk image script
@@ -1346,8 +1372,9 @@ The installer is for the current user and needs no administrator rights. It
 installs the package directory as it is into `%LOCALAPPDATA%\Programs\EGTRAIN`
 by default, adds a Start Menu entry and an optional desktop shortcut, and
 registers an uninstall entry under the current user. It replaces the `Scenes`
-folder of the installation folder on every install and runs no program. No
-workflow compiles the script.
+folder of the installation folder on every install and runs no program. The
+Windows finalize job of `package.yml` compiles the script, and
+`tools/release/installer_smoke.ps1` installs the result on the runner.
 
 The test is `tools/release/test_installer_script.py`. It reads the script,
 `installer/installed-by-setup.ini`, `installer/README.md` and `kAssetPatterns`
@@ -1384,6 +1411,47 @@ each rule reports the change. It does not compile the script or run an
 installer, so a green run shows nothing about Inno Setup accepting the file or
 about an install on Windows. Run it with
 `ctest --test-dir build -R test_installer_script --output-on-failure`.
+
+### Installer smoke
+
+`tools/release/installer_smoke.ps1` installs, upgrades and uninstalls the compiled
+installer on Windows. The Windows finalize job runs it on the installer and on a
+second installer of the next patch version, both built from the same directory:
+
+```powershell
+tools/release/installer_smoke.ps1 -Installer EXE -UpgradeInstaller EXE -Payload DIR -Version X.Y.Z -UpgradeVersion X.Y.Z [-Work DIR] [-Python NAME]
+```
+
+Run it only on a machine without EGTRAIN. It stops when an uninstall entry, a
+Start Menu or desktop shortcut or `%LOCALAPPDATA%\Programs\EGTRAIN` exists
+already. It changes the registry, the Start Menu and the desktop of the current
+user and removes what it installs. `-Work` must not exist or must be empty; the
+script puts its installation folders, a file outside them and the logs of Setup
+and the uninstaller below it. It checks:
+
+- both installers request `asInvoker` in their manifest;
+- a silent install (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG`) into a folder
+  with `/DIR` and without the desktop task leaves one uninstall entry under
+  `HKEY_CURRENT_USER` that names the folder and the version, none under
+  `HKEY_LOCAL_MACHINE`, a Start Menu shortcut that starts `QEGTRAIN.exe` in the
+  folder, no desktop shortcut, and in the folder the files of the package with the
+  same bytes, `installed-by-setup.ini` and one uninstaller, and nothing else.
+  `package_start_smoke.py` then starts the installed copy. The silent uninstall
+  removes the entry, the shortcut and the files, and a file beside the folder
+  survives. A file that the program wrote into the folder during the start check
+  may stay with the folder;
+- an install with `/TASKS=desktopicon` also creates the desktop shortcut, and the
+  uninstall removes it;
+- an install into the default folder, the second installer over it and an
+  uninstall: the upgrade leaves one entry and one folder, the entry shows the
+  higher version, a scene folder that the package does not hold is gone and the
+  files are those of the package. The uninstall leaves a file outside the folder.
+
+The script does not use `/CURRENTUSER`, because the installer script offers no
+choice of scope and the switch would change nothing. The account of a CI runner
+is an administrator, so a run there does not show that a standard user installs
+without an elevation request. The script compares bytes with `fc.exe` and
+computes no hash.
 
 ### Dependency caches
 

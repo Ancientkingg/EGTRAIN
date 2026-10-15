@@ -1,8 +1,9 @@
 name: Package check
 
-# Builds the three packages on a pull request that changes how they are built, so that a change
-# to a package job is tried before a release. Nothing is signed with a real identity or published:
-# the packages are artifacts of the run, and a release still comes from the release workflow.
+# Builds the three packages, the Windows installer and the Windows portable archive on a pull request
+# that changes how they are built, so that a change to a package job is tried before a release.
+# Nothing is signed with a real identity or published: the packages are artifacts of the run, and a
+# release still comes from the release workflow.
 on:
   pull_request:
     branches: [main]

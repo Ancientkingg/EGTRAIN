@@ -1,6 +1,7 @@
 name: Package
 
 # Builds the macOS, Windows, and Linux packages and uploads each as an artifact of the run.
+# The Windows package is also built into an installer and a portable archive, which are artifacts too.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -364,6 +365,120 @@ jobs:
           path: dist/QEGTRAIN
           include-hidden-files: true
           if-no-files-found: error
+
+  finalize-windows:
+    name: Finalize Windows
+    needs: package-windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64-payload
+          path: payload
+
+      - name: Find Inno Setup
+        # The runner image may have it. If it does not, the pinned version comes from Chocolatey.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $candidates = @(
+            (Get-Command ISCC.exe -ErrorAction SilentlyContinue | ForEach-Object { $_.Source }),
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup --version 6.4.3 --no-progress -y
+            if ($LASTEXITCODE -ne 0) { throw "choco could not install Inno Setup" }
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          if (-not (Test-Path -LiteralPath $iscc)) { throw "ISCC.exe not found" }
+          $found = (Get-Item -LiteralPath $iscc).VersionInfo.ProductVersion
+          # installer/egtrain.iss needs 6.3 or newer.
+          if ($found -match '^(\d+)\.(\d+)' -and ([int]$Matches[1] -lt 6 -or ([int]$Matches[1] -eq 6 -and [int]$Matches[2] -lt 3))) {
+            throw "Inno Setup $found is older than 6.3"
+          }
+          "Inno Setup compiler: $iscc, version $found" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          Add-Content -Path $env:GITHUB_ENV -Value "ISCC=$iscc"
+
+      - name: Build the installers
+        # The second installer has the next patch version. The installer smoke installs it over the first to check an upgrade.
+        # Only the first one is uploaded.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $payload = (Resolve-Path payload).Path
+          $current = [version]"${{ inputs.version }}"
+          $newer = "$($current.Major).$($current.Minor).$($current.Build + 1)"
+          & $env:ISCC "/DVersion=${{ inputs.version }}" "/DPayload=$payload" "/O$PWD\installer-out" installer\egtrain.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+          & $env:ISCC "/DVersion=$newer" "/DPayload=$payload" "/O$PWD\installer-upgrade" installer\egtrain.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
+          Add-Content -Path $env:GITHUB_ENV -Value "UPGRADE_VERSION=$newer"
+
+      - name: Smoke test the installer
+        shell: pwsh
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./tools/release/installer_smoke.ps1 `
+            -Installer "installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe" `
+            -UpgradeInstaller "installer-upgrade/EGTRAIN-Setup-$($env:UPGRADE_VERSION)-x64.exe" `
+            -Payload payload `
+            -Version "${{ inputs.version }}" `
+            -UpgradeVersion "$env:UPGRADE_VERSION" `
+            -Work "$env:RUNNER_TEMP/installer-smoke"
+
+      - name: Build the portable archive
+        # The archive comes from the same directory as the installer.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python tools/release/build_release_assets.py --version "${{ inputs.version }}" --payload payload --output portable
+          if ($LASTEXITCODE -ne 0) { throw "the portable archive was not built" }
+
+      - name: Start the portable archive
+        # The archive is extracted without an installer and its program is started, as the package jobs start their packages.
+        shell: pwsh
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          $ErrorActionPreference = "Stop"
+          $start = "$env:RUNNER_TEMP/portable-start"
+          python -m zipfile -e "portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip" $start
+          if ($LASTEXITCODE -ne 0) { throw "the portable archive could not be extracted" }
+          python tools/release/package_start_smoke.py "$start"
+
+      - name: Upload the installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-windows-x64-installer
+          path: installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe
+          if-no-files-found: error
+
+      - name: Upload the portable archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-windows-x64-portable
+          path: portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip
+          if-no-files-found: error
+
+      - name: Upload the installer logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finalize-windows-diagnostics
+          path: ${{ runner.temp }}/installer-smoke/logs/*.log
+          if-no-files-found: ignore
 
   package-linux:
     name: Package Linux
