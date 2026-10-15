@@ -1,0 +1,76 @@
+# Windows installer
+
+`egtrain.iss` is the Inno Setup script of the EGTRAIN installer for Windows. Compiled, it gives a Setup program that installs the assembled Windows package for the current user and asks for no administrator rights.
+
+The program is named `EGTRAIN-Setup-<version>-x64.exe`. The name is fixed by `kAssetPatterns` in `EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp`, which accepts it for the key `windows-x64-installer`.
+
+## Build
+
+Compile on Windows with Inno Setup 6.3 or newer (`ISCC.exe`). Version 6.3 is the first one that accepts the architecture name `x64compatible`.
+
+```text
+ISCC.exe /DVersion=1.2.3 /DPayload=C:\build\dist\QEGTRAIN /OC:\build\installer-output installer\egtrain.iss
+```
+
+| Parameter | Required | Meaning |
+| --- | --- | --- |
+| `/DVersion=X.Y.Z` | yes | The release version, in the form that `tools/release/version.py` accepts. It becomes the version that Windows shows for the installed program and a part of the file name. |
+| `/DPayload=<directory>` | yes | The assembled Windows package, with `QEGTRAIN.exe` at its top level: the directory that the Windows package job uploads as the artifact `QEGTRAIN-windows-x64-payload`. Give an absolute path without a trailing backslash. A relative path is read relative to `installer/`. Quote the whole argument when the path has spaces. |
+| `/O<directory>` | no | The output directory. Without it, Setup writes to `Output` below `installer/`. |
+
+The script stops with a message that names the parameter when `/DVersion` or `/DPayload` is missing. It does not check that the payload holds `QEGTRAIN.exe`.
+
+Besides the payload, the compiler reads two files of the repository: `installer/installed-by-setup.ini` and the icon `EGTRAIN/QEGTRAIN/resources/app/egtrain.ico`, which is the icon of Setup.
+
+## What the installer does
+
+- It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.
+- It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default. The folder is a user folder, so the in-app update, which needs a writable parent of the installation folder, can work there. The folder page of the wizard lets the user choose another folder on a first install.
+- It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
+- It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.
+- It adds an uninstall entry that Inno Setup writes under the current user, named after the `AppId` of the script. Windows lists it with the installed apps.
+- It writes `installed-by-setup.ini` next to `QEGTRAIN.exe`. Only the installer writes this file, so its presence marks a copy that the installer manages. The portable ZIP does not hold it.
+- An install over an older version is an upgrade of that installation: the `AppId` is the same, so Setup uses the installation that the first install made instead of making a second one. It asks Windows to close a running `QEGTRAIN.exe` first.
+- The `Scenes` folder inside the installation folder is deleted before each install and replaced by the one in the package, so scenes of an older version do not stay behind. Keep your own cases outside it. Nothing else is deleted before the copy, so other files of an older version stay in the folder.
+- Uninstalling removes the files that Setup installed, the shortcuts, the uninstall entry, and the installation folder when it is then empty. It leaves the run output of the program, exported results and case studies. By default the program writes run output below the application data folder of the user, or below `QEGTRAIN_OUTPUT_DIR` when that variable is set. A file that the program creates inside the installation folder stays, and so does the folder.
+
+## Silent install
+
+These Setup switches matter for an unattended install:
+
+| Switch | Effect |
+| --- | --- |
+| `/VERYSILENT` | No wizard and no progress window. |
+| `/SUPPRESSMSGBOXES` | No message boxes. |
+| `/NORESTART` | Setup does not restart the computer. |
+| `/DIR=<folder>` | Installs into this folder. |
+| `/TASKS="desktopicon"` | Creates the desktop shortcut. Without it a silent install creates none. |
+| `/LOG=<file>` | Writes a log of the install to the file. |
+
+```text
+EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="desktopicon" /LOG="%TEMP%\egtrain-setup.log"
+```
+
+## What the script does not do
+
+- It downloads and compiles nothing. It installs the files of the payload directory.
+- It does not run the Visual C++ redistributable (`vc_redist.x64.exe`) that the package may hold. Setup copies the file like any other, and running it needs administrator rights.
+- It registers no file type. The application reads its options by name and cannot open a file that is given on the command line.
+- It has no signing configuration and no licence page.
+- It was written for the package that the Windows package job assembles. Another layout needs another script.
+
+## Updating an installed copy
+
+The in-app update of EGTRAIN replaces the whole installation folder with the files of the portable package (`WindowsStaging::buildStage` in `update/WindowsStaging.h`, `transactionalInstall` in `update/UpdateHelper.cpp`). On an installed copy the new folder holds neither the uninstaller nor `installed-by-setup.ini`. The old folder, which still holds them, stays beside the new one with the suffix `.egtrain-old` until the next update removes it (`SelfUpdater::startHelper` in `update/SelfUpdater.cpp`). Windows keeps the uninstall entry, but the uninstaller that it names is no longer in the installation folder.
+
+An installed copy is therefore updated by running a newer Setup over it.
+
+## Changing the script
+
+The publisher text that Windows shows is set by the lines `AppPublisher` and `AppPublisherURL`. Change those two lines to change it.
+
+Never change the `AppId`. Setup keeps the uninstall entry of an installation under it, so a new value installs a second copy beside the first instead of upgrading it. The `AppId` is a random identifier made once for this script and not derived from anything. In the script it is written with a doubled opening brace, which is how Inno Setup writes a literal brace.
+
+## Test
+
+`tools/release/test_installer_script.py` reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the constants and sections that may appear, the output name against `kAssetPatterns` and what may be deleted before an install. It does not compile the script and does not run an installer. See [Installer script](../docs/development/build-and-test.md#installer-script) for the checks and the command.

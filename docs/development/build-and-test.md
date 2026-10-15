@@ -1326,6 +1326,64 @@ handling of a failing or timed-out command, with stand-ins for `ditto` and
 `hdiutil`. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
 
+### Installer script
+
+`installer/egtrain.iss` is the Inno Setup script of the Windows installer.
+Compile it on Windows with Inno Setup 6.3 or newer:
+
+```text
+ISCC.exe /DVersion=X.Y.Z /DPayload=<package directory> [/O<output directory>] installer\egtrain.iss
+```
+
+`/DVersion` is the release version. `/DPayload` is the absolute path of the
+assembled Windows package, the directory that the Windows package job uploads as
+`QEGTRAIN-windows-x64-payload`. Setup writes `EGTRAIN-Setup-<version>-x64.exe`,
+the name in the table of accepted names above, to `installer/Output` or to the
+`/O` directory. [installer/README.md](../../installer/README.md) describes the
+parameters, what the installer does and the Setup switches for a silent install.
+
+The installer is for the current user and needs no administrator rights. It
+installs the package directory as it is into `%LOCALAPPDATA%\Programs\EGTRAIN`
+by default, adds a Start Menu entry and an optional desktop shortcut, and
+registers an uninstall entry under the current user. It replaces the `Scenes`
+folder of the installation folder on every install and runs no program. No
+workflow compiles the script.
+
+The test is `tools/release/test_installer_script.py`. It reads the script,
+`installer/installed-by-setup.ini`, `installer/README.md` and `kAssetPatterns`
+in `update/ReleaseInfo.cpp` as text, looks for the icon file, and checks that:
+
+- the script is ASCII and names neither `HKEY_LOCAL_MACHINE` nor a parent folder;
+- it has only the sections `Setup`, `Tasks`, `Files`, `InstallDelete`, `Icons`
+  and `Registry`, so no code, run or uninstall-delete section, and uses only
+  the constants `{app}`, `{userpf}`, `{userprograms}` and `{userdesktop}`, so
+  nothing is installed for all users or outside the installation folder;
+- the preprocessor lines are the `#ifndef` and `#error` guards for the two
+  parameters, and the only macros are `{#Version}` and `{#Payload}`;
+- the `[Setup]` directives that decide the scope have their pinned values: the
+  `AppId`, the per-user privilege level with no override, the per-user folder,
+  the 64-bit architecture and closing a running program. The directives
+  `PrivilegesRequiredOverridesAllowed`, `UninstallFilesDir`,
+  `CreateUninstallRegKey` and `Uninstallable` are refused, and the icon file
+  exists;
+- the output name is one that `kAssetPatterns` accepts for
+  `windows-x64-installer`;
+- the package is installed as it is, with no external or downloaded file, and
+  the marker file is installed next to the program and is not empty;
+- only `{app}\Scenes` is deleted before an install;
+- the desktop shortcut belongs to a task that is unchecked by default, and the
+  only shortcuts are the two that run `{app}\QEGTRAIN.exe`;
+- every `[Registry]` entry, should the script have one, is for the current user
+  and is removed on uninstall;
+- the README names `/DVersion`, `/DPayload` and `installed-by-setup.ini`.
+
+The test also runs the rules on the script with CRLF line ends, as a checkout on
+Windows may have them, and changes the script one line at a time to check that
+each rule reports the change. It does not compile the script or run an
+installer, so a green run shows nothing about Inno Setup accepting the file or
+about an install on Windows. Run it with
+`ctest --test-dir build -R test_installer_script --output-on-failure`.
+
 ### Dependency caches
 
 The Windows leg caches the Qt install (through `jurplel/install-qt-action`,
