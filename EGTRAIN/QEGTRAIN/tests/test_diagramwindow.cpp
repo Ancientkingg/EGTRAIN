@@ -635,6 +635,7 @@ static bool exerciseBlockSections() {
 	bool ok = true;
 	DiagramWindow window("Physical sections");
 	auto* chart = new QChart;
+	chart->setTitle("Physical sections title");
 	auto* first = new QLineSeries;
 	first->setName("A envelope");
 	first->setProperty("trainId", "A");
@@ -720,9 +721,34 @@ static bool exerciseBlockSections() {
 			}
 		return inspected && redPixels > 10;
 	};
-	ok &= expect(headerPoint(2, 5).y() < chart->plotArea().top()
-			&& chart->margins().top() >= 8 + 2 * (QFontMetricsF(window.font()).height() + 10),
-		"strip and geometry notice occupy reserved chart space above the time plot");
+	ok &= expect(headerPoint(2, 5).y() < chart->plotArea().top(), "strip and geometry notice sit directly above the time plot");
+	// With the overlay hidden, only the chart title paints above the plot. It must end above the strip, so the strip covers none of it.
+	const auto titleExtent = [&](double limitY) {
+		overlay->hide();
+		const QImage image = view->grab().toImage();
+		overlay->show();
+		const qreal scale = image.devicePixelRatio();
+		const QPoint centre = view->mapFromScene(chart->mapToScene(QPointF(chart->size().width() / 2, 0)));
+		const int limit = view->mapFromScene(chart->mapToScene(QPointF(0, limitY))).y();
+		int count = 0, bottom = -1;
+		for (int y = 0; y < limit; ++y)
+			for (int dx = -80; dx <= 80; ++dx) {
+				const QPoint pixel(qRound((centre.x() + dx) * scale), qRound(y * scale));
+				if (!image.rect().contains(pixel)) continue;
+				const QColor color = image.pixelColor(pixel);
+				if (color.red() + color.green() + color.blue() < 400) {
+					++count;
+					bottom = y;
+				}
+			}
+		return std::make_pair(count, bottom);
+	};
+	const double stripTop = headerPoint(0, 0).y();
+	const auto titleAll = titleExtent(chart->plotArea().top());
+	const auto titleAboveStrip = titleExtent(stripTop);
+	const int stripTopView = view->mapFromScene(chart->mapToScene(QPointF(0, stripTop))).y();
+	ok &= expect(titleAll.first > 20 && titleAll.second < stripTopView && titleAboveStrip == titleAll,
+		"the chart title is visible and ends above the section strip");
 	ok &= expect(earlyVisible(QPointF(2.5, 1)), "near-minimum time sample is visible in capture and inspectable with physical header");
 	y->setRange(20, 70);
 	wheel(view, QPoint(0, -qRound(chart->plotArea().height() / 5)), {});
@@ -831,8 +857,13 @@ static bool exerciseBlockSections() {
 	list->item(0)->setCheckState(Qt::Unchecked);
 	window.csvContent();
 	ok &= expect(exportedIds.isEmpty() && only->series().isEmpty(), "CSV-only train can be hidden with the actual filter");
+	list->item(0)->setCheckState(Qt::Checked);
+	const auto* filter = window.findChild<TrainFilterButton*>();
+	ok &= expect(filter->visibleTrainIds() == QStringList{"unrelated"}, "the CSV-only identity is a checked entry before the provider goes");
 	window.setCsvProvider({}, {});
-	ok &= expect(window.findChild<TrainFilterButton*>()->visibleTrainIds().isEmpty(), "removing provider removes its CSV-only train identities");
+	list = filter->menu()->findChild<QListWidget*>();
+	ok &= expect(filter->visibleTrainIds().isEmpty() && list->count() == 0,
+		"removing the provider removes its checked CSV-only identity from the filter");
 	window.setBlockSections({}, "no-geometry");
 	QApplication::processEvents();
 	hover(headerPoint(2, 5));

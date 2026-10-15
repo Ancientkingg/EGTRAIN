@@ -135,7 +135,6 @@ private:
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;
 	QPointer<QGraphicsObject> m_sectionOverlay;
-	int m_sectionHeaderHeight = 0;
 	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;

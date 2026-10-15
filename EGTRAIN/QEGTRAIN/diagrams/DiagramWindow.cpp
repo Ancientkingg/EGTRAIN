@@ -257,7 +257,8 @@ private:
 		const QFontMetricsF metrics(m_font);
 		double previousRight = plot.left() - 6;
 		labels.erase(std::remove_if(labels.begin(), labels.end(), [&](auto& label) {
-			const double budget = std::min(plot.width() - 8, std::min(240.0, std::max(64.0, label.rect.width() - 6)));
+			// Neighbours that collide are thinned out below; text is shortened only when it exceeds this cap.
+			const double budget = std::min(plot.width() - 8, 240.0);
 			label.text = metrics.elidedText(label.text, Qt::ElideMiddle, budget);
 			const double width = metrics.horizontalAdvance(label.text);
 			const double left = std::max(plot.left(), std::min(plot.right() - width, label.rect.center().x() - width / 2));
@@ -472,8 +473,7 @@ void DiagramWindow::applyTrainColors(const QHash<QString, QColor>& colors, bool 
 void DiagramWindow::setChart(QChart* chart) {
 	if (m_view && m_view->chart() == chart) return;
 	clearTooltip();
-	m_sectionOverlay = nullptr; // the old chart owns and deletes it
-	m_sectionHeaderHeight = 0;
+	m_sectionOverlay = nullptr;	 // the old chart owns and deletes it
 	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
 	m_numericAxis = nullptr;
 	m_fullBounds.clear();
@@ -537,11 +537,17 @@ void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, c
 	auto* chart = m_view->chart();
 	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, font(), palette());
 	m_sectionOverlay = overlay;
-	QMargins margins = chart->margins();
-	margins.setTop(margins.top() - m_sectionHeaderHeight);
-	m_sectionHeaderHeight = static_cast<int>(std::ceil(overlay->headerHeight()));
-	margins.setTop(margins.top() + m_sectionHeaderHeight);
-	chart->setMargins(margins);
+	// QChart lays a top legend out between its title and the plot area, so an invisible legend as tall as the
+	// strip keeps the title where it is and moves only the plot down. A larger top margin would move both.
+	auto* legend = chart->legend();
+	const int height = static_cast<int>(std::ceil(overlay->headerHeight()));
+	legend->setAlignment(Qt::AlignTop);
+	legend->setMinimumHeight(0);
+	legend->setMaximumHeight(height);
+	legend->setMinimumHeight(height);
+	legend->setOpacity(0); // markers return whenever a train is shown again
+	legend->setEnabled(false);
+	legend->show();
 }
 
 std::string DiagramWindow::csvContent() const {
