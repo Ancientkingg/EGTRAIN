@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "util/Log.h"
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
@@ -403,7 +404,7 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 
 										// check that the waiting station of the trip is the same as the one departure station of teh nexttripID
 										if (p->Current_WaitingStationID != nexttrip->Dep_Station_ID) {
-											cout << "Warning: Passenger " << p->ID << "will depart from a station different than the one planned for active trip " << p->current_TripID << " in journey " << p->current_JourneyID << "\n";
+											EG_LOG(SimPax, Warning) << "Warning: Passenger " << p->ID << "will depart from a station different than the one planned for active trip " << p->current_TripID << " in journey " << p->current_JourneyID << "\n";
 										} else {
 											// if the arrival station of teh previous trip is the same as the departure station of the next trip then check whether the passenger is waiting at the scheduled platform
 											// Set first of all that the next trip has started
@@ -514,7 +515,7 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 
 								else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
 
-									cout << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
+									EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
 									// Call Route Choice Function TO BE ADDED
 								}
 							}

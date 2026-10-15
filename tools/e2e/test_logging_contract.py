@@ -76,16 +76,13 @@ ALLOWED = {
     "app/MainWindow.cpp": {"cout": 2},
     "diagrams/RunResults.cpp": {"cerr": 1},
     "io/RailMLParser.cpp": {"cout": 11, "cerr": 2},
-    "simulation/InitialParameters.cpp": {"cout": 2},
-    "simulation/RollingStock.cpp": {"cout": 3, "cerr": 1, "owl": 1},
-    "simulation/RollingStock.h": {"cout": 14, "fprintf": 1, "eglogger": 2},
-    "simulation/Simulation.cpp": {"cout": 2},
+    "simulation/RollingStock.h": {"fprintf": 1},
     "util/Logger.hpp": {"cout": 2},
 }
 
 # Stdout lines that other programs read: (place under EGTRAIN/QEGTRAIN, text, who reads it).
-# Some source file under the place holds the text on a line that has a cout statement. The place
-# is a file or a directory; a directory lets the statement move inside it.
+# Some source file under the place holds the text on a line that has a live cout or EG_LOG
+# statement. The place is a file or a directory; a directory lets the statement move inside it.
 PRODUCERS = [
     (
         "app",
@@ -96,7 +93,8 @@ PRODUCERS = [
     ("simulation", '" is stopping at "', "tools/e2e/station_departure_smoke.py"),
 ]
 
-COUT_STATEMENT = re.compile(r"\bcout\s*<<")
+# A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
+PRODUCER_STATEMENT = re.compile(r"\b(?:cout|EG_LOG\s*\(\s*\w+\s*,\s*\w+\s*\))\s*<<")
 
 
 def count_statements(text, plain_markers=False):
@@ -121,11 +119,11 @@ def count_statements(text, plain_markers=False):
 
 
 def has_producer(text, needle):
-    """Tell whether a line of the original text holds needle and a live cout statement."""
+    """Tell whether a line of the original text holds needle and a live cout or EG_LOG statement."""
     original_lines = text.split("\n")
     cleaned_lines = clean_cpp_code(text).split("\n")
     return any(
-        needle in original and COUT_STATEMENT.search(cleaned)
+        needle in original and PRODUCER_STATEMENT.search(cleaned)
         for original, cleaned in zip(original_lines, cleaned_lines)
     )
 
@@ -177,9 +175,18 @@ def check_patterns():
     for what, text in (
         ("a line comment", '// ' + live),
         ("a block comment", '/* ' + live + ' */\n'),
-        ("a line without a cout statement", 'log("\\n End of Simulation");\n'),
+        ("a line without a console statement", 'log("\\n End of Simulation");\n'),
     ):
         if has_producer(text, 'End of Simulation"'):
+            failures.append(f"self-check: {what} satisfies the producer check")
+    logged = 'EG_LOG(SimStep, Info) << "At time " << t << " is stopping at " << name << "\\n";\n'
+    if not has_producer(logged, '" is stopping at "'):
+        failures.append("self-check: a live EG_LOG producer is not found")
+    for what, text in (
+        ("an EG_LOG line in a line comment", "// " + logged),
+        ("an EG_LOG line in a block comment", "/* " + logged + " */\n"),
+    ):
+        if has_producer(text, '" is stopping at "'):
             failures.append(f"self-check: {what} satisfies the producer check")
     return failures
 
@@ -236,7 +243,7 @@ def check_producers(sources):
     for place, needle, readers in PRODUCERS:
         files = [text for name, text in sources.items() if name == place or name.startswith(place + "/")]
         if not any(has_producer(text, needle) for text in files):
-            problems.append(f"{place}: no cout statement with the text {needle} (read by {readers})")
+            problems.append(f"{place}: no cout or EG_LOG statement with the text {needle} (read by {readers})")
     return problems
 
 
