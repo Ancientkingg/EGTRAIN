@@ -49,6 +49,26 @@ jobs:
           "$(brew --prefix qt@5)/bin/macdeployqt" build/QEGTRAIN.app -verbose=1
           cp build/egtrain_update_helper build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
           chmod +x build/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper
+          # Some Homebrew libraries name their own dependencies as @rpath/<name> (for example brotli and webp).
+          # macdeployqt copies the library but neither the dependency nor an rpath, so copy each missing
+          # dependency from the Homebrew prefix and point the reference at the copy.
+          frameworks=build/QEGTRAIN.app/Contents/Frameworks
+          copied=1
+          while [ "$copied" = 1 ]; do
+            copied=0
+            while IFS= read -r dylib; do
+              for dependency in $(otool -L "$dylib" | tail -n +2 | awk '{ print $1 }' | grep -E '^@rpath/[^/]+$' || true); do
+                name="${dependency#@rpath/}"
+                if [ ! -f "$frameworks/$name" ]; then
+                  cp "$(brew --prefix)/lib/$name" "$frameworks/$name"
+                  chmod u+w "$frameworks/$name"
+                  install_name_tool -id "@executable_path/../Frameworks/$name" "$frameworks/$name"
+                  copied=1
+                fi
+                install_name_tool -change "$dependency" "@executable_path/../Frameworks/$name" "$dylib"
+              done
+            done < <(find "$frameworks" -maxdepth 1 -type f -name '*.dylib')
+          done
 
       - name: Remove unused Qt modules and plugins
         run: |
