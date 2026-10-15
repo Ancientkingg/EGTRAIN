@@ -88,9 +88,9 @@ public:
 extern list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
 extern int numAllDailyPassengers;		   // This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
 
-void printCurrentPassengerStatus(int t, int StartSimulationTime, list<Passenger> ALLPAX, string MainFolder);
+void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, string MainFolder);
 
-void printPassengerTotalJourneyDelay(list<Passenger> ALLPAX, string MainFolder);
+void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainFolder);
 
 nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep);
 

@@ -291,19 +291,19 @@ void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<P
 	}
 }
 
-void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, list<Passenger> ALL_PAX) {
+void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, const list<Passenger>& ALL_PAX) {
 	// Reset the previous number of people on the platform
 	PLAT.Current_N_Passengers = 0;
 	PLAT.Current_List_Pax_On_Platform.clear(); // Delete the previous list of passengers on the platform
-	for (list<Passenger>::iterator p = ALL_PAX.begin(); p != ALL_PAX.end(); p++) {
+	for (list<Passenger>::const_iterator p = ALL_PAX.begin(); p != ALL_PAX.end(); p++) {
 		if ((p->IsIntheNetwork == 1) && (p->CurrentStatus == "OnPlatform") && (p->Current_WaitingStationID == PLAT.StationID) && (p->Current_WaitingStationPlatformID == PLAT.ID)) {
 
 			PLAT.Current_N_Passengers++; // Increasing number of passengers on platform
 
 			if (p->Journeys.empty() != 1) {
-				for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
+				for (list<Journey>::const_iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
 					if (j->ID == p->current_JourneyID) {
-						for (list<Trip>::iterator activetrip = j->Trips.begin(); activetrip != j->Trips.end(); activetrip++) {
+						for (list<Trip>::const_iterator activetrip = j->Trips.begin(); activetrip != j->Trips.end(); activetrip++) {
 							if (activetrip->TripID == p->current_TripID) {
 								PLAT.Current_List_Pax_On_Platform.push_back(make_pair(p->ID, activetrip->Actual_Departure_Time)); // Assigning PAx ID and Actual Departure time in the passenger list of the platform
 								break;																							  // break loop over trips
@@ -320,7 +320,7 @@ void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, list<Pass
 	}
 }
 
-void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, list<Passenger> ALL_PAX) {
+void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, const list<Passenger>& ALL_PAX) {
 	if (ALL_PLAT.empty() != 1) {
 		for (list<StationPlatform>::iterator plat = ALL_PLAT.begin(); plat != ALL_PLAT.end(); plat++) {
 			Update_List_Passengers_Waiting_At_Platform(*plat, ALL_PAX);
