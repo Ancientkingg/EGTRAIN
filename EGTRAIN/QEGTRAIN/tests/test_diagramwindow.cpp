@@ -2,6 +2,8 @@
 #include "diagrams/TrainFilterButton.h"
 
 #include <QApplication>
+#include <QGraphicsObject>
+#include <QFontMetricsF>
 #include <QFile>
 #include <QFileInfo>
 #include <QScreen>
@@ -629,6 +631,215 @@ static bool exerciseButtonDefaults() {
 	return ok;
 }
 
+static bool exerciseBlockSections() {
+	bool ok = true;
+	DiagramWindow window("Physical sections");
+	auto* chart = new QChart;
+	auto* first = new QLineSeries;
+	first->setName("A envelope");
+	first->setProperty("trainId", "A");
+	first->append(2, 0);
+	first->append(2, 100);
+	chart->addSeries(first);
+	auto* second = new QLineSeries;
+	second->setName("B envelope");
+	second->setProperty("trainId", "B");
+	second->append(7, 0);
+	second->append(7, 100);
+	chart->addSeries(second);
+	auto* early = new QScatterSeries;
+	early->setName("A early recorded sample");
+	early->setProperty("trainId", "A");
+	early->setColor(Qt::red);
+	early->setBorderColor(Qt::red);
+	early->append(2.5, 1);
+	early->append(2.5, 31);
+	chart->addSeries(early);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setRange(0, 10);
+	y->setRange(0, 100);
+	y->setReverse(true);
+	window.setChart(chart);
+	const std::string authored = "@repeat<&>" + std::string(80, 'X') + "@";
+	auto extents = buildBlockSectionExtents({{authored, 1, 3}, {authored, 1, 3}, {"@reverse@", 8, 5}, {"@missing<&>@", 4, 4}});
+	window.setBlockSections(extents, "reference<&>");
+	window.show();
+	QApplication::processEvents();
+	auto* view = window.findChild<QChartView*>();
+	auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	auto* overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	auto* list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	if (!expect(overlay && list && list->count() == 2 && chart->series().size() == 3, "physical layer adds no train/filter/series identities")) return false;
+	ok &= expect(overlay->parentItem() == chart && overlay->property("sectionCount").toInt() == 4,
+		"chart owns all repeated/coincident and missing physical occurrences");
+	const auto chartPoint = [&](double km, double offsetY) {
+		const QRectF plot = chart->plotArea();
+		return QPointF(plot.left() + (km - x->min()) / (x->max() - x->min()) * plot.width(), plot.top() + offsetY);
+	};
+	const auto headerPoint = [&](double km, double offsetY) {
+		const auto* layer = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+		const double height = (QFontMetricsF(window.font()).height() + 10)
+			* (layer->property("geometryNotice").toString().isEmpty() || layer->property("sectionCount").toInt() == 0 ? 1 : 2);
+		return chartPoint(km, offsetY - height);
+	};
+	const auto hover = [&](const QPointF& point) {
+		const QPoint position = view->mapFromScene(chart->mapToScene(point));
+		QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &move);
+		return position;
+	};
+	const QPoint header = hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->textFormat() == Qt::PlainText
+			&& tooltip->text().contains(QString::fromStdString(authored)) && tooltip->text().contains("1:")
+			&& tooltip->text().contains("2:") && tooltip->text().contains("reference<&>"),
+		"section hover retains full escaped/plain text and both coincident occurrence identities");
+	QString selected;
+	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
+	QMouseEvent press(QEvent::MouseButtonPress, header, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, header, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &press);
+	QApplication::sendEvent(view->viewport(), &release);
+	ok &= expect(selected.isEmpty(), "physical section click never selects the underlying train");
+	const auto earlyVisible = [&](const QPointF& value) {
+		moveTo(view, value, early);
+		const bool inspected = tooltip->isVisible() && tooltip->text().contains("early recorded sample");
+		QEvent leave(QEvent::Leave);
+		QApplication::sendEvent(view->viewport(), &leave);
+		const QImage image = view->grab().toImage();
+		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(value, early)));
+		const qreal ratio = image.devicePixelRatio();
+		int redPixels = 0;
+		for (int dy = -2; dy <= 2; ++dy)
+			for (int dx = -2; dx <= 2; ++dx) {
+				const QPoint pixel(qRound((sample.x() + dx) * ratio), qRound((sample.y() + dy) * ratio));
+				if (!image.rect().contains(pixel)) continue;
+				const QColor color = image.pixelColor(pixel);
+				if (color.red() > 200 && color.green() < 80 && color.blue() < 80) ++redPixels;
+			}
+		return inspected && redPixels > 10;
+	};
+	ok &= expect(headerPoint(2, 5).y() < chart->plotArea().top()
+			&& chart->margins().top() >= 8 + 2 * (QFontMetricsF(window.font()).height() + 10),
+		"strip and geometry notice occupy reserved chart space above the time plot");
+	ok &= expect(earlyVisible(QPointF(2.5, 1)), "near-minimum time sample is visible in capture and inspectable with physical header");
+	y->setRange(20, 70);
+	wheel(view, QPoint(0, -qRound(chart->plotArea().height() / 5)), {});
+	QApplication::processEvents();
+	ok &= expect(y->min() > 29 && y->min() < 31 && earlyVisible(QPointF(2.5, 31)),
+		"after time pan a sample at the new upper edge remains visible and inspectable");
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	QApplication::processEvents();
+	for (int row = 0; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
+	hover(headerPoint(2, 5));
+	ok &= expect(!first->isVisible() && !second->isVisible() && tooltip->isVisible() && overlay->isVisible(),
+		"hiding every train retains section labels and inspection");
+	std::vector<BlockSectionInput> narrowSections;
+	for (int index = 0; index < 40; ++index)
+		narrowSections.push_back({"@n" + std::to_string(index) + "@", index * 0.25, (index + 1) * 0.25});
+	window.setBlockSections(buildBlockSectionExtents(narrowSections), "crowded");
+	QApplication::processEvents();
+	const QImage crowded = view->grab().toImage();
+	const QRectF plot = chart->plotArea();
+	const QPoint topLeft = view->mapFromScene(chart->mapToScene(headerPoint(0, 0)));
+	const qreal ratio = crowded.devicePixelRatio();
+	int textPixels = 0;
+	for (int dy = 1; dy < QFontMetricsF(window.font()).height() + 3; ++dy)
+		for (int dx = 2; dx < plot.width() - 2; ++dx) {
+			const QPoint pixel(qRound((topLeft.x() + dx) * ratio), qRound((topLeft.y() + dy) * ratio));
+			if (!crowded.rect().contains(pixel)) continue;
+			const QColor color = crowded.pixelColor(pixel);
+			if (color.red() + color.green() + color.blue() < 400) ++textPixels;
+		}
+	ok &= expect(textPixels > 10, "crowded extents thin labels rather than eliding every ID at fit");
+	const double labelWidth = QFontMetricsF(window.font()).horizontalAdvance("1:@n0@");
+	const QPointF expandedLabel(plot.left() + labelWidth - 2, headerPoint(0, 0).y() + 5);
+	ok &= expect(expandedLabel.x() > chartPoint(0.25, 0).x() + 3,
+		"crowded label test reaches visible text beyond its physical interval");
+	hover(expandedLabel);
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("1:@n0@") && !tooltip->text().contains("2:@n1@"),
+		"expanded visible label reports its full ID rather than the neighbouring physical interval");
+	window.setBlockSections(extents, "reference<&>");
+	overlay = chart->findChild<QGraphicsObject*>("blockSectionOverlay");
+	const auto boundaryPainted = [&] {
+		QApplication::processEvents();
+		const QImage with = view->grab().toImage();
+		overlay->hide();
+		const QImage without = view->grab().toImage();
+		overlay->show();
+		const QPoint boundary = view->mapFromScene(chart->mapToScene(chartPoint(3, 60)));
+		const qreal ratio = with.devicePixelRatio();
+		int changed = 0;
+		for (int dy = 0; dy < 20; ++dy)
+			for (int dx = -2; dx <= 2; ++dx) {
+				const QPoint pixel(qRound((boundary.x() + dx) * ratio), qRound((boundary.y() + dy) * ratio));
+				if (with.rect().contains(pixel) && with.pixel(pixel) != without.pixel(pixel)) ++changed;
+			}
+		return changed > 0;
+	};
+	ok &= expect(boundaryPainted(), "painted physical boundary aligns with km axis, including PNG capture surface");
+	wheel(view, {}, QPoint(0, 120), Qt::ControlModifier, chartPoint(3, 100));
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("Physical reference section"), "header inspection follows zoom");
+	wheel(view, QPoint(-10, -8), {});
+	window.resize(window.width() - 80, window.height() - 50);
+	QApplication::processEvents();
+	window.setTimeAxisY(true, 8 * 3600);
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && boundaryPainted(), "boundary and header follow pan, resize and clock-axis replacement");
+	QMetaObject::invokeMethod(&window, "resetZoom");
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(x->min() == 0 && x->max() == 10 && tooltip->isVisible() && boundaryPainted(), "reset retains original section alignment");
+	const double strip = QFontMetricsF(window.font()).height() + 10;
+	hover(headerPoint(2, strip + 5));
+	ok &= expect(tooltip->text().contains("@missing<&>@") && tooltip->text().contains("zero length")
+			&& !overlay->property("geometryNotice").toString().isEmpty(),
+		"missing geometry has an in-chart notice with full hover reason");
+	QPointer<QGraphicsObject> old = overlay;
+	auto* only = new QChart;
+	auto* onlyX = new QValueAxis;
+	auto* onlyY = new QValueAxis;
+	onlyX->setRange(0, 10);
+	onlyY->setRange(0, 100);
+	only->addAxis(onlyX, Qt::AlignBottom);
+	only->addAxis(onlyY, Qt::AlignLeft);
+	window.setChart(only);
+	ok &= expect(old.isNull() && !tooltip->isVisible(), "replacement chart clears old overlay and tooltip");
+	x = onlyX;
+	chart = only;
+	window.setBlockSections(extents, "section-only");
+	window.setTimeAxisY(true);
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(only->series().isEmpty() && window.findChild<TrainFilterButton*>()->visibleTrainIds().isEmpty()
+			&& tooltip->isVisible(),
+		"explicit numeric axes allow section-only inspection without fake trains");
+	QStringList exportedIds;
+	window.setCsvProvider([&exportedIds](const QStringList& ids) {
+		exportedIds = ids;
+		return std::string("retained data");
+	},
+		"unmapped.csv", {"unrelated"});
+	window.csvContent();
+	list = window.findChild<TrainFilterButton*>()->menu()->findChild<QListWidget*>();
+	ok &= expect(only->series().isEmpty() && list->count() == 1 && exportedIds == QStringList{"unrelated"},
+		"real CSV-only train reaches the window provider without a dummy series");
+	list->item(0)->setCheckState(Qt::Unchecked);
+	window.csvContent();
+	ok &= expect(exportedIds.isEmpty() && only->series().isEmpty(), "CSV-only train can be hidden with the actual filter");
+	window.setCsvProvider({}, {});
+	ok &= expect(window.findChild<TrainFilterButton*>()->visibleTrainIds().isEmpty(), "removing provider removes its CSV-only train identities");
+	window.setBlockSections({}, "no-geometry");
+	QApplication::processEvents();
+	hover(headerPoint(2, 5));
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains("no physical geometry"), "empty section geometry is explicitly reported inside chart");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -1122,6 +1333,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseTrainColors();
 	ok &= exerciseNavigationHelp();
 	ok &= exerciseButtonDefaults();
+	ok &= exerciseBlockSections();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

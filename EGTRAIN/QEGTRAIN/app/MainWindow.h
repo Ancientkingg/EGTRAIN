@@ -1099,7 +1099,8 @@ private slots:
 	void showCapacityAnalysis();
 	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
 		RunProvenance provenance, std::vector<BlockingTimeDiagramSegment> segments,
-		double routeStartKm, double routeEndKm, const QString& referenceId);
+		double routeStartKm, double routeEndKm, const QString& referenceId,
+		std::vector<BlockSectionExtent> extents, std::vector<BlockingTimeDiagramSegment> unmapped);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 };
 

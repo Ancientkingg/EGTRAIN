@@ -127,7 +127,7 @@ The Run Results dock lists, for each train, the start time, end time, travel tim
 Every diagram window and the Run Results dock export raw data.
 
 - Export PNG saves the current chart, with its zoom and visible trains, as an image. The file dialog adds the `.png` extension if you leave it off.
-- Export CSV saves the data behind the view. The trajectory export holds time, position, speed, power, cumulative energy, and the occupied block for each train. The timetable export holds planned and simulated arrival and departure and the delays. The run summary holds the start, end, travel time, and energy totals. The blocking-time export holds each occupied block with its start, end, position, and type.
+- Export CSV saves the data behind the view. The trajectory export holds time, position, speed, power, cumulative energy, and the occupied block for each train. The timetable export holds planned and simulated arrival and departure and the delays. The run summary holds the start, end, travel time, and energy totals. The blocking-time export holds each occupied block with its start, end, position, and type. It also lists each displayed physical section of the reference route once, even when all trains are hidden. Neutral section boundaries and the `order:ID` strip stay visible in the chart and PNG; hover shows full IDs and coordinates.
 
 CSV files use a comma separator, a header row, a decimal point, and an empty field for a missing value. They open in Excel, LibreOffice, Python, and R. Save exports to your working folder, not into the package.
 

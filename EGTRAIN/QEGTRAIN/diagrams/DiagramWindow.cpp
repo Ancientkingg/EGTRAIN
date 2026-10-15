@@ -3,6 +3,9 @@
 #include "util/TimeFormat.h"
 
 #include <QApplication>
+#include <QGraphicsObject>
+#include <QSet>
+#include <QFontMetricsF>
 #include <QBuffer>
 #include <QWheelEvent>
 #include <QNativeGestureEvent>
@@ -105,6 +108,186 @@ QPen emphasisedPen(const QPen& base) {
 bool isPlannedSeries(const QAbstractSeries* series) {
 	return series->name().contains("planned", Qt::CaseInsensitive);
 }
+
+// One chart-owned item, outside the train series/filter identity space. Geometry is mapped
+// from the live numeric distance axis; font sizes and the header stay in chart pixels.
+class BlockSectionOverlay : public QGraphicsObject {
+public:
+	BlockSectionOverlay(QChart* chart, std::vector<BlockSectionExtent> sections,
+		const QString& route, const QFont& font, const QPalette& palette)
+		: QGraphicsObject(chart), m_chart(chart), m_sections(std::move(sections)),
+		  m_route(route), m_font(font), m_palette(palette) {
+		QObject::setParent(chart);
+		setObjectName("blockSectionOverlay");
+		setAcceptedMouseButtons(Qt::NoButton);
+		setZValue(100);
+		setProperty("sectionCount", static_cast<int>(m_sections.size()));
+		m_notice = m_sections.empty() ? "Reference sections unavailable; no physical geometry shown."
+									  : QString::fromStdString(blockSectionGeometryNote(m_sections)).trimmed();
+		setProperty("geometryNotice", m_notice);
+		connect(chart, &QChart::plotAreaChanged, this, [this] {
+			prepareGeometryChange();
+			m_bounds = m_chart->boundingRect();
+			update();
+		});
+		m_bounds = chart->boundingRect();
+		watchAxes();
+	}
+	QRectF boundingRect() const override { return m_bounds; }
+	void watchAxes() {
+		for (auto* axis : m_chart->axes()) {
+			if (auto* value = qobject_cast<QValueAxis*>(axis)) {
+				// Time-axis replacement changes chart layout as well as ranges.
+				if (m_axes.contains(value)) continue;
+				m_axes.insert(value);
+				connect(value, &QValueAxis::rangeChanged, this, [this] { update(); });
+				connect(value, &QAbstractAxis::reverseChanged, this, [this] { update(); });
+				connect(value, &QObject::destroyed, this, [this, value] { m_axes.remove(value); });
+			}
+		}
+		update();
+	}
+	double headerHeight() const { return stripHeight() * (m_notice.isEmpty() || m_sections.empty() ? 1 : 2); }
+	QString inspect(const QPointF& point, bool headerOnly) const {
+		const auto* axis = distanceAxis();
+		const QRectF plot = m_chart->plotArea();
+		const QRectF header = headerRect();
+		if (!plot.contains(point) && !header.contains(point)) return {};
+		const bool inHeader = !m_sections.empty() && header.contains(point) && point.y() < header.top() + stripHeight();
+		const bool inNotice = header.contains(point) && !m_notice.isEmpty() && !inHeader;
+		if (headerOnly && !inHeader && !inNotice) return {};
+		QStringList details;
+		const BlockSectionExtent* labelHit = nullptr;
+		for (const auto& label : renderedLabels())
+			if (label.rect.contains(point)) {
+				labelHit = label.section;
+				break;
+			}
+		if (axis)
+			for (const auto& section : m_sections) {
+				if (!section.geometryValid) continue;
+				const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
+				// A visible label wins over neighbouring intervals; coincident occurrences remain inspectable.
+				const bool labelMatches = labelHit && section.lowerKm() == labelHit->lowerKm() && section.upperKm() == labelHit->upperKm();
+				if ((inHeader && (labelHit ? labelMatches : point.x() >= std::min(start, end) - 3 && point.x() <= std::max(start, end) + 3))
+					|| (!headerOnly && plot.contains(point) && std::min(std::abs(point.x() - start), std::abs(point.x() - end)) <= 4))
+					details << QString("Physical reference section %1:%2 | Route: %3 | Directed X: %4 to %5 km")
+								   .arg(section.order)
+								   .arg(QString::fromStdString(section.id), m_route)
+								   .arg(section.startKm, 0, 'g', 12)
+								   .arg(section.endKm, 0, 'g', 12);
+			}
+		if (inNotice) {
+			details << m_notice;
+			for (const auto& section : m_sections)
+				if (!section.geometryValid)
+					details << QString("%1:%2 | Geometry unavailable: %3").arg(section.order).arg(QString::fromStdString(section.id), QString::fromStdString(section.issue));
+		}
+		return details.join('\n');
+	}
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) override {
+		const QRectF plot = m_chart->plotArea();
+		const auto* axis = distanceAxis();
+		painter->save();
+		painter->setClipRect(plot);
+		painter->setFont(m_font);
+		QColor stroke = m_palette.color(QPalette::Text);
+		stroke.setAlpha(100);
+		painter->setPen(QPen(stroke, 1, Qt::DotLine));
+		if (axis)
+			for (const auto& section : m_sections) {
+				if (!section.geometryValid) continue;
+				for (double position : {section.startKm, section.endKm}) {
+					const double x = pixelX(position, axis);
+					painter->drawLine(QPointF(x, plot.top()), QPointF(x, plot.bottom()));
+				}
+			}
+		const double height = stripHeight();
+		const QRectF header = headerRect();
+		painter->setClipRect(header);
+		painter->fillRect(header, m_palette.brush(QPalette::Base));
+		painter->setPen(QPen(m_palette.color(QPalette::Text), 1));
+		if (axis)
+			for (const auto& section : m_sections) {
+				if (!section.geometryValid) continue;
+				const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
+				const double left = std::max(plot.left(), std::min(start, end));
+				const double right = std::min(plot.right(), std::max(start, end));
+				if (right <= left) continue;
+				const double y = header.top() + height - 3;
+				painter->drawLine(QPointF(left, y), QPointF(right, y));
+				for (double x : {start, end}) painter->drawLine(QPointF(x, y - 3), QPointF(x, y + 2));
+			}
+		for (const auto& label : renderedLabels())
+			painter->drawText(label.rect, Qt::AlignCenter, label.text);
+		const QFontMetricsF metrics(m_font);
+		if (!m_notice.isEmpty()) {
+			const QRectF notice(plot.left(), header.top() + (m_sections.empty() ? 0 : height), plot.width(), height);
+			painter->fillRect(notice, m_palette.brush(QPalette::Base));
+			painter->drawText(notice.adjusted(4, 0, -4, 0), Qt::AlignVCenter | Qt::AlignLeft,
+				metrics.elidedText(m_notice, Qt::ElideRight, plot.width() - 8));
+		}
+		painter->restore();
+	}
+private:
+	struct Label {
+		const BlockSectionExtent* section;
+		QRectF rect;
+		QString text;
+	};
+	QRectF headerRect() const {
+		const QRectF plot = m_chart->plotArea();
+		return QRectF(plot.left(), plot.top() - headerHeight(), plot.width(), headerHeight());
+	}
+	// Painting and inspection use the same live screen-space rectangles, including expanded labels.
+	std::vector<Label> renderedLabels() const {
+		std::vector<Label> labels;
+		const auto* axis = distanceAxis();
+		const QRectF plot = m_chart->plotArea();
+		if (!axis || plot.width() <= 8) return labels;
+		for (const auto& section : m_sections) {
+			if (!section.geometryValid) continue;
+			const double start = pixelX(section.startKm, axis), end = pixelX(section.endKm, axis);
+			const double left = std::max(plot.left(), std::min(start, end));
+			const double right = std::min(plot.right(), std::max(start, end));
+			if (right > left) labels.push_back({&section, QRectF(left, headerRect().top(), right - left, stripHeight() - 5),
+				QString("%1:%2").arg(section.order).arg(QString::fromStdString(section.id))});
+		}
+		std::stable_sort(labels.begin(), labels.end(), [](const auto& a, const auto& b) { return a.rect.left() < b.rect.left(); });
+		const QFontMetricsF metrics(m_font);
+		double previousRight = plot.left() - 6;
+		labels.erase(std::remove_if(labels.begin(), labels.end(), [&](auto& label) {
+			const double budget = std::min(plot.width() - 8, std::min(240.0, std::max(64.0, label.rect.width() - 6)));
+			label.text = metrics.elidedText(label.text, Qt::ElideMiddle, budget);
+			const double width = metrics.horizontalAdvance(label.text);
+			const double left = std::max(plot.left(), std::min(plot.right() - width, label.rect.center().x() - width / 2));
+			if (label.text.isEmpty() || left < previousRight + 6) return true;
+			label.rect.setLeft(left);
+			label.rect.setWidth(width);
+			previousRight = left + width;
+			return false;
+		}),
+			labels.end());
+		return labels;
+	}
+	QValueAxis* distanceAxis() const {
+		const auto axes = m_chart->axes(Qt::Horizontal);
+		return axes.isEmpty() ? nullptr : qobject_cast<QValueAxis*>(axes.first());
+	}
+	double stripHeight() const { return QFontMetricsF(m_font).height() + 10; }
+	double pixelX(double km, const QValueAxis* axis) const {
+		const QRectF plot = m_chart->plotArea();
+		const double fraction = (km - axis->min()) / (axis->max() - axis->min());
+		return plot.left() + (axis->isReverse() ? 1 - fraction : fraction) * plot.width();
+	}
+	QChart* m_chart;
+	std::vector<BlockSectionExtent> m_sections;
+	QString m_route, m_notice;
+	QFont m_font;
+	QPalette m_palette;
+	QRectF m_bounds;
+	QSet<QValueAxis*> m_axes;
+};
 
 } // namespace
 
@@ -289,6 +472,8 @@ void DiagramWindow::applyTrainColors(const QHash<QString, QColor>& colors, bool 
 void DiagramWindow::setChart(QChart* chart) {
 	if (m_view && m_view->chart() == chart) return;
 	clearTooltip();
+	m_sectionOverlay = nullptr; // the old chart owns and deletes it
+	m_sectionHeaderHeight = 0;
 	delete m_numericAxis.data(); // detached axis belongs to this window, not the old chart
 	m_numericAxis = nullptr;
 	m_fullBounds.clear();
@@ -333,11 +518,34 @@ void DiagramWindow::setTimeAxisY(bool on, long long startOffsetSeconds) {
 }
 
 void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)> provider,
-	const QString& suggestedFileName) {
+	const QString& suggestedFileName, const QStringList& trainIds) {
 	m_csvProvider = std::move(provider);
+	const QStringList ids = m_csvProvider ? trainIds : QStringList();
+	if (ids != m_csvTrainIds) {
+		m_csvTrainIds = ids;
+		rebuildFilterGroups();
+		applyTrainVisibility();
+	}
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
 		m_csvButton->setVisible(static_cast<bool>(m_csvProvider));
+}
+
+void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId) {
+	clearTooltip();
+	delete m_sectionOverlay.data();
+	auto* chart = m_view->chart();
+	auto* overlay = new BlockSectionOverlay(chart, std::move(sections), referenceRouteId, font(), palette());
+	m_sectionOverlay = overlay;
+	QMargins margins = chart->margins();
+	margins.setTop(margins.top() - m_sectionHeaderHeight);
+	m_sectionHeaderHeight = static_cast<int>(std::ceil(overlay->headerHeight()));
+	margins.setTop(margins.top() + m_sectionHeaderHeight);
+	chart->setMargins(margins);
+}
+
+std::string DiagramWindow::csvContent() const {
+	return m_csvProvider ? m_csvProvider(visibleTrainIds()) : std::string();
 }
 
 void DiagramWindow::setProvenanceWriter(
@@ -410,6 +618,7 @@ void DiagramWindow::applyTimeAxis() {
 		m_numericAxis = nullptr;
 		m_clockAxis = nullptr;
 	}
+	if (m_sectionOverlay) static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->watchAxes();
 	if (!m_timeAxis) return;
 	const auto timeAxes = chart->axes(m_timeOrientation);
 	if (timeAxes.isEmpty())
@@ -470,6 +679,7 @@ void DiagramWindow::applyTimeAxis() {
 	};
 	connect(clock, &QValueAxis::rangeChanged, this, updateLabels);
 	updateLabels(min, max);
+	if (m_sectionOverlay) static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->watchAxes();
 }
 
 QString DiagramWindow::groupIdForSeries(QAbstractSeries* series) const {
@@ -517,6 +727,12 @@ void DiagramWindow::rebuildFilterGroups() {
 		}
 		m_groups[groupIndex].members.append(series);
 	}
+
+	for (const QString& trainId : m_csvTrainIds)
+		if (!trainId.isEmpty() && !indexByTrain.contains(trainId)) {
+			indexByTrain.insert(trainId, m_groups.size());
+			m_groups.append({trainId, {}});
+		}
 
 	if (!m_trainsButton)
 		return;
@@ -662,7 +878,7 @@ void DiagramWindow::exportCsv() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
 	if (!m_csvProvider)
 		return;
-	const std::string content = m_csvProvider(visibleTrainIds());
+	const std::string content = csvContent();
 	if (content.empty()) {
 		QMessageBox::information(this, "Nothing to export",
 			"There is no data to export for the visible trains.");
@@ -691,6 +907,14 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	clearTooltip();
 	auto* chart = m_view->chart();
 	const QPointF cursor = chart->mapFromScene(m_view->mapToScene(position));
+	if (m_sectionOverlay) {
+		const QString text = static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->inspect(cursor, true);
+		if (!text.isEmpty()) {
+			m_tooltip->setText(text); // PlainText, so authored ids cannot inject rich text.
+			showTooltip(position);
+			return nullptr;
+		}
+	}
 	if (!chart->plotArea().contains(cursor)) return nullptr;
 	QXYSeries* selected = nullptr;
 	QPointF sample;
@@ -754,7 +978,16 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 		sample = filledSample;
 		sampleIndex = filledIndex;
 	}
-	if (!selected) return nullptr;
+	if (!selected) {
+		if (m_sectionOverlay) {
+			const QString text = static_cast<BlockSectionOverlay*>(m_sectionOverlay.data())->inspect(cursor, false);
+			if (!text.isEmpty()) {
+				m_tooltip->setText(text);
+				showTooltip(position);
+			}
+		}
+		return nullptr;
+	}
 	QString identity = selected->name();
 	if (!identity.contains(groupIdForSeries(selected))) identity.prepend(groupIdForSeries(selected) + " ");
 	updateReadout(sample, identity + " (nearest sample)");
@@ -763,6 +996,11 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 		m_tooltip->setText(m_tooltip->text() + "\n" + contexts[sampleIndex]);
 	const QString interval = selected->property("inspectionInterval").toString();
 	if (!interval.isEmpty()) m_tooltip->setText(m_tooltip->text() + "\n" + interval);
+	showTooltip(position);
+	return selected;
+}
+
+void DiagramWindow::showTooltip(const QPoint& position) {
 	m_tooltip->setWordWrap(true);
 	m_tooltip->setMaximumWidth(std::max(100, std::min(480, width() - 24)));
 	m_tooltip->adjustSize();
@@ -774,7 +1012,6 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	m_tooltip->move(local);
 	m_tooltip->show();
 	m_tooltip->raise();
-	return selected;
 }
 
 void DiagramWindow::navigate(double factor, const QPointF& position, const QPointF& pan) {

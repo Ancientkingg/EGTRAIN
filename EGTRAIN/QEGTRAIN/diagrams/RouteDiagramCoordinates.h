@@ -1,6 +1,8 @@
 #ifndef ROUTEDIAGRAMCOORDINATES_H
 #define ROUTEDIAGRAMCOORDINATES_H
 
+#include "diagrams/BlockingTimeDiagram.h"
+
 #include <map>
 #include <optional>
 #include <string>
@@ -34,6 +36,8 @@ struct RouteDiagramProjection {
 RouteDiagramProjection buildRouteDiagramProjection(const RouteDiagramPath& source,
 	const RouteDiagramPath& reference);
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
+// The sections of a route in order with the ends the route holds, in runtime route coordinates.
+std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 std::optional<double> routeDiagramStopPosition(const Train& train, int index,
 	const RouteDiagramPath& source, const RouteDiagramProjection& projection);
 // Simulation samples already use runtime route X in metres, including reversed routes.
