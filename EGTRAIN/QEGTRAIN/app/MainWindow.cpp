@@ -7066,8 +7066,8 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			break;
 		}
 	}
-	if (!resetSelection && rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
-		rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, m_infrastructureTable->rowCount() - 1);
+	if (!resetSelection && rowToSelect < 0 && previousRow >= 0 && m_infrastructureTable->rowCount() > 0)
+		rowToSelect = std::min(previousRow, m_infrastructureTable->rowCount() - 1);
 	m_infrastructureTable->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
 	updateInfrastructureSelection();
 	const bool isBlocks = facet == QStringLiteral("blocks");
@@ -16681,6 +16681,20 @@ void MainWindow::runVisualPolishE2E() {
 			} else {
 				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
 				std::fflush(stdout);
+				// Nothing was selected in the infrastructure editor, so the stopped preview draws no selection cue.
+				const QList<QGraphicsItem*> previewItems = scene->items();
+				const bool cueDrawn = std::any_of(previewItems.cbegin(), previewItems.cend(), [](const QGraphicsItem* item) {
+					const auto* track = qgraphicsitem_cast<const TrackLineItem*>(item);
+					return track && track->pen().color() == kSelectionCueColor;
+				});
+				if (m_infrastructureTable->currentRow() != -1 || !m_infrastructureSelectionId.isEmpty()
+					|| m_previewHasSelectedTrack || cueDrawn) {
+					ok = false;
+					failures << "Stop selected a track without a selection in the infrastructure editor";
+				} else {
+					std::fprintf(stdout, "E2E_STOP_PREVIEW_UNSELECTED_OK\n");
+					std::fflush(stdout);
+				}
 			}
 		}
 	}
@@ -17146,6 +17160,11 @@ void MainWindow::runEditorSmokeE2E() {
 				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
+				}
+				refreshInfrastructurePanel();
+				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: a refresh selected a row that nobody selected";
 				}
 				m_infrastructureFacetCombo->setCurrentIndex(m_infrastructureFacetCombo->findData("tracks"));
 				m_infrastructureTable->setCurrentCell(0, 0);

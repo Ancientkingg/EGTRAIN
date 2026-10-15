@@ -35,7 +35,9 @@ Contrast against the canvas `#101a22` (WCAG relative-luminance contrast ratio,
 Operational prepared, occupied and blocked states remain in scene data and
 inspectors, but do not change ordinary historical track paint. Selection draws a
 ring around the item and never recolours it, so a selected track keeps its
-speed-class color. The cue colour is reserved: no built-in track, signal or default train colour uses
+speed-class color. The exception is the preview, where the track of the row selected in the Infrastructure table is
+drawn in the cue colour, width 4. A refresh of the table keeps a selected row and selects none otherwise, so Run, Stop, Save and New case
+draw no track in it unless the user selected a row. The cue colour is reserved: no built-in track, signal or default train colour uses
 it; a service colour chosen by the user is not checked. The map key shows only visible track styles. Layer/Follow/replay controls are
 unchanged.
 
