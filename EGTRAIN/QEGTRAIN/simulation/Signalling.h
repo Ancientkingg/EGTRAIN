@@ -4,6 +4,8 @@
 
 #include <tuple>
 #include <map>
+#include <memory>
+#include <vector>
 
 #include "scene/SceneDiagnostic.h"
 
@@ -130,16 +132,17 @@ extern int Blocks; // Total number of block sections in the network
 class Section {
 public:
 	string ID;
-	int trackLineId;							   // Track line ID this block belongs to
-	int FirstConnectedTrackLineID;				   // First track line connected by diverging switch (when withSwitchDiv=true)
-	int SecondConnectedTrackLineID;				   // Second track line connected by diverging switch (when withSwitchDiv=true)
-	Arc arcs_in_signalling_block_section[20];	   // Arcs composing the block section
-	Node start_node, end_node;					   // Start and end nodes
-	Node* nodelist_of_nodes_in_signalling_section; // Nodes composing the block section
-	int total_nodes;							   // Number of nodes in the block section
-	int total_arcs;								   // Number of arcs in the block section
-	double length;								   // Block section length
-	double exit_speed;							   // Exit speed controlled by signalling system
+	int trackLineId;						  // Track line ID this block belongs to
+	int FirstConnectedTrackLineID;			  // First track line connected by diverging switch (when withSwitchDiv=true)
+	int SecondConnectedTrackLineID;			  // Second track line connected by diverging switch (when withSwitchDiv=true)
+	Arc arcs_in_signalling_block_section[20]; // Arcs composing the block section
+	Node start_node, end_node;				  // Start and end nodes
+	// Nodes composing the block section, shared by every copy of the section; empty for a default section
+	std::shared_ptr<const std::vector<Node>> nodelist_of_nodes_in_signalling_section;
+	int total_nodes;   // Number of nodes in the block section
+	int total_arcs;	   // Number of arcs in the block section
+	double length;	   // Block section length
+	double exit_speed; // Exit speed controlled by signalling system
 	double code;
 	double XStartSwitch;				  // Abscissa where train starts diverging switch (nonzero only when withSwitchDiv=true)
 	double XEndSwitch;					  // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)

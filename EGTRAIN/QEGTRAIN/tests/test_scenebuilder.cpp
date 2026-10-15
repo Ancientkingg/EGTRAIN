@@ -15,6 +15,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -973,7 +974,9 @@ static void fillArc(Arc& a, double id, double gradient) {
 	fillNode(a.endNode, id + 200);
 }
 
-static void fillSection(Section& s, Node* nodes, TDS* tds) {
+using NodeList = std::shared_ptr<const std::vector<Node>>;
+
+static void fillSection(Section& s, const NodeList& nodes, TDS* tds) {
 	double* numbers[] = {&s.length, &s.exit_speed, &s.code, &s.XStartSwitch, &s.XEndSwitch, &s.GeoXBegNode, &s.GeoXEndNode};
 	double value = 71.5;
 	for (double* number : numbers)
@@ -1128,7 +1131,8 @@ static bool runArcValueChecks() {
 
 static bool runSectionValueChecks() {
 	bool ok = true;
-	Node nodes[2], otherNodes[2];
+	const NodeList nodes = std::make_shared<const std::vector<Node>>(2);
+	const NodeList otherNodes = std::make_shared<const std::vector<Node>>(2);
 	TDS tds, firstOtherTds, secondOtherTds;
 	Section source, reference;
 	fillSection(source, nodes, &tds);
@@ -1326,7 +1330,6 @@ static bool runSignallingMessageChecks() {
 		section.total_arcs = 1;
 		section.arcs_in_signalling_block_section[0].endNode.X = 10.0;
 		section.CutBlockSection(part, abscissa);
-		delete[] section.nodelist_of_nodes_in_signalling_section;
 		return capture.take();
 	};
 	shows(cut("CutEnd", 12.5, 2.0, 4.0),
@@ -1669,7 +1672,7 @@ static bool runOccupancyListChecks() {
 
 // The nodes that a section lists are read through this one function.
 static const Node& listedNode(const Section& section, int index) {
-	return section.nodelist_of_nodes_in_signalling_section[index];
+	return (*section.nodelist_of_nodes_in_signalling_section)[index];
 }
 
 // The abscissas of the listed nodes in order; empty when the section has no list.
@@ -1748,14 +1751,66 @@ static bool runNodeListChecks() {
 		cut.CutBlockSection("CutEnd", 6.0);
 		ok &= expect(cut.total_nodes == 3 && listedAbscissas(cut) == std::vector<double>({0.0, 4.0, 6.0}),
 			"a section cut at its end lists the nodes up to the cut");
-		delete[] cut.nodelist_of_nodes_in_signalling_section;
 	}
 	{
 		Section cut(source);
 		cut.CutBlockSection("CutBegin", 6.0);
 		ok &= expect(cut.total_nodes == 2 && listedAbscissas(cut) == std::vector<double>({6.0, 10.0}),
 			"a section cut at its start lists the nodes from the cut");
-		delete[] cut.nodelist_of_nodes_in_signalling_section;
+	}
+
+	// A default section has an empty list. A list that a section and its copies share is freed when the last of them lets go of it.
+	using WeakList = std::weak_ptr<const std::vector<Node>>;
+	{
+		Section owner;
+		ok &= expect(owner.nodelist_of_nodes_in_signalling_section == nullptr, "a default section has an empty list");
+		owner.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(2);
+		{
+			Section copied(owner);
+			Section assigned;
+			assigned = owner;
+			ok &= expect(copied.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section
+					&& assigned.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section
+					&& owner.nodelist_of_nodes_in_signalling_section.use_count() == 3,
+				"a copied and an assigned section share the list of their source");
+		}
+		ok &= expect(owner.nodelist_of_nodes_in_signalling_section.use_count() == 1, "a copy that is gone no longer holds the list");
+		Section other;
+		other.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(3);
+		const WeakList replaced = other.nodelist_of_nodes_in_signalling_section;
+		other = owner;
+		ok &= expect(replaced.expired() && other.nodelist_of_nodes_in_signalling_section == owner.nodelist_of_nodes_in_signalling_section,
+			"a section that is assigned another list releases its own");
+	}
+
+	// A cut section is the only owner of the list that the cut made, and frees it with the section.
+	for (const std::string& part : std::vector<std::string>{"CutEnd", "CutBegin"}) {
+		Section cut(source);
+		cut.CutBlockSection(part, 6.0);
+		const WeakList cutList = cut.nodelist_of_nodes_in_signalling_section;
+		ok &= expect(cut.nodelist_of_nodes_in_signalling_section.use_count() == 1, "a section cut with " + part + " is the only owner of its list");
+		cut = Section();
+		ok &= expect(cutList.expired(), "the list of a section cut with " + part + " is freed with the section");
+	}
+
+	// The sections of a route share the lists of the network, and a copy of a section keeps its list when the network is reset.
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())) && Blocks == 2 && train_route.size() == 1
+			&& train_route.front().sequence_of_block_sections.size() == 2,
+		"the scene with one route builds");
+	if (Blocks == 2 && train_route.size() == 1 && train_route.front().sequence_of_block_sections.size() == 2) {
+		for (int index = 0; index < 2; ++index) {
+			const NodeList& routeList = train_route.front().sequence_of_block_sections[index].nodelist_of_nodes_in_signalling_section;
+			ok &= expect(routeList != nullptr && routeList == signalling_block_sections[index].nodelist_of_nodes_in_signalling_section,
+				"a section of the route shares the list of its section of the network");
+		}
+		Section kept = signalling_block_sections[0];
+		const WeakList keptList = signalling_block_sections[0].nodelist_of_nodes_in_signalling_section;
+		const WeakList droppedList = signalling_block_sections[1].nodelist_of_nodes_in_signalling_section;
+		resetNativeInfrastructureState();
+		ok &= expect(!keptList.expired() && kept.nodelist_of_nodes_in_signalling_section.use_count() == 1 && kept.total_nodes == 2
+				&& listedAbscissas(kept) == std::vector<double>({0.0, 1.0}),
+			"a copy of a section keeps its list after the reset");
+		ok &= expect(droppedList.expired(), "the list of a section that no copy holds is freed by the reset");
 	}
 
 	resetNativeInfrastructureState();
