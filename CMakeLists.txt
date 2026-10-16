@@ -1121,6 +1121,10 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_dialogfolders PRIVATE Qt5::Core)
 	add_test(NAME test_dialogfolders COMMAND test_dialogfolders)
 
+	add_executable(test_cannotopenmessage ${SRC_DIR}/tests/test_cannotopenmessage.cpp)
+	target_link_libraries(test_cannotopenmessage PRIVATE Qt5::Core)
+	add_test(NAME test_cannotopenmessage COMMAND test_cannotopenmessage)
+
 	add_executable(test_scenewriter ${SRC_DIR}/tests/test_scenewriter.cpp)
 	target_link_libraries(test_scenewriter PRIVATE egtrain_scene)
 	add_test(NAME test_scenewriter
@@ -1485,7 +1489,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_distribution
 			test_recoverycontroller test_recoveryprompt test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_scenereferences test_scenedocument test_runselection
-			test_sceneimporter test_scenesavepolicy test_dialogfolders test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
+			test_sceneimporter test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
 			test_delayanalysis test_delayanalysiswindow test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
@@ -1528,7 +1532,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
-		test_scenesavepolicy test_dialogfolders test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
+		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_diagrams_no_sim_globals test_no_e2e_in_product test_scene_codec_contract test_windows_subsystem_config test_raii_contract

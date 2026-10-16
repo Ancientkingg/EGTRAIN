@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
@@ -2788,7 +2789,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(compatibility.diagnostics));
 		if (!noCompatibilityDialogs)
-			showBlockingError(this, "Cannot Open Scene", compatibilityMessage());
+			showBlockingError(this, cannot_open::title(), cannot_open::text(scenePath, compatibilityMessage()));
 		return false;
 	}
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
@@ -2811,7 +2812,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		if (message.isEmpty())
 			message = "Scene could not be opened.";
 		message += QString("\n\nError count: %1").arg(errorCount);
-		showBlockingError(this, "Cannot Open Scene", message);
+		showBlockingError(this, cannot_open::title(), cannot_open::text(scenePath, message));
 		return false;
 	}
 

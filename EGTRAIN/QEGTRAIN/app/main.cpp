@@ -1,4 +1,5 @@
 #include <QCoreApplication>
+#include "app/CannotOpenMessage.h"
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
@@ -251,12 +252,16 @@ void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
 }
 
 // A scene that cannot be opened is reported on standard error and, in a window launch that no
-// script started, in a message box.
-static void reportCannotOpen(const QString& what, const QString& reason, bool showBox) {
+// script started, in a message box. A damaged scene gets the message that the window shows for it.
+static void reportCannotOpen(const QString& what, const QString& reason, bool showBox, bool damaged = false) {
 	const QString message = QStringLiteral("Cannot open %1: %2").arg(what, reason);
 	std::cerr << "ERROR: " << message.toStdString() << '\n';
-	if (showBox && !updatesSuppressedByEnvironment())
-		QMessageBox::warning(nullptr, "Cannot Open Case Study", message);
+	if (!showBox || updatesSuppressedByEnvironment())
+		return;
+	if (damaged)
+		QMessageBox::critical(nullptr, cannot_open::title(), cannot_open::text(what, reason));
+	else
+		QMessageBox::warning(nullptr, cannot_open::title(), message);
 }
 
 // The scene that the command line names. The arguments come from the application object, not
@@ -394,7 +399,7 @@ int main(int argc, char* argv[]) {
 		if (openedFromFileName && hasErrors(loaded.diagnostics)) {
 			// A file name that does not load is reported and the usual start follows.
 			printSceneDiagnostics(loaded.diagnostics);
-			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true);
+			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, true);
 			openedFromFileName = false;
 			scenePath = resolveScenePath(QString(), defaultName);
 			loaded = preload(scenePath);
