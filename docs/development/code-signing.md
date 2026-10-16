@@ -6,8 +6,10 @@ of any signing service: every fact that only the owner can give is a field that 
 
 ## Current state
 
-- No Windows file is signed. The package workflow has two jobs that sign the three program files and then the installer
-  through SignPath, and both are off until the owner sets them up (see [Signing in CI](#signing-in-ci)). Every run of
+- No Windows file is signed, and the owner has decided to release them unsigned for now (see
+  [Windows releases](#windows-releases)). The package workflow has two jobs that sign the three program files and then
+  the installer through SignPath, and both are skipped unless the repository variable `WINDOWS_SIGNING` is `signpath`
+  (see [Signing in CI](#signing-in-ci)). Every run of
   the package workflow reports the signature state of the program files with `tools/release/verify_signatures.ps1` and
   fails for no file. Without the setup, the workflows use no credential other than the token that GitHub gives to each
   run.
@@ -45,6 +47,9 @@ signature they have, which may be none. The scenes, the guide and the `.egscene`
 signed.
 
 ## Choosing a signing path
+
+This is the route to follow if signing is enabled later; it is not pursued for now (see
+[Windows releases](#windows-releases)).
 
 The first choice is the SignPath Foundation free programme for open-source projects, if the project meets its
 conditions.
@@ -261,21 +266,55 @@ and ignore the other lines.
 
 `Valid` means that the file is unchanged since it was signed and that the chain is trusted on this machine. It does not
 mean that the program is free of defects or that it matches a given source revision. The checks apply once a release is
-signed. Until signing is set up and a release is built with it, the Windows downloads show `NotSigned`.
+signed. Until signing is enabled and a release is built with it, the Windows downloads show `NotSigned`.
 
 `tools/release/verify_signatures.ps1 -Directory DIR -Report` prints the same findings for the three program files of an
 unpacked ZIP, together with the digest algorithm and the timestamp (see [Signing in CI](#signing-in-ci)).
 
-## Unsigned downloads
+## Windows releases
 
-Until a release is signed, Windows may warn before it starts a program that was downloaded from the internet and has no
-publisher signature (the SmartScreen screen "Windows protected your PC"). The wording and the options depend on the
-Windows version. The project has not recorded how the screen looks on a clean machine: the release rehearsal records no
-Windows desktop check.
+Windows releases are not signed. The installer `EGTRAIN-Setup-<version>-x64.exe` and the files in the portable ZIP carry
+no Authenticode signature, and Windows shows no publisher for them.
 
-A valid signature shows who signed a file. Whether Windows still warns for a signed program depends on the Windows
-version and on checks of its own that the project has not observed. This document makes no promise either way. When a
-release is signed, its release text must say which Windows files are signed.
+### Decision
+
+On 2026-10-16 the owner decided to ship Windows releases unsigned. Neither the SignPath Foundation programme nor a paid
+certificate is pursued for now. The [fallback record](#fallback-record) stays empty, because no paid option was chosen.
+The signing jobs `sign-windows` and `sign-windows-installer` stay in `.github/workflows/package.yml` and are skipped
+unless the repository variable `WINDOWS_SIGNING` is `signpath`, so releases and pull request checks need nothing extra.
+
+To enable signing later, the owner:
+
+1. Applies to the SignPath Foundation, or chooses another service after filling the fallback record. The programme asks
+   for a code signing policy section on the project page, multi-factor authentication for everyone with access, and the
+   application itself. The [eligibility record](#eligibility-record) and the [ownership table](#ownership) get their
+   values.
+2. Creates the variables, the secret and the environment `windows-signing` that [Signing in CI](#signing-in-ci) lists.
+3. Sets `WINDOWS_SIGNING` to `signpath`. The next push to `production` or `v*` tag then signs the program files and the
+   installer, and the release text says which Windows files are signed.
+
+### First start of an unsigned build
+
+This was observed on 2026-10-16 on a clean Windows 11 (build 26300, ARM64, running the x64 files through Windows'
+emulation) as a standard user, for files that carried the download mark that a browser sets (`ZoneId=3`). Double-clicking `EGTRAIN-Setup-1.0.0-x64.exe` shows:
+
+1. A dialog headed `Windows protected your PC`. Its text is
+   `Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.`
+   It has a **More info** link and a **Don't run** button.
+2. After **More info**, the dialog shows `App: EGTRAIN-Setup-1.0.0-x64.exe` and `Publisher: Unknown publisher`, with the
+   buttons **Run anyway** and **Don't run**.
+3. **Run anyway** starts Setup. No prompt for an administrator follows.
+
+The dialog appears at every start of Setup. The portable `QEGTRAIN.exe`, extracted with **Extract All** from the ZIP,
+carried the download mark too and started without any warning. The wording and the options depend on the Windows
+version, and whether a warning appears may depend on other checks of Windows that this project has not observed.
+
+**Run anyway** is the normal Windows override for an app without a publisher. No workflow and no release script removes
+the download mark, and no document tells a user to turn SmartScreen off, because that lowers the protection of the whole
+PC.
+
+A valid signature would show who signed a file. Whether Windows still warns for a signed program is not known, and this
+document makes no promise either way. When a release is signed, its release text must say which Windows files are signed.
 
 ## macOS releases
 

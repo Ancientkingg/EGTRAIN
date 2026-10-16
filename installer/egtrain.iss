@@ -15,6 +15,7 @@
 AppId={{16796959-230D-4A37-879B-D3963171F664}
 AppName=EGTRAIN
 AppVersion={#Version}
+UninstallDisplayName=EGTRAIN
 AppPublisher=EGTRAIN
 AppPublisherURL=https://github.com/Ancientkingg/EGTRAIN
 DefaultDirName={userpf}\EGTRAIN
