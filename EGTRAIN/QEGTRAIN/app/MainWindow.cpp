@@ -25303,13 +25303,16 @@ void MainWindow::onSimulationFinished() {
 		if (ok) {
 			ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
 			ok &= dump("timetable.csv", buildTimetableCsv(ids));
-			ok &= dump("blocking_time.csv", buildBlockingTimeCsv(ids));
+			const std::string blockingCsv = buildBlockingTimeCsv(ids);
+			ok &= dump("blocking_time.csv", blockingCsv);
 			showBlockingTimeDiagram();
 			const auto windows = findChildren<DiagramWindow*>();
 			auto* blocking = windows.isEmpty() ? nullptr : windows.last();
 			auto* filter = blocking ? blocking->findChild<TrainFilterButton*>() : nullptr;
 			auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
-			ok &= blocking && list && !blocking->csvContent().empty();
+			// A scene with no routed train has no blocking-time window and nothing to export, as before.
+			if (!blockingCsv.empty())
+				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
 				QApplication::processEvents();
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
