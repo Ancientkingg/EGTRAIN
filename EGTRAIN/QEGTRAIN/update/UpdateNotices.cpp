@@ -18,20 +18,16 @@ void reportRolledBackUpdate(QWidget* parent) {
 	const std::optional<UpdateRecord> record = takeUpdateRecord(path, *installed);
 	if (!record)
 		return;
-	{
+	// A version that failed to start is not offered again. One that could not be applied is: that says
+	// nothing against the version.
+	if (record->outcome == UpdateOutcome::RolledBack) {
 		QSettings settings;
 		writeFailedUpdateVersion(settings, record->version);
 		settings.sync();
 	}
-	const QString version = formatSemanticVersion(record->version);
-	QMessageBox dialog(QMessageBox::Warning, QStringLiteral("EGTRAIN Update"),
-		QStringLiteral("The update to EGTRAIN %1 could not be started, so the previous version was restored.")
-			.arg(version),
-		QMessageBox::Ok, parent);
-	dialog.setInformativeText(
-		QStringLiteral("Automatic update checks will not offer %1 again. A newer version is offered as usual, "
-					   "and Check for Updates in the Help menu still offers %1.")
-			.arg(version));
+	const UpdateRecordText message = describeUpdateRecord(*record);
+	QMessageBox dialog(QMessageBox::Warning, QStringLiteral("EGTRAIN Update"), message.text, QMessageBox::Ok, parent);
+	dialog.setInformativeText(message.advice);
 	dialog.exec();
 }
 

@@ -9,21 +9,27 @@
 #include <QStringList>
 #include <optional>
 
-// The record that the update helper leaves when the new version fails to start and the previous
-// installation is put back. The helper writes it in update/UpdateHelper.cpp, which holds the same
-// format. A text file in updateRecordPath() of three lines, each ended by a line feed:
-//   outcome=rolled-back
+// The record that the update helper leaves when the update was not kept. The helper writes it in
+// update/UpdateHelper.cpp, which holds the same format. A text file in updateRecordPath() of three lines,
+// each ended by a line feed:
+//   outcome=rolled-back or not-applied
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
-// The version is the one that failed to start and the time is the UTC time of the write.
+// rolled-back: the new version failed to start and the previous installation was put back.
+// not-applied: the installation could not be renamed, so the previous installation was never replaced.
+// The version is the one that was to be installed and the time is the UTC time of the write.
 // In installer mode the helper runs the installer of an installer-managed copy instead and leaves
 // outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same
 // version (the one to install) and time. A failed installer that ended with an exit code adds a fourth
-// line, exit-code=N. Only the first record is an UpdateRecord: parseUpdateRecord does not accept the
-// others, so they never produce the message about a rolled-back update. The others are an InstallerRecord.
+// line, exit-code=N. Only the first two records are an UpdateRecord: parseUpdateRecord does not accept the
+// others, so they never produce the message about a failed update. The others are an InstallerRecord.
+enum class UpdateOutcome { RolledBack,
+	NotApplied };
+
 struct UpdateRecord {
 	SemanticVersion version;
 	QDateTime time;
+	UpdateOutcome outcome = UpdateOutcome::RolledBack;
 };
 
 // The record of an installer-mode update.
@@ -49,8 +55,16 @@ enum class InstallerCheck {
 
 // Reads the text of a record. The lines end in LF or CRLF, the keys outcome, version and time must
 // each occur (the first occurrence counts) and other keys are ignored. The outcome must be
-// rolled-back, the version a stable version and the time a UTC time ending in Z.
+// rolled-back or not-applied, the version a stable version and the time a UTC time ending in Z.
 std::optional<UpdateRecord> parseUpdateRecord(const QByteArray& contents);
+
+// What the user is told about the update that the record names: a short sentence, and a second one
+// on what to do next.
+struct UpdateRecordText {
+	QString text;
+	QString advice;
+};
+UpdateRecordText describeUpdateRecord(const UpdateRecord& record);
 
 // Reads the text of an installer record. The lines are read as in parseUpdateRecord, the outcome must be
 // installer-succeeded or installer-failed and the version a stable version. The time is not read.

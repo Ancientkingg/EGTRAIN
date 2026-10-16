@@ -4,9 +4,10 @@
 class QWidget;
 
 // Tells the user, once, that the update to a version could not be started and that the previous
-// version was restored. The update helper leaves the record that triggers it (update/UpdateRecord.h).
-// The version is stored so that automatic update checks stop offering it (update/UpdateSettings.h).
-// A scripted launch shows nothing and keeps the record.
+// version was restored, or that it could not be applied and that the previous version is still installed.
+// The update helper leaves the record that triggers it (update/UpdateRecord.h). After a version that
+// could not be started, the version is stored so that automatic update checks stop offering it
+// (update/UpdateSettings.h). A scripted launch shows nothing and keeps the record.
 void reportRolledBackUpdate(QWidget* parent);
 
 // Tells the user, once, what the installer of an installed Windows copy left: the record that the update
