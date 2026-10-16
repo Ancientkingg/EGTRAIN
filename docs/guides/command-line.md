@@ -55,6 +55,8 @@ The scene folder `Amsterdam_Hilversum_Student` has no `-n` number. Start it with
 
 With neither `-n` nor `--scene`, and no file name that opens, the window opens the **Open a Case** window over the case that the program has already loaded: Netherlands, or the case whose number you typed when `--interactive` asked for it. With `-n`, `--scene` or a file name that opens it does not open that window. A file name that does not open shows the message **Cannot Open Case Study** and the program then starts as without a file name: it loads the default case, or the case of `-n`, and opens the **Open a Case** window unless `-n` is given.
 
+A launch whose only argument is a `.egscene` file, as when the system opens a file with EGTRAIN, hands the file to a window of the same copy of EGTRAIN that is already open and ends with exit code 0. That window opens the file as **File > Open Case Study** does, including the question about unsaved changes, and comes to the front. A dialog that is open, such as that question or the first-run questions, holds the file back until it is closed, and the **Open a Case** window closes first. Only one window listens at a time, and it takes files only from its own copy, so a launch of a copy in another folder opens the file in a window of its own. A launch with other arguments, with `-g 0` or in a test run starts as described above. Two launches of the Linux AppImage count as different copies, because each runs from its own mount folder. When no window answers within 5 seconds, the launch opens the file itself.
+
 `-n` and the default case find their scene folder by name: first in `Scenes` next to the executable, then in `../Resources/Scenes` (the macOS app), `../share/EGTRAIN/Scenes` and `../../EGTRAIN/QEGTRAIN/Scenes`, each relative to the folder of the executable; an error in the scene stops the start (see [Exit codes](#exit-codes)).
 
 ## Random seed
@@ -71,7 +73,7 @@ QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
 
 ## Exit codes
 
-- 0: a run without a window that finished.
+- 0: a run without a window that finished, or a launch that handed its file to an open window.
 - 1: a bad argument, a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
 
 ## scene_tool
