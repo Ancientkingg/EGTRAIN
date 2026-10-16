@@ -1123,6 +1123,10 @@ if(EGTRAIN_BUILD_TESTS)
 		add_test(NAME test_package_contents_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/package_contents_smoke.sh)
 		set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 420)
+		# Signs a fixture bundle with the release signing script. It needs cc and codesign, not the built application.
+		add_test(NAME test_sign_macos
+			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh)
+		set_tests_properties(test_sign_macos PROPERTIES TIMEOUT 120)
 	endif()
 	add_test(NAME test_release_version
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_version.py)
@@ -1269,7 +1273,8 @@ if(EGTRAIN_BUILD_TESTS)
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke test_visual_polish_smoke
-		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures)
+		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
+		test_sign_macos)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
