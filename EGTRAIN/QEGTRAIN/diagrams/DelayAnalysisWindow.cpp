@@ -685,6 +685,7 @@ std::string DelayAnalysisWindow::currentCsv() const {
 		case kCallsTab: return delayCallsCsv(m_shownEvents);
 		case kSummaryTab: return delaySummaryCsv(m_shownSummary, m_shownKind);
 		case kBaselineTab: return delayBaselineCsv(m_shownBaseline);
+		default: break;
 	}
 	return std::string();
 }

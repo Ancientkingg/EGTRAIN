@@ -1389,7 +1389,8 @@ static bool brakingPhaseTests() {
 	// The final ten metres change gradient; no fixture file or rolling stock is changed.
 	{
 		Section& last = nativeRoute.sequence_of_block_sections.back();
-		const int index = last.total_arcs - 1;
+		// index + 1 stays inside the 20 arcs of a section.
+		const int index = std::min(last.total_arcs, 19) - 1;
 		const Arc original = last.arcs_in_signalling_block_section[index];
 		ok &= expect(original.endNode.X == 5 && last.total_arcs < 20, "upstream gradient fixture ends at 5000 metres");
 		last.arcs_in_signalling_block_section[index].endNode.X = 4.99;

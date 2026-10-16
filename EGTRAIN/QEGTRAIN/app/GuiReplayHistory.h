@@ -35,8 +35,9 @@ public:
 	// The string table keys point into the table of the same object, so a copy would dangle.
 	GuiReplayHistory(const GuiReplayHistory&) = delete;
 	GuiReplayHistory& operator=(const GuiReplayHistory&) = delete;
-	GuiReplayHistory(GuiReplayHistory&&) = default;
-	GuiReplayHistory& operator=(GuiReplayHistory&&) = default;
+	// Not noexcept: the move of std::unordered_map may allocate in some standard libraries.
+	GuiReplayHistory(GuiReplayHistory&&) = default;			   // NOLINT(performance-noexcept-move-constructor)
+	GuiReplayHistory& operator=(GuiReplayHistory&&) = default; // NOLINT(performance-noexcept-move-constructor)
 
 	void clear();
 	void record(const std::shared_ptr<const GuiSimulationSnapshot>& frame);

@@ -2124,7 +2124,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 						reportedRestart = true;
 					}
 				}
-				validTractionRows.push_back(std::move(row));
+				validTractionRows.push_back(row);
 				previousLowerSpeed = lowerSpeed;
 				havePreviousLowerSpeed = true;
 			}
