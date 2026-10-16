@@ -2,6 +2,7 @@
 #include "scene/SceneFields.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 #include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 #include <filesystem>
@@ -510,7 +511,7 @@ struct LegacyPassengerSources {
 };
 
 struct LegacyPassengerParseResult {
-	json passengers = json::array();
+	std::vector<ScenePassenger> passengers;
 	LegacyPassengerSources sources;
 	ReportBuilder report;
 	std::vector<ScenePassengerImportRow> rows;
@@ -682,16 +683,19 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 		if (foundPassenger == passengerIndex.end()) {
 			pIndex = result.passengers.size();
 			passengerIndex[personId] = pIndex;
-			result.passengers.push_back({{"id", personId}, {"journeys", json::array()}});
+			ScenePassenger added;
+			added.id = personId;
+			result.passengers.push_back(std::move(added));
 		} else {
 			pIndex = foundPassenger->second;
 		}
+		ScenePassenger& passenger = result.passengers[pIndex];
 		std::string journeyId = personId + ":" + (fields[4].empty() ? std::to_string(rowNo) : fields[4]);
 		const std::string originalJourneyId = journeyId;
 		for (int suffix = 2;; ++suffix) {
 			bool duplicate = false;
-			for (const auto& journey : result.passengers[pIndex]["journeys"])
-				if (journey["id"] == journeyId)
+			for (const ScenePassengerJourney& existing : passenger.journeys)
+				if (existing.id == journeyId)
 					duplicate = true;
 			if (!duplicate)
 				break;
@@ -709,11 +713,17 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			addDiag(SceneSeverity::Warning, "scene.import.ref",
 				"Passenger journey has an unresolved station reference", result.sources.das,
 				rowNo, "passengers.das", true);
-		json journey = {{"id", journeyId}, {"activity", fields[5]}, {"origin", origin}, {"destination", destination},
-			{"planned_departure", {{"start_seconds", departure.first}, {"end_seconds", departure.second}}},
-			{"planned_arrival", {{"start_seconds", arrival.first}, {"end_seconds", arrival.second}}}, {"legs", json::array()}};
-		const std::size_t jIndex = result.passengers[pIndex]["journeys"].size();
-		result.passengers[pIndex]["journeys"].push_back(journey);
+		ScenePassengerJourney journey;
+		journey.id = journeyId;
+		journey.activity = fields[5];
+		journey.originStationId = origin;
+		journey.destinationStationId = destination;
+		journey.plannedDepartureStartSeconds = departure.first;
+		journey.plannedDepartureEndSeconds = departure.second;
+		journey.plannedArrivalStartSeconds = arrival.first;
+		journey.plannedArrivalEndSeconds = arrival.second;
+		const std::size_t jIndex = passenger.journeys.size();
+		passenger.journeys.push_back(std::move(journey));
 		journeysByPersonDestination[personId + "\n" + destination].push_back({pIndex, jIndex});
 		result.report.converted("passengers.das", dasSource);
 		record(result.sources.das, rowNo, personId, true, unresolved, context);
@@ -796,6 +806,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			continue;
 		}
 		const auto target = journeyIt->second.front();
+		ScenePassengerJourney& targetJourney = result.passengers[target.first].journeys[target.second];
 		std::vector<std::string> transferStations;
 		for (int i = 0; i < transferCount; ++i) {
 			if (static_cast<std::size_t>(i) >= transferColumns.size())
@@ -816,7 +827,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 		for (int i = 0; i <= transferCount; ++i)
 			legServices.push_back(fields[serviceColumns[static_cast<std::size_t>(i)]]);
 		std::vector<std::string> legStations;
-		legStations.push_back(result.passengers[target.first]["journeys"][target.second]["origin"].get<std::string>());
+		legStations.push_back(targetJourney.originStationId);
 		bool transferUnresolved = false;
 		for (const auto& transfer : transferStations) {
 			bool ambiguous = false;
@@ -824,13 +835,13 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			legStations.push_back(station);
 			transferUnresolved = transferUnresolved || ambiguous || !knownStation(station);
 		}
-		legStations.push_back(result.passengers[target.first]["journeys"][target.second]["destination"].get<std::string>());
+		legStations.push_back(targetJourney.destinationStationId);
 		if (transferUnresolved)
 			addDiag(SceneSeverity::Warning, "scene.import.ref",
 				"Passenger route-choice transfer station is unresolved or ambiguous", result.sources.routeChoice,
 				routeRow, "passengers.route_choice", true);
 		bool unresolved = transferUnresolved;
-		json resolvedLegs = json::array();
+		std::vector<ScenePassengerLeg> resolvedLegs;
 		const auto resolveServiceToken = [&services](const std::string& token,
 											 std::string& serviceId, int& occurrence) {
 			const std::size_t separator = token.rfind('-');
@@ -870,13 +881,13 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			const bool stationsResolved = !legOriginAmbiguous && !legDestinationAmbiguous
 				&& knownStation(origin) && knownStation(destinationStation);
 			bool legResolved = serviceResolved && stationsResolved;
+			ScenePassengerLeg leg;
 			if (!serviceResolved || !stationsResolved) {
 				unresolved = true;
 				addDiag(SceneSeverity::Warning, "scene.import.ref",
 					"Passenger route-choice service or station reference is unresolved",
 					result.sources.routeChoice, routeRow, "passengers.route_choice", true);
 			} else {
-				ScenePassengerLeg leg;
 				leg.originStationId = origin;
 				leg.destinationStationId = destinationStation;
 				leg.serviceId = serviceId;
@@ -889,55 +900,20 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 						result.sources.routeChoice, routeRow, "passengers.route_choice", true);
 				}
 			}
-			if (legResolved)
-				resolvedLegs.push_back(
-					{{"id", result.passengers[target.first]["journeys"][target.second]["id"].get<std::string>() + ".leg." + std::to_string(i + 1)},
-						{"origin", origin}, {"destination", destinationStation},
-						{"service", serviceId}, {"occurrence", occurrence}});
+			if (legResolved) {
+				leg.id = targetJourney.id + ".leg." + std::to_string(i + 1);
+				leg.occurrence = occurrence;
+				resolvedLegs.push_back(std::move(leg));
+			}
 		}
 		if (!unresolved)
-			for (auto& leg : resolvedLegs)
-				result.passengers[target.first]["journeys"][target.second]["legs"].push_back(std::move(leg));
+			for (ScenePassengerLeg& resolved : resolvedLegs)
+				targetJourney.legs.push_back(std::move(resolved));
 		result.report.converted("passengers.route_choice", routeChoiceSource);
 		record(result.sources.routeChoice, routeRow, personId, true, unresolved,
 			unresolved ? "Accepted with unresolved service or station reference" : "Accepted");
 	}
 	return result;
-}
-
-static std::vector<ScenePassenger> scenePassengersFromJson(const json& values) {
-	std::vector<ScenePassenger> passengers;
-	for (const auto& value : values) {
-		ScenePassenger passenger;
-		passenger.id = value.value("id", "");
-		for (const auto& journeyValue : value.value("journeys", json::array())) {
-			ScenePassengerJourney journey;
-			journey.id = journeyValue.value("id", "");
-			journey.activity = journeyValue.value("activity", "");
-			journey.originStationId = journeyValue.value("origin", "");
-			journey.destinationStationId = journeyValue.value("destination", "");
-			if (journeyValue.contains("planned_departure")) {
-				journey.plannedDepartureStartSeconds = journeyValue["planned_departure"].value("start_seconds", 0.0);
-				journey.plannedDepartureEndSeconds = journeyValue["planned_departure"].value("end_seconds", 0.0);
-			}
-			if (journeyValue.contains("planned_arrival")) {
-				journey.plannedArrivalStartSeconds = journeyValue["planned_arrival"].value("start_seconds", 0.0);
-				journey.plannedArrivalEndSeconds = journeyValue["planned_arrival"].value("end_seconds", 0.0);
-			}
-			for (const auto& legValue : journeyValue.value("legs", json::array())) {
-				ScenePassengerLeg leg;
-				leg.id = legValue.value("id", "");
-				leg.originStationId = legValue.value("origin", "");
-				leg.destinationStationId = legValue.value("destination", "");
-				leg.serviceId = legValue.value("service", "");
-				leg.occurrence = legValue.value("occurrence", 1);
-				journey.legs.push_back(std::move(leg));
-			}
-			passenger.journeys.push_back(std::move(journey));
-		}
-		passengers.push_back(std::move(passenger));
-	}
-	return passengers;
 }
 
 SceneImportResult importLegacyScene(const std::string& legacyDir,
@@ -985,7 +961,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	json singleTrackRestrictions = json::array();
 	json stationBoundaries = json::array();
 	json scenarios = json::array();
-	json passengers = json::array();
 	json views = {{"tracks", json::array()}, {"stations", json::array()}};
 	bool hasViews = false;
 
@@ -2343,7 +2318,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	}
 	const LegacyPassengerParseResult passengerImport = parseLegacyPassengers(legacyPath,
 		passengerStations, passengerServices);
-	passengers = passengerImport.passengers;
 	report.append(passengerImport.report);
 	result.diagnostics.insert(result.diagnostics.end(), passengerImport.diagnostics.begin(),
 		passengerImport.diagnostics.end());
@@ -2412,7 +2386,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	writeJson("services.json", servicesFile);
 	writeJson("scenarios.json", scenariosFile);
 	if (hasViews) writeJson("views.json", views);
-	if (hasDas && hasRouteChoice) writeJson("passengers.json", {{"passengers", passengers}});
+	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(passengerImport.passengers));
 	if (!allWritten) return result;
 
 	if (hasErrors(result.diagnostics)) return result;
@@ -2474,7 +2448,7 @@ ScenePassengerImportResult importLegacyPassengers(const std::string& legacyRootO
 		stations.push_back({station.id, station.name});
 	const LegacyPassengerParseResult parsed = parseLegacyPassengers(pathFromUtf8(legacyRootOrPassengerDir),
 		stations, scene.services);
-	result.passengers = scenePassengersFromJson(parsed.passengers);
+	result.passengers = parsed.passengers;
 	result.rows = parsed.rows;
 	result.report = parsed.report.rows;
 	result.diagnostics = parsed.diagnostics;

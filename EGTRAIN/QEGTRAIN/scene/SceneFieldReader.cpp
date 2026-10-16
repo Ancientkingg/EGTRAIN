@@ -19,6 +19,57 @@ std::string withKey(const char* pattern, const char* key) {
 	return message;
 }
 
+void rejectResultFields(const SceneFieldReader& reader, const json& object, const std::string& path) {
+	if (!object.is_object())
+		return;
+	for (const auto& item : object.items()) {
+		if (isSimulationResultField(item.key()))
+			reader.report("scene.passengers.results", "Passenger input must not contain simulation-result fields",
+				joinPath(path, item.key()));
+	}
+}
+
+void decodeWindow(const SceneFieldReader& reader, const json& journey, const char* key, const std::string& journeyPath,
+	double& start, double& end) {
+	const std::string windowPath = joinPath(journeyPath, key);
+	if (!journey.contains(key) || !journey[key].is_object()) {
+		reader.report(kSceneFileFieldCodes.fieldMissing, std::string("Missing ") + key + " window", windowPath);
+		return;
+	}
+	reader.numberField(journey[key], "start_seconds", windowPath, start);
+	reader.numberField(journey[key], "end_seconds", windowPath, end);
+}
+
+ScenePassengerLeg decodePassengerLeg(const SceneFieldReader& reader, const json& value, const std::string& path) {
+	ScenePassengerLeg leg;
+	rejectResultFields(reader, value, path);
+	reader.stringField(value, "id", path, leg.id);
+	reader.stringField(value, "origin", path, leg.originStationId);
+	reader.stringField(value, "destination", path, leg.destinationStationId);
+	reader.stringField(value, "service", path, leg.serviceId);
+	reader.integerField(value, "occurrence", path, leg.occurrence, false);
+	return leg;
+}
+
+ScenePassengerJourney decodePassengerJourney(const SceneFieldReader& reader, const json& value, const std::string& path) {
+	ScenePassengerJourney journey;
+	rejectResultFields(reader, value, path);
+	reader.stringField(value, "id", path, journey.id);
+	reader.stringField(value, "activity", path, journey.activity, false);
+	reader.stringField(value, "origin", path, journey.originStationId);
+	reader.stringField(value, "destination", path, journey.destinationStationId);
+	decodeWindow(reader, value, "planned_departure", path, journey.plannedDepartureStartSeconds,
+		journey.plannedDepartureEndSeconds);
+	decodeWindow(reader, value, "planned_arrival", path, journey.plannedArrivalStartSeconds,
+		journey.plannedArrivalEndSeconds);
+	if (reader.arraySection(value, "legs", path, true)) {
+		for (std::size_t index = 0; index < value["legs"].size(); ++index)
+			journey.legs.push_back(
+				decodePassengerLeg(reader, value["legs"][index], path + ".legs[" + std::to_string(index) + "]"));
+	}
+	return journey;
+}
+
 } // namespace
 
 void SceneFieldReader::report(const char* code, const std::string& message, const std::string& path) const {
@@ -145,4 +196,30 @@ SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const jso
 	reader.stringField(value, "station", path, delay.stationId);
 	reader.numberField(value, "delay_seconds", path, delay.delaySeconds);
 	return delay;
+}
+
+bool isSimulationResultField(const std::string& name) {
+	return name == "results" || name == "simulation_results" || name.find("simulated_") == 0
+		|| name.find("actual_") == 0 || name == "delay_seconds" || name.find("arrival_delay") != std::string::npos
+		|| name.find("departure_delay") != std::string::npos;
+}
+
+std::vector<ScenePassenger> decodePassengers(const SceneFieldReader& reader, const json& root) {
+	std::vector<ScenePassenger> passengers;
+	if (!reader.arraySection(root, "passengers", "", true))
+		return passengers;
+	for (std::size_t index = 0; index < root["passengers"].size(); ++index) {
+		const std::string path = "passengers[" + std::to_string(index) + "]";
+		const json& value = root["passengers"][index];
+		ScenePassenger passenger;
+		reader.stringField(value, "id", path, passenger.id);
+		rejectResultFields(reader, value, path);
+		if (reader.arraySection(value, "journeys", path, true)) {
+			for (std::size_t journeyIndex = 0; journeyIndex < value["journeys"].size(); ++journeyIndex)
+				passenger.journeys.push_back(decodePassengerJourney(reader, value["journeys"][journeyIndex],
+					path + ".journeys[" + std::to_string(journeyIndex) + "]"));
+		}
+		passengers.push_back(std::move(passenger));
+	}
+	return passengers;
 }

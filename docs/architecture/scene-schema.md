@@ -440,8 +440,9 @@ and `journeys`. A journey has `id`, `origin`, `destination`, optional
 `activity`, required `planned_departure` and `planned_arrival` objects, and a
 `legs` array. Each time-window object uses numeric `start_seconds` and
 `end_seconds`, expressed as absolute seconds from midnight, not seconds from
-`base_time`. Each leg has `id`, `origin`, `destination`, `service`, and an
-optional integer `occurrence` that defaults to `1`.
+`base_time`. A journey with an empty activity is written without the `activity`
+key. Each leg has `id`, `origin`, `destination`, `service`, and an optional
+integer `occurrence` that defaults to `1`.
 
 A leg's destination must follow its origin in the referenced service's stop
 order. Repeated stations use the first ordered matching pair. A non-empty run

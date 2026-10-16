@@ -819,13 +819,6 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 							const std::string& path, int& output, bool required = true) {
 		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).integerField(object, key, path, output, required);
 	};
-	auto isSimulationResultField = [](const std::string& name) {
-		return name == "results" || name == "simulation_results"
-			|| name.find("simulated_") == 0 || name.find("actual_") == 0
-			|| name == "delay_seconds"
-			|| name.find("arrival_delay") != std::string::npos
-			|| name.find("departure_delay") != std::string::npos;
-	};
 
 	json sceneJson;
 	json infrastructureJson;
@@ -1500,82 +1493,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		result.scene.scenarios.push_back(baseline);
 	}
 
-	if (passengersOk && arraySection(passengersJson, "passengers", "passengers.json", "", true)) {
-		auto rejectSimulationResultFields = [&](const json& object, const std::string& path) {
-			if (!object.is_object())
-				return;
-			for (const auto& key : object.items()) {
-				if (isSimulationResultField(key.key())) {
-					addError("scene.passengers.results", "passengers.json",
-						"Passenger input must not contain simulation-result fields",
-						path + "." + key.key());
-				}
-			}
-		};
-		for (std::size_t passengerIndex = 0; passengerIndex < passengersJson["passengers"].size();
-			++passengerIndex) {
-			const std::string passengerPath = "passengers[" + std::to_string(passengerIndex) + "]";
-			const json& value = passengersJson["passengers"][passengerIndex];
-			ScenePassenger passenger;
-			stringField(value, "id", "passengers.json", passengerPath, passenger.id);
-			rejectSimulationResultFields(value, passengerPath);
-			if (arraySection(value, "journeys", "passengers.json", passengerPath, true)) {
-				for (std::size_t journeyIndex = 0; journeyIndex < value["journeys"].size(); ++journeyIndex) {
-					const std::string journeyPath = passengerPath + ".journeys["
-						+ std::to_string(journeyIndex) + "]";
-					const json& journeyValue = value["journeys"][journeyIndex];
-					ScenePassengerJourney journey;
-					rejectSimulationResultFields(journeyValue, journeyPath);
-					stringField(journeyValue, "id", "passengers.json", journeyPath, journey.id);
-					stringField(journeyValue, "activity", "passengers.json", journeyPath, journey.activity, false);
-					stringField(journeyValue, "origin", "passengers.json", journeyPath,
-						journey.originStationId);
-					stringField(journeyValue, "destination", "passengers.json", journeyPath,
-						journey.destinationStationId);
-					if (journeyValue.contains("planned_departure")
-						&& journeyValue["planned_departure"].is_object()) {
-						const std::string windowPath = journeyPath + ".planned_departure";
-						numberField(journeyValue["planned_departure"], "start_seconds", "passengers.json",
-							windowPath, journey.plannedDepartureStartSeconds);
-						numberField(journeyValue["planned_departure"], "end_seconds", "passengers.json",
-							windowPath, journey.plannedDepartureEndSeconds);
-					} else {
-						addError("scene.field.missing", "passengers.json",
-							"Missing planned_departure window", journeyPath + ".planned_departure");
-					}
-					if (journeyValue.contains("planned_arrival")
-						&& journeyValue["planned_arrival"].is_object()) {
-						const std::string windowPath = journeyPath + ".planned_arrival";
-						numberField(journeyValue["planned_arrival"], "start_seconds", "passengers.json",
-							windowPath, journey.plannedArrivalStartSeconds);
-						numberField(journeyValue["planned_arrival"], "end_seconds", "passengers.json",
-							windowPath, journey.plannedArrivalEndSeconds);
-					} else {
-						addError("scene.field.missing", "passengers.json",
-							"Missing planned_arrival window", journeyPath + ".planned_arrival");
-					}
-					if (arraySection(journeyValue, "legs", "passengers.json", journeyPath, true)) {
-						for (std::size_t legIndex = 0; legIndex < journeyValue["legs"].size(); ++legIndex) {
-							const std::string legPath = journeyPath + ".legs["
-								+ std::to_string(legIndex) + "]";
-							const json& legValue = journeyValue["legs"][legIndex];
-							ScenePassengerLeg leg;
-							rejectSimulationResultFields(legValue, legPath);
-							stringField(legValue, "id", "passengers.json", legPath, leg.id);
-							stringField(legValue, "origin", "passengers.json", legPath, leg.originStationId);
-							stringField(legValue, "destination", "passengers.json", legPath,
-								leg.destinationStationId);
-							stringField(legValue, "service", "passengers.json", legPath, leg.serviceId);
-							integerField(legValue, "occurrence", "passengers.json", legPath,
-								leg.occurrence, false);
-							journey.legs.push_back(leg);
-						}
-					}
-					passenger.journeys.push_back(journey);
-				}
-			}
-			result.scene.passengers.push_back(passenger);
-		}
+	if (passengersOk) {
+		const SceneFieldReader reader("passengers.json", kSceneFileFieldCodes, result.diagnostics);
+		result.scene.passengers = decodePassengers(reader, passengersJson);
 	}
 
 	refreshLoadedDataSummary(result.scene);
