@@ -35,6 +35,10 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 // Stage a package after download verification has succeeded.
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
 
+// True when path is on a volume that is mounted read-only or inside an App Translocation
+// location. An app that runs from a disk image or straight after a download is there.
+bool isReadOnlyLocation(const QString& path);
+
 // Removes the staging folders ".qegtrain-update-*" in installationParent that an update left
 // behind: directories that are not symbolic links and in which no entry changed within
 // minimumAge. Failures are ignored.

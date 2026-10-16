@@ -255,6 +255,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
+| `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
@@ -1210,8 +1211,13 @@ most of its checks, so run it locally to read its logs.
   A name with a path separator, another version or another kind of file is
   rejected. The manifest has no field for the kind of package; the key and the
   pattern decide it. The manifest of a published release keeps working because
-  its names are in the table. Staging handles the archives and the AppImage only;
-  the installer and the disk image are recognised but not staged yet.
+  its names are in the table. Staging handles the archives, the macOS disk image
+  and the AppImage; the installer is recognised but not staged yet. A package
+  whose name ends in `.dmg` is mounted read-only below the staging folder with
+  `hdiutil attach -readonly -nobrowse -noautoopen`, `QEGTRAIN.app` is copied from
+  the root of the volume with `ditto`, and the volume is detached on every path
+  (by force on the last attempt). The zip package of earlier releases, which
+  holds `QEGTRAIN-Lebanon/QEGTRAIN.app`, can still be staged.
   `update-manifest.json` also lists the files of the Windows package. Before
   the updater replaces an installation, it requires every listed file and a
   fixed set of runtime files (`requiredRuntimeFiles()` in
