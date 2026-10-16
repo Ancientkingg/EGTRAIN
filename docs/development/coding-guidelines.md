@@ -93,7 +93,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `update/` | Release check, package download, self-update and the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
 | `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background |
-| `tests/` | C++ test executables, one per file, with data in `tests/fixtures/` |
+| `tests/` | C++ test executables, one per file, with data in `tests/fixtures/`. The folder `tests/e2e/` is the runner of the scripted GUI scenarios, compiled into `QEGTRAIN` itself and not a test executable |
 | `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `golden_master/`, `memory/`, `performance/`, `release/`) |
 
 - Add a new `.cpp` to the library that holds its folder ([Libraries](../architecture/source-layout.md#libraries)),
@@ -293,6 +293,10 @@ lower in that block, and to the `gui` and `slow` lists where they apply
   where they matter (`hasCodeAndSeverity` in `tests/test_scenevalidator.cpp`).
 - The gate to run depends on the kind of change (UI or rendering, simulation or scene
   model, scene format); see [Verification Gates](build-and-test.md#verification-gates).
+
+`tests/e2e/CMakeLists.txt` adds the sources of the scripted GUI scenarios to `QEGTRAIN` when
+tests are built. `MainWindowTestAccess` is the friend of `MainWindow` for them, and the table in
+`tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
 
 ## Avoid in new code
 

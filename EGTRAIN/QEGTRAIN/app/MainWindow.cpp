@@ -2,6 +2,7 @@
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 #include "app/TelemetrySmokeSupport.h"
 #endif
+#include "app/MainWindowTestHooks.h"
 #include "app/OpenRequestRelay.h"
 #include "app/ReplayCoverage.h"
 #include "app/SceneOpenRequest.h"
@@ -1974,14 +1975,8 @@ bool e2eDialogsSuppressed() {
 	return startupTimingEnabled()
 		|| PlaybackProfiler::enabled()
 		|| qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE")
+		|| mainWindowTestHooks().dialogsSuppressed
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT")
-		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")
 		|| qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
@@ -24076,21 +24071,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// At full speed a short run can end before a pause of the signal head check takes effect.
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PAUSE_STEPS"))
 		m_speedSlider->setValue(kMaxStepDelayMs - 2);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_VISUAL_POLISH"))
-		QTimer::singleShot(2600, this, &MainWindow::runVisualPolishE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_STATION_OVERLAYS"))
-		QTimer::singleShot(1000, this, &MainWindow::runStationOverlayE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EDITOR_SMOKE"))
-		// let the startup case load and the docks settle before the smoke runs
-		QTimer::singleShot(1000, this, &MainWindow::runEditorSmokeE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_RUN"))
-		QTimer::singleShot(1000, this, &MainWindow::runSceneRenderE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TRACK_PREVIEW"))
-		QTimer::singleShot(1000, this, &MainWindow::runTrackPreviewE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT"))
-		QTimer::singleShot(1000, this, &MainWindow::runLegacyImportE2E);
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_SCENE_DROP"))
-		QTimer::singleShot(100, this, &MainWindow::runSceneDropE2E);
+	if (const auto& afterFirstShow = mainWindowTestHooks().afterFirstShow)
+		afterFirstShow(*this);
 }
 
 void MainWindow::runSceneDropE2E() {

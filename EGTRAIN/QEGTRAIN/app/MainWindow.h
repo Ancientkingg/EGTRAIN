@@ -303,6 +303,8 @@ public slots:
 	void fitToView();
 
 private:
+	// the scripted GUI runs in tests/e2e
+	friend class MainWindowTestAccess;
 	Ui::MainWindow* ui;
 
 	// central widget
