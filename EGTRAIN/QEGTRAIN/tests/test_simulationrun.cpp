@@ -62,7 +62,7 @@ using Description = std::vector<std::pair<std::string, std::string>>;
 
 Description describe(const SimulationRun& run) {
 	const auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, generator, delay, egtrainTime, romaTime] = run;
+		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime] = run;
 	const auto station = [](const Stations& s) {
 		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
@@ -85,6 +85,8 @@ Description describe(const SimulationRun& run) {
 		{"entranceInputDelays", station(entranceDelays)},
 		{"disturbanceInput", station(disturbances)},
 		{"finalStation", station(finalStation)},
+		{"trains", std::to_string(trains.size()) + "/" + std::to_string(trains.capacity())},
+		{"numTrains", std::to_string(numTrains)},
 		{"numberGenerator", draw},
 		{"signallingDelay", std::to_string(delay)},
 		{"compTimeEgtrain", std::to_string(egtrainTime)},
@@ -111,7 +113,7 @@ bool isNewRun(const SimulationRun& run) {
 // passengers, incidents and seeded generator, and the name of the final station.
 bool carriesNothingOver(const SimulationRun& run) {
 	const std::set<std::string> builderState = {"incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
-		"passengerIndex", "platformIndex", "finalStation", "numberGenerator"};
+		"passengerIndex", "platformIndex", "finalStation", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
 		if (builderState.count(name) == 0 && std::find(unchanged.begin(), unchanged.end(), name) == unchanged.end())
@@ -122,7 +124,7 @@ bool carriesNothingOver(const SimulationRun& run) {
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
 	auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, generator, delay, egtrainTime, romaTime] = run;
+		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime] = run;
 	occupied.push_back("1-B0");
 	connected.push_back("2-B0");
 	authorities.emplace_back();
@@ -141,6 +143,8 @@ void fill(SimulationRun& run) {
 		station->N_Stopped_Trains = 4;
 		station->totalArrivalDelay = 30;
 	}
+	trains.resize(2);
+	numTrains = 2;
 	generator.getUniformFloat();
 	delay = 2;
 	egtrainTime = 1.5;
@@ -161,16 +165,19 @@ bool resetTests() {
 			&& &AllDailyPassengers == &run.passengers && &numAllDailyPassengers == &run.numPassengers
 			&& &AllDailyPassengerIndex == &run.passengerIndex && &AllStationPlatformIndex == &run.platformIndex
 			&& &TotalInputDelays == &run.totalInputDelays && &EntranceInputDelays == &run.entranceInputDelays
-			&& &DisturbanceInput == &run.disturbanceInput && &Final_Station == &run.finalStation && &runNumberGenerator() == &run.numberGenerator
+			&& &DisturbanceInput == &run.disturbanceInput && &Final_Station == &run.finalStation
+			&& &regional_train == &run.trains && &numRegions == &run.numTrains && &runNumberGenerator() == &run.numberGenerator
 			&& &S_delay == &run.signallingDelay && &Comp_Time_EGTRAIN == &run.compTimeEgtrain && &Comp_Time_ROMA == &run.compTimeRoma,
 		"the global names refer to the members of the run");
 	ok &= expect(BlocksOccupied.size() == 1 && ETCS_MA.size() == 1 && simulationIncidents.size() == 1 && VCmsgText.size() == 1
-			&& AllDailyPassengers.size() == 1 && numAllStationPlatforms == 1 && Final_Station.N_Stopped_Trains == 4 && S_delay == 2,
+			&& AllDailyPassengers.size() == 1 && numAllStationPlatforms == 1 && Final_Station.N_Stopped_Trains == 4 && numRegions == 2
+			&& regional_train.size() == 2 && S_delay == 2,
 		"the members show the values through the global names");
 
 	run.reset();
 	ok &= expect(isNewRun(run), "reset returns every member to the state of a new run");
-	ok &= expect(&defaultRun() == address && BlocksOccupied.empty() && ETCS_MA.empty() && AllDailyPassengers.empty() && S_delay == 0,
+	ok &= expect(&defaultRun() == address && BlocksOccupied.empty() && ETCS_MA.empty() && AllDailyPassengers.empty() && regional_train.empty() && numRegions == 0
+			&& S_delay == 0,
 		"reset keeps the run at its address, so the global names stay valid");
 
 	// The generator of a seeded run starts again from the default seed.
@@ -309,7 +316,7 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	fill(defaultRun());
 	const std::vector<SceneDiagnostic> rejected = simulation.prepareScene(line, "no.such.scenario");
 	ok &= expect(hasErrors(rejected), "a scene with an unknown scenario is rejected");
-	ok &= expect(isNewRun(defaultRun()) && numRegions == 0, "a rejected preparation leaves a new run");
+	ok &= expect(isNewRun(defaultRun()), "a rejected preparation leaves a new run");
 	ok &= sameFiles("a scene after a failed preparation", firstLine, runScene(lineRun));
 	return ok;
 }

@@ -20,6 +20,8 @@ void SimulationRun::reset() {
 	entranceInputDelays = Stations();
 	disturbanceInput = Stations();
 	finalStation = Stations();
+	std::vector<Regional>().swap(trains);
+	numTrains = 0;
 	numberGenerator = NumberGenerator(kDefaultRandomSeed);
 	signallingDelay = 0;
 	compTimeEgtrain = 0;
@@ -51,6 +53,8 @@ std::vector<SimulationIncident>& simulationIncidents = theRun.incidents;
 vector<int>& VCmsgTimestep = theRun.vcMsgTimestep;
 vector<string>& VCmsgTrain = theRun.vcMsgTrain;
 vector<string>& VCmsgText = theRun.vcMsgText;
+std::vector<Regional>& regional_train = theRun.trains;
+int& numRegions = theRun.numTrains;
 list<StationPlatform>& AllStationPlatforms = theRun.platforms;
 int& numAllStationPlatforms = theRun.numPlatforms;
 list<Passenger>& AllDailyPassengers = theRun.passengers;

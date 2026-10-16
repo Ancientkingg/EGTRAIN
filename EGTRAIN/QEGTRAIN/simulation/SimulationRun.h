@@ -4,6 +4,7 @@
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
 #include "simulation/Passengers.h"
+#include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 
 #include <list>
@@ -48,6 +49,11 @@ struct SimulationRun {
 	Stations entranceInputDelays;
 	Stations disturbanceInput;
 	Stations finalStation;
+
+	// The trains of the scene and their number. The operations builder creates the vector once per build with
+	// exactly the trains of the scene, and it does not grow while the trains are live.
+	std::vector<Regional> trains;
+	int numTrains = 0;
 
 	// The draws of the passenger sampling. The operations builder seeds it from the settings of the run.
 	NumberGenerator numberGenerator{kDefaultRandomSeed};

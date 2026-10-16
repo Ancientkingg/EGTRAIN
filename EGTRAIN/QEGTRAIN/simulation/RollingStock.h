@@ -51,10 +51,11 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	const std::string& selectedScenarioId = {},
 	const SceneRunSelection& selectedOccurrences = {});
 
-// Clear operation metadata before preparing a scene without rebuilding train slots.
+// Returns the operations state of the run to that of a new run: the trains and their storage, platforms, passengers,
+// incidents and statistics.
 void prepareNativeOperationsState();
 
-// Release native train-owned arrays and operation globals between scene runs.
+// The reset between scene runs, which is the same as preparing a new run.
 void resetNativeOperationsState();
 
 // Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
@@ -150,7 +151,7 @@ private:
 Declaration of Train class
 *
 ****************************************************************************************************************************/
-extern int numRegions; /*Number of Trains loaded for the simulation*/
+extern int& numRegions; /*Number of Trains loaded for the simulation*/
 
 // Largest number of trains a scene may expand to. It is a validation and editor
 // limit, not a storage size: regional_train holds exactly the trains of the scene.
@@ -612,7 +613,7 @@ static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members 
 
 // One element per train of the loaded scene. The storage is created once per build and does not
 // grow while the trains are live.
-extern std::vector<Regional> regional_train;
+extern std::vector<Regional>& regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(int i);

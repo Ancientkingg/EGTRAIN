@@ -39,14 +39,12 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-int numRegions = 0; /*Number of Trains loaded for the simulation*/
-
 // const int Max_N_Reg = 150;
 
 Train::Train() {
 	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
 	BrakStep = -1;
-	End_Time = (int)((initial_variables.times - 1) / timestep);
+	End_Time = -1; // setTrainVectorSizesFromInput sets the last step of the trajectory arrays
 	numStations = 0;
 	Xobmin = Vobmin = 0;
 	// instant_train_energy_consumption[0] = 0; // moved to function that sets the size of vectors from user input (at this point vector size is zero, can't set value)
@@ -258,8 +256,6 @@ Regional::Regional() {
 	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
 	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
-
-std::vector<Regional> regional_train;
 
 // Function to compute Blocking Times of trains in mixed signalling areas
 void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {

@@ -269,13 +269,11 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 } // namespace
 
 void prepareNativeOperationsState() {
-	numRegions = 0;
 	defaultRun().reset();
 }
 
 void resetNativeOperationsState() {
 	prepareNativeOperationsState();
-	regional_train = std::vector<Regional>();
 }
 
 std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
