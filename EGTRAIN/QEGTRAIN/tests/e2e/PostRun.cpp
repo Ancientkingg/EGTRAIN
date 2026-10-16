@@ -211,6 +211,20 @@ bool writeFile(const QString& path, const std::string& content) {
 	return out.open(QIODevice::WriteOnly) && out.write(content.data(), static_cast<qint64>(content.size())) == static_cast<qint64>(content.size());
 }
 
+// The result window that the main window opened last.
+DiagramWindow* newestWindow(const MainWindow& w) {
+	const auto windows = w.findChildren<DiagramWindow*>();
+	return windows.isEmpty() ? nullptr : windows.last();
+}
+
+// Writes the dump of the chart of a result window.
+bool exportChart(DiagramWindow* window, const QString& dir, const QString& name) {
+	if (!window)
+		return false;
+	QApplication::processEvents();
+	return writeFile(dir + "/" + name + "_series.txt", chartDump(*window));
+}
+
 // Writes what a result window shows and exports: the dump of its chart and the CSV for all trains, for the first train
 // and for none, as the train filter sets them.
 bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name,
@@ -219,8 +233,7 @@ bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name
 	auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
 	if (!list)
 		return false;
-	QApplication::processEvents();
-	bool ok = writeFile(dir + "/" + name + "_series.txt", chartDump(*window));
+	bool ok = exportChart(window, dir, name);
 	ok &= dump(name + "_window_all.csv", window->csvContent());
 	for (int row = 1; row < list->count(); ++row)
 		list->item(row)->setCheckState(Qt::Unchecked);
@@ -400,7 +413,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		};
 		bool ok = w.m_resultsAvailable;
 		if (ok) {
-			ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
+			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_completedRun, ids));
 			const std::string blockingCsv = buildBlockingTimeCsv(ids);
 			ok &= dump("blocking_time.csv", blockingCsv);
@@ -429,10 +442,20 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				blocking->close();
 			}
 			w.showDelayDiagram();
-			const auto delayWindows = w.findChildren<DiagramWindow*>();
-			ok &= exportWindow(delayWindows.isEmpty() ? nullptr : delayWindows.last(), dir, "delay_diagram", dump);
-			if (!delayWindows.isEmpty())
-				delayWindows.last()->close();
+			DiagramWindow* delay = newestWindow(w);
+			ok &= exportWindow(delay, dir, "delay_diagram", dump);
+			if (delay)
+				delay->close();
+			// The four per-train diagrams share one export, so the CSV of the first stands for all.
+			const char* const perTrainNames[] = {"speed_distance", "speed_time", "time_distance", "effort_distance"};
+			for (int mode = 0; mode < 4; ++mode) {
+				w.buildPerTrainDiagram(mode);
+				DiagramWindow* perTrain = newestWindow(w);
+				ok &= mode == 0 ? exportWindow(perTrain, dir, perTrainNames[mode], dump)
+								: exportChart(perTrain, dir, perTrainNames[mode]);
+				if (perTrain)
+					perTrain->close();
+			}
 			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRunResults));
 			const CapacityAnalysisScope capacityScope = firstCapacityScopeWithPair();
 			std::string capacityCsv;

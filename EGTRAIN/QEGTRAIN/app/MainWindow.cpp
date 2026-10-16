@@ -17192,34 +17192,31 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		return;
 	}
 
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
-	const QString title = QString("%1 [%2]").arg(titles[mode], completedRunContext(m_completedRunProvenance));
+	const QString title = QString("%1 [%2]").arg(titles[mode], completedRunContext(run->provenance));
 	QChart* chart = new QChart();
 	chart->setTitle(title);
 
 	// one series per contiguous segment; legend distinguishes trains
-	for (int tr = 0; tr < numRegions; tr++) {
-		Train& train = regional_train[tr];
-		if (train.trajectorySize() == 0 || train.earliestActiveTrajectoryIndex < 0)
-			continue;
-
-		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position,
-				 train.earliestActiveTrajectoryIndex, train.End_Time)) {
+	for (const CompletedTrain& train : run->trains) {
+		const CompletedTrajectory& trajectory = train.trajectory;
+		for (const TrajectorySegment& segment : trajectory.segments) {
 			QLineSeries* series = new QLineSeries();
-			series->setName(QString::fromStdString(train.trainDescription));
-			series->setProperty("trainId", QString::fromStdString(train.trainDescription));
+			series->setName(QString::fromStdString(train.trainId));
+			series->setProperty("trainId", QString::fromStdString(train.trainId));
 			for (int i = segment.first; i <= segment.last; i++) {
-				double tSec = trajectoryTimeSeconds(i, timestep);
-				double dist = train.positionKmAt(i);
-				double spd = train.speedKmhAt(i);
+				double tSec = trajectoryTimeSeconds(i, run->settings.timestepSeconds);
+				double dist = trajectory.at(trajectory.position, i).value_or(0.0) / 1000.0;
+				double spd = trajectory.at(trajectory.speed, i).value_or(0.0) * 3.6; // m/s to km/h
 				if (mode == 0)
 					series->append(dist, spd); // x: distance (km), y: speed (km/h)
 				else if (mode == 1)
 					series->append(tSec, spd); // x: time (s),      y: speed (km/h)
 				else if (mode == 2)
 					series->append(tSec, dist); // x: time (s),      y: distance (km)
-				else if (i < static_cast<int>(train.instant_train_tractive_effort.size()))
-					series->append(dist, train.instant_train_tractive_effort[static_cast<std::size_t>(i)] / 1000.0);
+				else if (const auto effort = trajectory.at(trajectory.effort, i))
+					series->append(dist, *effort / 1000.0);
 			}
 			chart->addSeries(series);
 		}
@@ -17235,11 +17232,11 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
-	win->setCsvProvider(snapshotCsv(&buildTrajectoryCsv), "trajectory.csv");
-	attachRunProvenance(win, m_completedRunProvenance);
+	win->setTrainColors(trainColorsForRun(run->results, m_sceneModel));
+	win->setCsvProvider(csvProviderFrom(run, &trajectoryCsvFrom), "trajectory.csv");
+	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(mode == 1 || mode == 2, m_startOffsetSeconds);
+	win->setTimeAxisX(mode == 1 || mode == 2, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }

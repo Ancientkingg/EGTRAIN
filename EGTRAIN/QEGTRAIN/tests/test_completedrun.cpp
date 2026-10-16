@@ -753,13 +753,34 @@ std::string exportsOf(const CompletedRunData& data) {
 	return text;
 }
 
-// A window with the timetable export of a run, as the application opens one.
-std::unique_ptr<DiagramWindow> openTimetableWindow(const CompletedRunData& data) {
+// A window with the export of a run, as the application opens one.
+std::unique_ptr<DiagramWindow> openWindow(const CompletedRunData& data, CompletedRunCsv csv, const QString& fileName) {
 	const auto run = std::make_shared<const CompletedRunData>(data);
-	auto window = std::make_unique<DiagramWindow>("timetable");
+	auto window = std::make_unique<DiagramWindow>(fileName);
 	window->setChart(new QChart());
-	window->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv", trainIdsFrom(*run));
+	window->setCsvProvider(csvProviderFrom(run, csv), fileName, trainIdsFrom(*run));
 	return window;
+}
+
+// The windows that were opened for one scene, with what each exported at that time.
+struct OpenWindows {
+	std::unique_ptr<DiagramWindow> timetable;
+	std::unique_ptr<DiagramWindow> trajectory;
+	std::string timetableCsv;
+	std::string trajectoryCsv;
+};
+
+OpenWindows openWindows(const CapturedRun& run) {
+	OpenWindows windows;
+	windows.timetable = openWindow(run.data, &timetableCsvFrom, "timetable.csv");
+	windows.trajectory = openWindow(run.data, &trajectoryCsvFrom, "trajectory.csv");
+	windows.timetableCsv = windows.timetable->csvContent();
+	windows.trajectoryCsv = windows.trajectory->csvContent();
+	const QStringList ids = trainIdsFrom(run.data);
+	check(!windows.timetableCsv.empty() && !windows.trajectoryCsv.empty(), run.scene + ": the windows export rows");
+	checkSame(run.scene + ": timetable window and timetable.csv", timetableCsvFrom(run.data, ids), windows.timetableCsv);
+	checkSame(run.scene + ": trajectory window and trajectory.csv", trajectoryCsvFrom(run.data, ids), windows.trajectoryCsv);
+	return windows;
 }
 
 // --- Hand-made data ---
@@ -1252,8 +1273,7 @@ int main(int argc, char** argv) {
 
 	std::vector<CapturedRun> runs(static_cast<std::size_t>(argc - 1));
 	std::vector<std::string> exports;
-	std::vector<std::unique_ptr<DiagramWindow>> windows;
-	std::vector<std::string> windowExports;
+	std::vector<OpenWindows> windows;
 	for (int k = 1; k < argc; ++k) {
 		CapturedRun& run = runs[static_cast<std::size_t>(k - 1)];
 		if (!runScene(argv[k], output.path().toStdString(), run))
@@ -1264,18 +1284,17 @@ int main(int argc, char** argv) {
 		compareCapacity(run);
 		compareRouteDiagrams(run);
 		exports.push_back(exportsOf(run.data));
-		windows.push_back(openTimetableWindow(run.data));
-		windowExports.push_back(windows.back()->csvContent());
-		check(!windowExports.back().empty(), run.scene + ": the timetable window exports rows");
-		checkSame(run.scene + ": timetable window and timetable.csv", timetableCsvFrom(run.data, trainIdsFrom(run.data)), windowExports.back());
+		windows.push_back(openWindows(run));
 	}
 	// Every run has been replaced by the next one by now. The data of each must still give what it gave.
 	for (std::size_t k = 0; k < runs.size(); ++k) {
 		checkSame(runs[k].scene + ": exports of the run after later runs", exports[k], exportsOf(runs[k].data));
-		checkSame(runs[k].scene + ": timetable window after later runs", windowExports[k], windows[k]->csvContent());
+		checkSame(runs[k].scene + ": timetable window after later runs", windows[k].timetableCsv, windows[k].timetable->csvContent());
+		checkSame(runs[k].scene + ": trajectory window after later runs", windows[k].trajectoryCsv, windows[k].trajectory->csvContent());
 		for (std::size_t other = k + 1; other < runs.size(); ++other) {
 			check(exports[k] != exports[other], runs[k].scene + " and " + runs[other].scene + " give different exports");
-			check(windowExports[k] != windowExports[other], runs[k].scene + " and " + runs[other].scene + " give different window exports");
+			check(windows[k].timetableCsv != windows[other].timetableCsv && windows[k].trajectoryCsv != windows[other].trajectoryCsv,
+				runs[k].scene + " and " + runs[other].scene + " give different window exports");
 		}
 	}
 
