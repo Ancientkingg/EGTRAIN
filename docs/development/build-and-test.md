@@ -659,8 +659,9 @@ functions, other signal speeds and a held single-track zone. The cases are in
 the file, and the comparison is exact text, without a tolerance. The speed
 limits of the sections are numbers of the test, not railway data. The test also
 checks, without the golden file, the aspects of one step for every level, the
-level mask of a route, and that a step leaves the lists of occupied and
-connected sections as they were. A change of the aspect routines that is not
+release of one connected section on two routes of different lengths, the level
+mask of a route, and that a step leaves the lists of occupied and connected
+sections as they were. A change of the aspect routines that is not
 meant to change behaviour has to leave the file as it is. The file has no
 `# case:` line and no `# known-wrong:` line, because it is not a case of the
 table. It is recorded with `EGTRAIN_UPDATE_EXPECTATIONS=1`, like the others. The
