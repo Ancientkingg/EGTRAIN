@@ -81,6 +81,28 @@ int main(int argc, char** argv) {
 	}
 	{
 		UserPrompts prompts;
+		QString text;
+		QMessageBox::Icon icon = QMessageBox::NoIcon;
+		int shown = 0;
+		answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
+			text = box->text();
+			icon = box->icon();
+			box->accept();
+		});
+		prompts.showInfo(nullptr, "Title", "Message");
+		ok &= expect(shown == 1 && text == "Message" && icon == QMessageBox::Information,
+			"a message shows an information box with the message");
+	}
+	{
+		UserPrompts prompts([] { return true; });
+		int shown = 0;
+		answerDialog<QMessageBox>(shown, [](QMessageBox* box) { box->accept(); });
+		prompts.showInfo(nullptr, "Title", "Message");
+		waitFor(150);
+		ok &= expect(shown == 0, "a suppressed message opens no dialog");
+	}
+	{
+		UserPrompts prompts;
 		bool defaultIsNo = false;
 		int shown = 0;
 		answerDialog<QMessageBox>(shown, [&](QMessageBox* box) {
