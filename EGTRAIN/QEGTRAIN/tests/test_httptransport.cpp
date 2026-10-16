@@ -54,6 +54,11 @@ struct RecordedRequest {
 // each response, except on /stall, which sends part of a body and then waits, and on /drop, which
 // closes it without a response.
 struct TestServer {
+private:
+	// Declared before the server, so it outlives the sockets whose disconnected handlers use it.
+	QHash<QTcpSocket*, QByteArray> m_pending;
+
+public:
 	TestServer() {
 		listening = server.listen(QHostAddress::LocalHost, 0);
 		QObject::connect(&server, &QTcpServer::newConnection, &server, [this]() { accept(); });
@@ -135,8 +140,6 @@ private:
 			+ "\r\nConnection: close\r\n" + extraHeaders + "\r\n" + body);
 		socket->disconnectFromHost();
 	}
-
-	QHash<QTcpSocket*, QByteArray> m_pending;
 };
 
 // One request and everything its reply reports.
@@ -173,7 +176,7 @@ struct Fetch {
 	}
 
 	// Runs the event loop until finished() has arrived or the guard time has passed.
-	bool waitFinished() {
+	bool waitFinished(int guardMs = kGuardMs) {
 		if (finishedCount > 0)
 			return true;
 		QEventLoop eventLoop;
@@ -181,7 +184,7 @@ struct Fetch {
 		guard.setSingleShot(true);
 		QObject::connect(&guard, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
 		loop = &eventLoop;
-		guard.start(kGuardMs);
+		guard.start(guardMs);
 		eventLoop.exec();
 		loop = nullptr;
 		return finishedCount > 0;
@@ -292,6 +295,33 @@ static bool testConnectionDropped(HttpTransport& transport, const TestServer& se
 	return ok;
 }
 
+// Nothing listens on the port: the server that had it is closed. A refused connection is reported at once.
+// Qt 5.15.19 on macOS 27 never reports it and leaves the request pending, so the case aborts a request
+// that is still pending after a short wait, as the timeouts of UpdateChecker and SelfUpdater do.
+static bool testConnectionRefused(HttpTransport& transport) {
+	QUrl url;
+	{
+		QTcpServer closed;
+		if (!expect(closed.listen(QHostAddress::LocalHost, 0), "refused: a free port is found"))
+			return false;
+		url = QUrl(QStringLiteral("http://127.0.0.1:%1/").arg(closed.serverPort()));
+	}
+	Fetch fetch(transport, makeRequest(url));
+	bool ok = true;
+	if (!fetch.waitFinished(1000)) {
+		ok &= expect(fetch.reply != nullptr, "refused: the reply exists while it is pending");
+		if (fetch.reply)
+			fetch.reply->abort();
+		ok &= expect(fetch.waitFinished(), "refused: finished() arrives once a pending request is aborted");
+	}
+	spin(50);
+	ok &= expect(fetch.finishedCount == 1, "refused: finished() is emitted once");
+	ok &= expect(fetch.failed, "refused: the reply has failed");
+	ok &= expect(fetch.status == 0, "refused: no status code arrives");
+	ok &= expect(!fetch.error.isEmpty(), "refused: errorString() is not empty");
+	return ok;
+}
+
 static bool testReleaseAfterFinished(HttpTransport& transport, const TestServer& server) {
 	QPointer<HttpReply> released;
 	{
@@ -356,6 +386,7 @@ int main(int argc, char** argv) {
 	ok &= testErrorStatus(*transport, server);
 	ok &= testAbortDuringResponse(*transport, server);
 	ok &= testConnectionDropped(*transport, server);
+	ok &= testConnectionRefused(*transport);
 	ok &= testReleaseAfterFinished(*transport, server);
 	ok &= testTeardownDuringRequest(server);
 	return ok ? 0 : 1;
