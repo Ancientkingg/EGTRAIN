@@ -65,8 +65,8 @@ def test_preview_snapshot_comparator() -> None:
     ):
         if _has_direct_entry_label_equality(text):
             raise SystemExit(f"{path} still compares entryLabels directly")
-    if _has_direct_preview_code_equality(source):
-        raise SystemExit("MainWindow.cpp still compares previewCodes directly")
+    if _has_direct_preview_code_equality(source + e2e_source):
+        raise SystemExit("previewCodes is still compared directly")
     if not re.search(
         r"currentItems\.size\(\)\s*!=\s*renderedItems\.size\(\)\s*"
         r"\|\|\s*!std::equal\(currentItems\.cbegin\(\),\s*currentItems\.cend\(\),\s*"
@@ -78,7 +78,7 @@ def test_preview_snapshot_comparator() -> None:
         r"previewCodes\.size\(\)\s*!=\s*expectedPreviewCodes\.size\(\)\s*"
         r"\|\|\s*!std::equal\(previewCodes\.cbegin\(\),\s*previewCodes\.cend\(\),\s*"
         r"expectedPreviewCodes\.cbegin\(\)\)",
-        source,
+        source + e2e_source,
     ):
         raise SystemExit("previewCodes comparison must size-check before std::equal")
     if not re.search(

@@ -7,7 +7,9 @@
 #include <QMetaObject>
 #include <QScrollBar>
 #include <QString>
+#include <cstdio>
 #include <functional>
+#include <string>
 
 // What MainWindow.cpp and the scripted runs in tests/e2e share.
 
@@ -16,6 +18,23 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 // Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
 // characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 640;
+// The kind of scene item that a row of the loaded data tree stands for.
+constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
+// The key of the setting behind the Advanced Details switch.
+constexpr const char* kAdvancedDetailsKey = "advancedDetails";
+
+// Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
+inline int baseTimeToSeconds(const std::string& hhmmss) {
+	if (hhmmss.empty())
+		return 0;
+	int h = 0, m = 0, s = 0;
+	char extra = 0;
+	if (std::sscanf(hhmmss.c_str(), "%d:%d:%d%c", &h, &m, &s, &extra) != 3)
+		return 0;
+	if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59)
+		return 0;
+	return h * 3600 + m * 60 + s;
+}
 
 // The speed slider reads left-to-right as slow-to-fast; the worker wants a
 // per-step delay, so the delay is the distance from the fast end.
