@@ -331,10 +331,11 @@ to the console directly.
   route set-up) and for problems found in the scene data or the model while it is built or
   while the blocking times are computed. It uses `sim.events` for virtual coupling and
   following mode, arrivals, departures and the failure to write an arrival message,
-  `sim.step` for messages written once per step or per occurrence in the trajectory code, and
-  `sim.pax` for passengers. The application uses `app.run` for the banners and the progress of
-  a run. `io/RttpXml.cpp` uses `io.railml`, and the legacy sender (`io/ExternalState.cpp` and
-  the XML that `app/DispatchController.cpp` sends) uses `io.zmq`.
+  `sim.step` at `debug`, which is off by default, for messages written once per step by a
+  train in the trajectory code, and `sim.pax` for passengers. The application uses `app.run`
+  for the banners and the progress of a run. `io/RttpXml.cpp` uses `io.railml`, and the legacy
+  sender (`io/ExternalState.cpp` and the XML that `app/DispatchController.cpp` sends) uses
+  `io.zmq`.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file

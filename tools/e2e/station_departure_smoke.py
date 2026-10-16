@@ -9,6 +9,9 @@ one unit in the last place away from the stopping point. That rounding needs
 fused multiply and add, which arm64 compilers use; it happens at Weesp on
 route30. On other targets this script passes without exercising it, and the
 cases in test_operationsbuilder cover the comparisons there.
+
+The run prints no per-step line by default. A second run with EGTRAIN_LOG=sim.step=true
+prints the line "<train> is stopping at <station>" for the last stop.
 """
 import json
 import os
@@ -57,6 +60,44 @@ def service_document() -> dict:
     }
 
 
+def run_service(app: Path, scene: Path, run_root: Path, logging_rules: str = "") -> tuple:
+    """Run the app headless on the scene and return (output folder, combined stdout and stderr)."""
+    output = run_root / "output"
+    output.mkdir(parents=True)
+
+    env = os.environ.copy()
+    env.pop("EGTRAIN_LOG", None)
+    env.update(
+        {
+            "QT_QPA_PLATFORM": "offscreen",
+            "QEGTRAIN_OUTPUT_DIR": str(output),
+        }
+    )
+    if logging_rules:
+        env["EGTRAIN_LOG"] = logging_rules
+    command = [str(app), "--scene", str(scene), "-g", "0", "-TSM", "0", "-RC", "0"]
+    try:
+        process = subprocess.run(
+            command,
+            cwd=run_root,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=RUN_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired as exc:
+        tail = exc.stdout or ""
+        if isinstance(tail, bytes):
+            tail = tail.decode("utf-8", errors="replace")
+        raise SystemExit(f"station departure run timed out after {RUN_TIMEOUT}s\n{tail[-4000:]}") from exc
+    if process.returncode != 0:
+        raise SystemExit(f"station departure run exited with {process.returncode}\n{process.stdout[-4000:]}")
+    return output, process.stdout
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("usage: station_departure_smoke.py PATH_TO_QEGTRAIN")
@@ -76,37 +117,7 @@ def main() -> None:
         )
         scene_name = json.loads((scene / "scene.json").read_text(encoding="utf-8"))["name"]
 
-        run_root = temp_root / "run"
-        output = run_root / "output"
-        output.mkdir(parents=True)
-
-        env = os.environ.copy()
-        env.update(
-            {
-                "QT_QPA_PLATFORM": "offscreen",
-                "QEGTRAIN_OUTPUT_DIR": str(output),
-            }
-        )
-        command = [str(app), "--scene", str(scene), "-g", "0", "-TSM", "0", "-RC", "0"]
-        try:
-            process = subprocess.run(
-                command,
-                cwd=run_root,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=RUN_TIMEOUT,
-            )
-        except subprocess.TimeoutExpired as exc:
-            tail = exc.stdout or ""
-            if isinstance(tail, bytes):
-                tail = tail.decode("utf-8", errors="replace")
-            raise SystemExit(f"station departure run timed out after {RUN_TIMEOUT}s\n{tail[-4000:]}") from exc
-        if process.returncode != 0:
-            raise SystemExit(f"station departure run exited with {process.returncode}\n{process.stdout[-4000:]}")
+        output, stdout = run_service(app, scene, temp_root / "run")
 
         points = output / "Output" / scene_name / "TrainTrajectories" / "TimetablePoints.txt"
         if not points.is_file():
@@ -140,8 +151,12 @@ def main() -> None:
                 )
         print(f"PASS {TRAIN} reports arrival and departure at {len(STOPS)} stops")
 
-        if f"{TRAIN} is stopping at Brn" not in process.stdout:
-            raise SystemExit(f"{TRAIN} never arrived at Brn\n{process.stdout[-4000:]}")
+        if "is stopping at" in stdout:
+            raise SystemExit(f"the run prints a per-step line by default\n{stdout[-4000:]}")
+        _, verbose_stdout = run_service(app, scene, temp_root / "run-verbose", "sim.step=true")
+        if f"{TRAIN} is stopping at Brn" not in verbose_stdout:
+            raise SystemExit(f"{TRAIN} never arrived at Brn\n{verbose_stdout[-4000:]}")
+        print("PASS the per-step line is off by default and on with EGTRAIN_LOG=sim.step=true")
 
         # The last stop has no planned departure, so the train leaves the network after its dwell:
         # its trajectory ends before the end of the run.

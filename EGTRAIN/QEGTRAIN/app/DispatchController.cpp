@@ -29,6 +29,9 @@
 using namespace std;
 
 namespace {
+// The step loop reports its progress once in this many steps.
+constexpr int ProgressEverySteps = 100;
+
 void ensureDirectory(const string& path) {
 	if (!path.empty()) {
 		std::filesystem::create_directories(path);
@@ -668,7 +671,9 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		{
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 			clock_t startEGTRAIN = clock(); // EGTRAIN start time
-			EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
+			if (t % ProgressEverySteps == 0) {
+				EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
+			}
 
 			{
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",

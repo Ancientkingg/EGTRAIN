@@ -92,7 +92,7 @@ PRODUCERS = [
     ),
     ("app/DispatchController.cpp", 'End of Simulation"', "the same line in the console of a run in the window"),
     ("app/main.cpp", '"Graphical user interface (GUI): ', "tools/e2e/startup_launch_contract.py"),
-    ("simulation", '" is stopping at "', "tools/e2e/station_departure_smoke.py"),
+    ("simulation", '" is stopping at "', "tools/e2e/station_departure_smoke.py, which runs with EGTRAIN_LOG=sim.step=true"),
 ]
 
 # A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
@@ -181,7 +181,7 @@ def check_patterns():
     ):
         if has_producer(text, 'End of Simulation"'):
             failures.append(f"self-check: {what} satisfies the producer check")
-    logged = 'EG_LOG(SimStep, Info) << "At time " << t << " is stopping at " << name << "\\n";\n'
+    logged = 'EG_LOG(SimStep, Debug) << "At time " << t << " is stopping at " << name << "\\n";\n'
     if not has_producer(logged, '" is stopping at "'):
         failures.append("self-check: a live EG_LOG producer is not found")
     for what, text in (
