@@ -42,6 +42,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/TrainUnitPanel.h"
+#include "editors/TrainUnitSourceLinker.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
@@ -75,9 +76,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QFileSystemWatcher>
 #include <QSaveFile>
-#include <QCryptographicHash>
 #include <cfloat>
 #include <QThread>
 #include <QCloseEvent>
@@ -293,29 +292,6 @@ public:
 		return CompactDoubleSpinBox::valueFromText(text);
 	}
 };
-
-QString sourceFileSignature(const QString& path) {
-	QFile file(path);
-	if (!file.open(QIODevice::ReadOnly))
-		return QStringLiteral("<missing>");
-	return QString::fromLatin1(QCryptographicHash::hash(file.readAll(), QCryptographicHash::Sha256).toHex());
-}
-
-QString absoluteSourcePath(const QString& path) {
-	return QDir::cleanPath(QFileInfo(path).absoluteFilePath());
-}
-
-bool sameTrainPhysical(const SceneTrainPhysical& left, const SceneTrainPhysical& right) {
-	return left.mass_of_traction_unit_kg == right.mass_of_traction_unit_kg
-		&& left.mass_of_a_wagon_kg == right.mass_of_a_wagon_kg
-		&& left.number_of_wagons == right.number_of_wagons
-		&& left.max_speed_ms == right.max_speed_ms
-		&& left.max_deceleration_ms2 == right.max_deceleration_ms2
-		&& left.frontal_area_m2 == right.frontal_area_m2
-		&& left.resistance_coefficient == right.resistance_coefficient
-		&& left.jerk_ms3 == right.jerk_ms3
-		&& left.length_m == right.length_m;
-}
 
 bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
@@ -1096,16 +1072,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->setupUi(this);
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
-	m_trainUnitSourceWatcher = new QFileSystemWatcher(this);
-	m_trainUnitSourceDebounceTimer = new QTimer(this);
-	m_trainUnitSourceDebounceTimer->setSingleShot(true);
-	m_trainUnitSourceDebounceTimer->setInterval(150);
-	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::fileChanged, this,
-		[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
-	connect(m_trainUnitSourceWatcher, &QFileSystemWatcher::directoryChanged, this,
-		[this](const QString& path) { scheduleTrainUnitSourceChange(path); });
-	connect(m_trainUnitSourceDebounceTimer, &QTimer::timeout, this,
-		&MainWindow::processTrainUnitSourceChanges);
 	setupUpdateActions();
 	if (ui->menuHelp) {
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy & diagnostics..."));
@@ -1967,17 +1933,42 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
 	registerEditorDock(m_trainUnitDock);
 	m_trainUnitPanel->setPrompts(m_userPrompts.get());
-	connect(m_trainUnitPanel, &TrainUnitPanel::detailsShown, this, &MainWindow::updateTrainUnitSourceStatus);
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceLinkRequested, this, &MainWindow::linkTrainUnitSource);
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceUnlinkRequested, this, &MainWindow::unlinkTrainUnitSource);
-	connect(m_trainUnitPanel, &TrainUnitPanel::sourceRetryRequested, this, &MainWindow::retryTrainUnitSource);
-	connect(m_trainUnitPanel, &TrainUnitPanel::unitRenamed, this, [this](const QString& oldId, const QString& newId) {
-		const auto sourceLink = m_trainUnitSourceLinks.find(oldId.toStdString());
-		if (sourceLink != m_trainUnitSourceLinks.end()) {
-			TrainUnitSourceLink state = std::move(sourceLink->second);
-			m_trainUnitSourceLinks.erase(sourceLink);
-			m_trainUnitSourceLinks.emplace(newId.toStdString(), std::move(state));
+	m_trainUnitSourceLinker = new TrainUnitSourceLinker(this);
+	m_trainUnitSourceLinker->setDialogParent(this);
+	m_trainUnitSourceLinker->setDocument(m_document);
+	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusChanged, this, &MainWindow::updateTrainUnitSourceStatus);
+	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::commitPendingEditsRequested, this, &MainWindow::commitPendingEditorValues);
+	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::statusMessage, this,
+		[this](const QString& message, int milliseconds) { statusBar()->showMessage(message, milliseconds); });
+	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::linksCleared, this, [this] {
+		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+			if (window && window->property("inputTrainUnitId").isValid())
+				window->close();
 		}
+	});
+	connect(m_trainUnitSourceLinker, &TrainUnitSourceLinker::reloaded, this, [this](const QStringList& tractionUnitIds) {
+		m_trainUnitPanel->refresh();
+		m_compositionPanel->refresh();
+		refreshValidationPanel();
+		for (const QString& unitId : tractionUnitIds)
+			refreshInputTractionDiagrams(unitId.toStdString());
+	});
+	connect(m_trainUnitPanel, &TrainUnitPanel::detailsShown, this, &MainWindow::updateTrainUnitSourceStatus);
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceLinkRequested, this, [this](bool traction) {
+		commitPendingEditorValues();
+		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
+			m_trainUnitSourceLinker->link(unit->id, traction);
+	});
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceUnlinkRequested, this, [this](bool traction) {
+		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
+			m_trainUnitSourceLinker->unlink(unit->id, traction);
+	});
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceRetryRequested, this, [this](bool traction) {
+		if (const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit())
+			m_trainUnitSourceLinker->retry(unit->id, traction);
+	});
+	connect(m_trainUnitPanel, &TrainUnitPanel::unitRenamed, this, [this](const QString& oldId, const QString& newId) {
+		m_trainUnitSourceLinker->renameUnit(oldId.toStdString(), newId.toStdString());
 		const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, newId.toStdString());
 		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
 			if (window && unit && window->property("inputTrainUnitId").toString() == oldId) {
@@ -1985,13 +1976,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				window->setPresentation("Input traction characteristic", inputTractionContext(*unit), inputTractionWarning(*unit));
 			}
 		}
-		refreshTrainUnitSourceWatches();
-		updateTrainUnitSourceStatus();
 	});
 	connect(m_trainUnitPanel, &TrainUnitPanel::unitDeleted, this, [this](const QString& id) {
-		m_trainUnitSourceLinks.erase(id.toStdString());
+		m_trainUnitSourceLinker->forgetUnit(id.toStdString());
 		refreshInputTractionDiagrams(id.toStdString());
-		refreshTrainUnitSourceWatches();
 	});
 	connect(m_trainUnitPanel, &TrainUnitPanel::changed, this, &MainWindow::refreshValidationPanel);
 	const auto plotUnitTraction = [this](const QString& unitId) {
@@ -2856,7 +2844,6 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_excludedSceneOccurrences.clear();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
-	clearTrainUnitSourceLinks();
 	teardownGUI();
 	simulation.resetState();
 	m_sceneDir.clear();
@@ -3110,7 +3097,6 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		return false;
 	}
 
-	clearTrainUnitSourceLinks();
 	teardownGUI();
 	simulation.resetState();
 
@@ -6559,446 +6545,9 @@ void MainWindow::deleteInfrastructureEntity() {
 
 void MainWindow::updateTrainUnitSourceStatus() {
 	const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit();
-	const auto it = unit ? m_trainUnitSourceLinks.find(unit->id) : m_trainUnitSourceLinks.end();
-	const TrainUnitSourceLink* state = it == m_trainUnitSourceLinks.end() ? nullptr : &it->second;
+	const TrainUnitSourceLinker::Link* state = unit ? m_trainUnitSourceLinker->linkOf(unit->id) : nullptr;
 	m_trainUnitPanel->setSourceState(false, state ? state->dataPath : QString(), state ? state->dataStatus : QString());
 	m_trainUnitPanel->setSourceState(true, state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
-}
-
-void MainWindow::refreshTrainUnitSourceWatches() {
-	if (!m_trainUnitSourceWatcher)
-		return;
-	QSet<QString> files;
-	QSet<QString> directories;
-	for (const auto& entry : m_trainUnitSourceLinks) {
-		const TrainUnitSourceLink& state = entry.second;
-		for (const QString& path : {state.dataPath, state.tractionPath}) {
-			if (path.isEmpty())
-				continue;
-			if (QFileInfo(path).isFile())
-				files.insert(path);
-			const QString parent = QFileInfo(path).absolutePath();
-			if (!parent.isEmpty())
-				directories.insert(parent);
-		}
-	}
-	const auto reconcile = [this](const QStringList& watched, const QSet<QString>& wanted) {
-		for (const QString& path : watched)
-			if (!wanted.contains(path)) m_trainUnitSourceWatcher->removePath(path);
-		for (const QString& path : wanted)
-			if (!watched.contains(path)) m_trainUnitSourceWatcher->addPath(path);
-	};
-	reconcile(m_trainUnitSourceWatcher->files(), files);
-	reconcile(m_trainUnitSourceWatcher->directories(), directories);
-}
-
-void MainWindow::clearTrainUnitSourceLinks() {
-	if (m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->stop();
-	m_pendingTrainUnitSourcePaths.clear();
-	m_trainUnitSourceLinks.clear();
-	if (m_trainUnitSourceWatcher) {
-		const QStringList watched = m_trainUnitSourceWatcher->files()
-			+ m_trainUnitSourceWatcher->directories();
-		if (!watched.isEmpty())
-			m_trainUnitSourceWatcher->removePaths(watched);
-	}
-	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-		if (window && window->property("inputTrainUnitId").isValid())
-			window->close();
-	}
-	updateTrainUnitSourceStatus();
-}
-
-void MainWindow::linkTrainUnitSource(bool traction) {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	commitPendingEditorValues();
-	const SceneTrainUnit unit = m_sceneModel.trainUnits[static_cast<std::size_t>(row)];
-	const quint64 sceneRevision = m_sceneRevision;
-	const std::string unitId = unit.id;
-	const auto it = m_trainUnitSourceLinks.find(unitId);
-	const QString oldPath = it == m_trainUnitSourceLinks.end() ? QString()
-															   : (traction ? it->second.tractionPath : it->second.dataPath);
-	const QString selected = QFileDialog::getOpenFileName(this,
-		traction ? QStringLiteral("Link traction source") : QStringLiteral("Link parameter source"),
-		oldPath.isEmpty() ? QDir::homePath() : QFileInfo(oldPath).absolutePath());
-	if (selected.isEmpty() || !m_sceneLoaded || m_sceneRevision != sceneRevision)
-		return;
-	const QString path = absoluteSourcePath(selected);
-	TrainUnitSourceLink& state = m_trainUnitSourceLinks[unitId];
-	++state.generation;
-	QString* linkedPath = traction ? &state.tractionPath : &state.dataPath;
-	QString* signature = traction ? &state.tractionSignature : &state.dataSignature;
-	QString* status = traction ? &state.tractionStatus : &state.dataStatus;
-	if (*linkedPath != path) {
-		signature->clear();
-		status->clear();
-	}
-	if (traction)
-		state.acceptedTraction = unit.tractionCurve;
-	else
-		state.acceptedPhysical = unit.physical;
-	*linkedPath = path;
-	if (traction) {
-		state.tractionDeferred = m_worker != nullptr;
-		*status = state.tractionDeferred
-			? QStringLiteral("Linked; pending reload after run")
-			: QStringLiteral("Linked; waiting for reload");
-	} else {
-		state.dataDeferred = m_worker != nullptr;
-		*status = state.dataDeferred
-			? QStringLiteral("Linked; pending reload after run")
-			: QStringLiteral("Linked; waiting for reload");
-	}
-	refreshTrainUnitSourceWatches();
-	m_pendingTrainUnitSourcePaths.insert(path);
-	if (m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->start();
-	updateTrainUnitSourceStatus();
-}
-
-void MainWindow::unlinkTrainUnitSource(bool traction) {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	const std::string unitId = m_sceneModel.trainUnits[static_cast<std::size_t>(row)].id;
-	const auto it = m_trainUnitSourceLinks.find(unitId);
-	if (it == m_trainUnitSourceLinks.end())
-		return;
-	if (traction) {
-		++it->second.generation;
-		it->second.tractionPath.clear();
-		it->second.tractionSignature.clear();
-		it->second.acceptedTraction.clear();
-		it->second.tractionStatus.clear();
-		it->second.tractionDeferred = false;
-	} else {
-		++it->second.generation;
-		it->second.dataPath.clear();
-		it->second.dataSignature.clear();
-		it->second.acceptedPhysical.reset();
-		it->second.dataStatus.clear();
-		it->second.dataDeferred = false;
-	}
-	if (it->second.dataPath.isEmpty() && it->second.tractionPath.isEmpty())
-		m_trainUnitSourceLinks.erase(it);
-	refreshTrainUnitSourceWatches();
-	updateTrainUnitSourceStatus();
-}
-
-void MainWindow::retryTrainUnitSource(bool traction) {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	const std::string unitId = m_sceneModel.trainUnits[static_cast<std::size_t>(row)].id;
-	const auto it = m_trainUnitSourceLinks.find(unitId);
-	if (it == m_trainUnitSourceLinks.end())
-		return;
-	const QString path = traction ? it->second.tractionPath : it->second.dataPath;
-	if (path.isEmpty())
-		return;
-	if (traction) {
-		it->second.tractionSignature.clear();
-		it->second.tractionDeferred = m_worker != nullptr;
-		it->second.tractionStatus = it->second.tractionDeferred
-			? QStringLiteral("Retry pending after run")
-			: QStringLiteral("Retrying");
-	} else {
-		it->second.dataSignature.clear();
-		it->second.dataDeferred = m_worker != nullptr;
-		it->second.dataStatus = it->second.dataDeferred
-			? QStringLiteral("Retry pending after run")
-			: QStringLiteral("Retrying");
-	}
-	refreshTrainUnitSourceWatches();
-	m_pendingTrainUnitSourcePaths.insert(path);
-	if (m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->start();
-	updateTrainUnitSourceStatus();
-}
-
-void MainWindow::scheduleTrainUnitSourceChange(const QString& changedPath) {
-	const QString path = absoluteSourcePath(changedPath);
-	for (auto& entry : m_trainUnitSourceLinks) {
-		TrainUnitSourceLink& state = entry.second;
-		const auto consider = [this, &path](const QString& linkedPath, bool traction,
-								  TrainUnitSourceLink& current) {
-			if (linkedPath.isEmpty())
-				return;
-			const QString parent = QFileInfo(linkedPath).absolutePath();
-			if (path != linkedPath && path != parent)
-				return;
-			m_pendingTrainUnitSourcePaths.insert(linkedPath);
-			if (m_worker && sourceFileSignature(linkedPath) != (traction ? current.tractionSignature : current.dataSignature)) {
-				if (traction) {
-					current.tractionDeferred = true;
-					current.tractionStatus = QStringLiteral("Changed during run; pending reload");
-				} else {
-					current.dataDeferred = true;
-					current.dataStatus = QStringLiteral("Changed during run; pending reload");
-				}
-			}
-		};
-		consider(state.dataPath, false, state);
-		consider(state.tractionPath, true, state);
-	}
-	if (m_pendingTrainUnitSourcePaths.isEmpty())
-		return;
-	if (m_worker)
-		updateTrainUnitSourceStatus();
-	if (m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->start();
-}
-
-void MainWindow::processTrainUnitSourceChanges() {
-	if (m_processingTrainUnitSourceChanges || m_pendingTrainUnitSourcePaths.isEmpty() || m_worker)
-		return;
-	if (m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->stop();
-	QScopedValueRollback<bool> processing(m_processingTrainUnitSourceChanges, true);
-	const QSet<QString> pending = m_pendingTrainUnitSourcePaths;
-	m_pendingTrainUnitSourcePaths.clear();
-	std::vector<std::pair<QString, bool>> associations;
-	for (const auto& entry : m_trainUnitSourceLinks) {
-		for (const auto& association : std::array<std::pair<QString, bool>, 2>{
-				 std::make_pair(entry.second.dataPath, false), std::make_pair(entry.second.tractionPath, true)}) {
-			if (!association.first.isEmpty() && pending.contains(association.first))
-				associations.push_back(association);
-		}
-	}
-	QSet<QString> processed;
-	for (const auto& association : associations) {
-		const QString key = QString(association.second ? "traction\n" : "physical\n") + association.first;
-		if (processed.contains(key))
-			continue;
-		processed.insert(key);
-		processTrainUnitSourceFile(association.first, association.second);
-	}
-	if (!m_pendingTrainUnitSourcePaths.isEmpty() && m_trainUnitSourceDebounceTimer)
-		m_trainUnitSourceDebounceTimer->start();
-}
-
-void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	commitPendingEditorValues();
-	std::vector<std::string> affected;
-	for (const auto& entry : m_trainUnitSourceLinks) {
-		const QString linkedPath = traction ? entry.second.tractionPath : entry.second.dataPath;
-		if (linkedPath == path)
-			affected.push_back(entry.first);
-	}
-	if (affected.empty()) {
-		refreshTrainUnitSourceWatches();
-		return;
-	}
-	const QString signature = sourceFileSignature(path);
-	bool needsProcessing = false;
-	for (const std::string& unitId : affected) {
-		const auto it = m_trainUnitSourceLinks.find(unitId);
-		if (it == m_trainUnitSourceLinks.end())
-			continue;
-		const QString handled = traction ? it->second.tractionSignature : it->second.dataSignature;
-		needsProcessing = needsProcessing || handled != signature;
-	}
-	if (!needsProcessing) {
-		for (const std::string& unitId : affected) {
-			auto& link = m_trainUnitSourceLinks.at(unitId);
-			bool& deferred = traction ? link.tractionDeferred : link.dataDeferred;
-			if (deferred) {
-				(traction ? link.tractionStatus : link.dataStatus) = QStringLiteral("Up to date");
-				deferred = false;
-			}
-		}
-		refreshTrainUnitSourceWatches();
-		updateTrainUnitSourceStatus();
-		return;
-	}
-
-	SceneTrainPhysicalSourceResult physicalResult;
-	SceneTrainTractionSourceResult tractionResult;
-	if (traction)
-		tractionResult = parseTrainTractionSourceFile(path.toStdString());
-	else
-		physicalResult = parseTrainPhysicalSourceFile(path.toStdString());
-	const bool parsed = traction ? tractionResult.success() : physicalResult.success();
-	const QString error = traction ? QString::fromStdString(tractionResult.error)
-								   : QString::fromStdString(physicalResult.error);
-	if (!parsed) {
-		for (const std::string& unitId : affected) {
-			auto it = m_trainUnitSourceLinks.find(unitId);
-			if (it == m_trainUnitSourceLinks.end()
-				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
-				continue;
-			if (traction) {
-				it->second.tractionSignature = signature;
-				it->second.tractionStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
-				it->second.tractionDeferred = false;
-			} else {
-				it->second.dataSignature = signature;
-				it->second.dataStatus = QStringLiteral("Rejected: %1; Retry available").arg(error);
-				it->second.dataDeferred = false;
-			}
-		}
-		refreshTrainUnitSourceWatches();
-		updateTrainUnitSourceStatus();
-		statusBar()->showMessage(QString("Source reload rejected: %1").arg(error), 8000);
-		return;
-	}
-
-	QStringList conflicts;
-	QStringList affectedNames;
-	std::map<std::string, quint64> generations;
-	bool deferredChange = false;
-	for (const std::string& unitId : affected) {
-		const auto it = m_trainUnitSourceLinks.find(unitId);
-		if (it == m_trainUnitSourceLinks.end()
-			|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
-			continue;
-		affectedNames << QString::fromStdString(unitId);
-		generations.emplace(unitId, it->second.generation);
-		deferredChange = deferredChange || (traction ? it->second.tractionDeferred : it->second.dataDeferred);
-		const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, unitId);
-		if (!unit)
-			continue;
-		const bool localChanged = traction
-			? (unit->tractionCurve != it->second.acceptedTraction)
-			: (it->second.acceptedPhysical && !sameTrainPhysical(unit->physical, *it->second.acceptedPhysical));
-		const bool candidateChanged = traction
-			? unit->tractionCurve != tractionResult.tractionCurve
-			: !sameTrainPhysical(unit->physical, physicalResult.physical);
-		if (localChanged && candidateChanged)
-			conflicts << QString::fromStdString(unitId);
-	}
-	if (affectedNames.isEmpty()) {
-		refreshTrainUnitSourceWatches();
-		return;
-	}
-	const quint64 sceneRevisionAtDecision = m_sceneRevision;
-	bool reload = true;
-	if (!conflicts.isEmpty() || deferredChange) {
-		QMessageBox dialog(this);
-		dialog.setIcon(QMessageBox::Question);
-		dialog.setWindowTitle("Linked source changed");
-		dialog.setText(QString("%1 changed for %2.")
-				.arg(traction ? QStringLiteral("The traction source") : QStringLiteral("The parameter source"),
-					affectedNames.join(", ")));
-		dialog.setInformativeText(conflicts.isEmpty()
-				? QStringLiteral("The source changed during a run. Reload the external values or keep local edits?")
-				: QStringLiteral("Local edits conflict in %1. Reload the external values or keep local edits?")
-					  .arg(conflicts.join(", ")));
-		QPushButton* reloadButton = dialog.addButton("Reload", QMessageBox::AcceptRole);
-		QPushButton* keepButton = dialog.addButton("Keep local", QMessageBox::RejectRole);
-		dialog.setDefaultButton(keepButton);
-		dialog.exec();
-		reload = dialog.clickedButton() == reloadButton;
-	}
-	const auto requeueCurrentAssociations = [this, &path, &affected, traction]() {
-		for (const auto& entry : m_trainUnitSourceLinks) {
-			const QString currentPath = traction ? entry.second.tractionPath : entry.second.dataPath;
-			if (currentPath == path
-				|| std::find(affected.begin(), affected.end(), entry.first) != affected.end()) {
-				if (!currentPath.isEmpty())
-					m_pendingTrainUnitSourcePaths.insert(currentPath);
-			}
-		}
-		refreshTrainUnitSourceWatches();
-	};
-	bool staleDecision = !m_sceneLoaded || m_worker || m_sceneRevision != sceneRevisionAtDecision;
-	if (!staleDecision) {
-		for (const std::string& unitId : affected) {
-			const auto it = m_trainUnitSourceLinks.find(unitId);
-			const auto generation = generations.find(unitId);
-			if (it == m_trainUnitSourceLinks.end() || generation == generations.end()
-				|| (traction ? it->second.tractionPath : it->second.dataPath) != path
-				|| it->second.generation != generation->second) {
-				staleDecision = true;
-				break;
-			}
-		}
-	}
-	if (staleDecision) {
-		requeueCurrentAssociations();
-		updateTrainUnitSourceStatus();
-		return;
-	}
-	if (!reload) {
-		for (const std::string& unitId : affected) {
-			auto it = m_trainUnitSourceLinks.find(unitId);
-			if (it == m_trainUnitSourceLinks.end()
-				|| (traction ? it->second.tractionPath : it->second.dataPath) != path)
-				continue;
-			if (traction) {
-				it->second.tractionSignature = signature;
-				it->second.tractionStatus = QStringLiteral("Kept local; Retry available");
-				it->second.tractionDeferred = false;
-			} else {
-				it->second.dataSignature = signature;
-				it->second.dataStatus = QStringLiteral("Kept local; Retry available");
-				it->second.dataDeferred = false;
-			}
-		}
-		refreshTrainUnitSourceWatches();
-		updateTrainUnitSourceStatus();
-		return;
-	}
-
-	bool changed = false;
-	std::set<std::string> changedTractionUnits;
-	for (const std::string& unitId : affected) {
-		auto linkIt = m_trainUnitSourceLinks.find(unitId);
-		if (linkIt == m_trainUnitSourceLinks.end())
-			continue;
-		SceneTrainUnit* unit = nullptr;
-		for (auto& candidate : m_sceneModel.trainUnits) {
-			if (candidate.id == unitId) {
-				unit = &candidate;
-				break;
-			}
-		}
-		if (!unit)
-			continue;
-		if (traction) {
-			const bool unitChanged = unit->tractionCurve != tractionResult.tractionCurve;
-			if (unitChanged) {
-				unit->tractionCurve = tractionResult.tractionCurve;
-				changed = true;
-				changedTractionUnits.insert(unitId);
-			}
-			linkIt->second.acceptedTraction = tractionResult.tractionCurve;
-			linkIt->second.tractionSignature = signature;
-			linkIt->second.tractionStatus = unitChanged ? QStringLiteral("Reloaded") : QStringLiteral("Up to date");
-			linkIt->second.tractionDeferred = false;
-		} else {
-			const bool unitChanged = !sameTrainPhysical(unit->physical, physicalResult.physical);
-			if (unitChanged) {
-				unit->physical = physicalResult.physical;
-				unit->hasPhysical = true;
-				changed = true;
-			}
-			linkIt->second.acceptedPhysical = physicalResult.physical;
-			linkIt->second.dataSignature = signature;
-			linkIt->second.dataStatus = unitChanged ? QStringLiteral("Reloaded") : QStringLiteral("Up to date");
-			linkIt->second.dataDeferred = false;
-		}
-	}
-	if (changed)
-		markSceneDirty();
-	m_trainUnitPanel->refresh();
-	m_compositionPanel->refresh();
-	refreshValidationPanel();
-	for (const std::string& unitId : changedTractionUnits)
-		refreshInputTractionDiagrams(unitId);
-	refreshTrainUnitSourceWatches();
-	updateTrainUnitSourceStatus();
 }
 
 void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
@@ -11552,7 +11101,7 @@ void MainWindow::onSimulationFinished() {
 	refreshInfrastructurePanel();
 	refreshIncidentPanel();
 	updateSceneActions();
-	processTrainUnitSourceChanges();
+	m_trainUnitSourceLinker->processChanges();
 	// The track preview that replaces a stopped run wrote its own status message.
 	if (stoppedByUser)
 		statusBar()->showMessage(QStringLiteral("Simulation stopped"));

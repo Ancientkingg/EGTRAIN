@@ -12,6 +12,7 @@
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TrainFilterButton.h"
+#include "editors/TrainUnitSourceLinker.h"
 #include "graphics/FollowCamera.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
@@ -480,7 +481,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		w.clearSimulationWorker(false);
 		w.refreshInfrastructurePanel();
 		w.refreshIncidentPanel();
-		w.processTrainUnitSourceChanges();
+		w.m_trainUnitSourceLinker->processChanges();
 		QCoreApplication::exit(ok ? 0 : 2);
 		return true;
 	}

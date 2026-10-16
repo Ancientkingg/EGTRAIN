@@ -8,6 +8,7 @@
 #include "diagrams/TractionCurve.h"
 #include "editors/CompositionPanel.h"
 #include "editors/TrainUnitPanel.h"
+#include "editors/TrainUnitSourceLinker.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -2172,13 +2173,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			});
 		};
-		MainWindow::TrainUnitSourceLink link;
+		TrainUnitSourceLinker::Link link;
 		link.dataPath = sourcePhysicalPath;
 		link.tractionPath = sourceTractionPath;
 		link.acceptedPhysical = w.m_sceneModel.trainUnits.front().physical;
 		link.acceptedTraction = w.m_sceneModel.trainUnits.front().tractionCurve;
-		w.m_trainUnitSourceLinks[sourceLinkUnitId] = link;
-		w.refreshTrainUnitSourceWatches();
+		w.m_trainUnitSourceLinker->m_links[sourceLinkUnitId] = link;
+		w.m_trainUnitSourceLinker->refreshWatches();
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 71\n");
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		settle();
@@ -2186,27 +2187,27 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			|| w.m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
 			facetFailure(facetOk, "source links", "complete file changes did not apply");
 		const quint64 acceptedRevision = w.m_sceneRevision;
-		w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred = true;
+		w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred = true;
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		bool unchangedPrompted = false;
 		answerReload("Keep local", &unchangedPrompted);
-		w.m_pendingTrainUnitSourcePaths.insert(sourceTractionPath);
-		w.processTrainUnitSourceChanges();
+		w.m_trainUnitSourceLinker->m_pendingPaths.insert(sourceTractionPath);
+		w.m_trainUnitSourceLinker->processChanges();
 		settle();
 		if (w.m_sceneRevision != acceptedRevision || unchangedPrompted
-			|| w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred)
+			|| w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred)
 			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
 		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 210000
-			|| !w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
+			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
 		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
 		settle();
 		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 220000
-			|| !w.m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
 		// The focused editor must commit before comparing with the accepted source.
 		w.m_trainUnitDock->show();
@@ -2219,7 +2220,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_trainUnitPhysicalEdits[8]->findChild<QLineEdit*>()->setText("73");
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
 		answerReload("Keep local");
-		w.processTrainUnitSourceFile(sourcePhysicalPath, false);
+		w.m_trainUnitSourceLinker->processFile(sourcePhysicalPath, false);
 		if (w.m_sceneModel.trainUnits.front().physical.length_m != 73.0)
 			facetFailure(facetOk, "source links", "focused local edit was overwritten");
 		const quint64 keptRevision = w.m_sceneRevision;
@@ -2227,16 +2228,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_sceneRevision != keptRevision)
 			facetFailure(facetOk, "source links", "rejected content was reapplied");
 		answerReload("Reload");
-		w.retryTrainUnitSource(false);
-		w.processTrainUnitSourceChanges();
+		w.m_trainUnitSourceLinker->retry(sourceLinkUnitId, false);
+		w.m_trainUnitSourceLinker->processChanges();
 		if (w.m_sceneModel.trainUnits.front().physical.length_m != 72.0)
 			facetFailure(facetOk, "source links", "explicit retry did not reload");
 		// A duplicate shares values, not the authority to watch an external file.
 		w.m_trainUnitPanel->duplicateUnit();
 		const std::string duplicateId = w.m_sceneModel.trainUnits[1].id;
-		if (w.m_trainUnitSourceLinks.count(duplicateId))
+		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId))
 			facetFailure(facetOk, "source links", "duplicate inherited a live link");
-		w.m_trainUnitSourceLinks[duplicateId] = w.m_trainUnitSourceLinks.at(sourceLinkUnitId);
+		w.m_trainUnitSourceLinker->m_links[duplicateId] = w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId);
 		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
 		settle();
 		if (w.m_sceneModel.trainUnits[0].tractionCurve.front()[2] != 230000
@@ -2245,22 +2246,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QString("shared source values %1 / %2; status %3")
 					.arg(w.m_sceneModel.trainUnits[0].tractionCurve.front()[2])
 					.arg(w.m_sceneModel.trainUnits[1].tractionCurve.front()[2])
-					.arg(w.m_trainUnitSourceLinks.at(duplicateId).tractionStatus));
+					.arg(w.m_trainUnitSourceLinker->m_links.at(duplicateId).tractionStatus));
 		w.m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
 		w.m_trainUnitPanel->commitIdEdit();
-		if (w.m_trainUnitSourceLinks.count(duplicateId)
-			|| !w.m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
+		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId)
+			|| !w.m_trainUnitSourceLinker->m_links.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
 		acceptConfirmation();
 		w.m_trainUnitPanel->deleteUnit();
-		if (w.m_trainUnitSourceLinks.size() != 1
-			|| !w.m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+		if (w.m_trainUnitSourceLinker->m_links.size() != 1
+			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
 		w.m_trainUnitListWidget->setCurrentRow(0);
-		w.unlinkTrainUnitSource(false);
-		w.unlinkTrainUnitSource(true);
-		if (!w.m_trainUnitSourceLinks.empty() || !w.m_trainUnitSourceWatcher->files().isEmpty()
-			|| !w.m_trainUnitSourceWatcher->directories().isEmpty())
+		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, false);
+		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, true);
+		if (!w.m_trainUnitSourceLinker->m_links.empty() || !w.m_trainUnitSourceLinker->watchedFiles().isEmpty()
+			|| !w.m_trainUnitSourceLinker->watchedDirectories().isEmpty())
 			facetFailure(facetOk, "source links", "unlink retained watches");
 		QFile::remove(sourcePhysicalPath);
 		QFile::remove(sourceTractionPath);

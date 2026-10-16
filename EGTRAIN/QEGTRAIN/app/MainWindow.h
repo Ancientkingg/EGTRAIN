@@ -105,7 +105,6 @@ QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
 class UpdateChecker;
-class QFileSystemWatcher;
 class SelfUpdater;
 class TelemetryConsent;
 class QSettings;
@@ -117,6 +116,7 @@ class ColorChoiceButton;
 class CompositionPanel;
 class QPlainTextEdit;
 class TrainUnitPanel;
+class TrainUnitSourceLinker;
 class UserPrompts;
 struct UpdateCheckResult;
 struct StableRelease;
@@ -465,24 +465,6 @@ private:
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
-	struct TrainUnitSourceLink {
-		QString dataPath;
-		QString tractionPath;
-		std::optional<SceneTrainPhysical> acceptedPhysical;
-		std::vector<std::array<double, 5>> acceptedTraction;
-		QString dataSignature;
-		QString tractionSignature;
-		QString dataStatus;
-		QString tractionStatus;
-		bool dataDeferred = false;
-		bool tractionDeferred = false;
-		quint64 generation = 0;
-	};
-	std::map<std::string, TrainUnitSourceLink> m_trainUnitSourceLinks;
-	QFileSystemWatcher* m_trainUnitSourceWatcher = nullptr;
-	QTimer* m_trainUnitSourceDebounceTimer = nullptr;
-	QSet<QString> m_pendingTrainUnitSourcePaths;
-	bool m_processingTrainUnitSourceChanges = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -553,6 +535,7 @@ private:
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
 	TrainUnitPanel* m_trainUnitPanel = nullptr;
+	TrainUnitSourceLinker* m_trainUnitSourceLinker = nullptr;
 	// Parts of m_trainUnitPanel, for the scripted runs in tests/e2e
 	QListWidget* m_trainUnitListWidget = nullptr;
 	QLineEdit* m_trainUnitIdEdit = nullptr;
@@ -845,14 +828,6 @@ private:
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
 
 	// train-unit editor
-	void linkTrainUnitSource(bool traction);
-	void unlinkTrainUnitSource(bool traction);
-	void retryTrainUnitSource(bool traction);
-	void scheduleTrainUnitSourceChange(const QString& path);
-	void processTrainUnitSourceChanges();
-	void processTrainUnitSourceFile(const QString& path, bool traction);
-	void refreshTrainUnitSourceWatches();
-	void clearTrainUnitSourceLinks();
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
 
