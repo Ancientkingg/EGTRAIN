@@ -90,8 +90,8 @@ tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
 every test that pulls in Infrastructure, Signalling or RollingStock from
 `egtrain_sim` define the global `Logger owl`. `egtrain_recovery` holds
-`RecoveryStore` and `RecoveryController`, and `test_recoverystore` and
-`test_recoverycontroller` are the only targets that link it.
+`RecoveryStore`, `RecoveryController` and `RecoveryPrompt`, and `test_recoverystore`,
+`test_recoverycontroller` and `test_recoveryprompt` are the only targets that link it.
 
 Three things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
@@ -303,6 +303,16 @@ do not depend on how fast the write is. The checks that nothing happens wait a
 fixed 100 to 150 ms, and the timer case uses an interval of 2 s. The removal
 case changes the permissions of a folder and is skipped where that has no
 effect, as for a superuser and on Windows.
+
+`test_recoveryprompt` (labels `unit` and `gui`) shows `RecoveryPrompt` on the
+offscreen platform and never calls `exec()`. It checks one row for each copy
+with its name, time and source, the note for a changed, missing, newer or
+unknown original and for a copy that this version cannot open, the default
+button of each row, the results of Recover, Decide Later, Escape, closing the
+window and Enter, that Discard needs a second click that names the case, the
+line about copies removed over the limit, and that a long name or path, many
+rows and a large font keep the dialog inside the available area with the
+buttons in reach.
 
 `test_openrequestrelay` (label `integration`) checks `OpenRequestRelay`, which
 hands a file from a second launch to the running window. The test program is

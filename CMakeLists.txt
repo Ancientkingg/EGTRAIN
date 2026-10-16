@@ -304,12 +304,14 @@ target_link_libraries(egtrain_sceneopen PUBLIC Qt5::Core)
 add_library(egtrain_openrelay STATIC ${SRC_DIR}/app/OpenRequestRelay.cpp)
 target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
 
-# Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the
-# controller that writes them in the background. Only the recovery tests link it.
+# Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, the
+# controller that writes them in the background, and the dialog that offers them. Only the recovery
+# tests link it.
 add_library(egtrain_recovery STATIC
     ${SRC_DIR}/recovery/RecoveryController.cpp
+    ${SRC_DIR}/recovery/RecoveryPrompt.cpp
     ${SRC_DIR}/recovery/RecoveryStore.cpp)
-target_link_libraries(egtrain_recovery PUBLIC Qt5::Core egtrain_scene)
+target_link_libraries(egtrain_recovery PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_scene)
 
 # The test hooks change the layout of TelemetrySender, TelemetryConsent and TelemetryQueue, so a
 # build with hooks compiles the same sources again, by design:
@@ -758,6 +760,11 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_recoverycontroller PRIVATE egtrain_recovery Qt5::Core)
     add_test(NAME test_recoverycontroller COMMAND test_recoverycontroller)
     set_tests_properties(test_recoverycontroller PROPERTIES TIMEOUT 120)
+
+    add_executable(test_recoveryprompt ${SRC_DIR}/tests/test_recoveryprompt.cpp)
+    target_link_libraries(test_recoveryprompt PRIVATE egtrain_recovery Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_recoveryprompt COMMAND test_recoveryprompt)
+    set_tests_properties(test_recoveryprompt PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
@@ -1400,7 +1407,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
-			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
+			test_recoverycontroller test_recoveryprompt test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_scenereferences test_scenedocument
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
@@ -1437,7 +1444,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
@@ -1467,7 +1474,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow test_areacapacitywindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel
-		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
+		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
