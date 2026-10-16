@@ -4781,7 +4781,9 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			if (station) {
 				auto* square = new StationNodeItem(rect);
 				const auto& value = membership->second;
-				const StationVisual visual = classifyStation(!value.platformId.empty()
+				// A platform darkens the square only at the end of the line; an interior one is the ordinary grey.
+				const bool lineEnd = index + 1 == line.points.size();
+				const StationVisual visual = classifyStation(lineEnd && !value.platformId.empty()
 						&& value.platformId != "None",
 					connectionDegrees[point.nodeId]);
 				square->setPen(QPen(visual.outline, 0));
@@ -7066,8 +7068,8 @@ void MainWindow::refreshInfrastructureTable(bool resetSelection) {
 			break;
 		}
 	}
-	if (!resetSelection && rowToSelect < 0 && m_infrastructureTable->rowCount() > 0)
-		rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, m_infrastructureTable->rowCount() - 1);
+	if (!resetSelection && rowToSelect < 0 && previousRow >= 0 && m_infrastructureTable->rowCount() > 0)
+		rowToSelect = std::min(previousRow, m_infrastructureTable->rowCount() - 1);
 	m_infrastructureTable->setCurrentCell(rowToSelect, rowToSelect < 0 ? -1 : 0);
 	updateInfrastructureSelection();
 	const bool isBlocks = facet == QStringLiteral("blocks");
@@ -16598,6 +16600,41 @@ void MainWindow::runVisualPolishE2E() {
 		failures << "follow toggle did not clear its train index";
 	}
 
+	// A platform id darkens a station square only at the end of a line.
+	{
+		Node platformNode;
+		platformNode.stationName = "E2E";
+		platformNode.stationPlatformId = "Platform_1";
+		const auto paintedFill = [this, &platformNode](bool lineEnd, int connections) {
+			platformNode.numConnections = connections;
+			const QList<QGraphicsItem*> before = scene->items();
+			paintStationNode(QPointF(), station_node_size, 1, 0, &platformNode, lineEnd);
+			QColor fill;
+			for (QGraphicsItem* item : scene->items()) {
+				if (before.contains(item))
+					continue;
+				if (const auto* square = qgraphicsitem_cast<StationNodeItem*>(item))
+					fill = square->brush().color();
+				scene->removeItem(item);
+				delete item;
+				break;
+			}
+			return fill;
+		};
+		const QColor interiorFill = paintedFill(false, 1);
+		const QColor lineEndFill = paintedFill(true, 1);
+		const QColor interchangeFill = paintedFill(false, 3);
+		if (interiorFill != classifyStation(false, 1).fill || lineEndFill != classifyStation(true, 1).fill
+			|| interchangeFill != classifyStation(false, 3).fill) {
+			ok = false;
+			failures << QString("station square colours: interior %1, line end %2, interchange %3")
+							.arg(interiorFill.name(), lineEndFill.name(), interchangeFill.name());
+		} else {
+			std::fprintf(stdout, "E2E_STATION_SQUARE_COLOUR_OK\n");
+			std::fflush(stdout);
+		}
+	}
+
 	// Exercise the real Stop/completion lifecycle after the rendering checks.
 	// Keep a selected operational track so clearing transient states cannot
 	// accidentally clear independent graphics selection. Re-enable delivery
@@ -16681,6 +16718,20 @@ void MainWindow::runVisualPolishE2E() {
 			} else {
 				std::fprintf(stdout, "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK\n");
 				std::fflush(stdout);
+				// Nothing was selected in the infrastructure editor, so the stopped preview draws no selection cue.
+				const QList<QGraphicsItem*> previewItems = scene->items();
+				const bool cueDrawn = std::any_of(previewItems.cbegin(), previewItems.cend(), [](const QGraphicsItem* item) {
+					const auto* track = qgraphicsitem_cast<const TrackLineItem*>(item);
+					return track && track->pen().color() == kSelectionCueColor;
+				});
+				if (m_infrastructureTable->currentRow() != -1 || !m_infrastructureSelectionId.isEmpty()
+					|| m_previewHasSelectedTrack || cueDrawn) {
+					ok = false;
+					failures << "Stop selected a track without a selection in the infrastructure editor";
+				} else {
+					std::fprintf(stdout, "E2E_STOP_PREVIEW_UNSELECTED_OK\n");
+					std::fflush(stdout);
+				}
 			}
 		}
 	}
@@ -17146,6 +17197,11 @@ void MainWindow::runEditorSmokeE2E() {
 				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
+				}
+				refreshInfrastructurePanel();
+				if (m_infrastructureTable->currentRow() != -1 || m_previewHasSelectedTrack || m_sceneDirty) {
+					ok = false;
+					failures << "scene: a refresh selected a row that nobody selected";
 				}
 				m_infrastructureFacetCombo->setCurrentIndex(m_infrastructureFacetCombo->findData("tracks"));
 				m_infrastructureTable->setCurrentCell(0, 0);
@@ -23657,7 +23713,7 @@ void MainWindow::setupGUI() {
 
 			// draw nodes
 			if (i > 0 && !empty(blockSets[track].member[i - 1].endNode.stationName)) { // station Node (only visible from end nodes [end_node] -> i>1)
-				paintStationNode(pt, station_node_size, line_width, track, &blockSets[track].member[i - 1].endNode);
+				paintStationNode(pt, station_node_size, line_width, track, &blockSets[track].member[i - 1].endNode, false);
 				if (initial_variables.PAX_GUI) {
 					paintStationPlatform(pt, station_node_size, line_width, &blockSets[track].member[i - 1].endNode);
 				}
@@ -23686,7 +23742,7 @@ void MainWindow::setupGUI() {
 
 				// draw last end_node Node
 				if (!empty(blockSets[track].member[i].endNode.stationName)) { // station Node
-					paintStationNode(pte, station_node_size, line_width, track, &blockSets[track].member[i].endNode);
+					paintStationNode(pte, station_node_size, line_width, track, &blockSets[track].member[i].endNode, true);
 					if (initial_variables.PAX_GUI) {
 						paintStationPlatform(pte, station_node_size, line_width, &blockSets[track].member[i].endNode);
 					}
@@ -26255,9 +26311,9 @@ void MainWindow::paintNode(QPointF coord, int size, int pen_width, int track, No
 	scene->addItem(el);
 }
 
-// draws a station Node
-void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node) {
-	const bool hasPlatform = Node && !Node->stationPlatformId.empty() && Node->stationPlatformId != "None";
+// draws a station Node; its platform id darkens the square only at the end of a line
+void MainWindow::paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node, bool lineEnd) {
+	const bool hasPlatform = lineEnd && Node && !Node->stationPlatformId.empty() && Node->stationPlatformId != "None";
 	StationVisual visual = classifyStation(hasPlatform, Node ? Node->numConnections : 0);
 	QPen pen = QPen(visual.outline);
 	pen.setWidth(0);
@@ -27687,6 +27743,20 @@ bool MainWindow::checkPreviewInfrastructureE2E(QString& failure) {
 	++m_sceneRevision;
 	renderTrackPreview(m_sceneModel);
 	if (!require(find("arc", "z-arc0") && !held(), "replacement reusing IDs rejects old payload")) return false;
+	// A platform darkens a station square only at the end of its line; an interior square is the ordinary grey
+	// unless it joins three or more tracks.
+	SceneModel lineEndFixture = fixture;
+	lineEndFixture.stations.front().platforms.front().nodeIds.push_back("z3");
+	m_sceneModel = lineEndFixture;
+	++m_sceneRevision;
+	renderTrackPreview(m_sceneModel);
+	const auto squareFill = [&](const QString& id) {
+		const auto* square = qgraphicsitem_cast<StationNodeItem*>(find("station-node", id));
+		return square ? square->brush().color() : QColor();
+	};
+	if (!require(squareFill("z1") == classifyStation(false, 3).fill && squareFill("z2") == classifyStation(false, 0).fill
+				&& squareFill("z3") == classifyStation(true, 0).fill,
+			"station square colour: interchange, interior platform node and line end")) return false;
 	m_sceneModel = saved;
 	m_sceneDirty = savedDirty;
 	++m_sceneRevision;
