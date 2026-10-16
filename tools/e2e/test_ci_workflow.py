@@ -213,11 +213,12 @@ def main() -> None:
     if (
         release_only.count('"-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"') != 2
         or package_only.count('"-DEGTRAIN_VERSION=${{ inputs.version }}"') != 3
-        or "needs." in package_only
+        or "needs.version" in package_only
     ):
         missing.append("quoted shared release version in all five build jobs")
-    # The package workflow selects no version. Its only needs: is the finalize job after the Windows package job.
-    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 1:
+    # The package workflow selects no version. Its only needs: are the signing job and the finalize job, which follow the
+    # Windows package job.
+    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 2:
         missing.append("version selection before all builds")
     for marker in (
         "fetch-depth: 0",
@@ -444,16 +445,16 @@ def main() -> None:
         missing.append("release package job calls the package workflow with the selected version")
     if trigger_block(package_only) != (
         "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
+        "    secrets:\n      SIGNPATH_API_TOKEN:\n        required: false\n"
     ):
-        missing.append("package workflow starts only by call, with the version as its only input")
-    if (
-        "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
-        or package_only.count("permissions:") != 1
-        or "secrets" in package_only
-    ):
-        missing.append("package workflow with read permission and no credentials")
-    if job_ids(package_only) != ["package-macos", "package-windows", "finalize-windows", "package-linux"]:
-        missing.append("package workflow jobs: package-macos, package-windows, finalize-windows, package-linux")
+        missing.append("package workflow starts only by call, with the version as its only input and an optional signing token")
+    if "\npermissions:\n  contents: read\n\njobs:\n" not in package_only or package_only.count("permissions:") != 1:
+        missing.append("package workflow with read permission only")
+    # The signing token is named in one step of the signing job. No script of any job can read it.
+    if re.findall(r"\bsecrets\.\w+", package_only) != ["secrets.SIGNPATH_API_TOKEN"]:
+        missing.append("package workflow whose only credential is the signing token")
+    if job_ids(package_only) != ["package-macos", "package-windows", "sign-windows", "finalize-windows", "package-linux"]:
+        missing.append("package workflow jobs: package-macos, package-windows, sign-windows, finalize-windows, package-linux")
     # The release script reads one artifact directory for each package, the Windows payload and the scene bundles. The
     # package workflow uploads exactly those names, and each package as the file that the script publishes. A name with
     # the release version in it is uploaded with the version input of the workflow.
@@ -525,6 +526,135 @@ def main() -> None:
         missing.append("Windows package upload of the directory that is built, with its hidden files, as the payload artifact")
     if "zip" in windows_job.lower():
         missing.append("Windows package job without an archive")
+    # Every run, a pull request included, prints the signature state of the package before it is uploaded. The step has no
+    # condition and no mode that fails.
+    report_lines = step_block(windows_job, "Report the code signatures").strip().splitlines()
+    if (
+        not report_lines
+        or report_lines[-1].strip() != "run: ./tools/release/verify_signatures.ps1 -Directory dist/QEGTRAIN -Report"
+        or "        shell: pwsh" not in report_lines
+        or any(line.strip().startswith("if:") for line in report_lines)
+        or not 0 <= windows_step_names.index("Report package size") < windows_step_names.index("Report the code signatures")
+        or windows_step_names.index("Report the code signatures") > windows_step_names.index("Upload artifact")
+    ):
+        missing.append("Windows package report of the code signatures of the unsigned package on every run")
+    # The signing job runs only for a push to production or a v* tag in a repository that opts in by a variable, so a pull
+    # request, a manual run and a repository without the variable skip it. It sends the three program files and no library to
+    # the signing service, puts the signed files into the payload, checks them and replaces the payload artifact, which the
+    # finalize job reads. Its token is named once, as the input of the signing step, in the only job with an environment.
+    sign_job = job_block(package_only, "sign-windows")
+    sign_steps = [
+        "Download the package",
+        "Collect the files to sign",
+        "Upload the files to sign",
+        "Sign the files",
+        "Put the signed files into the package",
+        "Verify the signatures",
+        "Upload the signed package",
+    ]
+    if re.findall(r"^      - name: (.+)$", sign_job, re.MULTILINE) != sign_steps:
+        missing.append("Windows signing steps: " + ", ".join(sign_steps))
+    if (
+        re.findall(r"^    needs: (.+)$", sign_job, re.MULTILINE) != ["package-windows"]
+        or re.findall(r"^    runs-on: (.+)$", sign_job, re.MULTILINE) != ["windows-latest"]
+        or re.findall(r"^    environment: (.+)$", sign_job, re.MULTILINE) != ["windows-signing"]
+        or package_only.count("environment:") != 1
+    ):
+        missing.append("Windows signing job after the Windows package job, on windows-latest, in the only environment")
+    if re.findall(r"^    if: (.+)$", sign_job, re.MULTILINE) != [
+        "${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) "
+        "&& vars.WINDOWS_SIGNING == 'signpath' }}"
+    ]:
+        missing.append("Windows signing job only for a push to production or a v* tag when the variable WINDOWS_SIGNING is signpath")
+    if step_block(sign_job, "Download the package") != step_block(job_block(package_only, "finalize-windows"), "Download the package"):
+        missing.append("Windows signing download of the payload artifact into payload, as the finalize job does")
+    sign_collect = step_block(sign_job, "Collect the files to sign")
+    if (
+        'foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {\n' not in sign_collect
+        or sign_collect.count("Copy-Item") != 1
+        or ".dll" in sign_collect.lower()
+        or "*" in sign_collect
+    ):
+        missing.append("Windows signing that collects the three program files and no library")
+    if step_block(sign_job, "Upload the files to sign") != (
+        "name: Upload the files to sign\n"
+        "        id: upload-unsigned\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: QEGTRAIN-windows-x64-unsigned\n"
+        "          path: unsigned\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows signing upload of the collected files as the artifact that the signing request names")
+    sign_request = step_block(sign_job, "Sign the files")
+    if any(
+        part not in sign_request
+        for part in (
+            "        uses: signpath/github-action-submit-signing-request@v3\n",
+            "          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}\n",
+            "          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}\n",
+            "          wait-for-completion: true\n",
+            "          output-artifact-directory: signed\n",
+        )
+    ) or package_only.count("SIGNPATH_API_TOKEN") != 2 or "set -x" in package_only:
+        missing.append("Windows signing request for the uploaded files with the token as the input of the signing step only")
+    sign_put = step_block(sign_job, "Put the signed files into the package")
+    if (
+        'foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {\n' not in sign_put
+        or 'Copy-Item -LiteralPath "signed/$name" -Destination payload -Force\n' not in sign_put
+        or sign_put.count("Copy-Item") != 1
+    ):
+        missing.append("Windows signing that puts the three signed program files into the payload")
+    sign_verify = step_block(sign_job, "Verify the signatures")
+    if (
+        "        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT\n"
+        not in sign_verify
+        or "          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}\n" not in sign_verify
+        or "-Report" in sign_verify
+        or "-AllowUntrustedRoot" in package_only
+        or "-NoTimestampCheck" in package_only
+    ):
+        missing.append("Windows signing check of the payload that requires the expected signer, a timestamp and a trusted chain")
+    if step_block(sign_job, "Upload the signed package") != (
+        "name: Upload the signed package\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: QEGTRAIN-windows-x64-payload\n"
+        "          path: payload\n"
+        "          include-hidden-files: true\n"
+        "          overwrite: true\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows signing upload of the checked payload in place of the payload artifact")
+    # The check script reads the signature, the digest algorithm, the timestamp and the signer, and fails only in the mode that
+    # requires them. Its test signs copies of scene_tool.exe with a throwaway certificate that it keeps in no file, and CTest
+    # runs it on Windows only.
+    verify_script = (ROOT / "tools/release/verify_signatures.ps1").read_text(encoding="utf-8")
+    verify_test = (ROOT / "tools/release/test_verify_signatures.ps1").read_text(encoding="utf-8")
+    if any(
+        part not in verify_script
+        for part in (
+            "Get-AuthenticodeSignature -LiteralPath $Path",
+            "$sha256 = '2.16.840.1.101.3.4.2.1'",
+            "$signature.TimeStamperCertificate",
+            "$subject -ne $ExpectedSubject",
+            "[switch]$Require",
+            "[switch]$Report",
+            "[switch]$AllowUntrustedRoot",
+            "[switch]$NoTimestampCheck",
+            "if ($Require -and $failed -gt 0) { exit 1 }\nexit 0\n",
+        )
+    ) or verify_script.count("exit 1") != 1:
+        missing.append("signature check script of the status, the SHA-256 digest, the timestamp and the signer that fails only with -Require")
+    if (
+        any(part not in verify_test for part in ("New-SelfSignedCertificate -Type CodeSigningCert", "Set-AuthenticodeSignature", "'SHA1'"))
+        or any(part in verify_test for part in ("Export-", ".pfx", "Import-Certificate", "Cert:\\CurrentUser\\Root", "Cert:\\LocalMachine"))
+        or "\tif(WIN32)\n\t\tfind_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)\n" not in cmake
+        or "-File ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_verify_signatures.ps1" not in cmake
+        or "-SceneTool $<TARGET_FILE:scene_tool>" not in cmake
+        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_verify_signatures\b", cmake)
+    ):
+        missing.append("signature check test with a throwaway certificate that is never exported, registered for Windows only")
     # The finalize job builds the installer and the portable archive from the payload that the Windows package job uploaded,
     # so both hold the same files. It installs, upgrades and uninstalls the installer, starts the portable archive after
     # it extracts it, and uploads the two files only after both checks passed. The archive comes from the release script.
@@ -544,10 +674,17 @@ def main() -> None:
     if -1 in finalize_positions or finalize_positions != sorted(finalize_positions):
         missing.append("Windows finalize steps in the order " + ", ".join(finalize_steps))
     if (
-        re.findall(r"^    needs: (.+)$", finalize_job, re.MULTILINE) != ["package-windows"]
+        re.findall(r"^    needs: (.+)$", finalize_job, re.MULTILINE) != ["[package-windows, sign-windows]"]
         or re.findall(r"^    runs-on: (.+)$", finalize_job, re.MULTILINE) != ["windows-latest"]
     ):
-        missing.append("Windows finalize job after the Windows package job, on windows-latest")
+        missing.append("Windows finalize job after the Windows package job and the signing job, on windows-latest")
+    # Signing is skipped, not failed, when it is not set up, and the finalize job then reads the unsigned package. When signing
+    # runs and fails the finalize job does not run, so the installer and the archive never come from unsigned files.
+    if re.findall(r"^    if: (.+)$", finalize_job, re.MULTILINE) != [
+        "${{ !cancelled() && needs.package-windows.result == 'success' && "
+        "(needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped') }}"
+    ]:
+        missing.append("Windows finalize job that runs after a skipped or successful signing job and not after a failed one")
     if step_block(finalize_job, "Download the package") != (
         "name: Download the package\n"
         "        uses: actions/download-artifact@v4\n"
@@ -907,7 +1044,7 @@ def main() -> None:
         missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
     if package_only.count("tools/release/package_start_smoke.py") != 4:
         missing.append("package start script in the three package jobs and for the portable archive")
-    publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit", "environment:")
+    publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit")
     if (
         any(word in text for text in (package_check, package_only) for word in publishing)
         or "codesign" in package_check
