@@ -125,6 +125,11 @@ static bool testForwardFromSecondProcess() {
 	ok &= expect(forwardFromChild(name, kDir, QStringLiteral("/data/second.egscene")) == 0, "a second request is accepted too");
 	ok &= expect(waitFor([&received] { return received.paths.size() == 2; }, 5000), "both requests arrive");
 	ok &= expect(received.paths.size() == 2 && received.paths.at(1) == QStringLiteral("/data/second.egscene"), "in the order sent");
+
+	// Each sender must read its answer, however soon after the previous request it comes.
+	for (int i = 0; i < 8; ++i)
+		ok &= expect(forwardFromChild(name, kDir, QStringLiteral("/data/next-%1.egscene").arg(i)) == 0, "every further request is accepted");
+	ok &= expect(waitFor([&received] { return received.paths.size() == 10; }, 5000), "and arrives");
 	return ok;
 }
 
