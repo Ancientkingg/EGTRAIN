@@ -1324,6 +1324,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_package_start_smoke
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_start_smoke.py)
+	add_test(NAME test_linux_rehearsal
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_linux_rehearsal.py)
 	# A 32-bit configure stops with the message that names the supported platform. A Ninja build tree checks this with
 	# the default generator, which is Visual Studio on Windows.
 	if(WIN32)
@@ -1398,7 +1400,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
-		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_make_dmg)
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases

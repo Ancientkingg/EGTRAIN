@@ -8,6 +8,9 @@ name: Package
 # holds a Developer ID certificate: then tools/release/sign_macos.sh signs it with that identity. With notarization
 # credentials in that environment as well, tools/release/notarize_macos.sh notarizes and staples the app, and then the disk
 # image built from it.
+# After the Linux package, the Rehearse Linux job runs the clean-install steps 1 to 9 of the release testing checklist on that
+# AppImage, on a runner with a virtual display. Its screenshots and logs are the artifact linux-rehearsal-evidence, which is
+# for diagnosis and is not a release asset.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -1049,3 +1052,68 @@ jobs:
           name: QEGTRAIN-linux-x86_64
           path: QEGTRAIN-linux-x86_64.AppImage
           if-no-files-found: error
+
+  rehearse-linux:
+    name: Rehearse Linux
+    # A new runner with no Qt and no build tools. It takes the AppImage that Package Linux uploaded, extracts it and starts it
+    # through AppRun as a student does, with a new home directory and no QEGTRAIN_ variable, on a virtual display. The script
+    # drives the menus and dialogs through the accessibility interface AT-SPI. It does not start a test hook, because the
+    # release package has none. The job fails at the first step that does not pass. The release job needs this job through the
+    # package job of the release workflow.
+    needs: package-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/release
+
+      - name: Download the AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: QEGTRAIN-linux-x86_64
+          path: ${{ runner.temp }}/linux-rehearsal/download
+
+      - name: Install the display, the accessibility bus and the test tools
+        # xvfb is the display, dbus-x11 the session bus, at-spi2-core the accessibility bus. python3-gi with gir1.2-atspi-2.0
+        # drives the widgets, xdotool types the keys and imagemagick reads the screen. The libraries on the last line are the ones
+        # that the AppImage takes from the system and that every desktop has. No Qt package is installed.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb xauth xdotool imagemagick dbus-x11 at-spi2-core python3-gi gir1.2-atspi-2.0 \
+            libgl1 libharfbuzz0b libfontconfig1 libfreetype6 fonts-dejavu-core
+
+      - name: Extract the AppImage and pack the downloaded bundle
+        # The bundle is packed from the Paimpol scene of the image by the scene_tool of the image, so the job does not wait for
+        # the macOS job, which uploads the bundles, and ends before the Windows jobs.
+        run: |
+          set -euxo pipefail
+          work="$RUNNER_TEMP/linux-rehearsal"
+          mkdir -p "$work/package" "$work/Downloads"
+          chmod +x "$work/download/QEGTRAIN-linux-x86_64.AppImage"
+          (cd "$work/package" && "$work/download/QEGTRAIN-linux-x86_64.AppImage" --appimage-extract >/dev/null)
+          image="$work/package/squashfs-root"
+          "$image/usr/bin/scene_tool" pack "$image/usr/bin/Scenes/Paimpol" "$work/Downloads/Paimpol.egscene"
+          if ! "$image/usr/bin/scene_tool" validate "$work/Downloads/Paimpol.egscene" >"$work/bundle-validation.log" 2>&1; then
+            cat "$work/bundle-validation.log"
+            exit 1
+          fi
+
+      - name: Rehearse the clean-install steps
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/linux-rehearsal"
+          xvfb-run -a -s "-screen 0 1920x1080x24" dbus-run-session -- /usr/bin/python3 tools/release/linux_rehearsal.py \
+            "$work/package/squashfs-root" "$work/Downloads/Paimpol.egscene" --work "$work/run" --evidence "$work/evidence" \
+            --expected-version "${{ inputs.version }}"
+
+      - name: Upload the evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-rehearsal-evidence
+          path: ${{ runner.temp }}/linux-rehearsal/evidence
+          if-no-files-found: warn
