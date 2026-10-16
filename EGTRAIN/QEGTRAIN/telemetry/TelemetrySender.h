@@ -9,10 +9,6 @@
 #include <QNetworkRequest>
 #include <QString>
 #include <functional>
-#ifdef EGTRAIN_SENDER_TEST_HOOK
-#include <QSslConfiguration>
-#include <optional>
-#endif
 #include <memory>
 
 namespace telemetry {
@@ -51,7 +47,7 @@ public:
 		std::function<void()> beforeSessionAttempt;		   // After the lifetime latch, before allocation/storage.
 		std::function<void(bool)> afterOwnershipAttempt;   // True only when this worker owns storage.
 		bool failConstruction = false;
-		std::optional<QSslConfiguration> loopbackTrust;
+		QByteArray loopbackRootPem; // The root certificate that a loopback server is checked against.
 		int requestTimeoutMs;
 		TestOptions() : requestTimeoutMs(10000) {}
 		// Worker-thread callback; reply ownership is transferred to the sender.

@@ -258,22 +258,25 @@ add_library(egtrain_widgets STATIC
 target_link_libraries(egtrain_widgets
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_graphics egtrain_util)
 
+# The HTTP requests of the update check and the telemetry sender. Qt 5.15 has no TLS library on
+# Windows, so the requests go through WinHTTP there.
+add_library(egtrain_http STATIC ${SRC_DIR}/update/HttpTransport.cpp)
+target_link_libraries(egtrain_http PUBLIC Qt5::Core Qt5::Network)
+if(WIN32)
+    target_sources(egtrain_http PRIVATE ${SRC_DIR}/update/WinHttpTransport.cpp)
+    target_link_libraries(egtrain_http PUBLIC winhttp crypt32)
+endif()
+
 # The update code that both the application and a test use. SelfUpdater and UpdateNotices belong
 # to the application alone.
 add_library(egtrain_update STATIC
     ${SRC_DIR}/update/Distribution.cpp
-    ${SRC_DIR}/update/HttpTransport.cpp
     ${SRC_DIR}/update/ReleaseInfo.cpp
     ${SRC_DIR}/update/UpdateChecker.cpp
     ${SRC_DIR}/update/UpdatePreparation.cpp
     ${SRC_DIR}/update/UpdateRecord.cpp
     ${SRC_DIR}/update/UpdateSettings.cpp)
-target_link_libraries(egtrain_update PUBLIC Qt5::Core Qt5::Network egtrain_util)
-# Qt 5.15 has no TLS library on Windows, so the update requests go through WinHTTP there.
-if(WIN32)
-    target_sources(egtrain_update PRIVATE ${SRC_DIR}/update/WinHttpTransport.cpp)
-    target_link_libraries(egtrain_update PUBLIC winhttp)
-endif()
+target_link_libraries(egtrain_update PUBLIC Qt5::Core Qt5::Network egtrain_http egtrain_util)
 
 # What a command line asks the application to open. Qt Core only; the application and
 # test_sceneopenrequest link it.
@@ -319,7 +322,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     list(APPEND EGTRAIN_TELEMETRY_LIBS egtrain_telemetry_smoke)
 endif()
 foreach(egtrain_lib ${EGTRAIN_TELEMETRY_LIBS})
-    target_link_libraries(${egtrain_lib} PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets)
+    target_link_libraries(${egtrain_lib} PUBLIC Qt5::Core Qt5::Gui Qt5::Network Qt5::Widgets egtrain_http)
 endforeach()
 
 # The application, test_simulationworker and test_characterization run the simulation through these.
@@ -360,7 +363,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
 endif()
 
-foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
@@ -369,7 +372,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_live egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_live egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -549,7 +552,7 @@ endif()
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
     set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
-        egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_dispatch egtrain_diagrams
+        egtrain_graphics egtrain_widgets egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
@@ -664,22 +667,19 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_telemetrynetwork ${SRC_DIR}/tests/test_telemetrynetwork.cpp)
     target_link_libraries(test_telemetrynetwork PRIVATE egtrain_telemetry_hooks Qt5::Core Qt5::Gui Qt5::Network)
-    # Qt 5.15 loads OpenSSL 1.1 at run time. Windows does not provide it, so Qt has no TLS there.
-    if(NOT WIN32)
-        foreach(mode reject trusted)
-            add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
-                $<TARGET_FILE:test_telemetrynetwork>
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
-                ${mode})
-            set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
-        endforeach()
-        set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
-    else()
-        message(STATUS "Windows: skipping test_telemetrynetwork_reject and test_telemetrynetwork_trusted (no TLS library for Qt 5.15)")
-    endif()
+    # The sender sends through the HTTP transport, which is WinHTTP on Windows, so the tests need no Qt TLS library there.
+    foreach(mode reject trusted)
+        add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
+            $<TARGET_FILE:test_telemetrynetwork>
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
+            ${mode})
+        set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
+    endforeach()
+    # Qt 5 Secure Transport on macOS does not trust the root certificate of a request, and the program then returns 77.
+    set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
 
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)
