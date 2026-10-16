@@ -1054,7 +1054,7 @@ static bool brakingPhaseTests() {
 		return expect(false, "target-selection fixture prepares original native stock");
 	const Train targetStock = regional_train[0];
 	// Measure the real native stock's candidate, not an invented acceleration.
-	const QString fixture = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("fixtures/scenes/crossovers");
+	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
 		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
@@ -1568,7 +1568,7 @@ static bool brakingPhaseTests() {
 	}
 	// Executed Copenhagen geometry: the terminal ceiling recovery loses the farther stop by millimetres.
 	{
-		const QString path = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("../Scenes/Copenhagen");
+		const QString path = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("../Scenes/Copenhagen");
 		const auto copenhagen = loadScene(path.toStdString());
 		if (hasErrors(copenhagen.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(copenhagen.scene))
 			|| hasErrors(buildOperationsFromScene(copenhagen.scene, "baseline", {{"A-Hillerod-Hundige", 1}})) || numRegions != 1)
@@ -1640,7 +1640,7 @@ static bool brakingPhaseTests() {
 // Real movement calls with native stock and in-memory authority snapshots isolate level-4 transitions.
 static bool level4TransitionTests() {
 	bool ok = true;
-	const QString fixture = QDir(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath()).filePath("fixtures/scenes/crossovers");
+	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
 		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)

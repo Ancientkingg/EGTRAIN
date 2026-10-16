@@ -593,6 +593,7 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     enable_testing()
     add_executable(test_updatepreparation ${SRC_DIR}/tests/test_updatepreparation.cpp)
     target_link_libraries(test_updatepreparation PRIVATE egtrain_update Qt5::Core)
+    target_compile_definitions(test_updatepreparation PRIVATE EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests")
     add_test(NAME test_updatepreparation COMMAND test_updatepreparation)
 
     # Stand-ins for an installed application, which the update helper test installs and relaunches.
@@ -979,6 +980,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_sceneexporter ${SRC_DIR}/tests/test_sceneexporter.cpp)
 	target_link_libraries(test_sceneexporter PRIVATE egtrain_scene)
+	target_compile_definitions(test_sceneexporter PRIVATE EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests")
 	add_test(NAME test_sceneexporter COMMAND test_sceneexporter)
 
 	add_executable(test_scenebundle ${SRC_DIR}/tests/test_scenebundle.cpp)
@@ -1012,6 +1014,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	add_executable(test_operationsbuilder ${SRC_DIR}/tests/test_operationsbuilder.cpp)
 	target_link_libraries(test_operationsbuilder PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+	target_compile_definitions(test_operationsbuilder PRIVATE EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests")
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
 	# Runs two committed scenes in this process, like the characterization tests.
