@@ -377,6 +377,11 @@ std::string timetableCsvFrom(const CompletedRunData& data, const QStringList& vi
 	return timetableDocument(data.timetable, visibleTrainIds);
 }
 
+std::function<std::string(const QStringList&)> csvProviderFrom(std::shared_ptr<const CompletedRunData> run,
+	CompletedRunCsv csv) {
+	return [run = std::move(run), csv](const QStringList& visibleTrainIds) { return csv(*run, visibleTrainIds); };
+}
+
 std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& data) {
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
 	std::vector<std::string> trainNames;

@@ -136,6 +136,12 @@ set, the runner starts the run of the case 1.5 s after the first show. The hooks
 `E2E_GUI_AUTOSTART_RUNNING` and `E2E_GUI_RUN_RESULTS`. A build without tests compiles none of it,
 so these variables start no run and run no check there.
 
+The hook of `QEGTRAIN_E2E_EXPORT_DIR` also opens the blocking-time diagram and the delay diagram. For
+each window it writes the CSV that the window exports with all trains, with the first train and with
+none (`<window>_window_all.csv`, `_one`, `_none`), and for the delay diagram a text dump of its chart
+(`delay_diagram_series.txt`: axes, then every series with its properties and points). Two builds of one
+scene give the same files, so `cmp` shows whether a change moved a diagram.
+
 ### Warnings
 
 The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and

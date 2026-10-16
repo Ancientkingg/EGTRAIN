@@ -1026,7 +1026,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Runs two committed scenes in this process, like the characterization tests.
 	add_executable(test_completedrun ${SRC_DIR}/tests/test_completedrun.cpp)
-	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)

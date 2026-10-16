@@ -156,6 +156,7 @@ struct StableRelease;
 
 #include "simulation/SimulationWorker.h"
 #include "diagrams/CapacityAnalysis.h"
+#include "diagrams/CompletedRunData.h"
 #include "diagrams/RunResults.h"
 
 // boolean to define if GUI is used or not
@@ -526,6 +527,8 @@ private:
 	std::string m_selectedScenarioId;
 	std::string m_appliedScenarioId;
 	std::set<std::string> m_modifiedScenarioIds;
+	// The finished run as values. The result windows share it, so each keeps the run it was opened for.
+	std::shared_ptr<const CompletedRunData> m_completedRun;
 	RunResults m_completedRunResults;
 	std::vector<TimetableResultRow> m_completedTimetableResults;
 	RunProvenance m_pendingRunProvenance;

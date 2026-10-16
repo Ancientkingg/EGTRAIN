@@ -5368,6 +5368,7 @@ void MainWindow::invalidateRunResults() {
 	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
 	m_appliedScenarioId.clear();
+	m_completedRun.reset();
 	m_completedRunResults = RunResults();
 	m_completedTimetableResults.clear();
 	m_pendingRunProvenance = RunProvenance();
@@ -13010,7 +13011,7 @@ bool MainWindow::hasRawRunResults() const {
 // Raw trajectories can survive a scene edit; the explicit availability flag is
 // the ownership boundary for result actions.
 bool MainWindow::hasRunResults() const {
-	return m_resultsAvailable && hasRawRunResults();
+	return m_resultsAvailable && m_completedRun && hasRawRunResults();
 }
 
 // Enable the diagram entries only while run results exist; a disabled entry
@@ -13939,14 +13940,16 @@ void MainWindow::onSimulationFinished() {
 		: stoppedByUser					 ? QStringLiteral("Stopped")
 										 : QStringLiteral("Failed");
 	if (m_resultsAvailable) {
-		const auto trains = runResultTrainPointers();
 		// Freeze result values before a subsequent run replaces the runtime trains.
-		m_completedRunProvenance = m_pendingRunProvenance;
-		m_completedRunResults = buildRunResults(trains, timestep);
-		m_completedTimetableResults = buildTimetableResults(trains);
+		m_completedRun = std::make_shared<const CompletedRunData>(
+			captureCompletedRun(&m_sceneModel, m_startOffsetSeconds, m_pendingRunProvenance));
+		m_completedRunProvenance = m_completedRun->provenance;
+		m_completedRunResults = m_completedRun->results;
+		m_completedTimetableResults = m_completedRun->timetable;
 		refreshRunResults();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
+		m_completedRun.reset();
 		m_completedRunProvenance = RunProvenance();
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
@@ -17261,12 +17264,13 @@ void MainWindow::showTimetableTable() {
 		return;
 	}
 
-	auto* window = new TimetableTableWindow(m_completedTimetableResults,
-		m_startOffsetSeconds, snapshotCsv(&buildTimetableCsv), this);
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	auto* window = new TimetableTableWindow(run->timetable, run->settings.startOffsetSeconds,
+		csvProviderFrom(run, &timetableCsvFrom), this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
-	window->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
-	window->setRunProvenance(m_completedRunProvenance);
-	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(m_completedRunProvenance)));
+	window->setTrainColors(trainColorsForRun(run->results, m_sceneModel));
+	window->setRunProvenance(run->provenance);
+	window->setWindowTitle(QString("Timetable: planned vs simulated [%1]").arg(completedRunContext(run->provenance)));
 	window->setAttribute(Qt::WA_DeleteOnClose);
 	window->show();
 }
@@ -17277,19 +17281,19 @@ void MainWindow::showDelayDiagram() {
 		return;
 	}
 
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	QChart* chart = new QChart();
-	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(completedRunContext(m_completedRunProvenance));
+	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(completedRunContext(run->provenance));
 	chart->setTitle(title);
-	const auto& rows = m_completedTimetableResults;
 
-	for (int i = 0; i < numRegions; i++) {
+	for (const CompletedTrain& train : run->trains) {
 		QLineSeries* series = new QLineSeries();
-		const QString trainName = QString::fromStdString(regional_train[i].trainDescription);
+		const QString trainName = QString::fromStdString(train.trainId);
 		series->setName(trainName + " (arrival delay)");
 		series->setProperty("trainId", trainName);
 		bool hasData = false;
-		for (const TimetableResultRow& row : rows) {
-			if (row.trainId != regional_train[i].trainDescription || !row.arrivalDelaySeconds.available)
+		for (const TimetableResultRow& row : run->timetable) {
+			if (row.trainId != train.trainId || !row.arrivalDelaySeconds.available)
 				continue;
 			appendInspectedPoint(series, row.journeyIndex, row.arrivalDelaySeconds.value / 60.0,
 				QString("Station: %1 | Call: %2 | Arrival delay")
@@ -17314,11 +17318,11 @@ void MainWindow::showDelayDiagram() {
 	DiagramWindow* win = new DiagramWindow(title, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
-	win->setCsvProvider(snapshotCsv(&buildTimetableCsv), "timetable.csv");
-	attachRunProvenance(win, m_completedRunProvenance);
+	win->setTrainColors(trainColorsForRun(run->results, m_sceneModel));
+	win->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv");
+	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisX(false, m_startOffsetSeconds);
+	win->setTimeAxisX(false, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }

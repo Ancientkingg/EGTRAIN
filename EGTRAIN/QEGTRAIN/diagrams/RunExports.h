@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -47,6 +48,13 @@ bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
 QStringList trainIdsFrom(const CompletedRunData& data);
 std::string trajectoryCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds);
 std::string timetableCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds);
+
+// The CSV provider of a result window: it shares the run and gives one export of it for the trains that the window
+// shows, whatever the simulation holds by then.
+using CompletedRunCsv = std::string (*)(const CompletedRunData& data, const QStringList& visibleTrainIds);
+std::function<std::string(const QStringList&)> csvProviderFrom(std::shared_ptr<const CompletedRunData> run,
+	CompletedRunCsv csv);
+
 // The whole run, the first route that a train runs on as reference, no recorded trajectories.
 std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds);
 

@@ -2,13 +2,15 @@
 //
 // Two committed scenes run in this process, one after the other. The data captured from the simulation globals
 // must give the exports and diagram inputs that the functions give that read the globals, and it must not change
-// when the next scene replaces the globals. Hand-made data then pins the adapters on cases that the scenes do not
-// hold: missing times, repeated stops, reversed routes, the order of the capacity trains and shared resources.
+// when the next scene replaces the globals. A result window opened for a scene must keep exporting that scene. Hand-made
+// data then pins the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the
+// order of the capacity trains and shared resources.
 //
 //   test_completedrun SCENE_DIR...
 
 #include "app/DispatchController.h"
 #include "diagrams/CompletedRunData.h"
+#include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunExports.h"
 #include "simulation/InitialParameters.h"
@@ -23,8 +25,9 @@
 #undef signals
 #endif
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QTemporaryDir>
+#include <QtCharts/QChart>
 
 #include <algorithm>
 #include <cmath>
@@ -32,6 +35,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -749,6 +753,15 @@ std::string exportsOf(const CompletedRunData& data) {
 	return text;
 }
 
+// A window with the timetable export of a run, as the application opens one.
+std::unique_ptr<DiagramWindow> openTimetableWindow(const CompletedRunData& data) {
+	const auto run = std::make_shared<const CompletedRunData>(data);
+	auto window = std::make_unique<DiagramWindow>("timetable");
+	window->setChart(new QChart());
+	window->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv", trainIdsFrom(*run));
+	return window;
+}
+
 // --- Hand-made data ---
 
 BlockingTimeDiagramInput occupation(const std::string& block, double start, double end, double posStart, double posEnd,
@@ -1226,7 +1239,7 @@ void testUsedRoutes() {
 } // namespace
 
 int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
+	QApplication application(argc, argv);
 	if (argc < 3) {
 		std::cerr << "usage: test_completedrun SCENE_DIR SCENE_DIR...\n";
 		return 2;
@@ -1239,6 +1252,8 @@ int main(int argc, char** argv) {
 
 	std::vector<CapturedRun> runs(static_cast<std::size_t>(argc - 1));
 	std::vector<std::string> exports;
+	std::vector<std::unique_ptr<DiagramWindow>> windows;
+	std::vector<std::string> windowExports;
 	for (int k = 1; k < argc; ++k) {
 		CapturedRun& run = runs[static_cast<std::size_t>(k - 1)];
 		if (!runScene(argv[k], output.path().toStdString(), run))
@@ -1249,12 +1264,19 @@ int main(int argc, char** argv) {
 		compareCapacity(run);
 		compareRouteDiagrams(run);
 		exports.push_back(exportsOf(run.data));
+		windows.push_back(openTimetableWindow(run.data));
+		windowExports.push_back(windows.back()->csvContent());
+		check(!windowExports.back().empty(), run.scene + ": the timetable window exports rows");
+		checkSame(run.scene + ": timetable window and timetable.csv", timetableCsvFrom(run.data, trainIdsFrom(run.data)), windowExports.back());
 	}
 	// Every run has been replaced by the next one by now. The data of each must still give what it gave.
 	for (std::size_t k = 0; k < runs.size(); ++k) {
 		checkSame(runs[k].scene + ": exports of the run after later runs", exports[k], exportsOf(runs[k].data));
-		for (std::size_t other = k + 1; other < runs.size(); ++other)
+		checkSame(runs[k].scene + ": timetable window after later runs", windowExports[k], windows[k]->csvContent());
+		for (std::size_t other = k + 1; other < runs.size(); ++other) {
 			check(exports[k] != exports[other], runs[k].scene + " and " + runs[other].scene + " give different exports");
+			check(windowExports[k] != windowExports[other], runs[k].scene + " and " + runs[other].scene + " give different window exports");
+		}
 	}
 
 	testMissingValues();
