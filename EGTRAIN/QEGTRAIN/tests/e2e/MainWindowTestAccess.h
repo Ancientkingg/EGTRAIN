@@ -15,6 +15,8 @@ class MainWindowTestAccess {
 public:
 	static void runVisualPolish(MainWindow& w);
 	static void visualPolishFrame(MainWindow& w, bool historical);
+	// The trains of the displayed snapshot as at time t.
+	static void updateTrainPosition(MainWindow& w, int t);
 	static void runStationOverlay(MainWindow& w);
 	static void runEditorSmoke(MainWindow& w);
 	static void runSceneRender(MainWindow& w);

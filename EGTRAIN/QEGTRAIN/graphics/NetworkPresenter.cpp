@@ -31,6 +31,7 @@
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneReferences.h"
+#include "util/PlaybackProfiler.h"
 #include "util/SpeedFormat.h"
 
 // The simulation headers still give warnings (#453, #454, #482), so this strict target includes
@@ -67,6 +68,7 @@
 #include <QGraphicsTextItem>
 #include <QIcon>
 #include <QPainterPath>
+#include <QVariantAnimation>
 
 #include <algorithm>
 #include <cfloat>
@@ -81,6 +83,26 @@ namespace {
 
 // The value that the station layout of the runtime canvas has always used for pi.
 constexpr double kPi = 3.14159265;
+
+// The zoom of the view from which the labels of the platforms are legible.
+constexpr qreal kDenseDetailZoom = 3.0;
+
+// The host of a presenter that has none: nothing is selected or followed.
+class NoFrameHost final : public NetworkPresenter::FrameHost {
+public:
+	bool isTrainOverlayPromoted(int) const override { return false; }
+	void trainWillUpdate(int) override {}
+	bool trainPlaced(int, const QPointF&) override { return false; }
+	void trainHidden(int) override {}
+	bool trainAdded(int, bool) override { return false; }
+	void signalsApplied() override {}
+	void trainsApplied(bool, bool) override {}
+};
+
+NoFrameHost& noFrameHost() {
+	static NoFrameHost host;
+	return host;
+}
 
 // The point at the position X of a track line, shifted to its display level: a linear interpolation of the
 // shifted stations on both sides of X in the region of the track line.
@@ -103,12 +125,27 @@ void tagPreviewItem(QGraphicsItem* item, const QString& kind, const std::string&
 }
 } // namespace
 
-NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view) : m_scene(scene), m_view(view) {}
+NetworkPresenter::NetworkPresenter(QGraphicsScene* scene, NetworkView* view)
+	: m_scene(scene), m_view(view), m_host(&noFrameHost()) {
+	// The icon is a resource of the application, which a caller such as a test can lack.
+	const QPixmap passenger(QStringLiteral(":/icons/pax_icon.png"));
+	if (!passenger.isNull())
+		pax_pixmap_scaled = passenger.scaled(QSize(station_size / 10, station_size / 10), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
 
-NetworkPresenter::~NetworkPresenter() = default;
+NetworkPresenter::~NetworkPresenter() {
+	stopTrainAnimations();
+}
+
+void NetworkPresenter::setFrameHost(FrameHost* host) {
+	m_host = host ? host : &noFrameHost();
+}
 
 void NetworkPresenter::clear() {
 	m_inspectedSignal = nullptr;
+	// A movement points to the items of a train, which the scene is about to delete.
+	stopTrainAnimations();
+	m_runModel = nullptr;
 	if (m_scene)
 		m_scene->clear();
 
@@ -639,6 +676,7 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	if (!m_source)
 		return;
+	m_runModel = &sceneModel;
 
 	// Reuse drawing levels once track spans stop overlapping when the scene has
 	// no authored display layout.
@@ -2103,6 +2141,426 @@ void NetworkPresenter::paintVCouplingMsg(TrainItemGroup* trainItem, const std::s
 	textPos.ry() += 0.5 * (textBox->boundingRect().height() - (text->boundingRect().height() * presentationScale()));
 	text->setPos(textPos);
 	msgGroup->setVisible(true);
+}
+
+GuiPassengerState passengerStateIn(const GuiSimulationSnapshot* snapshot, const std::string& id) {
+	GuiPassengerState passenger;
+	passenger.id = id;
+	if (snapshot) {
+		auto passengerIt = std::find_if(snapshot->passengers.begin(), snapshot->passengers.end(),
+			[&id](const GuiPassengerState& value) { return value.id == id; });
+		if (passengerIt != snapshot->passengers.end())
+			passenger = *passengerIt;
+	}
+	return passenger;
+}
+
+bool NetworkPresenter::passengerGui() const {
+	return m_source && m_source->passengerGui();
+}
+
+bool NetworkPresenter::paxTextVisible() const {
+	if (!m_passengerLayerVisible || !m_view)
+		return false;
+	return m_view->zoomRatio() >= kDenseDetailZoom;
+}
+
+void NetworkPresenter::apply(const GuiSimulationSnapshot& snapshot, Playback playback) {
+	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame", "gui", "gui/snapshot_delivery");
+
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/signalling", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateSignalling(snapshot);
+	}
+	{
+		QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_position", "gui",
+			"gui/snapshot_delivery/render_frame");
+		updateTrainPosition(snapshot, snapshot.timestep, playback);
+	}
+
+	// pax info
+	if (passengerGui()) {
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/platforms", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePlatforms(snapshot);
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/passenger_icons", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updatePaxIconInfo(&snapshot, playback);
+		}
+		{
+			QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/render_frame/train_passenger_info", "gui",
+				"gui/snapshot_delivery/render_frame");
+			updateTrainPaxInfo();
+		}
+	}
+}
+
+void NetworkPresenter::updateSignalling(const GuiSimulationSnapshot& snapshot) {
+	std::set<const SignalItem*> updated;
+	for (const GuiSignalState& signal : snapshot.signalStates)
+		updateSignalAspect(signal, updated);
+	// A head without a state has no route running through its section in its
+	// direction. It has nothing to show, so it must not keep an earlier aspect.
+	for (SignalItem* signal : allSignals) {
+		if (updated.count(signal))
+			continue;
+		signal->setAspectCode(kGuiSignalUnavailable);
+		signal->setFailed(false);
+	}
+	m_host->signalsApplied();
+}
+
+void NetworkPresenter::updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated) {
+	const auto heads = m_signalsByAheadId.find(state.sectionId);
+	if (heads == m_signalsByAheadId.end())
+		return;
+	for (auto* signal : heads->second) {
+		if (signal->reversedDirection != state.reversedDirection)
+			continue;
+		signal->setAspectCode(guiSignalDisplayCode(state));
+		signal->setFailed(state.failed);
+		updated.insert(signal);
+	}
+}
+
+// update the passenger counter and the passenger icons at the platforms
+void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
+	// show text items from the beginning of the simulation
+	if (snapshot.timestep == 0) {
+		for (auto* platformIcon : allPlatforms) {
+			platformIcon->textIcon->setVisible(paxTextVisible());
+		}
+	}
+
+	for (auto* platformIcon : allPlatforms) {
+		auto platformState = std::find_if(snapshot.platforms.begin(), snapshot.platforms.end(),
+			[platformIcon](const GuiPlatformState& value) {
+				return value.stationId == platformIcon->stationId && value.platformId == platformIcon->platformId;
+			});
+		if (platformState == snapshot.platforms.end())
+			continue;
+
+		// remove existing pax icons
+		std::string currentlyHighlightedPaxID;
+		bool selectionCueLost = false;
+		for (auto* icon : platformIcon->passengerIcons) {
+			// if icon had a message, store its pax ID
+			if (icon == paxIconItem) {
+				currentlyHighlightedPaxID = icon->passengerId;
+				paxIconItem = nullptr;
+			}
+			// the icon deletes its highlight effect
+			if (effect && icon->graphicsEffect() == effect)
+				selectionCueLost = true;
+
+			m_scene->removeItem(icon);
+		}
+		qDeleteAll(platformIcon->passengerIcons.begin(), platformIcon->passengerIcons.end());
+		platformIcon->passengerIcons.clear();
+
+		const auto& passengerIds = platformState->passengerIds;
+		int nPaxIcons = static_cast<int>(passengerIds.size());
+
+		// string with pax counter
+		std::stringstream ss;
+		ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << platformState->maxVolume;
+
+		// convert string
+		QString text = QString::fromStdString(ss.str());
+
+		// update text item
+		auto originalCenter = platformIcon->textIcon->boundingRect().center();
+		platformIcon->textIcon->setPlainText(text);
+		platformIcon->textIcon->setVisible(paxTextVisible());
+		auto newCenter = platformIcon->textIcon->boundingRect().center();
+		auto delta = (originalCenter - newCenter) * presentationScale();
+		platformIcon->textIcon->moveBy(delta.x(), delta.y());
+
+		// add icons
+		if (nPaxIcons > 0) {
+			qreal iconSpacing = platformIcon->sceneBoundingRect().width() / nPaxIcons;
+			qreal iconX = platformIcon->sceneBoundingRect().left() + iconSpacing / 2;
+
+			for (const std::string& paxID : passengerIds) {
+				const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
+				auto* item = new PassengerItem(pax_pixmap_scaled);
+				item->setScale(presentationScale());
+				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
+				item->setTransformationMode(Qt::SmoothTransformation);
+
+				item->passengerId = paxID;
+
+				// update current highlighted pax icon
+				if (!currentlyHighlightedPaxID.empty() && item->passengerId == currentlyHighlightedPaxID) {
+					paxIconItem = item;
+				}
+
+				m_scene->addItem(item);
+				if (selectionCueLost && item->passengerId == currentlyHighlightedPaxID) {
+					effect = new HighlightEffect(Qt::blue, 1);
+					item->setGraphicsEffect(effect);
+					selectionCueLost = false;
+				}
+				item->setVisible(m_passengerLayerVisible);
+				platformIcon->passengerIcons.push_back(item);
+
+				iconX += iconSpacing;
+			}
+		}
+	}
+}
+
+// update the passenger counter of the selected train
+void NetworkPresenter::updateTrainPaxInfo() {
+	if (!m_passengerLayerVisible) {
+		if (trainPaxInfoItem)
+			trainPaxInfoItem->setVisible(false);
+		return;
+	}
+	if (trainPaxInfoItem) {
+		// remove existing item
+		removeTrainPaxInfoIcon();
+		if (trainPaxItem)
+			paintTrainPassengerInfo(trainPaxItem);
+	}
+}
+
+// update the passenger info of the selected passenger icon
+void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback) {
+	if (!m_passengerLayerVisible) {
+		if (paxIconInfoItem)
+			paxIconInfoItem->setVisible(false);
+		return;
+	}
+	if (paxIconInfoItem) {
+		// remove existing item
+		removePaxInfoIcon();
+		if (paxIconItem)
+			paintPassengerInfoIcon(paxIconItem, passengerStateIn(snapshot, paxIconItem->passengerId),
+				playback == Playback::Replay);
+	}
+}
+
+void NetworkPresenter::removeTrainPaxInfoIcon() {
+	if (trainPaxInfoItem) {
+		m_scene->removeItem(trainPaxInfoItem);
+		delete trainPaxInfoItem;
+		trainPaxInfoItem = nullptr;
+	}
+}
+
+void NetworkPresenter::removePaxInfoIcon() {
+	if (paxIconInfoItem) {
+		m_scene->removeItem(paxIconInfoItem);
+		delete paxIconInfoItem;
+		paxIconInfoItem = nullptr;
+	}
+}
+
+void NetworkPresenter::updateBlockOccupationStatus(const GuiTrainState& train) {
+	for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
+		auto it = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
+		if (it == m_tracksByOccupiedArc.end() || !it->second)
+			continue;
+		TrackLineItem* track = it->second;
+		if (trackStatePriority(TrackOperationalState::Occupied) >= trackStatePriority(track->operationalState())) {
+			track->setOperationalState(TrackOperationalState::Occupied);
+			m_activeTrackItems.insert(track);
+		}
+	}
+}
+
+void NetworkPresenter::clearOperationalTrackStates() {
+	for (auto* track : m_activeTrackItems)
+		if (track)
+			track->setOperationalState(TrackOperationalState::Free);
+	m_activeTrackItems.clear();
+}
+
+void NetworkPresenter::stopTrainAnimation(int train) {
+	QVariantAnimation* animation = m_trainAnimations.take(train);
+	if (!animation)
+		return;
+
+	animation->stop();
+	animation->deleteLater();
+}
+
+void NetworkPresenter::stopTrainAnimations() {
+	for (QVariantAnimation* animation : m_trainAnimations) {
+		if (!animation)
+			continue;
+		animation->stop();
+		animation->deleteLater();
+	}
+	m_trainAnimations.clear();
+}
+
+// updates train positions given a specific timestep
+void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback) {
+	const bool replay = playback == Playback::Replay;
+	bool legendNeedsUpdate = false;
+	// The camera was given the position of the followed train in this update.
+	bool followedTrainMoved = false;
+	for (auto* group : m_vcMessageItems)
+		if (group)
+			group->setVisible(false);
+	// update every train
+	clearOperationalTrackStates();
+	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
+		if (!state.prepared && visualState == TrackOperationalState::Prepared)
+			return;
+		if (!state.blocked && visualState == TrackOperationalState::Blocked)
+			return;
+		auto tracks = m_tracksBySectionId.find(state.sectionId);
+		if (tracks == m_tracksBySectionId.end())
+			return;
+		for (auto* track : tracks->second) {
+			if (!track || trackStatePriority(visualState) < trackStatePriority(track->operationalState()))
+				continue;
+			track->setOperationalState(visualState);
+			m_activeTrackItems.insert(track);
+		}
+	};
+	for (const GuiSectionState& state : snapshot.sectionStates)
+		if (state.prepared)
+			applySectionState(state, TrackOperationalState::Prepared);
+	for (const GuiTrainState& state : snapshot.trains)
+		if (!replay || guiReplayTrainHasPosition(state, t))
+			updateBlockOccupationStatus(state);
+	for (const GuiTrainState& state : snapshot.trains) {
+		const int train = state.index;
+		m_host->trainWillUpdate(train);
+		// check if train item exists
+		TrainItemGroup* trainItem = nullptr;
+		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
+			if ((*it)->index == train) {
+				trainItem = *it;
+				break;
+			}
+		}
+
+		// trainItem found
+		if (trainItem) {
+			trainItem->outOfSimulation = state.outOfSimulation;
+			trainItem->currentOnboardPassengers = state.currentOnboardPassengers;
+			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
+			const bool hasPosition = guiReplayTrainHasPosition(state, t);
+			trainItem->setVisible(m_trainLayerVisible && (replay ? hasPosition : !state.outOfSimulation));
+			if (replay && !hasPosition && m_trainBadges.contains(train))
+				m_trainBadges[train]->hide();
+			// update train position
+			if (!state.outOfSimulation && (!replay || hasPosition)) {
+				// Capture the currently displayed center before replacing the polygons.
+				// An interrupted animation leaves a temporary group offset that must
+				// not become part of the next geometry center.
+				const QPointF oldCenter = trainItem->sceneBoundingRect().center();
+				auto prevIt = m_prevTrainPositions.find(train);
+				const QPointF oldBadgeCenter = prevIt != m_prevTrainPositions.end()
+					? prevIt.value()
+					: oldCenter;
+				stopTrainAnimation(train);
+				trainItem->setPos(QPointF(0, 0));
+				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
+				if (badge)
+					badge->setPos(oldBadgeCenter);
+
+				const bool hasVisibleGeometry = getTrainPolygonItemList(trainItem->trainPolygonItemList, state);
+				trainItem->setVisible(m_trainLayerVisible && hasVisibleGeometry);
+				checkVCouplingMsg(trainItem, state, snapshot, t);
+
+				// animate smooth transition from old position to new position
+				QPointF newCenter = trainItem->sceneBoundingRect().center();
+				if (badge) {
+					badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(state)));
+					badge->setTooltipDetails(QString::fromStdString(state.description),
+						QString::fromStdString(state.operatingCode), QString::fromStdString(state.type));
+					badge->setSpeedText(QString::fromStdString(formatSpeedLabel(state.speedKmh)));
+					badge->setSpeedVisible(m_trainSpeedLabelsVisible);
+					badge->setReversed(state.reversedDirection);
+					const bool promoted = m_host->isTrainOverlayPromoted(train);
+					badge->setPromoted(promoted);
+					badge->setPresentation(TrainBadgeItem::presentationForZoom(
+						m_view ? m_view->zoomRatio() : 1.0, promoted));
+					badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
+				}
+				m_prevTrainPositions[train] = newCenter;
+				QPointF delta = oldCenter - newCenter;
+				const QPointF badgeCenter = newCenter;
+				if (!replay && delta.manhattanLength() > 0.5) {
+					stopTrainAnimation(train);
+					trainItem->setPos(delta);
+					if (badge)
+						badge->setPos(badgeCenter + delta);
+					QVariantAnimation* interp = new QVariantAnimation(m_scene);
+					m_trainAnimations[train] = interp;
+					interp->setDuration(120);
+					interp->setStartValue(QVariant::fromValue(delta));
+					interp->setEndValue(QVariant::fromValue(QPointF(0, 0)));
+					interp->setEasingCurve(QEasingCurve::Linear);
+					QObject::connect(interp, &QVariantAnimation::valueChanged, interp, [trainItem, badge, badgeCenter](const QVariant& val) {
+						QEGTRAIN_PROFILE_SCOPE("gui/train_animation/value_changed", "gui", "");
+						QPointF offset = val.toPointF();
+						trainItem->setPos(offset);
+						if (badge)
+							badge->setPos(badgeCenter + offset);
+					});
+					QObject::connect(interp, &QVariantAnimation::finished, interp, [this, train, interp]() {
+						if (m_trainAnimations.value(train, nullptr) == interp)
+							m_trainAnimations.remove(train);
+						interp->deleteLater();
+					});
+					interp->start();
+				} else {
+					stopTrainAnimation(train);
+					trainItem->setPos(QPointF(0, 0));
+					if (badge)
+						badge->setPos(badgeCenter);
+				}
+				if (m_host->trainPlaced(train, newCenter))
+					followedTrainMoved = true;
+			}
+			// hide train whose simulation is finished
+			else {
+				stopTrainAnimation(train);
+				trainItem->hide();
+				if (m_trainBadges.contains(train))
+					m_trainBadges[train]->setVisible(false);
+				m_host->trainHidden(train);
+			}
+		}
+		// new train starting; >= not == because the frame throttle may drop
+		// the exact departure frame, and the recorded trajectory (not the live
+		// train state) is what says whether the train is on the network at t
+		else if (m_runModel
+			&& (replay ? guiReplayTrainHasPosition(state, t)
+					   : t >= state.departureTime && state.routeAxisPosition != -9999)) {
+			const bool firstTrain = allTrains.isEmpty();
+			paintTrain(state, *m_runModel, m_host->isTrainOverlayPromoted(state.index));
+			legendNeedsUpdate = true;
+			if (m_host->trainAdded(train, firstTrain && !replay))
+				followedTrainMoved = true;
+		}
+	}
+	for (const GuiSectionState& state : snapshot.sectionStates)
+		if (state.blocked)
+			applySectionState(state, TrackOperationalState::Blocked);
+	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
+}
+
+// manage VCoupling notifications
+void NetworkPresenter::checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train,
+	const GuiSimulationSnapshot& snapshot, int t) {
+	for (auto it = snapshot.virtualCouplingMessages.rbegin(); it != snapshot.virtualCouplingMessages.rend(); ++it) {
+		if (it->trainDescription == train.description && t >= it->timestep && t <= it->timestep + 40) {
+			paintVCouplingMsg(trainItem, it->message);
+			break;
+		}
+	}
 }
 
 void NetworkPresenter::buildSignalIndex() {
