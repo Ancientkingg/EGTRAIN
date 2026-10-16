@@ -392,34 +392,14 @@ void setInfraSpeedLimits(Section* BS, int Blocks);
 // occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied; the routines below take it the same way.
 void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks, const char* occupied);
 
-void setBlockSpeed1MixedSignalling(Section* BLS, int Blocks);
-
-
-void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex);
-
 // --- ATB Mixed Signalling (level 0) ---
 void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks, const char* occupied);
-
-void setBlockSpeedAtbMixedSignalling(Section* BS, int Blocks);
-
-
-void relAtbMixedSignalling(Section* BS, int blockIndex);
 
 // --- ETCS L1 Mixed Signalling (level 1) ---
 void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied);
 
-void setBlockSpeedEtcsLev1MixedSignalling(Section* BS, int Blocks);
-
-
-void relEtcsLev1MixedSignalling(Section* BS, int blockIndex);
-
 // --- ETCS L2 Mixed Signalling (level 2) ---
 void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied);
-
-void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks);
-
-
-void relEtcsLev2MixedSignalling(Section* BS, int blockIndex);
 
 // --- ETCS L3 Mixed Signalling (levels 3 and 4) ---
 void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied);

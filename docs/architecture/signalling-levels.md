@@ -307,7 +307,7 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
 ### Level 0 (`0 ATB fixed block`)
 
 - **Separation.** Fixed blocks. A train stops at the end of the block before the
-  block that is occupied (`atbMixedSignalling`, `setBlockSpeedAtbMixedSignalling`).
+  block that is occupied (`atbMixedSignalling`, `applyBlockSpeedForLevel`).
 - **Codes behind an occupied section.** The occupied section gets code 0. The
   section behind it gets code 75, state red and a signal speed limit of 11.111 m/s.
   The next gets 180, state yellow. The next gets 270, state green. A train
@@ -332,10 +332,11 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
 
 ### Levels 1 and 2 (`1 ETCS Level 1 fixed block`, `2 ETCS Level 2 fixed block`)
 
-The routines of levels 1 and 2 are the same code with the level number changed:
-`etcsLev1MixedSignalling` and `etcsLev2MixedSignalling`, their speed passes and
-their release functions. Trains move the same
-way at both levels. The levels differ in the blocking times only.
+The aspect routines of levels 1 and 2 are the same code with the level number
+changed: `etcsLev1MixedSignalling` and `etcsLev2MixedSignalling`. Their speed
+pass and the release of the last section are shared with levels 0 and 5
+(`applyBlockSpeedForLevel` and `releaseLastSections`). Trains move the same way
+at both levels. The levels differ in the blocking times only.
 
 - **Separation.** Fixed blocks. A train stops at the end of the block before the
   occupied one, as at level 0, with no speed limit.
@@ -447,7 +448,7 @@ that the new target can still be respected.
 ### Level 5 (`5 BACC track circuits`)
 
 - **Separation.** Fixed blocks, like level 0, with one more block held free
-  (`baccMixedSignalling`, `setBlockSpeed1MixedSignalling`).
+  (`baccMixedSignalling`, `applyBlockSpeedForLevel`).
 - **Codes behind an occupied section.** Code 0 on the occupied section. The
   section behind gets 751, state red_red and a signal speed limit of 0, so a
   train cannot move inside it. The next gets 75, state red and 11.111 m/s. The
