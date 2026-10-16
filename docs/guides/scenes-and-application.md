@@ -32,7 +32,8 @@ installs it and relaunches the application. If the install location is not
 writable, download the release and install it with the platform's normal
 permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
-first.
+first. On Windows, update a copy that the EGTRAIN Setup installed by running the
+newer Setup.
 
 An update is prepared in a hidden `.qegtrain-update-*` folder next to the
 installation, and the updated application starts in its own directory. After a
