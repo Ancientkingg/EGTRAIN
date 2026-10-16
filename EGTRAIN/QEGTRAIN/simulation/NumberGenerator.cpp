@@ -1,5 +1,4 @@
 #include "simulation/NumberGenerator.h"
-#include "simulation/InitialParameters.h"
 #include <math.h>
 
 NumberGenerator::NumberGenerator(unsigned long inSeed) {
@@ -61,13 +60,4 @@ double NumberGenerator::getGaussianFloat(double inMean,
 		iset = 0;
 		return gset * inStdDev + inMean;
 	}
-}
-
-NumberGenerator& runNumberGenerator() {
-	static NumberGenerator generator(kDefaultRandomSeed);
-	return generator;
-}
-
-void seedRunNumberGenerator(unsigned long inSeed) {
-	runNumberGenerator() = NumberGenerator(inSeed);
 }

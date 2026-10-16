@@ -9,9 +9,6 @@ double timestep = 1;
 double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling speed limits in m/s, see Infrastructure.h
 int numTrackLines = 0;										   // This is the total number of TrackLines
 
-list<StationPlatform> AllStationPlatforms; // This is a global list containing all Station platforms existing in the modelled network
-int numAllStationPlatforms = 0;			   // This variable provides the total number of station platforms in the modelled network (it is the size of the list AllStationPlatforms)
-
 InitialParameters initial_variables(0);
 string InputMainFolder = initial_variables.InputMainFolder; // "Input_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
 // string OutputMainFolder = initial_variables.OutputMainFolder;// "Output_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
@@ -130,10 +127,6 @@ Stations::Stations() {
 }
 
 Stations StationArray[95]; // Array of all the station in the network
-Stations TotalInputDelays; // Element which collects the amount of entrance delays and disturbances set as input
-Stations EntranceInputDelays;
-Stations DisturbanceInput;
-Stations Final_Station; // Fittitious Station to measure train delays at their own Final Station
 int numStations = 0;
 
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {

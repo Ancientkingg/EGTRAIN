@@ -12,18 +12,6 @@
 #include <limits>
 #include <sstream>
 
-int N_OrderLists = initial_variables.num_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
-
-OrderList::OrderList() {
-	Node_X = -10000;
-	numTeList = 0;
-	LastEnteredTrain = "None";
-	BlockID = "None";
-	Is_DivergingJunction = Is_MergingJunction = 0;
-}
-
-OrderList OL[20];
-
 BlockingTimes::BlockingTimes() {
 	StartOccTime = -1;
 	EndOccTime = -1;
@@ -51,9 +39,7 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-int numRegions = 0; /*Number of Speed ranges in the characteristic Tractive effort-speed curve of trains, Number of Trains loaded for the simulation( N_Train+N_TrainD)*/
-
-int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
+int numRegions = 0; /*Number of Trains loaded for the simulation*/
 
 // const int Max_N_Reg = 150;
 

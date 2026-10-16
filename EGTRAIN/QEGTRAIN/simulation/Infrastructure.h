@@ -245,8 +245,8 @@ public:
 
 bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>& blockSets);
 
-extern list<StationPlatform> AllStationPlatforms;
-extern int numAllStationPlatforms;
+extern list<StationPlatform>& AllStationPlatforms;
+extern int& numAllStationPlatforms;
 
 // --- Stations: station node extending Node with delay statistics ---
 
@@ -278,11 +278,11 @@ public:
 	Stations();
 };
 
-extern Stations StationArray[95]; // All stations in the network
-extern Stations TotalInputDelays; // Aggregated entrance delays and disturbances
-extern Stations EntranceInputDelays;
-extern Stations DisturbanceInput;
-extern Stations Final_Station; // Fictitious station to measure delays at trains' final stations
+extern Stations StationArray[95];  // All stations in the network
+extern Stations& TotalInputDelays; // Aggregated entrance delays and disturbances
+extern Stations& EntranceInputDelays;
+extern Stations& DisturbanceInput;
+extern Stations& Final_Station; // Fictitious station to measure delays at trains' final stations
 extern int numStations;
 
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay);

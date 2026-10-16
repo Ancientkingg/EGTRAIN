@@ -269,18 +269,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 } // namespace
 
 void prepareNativeOperationsState() {
-	N_OrderLists = 0;
 	numRegions = 0;
-	N_Train = 0;
-	N_TrainD = 0;
-	numAllStationPlatforms = 0;
-	numAllDailyPassengers = 0;
-	for (OrderList& orderList : OL)
-		orderList = OrderList();
-	AllStationPlatforms.clear();
-	AllDailyPassengers.clear();
-	AllStationPlatformIndex.clear();
-	AllDailyPassengerIndex.clear();
 	defaultRun().reset();
 }
 
@@ -1117,18 +1106,10 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 		bufferTime = initial_variables.bufferTime;
 	if (!initial_variables.recoveryTimeOverride)
 		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
-	N_OrderLists = 0;
 	// The new storage exists before the old trains are released.
 	std::vector<Regional> storage(trains.size());
 	regional_train = std::move(storage);
 	numRegions = static_cast<int>(trains.size());
-	N_Train = 0;
-	N_TrainD = 0;
-	for (const NativeTrainPlan& train : trains)
-		if (train.direction)
-			++N_TrainD;
-		else
-			++N_Train;
 	for (std::size_t index = 0; index < trains.size(); ++index)
 		nativeCopyTrainPlan(trains[index], regional_train[index], vectorSize);
 	changeTrainDepartureTimesForHourlyTimetabling(regional_train.data(), numRegions);

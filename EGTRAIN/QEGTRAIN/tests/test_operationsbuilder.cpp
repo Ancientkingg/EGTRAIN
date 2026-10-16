@@ -3132,10 +3132,7 @@ static bool runRollingStockMessageChecks() {
 		{{Category::SimPax, Level::Info, "Call RouteChoice model as passenger ID: Pax2 could not board train T1 as it was full\n"}},
 		"a passenger who waits for a train that is full");
 
-	// A route of one section from 0 to 10 km, a section with order list 3 and a train that crosses the checklist node at 1 km.
-	const int savedOrderLists = N_OrderLists;
-	const int savedOrderListTrains = OL[3].numTeList;
-	const std::string savedLastEntered = OL[3].LastEnteredTrain;
+	// A route of one section from 0 to 10 km.
 	std::vector<Route> savedRoutes;
 	savedRoutes.swap(train_route);
 	train_route.resize(1);
@@ -3146,20 +3143,7 @@ static bool runRollingStockMessageChecks() {
 	routeSection.start_node.X = 0.0;
 	routeSection.end_node.X = 10.0;
 	routeSection.GeoXBegNode = 0.0;
-	N_OrderLists = 4;
-	OL[3].numTeList = 1;
-	std::vector<Section> entrance(1);
-	entrance[0].total_arcs = 1;
-	entrance[0].arcs_in_signalling_block_section[0].startNode.X = 1.0;
-	entrance[0].arcs_in_signalling_block_section[0].startNode.indexOrderList = 3;
-	entrance[0].arcs_in_signalling_block_section[0].startNode.respectOrder = 1;
 	train.CanEnter = true;
-	train.checkEntrance(0, entrance.data());
-	shows(capture.take(), {{Category::SimStep, Level::Info, "this is the indexOL TRUE \n3"}}, "a train that enters at a section with an order list");
-	train.instant_spatial_position = {900.0, 1100.0};
-	train.Update_LastEnteredTrain_For_All_OL_Improved(1, entrance[0]);
-	shows(capture.take(), {{Category::SimStep, Level::Info, "T1\n"}}, "a train that crosses the checklist node of an order list");
-	ok &= expect(OL[3].LastEnteredTrain == "T1", "the train that crossed the checklist node is the last that entered");
 
 	// Arrival at the last station and departure from the first: the position of the train is read from the route.
 	QTemporaryDir output;
@@ -3187,36 +3171,12 @@ static bool runRollingStockMessageChecks() {
 		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, initial_variables.startingSimulationTime) + "\n"}},
 		"a train that arrives at its last station");
 	initial_variables.OutputMainFolder = savedOutputFolder;
-	OL[3].LastEnteredTrain = savedLastEntered;
-	OL[3].numTeList = savedOrderListTrains;
-	N_OrderLists = savedOrderLists;
 	train_route.swap(savedRoutes);
 	return ok;
 }
 
-// The order implemented at an order list goes to Implemented_Order_OL<index>.txt in the given folder: the abscissa of the node, then one train per line.
-static bool runImplementedOrderFileChecks() {
-	bool ok = true;
-	QTemporaryDir folder;
-	ok &= expect(folder.isValid(), "temporary folder for the implemented order files");
-	const auto orderList = std::make_unique<OrderList>();
-	orderList->Node_X = 1.5;
-	orderList->Implemented_Order = {"T1", "T2"};
-	const std::vector<int> indices = {0, 7, 12};
-	for (const int index : indices)
-		orderList->Print_Implemented_Order(folder.path().toStdString(), index);
-	ok &= expect(QDir(folder.path()).entryList(QDir::Files).size() == static_cast<int>(indices.size()), "one implemented order file per order list");
-	for (const int index : indices) {
-		std::ifstream file(folder.path().toStdString() + "/Implemented_Order_OL" + std::to_string(index) + ".txt");
-		std::ostringstream content;
-		content << file.rdbuf();
-		ok &= expect(content.str() == "1.5\nT1\nT2\n", "implemented order file of order list " + std::to_string(index));
-	}
-	return ok;
-}
-
-// A train that follows no order list stops for the signal of the section when it is double red at level 5 and red at every other level.
-static bool runOrderListSignalChecks() {
+// The aspect of a section is restrictive when it is double red at level 5 and red at every other level.
+static bool runAspectChecks() {
 	bool ok = true;
 	Train train;
 	const SignalState states[] = {SignalState::Green, SignalState::Yellow, SignalState::Red, SignalState::RedRed};
@@ -3226,10 +3186,10 @@ static bool runOrderListSignalChecks() {
 		Section section;
 		section.state = states[i];
 		section.SignallingLevel = levelValue(SignallingLevel::Atb);
-		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtAtb[i],
+		ok &= expect(train.isAspectRestrictive(section) == stopsAtAtb[i],
 			"stop for the signal state " + std::to_string(i) + " at level 0");
 		section.SignallingLevel = levelValue(SignallingLevel::Bacc);
-		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtBacc[i],
+		ok &= expect(train.isAspectRestrictive(section) == stopsAtBacc[i],
 			"stop for the signal state " + std::to_string(i) + " at level 5");
 	}
 	return ok;
@@ -3333,7 +3293,7 @@ int main() {
 	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
 			&& InputMainFolder == initial_variables.InputMainFolder,
 		"native builders do not access or rewrite the legacy input folder");
-	ok &= expect(numRegions == 3 && N_Train == 3 && N_TrainD == 0, "repeat expansion populates train counts");
+	ok &= expect(numRegions == 3, "repeat expansion populates train counts");
 	ok &= expect(regional_train[0].trainDescription == "service.native-1"
 			&& regional_train[1].trainDescription == "service.native-2"
 			&& regional_train[2].trainDescription == "service.native-3",
@@ -4247,8 +4207,7 @@ int main() {
 	ok &= regionalTrainStorageTests();
 	ok &= singleTrackLockTests();
 	ok &= runRollingStockMessageChecks();
-	ok &= runImplementedOrderFileChecks();
-	ok &= runOrderListSignalChecks();
+	ok &= runAspectChecks();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

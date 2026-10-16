@@ -1,6 +1,9 @@
 #ifndef SIMULATIONRUN_H
 #define SIMULATIONRUN_H
 
+#include "simulation/Infrastructure.h"
+#include "simulation/NumberGenerator.h"
+#include "simulation/Passengers.h"
 #include "simulation/Signalling.h"
 
 #include <list>
@@ -28,6 +31,26 @@ struct SimulationRun {
 	std::vector<int> vcMsgTimestep;
 	std::vector<std::string> vcMsgTrain;
 	std::vector<std::string> vcMsgText;
+
+	// The platforms of the network and the passengers of the run, each with the number of its elements.
+	std::list<StationPlatform> platforms;
+	int numPlatforms = 0;
+	std::list<Passenger> passengers;
+	int numPassengers = 0;
+	// The indexes of the two lists. An index describes its list only while the list keeps its elements, so reset()
+	// clears them with the lists.
+	PassengerIndex passengerIndex;
+	PlatformIndex platformIndex;
+
+	// Delay statistics: the entrance delays and disturbances that the scenario sets, and the delays at the final stop of
+	// every train.
+	Stations totalInputDelays;
+	Stations entranceInputDelays;
+	Stations disturbanceInput;
+	Stations finalStation;
+
+	// The draws of the passenger sampling. The operations builder seeds it from the settings of the run.
+	NumberGenerator numberGenerator{kDefaultRandomSeed};
 
 	// Signalling system delay in seconds.
 	double signallingDelay = 0;

@@ -533,8 +533,6 @@ void DispatchController::runSimulation() {
 	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC);
 	cout << "TimeElapsed is : " << TimeElapsed;
 
-	Print_Implemented_Order_For_All_OL(Folder_RI_PH);
-
 	// Compute passage times at timetable points
 	Compute_TimetablingPoints_For_All_Trains(regional_train.data(), numRegions);
 
@@ -752,8 +750,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 				BlocksOccupied.clear();	 // Clear the list BlocksOccupied
 				BlocksConnected.clear(); // Clear the list BlocksConnected
-
-				Detect_Implemented_Order_For_All_OL(); // Detect The order Implemented for all the OLs in the network
 			}
 
 			clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends

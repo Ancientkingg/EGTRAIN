@@ -216,7 +216,11 @@ def assert_deferred_success_path_resets() -> None:
     ]
     if "defaultRun().reset();" not in lightweight:
         raise SystemExit("operation preparation does not reset the run")
-    for name in ("simulationIncidents", "VCmsgTimestep", "VCmsgTrain", "VCmsgText"):
+    moved = (
+        "simulationIncidents", "VCmsgTimestep", "VCmsgTrain", "VCmsgText", "AllStationPlatforms", "AllStationPlatformIndex",
+        "AllDailyPassengers", "AllDailyPassengerIndex", "numAllStationPlatforms", "numAllDailyPassengers",
+    )
+    for name in moved:
         if name in lightweight:
             raise SystemExit(f"operation preparation clears {name} itself instead of resetting the run")
     if "regional_train" in lightweight or "nativeClearRegionalTrains" in lightweight:

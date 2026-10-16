@@ -5,12 +5,6 @@
 #include "simulation/Passengers.h"
 #include <vector>
 
-// Function to Detect the implemented Order for all the OL in the network
-void Detect_Implemented_Order_For_All_OL();
-
-// Function to Print the Implemented Order of all the OLs in a text file
-void Print_Implemented_Order_For_All_OL(string FolderName);
-
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
 void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
 

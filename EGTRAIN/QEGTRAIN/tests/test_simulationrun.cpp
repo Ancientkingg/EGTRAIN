@@ -24,14 +24,16 @@
 #include <QObject>
 #include <QTemporaryDir>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 Logger owl;
@@ -54,41 +56,73 @@ private:
 	std::streambuf* m_saved;
 };
 
-// The names of the members of the run that equal those of a new run. The structured bindings name every member,
-// so this file stops compiling when a member is added to the run.
+// The members of the run by name, each described by a text that tells a new run from a used one. The structured binding
+// names every member, so this file stops compiling when a member is added to the run.
+using Description = std::vector<std::pair<std::string, std::string>>;
+
+Description describe(const SimulationRun& run) {
+	const auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
+		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, generator, delay, egtrainTime, romaTime] = run;
+	const auto station = [](const Stations& s) {
+		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
+	};
+	NumberGenerator draws = generator;
+	const std::string draw = std::to_string(draws.getUniformFloat()) + "/" + std::to_string(draws.getGaussianFloat());
+	return {{"blocksOccupied", std::to_string(occupied.size())},
+		{"blocksConnected", std::to_string(connected.size())},
+		{"etcsMa", std::to_string(authorities.size())},
+		{"incidents", std::to_string(incidents.size())},
+		{"vcMsgTimestep", std::to_string(vcTimesteps.size())},
+		{"vcMsgTrain", std::to_string(vcTrains.size())},
+		{"vcMsgText", std::to_string(vcTexts.size())},
+		{"platforms", std::to_string(platforms.size())},
+		{"numPlatforms", std::to_string(numPlatforms)},
+		{"passengers", std::to_string(passengers.size())},
+		{"numPassengers", std::to_string(numPassengers)},
+		{"passengerIndex", std::to_string(passengerIndex.covers(passengers))},
+		{"platformIndex", std::to_string(platformIndex.covers(platforms))},
+		{"totalInputDelays", station(totalDelays)},
+		{"entranceInputDelays", station(entranceDelays)},
+		{"disturbanceInput", station(disturbances)},
+		{"finalStation", station(finalStation)},
+		{"numberGenerator", draw},
+		{"signallingDelay", std::to_string(delay)},
+		{"compTimeEgtrain", std::to_string(egtrainTime)},
+		{"compTimeRoma", std::to_string(romaTime)}};
+}
+
+// The names of the members of the run that are as in a new run.
 std::vector<std::string> membersOfNewRun(const SimulationRun& run) {
 	const auto fresh = std::make_unique<SimulationRun>();
-	const auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, delay, egtrainTime, romaTime] = run;
-	const auto& [newOccupied, newConnected, newAuthorities, newIncidents, newTimesteps, newTrains, newTexts, newDelay, newEgtrainTime, newRomaTime] = *fresh;
+	const Description now = describe(run);
+	const Description initial = describe(*fresh);
 	std::vector<std::string> names;
-	if (occupied == newOccupied)
-		names.push_back("blocksOccupied");
-	if (connected == newConnected)
-		names.push_back("blocksConnected");
-	if (authorities.size() == newAuthorities.size())
-		names.push_back("etcsMa");
-	if (incidents.size() == newIncidents.size())
-		names.push_back("incidents");
-	if (vcTimesteps == newTimesteps)
-		names.push_back("vcMsgTimestep");
-	if (vcTrains == newTrains)
-		names.push_back("vcMsgTrain");
-	if (vcTexts == newTexts)
-		names.push_back("vcMsgText");
-	if (delay == newDelay)
-		names.push_back("signallingDelay");
-	if (egtrainTime == newEgtrainTime)
-		names.push_back("compTimeEgtrain");
-	if (romaTime == newRomaTime)
-		names.push_back("compTimeRoma");
+	for (std::size_t i = 0; i < now.size(); ++i)
+		if (now[i] == initial[i])
+			names.push_back(now[i].first);
 	return names;
 }
 
-constexpr std::size_t kMemberCount = 10;
+bool isNewRun(const SimulationRun& run) {
+	return membersOfNewRun(run).size() == describe(run).size();
+}
+
+// True when the run is as a new run in every member that the builders do not fill. A prepared scene has its platforms,
+// passengers, incidents and seeded generator, and the name of the final station.
+bool carriesNothingOver(const SimulationRun& run) {
+	const std::set<std::string> builderState = {"incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
+		"passengerIndex", "platformIndex", "finalStation", "numberGenerator"};
+	const std::vector<std::string> unchanged = membersOfNewRun(run);
+	for (const auto& [name, text] : describe(run))
+		if (builderState.count(name) == 0 && std::find(unchanged.begin(), unchanged.end(), name) == unchanged.end())
+			return false;
+	return true;
+}
 
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
-	auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, delay, egtrainTime, romaTime] = run;
+	auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
+		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, generator, delay, egtrainTime, romaTime] = run;
 	occupied.push_back("1-B0");
 	connected.push_back("2-B0");
 	authorities.emplace_back();
@@ -96,6 +130,18 @@ void fill(SimulationRun& run) {
 	vcTimesteps.push_back(7);
 	vcTrains.push_back("T1-1");
 	vcTexts.push_back("Train is now decoupled");
+	platforms.emplace_back();
+	numPlatforms = 1;
+	passengers.emplace_back();
+	numPassengers = 1;
+	passengerIndex.build(passengers);
+	platformIndex.build(platforms);
+	for (Stations* station : {&totalDelays, &entranceDelays, &disturbances, &finalStation}) {
+		station->stationName = "Final_Station";
+		station->N_Stopped_Trains = 4;
+		station->totalArrivalDelay = 30;
+	}
+	generator.getUniformFloat();
 	delay = 2;
 	egtrainTime = 1.5;
 	romaTime = 0.5;
@@ -105,22 +151,32 @@ bool resetTests() {
 	bool ok = true;
 	SimulationRun& run = defaultRun();
 	SimulationRun* const address = &run;
-	ok &= expect(membersOfNewRun(run).size() == kMemberCount, "the run of the process starts as a new run");
+	ok &= expect(isNewRun(run), "the run of the process starts as a new run");
 
 	fill(run);
 	ok &= expect(membersOfNewRun(run).empty(), "the test fills every member");
 	ok &= expect(&BlocksOccupied == &run.blocksOccupied && &BlocksConnected == &run.blocksConnected && &ETCS_MA == &run.etcsMa
 			&& &simulationIncidents == &run.incidents && &VCmsgTimestep == &run.vcMsgTimestep && &VCmsgTrain == &run.vcMsgTrain
-			&& &VCmsgText == &run.vcMsgText && &S_delay == &run.signallingDelay && &Comp_Time_EGTRAIN == &run.compTimeEgtrain
-			&& &Comp_Time_ROMA == &run.compTimeRoma,
+			&& &VCmsgText == &run.vcMsgText && &AllStationPlatforms == &run.platforms && &numAllStationPlatforms == &run.numPlatforms
+			&& &AllDailyPassengers == &run.passengers && &numAllDailyPassengers == &run.numPassengers
+			&& &AllDailyPassengerIndex == &run.passengerIndex && &AllStationPlatformIndex == &run.platformIndex
+			&& &TotalInputDelays == &run.totalInputDelays && &EntranceInputDelays == &run.entranceInputDelays
+			&& &DisturbanceInput == &run.disturbanceInput && &Final_Station == &run.finalStation && &runNumberGenerator() == &run.numberGenerator
+			&& &S_delay == &run.signallingDelay && &Comp_Time_EGTRAIN == &run.compTimeEgtrain && &Comp_Time_ROMA == &run.compTimeRoma,
 		"the global names refer to the members of the run");
-	ok &= expect(BlocksOccupied.size() == 1 && ETCS_MA.size() == 1 && simulationIncidents.size() == 1 && VCmsgText.size() == 1 && S_delay == 2,
+	ok &= expect(BlocksOccupied.size() == 1 && ETCS_MA.size() == 1 && simulationIncidents.size() == 1 && VCmsgText.size() == 1
+			&& AllDailyPassengers.size() == 1 && numAllStationPlatforms == 1 && Final_Station.N_Stopped_Trains == 4 && S_delay == 2,
 		"the members show the values through the global names");
 
 	run.reset();
-	ok &= expect(membersOfNewRun(run).size() == kMemberCount, "reset returns every member to the state of a new run");
-	ok &= expect(&defaultRun() == address && BlocksOccupied.empty() && ETCS_MA.empty() && S_delay == 0,
+	ok &= expect(isNewRun(run), "reset returns every member to the state of a new run");
+	ok &= expect(&defaultRun() == address && BlocksOccupied.empty() && ETCS_MA.empty() && AllDailyPassengers.empty() && S_delay == 0,
 		"reset keeps the run at its address, so the global names stay valid");
+
+	// The generator of a seeded run starts again from the default seed.
+	seedRunNumberGenerator(5);
+	run.reset();
+	ok &= expect(isNewRun(run), "reset returns the generator to the default seed");
 	return ok;
 }
 
@@ -129,8 +185,8 @@ using Files = std::map<std::string, std::string>;
 
 struct Outcome {
 	bool prepared = false;
-	// The run state is that of a new run when the run starts.
-	bool startedNew = false;
+	// Nothing of an earlier run is left when the run starts.
+	bool startedClean = false;
 	bool completed = false;
 	Files files;
 };
@@ -181,7 +237,7 @@ Outcome runScene(const RunSetup& setup) {
 	outcome.prepared = !hasErrors(simulation.prepareScene(*setup.scene, "baseline", setup.selection)) && numRegions > 0;
 	if (!outcome.prepared)
 		return outcome;
-	outcome.startedNew = membersOfNewRun(defaultRun()).size() == kMemberCount;
+	outcome.startedClean = carriesNothingOver(defaultRun());
 	int snapshots = 0;
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
@@ -197,7 +253,7 @@ Outcome runScene(const RunSetup& setup) {
 
 bool sameFiles(const std::string& label, const Outcome& expected, const Outcome& actual) {
 	bool ok = expect(actual.prepared && actual.completed, label + ": the run completes");
-	ok &= expect(actual.startedNew, label + ": the run starts from the state of a new run");
+	ok &= expect(actual.startedClean, label + ": nothing of an earlier run is left when the run starts");
 	ok &= expect(!expected.files.empty() && actual.files.size() == expected.files.size(), label + ": the run writes the same files");
 	for (const auto& [name, content] : expected.files) {
 		const auto found = actual.files.find(name);
@@ -253,7 +309,7 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	fill(defaultRun());
 	const std::vector<SceneDiagnostic> rejected = simulation.prepareScene(line, "no.such.scenario");
 	ok &= expect(hasErrors(rejected), "a scene with an unknown scenario is rejected");
-	ok &= expect(membersOfNewRun(defaultRun()).size() == kMemberCount && numRegions == 0, "a rejected preparation leaves a new run");
+	ok &= expect(isNewRun(defaultRun()) && numRegions == 0, "a rejected preparation leaves a new run");
 	ok &= sameFiles("a scene after a failed preparation", firstLine, runScene(lineRun));
 	return ok;
 }

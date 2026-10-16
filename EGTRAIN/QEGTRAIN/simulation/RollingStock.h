@@ -3,7 +3,7 @@
 
 // The member functions of the classes in this header are defined in the RollingStock*.cpp files in this folder. Only these short
 // bodies stay inline, with the files that call them:
-// - OrderList::Detect_Implemented_Order (Simulation.cpp) and the empty destructors of Train and Regional;
+// - the empty destructors of Train and Regional;
 // - BlockingTimeList (RollingStockBlockingTimes.cpp, RollingStock.cpp, MainWindow.cpp, test_characterization.cpp);
 // - isShortOfBrakingPoint, isPastStopHoldback and their constants (RollingStockStops.cpp, RollingStockTrajectory.cpp,
 //   test_operationsbuilder.cpp);
@@ -42,7 +42,6 @@ extern vector<string>& VCmsgText;
 
 #include <cmath> // std::fabs
 
-extern int N_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
 extern InitialParameters initial_variables;
 
 // Build rolling stock, timetable, selected-scenario incidents, entrance
@@ -64,33 +63,6 @@ int trainPassengerCapacity(double numberOfWagons);
 // Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or
 // negative) gives 0, so it never counts as congested.
 double passengerOccupancyRatio(int passengers, int capacity);
-
-class OrderList {
-public:
-	string ID;
-	string BlockID;								   // This is the ID of the Block Section where the ordere need to be implemented
-	double Node_X;								   // This is the abscissa of the Node where the departure order has to be respected
-	bool Is_MergingJunction, Is_DivergingJunction; // These 2 variables indicate whether the OrderList is a Diverging or a Merging Junction. By default they are set to 0;
-	TrainEvent TE[300];
-	int numTeList;
-	string LastEnteredTrain; // This is the trainDescription of the Last train that has departed from the Node Node_X
-	list<string> Implemented_Order;
-	OrderList();
-
-	// Function to detect the implemented train order at the OL
-	void Detect_Implemented_Order() {
-		if (Implemented_Order.empty() || (LastEnteredTrain != Implemented_Order.back())) { // if the list is empty or the LastEnteredTrain is different from the last Element of the list
-			if (LastEnteredTrain != "None")												   // And LastEnteredTrain is also different from None
-				Implemented_Order.push_back(LastEnteredTrain);							   // add the train to the list
-		}
-	}
-
-	// Function to Print the Implemented Order in a text file
-	// Print this ordered list on a text file
-	void Print_Implemented_Order(string FolderName, int Index_OL);
-};
-
-extern OrderList OL[20];
 
 
 class BlockingTimes {
@@ -178,9 +150,7 @@ private:
 Declaration of Train class
 *
 ****************************************************************************************************************************/
-extern int numRegions; /*Number of Speed ranges in the characteristic Tractive effort-speed curve of trains, Number of Trains loaded for the simulation( N_Train+N_TrainD)*/
-
-extern int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
+extern int numRegions; /*Number of Trains loaded for the simulation*/
 
 // Largest number of trains a scene may expand to. It is a validation and editor
 // limit, not a storage size: regional_train holds exactly the trains of the scene.
@@ -388,18 +358,8 @@ public:
 	// By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which extends the model by Gibson et al. (1989)
 	double computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
-	// Function to detect if a train has to stop at a Node to respect a certain order :
-	/**this function returns true if the train has to stop, false otherwise*/
-
-	bool Train_Must_Stop_For_OL_Order(bool respectOrder, int IndexOrderList);
-
-	// This Function tests if the conditions for the train to stop at a certain point subsist:
-	/**the train has to stop at a Node with Respsect Order=1 when
-   the Previous train has not passed yet and when the aspect of its block section is restrictive(red or red_red)*/
-	bool Conditions_To_Stop_Train_For_OL_Order(bool respectOrder, int IndexOrderList, const Section& BS);
-
-	// Function to Update the LastEntered Train for the all OrderLists OL in the network
-	void Update_LastEnteredTrain_For_All_OL_Improved(int i, const Section& BS);
+	// True when the aspect of the block section is restrictive: red, or red-red at level 5.
+	bool isAspectRestrictive(const Section& BS) const;
 
 	// A signal failure makes an End of Authority for every route copy of the failed section, and a held single-track
 	// section makes one of the same type for the routes against its holder. Its position is expressed for the
