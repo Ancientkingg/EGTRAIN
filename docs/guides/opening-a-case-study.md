@@ -28,7 +28,9 @@ it loads the scene. The check never changes the file you opened. Three dialogs
 report a scene that does not open:
 
 - **Older Scene Not Supported**: the scene reports a version older than any
-  EGTRAIN can read. No older version can be upgraded today. Download the
+  EGTRAIN can read, or it has the draft layout. No older version can be
+  upgraded today. The message names the version numbers of the scene and the
+  EGTRAIN version that saved it, when the scene records that. Download the
   current case study from the releases page.
 - **Newer Scene**: the scene was saved with a newer EGTRAIN. Choose
   **Check for Updates...** to look for the newer release.
@@ -37,9 +39,10 @@ report a scene that does not open:
   first problem; keep it.
 
 Scenes written by builds before 2026-08-08 use an older layout under the same
-version number and are not supported: they may open with errors or not open at
-all. Use the current case studies, or convert the original legacy input folder
-again with **File > Load Legacy Case...**.
+version number. EGTRAIN recognises that draft layout, reports it in the
+**Older Scene Not Supported** dialog and does not open it. Use the current case
+studies, or convert the original legacy input folder again with **File > Load
+Legacy Case...**.
 
 See the [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
 for the full list of which scenes open.

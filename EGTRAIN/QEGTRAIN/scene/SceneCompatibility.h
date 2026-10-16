@@ -31,6 +31,13 @@ struct SceneCompatibilityProbeResult {
 	std::vector<SceneDiagnostic> diagnostics;
 };
 
+// True for a scene that this application does not open because of its version or layout.
+// The diagnostics of the probe then name the reason.
+inline bool isRejectedForVersion(const SceneCompatibilityProbeResult& probe) {
+	return probe.classification == SceneCompatibilityClass::OlderUnsupported
+		|| probe.classification == SceneCompatibilityClass::Newer;
+}
+
 SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path);
 SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path,
 	const SceneMigrationRegistry& registry);

@@ -1,5 +1,6 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneBundle.h"
+#include "scene/SceneCompatibility.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneModel.h"
@@ -33,6 +34,15 @@ static void printDiags(const std::vector<SceneDiagnostic>& diags) {
 			std::cerr << "\n";
 		}
 	}
+}
+
+// Prints why a scene of another version or layout is not read and returns true. Any other scene is left to the loader.
+static bool printVersionRejection(const std::string& path) {
+	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(path);
+	if (!isRejectedForVersion(compatibility))
+		return false;
+	printDiags(compatibility.diagnostics);
+	return true;
 }
 
 int main(int argc, char** argv) {
@@ -75,6 +85,8 @@ int main(int argc, char** argv) {
 			std::cerr << "Usage: scene_tool pack <scene-directory> <output.egscene>\n";
 			return 1;
 		}
+		if (printVersionRejection(argv[2]))
+			return 1;
 		const SceneLoadResult loaded = loadScene(argv[2]);
 		printDiags(loaded.diagnostics);
 		if (hasErrors(loaded.diagnostics))
@@ -107,6 +119,8 @@ int main(int argc, char** argv) {
 			std::cerr << "Usage: scene_tool validate [--runnable] <scene-path>\n";
 			return 1;
 		}
+		if (printVersionRejection(argv[pathIndex]))
+			return 1;
 		const SceneLoadResult loaded = loadScenePath(argv[pathIndex]);
 		auto diags = loaded.diagnostics;
 		if (!hasErrors(diags)) {
