@@ -215,7 +215,8 @@ def main() -> None:
         or "needs." in package_only
     ):
         missing.append("quoted shared release version in all five build jobs")
-    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 0:
+    # The package workflow selects no version. Its only needs: is the finalize job after the Windows package job.
+    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 1:
         missing.append("version selection before all builds")
     for marker in (
         "fetch-depth: 0",
@@ -450,12 +451,14 @@ def main() -> None:
         or "secrets" in package_only
     ):
         missing.append("package workflow with read permission and no credentials")
-    if job_ids(package_only) != ["package-macos", "package-windows", "package-linux"]:
-        missing.append("package workflow jobs: package-macos, package-windows, package-linux")
-    # The release script reads one artifact directory for each package that has one, the Windows payload and the scene
-    # bundles. The package workflow uploads exactly those names, and each package as the file that the script publishes.
-    for _key, file, directory in build_release_assets.PACKAGES:
-        if directory and not re.search(
+    if job_ids(package_only) != ["package-macos", "package-windows", "finalize-windows", "package-linux"]:
+        missing.append("package workflow jobs: package-macos, package-windows, finalize-windows, package-linux")
+    # The release script reads one artifact directory for each package, the Windows payload and the scene bundles. The
+    # package workflow uploads exactly those names, and each package as the file that the script publishes. A name with
+    # the release version in it is uploaded with the version input of the workflow.
+    for _key, template, directory in build_release_assets.PACKAGES:
+        file = template.format(version="${{ inputs.version }}")
+        if not re.search(
             rf"^          name: {re.escape(directory)}\n          path: (?:\S*/)?{re.escape(file)}\n", package_only, re.MULTILINE
         ):
             missing.append(f"package artifact {directory} uploaded as the file {file} that the release script reads")
@@ -508,7 +511,7 @@ def main() -> None:
     ):
         missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
     # The job uploads the directory that it verified, sized and started, with its hidden files. It writes no archive:
-    # the release job writes the portable archive from the uploaded files.
+    # the finalize job writes the portable archive from the uploaded files.
     if step_block(windows_job, "Upload artifact") != (
         "name: Upload artifact\n"
         "        uses: actions/upload-artifact@v4\n"
@@ -521,6 +524,111 @@ def main() -> None:
         missing.append("Windows package upload of the directory that is built, with its hidden files, as the payload artifact")
     if "zip" in windows_job.lower():
         missing.append("Windows package job without an archive")
+    # The finalize job builds the installer and the portable archive from the payload that the Windows package job uploaded,
+    # so both hold the same files. It installs, upgrades and uninstalls the installer, starts the portable archive after
+    # it extracts it, and uploads the two files only after both checks passed. The archive comes from the release script.
+    finalize_job = job_block(package_only, "finalize-windows")
+    finalize_steps = (
+        "Download the package",
+        "Find Inno Setup",
+        "Build the installers",
+        "Smoke test the installer",
+        "Build the portable archive",
+        "Start the portable archive",
+        "Upload the installer",
+        "Upload the portable archive",
+    )
+    finalize_step_names = re.findall(r"^      - name: (.+)$", finalize_job, re.MULTILINE)
+    finalize_positions = [finalize_step_names.index(name) if name in finalize_step_names else -1 for name in finalize_steps]
+    if -1 in finalize_positions or finalize_positions != sorted(finalize_positions):
+        missing.append("Windows finalize steps in the order " + ", ".join(finalize_steps))
+    if (
+        re.findall(r"^    needs: (.+)$", finalize_job, re.MULTILINE) != ["package-windows"]
+        or re.findall(r"^    runs-on: (.+)$", finalize_job, re.MULTILINE) != ["windows-latest"]
+    ):
+        missing.append("Windows finalize job after the Windows package job, on windows-latest")
+    if step_block(finalize_job, "Download the package") != (
+        "name: Download the package\n"
+        "        uses: actions/download-artifact@v4\n"
+        "        with:\n"
+        "          name: QEGTRAIN-windows-x64-payload\n"
+        "          path: payload\n"
+    ):
+        missing.append("Windows finalize download of the payload artifact of the Windows package job into payload")
+    installer_step = step_block(finalize_job, "Build the installers")
+    if (
+        '$payload = (Resolve-Path payload).Path\n' not in installer_step
+        or '"/DVersion=${{ inputs.version }}" "/DPayload=$payload" "/O$PWD\\installer-out" installer\\egtrain.iss\n' not in installer_step
+        or installer_step.count("/DPayload=$payload") != 2
+        or "/DVersion=$newer" not in installer_step
+    ):
+        missing.append("Windows finalize installers compiled from the payload, the second one with a newer version")
+    portable_step = step_block(finalize_job, "Build the portable archive")
+    if (
+        '--version "${{ inputs.version }}" --payload payload --output portable\n' not in portable_step
+        or finalize_job.count("--payload payload") != 1
+    ):
+        missing.append("Windows finalize portable archive written by the release script from the same payload directory")
+    smoke_step = step_block(finalize_job, "Smoke test the installer")
+    if any(
+        part not in smoke_step
+        for part in (
+            "./tools/release/installer_smoke.ps1",
+            '-Installer "installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe"',
+            '-UpgradeInstaller "installer-upgrade/EGTRAIN-Setup-$($env:UPGRADE_VERSION)-x64.exe"',
+            "-Payload payload",
+            '-Version "${{ inputs.version }}"',
+            'PYTHONUTF8: "1"',
+        )
+    ):
+        missing.append("Windows finalize installer smoke on the installers and the payload of the job")
+    portable_start = step_block(finalize_job, "Start the portable archive")
+    if (
+        'python -m zipfile -e "portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip" $start' not in portable_start
+        or not portable_start.strip().endswith('python tools/release/package_start_smoke.py "$start"')
+        or 'PYTHONUTF8: "1"' not in portable_start
+    ):
+        missing.append("Windows finalize start of the extracted portable archive")
+    if "uses: actions/setup-python@v5" not in finalize_job or "python-version: '3.12'" not in finalize_job:
+        missing.append("Windows finalize job with Python set up")
+    if step_block(finalize_job, "Upload the installer") != (
+        "name: Upload the installer\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: EGTRAIN-windows-x64-installer\n"
+        "          path: installer-out/EGTRAIN-Setup-${{ inputs.version }}-x64.exe\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows finalize upload of the installer that the smoke test installed")
+    if step_block(finalize_job, "Upload the portable archive") != (
+        "name: Upload the portable archive\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: EGTRAIN-windows-x64-portable\n"
+        "          path: portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows finalize upload of the portable archive that was started")
+    # The smoke script cannot run in this test. It has to keep the silent switches, the directory, the desktop task and
+    # the calls of its start, manifest, registry, upgrade and uninstall checks, and no hash, no Program Files and no
+    # /CURRENTUSER, which has no effect while the installer script offers no choice of scope.
+    installer_smoke = (ROOT / "tools/release/installer_smoke.ps1").read_text(encoding="utf-8")
+    if any(
+        part not in installer_smoke
+        for part in (
+            "'/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'",
+            '/LOG=`"$log`"',
+            '/DIR=`"$Directory`"',
+            "'/TASKS=desktopicon'",
+            "Assert-AsInvoker $Installer",
+            "Assert-AsInvoker $UpgradeInstaller",
+            "Invoke-StartSmoke $directory",
+            "Install-Egtrain $UpgradeInstaller 'upgrade-over'",
+            "Assert-Registered $defaultDirectory $UpgradeVersion",
+            "Assert-Survives $outside",
+        )
+    ) or any(part in installer_smoke.lower() for part in ("/currentuser", "/allusers", "sha256", "get-filehash", "program files")):
+        missing.append("installer smoke script with the silent switches, the desktop task, the start check and the checks of scope and manifest")
     # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
     # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
     # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the package.
@@ -731,8 +839,8 @@ def main() -> None:
         missing.append("Linux package start of the extracted AppImage under RUNNER_TEMP on a virtual display with Python set up")
     if "QT_QPA_PLATFORM" in linux_job or "QT_PLUGIN_PATH" in linux_job:
         missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
-    if package_only.count("tools/release/package_start_smoke.py") != 3:
-        missing.append("package start script in the three package jobs")
+    if package_only.count("tools/release/package_start_smoke.py") != 4:
+        missing.append("package start script in the three package jobs and for the portable archive")
     publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit", "environment:")
     if (
         any(word in text for text in (package_check, package_only) for word in publishing)

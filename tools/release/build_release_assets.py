@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
-"""Build the files of a release from the package artifacts of one run.
+"""Build the files of a release from the package artifacts of one run, or only the portable Windows archive.
 
 usage: build_release_assets.py --version X.Y.Z --artifacts DIR --output DIR
+       build_release_assets.py --version X.Y.Z --payload DIR --output DIR
 
 --artifacts holds what actions/download-artifact makes when it is given no
 artifact name, one directory per artifact:
 
-  QEGTRAIN-windows-x64-payload/   the assembled Windows package, QEGTRAIN.exe at its top level
+  QEGTRAIN-windows-x64-payload/                       the assembled Windows package, QEGTRAIN.exe at its top level
+  EGTRAIN-windows-x64-portable/EGTRAIN-Portable-X.Y.Z-x64.zip
+  EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe
   QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
   QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
-  EGTRAIN-scenes/                 the seven .egscene files
+  EGTRAIN-scenes/                                     the seven .egscene files
 
 Other directories there are ignored. --output must not exist or must be an empty
 directory. The script writes only there, and the directory holds exactly the files
-of a release afterwards: the three packages, the seven scene bundles and
-update-manifest.json. The macOS package, the AppImage and the bundles are copies.
-The Windows archive is written from the files of the payload: one member per file,
-named by its path below the payload with forward slashes, in the order of the
-sorted file list, with no directory entry and no top-level folder.
+of a release afterwards: the four packages, the seven scene bundles and
+update-manifest.json. The packages and the bundles are copies.
+
+The portable archive is written by the second form, which the Windows finalize job
+runs on the payload before it uploads the archive. The archive has one member per
+file of the payload, named by its path below the payload with forward slashes, in
+the order of the sorted file list, with no directory entry and no top-level folder.
+The first form checks that the archive it copies holds exactly the files of the
+payload artifact, with the same bytes.
 
 update-manifest.json takes the hash and the size of each package from the file in
---output, so they describe the public asset. The "files" of the Windows entry are
+--output, so they describe the public asset. The "files" of the portable entry are
 the members of the archive.
 
 Every input is checked before --output is created:
@@ -36,8 +43,10 @@ Every input is checked before --output is created:
   not checked here; the Windows package job verifies it before it uploads the
   package.
 
-The size of the Windows archive is known only once it is written, so it is checked
-then. A failure after --output is created leaves that directory partly written.
+The second form writes EGTRAIN-Portable-X.Y.Z-x64.zip into --output after the same
+checks of the version and the payload. The size of the archive is known only once
+it is written, so it is checked then. A failure after --output is created leaves
+that directory partly written.
 """
 import argparse
 import hashlib
@@ -45,12 +54,13 @@ import json
 import os
 import shutil
 import zipfile
+import zlib
 from pathlib import Path
 
 from version import parse_version
 
 WINDOWS_KEY = "windows-x64"
-WINDOWS_NAME = "QEGTRAIN-windows-x64.zip"
+PORTABLE_NAME = "EGTRAIN-Portable-{version}-x64.zip"
 WINDOWS_PAYLOAD = "QEGTRAIN-windows-x64-payload"
 SCENES_ARTIFACT = "EGTRAIN-scenes"
 SCENES = (
@@ -65,10 +75,11 @@ SCENES = (
 SCENE_SUFFIX = ".egscene"
 MANIFEST_NAME = "update-manifest.json"
 # Manifest key, public file name and artifact directory of each package, in manifest
-# order. The Windows archive is built from WINDOWS_PAYLOAD and has no artifact directory.
+# order. {version} in a name stands for the release version.
 PACKAGES = (
     ("macos-arm64", "QEGTRAIN-macos-arm64.zip", "QEGTRAIN-macos-arm64"),
-    (WINDOWS_KEY, WINDOWS_NAME, None),
+    (WINDOWS_KEY, PORTABLE_NAME, "EGTRAIN-windows-x64-portable"),
+    ("windows-x64-installer", "EGTRAIN-Setup-{version}-x64.exe", "EGTRAIN-windows-x64-installer"),
     ("linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage", "QEGTRAIN-linux-x86_64"),
 )
 
@@ -77,7 +88,7 @@ MAX_WINDOWS_FILES = 4096
 MAX_PATH_UTF16_UNITS = 260
 # kMaxPackageBytes in parseUpdateManifest (update/ReleaseInfo.cpp).
 MAX_PACKAGE_BYTES = 2 * 1024 ** 3
-HASH_CHUNK_BYTES = 1024 * 1024
+CHUNK_BYTES = 1024 * 1024
 
 
 def check_version(version: str) -> None:
@@ -85,6 +96,15 @@ def check_version(version: str) -> None:
         parse_version(version)
     except ValueError as error:
         raise SystemExit(f"version {version!r} is not a stable X.Y.Z version: {error}")
+
+
+def package_name(template: str, version: str) -> str:
+    return template.format(version=version)
+
+
+def check_output_directory(output: Path) -> None:
+    if output.exists() and (not output.is_dir() or any(output.iterdir())):
+        raise SystemExit(f"{output} exists and is not an empty directory")
 
 
 def require_files(directory: Path, names) -> None:
@@ -149,13 +169,13 @@ def path_problem(path: str):
 
 def check_windows_files(files) -> None:
     if len(files) > MAX_WINDOWS_FILES:
-        raise SystemExit(f"{WINDOWS_PAYLOAD} holds {len(files)} files, at most {MAX_WINDOWS_FILES} are accepted")
+        raise SystemExit(f"the Windows package holds {len(files)} files, at most {MAX_WINDOWS_FILES} are accepted")
     for path in files:
         problem = path_problem(path)
         if problem:
-            raise SystemExit(f"{WINDOWS_PAYLOAD} path {path!r} {problem}")
+            raise SystemExit(f"the Windows package path {path!r} {problem}")
     if "QEGTRAIN.exe" not in files:
-        raise SystemExit(f"{WINDOWS_PAYLOAD} has no QEGTRAIN.exe at its top level")
+        raise SystemExit("the Windows package has no QEGTRAIN.exe at its top level")
 
 
 def check_package_size(name: str, size: int) -> None:
@@ -166,7 +186,7 @@ def check_package_size(name: str, size: int) -> None:
 def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as stream:
-        for chunk in iter(lambda: stream.read(HASH_CHUNK_BYTES), b""):
+        for chunk in iter(lambda: stream.read(CHUNK_BYTES), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
@@ -178,59 +198,101 @@ def write_windows_archive(payload: Path, files, archive: Path) -> None:
             zip_file.write(payload / name, name)
 
 
+def same_content(zip_file: zipfile.ZipFile, name: str, path: Path) -> bool:
+    """True when the member and the file have the same bytes. Reading a member to its end checks its CRC."""
+    with zip_file.open(name) as member, open(path, "rb") as source:
+        while True:
+            chunk = member.read(CHUNK_BYTES)
+            if chunk != source.read(CHUNK_BYTES):
+                return False
+            if not chunk:
+                return True
+
+
+def check_archive_holds_payload(archive: Path, payload: Path, files) -> None:
+    """The archive has one member per listed file, in the order of the list, with the bytes of the file."""
+    try:
+        with zipfile.ZipFile(archive) as zip_file:
+            if zip_file.namelist() != files:
+                raise SystemExit(f"{archive} does not hold the files of {payload}")
+            for name in files:
+                if not same_content(zip_file, name, payload / name):
+                    raise SystemExit(f"{archive} member {name} differs from the file of {payload}")
+    except (zipfile.BadZipFile, zlib.error) as error:
+        raise SystemExit(f"{archive} is not a readable archive: {error}")
+
+
+def build_portable_archive(payload, output, version: str) -> Path:
+    """Writes the portable archive of the payload into output and returns its path."""
+    payload, output = Path(payload), Path(output)
+    check_version(version)
+    files = list_payload(payload)
+    check_windows_files(files)
+    check_output_directory(output)
+
+    name = package_name(PORTABLE_NAME, version)
+    output.mkdir(parents=True, exist_ok=True)
+    write_windows_archive(payload, files, output / name)
+    check_package_size(name, (output / name).stat().st_size)
+    check_archive_holds_payload(output / name, payload, files)
+    return output / name
+
+
 def build_release_assets(artifacts, output, version: str) -> list:
     """Writes the release assets into output and returns their paths."""
     artifacts, output = Path(artifacts), Path(output)
     check_version(version)
 
-    copies = []
-    for _key, name, directory in PACKAGES:
-        if directory:
-            require_files(artifacts / directory, [name])
-            check_package_size(name, (artifacts / directory / name).stat().st_size)
-            copies.append((artifacts / directory / name, name))
+    copies, package_names = [], []
+    for key, template, directory in PACKAGES:
+        name = package_name(template, version)
+        require_files(artifacts / directory, [name])
+        check_package_size(name, (artifacts / directory / name).stat().st_size)
+        copies.append((artifacts / directory / name, name))
+        package_names.append((key, name))
+        if key == WINDOWS_KEY:
+            portable = artifacts / directory / name
     scene_files = [scene + SCENE_SUFFIX for scene in SCENES]
     require_files(artifacts / SCENES_ARTIFACT, scene_files)
     copies += [(artifacts / SCENES_ARTIFACT / name, name) for name in scene_files]
     payload = artifacts / WINDOWS_PAYLOAD
     files = list_payload(payload)
     check_windows_files(files)
-    if output.exists() and (not output.is_dir() or any(output.iterdir())):
-        raise SystemExit(f"{output} exists and is not an empty directory")
+    check_archive_holds_payload(portable, payload, files)
+    check_output_directory(output)
 
     output.mkdir(parents=True, exist_ok=True)
     for source, name in copies:
         shutil.copyfile(source, output / name)
-    write_windows_archive(payload, files, output / WINDOWS_NAME)
-    check_package_size(WINDOWS_NAME, (output / WINDOWS_NAME).stat().st_size)
 
     assets = {}
-    for key, name, _directory in PACKAGES:
+    for key, name in package_names:
         assets[key] = {"name": name, "sha256": file_sha256(output / name), "size": os.path.getsize(output / name)}
     assets[WINDOWS_KEY]["files"] = files
     manifest = {"version": version, "assets": assets}
     with open(output / MANIFEST_NAME, "w", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(manifest, indent=2) + "\n")
 
-    expected = [name for _key, name, _directory in PACKAGES] + scene_files + [MANIFEST_NAME]
+    expected = [name for _key, name in package_names] + scene_files + [MANIFEST_NAME]
     found = sorted(os.listdir(output))
     if found != sorted(expected):
         raise SystemExit(f"{output} holds {found}, expected {sorted(expected)}")
-    with zipfile.ZipFile(output / WINDOWS_NAME) as zip_file:
-        damaged = zip_file.testzip()
-        if damaged is not None:
-            raise SystemExit(f"{output / WINDOWS_NAME} has a damaged member {damaged}")
-        if zip_file.namelist() != files:
-            raise SystemExit(f"{output / WINDOWS_NAME} does not hold the files of the manifest")
     return [output / name for name in found]
 
 
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--version", required=True)
-    parser.add_argument("--artifacts", required=True, type=Path)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--artifacts", type=Path)
+    source.add_argument("--payload", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
+    if args.payload is not None:
+        archive = build_portable_archive(args.payload, args.output, args.version)
+        print(f"{archive.name}  {archive.stat().st_size} bytes")
+        print(f"OK: portable archive in {args.output}")
+        return
     assets = build_release_assets(args.artifacts, args.output, args.version)
     for path in assets:
         print(f"{path.name}  {path.stat().st_size} bytes")
