@@ -995,7 +995,8 @@ int main() {
 		writeText(sidecar, json({{"format_version", 1}, {"signalling_areas", json::array()}}).dump());
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
 		ok &= expect(imported.success() && readJson(destination / "signalling.json", signalling)
-				&& signalling["signalling_areas"] == json::array(),
+				&& !signalling.contains("signalling_areas")
+				&& !hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning),
 			"Empty sidecar remains authoritative over TXT");
 		fs::remove(sidecar);
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");

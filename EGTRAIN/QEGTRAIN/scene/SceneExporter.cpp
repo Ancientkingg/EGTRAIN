@@ -2,6 +2,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 #include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 #include <nlohmann/json.hpp>
@@ -190,14 +191,13 @@ static void synthesizeSignallingAreas(const SceneModel& scene, const std::unorde
 	nlohmann::json areas = nlohmann::json::array();
 	std::ostringstream rows;
 	for (const auto& area : scene.signallingAreas) {
-		nlohmann::json value = {{"id", area.id}, {"start_km", area.startKm}, {"end_km", area.endKm}, {"level", area.level}};
+		SceneSignallingArea sidecarArea = area;
 		std::string trackColumn;
 		if (!area.trackId.empty()) {
-			const std::string& track = legacyTrackIds.at(area.trackId);
-			value["track"] = track;
-			trackColumn = "\t" + track.substr(1);
+			sidecarArea.trackId = legacyTrackIds.at(area.trackId);
+			trackColumn = "\t" + sidecarArea.trackId.substr(1);
 		}
-		areas.push_back(std::move(value));
+		areas.push_back(encodeSignallingArea(sidecarArea));
 		std::string id = area.id;
 		std::replace_if(id.begin(), id.end(), [](unsigned char c) { return std::isspace(c) != 0; }, '_');
 		rows << id << "\t" << formatNumber(area.startKm) << "\t" << formatNumber(area.endKm) << "\t" << area.level << trackColumn << "\n";

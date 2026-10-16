@@ -198,6 +198,16 @@ SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const jso
 	return delay;
 }
 
+SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const json& value, const std::string& path) {
+	SceneSignallingArea area;
+	reader.stringField(value, "id", path, area.id);
+	reader.numberField(value, "start_km", path, area.startKm);
+	reader.numberField(value, "end_km", path, area.endKm);
+	reader.integerField(value, "level", path, area.level);
+	reader.stringField(value, "track", path, area.trackId, false);
+	return area;
+}
+
 bool isSimulationResultField(const std::string& name) {
 	return name == "results" || name == "simulation_results" || name.find("simulated_") == 0
 		|| name.find("actual_") == 0 || name == "delay_seconds" || name.find("arrival_delay") != std::string::npos

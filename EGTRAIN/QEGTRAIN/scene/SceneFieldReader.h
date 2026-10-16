@@ -79,6 +79,9 @@ private:
 SceneIncident decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 
+// Reads a signalling area. The reader reports each field that is absent or invalid, in the order of the file schema.
+SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
+
 // Whether an input file must not carry this key because it names a simulation result.
 bool isSimulationResultField(const std::string& name);
 
