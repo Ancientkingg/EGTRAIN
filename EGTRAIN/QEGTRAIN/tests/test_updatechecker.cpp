@@ -46,6 +46,25 @@ int main(int argc, char** argv) {
 	ok &= expect(!shouldCheckForUpdates(UpdateCheckState::Disabled, false)
 			&& shouldCheckForUpdates(UpdateCheckState::Disabled, true),
 		"manual checks remain available while automatic checks are disabled");
+	ok &= expect(!readFailedUpdateVersion(settings), "no failed version is stored at first");
+	writeFailedUpdateVersion(settings, SemanticVersion{1, 2, 3});
+	const std::optional<SemanticVersion> storedFailure = readFailedUpdateVersion(settings);
+	ok &= expect(storedFailure && *storedFailure == SemanticVersion{1, 2, 3}, "the failed version round-trips");
+	settings.setValue(QStringLiteral("updates/failedVersion"), QStringLiteral("1.2"));
+	ok &= expect(!readFailedUpdateVersion(settings), "a stored text that is not a stable version is no failed version");
+	settings.setValue(QStringLiteral("updates/failedVersion"), QStringLiteral("not a version"));
+	ok &= expect(!readFailedUpdateVersion(settings), "a stored text that is no version at all is no failed version");
+	settings.remove(QStringLiteral("updates/failedVersion"));
+	const SemanticVersion failed{1, 2, 3};
+	ok &= expect(shouldOfferRelease(failed, failed, true), "a manual check offers the failed version");
+	ok &= expect(!shouldOfferRelease(failed, failed, false), "an automatic check does not offer the failed version");
+	ok &= expect(shouldOfferRelease(SemanticVersion{1, 2, 4}, failed, false),
+		"an automatic check offers a newer version than the failed one");
+	ok &= expect(shouldOfferRelease(SemanticVersion{1, 2, 4}, failed, true),
+		"a manual check offers a newer version than the failed one");
+	ok &= expect(shouldOfferRelease(SemanticVersion{1, 2, 2}, failed, false),
+		"only the failed version itself is held back, not older releases");
+	ok &= expect(shouldOfferRelease(failed, std::nullopt, false), "an automatic check offers a release when nothing failed");
 	// Each variable alone suppresses update UI and network; the test starts from none of them set.
 	const char* const suppressing[] = {"QEGTRAIN_DISABLE_UPDATES", "QEGTRAIN_AUTOSTART",
 		"QEGTRAIN_STARTUP_TIMING", "QEGTRAIN_PLAYBACK_PROFILE", "QEGTRAIN_E2E_SCENE_DROP"};

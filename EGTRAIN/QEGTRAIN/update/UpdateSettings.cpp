@@ -1,10 +1,12 @@
 #include "update/UpdateSettings.h"
+#include "update/ReleaseInfo.h"
 
 #include <QProcessEnvironment>
 #include <QSettings>
 
 namespace {
 constexpr char kAutomaticUpdateChecksKey[] = "updates/automaticCheck";
+constexpr char kFailedUpdateVersionKey[] = "updates/failedVersion";
 }
 
 UpdateCheckState readUpdateCheckState(const QSettings& settings) {
@@ -26,6 +28,18 @@ void writeUpdateCheckState(QSettings& settings, UpdateCheckState state) {
 
 bool shouldCheckForUpdates(UpdateCheckState state, bool manual) {
 	return manual || state == UpdateCheckState::Enabled;
+}
+
+std::optional<SemanticVersion> readFailedUpdateVersion(const QSettings& settings) {
+	return parseStableVersion(settings.value(QString::fromLatin1(kFailedUpdateVersionKey)).toString().toStdString());
+}
+
+void writeFailedUpdateVersion(QSettings& settings, const SemanticVersion& version) {
+	settings.setValue(QString::fromLatin1(kFailedUpdateVersionKey), formatSemanticVersion(version));
+}
+
+bool shouldOfferRelease(const SemanticVersion& release, const std::optional<SemanticVersion>& failedVersion, bool manual) {
+	return manual || !failedVersion || *failedVersion != release;
 }
 
 // Scripted launches have nobody to answer the consent prompt and must not reach the network:

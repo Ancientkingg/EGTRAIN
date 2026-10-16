@@ -332,7 +332,6 @@ The release does not build these today, so they have no subject.
 | Windows binary signature | None (#402). | No row until the release provides it |
 | Open a bundle from the file manager or the command line, with the application closed and with it running | **File > Open Case Study...**, a drop onto the window and the `--scene` option (#416). | No row until the release provides it |
 | Update of an installer-managed copy as against a portable copy | **Update and Restart** replaces an installed copy with the portable package, so R9 and R10 are the only update rows and run on the portable copy (#405). | No row until the release provides it |
-| Message after a rolled-back update | The update helper restores the previous installation and starts it without a message (#527). | No row until the release provides it |
 
 These rows are not part of the gate. They are added to the table of the record
 when the release provides the asset.

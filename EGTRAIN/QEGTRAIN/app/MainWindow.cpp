@@ -46,6 +46,7 @@
 #include "simulation/Passengers.h"
 #include "update/ReleaseInfo.h"
 #include "update/UpdateChecker.h"
+#include "update/UpdateNotices.h"
 #include "update/UpdateSettings.h"
 #include "telemetry/TelemetryConsent.h"
 #include "telemetry/TelemetryConsentDialog.h"
@@ -5785,6 +5786,11 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 			QMessageBox::information(this, QStringLiteral("Check for Updates"),
 				QStringLiteral("EGTRAIN %1 is up to date.").arg(formatSemanticVersion(*current)));
 		return;
+	}
+	{
+		QSettings settings;
+		if (!shouldOfferRelease(result.release->version, readFailedUpdateVersion(settings), manual))
+			return;
 	}
 
 	const StableRelease& release = *result.release;
@@ -24019,6 +24025,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 			showStartupChooser();
 		showPrivacySettings(true);
 		startTelemetryAfterInitialConsent();
+		reportRolledBackUpdate(this);
 		maybePromptForUpdateChecks();
 	});
 

@@ -53,6 +53,11 @@ started, or at its next start when it was closed before that. Folders left by an
 interrupted update are removed at a start of the application once they are older
 than an hour.
 
+When the new version cannot be started, the update helper puts the previous
+version back and starts it again. That version then tells you once which version
+could not be started. Automatic checks do not offer that version again, a newer
+version is offered as usual, and **Help > Check for Updates...** still offers it.
+
 Production updates are stable versioned releases. With automatic checks enabled,
 EGTRAIN offers newer releases on the next application start; it does not interrupt
 an already-running session when a release is published. Use **Help > Check for
