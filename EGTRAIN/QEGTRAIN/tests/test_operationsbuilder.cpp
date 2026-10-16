@@ -1653,6 +1653,106 @@ static bool brakingPhaseTests() {
 	return ok;
 }
 
+// A route of three sections of 1 km with a failed third section. The leading train stands at the red aspect of the second
+// section and the train behind it stands at the red aspect of the first, held by the leader.
+static bool signalFailureEvidenceTests() {
+	bool ok = true;
+	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
+	const auto loaded = loadScene(fixture.toStdString());
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
+		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		return expect(false, "signal failure evidence fixture prepares native crossover stock");
+	const Train stock = regional_train[0];
+	Route& route = train_route[stock.indexOfRoute];
+	const Route savedRoute = route;
+	const auto savedAuthorities = ETCS_MA;
+	for (bool reversed : {false, true}) {
+		route.sequence_of_block_sections = {brakingRoute(0, 1, 0)[0], brakingRoute(1, 2, 0)[0], brakingRoute(2, 3, 0)[0]};
+		route.N_Block_Sections = 3;
+		route.x_of_end_node = 3;
+		route.reversed_direction = reversed;
+		for (int k = 0; k < 3; ++k) {
+			Section& section = route.sequence_of_block_sections[k];
+			section.ID = "evidence." + std::to_string(k);
+			section.GeoXBegNode = reversed ? 10000 : 0;
+			section.SignallingLevel = 0;
+			section.code = 270;
+			section.state = k < 2 ? SignalState::Red : SignalState::Green;
+			Arc& arc = section.arcs_in_signalling_block_section[0];
+			arc.speedLimit = arc.signalSpeedLimit = arc.speedInBraking = stock.max_train_speed;
+		}
+		// The authority a failure of the third section gives, anchored at the end of the second.
+		auto failure = [&](const std::string& description) {
+			MovementAuthority ma;
+			ma.BSID = "evidence.1";
+			ma.type = "SignalFailure";
+			ma.typePart = "Front";
+			ma.ReversedDirection = reversed;
+			ma.EoA_Dist_From_BSID_Beg = 1000;
+			ma.AbsPosEoA = reversed ? 9000 : 2000;
+			ma.TrainInfo.trainDescription = description;
+			ma.TrainInfo.NextSectionID = "evidence.2";
+			return ma;
+		};
+		auto standing = [&](double head) {
+			Train live = stock;
+			live.numStations = 0;
+			live.CanEnter = true;
+			live.OutOfSimulation = false;
+			live.departure_time = 0;
+			live.counter = live.CounterFollowingMode = 0;
+			live.IsTrainInFollowingMode = live.IsTrainCoupling = live.IsTrainDecoupling = false;
+			live.IsInUnintentionalDecoupling = live.IsTrainStoppedForEoA = live.BrakingForEoA = false;
+			live.StoppedForServiceStop = false;
+			live.directIncidentIds.clear();
+			live.firstDirectIncidentTime = live.firstDirectIncidentLocation = -1.0;
+			live.instant_spatial_position[0] = live.instant_spatial_position[1] = head;
+			live.instant_train_speed[0] = live.instant_train_speed[1] = 0;
+			live.Xob[1] = live.Vob[1] = 0;
+			return live;
+		};
+		const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3); };
+		ETCS_MA = {failure("signal_failure:incident.test")};
+		Train leader = standing(1999.9999);
+		Train follower = standing(999.9999);
+		runStep(leader);
+		runStep(follower);
+		ok &= expect(leader.directIncidentIds == std::vector<std::string>{"incident.test"}
+				&& leader.firstDirectIncidentTime == 2 * timestep && leader.firstDirectIncidentLocation == ETCS_MA.front().AbsPosEoA
+				&& leader.instant_train_speed[2] == 0,
+			"a train held at the red aspect before a failed section records the failure on the first step");
+		ok &= expect(follower.directIncidentIds.empty() && follower.instant_train_speed[2] == 0,
+			"a train held only by the train ahead records no failure");
+		Train shortOfEntry = standing(1950);
+		runStep(shortOfEntry);
+		ok &= expect(shortOfEntry.directIncidentIds.empty(), "a train that stands 50 m before the failed section records no failure");
+		route.sequence_of_block_sections[1].state = SignalState::Green;
+		Train clearAspect = standing(1999.9999);
+		runStep(clearAspect);
+		ok &= expect(clearAspect.directIncidentIds.empty(), "a train that stands at an aspect that is not red records no failure");
+		route.sequence_of_block_sections[1].state = SignalState::Red;
+		MovementAuthority elsewhere = failure("signal_failure:incident.test");
+		elsewhere.TrainInfo.NextSectionID = "evidence.9";
+		ETCS_MA = {elsewhere};
+		Train otherRoute = standing(1999.9999);
+		runStep(otherRoute);
+		ok &= expect(otherRoute.directIncidentIds.empty(), "a failed section that does not follow on the route of the train is not recorded");
+		MovementAuthority opposing = failure("signal_failure:incident.test");
+		opposing.ReversedDirection = !reversed;
+		ETCS_MA = {opposing};
+		Train otherDirection = standing(1999.9999);
+		runStep(otherDirection);
+		ok &= expect(otherDirection.directIncidentIds.empty(), "a failure authority of the opposite direction is not recorded");
+		ETCS_MA = {failure("single_track:lock.1")};
+		Train singleTrack = standing(1999.9999);
+		runStep(singleTrack);
+		ok &= expect(singleTrack.directIncidentIds.empty(), "a held single-track section is not recorded as a signal failure");
+	}
+	route = savedRoute;
+	ETCS_MA = savedAuthorities;
+	return ok;
+}
+
 // Real movement calls with native stock and in-memory authority snapshots isolate level-4 transitions.
 static bool level4TransitionTests() {
 	bool ok = true;
@@ -4200,6 +4300,7 @@ int main() {
 	}
 	ok &= brakingPhaseTests();
 	ok &= level4TransitionTests();
+	ok &= signalFailureEvidenceTests();
 	ok &= seedTests(completeScene());
 	ok &= noFileAccessTests(completeScene());
 	ok &= routeBoundaryTests();
