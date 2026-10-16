@@ -55,7 +55,7 @@ EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="des
 ## What the script does not do
 
 - It downloads and compiles nothing. It installs the files of the payload directory.
-- It does not run the Visual C++ redistributable (`vc_redist.x64.exe`) that the package may hold. Setup copies the file like any other, and running it needs administrator rights.
+- It does not install the Visual C++ redistributable, which needs administrator rights. The package holds the runtime DLLs that its programs import next to `QEGTRAIN.exe`, and Setup copies them like any other file.
 - It leaves the setting that the user made in Windows for `.egscene` files (**Open with**) as it is.
 - It has no signing configuration and no licence page.
 - It was written for the package that the Windows package job assembles. Another layout needs another script.

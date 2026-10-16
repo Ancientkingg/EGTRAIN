@@ -407,7 +407,7 @@ which starts the creator acceptance run and then checks the case chooser and the
 simulation dialog in the built application, as [Dialog presentation](../ui/dialog-presentation.md#checks)
 describes.
 
-`test_headless_scene_smoke` and `test_pe_image_size` run on every platform.
+`test_headless_scene_smoke`, `test_pe_image_size` and `test_pe_imports` run on every platform.
 `test_headless_scene_smoke` starts the built QEGTRAIN headless on Paimpol and
 checks the exit code, the `End of Simulation` line and the energy output. It also
 starts a run with `--detailed-trajectories` and checks that `TEMP/Traj_Train_*.txt`
@@ -494,7 +494,9 @@ profile directory.
 
 After the tests, the Windows CI leg assembles the files of the release package
 in a temporary directory: `QEGTRAIN.exe`, the vcpkg DLLs, the Qt DLLs and
-plugins that `windeployqt` adds, and the scenes. It then runs
+plugins that `windeployqt` adds, and the scenes, without the Visual C++ runtime
+DLLs (the runner has the runtime, and the package job checks the imports). It
+then runs
 `tools/release/package_start_smoke.py` on that directory. The script removes
 the Qt, vcpkg and library path variables from the environment and leaves only
 the Windows directories on `PATH`, so a DLL or plugin that is missing from the
@@ -530,9 +532,35 @@ none.
 The assembly uses the same `windeployqt` options as the Windows package job
 (`--no-opengl-sw`, `--no-angle`, `--no-system-d3d-compiler`,
 `--no-virtualkeyboard` and `--no-quick-import` besides `--release`,
-`--no-translations` and `--compiler-runtime`), and `test_ci_workflow` keeps the
-two command lines equal. The Windows package keeps `vc_redist.x64.exe` (from
-`--compiler-runtime`), the `bearer` plugin and the image format plugins.
+`--no-translations` and `--no-compiler-runtime`), and `test_ci_workflow` keeps
+the two command lines equal. The Windows package keeps the `bearer` plugin and
+the image format plugins. It holds no `vc_redist.x64.exe`: see
+[Windows package runtime](#windows-package-runtime).
+
+### Windows package runtime
+
+The installer installs for the current user and cannot run the Visual C++
+redistributable, so the Windows package carries the runtime DLLs that its
+program files import (for example `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll` and
+`MSVCP140.dll`) next to `QEGTRAIN.exe` (app-local deployment). Their
+redistribution follows Microsoft's Visual C++ redistributable terms; the package
+holds no notice file of its own for them. The
+Universal CRT (`api-ms-win-crt-*`, `ucrtbase.dll`) is part of Windows 10 and 11
+and is not copied. The step **Copy the Visual C++ runtime** of the Windows
+package job finds the x64 folder `Microsoft.VC14*.CRT` below `VCToolsRedistDir`
+and copies the DLLs that `tools/release/pe_imports.py --missing` lists for the
+package. The step **Check the DLL imports of the package** runs
+`tools/release/pe_imports.py dist/QEGTRAIN`, and the Finalize Windows job runs it
+on the extracted portable archive. The script reads the import tables and the
+delay-load import tables of every `.exe` and `.dll` below the directory and
+exits 1 when one names a DLL that the package lacks and that is not in its list
+of Windows system DLLs (`SYSTEM_DLLS` and the `api-ms-win-` and `ext-ms-win-`
+prefixes). A new system DLL that the program starts to import goes into that
+list. GitHub's Windows runners have the runtime installed system-wide, so
+starting the package cannot show a missing runtime DLL; the import check does.
+`test_pe_imports` tests the reader on PE files that it builds. Run the check by
+hand on an extracted package with
+`python3 tools/release/pe_imports.py <folder>`.
 
 ### macOS package start
 
@@ -1361,8 +1389,10 @@ most of its checks, so run it locally to read its logs.
   `package.yml`. A green check proves that the macOS, Windows and Linux packages
   build, pass the completeness checks of their jobs and are uploaded as
   artifacts of the run. The Windows package job also fails when the software
-  OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
-  keyboard files are in the package, starts a copy of the package with
+  OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+  keyboard files or `vc_redist.x64.exe` are in the package or when a program
+  file imports a DLL that is neither in the package nor part of Windows, starts
+  a copy of the package with
   `tools/release/package_start_smoke.py`, makes the request of the
   [HTTPS update check](#https-update-check) from that copy, and prints the number of files and
   bytes of the package in its job summary. It also prints the signature state of

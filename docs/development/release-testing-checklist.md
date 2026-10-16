@@ -109,9 +109,13 @@ What the jobs prove today:
   `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
   `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe`,
   `Scenes/Paimpol`, `Scenes/Lebanon` and the guide. It fails when the software
-  OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
-  keyboard files are in the package. It prints the number of files and bytes of
-  the package in its job summary.
+  OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
+  keyboard files or `vc_redist.x64.exe` are in the package. It copies the Visual
+  C++ runtime DLLs that the program files import next to `QEGTRAIN.exe` and
+  fails when a program file imports a DLL that is neither in the package nor part
+  of Windows (`tools/release/pe_imports.py`). The Finalize Windows job runs the
+  same check on the extracted portable archive. The Package Windows job prints
+  the number of files and bytes of the package in its job summary.
 - The Finalize Windows job compiles the installer from that package directory
   with Inno Setup and runs `tools/release/installer_smoke.ps1` on the runner.
   The script checks that the installer asks for no elevation in its manifest.
@@ -157,10 +161,11 @@ What the jobs prove today:
 
 The Finalize Windows job runs as an administrator on a machine that has the
 Visual C++ runtime. It does not show that a standard user installs without an
-elevation request, that the package starts on a machine without the runtime, or
-how Windows presents the unsigned installer and the entry in the list of
-installed apps. The job reads the registry keys of the `.egscene` file type but
-opens no file, so it does not show that a double-click on a `.egscene` file in
+elevation request, that the package starts on a machine without the
+redistributable (the import check shows that the runtime DLLs are in the
+package, not that a clean machine loads them), or how Windows presents the
+unsigned installer and the entry in the list of installed apps. The job reads
+the registry keys of the `.egscene` file type but opens no file, so it does not show that a double-click on a `.egscene` file in
 Explorer opens EGTRAIN (#416); row W7 does. The rows W1 to W9 below cover the rest
 of what the job cannot.
 
@@ -177,7 +182,7 @@ None of this shows the GUI student workflow.
 | --- | --- | --- | --- |
 | macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It declares `.egscene` as its file type. It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
 | Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut, an entry in the list of installed apps and the `.egscene` file type for the current user. | The Start Menu entry `EGTRAIN` |
-| Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
+| Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, the Visual C++ runtime DLLs, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
 
 A candidate from a run has the installer and the archive as the artifacts
@@ -231,10 +236,10 @@ in-place save. Row R11 checks the installed-example path.
      Windows or Linux; record what appears;
    - the title of every dialog shown before the main window can be used;
    - anything you had to install or change to make the package start. On
-     Windows, say whether the Visual C++ runtime was installed before the test.
-     The package is built with `windeployqt --compiler-runtime` and the package
-     job lists no runtime file, so the job does not show whether a clean machine
-     starts without it.
+     Windows, say whether the Visual C++ redistributable was installed before
+     the test. The package holds the runtime DLLs next to `QEGTRAIN.exe`, but the
+     jobs run on machines that have the redistributable, so they do not show
+     whether a clean machine starts without it.
 
    After the main window appears, the application shows the case chooser
    **Open a Case**. Its group **Bundled cases** lists the cases found in a
