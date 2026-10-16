@@ -251,6 +251,9 @@ when a test has neither or both.
 - `gui`: needs a Qt platform plugin (the tests use `offscreen`) or launches
   QEGTRAIN in GUI mode. Combine it with either of the labels above.
 - `slow`: takes more than 20 seconds on a development machine.
+- `network`: sends a request to a server on the internet. It is registered only
+  with `-DEGTRAIN_NETWORK_TESTS=ON`, so no other test run needs the internet.
+  Combine it with `integration`. See [HTTPS update check](#https-update-check).
 
 To add a test and register its labels, see [Coding guidelines](coding-guidelines.md#tests).
 
@@ -308,7 +311,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
-| `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. |
+| `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. The telemetry sender uses Qt's network manager, which the WinHTTP transport of the update check does not replace, so the tests stay off. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
@@ -347,6 +350,43 @@ describes.
 checks the exit code, the `End of Simulation` line and the energy output. It also
 starts a run with `--detailed-trajectories` and checks that `TEMP/Traj_Train_*.txt`
 and `TrainTrajectories/TrainPathDiagram.txt` appear only in that run.
+
+### HTTPS update check
+
+`test_updatetransport_https` (labels `integration` and `network`) makes one real GET of
+`https://api.github.com/repos/Ancientkingg/EGTRAIN/releases?per_page=1` through
+`createHttpTransport` and reads the answer with `parseLatestStableRelease`. On Windows
+that is the WinHTTP transport, so the test shows that a machine without a Qt TLS library
+can make the request of the update check. It is registered only when the configuration
+asks for it:
+
+```bash
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_NETWORK_TESTS=ON
+ctest --test-dir build -L network --output-on-failure
+```
+
+On Windows add `-C Release` to the `ctest` command. Its output starts with `PASS`, `SKIP`
+or `FAIL`. An answer with an HTTP status has reached the server, so the TLS handshake and
+the certificate check worked, and the test tells the cases apart by what came back:
+
+| Result | Cause |
+| --- | --- |
+| `PASS`, exit code 0 | The release list arrived and was read. A list whose newest release is a prerelease also passes. |
+| `SKIP`, exit code 77 | GitHub answered with HTTP 403 or 429 (its rate limit) or with 5xx (an outage). CTest shows the test as skipped. |
+| `FAIL`, exit code 1 | No HTTP response arrived: the name lookup, the connection, the TLS handshake or the certificate check failed, or 45 s passed. Also any other HTTP status, whose text says that it is not a TLS failure, and a body that is not a release list. |
+
+The anonymous GitHub API allows 60 requests an hour for one address, and a run makes one
+request. The program reads no rate-limit header, so every 403 counts as a rate limit.
+
+`test_updatetransport_https_cases` runs the same program against a server on `127.0.0.1`
+that gives each kind of answer, and runs in every configuration without the internet.
+
+The Windows leg of the CMake workflow configures with `-DEGTRAIN_NETWORK_TESTS=ON`, leaves the
+network tests out of the Test step with `-LE network`, and runs them in the step
+Check HTTPS (Windows). The Windows package job builds the program with the package and runs
+it in the step Check HTTPS from the package. That step copies the program into the copy of the
+package that the start check used and runs it with only the Windows directories on `PATH`, so
+it loads the Qt files of the package, as a machine without a developer setup would.
 
 ### Windows GUI tests
 
@@ -1213,9 +1253,11 @@ most of its checks, so run it locally to read its logs.
   without activity for 60 days. The three legs run independently
   (`fail-fast: false`) and share the same filters. A newer push to a pull
   request cancels its running checks; a scheduled or manual run is never
-  cancelled. A failed leg uploads `ctest.log` and the GUI autostart log as an
-  artifact named after the leg. Do not make any of these legs a required
-  check; see the branch-protection note below.
+  cancelled. After the tests, the Windows leg also makes the request of the
+  [HTTPS update check](#https-update-check) in a step of its own. A failed leg
+  uploads `ctest.log` and the GUI autostart log as an artifact named after the
+  leg. Do not make any of these legs a required check; see the
+  branch-protection note below.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
@@ -1229,7 +1271,8 @@ most of its checks, so run it locally to read its logs.
   artifacts of the run. The Windows package job also fails when the software
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package, starts a copy of the package with
-  `tools/release/package_start_smoke.py`, and prints the number of files and
+  `tools/release/package_start_smoke.py`, makes the request of the
+  [HTTPS update check](#https-update-check) from that copy, and prints the number of files and
   bytes of the package in its job summary. It also prints the signature state of
   `QEGTRAIN.exe`, `egtrain_update_helper.exe` and `scene_tool.exe` with
   `tools/release/verify_signatures.ps1 -Report`, which fails for no file. A push

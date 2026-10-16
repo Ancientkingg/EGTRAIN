@@ -87,6 +87,8 @@ manager, or on Windows `WinHttpTransport`, because Qt 5.15 has no TLS library th
 transport fetches https addresses only. A test passes `allowLoopbackHttp` to reach `http://127.0.0.1`
 as well. `UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
 `test_httptransport` runs the transport of the application against a server on the loopback address.
+`test_updatetransport_https` sends one real request to the GitHub release list through that transport
+([HTTPS update check](../development/build-and-test.md#https-update-check)).
 
 The telemetry sources also build with test hooks, which add members and a constructor
 parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours

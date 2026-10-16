@@ -133,7 +133,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DVCPKG_APPLOCAL_DEPS=OFF
@@ -150,7 +150,14 @@ jobs:
 
       - name: Test
         shell: bash
-        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log"
+        run: ctest --test-dir build -C Release --parallel ${{ matrix.jobs }} --output-on-failure --output-log "$RUNNER_TEMP/ctest.log" -LE network
+
+      # One real request to the GitHub release list through the update transport, WinHTTP on Windows, where Qt 5.15 has no TLS
+      # library. It fails when no HTTPS response arrives. When GitHub answers with its rate limit or an outage, the test is skipped.
+      - name: Check HTTPS (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: ctest --test-dir build -C Release -L network --no-tests=error --output-on-failure
 
       # The same files as the Windows release package, started with only the operating
       # system directories on PATH: a DLL or plugin missing from the package fails here.
