@@ -72,6 +72,6 @@ annotation nudges, node/signal dimensions, platform/passenger adornments, train
 lateral thickness and callouts. It does not rescale physical interpolation or
 cosmetic strokes. Fonts retain their original metrics through fractional item
 scaling. Only wholly successful visible authored station-view projections enable
-conversion; raw, mixed, invalid, empty, degenerate or nonfinite scenes keep factor 1.
-See [Historical track presentation](historical-track-comparison.md) for the
+conversion; raw, mixed, invalid, empty, degenerate or nonfinite scenes keep factor
+1. See [Historical track presentation](historical-track-comparison.md) for the
 reference convention and remaining visual acceptance limits.
