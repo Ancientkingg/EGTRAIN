@@ -1967,8 +1967,8 @@ static std::vector<Section> boundarySections(int n) {
 	return sections;
 }
 
-// Sections 0 to 3 of the level west and 4 to 7 of the level east, after the routines of levels 0, 1 and 2 have run, in
-// the order of a step, for a train whose tail is in the section tail and whose head is in the next one.
+// Sections 0 to 3 of the level west and 4 to 7 of the level east, after the signalling step has run on them as a route, for a
+// train whose tail is in the section tail and whose head is in the next one.
 static std::vector<Section> borderAspects(int west, int east, int tail) {
 	std::vector<Section> sections = boundarySections(8);
 	for (int i = 0; i < 8; ++i) {
@@ -1976,11 +1976,20 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 		sections[i].code = 270;
 		sections[i].arcs_in_signalling_block_section[0].signalSpeedLimit = 999;
 	}
-	std::vector<char> occupied(8, 0);
-	occupied[tail] = occupied[tail + 1] = 1;
-	atbMixedSignalling(signalCode1, signalCode3, sections.data(), 8, occupied.data());
-	etcsLev1MixedSignalling(signalCode3, sections.data(), 8, occupied.data());
-	etcsLev2MixedSignalling(signalCode3, sections.data(), 8, occupied.data());
+	std::vector<Route> savedRoutes;
+	savedRoutes.swap(train_route);
+	const int savedRouteCount = N_Routes;
+	const auto savedOccupied = BlocksOccupied;
+	train_route.resize(1);
+	train_route[0].N_Block_Sections = 8;
+	train_route[0].sequence_of_block_sections = std::move(sections);
+	N_Routes = 1;
+	BlocksOccupied = {train_route[0].sequence_of_block_sections[tail].ID, train_route[0].sequence_of_block_sections[tail + 1].ID};
+	activateMixedSignallingSystem();
+	sections = std::move(train_route[0].sequence_of_block_sections);
+	BlocksOccupied = savedOccupied;
+	N_Routes = savedRouteCount;
+	train_route.swap(savedRoutes);
 	return sections;
 }
 
