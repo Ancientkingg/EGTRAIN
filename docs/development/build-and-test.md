@@ -352,7 +352,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. The telemetry sender uses Qt's network manager, which the WinHTTP transport of the update check does not replace, so the tests stay off. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
-| `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
+| `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. A Ninja build tree, such as the Windows CI leg, runs it with the default generator, which is Visual Studio on Windows. |
 | `test_verify_signatures` | no | no | yes | Signs copies of `scene_tool.exe` with a throwaway self-signed certificate through `New-SelfSignedCertificate` and `Set-AuthenticodeSignature`, and runs `tools/release/verify_signatures.ps1` on them. It is not registered when no PowerShell is found. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument, the open events and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
@@ -1901,18 +1901,39 @@ removes it with its key. Run it by hand with
 
 The Windows leg caches the Qt install (through `jurplel/install-qt-action`,
 with the same cache entries as the Windows package job) and the vcpkg binary
-archives in `runner.temp/vcpkg-binary-cache`. The vcpkg cache key is fixed,
-`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1`, and is saved only when the
-restore missed. To invalidate it, for example after changing the vcpkg
-package list, raise the `-v1` suffix by hand in the restore and save steps.
-An existing key is never overwritten. Homebrew and apt packages are not
-cached.
+archives in `runner.temp/vcpkg-binary-cache`. vcpkg names an archive by a hash
+that covers its own checkout, its CMake and the compiler, and the runner image fixes all three.
+The key of the vcpkg cache is therefore
+`vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-<image>-v1`, where `<image>` is
+`ImageOS` and `ImageVersion` of the runner. A new image writes a new entry, and
+the save step runs when the restore found no entry with the exact key. To start
+over, for example after changing the vcpkg package list, raise the `-v1` suffix
+by hand in the restore and save steps. An existing key is never overwritten.
+Homebrew and apt packages are not cached.
 
-A pull request can restore caches written on `main`, not caches written by
-other branches. The first run after a key change is therefore cold, and the
-next nightly or manual run on `main` writes the caches that later pull requests
-use. GitHub removes a cache that no run has used for seven days; the nightly run
-keeps the entries in use.
+All three legs also keep a compiler cache, set up by `hendrikmuhs/ccache-action`
+before the configure step: ccache on macOS and Linux, sccache on Windows. The
+`cache` value of the matrix names the tool, and each configure step passes it as
+`CMAKE_C_COMPILER_LAUNCHER` and `CMAKE_CXX_COMPILER_LAUNCHER`. The Visual Studio
+generator ignores a compiler launcher, so the Windows leg configures with Ninja
+in the MSVC environment of `ilammy/msvc-dev-cmd` and names `cl`. Its executable
+is `build/QEGTRAIN.exe`, not `build/Release/QEGTRAIN.exe`. The Release
+configuration adds no `/Zi`, so sccache can store its objects. The key of the
+cache is the leg and the runner image, and the action adds a timestamp, so every
+run saves a new entry. A run restores the newest entry of its leg and image, or
+else the newest of its leg. The post step of the action (`Post Set up compiler
+cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
+and GitHub keeps 10 GB for the repository and removes the entries used least
+recently first.
+
+A pull request can restore the caches of its own earlier runs and the caches
+written on `main`, not the caches of other branches. A push to `main` starts no
+run, so only the nightly or manual run on `main` writes the caches that the
+first run of a pull request uses. That is enough: the newest compiler cache of
+`main` is about a day old, so a pull request compiles again only what the
+changes since then affect, and its later runs restore its own cache. The first
+run after a key change is cold. GitHub removes a cache that no run has used for
+seven days; the nightly run keeps the entries in use.
 
 ## Verification Gates
 
