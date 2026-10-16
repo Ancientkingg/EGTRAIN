@@ -93,6 +93,105 @@ static bool readJson(const fs::path& path, json& value) {
 	}
 }
 
+// The errors of one file as "code path: message", in the order in which the loader reported them.
+static std::vector<std::string> errorsIn(const std::vector<SceneDiagnostic>& diagnostics, const std::string& file) {
+	std::vector<std::string> lines;
+	for (const auto& diagnostic : diagnostics) {
+		if (diagnostic.file == file && diagnostic.severity == SceneSeverity::Error)
+			lines.push_back(diagnostic.code + " " + diagnostic.path + ": " + diagnostic.message);
+	}
+	return lines;
+}
+
+// One error per key, worded "<what> <key>" and located at <prefix>.<key>.
+static std::vector<std::string> fieldErrors(const std::string& prefix, const std::string& what,
+	const std::vector<const char*>& keys) {
+	std::vector<std::string> lines;
+	for (const char* key : keys)
+		lines.push_back("scene.field.missing " + prefix + "." + key + ": " + what + " " + key);
+	return lines;
+}
+
+static void append(std::vector<std::string>& lines, const std::vector<std::string>& more) {
+	lines.insert(lines.end(), more.begin(), more.end());
+}
+
+// Malformed incidents and entrance delays, read from scenarios.json and from the legacy incidents.json. The directory
+// holds only that file, so the loader reports the other scene files as missing under their own names.
+static bool checkScenarioItemDiagnostics() {
+	bool ok = true;
+	const auto load = [](const char* file, const json& content) {
+		TempDir directory;
+		writeText(fs::path(directory.dir) / file, content.dump());
+		return loadScene(directory.dir);
+	};
+	const auto scenarioFile = [](const json& incidents, const json& entranceDelays) {
+		json scenario = {{"id", "s"}, {"name", "n"}, {"incidents", incidents}, {"entrance_delays", entranceDelays}};
+		return json({{"default_scenario_id", "s"}, {"scenarios", json::array({scenario})}});
+	};
+	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", ""}, {"start_seconds", "a"}, {"end_seconds", "b"},
+		{"occurrence", 1.5}, {"reduced_speed_kmh", true}, {"terminate_at_destination", "c"}};
+	// The keys of wrongTypes that are reported, in the order of the schema.
+	const std::vector<const char*> wrongTypeKeys = {"type", "target", "start_seconds", "end_seconds", "occurrence",
+		"reduced_speed_kmh", "terminate_at_destination"};
+	const json wrongDelay = {{"service", 3}, {"occurrence", "x"}, {"delay_seconds", "d"}};
+	const std::string notObject = "scene.item.invalid ";
+
+	std::vector<std::string> expected;
+	append(expected, fieldErrors("scenarios[0].incidents[0]", "Invalid", wrongTypeKeys));
+	append(expected, fieldErrors("scenarios[0].incidents[1]", "Missing", {"id", "type", "target", "start_seconds"}));
+	expected.push_back("scene.field.missing scenarios[0].entrance_delays[0].service: Invalid service");
+	expected.push_back("scene.field.missing scenarios[0].entrance_delays[0].occurrence: Invalid occurrence");
+	expected.push_back("scene.field.missing scenarios[0].entrance_delays[0].station: Missing station");
+	expected.push_back("scene.field.missing scenarios[0].entrance_delays[0].delay_seconds: Invalid delay_seconds");
+	append(expected, fieldErrors("scenarios[0].entrance_delays[1]", "Missing", {"service", "station", "delay_seconds"}));
+	SceneLoadResult loaded = load("scenarios.json",
+		scenarioFile(json::array({wrongTypes, json::object()}), json::array({wrongDelay, json::object()})));
+	ok &= expect(errorsIn(loaded.diagnostics, "scenarios.json") == expected,
+		"Malformed incident and entrance delay fields are reported in schema order");
+	ok &= expect(loaded.scene.scenarios.size() == 1 && loaded.scene.scenarios[0].incidents.size() == 2
+			&& loaded.scene.scenarios[0].incidents[0].id == "i" && !loaded.scene.scenarios[0].incidents[0].hasEndSeconds
+			&& !loaded.scene.scenarios[0].incidents[0].hasOccurrence && loaded.scene.scenarios[0].incidents[0].occurrence == 1
+			&& !loaded.scene.scenarios[0].incidents[0].hasReducedSpeed
+			&& !loaded.scene.scenarios[0].incidents[0].terminateAtDestination
+			&& loaded.scene.scenarios[0].entranceDelays.size() == 2,
+		"Malformed incident fields keep their defaults and the items are still read");
+
+	// An item that is not an object is reported once by every field that is read from it.
+	expected.assign(7, notObject + "scenarios[0].incidents[0]: Array item must be an object");
+	expected.insert(expected.end(), 4, notObject + "scenarios[0].entrance_delays[0]: Array item must be an object");
+	loaded = load("scenarios.json", scenarioFile(json::array({7}), json::array({7})));
+	ok &= expect(errorsIn(loaded.diagnostics, "scenarios.json") == expected,
+		"An incident and an entrance delay that are not objects are reported once per field");
+
+	loaded = load("scenarios.json", scenarioFile("x", "x"));
+	ok &= expect(errorsIn(loaded.diagnostics, "scenarios.json")
+			== std::vector<std::string>{"scene.section.missing scenarios[0].incidents: Mistyped incidents section",
+				"scene.section.missing scenarios[0].entrance_delays: Mistyped entrance_delays section"},
+		"Incident and entrance delay sections that are not arrays are reported");
+	loaded = load("scenarios.json",
+		json({{"default_scenario_id", "s"}, {"scenarios", json::array({json({{"id", "s"}, {"name", "n"}})})}}));
+	ok &= expect(errorsIn(loaded.diagnostics, "scenarios.json")
+			== std::vector<std::string>{"scene.section.missing scenarios[0].incidents: Missing incidents section"},
+		"A missing incidents section is reported and a missing entrance delay section is not");
+
+	expected.clear();
+	append(expected, fieldErrors("incidents[0]", "Invalid", wrongTypeKeys));
+	expected.insert(expected.end(), 7, notObject + "incidents[1]: Array item must be an object");
+	loaded = load("incidents.json", json({{"incidents", json::array({wrongTypes, 7})}}));
+	ok &= expect(errorsIn(loaded.diagnostics, "incidents.json") == expected,
+		"Malformed incidents of the legacy incidents file are reported with root paths");
+	loaded = load("incidents.json", json({{"incidents", "x"}}));
+	ok &= expect(errorsIn(loaded.diagnostics, "incidents.json")
+			== std::vector<std::string>{"scene.section.missing incidents: Mistyped incidents section"},
+		"A legacy incidents section that is not an array is reported");
+	loaded = load("incidents.json", json::object());
+	ok &= expect(errorsIn(loaded.diagnostics, "incidents.json")
+			== std::vector<std::string>{"scene.section.missing incidents: Missing incidents section"},
+		"A legacy incidents file without a section is reported");
+	return ok;
+}
+
 int main() {
 	bool ok = true;
 	{
@@ -821,6 +920,8 @@ int main() {
 			namedAbsent = namedAbsent || (diagnostic.code == "scene.import.missing" && diagnostic.file == absent.u8string());
 		ok &= expect(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
 	}
+
+	ok &= checkScenarioItemDiagnostics();
 
 	if (!ok)
 		return 1;

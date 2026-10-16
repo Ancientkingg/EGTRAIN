@@ -1,9 +1,9 @@
 #include "scene/SceneWriter.h"
+#include "scene/SceneFieldReader.h"
 #include "scene/SceneFields.h"
 #include "scene/StagedDirectory.h"
 #include "scene/Utf8Path.h"
 
-#include <climits>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -322,115 +322,6 @@ static void addScenarioDiagnostic(ScenarioLoadResult& result, SceneSeverity seve
 	result.diagnostics.push_back(std::move(diagnostic));
 }
 
-static bool scenarioString(const json& object, const char* key, ScenarioLoadResult& result,
-	std::string& output, bool required, const std::string& path) {
-	if (!object.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-			"Scenario field must be an object", path);
-		return false;
-	}
-	if (!object.contains(key)) {
-		if (required)
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-				std::string("Missing ") + key, path + "." + key);
-		return false;
-	}
-	if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-			std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	output = object[key].get<std::string>();
-	return true;
-}
-
-static bool scenarioNumber(const json& object, const char* key, ScenarioLoadResult& result,
-	double& output, const std::string& path) {
-	if (!object.contains(key)) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.missing",
-			std::string("Missing ") + key, path + "." + key);
-		return false;
-	}
-	if (!object[key].is_number()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-			std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	try {
-		output = object[key].get<double>();
-	} catch (const json::exception&) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-			std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	return true;
-}
-
-static bool scenarioInteger(const json& object, const char* key, ScenarioLoadResult& result,
-	int& output, const std::string& path) {
-	if (!object.contains(key))
-		return true;
-	if (!object[key].is_number_integer()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-			std::string("Invalid ") + key, path + "." + key);
-		return false;
-	}
-	int value = 0;
-	if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-			std::string("Invalid ") + key + ": integer out of range", path + "." + key);
-		return false;
-	}
-	output = value;
-	return true;
-}
-
-static void parseScenarioIncident(const json& value, std::size_t index,
-	ScenarioLoadResult& result) {
-	const std::string path = "incidents[" + std::to_string(index) + "]";
-	if (!value.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-			"Incident must be an object", path);
-		return;
-	}
-	SceneIncident incident;
-	scenarioString(value, "id", result, incident.id, true, path);
-	scenarioString(value, "type", result, incident.type, true, path);
-	scenarioString(value, "target", result, incident.target, true, path);
-	scenarioNumber(value, "start_seconds", result, incident.startSeconds, path);
-	if (value.contains("end_seconds"))
-		incident.hasEndSeconds = scenarioNumber(value, "end_seconds", result, incident.endSeconds, path);
-	incident.hasOccurrence = value.contains("occurrence")
-		&& scenarioInteger(value, "occurrence", result, incident.occurrence, path);
-	if (value.contains("reduced_speed_kmh"))
-		incident.hasReducedSpeed = scenarioNumber(value, "reduced_speed_kmh", result,
-			incident.reducedSpeedKmh, path);
-	if (value.contains("terminate_at_destination")) {
-		if (!value["terminate_at_destination"].is_boolean())
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.type",
-				"Invalid terminate_at_destination", path + ".terminate_at_destination");
-		else
-			incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
-	}
-	result.scenario.incidents.push_back(std::move(incident));
-}
-
-static void parseScenarioEntranceDelay(const json& value, std::size_t index,
-	ScenarioLoadResult& result) {
-	const std::string path = "entrance_delays[" + std::to_string(index) + "]";
-	if (!value.is_object()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.item.invalid",
-			"Entrance delay must be an object", path);
-		return;
-	}
-	SceneEntranceDelay delay;
-	scenarioString(value, "service", result, delay.serviceId, true, path);
-	scenarioInteger(value, "occurrence", result, delay.occurrence, path);
-	scenarioString(value, "station", result, delay.stationId, true, path);
-	scenarioNumber(value, "delay_seconds", result, delay.delaySeconds, path);
-	result.scenario.entranceDelays.push_back(std::move(delay));
-}
-
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath) {
 	SceneSaveResult result;
 	result.wroteAll = writeJsonFileReplacing(result, pathFromUtf8(filePath), writeScenarioValue(scenario));
@@ -466,23 +357,24 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
 				"Scenario JSON does not allow field " + field.key(), field.key());
 	}
-	scenarioString(value, "id", result, result.scenario.id, true, "scenario");
-	scenarioString(value, "name", result, result.scenario.name, true, "scenario");
-	scenarioString(value, "description", result, result.scenario.description, false, "scenario");
-	if (!value.contains("incidents") || !value["incidents"].is_array()) {
-		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-			"incidents must be an array", "incidents");
-	} else {
-		for (std::size_t index = 0; index < value["incidents"].size(); ++index)
-			parseScenarioIncident(value["incidents"][index], index, result);
+	const SceneFieldReader reader("scenario.json", kScenarioFileFieldCodes, result.diagnostics);
+	reader.stringField(value, "id", "scenario", result.scenario.id);
+	reader.stringField(value, "name", "scenario", result.scenario.name);
+	reader.stringField(value, "description", "scenario", result.scenario.description, false);
+	if (reader.arraySection(value, "incidents", "", true)) {
+		for (std::size_t index = 0; index < value["incidents"].size(); ++index) {
+			const json& item = value["incidents"][index];
+			const std::string path = "incidents[" + std::to_string(index) + "]";
+			if (reader.objectItem(item, path, "Incident must be an object"))
+				result.scenario.incidents.push_back(decodeIncident(reader, item, path));
+		}
 	}
-	if (value.contains("entrance_delays")) {
-		if (!value["entrance_delays"].is_array()) {
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.section.type",
-				"entrance_delays must be an array", "entrance_delays");
-		} else {
-			for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index)
-				parseScenarioEntranceDelay(value["entrance_delays"][index], index, result);
+	if (reader.arraySection(value, "entrance_delays", "", false)) {
+		for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index) {
+			const json& item = value["entrance_delays"][index];
+			const std::string path = "entrance_delays[" + std::to_string(index) + "]";
+			if (reader.objectItem(item, path, "Entrance delay must be an object"))
+				result.scenario.entranceDelays.push_back(decodeEntranceDelay(reader, item, path));
 		}
 	}
 	return result;

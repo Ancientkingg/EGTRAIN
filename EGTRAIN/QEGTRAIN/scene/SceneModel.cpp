@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SceneFieldReader.h"
 #include "scene/SceneFields.h"
 #include "scene/Utf8Path.h"
 
@@ -32,10 +33,6 @@ bool canonicalSnapshotFile(const std::string& file) {
 		|| file == "signalling.json" || file == "rolling_stock.json" || file == "services.json"
 		|| file == "scenarios.json" || file == "incidents.json" || file == "passengers.json"
 		|| file == "views.json";
-}
-
-std::string joinPath(const std::string& parent, const std::string& key) {
-	return parent.empty() ? key : parent + "." + key;
 }
 
 SceneLoadedData makeLoadedData(const std::string& category, const std::string& sourceFile,
@@ -805,89 +802,22 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		result.scene.sourceFiles.insert(file);
 		return true;
 	};
+	// Each call reads with a reader for the file it names.
 	auto arraySection = [&](const json& object, const char* key, const std::string& file,
 							const std::string& path, bool required) {
-		if (!object.is_object()) {
-			addError("scene.item.invalid", file, "Expected an object", path);
-			return false;
-		}
-		if (!object.contains(key)) {
-			if (required)
-				addError("scene.section.missing", file, std::string("Missing ") + key + " section",
-					joinPath(path, key));
-			return false;
-		}
-		if (!object[key].is_array()) {
-			addError("scene.section.missing", file, std::string("Mistyped ") + key + " section",
-				joinPath(path, key));
-			return false;
-		}
-		return true;
+		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).arraySection(object, key, path, required);
 	};
 	auto stringField = [&](const json& object, const char* key, const std::string& file,
 						   const std::string& path, std::string& output, bool required = true) {
-		if (!object.is_object()) {
-			addError("scene.item.invalid", file, "Array item must be an object", path);
-			return false;
-		}
-		if (!object.contains(key)) {
-			if (required)
-				addError("scene.field.missing", file, std::string("Missing ") + key,
-					joinPath(path, key));
-			return false;
-		}
-		if (!object[key].is_string() || (required && object[key].get<std::string>().empty())) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key,
-				joinPath(path, key));
-			return false;
-		}
-		output = object[key].get<std::string>();
-		return true;
+		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).stringField(object, key, path, output, required);
 	};
 	auto numberField = [&](const json& object, const char* key, const std::string& file,
 						   const std::string& path, double& output, bool required = true) {
-		if (!object.is_object()) {
-			addError("scene.item.invalid", file, "Array item must be an object", path);
-			return false;
-		}
-		if (!object.contains(key)) {
-			if (required)
-				addError("scene.field.missing", file, std::string("Missing ") + key,
-					joinPath(path, key));
-			return false;
-		}
-		if (!object[key].is_number()) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key,
-				joinPath(path, key));
-			return false;
-		}
-		output = object[key].get<double>();
-		return true;
+		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).numberField(object, key, path, output, required);
 	};
 	auto integerField = [&](const json& object, const char* key, const std::string& file,
 							const std::string& path, int& output, bool required = true) {
-		if (!object.is_object()) {
-			addError("scene.item.invalid", file, "Array item must be an object", path);
-			return false;
-		}
-		if (!object.contains(key)) {
-			if (required)
-				addError("scene.field.missing", file, std::string("Missing ") + key,
-					joinPath(path, key));
-			return false;
-		}
-		if (!object[key].is_number_integer()) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key,
-				joinPath(path, key));
-			return false;
-		}
-		int value = 0;
-		if (!readJsonInt(object[key], INT_MIN, INT_MAX, value)) {
-			addError("scene.field.missing", file, std::string("Invalid ") + key + ": integer out of range", joinPath(path, key));
-			return false;
-		}
-		output = value;
-		return true;
+		return SceneFieldReader(file, kSceneFileFieldCodes, result.diagnostics).integerField(object, key, path, output, required);
 	};
 	auto isSimulationResultField = [](const std::string& name) {
 		return name == "results" || name == "simulation_results"
@@ -1518,35 +1448,15 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		}
 	}
 
-	auto parseIncidentArray = [&](const json& root, const std::string& file, const std::string& path,
+	auto parseIncidentArray = [&](const SceneFieldReader& reader, const json& root, const std::string& path,
 								  std::vector<SceneIncident>& output) {
-		if (!arraySection(root, "incidents", file, path, true))
+		if (!reader.arraySection(root, "incidents", path, true))
 			return;
 		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
 			const std::string incidentPath = path.empty()
 				? "incidents[" + std::to_string(index) + "]"
 				: path + ".incidents[" + std::to_string(index) + "]";
-			const json& value = root["incidents"][index];
-			SceneIncident incident;
-			stringField(value, "id", file, incidentPath, incident.id);
-			stringField(value, "type", file, incidentPath, incident.type);
-			stringField(value, "target", file, incidentPath, incident.target);
-			numberField(value, "start_seconds", file, incidentPath, incident.startSeconds);
-			incident.hasEndSeconds = numberField(value, "end_seconds", file, incidentPath,
-				incident.endSeconds, false);
-			incident.hasOccurrence = integerField(value, "occurrence", file, incidentPath,
-				incident.occurrence, false);
-			incident.hasReducedSpeed = numberField(value, "reduced_speed_kmh", file, incidentPath,
-				incident.reducedSpeedKmh, false);
-			if (value.contains("terminate_at_destination")) {
-				if (!value["terminate_at_destination"].is_boolean()) {
-					addError("scene.field.missing", file, "Invalid terminate_at_destination",
-						joinPath(incidentPath, "terminate_at_destination"));
-				} else {
-					incident.terminateAtDestination = value["terminate_at_destination"].get<bool>();
-				}
-			}
-			output.push_back(incident);
+			output.push_back(decodeIncident(reader, root["incidents"][index], incidentPath));
 		}
 	};
 
@@ -1556,31 +1466,24 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	}
 	if (scenariosPresent) {
 		if (scenariosOk) {
-			stringField(scenariosJson, "default_scenario_id", "scenarios.json", "",
-				result.scene.defaultScenarioId);
-			if (arraySection(scenariosJson, "scenarios", "scenarios.json", "", true)) {
+			const SceneFieldReader reader("scenarios.json", kSceneFileFieldCodes, result.diagnostics);
+			reader.stringField(scenariosJson, "default_scenario_id", "", result.scene.defaultScenarioId);
+			if (reader.arraySection(scenariosJson, "scenarios", "", true)) {
 				for (std::size_t index = 0; index < scenariosJson["scenarios"].size(); ++index) {
 					const std::string path = "scenarios[" + std::to_string(index) + "]";
 					const json& value = scenariosJson["scenarios"][index];
 					SceneScenario scenario;
-					stringField(value, "id", "scenarios.json", path, scenario.id);
-					stringField(value, "name", "scenarios.json", path, scenario.name);
-					stringField(value, "description", "scenarios.json", path, scenario.description, false);
-					parseIncidentArray(value, "scenarios.json", path, scenario.incidents);
-					if (arraySection(value, "entrance_delays", "scenarios.json", path, false)) {
+					reader.stringField(value, "id", path, scenario.id);
+					reader.stringField(value, "name", path, scenario.name);
+					reader.stringField(value, "description", path, scenario.description, false);
+					parseIncidentArray(reader, value, path, scenario.incidents);
+					if (reader.arraySection(value, "entrance_delays", path, false)) {
 						for (std::size_t delayIndex = 0; delayIndex < value["entrance_delays"].size();
 							++delayIndex) {
 							const std::string delayPath = path + ".entrance_delays["
 								+ std::to_string(delayIndex) + "]";
-							const json& delayValue = value["entrance_delays"][delayIndex];
-							SceneEntranceDelay delay;
-							stringField(delayValue, "service", "scenarios.json", delayPath, delay.serviceId);
-							integerField(delayValue, "occurrence", "scenarios.json", delayPath,
-								delay.occurrence, false);
-							stringField(delayValue, "station", "scenarios.json", delayPath, delay.stationId);
-							numberField(delayValue, "delay_seconds", "scenarios.json", delayPath,
-								delay.delaySeconds);
-							scenario.entranceDelays.push_back(delay);
+							scenario.entranceDelays.push_back(
+								decodeEntranceDelay(reader, value["entrance_delays"][delayIndex], delayPath));
 						}
 					}
 					result.scene.scenarios.push_back(scenario);
@@ -1590,8 +1493,10 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	} else {
 		SceneScenario baseline = makeBaselineScenario();
 		result.scene.defaultScenarioId = baseline.id;
-		if (incidentsPresent && incidentsOk)
-			parseIncidentArray(incidentsJson, "incidents.json", "", baseline.incidents);
+		if (incidentsPresent && incidentsOk) {
+			const SceneFieldReader reader("incidents.json", kSceneFileFieldCodes, result.diagnostics);
+			parseIncidentArray(reader, incidentsJson, "", baseline.incidents);
+		}
 		result.scene.scenarios.push_back(baseline);
 	}
 

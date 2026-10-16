@@ -158,6 +158,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneCompatibility.cpp
     ${SRC_DIR}/scene/SceneDiagnostic.cpp
     ${SRC_DIR}/scene/SceneExporter.cpp
+    ${SRC_DIR}/scene/SceneFieldReader.cpp
     ${SRC_DIR}/scene/SceneImporter.cpp
     ${SRC_DIR}/scene/SceneMigration.cpp
     ${SRC_DIR}/scene/SceneModel.cpp
