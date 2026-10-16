@@ -716,10 +716,10 @@ refactors of movement, signalling and global state show up as a reviewable
 diff. They drive the real `DispatchController` in the test process on the small
 scene `EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line` ("Characterization Line"):
 one track of 16 km in eight blocks of 2 km, three stations, seven services and
-ten scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
+twelve scenarios (`baseline`, `signal-failure-forward`, `signal-failure-reverse`,
 `signal-failure-adjacent`, `signal-failure-staggered`, `signal-failure-last`,
 `signal-failure-first`, `signal-failure-entered`, `signal-failure-late`,
-`signal-failure-retarget`).
+`signal-failure-retarget`, `entrance-delay-f2`, `breakdown-f1`).
 The stub cases add the routes `routeStubIn` and `routeStubOut` and the services
 `U1` and `D1` to the scene in the test, because a route with `4-B0` or `5-B0` in
 the fixture would add a movement authority to the cases with a signal failure on
@@ -779,6 +779,8 @@ A case is a scenario, a set of services and a level. The case table is in
 | `border-0-2-near-fwd`, `border-0-1-near-fwd` | trains `F1` and `F2` with level 0 from A to 4 km and level 2 or level 1 from 4 km to C, so that the head of a train in `2-B0` has the level 0 sections `1-B0` and `0-B0` behind it |
 | `pax-board-gui0`, `pax-board-gui1`, `pax-full-gui0`, `pax-full-gui1` | `Q1` boards passengers at P, including ties and an entry during the stop; a later entry stays at P. Full cases cut ties with three seats at P and B; alighting at B frees seats before boarding |
 | `pax-transfer-gui0`, `pax-transfer-gui1` | `Q1` connects to `Q2` on the same platform and to `Q3` on another label; a passenger also starts a second journey on `Q3` |
+| `entrance-delay-f2-level-0` | trains `F1` and `F2` with an entrance delay of 120 s for `F2` at A, its first stop; a train is not held at the stop where it begins its route, so every simulated time equals `follow-level-0` and only the planned departure of `F2` at A moves, from 180 s to 300 s |
+| `breakdown-f1-level-0` | the same trains with a breakdown of `F1` from 200 s that caps its speed at 40 km/h until the end of its route; `F1` reaches C late and `F2`, held behind it, has not reached C when the run ends at 1500 s |
 
 Every case runs in CTest. They are listed in
 `tests/characterization/CMakeLists.txt`, in the order of the table, and each
@@ -951,6 +953,22 @@ one fact: some key words, then `name=value` fields.
   trains only.
 - `signed_stats`: the same rows of `TrainTrajectories/Pos&Neg_Stats_Stations.txt`,
   where early arrivals are negative delays.
+- `delay_summary <arrival|departure> <station|network>` and `delay_input <train>`:
+  what `summarizeDelays` reports for the timetable results of the run and the
+  entrance delay of each train, with the thresholds 0, 60, 180 and 300 s (a call
+  is later only when it is strictly later). A row counts its calls by status
+  and by early, on time and late, and gives sum, mean, minimum and maximum over
+  the calls that have a delay; `n/a` means no call has one, never 0. Only the
+  cases `entrance-delay-f2-level-0` and `breakdown-f1-level-0` have them. A
+  `delay-pair-<incident case>.txt` file comes from `test_characterization
+  --pair <baseline case> <incident case>`, which runs both cases in one process.
+  It holds the same lines for both runs, with `baseline` or `incident` after the
+  key, and the lines of `compareAgainstBaseline`: `delay_compare status`, one
+  `delay_compare diagnostic` for every reason a baseline does not fit, a
+  `delay_compare occurrence` line per train (entrance delay, direct evidence,
+  final call, additional delay and `secondary`), a `delay_compare call` line per
+  call and a `delay_compare total`. Its CTest entry is
+  `characterization_delay_pair_<incident case>`.
 - `pax <id> state`: changes in network membership, status, active journey and trip,
   waiting station and platform, awaited and boarded trains, and arrival station.
 - `gui_platform <station> <platform>`: changes in the ordered passenger IDs sent

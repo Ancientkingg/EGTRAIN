@@ -133,7 +133,9 @@ set(EGTRAIN_CHARACTERIZATION_CASES
 	pax-full-gui0
 	pax-full-gui1
 	pax-transfer-gui0
-	pax-transfer-gui1)
+	pax-transfer-gui1
+	entrance-delay-f2-level-0
+	breakdown-f1-level-0)
 
 foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 	add_test(NAME characterization_${case}
@@ -143,6 +145,28 @@ foreach(case IN LISTS EGTRAIN_CHARACTERIZATION_CASES)
 			--case ${case}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	list(APPEND EGTRAIN_CHARACTERIZATION_TESTS characterization_${case})
+endforeach()
+
+# Each pair is a baseline case and an incident case, written baseline|incident. The pair runs both in one process and
+# pins the delay analysis of each run and the comparison of the incident run with the baseline. The golden file is
+# expected/delay-pair-<incident case>.txt.
+set(EGTRAIN_CHARACTERIZATION_DELAY_PAIRS
+	follow-level-none|sf-forward-level-none
+	follow-level-3|sf-forward-level-3
+	follow-level-0|sf-forward-level-0
+	follow-level-0|entrance-delay-f2-level-0
+	follow-level-0|breakdown-f1-level-0)
+foreach(pair IN LISTS EGTRAIN_CHARACTERIZATION_DELAY_PAIRS)
+	string(REPLACE "|" ";" pair_cases "${pair}")
+	list(GET pair_cases 0 pair_baseline)
+	list(GET pair_cases 1 pair_incident)
+	add_test(NAME characterization_delay_pair_${pair_incident}
+		COMMAND test_characterization
+			--fixture ${EGTRAIN_CHARACTERIZATION_FIXTURE}
+			--expect ${EGTRAIN_CHARACTERIZATION_EXPECTED}
+			--pair ${pair_baseline} ${pair_incident}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+	list(APPEND EGTRAIN_CHARACTERIZATION_TESTS characterization_delay_pair_${pair_incident})
 endforeach()
 
 # The same scene sequence runs in one process, the first case again at the end,
