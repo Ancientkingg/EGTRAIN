@@ -31,7 +31,7 @@ CONFIRMED_OBSERVERS = {
         "paxIconItem",
     },
     "EGTRAIN/QEGTRAIN/simulation/SimulationWorker.h": {"s_active"},
-    "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr"},
+    "EGTRAIN/QEGTRAIN/widgets/ConsoleWidget.h": {"m_oldCout", "m_oldCerr", "s_active"},
 }
 RAW_STRING_START = re.compile(r'R"([^\s()\\]{0,16})\(')
 

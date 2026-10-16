@@ -66,6 +66,7 @@ EXEMPT_FILES = {
     "scene/SceneTool.cpp": "the scene_tool command line",
     "update/UpdateHelper.cpp": "the separate update helper executable",
     "util/Log.cpp": "the default sink, the one place that writes the console for the logging core",
+    "widgets/ConsoleWidget.cpp": "the sink of the application, which writes the console when no console dock is installed",
 }
 
 # Each entry is the number of console write statements that a file still holds. The test fails
@@ -73,7 +74,7 @@ EXEMPT_FILES = {
 # holds none. The kinds owl and eglogger are the two loggers that write nothing.
 ALLOWED = {
     "app/DispatchController.cpp": {"cout": 9, "cerr": 1, "owl": 2, "eglogger": 2},
-    "app/MainWindow.cpp": {"cout": 2},
+    "app/MainWindow.cpp": {"cout": 1},
     "diagrams/RunResults.cpp": {"cerr": 1},
     "io/ExternalState.cpp": {"cout": 1, "cerr": 1},
     "io/RttpXml.cpp": {"cout": 10, "cerr": 1},

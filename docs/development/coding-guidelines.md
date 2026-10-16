@@ -230,19 +230,31 @@ to the console directly.
   the defaults. `eglog::configureFromEnvironment()` applies the variable `EGTRAIN_LOG`. The
   variable has no effect unless the program calls that function, and the caller reports a
   false result.
-- The default sink writes the text unchanged to `std::cout`, for every category and level, so
-  the console dock shows it. `eglog::setSink` replaces it; a sink must not call the logging
-  core.
+- The default sink writes the text unchanged to `std::cout`, for every category and level.
+  `eglog::setSink` replaces it; a sink must not call the logging core.
+- `installConsoleLogging()` (`widgets/ConsoleWidget.h`) is called first in `main()`. It installs
+  the sink `consoleLogSink` and the Qt message handler `qtMessageToLog`, applies `EGTRAIN_LOG`
+  with `eglog::configureFromEnvironment()` and opens the file named by `EGTRAIN_LOG_FILE`. It
+  returns a warning for `main()` to print on `std::cerr` when a rule is malformed or the file
+  cannot be opened. The sink writes the text unchanged, with no prefix, to the same streams as
+  the default sink, except that `app.ui` goes to `std::cerr` while the Console Log dock is not
+  installed, because Qt's own handler writes there. The dock shows `level category: ` in front of
+  each message that comes through the core, taken from the values the core passes; text written
+  to `std::cout` or `std::cerr` directly shows as written. The log file gets the same lines
+  (`warning app.ui: text`), each message on a line of its own, appended, with no size limit.
+- Every Qt message (`qDebug()`, `qInfo()`, `qWarning()`, `qCritical()`, `qFatal()`) reaches the
+  core as `app.ui` at the matching level, with the text that Qt's own handler prints, so
+  `EGTRAIN_LOG` switches Qt messages on and off per level and `QT_MESSAGE_PATTERN` still
+  applies. A `qFatal()` message is never filtered. The handler writes to the console streams
+  only, not to the system log.
 - `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
   `owl`; both are used only in `app/DispatchController.cpp` (the definitions and declarations
   of `owl` elsewhere are not uses). Nothing calls `Logger::init`, so neither writes anything.
 - `simulation/` writes through `EG_LOG`, except for one `std::fprintf` to `stderr` before
   `std::abort()` in `BlockingTimeList::checkIndex`. It stays: the default sink does not flush
   `std::cout` and a category can be switched off, so a logged message could be lost when the
-  process aborts. `MainWindow` installs a Qt message
-  handler that sends `qWarning()` and other Qt messages to `std::cout`, and `ConsoleWidget`
-  shows both streams in the Console Log dock. The command-line entry points
-  (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`.
+  process aborts. The command-line entry points (`app/main.cpp`, `scene/SceneTool.cpp`) write
+  to `std::cerr`.
 - The code in `simulation/` uses `sim.setup` for the set-up of a run (the selected case, the
   route set-up) and for problems found in the scene data or the model while it is built or
   while the blocking times are computed. It uses `sim.events` for virtual coupling and

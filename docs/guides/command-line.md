@@ -71,6 +71,22 @@ By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, w
 QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
 ```
 
+## Log output
+
+The warnings and events of the simulation and every Qt message go through the logging core, and each has a category and a level. The categories are `sim.setup`, `sim.step`, `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`; the levels are `debug`, `info`, `warning` and `error`. A Qt message is an `app.ui` message at the level of its kind (`qDebug`, `qInfo`, `qWarning`, `qCritical`). Every category and level is on by default, except `sim.step` at `debug`. Output that does not go through the core is not changed by the variables below.
+
+`EGTRAIN_LOG` switches categories and levels on and off. It holds rules separated by `;` or a newline, each `pattern=true` or `pattern=false`. A pattern is a category name, a name with a `*` at the start, at the end or at both ends (`sim.*`, `*.run`, `*step*`), or `*`, with an optional level suffix (`app.ui.warning`); a later rule wins. `QT_LOGGING_RULES` still decides which Qt messages exist.
+
+```bash
+EGTRAIN_LOG='app.ui.debug=false' QEGTRAIN -n 2
+```
+
+A malformed rule is skipped and the other rules apply. The program prints one `WARNING: EGTRAIN_LOG has a malformed rule` line on standard error and starts as usual; the exit code does not change.
+
+`EGTRAIN_LOG_FILE` names a file. The program appends every message that goes through the core to it, as `level category: text` (`warning app.ui: text`), each message on a line of its own, without a limit on its size. When the file cannot be opened, the program prints a `WARNING` line on standard error and writes no file.
+
+The Console Log dock (**View > Console Log**, Ctrl+Shift+L) shows a message with its level and category in front, such as `warning app.ui: text`. It shows all other lines as they are written. Standard output and standard error carry the text of a message without the level and category.
+
 ## Exit codes
 
 - 0: a run without a window that finished, or a launch that handed its file to an open window.
