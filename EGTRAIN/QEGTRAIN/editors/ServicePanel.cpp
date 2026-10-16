@@ -3,7 +3,7 @@
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
-#include "simulation/RuntimeLimits.h"
+#include "scene/RuntimeLimits.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/CompactDoubleSpinBox.h"
 
