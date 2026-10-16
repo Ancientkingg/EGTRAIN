@@ -15,7 +15,8 @@ actions can still open Loaded Data or Validation explicitly in normal mode.
 Use
 `Save Case Study As...` for a new bundle. From the command line, `--scene`
 accepts the same bundle or directory path, and a bundle file name alone opens
-the bundle too.
+the bundle too. On Windows and macOS a double-click on a bundle opens it as well
+([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 
 The application loads the six required JSON files, accepts optional scenarios,
 passengers, display metadata in `views.json`, and historical

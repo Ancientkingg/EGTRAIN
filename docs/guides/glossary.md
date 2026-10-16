@@ -14,7 +14,7 @@ A scene is the data of a case study as the program reads it: a folder of JSON fi
 
 ### Bundle
 
-A bundle is one file for moving a case study: a ZIP archive that holds the JSON files of a scene and has the extension `.egscene`. It holds no results and no legacy input. **File > Save Case Study As...** and `scene_tool pack` make it, and **File > Open Case Study...**, the chooser, the option `--scene` and a file name on the command line open it. The folder stays the editable source format and the bundle is its transport form ([opening a case study](opening-a-case-study.md), [bundle format](../architecture/scene-bundle.md)).
+A bundle is one file for moving a case study: a ZIP archive that holds the JSON files of a scene and has the extension `.egscene`. It holds no results and no legacy input. **File > Save Case Study As...** and `scene_tool pack` make it, and **File > Open Case Study...**, the chooser, the option `--scene`, a file name on the command line and a double-click in Explorer or Finder open it. The folder stays the editable source format and the bundle is its transport form ([opening a case study](opening-a-case-study.md), [bundle format](../architecture/scene-bundle.md)).
 
 ### V1 and V2
 

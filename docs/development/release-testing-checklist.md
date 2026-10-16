@@ -97,7 +97,9 @@ What the jobs prove today:
   mounts the image read-only, checks that the volume holds only `QEGTRAIN.app`,
   the link `Applications` and the hidden Finder layout file `.DS_Store`, which
   must equal `tools/release/dmg/DS_Store`, that the app in the image and a
-  `ditto` copy of it have a valid signature, and that the copy runs Paimpol to
+  `ditto` copy of it have a valid signature, that the property list of the app in
+  the image declares `.egscene` as its one document type, which conforms to
+  `public.data` and so claims no archive type, and that the copy runs Paimpol to
   `End of Simulation`.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
@@ -151,8 +153,13 @@ elevation request, that the package starts on a machine without the runtime, or
 how Windows presents the unsigned installer and the entry in the list of
 installed apps. The job reads the registry keys of the `.egscene` file type but
 opens no file, so it does not show that a double-click on a `.egscene` file in
-Explorer opens EGTRAIN (#416); row W7 does. The rows W1 to W7 below cover the rest
+Explorer opens EGTRAIN (#416); row W7 does. The rows W1 to W9 below cover the rest
 of what the job cannot.
+
+The Package macOS job reads the document type from the property list of the app
+in the disk image but opens no file. It does not show that Finder knows the
+`.egscene` file type of the installed app or that a double-click opens a file in
+EGTRAIN, with EGTRAIN closed or open (#416); the rows M1 to M3 do.
 
 None of this shows the GUI student workflow.
 
@@ -160,7 +167,7 @@ None of this shows the GUI student workflow.
 
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
-| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
+| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It declares `.egscene` as its file type. It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
 | Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut, an entry in the list of installed apps and the `.egscene` file type for the current user. | The Start Menu entry `EGTRAIN` |
 | Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
@@ -310,12 +317,27 @@ Notes on the update rows:
   entries can be installed for R9, or when the account cannot be denied write
   access for R10.
 
+## macOS app
+
+Run these rows on macOS with the disk image of the candidate, and mark them not
+applicable on Windows and Linux. Use the copy of `QEGTRAIN.app` that step 1 of
+the clean-install rehearsal put in the Applications folder, and downloaded
+`.egscene` files. Run M1, M2 and M3 in this order. macOS may need a moment to
+learn the file type of a new app. If Finder does not know it yet, record that and
+what you did before it did, and go on with **Open With**.
+
+| Row | What to do | What must be seen or recorded | Platforms |
+| --- | --- | --- | --- |
+| M1 File type in Finder | Quit EGTRAIN. In Finder select a downloaded `.egscene` file and choose **File > Get Info**. Note the **Kind** and the application under **Open with**. Do the same for a `.zip` file. Then Control-click the `.egscene` file and open **Open With**. | **Kind** reads `EGTRAIN Case Study` and **Open with** names `QEGTRAIN`, which the **Open With** menu lists. Record the icon that Finder shows for the file. The `.zip` file keeps the application it had, and EGTRAIN is not the one that opens it. If Finder shows another Kind or application, record it, and whether choosing `QEGTRAIN` under **Open with** and **Change All...** corrects it. | macOS |
+| M2 Open a case study by double-click | With EGTRAIN closed, double-click a downloaded `.egscene` file in Finder. Then change a value and double-click a second `.egscene` file: answer **Cancel**, double-click again and answer **Discard**, and never **Save**. Last, quit EGTRAIN, start it from the Applications folder, leave **Open a Case** open and double-click a file. | The first file opens in EGTRAIN, and **Open a Case** does not open first; record it if it does. The second double-click brings the open window to the front and asks **Unsaved Scene**. No second EGTRAIN icon appears in the Dock and no second window opens. **Cancel** keeps the open case and the edit, and the status bar reads `Open canceled. Current scene retained.` After **Discard** the second file is open, and both files are in **File > Recent Scenes**. With **Open a Case** open, that window closes and the file opens. Record any question that macOS asks, with its text. | macOS |
+| M3 Double-click a damaged file and a special path | Rename a plain text file to `something.egscene`. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, quit EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle. | Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under **File > Recent Scenes**. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time. | macOS |
+
 ## Windows installer and portable archive
 
 Run these rows on Windows with the installer and the portable archive of the
 candidate, and mark them not applicable on macOS and Linux. Use an account that
 is not an administrator, on a machine without development tools and without a
-copy of EGTRAIN. W2 to W5 follow each other on that account, and W7 runs between W2 and W3. W5 and W8 need the Setup
+copy of EGTRAIN. W2 to W5 follow each other on that account, and W7 and W9 run between W2 and W3. W5 and W8 need the Setup
 of an older version: it is the one exception to the rule of one source besides
 R9, so record where it came from. Run W6 after the last uninstall, so that the
 list of installed apps shows only what the archive itself adds.
@@ -330,6 +352,7 @@ list of installed apps shows only what the archive itself adds.
 | W6 Portable archive | Unzip `EGTRAIN-Portable-<version>-x64.zip` into a new empty folder, for example with **Extract All** in Explorer. Start `QEGTRAIN.exe` by double-click. Run the steps 1 to 9 of the clean-install rehearsal and the R rows on this copy, except R7, which W2 has seen. | No prompt asks for administrator rights. Record any warning at the first start, with its text. The list of installed apps and the Start Menu show no EGTRAIN, and no shortcut was made. The folder has no `installed-by-setup.ini` and no uninstaller. Deleting the folder after closing EGTRAIN removes the copy. | Windows |
 | W7 Open a case study by double-click | Run it right after W2. Close EGTRAIN and double-click a downloaded `.egscene` file in Explorer. With EGTRAIN open, change a value and double-click a second `.egscene` file. | Explorer shows the type name `EGTRAIN case study` and the EGTRAIN icon for the file. The first file opens in EGTRAIN. The second opens in the window that is already open, after the question about unsaved changes, and no second window appears. If Windows asks which program to use, record the question. | Windows |
 | W8 In-app update of an installed copy | Meet the precondition of R9 with an installed copy: install the Setup of an older stable release, start EGTRAIN, choose **Help > Check for Updates...** and then **Update and Restart**. Uninstall as in W3 afterwards. | The dialog text says that Update and Restart runs the EGTRAIN installer. No Setup window and no prompt for an administrator password appears. EGTRAIN closes, starts again by itself and shows the box `EGTRAIN was updated to version <version>.` The list of installed apps has one `EGTRAIN` entry with the new version, there is one Start Menu entry, the installation folder is the same, and a `.egscene` file still opens in EGTRAIN. Record whether the desktop shortcut of an earlier install is still there. The hidden folder `.qegtrain-update-*` next to the installation is gone about 20 seconds after the start. Record any other message, with its text. Mark W8 not applicable, with the reason, when no older Setup that updates through the installer and no newer stable release that lists the installer in its manifest exist. | Windows |
+| W9 Double-click a damaged file and a special path | Run it right after W7, on the installed copy. Rename a plain text file to `something.egscene`. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, close EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle. | Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under **File > Recent Scenes**. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time. | Windows |
 
 ## Not available yet
 
@@ -339,7 +362,6 @@ The release does not build these today, so they have no subject.
 | --- | --- | --- |
 | macOS Developer ID signing and notarization: first open without a system warning | An ad hoc signature only (#404). | No row until the release provides it |
 | Windows binary signature | None (#402). | No row until the release provides it |
-| Open a bundle from the file manager or the command line, with the application closed and with it running | **File > Open Case Study...**, a drop onto the window and the `--scene` option (#416). | No row until the release provides it |
 
 These rows are not part of the gate. They are added to the table of the record
 when the release provides the asset.
@@ -354,5 +376,6 @@ macOS rehearsal of an older candidate.
 
 The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
-to W7 belong to Windows only. Open one focused defect for each failed root cause
-instead of adding implementation work to issue #74.
+to W9 belong to Windows only and the rows M1 to M3 to macOS only. Open one
+focused defect for each failed root cause instead of adding implementation work
+to issue #74.
