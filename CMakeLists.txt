@@ -345,7 +345,7 @@ add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/simulation/RunControl.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp)
 target_link_libraries(egtrain_dispatch
-    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_rttp egtrain_sim)
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_live egtrain_rttp egtrain_sim)
 
 # DiagramWindow and TimetableTableWindow call telemetry::OperationObservation, whose symbols do
 # not depend on the hooks, so this library links no telemetry flavour. In the isolated telemetry
@@ -778,6 +778,10 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_liveserver COMMAND test_liveserver)
     set_tests_properties(test_liveserver PROPERTIES TIMEOUT 120)
 
+    # The small client of the live stream. test_live_stream_smoke runs it beside the application.
+    add_executable(live_client ${SRC_DIR}/tests/live_client.cpp)
+    target_link_libraries(live_client PRIVATE cppzmq nlohmann_json::nlohmann_json)
+
     add_executable(test_followavailability ${SRC_DIR}/tests/test_followavailability.cpp)
     target_link_libraries(test_followavailability PRIVATE egtrain_util)
     target_include_directories(test_followavailability PRIVATE ${SRC_DIR})
@@ -1160,6 +1164,15 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_simulation_determinism
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/simulation_determinism_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_simulation_determinism PROPERTIES TIMEOUT 300)
+	# The case in which a second run follows the first in one process uses a scripted run of the window, which this repository
+	# checks on macOS only (see the visual polish smokes below).
+	if(APPLE)
+		set(egtrain_live_stream_smoke_args --second-run)
+	endif()
+	add_test(NAME test_live_stream_smoke
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/live_stream_smoke.py
+			$<TARGET_FILE:QEGTRAIN> $<TARGET_FILE:live_client> ${egtrain_live_stream_smoke_args})
+	set_tests_properties(test_live_stream_smoke PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 300)
 	add_test(NAME test_station_departure
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/station_departure_smoke.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_station_departure PROPERTIES TIMEOUT 300)
@@ -1373,7 +1386,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
 			test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel test_timeprogressbar test_highlighteffect
-			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_liveserver)
+			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
@@ -1417,7 +1430,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
-		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
+		test_route_choice_missing_data test_external_sharing_no_listener test_live_stream_smoke test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
@@ -1431,7 +1444,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
-		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
+		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
 		${egtrain_visual_polish_smokes})

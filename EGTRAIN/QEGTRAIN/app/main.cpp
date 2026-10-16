@@ -14,6 +14,7 @@
 #include "update/UpdateSettings.h"
 #include "widgets/ConsoleWidget.h"
 #include <algorithm>
+#include <climits>
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
@@ -54,7 +55,7 @@ static bool creatorAcceptanceRun() {
 
 // The options that take a value. It must name every option that is read with getCmdOption: the
 // value of an option that is missing here would count as a file name.
-static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax", "-TSM", "-RC", "--seed", "--scene"};
+static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax", "-TSM", "-RC", "--seed", "--scene", "--live", "--live-every"};
 
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
@@ -164,6 +165,64 @@ void parseCmdOptions(int argc, char* argv[]) {
 		initial_variables.RChoice = 0;
 	}
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
+	if (initial_variables.TSM || initial_variables.RChoice)
+		std::cerr << "WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.\n";
+}
+
+// Reads a whole number from low to high from the text of an option. Returns false when the text is none.
+static bool readWholeNumber(const char* text, int low, int high, int& value) {
+	bool valid = false;
+	const int number = text ? QString::fromLocal8Bit(text).toInt(&valid) : 0;
+	if (!valid || number < low || number > high)
+		return false;
+	value = number;
+	return true;
+}
+
+// The live stream options: --live <port>, and with it --live-every <steps> and --live-commands. Prints the
+// reason on standard error and returns false when an option is not valid.
+static bool readLiveOptions(int argc, char* argv[]) {
+	const bool everyEntered = cmdOptionEntered(argv, argv + argc, "--live-every");
+	const bool commands = cmdOptionEntered(argv, argv + argc, "--live-commands");
+	if (!cmdOptionEntered(argv, argv + argc, "--live")) {
+		if (everyEntered || commands) {
+			std::cerr << "ERROR: --live-every and --live-commands need --live.\n";
+			return false;
+		}
+		return true;
+	}
+	if (!readWholeNumber(getCmdOption(argv, argv + argc, "--live"), 0, 65535, initial_variables.livePort)) {
+		std::cerr << "ERROR: --live requires a port from 0 to 65535; 0 takes a free port.\n";
+		return false;
+	}
+	if (everyEntered && !readWholeNumber(getCmdOption(argv, argv + argc, "--live-every"), 1, INT_MAX, initial_variables.liveEvery)) {
+		std::cerr << "ERROR: --live-every requires a whole number of 1 or more.\n";
+		return false;
+	}
+	initial_variables.liveCommands = commands;
+	return true;
+}
+
+// Ends the live stream when main returns, on every path, before the log and the other globals go.
+struct LiveStreamGuard {
+	~LiveStreamGuard() { simulation.stopLive(); }
+};
+
+// Starts the live stream when --live was given. The endpoint file goes to the output folder. A stream that
+// cannot start is reported on standard error and, in a window launch that no script started, in a message box.
+static bool startLiveStream(const std::string& outputFolder, bool showBox) {
+	if (initial_variables.livePort < 0)
+		return true;
+	std::string error;
+	if (!simulation.startLive(initial_variables.livePort, initial_variables.liveEvery, initial_variables.liveCommands, outputFolder, &error)) {
+		const QString message = QStringLiteral("Cannot start the live stream: %1").arg(QString::fromStdString(error));
+		std::cerr << "ERROR: " << message.toStdString() << '\n';
+		if (showBox && !updatesSuppressedByEnvironment())
+			QMessageBox::critical(nullptr, "Cannot Start EGTRAIN", message);
+		return false;
+	}
+	std::cerr << "Live stream on " << simulation.liveEndpoint() << "; the endpoints are in " << outputFolder << "/live-endpoint.json\n";
+	return true;
 }
 
 QString resolveScenePath(const QString& requested, const std::string& defaultName) {
@@ -257,6 +316,8 @@ int main(int argc, char* argv[]) {
 		}
 		initial_variables.randomSeed = static_cast<unsigned long>(seed);
 	}
+	if (!readLiveOptions(argc, argv))
+		return 1;
 
 	const char* sceneArgument = getCmdOption(argv, argv + argc, "--scene");
 	const bool sceneOption = cmdOptionEntered(argv, argv + argc, "--scene");
@@ -355,6 +416,9 @@ int main(int argc, char* argv[]) {
 		}
 		InputMainFolder.clear();
 		initial_variables.InputMainFolder.clear();
+		if (!startLiveStream(windowReports ? resolveOutputDirectory(defaultName).toStdString() : initial_variables.OutputMainFolder, true))
+			return 2;
+		const LiveStreamGuard liveStream;
 		MainWindow window;
 		if (startupTimingEnabled())
 			recordStartupTiming(QStringLiteral("application_initialization"), 0, -1,
@@ -393,6 +457,9 @@ int main(int argc, char* argv[]) {
 	initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
 	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
+	if (!startLiveStream(initial_variables.OutputMainFolder, false))
+		return 2;
+	const LiveStreamGuard liveStream;
 	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(loaded.scene);
 	printSceneDiagnostics(diagnostics);
 	if (hasErrors(diagnostics))

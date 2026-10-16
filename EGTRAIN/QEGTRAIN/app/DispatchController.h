@@ -8,7 +8,9 @@
 
 #include <QObject>
 #include <atomic>
+#include <filesystem>
 #include <memory>
+#include <string>
 #include <utility>
 
 #ifdef signals
@@ -21,11 +23,14 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
+struct DispatchLive;
+
 class DispatchController : public QObject {
 	Q_OBJECT
 
 public:
-	explicit DispatchController(QObject* parent = nullptr) : QObject(parent) {}
+	explicit DispatchController(QObject* parent = nullptr);
+	~DispatchController() override;
 
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
@@ -59,6 +64,17 @@ public:
 	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
 	const std::string& nextRunOutputFolder() const { return nextRunOutputFolder_; }
 
+	// Starts the live stream (see io/LiveServer.h): every run that follows publishes a hello frame, a state
+	// frame for every every-th step and the events of its end, and the stream outlives the runs. The endpoint
+	// file goes to endpointDirectory. Call this before prepareScene and while no run is going on. Returns false
+	// with the reason in *error when the server cannot start. A process that never calls it has no server, no
+	// thread and no socket, and its runs build nothing for the stream.
+	bool startLive(int port, int every, bool commands, const std::filesystem::path& endpointDirectory, std::string* error = nullptr);
+	// Sends the frames that are still queued and ends the stream. Call this while no run is going on.
+	void stopLive();
+	// "tcp://127.0.0.1:<port>" of the state socket, or empty while the stream is off.
+	std::string liveEndpoint() const;
+
 signals:
 	void iterationFinished(int timestep);
 	void snapshotAvailable();
@@ -75,6 +91,9 @@ private:
 
 	GuiSimulationSnapshotMailbox snapshotMailbox_;
 	GuiReplayHistory replayCandidate_;
+	std::unique_ptr<DispatchLive> live_;
+	// Name of the scene that prepareScene prepared last. It is kept only while the live stream runs.
+	std::string liveSceneName_;
 	bool snapshotsEnabled_ = true;
 	std::atomic<bool> runCompleted_{false};
 	std::shared_ptr<RunControl> runControl_ = std::make_shared<RunControl>();

@@ -1,8 +1,12 @@
-# External state sharing (legacy)
+# External state sharing
+
+A run shares its state in two ways: over the legacy channels of the options `-TSM` and `-RC`, which this page describes first, and as the supported [live stream](#live-stream) of `--live`.
 
 With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is printed and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
 
-This page describes the code as it is. Function names are given so that a maintainer can find them. The [live server](#live-server), a separate transport that nothing in the application calls yet, is described after the legacy channels.
+The two legacy channels are not the way to build a consumer. Use the live stream.
+
+This page describes the code as it is. Function names are given so that a maintainer can find them. The live stream and the [live server](#live-server) that carries it are described after the legacy channels.
 
 ## Enablement
 
@@ -12,6 +16,7 @@ This page describes the code as it is. Function names are given so that a mainta
 | `-RC <int>` | passenger route choice | `tcp://127.0.0.1:5556` |
 
 - `parseCmdOptions` (`app/main.cpp`) reads both options with `std::atoi`. Any nonzero value switches the channel on. The default is 0.
+- The options are deprecated and kept for one release. When either is nonzero, whether from the command line or from the `--interactive` questions, `parseCmdOptions` prints one line on standard error: `WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.` Nothing else about the channels changes.
 - The options exist on the command line only. `--interactive` asks for both when the command line leaves them out (see [Command-line options](../guides/command-line.md)). The window has no control for them, but a window run sends when the option was given at the start. The provenance file of exported results records both values as `tsm_mode` and `route_choice_mode`.
 - `-RC 1` needs a usable passenger journey in the prepared run. `DispatchController::prepareScene` rejects the run otherwise, with the diagnostic `scene.route_choice.passengers.none` (`test_route_choice_missing_data`).
 - With both options at 0, no socket is created and nothing is bound or sent: `send_external_state` is called only from the two blocks of the step loop that these options guard. The ZeroMQ context is made by the first send, so such a run holds no context either.
@@ -109,8 +114,91 @@ routeChoiceRequest            currentTime
 
 - `read_rttp_train_view` and `read_rttp_infra_view` in `io/RttpXml.cpp` read an RTTP XML text and print what they find to standard output. The application does not call them. Only `tests/test_rttp.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
 - The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
-- The application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is printed and not used. The live server below binds sockets, and nothing in the application creates one. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
+- Without `--live` the application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is printed and not used. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window.
+
+## Live stream
+
+`--live <port>` makes every run of the process publish its state. `main` starts the live server (see [Live server](#live-server)) after the output folder is known and before the scene is prepared, and stops it when `main` returns. `DispatchController` owns it (`startLive`, `stopLive`) and feeds it from the step loop.
+
+| Option | Effect |
+| --- | --- |
+| `--live <port>` | Binds the state socket to `127.0.0.1:<port>`. 0 takes a free port. |
+| `--live-every <steps>` | Makes a state frame for each `<steps>`-th step, counted from step 0. The default is 1. |
+| `--live-commands` | Also binds the command socket, and writes the token to the endpoint file. |
+
+`--live-every` and `--live-commands` without `--live`, a port that is not a whole number from 0 to 65535, and an interval below 1 stop the start with exit code 1. A server that cannot start, for example on a port that is in use, stops it with exit code 2 and the line `ERROR: Cannot start the live stream: <reason>` on standard error; a window launch also shows the reason in a message box. The start never leaves a run half shared.
+
+`live-endpoint.json` is written to the output folder of the scene that the command line names (see [Output folder](../guides/command-line.md#output-folder)), and the start prints `Live stream on <endpoint>; the endpoints are in <path>` on standard error. Nothing is printed on standard output, so the standard output of a run is the same with and without `--live`. `stop` removes the file when `main` returns. A process that is killed leaves it behind, with a port that nothing listens on.
+
+Without `--live`, `DispatchController` holds no server. The process has no live thread, no ZeroMQ context for it and no socket, and a run builds no frame and no extra snapshot: each place that publishes tests one null pointer.
+
+### What a run publishes
+
+Each run begins with a new run id, 16 hexadecimal digits from `std::random_device`, and `seq` starts at 0. Every frame of the run carries the run id and its `seq`, and the frames leave in the order of the table below. The frames are those of `io/LiveFrame.h`; their members and units are in `docs/live/frame-v1.schema.json`.
+
+| Frame | Sent | Holds |
+| --- | --- | --- |
+| `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the `SceneModel` that `prepareScene` was given, `base_time_s` (`initial_variables.startingSimulationTime`), `horizon_steps` (`initial_variables.times`), `step_s` (`timestep`), and one entry for each train of the run, in the order of `regional_train`, with its service id, occurrence, operating code and route index |
+| `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
+| `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
+| `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |
+
+`run_finished` means that the stages of `runSimulation` have ended. It does not mean that the output folder is complete: `printLastTrainServicePathDiagram` writes `TrainTrajectories/` after `runSimulation` returns (in `main` for a headless run, in the handler of `executionReturned` for a window run), and a window run does more end-of-run work there. A client must not read the output folder on this event.
+
+A run in which no train was loaded publishes nothing. A run that is stopped publishes `steps_finished` with the steps that ran (0 when the stop came first) and then `run_finished` with `cancelled`.
+
+The signal list is part of the first state frame of a run and of each later state frame in which it differs from the list of the last frame that held one (`liveSignalsChanged`). A subscriber that joins late, or that sees a gap in `seq`, has no signal list until the next frame that holds one; the list is not repeated for it.
+
+A state frame is made for a sampled step only. The snapshot of a step comes from `buildGuiSimulationSnapshot`, as for the window. A window run has built it for the window already and the frame shares it. A run with `-g 0` builds no snapshot unless a frame is due, builds the one for that step, and drops it after the frame is made; the replay history and the mailbox of the window stay unused.
+
+### Threads and loss
+
+- The thread that runs the steps (the worker thread of a window run, the main thread of a `-g 0` run) makes the text of each frame and passes it to `pushHello`, `pushState` or `pushEvent`. It never calls ZeroMQ and never waits for a socket, a subscriber or a client, so a stream that nobody reads, a client that leaves and a client that is slow do not slow a run beyond the cost of making the frames. `seq` is given by that thread alone.
+- `startLive` and `stopLive` are called while no run goes on. A new run in the same process (a second run in the window) gets a new run id and a new hello, and the subscribers stay connected.
+- The live server keeps 8 state frames. A run that makes frames faster than the I/O thread sends them (a few thousand frames a second) loses the oldest, and the gap shows in `seq`. `hello` and `event` frames are never dropped to make room for a state frame. The scripted window run of the 600-step Assignment scene is fast enough to lose frames at an interval of 10, and loses none at an interval of 100.
+- A subscriber that joins after the hello has not seen it. With `--live-commands` it sends `describe`, and the server publishes the hello of the latest run again. Without commands it waits for the next run, or reads state frames without a hello.
+
+### Cost
+
+The frames are made on the thread of the run, so a run with `--live` takes longer than one without, also when nobody reads. The cost has two parts: building the snapshot of the step, and making the JSON text of the frame.
+
+Measured once on a macOS machine that other jobs were using, a headless run of a committed scene with `--live 0` and no client took 2% (Copenhagen) to 140% (Amsterdam_Hilversum_Student) longer than a run without `--live`, and with `--live-every 10` it took 2% to 29% longer. These numbers show the order of the cost and are not a promise.
+
+A scene with cheap steps and many signal sections pays most per frame, because the snapshot walks all sections of all routes and the signal list is the largest part of a frame. A scene with expensive steps, such as Copenhagen, pays little. `--live-every` is the control: a run that is read once every 10 steps makes a tenth of the frames.
+
+The size of a state frame depends on the number of trains and on the signal list, which is the largest part of a frame that holds it. At an interval of 10 most frames of Netherlands hold it (711 of 800); of Paimpol, 307 of the 849 frames that a client received hold it.
+
+| Scene | Trains | Hello | State frame without signals | State frame with signals |
+| --- | ---: | ---: | ---: | ---: |
+| Lebanon | 1 | 269 B | 280 B | 1158 B |
+| Paimpol | 2 | 414 B | 507 B | 22165 B |
+| Amsterdam_Hilversum_Student | 4 | 620 B | 865 B | 107341 B |
+| Assignment_Gvc_Gdg_Ut | 24 | 2187 B | 4256 B | 9246 B |
+| Netherlands | 40 | 3436 B | 6802 B | 113301 B |
+| Copenhagen | 52 | 6311 B | 10953 B | 114950 B |
+| Milano_Brescia | 65 | 5480 B | 11174 B | 32199 B |
+
+The service id and occurrence of a train are part of the layout that the replay history keeps once for a run, so they add nothing to a frame of it: the history of a whole run of Copenhagen in the window holds 82722909 of the 134217728 bytes that it may hold.
+
+### Commands
+
+With `--live-commands` the server also answers `describe`, `pause`, `resume`, `stop` and `set_delay_ms` as described under [Requests](#requests). Only `describe` has an effect on a run in this version. The other requests are checked and queued, and nothing in a run reads the queue, so their replies say `accepted` and the run is not changed. After 16 of them the server answers `queue_full`.
+
+### A client and its test
+
+`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. The comment at the top of the file lists the options.
+
+`test_live_stream_smoke` (`tools/e2e/live_stream_smoke.py`, integration) starts the application and the client and runs these cases:
+
+- A headless Paimpol run that the client follows from start to end, and a run without `--live`: the two output folders are equal file by file, except `Computing_Times.txt`, the standard output is equal, and no endpoint file is left.
+- A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.
+- A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.
+- A window run (`QEGTRAIN_AUTOSTART`) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.
+- A window run that the test closes at its first displayed step (`QEGTRAIN_E2E_CLOSE_DURING_RUN`): the client sees `steps_finished` with fewer steps than the horizon and then `run_finished` with `cancelled`.
+- A scripted window run that runs the case twice (`QEGTRAIN_E2E_OPERATIONAL_COMPLETION`), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.
+- Each option that is not valid, and a port that is in use.
+- `-TSM 1`, `-RC 1` and the answers of `--interactive`: one line of the notice on standard error.
 
 ## Live server
 
@@ -172,7 +260,7 @@ The checks run in this order, and the first that fails gives the reason:
 | `queue_full` | is valid, and 16 commands already wait. |
 | `no_active_run` | is `describe`, and no hello was pushed since the server started. |
 
-A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The thread that runs the simulation takes the commands with `tryPopCommand`, which never waits, and applies them. `describe` is not queued: the hello is published before the reply is sent.
+A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The owner of the server takes the commands with `tryPopCommand`, which never waits, and applies them; `DispatchController` does not call it (see [Commands](#commands)). `describe` is not queued: the hello is published before the reply is sent.
 
 A message of more than 64 KiB closes the connection of the client that sent it, without a reply. Parts after the first part of a request are ignored.
 
@@ -189,6 +277,7 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 - `test_route_choice_missing_data` (integration) starts the `Assignment_Gvc_Gdg_Ut` scene with `-RC 1` and expects the diagnostic `scene.route_choice.passengers.none`.
 - `test_operationsbuilder` checks `routeChoicePayload`.
 - `test_liveserver` (unit) starts a `LiveServer` in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for `describe` until the hello arrives, not by waiting.
+- `test_live_stream_smoke` (integration) runs the application with `--live` and reads the stream with `live_client`; see [A client and its test](#a-client-and-its-test).
 - No test covers the traffic-state JSON that the step loop builds.
 
-The library `egtrain_rttp` is built from two sources. `io/RttpXml.cpp` holds the two XML builders and the two RTTP readers, which `io/RttpXml.h` declares. `io/ExternalState.cpp` holds the sender, which `io/ExternalState.h` declares as `send_external_state`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt.
+The library `egtrain_rttp` is built from two sources. `io/RttpXml.cpp` holds the two XML builders and the two RTTP readers, which `io/RttpXml.h` declares. `io/ExternalState.cpp` holds the sender, which `io/ExternalState.h` declares as `send_external_state`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.

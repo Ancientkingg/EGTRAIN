@@ -1,6 +1,8 @@
 #include <QElapsedTimer>
 #include "app/DispatchController.h"
 #include "io/ExternalState.h"
+#include "io/LiveFrame.h"
+#include "io/LiveServer.h"
 #include "io/RttpXml.h"
 #include "scene/SceneValidator.h"
 #include "simulation/Simulation.h"
@@ -16,6 +18,7 @@
 #include <memory>
 #include <map>
 #include <optional>
+#include <random>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -43,6 +46,20 @@ bool signalFailureActive(const SimulationIncident& incident, int timestep) {
 	return !hasEnd || timestep <= incident.endSeconds;
 }
 
+// What names a train in a snapshot and does not change during a run.
+GuiTrainState trainIdentity(int index, const Train& train) {
+	GuiTrainState state;
+	state.index = index;
+	state.id = train.ID;
+	state.type = train.type;
+	state.description = train.trainDescription;
+	state.operatingCode = train.operatingCode;
+	state.serviceId = train.serviceId;
+	state.occurrence = train.serviceOccurrence;
+	state.routeIndex = train.indexOfRoute;
+	return state;
+}
+
 GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = timestep;
@@ -51,14 +68,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 	snapshot.trains.reserve(static_cast<std::size_t>(numRegions));
 	for (int i = 0; i < numRegions; ++i) {
 		Train& train = regional_train[i];
-		GuiTrainState state;
-		state.index = i;
-		state.id = train.ID;
-		state.type = train.type;
-		state.description = train.trainDescription;
-		state.operatingCode = train.operatingCode;
-		state.serviceId = train.serviceId;
-		state.routeIndex = train.indexOfRoute;
+		GuiTrainState state = trainIdentity(i, train);
 		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
 		state.reversedDirection = validRoute ? train_route[train.indexOfRoute].reversed_direction : false;
 		state.wagonCount = static_cast<int>(train.number_of_wagons);
@@ -231,6 +241,8 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	};
 
 	beginScenePreparation();
+	if (live_)
+		liveSceneName_ = scene.name;
 	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
 		? std::optional<double>(initial_variables.times)
 		: std::nullopt;
@@ -330,8 +342,109 @@ std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationS
 	return snapshotMailbox_.take();
 }
 
+// The live stream of the process and the state of the run that publishes to it. Only the thread that runs
+// the steps uses the members other than the server, and startLive and stopLive are called while no run goes on.
+struct DispatchLive {
+	LiveServer server;
+	// A state frame for every every-th step.
+	int every = 1;
+	// True from the hello frame of a run to its last event.
+	bool inRun = false;
+	LiveRunInfo run;
+	// Position of the next frame in the run.
+	std::uint64_t seq = 0;
+	// Number of steps that have run.
+	int steps = 0;
+	// The snapshot of the last state frame that held the signals.
+	std::shared_ptr<const GuiSimulationSnapshot> signalsFrom;
+};
+
+namespace {
+std::string newRunId() {
+	static const char digits[] = "0123456789abcdef";
+	std::random_device random;
+	std::string id;
+	for (int word = 0; word < 2; ++word) {
+		const std::uint32_t bits = random();
+		for (int shift = 28; shift >= 0; shift -= 4)
+			id += digits[(bits >> shift) & 0xF];
+	}
+	return id;
+}
+
+// Text that is not UTF-8 becomes U+FFFD, so a frame is always made.
+std::shared_ptr<const std::string> frameText(const nlohmann::json& frame) {
+	return std::make_shared<const std::string>(frame.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace));
+}
+
+// Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
+void beginLiveRun(DispatchLive& live, const std::string& sceneName) {
+	live.run.runId = newRunId();
+	live.run.sceneName = sceneName;
+	live.run.baseTimeSeconds = initial_variables.startingSimulationTime;
+	live.run.horizonSteps = static_cast<int>(initial_variables.times);
+	live.run.stepSeconds = timestep;
+	live.seq = 0;
+	live.steps = 0;
+	live.signalsFrom.reset();
+	live.inRun = true;
+	GuiSimulationSnapshot identities;
+	identities.trains.reserve(static_cast<std::size_t>(numRegions));
+	for (int i = 0; i < numRegions; ++i)
+		identities.trains.push_back(trainIdentity(i, regional_train[i]));
+	live.server.pushHello(live.run.runId, frameText(makeHelloFrame(live.run, live.seq++, identities)));
+}
+
+// The signal list goes into the first state frame of a run and into each frame in which it differs from the last that held it.
+void publishLiveState(DispatchLive& live, const std::shared_ptr<const GuiSimulationSnapshot>& snapshot) {
+	const bool withSignals = !live.signalsFrom || liveSignalsChanged(live.signalsFrom->signalStates, snapshot->signalStates);
+	if (withSignals)
+		live.signalsFrom = snapshot;
+	live.server.pushState(frameText(makeStateFrame(live.run, live.seq++, *snapshot, withSignals)));
+}
+
+// Ends the run in the stream when the event is its last.
+void pushLiveEvent(DispatchLive& live, LiveEvent event) {
+	if (!live.inRun)
+		return;
+	live.server.pushEvent(frameText(makeEventFrame(live.run, live.seq++, event, live.steps)));
+	if (event != LiveEvent::StepsFinished) {
+		live.inRun = false;
+		live.signalsFrom.reset();
+	}
+}
+} // namespace
+
+DispatchController::DispatchController(QObject* parent) : QObject(parent) {}
+
+DispatchController::~DispatchController() = default;
+
+bool DispatchController::startLive(int port, int every, bool commands, const std::filesystem::path& endpointDirectory, std::string* error) {
+	if (live_) {
+		if (error)
+			*error = "the live stream is running already";
+		return false;
+	}
+	auto live = std::make_unique<DispatchLive>();
+	if (!live->server.start(port, commands, endpointDirectory, error))
+		return false;
+	live->every = std::max(every, 1);
+	live_ = std::move(live);
+	return true;
+}
+
+void DispatchController::stopLive() {
+	live_.reset();
+}
+
+std::string DispatchController::liveEndpoint() const {
+	return live_ ? live_->server.stateEndpoint() : std::string();
+}
+
 void DispatchController::publishSimulationSnapshot(int timestep) {
-	if (!snapshotsEnabled_) {
+	// A run that nothing draws still builds the snapshot of a step for which the live stream has a frame due.
+	const bool liveDue = live_ && live_->inRun && timestep % live_->every == 0;
+	if (!snapshotsEnabled_ && !liveDue) {
 		PlaybackProfiler::instance().noteTimestep(timestep);
 		return;
 	}
@@ -342,12 +455,16 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 			"worker/playback_step/snapshot_build_publish");
 		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
 	}
-	replayCandidate_.record(snapshot);
-	{
-		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
-			"worker/playback_step/snapshot_build_publish");
-		if (snapshotMailbox_.publish(std::move(snapshot)))
-			emit snapshotAvailable();
+	if (liveDue)
+		publishLiveState(*live_, snapshot);
+	if (snapshotsEnabled_) {
+		replayCandidate_.record(snapshot);
+		{
+			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/mailbox_publish", "worker",
+				"worker/playback_step/snapshot_build_publish");
+			if (snapshotMailbox_.publish(std::move(snapshot)))
+				emit snapshotAvailable();
+		}
 	}
 	PlaybackProfiler::instance().noteTimestep(timestep);
 }
@@ -372,11 +489,15 @@ void DispatchController::runSimulation() {
 	QElapsedTimer observationTimer;
 	observationTimer.start();
 	emit executionBegan();
+	if (live_)
+		beginLiveRun(*live_, liveSceneName_);
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {
 		if (!runControl_->isStopRequested())
 			return false;
+		if (live_)
+			pushLiveEvent(*live_, LiveEvent::RunCancelled);
 		emit executionReturned(observationTimer.elapsed(), true);
 		return true;
 	};
@@ -480,6 +601,8 @@ void DispatchController::runSimulation() {
 	}
 	std::cout << "\n End of Simulation";
 	runCompleted_ = true;
+	if (live_)
+		pushLiveEvent(*live_, LiveEvent::RunCompleted);
 	emit executionReturned(observationTimer.elapsed(), false);
 }
 
@@ -644,6 +767,10 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		}
 
 		publishSimulationSnapshot(t);
+	}
+	if (live_) {
+		live_->steps = lastStep + 1;
+		pushLiveEvent(*live_, LiveEvent::StepsFinished);
 	}
 	// The file holds passengers in the network at the last step that ran, including a stopped run.
 	// Write it once because each write replaces the file.

@@ -33,6 +33,12 @@ public:
 	bool exportDetailedTrajectories = false;
 	// Seeds the passenger sampling of a run. Equal seeds give equal runs.
 	unsigned long randomSeed = kDefaultRandomSeed;
+	// The live stream (--live): the port of its state socket, 0 for a free port, or -1 when the stream is off.
+	int livePort = -1;
+	// A state frame for every liveEvery-th step (--live-every).
+	int liveEvery = 1;
+	// The stream also takes requests (--live-commands).
+	bool liveCommands = false;
 
 	explicit InitialParameters(int caseStudy);
 	void set_case(int caseStudy);
