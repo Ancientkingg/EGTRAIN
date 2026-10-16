@@ -1029,7 +1029,13 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_telemetry egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
-	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
+	# The capacity dialog test closes two message boxes. Qt 5.15 crashes when a QMessageBox is shown on
+	# the offscreen platform on Windows, so the test uses the native platform there.
+	if(WIN32)
+		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows" TIMEOUT 120)
+	else()
+		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
+	endif()
 
 	# Behaviour characterization of the simulation core (see tests/characterization).
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
