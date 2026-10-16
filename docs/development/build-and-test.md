@@ -185,6 +185,15 @@ a new directory can still be created in a read-only one, for example for a
 process with root rights. The production migration registry is empty on
 purpose: every scene written so far has version number 1, so there is no
 number to convert from.
+`test_sceneversions` reads the scenes in `tests/fixtures/scene-versions`. They
+are byte copies of scenes written by older builds, listed with their origin in
+`manifest.json`, and a fixture is never edited or saved again. For each one the
+test checks the class, the version numbers, loading, validation, the sizes of
+the loaded model, and that a copy upgrade is refused and leaves the fixture
+unchanged. The stored draft-layout scene is pinned as not runnable. A rejected
+schema number is checked on a copy that the test makes. A guard fails when a
+version constant is raised without a fixture of the previous number and either
+a migration for it or a manifest entry that lists it as unsupported.
 `scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
 `export` and `validate`. The
 [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
@@ -302,7 +311,8 @@ ctest --test-dir build -LE legacy-compat --output-on-failure
 
 `scene-v1` covers the canonical scene model. `legacy-compat` covers only the
 explicit importer/exporter boundary; normal simulation is not in that label.
-`scene-v2` covers `.egscene` container round-trips and hostile-archive checks.
+`scene-v2` covers `.egscene` container round-trips, hostile-archive checks and
+the released scene fixtures.
 
 `test_scenewriter` saves each committed scene and the `line` and `minimal`
 fixtures, loads the result and saves it again, and requires the two saves to be
@@ -375,6 +385,9 @@ describes.
 checks the exit code, the `End of Simulation` line and the energy output. It also
 starts a run with `--detailed-trajectories` and checks that `TEMP/Traj_Train_*.txt`
 and `TrainTrajectories/TrainPathDiagram.txt` appear only in that run.
+The tests `test_scene_version_run_*` also run on every platform. Each starts the
+built QEGTRAIN headless on one runnable scene of `tests/fixtures/scene-versions`
+and makes the same checks in both runs.
 
 ### HTTPS update check
 

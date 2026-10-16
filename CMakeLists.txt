@@ -993,6 +993,11 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenecompatibility
 		COMMAND test_scenecompatibility ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+	add_executable(test_sceneversions ${SRC_DIR}/tests/test_sceneversions.cpp)
+	target_link_libraries(test_sceneversions PRIVATE egtrain_scene)
+	add_test(NAME test_sceneversions
+		COMMAND test_sceneversions ${SRC_DIR}/tests/fixtures/scene-versions)
+
 	add_executable(test_scenebuilder ${SRC_DIR}/tests/test_scenebuilder.cpp)
 	target_link_libraries(test_scenebuilder PRIVATE egtrain_sim)
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
@@ -1193,6 +1198,22 @@ if(EGTRAIN_BUILD_TESTS)
 			$<TARGET_FILE:QEGTRAIN> ${EGTRAIN_SMOKE_APP_SCENE})
 	set_tests_properties(test_headless_scene_smoke PROPERTIES TIMEOUT 150)
 
+	# The same two runs on each scene of tests/fixtures/scene-versions that is meant to run.
+	add_test(NAME test_scene_version_run_main-82.1
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/tests/fixtures/scene-versions/main-82.1-Paimpol.egscene 300)
+	add_test(NAME test_scene_version_run_production-107.1
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/tests/fixtures/scene-versions/production-107.1-Paimpol.egscene 300)
+	add_test(NAME test_scene_version_run_v1.0.2
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/tests/fixtures/scene-versions/v1.0.2-Paimpol.egscene 300)
+	add_test(NAME test_scene_version_run_main-81.1
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/headless_scene_smoke.py
+			$<TARGET_FILE:QEGTRAIN> ${SRC_DIR}/tests/fixtures/scene-versions/main-81.1-Assignment_Gvc_Gdg_Ut 600)
+	set_tests_properties(test_scene_version_run_main-82.1 test_scene_version_run_production-107.1
+		test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1 PROPERTIES TIMEOUT 150)
+
 	# A Windows EXE image near 2 GiB fails to start, and fixed-size static storage is what makes an
 	# image large. The limit is checked on every Windows build, so such storage is noticed early.
 	# The stack reserve is checked with it: the application has its own, scene_tool the linker default.
@@ -1246,6 +1267,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
+			test_sceneversions
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
@@ -1261,7 +1283,7 @@ if(EGTRAIN_BUILD_TESTS)
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
-	set_tests_properties(test_scenebundle test_scenecompatibility PROPERTIES LABELS "scene-v2")
+	set_tests_properties(test_scenebundle test_scenecompatibility test_sceneversions PROPERTIES LABELS "scene-v2")
 
 	# Every test is either `unit` (in-process or a static check) or `integration`
 	# (starts or inspects a built program, or talks to a loopback server).
@@ -1287,6 +1309,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_sceneopenrequest test_scenebuilder
+		test_sceneversions
 		test_operationsbuilder test_completedrun test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
@@ -1300,6 +1323,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke test_visual_polish_smoke
+		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
 	egtrain_label_tests(gui

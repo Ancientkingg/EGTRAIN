@@ -1,0 +1,64 @@
+{
+    "stations": [
+        {
+            "id": "Guingamp",
+            "name": "Guingamp",
+            "platforms": [],
+            "position_km": 0.2
+        },
+        {
+            "id": "Gourland",
+            "name": "Gourland",
+            "platforms": [],
+            "position_km": 2.52
+        },
+        {
+            "id": "Tregonneau_Squiffiec",
+            "name": "Tregonneau_Squiffiec",
+            "platforms": [],
+            "position_km": 9.989
+        },
+        {
+            "id": "Brelidy-Plouec",
+            "name": "Brelidy-Plouec",
+            "platforms": [],
+            "position_km": 15.339
+        },
+        {
+            "id": "Pontrieaux_Halte",
+            "name": "Pontrieaux_Halte",
+            "platforms": [],
+            "position_km": 20.535
+        },
+        {
+            "id": "Pontrieaux",
+            "name": "Pontrieaux",
+            "platforms": [],
+            "position_km": 21.584
+        },
+        {
+            "id": "Frynaudour",
+            "name": "Frynaudour",
+            "platforms": [],
+            "position_km": 25.505
+        },
+        {
+            "id": "Traou_Nez",
+            "name": "Traou_Nez",
+            "platforms": [],
+            "position_km": 28.88
+        },
+        {
+            "id": "Lancerf",
+            "name": "Lancerf",
+            "platforms": [],
+            "position_km": 30.95
+        },
+        {
+            "id": "Paimpol",
+            "name": "Paimpol",
+            "platforms": [],
+            "position_km": 36.847
+        }
+    ]
+}

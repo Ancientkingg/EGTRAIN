@@ -281,7 +281,11 @@ A version number changes only for a change that makes existing scenes
 unreadable. The change that does it registers the migration step for the
 previous number and adds a scene of that number as a test fixture, in the same
 change. Optional keys, optional files and new validation warnings never change
-a number. This is a rule for changes to the format.
+a number. `test_sceneversions` enforces the rule: raising `schema_version` or
+`bundle_version` makes it fail until the fixtures in
+`tests/fixtures/scene-versions` are reconsidered. A number below the current one
+passes only with a fixture of that number and either a registered migration for
+it or a manifest entry that lists the fixture as deliberately unsupported.
 
 ## Bundle format (v2)
 

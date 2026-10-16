@@ -1,0 +1,61 @@
+{
+    "stations": [
+        {
+            "id": "Gvc",
+            "name": "Gvc",
+            "platforms": [
+                {
+                    "id": "Gvc.platform.1",
+                    "nodes": [
+                        "B0.node.1"
+                    ]
+                },
+                {
+                    "id": "Gvc.platform.2",
+                    "nodes": [
+                        "B1.node.33"
+                    ]
+                }
+            ],
+            "position_km": 0.0
+        },
+        {
+            "id": "Gdg",
+            "name": "Gdg",
+            "platforms": [
+                {
+                    "id": "Gdg.platform.1",
+                    "nodes": [
+                        "B0.node.15"
+                    ]
+                },
+                {
+                    "id": "Gdg.platform.2",
+                    "nodes": [
+                        "B1.node.19"
+                    ]
+                }
+            ],
+            "position_km": 28.0
+        },
+        {
+            "id": "Ut",
+            "name": "Ut",
+            "platforms": [
+                {
+                    "id": "Ut.platform.1",
+                    "nodes": [
+                        "B0.node.33"
+                    ]
+                },
+                {
+                    "id": "Ut.platform.2",
+                    "nodes": [
+                        "B1.node.1"
+                    ]
+                }
+            ],
+            "position_km": 64.0
+        }
+    ]
+}
