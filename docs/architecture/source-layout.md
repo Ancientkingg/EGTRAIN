@@ -32,7 +32,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `SceneTool` |
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
-| `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `ElidedLabel` |
+| `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `EditorLayout`, `ElidedLabel` |
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `CapacityAnalysis`, `AreaCapacity`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
