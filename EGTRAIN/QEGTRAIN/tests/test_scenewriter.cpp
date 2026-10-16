@@ -1410,6 +1410,18 @@ int main(int argc, char** argv) {
 		"writer emits passenger departure window");
 	ok &= expect(passengers["passengers"][0]["journeys"][0]["legs"].size() == 1,
 		"writer emits ordered passenger legs");
+	ok &= expect(passengers == encodePassengers(source.passengers), "saved passengers.json is the encoded passengers");
+	{
+		ScenePassenger passenger;
+		passenger.id = "p";
+		passenger.journeys.resize(1);
+		const json encoded = encodePassengers({passenger});
+		const json& journey = encoded["passengers"][0]["journeys"][0];
+		ok &= expect(!journey.contains("activity") && journey["legs"].empty() && journey["planned_arrival"].size() == 2,
+			"encoder leaves out an empty activity and keeps the windows and an empty leg list");
+		ok &= expect(encodePassengers({}) == json({{"passengers", json::array()}}),
+			"encoder writes an empty passenger list as an empty array");
+	}
 
 	SceneModel reloaded;
 	ok &= expect(loadHasNoErrors(temp.path, reloaded), "canonical scene reloads without structural errors");

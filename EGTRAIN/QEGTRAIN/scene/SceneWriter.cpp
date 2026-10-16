@@ -380,9 +380,9 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	return result;
 }
 
-static json writePassengers(const SceneModel& scene) {
-	json passengers = json::array();
-	for (const auto& passenger : scene.passengers) {
+json encodePassengers(const std::vector<ScenePassenger>& passengers) {
+	json values = json::array();
+	for (const auto& passenger : passengers) {
 		json value = {{"id", passenger.id}, {"journeys", json::array()}};
 		for (const auto& journey : passenger.journeys) {
 			json journeyValue = {
@@ -412,9 +412,9 @@ static json writePassengers(const SceneModel& scene) {
 			}
 			value["journeys"].push_back(journeyValue);
 		}
-		passengers.push_back(value);
+		values.push_back(value);
 	}
-	return {{"passengers", passengers}};
+	return {{"passengers", values}};
 }
 
 static json writeViews(const SceneModel& scene) {
@@ -615,7 +615,7 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	if (hasViews)
 		wroteAll = writeCanonical("views.json", writeViews(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
-		wroteAll = writeCanonical("passengers.json", writePassengers(scene)) && wroteAll;
+		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
 	}
 
 	result.wroteAll = wroteAll && !hasErrors(result.diagnostics);

@@ -65,10 +65,10 @@ public:
 		bool required = true) const;
 	// Always optional. Reports nothing for an absent key or for an item that is not an object.
 	bool boolField(const nlohmann::json& object, const char* key, const std::string& path, bool& output) const;
-
-private:
+	// Reports an error with its own code, for a check that is not about the type of one field.
 	void report(const char* code, const std::string& message, const std::string& path) const;
 
+private:
 	std::string_view file_;
 	const SceneFieldCodes& codes_;
 	std::vector<SceneDiagnostic>& sink_;
@@ -78,3 +78,10 @@ private:
 // order of the file schema, and the result keeps the defaults of the fields that it could not read.
 SceneIncident decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
+
+// Whether an input file must not carry this key because it names a simulation result.
+bool isSimulationResultField(const std::string& name);
+
+// Reads passengers.json. The reader must belong to that file and use kSceneFileFieldCodes. A journey needs both planned
+// windows, a leg without an occurrence has occurrence 1, and a simulation result in the input is an error.
+std::vector<ScenePassenger> decodePassengers(const SceneFieldReader& reader, const nlohmann::json& root);

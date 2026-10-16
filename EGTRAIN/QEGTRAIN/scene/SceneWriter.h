@@ -4,6 +4,7 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
@@ -25,5 +26,8 @@ struct ScenarioLoadResult {
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir);
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath);
 ScenarioLoadResult loadScenarioJson(const std::string& filePath);
+
+// The content of passengers.json. A journey without an activity leaves the key out.
+nlohmann::json encodePassengers(const std::vector<ScenePassenger>& passengers);
 
 #endif // SCENEWRITER_H

@@ -1,6 +1,7 @@
 #include "scene/SceneImporter.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
+#include "scene/SceneWriter.h"
 
 #include <chrono>
 #include <climits>
@@ -192,6 +193,115 @@ static bool checkScenarioItemDiagnostics() {
 	return ok;
 }
 
+// Malformed passengers, read from passengers.json. The directory holds only that file, so the loader reports the other
+// scene files as missing under their own names.
+static bool checkPassengerDiagnostics() {
+	bool ok = true;
+	const auto load = [](const json& content) {
+		TempDir directory;
+		writeText(fs::path(directory.dir) / "passengers.json", content.dump());
+		return loadScene(directory.dir);
+	};
+	const std::string results = "scene.passengers.results ";
+	const std::string resultMessage = ": Passenger input must not contain simulation-result fields";
+	const std::string notObject = "scene.item.invalid ";
+	const std::string journeys = "passengers[0].journeys[0]";
+	const std::string leg = journeys + ".legs[0]";
+
+	// Every field has the wrong type. A simulation result is reported before the fields of its item.
+	const json wrongLeg = {{"actual_arrival", 1}, {"id", 1}, {"origin", 2}, {"destination", 3}, {"service", 4},
+		{"occurrence", 1.5}};
+	const json wrongJourney = {{"delay_seconds", 1}, {"id", 1}, {"activity", 2}, {"origin", 3}, {"destination", 4},
+		{"planned_departure", 5}, {"planned_arrival", {{"start_seconds", "a"}, {"end_seconds", "b"}}},
+		{"legs", json::array({wrongLeg})}};
+	const json wrongPassenger = {{"id", 5}, {"results", json::object()}, {"journeys", json::array({wrongJourney})}};
+	std::vector<std::string> expected = {
+		"scene.field.missing passengers[0].id: Invalid id",
+		results + "passengers[0].results" + resultMessage,
+		results + journeys + ".delay_seconds" + resultMessage,
+		"scene.field.missing " + journeys + ".id: Invalid id",
+		"scene.field.missing " + journeys + ".activity: Invalid activity",
+		"scene.field.missing " + journeys + ".origin: Invalid origin",
+		"scene.field.missing " + journeys + ".destination: Invalid destination",
+		"scene.field.missing " + journeys + ".planned_departure: Missing planned_departure window",
+		"scene.field.missing " + journeys + ".planned_arrival.start_seconds: Invalid start_seconds",
+		"scene.field.missing " + journeys + ".planned_arrival.end_seconds: Invalid end_seconds",
+		results + leg + ".actual_arrival" + resultMessage,
+		"scene.field.missing " + leg + ".id: Invalid id",
+		"scene.field.missing " + leg + ".origin: Invalid origin",
+		"scene.field.missing " + leg + ".destination: Invalid destination",
+		"scene.field.missing " + leg + ".service: Invalid service",
+		"scene.field.missing " + leg + ".occurrence: Invalid occurrence",
+	};
+	SceneLoadResult loaded = load({{"passengers", json::array({wrongPassenger})}});
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json") == expected,
+		"Malformed passenger fields are reported in schema order");
+	ok &= expect(loaded.scene.passengers.size() == 1 && loaded.scene.passengers[0].journeys.size() == 1
+			&& loaded.scene.passengers[0].journeys[0].legs.size() == 1
+			&& loaded.scene.passengers[0].journeys[0].legs[0].occurrence == 1,
+		"Malformed passenger fields keep their defaults and the items are still read");
+
+	// Absent fields. A leg without an occurrence is not an error.
+	loaded = load({{"passengers", json::array({json::object(), {{"id", "p"}, {"journeys", json::array({json::object()})}}, {{"id", "q"}, {"journeys", json::array({{{"legs", json::array({json::object()})}}})}}})}});
+	expected = {
+		"scene.field.missing passengers[0].id: Missing id",
+		"scene.section.missing passengers[0].journeys: Missing journeys section",
+		"scene.field.missing passengers[1].journeys[0].id: Missing id",
+		"scene.field.missing passengers[1].journeys[0].origin: Missing origin",
+		"scene.field.missing passengers[1].journeys[0].destination: Missing destination",
+		"scene.field.missing passengers[1].journeys[0].planned_departure: Missing planned_departure window",
+		"scene.field.missing passengers[1].journeys[0].planned_arrival: Missing planned_arrival window",
+		"scene.section.missing passengers[1].journeys[0].legs: Missing legs section",
+		"scene.field.missing passengers[2].journeys[0].id: Missing id",
+		"scene.field.missing passengers[2].journeys[0].origin: Missing origin",
+		"scene.field.missing passengers[2].journeys[0].destination: Missing destination",
+		"scene.field.missing passengers[2].journeys[0].planned_departure: Missing planned_departure window",
+		"scene.field.missing passengers[2].journeys[0].planned_arrival: Missing planned_arrival window",
+		"scene.field.missing passengers[2].journeys[0].legs[0].id: Missing id",
+		"scene.field.missing passengers[2].journeys[0].legs[0].origin: Missing origin",
+		"scene.field.missing passengers[2].journeys[0].legs[0].destination: Missing destination",
+		"scene.field.missing passengers[2].journeys[0].legs[0].service: Missing service",
+	};
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json") == expected,
+		"Absent passenger fields and sections are reported");
+
+	// An item that is not an object is reported by every field that is read from it.
+	loaded = load({{"passengers", json::array({7})}});
+	expected = {notObject + "passengers[0]: Array item must be an object", notObject + "passengers[0]: Expected an object"};
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json") == expected,
+		"A passenger that is not an object is reported by its id and its journeys");
+	loaded = load({{"passengers", json::array({{{"id", "p"}, {"journeys", json::array({7})}}})}});
+	expected.assign(4, notObject + journeys + ": Array item must be an object");
+	expected.push_back("scene.field.missing " + journeys + ".planned_departure: Missing planned_departure window");
+	expected.push_back("scene.field.missing " + journeys + ".planned_arrival: Missing planned_arrival window");
+	expected.push_back(notObject + journeys + ": Expected an object");
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json") == expected,
+		"A journey that is not an object is reported by its fields, its windows and its legs");
+	loaded = load({{"passengers", json::array({{{"id", "p"}, {"journeys", json::array({{{"id", "j"}, {"origin", "a"}, {"destination", "b"}, {"planned_departure", json::object()}, {"planned_arrival", json::object()}, {"legs", json::array({7})}}})}}})}});
+	expected = {"scene.field.missing " + journeys + ".planned_departure.start_seconds: Missing start_seconds",
+		"scene.field.missing " + journeys + ".planned_departure.end_seconds: Missing end_seconds",
+		"scene.field.missing " + journeys + ".planned_arrival.start_seconds: Missing start_seconds",
+		"scene.field.missing " + journeys + ".planned_arrival.end_seconds: Missing end_seconds"};
+	expected.insert(expected.end(), 5, notObject + leg + ": Array item must be an object");
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json") == expected,
+		"Empty windows and a leg that is not an object are reported by their fields");
+
+	// Sections.
+	loaded = load({{"passengers", "x"}});
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json")
+			== std::vector<std::string>{"scene.section.missing passengers: Mistyped passengers section"},
+		"A passengers section that is not an array is reported");
+	loaded = load(json::object());
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json")
+			== std::vector<std::string>{"scene.section.missing passengers: Missing passengers section"},
+		"A passengers file without a section is reported");
+	loaded = load({{"passengers", json::array({{{"id", "p"}, {"journeys", "x"}}})}});
+	ok &= expect(errorsIn(loaded.diagnostics, "passengers.json")
+			== std::vector<std::string>{"scene.section.missing passengers[0].journeys: Mistyped journeys section"},
+		"A journeys section that is not an array is reported");
+	return ok;
+}
+
 int main() {
 	bool ok = true;
 	{
@@ -270,7 +380,8 @@ int main() {
 		writeText(legacy / "TimeTable/fixture.txt", "Guingamp 2 -1 10\nPaimpol 3 20 10\n");
 		writeText(legacy / "Passengers/DAS_FrenchCaseStudy.csv",
 			"h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n"
-			"x,p1,x,x,j1,work,Paimpol,x,x,x,8.25,x,Guingamp,x,8.00\n");
+			"x,p1,x,x,j1,work,Paimpol,x,x,x,8.25,x,Guingamp,x,8.00\n"
+			"x,p2,x,x,j1,,Paimpol,x,x,x,8.75,x,Guingamp,x,8.50\n");
 		writeText(legacy / "Passengers/RouteChoiceFC_EQ1.csv",
 			"person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1\n"
 			"p1,Paimpol,0,,FixtureService-1\n");
@@ -411,9 +522,15 @@ int main() {
 				"Duplicate operating-code incident expands to every matching canonical service");
 			json passengers;
 			ok &= expect(readJson(fs::path(output.dir) / "passengers.json", passengers)
-					&& passengers["passengers"].size() == 1
+					&& passengers["passengers"].size() == 2
 					&& passengers["passengers"][0]["journeys"][0]["legs"].size() == 1,
 				"Full legacy import reuses the passenger conversion seam");
+			const SceneLoadResult importedScene = loadScene(output.dir);
+			ok &= expect(passengers == encodePassengers(importLegacyPassengers(legacyDir.dir, importedScene.scene).passengers),
+				"Full legacy import writes the passengers with the scene writer's encoding");
+			ok &= expect(passengers["passengers"][0]["journeys"][0]["activity"] == "work"
+					&& !passengers["passengers"][1]["journeys"][0].contains("activity"),
+				"A journey without an activity leaves the key out of the imported file");
 
 			// Integer fields must be rejected, not narrowed, when the JSON number does not fit an int.
 			const auto loadMutated = [&](const char* file, const std::function<void(json&)>& mutate) {
@@ -732,6 +849,45 @@ int main() {
 				&& spellingAlias.passengers[0].journeys[0].destinationStationId == "Tregonneau_Squiffiec"
 				&& spellingAlias.passengers[0].journeys[0].legs[0].destinationStationId == "Tregonneau_Squiffiec",
 			"Known Tregonnau station spelling maps through the explicit alias");
+		// A repeated journey number gets a suffix, and the legs of a transfer continue the journey id.
+		TempDir transferRoot;
+		writeText(fs::path(transferRoot.dir) / "Passengers/DAS_FrenchCaseStudy.csv",
+			"h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13,h14\n"
+			"x,t1,x,x,j1,work,Destination,x,x,x,8.25,x,Origin,x,8.00\n"
+			"x,t1,x,x,j1,,Middle,x,x,x,9.75,x,Origin,x,9.00\n");
+		writeText(fs::path(transferRoot.dir) / "Passengers/RouteChoiceFC_EQ1.csv",
+			"person_id,destination,nb_transfers,transfer_n1,r_service_lines_id1,r_service_lines_id2\n"
+			"t1,Destination,1,Middle,ServiceA-1,ServiceB-2\n");
+		SceneModel transferScene = scene;
+		transferScene.stations.push_back({"middle", "Middle", false, 0.5, {}});
+		SceneService serviceA = scene.services[0];
+		serviceA.id = serviceA.operatingCode = "ServiceA";
+		serviceA.stops = {{"origin", ""}, {"middle", ""}};
+		SceneService serviceB = serviceA;
+		serviceB.id = serviceB.operatingCode = "ServiceB";
+		serviceB.stops = {{"middle", ""}, {"destination", ""}};
+		transferScene.services = {serviceA, serviceB};
+		const ScenePassengerImportResult transfer = importLegacyPassengers(transferRoot.dir, transferScene);
+		const bool journeysRead = transfer.success() && transfer.passengers.size() == 1
+			&& transfer.passengers[0].id == "t1" && transfer.passengers[0].journeys.size() == 2;
+		ok &= expect(journeysRead && transfer.passengers[0].journeys[0].id == "t1:j1"
+				&& transfer.passengers[0].journeys[1].id == "t1:j1_2"
+				&& transfer.passengers[0].journeys[0].activity == "work"
+				&& transfer.passengers[0].journeys[1].activity.empty()
+				&& transfer.passengers[0].journeys[0].plannedDepartureStartSeconds == 8.0 * 3600.0
+				&& transfer.passengers[0].journeys[0].plannedArrivalEndSeconds == 8.0 * 3600.0 + 1799.0
+				&& transfer.passengers[0].journeys[1].plannedDepartureEndSeconds == 9.0 * 3600.0
+				&& transfer.passengers[0].journeys[1].plannedArrivalStartSeconds == 9.0 * 3600.0 + 1800.0,
+			"Passenger journeys keep the legacy ids, activities and time windows");
+		const std::vector<ScenePassengerLeg> transferLegs = journeysRead ? transfer.passengers[0].journeys[0].legs
+																		 : std::vector<ScenePassengerLeg>();
+		ok &= expect(transferLegs.size() == 2 && transferLegs[0].id == "t1:j1.leg.1"
+				&& transferLegs[0].originStationId == "origin" && transferLegs[0].destinationStationId == "middle"
+				&& transferLegs[0].serviceId == "ServiceA" && transferLegs[0].occurrence == 1
+				&& transferLegs[1].id == "t1:j1.leg.2" && transferLegs[1].originStationId == "middle"
+				&& transferLegs[1].destinationStationId == "destination" && transferLegs[1].serviceId == "ServiceB"
+				&& transferLegs[1].occurrence == 2,
+			"Passenger transfer legs continue the journey id and keep the service occurrence");
 		const ScenePassengerImportResult missing = importLegacyPassengers(
 			(fs::path(root.dir) / "missing").string(), scene);
 		ok &= expect(!missing.success()
@@ -922,6 +1078,7 @@ int main() {
 	}
 
 	ok &= checkScenarioItemDiagnostics();
+	ok &= checkPassengerDiagnostics();
 
 	if (!ok)
 		return 1;
