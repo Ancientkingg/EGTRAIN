@@ -295,8 +295,8 @@ To enable signing later, the owner:
 
 ### First start of an unsigned build
 
-This was observed on 2026-10-16 on a clean Windows 11 (build 26300) as a standard user, for files that carried the
-download mark that a browser sets (`ZoneId=3`). Double-clicking `EGTRAIN-Setup-1.0.0-x64.exe` shows:
+This was observed on 2026-10-16 on a clean Windows 11 (build 26300, ARM64, running the x64 files through Windows'
+emulation) as a standard user, for files that carried the download mark that a browser sets (`ZoneId=3`). Double-clicking `EGTRAIN-Setup-1.0.0-x64.exe` shows:
 
 1. A dialog headed `Windows protected your PC`. Its text is
    `Microsoft Defender SmartScreen prevented an unrecognized app from starting. Running this app might put your PC at risk.`

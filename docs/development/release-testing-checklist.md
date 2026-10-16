@@ -385,7 +385,7 @@ The release does not build this today, so it has no subject.
 
 | Check | What the release has today | Status |
 | --- | --- | --- |
-| Windows binary signature | None (#402). | No row until the release provides it |
+| Windows binary signature | None: Windows releases are not signed (decision of 2026-10-16, see code-signing.md). | No row unless signing is enabled |
 
 This row is not part of the gate. It is added to the table of the record when
 the release provides the asset.
