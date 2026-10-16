@@ -69,6 +69,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
 | `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdatePreparation`, `UpdateSettings` | Qt Core, `egtrain_util` |
+| `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
