@@ -431,6 +431,23 @@ jobs:
           Copy-Item -Recurse dist/QEGTRAIN/* $start
           python tools/release/package_start_smoke.py "$start"
 
+      - name: Check HTTPS from the package
+        # One real request to the GitHub release list through the update transport, as the update check makes it. The program starts
+        # from the copy of the package that the previous step started, with only the Windows directories on PATH, so it uses the Qt
+        # files of the package as a machine without a developer setup would. It fails when no HTTPS response arrives. It exits with
+        # 77 when GitHub answers with its rate limit or an outage, which does not fail the job.
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $probe = Get-ChildItem -Path build -Recurse -Filter test_updatetransport_https.exe | Select-Object -First 1
+          if (-not $probe) { throw "test_updatetransport_https.exe not found under build/" }
+          $start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"
+          Copy-Item $probe.FullName $start
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot"
+          & "$start/test_updatetransport_https.exe" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 77) { throw "the HTTPS check failed with exit code $LASTEXITCODE" }
+          exit 0
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

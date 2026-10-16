@@ -54,6 +54,7 @@ option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanit
 option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
 option(EGTRAIN_ENABLE_TELEMETRY "Enable consent UI for packaged interactive builds" OFF)
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
+option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)
 option(EGTRAIN_ISOLATED_TELEMETRY_SMOKE "Enable isolated numeric-loopback application smoke hook" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE AND (NOT EGTRAIN_BUILD_TESTS OR NOT EGTRAIN_PACKAGED_BUILD))
     message(FATAL_ERROR "Isolated telemetry smoke requires EGTRAIN_BUILD_TESTS and EGTRAIN_PACKAGED_BUILD")
@@ -594,7 +595,12 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
     target_link_libraries(test_updatehelper PRIVATE egtrain_update Qt5::Core)
     add_test(NAME test_updatehelper COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS})
     set_tests_properties(test_updatehelper PROPERTIES TIMEOUT 120)
-    foreach(egtrain_test test_updatepreparation test_updatehelper)
+
+    # One real HTTPS request to GitHub through the update transport. The package job runs the program from a
+    # copy of the package; the test below runs it from the build.
+    add_executable(test_updatetransport_https ${SRC_DIR}/tests/test_updatetransport_https.cpp)
+    target_link_libraries(test_updatetransport_https PRIVATE egtrain_update Qt5::Core Qt5::Network)
+    foreach(egtrain_test test_updatepreparation test_updatehelper test_updatetransport_https)
         egtrain_target_warnings(${egtrain_test} STRICT)
     endforeach()
 endif()
@@ -663,6 +669,17 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_httptransport PRIVATE egtrain_update Qt5::Core Qt5::Network)
     add_test(NAME test_httptransport COMMAND test_httptransport)
     set_tests_properties(test_httptransport PROPERTIES TIMEOUT 60)
+
+    # The program that asks GitHub for the release list, against a server on the loopback address.
+    add_test(NAME test_updatetransport_https_cases COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_updatetransport_https_cases.py $<TARGET_FILE:test_updatetransport_https>)
+    set_tests_properties(test_updatetransport_https_cases PROPERTIES TIMEOUT 300)
+    # The request to GitHub needs internet access, so no test run includes it unless the configuration asks for it.
+    # The program returns 77 when GitHub answers with its rate limit or an outage, which CTest shows as skipped.
+    if(EGTRAIN_NETWORK_TESTS)
+        add_test(NAME test_updatetransport_https COMMAND test_updatetransport_https)
+        set_tests_properties(test_updatetransport_https PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+    endif()
 
     # SelfUpdater is compiled here with its test hook, which points it at a server on the loopback
     # address and at folders of the test. The update probe stands in for the helper.
@@ -1216,7 +1233,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Every test is either `unit` (in-process or a static check) or `integration`
 	# (starts or inspects a built program, or talks to a loopback server).
-	# `gui` needs a Qt platform plugin and `slow` takes more than 20 s locally.
+	# `gui` needs a Qt platform plugin and `slow` takes more than 20 s locally. `network` needs internet access.
 	# APPEND keeps the scene labels above. Names not registered on this platform are skipped.
 	function(egtrain_label_tests label)
 		foreach(name IN LISTS ARGN)
@@ -1244,7 +1261,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
-		test_httptransport test_selfupdater
+		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
@@ -1262,6 +1279,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
 		test_visual_polish_smoke)
 	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract test_visual_polish_smoke)
+	egtrain_label_tests(network test_updatetransport_https)
 
 	# Fail configuration unless a test has exactly one of the unit and integration labels.
 	get_property(egtrain_all_tests DIRECTORY PROPERTY TESTS)

@@ -134,6 +134,12 @@ What the jobs prove today:
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
+- The Package Windows job also makes one HTTPS request to the GitHub release list
+  from a copy of the package, with only the Windows directories on `PATH` (step
+  **Check HTTPS from the package**). It shows that the update transport completes
+  an HTTPS request with the Qt files of the package and no Qt or vcpkg directory
+  on `PATH`. It does not show the update check of the application on a clean
+  machine, which row R8 covers.
 - The Package macOS job starts a copy of the app that goes into the disk image, the
   Package Windows job starts a copy of the directory it uploads, and the Package
   Linux job starts the extracted AppImage, all with

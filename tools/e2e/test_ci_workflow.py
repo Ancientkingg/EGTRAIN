@@ -448,6 +448,44 @@ def main() -> None:
         or any(entry not in package_step or entry not in release_workflow for entry in package_assembly)
     ):
         missing.append("Windows package start check with the assembly commands of the release workflow")
+    # Qt 5.15 has no TLS library on Windows, so the update requests go through WinHTTP there. The Windows leg sends one real request
+    # to the GitHub release list through that transport and fails when no HTTPS response arrives. The test is registered only when
+    # the configuration asks for it, so no other test run needs internet access. The program returns one code for a rate limit or
+    # an outage of GitHub, which CTest shows as skipped.
+    https_probe = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_updatetransport_https.cpp").read_text(encoding="utf-8")
+    https_skip = re.search(r"^constexpr int kExitSkipped = (\d+);$", https_probe, re.MULTILINE)
+    https_registered = re.search(
+        r"\n    if\(EGTRAIN_NETWORK_TESTS\)\n        add_test\(NAME test_updatetransport_https COMMAND test_updatetransport_https\)\n"
+        r"        set_tests_properties\(test_updatetransport_https PROPERTIES TIMEOUT \d+ SKIP_RETURN_CODE (\d+)\)\n    endif\(\)\n",
+        cmake,
+    )
+    packaged_tests = re.search(r"^if\(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD\)\n(.*?)^endif\(\)", cmake, re.MULTILINE | re.DOTALL)
+    if not packaged_tests or "add_executable(test_updatetransport_https " not in packaged_tests.group(1):
+        missing.append("HTTPS probe program built in a packaged build")
+    if (
+        'option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)\n' not in cmake
+        or not https_registered
+        or not https_skip
+        or https_registered.group(1) != https_skip.group(1)
+        or "egtrain_label_tests(network test_updatetransport_https)\n" not in cmake
+        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_updatetransport_https\b", cmake)
+    ):
+        missing.append("HTTPS probe test registered only with EGTRAIN_NETWORK_TESTS, labelled network, skipped on the code that the program returns")
+    if not re.search(r"add_test\(NAME test_updatetransport_https_cases COMMAND \$\{Python3_EXECUTABLE\}\n[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\)", cmake):
+        missing.append("HTTPS probe answers test registered for every platform")
+    build_job = job_block(workflow, "build")
+    build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
+    https_step = step_block(build_job, "Check HTTPS (Windows)")
+    if (
+        workflow.count("-DEGTRAIN_NETWORK_TESTS=ON") != 1
+        or "-DEGTRAIN_NETWORK_TESTS=ON" not in step_block(build_job, "Configure (Windows)")
+        or "-LE network" not in test_step
+        or "if: runner.os == 'Windows'\n" not in https_step
+        or "        run: ctest --test-dir build -C Release -L network --no-tests=error --output-on-failure\n" not in https_step
+        or "Check HTTPS (Windows)" not in build_step_names
+        or build_step_names.index("Test") > build_step_names.index("Check HTTPS (Windows)")
+    ):
+        missing.append("Windows HTTPS check after the tests, with the network tests built for the Windows leg only and left out of the Test step")
     if not re.search(
         r"if\(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4\)\s*message\(FATAL_ERROR",
         cmake,
@@ -572,6 +610,22 @@ def main() -> None:
         or not 0 <= windows_job.find("uses: actions/setup-python@v5") < windows_job.find("name: Start the package")
     ):
         missing.append("Windows package start of a copy under RUNNER_TEMP with Python set up")
+    # The package job starts the HTTPS probe from that copy, with only the Windows directories on PATH, so it loads the Qt files
+    # of the package. The exit code for a rate limit or an outage of GitHub does not fail the job.
+    https_package = step_block(windows_job, "Check HTTPS from the package")
+    https_order = ("Start the package", "Check HTTPS from the package", "Upload artifact")
+    https_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in https_order]
+    if (
+        -1 in https_positions
+        or https_positions != sorted(https_positions)
+        or '$start = "$env:RUNNER_TEMP/package-start/QEGTRAIN"\n' not in https_package
+        or "Copy-Item $probe.FullName $start\n" not in https_package
+        or '$env:PATH = "$env:SystemRoot\\System32;$env:SystemRoot"\n' not in https_package
+        or '& "$start/test_updatetransport_https.exe"' not in https_package
+        or not https_skip
+        or f"$LASTEXITCODE -ne {https_skip.group(1)}" not in https_package
+    ):
+        missing.append("Windows package check of HTTPS from a copy of the package with only the Windows directories on PATH")
     # The job uploads the directory that it verified, sized and started, with its hidden files. It writes no archive:
     # the finalize job writes the portable archive from the uploaded files.
     if step_block(windows_job, "Upload artifact") != (
