@@ -68,7 +68,8 @@ version is offered as usual, and **Help > Check for Updates...** still offers it
 The helper tries again for a few seconds when it cannot rename the installation,
 because on Windows a file of the application that just ended can stay locked for a
 short time. If the files still cannot be replaced, the previous version stays
-installed and starts again, and the helper removes the staging folder. That
+installed and starts again, and the helper removes the staging folder (on
+Windows the helper itself stays until the next start removes it). That
 version then tells you once that the update to the new version could not be
 applied. Automatic checks keep offering it, and **Help > Check for Updates...**
 tries again.
