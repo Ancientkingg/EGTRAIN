@@ -518,7 +518,8 @@ A signalling area is `id`, `start_km`, `end_km`, `level` and an optional `track`
 (see the [scene schema](scene-schema.md)). The rule is in
 `analyzeSignallingAreas` (`scene/SectionInventory.cpp`), which the validator
 uses. The builder repeats it in `buildInfrastructureAndSignallingFromScene`
-(`simulation/Signalling.cpp`); unit tests compare the two on small scenes.
+(`simulation/builders/InfrastructureBuilder.cpp`); unit tests compare the two on
+small scenes.
 
 - **Which sections.** The unit is a runtime section from the section inventory
   (`buildSceneSectionInventory`). The blocks of a track follow each other from the

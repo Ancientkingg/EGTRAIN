@@ -1255,7 +1255,7 @@ static bool runTrackDetectionBorderNameChecks() {
 	return ok;
 }
 
-// The messages of simulation/Signalling.cpp are sim.setup messages of the logging core. A sink collects them, because the console
+// The messages of the infrastructure builder are sim.setup messages of the logging core. A sink collects them, because the console
 // shows neither the category nor the level, and each text is compared with the exact wording, quirks included (a missing space,
 // a tail that is written twice, "ahving").
 static bool runSignallingMessageChecks() {

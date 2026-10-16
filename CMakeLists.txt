@@ -184,7 +184,8 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/RollingStockOccupation.cpp
     ${SRC_DIR}/simulation/RollingStockStops.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
-    ${SRC_DIR}/simulation/Simulation.cpp)
+    ${SRC_DIR}/simulation/Simulation.cpp
+    ${SRC_DIR}/simulation/builders/InfrastructureBuilder.cpp)
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
