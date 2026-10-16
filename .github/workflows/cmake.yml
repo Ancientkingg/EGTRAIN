@@ -208,7 +208,7 @@ jobs:
         run: sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Configure with sanitizers
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=1500
 
       - name: Build with sanitizers
         id: build
