@@ -1,0 +1,95 @@
+{
+  "fixtures": [
+    {
+      "path": "main-82.1-Paimpol.egscene",
+      "origin": "Paimpol.egscene published with the release main-82.1-4cec36e",
+      "class": "Current",
+      "schema_version": 1,
+      "bundle_version": 1,
+      "saved_with_app_version": "",
+      "runnable": true,
+      "counts": {
+        "nodes": 399,
+        "arcs": 393,
+        "blocks": 140,
+        "stations": 10,
+        "routes": 15,
+        "trainUnits": 1,
+        "compositions": 1,
+        "services": 2,
+        "scenarios": 1,
+        "passengers": 188
+      }
+    },
+    {
+      "path": "production-107.1-Paimpol.egscene",
+      "origin": "Paimpol.egscene published with the release production-107.1-5a87347",
+      "class": "Current",
+      "schema_version": 1,
+      "bundle_version": 1,
+      "saved_with_app_version": "",
+      "runnable": true,
+      "counts": {
+        "nodes": 399,
+        "arcs": 393,
+        "blocks": 140,
+        "stations": 10,
+        "routes": 15,
+        "trainUnits": 1,
+        "compositions": 1,
+        "services": 2,
+        "scenarios": 1,
+        "passengers": 188
+      }
+    },
+    {
+      "path": "v1.0.2-Paimpol.egscene",
+      "origin": "Paimpol.egscene published with the release v1.0.2",
+      "class": "Current",
+      "schema_version": 1,
+      "bundle_version": 1,
+      "saved_with_app_version": "1.0.2",
+      "runnable": true,
+      "counts": {
+        "nodes": 399,
+        "arcs": 393,
+        "blocks": 140,
+        "stations": 10,
+        "routes": 15,
+        "trainUnits": 1,
+        "compositions": 1,
+        "services": 2,
+        "scenarios": 1,
+        "passengers": 188
+      }
+    },
+    {
+      "path": "main-81.1-Assignment_Gvc_Gdg_Ut",
+      "origin": "EGTRAIN/QEGTRAIN/Scenes/Assignment_Gvc_Gdg_Ut at commit 39289c1 (release main-81.1-39289c1)",
+      "class": "Current",
+      "schema_version": 1,
+      "saved_with_app_version": "",
+      "runnable": true,
+      "counts": {
+        "nodes": 66,
+        "arcs": 64,
+        "blocks": 64,
+        "stations": 3,
+        "routes": 2,
+        "trainUnits": 1,
+        "compositions": 1,
+        "services": 4,
+        "scenarios": 1,
+        "passengers": 0
+      }
+    },
+    {
+      "path": "draft-layout-Paimpol",
+      "origin": "EGTRAIN/QEGTRAIN/Scenes/Paimpol at commit 92582d9 (release main-77.1-92582d9) without its legacy directory",
+      "class": "Current",
+      "schema_version": 1,
+      "saved_with_app_version": "",
+      "runnable": false
+    }
+  ]
+}

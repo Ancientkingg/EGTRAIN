@@ -1,0 +1,110 @@
+{
+    "services": [
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 420.0,
+            "id": "IC1723",
+            "operating_code": "IC1723",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 480.0,
+                    "station": "Gvc"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 1440.0,
+                    "planned_departure_seconds": 1500.0,
+                    "station": "Gdg"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 2580.0,
+                    "station": "Ut"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 600.0,
+            "id": "S19825",
+            "operating_code": "S19825",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 660.0,
+                    "station": "Gvc"
+                },
+                {
+                    "dwell_seconds": 20.0,
+                    "planned_arrival_seconds": 2280.0,
+                    "station": "Gdg"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 1320.0,
+            "id": "IC2025",
+            "operating_code": "IC2025",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 1380.0,
+                    "station": "Gvc"
+                },
+                {
+                    "dwell_seconds": 60.0,
+                    "planned_arrival_seconds": 2340.0,
+                    "planned_departure_seconds": 2400.0,
+                    "station": "Gdg"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 3480.0,
+                    "station": "Ut"
+                }
+            ]
+        },
+        {
+            "composition": "SLT_Sprinter",
+            "entry_time_seconds": 1500.0,
+            "id": "S9827",
+            "operating_code": "S9827",
+            "repeat": {
+                "headway_seconds": 1800.0
+            },
+            "route": "route0",
+            "stops": [
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_departure_seconds": 1560.0,
+                    "station": "Gvc"
+                },
+                {
+                    "dwell_seconds": 20.0,
+                    "planned_arrival_seconds": 3180.0,
+                    "planned_departure_seconds": 3540.0,
+                    "station": "Gdg"
+                },
+                {
+                    "dwell_seconds": 0.0,
+                    "planned_arrival_seconds": 4920.0,
+                    "station": "Ut"
+                }
+            ]
+        }
+    ]
+}
