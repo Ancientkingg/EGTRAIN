@@ -1292,18 +1292,22 @@ most of its checks, so run it locally to read its logs.
   the volume holds only `QEGTRAIN.app`, the link `Applications` and the hidden
   file `.DS_Store`, that this file equals `tools/release/dmg/DS_Store`, that the
   app in the image and a `ditto` copy of it pass
-  `codesign --verify --deep --strict`, that the copy has the version and the
-  identifier of the build, its programs and the guide, and that the copy runs
-  Paimpol without the GUI to `End of Simulation`. The image is the only file of
-  the artifact `QEGTRAIN-macos-arm64`; no zip is made. The Linux
-  package job extracts its AppImage and starts the extracted image with the same
-  script on a virtual display, after the script has checked that every Qt 5 and
-  ZeroMQ library of the programs and plugins comes from the image. The start in
-  each of the three package jobs includes the CSV and PNG exports of Paimpol
-  through the test hooks of the application. The check does not show how the SVG
-  icons look, typing into text fields, the native file dialogs, how Finder
-  presents the disk image, or a start on a machine without Qt or a display
-  server; the clean-install rehearsal in the
+  `codesign --verify --deep --strict`, that the property list of the app in the
+  image declares `.egscene` as its one document type
+  (`CFBundleDocumentTypes`) and exports the type `com.egtrain.simulator.egscene`,
+  which conforms to `public.data` only (`UTExportedTypeDeclarations`), that the
+  copy has the version and the identifier of the build, its programs and the
+  guide, and that the copy runs Paimpol without the GUI to `End of Simulation`.
+  The image is the only file of the artifact `QEGTRAIN-macos-arm64`; no zip is
+  made. The Linux package job extracts its AppImage and starts the extracted
+  image with the same script on a virtual display, after the script has checked
+  that every Qt 5 and ZeroMQ library of the programs and plugins comes from the
+  image. The start in each of the three package jobs includes the CSV and PNG
+  exports of Paimpol through the test hooks of the application. The check does
+  not show how the SVG icons look, typing into text fields, the native file
+  dialogs, how Finder presents the disk image, whether a double-click on a
+  `.egscene` file in Finder opens EGTRAIN, or a start on a machine without Qt or
+  a display server; the clean-install rehearsal in the
   [release testing checklist](release-testing-checklist.md) covers them. After
   the three packages are built, the job `release-assets` downloads the
   artifacts and runs `tools/release/build_release_assets.py` on them with the

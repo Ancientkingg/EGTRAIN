@@ -272,6 +272,33 @@ jobs:
           test "$(readlink "$MOUNT/Applications")" = "/Applications"
           cmp "$MOUNT/.DS_Store" tools/release/dmg/DS_Store
           codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"
+          # Finder takes the file type from the property list of the app in the image. The app declares .egscene as its
+          # one document type, and the type conforms to public.data only, so no archive type is claimed.
+          PLIST="$MOUNT/QEGTRAIN.app/Contents/Info.plist"
+          expect_plist() {
+            local actual
+            actual="$(/usr/libexec/PlistBuddy -c "Print :$1" "$PLIST" 2>&1)" || actual="no entry"
+            [ "$actual" = "$2" ] || { echo "ERROR: $1 in the Info.plist of the app in the disk image is '$actual', not '$2'"; exit 1; }
+          }
+          expect_no_plist() {
+            if /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST" >/dev/null 2>&1; then
+              echo "ERROR: unexpected $1 in the Info.plist of the app in the disk image"
+              exit 1
+            fi
+          }
+          expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case Study"
+          expect_plist CFBundleDocumentTypes:0:CFBundleTypeRole Editor
+          expect_plist CFBundleDocumentTypes:0:LSHandlerRank Owner
+          expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene
+          expect_no_plist CFBundleDocumentTypes:0:LSItemContentTypes:1
+          expect_no_plist CFBundleDocumentTypes:1
+          expect_plist UTExportedTypeDeclarations:0:UTTypeIdentifier com.egtrain.simulator.egscene
+          expect_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:0 public.data
+          expect_no_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:1
+          expect_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:0 egscene
+          expect_no_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:1
+          expect_no_plist UTExportedTypeDeclarations:1
+          expect_no_plist UTImportedTypeDeclarations
           ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"
           hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force
           trap - EXIT
