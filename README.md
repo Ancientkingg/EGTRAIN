@@ -10,16 +10,25 @@ The loaded network of Milano_Brescia in the main window before a run.
 
 ## Quick start
 
-1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `QEGTRAIN-macos-arm64.zip` (Apple silicon Macs), `QEGTRAIN-windows-x64.zip` (64-bit Windows) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). Download a case study file from the same page too, such as `Paimpol.egscene`.
+1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `QEGTRAIN-macos-arm64.zip` (Apple silicon Macs), `EGTRAIN-Setup-<version>-x64.exe` or `EGTRAIN-Portable-<version>-x64.zip` (64-bit Windows; [choose one](#windows-installer-and-portable-archive)) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). `<version>` is the version of the release. Download a case study file from the same page too, such as `Paimpol.egscene`.
 2. Start the application.
    - macOS: unzip the package and open `QEGTRAIN.app` from the extracted folder.
-   - Windows: unzip the package into a new folder and run `QEGTRAIN.exe` from it. Keep the folder intact. The Windows package is not code signed, so Windows may warn before it starts the program; [Code signing](docs/development/code-signing.md) explains the state and how to check a download.
+   - Windows: run the installer and open **EGTRAIN** from the Start Menu, or unzip the portable archive into a new, empty folder and run `QEGTRAIN.exe` from it. Keep that folder intact. The Windows files are not code signed, so Windows may warn before the installer or the program starts; [Code signing](docs/development/code-signing.md) explains the state and how to check a download.
    - Linux: make the AppImage executable and run it.
 3. The application first shows the **Open a Case** window over the case that is already loaded; choose a case in it or continue with the loaded case, and answer any first-start question. Then open the case study with **File > Open Case Study...** and select the downloaded file.
 4. Run it with **Simulation > Run** (or **Run** on the toolbar) and confirm the **Run simulation** window.
 5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / Distance (per train)...**. The result windows have **Export CSV...** and **Export PNG...**.
 
 [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) has the details. [Command-line options and scene_tool](docs/guides/command-line.md) covers headless runs, options and the output folder.
+
+### Windows installer and portable archive
+
+The installer and the portable archive hold the same application files. Choose the installer to have EGTRAIN in the Start Menu and in the list of installed apps. Choose the archive to run EGTRAIN from a folder without installing anything. Releases up to v1.0.2 have no installer and offer the archive as `QEGTRAIN-windows-x64.zip`.
+
+- **Install.** `EGTRAIN-Setup-<version>-x64.exe` installs for the current user and needs no administrator rights. The default folder is `%LOCALAPPDATA%\Programs\EGTRAIN`, and the wizard offers another folder on a first install. It adds the Start Menu entry **EGTRAIN**, an entry in the list of installed apps in Windows Settings and, only if you tick it, a desktop shortcut.
+- **Upgrade.** Run the Setup of the newer version over the installed copy. It updates that installation and does not add a second one. Setup offers to close EGTRAIN if it is running. It replaces the `Scenes` folder of the installation, so keep your own cases outside it. Do not use **Update and Restart** in EGTRAIN for an installed copy: it replaces the installation folder with the portable package, which has no uninstaller, so the entry in the list of installed apps can no longer remove the copy.
+- **Uninstall.** Remove EGTRAIN from the list of installed apps in Windows Settings. This removes the program files, the shortcuts and the entry in the list. Your case studies, your exported CSV and PNG files, the run output (see the [output folder](docs/guides/command-line.md#output-folder)) and the settings of EGTRAIN stay. A file that you or the program put into the installation folder stays, and so does the folder.
+- **Portable archive.** `EGTRAIN-Portable-<version>-x64.zip` needs no installation and no administrator rights. Unzip it into a new, empty folder and run `QEGTRAIN.exe`. It adds no Start Menu entry, no shortcut and no entry in the list of installed apps. To remove it, close EGTRAIN and delete the folder. To use a newer version, unzip the newer archive into another new folder, or use **Update and Restart** in EGTRAIN.
 
 ## What you can do
 

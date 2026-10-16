@@ -1131,12 +1131,19 @@ most of its checks, so run it locally to read its logs.
   `tools/release/package_start_smoke.py`, and prints the number of files and
   bytes of the package in its job summary. The Windows finalize job
   (`finalize-windows`) then downloads that directory, compiles
-  `installer/egtrain.iss` with Inno Setup into `EGTRAIN-Setup-<version>-x64.exe`,
+  `installer/egtrain.iss` with Inno Setup (the copy on the runner image, or a
+  pinned version from Chocolatey when the image has none; the script needs 6.3
+  or newer) into `EGTRAIN-Setup-<version>-x64.exe`,
   runs `tools/release/installer_smoke.ps1` on it (see
   [Installer smoke](#installer-smoke)), writes `EGTRAIN-Portable-<version>-x64.zip`
   from the same directory with `build_release_assets.py --payload`, extracts that
   archive and starts the extracted program with the same start script, and
-  uploads the installer and the archive. The macOS package job removes the
+  uploads the installer and the archive as the artifacts
+  `EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. The smoke
+  needs an installer of a higher version for its upgrade check, so the job
+  compiles a second one with the next patch version and uploads only the first.
+  When the job fails, it uploads the logs of Setup and of the uninstaller as the
+  artifact `finalize-windows-diagnostics`. The macOS package job removes the
   virtual keyboard input plugin with the Quick and QML frameworks, and the WebP
   and TIFF plugins with their libraries, from the app before the signature,
   fails when one of them is in the app, starts a copy of the app with the same
@@ -1159,7 +1166,7 @@ most of its checks, so run it locally to read its logs.
   installer and the portable archive, that the archive holds the files of the
   payload with the same bytes, that the script builds a manifest that the
   application accepts by its rules for the file list and the package sizes, and
-  that the assets it writes are exactly the twelve that a release publishes.
+  that the assets it writes are exactly the files that a release publishes.
   It does not prove a release: nothing is signed with real credentials (the
   macOS bundle carries the same ad-hoc signature as in a release), nothing is
   published, and the check has read permission only. It does not prove the
@@ -1172,8 +1179,14 @@ most of its checks, so run it locally to read its logs.
   runner account is an administrator, so the check does not show that a
   standard user installs without an elevation request. It runs on a machine
   with the Visual C++ runtime, so it does not show that the package starts on a
-  machine without it. A release still runs only from `release.yml`. A newer push
-  to the pull request cancels the running check.
+  machine without it. It does not show how Windows presents the installer (for
+  an unsigned download, the SmartScreen screen), the Start Menu entry or the
+  entry in the list of installed apps. The installer registers no file type
+  (#416), so a double-click on a `.egscene` file does not open EGTRAIN. The
+  installer and portable rows of the
+  [release testing checklist](release-testing-checklist.md#windows-installer-and-portable-archive)
+  cover the rest on a Windows machine. A release still runs only from
+  `release.yml`. A newer push to the pull request cancels the running check.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
@@ -1188,7 +1201,7 @@ most of its checks, so run it locally to read its logs.
   portable archive is written only by the script. Before
   building, the pipeline increments the highest patch version
   among the CMake baseline, existing stable tags, and reserved release versions.
-  All five build jobs, package metadata, and the update manifest use that same version. Local builds use the
+  Every build job, the package metadata and the update manifest use that same version. Local builds use the
   baseline unless configured with `-DEGTRAIN_VERSION=X.Y.Z`.
   `update-manifest.json` has one entry per distribution key under `assets`, each with
   `name`, `sha256` and `size`. The running copy picks its entry by key and downloads
@@ -1268,12 +1281,12 @@ makes them when it is given no artifact name:
 - `EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe`
 - `QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip`
 - `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
-- `EGTRAIN-scenes/`: the seven `.egscene` files
+- `EGTRAIN-scenes/`: the `.egscene` files of the case studies
 
 Other directories are ignored. `--output` must not exist or must be an empty
 directory, and the script writes nowhere else. Afterwards it holds exactly the
-twelve files of a release: the four packages named above, the seven `.egscene`
-files and `update-manifest.json`. The packages and the scene bundles are copies.
+files of a release: the packages named above, the `.egscene` files of the case
+studies and `update-manifest.json`. The packages and the scene bundles are copies.
 The `sha256` and `size` of each package in the manifest come from the file in
 `--output`. The `files` of the `windows-x64` entry are the members of the
 portable archive, sorted by their full path as a string (`a.b` comes before

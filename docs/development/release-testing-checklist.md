@@ -11,42 +11,53 @@ source and never mix files of different runs or releases. The candidate comes
 from one of two sources.
 
 - One run of the `Release` workflow, either a manual run or the run of a
-  pull request to `production`. The run has four artifacts:
+  pull request to `production`. The run has these artifacts:
   - `QEGTRAIN-macos-arm64`, holding `QEGTRAIN-macos-arm64.zip`
+  - `EGTRAIN-windows-x64-installer`, holding `EGTRAIN-Setup-<version>-x64.exe`
+  - `EGTRAIN-windows-x64-portable`, holding
+    `EGTRAIN-Portable-<version>-x64.zip`
   - `QEGTRAIN-windows-x64-payload`, holding the files of the Windows package
   - `QEGTRAIN-linux-x86_64`, holding `QEGTRAIN-linux-x86_64.AppImage`
-  - `EGTRAIN-scenes`, holding the seven `.egscene` files
+  - `EGTRAIN-scenes`, holding the `.egscene` files
 
   The run page offers each artifact as a download that arrives in an outer zip.
   Unpack that zip once to reach the file named above. The outer zip of
   `QEGTRAIN-windows-x64-payload` holds the files of the Windows package
-  themselves: unpack it into a new empty folder. A run has no release job, so it
-  has no `update-manifest.json`, no `QEGTRAIN-windows-x64.zip` (the release job
-  writes that archive from the Windows package) and publishes no release.
+  themselves. The installer and the portable archive are made from them, so
+  rehearse those two and not the payload. A run has no release job, so it has
+  no `update-manifest.json` and publishes no release.
 - The assets of one published release, made by a push to `production` or by
-  a `v*` tag. A release has exactly eleven files: the three packages, the seven
-  bundles and `update-manifest.json`. It stays a draft until all of them are
-  uploaded. A `v*` tag that contains a hyphen is published as a prerelease: the
-  updater never offers it, and its version is the number before the hyphen.
+  a `v*` tag. A release holds the application assets, the case-study bundles
+  and `update-manifest.json` that the next section lists, and nothing else. It
+  stays a draft until all of them are uploaded. A `v*` tag that contains a
+  hyphen is published as a prerelease: the updater never offers it, and its
+  version is the number before the hyphen.
 
 A manual run and the run of a pull request build the CMake baseline version, not
 a release number. The version shown by **About EGTRAIN** for such a candidate
-is therefore the baseline. Record that version; step 1 says where the entry is.
+is therefore the baseline, and the names of the installer and of the portable
+archive carry it. Record that version; step 1 says where the entry is.
 
 A fix after a failed row needs a new candidate and a new record.
 
 ## Automated release evidence
 
 The release is ready to rehearse only when the version, validation, sanitizer
-and the three package jobs of the `Release` workflow are green. The release job
-needs all of them. [CI and release branches](build-and-test.md#ci-and-release-branches)
-describes what the workflow does.
+and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows
+and Linux) are green. The release job needs all of them.
+[CI and release branches](build-and-test.md#ci-and-release-branches) describes
+what the workflow does.
 
 Expected application assets:
 
 - `QEGTRAIN-macos-arm64.zip`
-- `QEGTRAIN-windows-x64.zip`
+- `EGTRAIN-Setup-<version>-x64.exe`
+- `EGTRAIN-Portable-<version>-x64.zip`
 - `QEGTRAIN-linux-x86_64.AppImage`
+
+`<version>` is the version of the release without the leading `v`. The releases
+up to v1.0.2 have `QEGTRAIN-windows-x64.zip` for Windows instead of the two
+Windows names above.
 
 Expected case-study assets:
 
@@ -58,9 +69,9 @@ Expected case-study assets:
 - `Lebanon.egscene`
 - `Amsterdam_Hilversum_Student.egscene`
 
-A published release also has `update-manifest.json`, eleven files in all.
-Confirm the workflow validates all seven bundles and publishes exactly the three
-application assets, the seven case-study assets and the update manifest.
+A published release also has `update-manifest.json`. Confirm the workflow
+validates all the bundles and publishes exactly the application assets and the
+case-study assets above and the update manifest.
 
 What the jobs prove today:
 
@@ -90,6 +101,21 @@ What the jobs prove today:
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package. It prints the number of files and bytes of
   the package in its job summary.
+- The Finalize Windows job compiles the installer from that package directory
+  with Inno Setup and runs `tools/release/installer_smoke.ps1` on the runner.
+  The script checks that the installer asks for no elevation in its manifest.
+  A silent install into a chosen folder leaves one uninstall entry for the
+  current user and none for the machine, a Start Menu shortcut, no desktop
+  shortcut, the files of the package with the same bytes, the marker file
+  `installed-by-setup.ini` and one uninstaller, and `package_start_smoke.py`
+  starts the installed copy. The uninstall removes the entry, the shortcut and
+  the files and leaves a file beside the folder in place. An install with the desktop
+  task creates the desktop shortcut and the uninstall removes it. A second
+  installer of the next patch version installed over the first, in the default
+  folder, leaves one entry, one folder and the higher version, and replaces the
+  `Scenes` folder. The job then writes the portable archive from the same
+  directory, extracts it and starts the extracted program with the same start
+  script.
 - The Package Linux job extracts the AppImage and checks the executable,
   the update helper, `Scenes/Paimpol`, the icon, `AppRun` and the Qt libraries.
   It then starts the extracted image through its `AppRun` on a virtual display,
@@ -105,8 +131,17 @@ What the jobs prove today:
   also run the CSV export and the PNG export of the Paimpol scene through the
   test hooks of the application. The Windows leg of the CMake workflow starts a
   Windows package assembled in that workflow (step **Start an assembled Windows
-  package**). None of this starts the released file itself, and none of it shows
-  how the SVG icons look or typing into text fields.
+  package**). Except for the installer and the portable archive of the Finalize
+  Windows job, none of this starts the released file itself, and none of it
+  shows how the SVG icons look or typing into text fields.
+
+The Finalize Windows job runs as an administrator on a machine that has the
+Visual C++ runtime. It does not show that a standard user installs without an
+elevation request, that the package starts on a machine without the runtime, or
+how Windows presents the unsigned installer and the entry in the list of
+installed apps. The installer registers no file type, so a double-click on a
+`.egscene` file does not open EGTRAIN (#416). The rows W1 to W6 below cover what
+the job cannot.
 
 None of this shows the GUI student workflow.
 
@@ -115,12 +150,13 @@ None of this shows the GUI student workflow.
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
 | macOS | `QEGTRAIN-macos-arm64.zip` | Unpacks to the folder `QEGTRAIN-Lebanon` with `QEGTRAIN.app`, `scene_tool`, `Scenes/Lebanon` and `lebanon-case-study.md`. The scene folders of the seven cases are inside the app, under `Contents/Resources/Scenes`. | `QEGTRAIN.app` |
-| Windows | `QEGTRAIN-windows-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
+| Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut and an entry in the list of installed apps. | The Start Menu entry `EGTRAIN` |
+| Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
 
-A candidate from a run has no `QEGTRAIN-windows-x64.zip`. Its artifact
-`QEGTRAIN-windows-x64-payload` holds the same files at the top level: unpack
-the download into a new empty folder and launch `QEGTRAIN.exe` there.
+A candidate from a run has the installer and the archive as the artifacts
+`EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. Unpack the
+outer zip of each once, as the section Candidate says.
 
 The packages hold scene folders, not `.egscene` bundles. The bundles are
 separate files of the candidate.
@@ -134,6 +170,14 @@ or other development dependencies in the test path. The test account must not
 have `QEGTRAIN_` variables set: any `QEGTRAIN_E2E_` variable,
 `QEGTRAIN_DISABLE_UPDATES` and `QEGTRAIN_AUTOSTART` switch the update entries
 off and are not part of a student launch.
+
+On Windows there are two downloads, and each one gets this section. Row W2 below
+installs the installer and runs the steps on the installed copy. Row W6 unzips
+the portable archive and runs the steps and the R rows on that copy.
+Rows R9 and R10 replace the installation, and an installed copy has no update
+path of its own yet (#405), so they are not run on the installed copy. Both
+copies keep their settings in the profile of the account, not in their folder,
+so the question of R7 is asked at the first start in W2 and not again in W6.
 
 **Before step 2.** Make a byte-for-byte copy of the downloaded bundle in another
 folder and note the modification time of the original. While the downloaded
@@ -240,10 +284,35 @@ Notes on the update rows:
 - R9 installs the latest published stable release, not the candidate. It shows
   the update path of the installed version and says nothing about the contents
   of a manual candidate.
+- On Windows run R9 and R10 on the portable copy. In an installed copy,
+  **Update and Restart** replaces the installation folder with the portable
+  package. That package has no uninstaller, so the entry in the list of
+  installed apps can no longer remove the copy; update an installed copy with a
+  newer Setup (W5). The older stable release for R9 on Windows is
+  `QEGTRAIN-windows-x64.zip`, a portable archive too.
 - Mark R9 or R10 not applicable, with a reason for this case, when no newer
   stable release is offered, when no older stable release that has the update
   entries can be installed for R9, or when the account cannot be denied write
   access for R10.
+
+## Windows installer and portable archive
+
+Run these rows on Windows with the installer and the portable archive of the
+candidate, and mark them not applicable on macOS and Linux. Use an account that
+is not an administrator, on a machine without development tools and without a
+copy of EGTRAIN. W2 to W5 follow each other on that account. W5 needs the Setup
+of an older version: it is the one exception to the rule of one source besides
+R9, so record where it came from. Run W6 after the last uninstall, so that the
+list of installed apps shows only what the archive itself adds.
+
+| Row | What to do | What must be seen or recorded | Platforms |
+| --- | --- | --- | --- |
+| W1 Windows assets | Open the release page or the run page of the candidate. For a published release also open `update-manifest.json`. | `EGTRAIN-Setup-<version>-x64.exe` and `EGTRAIN-Portable-<version>-x64.zip` are both there with the version of the candidate in their names. In the manifest of a published release the entry `windows-x64` names the archive and the entry `windows-x64-installer` names the installer, and the `size` of each equals the size of the downloaded file. | Windows |
+| W2 Install | Double-click the Setup. Keep the default folder and leave the desktop shortcut box unticked. When it has finished, start EGTRAIN from the Start Menu and run the steps 1 to 9 of the clean-install rehearsal on this copy. | No prompt asks for an administrator password or for confirmation to run as administrator. Record any warning before Setup starts, with its text. The folder page offers `%LOCALAPPDATA%\Programs\EGTRAIN`. The Start Menu has the entry `EGTRAIN`. The list of installed apps in Windows Settings has `EGTRAIN`: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below `Program Files`. | Windows |
+| W3 Uninstall | Note the path of the working copy and of the exported CSV and PNG files, which lie outside the installation folder. Remove `EGTRAIN` from the list of installed apps in Windows Settings. | The entry, the Start Menu entry and any desktop shortcut are gone. The installation folder is gone, or holds only files that you or the program created in it. The working copy, the exported files, the downloaded bundles and the run output below the application data folder are unchanged. | Windows |
+| W4 Reinstall | Run the same Setup again, and this time tick the desktop shortcut box. Start EGTRAIN from the desktop shortcut. | It installs as in W2, with one entry in the list of installed apps and one Start Menu entry. The shortcut starts EGTRAIN. The question of R7 is not asked again, and the working copy opens: the settings and the files outside the folder survived W3. | Windows |
+| W5 Upgrade | Uninstall as in W3. Install the older Setup, start EGTRAIN and leave it open, then run the Setup of the candidate over it. When it has finished, start EGTRAIN, open **About EGTRAIN**, and uninstall once more as in W3. | The first uninstall removes the desktop shortcut of W4 with the rest. Setup offers to close the running EGTRAIN and finishes when it is closed. Afterwards the list of installed apps has one `EGTRAIN` entry with the version of the candidate, there is one Start Menu entry, the installation folder is the same and no second folder named like it stands beside it, and **About EGTRAIN** shows the version of the candidate. The last uninstall removes everything as in W3. Mark W5 not applicable, with the reason, when no older Setup exists: the Finalize Windows job has installed a second Setup over the first on the runner. | Windows |
+| W6 Portable archive | Unzip `EGTRAIN-Portable-<version>-x64.zip` into a new empty folder, for example with **Extract All** in Explorer. Start `QEGTRAIN.exe` by double-click. Run the steps 1 to 9 of the clean-install rehearsal and the R rows on this copy, except R7, which W2 has seen. | No prompt asks for administrator rights. Record any warning at the first start, with its text. The list of installed apps and the Start Menu show no EGTRAIN, and no shortcut was made. The folder has no `installed-by-setup.ini` and no uninstaller. Deleting the folder after closing EGTRAIN removes the copy. | Windows |
 
 ## Not available yet
 
@@ -251,13 +320,11 @@ The release does not build these today, so they have no subject.
 
 | Check | What the release has today | Status |
 | --- | --- | --- |
-| Windows installer: fresh install, upgrade, uninstall, reinstall | The only Windows asset is `QEGTRAIN-windows-x64.zip` (#401). | No row until the release provides it |
-| Windows portable archive under its own name | The zip is named `QEGTRAIN-windows-x64.zip` (#401). | No row until the release provides it |
 | macOS disk image: open, copy to Applications, launch, run from a second folder | A zip of the folder `QEGTRAIN-Lebanon` (#403). | No row until the release provides it |
 | macOS Developer ID signing and notarization: first open without a system warning | An ad hoc signature only (#404). | No row until the release provides it |
 | Windows binary signature | None (#402). | No row until the release provides it |
 | Open a bundle from the file manager or the command line, with the application closed and with it running | **File > Open Case Study...**, a drop onto the window and the `--scene` option (#416). | No row until the release provides it |
-| Update of an installer-managed copy as against a portable copy | Only the portable packages exist, so R9 and R10 are the only update rows (#405). | No row until the release provides it |
+| Update of an installer-managed copy as against a portable copy | **Update and Restart** replaces an installed copy with the portable package, so R9 and R10 are the only update rows and run on the portable copy (#405). | No row until the release provides it |
 | Message after a rolled-back update | The update helper restores the previous installation and starts it without a message (#527). | No row until the release provides it |
 
 These rows are not part of the gate. They are added to the table of the record
@@ -272,6 +339,6 @@ and fill it. Link every failed row to one focused defect issue. The record of
 macOS rehearsal of an older candidate.
 
 The release gate passes only after every required row passes on all three
-platforms or is marked not applicable with a case-specific reason. Open one
-focused defect for each failed root cause instead of adding implementation work
-to issue #74.
+platforms or is marked not applicable with a case-specific reason. The rows W1
+to W6 belong to Windows only. Open one focused defect for each failed root cause
+instead of adding implementation work to issue #74.
