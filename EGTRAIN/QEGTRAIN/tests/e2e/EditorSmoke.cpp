@@ -10,6 +10,7 @@
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/PassengerPanel.h"
+#include "editors/ServicePanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -2403,14 +2404,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const std::string unknownCategory = "Regional heritage / custom";
 		w.m_sceneModel.services[0].category = unknownCategory;
 		expectedServices[0].category = unknownCategory;
-		w.updateServiceDetailPanel();
+		w.m_servicePanel->updateDetail();
 		if (!w.m_serviceCategoryCombo || w.m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
 			|| !w.m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
 		const std::string storedColor = "#3c8dd2";
 		w.m_sceneModel.services[0].visualizationColor = storedColor;
 		expectedServices[0].visualizationColor = storedColor;
-		w.updateServiceDetailPanel();
+		w.m_servicePanel->updateDetail();
 		if (!w.m_serviceColorButton || !w.m_serviceColorButton->isEnabled()
 			|| w.m_serviceColorButton->valueText() != QString::fromStdString(storedColor)
 			|| w.m_serviceColorButton->swatchColor() != QColor(0x3C, 0x8D, 0xD2))
@@ -2422,22 +2423,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			SceneRoute duplicateRoute = *sourceRoute;
 			duplicateRoute.id += "-same-description";
 			w.m_sceneModel.routes.push_back(duplicateRoute);
-			w.updateServiceDetailPanel();
+			w.m_servicePanel->updateDetail();
 			w.m_serviceRouteCombo->setCurrentIndex(w.m_serviceRouteCombo->findData(QString::fromStdString(duplicateRoute.id)));
 			if (w.m_sceneModel.services[0].route != duplicateRoute.id
 				|| !w.m_serviceRouteCombo->toolTip().contains("not scheduled calls"))
 				facetFailure(facetOk, "service routes", "descriptive route selection lost canonical identity or context");
 			w.m_sceneModel.services[0].route = "missing-route";
-			w.updateServiceDetailPanel();
+			w.m_servicePanel->updateDetail();
 			if (w.m_serviceRouteCombo->currentData().toString() != "missing-route"
 				|| !sameStop(w.m_sceneModel.services[0].stops.front(), originalService.stops.front())
 				|| !w.m_stopTableWidget->item(0, 0)->toolTip().contains("unresolved"))
 				facetFailure(facetOk, "service routes", "missing route or invalid stop was silently replaced");
 			w.m_sceneModel.services[0] = originalService;
 			w.m_sceneModel.routes.pop_back();
-			w.updateServiceDetailPanel();
+			w.m_servicePanel->updateDetail();
 		}
-		w.duplicateService();
+		w.m_servicePanel->duplicateService();
 		if (w.m_serviceListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "service", "duplicate did not apply");
 		} else {
@@ -2494,7 +2495,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "service colour", "Default did not show the default look");
 					// a stored text that is not a colour is shown and kept until changed
 					w.m_sceneModel.services[1].visualizationColor = "not-a-colour";
-					w.updateServiceDetailPanel();
+					w.m_servicePanel->updateDetail();
 					w.m_serviceListWidget->setCurrentRow(0);
 					w.m_serviceListWidget->setCurrentRow(1);
 					if (w.m_serviceColorButton->valueText() != "Invalid: not-a-colour"
@@ -2502,7 +2503,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "service colour", "invalid stored colour is not shown as invalid and kept");
 					colorStep("choosing a colour over an invalid text", [&]() { w.m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
 					w.m_sceneModel.services[1].visualizationColor = "not-a-colour";
-					w.updateServiceDetailPanel();
+					w.m_servicePanel->updateDetail();
 					colorStep("Default over an invalid text", [&]() { defaultColorButton->click(); }, "");
 					// the colour stays on the service for the save and reload below
 					colorStep("choosing the final colour", [&]() { w.m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
@@ -2570,19 +2571,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						&& w.m_runSelection.isExcluded(SceneServiceOccurrence{oldServiceId, 1});
 				};
 				w.m_serviceIdEdit->setText(QString());
-				w.commitServiceIdEdit();
+				w.m_servicePanel->commitIdEdit();
 				const bool emptyRejected = w.m_sceneModel.services[1].id == oldServiceId
 					&& w.m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
 					&& referencesStillOld();
 				w.m_serviceIdEdit->setText(QString::fromStdString(duplicateServiceId));
-				w.commitServiceIdEdit();
+				w.m_servicePanel->commitIdEdit();
 				const bool duplicateRejected = w.m_sceneModel.services[1].id == oldServiceId
 					&& w.m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
 					&& referencesStillOld();
 				if (!emptyRejected || !duplicateRejected)
 					facetFailure(facetOk, "service", "empty or duplicate ID rename changed canonical references");
 				w.m_serviceIdEdit->setText(QString::fromStdString(editedServiceId));
-				w.commitServiceIdEdit();
+				w.m_servicePanel->commitIdEdit();
 				if (w.m_sceneModel.services.size() <= 1 || w.m_sceneModel.services[1].id != editedServiceId)
 					facetFailure(facetOk, "service", "id edit did not apply");
 			}
@@ -2602,7 +2603,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "service", "service ID rename did not update canonical references or occurrence exclusions");
 			w.m_serviceListWidget->setCurrentRow(1);
 			const int referencedServiceCount = w.m_serviceListWidget->count();
-			w.deleteService();
+			w.m_servicePanel->deleteService();
 			if (w.m_serviceListWidget->count() != referencedServiceCount
 				|| !std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
 					[&](const SceneService& service) { return service.id == editedServiceId; }))
@@ -2619,22 +2620,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (temporaryIncidentCount > 0 && !referenceScenario.incidents.empty())
 					referenceScenario.incidents.pop_back();
 			}
-			w.selectAllServiceOccurrences();
-			w.commitServiceComposition(QString::fromStdString(editedCompositionId));
+			w.m_servicePanel->selectAllOccurrences();
+			w.m_servicePanel->commitComposition(QString::fromStdString(editedCompositionId));
 			w.m_serviceRouteCombo->setCurrentIndex(w.m_serviceRouteCombo->findData(QString::fromStdString(expectedServices[0].route)));
 			if (w.m_serviceOperatingCodeEdit) {
 				w.m_serviceOperatingCodeEdit->setText("1723");
 				QMetaObject::invokeMethod(w.m_serviceOperatingCodeEdit, "editingFinished", Qt::DirectConnection);
 			}
-			w.commitServiceHasEntryTime(false);
-			w.commitServiceHasEntryTime(true);
+			w.m_servicePanel->commitHasEntryTime(false);
+			w.m_servicePanel->commitHasEntryTime(true);
 			if (w.m_serviceEntryTimeSecondsEdit)
 				w.m_serviceEntryTimeSecondsEdit->setText("600");
-			w.commitServiceEntryTimeSeconds();
-			w.commitServiceHasRepeat(true);
+			w.m_servicePanel->commitEntryTimeSeconds();
+			w.m_servicePanel->commitHasRepeat(true);
 			if (w.m_serviceHeadwaySecondsEdit)
 				w.m_serviceHeadwaySecondsEdit->setText("1800");
-			w.commitServiceHeadwaySeconds();
+			w.m_servicePanel->commitHeadwaySeconds();
 			if (w.m_serviceHasRepeatCountCheck)
 				w.m_serviceHasRepeatCountCheck->setChecked(true);
 			if (w.m_serviceRepeatCountEdit) {
@@ -2642,7 +2643,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QMetaObject::invokeMethod(w.m_serviceRepeatCountEdit, "editingFinished", Qt::DirectConnection);
 			}
 			// Typed digits change nothing until editing ends. Return applies the typed value as one scene change,
-			// and commitPendingServiceSettings applies a text that is still being typed.
+			// and ServicePanel::commitPendingEditors applies a text that is still being typed.
 			const bool dirtyBeforeTyping = w.m_sceneDirty;
 			const QString typingFailure = [&]() -> QString {
 				if (!w.m_servicePerformancePercentEdit || !w.m_servicePerformancePercentEdit->isEnabled())
@@ -2701,7 +2702,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!failure.isEmpty())
 					return failure;
 				const quint64 revisionBeforeCommit = w.m_sceneRevision;
-				w.commitPendingServiceSettings();
+				w.m_servicePanel->commitPendingEditors();
 				if (w.m_sceneModel.services[1].performancePercent != 93.0 || w.m_sceneRevision != revisionBeforeCommit + 1
 					|| !w.m_sceneDirty)
 					return QString("committing pending settings did not apply the typed running performance once: the service has %1 "
@@ -2730,7 +2731,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_serviceOperatingCodeStepEdit->setText("2");
 				QMetaObject::invokeMethod(w.m_serviceOperatingCodeStepEdit, "editingFinished", Qt::DirectConnection);
 			}
-			w.refreshServiceOccurrencePreview();
+			w.m_servicePanel->refreshOccurrencePreview();
 			bool occurrencePreviewOk = w.m_serviceOccurrenceTable != nullptr;
 			int serviceOccurrences = 0;
 			QStringList previewCodes;
@@ -2761,19 +2762,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_sceneModel.services[1].performancePercent = precisePerformancePercent;
 			w.m_sceneModel.services[1].hasMaximumSpeed = true;
 			w.m_sceneModel.services[1].maximumSpeedKmh = preciseMaximumSpeedKmh;
-			w.updateServiceDetailPanel();
+			w.m_servicePanel->updateDetail();
 			if (w.m_serviceMaximumSpeedKmhEdit->text() != QString::number(preciseMaximumSpeedKmh, 'g', 6))
 				facetFailure(facetOk, "service", "speed editor did not use compact display precision");
 			w.m_serviceMaximumSpeedKmhEdit->setFocus();
 			w.m_serviceMaximumSpeedKmhEdit->interpretText();
 			w.m_serviceMaximumSpeedKmhEdit->clearFocus();
-			w.commitPendingServiceSettings();
+			w.m_servicePanel->commitPendingEditors();
 			if (w.m_sceneModel.services[1].performancePercent != precisePerformancePercent
 				|| w.m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
 				facetFailure(facetOk, "service", "untouched precise service settings changed during pending commit");
 			const SceneService serviceBeforeSelection = w.m_sceneModel.services[1];
 			const bool dirtyBeforeSelection = w.m_sceneDirty;
-			w.selectNoneServiceOccurrences();
+			w.m_servicePanel->selectNoneOccurrences();
 			if (w.m_runSelection.selectedInPeriodCount(w.m_sceneModel, w.serviceOccurrenceDuration()) != 0)
 				facetFailure(facetOk, "service", "empty GUI selection counted all services in period");
 			if (w.m_serviceOccurrenceTable) {
@@ -2793,7 +2794,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!oneOccurrenceSelected || !selectionDidNotDirty)
 				facetFailure(facetOk, "service", "occurrence selection changed canonical fields or dirty state");
 		}
-		w.addService();
+		w.m_servicePanel->addService();
 		if (w.m_serviceListWidget->count() != originalCount + 2) {
 			facetFailure(facetOk, "service", "add did not apply");
 		} else {
@@ -2805,7 +2806,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const bool occurrenceExclusionCreated = w.m_runSelection.isExcluded(
 				SceneServiceOccurrence{unreferencedServiceId, 1});
 			acceptConfirmation();
-			w.deleteService();
+			w.m_servicePanel->deleteService();
 			if (w.m_serviceListWidget->count() != originalCount + 1
 				|| std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
 					[&](const SceneService& service) { return service.id == unreferencedServiceId; })
@@ -2858,7 +2859,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_serviceListWidget->setCurrentRow(serviceRow);
 			QApplication::processEvents();
 			w.m_serviceEntryTimeSecondsEdit->setText("0");
-			w.commitServiceEntryTimeSeconds();
+			w.m_servicePanel->commitEntryTimeSeconds();
 			const int originalStopCount = static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size());
 			if (originalStopCount <= 0)
 				facetFailure(facetOk, "timetable", "no baseline stop available for move coverage");
@@ -3437,12 +3438,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "incident", "service target controls unavailable");
 		} else {
 			const int serviceCount = w.m_serviceListWidget->count();
-			w.addService();
+			w.m_servicePanel->addService();
 			const std::string temporaryServiceId = w.m_sceneModel.services.back().id;
 			if (w.m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) < 0)
 				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
 			acceptConfirmation();
-			w.deleteService();
+			w.m_servicePanel->deleteService();
 			if (w.m_serviceListWidget->count() != serviceCount
 				|| w.m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
 				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
@@ -3509,7 +3510,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					continue;
 				w.m_serviceListWidget->setCurrentRow(row);
 				w.m_serviceOperatingCodeEdit->setText("1731");
-				w.commitPendingServiceSettings();
+				w.m_servicePanel->commitPendingEditors();
 				if (w.m_sceneModel.services[static_cast<std::size_t>(row)].operatingCode != "1731")
 					facetFailure(facetOk, "save/reload", "pending service text did not commit before persistence");
 				break;

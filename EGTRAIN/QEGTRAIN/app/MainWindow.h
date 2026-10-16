@@ -114,6 +114,7 @@ class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
 class PassengerPanel;
+class ServicePanel;
 class UserPrompts;
 class QPlainTextEdit;
 class TrainUnitPanel;
@@ -501,17 +502,19 @@ private:
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
 	QDockWidget* m_serviceDock = nullptr;
-	QListWidget* m_serviceListWidget = nullptr; // one row per SceneService
-	QLineEdit* m_serviceIdEdit = nullptr;		// id of the selected service
+	ServicePanel* m_servicePanel = nullptr;
+	// Parts of m_servicePanel, for the scripted runs in tests/e2e
+	QListWidget* m_serviceListWidget = nullptr;
+	QLineEdit* m_serviceIdEdit = nullptr;
 	QLineEdit* m_serviceOperatingCodeEdit = nullptr;
 	QComboBox* m_serviceCategoryCombo = nullptr;
-	ColorChoiceButton* m_serviceColorButton = nullptr; // optional display colour, "#rrggbb"
-	QComboBox* m_serviceCompositionCombo = nullptr;	   // references a SceneComposition.id
-	QComboBox* m_serviceRouteCombo = nullptr;		   // references a SceneRoute.id
+	ColorChoiceButton* m_serviceColorButton = nullptr;
+	QComboBox* m_serviceCompositionCombo = nullptr;
+	QComboBox* m_serviceRouteCombo = nullptr;
 	QCheckBox* m_serviceHasEntryTimeCheck = nullptr;
-	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_serviceEntryTimeSecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCheck = nullptr;
-	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr; // whole seconds
+	QLineEdit* m_serviceHeadwaySecondsEdit = nullptr;
 	QCheckBox* m_serviceHasRepeatCountCheck = nullptr;
 	QLineEdit* m_serviceRepeatCountEdit = nullptr;
 	QDoubleSpinBox* m_servicePerformancePercentEdit = nullptr;
@@ -520,13 +523,8 @@ private:
 	QCheckBox* m_serviceHasOperatingCodeStepCheck = nullptr;
 	QLineEdit* m_serviceOperatingCodeStepEdit = nullptr;
 	QPushButton* m_addServiceButton = nullptr;
-	QPushButton* m_duplicateServiceButton = nullptr;
-	QPushButton* m_deleteServiceButton = nullptr;
 	QTableWidget* m_serviceOccurrenceTable = nullptr;
-	QPushButton* m_selectAllOccurrencesButton = nullptr;
 	QPushButton* m_selectNoneOccurrencesButton = nullptr;
-	QLabel* m_serviceOccurrenceSelectionLabel = nullptr;
-	bool m_updatingServiceOccurrencePreview = false;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
 	QTableWidget* m_stopTableWidget = nullptr;
@@ -726,38 +724,10 @@ private:
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
 
-	// service editor (service-level fields; stops are edited by the stop editor below)
-	void refreshServicePanel();
-	void updateServiceDetailPanel();
-	void addService();
-	void duplicateService();
-	void deleteService();
-	void commitServiceIdEdit();
-	void commitServiceOperatingCode();
-	void commitServiceCategory(int index);
-	void commitServiceVisualizationColor(const QString& text);
-	void commitServiceComposition(const QString& text);
-	void commitServiceRoute(int index);
-	void commitServiceHasEntryTime(bool checked);
-	void commitServiceEntryTimeSeconds();
-	void commitServiceHasRepeat(bool checked);
-	void commitServiceHeadwaySeconds();
-	void commitServiceHasRepeatCount(bool checked);
-	void commitServiceRepeatCount();
-	void commitServicePerformancePercent(double value);
-	void commitServiceHasMaximumSpeed(bool checked);
-	void commitServiceMaximumSpeed();
-	void commitServiceHasOperatingCodeStep(bool checked);
-	void commitServiceOperatingCodeStep();
-	void commitPendingServiceSettings();
-	void refreshServiceOccurrencePreview();
-	void updateServiceOccurrenceSelection(QTableWidgetItem* item);
-	void selectAllServiceOccurrences();
-	void selectNoneServiceOccurrences();
+	// The time in seconds over which the occurrences of a service are counted.
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
-	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
 	// stop (timetable) editor: edits copied SceneStop records through one modal
 	void refreshStopList();
