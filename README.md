@@ -29,7 +29,7 @@ The loaded network of Milano_Brescia in the main window before a run.
 - **First start.** The app is signed ad hoc and not notarized, so macOS may refuse the first start. If it does, choose **Open Anyway** for EGTRAIN in **System Settings > Privacy & Security**.
 - **Update.** For a copy outside the image, **Help > Check for Updates...** offers **Update and Restart** when a newer release exists.
 - **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.
-- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes`, the Lebanon guide is `Contents/Resources/lebanon-case-study.md` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](docs/guides/command-line.md)). The image holds no other file.
+- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes`, the Lebanon guide is `Contents/Resources/lebanon-case-study.md` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](docs/guides/command-line.md)). The image shows no other file.
 
 ### Windows installer and portable archive
 

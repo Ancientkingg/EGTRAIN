@@ -250,7 +250,7 @@ jobs:
 
       - name: Build the disk image
         # The app is final: no later step changes it.
-        run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg
+        run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout
 
       - name: Verify the disk image
         # Mount the image read-only, as a user does, and take the app out of it with ditto. The copy is what a drag
@@ -266,9 +266,11 @@ jobs:
           # Detach the image on every path, by force when it is busy or when the step fails while it is attached.
           trap 'hdiutil detach "$MOUNT" -force >/dev/null 2>&1 || true' EXIT
           hdiutil attach -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"
-          # The volume holds the app and the link to /Applications, and no scene folder, scene_tool or guide beside the app.
-          test "$(ls "$MOUNT" | tr '\n' ' ')" = "Applications QEGTRAIN.app "
+          # The volume holds the app, the link to /Applications and the hidden Finder layout file, and no scene folder,
+          # scene_tool or guide beside the app.
+          test "$(LC_ALL=C ls -A "$MOUNT" | tr '\n' ' ')" = ".DS_Store Applications QEGTRAIN.app "
           test "$(readlink "$MOUNT/Applications")" = "/Applications"
+          cmp "$MOUNT/.DS_Store" tools/release/dmg/DS_Store
           codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"
           ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"
           hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force

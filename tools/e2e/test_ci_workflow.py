@@ -1059,7 +1059,7 @@ def main() -> None:
     if "zip" in macos_job.lower() or "build/dist" in macos_job or "QEGTRAIN-Lebanon" in release_workflow:
         missing.append("macOS package without a folder of the presentation package and without an archive")
     image_step = step_block(macos_job, "Build the disk image")
-    if not image_step.strip().endswith('run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg'):
+    if not image_step.strip().endswith('run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout'):
         missing.append("macOS disk image built by the script from the final app")
     after_image = macos_job.split("      - name: Verify the disk image\n", 1)[-1]
     if "build/QEGTRAIN.app" in after_image or any(
@@ -1072,8 +1072,9 @@ def main() -> None:
         f'DMG="$PWD/build/dmg/{image_name}"\n',
         "trap 'hdiutil detach \"$MOUNT\" -force >/dev/null 2>&1 || true' EXIT\n",
         'hdiutil attach -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"\n',
-        'test "$(ls "$MOUNT" | tr \'\\n\' \' \')" = "Applications QEGTRAIN.app "\n',
+        'test "$(LC_ALL=C ls -A "$MOUNT" | tr \'\\n\' \' \')" = ".DS_Store Applications QEGTRAIN.app "\n',
         'test "$(readlink "$MOUNT/Applications")" = "/Applications"\n',
+        'cmp "$MOUNT/.DS_Store" tools/release/dmg/DS_Store\n',
         'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
         'ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"\n',
         'hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force\n          trap - EXIT\n',

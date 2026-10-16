@@ -1252,13 +1252,15 @@ most of its checks, so run it locally to read its logs.
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
   Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the app with
-  `tools/release/make_dmg.py`, and no later step changes the app. The job mounts
-  the image read-only and detaches it on every path. It checks that the volume
-  holds only `QEGTRAIN.app` and the link `Applications`, that the app in the image
-  and a `ditto` copy of it pass `codesign --verify --deep --strict`, that the copy
-  has the version and the identifier of the build, its programs and the guide, and
-  that the copy runs Paimpol without the GUI to `End of Simulation`. The image is
-  the only file of the artifact `QEGTRAIN-macos-arm64`; no zip is made. The Linux
+  `tools/release/make_dmg.py --layout`, and no later step changes the app. The
+  job mounts the image read-only and detaches it on every path. It checks that
+  the volume holds only `QEGTRAIN.app`, the link `Applications` and the hidden
+  file `.DS_Store`, that this file equals `tools/release/dmg/DS_Store`, that the
+  app in the image and a `ditto` copy of it pass
+  `codesign --verify --deep --strict`, that the copy has the version and the
+  identifier of the build, its programs and the guide, and that the copy runs
+  Paimpol without the GUI to `End of Simulation`. The image is the only file of
+  the artifact `QEGTRAIN-macos-arm64`; no zip is made. The Linux
   package job extracts its AppImage and starts the extracted image with the same
   script on a virtual display, after the script has checked that every Qt 5 and
   ZeroMQ library of the programs and plugins comes from the image. The start in
@@ -1453,7 +1455,7 @@ checks the rules directly. Run it with
 `QEGTRAIN.app`:
 
 ```bash
-python3 tools/release/make_dmg.py --version X.Y.Z --app PATH/QEGTRAIN.app --output DIR
+python3 tools/release/make_dmg.py --version X.Y.Z --app PATH/QEGTRAIN.app --output DIR [--layout]
 ```
 
 The image is `DIR/EGTRAIN-<version>-macOS-arm64.dmg`, one of the names in the
@@ -1465,6 +1467,23 @@ The script copies the bundle with `ditto`, as the package job does, and does not
 change it afterwards, so a signed app keeps a valid signature. The script prints
 the name and size of the image.
 
+With `--layout` the volume also holds the hidden file `.DS_Store`, a copy of
+`tools/release/dmg/DS_Store`. It tells Finder to show the volume as an icon view
+of 600 by 360 points with icons of 128 points and without toolbar, sidebar, path
+bar and status bar, with `QEGTRAIN.app` on the left and `Applications` on the right
+at the same height. There is no background picture and no volume icon. Without
+`--layout` Finder places the two icons itself. The file is written without
+Finder by `tools/release/dmg/make_ds_store.py`, which needs the `ds_store`
+package. The package is not a dependency of the repository or of CI, so run the
+script in a throwaway environment and commit the result:
+
+```bash
+uv run --no-project --with ds_store python tools/release/dmg/make_ds_store.py tools/release/dmg/DS_Store
+```
+
+The sizes and positions are constants at the top of that script. How the window
+looks is checked by opening the image on a Mac.
+
 These checks run before the script creates anything:
 
 - the version has the form `X.Y.Z` that `tools/release/version.py` accepts;
@@ -1472,22 +1491,24 @@ These checks run before the script creates anything:
   and the directory `Contents/MacOS`;
 - `--output` is not a file, and the image does not exist in it yet. The script
   never overwrites a file;
+- with `--layout`, `tools/release/dmg/DS_Store` is a file;
 - `ditto` and `hdiutil` are on the path. Both are macOS tools, so the script
   runs only on macOS.
 
-Then it creates `--output` if needed, stages the app and the link in a temporary
-folder that it removes on every exit, and runs `hdiutil create` on the folder.
+Then it creates `--output` if needed, stages the app, the link and, with
+`--layout`, `.DS_Store` in a temporary folder that it removes on every exit, and
+runs `hdiutil create` on the folder.
 Each tool gets 120 seconds, and only its exit status decides whether it worked:
 `hdiutil` prints deprecation notices on standard error and still exits with 0.
 When `hdiutil` fails or times out, the script removes the partly written image
 and exits with the command and its error text.
 
 Two images made from the same bundle have the same file name, volume name and
-contents. The script does not promise equal image bytes. It sets no Finder
-layout, background picture, volume icon or licence text, and it does not sign,
-notarize or upload anything. The macOS package job in `package.yml` calls it
-once the app is signed and checked, with `--output build/dmg`, and uploads the
-image as the artifact `QEGTRAIN-macos-arm64`.
+contents. The script does not promise equal image bytes. It sets no background
+picture, volume icon or licence text, and it does not sign, notarize or upload
+anything. The macOS package job in `package.yml` calls it once the app is signed
+and checked, with `--output build/dmg --layout`, and uploads the image as the
+artifact `QEGTRAIN-macos-arm64`.
 
 The test is `tools/release/test_make_dmg.py`. On macOS it signs a small fixture
 bundle (a program that exits with 0, a data file and a symbolic link inside the
@@ -1497,11 +1518,14 @@ volume, that no `.egscene` file or `Scenes` folder outside the app is on the
 volume, and that the app in the image equals the fixture in its paths, file
 bytes, link targets and permission bits. It also checks that
 `codesign --verify --deep --strict` passes on the app in the image and on a
-`ditto` copy taken from it, and that the copy runs. On every platform it checks
-the file name against `kAssetPatterns` in `update/ReleaseInfo.cpp`, the input
-rules, the message for a missing tool, and the command lines, the link and the
-handling of a failing or timed-out command, with stand-ins for `ditto` and
-`hdiutil`. Run it with
+`ditto` copy taken from it, and that the copy runs. It builds a second image
+with `--layout` and checks that its `.DS_Store` equals the committed file and
+that the app in it is unchanged. On every platform it checks the file name
+against `kAssetPatterns` in `update/ReleaseInfo.cpp`, the input rules, the
+message for a missing tool, and the command lines, the link, the staged
+`.DS_Store` and the handling of a failing or timed-out command, with stand-ins
+for `ditto` and `hdiutil`, and that the committed layout file names the app and
+the link. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
 
 ### Installer script

@@ -94,9 +94,11 @@ What the jobs prove today:
   The job prints the number of files and bytes of the app before and after the
   removal in its job summary. It also packs and validates the seven bundles.
   Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the signed app,
-  mounts the image read-only, checks that the volume holds only `QEGTRAIN.app`
-  and the link `Applications`, that the app in the image and a `ditto` copy of it
-  have a valid signature, and that the copy runs Paimpol to `End of Simulation`.
+  mounts the image read-only, checks that the volume holds only `QEGTRAIN.app`,
+  the link `Applications` and the hidden Finder layout file `.DS_Store`, which
+  must equal `tools/release/dmg/DS_Store`, that the app in the image and a
+  `ditto` copy of it have a valid signature, and that the copy runs Paimpol to
+  `End of Simulation`.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
   `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
@@ -158,7 +160,7 @@ None of this shows the GUI student workflow.
 
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
-| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
+| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
 | Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut, an entry in the list of installed apps and the `.egscene` file type for the current user. | The Start Menu entry `EGTRAIN` |
 | Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
@@ -202,7 +204,10 @@ in-place save. Row R11 checks the installed-example path.
    On macOS that path is: open the disk image, drag `QEGTRAIN.app` onto
    `Applications`, eject the image and open the copy in the Applications folder.
    Record:
-   - on macOS, what the window of the disk image shows;
+   - on macOS, what the window of the disk image shows. The layout file asks for
+     an icon view with large icons, without toolbar, sidebar, path bar and status
+     bar, with `QEGTRAIN.app` on the left and `Applications` on the right at the
+     same height;
    - the version shown by **About EGTRAIN**, in the **Help** menu or, on macOS,
      the application menu;
    - any operating system warning shown at the first launch, with its text. The
