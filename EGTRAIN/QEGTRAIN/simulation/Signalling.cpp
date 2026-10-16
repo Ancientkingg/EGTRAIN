@@ -246,7 +246,7 @@ Section::Section() {
 	N_ConnectedBS = 0;
 	XStartSwitch = XEndSwitch = 0;
 	GeoXEndNode = GeoXBegNode = 0;
-	SignallingLevel = -99999999;
+	SignallingLevel = kSignallingLevelUnset;
 	N_ETCS3BrakingPoints = 0;
 	FirstConnectedTrackLineID = SecondConnectedTrackLineID = -1;
 	for (int i = 0; i < 40; i++) {
@@ -2453,7 +2453,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			add(SceneSeverity::Error, "scene.native.signalling_area.range",
 				"Signalling area coordinates must be finite with start below end",
 				"signalling.json", "signalling_area", area.id, path);
-		if (area.level < 0 || area.level > 5)
+		if (!isValidSignallingLevel(area.level))
 			add(SceneSeverity::Error, "scene.native.signalling_area.level",
 				"Signalling area level must be between 0 and 5",
 				"signalling.json", "signalling_area", area.id, path + ".level");

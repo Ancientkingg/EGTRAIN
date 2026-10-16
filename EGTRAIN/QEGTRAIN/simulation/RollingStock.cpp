@@ -1,6 +1,7 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevel.h"
 #include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 #include "util/Log.h"
@@ -53,7 +54,7 @@ BlockingTimes::BlockingTimes() {
 	GeoPosStart = GeoPosEnd = -1;
 	PosConnectedBlockingTime = -1;
 	SpeedPreviousTrain = -1;
-	SignallingLevel = -99999999;
+	SignallingLevel = kSignallingLevelUnset;
 	LocationWithSwitch = false;
 	SwitchName = "None";
 	InfraElementInPositionForTrain = true;
