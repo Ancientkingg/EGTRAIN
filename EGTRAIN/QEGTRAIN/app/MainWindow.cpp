@@ -8,6 +8,7 @@
 #include "app/OpenRequestRelay.h"
 #include "app/ReplayCoverage.h"
 #include "app/SceneOpenRequest.h"
+#include "app/SceneOutputDirectory.h"
 #include "app/SceneSavePolicy.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
@@ -3023,6 +3024,15 @@ void MainWindow::dropEvent(QDropEvent* event) {
 	event->accept();
 }
 
+namespace {
+// The next run writes to the folder of the scene that the window holds. A folder from Choose
+// Output Folder stays in force: the controller applies it to every run it prepares.
+void selectSceneOutputFolder(const std::string& sceneName) {
+	if (simulation.nextRunOutputFolder().empty())
+		initial_variables.OutputMainFolder = sceneOutputDirectory(sceneName).toStdString();
+}
+} // namespace
+
 void MainWindow::newScene() {
 	const auto operation = captureTelemetryOperation();
 	if (!maybeSaveScene())
@@ -3042,6 +3052,7 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_sceneDir.clear();
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
+	selectSceneOutputFolder(m_sceneModel.name);
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
 			"Delay baseline cleared: a new case study was created. Complete a run with no incidents or entrance delays to set a new baseline.");
@@ -3300,6 +3311,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	m_lastRunTotalOccurrences = 0;
 	m_sceneDir = scenePath;
 	m_document->replace(result.scene, false);
+	selectSceneOutputFolder(m_sceneModel.name);
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
 			"Delay baseline cleared: another case study was opened. Complete a run with no incidents or entrance delays to set a new baseline.");
@@ -13203,6 +13215,8 @@ void MainWindow::runScene() {
 	teardownGUI();
 	m_previewFitBounds = previewFitBounds;
 	m_previewZoomFocus = previewZoomFocus;
+	// A case that was renamed after it was opened or created runs in the folder of its present name.
+	selectSceneOutputFolder(m_sceneModel.name);
 	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
 	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
 		QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);

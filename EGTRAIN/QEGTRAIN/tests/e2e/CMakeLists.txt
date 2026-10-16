@@ -5,6 +5,7 @@ target_sources(QEGTRAIN PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/E2ERunner.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/EditorSmoke.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/LegacyImport.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/OutputFolder.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/PostRun.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SceneDrop.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/SceneRender.cpp

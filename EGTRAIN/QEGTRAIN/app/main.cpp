@@ -3,6 +3,7 @@
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
+#include "app/SceneOutputDirectory.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
@@ -17,7 +18,6 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
-#include <QStandardPaths>
 #include <QStringList>
 #include <QTimer>
 
@@ -182,16 +182,9 @@ QString resolveScenePath(const QString& requested, const std::string& defaultNam
 }
 
 QString resolveOutputDirectory(const std::string& sceneName) {
-	QString base = qEnvironmentVariable("QEGTRAIN_OUTPUT_DIR");
-	if (base.isEmpty()) {
-		base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-		if (base.isEmpty())
-			base = QDir::homePath() + "/EGTRAIN";
-	}
-	const QString suffix = QString::fromStdString(sceneOutputDirectoryComponent(sceneName));
-	const QString output = QDir(base).filePath("Output/" + suffix);
+	const QString output = sceneOutputDirectory(sceneName);
 	QDir().mkpath(output);
-	return QDir(output).absolutePath();
+	return output;
 }
 
 void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {

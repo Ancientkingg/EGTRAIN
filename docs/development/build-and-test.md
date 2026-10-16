@@ -113,10 +113,11 @@ of it: in such a build the first show of the window starts no scenario and
 `QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. `MainWindowTestAccess` is the
 friend class of `MainWindow` that the runner calls. A scenario is a member of
 `MainWindowTestAccess` defined in its own file in that folder (the legacy import
-smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the scene
-render smoke `SceneRender.cpp`, the station overlay smoke `StationOverlay.cpp`, the
-track preview smoke `TrackPreview.cpp`, the visual polish smoke `VisualPolish.cpp`, the
-editor smoke `EditorSmoke.cpp`, the creator acceptance smoke `CreatorAcceptance.cpp`). The
+smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the output folder
+smoke `OutputFolder.cpp`, the scene render smoke `SceneRender.cpp`, the station
+overlay smoke `StationOverlay.cpp`, the track preview smoke `TrackPreview.cpp`, the
+visual polish smoke `VisualPolish.cpp`, the editor smoke `EditorSmoke.cpp`, the creator
+acceptance smoke `CreatorAcceptance.cpp`). The
 visual polish smoke also starts from the frames of a run: `renderSnapshot` calls the
 `frameRendered` hook of `MainWindowTestHooks` after every frame, and the hook is set only
 when `QEGTRAIN_E2E_VISUAL_POLISH` is set. The editor smoke sets the `passengerSource` hook

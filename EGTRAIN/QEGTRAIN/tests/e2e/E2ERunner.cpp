@@ -36,6 +36,7 @@ const Scenario kScenarios[] = {
 	{"QEGTRAIN_E2E_TRACK_PREVIEW", 1000, &MainWindowTestAccess::runTrackPreview},
 	{"QEGTRAIN_E2E_LEGACY_IMPORT", 1000, &MainWindowTestAccess::runLegacyImport},
 	{"QEGTRAIN_E2E_SCENE_DROP", 100, &MainWindowTestAccess::runSceneDrop},
+	{"QEGTRAIN_E2E_OUTPUT_FOLDER", 1000, &MainWindowTestAccess::runOutputFolder},
 	{kCreatorAcceptance, 0, &MainWindowTestAccess::runCreatorAcceptance},
 };
 
@@ -179,7 +180,9 @@ int runCreatorAcceptanceMain() {
 		std::cerr << "ERROR: Could not create QEGTRAIN_E2E_OUT.\n";
 		return 1;
 	}
+	// Like a folder from Choose Output Folder, this one stays in force when the window opens or creates a scene.
 	initial_variables.OutputMainFolder = output.toStdString();
+	simulation.setNextRunOutputFolder(output.toStdString());
 	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 	MainWindow window;

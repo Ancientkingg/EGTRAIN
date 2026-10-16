@@ -27,7 +27,7 @@ docs/                     Guides and architecture, development, product, telemet
 
 | Folder | Holds |
 | --- | --- |
-| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `SignalItemRoles`, `DispatchController`, `SceneOpenRequest`, `OpenRequestRelay`, `resources.qrc` |
+| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `SignalItemRoles`, `DispatchController`, `SceneOpenRequest`, `SceneOutputDirectory`, `OpenRequestRelay`, `resources.qrc` |
 | `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RunControl`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockDynamics`, `RollingStockOccupation`, `RollingStockStops`, `RollingStockTrajectory`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
 | `simulation/builders/` | The builders that fill the runtime globals from a scene: `InfrastructureBuilder` (infrastructure and signalling) and `OperationsBuilder` (trains, platforms and passengers), and `InfrastructureBuilderInternal.h` for the two declarations the first shares with `Signalling.cpp` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SceneFieldReader`, `SceneHistory`, `SceneIds`, `SceneReferences`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `Utf8Path`, `SceneTool` |
