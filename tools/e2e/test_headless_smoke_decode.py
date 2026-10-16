@@ -15,6 +15,7 @@ from headless_smoke import (
     route_errors,
     run_command,
     scene_output_dir,
+    unreached_stops,
 )
 
 
@@ -133,6 +134,17 @@ def main() -> None:
         errors = occurrence_errors(timetable_sample(*replaced), 8000, "IC", 4)
         if len(errors) != 1 or not errors[0].startswith(train) or cause not in errors[0]:
             raise SystemExit(f"{train} ({cause}) was not reported as the only error: {errors}")
+
+    stations = ["A", "B"]
+    for sample, expected in (
+        (timetable_sample(("T-1", stations, [100, 200], [160, 200])), []),
+        (timetable_sample(("T-1", stations, [100, NO_ARRIVAL], [160, NO_ARRIVAL])), ["T-1 did not reach B"]),
+        (timetable_sample(("T-1", stations, [100], [160])), ["T-1 has 1 arrival times for 2 stations"]),
+        ("", ["no train has timetable points"]),
+    ):
+        errors = unreached_stops(sample)
+        if errors != expected:
+            raise SystemExit(f"unreached stops of {sample!r} were {errors}, expected {expected}")
 
     proc = run_command(
         [
