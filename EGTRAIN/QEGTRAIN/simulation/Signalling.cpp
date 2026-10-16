@@ -3732,129 +3732,85 @@ void setInfraSpeedLimits(Section* BS, int Blocks) {
 	}
 }
 
-void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int Blocks, const char* occupied) {
-	// The aspects are rebuilt from the occupied sections on every step, so start from clear.
-	// Otherwise a restriction stays on a section that nothing rewrites afterwards: the last
-	// sections of the route once the last train has left, and the sections around a failed
-	// section once the failure has ended.
-	for (int h = 0; h < Blocks; h++) {
-		if (BS[h].SignallingLevel == 5) {
-			BS[h].code = 270;
-			strcpy_s(BS[h].state, "green");
-			for (int k = 0; k < BS[h].total_arcs; k++) {
-				BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-			}
+namespace {
+// The signal speed limit that a row writes. The red speeds are the variables signalCode1 and signalCode2, so a row names the one it takes.
+enum class SpeedSelector {
+	Unlimited,
+	V75,
+	V751
+};
+
+// The aspect of the section that is k blocks behind an occupied section. Row 0 is the occupied section itself: it gets code 0 and its exit
+// speed, and keeps its state and signal speed limits.
+struct AspectRow {
+	int code;
+	const char* state;
+	SpeedSelector speed;
+};
+
+// The rows of a fixed-block system, from the occupied section back. A section is written only when it has the level of the system. With
+// clearFirst, every section of the level is first set to the aspect of the last row.
+struct FixedBlockSystem {
+	int level;
+	bool clearFirst;
+	int rowCount;
+	AspectRow rows[5];
+};
+
+// Level 0, ATB: the section behind an occupied one is red with a speed limit, then yellow, then green.
+constexpr FixedBlockSystem kAtb = {levelValue(SignallingLevel::Atb), false, 4,
+	{{0, nullptr, SpeedSelector::Unlimited}, {75, "red", SpeedSelector::V75}, {180, "yellow", SpeedSelector::Unlimited},
+		{270, "green", SpeedSelector::Unlimited}}};
+
+// Level 5, BACC: one more row than ATB. The first row behind an occupied section is double red, with a speed limit that stops the train.
+constexpr FixedBlockSystem kBacc = {levelValue(SignallingLevel::Bacc), true, 5,
+	{{0, nullptr, SpeedSelector::Unlimited}, {751, "red_red", SpeedSelector::V751}, {75, "red", SpeedSelector::V75},
+		{180, "yellow", SpeedSelector::Unlimited}, {270, "green", SpeedSelector::Unlimited}}};
+
+// Gives the section the code, state and signal speed limit of the row.
+void writeAspect(Section& section, const AspectRow& row, double v75, double v751) {
+	section.code = row.code;
+	strcpy_s(section.state, row.state);
+	double limit = 999;
+	if (row.speed == SpeedSelector::V75)
+		limit = v75;
+	else if (row.speed == SpeedSelector::V751)
+		limit = v751;
+	for (int a = 0; a < section.total_arcs; a++) {
+		section.arcs_in_signalling_block_section[a].signalSpeedLimit = limit;
+	}
+}
+
+// Writes the aspects of a fixed-block system behind every occupied section of the route, from the last section to the first. Near the start of
+// the route the rows that would fall before it are left out.
+void applyFixedBlockAspects(const FixedBlockSystem& rules, Section* BS, int blocks, const char* occupied, double v75, double v751) {
+	if (rules.clearFirst) {
+		// The aspects are rebuilt from the occupied sections on every step, so start from clear.
+		// Otherwise a restriction stays on a section that nothing rewrites afterwards: the last
+		// sections of the route once the last train has left, and the sections around a failed
+		// section once the failure has ended.
+		for (int h = 0; h < blocks; h++) {
+			if (BS[h].SignallingLevel == rules.level)
+				writeAspect(BS[h], rules.rows[rules.rowCount - 1], v75, v751);
 		}
 	}
-	for (int h = Blocks - 1; h >= 0; h--) {
-		if (occupied[h] != 0) {
-			if (h == 0) {
-				if (BS[h].SignallingLevel == 5) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-			} else if (h == 1) {
-				if (BS[h].SignallingLevel == 5) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 5) {
-					BS[h - 1].code = 751;
-					strcpy_s(BS[h - 1].state, "red_red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_751;
-					}
-				}
-			}
-
-			else if (h == 2) {
-				if (BS[h].SignallingLevel == 5) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 5) {
-					BS[h - 1].code = 751;
-					strcpy_s(BS[h - 1].state, "red_red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_751;
-					}
-				}
-				if (BS[h - 2].SignallingLevel == 5) {
-					BS[h - 2].code = 75;
-					strcpy_s(BS[h - 2].state, "red");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-			}
-
-			else if (h == 3) {
-				if (BS[h].SignallingLevel == 5) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 5) {
-					BS[h - 1].code = 751;
-					strcpy_s(BS[h - 1].state, "red_red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_751;
-					}
-				}
-				if (BS[h - 2].SignallingLevel == 5) {
-					BS[h - 2].code = 75;
-					strcpy_s(BS[h - 2].state, "red");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-				if (BS[h - 3].SignallingLevel == 5) {
-					BS[h - 3].code = 180;
-					strcpy_s(BS[h - 3].state, "yellow");
-					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-
-			else if (h >= 4) {
-				if (BS[h].SignallingLevel == 5) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 5) {
-					BS[h - 1].code = 751;
-					strcpy_s(BS[h - 1].state, "red_red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_751;
-					}
-				}
-				if (BS[h - 2].SignallingLevel == 5) {
-					BS[h - 2].code = 75;
-					strcpy_s(BS[h - 2].state, "red");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-				if (BS[h - 3].SignallingLevel == 5) {
-					BS[h - 3].code = 180;
-					strcpy_s(BS[h - 3].state, "yellow");
-					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (BS[h - 4].SignallingLevel == 5) {
-					BS[h - 4].code = 270;
-					strcpy_s(BS[h - 4].state, "green");
-					for (int k = 0; k < BS[h - 4].total_arcs; k++) {
-						BS[h - 4].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
+	for (int h = blocks - 1; h >= 0; h--) {
+		if (occupied[h] == 0)
+			continue;
+		for (int k = 0; k < rules.rowCount && k <= h; k++) {
+			Section& section = BS[h - k];
+			if (section.SignallingLevel != rules.level)
+				continue;
+			if (k == 0) {
+				section.code = rules.rows[0].code;
+				section.exit_speed = section.arcs_in_signalling_block_section[section.total_arcs - 1].speedInBraking;
+			} else {
+				writeAspect(section, rules.rows[k], v75, v751);
 			}
 		}
 	}
 }
 
-namespace {
 // Sets the speed at the end of every section of the given level from the next section of the route. Levels 3 and 4 have their own
 // pass in manageEtcs3TransitionsToOtherSignalling.
 void applyBlockSpeedForLevel(Section* BS, int Blocks, int level) {
@@ -3882,83 +3838,6 @@ void releaseLastSections(Section* BS, int blockIndex, int count) {
 	}
 }
 } // namespace
-
-// ATB Signalling system - National Dutch System.
-
-void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks, const char* occupied) {
-
-	for (int h = Blocks - 1; h >= 0; h--) {
-		if (occupied[h] != 0) {
-			if (h == 0) {
-				if (BS[h].SignallingLevel == 0) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-			}
-
-			else if (h == 1) {
-				if (BS[h].SignallingLevel == 0) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 0) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-			} else if (h == 2) {
-				if (BS[h].SignallingLevel == 0) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 0) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-				if (BS[h - 2].SignallingLevel == 0) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-
-			else if (h >= 3) {
-				if (BS[h].SignallingLevel == 0) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 0) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = V_75;
-					}
-				}
-				if (BS[h - 2].SignallingLevel == 0) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (BS[h - 3].SignallingLevel == 0) {
-					BS[h - 3].code = 270;
-					strcpy_s(BS[h - 3].state, "green");
-					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-		}
-	}
-}
 
 namespace {
 // Whether the routine of a level writes the aspect of a section behind an occupied one: when the section has that
@@ -4316,14 +4195,15 @@ void activateMixedSignallingSystem() {
 
 		if ((levels & levelBit(SignallingLevel::Bacc)) != 0) {
 			// Set the aspect of signals and Signal Speed Limits for BACC
-			baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections,
-				occupied.data());
+			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
+				signalCode2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
 		}
 
 		if ((levels & levelBit(SignallingLevel::Atb)) != 0) {
 			// Set the aspect of signals and signal speed limits for ATB
-			atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
+				signalCode2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
 		}
 
