@@ -272,6 +272,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
+| `test_verify_signatures` | no | no | yes | Signs copies of `scene_tool.exe` with a throwaway self-signed certificate through `New-SelfSignedCertificate` and `Set-AuthenticodeSignature`, and runs `tools/release/verify_signatures.ps1` on them. It is not registered when no PowerShell is found. |
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches and the window launch with a bundle argument run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window there only, because the scene layer builds file paths from narrow strings. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
@@ -1148,8 +1149,14 @@ most of its checks, so run it locally to read its logs.
   OpenGL, ANGLE or Direct3D compiler libraries or Qt Quick, QML or virtual
   keyboard files are in the package, starts a copy of the package with
   `tools/release/package_start_smoke.py`, and prints the number of files and
-  bytes of the package in its job summary. The Windows finalize job
-  (`finalize-windows`) then downloads that directory, compiles
+  bytes of the package in its job summary. It also prints the signature state of
+  `QEGTRAIN.exe`, `egtrain_update_helper.exe` and `scene_tool.exe` with
+  `tools/release/verify_signatures.ps1 -Report`, which fails for no file. A push
+  to `production` or a `v*` tag runs the job `sign-windows` when the repository
+  variable `WINDOWS_SIGNING` is `signpath`; it signs those three files and
+  replaces the uploaded directory with one that holds them (see
+  [Code signing](code-signing.md#signing-in-ci)). Every other run skips it. The
+  Windows finalize job (`finalize-windows`) then downloads that directory, compiles
   `installer/egtrain.iss` with Inno Setup (the copy on the runner image, or a
   pinned version from Chocolatey when the image has none; the script needs 6.3
   or newer) into `EGTRAIN-Setup-<version>-x64.exe`,
@@ -1526,6 +1533,36 @@ choice of scope and the switch would change nothing. The account of a CI runner
 is an administrator, so a run there does not show that a standard user installs
 without an elevation request. The script compares bytes with `fc.exe` and
 computes no hash.
+
+### Signature check
+
+`tools/release/verify_signatures.ps1` checks the Authenticode signatures of the
+Windows program files in a directory:
+
+```powershell
+tools/release/verify_signatures.ps1 -Directory DIR (-Require | -Report) [-ExpectedSubject SUBJECT] [-Name FILE,...] [-AllowUntrustedRoot] [-NoTimestampCheck]
+```
+
+A file passes when its status is `Valid`, the digest algorithm of its signature
+is SHA-256, the signature has a timestamp and the subject of the signing
+certificate equals `-ExpectedSubject`. `-Name` defaults to `QEGTRAIN.exe`,
+`egtrain_update_helper.exe` and `scene_tool.exe`. `-Require` needs
+`-ExpectedSubject` and exits with 1 when a file fails; `-Report` prints the
+findings and exits with 0. The Windows package job runs it with `-Report` on the
+unsigned package of every run, and the signing job runs it with `-Require`. The
+other two switches are for tests that sign with a throwaway certificate and must
+not be used on a release.
+
+`test_verify_signatures` (`tools/release/test_verify_signatures.ps1`) runs on
+Windows only. It creates a self-signed code-signing certificate in the store of
+the current user, signs copies of the built `scene_tool.exe` and runs the script
+on them in a new PowerShell. A copy signed with SHA-256 must pass. An unsigned
+copy, a copy signed with SHA-1, a check for another subject, a missing file, a
+check without `-AllowUntrustedRoot` and a check without `-NoTimestampCheck`
+(the copies have no timestamp) must fail, and the output must name the reason.
+The certificate is never exported or added to a trusted root, and the test
+removes it with its key. Run it by hand with
+`ctest --test-dir build -C Release -R test_verify_signatures --output-on-failure`.
 
 ### Dependency caches
 

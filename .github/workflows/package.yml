@@ -2,7 +2,8 @@ name: Package
 
 # Builds the macOS, Windows, and Linux packages and uploads each as an artifact of the run.
 # The macOS package is a disk image. The Windows package is also built into an installer and a portable archive,
-# which are artifacts too.
+# which are artifacts too. A push to production or a v* tag signs the three Windows program files first when the
+# repository variable WINDOWS_SIGNING is signpath; every other run builds unsigned files and reports their signatures.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -10,6 +11,9 @@ on:
       version:
         required: true
         type: string
+    secrets:
+      SIGNPATH_API_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -406,6 +410,12 @@ jobs:
           $bytes = ($files | Measure-Object -Property Length -Sum).Sum
           "Windows package: $($files.Count) files, $bytes bytes" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
+      - name: Report the code signatures
+        # The files are unsigned here: the sign-windows job signs them after this job, when signing is set up. The report
+        # is for the log and fails for no file.
+        shell: pwsh
+        run: ./tools/release/verify_signatures.ps1 -Directory dist/QEGTRAIN -Report
+
       - name: Start the package
         # The program writes files next to itself, so it starts from a copy and the directory that is uploaded stays as built.
         shell: pwsh
@@ -426,9 +436,91 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+  sign-windows:
+    name: Sign Windows
+    # This job runs for a push to production or a v* tag when the repository variable WINDOWS_SIGNING is signpath, and never
+    # for a pull request or a manual run. Its token belongs to the environment windows-signing, which only production and v*
+    # may use. Only the three program files go to the signing service, so no Qt or other library is signed. The signed files
+    # replace them in the payload artifact that finalize-windows downloads. The signing action reads the run and downloads the
+    # uploaded files with the token of the job, which the action's documentation says needs actions: read and contents: read.
+    needs: package-windows
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) && vars.WINDOWS_SIGNING == 'signpath' }}
+    runs-on: windows-latest
+    environment: windows-signing
+    permissions:
+      actions: read
+      contents: read
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64-payload
+          path: payload
+
+      - name: Collect the files to sign
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path unsigned | Out-Null
+          foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {
+            Copy-Item -LiteralPath "payload/$name" -Destination unsigned
+          }
+
+      - name: Upload the files to sign
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64-unsigned
+          path: unsigned
+          overwrite: true
+          if-no-files-found: error
+
+      - name: Sign the files
+        # The service waits for the approval of a person, so the wait is long.
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+
+      - name: Put the signed files into the package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          foreach ($name in @("QEGTRAIN.exe", "egtrain_update_helper.exe", "scene_tool.exe")) {
+            Copy-Item -LiteralPath "signed/$name" -Destination payload -Force
+          }
+
+      - name: Verify the signatures
+        shell: pwsh
+        env:
+          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT
+
+      - name: Upload the signed package
+        uses: actions/upload-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64-payload
+          path: payload
+          include-hidden-files: true
+          overwrite: true
+          if-no-files-found: error
+
   finalize-windows:
     name: Finalize Windows
-    needs: package-windows
+    # The job reads the unsigned package when signing is skipped and the signed one when signing succeeded. It does not run
+    # when signing failed, so no installer or archive comes from files that were not signed.
+    needs: [package-windows, sign-windows]
+    if: ${{ !cancelled() && needs.package-windows.result == 'success' && (needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped') }}
     runs-on: windows-latest
     timeout-minutes: 45
     steps:

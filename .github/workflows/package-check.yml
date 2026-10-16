@@ -50,6 +50,9 @@ jobs:
   package:
     needs: version
     uses: ./.github/workflows/package.yml
+    permissions:
+      actions: read
+      contents: read
     with:
       version: ${{ needs.version.outputs.version }}
 
