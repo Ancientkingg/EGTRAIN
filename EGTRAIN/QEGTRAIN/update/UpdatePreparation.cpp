@@ -10,11 +10,18 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QThread>
 #include <QXmlStreamReader>
+
+#if defined(Q_OS_UNIX)
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#endif
 
 namespace {
 
 constexpr qint64 kHashChunkBytes = 1024 * 1024;
+constexpr int kDetachAttempts = 4;
 
 bool runProcess(const QString& program, const QStringList& arguments, int timeoutMs,
 	QString* error = nullptr, const QProcessEnvironment* environment = nullptr) {
@@ -85,25 +92,87 @@ std::optional<QString> macBundleVersion(const QString& bundlePath) {
 	return std::nullopt;
 }
 
-[[maybe_unused]] QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
-	const QString root = input.stagingRoot;
-	const QString extract = QDir(root).filePath(QStringLiteral("extract"));
-	if (!QDir().mkpath(extract))
-		return {};
-	if (!runProcess(QStringLiteral("/usr/bin/ditto"),
-			{QStringLiteral("-x"), QStringLiteral("-k"), input.packagePath, extract}, 60000, error))
-		return {};
-	const QString source = QDir(extract).filePath(QStringLiteral("QEGTRAIN-Lebanon/QEGTRAIN.app"));
+// True when path is the root of a mounted volume: it is on another device than its parent folder.
+bool isMountPoint(const QString& path) {
+#if defined(Q_OS_UNIX)
+	struct stat volume;
+	struct stat parent;
+	return ::stat(QFile::encodeName(path).constData(), &volume) == 0
+		&& ::stat(QFile::encodeName(QFileInfo(path).absolutePath()).constData(), &parent) == 0
+		&& volume.st_dev != parent.st_dev;
+#else
+	Q_UNUSED(path);
+	return false;
+#endif
+}
+
+// Mounts a disk image read-only at mountPoint, hidden from the Finder and without a window.
+bool attachDiskImage(const QString& image, const QString& mountPoint, QString* error) {
+	if (!runProcess(QStringLiteral("/usr/bin/hdiutil"),
+			{QStringLiteral("attach"), QStringLiteral("-readonly"), QStringLiteral("-nobrowse"),
+				QStringLiteral("-noautoopen"), QStringLiteral("-mountpoint"), mountPoint, image},
+			120000, error))
+		return false;
+	if (!isMountPoint(mountPoint)) {
+		if (error)
+			*error = QStringLiteral("The macOS update disk image did not mount.");
+		return false;
+	}
+	return true;
+}
+
+// Detaches the disk image mounted at mountPoint, if there is one. A volume that stays busy is
+// detached by force on the last attempt.
+void detachDiskImage(const QString& mountPoint) {
+	for (int attempt = 1; attempt <= kDetachAttempts && isMountPoint(mountPoint); ++attempt) {
+		if (attempt > 1)
+			QThread::msleep(1000);
+		QStringList arguments{QStringLiteral("detach")};
+		if (attempt == kDetachAttempts)
+			arguments << QStringLiteral("-force");
+		arguments << mountPoint;
+		runProcess(QStringLiteral("/usr/bin/hdiutil"), arguments, 30000);
+	}
+}
+
+bool copyMacApp(const QString& source, const QString& stagedPath, QString* error) {
 	const QFileInfo app(source);
 	if (!app.isDir() || app.fileName() != QStringLiteral("QEGTRAIN.app")
 		|| !QFileInfo(QDir(source).filePath("Contents/MacOS/QEGTRAIN")).isFile()
 		|| !QFileInfo(QDir(source).filePath("Contents/Info.plist")).isFile()) {
 		if (error)
 			*error = QStringLiteral("The macOS update package has an invalid app bundle.");
-		return {};
+		return false;
 	}
-	const QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN.app"));
-	if (!runProcess(QStringLiteral("/usr/bin/ditto"), {source, stagedPath}, 60000, error))
+	return runProcess(QStringLiteral("/usr/bin/ditto"), {source, stagedPath}, 60000, error);
+}
+
+bool copyMacAppFromZip(const UpdatePreparationInput& input, const QString& stagedPath, QString* error) {
+	const QString extract = QDir(input.stagingRoot).filePath(QStringLiteral("extract"));
+	if (!QDir().mkpath(extract))
+		return false;
+	if (!runProcess(QStringLiteral("/usr/bin/ditto"),
+			{QStringLiteral("-x"), QStringLiteral("-k"), input.packagePath, extract}, 60000, error))
+		return false;
+	return copyMacApp(QDir(extract).filePath(QStringLiteral("QEGTRAIN-Lebanon/QEGTRAIN.app")), stagedPath, error);
+}
+
+// The image is detached before this returns, whether or not the app was copied.
+bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString& stagedPath, QString* error) {
+	const QString mountPoint = QDir(input.stagingRoot).filePath(QStringLiteral("mnt"));
+	bool copied = false;
+	if (QDir().mkpath(mountPoint) && attachDiskImage(input.packagePath, mountPoint, error))
+		copied = copyMacApp(QDir(mountPoint).filePath(QStringLiteral("QEGTRAIN.app")), stagedPath, error);
+	detachDiskImage(mountPoint);
+	return copied;
+}
+
+[[maybe_unused]] QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
+	const QString stagedPath = QDir(input.stagingRoot).filePath(QStringLiteral("QEGTRAIN.app"));
+	// Releases before the disk image publish a zip package.
+	const bool diskImage = input.packagePath.endsWith(QStringLiteral(".dmg"), Qt::CaseInsensitive);
+	if (!(diskImage ? copyMacAppFromDiskImage(input, stagedPath, error)
+					: copyMacAppFromZip(input, stagedPath, error)))
 		return {};
 	if (!runProcess(QStringLiteral("/usr/bin/codesign"),
 			{QStringLiteral("--verify"), QStringLiteral("--deep"), QStringLiteral("--strict"), stagedPath},
@@ -170,6 +239,19 @@ QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) 
 	if (error)
 		*error = QStringLiteral("Self-update is not supported on this platform.");
 	return {};
+#endif
+}
+
+bool isReadOnlyLocation(const QString& path) {
+	if (path.contains(QStringLiteral("/AppTranslocation/")))
+		return true;
+#if defined(Q_OS_UNIX)
+	// The kernel answers for the volume that holds the path, also for the folders of the user
+	// volume that macOS links into the read-only root.
+	struct statvfs volume;
+	return statvfs(QFile::encodeName(path).constData(), &volume) == 0 && (volume.f_flag & ST_RDONLY) != 0;
+#else
+	return false;
 #endif
 }
 

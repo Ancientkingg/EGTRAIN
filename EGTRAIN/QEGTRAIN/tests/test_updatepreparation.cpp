@@ -7,6 +7,8 @@
 #include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
+#include <QProcess>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTimer>
@@ -135,6 +137,141 @@ static bool testStaleStagingSweep(const QString& base) {
 	return ok;
 }
 
+static bool testReadOnlyLocation(const QString& base) {
+	bool ok = expect(!isReadOnlyLocation(base), "a writable folder is not a read-only location");
+	ok &= expect(isReadOnlyLocation("/private/var/folders/ab/cd/T/AppTranslocation/0123/d/QEGTRAIN.app"),
+		"an App Translocation location is a read-only location");
+	return ok;
+}
+
+#if defined(Q_OS_MACOS)
+// Runs a tool without a shell. The tool must exit with 0.
+static bool runTool(const QString& program, const QStringList& arguments, QByteArray* output = nullptr) {
+	QProcess process;
+	process.start(program, arguments);
+	if (!process.waitForFinished(120000)) {
+		process.kill();
+		process.waitForFinished(1000);
+		return false;
+	}
+	if (output)
+		*output = process.readAllStandardOutput();
+	return process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0;
+}
+
+// A bundle in the layout of a release. Its program is a copy of this test, signed ad hoc, unless
+// withProgram is false.
+static bool buildFixtureApp(const QString& app, const QString& version, bool withProgram) {
+	const QString plistTemplate = QStringLiteral(R"(<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>QEGTRAIN</string>
+<key>CFBundleIdentifier</key><string>com.egtrain.simulator</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>%1</string>
+</dict></plist>
+)");
+	const QString plist = plistTemplate.arg(version);
+	if (!QDir().mkpath(app + "/Contents/MacOS") || !writeFile(app + "/Contents/Info.plist", plist.toUtf8()))
+		return false;
+	return !withProgram
+		|| (QFile::copy(QCoreApplication::applicationFilePath(), app + "/Contents/MacOS/QEGTRAIN")
+			&& runTool("/usr/bin/codesign", {"--force", "--sign", "-", app}));
+}
+
+// The disk image that tools/release/make_dmg.py builds from the bundle, or an empty string.
+static QString buildDiskImage(const QString& app, const QString& outputDirectory) {
+	const QString python = QStandardPaths::findExecutable("python3");
+	const QString script = QDir::cleanPath(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath() + "/../../../tools/release/make_dmg.py");
+	if (python.isEmpty() || !runTool(python, {script, "--version", "1.2.3", "--app", app, "--output", outputDirectory}))
+		return {};
+	return QDir(outputDirectory).filePath("EGTRAIN-1.2.3-macOS-arm64.dmg");
+}
+
+struct MacStageOutcome {
+	QString stagedPath;
+	QString error;
+	bool mounted = true;
+};
+
+// Stages the package and reports whether a volume is still mounted below its staging folder. Only
+// this test detaches a volume that the staging left behind.
+static MacStageOutcome stageMacPackageAt(const QString& stagingRoot, const QString& package, const QString& version) {
+	UpdatePreparationInput input;
+	input.packagePath = package;
+	input.stagingRoot = stagingRoot;
+	input.manifest.version = version;
+	MacStageOutcome outcome;
+	if (!QDir().mkpath(stagingRoot))
+		return outcome;
+	outcome.stagedPath = stageUpdatePackage(input, &outcome.error);
+	QByteArray mounts;
+	outcome.mounted = !runTool("/usr/bin/hdiutil", {"info"}, &mounts)
+		|| mounts.contains(QFileInfo(stagingRoot).canonicalFilePath().toUtf8());
+	runTool("/usr/bin/hdiutil", {"detach", "-force", stagingRoot + "/mnt"});
+	return outcome;
+}
+
+static bool testMacDiskImage(const QString& base) {
+	const QString folder = QDir(base).filePath("macos");
+	const QString fixture = folder + "/fixture/QEGTRAIN.app";
+	const QString broken = folder + "/broken/QEGTRAIN.app";
+	const QString notImage = folder + "/not-an-image.dmg";
+	const QString legacyZip = folder + "/legacy.zip";
+	bool ok = expect(buildFixtureApp(fixture, "1.2.3", true) && buildFixtureApp(broken, "1.2.3", false)
+			&& writeFile(notImage, "not a disk image"),
+		"disk image fixtures are writable");
+	const QString image = buildDiskImage(fixture, folder + "/image");
+	const QString brokenImage = buildDiskImage(broken, folder + "/broken-image");
+	ok &= expect(!image.isEmpty() && !brokenImage.isEmpty(), "the release script builds the fixture disk images");
+	// The zip package of earlier releases holds QEGTRAIN-Lebanon/QEGTRAIN.app.
+	ok &= expect(runTool("/usr/bin/ditto", {fixture, folder + "/legacy/QEGTRAIN-Lebanon/QEGTRAIN.app"})
+			&& runTool("/usr/bin/ditto", {"-c", "-k", "--keepParent", folder + "/legacy/QEGTRAIN-Lebanon", legacyZip}),
+		"the zip fixture is writable");
+	if (!ok)
+		return false;
+
+	const MacStageOutcome staged = stageMacPackageAt(folder + "/staged", image, "1.2.3");
+	QFile program(fixture + "/Contents/MacOS/QEGTRAIN");
+	QFile stagedProgram(staged.stagedPath + "/Contents/MacOS/QEGTRAIN");
+	ok &= expect(staged.stagedPath == folder + "/staged/QEGTRAIN.app" && staged.error.isEmpty(),
+		"the app is staged from a disk image");
+	ok &= expect(program.open(QIODevice::ReadOnly) && stagedProgram.open(QIODevice::ReadOnly)
+			&& program.readAll() == stagedProgram.readAll(),
+		"the staged app is the app of the disk image");
+	ok &= expect(!staged.mounted, "the disk image is detached after staging");
+
+	const QString readOnlyMount = folder + "/read-only";
+	ok &= expect(QDir().mkpath(readOnlyMount)
+			&& runTool("/usr/bin/hdiutil", {"attach", "-readonly", "-nobrowse", "-noautoopen", "-mountpoint", readOnlyMount, image}),
+		"the disk image mounts");
+	ok &= expect(isReadOnlyLocation(readOnlyMount + "/QEGTRAIN.app"), "an app on a mounted disk image is in a read-only location");
+	ok &= expect(runTool("/usr/bin/hdiutil", {"detach", readOnlyMount}) || runTool("/usr/bin/hdiutil", {"detach", "-force", readOnlyMount}),
+		"the disk image detaches");
+
+	const MacStageOutcome mismatch = stageMacPackageAt(folder + "/mismatch", image, "9.9.9");
+	ok &= expect(mismatch.stagedPath.isEmpty()
+			&& mismatch.error == QStringLiteral("The macOS update app version does not match the release manifest."),
+		"a disk image with another app version is rejected");
+	ok &= expect(!mismatch.mounted, "the disk image is detached after a version mismatch");
+
+	const MacStageOutcome invalid = stageMacPackageAt(folder + "/invalid", brokenImage, "1.2.3");
+	ok &= expect(invalid.stagedPath.isEmpty()
+			&& invalid.error == QStringLiteral("The macOS update package has an invalid app bundle."),
+		"a disk image whose app has no program is rejected");
+	ok &= expect(!invalid.mounted, "the disk image is detached after an invalid app bundle");
+
+	const MacStageOutcome unreadable = stageMacPackageAt(folder + "/unreadable", notImage, "1.2.3");
+	ok &= expect(unreadable.stagedPath.isEmpty() && !unreadable.error.isEmpty(), "a file that is no disk image is rejected");
+	ok &= expect(!unreadable.mounted, "nothing is mounted after a file that is no disk image");
+
+	const MacStageOutcome legacy = stageMacPackageAt(folder + "/legacy-staged", legacyZip, "1.2.3");
+	ok &= expect(legacy.stagedPath == folder + "/legacy-staged/QEGTRAIN.app" && legacy.error.isEmpty(),
+		"the app is still staged from a zip package");
+	return ok;
+}
+#endif
+
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
@@ -210,6 +347,10 @@ int main(int argc, char** argv) {
 		"the event loop keeps processing events while preparation runs");
 
 	ok &= testStaleStagingSweep(temp.path());
+	ok &= testReadOnlyLocation(temp.path());
+#if defined(Q_OS_MACOS)
+	ok &= testMacDiskImage(temp.path());
+#endif
 
 	return ok ? 0 : 1;
 }

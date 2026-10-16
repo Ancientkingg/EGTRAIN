@@ -94,6 +94,11 @@ SelfUpdateCapability SelfUpdater::capability() {
 		result.reason = QStringLiteral("The packaged macOS app is incomplete.");
 		return result;
 	}
+	if (isReadOnlyLocation(result.currentPath)) {
+		result.reason = QStringLiteral("EGTRAIN is running from a read-only location, such as a disk image. "
+									   "Move EGTRAIN to the Applications folder first.");
+		return result;
+	}
 #elif defined(Q_OS_WIN)
 	result.currentPath = QFileInfo(applicationPath).absolutePath();
 	if (QFileInfo(applicationPath).fileName().compare(executableName(), Qt::CaseInsensitive) != 0
