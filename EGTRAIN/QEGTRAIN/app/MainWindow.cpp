@@ -6,6 +6,7 @@
 #include "app/MainWindowTestHooks.h"
 #include "app/RunSelection.h"
 #include "app/OpenRequestRelay.h"
+#include "app/ReleaseNotesText.h"
 #include "app/ReplayCoverage.h"
 #include "app/RuntimeGeometryFromGlobals.h"
 #include "app/SceneOpenRequest.h"
@@ -3331,9 +3332,10 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
 		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
+	dialog.setTextFormat(Qt::MarkdownText);
 	dialog.setInformativeText((release.notes.isEmpty()
 									  ? QStringLiteral("No release notes were provided.")
-									  : release.notes)
+									  : releaseNotesMarkdown(release.notes))
 		+ availability);
 	QPushButton* updateButton = nullptr;
 	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
