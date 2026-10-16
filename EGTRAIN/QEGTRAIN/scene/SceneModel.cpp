@@ -1,5 +1,6 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneFields.h"
+#include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <cctype>
@@ -94,14 +95,15 @@ std::string buildSceneDirectorySnapshot(
 SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	SceneInputSnapshot result;
 	std::error_code ec;
-	if (!fs::is_directory(sceneDir, ec) || ec) {
+	const fs::path directory = pathFromUtf8(sceneDir);
+	if (!fs::is_directory(directory, ec) || ec) {
 		result.reason = "scene directory is missing or unreadable";
 		return result;
 	}
 
 	std::vector<std::pair<std::string, std::string>> files;
 	const auto read = [&](const char* name, bool required) {
-		const fs::path path = fs::path(sceneDir) / name;
+		const fs::path path = directory / name;
 		ec.clear();
 		if (!fs::is_regular_file(path, ec) || ec) {
 			if (required)
@@ -118,7 +120,7 @@ SceneInputSnapshot readSceneDirectorySnapshot(const std::string& sceneDir) {
 	};
 	const auto exists = [&](const char* name, bool& present) {
 		ec.clear();
-		present = fs::exists(fs::path(sceneDir) / name, ec);
+		present = fs::exists(directory / name, ec);
 		if (!ec)
 			return true;
 		result.reason = std::string("scene input is missing or unreadable: ") + name;
@@ -764,7 +766,8 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 		addDiagnostic(SceneSeverity::Warning, code, file, message, path);
 	};
 
-	if (!fs::is_directory(sceneDir)) {
+	const fs::path directory = pathFromUtf8(sceneDir);
+	if (!fs::is_directory(directory)) {
 		addError("scene.dir.missing", "", "Scene directory missing or invalid");
 		return result;
 	}
@@ -772,7 +775,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	std::vector<std::pair<std::string, std::string>> inputFiles;
 	auto parseObject = [&](const std::string& file, json& value, bool required, bool parseValue = true) {
 		std::string content;
-		if (!readFile(fs::path(sceneDir) / file, content)) {
+		if (!readFile(directory / file, content)) {
 			if (required)
 				addError("scene.file.missing", file, "Required file is missing");
 			return false;
@@ -902,12 +905,12 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 	const bool signallingOk = parseObject("signalling.json", signallingJson, true);
 	const bool rollingStockOk = parseObject("rolling_stock.json", rollingStockJson, true);
 	const bool servicesOk = parseObject("services.json", servicesJson, true);
-	const bool scenariosPresent = fs::exists(fs::path(sceneDir) / "scenarios.json");
-	const bool incidentsPresent = fs::exists(fs::path(sceneDir) / "incidents.json");
+	const bool scenariosPresent = fs::exists(directory / "scenarios.json");
+	const bool incidentsPresent = fs::exists(directory / "incidents.json");
 	const bool scenariosOk = parseObject("scenarios.json", scenariosJson, scenariosPresent);
 	const bool incidentsOk = parseObject("incidents.json", incidentsJson, incidentsPresent, !scenariosPresent);
 	const bool passengersOk = parseObject("passengers.json", passengersJson,
-		fs::exists(fs::path(sceneDir) / "passengers.json"));
+		fs::exists(directory / "passengers.json"));
 	const bool viewsOk = parseObject("views.json", viewsJson, false);
 
 	if (sceneOk) {

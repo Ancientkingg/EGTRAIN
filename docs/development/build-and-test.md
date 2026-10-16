@@ -277,6 +277,11 @@ fixtures, loads the result and saves it again, and requires the two saves to be
 equal byte for byte. It never compares a save with the committed bytes, because
 a committed file need not be in the writer's form.
 
+The scene tests `test_scenebundle`, `test_scenewriter`, `test_scenecompatibility`,
+`test_sceneimporter` and `test_sceneexporter` also give the scene API folder and file
+names with Japanese and Thai characters, which no Windows code page holds together.
+`test_scenebundle` also points the temporary folder at such a name.
+
 Run the focused bundle test with:
 
 ```bash
@@ -303,7 +308,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_verify_signatures` | no | no | yes | Signs copies of `scene_tool.exe` with a throwaway self-signed certificate through `New-SelfSignedCertificate` and `Set-AuthenticodeSignature`, and runs `tools/release/verify_signatures.ps1` on them. It is not registered when no PowerShell is found. |
-| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window there only, because the scene layer builds file paths from narrow strings. |
+| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 

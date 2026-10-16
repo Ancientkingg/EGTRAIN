@@ -60,6 +60,9 @@ static void writeAreaScene(const fs::path& scene, const std::string& signallingA
 	std::ofstream(scene / "services.json") << R"({"services":[]})" << "\n";
 }
 
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
+
 static void printErrors(const std::vector<SceneDiagnostic>& diags, const char* label) {
 	for (const auto& d : diags) {
 		if (d.severity == SceneSeverity::Error)
@@ -786,6 +789,38 @@ int main() {
 		const auto before = snapshot(source);
 		ok &= expect(exportLegacyScene(source.string(), out.string()).success() && snapshot(source) == before,
 			"Non-overlapping sibling export supports missing destination leaves and preserves source bytes");
+	}
+
+	// A scene directory, an export destination, the legacy data below the scene and the source files of a train unit,
+	// all with Unicode names.
+	{
+		TempDir rootDir;
+		const fs::path scene = fs::path(rootDir.dir) / fs::u8path(kUnicodeName);
+		const fs::path out = fs::path(rootDir.dir) / fs::u8path("export-" + kUnicodeName);
+		fs::create_directories(scene / "legacy");
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Unicode Export"})" << "\n";
+		std::ofstream(scene / "infrastructure.json") << R"({"nodes":[],"arcs":[]})" << "\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "signalling.json") << R"({"signals":[],"routes":[{"id":"route0","blocks":["Depot/1"]}]})" << "\n";
+		std::ofstream(scene / "rolling_stock.json")
+			<< R"({"train_units":[{"id":"unit","physical":{"mass_of_traction_unit_kg":1,"mass_of_a_wagon_kg":1,"number_of_wagons":0,"max_speed_ms":1,"max_deceleration_ms2":1,"frontal_area_m2":1,"resistance_coefficient":1,"jerk_ms3":1,"length_m":1},"traction_curve":[[0,1,1,0,0]],"source":{"data_file":"/)"
+			<< kUnicodeName << R"(.dat","traction_file":"/)" << kUnicodeName << R"(-effort.dat"}}],"compositions":[{"id":"comp","units":["unit"]}]})"
+			<< "\n";
+		std::ofstream(scene / "services.json")
+			<< R"({"services":[{"id":"svc","composition":"comp","route":"route0","entry_time_seconds":0,"stops":[{"station":"st","departure_seconds":0,"dwell_seconds":0}]}]})"
+			<< "\n";
+		std::ofstream(scene / "legacy" / fs::u8path(kUnicodeName + ".txt")) << "passthrough\n";
+
+		const auto res = exportLegacyScene(scene.u8string(), out.u8string());
+		printErrors(res.diagnostics, "Unicode export");
+		ok &= expect(res.success(), "export from a scene directory with a Unicode name to a destination with a Unicode name succeeds");
+		ok &= expect(fs::is_regular_file(out / "Routes" / "Route0.txt") && fs::is_regular_file(out / "TimeTable" / "svc.txt"),
+			"export into a destination with a Unicode name writes its files");
+		ok &= expect(fs::is_regular_file(out / "TrainData" / fs::u8path(kUnicodeName + ".dat"))
+				&& fs::is_regular_file(out / "TrainData" / fs::u8path(kUnicodeName + "-effort.dat")),
+			"train data files with Unicode names are exported under those names");
+		ok &= expect(fs::is_regular_file(out / fs::u8path(kUnicodeName + ".txt")),
+			"legacy data with a Unicode name is copied");
 	}
 
 	if (!ok)

@@ -1,6 +1,7 @@
 #include "scene/SceneWriter.h"
 #include "scene/SceneFields.h"
 #include "scene/StagedDirectory.h"
+#include "scene/Utf8Path.h"
 
 #include <climits>
 #include <filesystem>
@@ -36,7 +37,7 @@ static void addCleanupWarning(SceneSaveResult& result, const fs::path& path,
 	SceneDiagnostic diagnostic;
 	diagnostic.severity = SceneSeverity::Warning;
 	diagnostic.code = "scene.save.cleanup";
-	diagnostic.file = path.string();
+	diagnostic.file = path.u8string();
 	diagnostic.message = message;
 	result.diagnostics.push_back(std::move(diagnostic));
 }
@@ -46,12 +47,12 @@ static bool inspectDestination(const fs::path& destination, bool& exists,
 	std::error_code ec;
 	const auto status = fs::symlink_status(destination, ec);
 	if (ec && ec != std::errc::no_such_file_or_directory) {
-		addWriteError(result, destination.string(), "Cannot inspect scene destination: " + ec.message());
+		addWriteError(result, destination.u8string(), "Cannot inspect scene destination: " + ec.message());
 		return false;
 	}
 	exists = !ec && status.type() != fs::file_type::not_found;
 	if (exists && status.type() != fs::file_type::directory) {
-		addWriteError(result, destination.string(),
+		addWriteError(result, destination.u8string(),
 			"Scene destination must be a directory and cannot be a symlink");
 		return false;
 	}
@@ -98,7 +99,7 @@ static bool writeJsonFile(SceneSaveResult& result, const fs::path& scenePath,
 // Writes a file that may already exist: the old content stays until the new content is complete.
 static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path,
 	const json& value) {
-	const std::string filename = path.filename().string();
+	const std::string filename = path.filename().u8string();
 	std::string bytes;
 	if (!serializeJson(result, filename, value, bytes))
 		return false;
@@ -118,7 +119,7 @@ static bool writeJsonFileReplacing(SceneSaveResult& result, const fs::path& path
 		return false;
 	}
 	fs::path temporary;
-	if (uniqueSiblingPath(target.parent_path(), target.filename().string() + ".tmp-", temporary)) {
+	if (uniqueSiblingPath(target.parent_path(), target.filename().u8string() + ".tmp-", temporary)) {
 		addWriteError(result, filename, "Cannot create a temporary file for " + filename);
 		return false;
 	}
@@ -148,7 +149,7 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 	std::error_code ec;
 	fs::copy(source, staging, fs::copy_options::recursive | fs::copy_options::copy_symlinks, ec);
 	if (ec) {
-		addWriteError(result, source.string(), "Cannot stage the previous scene contents: " + ec.message());
+		addWriteError(result, source.u8string(), "Cannot stage the previous scene contents: " + ec.message());
 		return false;
 	}
 	for (const char* filename : {"scene.json", "infrastructure.json", "stations.json",
@@ -432,13 +433,13 @@ static void parseScenarioEntranceDelay(const json& value, std::size_t index,
 
 SceneSaveResult saveScenarioJson(const SceneScenario& scenario, const std::string& filePath) {
 	SceneSaveResult result;
-	result.wroteAll = writeJsonFileReplacing(result, fs::path(filePath), writeScenarioValue(scenario));
+	result.wroteAll = writeJsonFileReplacing(result, pathFromUtf8(filePath), writeScenarioValue(scenario));
 	return result;
 }
 
 ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 	ScenarioLoadResult result;
-	std::ifstream input{fs::path(filePath)};
+	std::ifstream input{pathFromUtf8(filePath)};
 	if (!input) {
 		addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.file.missing",
 			"Cannot open scenario JSON");
@@ -731,8 +732,8 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 
 SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) {
 	SceneSaveResult result;
-	const fs::path destination(sceneDir);
-	const std::string destinationName = destination.filename().string();
+	const fs::path destination = pathFromUtf8(sceneDir);
+	const std::string destinationName = destination.filename().u8string();
 	if (destination.empty() || destinationName.empty() || destinationName == "."
 		|| destinationName == "..") {
 		addWriteError(result, sceneDir, "Scene destination must be a named directory");
@@ -745,13 +746,13 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	result.writeAttempted = true;
 	fs::create_directories(parent, ec);
 	if (ec) {
-		addWriteError(result, parent.string(), "Cannot create scene parent directory: " + ec.message());
+		addWriteError(result, parent.u8string(), "Cannot create scene parent directory: " + ec.message());
 		return result;
 	}
 	ec.clear();
 	const auto parentStatus = fs::symlink_status(parent, ec);
 	if (ec || parentStatus.type() != fs::file_type::directory) {
-		addWriteError(result, parent.string(), "Scene destination parent must be a directory");
+		addWriteError(result, parent.u8string(), "Scene destination parent must be a directory");
 		return result;
 	}
 
@@ -762,7 +763,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	StagedDirectory staging;
 	ec = createStagedDirectory(parent, destinationName + ".staging-", true, staging);
 	if (ec) {
-		addWriteError(result, destination.string(), "Cannot create a private scene staging directory");
+		addWriteError(result, destination.u8string(), "Cannot create a private scene staging directory");
 		return result;
 	}
 	if (hadDestination && !copyExistingSceneContents(destination, staging.path, result))
@@ -773,7 +774,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (!result.wroteAll || hasErrors(result.diagnostics))
 		return result;
 
-	const SceneLoadResult staged = loadScene(staging.path.string());
+	const SceneLoadResult staged = loadScene(staging.path.u8string());
 	result.diagnostics.insert(result.diagnostics.end(), staged.diagnostics.begin(), staged.diagnostics.end());
 	if (hasErrors(staged.diagnostics)) {
 		result.wroteAll = false;
@@ -790,7 +791,7 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 	if (hadDestination) {
 		ec = uniqueSiblingPath(parent, destinationName + ".backup-", backup);
 		if (ec) {
-			addWriteError(result, destination.string(), "Cannot reserve a private scene backup path");
+			addWriteError(result, destination.u8string(), "Cannot reserve a private scene backup path");
 			result.wroteAll = false;
 			return result;
 		}
@@ -798,14 +799,14 @@ SceneSaveResult saveScene(const SceneModel& scene, const std::string& sceneDir) 
 
 	const StagedPublishResult published = publishStagedDirectory(staging, destination, backup);
 	if (published.step == StagedPublishStep::MoveToBackup) {
-		addWriteError(result, destination.string(), "Cannot move the previous scene generation: " + published.error.message());
+		addWriteError(result, destination.u8string(), "Cannot move the previous scene generation: " + published.error.message());
 		result.wroteAll = false;
 		return result;
 	}
 	if (published.step == StagedPublishStep::Rename) {
-		addWriteError(result, destination.string(), "Cannot publish scene generation: " + published.error.message());
+		addWriteError(result, destination.u8string(), "Cannot publish scene generation: " + published.error.message());
 		if (published.restoreError)
-			addWriteError(result, destination.string(), "Cannot restore the previous scene generation: " + published.restoreError.message());
+			addWriteError(result, destination.u8string(), "Cannot restore the previous scene generation: " + published.restoreError.message());
 		result.wroteAll = false;
 		return result;
 	}

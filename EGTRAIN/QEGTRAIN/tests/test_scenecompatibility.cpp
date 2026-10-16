@@ -36,6 +36,9 @@ struct TempDir {
 	}
 };
 
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
+
 static bool writeManifest(const fs::path& path, const json& schemaVersion) {
 	std::ifstream input(path / "scene.json");
 	json manifest;
@@ -48,7 +51,7 @@ static bool writeManifest(const fs::path& path, const json& schemaVersion) {
 
 static bool writeNewerBundle(const fs::path& path, const char* unsafeName = nullptr) {
 	mz_zip_archive writer{};
-	if (!mz_zip_writer_init_file(&writer, path.string().c_str(), 0))
+	if (!mz_zip_writer_init_file(&writer, path.u8string().c_str(), 0))
 		return false;
 	const std::string manifest = json({{"format", "egscene"},
 										  {"bundle_version", kCurrentSceneBundleVersion + 1},
@@ -65,7 +68,7 @@ static bool writeNewerBundle(const fs::path& path, const char* unsafeName = null
 static bool writeBundleVersion(const fs::path& path, const fs::path& source, const json& bundleVersion,
 	const json& schemaVersion = json()) {
 	mz_zip_archive writer{};
-	if (!mz_zip_writer_init_file(&writer, path.string().c_str(), 0))
+	if (!mz_zip_writer_init_file(&writer, path.u8string().c_str(), 0))
 		return false;
 	bool ok = true;
 	for (const char* name : {"scene.json", "infrastructure.json", "stations.json",
@@ -328,6 +331,27 @@ int main(int argc, char** argv) {
 	const SceneLoadResult reopenedBundle = loadScenePath(upgradedBundle.string());
 	ok &= expect(!hasErrors(reopenedBundle.diagnostics) && !hasErrors(validateScene(reopenedBundle.scene)),
 		"upgraded bundle copy reopens without errors");
+
+	// Sources and copies with Unicode names are probed and migrated under those names.
+	const fs::path unicodeRoot = temp.path / fs::u8path(kUnicodeName);
+	const fs::path unicodeSource = unicodeRoot / fs::u8path(kUnicodeName + "-source");
+	ok &= expect(saveScene(validLoaded.scene, unicodeSource.u8string()).success() && writeManifest(unicodeSource, 0),
+		"directory with a Unicode name saves as an older scene");
+	ok &= expect(probeSceneCompatibility(unicodeSource.u8string(), registry).classification
+			== SceneCompatibilityClass::OlderMigratable,
+		"directory with a Unicode name is probed");
+	const fs::path unicodeUpgraded = unicodeRoot / fs::u8path(kUnicodeName + "-upgraded");
+	ok &= expect(migrateSceneCopy(unicodeSource.u8string(), unicodeUpgraded.u8string(), registry).success()
+			&& fs::is_regular_file(unicodeUpgraded / "scene.json"),
+		"directory with a Unicode name migrates to a copy with a Unicode name");
+	const fs::path unicodeOlderBundle = unicodeRoot / fs::u8path(kUnicodeName + "-older.egscene");
+	ok &= expect(writeBundleVersion(unicodeOlderBundle, bundleSource, kCurrentSceneBundleVersion - 1),
+		"older bundle with a Unicode name writes");
+	const fs::path unicodeUpgradedBundle = unicodeRoot / fs::u8path(kUnicodeName + "-upgraded.egscene");
+	ok &= expect(migrateSceneCopy(unicodeOlderBundle.u8string(), unicodeUpgradedBundle.u8string(), bundleRegistry).success()
+			&& probeSceneCompatibility(unicodeUpgradedBundle.u8string()).classification
+				== SceneCompatibilityClass::Current,
+		"bundle with a Unicode name migrates to a bundle with a Unicode name");
 	const fs::path newerBundle = temp.path / "newer.egscene";
 	ok &= expect(writeNewerBundle(newerBundle), "newer bundle fixture writes");
 	const SceneCompatibilityProbeResult newerBundleProbe = probeSceneCompatibility(newerBundle.string());
