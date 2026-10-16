@@ -1778,7 +1778,17 @@ constexpr size_t kMaxProblems = 20;
 constexpr size_t kMaxExcerpt = 160;
 // Characters of a differing line shown before the first difference.
 constexpr size_t kExcerptLead = 40;
-constexpr int kFreshProcessTimeoutMs = 250 * 1000;
+// How long the fresh process of one step may run. CTest passes EGTRAIN_FRESH_PROCESS_SECONDS, which follows the
+// time limit of the test, so an instrumented build gets more time.
+int freshProcessTimeoutMs() {
+	int seconds = 250;
+	if (const char* text = std::getenv("EGTRAIN_FRESH_PROCESS_SECONDS")) {
+		const int value = std::atoi(text);
+		if (value > 0)
+			seconds = value;
+	}
+	return seconds * 1000;
+}
 
 // The regular files below root by relative path, with '/' as separator. Empty
 // folders do not count.
@@ -1894,11 +1904,11 @@ std::string runInFreshProcess(const std::string& step, const std::string& output
 	if (!child.waitForStarted())
 		return "the fresh process did not start: " + child.errorString().toStdString() + "\n";
 	std::string failure;
-	if (!child.waitForFinished(kFreshProcessTimeoutMs)) {
+	if (!child.waitForFinished(freshProcessTimeoutMs())) {
 		if (child.state() != QProcess::NotRunning) {
 			child.kill();
 			child.waitForFinished();
-			failure = "was still running after " + std::to_string(kFreshProcessTimeoutMs / 1000) + " seconds";
+			failure = "was still running after " + std::to_string(freshProcessTimeoutMs() / 1000) + " seconds";
 		} else {
 			failure = "failed: " + child.errorString().toStdString();
 		}

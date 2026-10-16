@@ -1420,6 +1420,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	if(EGTRAIN_TEST_TIMEOUT_SCALE GREATER 1)
 		foreach(name IN LISTS egtrain_all_tests)
+			# Scripts with waits of their own, such as startup_launch_contract.py, scale them by the same factor.
+			set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT "EGTRAIN_TEST_TIMEOUT_SCALE=${EGTRAIN_TEST_TIMEOUT_SCALE}")
 			get_test_property(${name} TIMEOUT egtrain_test_timeout)
 			if(egtrain_test_timeout)
 				math(EXPR egtrain_test_timeout "${egtrain_test_timeout} * ${EGTRAIN_TEST_TIMEOUT_SCALE}")

@@ -32,7 +32,7 @@ READY_MARKERS = (
 TIMING_PREFIX = "QEGTRAIN_TIMING "
 # These are functional launch checks, not startup performance thresholds.
 # Allow instrumented Debug builds to finish both fresh and warm scene preparation.
-LAUNCH_TIMEOUT_SECONDS = 60
+LAUNCH_TIMEOUT_SECONDS = 60 * max(1, int(os.environ.get("EGTRAIN_TEST_TIMEOUT_SCALE", "1") or "1"))
 # A file name with an e acute and two CJK characters; the CJK characters are outside the Western Windows code page.
 NON_ASCII_NAME = "Paimpol \u00e9\u6771\u4eac.egscene"
 HEADLESS_OPTIONS = ["-g", "0", "-h", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
