@@ -125,7 +125,7 @@ private:
 		else if (path == "/redirect-loop")
 			send(socket, "302 Found", QByteArray(), "Location: " + url("/redirect-loop").toEncoded() + "\r\n");
 		else if (path == "/redirect-away")
-			send(socket, "302 Found", QByteArray(), "Location: http://192.0.2.1/target\r\n");
+			send(socket, "302 Found", QByteArray(), "Location: http://localhost:" + QByteArray::number(server.serverPort()) + "/redirect-away-target\r\n");
 		else if (path == "/target")
 			send(socket, "200 OK", targetBody());
 		else if (path == "/missing")
@@ -414,12 +414,15 @@ static bool testPlainHttpRefused(HttpTransport& strict, const TestServer& server
 }
 
 // With plain http to the loopback address allowed, a redirect to another plain http address is still
-// refused. Nothing answers at 192.0.2.1, so following the redirect would stall instead of ending at once.
+// refused. The redirect names this server by host name, which is not the loopback address the test
+// allows, so a transport that followed it would send the request to this server.
 static bool testRedirectToPlainHttpRefused(HttpTransport& transport, const TestServer& server) {
 	Fetch fetch(transport, makeRequest(server.url("/redirect-away")));
-	bool ok = expect(fetch.waitFinished(2000), "redirect to http: finished() arrives at once");
+	bool ok = expect(fetch.waitFinished(), "redirect to http: finished() arrives");
 	ok &= expect(fetch.failed, "redirect to http: the reply has failed");
 	ok &= expect(!fetch.error.isEmpty(), "redirect to http: errorString() is not empty");
+	spin(50);
+	ok &= expect(server.find("/redirect-away-target") == nullptr, "redirect to http: the redirect is not followed");
 	return ok;
 }
 #endif
