@@ -31,6 +31,7 @@ struct OutputFolderRun {
 	QString thirdPath;
 	QString chosen;
 	std::string secondName = "Output Folder Second";
+	std::string renamedName = "Output Folder Renamed";
 	std::string thirdName = "Output Folder Third";
 	QStringList failures;
 	int attempts = 0;
@@ -41,10 +42,10 @@ constexpr int kMaxPolls = 100;
 
 } // namespace
 
-// The folder that a run writes to follows the scene that the window holds. It opens a second scene in the
-// window and runs it, then picks a folder as Choose Output Folder does and opens a third scene, which must
-// leave that folder in force. QEGTRAIN_OUTPUT_DIR names the base folder. It prints E2E_OUTPUT_FOLDER_OK and
-// exits with 0, or prints the failures and exits with 2.
+// The folder that a run writes to follows the scene that the window holds. It creates a new case and opens a
+// second scene in the window, renames that scene in Case Settings and runs it, then picks a folder as Choose
+// Output Folder does and opens a third scene, which must leave that folder in force. QEGTRAIN_OUTPUT_DIR names
+// the base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	if (w.m_e2eFinished)
 		return;
@@ -77,7 +78,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		finish();
 		return;
 	}
-	const QString startupFolder = outputFolderOf(run->base, w.m_sceneModel.name);
+	const std::string startupName = w.m_sceneModel.name;
+	const QString startupFolder = outputFolderOf(run->base, startupName);
 	if (currentOutputFolder() != startupFolder)
 		fail(QStringLiteral("the start-up scene does not write to %1").arg(startupFolder));
 
@@ -97,9 +99,18 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		return;
 	}
 
-	// A folder left by an earlier run must not make the check below pass.
+	// The start-up scene is saved, so a new case replaces it without asking to save.
+	w.newScene();
+	if (!w.m_sceneDir.isEmpty() || w.m_sceneModel.name == startupName) {
+		fail(QStringLiteral("the new case was not created"));
+		finish();
+		return;
+	}
+	const QString newFolder = outputFolderOf(run->base, w.m_sceneModel.name);
+	if (currentOutputFolder() != newFolder)
+		fail(QStringLiteral("after creating a case the folder is %1, not %2").arg(currentOutputFolder(), newFolder));
+
 	const QString secondFolder = outputFolderOf(run->base, run->secondName);
-	QDir(secondFolder).removeRecursively();
 	if (!w.openSceneDirectory(run->secondPath) || w.m_sceneModel.name != run->secondName) {
 		fail(QStringLiteral("the second scene did not open"));
 		finish();
@@ -107,16 +118,34 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	}
 	if (currentOutputFolder() != secondFolder)
 		fail(QStringLiteral("after opening the second scene the folder is %1, not %2").arg(currentOutputFolder(), secondFolder));
-	w.runScene();
-	if (!w.m_worker) {
-		fail(QStringLiteral("the run of the second scene did not start"));
+
+	// A rename in Case Settings moves the folder of the run. A folder left by an earlier run must not make the check pass.
+	const QString renamedFolder = outputFolderOf(run->base, run->renamedName);
+	QDir(renamedFolder).removeRecursively();
+	if (!w.m_caseNameEdit) {
+		fail(QStringLiteral("Case Settings has no name field"));
 		finish();
 		return;
 	}
-	if (currentOutputFolder() != secondFolder)
-		fail(QStringLiteral("the run of the second scene writes to %1, not %2").arg(currentOutputFolder(), secondFolder));
-	if (!QDir(secondFolder + QStringLiteral("/TrainTrajectories")).exists())
-		fail(QStringLiteral("the run of the second scene prepared no files in %1").arg(secondFolder));
+	w.m_caseNameEdit->setText(QString::fromStdString(run->renamedName));
+	w.commitCaseSettings();
+	if (w.m_sceneModel.name != run->renamedName) {
+		fail(QStringLiteral("the second scene was not renamed"));
+		finish();
+		return;
+	}
+	w.runScene();
+	if (!w.m_worker) {
+		fail(QStringLiteral("the run of the renamed scene did not start"));
+		finish();
+		return;
+	}
+	if (currentOutputFolder() != renamedFolder)
+		fail(QStringLiteral("the run of the renamed scene writes to %1, not %2").arg(currentOutputFolder(), renamedFolder));
+	if (!QDir(renamedFolder + QStringLiteral("/TrainTrajectories")).exists())
+		fail(QStringLiteral("the run of the renamed scene prepared no files in %1").arg(renamedFolder));
+	// The rename is not saved. Opening the next scene must not ask about it.
+	w.m_sceneDirty = false;
 
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
 	const QString thirdFolder = outputFolderOf(run->base, run->thirdName);

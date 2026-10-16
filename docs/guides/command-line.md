@@ -65,7 +65,7 @@ A launch whose only argument is a `.egscene` file, as when the system opens a fi
 
 ## Output folder
 
-By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. A case that you open or create in the window writes to the folder of that case, not to the folder of the case that the program started with. **File > Set Output Folder...** replaces the folder of every later run in that session, whichever case is open. [Run a local build](../development/build-and-test.md#run-a-local-build) states the same rule. [Run output](run-output.md) lists the files of a run.
+By default EGTRAIN writes its output to `<Qt AppDataLocation>/Output/<scene>`, where `<scene>` is the `name` of the scene. `QEGTRAIN_OUTPUT_DIR` replaces the base directory, and EGTRAIN then writes `<that directory>/Output/<scene>`. A run of the case that is open in the window writes to the folder of that case under its present name, not to the folder of the case that the program started with. **File > Set Output Folder...** replaces the folder of every later run in that session, whichever case is open. [Run a local build](../development/build-and-test.md#run-a-local-build) states the same rule. [Run output](run-output.md) lists the files of a run.
 
 ```bash
 QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene

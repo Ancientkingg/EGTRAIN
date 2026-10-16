@@ -3025,7 +3025,7 @@ void MainWindow::dropEvent(QDropEvent* event) {
 }
 
 namespace {
-// The next run writes to the folder of the scene that the window now holds. A folder from Choose
+// The next run writes to the folder of the scene that the window holds. A folder from Choose
 // Output Folder stays in force: the controller applies it to every run it prepares.
 void selectSceneOutputFolder(const std::string& sceneName) {
 	if (simulation.nextRunOutputFolder().empty())
@@ -13215,6 +13215,8 @@ void MainWindow::runScene() {
 	teardownGUI();
 	m_previewFitBounds = previewFitBounds;
 	m_previewZoomFocus = previewZoomFocus;
+	// A case that was renamed after it was opened or created runs in the folder of its present name.
+	selectSceneOutputFolder(m_sceneModel.name);
 	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
 	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
 		QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
