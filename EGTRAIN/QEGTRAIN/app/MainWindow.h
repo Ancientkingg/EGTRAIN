@@ -412,9 +412,6 @@ private:
 	int m_followTrainIndex = -1;
 	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
-	int m_e2eAttempts = 0;
-	bool m_e2eFinished = false;
-	bool m_editorE2eFinished = false;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;

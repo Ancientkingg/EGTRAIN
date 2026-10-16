@@ -125,7 +125,8 @@ to the folder that Import Passengers reads in place of its dialog, and clears it
 The creator acceptance smoke starts without a scene: when `QEGTRAIN_E2E_CREATOR_ACCEPTANCE`
 is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the first show asks
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
-(`askCapacityScope`), which the scenario answers.
+(`askCapacityScope`), which the scenario answers. A scenario keeps its state, such as whether it
+has begun its checks, in `MainWindowTestAccess`, not in the window.
 
 `Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and
 `showPrivacySettings` call the `dialogShown` hook of `MainWindowTestHooks` with the dialog just before
@@ -144,6 +145,13 @@ described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compil
 folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
 stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
 are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.
+
+`test_no_e2e_in_product` runs `tools/e2e/test_no_e2e_in_product.py`. It fails when a source, header or
+form that a build without tests compiles holds `QEGTRAIN_E2E_`, `E2E_` or `failures <<`. The files under
+`tests/e2e` and the telemetry smoke support are not scanned. Four files are exempt for the text that
+they hold on purpose: `update/UpdateSettings.cpp` and `telemetry/TelemetryConsent.cpp` test the prefix
+`QEGTRAIN_E2E_`, and `app/OpenRequestRelay.cpp` and `app/OpenRequestRelay.h` test it and name
+`QEGTRAIN_E2E_OPEN_RELAY`.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
 set, the runner starts the run of the case 1.5 s after the first show. The hooks
@@ -566,6 +574,9 @@ with `--exports`, for a package assembled from a build with
 
 3. The CSV export.
 4. The PNG export.
+
+The Windows CI leg passes `--exports`, because it assembles the package from its build with tests. The
+package workflows build release packages and do not.
 
 The two export launches run Paimpol with a window and a horizon of 8000 s,
 with the autostart hook and one export hook of the application each:

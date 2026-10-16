@@ -82,9 +82,9 @@ bool copyDirectoryRecursively(const QString& sourcePath, const QString& targetPa
 // an authored signal is inspectable, and that a click selects an item with a cue. It prints E2E_TRACK_PREVIEW_OK
 // and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 
 	bool ok = true;
 	QStringList failures;

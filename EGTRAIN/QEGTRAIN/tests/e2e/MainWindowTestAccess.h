@@ -50,6 +50,13 @@ public:
 	static void telemetryWindowDestroyed();
 #endif
 
+	// Whether a scenario has begun its checks, which it does once, and how often it has waited for the first train to be
+	// drawn. A run starts one scenario.
+	static inline bool scenarioStarted = false;
+	static inline int scenarioAttempts = 0;
+	// Whether the editor smoke has begun its checks.
+	static inline bool editorSmokeStarted = false;
+
 private:
 	static void chooserShown(MainWindow& w, CaseChooserDialog& dialog);
 	static void chooserClosed(MainWindow& w, CaseChooserDialog& dialog);

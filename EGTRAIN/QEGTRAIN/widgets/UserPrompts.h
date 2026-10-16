@@ -22,7 +22,7 @@ public:
 
 	virtual void showError(QWidget* parent, const QString& title, const QString& message, bool warningIcon = false) {
 		if (m_suppressed && m_suppressed()) {
-			std::fprintf(stderr, "E2E_DIALOG_SUPPRESSED: %s: %s\n", title.toStdString().c_str(), message.toStdString().c_str());
+			std::fprintf(stderr, "QEGTRAIN_DIALOG_SUPPRESSED: %s: %s\n", title.toStdString().c_str(), message.toStdString().c_str());
 			std::fflush(stderr);
 			return;
 		}

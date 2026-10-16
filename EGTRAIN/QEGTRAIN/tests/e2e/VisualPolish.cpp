@@ -90,10 +90,10 @@ constexpr qreal kSignalDetailZoom = 8.0;
 // pictures of the view. It then stops the run, prints E2E_VISUAL_POLISH_OK and exits with 0, or prints the failures and
 // exits with 2.
 void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
-	if (w.allTrains.isEmpty() && w.m_e2eAttempts < 20) {
-		++w.m_e2eAttempts;
+	if (w.allTrains.isEmpty() && scenarioAttempts < 20) {
+		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runVisualPolish(w); });
 		return;
 	}
@@ -116,7 +116,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (!anyColored || !anyDefault)
 			return;
 	}
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 
 	bool ok = true;
 	QStringList failures;
@@ -2953,6 +2953,6 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 // renderSnapshot reports every frame it draws. A scenario that waits for trains starts on the first live frame that has some.
 void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
-	if (!historical && !w.m_e2eFinished && !w.allTrains.isEmpty())
+	if (!historical && !scenarioStarted && !w.allTrains.isEmpty())
 		runVisualPolish(w);
 }
