@@ -230,6 +230,15 @@ The native builders and TrackPreview tests operate on an in-memory canonical
 `SceneModel`; the builders perform no input-file reads. GUI and headless runs
 both enter the same `DispatchController::prepareScene` path.
 
+`test_scenehistory` checks `SceneHistory` without Qt: the order of Undo and
+Redo, the Redo branch that an edit discards, the saved position across undo,
+redo, edits and dropped snapshots, both limits with injected values, the labels,
+and the replacement of the scene by `reset`. It also removes each part of a rich
+scene in turn and checks that `estimateSceneModelBytes` drops, so a container
+that the estimate leaves out fails the test. For each committed scene it records
+101 edits with the default limits and checks that the step count and the estimate
+stay within them.
+
 `test_recoverystore` checks `RecoveryStore` in one process: the layout of an
 instance folder, writing and replacing a copy, a failed write that keeps the
 previous copy, the copies that an ended instance left behind, the choice of the

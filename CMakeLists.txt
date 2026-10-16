@@ -167,6 +167,7 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneDiagnostic.cpp
     ${SRC_DIR}/scene/SceneExporter.cpp
     ${SRC_DIR}/scene/SceneFieldReader.cpp
+    ${SRC_DIR}/scene/SceneHistory.cpp
     ${SRC_DIR}/scene/SceneImporter.cpp
     ${SRC_DIR}/scene/SceneMigration.cpp
     ${SRC_DIR}/scene/SceneModel.cpp
@@ -990,6 +991,10 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_scenebundle
 		COMMAND test_scenebundle ${SRC_DIR}/tests/fixtures/scenes/minimal)
 
+	add_executable(test_scenehistory ${SRC_DIR}/tests/test_scenehistory.cpp)
+	target_link_libraries(test_scenehistory PRIVATE egtrain_scene)
+	add_test(NAME test_scenehistory COMMAND test_scenehistory ${SRC_DIR}/Scenes)
+
 	add_executable(test_sceneopenrequest ${SRC_DIR}/tests/test_sceneopenrequest.cpp)
 	target_link_libraries(test_sceneopenrequest PRIVATE egtrain_sceneopen Qt5::Core)
 	add_test(NAME test_sceneopenrequest COMMAND test_sceneopenrequest)
@@ -1294,7 +1299,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
-			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
+			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
@@ -1337,7 +1342,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
-		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_sceneopenrequest test_scenebuilder
+		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
