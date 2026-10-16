@@ -1,6 +1,7 @@
 #include "simulation/Signalling.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "scene/SignallingLevel.h"
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
@@ -3853,39 +3854,34 @@ void baccMixedSignalling(double V_75, double V_751, double V_0, Section* BS, int
 	}
 }
 
-// Function to determine permitted speeds at the end of nodes of a Block Section (blockSets.A.connections.connections. with 1 free Block Section behind )
-void setBlockSpeed1MixedSignalling(Section* BLS, int Blocks) {
+namespace {
+// Sets the speed at the end of every section of the given level from the next section of the route. Levels 3 and 4 have their own
+// pass in manageEtcs3TransitionsToOtherSignalling.
+void applyBlockSpeedForLevel(Section* BS, int Blocks, int level) {
 	// Setting signal speeds
 	for (int h = Blocks - 2; h >= 0; h--) {
-		if (BLS[h].SignallingLevel == 5) {
-			// if the block section in front of BLS[h] is occupied by a train then the speed limit at the end of the section must be 0
-			if (BLS[h + 1].code == 0) {
-				BLS[h].arcs_in_signalling_block_section[BLS[h].total_arcs - 1].speedInBraking = 0;
+		if (BS[h].SignallingLevel == level) {
+			// if the block section in front of BS[h] is occupied by a train then the speed limit at the end of the section must be 0
+			if (BS[h + 1].code == 0) {
+				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = 0;
 			} else {
-				double MinSpeedLim = BLS[h + 1].arcs_in_signalling_block_section[0].speedLimit;
-				if (BLS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim)
-					MinSpeedLim = BLS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit;
-				// the speed limit at the end of block section BLS[h] is MinSpeedLim
-				BLS[h].arcs_in_signalling_block_section[BLS[h].total_arcs - 1].speedInBraking = MinSpeedLim;
+				double MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].speedLimit;
+				if (BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim)
+					MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit;
+				// the speed limit at the end of block section BS[h] is MinSpeedLim
+				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = MinSpeedLim;
 			}
 		}
 	}
 }
 
-
-// Release of final Block Section when the train exits simulation
-void relTrackCircuit1MixedSignalling(Section* BS, int blockIndex) {
-	BS[blockIndex].code = 270;
-	if ((blockIndex - 1) >= 0) {
-		BS[blockIndex - 1].code = 270;
-	}
-	if ((blockIndex - 2) >= 0) {
-		BS[blockIndex - 2].code = 270;
-	}
-	if ((blockIndex - 3) >= 0) {
-		BS[blockIndex - 3].code = 270;
+// Sets the code 270 on section blockIndex and on the count - 1 sections before it, as far as the route reaches back.
+void releaseLastSections(Section* BS, int blockIndex, int count) {
+	for (int k = 0; k < count && blockIndex - k >= 0; k++) {
+		BS[blockIndex - k].code = 270;
 	}
 }
+} // namespace
 
 // ATB Signalling system - National Dutch System.
 
@@ -3961,39 +3957,6 @@ void atbMixedSignalling(double V_75, double V_0, Section* BS, int Blocks, const 
 				}
 			}
 		}
-	}
-}
-
-// Function to determine permitted speeds at the end of nodes of a Block Section (ATB - Dutch Signalling system)
-
-void setBlockSpeedAtbMixedSignalling(Section* BS, int Blocks) {
-	// Setting signal limit speeds
-	for (int h = Blocks - 2; h >= 0; h--) {
-
-		if (BS[h].SignallingLevel == 0) {
-			// if the block section in front of BLS[h] is occupied by a train then the speed limit at the end of the section must be 0
-			if (BS[h + 1].code == 0) {
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = 0;
-			} else {
-				double MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].speedLimit;
-				if (BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim)
-					MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit;
-				// the speed limit at the end of block section BLS[h] is MinSpeedLim
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = MinSpeedLim;
-			}
-		}
-	}
-}
-
-
-// Release of final Block Section when the train exits simulation
-void relAtbMixedSignalling(Section* BS, int blockIndex) {
-	BS[blockIndex].code = 270;
-	if ((blockIndex - 1) >= 0) {
-		BS[blockIndex - 1].code = 270;
-	}
-	if ((blockIndex - 2) >= 0) {
-		BS[blockIndex - 2].code = 270;
 	}
 }
 
@@ -4082,39 +4045,6 @@ void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks, const char* oc
 	}
 }
 
-// Function to determine permitted speeds at the end of nodes of a Block Section (ETCS level 1_SCMT)
-
-void setBlockSpeedEtcsLev1MixedSignalling(Section* BS, int Blocks) {
-	// Setting signal limit speeds
-	for (int h = Blocks - 2; h >= 0; h--) {
-
-		if (BS[h].SignallingLevel == 1) {
-			// if the block section in front of BLS[h] is occupied by a train then the speed limit at the end of the section must be 0
-			if (BS[h + 1].code == 0) {
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = 0;
-			} else {
-				double MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].speedLimit;
-				if (BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim)
-					MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit;
-				// the speed limit at the end of block section BLS[h] is MinSpeedLim
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = MinSpeedLim;
-			}
-		}
-	}
-}
-
-
-// Release of final Block Section when the train exits simulation
-void relEtcsLev1MixedSignalling(Section* BS, int blockIndex) {
-	BS[blockIndex].code = 270;
-	if ((blockIndex - 1) >= 0) {
-		BS[blockIndex - 1].code = 270;
-	}
-	if ((blockIndex - 2) >= 0) {
-		BS[blockIndex - 2].code = 270;
-	}
-}
-
 void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied) {
 
 	for (int h = Blocks - 1; h >= 0; h--) {
@@ -4187,39 +4117,6 @@ void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* oc
 				}
 			}
 		}
-	}
-}
-
-// Function to determine permitted speeds at the end of nodes of a Block Section (ETCS level 2)
-
-void setBlockSpeedEtcsLev2MixedSignalling(Section* BS, int Blocks) {
-	// Setting signal limit speeds
-	for (int h = Blocks - 2; h >= 0; h--) {
-
-		if (BS[h].SignallingLevel == 2) {
-			// if the block section in front of BLS[h] is occupied by a train then the speed limit at the end of the section must be 0
-			if (BS[h + 1].code == 0) {
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = 0;
-			} else {
-				double MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].speedLimit;
-				if (BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim)
-					MinSpeedLim = BS[h + 1].arcs_in_signalling_block_section[0].signalSpeedLimit;
-				// the speed limit at the end of block section BLS[h] is MinSpeedLim
-				BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking = MinSpeedLim;
-			}
-		}
-	}
-}
-
-
-// Release of final Block Section when the train exits simulation
-void relEtcsLev2MixedSignalling(Section* BS, int blockIndex) {
-	BS[blockIndex].code = 270;
-	if ((blockIndex - 1) >= 0) {
-		BS[blockIndex - 1].code = 270;
-	}
-	if ((blockIndex - 2) >= 0) {
-		BS[blockIndex - 2].code = 270;
 	}
 }
 
@@ -4400,19 +4297,19 @@ void activateMixedSignallingSystem() {
 		// Set the aspect of signals and Signal Speed Limits for BACC
 		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections,
 			occupied.data());
-		setBlockSpeed1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
 
 		// Set the aspect of signals and signal speed limits for ATB
 		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		setBlockSpeedAtbMixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
 
 		// Set the aspect of signals and signal speed limits for ETCS Level 1
 		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		setBlockSpeedEtcsLev1MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
 
 		// Set the aspect of signals and signal speed limits for ETCS Level 2
 		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		setBlockSpeedEtcsLev2MixedSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
 
 		// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
 		rbcSendsMasToRouteMixedSignalling(train_route[i], occupied.data());
@@ -4443,18 +4340,16 @@ void relLastSectionMixedSignalling(string blockID) {
 				// BlocksConnected, where a train puts the section it leaves when it enters the next
 				// one. A train that leaves the route enters no next section.
 				releaseLastBlockAndConnected(train_route[r].sequence_of_block_sections[b]);
-				if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 0) {
-					relAtbMixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
-				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 1) {
-					relEtcsLev1MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
-				} else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 2) {
-					relEtcsLev2MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
+				const int level = train_route[r].sequence_of_block_sections[b].SignallingLevel;
+				if (level == levelValue(SignallingLevel::Atb) || level == levelValue(SignallingLevel::EtcsLevel1)
+					|| level == levelValue(SignallingLevel::EtcsLevel2)) {
+					releaseLastSections(train_route[r].sequence_of_block_sections.data(), b, 3);
 				}
 
 				// Here the function for ETCS Level 3 shall also be added if needed
 
-				else if (train_route[r].sequence_of_block_sections[b].SignallingLevel == 5) {
-					relTrackCircuit1MixedSignalling(train_route[r].sequence_of_block_sections.data(), b);
+				else if (level == levelValue(SignallingLevel::Bacc)) {
+					releaseLastSections(train_route[r].sequence_of_block_sections.data(), b, 4);
 				}
 
 				// proceed to next route
