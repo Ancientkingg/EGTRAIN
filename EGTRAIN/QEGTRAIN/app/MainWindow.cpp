@@ -20,6 +20,7 @@
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/AboutDialog.h"
+#include "widgets/CaseChooserDialog.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
@@ -13116,41 +13117,6 @@ void MainWindow::showStartupChooser() {
 	const QString sceneDirBefore = m_sceneDir;
 	const quint64 sceneRevisionBefore = m_sceneRevision;
 
-	QDialog dialog(this);
-	dialog.setWindowTitle("Open a Case");
-	dialog.setObjectName("caseChooserDialog");
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-	QListWidget* list = new QListWidget(body);
-	list->setObjectName("caseChooserList");
-	const auto addGroup = [list](const QString& title) {
-		auto* item = new QListWidgetItem(title, list);
-		item->setFlags(Qt::NoItemFlags);
-		item->setData(Qt::UserRole, QString());
-	};
-	const auto displayName = [](const QString& path) {
-		const QFileInfo info(path);
-		if (info.isDir()) {
-			QFile manifest(QDir(path).filePath("scene.json"));
-			if (manifest.open(QIODevice::ReadOnly)) {
-				const QString name = QJsonDocument::fromJson(manifest.readAll()).object().value(QStringLiteral("name")).toString().trimmed();
-				if (!name.isEmpty()) return name;
-			}
-		}
-		QString fallback = info.isFile() ? info.completeBaseName() : info.fileName();
-		return fallback.replace(QLatin1Char('_'), QLatin1Char(' '));
-	};
-	QSet<QString> seen;
-	const auto addSceneItem = [&](const QString& path) {
-		const QString canonical = QFileInfo(path).canonicalFilePath();
-		if (canonical.isEmpty() || seen.contains(canonical))
-			return false;
-		seen.insert(canonical);
-		auto* item = new QListWidgetItem(displayName(path), list);
-		item->setData(Qt::UserRole, path);
-		item->setToolTip(path.toHtmlEscaped());
-		return true;
-	};
 	// Bundled scenes: below the working directory, next to the executable (Windows
 	// and Linux builds), in the macOS bundle, or in a Linux install prefix.
 	const QString applicationDir = QCoreApplication::applicationDirPath();
@@ -13159,125 +13125,12 @@ void MainWindow::showStartupChooser() {
 		applicationDir + "/Scenes",
 		applicationDir + "/../Resources/Scenes",
 		applicationDir + "/../share/EGTRAIN/Scenes"};
-	QSet<QString> bundledNames;
-	bool bundledHeader = false;
-	for (const QString& root : sceneRoots) {
-		QDir dir(root);
-		if (!dir.exists()) continue;
-		const auto entries = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-		for (const QFileInfo& entry : entries) {
-			if (!((entry.isDir() && QFileInfo(QDir(entry.absoluteFilePath()).filePath("scene.json")).exists())
-					|| (entry.isFile() && entry.suffix().compare("egscene", Qt::CaseInsensitive) == 0)))
-				continue;
-			if (bundledNames.contains(entry.fileName().toCaseFolded())) {
-				seen.insert(entry.canonicalFilePath());
-				continue;
-			}
-			bundledNames.insert(entry.fileName().toCaseFolded());
-			if (!bundledHeader) {
-				addGroup("Bundled cases");
-				bundledHeader = true;
-			}
-			addSceneItem(entry.absoluteFilePath());
-		}
-	}
-	QSettings settings;
-	const QStringList recent = settings.value(kRecentScenesKey).toStringList();
-	bool recentHeader = false;
-	for (const QString& path : recent) {
-		const QFileInfo info(path);
-		const bool valid = (info.isDir() && QFileInfo(QDir(path).filePath("scene.json")).exists())
-			|| (info.isFile() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0);
-		if (valid && (info.canonicalFilePath().isEmpty() || seen.contains(info.canonicalFilePath())))
-			continue;
-		if (!recentHeader) {
-			addGroup("Recent cases");
-			recentHeader = true;
-		}
-		if (valid) {
-			addSceneItem(path);
-		} else {
-			auto* missing = new QListWidgetItem(QString("Unavailable: %1").arg(displayName(path)), list);
-			missing->setFlags(Qt::NoItemFlags);
-			missing->setToolTip(path.toHtmlEscaped());
-		}
-	}
-	if (!recentHeader) {
-		addGroup("Recent cases");
-		addGroup("No other recent cases to show");
-	}
-	layout->addWidget(list, 1);
+	const QStringList recentPaths = QSettings().value(kRecentScenesKey).toStringList();
+	CaseChooserDialog dialog({currentCaseName, sceneRoots, recentPaths}, this);
+	QListWidget* list = dialog.list();
+	QPushButton* openBtn = dialog.openButton();
+	QPushButton* continueBtn = dialog.continueButton();
 
-	QPushButton* moreButton = new QPushButton("Other ways to open...", body);
-	moreButton->setObjectName("caseChooserOtherButton");
-	auto* moreMenu = new QMenu(moreButton);
-	QAction* newCase = moreMenu->addAction("New Case Study...");
-	QAction* browseScene = moreMenu->addAction("Open Scene Folder...");
-	QAction* legacy = moreMenu->addAction("Import Legacy Case...");
-	legacy->setToolTip("Convert an original text-input folder and choose where to save the scene.");
-	moreButton->setMenu(moreMenu);
-	layout->addWidget(moreButton, 0, Qt::AlignLeft);
-
-	auto* buttons = new QDialogButtonBox(&dialog);
-	QPushButton* continueBtn = buttons->addButton(currentCaseName.isEmpty() ? "Cancel" : "Continue",
-		QDialogButtonBox::RejectRole);
-	QPushButton* openBtn = buttons->addButton("Open", QDialogButtonBox::AcceptRole);
-	openBtn->setObjectName("caseChooserOpenButton");
-	openBtn->setEnabled(false);
-	openBtn->setDefault(true);
-	enum { ContinueCurrent,
-		OpenSelected,
-		BrowseScene,
-		ImportLegacy,
-		NewCase };
-	int choice = ContinueCurrent;
-	QString chosenPath;
-	const auto selectedPath = [list]() {
-		const QListWidgetItem* item = list->currentItem();
-		return item && (item->flags() & Qt::ItemIsEnabled)
-			? item->data(Qt::UserRole).toString()
-			: QString();
-	};
-	connect(list, &QListWidget::itemSelectionChanged, &dialog, [=]() {
-		openBtn->setEnabled(!selectedPath().isEmpty());
-	});
-	connect(list, &QListWidget::itemDoubleClicked, &dialog, [&](QListWidgetItem* item) {
-		if (item && (item->flags() & Qt::ItemIsEnabled) && !item->data(Qt::UserRole).toString().isEmpty()) {
-			choice = OpenSelected;
-			chosenPath = item->data(Qt::UserRole).toString();
-			dialog.accept();
-		}
-	});
-	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
-		if (!selectedPath().isEmpty()) {
-			choice = OpenSelected;
-			chosenPath = selectedPath();
-			dialog.accept();
-		}
-	});
-	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	connect(newCase, &QAction::triggered, &dialog, [&]() { choice = NewCase; dialog.accept(); });
-	connect(browseScene, &QAction::triggered, &dialog, [&]() { choice = BrowseScene; dialog.accept(); });
-	connect(legacy, &QAction::triggered, &dialog, [&]() {
-		if (QMessageBox::question(&dialog, "Import Legacy Case",
-				"Choose the original text-input folder, then a folder for the converted scene. Continue?",
-				QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-			== QMessageBox::Yes) {
-			choice = ImportLegacy;
-			dialog.accept();
-		}
-	});
-	DialogLayout::install(dialog, "Open a Case",
-		currentCaseName.isEmpty() ? QStringLiteral("Choose a case to open.")
-								  : QString("Current case: %1. Choose another or continue.").arg(currentCaseName),
-		body, buttons);
-	for (int row = 0; row < list->count(); ++row) {
-		if ((list->item(row)->flags() & Qt::ItemIsEnabled)
-			&& !list->item(row)->data(Qt::UserRole).toString().isEmpty()) {
-			list->setCurrentRow(row);
-			break;
-		}
-	}
 	const bool startupChooserE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_STARTUP_CHOOSER");
 	QVariantMap chooserContract;
 	if (startupChooserE2E) {
@@ -13292,11 +13145,11 @@ void MainWindow::showStartupChooser() {
 			return result;
 		};
 		chooserContract.insert("rows", rows());
-		chooserContract.insert("initialPath", selectedPath());
+		chooserContract.insert("initialPath", dialog.selectedPath());
 		chooserContract.insert("loadedBefore", sceneDirBefore);
 		chooserContract.insert("defaultOpen", openBtn->isDefault());
 		QStringList menuTexts;
-		for (const auto* action : moreMenu->actions()) menuTexts.append(action->text());
+		for (const auto* action : dialog.otherMenu()->actions()) menuTexts.append(action->text());
 		chooserContract.insert("otherActions", menuTexts);
 		QVariantList recentActions;
 		if (m_recentScenesMenu) {
@@ -13336,7 +13189,7 @@ void MainWindow::showStartupChooser() {
 					mouse(list->viewport(), QEvent::MouseButtonRelease, point);
 				}
 			}
-			chooserContract.insert("selectedPath", selectedPath());
+			chooserContract.insert("selectedPath", dialog.selectedPath());
 			chooserContract.insert("openEnabled", openBtn->isEnabled());
 			chooserContract.insert("interaction", interaction);
 			if (interaction == "keyboard") {
@@ -13361,14 +13214,15 @@ void MainWindow::showStartupChooser() {
 	}
 	const int dialogResult = dialog.exec();
 
-	switch (choice) {
-		case OpenSelected:
-			if (!chosenPath.isEmpty()) requestOpenScene(chosenPath);
+	const CaseChooserDialog::Outcome outcome = dialog.outcome();
+	switch (outcome) {
+		case CaseChooserDialog::Outcome::OpenSelected:
+			if (!dialog.chosenPath().isEmpty()) requestOpenScene(dialog.chosenPath());
 			break;
-		case BrowseScene: openSceneFolderDialog(); break;
-		case ImportLegacy: actionLoad_Network(); break;
-		case NewCase: newScene(); break;
-		case ContinueCurrent:
+		case CaseChooserDialog::Outcome::BrowseFolder: openSceneFolderDialog(); break;
+		case CaseChooserDialog::Outcome::ImportLegacy: actionLoad_Network(); break;
+		case CaseChooserDialog::Outcome::NewCase: newScene(); break;
+		case CaseChooserDialog::Outcome::Continue:
 			if (!currentCaseName.isEmpty())
 				statusBar()->showMessage(QString("Ready - %1").arg(currentCaseName));
 			break;
@@ -13377,8 +13231,8 @@ void MainWindow::showStartupChooser() {
 		const auto marker = [](const char* name, const QString& value) {
 			std::fprintf(stdout, "%s=%s\n", name, value.toUtf8().constData());
 		};
-		chooserContract.insert("chosenAction", choice == OpenSelected ? "OpenSelected" : "ContinueCurrent");
-		chooserContract.insert("chosenPath", chosenPath);
+		chooserContract.insert("chosenAction", outcome == CaseChooserDialog::Outcome::OpenSelected ? "OpenSelected" : "ContinueCurrent");
+		chooserContract.insert("chosenPath", dialog.chosenPath());
 		chooserContract.insert("accepted", dialogResult == QDialog::Accepted);
 		chooserContract.insert("loadedAfter", m_sceneDir);
 		chooserContract.insert("loaded", m_sceneLoaded);
