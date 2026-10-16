@@ -59,14 +59,17 @@ bool exerciseWrappedLabelProperties() {
 	const QString markup = QStringLiteral("<b>x</b> & <i>y</i>");
 	QLabel* label = EditorLayout::wrappedLabel(markup, &panel);
 	QLabel* empty = EditorLayout::wrappedLabel(QString(), &panel);
+	// A layout reparents its widgets, so the parent is read before the labels go into one.
+	bool ok = check(label->parentWidget() == &panel, "wrappedLabel does not use the parent it was given");
 	arrange(panel, {label, empty});
-	bool ok = check(label->text() == markup, "wrappedLabel does not show the text it was given");
+	ok &= check(label->text() == markup, "wrappedLabel does not show the text it was given");
+	ok &= check(!label->property("dialogHelp").isValid() && !label->property("dialogStatus").isValid(),
+		"wrappedLabel has a help or status role");
 	ok &= check(label->textFormat() == Qt::PlainText, "wrappedLabel does not show the text as plain text");
 	ok &= check(label->wordWrap(), "wrappedLabel does not wrap its text");
 	ok &= check(label->sizePolicy().horizontalPolicy() == QSizePolicy::Ignored,
 		"wrappedLabel does not make layouts ignore its width hints");
 	ok &= check(label->sizePolicy().hasHeightForWidth(), "wrappedLabel loses the height for width of its wrapped text");
-	ok &= check(label->parentWidget() == &panel, "wrappedLabel does not use the parent it was given");
 	showPanel(panel);
 	ok &= check(empty->isVisible(), "wrappedLabel with an empty text hides itself");
 	return ok;
@@ -143,13 +146,13 @@ bool exerciseEmptyStateLabel() {
 	QWidget panel;
 	auto* reference = new QLabel(QStringLiteral("Plain reference"), &panel);
 	QLabel* label = EditorLayout::emptyStateLabel(&panel);
+	bool ok = check(label->parentWidget() == &panel, "emptyStateLabel does not use the parent it was given");
 	arrange(panel, {reference, label});
 	showPanel(panel);
-	bool ok = check(label->isHidden() && !label->isVisible(), "emptyStateLabel is not hidden until it has a message");
+	ok &= check(label->isHidden() && !label->isVisible(), "emptyStateLabel is not hidden until it has a message");
 	ok &= check(label->property("dialogHelp").toBool(), "emptyStateLabel does not have the help role");
 	ok &= check(!label->property("dialogStatus").isValid(), "emptyStateLabel has a status role");
 	ok &= check(label->text().isEmpty(), "emptyStateLabel has a text before it has a message");
-	ok &= check(label->parentWidget() == &panel, "emptyStateLabel does not use the parent it was given");
 
 	const QString message = QStringLiteral("Select a unit or use Add.");
 	DialogLayout::setHelp(label, message);
