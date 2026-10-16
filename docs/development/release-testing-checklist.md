@@ -129,7 +129,7 @@ What the jobs prove today:
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
-- The Package macOS job starts a copy of the app in the directory it zips, the
+- The Package macOS job starts a copy of the app that goes into the disk image, the
   Package Windows job starts a copy of the directory it uploads, and the Package
   Linux job starts the extracted AppImage, all with
   `tools/release/package_start_smoke.py` (step **Start the package**). All three
