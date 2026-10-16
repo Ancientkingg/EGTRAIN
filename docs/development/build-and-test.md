@@ -1169,7 +1169,12 @@ most of its checks, so run it locally to read its logs.
   needs an installer of a higher version for its upgrade check, so the job
   compiles a second one with the next patch version and uploads only the first.
   When the job fails, it uploads the logs of Setup and of the uninstaller as the
-  artifact `finalize-windows-diagnostics`. The macOS package job builds for
+  artifact `finalize-windows-diagnostics`. When `sign-windows` succeeded, the job
+  `sign-windows-installer` then sends the uploaded installer to the signing
+  service, requires valid signatures on the signed installer and on the three
+  program files of the payload, and only then replaces the installer artifact
+  with the signed file. The installer smoke runs on the installer before it is
+  signed. The macOS package job builds for
   macOS 26 (`-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0`) and writes the minimum system
   version of the executable into the `LSMinimumSystemVersion` key of the property
   list, so the app needs macOS 26 or later. It copies `scene_tool` and the Lebanon
@@ -1549,7 +1554,9 @@ certificate equals `-ExpectedSubject`. `-Name` defaults to `QEGTRAIN.exe`,
 `egtrain_update_helper.exe` and `scene_tool.exe`. `-Require` needs
 `-ExpectedSubject` and exits with 1 when a file fails; `-Report` prints the
 findings and exits with 0. The Windows package job runs it with `-Report` on the
-unsigned package of every run, and the signing job runs it with `-Require`. The
+unsigned package of every run, and the two signing jobs run it with `-Require`:
+`sign-windows` on the payload, and `sign-windows-installer` on the signed installer
+(named with `-Name`) and on the payload. The
 other two switches are for tests that sign with a throwaway certificate and must
 not be used on a release.
 
