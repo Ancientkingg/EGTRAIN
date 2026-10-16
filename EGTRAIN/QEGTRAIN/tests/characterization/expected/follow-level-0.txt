@@ -88,6 +88,15 @@ blocktime F2-1 @4-B0@ level=-99999999 complete=1 start_occ=666.500000 end_occ=96
 blocktime F2-1 @5-B0@ level=-99999999 complete=1 start_occ=871.500000 end_occ=1020.000000 start_run=960.000000 end_run=1015.000000 end_clear=1017.000000
 blocktime F2-1 @6-B0@ level=-99999999 complete=1 start_occ=954.500000 end_occ=1076.000000 start_run=1015.000000 end_run=1071.000000 end_clear=1073.000000
 blocktime F2-1 @7-B0@ level=-99999999 complete=1 start_occ=1009.500000 end_occ=1200.000000 start_run=1071.000000 end_run=1197.000000 end_clear=1197.000000
+capacity_pair F1-1 F2-1 shared=1 min_headway=471.500000 leader_block=@3-B0@ follower_block=@3-B0@ period=3600.000000 cycle=471.500000 cycle_pct=13.097222 conflict_free=1 analyzable=1 critical=@3-B0@
+capacity_resource @0-B0@ trains=2 occupations=2 occupation=174.000000 union=174.000000 occupation_pct=4.833333 governing=0
+capacity_resource @1-B0@ trains=2 occupations=2 occupation=311.000000 union=303.500000 occupation_pct=8.638889 governing=0
+capacity_resource @2-B0@ trains=2 occupations=2 occupation=532.000000 union=532.000000 occupation_pct=14.777778 governing=0
+capacity_resource @3-B0@ trains=2 occupations=2 occupation=1032.000000 union=700.500000 occupation_pct=28.666667 governing=1
+capacity_resource @4-B0@ trains=2 occupations=2 occupation=800.000000 union=718.500000 occupation_pct=22.222222 governing=0
+capacity_resource @5-B0@ trains=2 occupations=2 occupation=297.000000 union=297.000000 occupation_pct=8.250000 governing=0
+capacity_resource @6-B0@ trains=2 occupations=2 occupation=243.000000 union=243.000000 occupation_pct=6.750000 governing=0
+capacity_resource @7-B0@ trains=2 occupations=2 occupation=381.000000 union=381.000000 occupation_pct=10.583333 governing=0
 stats Ent_Del+DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 stats Ent_Delays Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000
 stats DwT_Dist Av_Delay=0.000000 Std_Delay=0.000000 Total_Delay=0.000000 Max_Tot_Delay=0.000000 Cum_Cons_Delay=N/D Max_Cons_Delay=N/D Perc_Delayed=0.000000 Perc_Delayed_3min=0.000000 Perc_Delayed_5min=0.000000 N_StopTrains=2.000000 N_DelTrains=0.000000

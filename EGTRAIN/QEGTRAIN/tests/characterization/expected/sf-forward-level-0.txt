@@ -99,6 +99,15 @@ blocktime F2-1 @4-B0@ level=-99999999 complete=1 start_occ=666.500000 end_occ=11
 blocktime F2-1 @5-B0@ level=-99999999 complete=1 start_occ=1007.500000 end_occ=1235.000000 start_run=1145.000000 end_run=1226.000000 end_clear=1232.000000
 blocktime F2-1 @6-B0@ level=-99999999 complete=1 start_occ=1139.500000 end_occ=1333.000000 start_run=1226.000000 end_run=1328.000000 end_clear=1330.000000
 blocktime F2-1 @7-B0@ level=-99999999 complete=1 start_occ=1220.500000 end_occ=1458.000000 start_run=1328.000000 end_run=1455.000000 end_clear=1455.000000
+capacity_pair F1-1 F2-1 shared=1 min_headway=488.500000 leader_block=@4-B0@ follower_block=@4-B0@ period=3600.000000 cycle=488.500000 cycle_pct=13.569444 conflict_free=1 analyzable=1 critical=@4-B0@
+capacity_resource @0-B0@ trains=2 occupations=2 occupation=174.000000 union=174.000000 occupation_pct=4.833333 governing=0
+capacity_resource @1-B0@ trains=2 occupations=2 occupation=311.000000 union=303.500000 occupation_pct=8.638889 governing=0
+capacity_resource @2-B0@ trains=2 occupations=2 occupation=532.000000 union=532.000000 occupation_pct=14.777778 governing=0
+capacity_resource @3-B0@ trains=2 occupations=2 occupation=1168.000000 union=836.500000 occupation_pct=32.444444 governing=0
+capacity_resource @4-B0@ trains=2 occupations=2 occupation=1254.000000 union=905.500000 occupation_pct=34.833333 governing=1
+capacity_resource @5-B0@ trains=2 occupations=2 occupation=662.000000 union=580.500000 occupation_pct=18.388889 governing=0
+capacity_resource @6-B0@ trains=2 occupations=2 occupation=342.000000 union=337.500000 occupation_pct=9.500000 governing=0
+capacity_resource @7-B0@ trains=2 occupations=2 occupation=427.000000 union=379.500000 occupation_pct=11.861111 governing=0
 incident inc.fwd type=signal_failure target=sig.fwd start=400.000000 has_end=1 end=1000.000000 sections=@5-B0@
 boundary t=399 authorities=0 blocked=-
 boundary t=400 authorities=2 blocked=@5-B0@

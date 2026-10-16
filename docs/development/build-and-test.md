@@ -645,6 +645,21 @@ one fact: some key words, then `name=value` fields.
 - `result`, `run_result`, `network`: timetable and run results as the application
   reports them. `n/a` means the value is not available.
 - `blocktime`: the blocking-time records of a train.
+- `capacity_pair <leader> <follower>` and `capacity_resource <section>`: what
+  `analyzeCapacity` and `analyzeAreaCapacity` report for the two trains of a
+  case, with all sections of their route as the area and a period of 3600 s,
+  the default of the capacity dialog. Only the cases `follow`, `sf-forward`,
+  `sf-reverse`, `sf-adjacent`, `sf-staggered`, `sf-last` and `sf-first` at the
+  levels 0 and 2 have them, and only when both trains have complete blocking
+  times; `F2` is still in `7-B0` when `sf-adjacent-level-0` ends, so that case
+  has none. The pair line gives `min_headway` (s) with the sections that govern
+  it, `cycle` (s) and `cycle_pct` (percent of the period) from the first train
+  to the second after compression, whether the compressed trains overlap
+  (`conflict_free`), and the sections where they touch (`critical`). Each
+  resource line gives the number of trains and occupations of a section, the sum
+  of the occupation times (`occupation`, s), their union (`union`, s),
+  `occupation_pct`, and `governing=1` for the section with the largest sum. The
+  values cover these two trains only, not the capacity of the line.
 - `incident`, `boundary`, `authority`: the incident definition, and for the steps
   just before and after its start and end, how many signal-failure authorities
   exist and which sections are blocked.

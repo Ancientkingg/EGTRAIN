@@ -2,10 +2,11 @@
 //
 // A case loads a scene, runs the real DispatchController headless in this
 // process and renders what the run did (trajectories, stops, braking points,
-// aspect codes, timetable results, delay statistics, blocking times, incident
-// boundaries) as text. The text is compared with a golden file in
-// tests/characterization/expected. Integers and strings must match exactly,
-// floats within an absolute and a relative tolerance.
+// aspect codes, timetable results, delay statistics, blocking times, the
+// capacity analysis of two trains, incident boundaries) as text. The text is
+// compared with a golden file in tests/characterization/expected. Integers and
+// strings must match exactly, floats within an absolute and a relative
+// tolerance.
 //
 // Passenger cases add deterministic journeys and record boarding, transfers,
 // platform lists and the passenger files of the real run.
@@ -33,6 +34,8 @@
 // comparing; it is refused when the CI environment variable is set.
 
 #include "app/DispatchController.h"
+#include "diagrams/AreaCapacity.h"
+#include "diagrams/CapacityAnalysis.h"
 #include "diagrams/RunResults.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
@@ -227,6 +230,9 @@ struct CaseSpec {
 	std::string passengers;
 	bool paxGui = false;
 	int capacity = 0;
+	// Writes the capacity lines of the two trains of the case. They are written only when both trains run on one route
+	// and have complete blocking times.
+	bool capacityLines = false;
 };
 
 // Cases whose current behaviour is wrong, as "#<issue> <reason>" with the open issue that describes it. The table is
@@ -246,14 +252,16 @@ std::vector<CaseSpec> buildCaseTable() {
 		const char* scenario;
 		std::vector<std::string> services;
 		int lastLevel; // The last level run besides "none"; -1 runs "none" only.
+		// The cases of the levels 0 and 2 write the capacity lines.
+		bool capacityLines = false;
 	} groups[] = {
-		{"follow", "baseline", {"F1", "F2"}, 5},
-		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5},
-		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}, 5},
-		{"sf-adjacent", "signal-failure-adjacent", {"F1", "F2"}, 2},
-		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2},
-		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2},
-		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2},
+		{"follow", "baseline", {"F1", "F2"}, 5, true},
+		{"sf-forward", "signal-failure-forward", {"F1", "F2"}, 5, true},
+		{"sf-reverse", "signal-failure-reverse", {"R1", "R2"}, 5, true},
+		{"sf-adjacent", "signal-failure-adjacent", {"F1", "F2"}, 2, true},
+		{"sf-staggered", "signal-failure-staggered", {"F1", "F2"}, 2, true},
+		{"sf-last", "signal-failure-last", {"F1", "F2"}, 2, true},
+		{"sf-first", "signal-failure-first", {"F1", "F2"}, 2, true},
 		{"sf-entered", "signal-failure-entered", {"F1", "F2"}, -1},
 		{"same-entry", "baseline", {"T1", "F1"}, 5},
 	};
@@ -262,7 +270,9 @@ std::vector<CaseSpec> buildCaseTable() {
 		cases.push_back({none, group.scenario, group.services, kNoSignallingArea, knownWrongMarker(none)});
 		for (int level = 0; level <= group.lastLevel; ++level) {
 			const std::string name = std::string(group.prefix) + "-level-" + std::to_string(level);
-			cases.push_back({name, group.scenario, group.services, level, knownWrongMarker(name)});
+			CaseSpec spec{name, group.scenario, group.services, level, knownWrongMarker(name)};
+			spec.capacityLines = group.capacityLines && (level == 0 || level == 2);
+			cases.push_back(spec);
 		}
 	}
 	// F2 is listed before L1 in the scene but L1 is due first (60 s against 120 s); both wait while the first section is
@@ -1097,6 +1107,90 @@ void addPassengerSet(SceneModel& scene, const std::string& set) {
 	}
 }
 
+// The period of the capacity lines: the default of the capacity analysis dialog.
+constexpr double kCapacityPeriodSeconds = 3600.0;
+
+bool hasCompleteBlockTimes(const Train& train) {
+	return train.N_BlockSections > 0 && train.N_BlockTimeComplete == train.N_BlockSections;
+}
+
+// The occupations of a train as the capacity analysis takes them: the complete blocking times, and the start of the
+// run on the first section of the route as profile reference.
+CapacityAnalysisTrain capacityTrain(const Train& train, const std::string& firstSectionId) {
+	CapacityAnalysisTrain result;
+	result.runtimeId = train.trainDescription;
+	result.operatingCode = train.operatingCode;
+	for (int b = 0; b < train.N_BlockSections; ++b) {
+		const BlockingTimes& block = train.BlockTime[b];
+		BlockingTimeDiagramInput occupation;
+		occupation.blockId = block.BlockID;
+		occupation.startOccTime = block.StartOccTime;
+		occupation.endOccTime = block.EndOccTime;
+		occupation.posStart = block.PosStart;
+		occupation.posEnd = block.PosEnd;
+		occupation.isComplete = block.IsComplete;
+		if (!validBlockingTimeDiagramInput(occupation))
+			continue;
+		if (result.profileReferenceTime < 0.0 && shareBlockingTimeResource(occupation.blockId, firstSectionId))
+			result.profileReferenceTime = block.StartRunTime;
+		result.occupations.push_back(occupation);
+	}
+	return result;
+}
+
+// The capacity analysis of two trains that run on one route and have complete blocking times, over all sections of
+// the route: the headway of the pair and the cycle of the chain that ends with the second train, then the occupation
+// of each section. Empty when the trains do not fit.
+Observation capacityObservation(const std::vector<const Train*>& trains) {
+	Observation lines;
+	if (trains.size() != 2 || !hasCompleteBlockTimes(*trains[0]) || !hasCompleteBlockTimes(*trains[1])
+		|| trains[0]->indexOfRoute != trains[1]->indexOfRoute)
+		return lines;
+	const int routeIndex = trains[0]->indexOfRoute;
+	if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
+		return lines;
+	const Route& route = train_route[routeIndex];
+	std::vector<std::string> sectionIds;
+	for (int b = 0; b < route.N_Block_Sections; ++b)
+		sectionIds.push_back(route.sequence_of_block_sections[b].ID);
+	if (sectionIds.empty())
+		return lines;
+
+	std::vector<CapacityAnalysisTrain> chain;
+	for (const Train* train : trains)
+		chain.push_back(capacityTrain(*train, sectionIds.front()));
+	const std::string& lastTrain = chain.back().runtimeId;
+	const CapacityAnalysisResult analysis = analyzeCapacity(chain, kCapacityPeriodSeconds, lastTrain);
+	// Two trains give exactly one adjacent pair.
+	const CapacityPairRow& adjacent = analysis.pairs.front();
+	std::vector<std::string> leaderBlocks, followerBlocks, criticalBlocks;
+	for (const CapacityHeadwayEvidence& evidence : adjacent.governingEvidence) {
+		leaderBlocks.push_back(evidence.leaderBlockId);
+		followerBlocks.push_back(evidence.followerBlockId);
+	}
+	for (const CapacityCriticalBlock& critical : analysis.criticalBlocks)
+		criticalBlocks.push_back(critical.leaderBlockId);
+	lines.push_back({"capacity_pair " + adjacent.leaderIdentity + " " + adjacent.followerIdentity,
+		{integerField("shared", adjacent.hasSharedConstraint ? 1 : 0), realField("min_headway", adjacent.minimumHeadway),
+			textField("leader_block", joinSet(leaderBlocks)), textField("follower_block", joinSet(followerBlocks)),
+			realField("period", analysis.periodSeconds), realField("cycle", analysis.cycleTime),
+			realField("cycle_pct", analysis.cyclePercentage), integerField("conflict_free", analysis.conflictFree ? 1 : 0),
+			integerField("analyzable", analysis.analyzable ? 1 : 0), textField("critical", joinSet(criticalBlocks))}});
+
+	AreaCapacityInput input;
+	input.resourceIds = sectionIds;
+	input.periodSeconds = kCapacityPeriodSeconds;
+	input.cycleEndIdentity = lastTrain;
+	for (const CapacityAnalysisTrain& selected : chain)
+		input.selected.push_back({selected, route.reversed_direction});
+	for (const AreaCapacityResource& row : analyzeAreaCapacity(input).resources)
+		lines.push_back({"capacity_resource " + row.resourceId,
+			{integerField("trains", row.trainCount), integerField("occupations", row.occupationCount),
+				realField("occupation", row.occupationSeconds), realField("union", row.unionSeconds),
+				realField("occupation_pct", row.occupationPercentage), integerField("governing", row.governing ? 1 : 0)}});
+	return lines;
+}
+
 // Driver for one run. Everything read from the simulation globals happens
 // here, so the next run starts from whatever prepareScene resets. The files of
 // the run go to a temporary folder that is removed when the run ends, or, with
@@ -1420,6 +1514,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 					realField("start_run", block.StartRunTime), realField("end_run", block.EndRunTime),
 					realField("end_clear", block.EndClearTime)});
 		}
+	}
+	if (spec.capacityLines) {
+		const Observation capacity = capacityObservation(trains);
+		obs.insert(obs.end(), capacity.begin(), capacity.end());
 	}
 
 	for (const SimulationIncident& incident : simulationIncidents)
