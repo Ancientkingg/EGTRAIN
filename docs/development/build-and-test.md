@@ -1213,11 +1213,14 @@ validates, saves and reloads cases through the editors. It then checks their
 layout: the main window does not grow beyond 1280 by 800 pixels when an editor
 dock is shown at the normal and at 1.5 times the font size, a floated dock stays
 within 750 by 600 and keeps its scroll area, and the Add button of the
-Passengers editor is in view.
+Passengers editor is in view. Last, it opens each editor dock, moves the focus
+through its fields with Tab, scrolls, floats and resizes the dock, resizes the
+main window and closes and reopens the dock, and requires that the modified
+flag and the revision of the scene stay as they were.
 
 The smoke passes when the application exits with status 0, prints
 `E2E_EDITOR_SMOKE_OK` and prints the marker of every facet, the last being
-`E2E_EDITOR_LAYOUT_OK`. The application output goes to
+`E2E_EDITOR_UNTOUCHED_OK`. The application output goes to
 `${TMPDIR:-/tmp}/qegtrain-editor-smoke-e2e.log`. On a failure the script prints
 the end of that log, which holds `E2E_EDITOR_SMOKE_FAIL: <facet>: <message>`
 when the application reported the failure.

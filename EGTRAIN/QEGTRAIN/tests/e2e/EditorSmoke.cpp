@@ -56,12 +56,14 @@
 #include <QObject>
 #include <QPlainTextEdit>
 #include <QPoint>
+#include <QPointer>
 #include <QPointF>
 #include <QPushButton>
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSettings>
 #include <QSize>
 #include <QSpinBox>
@@ -118,7 +120,8 @@ void importPassengersFrom(QPushButton* button, const QString& folder) {
 // Opens the scene named by QEGTRAIN_E2E_SCENE, and QEGTRAIN_E2E_SCENE_ALT when that is another one, and drives each editor of
 // the window through its controls: a new case, infrastructure, stations and signalling, passengers, the explorer, train units
 // and their source links, compositions, services and their occurrences, timetables, entrance delays, incidents, validation,
-// saving and reloading, and the layout of the docks. Every facet prints its E2E_EDITOR_*_OK marker when its checks hold.
+// saving and reloading, the layout of the docks, and that visiting the docks leaves the case untouched. Every facet prints its
+// E2E_EDITOR_*_OK marker when its checks hold.
 // QEGTRAIN_E2E_OUT names a folder for the files that it writes. It prints E2E_EDITOR_SMOKE_OK and exits with 0, or prints
 // the failures and exits with 1.
 void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
@@ -4022,6 +4025,98 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			dock->setFont(normalFont);
 		}
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
+	}
+	if (ok && w.m_sceneLoaded) {
+		// Visiting an editor must not change the case: tabbing through the fields, resizing, scrolling and reopening the docks
+		// leave the dirty flag and the revision as they were.
+		bool facetOk = true;
+		bool dirtyBefore = w.m_sceneDirty;
+		quint64 revisionBefore = w.m_sceneRevision;
+		const auto expectUntouched = [&](const QDockWidget* dock, const char* step) {
+			if (w.m_sceneDirty == dirtyBefore && w.m_sceneRevision == revisionBefore)
+				return;
+			facetFailure(facetOk, "untouched fields",
+				QString("%1 changed the case during %2").arg(dock->objectName(), step));
+			dirtyBefore = w.m_sceneDirty;
+			revisionBefore = w.m_sceneRevision;
+		};
+		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock,
+				 w.m_compositionDock, w.m_serviceDock, w.m_incidentDock, w.m_passengerDock}) {
+			dock->show();
+			dock->raise();
+			w.activateWindow();
+			QApplication::processEvents();
+			expectUntouched(dock, "opening");
+
+			// Cell editors of the tables can be replaced while the fields are visited.
+			QList<QPointer<QWidget>> fields;
+			for (QWidget* child : dock->findChildren<QWidget*>()) {
+				if (child->isVisible() && child->isEnabled() && (child->focusPolicy() & Qt::TabFocus)
+					&& !qobject_cast<QScrollArea*>(child) && !qobject_cast<QAbstractSpinBox*>(child->parentWidget())
+					&& !qobject_cast<QComboBox*>(child->parentWidget()))
+					fields << child;
+			}
+			if (fields.isEmpty())
+				facetFailure(facetOk, "untouched fields", dock->objectName() + " has no field to tab through");
+			for (const QPointer<QWidget>& field : fields) {
+				if (field)
+					field->setFocus(Qt::TabFocusReason);
+				QApplication::processEvents();
+			}
+			expectUntouched(dock, "focusing each field");
+
+			// A key press that moves the focus is what a user does. A multi-line text field takes the Tab as text.
+			if (!fields.isEmpty() && fields.first())
+				fields.first()->setFocus(Qt::TabFocusReason);
+			QStringList visited;
+			for (int i = 0; i <= fields.size(); ++i) {
+				QWidget* focused = QApplication::focusWidget();
+				if (!focused)
+					break;
+				visited << QString::fromLatin1(focused->metaObject()->className()) + ":" + focused->objectName();
+				auto* text = qobject_cast<QPlainTextEdit*>(focused);
+				if (text && !text->isReadOnly() && !text->tabChangesFocus())
+					break;
+				QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+				QApplication::sendEvent(focused, &tab);
+				QApplication::processEvents();
+			}
+			visited.removeDuplicates();
+			if (visited.size() < 2)
+				facetFailure(facetOk, "untouched fields", dock->objectName() + " did not pass the focus on with Tab");
+			expectUntouched(dock, "tabbing through the fields");
+
+			for (QScrollArea* scroll : dock->findChildren<QScrollArea*>("editorContentScroll")) {
+				for (QScrollBar* bar : {scroll->verticalScrollBar(), scroll->horizontalScrollBar()}) {
+					bar->setValue(bar->maximum());
+					QApplication::processEvents();
+					bar->setValue(bar->minimum());
+					QApplication::processEvents();
+				}
+			}
+			expectUntouched(dock, "scrolling");
+
+			dock->setFloating(true);
+			for (const QSize size : {QSize(750, 600), QSize(420, 320), QSize(1000, 700)}) {
+				dock->resize(size);
+				QApplication::processEvents();
+			}
+			dock->setFloating(false);
+			for (const QSize size : {QSize(1000, 700), QSize(1500, 900), QSize(1280, 800)}) {
+				w.resize(size);
+				QApplication::processEvents();
+			}
+			expectUntouched(dock, "resizing");
+
+			dock->hide();
+			QApplication::processEvents();
+			w.revealEditorDock(dock);
+			QApplication::processEvents();
+			expectUntouched(dock, "closing and reopening");
+			dock->hide();
+		}
+		if (facetOk)
+			std::fprintf(stdout, "E2E_EDITOR_UNTOUCHED_OK\n");
 	}
 	if (ok) {
 		std::fprintf(stdout, "E2E_EDITOR_SMOKE_OK\n");
