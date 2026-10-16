@@ -128,7 +128,11 @@ double passengerOccupancyRatio(int passengers, int capacity) {
 
 // Function to compute dwell times based on the interaction with passengers
 // By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which extends the model by Gibson et al. (1989)
+// The dwell is 0 when nobody boards or alights, so the planned dwell of the stop applies.
 double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7) {
+	if (N_BoardPax <= 0 && N_AlightPax <= 0)
+		return 0.0;
+
 	// define parameters delta 1, delta 2 and delta 3
 	double delta1 = 0, delta2 = 0, delta3 = 0;
 	// delta1 measures the congestion at the platform if the platform occupancy rate is higher than 0.65 than delta1=1
@@ -212,6 +216,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	int DoorInCarCounter = 0; // This counts the number of the car in the train. It is needed to check wheter there are more than 15 pboarding passengers on a car as this will set delta2 to 1
 
 	list<int>::iterator B_Pax_Car = BoardingPassengersInACar.begin();
+	list<int>::iterator B_Pax_Door = BoardPaxFromDoor.begin();
 	list<int>::iterator A_Pax_Door = AlightPaxFromDoor.begin();
 
 	for (int door = 0; door < Total_N_Doors_In_Train; door++) {
@@ -222,12 +227,16 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 		if (*B_Pax_Car > 15)
 			delta2 = 1; // set delta2 to 1 if the number of passenger boarding from the car is larger than 15
 
-		BoardProcessTime = beta2 + beta3 * delta1 + beta4 * delta2;
-		AlightProcessTime = beta5 * exp(-beta6 * (*A_Pax_Door)) + beta7 * delta3;
+		// beta2 and beta5 are the times of one boarding and one alighting passenger. A door that nobody uses takes no time.
+		if (*B_Pax_Door > 0)
+			BoardProcessTime = (*B_Pax_Door) * beta2 + beta3 * delta1 + beta4 * delta2;
+		if (*A_Pax_Door > 0)
+			AlightProcessTime = (*A_Pax_Door) * (beta5 * exp(-beta6 * (*A_Pax_Door))) + beta7 * delta3;
 
 		double Door_a_b_time = BoardProcessTime + AlightProcessTime;
 
 		Door_alight_board_time.push_back(Door_a_b_time);
+		B_Pax_Door++; // Advancing the iterator over the boarding doors of one element
 		A_Pax_Door++; // Advancing the iterator over the alighting doors of one element
 
 		DoorInCarCounter++;

@@ -76,13 +76,13 @@ The first stop of each train is at the start of the first block (the station pos
 | `@4-B0@` | 748 | 689 | 666.5 | 467.5 | 221.5 |
 | `@5-B0@` | 803 | 744 | 872.5 | 673.5 | 70.5 |
 | `@6-B0@` | 859 | 800 | 955.5 | 756.5 | 43.5 |
-| `@7-B0@` | 983 | 924 | 1010.5 | 811.5 | 112.5 |
+| `@7-B0@` | 937 | 878 | 1010.5 | 811.5 | 66.5 |
 
 - Minimum headway: 471.5 s, governed by `@3-B0@`, the fourth block.
 - Scheduled headway: 180 - 120 = 60 s. Buffer: 60 - 471.5 = -411.5 s.
 - Compressed references: train 1 keeps 120 s. Train 2 gets the larger of 120 and 120 + 471.5, which is 591.5 s. The Shift column reads 0 and 411.5 s.
 - Occupation shifts: train 1 by 120 - 59 = 61 s, train 2 by 591.5 - 199 = 392.5 s.
-- Gap at `@3-B0@` after compression: train 1 ends at 674 + 61 = 735 s and train 2 starts at 342.5 + 392.5 = 735 s. The gap is 0, so this is the one critical touch. The gaps on the other seven blocks are 384.5, 324, 350, 250, 401, 428 and 359 s, so nothing overlaps.
+- Gap at `@3-B0@` after compression: train 1 ends at 674 + 61 = 735 s and train 2 starts at 342.5 + 392.5 = 735 s. The gap is 0, so this is the one critical touch. The gaps on the other seven blocks are 384.5, 324, 350, 250, 401, 428 and 405 s, so nothing overlaps.
 - Cycle time: 591.5 - 120 = 471.5 s. Cycle percentage: 471.5 / 3600 x 100 = 13.097 %. The header would show 13.1.
 
 The unit test `tests/test_capacityanalysis.cpp` has a second example with four trains A to D. By hand, the minimum headways of the four pairs that share a block (A with B, A with C, B with C, C with D) are 20, 100, 5 and 10 s. The test asserts the compressed references 20, 100 and 110 s of B, C and D, and that A, not B, governs C. With C as the closing occurrence it asserts a cycle of 100 s, which is 50 % of a period of 200 s.
@@ -184,7 +184,7 @@ A piece is valid today when it is still true in the current code. It is supersed
 
 ### A hand check of the envelope
 
-Apply the envelope rule to the two trains of the worked example, with an area that spans the whole line, so that all eight blocks are in. The earliest `StartOccTime` is 53.5 s (train 1, `@1-B0@`) and the latest `EndOccTime` is 1201 s (train 2, `@7-B0@`). The envelope is 1201 - 53.5 = 1147.5 s. For N = 2 the trains per hour are 2 x 3600 / 1147.5 = 6.27. The ratio would be 1147.5 / `times` for whatever the simulation length was, and N / ratio / (`times` / 3600) gives the same 6.27 for every length.
+Apply the envelope rule to the two trains of the worked example, with an area that spans the whole line, so that all eight blocks are in. The earliest `StartOccTime` is 53.5 s (train 1, `@1-B0@`) and the latest `EndOccTime` is 1154 s (train 2, `@7-B0@`). The envelope is 1154 - 53.5 = 1100.5 s. For N = 2 the trains per hour are 2 x 3600 / 1100.5 = 6.54. The ratio would be 1100.5 / `times` for whatever the simulation length was, and N / ratio / (`times` / 3600) gives the same 6.54 for every length.
 
 This is the formula applied by hand to current records. It is not an output of the removed program. It answers a different question than the cycle of the worked example, which covers one chain after compression.
 
