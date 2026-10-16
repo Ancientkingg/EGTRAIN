@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/DialogFolders.h"
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
@@ -683,7 +684,7 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(parent, "Export Data", suggestedName, "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(parent, "Export Data", dialog_folders::suggestedPath(suggestedName), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
@@ -2978,8 +2979,7 @@ bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& oper
 		return false;
 	commitPendingEditorValues();
 
-	const QString startPath = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
-																																 : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
+	const QString startPath = dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
 	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
 		"EGTRAIN Case Study (*.egscene)");
 	if (targetPath.isEmpty())
@@ -3010,8 +3010,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 		return false;
 	commitPendingEditorValues();
 
-	const QString startDir = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
-																																: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
+	const QString startDir = dialog_folders::startFolder(m_sceneDir);
 	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
@@ -7075,7 +7074,7 @@ void MainWindow::exportScenario() {
 	const SceneScenario* scenario = selectedScenario();
 	if (!scenario)
 		return;
-	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", scenarioContext() + ".json",
+	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", dialog_folders::suggestedPath(scenarioContext() + ".json"),
 		"Scenario JSON (*.json)");
 	if (path.isEmpty())
 		return;
@@ -9619,7 +9618,7 @@ void MainWindow::setupRunResultsDock() {
 	exportPngBtn->setToolTip("Save the table as an image");
 	connect(exportPngBtn, &QPushButton::clicked, this, [this]() {
 		const auto operation = captureTelemetryOperation();
-		QString path = QFileDialog::getSaveFileName(this, "Export Table", "run_summary.png", "PNG Image (*.png)");
+		QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("run_summary.png"), "PNG Image (*.png)");
 		if (path.isEmpty())
 			return;
 		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)

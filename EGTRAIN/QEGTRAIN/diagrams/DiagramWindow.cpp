@@ -1,4 +1,5 @@
 #include "diagrams/DiagramWindow.h"
+#include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
@@ -862,7 +863,7 @@ void DiagramWindow::resetZoom() {
 
 void DiagramWindow::exportPng() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", "diagram.png", "PNG Image (*.png)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Diagram", dialog_folders::suggestedPath("diagram.png"), "PNG Image (*.png)");
 	if (path.isEmpty())
 		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
@@ -897,7 +898,7 @@ void DiagramWindow::exportCsv() {
 		return;
 	}
 	const QString suggested = m_csvSuggestedName.isEmpty() ? QString("export.csv") : m_csvSuggestedName;
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", suggested, "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggested), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return; // cancelled: no file is written
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)

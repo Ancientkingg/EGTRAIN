@@ -1,5 +1,6 @@
 #include "diagrams/AreaCapacityWindow.h"
 
+#include "app/DialogFolders.h"
 #include "diagrams/RunExports.h"
 #include "util/CsvWriter.h"
 #include "widgets/ChoiceComboBox.h"
@@ -776,7 +777,7 @@ bool AreaCapacityWindow::exportCsvTo(const QString& path) const {
 
 void AreaCapacityWindow::exportCsv() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", "area_capacity.csv", "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("area_capacity.csv"), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
