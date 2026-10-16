@@ -1060,7 +1060,7 @@ private slots:
 	void showTimeDistanceDiagram();
 	void showTractiveEffortDistanceDiagram();
 	void showTimetableGraph();
-	void buildRouteDiagram(bool timetable, int referenceIndex);
+	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
 	void showTimetableTable();
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();

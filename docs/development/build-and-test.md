@@ -171,6 +171,11 @@ chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_s
 then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
 shows whether a change moved a diagram.
 
+The hook of `QEGTRAIN_E2E_ROUTE_DIAGRAM` builds the train paths and the timetable graph with each route that trains
+run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains
+(`train_path_graph_route<N>_series.txt`, `train_path_graph_route<N>.csv`, and `timetable_graph_route<N>` likewise, with
+`N` the index of the route in the run).
+
 ### Warnings
 
 The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and

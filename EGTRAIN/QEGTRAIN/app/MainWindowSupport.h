@@ -190,15 +190,3 @@ inline std::string buildRunSummaryCsv(const RunResults& results) {
 			"First direct time[s]", "First direct location[m]", "Termination outcome"},
 		rows);
 }
-
-// The routes the run used, as (runtime index, route id) in first-use order.
-inline std::vector<std::pair<int, std::string>> usedRouteReferences() {
-	std::vector<std::pair<int, std::string>> used;
-	for (int i = 0; i < numRegions; ++i) {
-		const int index = regional_train[i].indexOfRoute;
-		if (index >= 0 && index < static_cast<int>(train_route.size())
-			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
-			used.emplace_back(index, train_route[index].ID);
-	}
-	return used;
-}

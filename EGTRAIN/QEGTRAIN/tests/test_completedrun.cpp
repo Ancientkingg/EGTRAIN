@@ -200,8 +200,22 @@ std::string describe(const std::optional<RouteDiagramData>& d) {
 }
 
 // --- The readers that take the run from the simulation globals ---
-// These are the readers that MainWindow uses for the route and blocking-time diagrams, with the chart replaced by
+// These are the readers that MainWindow used for the route and blocking-time diagrams, with the chart replaced by
 // the data that goes into it.
+
+// Where a stop of the runtime train lies on the reference route.
+std::optional<double> legacyStopPosition(const Train& train, int index, const RouteDiagramPath& source,
+	const RouteDiagramProjection& projection) {
+	if (train.Stations.empty() || index < 0 || index >= train.numStations)
+		return {};
+	const Node& stop = train.Stations[index];
+	if (stop.sceneNodeId.empty())
+		return {};
+	for (const auto& node : source.nodes)
+		if (node.nodeId == stop.sceneNodeId && std::abs(node.positionKm - stop.X) < 1e-6)
+			return projection.map(node.positionKm);
+	return {};
+}
 
 std::vector<std::pair<int, std::string>> legacyUsedRouteReferences() {
 	std::vector<std::pair<int, std::string>> used;
@@ -352,7 +366,7 @@ std::optional<RouteDiagramData> legacyRouteDiagram(const SceneModel& scene, bool
 					if (row.trainId != train.trainDescription)
 						continue;
 					const int stopIndex = row.journeyIndex - 1;
-					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
+					const auto x = legacyStopPosition(train, stopIndex, path->second, projection->second);
 					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
 						: kind == 2																  ? row.simulatedArrivalSeconds
 																								  : row.simulatedDepartureSeconds;
@@ -374,7 +388,7 @@ std::optional<RouteDiagramData> legacyRouteDiagram(const SceneModel& scene, bool
 			for (const auto& row : rows) {
 				if (row.trainId != train.trainDescription)
 					continue;
-				const auto x = routeDiagramStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
+				const auto x = legacyStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
 				for (int planned = 0; planned < 2; ++planned) {
 					const auto arrival = planned ? row.plannedArrivalSeconds : row.simulatedArrivalSeconds;
 					const auto departure = planned ? row.plannedDepartureSeconds : row.simulatedDepartureSeconds;

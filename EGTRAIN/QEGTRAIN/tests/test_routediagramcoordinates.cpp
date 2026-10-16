@@ -1,3 +1,4 @@
+#include "diagrams/CompletedRunData.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include <cmath>
 #include <iostream>
@@ -52,6 +53,19 @@ int main() {
 	const RouteDiagramPath returning{"loop", {{"a", "A", "Alpha", 2}, {"b", "B", "Beta", 8}, {"c", "C", "Gamma", -2}, {"n", "", "", nan}}};
 	if (!closeTo(blockSectionAxisRange(unusable, returning), -2.01, 8.01)) return 16;
 	if (!closeTo(blockSectionAxisRange(unusable, RouteDiagramPath{}), -0.01, 1.01)) return 17;
+	// A stop lies where its node is on the path at the stored abscissa, mapped onto the reference route.
+	CompletedStop stop;
+	stop.nodeId = "b";
+	stop.routeX = 11;
+	const auto stopOnReference = routeDiagramStopPosition(stop, reverse, projection);
+	if (!stopOnReference || std::abs(*stopOnReference - 47) > 1e-8) return 18;
+	stop.routeX = 11.5;
+	if (routeDiagramStopPosition(stop, reverse, projection)) return 19;
+	stop.routeX = 11;
+	stop.nodeId = "z";
+	if (routeDiagramStopPosition(stop, reverse, projection)) return 20;
+	stop.nodeId.clear();
+	if (routeDiagramStopPosition(stop, reverse, projection)) return 21;
 	std::cout << "route coordinate projection passed\n";
 	return 0;
 }

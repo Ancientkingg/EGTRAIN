@@ -1,5 +1,6 @@
 #include "diagrams/BlockingTimeScope.h"
 
+#include "diagrams/CompletedRunData.h"
 #include "diagrams/SimulationHeaders.h"
 #include "widgets/DialogLayout.h"
 
@@ -209,9 +210,12 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 				continue;
 			const auto path = paths.find(train.indexOfRoute);
 			const auto projection = projections.find(train.indexOfRoute);
+			CompletedStop stop;
+			stop.nodeId = train.Stations[stationIndex].sceneNodeId;
+			stop.routeX = train.Stations[stationIndex].X;
 			const auto positionKm = path == paths.end() || projection == projections.end()
 				? std::optional<double>()
-				: routeDiagramStopPosition(train, stationIndex, path->second, projection->second);
+				: routeDiagramStopPosition(stop, path->second, projection->second);
 			if (!positionKm) {
 				++omitted;
 				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});

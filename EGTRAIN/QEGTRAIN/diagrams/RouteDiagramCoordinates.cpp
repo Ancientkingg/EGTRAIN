@@ -1,4 +1,5 @@
 #include "diagrams/RouteDiagramCoordinates.h"
+#include "diagrams/CompletedRunData.h"
 #include "util/CsvWriter.h"
 
 #include <algorithm>
@@ -93,6 +94,17 @@ std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionEx
 		}
 	}
 	return {low - 0.01, std::max(low + 0.02, high + 0.01)};
+}
+
+// A stop keeps the canonical node ID and route X assigned by the native operations builder. Never substitute the map X
+// fallback of the node.
+std::optional<double> routeDiagramStopPosition(const CompletedStop& stop,
+	const RouteDiagramPath& source, const RouteDiagramProjection& projection) {
+	if (stop.nodeId.empty()) return {};
+	for (const auto& node : source.nodes)
+		if (node.nodeId == stop.nodeId && std::abs(node.positionKm - stop.routeX) < 1e-6)
+			return projection.map(node.positionKm);
+	return {};
 }
 
 double routeDiagramTrajectoryKm(double positionMeters) {

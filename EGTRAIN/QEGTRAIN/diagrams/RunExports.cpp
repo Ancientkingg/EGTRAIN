@@ -309,22 +309,12 @@ RouteProjections projectRoutes(const CompletedRunData& data, const RouteDiagramP
 	return maps;
 }
 
-// Where a stop lies on the reference route: its node is on the path of the train's route at the stored abscissa.
-std::optional<double> stopPosition(const CompletedStop& stop, const RouteDiagramPath& source,
-	const RouteDiagramProjection& projection) {
-	if (stop.nodeId.empty())
-		return {};
-	for (const auto& node : source.nodes)
-		if (node.nodeId == stop.nodeId && std::abs(node.positionKm - stop.routeX) < 1e-6)
-			return projection.map(node.positionKm);
-	return {};
-}
-
+// Where the stop with the given index lies on the reference route.
 std::optional<double> stopPosition(const CompletedTrain& train, int index, const RouteDiagramPath& source,
 	const RouteDiagramProjection& projection) {
 	if (index < 0 || index >= static_cast<int>(train.stops.size()))
 		return {};
-	return stopPosition(train.stops[static_cast<std::size_t>(index)], source, projection);
+	return routeDiagramStopPosition(train.stops[static_cast<std::size_t>(index)], source, projection);
 }
 
 } // namespace
@@ -430,7 +420,7 @@ std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedR
 			const auto projection = projections.find(train.routeIndex);
 			const auto positionKm = path == paths.end() || projection == projections.end()
 				? std::optional<double>()
-				: stopPosition(stop, path->second, projection->second);
+				: routeDiagramStopPosition(stop, path->second, projection->second);
 			if (!positionKm) {
 				++omitted;
 				references.push_back({train.trainId, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});

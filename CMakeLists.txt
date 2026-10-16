@@ -363,7 +363,6 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
-    ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
     ${SRC_DIR}/diagrams/RunExports.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp

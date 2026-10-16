@@ -359,11 +359,11 @@ void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(con
 // run. Both end the run and the process.
 bool MainWindowTestAccess::runFinished(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
-		bool ok = w.m_resultsAvailable && numRegions > 0;
+		bool ok = w.m_resultsAvailable && !w.m_completedRun->trains.empty();
 		if (ok) {
-			const int reference = regional_train[0].indexOfRoute;
-			w.buildRouteDiagram(false, reference);
-			w.buildRouteDiagram(true, reference);
+			const int reference = w.m_completedRun->trains.front().routeIndex;
+			w.buildRouteDiagram(w.m_completedRun, false, reference);
+			w.buildRouteDiagram(w.m_completedRun, true, reference);
 			QApplication::processEvents();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			ok = windows.size() == 2;
@@ -385,8 +385,21 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					ok &= view->grab().save(file);
 				}
 			}
+			// Each route that trains run on is the reference once: the dump of the chart and the CSV for all trains.
+			const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
+			for (const auto& used : usedRouteReferencesFrom(*w.m_completedRun)) {
+				for (const bool timetable : {false, true}) {
+					w.buildRouteDiagram(w.m_completedRun, timetable, used.first);
+					DiagramWindow* window = newestWindow(w);
+					const QString name = QString("%1_route%2").arg(timetable ? "timetable_graph" : "train_path_graph").arg(used.first);
+					ok &= exportChart(window, dir, name);
+					ok &= window && writeFile(dir + "/" + name + ".csv", window->csvContent());
+					if (window)
+						window->close();
+				}
+			}
 			const QVector<RouteReferenceChoice> choices =
-				buildRouteReferenceChoices(w.m_sceneModel, usedRouteReferences());
+				buildRouteReferenceChoices(w.m_sceneModel, usedRouteReferencesFrom(*w.m_completedRun));
 			for (const RouteReferenceChoice& choice : choices)
 				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
 			RouteReferenceDialog chooser(choices, "train paths", &w);
