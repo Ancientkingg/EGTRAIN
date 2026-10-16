@@ -24025,8 +24025,6 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// the question about unsaved changes, holds it back until the dialog has closed.
 	if (auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly)) {
 		connect(relay, &OpenRequestRelay::openRequested, this, [this, relay](const QString& request) {
-			// The request names the case, so the startup chooser stays closed.
-			initial_variables.nArgProvided = true;
 			// A chooser that is open gives way to the request.
 			QDialog* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
 			if (chooser)
@@ -24043,6 +24041,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 				statusBar()->showMessage(QStringLiteral("Open request rejected: %1. Scene unchanged.").arg(choice.rejection), 8000);
 				return;
 			}
+			// The request names the case, so a startup chooser that has not opened yet stays closed.
+			initial_variables.nArgProvided = true;
 			requestOpenScene(choice.path);
 		});
 	}
