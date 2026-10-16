@@ -1021,7 +1021,6 @@ private:
 	void runCreatorAcceptanceE2E();
 	bool checkPreviewInfrastructureE2E(QString& failure);
 	bool checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation = false);
-	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
 	void runSceneDropE2E();
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);

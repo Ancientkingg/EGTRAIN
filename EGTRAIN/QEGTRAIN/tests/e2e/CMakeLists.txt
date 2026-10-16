@@ -2,4 +2,5 @@
 # reference to the runner, and a static library keeps only the members that something references.
 target_sources(QEGTRAIN PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/E2ERunner.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/LegacyImport.cpp)
+	${CMAKE_CURRENT_SOURCE_DIR}/LegacyImport.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/SceneRender.cpp)
