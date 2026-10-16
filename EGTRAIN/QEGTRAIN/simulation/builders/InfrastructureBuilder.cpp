@@ -72,6 +72,37 @@ struct NativeStationBinding {
 	std::string nodeId;
 };
 
+// What the validation of a scene decides and the commit builds from. It points into the scene and is valid as long as the scene is.
+struct InfrastructurePlan {
+	std::vector<NativeTrack> tracks;
+	std::vector<NativeBlockPlan> blocks;
+	SceneSectionInventory sectionInventory;
+	std::unordered_set<std::string> sectionIds;
+	std::unordered_map<std::string, int> signallingLevels;
+	std::vector<int> routeDirections;
+};
+
+// Appends diagnostics to a list.
+struct NativeDiagnosticAdder {
+	std::vector<SceneDiagnostic>& diagnostics;
+
+	void operator()(SceneSeverity severity, const std::string& code, const std::string& message,
+		const std::string& file, const std::string& type = "", const std::string& id = "",
+		const std::string& path = "", const std::string& related = "", const std::string& fix = "") const {
+		SceneDiagnostic diagnostic;
+		diagnostic.severity = severity;
+		diagnostic.code = code;
+		diagnostic.message = message;
+		diagnostic.file = file;
+		diagnostic.itemType = type;
+		diagnostic.itemId = id;
+		diagnostic.path = path;
+		diagnostic.relatedId = related;
+		diagnostic.suggestedFix = fix;
+		diagnostics.push_back(diagnostic);
+	}
+};
+
 std::string nativeRuntimeBlockId(const std::string& id) {
 	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)
 		return id;
@@ -141,29 +172,10 @@ bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
 	return false;
 }
 
-} // namespace
-
-void resetNativeInfrastructureState() {
-	nativeResetRuntime();
-}
-
-std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene) {
-	std::vector<SceneDiagnostic> diagnostics;
-	auto add = [&](SceneSeverity severity, const std::string& code, const std::string& message,
-				   const std::string& file, const std::string& type = "", const std::string& id = "",
-				   const std::string& path = "", const std::string& related = "", const std::string& fix = "") {
-		SceneDiagnostic diagnostic;
-		diagnostic.severity = severity;
-		diagnostic.code = code;
-		diagnostic.message = message;
-		diagnostic.file = file;
-		diagnostic.itemType = type;
-		diagnostic.itemId = id;
-		diagnostic.path = path;
-		diagnostic.relatedId = related;
-		diagnostic.suggestedFix = fix;
-		diagnostics.push_back(diagnostic);
-	};
+// Checks the whole scene and decides what the runtime will hold, without reading or writing a runtime global.
+// The plan is complete only when the diagnostics hold no error.
+InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<SceneDiagnostic>& diagnostics) {
+	const NativeDiagnosticAdder add{diagnostics};
 
 	std::unordered_map<std::string, const SceneTrack*> tracksById;
 	std::vector<const SceneTrack*> orderedTracks;
@@ -242,7 +254,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				"infrastructure.json", "block", block.id, "blocks.track", block.trackId);
 	}
 	if (nativeHasErrors(diagnostics))
-		return diagnostics;
+		return {};
 
 	std::vector<NativeTrack> nativeTracks(orderedTracks.size());
 	for (std::size_t slot = 0; slot < orderedTracks.size(); ++slot) {
@@ -346,8 +358,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				"Reduce connections at the node");
 	}
 	if (nativeHasErrors(diagnostics))
-		return diagnostics;
-	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
+		return {};
+	SceneSectionInventory sectionInventory = buildSceneSectionInventory(scene);
 	std::vector<NativeBlockPlan> blockPlans;
 	blockPlans.reserve(scene.blocks.size());
 	std::unordered_map<std::string, int> trackSlots;
@@ -604,16 +616,31 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 
 	if (nativeHasErrors(diagnostics))
-		return diagnostics;
+		return {};
+
+	InfrastructurePlan plan;
+	plan.tracks = std::move(nativeTracks);
+	plan.blocks = std::move(blockPlans);
+	plan.sectionInventory = std::move(sectionInventory);
+	plan.sectionIds = std::move(plannedSectionIds);
+	plan.signallingLevels = std::move(plannedSignallingLevels);
+	plan.routeDirections = std::move(routeDirections);
+	return plan;
+}
+
+// Replaces the runtime infrastructure by what the plan describes. A problem that only shows while the runtime is built
+// is added to the diagnostics, and the runtime then holds a partial build.
+void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& plan, std::vector<SceneDiagnostic>& diagnostics) {
+	const NativeDiagnosticAdder add{diagnostics};
 
 	nativeResetRuntime();
 	// Base sections plus derived switch sections. A successful build creates exactly this many.
-	signalling_block_sections = std::vector<Section>(plannedSectionIds.size());
-	numTrackLines = static_cast<int>(nativeTracks.size());
+	signalling_block_sections = std::vector<Section>(plan.sectionIds.size());
+	numTrackLines = static_cast<int>(plan.tracks.size());
 	std::unordered_map<std::string, Node> runtimeNodeById;
 	std::unordered_map<std::string, int> runtimeNodeTrack;
-	for (std::size_t slot = 0; slot < nativeTracks.size(); ++slot) {
-		NativeTrack& track = nativeTracks[slot];
+	for (std::size_t slot = 0; slot < plan.tracks.size(); ++slot) {
+		const NativeTrack& track = plan.tracks[slot];
 		BlockSet& runtimeTrack = blockSets[slot];
 		runtimeTrack.ID = static_cast<int>(slot);
 		runtimeTrack.sceneTrackId = track.id;
@@ -762,23 +789,23 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		return node;
 	};
 
-	for (const NativeBlockPlan& plan : blockPlans) {
-		BlockSet& runtimeTrack = blockSets[plan.trackSlot];
+	for (const NativeBlockPlan& blockPlan : plan.blocks) {
+		BlockSet& runtimeTrack = blockSets[blockPlan.trackSlot];
 		Section& section = signalling_block_sections[Blocks++];
-		section.ID = nativeRuntimeBlockId(plan.source->id);
-		section.trackLineId = plan.trackSlot;
-		section.length = plan.endX - plan.startX;
+		section.ID = nativeRuntimeBlockId(blockPlan.source->id);
+		section.trackLineId = blockPlan.trackSlot;
+		section.length = blockPlan.endX - blockPlan.startX;
 		section.start_node = Node();
 		section.end_node = Node();
 		std::vector<Node> nodes;
 		std::vector<Arc> arcs;
 		for (int arcIndex = 0; arcIndex < runtimeTrack.arcs; ++arcIndex) {
 			const Arc& sourceArc = runtimeTrack.A[arcIndex];
-			if (sourceArc.endNode.X <= plan.startX + kNativeCoordinateTolerance
-				|| sourceArc.startNode.X >= plan.endX - kNativeCoordinateTolerance)
+			if (sourceArc.endNode.X <= blockPlan.startX + kNativeCoordinateTolerance
+				|| sourceArc.startNode.X >= blockPlan.endX - kNativeCoordinateTolerance)
 				continue;
-			const double beginX = std::max(plan.startX, sourceArc.startNode.X);
-			const double endX = std::min(plan.endX, sourceArc.endNode.X);
+			const double beginX = std::max(blockPlan.startX, sourceArc.startNode.X);
+			const double endX = std::min(blockPlan.endX, sourceArc.endNode.X);
 			if (endX <= beginX + kNativeCoordinateTolerance)
 				continue;
 			Arc piece = sourceArc;
@@ -795,7 +822,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		}
 		if (nodes.empty()) {
 			add(SceneSeverity::Error, "scene.native.topology.blocks", "Block section could not be mapped to track arcs",
-				"infrastructure.json", "block", plan.source->id);
+				"infrastructure.json", "block", blockPlan.source->id);
 			continue;
 		}
 		section.start_node = nodes.front();
@@ -869,29 +896,29 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		sectionAliases[signalling_block_sections[sectionIndex].ID] = sectionIndex;
 	const bool sectionMismatch = derivedSectionsExceedPlan
 		|| sectionAliases.size() != static_cast<std::size_t>(Blocks)
-		|| sectionAliases.size() != plannedSectionIds.size()
-		|| std::any_of(plannedSectionIds.begin(), plannedSectionIds.end(),
+		|| sectionAliases.size() != plan.sectionIds.size()
+		|| std::any_of(plan.sectionIds.begin(), plan.sectionIds.end(),
 			[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
 	if (sectionMismatch) {
 		add(SceneSeverity::Error, "scene.native.sections.mismatch",
 			"Legacy connection construction produced section IDs different from the planned inventory",
 			"infrastructure.json", "section", "", "sections",
-			"planned=" + std::to_string(plannedSectionIds.size())
+			"planned=" + std::to_string(plan.sectionIds.size())
 				+ ", actual=" + std::to_string(sectionAliases.size()),
 			"Fix topology or block placement so native section identities match the section catalog");
-		return diagnostics;
+		return;
 	}
 	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
-		const auto plannedLevel = plannedSignallingLevels.find(signalling_block_sections[sectionIndex].ID);
-		if (plannedLevel != plannedSignallingLevels.end())
+		const auto plannedLevel = plan.signallingLevels.find(signalling_block_sections[sectionIndex].ID);
+		if (plannedLevel != plan.signallingLevels.end())
 			signalling_block_sections[sectionIndex].SignallingLevel = plannedLevel->second;
 	}
 	if (nativeHasErrors(diagnostics))
-		return diagnostics;
+		return;
 	setDependenciesBetweenBlocksInternal(false);
 
 	auto resolveSection = [&](const std::string& reference) -> int {
-		const auto* planned = sectionInventory.resolve(reference);
+		const auto* planned = plan.sectionInventory.resolve(reference);
 		if (planned == nullptr)
 			return -1;
 		const auto section = sectionAliases.find(planned->id);
@@ -983,8 +1010,8 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 				add(SceneSeverity::Error, "scene.native.ref.unresolved", "Route token has no derived runtime section",
 					"signalling.json", "route", route.id, "routes.blocks", token);
 	if (nativeHasErrors(diagnostics))
-		return diagnostics;
-	setUpRoutesFromScene(scene, routeDirections);
+		return;
+	setUpRoutesFromScene(scene, plan.routeDirections);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
 		if (index >= train_route.size()
 			|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
@@ -993,7 +1020,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 			continue;
 		}
 		for (std::size_t blockIndex = 0; blockIndex < scene.routes[index].blocks.size(); ++blockIndex) {
-			const auto* planned = sectionInventory.resolve(scene.routes[index].blocks[blockIndex]);
+			const auto* planned = plan.sectionInventory.resolve(scene.routes[index].blocks[blockIndex]);
 			if (planned == nullptr || train_route[index].sequence_of_block_sections[blockIndex].ID != planned->id)
 				add(SceneSeverity::Error, "scene.native.route.order",
 					"Native route order does not retain the authored section IDs",
@@ -1005,5 +1032,19 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	}
 	setRouteVirtualSignals();
 	setListAllInfrastructureElementsFromRoutes(train_route, N_Routes);
+}
+
+} // namespace
+
+void resetNativeInfrastructureState() {
+	nativeResetRuntime();
+}
+
+std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene) {
+	std::vector<SceneDiagnostic> diagnostics;
+	const InfrastructurePlan plan = planInfrastructure(scene, diagnostics);
+	if (nativeHasErrors(diagnostics))
+		return diagnostics;
+	commitInfrastructure(scene, plan, diagnostics);
 	return diagnostics;
 }
