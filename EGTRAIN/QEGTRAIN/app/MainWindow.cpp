@@ -41,6 +41,7 @@
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
+#include "editors/TrainUnitPanel.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
@@ -1950,171 +1951,55 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_moveRouteSectionDownButton, &QPushButton::clicked, this, &MainWindow::moveRouteSectionDown);
 	refreshInfrastructurePanel();
 
-	// train-unit editor: one list/detail dock for physical values and traction
-	// rows. Numeric widgets keep incomplete or nonnumeric input out of the model.
 	m_trainUnitDock = new QDockWidget("Rolling stock units", this);
 	m_trainUnitDock->setObjectName("trainUnitDock");
-	QWidget* trainUnitWidget = new QWidget(m_trainUnitDock);
-	QHBoxLayout* trainUnitLayout = new QHBoxLayout(trainUnitWidget);
-	QWidget* trainUnitListPane = new QWidget(trainUnitWidget);
-	QVBoxLayout* trainUnitListLayout = new QVBoxLayout(trainUnitListPane);
-	trainUnitListLayout->addWidget(new QLabel("Rolling stock units", trainUnitListPane));
-	m_trainUnitListWidget = new QListWidget(trainUnitListPane);
-	trainUnitListLayout->addWidget(m_trainUnitListWidget);
-	QGridLayout* trainUnitButtonLayout = new QGridLayout();
-	m_addTrainUnitButton = new QPushButton("Add Unit", trainUnitListPane);
-	m_duplicateTrainUnitButton = new QPushButton("Duplicate", trainUnitListPane);
-	m_deleteTrainUnitButton = new QPushButton("Delete", trainUnitListPane);
-	trainUnitButtonLayout->addWidget(m_addTrainUnitButton, 0, 0);
-	trainUnitButtonLayout->addWidget(m_duplicateTrainUnitButton, 0, 1);
-	trainUnitButtonLayout->addWidget(m_deleteTrainUnitButton, 1, 0);
-	trainUnitListLayout->addLayout(trainUnitButtonLayout);
-	trainUnitListPane->setMaximumWidth(trainUnitListPane->fontMetrics().averageCharWidth() * 32);
-	trainUnitLayout->addWidget(trainUnitListPane);
-
-	QWidget* trainUnitDetailPane = new QWidget(trainUnitWidget);
-	QVBoxLayout* trainUnitDetailLayout = new QVBoxLayout(trainUnitDetailPane);
-	auto addUnitHeading = [trainUnitDetailPane, trainUnitDetailLayout](const QString& title) {
-		auto* heading = new QLabel(title, trainUnitDetailPane);
-		heading->setObjectName("rollingStockSectionHeading");
-		QFont font = heading->font();
-		font.setBold(true);
-		font.setPointSizeF(font.pointSizeF() + 2.0);
-		heading->setFont(font);
-		heading->setWordWrap(true);
-		trainUnitDetailLayout->addWidget(heading);
-	};
-	addUnitHeading("Rolling stock unit ID");
-	m_trainUnitIdEdit = new QLineEdit(trainUnitDetailPane);
-	trainUnitDetailLayout->addWidget(m_trainUnitIdEdit);
-	addUnitHeading("Rolling stock engine");
-	trainUnitDetailLayout->addWidget(new QLabel("Tractive-effort source reference", trainUnitDetailPane));
-	m_trainUnitSourceTractionEdit = new QLineEdit(trainUnitDetailPane);
-	m_trainUnitSourceTractionEdit->setPlaceholderText("Optional");
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionEdit);
-	QHBoxLayout* tractionSourceActions = new QHBoxLayout();
-	m_linkTrainUnitSourceTractionButton = new QPushButton("Link traction file...", trainUnitDetailPane);
-	m_linkTrainUnitSourceTractionButton->setObjectName("linkTrainUnitSourceTractionButton");
-	m_unlinkTrainUnitSourceTractionButton = new QPushButton("Unlink", trainUnitDetailPane);
-	m_unlinkTrainUnitSourceTractionButton->setObjectName("unlinkTrainUnitSourceTractionButton");
-	m_retryTrainUnitSourceTractionButton = new QPushButton("Retry", trainUnitDetailPane);
-	m_retryTrainUnitSourceTractionButton->setObjectName("retryTrainUnitSourceTractionButton");
-	tractionSourceActions->addWidget(m_linkTrainUnitSourceTractionButton);
-	tractionSourceActions->addWidget(m_unlinkTrainUnitSourceTractionButton);
-	tractionSourceActions->addWidget(m_retryTrainUnitSourceTractionButton);
-	trainUnitDetailLayout->addLayout(tractionSourceActions);
-	m_trainUnitSourceTractionStatusLabel = new QLabel("Unlinked", trainUnitDetailPane);
-	m_trainUnitSourceTractionStatusLabel->setObjectName("trainUnitSourceTractionStatusLabel");
-	m_trainUnitSourceTractionStatusLabel->setWordWrap(true);
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceTractionStatusLabel);
-
-	trainUnitDetailLayout->addWidget(new QLabel("Traction curve", trainUnitDetailPane));
-	m_trainUnitTractionTable = new QTableWidget(0, 5, trainUnitDetailPane);
-	m_trainUnitTractionTable->setHorizontalHeaderLabels(QStringList()
-		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
-	m_trainUnitTractionTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_trainUnitTractionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	// size columns to their headers so "Lower speed (m/s)" is never clipped
-	m_trainUnitTractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-	m_trainUnitTractionTable->horizontalHeader()->setStretchLastSection(true);
-	m_trainUnitTractionTable->setMinimumHeight(m_trainUnitTractionTable->fontMetrics().lineSpacing() * 8);
-	trainUnitDetailLayout->addWidget(m_trainUnitTractionTable, 1);
-	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
-	m_addTrainUnitTractionButton = new QPushButton("Add Traction Row", trainUnitDetailPane);
-	m_removeTrainUnitTractionButton = new QPushButton("Delete Traction Row", trainUnitDetailPane);
-	tractionButtonLayout->addWidget(m_addTrainUnitTractionButton);
-	tractionButtonLayout->addWidget(m_removeTrainUnitTractionButton);
-	trainUnitDetailLayout->addLayout(tractionButtonLayout);
-	m_plotTrainUnitTractionButton = new QPushButton("Plot input traction characteristic", trainUnitDetailPane);
-	trainUnitDetailLayout->addWidget(m_plotTrainUnitTractionButton);
-
-	addUnitHeading("Rolling stock unit characteristics");
-	QFormLayout* trainPhysicalLayout = new QFormLayout();
-	const char* physicalLabels[] = {
-		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
-		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
-		"Resistance coefficient", "Jerk (m/s³)", "Length (m)"};
-	for (int i = 0; i < 9; ++i) {
-		auto* edit = new CompactDoubleSpinBox(trainUnitDetailPane);
-		edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
-		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
-		edit->setKeyboardTracking(false);
-		m_trainUnitPhysicalEdits[static_cast<size_t>(i)] = edit;
-		trainPhysicalLayout->addRow(new QLabel(physicalLabels[i], trainUnitDetailPane), edit);
-	}
-	trainUnitDetailLayout->addLayout(trainPhysicalLayout);
-	trainUnitDetailLayout->addWidget(new QLabel("Parameter source reference", trainUnitDetailPane));
-	m_trainUnitSourceDataEdit = new QLineEdit(trainUnitDetailPane);
-	m_trainUnitSourceDataEdit->setPlaceholderText("Optional");
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataEdit);
-	QHBoxLayout* dataSourceActions = new QHBoxLayout();
-	m_linkTrainUnitSourceDataButton = new QPushButton("Link parameter file...", trainUnitDetailPane);
-	m_linkTrainUnitSourceDataButton->setObjectName("linkTrainUnitSourceDataButton");
-	m_unlinkTrainUnitSourceDataButton = new QPushButton("Unlink", trainUnitDetailPane);
-	m_unlinkTrainUnitSourceDataButton->setObjectName("unlinkTrainUnitSourceDataButton");
-	m_retryTrainUnitSourceDataButton = new QPushButton("Retry", trainUnitDetailPane);
-	m_retryTrainUnitSourceDataButton->setObjectName("retryTrainUnitSourceDataButton");
-	dataSourceActions->addWidget(m_linkTrainUnitSourceDataButton);
-	dataSourceActions->addWidget(m_unlinkTrainUnitSourceDataButton);
-	dataSourceActions->addWidget(m_retryTrainUnitSourceDataButton);
-	trainUnitDetailLayout->addLayout(dataSourceActions);
-	m_trainUnitSourceDataStatusLabel = new QLabel("Unlinked", trainUnitDetailPane);
-	m_trainUnitSourceDataStatusLabel->setObjectName("trainUnitSourceDataStatusLabel");
-	m_trainUnitSourceDataStatusLabel->setWordWrap(true);
-	trainUnitDetailLayout->addWidget(m_trainUnitSourceDataStatusLabel);
-
-	QScrollArea* trainUnitDetailScroll = new QScrollArea(trainUnitWidget);
-	trainUnitDetailScroll->setWidgetResizable(true);
-	trainUnitDetailScroll->setFrameShape(QFrame::NoFrame);
-	trainUnitDetailScroll->setWidget(trainUnitDetailPane);
-	trainUnitLayout->addWidget(trainUnitDetailScroll, 1);
-
-	m_trainUnitDock->setWidget(trainUnitWidget);
+	m_trainUnitPanel = new TrainUnitPanel(m_trainUnitDock);
+	m_trainUnitListWidget = m_trainUnitPanel->listWidget();
+	m_trainUnitIdEdit = m_trainUnitPanel->idEdit();
+	m_trainUnitPhysicalEdits = m_trainUnitPanel->physicalEdits();
+	m_trainUnitSourceDataEdit = m_trainUnitPanel->sourceDataEdit();
+	m_trainUnitSourceTractionEdit = m_trainUnitPanel->sourceTractionEdit();
+	m_trainUnitTractionTable = m_trainUnitPanel->tractionTable();
+	m_addTrainUnitButton = m_trainUnitPanel->addButton();
+	m_addTrainUnitTractionButton = m_trainUnitPanel->addTractionRowButton();
+	m_plotTrainUnitTractionButton = m_trainUnitPanel->plotButton();
+	m_trainUnitDock->setWidget(m_trainUnitPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_trainUnitDock);
 	registerEditorDock(m_trainUnitDock);
-	connect(m_trainUnitListWidget, &QListWidget::currentRowChanged, this, [this](int) {
-		updateTrainUnitDetailPanel();
+	m_trainUnitPanel->setPrompts(m_userPrompts.get());
+	connect(m_trainUnitPanel, &TrainUnitPanel::detailsShown, this, &MainWindow::updateTrainUnitSourceStatus);
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceLinkRequested, this, &MainWindow::linkTrainUnitSource);
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceUnlinkRequested, this, &MainWindow::unlinkTrainUnitSource);
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceRetryRequested, this, &MainWindow::retryTrainUnitSource);
+	connect(m_trainUnitPanel, &TrainUnitPanel::unitRenamed, this, [this](const QString& oldId, const QString& newId) {
+		const auto sourceLink = m_trainUnitSourceLinks.find(oldId.toStdString());
+		if (sourceLink != m_trainUnitSourceLinks.end()) {
+			TrainUnitSourceLink state = std::move(sourceLink->second);
+			m_trainUnitSourceLinks.erase(sourceLink);
+			m_trainUnitSourceLinks.emplace(newId.toStdString(), std::move(state));
+		}
+		const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, newId.toStdString());
+		for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
+			if (window && unit && window->property("inputTrainUnitId").toString() == oldId) {
+				window->setProperty("inputTrainUnitId", newId);
+				window->setPresentation("Input traction characteristic", inputTractionContext(*unit), inputTractionWarning(*unit));
+			}
+		}
+		refreshTrainUnitSourceWatches();
+		updateTrainUnitSourceStatus();
 	});
-	connect(m_trainUnitIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitIdEdit);
-	connect(m_trainUnitSourceDataEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
-	connect(m_trainUnitSourceTractionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitTrainUnitSources);
-	connect(m_linkTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
-		linkTrainUnitSource(false);
+	connect(m_trainUnitPanel, &TrainUnitPanel::unitDeleted, this, [this](const QString& id) {
+		m_trainUnitSourceLinks.erase(id.toStdString());
+		refreshInputTractionDiagrams(id.toStdString());
+		refreshTrainUnitSourceWatches();
 	});
-	connect(m_unlinkTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
-		unlinkTrainUnitSource(false);
-	});
-	connect(m_retryTrainUnitSourceDataButton, &QPushButton::clicked, this, [this]() {
-		retryTrainUnitSource(false);
-	});
-	connect(m_linkTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
-		linkTrainUnitSource(true);
-	});
-	connect(m_unlinkTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
-		unlinkTrainUnitSource(true);
-	});
-	connect(m_retryTrainUnitSourceTractionButton, &QPushButton::clicked, this, [this]() {
-		retryTrainUnitSource(true);
-	});
-	for (int i = 0; i < 9; ++i) {
-		connect(m_trainUnitPhysicalEdits[static_cast<size_t>(i)], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-			this, [this, i](double) { commitTrainUnitPhysical(i); });
-	}
-	connect(m_addTrainUnitButton, &QPushButton::clicked, this, &MainWindow::addTrainUnit);
-	connect(m_duplicateTrainUnitButton, &QPushButton::clicked, this, &MainWindow::duplicateTrainUnit);
-	connect(m_deleteTrainUnitButton, &QPushButton::clicked, this, &MainWindow::deleteTrainUnit);
-	connect(m_addTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::addTrainUnitTractionRow);
-	connect(m_removeTrainUnitTractionButton, &QPushButton::clicked, this, &MainWindow::removeTrainUnitTractionRow);
-	connect(m_plotTrainUnitTractionButton, &QPushButton::clicked, this, [this]() {
-		const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
-		if (row >= 0 && row < static_cast<int>(m_sceneModel.trainUnits.size()))
-			plotTrainUnitTraction(m_sceneModel.trainUnits[static_cast<std::size_t>(row)]);
-	});
-	connect(m_trainUnitTractionTable, &QTableWidget::currentCellChanged, this, [this](int, int, int, int) {
-		if (m_removeTrainUnitTractionButton)
-			m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
-	});
+	connect(m_trainUnitPanel, &TrainUnitPanel::changed, this, &MainWindow::refreshValidationPanel);
+	const auto plotUnitTraction = [this](const QString& unitId) {
+		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, unitId.toStdString()))
+			plotTrainUnitTraction(*unit);
+	};
+	connect(m_trainUnitPanel, &TrainUnitPanel::tractionPlotRequested, this, plotUnitTraction);
+	m_trainUnitPanel->setDocument(m_document);
 
 	m_compositionDock = new QDockWidget("Compositions", this);
 	m_compositionDock->setObjectName("compositionDock");
@@ -2135,10 +2020,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_compositionPanel->setDocument(m_document);
 	connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, this, &MainWindow::updateServiceDetailPanel);
 	connect(m_compositionPanel, &CompositionPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, this, [this](const QString& unitId) {
-		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, unitId.toStdString()))
-			plotTrainUnitTraction(*unit);
-	});
+	connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, this, plotUnitTraction);
+	connect(m_trainUnitPanel, &TrainUnitPanel::trainUnitsChanged, m_compositionPanel, &CompositionPanel::refresh);
+	connect(m_trainUnitPanel, &TrainUnitPanel::sourceReferencesChanged, m_compositionPanel, &CompositionPanel::refreshUnitDetails);
 
 	// service editor: dockable panel for service-level fields plus the selected
 	// service's timetable (stops). tabbed alongside Compositions, same list +
@@ -2876,7 +2760,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			.arg(initial_variables.numTrackLines)
 			.arg(initial_variables.N_Routes));
 
-	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
@@ -2999,7 +2882,6 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	updateCaseLayersPanel();
 	updateSceneActions();
 	statusBar()->showMessage("New case study created; save it to choose a location");
-	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
@@ -3262,7 +3144,6 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	updateCaseLayersPanel();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel(!reloadingSameScene);
@@ -3782,7 +3663,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	m_compositionPanel->refresh();
-	refreshTrainUnitPanel();
+	m_trainUnitPanel->refresh();
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
@@ -4508,12 +4389,15 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 		return;
 	}
 
+	if (targetType == "train_unit") {
+		if (m_trainUnitPanel->selectUnit(targetId))
+			raiseDock(m_trainUnitDock);
+		return;
+	}
+
 	QListWidget* targetList = nullptr;
 	QDockWidget* targetDock = nullptr;
-	if (targetType == "train_unit") {
-		targetList = m_trainUnitListWidget;
-		targetDock = m_trainUnitDock;
-	} else if (targetType == "composition") {
+	if (targetType == "composition") {
 		targetList = m_compositionListWidget;
 		targetDock = m_compositionDock;
 	} else if (targetType == "service") {
@@ -4601,25 +4485,7 @@ void MainWindow::commitPendingEditorValues() {
 	};
 
 	m_caseSettingsPanel->commitPendingEditors();
-	commitTrainUnitIdEdit();
-	for (std::size_t index = 0; index < m_trainUnitPhysicalEdits.size(); ++index) {
-		QDoubleSpinBox* edit = m_trainUnitPhysicalEdits[index];
-		if (hasEditorFocus(edit)) {
-			edit->interpretText();
-			commitTrainUnitPhysical(static_cast<int>(index));
-		}
-	}
-	if (m_trainUnitTractionTable) {
-		for (int row = 0; row < m_trainUnitTractionTable->rowCount(); ++row) {
-			for (int column = 0; column < m_trainUnitTractionTable->columnCount(); ++column) {
-				auto* edit = qobject_cast<QDoubleSpinBox*>(m_trainUnitTractionTable->cellWidget(row, column));
-				if (hasEditorFocus(edit)) {
-					edit->interpretText();
-					commitTrainUnitTractionCell(row, column, edit->value());
-				}
-			}
-		}
-	}
+	m_trainUnitPanel->commitPendingEditors();
 	if (m_infrastructureFacetCombo && m_infrastructureTable
 		&& m_infrastructureFacetCombo->currentData().toString() == QStringLiteral("platforms")) {
 		std::vector<std::tuple<int, int, double>> pendingGeometry;
@@ -4652,7 +4518,6 @@ void MainWindow::commitPendingEditorValues() {
 		m_passengerLegOccurrenceEdit->interpretText();
 		commitPassengerLegOccurrence();
 	}
-	commitTrainUnitSources();
 	m_compositionPanel->commitPendingEditors();
 	commitPendingServiceSettings();
 	// Scenario and incident controls are disabled and cleared during a run.
@@ -6692,310 +6557,12 @@ void MainWindow::deleteInfrastructureEntity() {
 	refreshInfrastructureTable();
 }
 
-void MainWindow::refreshTrainUnitPanel() {
-	const bool hasScene = m_sceneLoaded;
-	if (m_trainUnitListWidget) {
-		const int previousRow = m_trainUnitListWidget->currentRow();
-		const QSignalBlocker blocker(m_trainUnitListWidget);
-		m_trainUnitListWidget->clear();
-		if (hasScene) {
-			for (const auto& unit : m_sceneModel.trainUnits)
-				m_trainUnitListWidget->addItem(QString::fromStdString(unit.id));
-		}
-		const int rowCount = m_trainUnitListWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0)
-			rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1);
-		m_trainUnitListWidget->setCurrentRow(rowToSelect);
-		m_trainUnitListWidget->setEnabled(hasScene);
-	}
-	if (m_addTrainUnitButton)
-		m_addTrainUnitButton->setEnabled(hasScene);
-	updateTrainUnitDetailPanel();
-}
-
-void MainWindow::updateTrainUnitDetailPanel() {
-	const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
-	const bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.trainUnits.size());
-	const SceneTrainUnit* unit = hasSelection ? &m_sceneModel.trainUnits[row] : nullptr;
-
-	if (m_trainUnitIdEdit) {
-		const QSignalBlocker blocker(m_trainUnitIdEdit);
-		m_trainUnitIdEdit->setText(unit ? QString::fromStdString(unit->id) : QString());
-		m_trainUnitIdEdit->setEnabled(hasSelection);
-	}
-	const double values[] = {
-		unit ? unit->physical.mass_of_traction_unit_kg : 0.0,
-		unit ? unit->physical.mass_of_a_wagon_kg : 0.0,
-		unit ? unit->physical.number_of_wagons : 0.0,
-		unit ? unit->physical.max_speed_ms : 0.0,
-		unit ? unit->physical.max_deceleration_ms2 : 0.0,
-		unit ? unit->physical.frontal_area_m2 : 0.0,
-		unit ? unit->physical.resistance_coefficient : 0.0,
-		unit ? unit->physical.jerk_ms3 : 0.0,
-		unit ? unit->physical.length_m : 0.0};
-	for (size_t index = 0; index < m_trainUnitPhysicalEdits.size(); ++index) {
-		if (!m_trainUnitPhysicalEdits[index])
-			continue;
-		const QSignalBlocker blocker(m_trainUnitPhysicalEdits[index]);
-		m_trainUnitPhysicalEdits[index]->setValue(values[index]);
-		m_trainUnitPhysicalEdits[index]->setEnabled(hasSelection);
-	}
-	if (m_trainUnitSourceDataEdit) {
-		const QSignalBlocker blocker(m_trainUnitSourceDataEdit);
-		m_trainUnitSourceDataEdit->setText(unit ? QString::fromStdString(unit->sourceDataFile) : QString());
-		m_trainUnitSourceDataEdit->setEnabled(hasSelection);
-	}
-	if (m_trainUnitSourceTractionEdit) {
-		const QSignalBlocker blocker(m_trainUnitSourceTractionEdit);
-		m_trainUnitSourceTractionEdit->setText(unit ? QString::fromStdString(unit->sourceTractionFile) : QString());
-		m_trainUnitSourceTractionEdit->setEnabled(hasSelection);
-	}
-	updateTrainUnitSourceStatus();
-	if (m_plotTrainUnitTractionButton)
-		m_plotTrainUnitTractionButton->setEnabled(unit && !unit->tractionCurve.empty());
-	if (m_duplicateTrainUnitButton)
-		m_duplicateTrainUnitButton->setEnabled(hasSelection);
-	if (m_deleteTrainUnitButton)
-		m_deleteTrainUnitButton->setEnabled(hasSelection);
-	if (m_addTrainUnitTractionButton)
-		m_addTrainUnitTractionButton->setEnabled(hasSelection);
-	if (m_removeTrainUnitTractionButton)
-		m_removeTrainUnitTractionButton->setEnabled(hasSelection
-			&& m_trainUnitTractionTable && m_trainUnitTractionTable->currentRow() >= 0);
-	refreshTrainUnitTractionTable();
-}
-
-void MainWindow::refreshTrainUnitTractionTable() {
-	if (!m_trainUnitTractionTable)
-		return;
-	const int unitRow = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
-	const bool hasSelection = m_sceneLoaded && unitRow >= 0 && unitRow < static_cast<int>(m_sceneModel.trainUnits.size());
-	const int previousRow = m_trainUnitTractionTable->currentRow();
-	const QSignalBlocker tableBlocker(m_trainUnitTractionTable);
-	m_trainUnitTractionTable->setRowCount(0);
-	if (!hasSelection) {
-		m_trainUnitTractionTable->setEnabled(false);
-		return;
-	}
-	const auto& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
-	for (int row = 0; row < static_cast<int>(curve.size()); ++row) {
-		m_trainUnitTractionTable->insertRow(row);
-		for (int column = 0; column < 5; ++column) {
-			auto* edit = new CompactDoubleSpinBox(m_trainUnitTractionTable);
-			edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
-			edit->setDecimals(std::numeric_limits<double>::max_digits10);
-			edit->setSingleStep(0.1);
-			edit->setKeyboardTracking(false);
-			edit->setValue(curve[row][column]);
-			connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-				[this, row, column](double value) { commitTrainUnitTractionCell(row, column, value); });
-			connect(edit, &QDoubleSpinBox::editingFinished, this, [this, row, column, edit]() {
-				if (m_trainUnitTractionTable
-					&& (m_trainUnitTractionTable->currentRow() != row
-						|| m_trainUnitTractionTable->currentColumn() != column)) {
-					const QSignalBlocker blocker(edit);
-					m_trainUnitTractionTable->setCurrentCell(row, column);
-				}
-			});
-			m_trainUnitTractionTable->setCellWidget(row, column, edit);
-		}
-	}
-	m_trainUnitTractionTable->setEnabled(true);
-	if (!curve.empty())
-		m_trainUnitTractionTable->setCurrentCell(std::min(previousRow < 0 ? 0 : previousRow,
-													 static_cast<int>(curve.size()) - 1),
-			0);
-	if (m_removeTrainUnitTractionButton)
-		m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
-}
-
-void MainWindow::addTrainUnit() {
-	if (!m_sceneLoaded)
-		return;
-	SceneTrainUnit unit;
-	unit.id = sceneUniqueTrainUnitId(m_sceneModel, "new_train_unit");
-	m_sceneModel.trainUnits.push_back(unit);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshTrainUnitPanel();
-	m_compositionPanel->refresh();
-	if (m_trainUnitListWidget)
-		m_trainUnitListWidget->setCurrentRow(static_cast<int>(m_sceneModel.trainUnits.size()) - 1);
-}
-
-void MainWindow::duplicateTrainUnit() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	SceneTrainUnit duplicate = m_sceneModel.trainUnits[row];
-	duplicate.id = sceneUniqueTrainUnitId(m_sceneModel, duplicate.id + "_copy");
-	m_sceneModel.trainUnits.insert(m_sceneModel.trainUnits.begin() + row + 1, duplicate);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshTrainUnitPanel();
-	m_compositionPanel->refresh();
-	if (m_trainUnitListWidget)
-		m_trainUnitListWidget->setCurrentRow(row + 1);
-}
-
-void MainWindow::deleteTrainUnit() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	const std::string id = m_sceneModel.trainUnits[row].id;
-	const QStringList consumers = directDeleteConsumers(m_sceneModel, QStringLiteral("train_unit"), id);
-	if (!consumers.isEmpty()) {
-		showBlockingError(this, "Cannot Delete Rolling Stock Unit",
-			QString("Cannot delete rolling stock unit '%1' because it is still referenced by:\n• %2\nRemove it from those compositions first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")),
-			true);
-		return;
-	}
-	if (QMessageBox::question(this, "Delete Rolling Stock Unit",
-			QString("Delete rolling stock unit '%1'?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-		!= QMessageBox::Yes)
-		return;
-	m_trainUnitSourceLinks.erase(id);
-	m_sceneModel.trainUnits.erase(m_sceneModel.trainUnits.begin() + row);
-	refreshInputTractionDiagrams(id);
-	refreshTrainUnitSourceWatches();
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshTrainUnitPanel();
-	m_compositionPanel->refresh();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitTrainUnitIdEdit() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitIdEdit)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	const std::string oldId = m_sceneModel.trainUnits[row].id;
-	const std::string newId = m_trainUnitIdEdit->text().trimmed().toStdString();
-	if (newId.empty()) {
-		const QSignalBlocker blocker(m_trainUnitIdEdit);
-		m_trainUnitIdEdit->setText(QString::fromStdString(oldId));
-		return;
-	}
-	if (newId == oldId)
-		return;
-	for (int index = 0; index < static_cast<int>(m_sceneModel.trainUnits.size()); ++index) {
-		if (index != row && m_sceneModel.trainUnits[index].id == newId) {
-			const QSignalBlocker blocker(m_trainUnitIdEdit);
-			m_trainUnitIdEdit->setText(QString::fromStdString(oldId));
-			return;
-		}
-	}
-	const auto sourceLink = m_trainUnitSourceLinks.find(oldId);
-	if (sourceLink != m_trainUnitSourceLinks.end()) {
-		TrainUnitSourceLink state = std::move(sourceLink->second);
-		m_trainUnitSourceLinks.erase(sourceLink);
-		m_trainUnitSourceLinks.emplace(newId, std::move(state));
-	}
-	for (DiagramWindow* window : findChildren<DiagramWindow*>()) {
-		if (window && window->property("inputTrainUnitId").toString() == QString::fromStdString(oldId)) {
-			window->setProperty("inputTrainUnitId", QString::fromStdString(newId));
-			window->setPresentation("Input traction characteristic",
-				inputTractionContext(m_sceneModel.trainUnits[row], QString::fromStdString(newId)),
-				inputTractionWarning(m_sceneModel.trainUnits[row]));
-		}
-	}
-	m_sceneModel.trainUnits[row].id = newId;
-	sceneRewriteTrainUnitReferences(m_sceneModel, oldId, newId);
-	if (QListWidgetItem* item = m_trainUnitListWidget->item(row)) {
-		const QSignalBlocker blocker(m_trainUnitListWidget);
-		item->setText(QString::fromStdString(newId));
-	}
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshTrainUnitSourceWatches();
-	updateTrainUnitSourceStatus();
-	m_compositionPanel->refresh();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitTrainUnitSources() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitSourceDataEdit
-		|| !m_trainUnitSourceTractionEdit)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	SceneTrainUnit& unit = m_sceneModel.trainUnits[static_cast<std::size_t>(row)];
-	const std::string sourceDataFile = m_trainUnitSourceDataEdit->text().toStdString();
-	const std::string sourceTractionFile = m_trainUnitSourceTractionEdit->text().toStdString();
-	if (unit.sourceDataFile == sourceDataFile && unit.sourceTractionFile == sourceTractionFile)
-		return;
-	unit.sourceDataFile = sourceDataFile;
-	unit.sourceTractionFile = sourceTractionFile;
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	m_compositionPanel->refreshUnitDetails();
-}
-
 void MainWindow::updateTrainUnitSourceStatus() {
-	const int row = m_trainUnitListWidget ? m_trainUnitListWidget->currentRow() : -1;
-	const SceneTrainUnit* unit = m_sceneLoaded && row >= 0
-			&& row < static_cast<int>(m_sceneModel.trainUnits.size())
-		? &m_sceneModel.trainUnits[static_cast<std::size_t>(row)]
-		: nullptr;
-	const auto update = [unit](QPushButton* linkButton, QPushButton* unlinkButton,
-							QPushButton* retryButton, QLabel* statusLabel, const QString& path,
-							const QString& status) {
-		const bool hasSelection = unit != nullptr;
-		const bool linked = hasSelection && !path.isEmpty();
-		if (linkButton)
-			linkButton->setEnabled(hasSelection);
-		if (unlinkButton)
-			unlinkButton->setEnabled(linked);
-		if (retryButton)
-			retryButton->setEnabled(linked);
-		if (!statusLabel)
-			return;
-		if (!hasSelection) {
-			statusLabel->setText(QStringLiteral("No unit selected"));
-			statusLabel->setToolTip(QString());
-		} else if (!linked) {
-			statusLabel->setText(QStringLiteral("Unlinked"));
-			statusLabel->setToolTip(QString());
-		} else {
-			QString display = status;
-			if (display.isEmpty())
-				display = QFileInfo(path).exists()
-					? QStringLiteral("Linked: %1").arg(QFileInfo(path).fileName())
-					: QStringLiteral("Linked file missing; Retry");
-			statusLabel->setText(display);
-			statusLabel->setToolTip(path);
-		}
-	};
-	TrainUnitSourceLink* state = nullptr;
-	if (unit) {
-		const auto it = m_trainUnitSourceLinks.find(unit->id);
-		if (it != m_trainUnitSourceLinks.end())
-			state = &it->second;
-	}
-	update(m_linkTrainUnitSourceDataButton, m_unlinkTrainUnitSourceDataButton,
-		m_retryTrainUnitSourceDataButton, m_trainUnitSourceDataStatusLabel,
-		state ? state->dataPath : QString(), state ? state->dataStatus : QString());
-	update(m_linkTrainUnitSourceTractionButton, m_unlinkTrainUnitSourceTractionButton,
-		m_retryTrainUnitSourceTractionButton, m_trainUnitSourceTractionStatusLabel,
-		state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
+	const SceneTrainUnit* unit = m_trainUnitPanel->selectedUnit();
+	const auto it = unit ? m_trainUnitSourceLinks.find(unit->id) : m_trainUnitSourceLinks.end();
+	const TrainUnitSourceLink* state = it == m_trainUnitSourceLinks.end() ? nullptr : &it->second;
+	m_trainUnitPanel->setSourceState(false, state ? state->dataPath : QString(), state ? state->dataStatus : QString());
+	m_trainUnitPanel->setSourceState(true, state ? state->tractionPath : QString(), state ? state->tractionStatus : QString());
 }
 
 void MainWindow::refreshTrainUnitSourceWatches() {
@@ -7425,7 +6992,7 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 	}
 	if (changed)
 		markSceneDirty();
-	refreshTrainUnitPanel();
+	m_trainUnitPanel->refresh();
 	m_compositionPanel->refresh();
 	refreshValidationPanel();
 	for (const std::string& unitId : changedTractionUnits)
@@ -7448,84 +7015,6 @@ void MainWindow::refreshInputTractionDiagrams(const std::string& unitId) {
 			inputTractionWarning(*unit));
 		window->setChart(buildInputTractionChart(*unit));
 	}
-}
-
-void MainWindow::commitTrainUnitPhysical(int fieldIndex) {
-	if (!m_sceneLoaded || !m_trainUnitListWidget || fieldIndex < 0 || fieldIndex >= 9)
-		return;
-	const int row = m_trainUnitListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.trainUnits.size())
-		|| !m_trainUnitPhysicalEdits[static_cast<size_t>(fieldIndex)])
-		return;
-	SceneTrainPhysical& physical = m_sceneModel.trainUnits[row].physical;
-	double* values[] = {
-		&physical.mass_of_traction_unit_kg, &physical.mass_of_a_wagon_kg, &physical.number_of_wagons,
-		&physical.max_speed_ms, &physical.max_deceleration_ms2, &physical.frontal_area_m2,
-		&physical.resistance_coefficient, &physical.jerk_ms3, &physical.length_m};
-	const double value = m_trainUnitPhysicalEdits[static_cast<size_t>(fieldIndex)]->value();
-	if (*values[fieldIndex] == value && m_sceneModel.trainUnits[row].hasPhysical)
-		return;
-	*values[fieldIndex] = value;
-	m_sceneModel.trainUnits[row].hasPhysical = true;
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-}
-
-void MainWindow::addTrainUnitTractionRow() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget)
-		return;
-	const int unitRow = m_trainUnitListWidget->currentRow();
-	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size()))
-		return;
-	std::array<double, 5> row = {{0.0, 1.0, 0.0, 0.0, 0.0}};
-	const auto& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
-	if (!curve.empty()) {
-		row[0] = curve.back()[1];
-		row[1] = row[0] + 1.0;
-	}
-	m_sceneModel.trainUnits[unitRow].tractionCurve.push_back(row);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshTrainUnitTractionTable();
-	if (m_trainUnitTractionTable)
-		m_trainUnitTractionTable->setCurrentCell(m_trainUnitTractionTable->rowCount() - 1, 0);
-}
-
-void MainWindow::removeTrainUnitTractionRow() {
-	if (!m_sceneLoaded || !m_trainUnitListWidget || !m_trainUnitTractionTable)
-		return;
-	const int unitRow = m_trainUnitListWidget->currentRow();
-	const int curveRow = m_trainUnitTractionTable->currentRow();
-	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size())
-		|| curveRow < 0 || curveRow >= static_cast<int>(m_sceneModel.trainUnits[unitRow].tractionCurve.size()))
-		return;
-	m_sceneModel.trainUnits[unitRow].tractionCurve.erase(
-		m_sceneModel.trainUnits[unitRow].tractionCurve.begin() + curveRow);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	updateTrainUnitDetailPanel();
-}
-
-void MainWindow::commitTrainUnitTractionCell(int row, int column, double value) {
-	if (!m_sceneLoaded || !m_trainUnitListWidget || row < 0)
-		return;
-	const int unitRow = m_trainUnitListWidget->currentRow();
-	if (unitRow < 0 || unitRow >= static_cast<int>(m_sceneModel.trainUnits.size()) || column < 0 || column >= 5)
-		return;
-	std::vector<std::array<double, 5>>& curve = m_sceneModel.trainUnits[unitRow].tractionCurve;
-	if (row >= static_cast<int>(curve.size()) || curve[row][column] == value)
-		return;
-	curve[row][column] = value;
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
 }
 
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {

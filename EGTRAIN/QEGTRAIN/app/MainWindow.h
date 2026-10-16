@@ -116,6 +116,7 @@ class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
 class QPlainTextEdit;
+class TrainUnitPanel;
 class UserPrompts;
 struct UpdateCheckResult;
 struct StableRelease;
@@ -551,25 +552,16 @@ private:
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
+	TrainUnitPanel* m_trainUnitPanel = nullptr;
+	// Parts of m_trainUnitPanel, for the scripted runs in tests/e2e
 	QListWidget* m_trainUnitListWidget = nullptr;
 	QLineEdit* m_trainUnitIdEdit = nullptr;
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
 	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
 	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
-	QPushButton* m_linkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceDataButton = nullptr;
-	QLabel* m_trainUnitSourceDataStatusLabel = nullptr;
-	QPushButton* m_linkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceTractionButton = nullptr;
-	QLabel* m_trainUnitSourceTractionStatusLabel = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
-	QPushButton* m_duplicateTrainUnitButton = nullptr;
-	QPushButton* m_deleteTrainUnitButton = nullptr;
 	QPushButton* m_addTrainUnitTractionButton = nullptr;
-	QPushButton* m_removeTrainUnitTractionButton = nullptr;
 
 	// composition editor dock
 	QDockWidget* m_compositionDock = nullptr;
@@ -853,14 +845,6 @@ private:
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
 
 	// train-unit editor
-	void refreshTrainUnitPanel();
-	void updateTrainUnitDetailPanel();
-	void refreshTrainUnitTractionTable();
-	void addTrainUnit();
-	void duplicateTrainUnit();
-	void deleteTrainUnit();
-	void commitTrainUnitIdEdit();
-	void commitTrainUnitSources();
 	void linkTrainUnitSource(bool traction);
 	void unlinkTrainUnitSource(bool traction);
 	void retryTrainUnitSource(bool traction);
@@ -871,10 +855,6 @@ private:
 	void clearTrainUnitSourceLinks();
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
-	void commitTrainUnitPhysical(int fieldIndex);
-	void addTrainUnitTractionRow();
-	void removeTrainUnitTractionRow();
-	void commitTrainUnitTractionCell(int row, int column, double value);
 
 	// service editor (service-level fields; stops are edited by the stop editor below)
 	void refreshServicePanel();

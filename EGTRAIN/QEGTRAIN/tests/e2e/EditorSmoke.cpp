@@ -7,6 +7,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CompositionPanel.h"
+#include "editors/TrainUnitPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -1960,7 +1961,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (!layoutOk)
 			facetFailure(facetOk, "rolling stock layout", "section order, typography, resize or empty selection changed");
 		w.m_trainUnitListWidget->setCurrentRow(0);
-		w.addTrainUnit();
+		w.m_trainUnitPanel->addUnit();
 		if (w.m_trainUnitListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "train unit", "add did not apply");
 		} else {
@@ -1986,7 +1987,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else if (w.m_trainUnitIdEdit) {
 				const std::string conflictingId = w.m_sceneModel.trainUnits.front().id;
 				w.m_trainUnitIdEdit->setText(QString::fromStdString(conflictingId));
-				w.commitTrainUnitIdEdit();
+				w.m_trainUnitPanel->commitIdEdit();
 				const bool selectedIdUnchanged = w.m_sceneModel.trainUnits[originalCount].id == initialIdBeforeDuplicateRename;
 				const bool editorIdRestored = w.m_trainUnitIdEdit->text().trimmed().toStdString() == initialIdBeforeDuplicateRename;
 				const bool referencesUnchanged = sameCompositions(compositionsBeforeDuplicateRename, w.m_sceneModel.compositions);
@@ -1999,7 +2000,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "train unit", "id editor unavailable");
 			} else {
 				w.m_trainUnitIdEdit->setText(QString::fromStdString(editedTrainUnitId));
-				w.commitTrainUnitIdEdit();
+				w.m_trainUnitPanel->commitIdEdit();
 			}
 			bool oldReferencePresent = false;
 			bool newReferencePresent = false;
@@ -2039,7 +2040,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			for (int field = 0; field < 9; ++field) {
 				if (w.m_trainUnitPhysicalEdits[static_cast<size_t>(field)])
 					w.m_trainUnitPhysicalEdits[static_cast<size_t>(field)]->setValue(physicalValues[field]);
-				w.commitTrainUnitPhysical(field);
+				w.m_trainUnitPanel->commitPhysical(field);
 			}
 			const SceneTrainPhysical& committedPhysical = w.m_sceneModel.trainUnits[originalCount].physical;
 			if (committedPhysical.mass_of_traction_unit_kg != physicalValues[0])
@@ -2061,7 +2062,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (committedPhysical.length_m != physicalValues[8])
 				facetFailure(facetOk, "train unit", "length did not commit the requested value");
 			const int initialCurveRows = static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size());
-			w.addTrainUnitTractionRow();
+			w.m_trainUnitPanel->addTractionRow();
 			if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1) {
 				facetFailure(facetOk, "train unit", "traction row add did not apply");
 			} else if (w.m_trainUnitTractionTable) {
@@ -2077,7 +2078,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 					edit->setValue(tractionValues[column]);
 				}
-				w.addTrainUnitTractionRow();
+				w.m_trainUnitPanel->addTractionRow();
 				if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
@@ -2091,7 +2092,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						secondRowEdit->setFocus();
 						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
 					}
-					w.removeTrainUnitTractionRow();
+					w.m_trainUnitPanel->removeTractionRow();
 					if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
 						facetFailure(facetOk, "train unit", "traction row delete did not apply");
 					else if (w.m_sceneModel.trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
@@ -2100,7 +2101,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 
 			w.m_trainUnitListWidget->setCurrentRow(originalCount);
-			w.duplicateTrainUnit();
+			w.m_trainUnitPanel->duplicateUnit();
 			if (w.m_trainUnitListWidget->count() != originalCount + 2) {
 				facetFailure(facetOk, "train unit", "duplicate did not apply");
 			} else {
@@ -2112,7 +2113,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_compositionPanel->addUnit();
 				QApplication::processEvents();
 				const int referencedCount = w.m_trainUnitListWidget->count();
-				w.deleteTrainUnit();
+				w.m_trainUnitPanel->deleteUnit();
 				const bool duplicateStillPresent = std::any_of(w.m_sceneModel.trainUnits.begin(),
 					w.m_sceneModel.trainUnits.end(), [&](const SceneTrainUnit& unit) { return unit.id == duplicateId; });
 				if (w.m_trainUnitListWidget->count() != referencedCount || !duplicateStillPresent)
@@ -2126,7 +2127,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 				}
 				acceptConfirmation();
-				w.deleteTrainUnit();
+				w.m_trainUnitPanel->deleteUnit();
 				if (w.m_trainUnitListWidget->count() != originalCount + 1
 					|| std::any_of(w.m_sceneModel.trainUnits.begin(), w.m_sceneModel.trainUnits.end(),
 						[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
@@ -2231,7 +2232,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_sceneModel.trainUnits.front().physical.length_m != 72.0)
 			facetFailure(facetOk, "source links", "explicit retry did not reload");
 		// A duplicate shares values, not the authority to watch an external file.
-		w.duplicateTrainUnit();
+		w.m_trainUnitPanel->duplicateUnit();
 		const std::string duplicateId = w.m_sceneModel.trainUnits[1].id;
 		if (w.m_trainUnitSourceLinks.count(duplicateId))
 			facetFailure(facetOk, "source links", "duplicate inherited a live link");
@@ -2246,12 +2247,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					.arg(w.m_sceneModel.trainUnits[1].tractionCurve.front()[2])
 					.arg(w.m_trainUnitSourceLinks.at(duplicateId).tractionStatus));
 		w.m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
-		w.commitTrainUnitIdEdit();
+		w.m_trainUnitPanel->commitIdEdit();
 		if (w.m_trainUnitSourceLinks.count(duplicateId)
 			|| !w.m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
 		acceptConfirmation();
-		w.deleteTrainUnit();
+		w.m_trainUnitPanel->deleteUnit();
 		if (w.m_trainUnitSourceLinks.size() != 1
 			|| !w.m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
