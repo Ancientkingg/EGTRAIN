@@ -23301,10 +23301,12 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(0, this, &MainWindow::runCreatorAcceptanceE2E);
 		return;
 	}
-	// A file that the system opens with a second process arrives from the relay that main created.
-	// It takes the steps of File > Open Case Study. A modal dialog, such as the first-run questions or
-	// the question about unsaved changes, holds it back until the dialog has closed.
-	if (auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly)) {
+	// A file that the system opens arrives from the relay that main created, from a second process or,
+	// on macOS, as an open event. It takes the steps of File > Open Case Study. A modal dialog, such as
+	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
+	// closed.
+	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);
+	if (relay) {
 		connect(relay, &OpenRequestRelay::openRequested, this, [this, relay](const QString& request) {
 			// A chooser that is open gives way to the request.
 			QDialog* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
@@ -23329,15 +23331,29 @@ void MainWindow::showEvent(QShowEvent* e) {
 	}
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
-	QTimer::singleShot(0, this, [this]() {
-		if (!initial_variables.nArgProvided)
+	const auto startup = [this, relay]() {
+		if (!initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		showPrivacySettings(true);
 		startTelemetryAfterInitialConsent();
 		reportInstallerUpdate(this);
 		reportRolledBackUpdate(this);
 		maybePromptForUpdateChecks();
+	};
+#ifdef Q_OS_MACOS
+	// Finder hands over the file that started the program as an open event, and that event reaches
+	// the application only after this callback has run. A chooser that is open by then holds it back
+	// until the user closes it, so the chooser waits for the event loop to deliver the event first.
+	QTimer::singleShot(0, this, [this, relay, startup]() {
+		constexpr int kOpenEventWaitMs = 300;
+		if (relay && !initial_variables.nArgProvided && !relay->hasPendingRequest())
+			QTimer::singleShot(kOpenEventWaitMs, this, startup);
+		else
+			startup();
 	});
+#else
+	QTimer::singleShot(0, this, startup);
+#endif
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
 	if (PlaybackProfiler::enabled()) {

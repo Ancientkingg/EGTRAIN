@@ -12,6 +12,11 @@ class QLocalSocket;
 // process that has only a file to open sends the path, waits for the answer and ends; the
 // running instance emits openRequested.
 //
+// A file that the system opens with the process itself, as Finder does on macOS, arrives as a
+// QFileOpenEvent of the application, whether the process starts for the file or already runs.
+// A relay that is made while the application exists turns it into the same openRequested and
+// keeps it until something is connected to the signal.
+//
 // A request names the application folder of the sender, and an instance accepts only requests
 // that name its own folder, so a copy of EGTRAIN never receives the files of another copy.
 class OpenRequestRelay : public QObject {
@@ -44,12 +49,22 @@ public:
 	// the newest path waits: a request that arrives later replaces it.
 	void postpone(const QString& path);
 
+	// True while a path waits to be emitted, so that a receiver does not start a competing
+	// action, such as the choice of a case, that the request makes unnecessary.
+	bool hasPendingRequest() const { return !m_postponed.isEmpty(); }
+
+protected:
+	// Turns the QFileOpenEvent of the application into a request.
+	bool eventFilter(QObject* watched, QEvent* event) override;
+
 signals:
 	void openRequested(const QString& path);
 
 private:
 	void acceptConnections();
 	void readRequest(QLocalSocket* socket);
+	void hold(const QString& path, int delayMs);
+	void emitHeld();
 
 	QLocalServer m_server;
 	QString m_applicationDir;

@@ -43,6 +43,34 @@ require() {
 require "$APP/Contents/MacOS/QEGTRAIN"
 require "$APP/Contents/Resources/egtrain.icns"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
+# Finder recognizes .egscene files as a document type of the app and opens them with it. The type
+# conforms to public.data only, so no archive type such as ZIP is claimed.
+PLIST="$APP/Contents/Info.plist"
+plist_value() { /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST"; }
+plist_absent() {
+	if /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST" >/dev/null 2>&1; then
+		echo "unexpected entry in Info.plist: $1" >&2
+		exit 1
+	fi
+}
+plutil -lint "$PLIST" >/dev/null
+test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeName)" = "EGTRAIN Case Study"
+test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeRole)" = "Editor"
+test "$(plist_value CFBundleDocumentTypes:0:LSHandlerRank)" = "Owner"
+test "$(plist_value CFBundleDocumentTypes:0:LSItemContentTypes:0)" = "com.egtrain.simulator.egscene"
+plist_absent CFBundleDocumentTypes:0:LSItemContentTypes:1
+plist_absent CFBundleDocumentTypes:1
+test "$(plist_value UTExportedTypeDeclarations:0:UTTypeIdentifier)" = "com.egtrain.simulator.egscene"
+test "$(plist_value UTExportedTypeDeclarations:0:UTTypeConformsTo:0)" = "public.data"
+plist_absent UTExportedTypeDeclarations:0:UTTypeConformsTo:1
+test "$(plist_value UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:0)" = "egscene"
+plist_absent UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:1
+plist_absent UTExportedTypeDeclarations:1
+plist_absent UTImportedTypeDeclarations
+if grep -qi 'zip' "$PLIST"; then
+	echo "the Info.plist of the app mentions ZIP" >&2
+	exit 1
+fi
 require "$APP/Contents/MacOS/scene_tool"
 require "$SCENE/stations.json"
 require "$SCENE/scene.json"

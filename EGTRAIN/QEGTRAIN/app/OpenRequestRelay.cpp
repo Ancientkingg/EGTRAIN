@@ -4,9 +4,12 @@
 #include <QCoreApplication>
 #include <QDataStream>
 #include <QDir>
+#include <QEvent>
 #include <QFileInfo>
+#include <QFileOpenEvent>
 #include <QIODevice>
 #include <QLocalSocket>
+#include <QMetaMethod>
 #include <QProcessEnvironment>
 #include <QStringList>
 
@@ -30,9 +33,10 @@ constexpr char kRefused = '0';
 OpenRequestRelay::OpenRequestRelay(QObject* parent)
 	: QObject(parent) {
 	m_postponeTimer.setSingleShot(true);
-	m_postponeTimer.setInterval(kPostponeMs);
-	connect(&m_postponeTimer, &QTimer::timeout, this, [this] { emit openRequested(std::exchange(m_postponed, QString())); });
+	connect(&m_postponeTimer, &QTimer::timeout, this, &OpenRequestRelay::emitHeld);
 	connect(&m_server, &QLocalServer::newConnection, this, &OpenRequestRelay::acceptConnections);
+	if (QCoreApplication* application = QCoreApplication::instance())
+		application->installEventFilter(this);
 }
 
 bool OpenRequestRelay::allowedByEnvironment() {
@@ -98,8 +102,35 @@ bool OpenRequestRelay::forward(const QString& serverName, const QString& applica
 }
 
 void OpenRequestRelay::postpone(const QString& path) {
+	hold(path, kPostponeMs);
+}
+
+bool OpenRequestRelay::eventFilter(QObject* watched, QEvent* event) {
+	if (event->type() == QEvent::FileOpen) {
+		// A URL that names no local file is not for this relay.
+		const QString path = static_cast<QFileOpenEvent*>(event)->file();
+		if (!path.isEmpty()) {
+			// The request is emitted from the event loop, not from the delivery of the event, because
+			// the receiver may open a dialog.
+			hold(path, 0);
+			return true;
+		}
+	}
+	return QObject::eventFilter(watched, event);
+}
+
+void OpenRequestRelay::hold(const QString& path, int delayMs) {
 	m_postponed = path;
-	m_postponeTimer.start();
+	m_postponeTimer.start(delayMs);
+}
+
+void OpenRequestRelay::emitHeld() {
+	// A request that nothing is connected to would be lost, so it waits for a receiver.
+	if (!isSignalConnected(QMetaMethod::fromSignal(&OpenRequestRelay::openRequested))) {
+		m_postponeTimer.start(kPostponeMs);
+		return;
+	}
+	emit openRequested(std::exchange(m_postponed, QString()));
 }
 
 void OpenRequestRelay::acceptConnections() {
