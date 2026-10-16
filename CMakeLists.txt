@@ -371,6 +371,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/io/RailMLParser.h
     ${SRC_DIR}/app/MainWindow.h
+    ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Log.h
@@ -935,6 +936,9 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Behaviour characterization of the simulation core (see tests/characterization).
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
+
+	# Scripted GUI runs, compiled into QEGTRAIN when tests are built.
+	add_subdirectory(EGTRAIN/QEGTRAIN/tests/e2e)
 
 	add_executable(test_railmlparser ${SRC_DIR}/tests/test_railmlparser.cpp)
 	# The test defines initial_variables, so egtrain_sim's Infrastructure.cpp member must stay out of the link.

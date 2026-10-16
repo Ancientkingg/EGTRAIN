@@ -101,6 +101,17 @@ configuration, because the hooks change the layout of the telemetry classes.
 `test_telemetryconsent` for the same reason. See
 [Source layout](../architecture/source-layout.md#libraries).
 
+With `EGTRAIN_BUILD_TESTS=ON`, `QEGTRAIN` also compiles the sources in
+`EGTRAIN/QEGTRAIN/tests/e2e`, the runner for the scripted GUI scenarios. At the
+start of `main()` it redirects the user settings to the folder named by
+`QEGTRAIN_E2E_SETTINGS_DIR`. After the first show of the window it starts a
+scenario, with blocking dialogs switched off, when the variable of that scenario
+is set. A build without tests, such as the three package builds, compiles none
+of it: in such a build the first show of the window starts no scenario and
+`QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. The scenario functions are
+private members of `MainWindow` that the runner reaches through the friend class
+`MainWindowTestAccess`.
+
 ### Warnings
 
 The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and
@@ -1003,7 +1014,9 @@ and `test_route_diagram_smoke` (see [Platform coverage](#platform-coverage)), an
 tests and `test_visual_polish_smoke` a settings folder below `build/settings` and an output
 folder below `build/output`; `visual_polish_smoke.sh` replaces the settings folder with a
 temporary one. The release workflow also runs `scene_render_smoke.sh`, `track_preview_smoke.sh` and
-`visual_polish_smoke.sh` as steps of their own.
+`visual_polish_smoke.sh` as steps of their own. The scripts need an application built with
+`EGTRAIN_BUILD_TESTS=ON`, because only that build starts a scenario from its variable at the first
+show of the window and redirects the settings.
 
 The script also runs the signal head checks. `QEGTRAIN_E2E_SIGNAL_HEADS` names
 what the run must show: `levels` (heads take stop, caution and proceed and

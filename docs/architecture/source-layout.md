@@ -39,7 +39,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
-| `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases and the test `fixtures/` |
+| `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases, the `e2e/` runner of the scripted GUI scenarios and the test `fixtures/` |
 
 ## Includes
 
@@ -100,7 +100,7 @@ that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
 Still compiled in more than one target: the telemetry sources of the hook flavours, and
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
 and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
-`SelfUpdater` and `UpdateNotices`.
+`SelfUpdater` and `UpdateNotices`. When tests are built, `QEGTRAIN` also compiles `tests/e2e`.
 
 ## Renames
 
