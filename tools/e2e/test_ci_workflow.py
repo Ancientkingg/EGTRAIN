@@ -86,8 +86,44 @@ def main() -> None:
     )
     if any(smoke in workflow for smoke in standalone_smokes):
         missing.append("standalone smoke steps")
-    if "\n  sanitizer:" in workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" in workflow:
-        missing.append("sanitizer job")
+    # LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job. It builds with sanitizers,
+    # takes longer than the pull request checks, and runs only in the nightly and manual runs. No other job of the file
+    # uses sanitizers.
+    leak_job = job_block(workflow, "leak-check")
+    leak_upload = step_block(leak_job, "Upload leak check logs")
+    suppressions = re.search(r"^      LSAN_OPTIONS: suppressions=\$\{\{ github\.workspace \}\}/(\S+)$", leak_job, re.MULTILINE)
+    smoke_script = re.search(r"run: python3 (tools/e2e/\S+\.py) build/QEGTRAIN \"\$RUNNER_TEMP/leak-check\"\n", leak_job)
+    reload_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", leak_job)
+    reload_names = reload_tests.group(1).split("|") if reload_tests else []
+    characterization_cmake = (ROOT / "EGTRAIN/QEGTRAIN/tests/characterization/CMakeLists.txt").read_text(encoding="utf-8")
+    if (
+        "\n  sanitizer:" in workflow
+        or workflow.count("EGTRAIN_ENABLE_SANITIZERS=ON") != 1
+        or "-DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON" not in leak_job
+    ):
+        missing.append("sanitizers only in a Debug build of the leak check job")
+    if (
+        "    runs-on: ubuntu-latest\n" not in leak_job
+        or "    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'\n" not in leak_job
+    ):
+        missing.append("leak check on Linux in the nightly and manual runs only")
+    if "      ASAN_OPTIONS: detect_leaks=1\n" not in leak_job:
+        missing.append("leak detection in the leak check job")
+    if not suppressions or not (ROOT / suppressions.group(1)).is_file():
+        missing.append("leak check suppressions file")
+    if not smoke_script or not (ROOT / smoke_script.group(1)).is_file():
+        missing.append("leak check script for the committed scenes")
+    if not {"characterization_repeatable", "characterization_repeat_paimpol"} <= set(reload_names) or any(
+        f"add_test(NAME {name}\n" not in characterization_cmake for name in reload_names
+    ):
+        missing.append("leak check reload runs of registered characterization tests")
+    if (
+        '--output-log "$RUNNER_TEMP/leak-check/' not in leak_job
+        or "actions/upload-artifact@v4" not in leak_upload
+        or "if: ${{ !cancelled() }}" not in leak_upload
+        or "path: ${{ runner.temp }}/leak-check\n" not in leak_upload
+    ):
+        missing.append("leak check logs uploaded after a failure")
     if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
         missing.append("GUI smoke CTest timeout")
     if "set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)" not in cmake:
@@ -363,8 +399,10 @@ def main() -> None:
     # Each platform configures with the option, so a warning in a strict target fails its leg.
     if workflow.count("cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON") != 3:
         missing.append("warnings as errors in the macOS, Windows and Linux configure steps")
-    apt_install = re.search(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
-    apt_packages = apt_install.group(1).replace("\\", " ").split() if apt_install else []
+    apt_installs = re.findall(r"apt-get install -y((?:.*\\\n)*.*\n)", workflow)
+    apt_packages = [package for install in apt_installs for package in install.replace("\\", " ").split()]
+    if len(apt_installs) != 2 or apt_installs[0] != apt_installs[1]:
+        missing.append("the same Linux packages in the build and leak check jobs")
     if not apt_packages or any(
         not re.search(rf"(?<![\w.+-]){re.escape(package)}(?![\w.+-])", release_workflow)
         for package in apt_packages

@@ -176,3 +176,62 @@ jobs:
             ${{ runner.temp }}/ctest.log
             ${{ runner.temp }}/qegtrain-gui-autostart-smoke.log
           if-no-files-found: ignore
+
+  # LeakSanitizer finds the leaks and double frees that a normal run does not show. It does not run on
+  # macOS with Apple silicon, so this job uses Linux. The Debug build with sanitizers and the
+  # instrumented runs take longer than the pull request checks, so only the nightly and manual runs
+  # start it. Start it by hand for a branch with: gh workflow run cmake.yml --ref BRANCH
+  leak-check:
+    name: leak check (Linux)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 4
+      PYTHONUTF8: "1"
+      ASAN_OPTIONS: detect_leaks=1
+      LSAN_OPTIONS: suppressions=${{ github.workspace }}/tools/e2e/lsan_suppressions.txt
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      # With the default setting, the address sanitizer can crash at start on the kernel of the runner.
+      - name: Lower address space randomization
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
+
+      - name: Configure with sanitizers
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_ENABLE_SANITIZERS=ON -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=1500
+
+      - name: Build with sanitizers
+        id: build
+        run: cmake --build build --target QEGTRAIN test_characterization
+
+      # Every scene runs once and the script reports all failing scenes together. The log of each run is kept.
+      - name: Run the committed scenes headless
+        run: python3 tools/e2e/leak_check_smoke.py build/QEGTRAIN "$RUNNER_TEMP/leak-check"
+
+      # Each test runs scenes one after the other in one process, so that every run builds its scene,
+      # resets and builds the next one again.
+      - name: Reload scenes in one process
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/leak-check"
+          ctest --test-dir build --parallel 2 --no-tests=error --output-on-failure \
+            --output-log "$RUNNER_TEMP/leak-check/ctest-reload.log" \
+            -R '^(characterization_repeatable|characterization_repeat_paimpol|characterization_repeat_lebanon_milano|characterization_repeat_netherlands)$'
+
+      - name: Upload leak check logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: leak-check-logs
+          path: ${{ runner.temp }}/leak-check
+          if-no-files-found: ignore
