@@ -104,7 +104,7 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_moveUnitUpButton, &QPushButton::clicked, this, &CompositionPanel::moveUnitUp);
 	connect(m_moveUnitDownButton, &QPushButton::clicked, this, &CompositionPanel::moveUnitDown);
 	connect(m_plotTractionButton, &QPushButton::clicked, this, &CompositionPanel::plotSelectedUnitTraction);
-	refresh();
+	CompositionPanel::refresh();
 }
 
 void CompositionPanel::setDocument(SceneDocument* document) {

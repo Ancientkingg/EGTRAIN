@@ -122,7 +122,7 @@ bool readEvent(const QJsonObject& object, Category category, TelemetryEvent* out
 			break;
 	}
 	if (!validInput(event.input, category)) return false;
-	*output = event;
+	*output = std::move(event);
 	return true;
 }
 QByteArray batch(const QVector<TelemetryEvent>& events, Category category, const QString& id,

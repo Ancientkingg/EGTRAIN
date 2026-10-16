@@ -1527,6 +1527,13 @@ most of its checks, so run it locally to read its logs.
 - The format check (`format.yml`) runs `tools/format.py` for a pull request to
   `main` that changes `EGTRAIN/QEGTRAIN/`, `.clang-format`, `.clang-format-ignore`,
   `tools/format.py` or `format.yml`, and when started by hand.
+- The tidy check (`tidy.yml`) runs `tools/tidy.py` for a pull request to `main` that
+  changes `EGTRAIN/QEGTRAIN/`, the root `CMakeLists.txt`, `.clang-tidy`, `tools/tidy.py` or
+  `tidy.yml`. A pull request analyses the changed sources and the sources that include a
+  changed header; the nightly run (02:37 UTC) and a manual start analyse every source. The
+  run installs clang-tidy 23.1 from apt.llvm.org and lists the findings; the local command
+  and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
+  The result check is named `Tidy result`.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
@@ -1728,6 +1735,7 @@ real jobs skip when the rule selects nothing:
 - CMake builds unless every changed file is a Markdown file (`**.md`), under
   `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`.
 - Format runs for the files of the format check, listed above.
+- Tidy runs for the files of the tidy check, listed above.
 - The package check runs its jobs for the packaging inputs, listed above.
 
 A nightly or manual run always does its jobs. The condition of a job is
@@ -1735,13 +1743,13 @@ evaluated before its matrix is expanded, so a skipped `build` job would be
 listed as `build (${{ matrix.name }})`. The three legs of the CMake workflow
 therefore always start, and their steps skip.
 
-The last job of each workflow reports one check: `CMake result`, `Format result`
-or `Package check result`. It runs whatever the other jobs did, fails when any of
+The last job of each workflow reports one check: `CMake result`, `Format result`,
+`Tidy result` or `Package check result`. It runs whatever the other jobs did, fails when any of
 them failed or was cancelled, and succeeds when they succeeded or were skipped.
-A documentation-only pull request gets three successful result checks without a
-build. `main` requires these three checks and no others, so a pull request can
+A documentation-only pull request gets four successful result checks without a
+build. `main` requires these four checks and no others, so a pull request can
 merge automatically when they are green. Do not require the build legs, the
-format job or the package jobs: a required check that no run reports under its
+format job, the tidy job or the package jobs: a required check that no run reports under its
 own name leaves the pull request waiting forever.
 
 ### Release assets script

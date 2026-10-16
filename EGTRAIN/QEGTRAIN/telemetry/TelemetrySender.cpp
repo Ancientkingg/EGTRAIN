@@ -448,7 +448,7 @@ public:
 			~CompletionSignal() noexcept {
 				try {
 					if (*callback) (*callback)();
-				} catch (...) {}
+				} catch (...) {} // NOLINT(bugprone-empty-catch): a test hook must not end the worker
 			}
 		} completion{&s->tests.afterCompletion};
 #endif
@@ -465,8 +465,8 @@ public:
 		if (!owner || !queue.healthy()) return;
 		// A known retirement applies to the original request even after a local revoke.
 		if (status == 410) {
-			if (!queue.retireExactEndpoint(requestEndpoint)) disable();
-			else disable();
+			queue.retireExactEndpoint(requestEndpoint);
+			disable();
 			return;
 		}
 		refresh();
@@ -756,7 +756,7 @@ void SenderThread::run() {
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 	try {
 		if (state->tests.onWorkerExit) state->tests.onWorkerExit();
-	} catch (...) {}
+	} catch (...) {} // NOLINT(bugprone-empty-catch): a test hook must not end the worker
 #endif
 	state.reset();
 }

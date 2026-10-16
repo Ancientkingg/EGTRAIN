@@ -39,7 +39,7 @@ public:
 	GuiReplayHistory& operator=(GuiReplayHistory&&) = default;
 
 	void clear();
-	void record(std::shared_ptr<const GuiSimulationSnapshot> frame);
+	void record(const std::shared_ptr<const GuiSimulationSnapshot>& frame);
 
 	bool empty() const { return frames_.empty(); }
 	bool oversize() const { return oversize_; }

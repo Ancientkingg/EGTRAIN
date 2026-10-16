@@ -283,7 +283,7 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_legDestinationCombo, &QComboBox::currentTextChanged, this, [this](const QString&) { commitLegStation(false); });
 	connect(m_legServiceCombo, &QComboBox::currentTextChanged, this, [this](const QString&) { commitLegService(); });
 	connect(m_legOccurrenceEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, [this](int) { commitLegOccurrence(); });
-	refresh();
+	PassengerPanel::refresh();
 }
 
 void PassengerPanel::setDocument(SceneDocument* document) {

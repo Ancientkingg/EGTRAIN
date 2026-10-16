@@ -1,0 +1,19 @@
+# The tests inherit the checks of the root .clang-tidy, without these:
+#   performance-*                          test code is not tuned
+#   bugprone-assert-side-effect            the tests undefine NDEBUG before they include <cassert>
+#   bugprone-unchecked-optional-access     the expect() calls that guard an access are not visible to the check
+#   misc-redundant-expression              some tests compare a value with itself on purpose
+#   bugprone-suspicious-memory-comparison the tests compare doubles bit for bit on purpose
+#   bugprone-float-loop-counter            the search loops of the visual tests step a double
+#   bugprone-incorrect-roundings           mirrors the percentile of util/PlaybackProfiler.cpp
+#   clang-analyzer-deadcode.DeadStores     the smoke tests keep values for the failure message
+InheritParentConfig: true
+Checks: >
+  -performance-*,
+  -bugprone-assert-side-effect,
+  -bugprone-unchecked-optional-access,
+  -misc-redundant-expression,
+  -bugprone-suspicious-memory-comparison,
+  -bugprone-float-loop-counter,
+  -bugprone-incorrect-roundings,
+  -clang-analyzer-deadcode.DeadStores,

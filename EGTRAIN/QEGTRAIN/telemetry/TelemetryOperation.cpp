@@ -69,7 +69,7 @@ void revealEditor(QDockWidget* dock, const OperationObservation& operation) {
 	dock->raise();
 	if (wasHidden) operation.editorOpened();
 }
-QAction* registerEditor(QDockWidget* dock, QMenu* menu, CaptureOperation capture) {
+QAction* registerEditor(QDockWidget* dock, QMenu* menu, const CaptureOperation& capture) {
 	auto* action = new QAction(dock->windowTitle(), dock);
 	action->setCheckable(true);
 	action->setChecked(!dock->isHidden());

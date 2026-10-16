@@ -75,7 +75,7 @@ bool parseManifestFiles(const QJsonObject& entry, QStringList* files) {
 	const QJsonValue raw = entry.value(key);
 	if (!raw.isArray() || raw.toArray().size() > kMaxFiles)
 		return false;
-	for (const QJsonValue& value : raw.toArray()) {
+	for (const auto& value : raw.toArray()) {
 		if (!value.isString())
 			return false;
 		const QString path = value.toString().replace(QLatin1Char('\\'), QLatin1Char('/'));
@@ -190,7 +190,7 @@ std::optional<StableRelease> parseLatestStableRelease(const QByteArray& json, QS
 		QList<ReleaseAsset> assets;
 		const QJsonValue rawAssets = object.value(QStringLiteral("assets"));
 		if (rawAssets.isArray()) {
-			for (const QJsonValue& rawAsset : rawAssets.toArray()) {
+			for (const auto& rawAsset : rawAssets.toArray()) {
 				if (!rawAsset.isObject())
 					continue;
 				const QJsonObject asset = rawAsset.toObject();

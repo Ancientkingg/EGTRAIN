@@ -259,7 +259,7 @@ static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std
 		const std::size_t pos = value.rfind(marker);
 		if (pos == std::string::npos || pos + marker.size() == value.size())
 			return fallback;
-		const std::string suffix = value.substr(pos + marker.size());
+		std::string suffix = value.substr(pos + marker.size());
 		if (std::all_of(suffix.begin(), suffix.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
 			return suffix;
 		return fallback;

@@ -660,7 +660,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 				rowNo);
 			continue;
 		}
-		const std::string personId = fields[1];
+		const std::string& personId = fields[1];
 		if (personId.empty()) {
 			result.report.skipped("passengers.das", dasSource);
 			record(result.sources.das, rowNo, {}, false, true, "Passenger row has no person id");
@@ -793,7 +793,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 				result.sources.routeChoice, routeRow, "passengers.route_choice", true);
 			continue;
 		}
-		const std::string personId = fields[personColumn];
+		const std::string& personId = fields[personColumn];
 		bool destinationAmbiguous = false;
 		const std::string destination = passengerStationIdFor(stations, fields[destinationColumn], destinationAmbiguous);
 		const auto journeyIt = journeysByPersonDestination.find(personId + "\n" + destination);
@@ -867,7 +867,7 @@ static LegacyPassengerParseResult parseLegacyPassengers(const fs::path& legacyRo
 			return true;
 		};
 		for (std::size_t i = 0; i < legServices.size(); ++i) {
-			const std::string token = legServices[i];
+			const std::string& token = legServices[i];
 			std::string serviceId;
 			int occurrence = 1;
 			bool legOriginAmbiguous = false, legDestinationAmbiguous = false;
@@ -1103,7 +1103,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					continue;
 				}
 				std::string fromToken = tokens[1];
-				const std::string toToken = tokens[2];
+				const std::string& toToken = tokens[2];
 				if (paimpolSource && trackId == "B4" && tokens[0] == "108"
 					&& fromToken == "1" && toToken == "10") {
 					// Paimpol's source arc 108 restarts the linear B4 chain at node 1.
@@ -1337,7 +1337,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			} else {
 				index = found->second;
 			}
-			const auto matches = allNodes;
+			const auto& matches = allNodes;
 			int matched = 0;
 			for (const auto& node : matches) {
 				if (node.x != position)
@@ -1616,8 +1616,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		if (serviceId != originalServiceId)
 			addDiag(SceneSeverity::Warning, "scene.import.adjusted", "Duplicate service name " + originalServiceId + " renamed to " + serviceId, trainPath.u8string());
 		serviceIds.insert(serviceId);
-		const std::string dataPath = tokens[4];
-		const std::string tractionPath = tokens[5];
+		const std::string& dataPath = tokens[4];
+		const std::string& tractionPath = tokens[5];
 		const fs::path dataFile = pathFromUtf8(dataPath);
 		std::string baseId = dataFile.stem().u8string();
 		if (baseId.empty()) baseId = "train_unit";
@@ -1691,7 +1691,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			const std::string token = tokens[0];
+			const std::string& token = tokens[0];
 			const bool basic = token.size() >= 2 && token.front() == '@' && token.back() == '@' && token.find('/', 1) == std::string::npos;
 			if (!basic && !isSwitchTransitionRouteToken(token)) {
 				report.skipped("signalling.routes", source);

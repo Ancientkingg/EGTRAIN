@@ -284,7 +284,7 @@ Record readRecord(const QString& folder, const QString& id) {
 		return record;
 	source.path = pathValue.toString();
 	source.displayName = nameValue.toString();
-	record.source = source;
+	record.source = std::move(source);
 	record.valid = true;
 	return record;
 }
@@ -537,7 +537,7 @@ RecoveryScan RecoveryStore::scan() {
 				if (inspection.candidate.state != RecoveryCandidateState::NewerRecordVersion)
 					pruneFolder(instanceFolder(m_root, id), inspection.generation);
 				held.push_back({inspection.candidate, std::move(lock)});
-			} catch (...) {
+			} catch (...) { // NOLINT(bugprone-empty-catch): a folder that cannot be inspected is left out
 			}
 		}
 		std::sort(held.begin(), held.end(), [](const Held& left, const Held& right) {
@@ -552,7 +552,7 @@ RecoveryScan RecoveryStore::scan() {
 			else if (removeInstanceFolder(m_root, item.candidate.instanceId, *item.lock))
 				++result.removedOverCap;
 		}
-	} catch (...) {
+	} catch (...) { // NOLINT(bugprone-empty-catch): the result holds what was found before the failure
 	}
 	return result;
 }

@@ -45,7 +45,7 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	connect(m_baseTimeEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	for (QDoubleSpinBox* edit : {m_durationSecondsEdit, m_bufferSecondsEdit, m_recoveryPercentEdit})
 		connect(edit, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double) { commit(); });
-	refresh();
+	CaseSettingsPanel::refresh();
 }
 
 void CaseSettingsPanel::setDocument(SceneDocument* document) {

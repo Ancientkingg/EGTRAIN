@@ -24,7 +24,7 @@ QGraphicsItem* itemOf(const QGraphicsEffect* effect) {
 }
 } // namespace
 
-HighlightEffect::HighlightEffect(QColor, qreal, QObject* parent)
+HighlightEffect::HighlightEffect(const QColor&, qreal, QObject* parent)
 	: QGraphicsEffect(parent) {
 }
 

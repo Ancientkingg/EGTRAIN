@@ -1,6 +1,7 @@
 #include "util/PlaybackProfiler.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,7 +16,7 @@ bool gate(const char* name) {
 std::uint64_t percentile(const std::vector<std::uint64_t>& sorted, double fraction) {
 	if (sorted.empty())
 		return 0;
-	const std::size_t index = static_cast<std::size_t>((sorted.size() - 1) * fraction + 0.5);
+	const std::size_t index = static_cast<std::size_t>(std::llround((sorted.size() - 1) * fraction));
 	return sorted[std::min(index, sorted.size() - 1)];
 }
 

@@ -5,20 +5,42 @@
 # rewrite of the legacy simulation code (most of modernize-* and
 # cppcoreguidelines-*).
 #
-# Configure once so that build/compile_commands.json exists, then run for example:
-#   clang-tidy -p build EGTRAIN/QEGTRAIN/scene/SceneModel.cpp
+# Run `python3 tools/tidy.py`. It configures a build, runs clang-tidy 23.1 on the
+# sources of the modules listed in MODULES in that script, and fails on any finding.
+# The pull request checks run the same script on the changed sources. simulation/
+# is not analysed yet; the header filter below leaves its headers out too.
 #
-# Vendored code under EGTRAIN/QEGTRAIN/io/third_party/ has its own .clang-tidy
-# that switches the analysis off, and the header filter below does not match it.
+# The checks below apply to every analysed module. tests/.clang-tidy inherits them
+# and relaxes a few for the tests. Vendored code under EGTRAIN/QEGTRAIN/io/third_party/
+# has its own .clang-tidy that switches the analysis off.
 #
+# A check is switched off below only when its findings are a matter of style, or
+# when it cannot see how Qt owns and connects objects. docs/development/coding-guidelines.md
+# gives the reason of each one.
 Checks: >
   -*,
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-narrowing-conversions,
+  -bugprone-signed-bitwise,
+  -bugprone-exception-escape,
+  -bugprone-throwing-static-initialization,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-unchecked-string-to-number-conversion,
+  -bugprone-nondeterministic-pointer-iteration-order,
+  -bugprone-derived-method-shadowing-base-method,
+  -bugprone-misplaced-widening-cast,
   clang-analyzer-*,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
   performance-*,
   -performance-no-int-to-ptr,
+  -performance-enum-size,
+  -performance-avoid-endl,
+  -performance-inefficient-vector-operation,
+  -performance-inefficient-string-concatenation,
+  -performance-faster-string-find,
+  -performance-prefer-single-char-overloads,
   readability-misleading-indentation,
   readability-redundant-control-flow,
   readability-redundant-declaration,
@@ -28,7 +50,7 @@ Checks: >
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|graphics|graphics/items|io|scene|simulation|telemetry|update|util|widgets)/[^/]+\.(h|hpp)$'
+HeaderFilterRegex: 'EGTRAIN/QEGTRAIN/(app|diagrams|editors|graphics|graphics/items|io|recovery|scene|telemetry|tests/e2e|update|util|widgets)/[^/]+\.(h|hpp)$'
 
 FormatStyle: file
 

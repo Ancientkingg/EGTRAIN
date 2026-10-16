@@ -20,6 +20,14 @@ FORMAT_PATHS = [
     "tools/format.py",
     ".github/workflows/format.yml",
 ]
+# The tidy workflow runs for a pull request that changes one of these files.
+TIDY_PATHS = [
+    "EGTRAIN/QEGTRAIN/**",
+    "CMakeLists.txt",
+    ".clang-tidy",
+    "tools/tidy.py",
+    ".github/workflows/tidy.yml",
+]
 # The package check runs for a pull request that changes one of these files.
 PACKAGE_CHECK_PATHS = [
     ".github/workflows/package-check.yml",
@@ -45,6 +53,7 @@ RULE_SAMPLES = [
     ".github/ISSUE_TEMPLATE/bug.yml",
     ".github/workflows/cmake.yml",
     ".github/workflows/format.yml",
+    ".github/workflows/tidy.yml",
     ".github/workflows/package.yml",
     ".github/workflows/package-check.yml",
     ".github/workflows/release.yml",
@@ -55,11 +64,17 @@ RULE_SAMPLES = [
     "EGTRAIN/QEGTRAIN/update/u.cpp",
     "EGTRAIN/QEGTRAIN/app/main.cpp",
     "EGTRAIN/QEGTRAIN/app/other.cpp",
+    "EGTRAIN/QEGTRAIN/tests/.clang-tidy",
     ".clang-format",
     ".clang-format-ignore",
     ".clang-format.bak",
     "tools/format.py",
     "tools/format.pyc",
+    ".clang-tidy",
+    ".clang-tidy.bak",
+    "tools/tidy.py",
+    "tools/tidy.pyc",
+    "sub/CMakeLists.txt",
     "tools/release/version.py",
     "tools/release/x/y.sh",
     "tools/e2e/test_ci_workflow.py",
@@ -166,13 +181,14 @@ def result_job_problems(text: str, name: str) -> list[str]:
     return problems
 
 
-def required_result_problems(workflow: str, format_workflow: str, package_check: str) -> list[str]:
-    """Every pull request to main starts the CMake, Format and Package check workflows, and each reports one result job
+def required_result_problems(workflow: str, format_workflow: str, tidy_workflow: str, package_check: str) -> list[str]:
+    """Every pull request to main starts the CMake, Format, Tidy and Package check workflows, and each reports one result job
     that main can require. The path rules that the triggers had decide in a first job whether the other jobs work."""
     problems = []
     for name, text, label in (
         ("CMake", workflow, "CMake result"),
         ("Format", format_workflow, "Format result"),
+        ("Tidy", tidy_workflow, "Tidy result"),
         ("Package check", package_check, "Package check result"),
     ):
         trigger = trigger_block(text)
@@ -218,6 +234,12 @@ def required_result_problems(workflow: str, format_workflow: str, package_check:
     format_changes = job_block(format_workflow, "changes")
     if "      format: ${{ steps.select.outputs.format }}\n" not in format_changes or "format=true\n          if [" not in format_changes:
         problems.append("format changes job with the output format, true for every event but a pull request")
+    tidy_job = job_block(tidy_workflow, "check")
+    if "    name: tidy\n    needs: changes\n    if: needs.changes.outputs.tidy == 'true'\n" not in tidy_job:
+        problems.append("tidy job after the changes job, checking its output")
+    tidy_changes = job_block(tidy_workflow, "changes")
+    if "      tidy: ${{ steps.select.outputs.tidy }}\n" not in tidy_changes or "tidy=true\n          if [" not in tidy_changes:
+        problems.append("tidy changes job with the output tidy, true for every event but a pull request")
     package_version = job_block(package_check, "version")
     if "    name: Select application version\n    needs: changes\n    if: needs.changes.outputs.package == 'true'\n" not in package_version:
         problems.append("package check version job after the changes job, checking its output")
@@ -227,16 +249,22 @@ def required_result_problems(workflow: str, format_workflow: str, package_check:
 
     # The case patterns select the same pull requests as the filters did: on every file and every pair of files of the samples.
     format_branches = case_branches(format_changes)
+    tidy_branches = case_branches(tidy_changes)
     package_branches = case_branches(package_changes)
-    if not cmake_branches or not format_branches or not package_branches:
+    if not cmake_branches or not format_branches or not tidy_branches or not package_branches:
         problems.append("changes jobs with a case statement of one pattern for each branch")
-    if any(action != "format=true" for _, action in format_branches) or any(action != "package=true" for _, action in package_branches):
-        problems.append("format and package check changes jobs whose patterns only select")
+    if (
+        any(action != "format=true" for _, action in format_branches)
+        or any(action != "tidy=true" for _, action in tidy_branches)
+        or any(action != "package=true" for _, action in package_branches)
+    ):
+        problems.append("format, tidy and package check changes jobs whose patterns only select")
     sets = [[sample] for sample in RULE_SAMPLES] + [list(pair) for pair in itertools.combinations(RULE_SAMPLES, 2)]
     for files in sets:
         for label, selected, expected in (
             ("CMake", selects(cmake_branches, files, "build=true"), runs_by_filter(files, DOCUMENTATION_PATHS, ignore=True)),
             ("Format", selects(format_branches, files, "format=true"), runs_by_filter(files, FORMAT_PATHS, ignore=False)),
+            ("Tidy", selects(tidy_branches, files, "tidy=true"), runs_by_filter(files, TIDY_PATHS, ignore=False)),
             ("Package check", selects(package_branches, files, "package=true"), runs_by_filter(files, PACKAGE_CHECK_PATHS, ignore=False)),
         ):
             if selected != expected:
@@ -260,6 +288,8 @@ def main() -> None:
     package_check = workflow_text("package-check.yml")
     format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
     format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
+    tidy_workflow = workflow_text("tidy.yml")
+    tidy_script = (ROOT / "tools/tidy.py").read_text(encoding="utf-8")
     main_cpp = (ROOT / "EGTRAIN/QEGTRAIN/app/main.cpp").read_text(encoding="utf-8")
     windows_resource = (ROOT / "EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in").read_text(encoding="utf-8")
     blocks = workflow.split("\n      - ")
@@ -372,7 +402,7 @@ def main() -> None:
         missing.append("only a newer push to a pull request cancels a run")
     if "paths:" in validation_trigger:
         missing.append("main validation must not use a code allowlist")
-    missing.extend(required_result_problems(workflow, format_workflow, package_check))
+    missing.extend(required_result_problems(workflow, format_workflow, tidy_workflow, package_check))
     release_trigger = release_only.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
@@ -779,6 +809,67 @@ def main() -> None:
         or "  pull_request:\n" not in format_workflow
     ):
         missing.append("format check on pull requests with the clang-format version of tools/format.py")
+    # The tidy check installs the major version of clang-tidy that tools/tidy.py accepts, and runs the script that a developer runs
+    # locally: on the changed sources of a pull request and on all sources in the nightly and manual runs. The nightly run starts at
+    # a minute that is not on the hour and does not start with the CMake run.
+    tidy_version = re.search(r'^CLANG_TIDY_VERSION = "(\d+)\.\d+"$', tidy_script, re.MULTILINE)
+    tidy_step = step_block(job_block(tidy_workflow, "check"), "Run clang-tidy")
+    tidy_install = step_block(job_block(tidy_workflow, "check"), "Install clang-tidy")
+    tidy_trigger = tidy_workflow.split("\njobs:", 1)[0]
+    tidy_nightly = re.search(r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", tidy_trigger, re.MULTILINE)
+    if (
+        not tidy_version
+        or f'sudo "$RUNNER_TEMP/llvm.sh" {tidy_version.group(1)}\n' not in tidy_install
+        or f"sudo apt-get install -y clang-tidy-{tidy_version.group(1)}\n" not in tidy_install
+        or "python3 tools/tidy.py --changed-from HEAD^1\n" not in tidy_step
+        or tidy_step.count("python3 tools/tidy.py") != 2
+        or '[ "$GITHUB_EVENT_NAME" = pull_request ]' not in tidy_step
+        or re.search(r"^  push:", tidy_trigger, re.MULTILINE)
+        or not tidy_nightly
+        or tidy_nightly.group(1) == "0"
+        or (tidy_nightly.group(1), tidy_nightly.group(2)) == ("17", "2")
+        or not re.search(r"^  workflow_dispatch:\n(?!    )", tidy_trigger, re.MULTILINE)
+    ):
+        missing.append("tidy check with the clang-tidy version of tools/tidy.py, changed sources on pull requests and all sources in the nightly run")
+    # The pull request run analyses the changed sources and the sources that include a changed header, and every source when
+    # the configuration changed. A file with no more findings of a check than the known ones reports none of them.
+    sys.path.insert(0, str(ROOT / "tools"))
+    import tidy
+
+    prefix = "EGTRAIN/QEGTRAIN/"
+    sources = {prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp", prefix + "util/Log.cpp"}
+    if (
+        tidy.select_changed([prefix + "util/Log.cpp", prefix + "simulation/Train.cpp", "README.md"], sources) != [prefix + "util/Log.cpp"]
+        or tidy.select_changed([prefix + "scene/SceneModel.h"], sources) != [prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp"]
+        or tidy.select_changed([".clang-tidy"], sources) != sorted(sources)
+        or tidy.select_changed([prefix + "scene/CMakeLists.txt"], sources) != sorted(sources)
+        or tidy.select_changed([prefix + "app/MainWindow.ui"], sources) != sorted(sources)
+        or tidy.select_changed([prefix + "simulation/RuntimeLimits.h"], sources) != [prefix + "scene/SceneValidator.cpp"]
+        or tidy.select_changed(["docs/development/build-and-test.md"], sources)
+    ):
+        missing.append("tidy run that selects the changed sources, the sources that include a changed header, and all sources for a configuration change")
+    saved_known = tidy.KNOWN_FINDINGS
+    tidy.KNOWN_FINDINGS = {"a.cpp": {"x": 2}}
+    try:
+        known = {("a.cpp", line, 1, "x"): "" for line in (1, 2)}
+        other = {("a.cpp", 3, 1, "y"): "", ("b.cpp", 4, 1, "x"): ""}
+        if tidy.without_known(known) or len(tidy.without_known({**known, ("a.cpp", 3, 1, "x"): ""})) != 3 or tidy.without_known(other) != other:
+            missing.append("tidy run that leaves out the known findings of a file and reports all of them when there are more")
+    finally:
+        tidy.KNOWN_FINDINGS = saved_known
+    sample = "/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]"
+    found = tidy.FINDING.match(sample)
+    if (
+        not found
+        or (found["line"], found["column"], found["check"]) != ("12", "5", "bugprone-foo")
+        or tidy.FINDING.match("Log.cpp:12:5: warning: message text [bugprone-foo]")
+        or tidy.FINDING.match("/work/Log.cpp:12:5: note: message text")
+        or not tidy.analysed(prefix + "util/Log.cpp")
+        or tidy.analysed(prefix + "simulation/Train.cpp")
+        or tidy.analysed(prefix + "io/third_party/zmq.hpp")
+        or tidy.analysed("tools/tidy.py")
+    ):
+        missing.append("tidy run that reads clang-tidy findings and leaves out simulation/ and vendored code")
     # The package jobs live in a reusable workflow that the release workflow and the package check call. The two signing jobs
     # of that workflow ask for two read permissions, and a called workflow cannot hold more than its caller grants, so both
     # callers grant exactly those two. Only the release workflow passes the signing token, by name.

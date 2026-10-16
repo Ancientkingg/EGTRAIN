@@ -59,7 +59,7 @@ public:
 
 	// overload the << operator to log all standard data types
 	template <typename T>
-	Logger& operator<<(T t);
+	Logger& operator<<(const T& t);
 	// this is needed so << std::endl works
 	Logger& operator<<(std::ostream& (*fun)(std::ostream&));
 
@@ -73,7 +73,7 @@ private:
 };
 
 template <typename T>
-inline Logger& Logger::operator<<(T t) {
+inline Logger& Logger::operator<<(const T& t) {
 	if (this->b_init) {
 		if (this->settings.b_file)
 			this->ofs << t;

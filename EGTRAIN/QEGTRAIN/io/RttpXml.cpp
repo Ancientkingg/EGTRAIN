@@ -17,7 +17,7 @@ bool loadRttpDocument(const std::string& payload, pugi::xml_document& document) 
 }
 }
 
-void read_rttp_train_view(std::string rttp) {
+void read_rttp_train_view(const std::string& rttp) {
 	pugi::xml_document rttp_doc;
 	if (!loadRttpDocument(rttp, rttp_doc))
 		return;
@@ -34,7 +34,7 @@ void read_rttp_train_view(std::string rttp) {
 		}
 	}
 }
-void read_rttp_infra_view(std::string rttp) {
+void read_rttp_infra_view(const std::string& rttp) {
 	pugi::xml_document rttp_doc;
 	if (!loadRttpDocument(rttp, rttp_doc))
 		return;
@@ -117,7 +117,6 @@ std::string trafficStateMonitoring_xml(nlohmann::json jsmsg) {
 			std::string BlockOccupied = it.value()["BlockOccupied"];
 			trainPosition.append_attribute("currentTrackVacancyDetectionSection") = BlockOccupied.c_str();
 			if (it.value()["lastOccTime"] >= 0) {
-				double aa = it.value()["lastOccTime"];
 				struct tm ltm2;
 				time_t temp = now + static_cast<long>(it.value()["lastOccTime"]);
 

@@ -3,6 +3,7 @@
 #include "telemetry/TelemetrySender.h"
 #include <functional>
 #include <optional>
+#include <utility>
 
 class QAction;
 class QDockWidget;
@@ -32,7 +33,7 @@ Duration durationBucket(qint64 elapsedMs) noexcept;
 
 class SimulationObservation {
 public:
-	explicit SimulationObservation(OperationObservation operation) : operation_(operation) {}
+	explicit SimulationObservation(OperationObservation operation) : operation_(std::move(operation)) {}
 	void begin() noexcept;
 	void reject(std::optional<Error> error) noexcept;
 	// Only real handled failures may use Failed. The current engine has none.
@@ -48,6 +49,6 @@ private:
 
 // A separate action observes the explicit state before show(), unlike the dock's
 // built-in toggle action whose internal triggered handler runs first.
-QAction* registerEditor(QDockWidget* dock, QMenu* menu, CaptureOperation capture);
+QAction* registerEditor(QDockWidget* dock, QMenu* menu, const CaptureOperation& capture);
 void revealEditor(QDockWidget* dock, const OperationObservation& operation);
 }
