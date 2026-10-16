@@ -125,16 +125,18 @@ static QStringList recordArguments(const QString& root) {
 
 // The record that the helper left, read with the reader of the application. The bytes are checked as
 // well, because the reader also accepts CRLF and a missing last line feed.
-static bool recordIsWritten(const QString& path) {
+static bool recordIsWritten(const QString& path, UpdateOutcome outcome = UpdateOutcome::RolledBack) {
 	bool ok = expect(QFileInfo::exists(path), "the helper leaves a record");
 	QFile file(path);
 	const QByteArray bytes = file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 	const std::optional<UpdateRecord> record = parseUpdateRecord(bytes);
 	ok &= expect(record && record->version == kUpdatedVersion, "the application reads the version of the record");
+	ok &= expect(record && record->outcome == outcome, "the application reads the outcome of the record");
 	ok &= expect(record && qAbs(record->time.secsTo(QDateTime::currentDateTimeUtc())) <= 300,
 		"the record holds the current UTC time");
-	static const QRegularExpression format(QRegularExpression::anchoredPattern(
-		QStringLiteral("outcome=rolled-back\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n")));
+	const QString name = outcome == UpdateOutcome::NotApplied ? "not-applied" : "rolled-back";
+	const QRegularExpression format(QRegularExpression::anchoredPattern(
+		QStringLiteral("outcome=%1\nversion=9\\.8\\.7\ntime=\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z\n").arg(name)));
 	ok &= expect(format.match(QString::fromLatin1(bytes)).hasMatch(),
 		"the record is three lines, each ended by one line feed");
 	return ok;
@@ -324,6 +326,9 @@ static bool testRenameKeepsFailing(const QString& helper, const QString& program
 	ok &= expect(!QFileInfo::exists(QDir(root).filePath("unavailable")), "no backup is made");
 	ok &= expect(waitForLogLine(log, "old started"), "the previous version is started");
 	ok &= expect(!logLines(log).contains("new started"), "the new version is not started");
+	ok &= recordIsWritten(recordPath(root), UpdateOutcome::NotApplied);
+	ok &= expect(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	ok &= expect(stagingIsCleared(root, helper), "the staging folder of the failed attempt is removed");
 	ok &= expect(ranIn(log, "old", QDir(root).filePath("install")),
 		"the previous version starts in the installation directory");
 #if defined(Q_OS_WIN)

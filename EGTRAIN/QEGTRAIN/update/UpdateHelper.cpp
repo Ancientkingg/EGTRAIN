@@ -362,11 +362,11 @@ std::string utcTimestamp() {
 
 // Leaves the record that the application reads at its next start (see update/UpdateRecord.h, which
 // holds the same format). Three lines, each ended by a line feed, and then the lines of details:
-//   outcome=rolled-back, installer-succeeded or installer-failed
+//   outcome=rolled-back, not-applied, installer-succeeded or installer-failed
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
-// The version is the one that failed to start or that the installer was to install, and the time is
-// the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
+// The version is the one that failed to start, that could not be put in place or that the installer
+// was to install, and the time is the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
 // changes nothing else. The application is started after this returns, so it never sees a
 // half-written record.
 void writeRecord(const Arguments& arguments, const char* outcome, const std::string& details = std::string()) {
@@ -405,6 +405,15 @@ void restoreBackup(const Arguments& arguments) {
 	}
 }
 
+// The installation could not be replaced and the previous one is in place. The record and the removal
+// of the staging folder come before the start, so that the application finds the record and the sweep
+// of its next start has nothing left to wait for.
+void abandonUpdate(const Arguments& arguments) {
+	writeRecord(arguments, "not-applied");
+	removeStaging(arguments.staged.parent_path());
+	launch(arguments.launch, 0);
+}
+
 bool transactionalInstall(const Arguments& arguments) {
 	std::error_code error;
 	if (!std::filesystem::exists(arguments.current, error)
@@ -416,12 +425,14 @@ bool transactionalInstall(const Arguments& arguments) {
 	// The application has just ended, so on Windows a file of the installation can stay locked for a
 	// short time. The staged files are fresh from the extraction, which a scanner can still hold.
 	if (!movePathWithRetries(arguments.current, arguments.backup)) {
-		launch(arguments.launch, 0);
+		abandonUpdate(arguments);
 		return false;
 	}
 	if (!movePathWithRetries(arguments.staged, arguments.current)) {
-		movePathWithRetries(arguments.backup, arguments.current);
-		launch(arguments.launch, 0);
+		if (movePathWithRetries(arguments.backup, arguments.current))
+			abandonUpdate(arguments);
+		else
+			launch(arguments.launch, 0);
 		return false;
 	}
 	if (!launch(arguments.launch, arguments.observeMs)) {
