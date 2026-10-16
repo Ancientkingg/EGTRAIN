@@ -30,6 +30,7 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QColor>
 #include <QCoreApplication>
 #include <QDockWidget>
 #include <QEvent>
@@ -42,8 +43,10 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMetaObject>
+#include <QMetaType>
 #include <QMouseEvent>
 #include <QObject>
+#include <QPen>
 #include <QPixmap>
 #include <QPoint>
 #include <QPointF>
@@ -59,11 +62,15 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QTimer>
+#include <QVariant>
 #include <QVector>
 #include <QWheelEvent>
+#include <QtCharts/QAreaSeries>
 #include <QtCharts/QCategoryAxis>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QXYSeries>
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
@@ -139,6 +146,102 @@ SignalHeadsState& signalHeadsState() {
 		return initial;
 	}();
 	return state;
+}
+
+std::string exactNumber(double value) {
+	char buffer[40];
+	std::snprintf(buffer, sizeof buffer, "%.17g", value);
+	return buffer;
+}
+
+std::string propertyText(const QVariant& value) {
+	if (value.userType() == QMetaType::QStringList)
+		return value.toStringList().join('|').toStdString();
+	return value.toString().toStdString();
+}
+
+std::string penText(const QPen& pen) {
+	return pen.color().name(QColor::HexArgb).toStdString() + " " + exactNumber(pen.widthF()) + " "
+		+ std::to_string(static_cast<int>(pen.style()));
+}
+
+std::string pointsText(const QVector<QPointF>& points) {
+	std::string text;
+	for (const QPointF& point : points)
+		text += exactNumber(point.x()) + "," + exactNumber(point.y()) + "\n";
+	return text;
+}
+
+// The chart of a result window as exact text: its axes, then every series with its name, properties, pen and points.
+// Two builds of one diagram can be compared byte by byte.
+std::string chartDump(const DiagramWindow& window) {
+	std::string text = "window " + window.windowTitle().toStdString() + "\n";
+	const auto* view = window.findChild<QChartView*>();
+	if (!view || !view->chart())
+		return text + "no chart\n";
+	const QChart* chart = view->chart();
+	text += "title " + chart->title().toStdString() + "\n";
+	for (const QAbstractAxis* axis : chart->axes()) {
+		text += "axis " + std::to_string(static_cast<int>(axis->orientation())) + " " + std::to_string(static_cast<int>(axis->type()))
+			+ " " + axis->titleText().toStdString() + (axis->isReverse() ? " reversed" : "");
+		if (const auto* value = qobject_cast<const QValueAxis*>(axis))
+			text += " " + exactNumber(value->min()) + " " + exactNumber(value->max());
+		text += "\n";
+	}
+	for (const QAbstractSeries* series : chart->series()) {
+		text += "series " + std::to_string(static_cast<int>(series->type())) + " " + series->name().toStdString()
+			+ (series->isVisible() ? "" : " hidden") + "\n";
+		for (const QByteArray& name : series->dynamicPropertyNames())
+			text += "  " + name.toStdString() + "=" + propertyText(series->property(name.constData())) + "\n";
+		if (const auto* line = qobject_cast<const QXYSeries*>(series)) {
+			text += "  pen " + penText(line->pen()) + "\n" + pointsText(line->pointsVector());
+		} else if (const auto* area = qobject_cast<const QAreaSeries*>(series)) {
+			text += "  pen " + penText(area->pen()) + " fill " + area->brush().color().name(QColor::HexArgb).toStdString() + "\n";
+			if (area->upperSeries())
+				text += "  upper\n" + pointsText(area->upperSeries()->pointsVector());
+			if (area->lowerSeries())
+				text += "  lower\n" + pointsText(area->lowerSeries()->pointsVector());
+		}
+	}
+	return text;
+}
+
+bool writeFile(const QString& path, const std::string& content) {
+	QFile out(path);
+	return out.open(QIODevice::WriteOnly) && out.write(content.data(), static_cast<qint64>(content.size())) == static_cast<qint64>(content.size());
+}
+
+// The result window that the main window opened last.
+DiagramWindow* newestWindow(const MainWindow& w) {
+	const auto windows = w.findChildren<DiagramWindow*>();
+	return windows.isEmpty() ? nullptr : windows.last();
+}
+
+// Writes the dump of the chart of a result window.
+bool exportChart(DiagramWindow* window, const QString& dir, const QString& name) {
+	if (!window)
+		return false;
+	QApplication::processEvents();
+	return writeFile(dir + "/" + name + "_series.txt", chartDump(*window));
+}
+
+// Writes what a result window shows and exports: the dump of its chart and the CSV for all trains, for the first train
+// and for none, as the train filter sets them.
+bool exportWindow(DiagramWindow* window, const QString& dir, const QString& name,
+	const std::function<bool(const QString&, const std::string&)>& dump) {
+	auto* filter = window ? window->findChild<TrainFilterButton*>() : nullptr;
+	auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
+	if (!list)
+		return false;
+	bool ok = exportChart(window, dir, name);
+	ok &= dump(name + "_window_all.csv", window->csvContent());
+	for (int row = 1; row < list->count(); ++row)
+		list->item(row)->setCheckState(Qt::Unchecked);
+	ok &= dump(name + "_window_one.csv", window->csvContent());
+	if (list->count())
+		list->item(0)->setCheckState(Qt::Unchecked);
+	ok &= dump(name + "_window_none.csv", window->csvContent());
+	return ok;
 }
 
 } // namespace
@@ -310,9 +413,9 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		};
 		bool ok = w.m_resultsAvailable;
 		if (ok) {
-			ok &= dump("trajectory.csv", buildTrajectoryCsv(ids));
-			ok &= dump("timetable.csv", buildTimetableCsv(ids));
-			const std::string blockingCsv = buildBlockingTimeCsv(ids);
+			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_completedRun, ids));
+			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_completedRun, ids));
+			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_completedRun, ids);
 			ok &= dump("blocking_time.csv", blockingCsv);
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
@@ -323,7 +426,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
-				QApplication::processEvents();
+				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
 				for (int row = 1; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);
@@ -338,16 +441,23 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				for (int row = 0; row < list->count(); ++row) ok &= !list->item(row)->text().startsWith("Key:");
 				blocking->close();
 			}
-			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRunResults));
-			const CapacityAnalysisScope capacityScope = firstCapacityScopeWithPair();
-			std::string capacityCsv;
-			if (capacityScope.routeIndex >= 0 && capacityScopeIssue(capacityScope).empty()) {
-				const auto capacityTrains = capacityTrainsForScope(capacityScope);
-				capacityCsv = capacityAnalysisCsv(
-					analyzeCapacity(capacityTrains, capacityScope.periodSeconds,
-						capacityScope.cycleEndOccurrenceId),
-					capacityScopeLabel(capacityScope));
+			w.showDelayDiagram();
+			DiagramWindow* delay = newestWindow(w);
+			ok &= exportWindow(delay, dir, "delay_diagram", dump);
+			if (delay)
+				delay->close();
+			// The four per-train diagrams share one export, so the CSV of the first stands for all.
+			const char* const perTrainNames[] = {"speed_distance", "speed_time", "time_distance", "effort_distance"};
+			for (int mode = 0; mode < 4; ++mode) {
+				w.buildPerTrainDiagram(mode);
+				DiagramWindow* perTrain = newestWindow(w);
+				ok &= mode == 0 ? exportWindow(perTrain, dir, perTrainNames[mode], dump)
+								: exportChart(perTrain, dir, perTrainNames[mode]);
+				if (perTrain)
+					perTrain->close();
 			}
+			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRunResults));
+			const std::string capacityCsv = capacityCsvFrom(*w.m_completedRun, firstCapacityScopeWithPairFrom(*w.m_completedRun));
 			if (capacityCsv.empty()) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
 			} else {

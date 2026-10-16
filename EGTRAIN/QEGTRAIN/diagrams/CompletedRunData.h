@@ -101,6 +101,8 @@ struct CompletedRunData {
 	RunResults results;
 	std::vector<TimetableResultRow> timetable;
 	RunProvenance provenance;
+
+	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }
 };
 
 // Copies the finished run out of the simulation globals. The scene gives the route nodes their station names and

@@ -136,6 +136,14 @@ set, the runner starts the run of the case 1.5 s after the first show. The hooks
 `E2E_GUI_AUTOSTART_RUNNING` and `E2E_GUI_RUN_RESULTS`. A build without tests compiles none of it,
 so these variables start no run and run no check there.
 
+The hook of `QEGTRAIN_E2E_EXPORT_DIR` also opens the blocking-time diagram, the delay diagram and the four
+per-train diagrams. For the blocking-time, the delay and the speed vs distance window it writes the CSV
+that the window exports with all trains, with the first train and with none (`<window>_window_all.csv`,
+`_one`, `_none`). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
+chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes,
+then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
+shows whether a change moved a diagram.
+
 ### Warnings
 
 The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and
@@ -489,7 +497,8 @@ label. Set it yourself when you start a GUI test or QEGTRAIN with
 Qt 5.15 crashes when a `QMessageBox` is shown on the offscreen platform on
 Windows: `QMessageBox::showEvent` asks for a native window handle through an
 interface that this platform does not have. `test_scene_drop` needs the
-unsaved-changes prompt, so CTest runs it with `QT_QPA_PLATFORM=windows` there.
+unsaved-changes prompt and `test_completedrun` closes two messages of the
+capacity dialog, so CTest runs both with `QT_QPA_PLATFORM=windows` there.
 A scripted run that reaches any other message box on the offscreen platform
 fails the same way on Windows.
 

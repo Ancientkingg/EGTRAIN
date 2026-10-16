@@ -2,13 +2,15 @@
 //
 // Two committed scenes run in this process, one after the other. The data captured from the simulation globals
 // must give the exports and diagram inputs that the functions give that read the globals, and it must not change
-// when the next scene replaces the globals. Hand-made data then pins the adapters on cases that the scenes do not
-// hold: missing times, repeated stops, reversed routes, the order of the capacity trains and shared resources.
+// when the next scene replaces the globals. A result window opened for a scene must keep exporting that scene. Hand-made
+// data then pins the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the
+// order of the capacity trains and shared resources.
 //
 //   test_completedrun SCENE_DIR...
 
 #include "app/DispatchController.h"
 #include "diagrams/CompletedRunData.h"
+#include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RunExports.h"
 #include "simulation/InitialParameters.h"
@@ -23,15 +25,26 @@
 #undef signals
 #endif
 
-#include <QCoreApplication>
+#include <QApplication>
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QDoubleSpinBox>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QTemporaryDir>
+#include <QTimer>
+#include <QtCharts/QChart>
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <map>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -588,16 +601,37 @@ void compareExports(const CapturedRun& run) {
 	for (std::size_t k = 0; sameSegments && k < oldSegments.size(); ++k)
 		sameSegments = describe(oldSegments[k]) == describe(newSegments[k]);
 	check(sameSegments, scene + ": all blocking-time segments");
-	const BlockingTimeScope oldScope = defaultBlockingTimeScope();
+	const BlockingTimeScope oldScope = defaultBlockingTimeScope(initial_variables.times * timestep);
 	const BlockingTimeScope newScope = defaultBlockingTimeScopeFrom(data);
 	check(oldScope.startTime == newScope.startTime && oldScope.endTime == newScope.endTime && oldScope.routeIndex == newScope.routeIndex
 			&& oldScope.trainIds == newScope.trainIds && oldScope.blockIds == newScope.blockIds && oldScope.sectionIndices == newScope.sectionIndices,
 		scene + ": default blocking-time scope");
 }
 
+// What the scope dialog offers must be what the simulation holds.
+void compareScopeChoices(const CapturedRun& run) {
+	const std::string scene = run.scene;
+	const BlockingTimeScopeChoices choices = blockingTimeScopeChoicesFrom(run.data);
+	check(choices.caseEndSeconds == initial_variables.times * timestep && choices.stepSeconds == timestep, scene + ": scope choices extent");
+	check(choices.routes.size() == train_route.size(), scene + ": scope choice routes");
+	for (std::size_t r = 0; r < choices.routes.size() && r < train_route.size(); ++r) {
+		const Route& route = train_route[r];
+		std::vector<std::string> blockIds;
+		for (int b = 0; b < route.N_Block_Sections; ++b)
+			blockIds.push_back(route.sequence_of_block_sections[b].ID);
+		check(choices.routes[r].id == route.ID && choices.routes[r].corridor == route.corridor && choices.routes[r].blockIds == blockIds,
+			scene + ": scope choice route " + std::to_string(r));
+	}
+	check(static_cast<int>(choices.trains.size()) == numRegions, scene + ": scope choice trains");
+	for (int i = 0; i < numRegions && i < static_cast<int>(choices.trains.size()); ++i)
+		check(choices.trains[i].id == regional_train[i].trainDescription && choices.trains[i].routeIndex == regional_train[i].indexOfRoute
+				&& choices.trains[i].routeId == regional_train[i].TrainRouteID,
+			scene + ": scope choice train " + std::to_string(i));
+}
+
 std::vector<BlockingTimeScope> blockingScopes() {
 	std::vector<BlockingTimeScope> scopes;
-	const BlockingTimeScope whole = defaultBlockingTimeScope();
+	const BlockingTimeScope whole = defaultBlockingTimeScope(initial_variables.times * timestep);
 	scopes.push_back(whole);
 	BlockingTimeScope window = whole;
 	window.trainIds = {regional_train[0].trainDescription};
@@ -747,6 +781,36 @@ std::string exportsOf(const CompletedRunData& data) {
 			text += describe(routeDiagramData(data, timetable, used.first));
 	text += describe(blockingTimeDiagramData(data, defaultBlockingTimeScopeFrom(data)), ids);
 	return text;
+}
+
+// A window with the export of a run, as the application opens one.
+std::unique_ptr<DiagramWindow> openWindow(const CompletedRunData& data, CompletedRunCsv csv, const QString& fileName) {
+	const auto run = std::make_shared<const CompletedRunData>(data);
+	auto window = std::make_unique<DiagramWindow>(fileName);
+	window->setChart(new QChart());
+	window->setCsvProvider(csvProviderFrom(run, csv), fileName, trainIdsFrom(*run));
+	return window;
+}
+
+// The windows that were opened for one scene, with what each exported at that time.
+struct OpenWindows {
+	std::unique_ptr<DiagramWindow> timetable;
+	std::unique_ptr<DiagramWindow> trajectory;
+	std::string timetableCsv;
+	std::string trajectoryCsv;
+};
+
+OpenWindows openWindows(const CapturedRun& run) {
+	OpenWindows windows;
+	windows.timetable = openWindow(run.data, &timetableCsvFrom, "timetable.csv");
+	windows.trajectory = openWindow(run.data, &trajectoryCsvFrom, "trajectory.csv");
+	windows.timetableCsv = windows.timetable->csvContent();
+	windows.trajectoryCsv = windows.trajectory->csvContent();
+	const QStringList ids = trainIdsFrom(run.data);
+	check(!windows.timetableCsv.empty() && !windows.trajectoryCsv.empty(), run.scene + ": the windows export rows");
+	checkSame(run.scene + ": timetable window and timetable.csv", timetableCsvFrom(run.data, ids), windows.timetableCsv);
+	checkSame(run.scene + ": trajectory window and trajectory.csv", trajectoryCsvFrom(run.data, ids), windows.trajectoryCsv);
+	return windows;
 }
 
 // --- Hand-made data ---
@@ -1223,10 +1287,190 @@ void testUsedRoutes() {
 	check(usedRouteReferencesFrom(CompletedRunData()).empty(), "no route in an empty run");
 }
 
+// Runs the scope dialog on hand-made choices and lets `answer` act on it once it is open.
+bool askScope(const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope, const std::function<void(QDialog&)>& answer) {
+	QTimer::singleShot(0, [&answer]() {
+		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+		check(dialog && dialog->windowTitle() == "Blocking-time scope", "the scope dialog opens");
+		if (dialog)
+			answer(*dialog);
+	});
+	return chooseBlockingTimeScope(nullptr, choices, scope);
+}
+
+void press(QDialog& dialog, QDialogButtonBox::StandardButton button) {
+	auto* buttons = dialog.findChild<QDialogButtonBox*>();
+	check(buttons && buttons->button(button), "the scope dialog has its buttons");
+	if (buttons && buttons->button(button))
+		buttons->button(button)->click();
+}
+
+void testScopeDialog() {
+	BlockingTimeScopeChoices choices;
+	choices.caseEndSeconds = 600.0;
+	choices.stepSeconds = 5.0;
+	choices.routes = {{"r0", "north", {"a", "b", "c"}}, {"r1", "", {"x", "y"}}};
+	choices.trains = {{"T0", 0, "r0"}, {"T1", 1, "r1"}, {"T2", 9, "r0"}, {"T3", -1, ""}};
+
+	BlockingTimeScope scope = defaultBlockingTimeScope(choices.caseEndSeconds);
+	check(scope.startTime == 0.0 && scope.endTime == 600.0 && scope.routeIndex == -1, "the default scope is the whole run");
+	check(defaultBlockingTimeScope(-3.0).endTime == 0.0, "the default scope has no negative end");
+
+	// All routes: no block range and no train list.
+	bool accepted = askScope(choices, scope, [](QDialog& dialog) {
+		const auto spins = dialog.findChildren<QDoubleSpinBox*>();
+		check(spins.size() == 2 && spins[0]->maximum() == 600.0 && spins[0]->singleStep() == 5.0, "the interval is limited to the run");
+		spins[0]->setValue(100.0);
+		spins[1]->setValue(250.0);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	check(accepted && scope.routeIndex == -1 && scope.trainIds.empty() && scope.blockIds.empty() && scope.sectionIndices.empty()
+			&& scope.startTime == 100.0 && scope.endTime == 250.0,
+		"the dialog accepts all routes with an interval");
+
+	// A route with a range of its blocks takes the trains that run on it, by index or by route id.
+	accepted = askScope(choices, scope, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		check(combos.size() == 3 && combos[0]->count() == 3, "the dialog lists the routes and all routes");
+		if (combos.size() != 3)
+			return;
+		combos[0]->setCurrentIndex(1);
+		check(combos[0]->itemText(1) == "r0  (north)" && combos[0]->itemText(2) == "r1  (no corridor)", "the routes show their corridor");
+		check(combos[1]->count() == 3 && combos[1]->itemText(2) == "3:c" && combos[2]->currentIndex() == 2, "the blocks of the route are listed");
+		combos[1]->setCurrentIndex(1);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	check(accepted && scope.routeIndex == 0 && scope.sectionIndices == std::vector<int>({1, 2}) && scope.blockIds == std::vector<std::string>({"b", "c"})
+			&& scope.trainIds == std::vector<std::string>({"T0", "T2"}),
+		"the dialog accepts a route, a range of its blocks and takes its trains");
+
+	// The last block may come before the first.
+	accepted = askScope(choices, scope, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		if (combos.size() != 3)
+			return;
+		combos[0]->setCurrentIndex(2);
+		combos[2]->setCurrentIndex(0);
+		combos[1]->setCurrentIndex(1);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	check(accepted && scope.routeIndex == 1 && scope.sectionIndices == std::vector<int>({0, 1}) && scope.trainIds == std::vector<std::string>({"T1"}),
+		"the blocks are taken in route order");
+
+	// An empty interval is widened by one step, or moved back at the end of the run.
+	accepted = askScope(choices, scope, [](QDialog& dialog) {
+		const auto spins = dialog.findChildren<QDoubleSpinBox*>();
+		spins[0]->setValue(40.0);
+		spins[1]->setValue(40.0);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	check(accepted && scope.startTime == 40.0 && scope.endTime == 45.0, "an empty interval gets one step");
+	accepted = askScope(choices, scope, [](QDialog& dialog) {
+		const auto spins = dialog.findChildren<QDoubleSpinBox*>();
+		spins[0]->setValue(600.0);
+		spins[1]->setValue(600.0);
+		press(dialog, QDialogButtonBox::Ok);
+	});
+	check(accepted && scope.startTime == 595.0 && scope.endTime == 600.0, "an empty interval at the end of the run moves back one step");
+
+	const BlockingTimeScope before = scope;
+	accepted = askScope(choices, scope, [](QDialog& dialog) { press(dialog, QDialogButtonBox::Cancel); });
+	check(!accepted && scope.startTime == before.startTime && scope.endTime == before.endTime, "cancel keeps the scope");
+
+	// A run without routes still offers the interval.
+	BlockingTimeScopeChoices none;
+	none.caseEndSeconds = 30.0;
+	BlockingTimeScope plain = defaultBlockingTimeScope(30.0);
+	accepted = askScope(none, plain, [](QDialog& dialog) { press(dialog, QDialogButtonBox::Ok); });
+	check(accepted && plain.routeIndex == -1 && plain.startTime == 0.0 && plain.endTime == 30.0, "a run without routes gives the whole run");
+}
+
+// Runs the capacity scope dialog on a hand-made run and lets `answer` act on it once it is open.
+bool askCapacityScope(const CompletedRunData& run, CapacityAnalysisScope& scope, const std::function<void(QDialog&)>& answer) {
+	QTimer::singleShot(0, [&answer]() {
+		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+		check(dialog && dialog->windowTitle() == "Capacity analysis", "the capacity dialog opens");
+		if (dialog)
+			answer(*dialog);
+	});
+	return chooseCapacityAnalysisScope(nullptr, run, scope);
+}
+
+// Closes the message box that the next click on OK opens.
+void expectMessage(const std::string& what) {
+	QTimer::singleShot(0, [what]() {
+		auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
+		check(box, what);
+		if (box)
+			box->accept();
+	});
+}
+
+void testCapacityDialog() {
+	CompletedRunData run;
+	const auto trainWithEntry = [](const std::string& id, double entry) {
+		CompletedTrain train = trainOn(id, 0);
+		train.blockTimes = {occupation("B", entry, entry + 10.0, 0.0, 100.0, entry)};
+		return train;
+	};
+	run.trains = {trainWithEntry("a", 0.0), trainWithEntry("b", 100.0), trainWithEntry("c", 200.0), trainOn("d", 0)};
+	run.routes = {routeOf("r", {{"n", 0.0}}, {{"B", 0.0, 1.0}, {"C", 1.0, 2.0}}), routeOf("s", {{"n", 0.0}}, {{"X", 0.0, 1.0}})};
+	run.routes[0].corridor = "north";
+
+	CapacityAnalysisScope none;
+	check(!chooseCapacityAnalysisScope(nullptr, CompletedRunData(), none), "a run without routes has nothing to choose");
+
+	CapacityAnalysisScope scope;
+	bool accepted = askCapacityScope(run, scope, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		check(combos.size() == 4, "the dialog has the route, the two blocks and the closing occurrence");
+		if (combos.size() != 4)
+			return;
+		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s  (no corridor)", "the routes are listed");
+		check(combos[1]->count() == 2 && combos[1]->itemText(0) == "1:B" && combos[2]->currentIndex() == 1, "the blocks of the first route are listed");
+		const auto list = dialog.findChild<QListWidget*>();
+		combos[2]->setCurrentIndex(0);
+		check(list && list->count() == 3, "three trains have an occupation on the first block");
+		check(list && list->item(0)->text() == "a | OC-a | canonical scheduled entry + elapsed from RunStartTime" && list->item(0)->checkState() == Qt::Checked, "an occurrence is listed with its code and reference");
+		check(combos[3]->count() == 4 && combos[3]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
+		const auto spin = dialog.findChild<QDoubleSpinBox*>();
+		if (spin)
+			spin->setValue(7200.0);
+		list->item(1)->setCheckState(Qt::Unchecked);
+		combos[3]->setCurrentIndex(3);
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
+	});
+	check(accepted && scope.routeIndex == 0 && scope.blockIds == std::vector<std::string>({"B"}) && scope.sectionIndices == std::vector<int>({0})
+			&& scope.occurrenceIds == std::vector<std::string>({"a", "c"}) && scope.cycleEndOccurrenceId == "c" && scope.periodSeconds == 7200.0,
+		"the dialog accepts the checked occurrences and the closing one");
+
+	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open.
+	CapacityAnalysisScope kept;
+	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		const auto list = dialog.findChild<QListWidget*>();
+		auto* ok = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok);
+		if (combos.size() != 4 || !list)
+			return;
+		combos[2]->setCurrentIndex(0);
+		list->item(1)->setCheckState(Qt::Unchecked);
+		list->item(2)->setCheckState(Qt::Unchecked);
+		expectMessage("fewer than two occurrences are refused");
+		ok->click();
+		list->item(1)->setCheckState(Qt::Checked);
+		combos[3]->setCurrentIndex(1);
+		expectMessage("a closing occurrence that is the first row is refused");
+		ok->click();
+		check(dialog.isVisible(), "the dialog stays open after a refusal");
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
+	});
+	check(!accepted, "cancel gives no scope");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
-	QCoreApplication application(argc, argv);
+	QApplication application(argc, argv);
 	if (argc < 3) {
 		std::cerr << "usage: test_completedrun SCENE_DIR SCENE_DIR...\n";
 		return 2;
@@ -1239,22 +1483,30 @@ int main(int argc, char** argv) {
 
 	std::vector<CapturedRun> runs(static_cast<std::size_t>(argc - 1));
 	std::vector<std::string> exports;
+	std::vector<OpenWindows> windows;
 	for (int k = 1; k < argc; ++k) {
 		CapturedRun& run = runs[static_cast<std::size_t>(k - 1)];
 		if (!runScene(argv[k], output.path().toStdString(), run))
 			return 1;
 		compareCapture(run);
 		compareExports(run);
+		compareScopeChoices(run);
 		compareBlockingDiagrams(run);
 		compareCapacity(run);
 		compareRouteDiagrams(run);
 		exports.push_back(exportsOf(run.data));
+		windows.push_back(openWindows(run));
 	}
 	// Every run has been replaced by the next one by now. The data of each must still give what it gave.
 	for (std::size_t k = 0; k < runs.size(); ++k) {
 		checkSame(runs[k].scene + ": exports of the run after later runs", exports[k], exportsOf(runs[k].data));
-		for (std::size_t other = k + 1; other < runs.size(); ++other)
+		checkSame(runs[k].scene + ": timetable window after later runs", windows[k].timetableCsv, windows[k].timetable->csvContent());
+		checkSame(runs[k].scene + ": trajectory window after later runs", windows[k].trajectoryCsv, windows[k].trajectory->csvContent());
+		for (std::size_t other = k + 1; other < runs.size(); ++other) {
 			check(exports[k] != exports[other], runs[k].scene + " and " + runs[other].scene + " give different exports");
+			check(windows[k].timetableCsv != windows[other].timetableCsv && windows[k].trajectoryCsv != windows[other].trajectoryCsv,
+				runs[k].scene + " and " + runs[other].scene + " give different window exports");
+		}
 	}
 
 	testMissingValues();
@@ -1264,6 +1516,8 @@ int main(int argc, char** argv) {
 	testCapacityOrder();
 	testSharedResources();
 	testUsedRoutes();
+	testScopeDialog();
+	testCapacityDialog();
 
 	if (failures)
 		std::cerr << failures << " checks failed\n";

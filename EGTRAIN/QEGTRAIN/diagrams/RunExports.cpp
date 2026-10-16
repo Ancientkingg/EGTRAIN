@@ -187,7 +187,7 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 }
 
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
-	const BlockingTimeScope scope = defaultBlockingTimeScope();
+	const BlockingTimeScope scope = defaultBlockingTimeScope(initial_variables.times * timestep);
 	if (train_route.empty()) return {};
 	int referenceIndex = -1;
 	for (int i = 0; i < numRegions; ++i)
@@ -268,15 +268,11 @@ bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
 
 namespace {
 
-bool knownRoute(const CompletedRunData& data, int routeIndex) {
-	return routeIndex >= 0 && routeIndex < static_cast<int>(data.routes.size());
-}
-
 // The route of the first train in the list, or of the first train when the list is empty, that runs on a known route.
 int firstRouteOfTrains(const CompletedRunData& data, const std::vector<std::string>& trainIds) {
 	for (const CompletedTrain& train : data.trains)
 		if ((trainIds.empty() || std::find(trainIds.begin(), trainIds.end(), train.trainId) != trainIds.end())
-			&& knownRoute(data, train.routeIndex))
+			&& data.hasRoute(train.routeIndex))
 			return train.routeIndex;
 	return -1;
 }
@@ -301,7 +297,7 @@ RouteProjections projectRoutes(const CompletedRunData& data, const RouteDiagramP
 	RouteProjections maps;
 	for (const CompletedTrain& train : data.trains) {
 		const int index = train.routeIndex;
-		if (!knownRoute(data, index))
+		if (!data.hasRoute(index))
 			continue;
 		if (!maps.paths.count(index)) {
 			const RouteDiagramPath& path = data.routes[static_cast<std::size_t>(index)].path;
@@ -377,6 +373,11 @@ std::string timetableCsvFrom(const CompletedRunData& data, const QStringList& vi
 	return timetableDocument(data.timetable, visibleTrainIds);
 }
 
+std::function<std::string(const QStringList&)> csvProviderFrom(std::shared_ptr<const CompletedRunData> run,
+	CompletedRunCsv csv) {
+	return [run = std::move(run), csv](const QStringList& visibleTrainIds) { return csv(*run, visibleTrainIds); };
+}
+
 std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& data) {
 	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
 	std::vector<std::string> trainNames;
@@ -390,16 +391,31 @@ std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& d
 }
 
 BlockingTimeScope defaultBlockingTimeScopeFrom(const CompletedRunData& data) {
-	BlockingTimeScope scope;
-	scope.endTime = std::max(0.0, data.settings.horizonSeconds());
-	return scope;
+	return defaultBlockingTimeScope(data.settings.horizonSeconds());
+}
+
+BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& data) {
+	BlockingTimeScopeChoices choices;
+	choices.caseEndSeconds = data.settings.horizonSeconds();
+	choices.stepSeconds = data.settings.timestepSeconds;
+	for (const CompletedRoute& route : data.routes) {
+		BlockingTimeScopeChoices::Route choice;
+		choice.id = route.id;
+		choice.corridor = route.corridor;
+		for (const BlockSectionInput& block : route.blocks)
+			choice.blockIds.push_back(block.id);
+		choices.routes.push_back(std::move(choice));
+	}
+	for (const CompletedTrain& train : data.trains)
+		choices.trains.push_back({train.trainId, train.routeIndex, train.routeId});
+	return choices;
 }
 
 std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedRunData& data,
 	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
 	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
 	std::vector<BlockingTimePlannedReference> references;
-	const auto selectedSections = knownRoute(data, scope.routeIndex) && !scope.sectionIndices.empty()
+	const auto selectedSections = data.hasRoute(scope.routeIndex) && !scope.sectionIndices.empty()
 		? scopedBlockSectionExtents(buildBlockSectionExtents(data.routes[static_cast<std::size_t>(scope.routeIndex)].blocks), scope.sectionIndices)
 		: std::vector<BlockSectionExtent>();
 	if (scope.routeIndex >= 0 && scope.trainIds.empty())
@@ -463,7 +479,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 		: filterBlockingTimeDiagramSegments(blockTimesFrom(data), scope.trainIds, scope.blockIds,
 			  scope.startTime, scope.endTime);
 	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : firstRouteOfTrains(data, scope.trainIds);
-	if (!knownRoute(data, referenceIndex))
+	if (!data.hasRoute(referenceIndex))
 		return std::nullopt;
 	const CompletedRoute& referenceRoute = data.routes[static_cast<std::size_t>(referenceIndex)];
 
@@ -521,146 +537,6 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 	return result;
 }
 
-CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const CapacityAnalysisScope& scope) {
-	CapacityAnalysisTrain result;
-	result.runtimeId = train.trainId;
-	result.operatingCode = train.operatingCode;
-	if (scope.blockIds.empty())
-		return result;
-
-	const BlockingTimeDiagramInput* reference = nullptr;
-	for (const BlockingTimeDiagramInput& occupation : train.blockTimes) {
-		if (!validBlockingTimeDiagramInput(occupation))
-			continue;
-		if (!reference && shareBlockingTimeResource(occupation.blockId, scope.blockIds.front()))
-			reference = &occupation;
-		for (const std::string& selectedBlock : scope.blockIds) {
-			if (shareBlockingTimeResource(occupation.blockId, selectedBlock)) {
-				result.occupations.push_back(occupation);
-				break;
-			}
-		}
-	}
-	if (!reference || !std::isfinite(reference->startRunTime) || reference->startRunTime < 0.0) {
-		result.occupations.clear();
-		return result;
-	}
-	result.profileReferenceTime = reference->startRunTime;
-	result.referenceLabel = "block " + scope.blockIds.front() + " entry";
-	result.referenceSource = "selected section StartRunTime";
-
-	// A boundary stop is the authored reference when its route position matches
-	// the selected section entry. The 5 m tolerance is the native route tolerance.
-	if (!train.stops.empty() && reference->posStart >= 0.0) {
-		for (const CompletedStop& stop : train.stops) {
-			if (!std::isfinite(stop.routePositionMeters) || std::abs(stop.routePositionMeters - reference->posStart) > 5.0)
-				continue;
-			const double departure = stop.scheduledDeparture;
-			const double arrival = stop.scheduledArrival;
-			const double authored = departure >= 0.0 ? departure : arrival;
-			if (!std::isfinite(authored) || authored < 0.0)
-				continue;
-			result.scheduledReferenceTime = authored;
-			result.referenceLabel = stop.station + " boundary";
-			result.referenceSource = departure >= 0.0
-				? "authored ScheduledDeparture at boundary station"
-				: "authored ScheduledArrival at boundary station (departure absent)";
-			return result;
-		}
-	}
-
-	if (std::isfinite(train.scheduledDepartureTime) && train.scheduledDepartureTime >= 0.0 && train.runStartTime >= 0) {
-		result.scheduledReferenceTime = train.scheduledDepartureTime
-			+ (reference->startRunTime - static_cast<double>(train.runStartTime));
-		result.referenceSource = "canonical scheduled entry + elapsed from RunStartTime";
-	} else {
-		result.scheduledReferenceTime = result.profileReferenceTime;
-		result.referenceSource = "profile reference fallback (scheduled entry unavailable)";
-	}
-	return result;
-}
-
-std::vector<CapacityAnalysisTrain> capacityInputsFrom(const CompletedRunData& data,
-	const CapacityAnalysisScope& scope) {
-	const auto selected = [&scope](const std::string& runtimeId) {
-		return std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(), runtimeId) != scope.occurrenceIds.end();
-	};
-	std::vector<CapacityAnalysisTrain> candidates;
-	for (const CompletedTrain& train : data.trains) {
-		CapacityAnalysisTrain candidate = capacityInputFrom(train, scope);
-		if (candidate.occupations.empty())
-			continue;
-		if (!scope.occurrenceIds.empty() && !selected(candidate.runtimeId))
-			continue;
-		candidates.push_back(std::move(candidate));
-	}
-	if (scope.occurrenceIds.empty())
-		return candidates;
-	std::vector<CapacityAnalysisTrain> trains;
-	trains.reserve(scope.occurrenceIds.size());
-	for (const std::string& occurrenceId : scope.occurrenceIds) {
-		const auto it = std::find_if(candidates.begin(), candidates.end(),
-			[&occurrenceId](const CapacityAnalysisTrain& candidate) {
-				return candidate.runtimeId == occurrenceId;
-			});
-		if (it != candidates.end())
-			trains.push_back(*it);
-	}
-	return trains;
-}
-
-// The capacity calculation is resource-id based. Refuse only the selected ambiguity,
-// rather than choosing one route occurrence or changing the capacity mathematics.
-std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
-	if (!knownRoute(data, scope.routeIndex) || scope.blockIds.empty())
-		return {};
-	const auto extents = buildBlockSectionExtents(data.routes[static_cast<std::size_t>(scope.routeIndex)].blocks);
-	const std::string issue = blockSectionCapacityScopeIssue(extents, scope.sectionIndices);
-	if (!issue.empty())
-		return issue;
-	for (const CompletedTrain& train : data.trains) {
-		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(), train.trainId) == scope.occurrenceIds.end())
-			continue;
-		if (blockingTimeEntryAmbiguous(train.blockTimes, scope.blockIds.front()))
-			return "Occurrence " + train.trainId + " has several records for the selected entry resource; capacity analysis cannot identify one entry.";
-	}
-	return {};
-}
-
-CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& data) {
-	CapacityAnalysisScope empty;
-	for (std::size_t routeIndex = 0; routeIndex < data.routes.size(); ++routeIndex) {
-		const CompletedRoute& route = data.routes[routeIndex];
-		for (std::size_t blockIndex = 0; blockIndex < route.blocks.size(); ++blockIndex) {
-			CapacityAnalysisScope candidate;
-			candidate.routeIndex = static_cast<int>(routeIndex);
-			candidate.blockIds.push_back(route.blocks[blockIndex].id);
-			candidate.sectionIndices.push_back(static_cast<int>(blockIndex));
-			const auto trains = capacityInputsFrom(data, candidate);
-			if (trains.size() < 2)
-				continue;
-			for (const auto& train : trains)
-				candidate.occurrenceIds.push_back(train.runtimeId);
-			return candidate;
-		}
-	}
-	return empty;
-}
-
-QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
-	if (!knownRoute(data, scope.routeIndex))
-		return QStringLiteral("no selected route");
-	const CompletedRoute& route = data.routes[static_cast<std::size_t>(scope.routeIndex)];
-	QString label = QString::fromStdString(route.id);
-	if (!route.corridor.empty())
-		label += QString(" / %1").arg(QString::fromStdString(route.corridor));
-	if (!scope.blockIds.empty())
-		label += QString(" / %1 to %2").arg(QString::fromStdString(scope.blockIds.front()), QString::fromStdString(scope.blockIds.back()));
-	return label;
-}
-
-namespace {
-
 std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
 	QStringList values;
 	for (const auto& item : evidence)
@@ -671,8 +547,6 @@ std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evi
 						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
 	return values.join("; ").toStdString();
 }
-
-} // namespace
 
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel) {
 	if (!result.analyzable || result.cycleEndIdentity.empty() || !std::isfinite(result.cycleTime)
@@ -786,6 +660,11 @@ std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QStr
 	return csv::makeDocument(header, rows);
 }
 
+std::map<std::string, RouteDiagramProjection> routeProjectionsByTrain(const CompletedRunData& data,
+	const RouteDiagramPath& reference) {
+	return projectRoutes(data, reference, true).byTrain;
+}
+
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope) {
 	if (scope.routeIndex < 0 || !capacityScopeIssueFrom(data, scope).empty())
 		return {};
@@ -797,7 +676,7 @@ std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const Completed
 	std::vector<std::pair<int, std::string>> used;
 	for (const CompletedTrain& train : data.trains) {
 		const int index = train.routeIndex;
-		if (knownRoute(data, index)
+		if (data.hasRoute(index)
 			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
 			used.emplace_back(index, data.routes[static_cast<std::size_t>(index)].id);
 	}
@@ -805,7 +684,7 @@ std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const Completed
 }
 
 std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, bool timetable, int referenceIndex) {
-	if (!knownRoute(data, referenceIndex))
+	if (!data.hasRoute(referenceIndex))
 		return std::nullopt;
 	RouteDiagramData result;
 	result.referencePath = data.routes[static_cast<std::size_t>(referenceIndex)].path;
