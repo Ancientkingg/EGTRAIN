@@ -35,6 +35,15 @@ disk image or another read-only location; move it to the Applications folder
 first. On Windows, update a copy that the EGTRAIN Setup installed by running the
 newer Setup.
 
+EGTRAIN counts a Windows copy as managed by an installer when the file
+`installed-by-setup.ini` is in the same folder as `QEGTRAIN.exe`. The EGTRAIN
+installer writes that file and the portable package does not contain it. Such a
+copy does not replace its own files: **Check for Updates...** still names a newer
+release, but offers only **Open Release Page**, **Later** and **Stop Checking**,
+with a text that says the copy was installed with the EGTRAIN installer and to
+use the release page. A portable folder that holds the file, for example one
+zipped from an installed copy, is treated the same way until the file is deleted.
+
 An update is prepared in a hidden `.qegtrain-update-*` folder next to the
 installation, and the updated application starts in its own directory. After a
 successful update the folder is removed. On Windows the update helper cannot

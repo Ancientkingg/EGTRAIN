@@ -1,4 +1,5 @@
 #include "update/SelfUpdater.h"
+#include "update/Distribution.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -121,6 +122,9 @@ SelfUpdateCapability SelfUpdater::capability() {
 	return result;
 #endif
 
+	result.reason = selfReplacementBlockedReason(currentDistribution());
+	if (!result.reason.isEmpty())
+		return result;
 	if (!QFileInfo(result.helperPath).isFile()) {
 		result.reason = QStringLiteral("The packaged update helper is missing.");
 		return result;
