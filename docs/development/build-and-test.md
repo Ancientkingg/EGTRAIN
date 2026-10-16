@@ -852,6 +852,38 @@ On macOS, use the native peak-RSS collector for canonical Copenhagen and
 Milano-Brescia Release runs. The protocol and generated record contract are in
 [Peak-memory baselines](memory-baselines.md).
 
+## Leak check
+
+LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job
+of the CMake workflow, `leak check (Linux)`. It builds the application and
+`test_characterization` in a Debug configuration with `-DEGTRAIN_ENABLE_SANITIZERS=ON`, starts
+them with `ASAN_OPTIONS=detect_leaks=1`, and fails on any leak or double free. It has two parts:
+
+- `tools/e2e/leak_check_smoke.py` runs every scene directory below `EGTRAIN/QEGTRAIN/Scenes`
+  headless, once, with `-h 600 --detailed-trajectories`. A scene fails when its log holds a
+  LeakSanitizer or AddressSanitizer report, when the process exits with a code other than 0, or
+  when it prints no `End of Simulation`. All scenes run before the script fails, so one start lists
+  every failing scene.
+- CTest runs `characterization_repeatable`, `characterization_repeat_paimpol`,
+  `characterization_repeat_lebanon_milano` and `characterization_repeat_netherlands`. Each builds
+  and runs scenes one after the other in one process (see [Characterization tests](#characterization-tests)),
+  which is the scene reload. They cover the line fixture, Paimpol, Assignment, Lebanon,
+  Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
+  not reloaded.
+
+The job runs only in the nightly and the manual run, because the sanitizer build and the
+instrumented runs take longer than the pull request checks. To check a branch before a merge,
+start the workflow by hand from the Actions tab, or with `gh workflow run cmake.yml --ref BRANCH`;
+the other legs start with it. The artifact `leak-check-logs` holds one `SCENE.log` per scene and
+`ctest-reload.log`, also when the job fails.
+
+`tools/e2e/lsan_suppressions.txt` lists the known leaks. Add one rule for each, with a comment that
+names the cause and the change that removes the leak, or the library that owns it. A leak of the
+simulation is fixed, not listed.
+
+On macOS, `leaks --atExit -- COMMAND` lists the leaks of one run of a normal build. It exits with
+status 1 when it finds any.
+
 ## Scene Roundtrip Smoke Test
 
 ```bash
@@ -1146,7 +1178,8 @@ most of its checks, so run it locally to read its logs.
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
   documentation filters. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
-  ignore the filters. A push to `main` starts no run. A scheduled workflow runs
+  ignore the filters, and both also start the [leak check](#leak-check) on Linux.
+  A push to `main` starts no run. A scheduled workflow runs
   on the default branch only, and GitHub pauses schedules in a repository
   without activity for 60 days. The three legs run independently
   (`fail-fast: false`) and share the same filters. A newer push to a pull

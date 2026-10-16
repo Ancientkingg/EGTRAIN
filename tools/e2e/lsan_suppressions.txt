@@ -1,0 +1,8 @@
+# Known leaks for the leak check job of .github/workflows/cmake.yml.
+# See "Leak check" in docs/development/build-and-test.md.
+#
+# A rule is a line "leak:PATTERN". LeakSanitizer ignores a leak when PATTERN is part of a function
+# name, a source file name or a library name in the stack of its allocation.
+#
+# Add one rule for each known leak, and put a comment above it with the cause and the change that
+# removes the leak, or the library that owns it. A leak of the simulation is fixed, not listed here.
