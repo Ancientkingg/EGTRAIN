@@ -10,7 +10,7 @@ public:
 	static void runStationOverlay(MainWindow& w);
 	static void runEditorSmoke(MainWindow& w) { w.runEditorSmokeE2E(); }
 	static void runSceneRender(MainWindow& w);
-	static void runTrackPreview(MainWindow& w) { w.runTrackPreviewE2E(); }
+	static void runTrackPreview(MainWindow& w);
 	static void runLegacyImport(MainWindow& w);
 	static void runSceneDrop(MainWindow& w);
 };

@@ -371,6 +371,11 @@ const SceneScenario* defaultScenario(const SceneModel& scene);
 std::vector<SceneIncident>& defaultScenarioIncidents(SceneModel& scene);
 const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& scene);
 
+// The signals of the scene. Code that includes Qt reads them here, because Qt defines signals as a keyword
+// and so SceneModel::signals does not compile there.
+std::vector<SceneSignal>& sceneSignals(SceneModel& scene);
+const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene);
+
 struct SceneLoadResult {
 	SceneModel scene; // partial on structural failure
 	std::vector<SceneDiagnostic> diagnostics;

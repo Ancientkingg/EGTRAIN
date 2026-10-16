@@ -90,7 +90,7 @@ def test_preview_snapshot_comparator() -> None:
     match = re.search(
         r"auto samePreviewContent = \[\]\(const PreviewContentSnapshot& left, "
         r"const PreviewContentSnapshot& right\) \{(?P<body>.*?)\n\t\};",
-        source,
+        e2e_source,
         re.DOTALL,
     )
     if not match:
