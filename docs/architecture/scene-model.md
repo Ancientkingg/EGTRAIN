@@ -15,6 +15,11 @@ the loaded model through the infrastructure/signalling and operations builders
 and prepares runtime output directories. Neither builder opens provenance files
 or consults an `Input/` tree.
 
+The infrastructure builder checks the whole scene before it writes a runtime
+global. If it still finds an error while it builds the runtime, it puts the
+previous infrastructure back, so a build that returns an error leaves it in
+place.
+
 ## Canonical directory
 
 | File | Role | Input status |

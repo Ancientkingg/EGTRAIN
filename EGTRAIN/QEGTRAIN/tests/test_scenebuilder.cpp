@@ -18,6 +18,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 Logger owl;
@@ -1817,6 +1818,237 @@ static bool runNodeListChecks() {
 	return ok;
 }
 
+// The infrastructure globals of the runtime. Two snapshots are equal only when the storage is the same too, because the station
+// boundaries and the sections point into it.
+struct InfrastructureSnapshot {
+	int blocks = 0;
+	int routeCount = 0;
+	int trackLines = 0;
+	int connectionCount = 0;
+	int stationCount = 0;
+	int platformCount = 0;
+	std::size_t platformListSize = 0;
+	std::size_t routeListSize = 0;
+	std::size_t detectionSectionCount = 0;
+	std::size_t infraElementCount = 0;
+	std::size_t singleTrackLimitCount = 0;
+	std::vector<std::string> sectionIds;
+	std::vector<std::string> routeIds;
+	std::string firstTrackId;
+	std::string firstStationName;
+	bool firstStationVirtualSignal = false;
+	std::string finalStationName;
+	const Section* sectionStorage = nullptr;
+	const TDS* firstDetectionSection = nullptr;
+	std::vector<const Section*> boundaryEntrances;
+
+	bool operator==(const InfrastructureSnapshot& other) const {
+		return std::tie(blocks, routeCount, trackLines, connectionCount, stationCount, platformCount, platformListSize, routeListSize,
+				   detectionSectionCount, infraElementCount, singleTrackLimitCount, sectionIds, routeIds, firstTrackId,
+				   firstStationName, firstStationVirtualSignal, finalStationName, sectionStorage, firstDetectionSection, boundaryEntrances)
+			== std::tie(other.blocks, other.routeCount, other.trackLines, other.connectionCount, other.stationCount, other.platformCount,
+				other.platformListSize, other.routeListSize, other.detectionSectionCount, other.infraElementCount,
+				other.singleTrackLimitCount, other.sectionIds, other.routeIds, other.firstTrackId, other.firstStationName,
+				other.firstStationVirtualSignal, other.finalStationName, other.sectionStorage, other.firstDetectionSection,
+				other.boundaryEntrances);
+	}
+};
+
+static InfrastructureSnapshot takeInfrastructureSnapshot() {
+	InfrastructureSnapshot snapshot;
+	snapshot.blocks = Blocks;
+	snapshot.routeCount = N_Routes;
+	snapshot.trackLines = numTrackLines;
+	snapshot.connectionCount = numConnections;
+	snapshot.stationCount = numStations;
+	snapshot.platformCount = numAllStationPlatforms;
+	snapshot.platformListSize = AllStationPlatforms.size();
+	snapshot.routeListSize = train_route.size();
+	snapshot.detectionSectionCount = list_of_TDS.size();
+	snapshot.infraElementCount = InfraElementsList.size();
+	snapshot.singleTrackLimitCount = singleTrackLimits.size();
+	for (int index = 0; index < Blocks && static_cast<std::size_t>(index) < signalling_block_sections.size(); ++index)
+		snapshot.sectionIds.push_back(signalling_block_sections[index].ID);
+	for (const Route& route : train_route)
+		snapshot.routeIds.push_back(route.ID);
+	snapshot.firstTrackId = blockSets[0].sceneTrackId;
+	snapshot.firstStationName = StationArray[0].stationName;
+	snapshot.firstStationVirtualSignal = StationArray[0].virtualSignal;
+	snapshot.finalStationName = Final_Station.stationName;
+	snapshot.sectionStorage = signalling_block_sections.data();
+	snapshot.firstDetectionSection = list_of_TDS.empty() ? nullptr : &list_of_TDS.front();
+	for (const StationBoundarySection& boundary : stationBoundarySections)
+		snapshot.boundaryEntrances.push_back(boundary.entrance);
+	return snapshot;
+}
+
+// True when every station boundary points at a section of the runtime and every section, of the runtime and of the routes,
+// points at detection sections of the runtime list.
+static bool runtimePointersAreValid() {
+	const auto isSection = [](const Section* candidate) {
+		return std::any_of(signalling_block_sections.begin(), signalling_block_sections.end(),
+			[candidate](const Section& section) { return &section == candidate; });
+	};
+	std::set<const TDS*> detectionSections;
+	for (const TDS& detection : list_of_TDS)
+		detectionSections.insert(&detection);
+	const auto detectionPointersAreValid = [&detectionSections](const Section& section) {
+		return std::all_of(section.TDS_in_block.begin(), section.TDS_in_block.end(),
+			[&detectionSections](const TDS* detection) { return detectionSections.count(detection) == 1; });
+	};
+	bool valid = true;
+	for (const StationBoundarySection& boundary : stationBoundarySections)
+		valid = valid && isSection(boundary.entrance) && (boundary.exit == nullptr || isSection(boundary.exit));
+	for (const Section& section : signalling_block_sections)
+		valid = valid && detectionPointersAreValid(section);
+	for (const Route& route : train_route)
+		for (const Section& section : route.sequence_of_block_sections)
+			valid = valid && detectionPointersAreValid(section);
+	return valid;
+}
+
+// A track with a node at each abscissa and an arc between each two neighbours. The nodes are "<track>.<index>".
+static void addNodeTrack(SceneModel& scene, const std::string& track, const std::vector<double>& abscissas) {
+	scene.tracks.push_back({track});
+	for (std::size_t index = 0; index < abscissas.size(); ++index) {
+		const std::string node = track + "." + std::to_string(index);
+		scene.nodes.push_back({node, track, abscissas[index], 0.0});
+		if (index > 0)
+			scene.arcs.push_back({track + ".arc." + std::to_string(index), track,
+				track + "." + std::to_string(index - 1), node, 0.0, 0.0, 20.0});
+	}
+}
+
+// The builder ignores an overlap of at most 1e-8 km between a block and an arc. The block "line.b1" is 1.5e-8 km long, so it has a
+// span, but each of the two arcs under it overlaps it by 0.75e-8 km, and no arc is mapped to it.
+static SceneModel blockBetweenShortArcsScene() {
+	SceneModel scene;
+	addNodeTrack(scene, "line", {0.0, 1.0, 1.0 + 0.75e-8, 1.0 + 1.5e-8, 2.0});
+	scene.blocks = {{"line.b0", "line", 1.0}, {"line.b1", "line", 1.5e-8}, {"line.b2", "line", 1.0}};
+	return scene;
+}
+
+// The node "line.2" lies between two arcs of 4e-9 km. No section lists it, so its platform is in no section.
+static SceneModel platformBetweenShortArcsScene() {
+	SceneModel scene;
+	addNodeTrack(scene, "line", {0.0, 1.0, 1.0 + 4e-9, 1.0 + 8e-9, 2.0});
+	scene.blocks = {{"line.b0", "line", 1.0}, {"line.b1", "line", 1.0}};
+	SceneStation station;
+	station.id = "station.short";
+	station.name = "Short";
+	station.platforms.push_back({"platform.short", {"line.2"}});
+	scene.stations.push_back(station);
+	return scene;
+}
+
+// A connection at the same node. The plan has a derived section for each of the two blocks that reach the node, and the builder
+// derives none, because no section lists the node.
+static SceneModel connectionBetweenShortArcsScene() {
+	SceneModel scene;
+	addNodeTrack(scene, "alpha", {0.0, 1.0, 1.0 + 4e-9, 1.0 + 8e-9, 2.0});
+	addNodeTrack(scene, "beta", {3.0, 4.0});
+	scene.blocks = {{"alpha.b0", "alpha", 1.0}, {"alpha.b1", "alpha", 1.0}, {"beta.b0", "beta", 1.0}};
+	scene.connections.push_back({"switch.short", "alpha.2", "beta.0", false, 0.0});
+	return scene;
+}
+
+// The id of the block "dependent" is part of the ids of eleven other sections, "@x0@dependent@" and so on. Setting the dependencies
+// fills its ten places with sections, so the explicit dependency finds none left.
+static SceneModel crowdedDependencyScene() {
+	SceneModel scene;
+	std::vector<double> abscissas;
+	for (int index = 0; index <= 13; ++index)
+		abscissas.push_back(static_cast<double>(index));
+	addNodeTrack(scene, "line", abscissas);
+	scene.blocks.push_back({"dependent", "line", 1.0});
+	for (int index = 0; index < 11; ++index)
+		scene.blocks.push_back({"x" + std::to_string(index) + "@dependent", "line", 1.0});
+	scene.blocks.push_back({"target", "line", 1.0});
+	scene.blockDependencies.push_back({"dependent", "target"});
+	return scene;
+}
+
+// The check of the station boundaries skips an empty entrance, so the builder meets it.
+static SceneModel boundaryWithoutEntranceScene() {
+	SceneModel scene = tinyScene();
+	scene.stationBoundaries.front().entranceBlock.clear();
+	return scene;
+}
+
+// Two derived sections that meet at the end node of the block "B". The route joins them with a cut at that node, which is not inside
+// the section that it cuts, so the route does not keep the section.
+static SceneModel routeOverEndNodeSwitchesScene() {
+	SceneModel scene;
+	addNodeTrack(scene, "A", {0.0, 1.0});
+	addNodeTrack(scene, "B", {2.0, 4.0});
+	addNodeTrack(scene, "C", {5.0, 6.0});
+	scene.blocks = {{"A", "A", 1.0}, {"B", "B", 2.0}, {"C", "C", 1.0}};
+	scene.connections.push_back({"switch.ab", "A.1", "B.1", false, 0.0});
+	scene.connections.push_back({"switch.bc", "B.1", "C.0", false, 0.0});
+	SceneRoute route;
+	route.id = "route.cut";
+	route.blocks = {"@A@-1.000000/@B@-4.000000", "@B@-4.000000/@C@-5.000000"};
+	scene.routes.push_back(route);
+	return scene;
+}
+
+static bool hasErrorMessage(const std::vector<SceneDiagnostic>& diagnostics, const std::string& code, const std::string& message) {
+	return std::any_of(diagnostics.begin(), diagnostics.end(), [&](const SceneDiagnostic& diagnostic) {
+		return diagnostic.severity == SceneSeverity::Error && diagnostic.code == code && diagnostic.message == message;
+	});
+}
+
+// Builds the scene that the previous runtime holds, then a scene that passes the checks and fails while the runtime is built.
+static bool failedBuildKeepsRuntime(const SceneModel& failing, const std::string& code, const std::string& message, const std::string& what) {
+	bool ok = expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())), what + ": the previous scene builds");
+	StationArray[0].virtualSignal = true;
+	const InfrastructureSnapshot before = takeInfrastructureSnapshot();
+	ok &= expect(before.blocks == 2 && before.routeCount == 1 && before.platformCount == 2 && before.firstStationName == "Tiny"
+			&& before.detectionSectionCount > 0 && before.boundaryEntrances.size() == 1,
+		what + ": the previous runtime holds the scene");
+
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(failing);
+	ok &= expect(hasErrorMessage(diagnostics, code, message), what + ": the build reaches its error '" + message + "'");
+	ok &= expect(before == takeInfrastructureSnapshot(), what + ": the previous infrastructure is still in the runtime");
+	ok &= expect(runtimePointersAreValid(), what + ": the pointers into the sections and the detection sections are valid");
+	return ok;
+}
+
+// A build that fails after it started to write the runtime leaves the infrastructure of the previous build. The builder has ten
+// errors that it can add at that stage. Four cannot be reached by a scene that passes the checks, because the checks resolve the
+// references of a dependency, a single-track restriction and a route as the builder does, and a route keeps all its blocks.
+// The other six are below.
+static bool runFailedBuildChecks() {
+	// Keeps the messages of the failing builds out of the test output.
+	struct QuietLog {
+		QuietLog() {
+			eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+		}
+		~QuietLog() {
+			eglog::setSink({});
+		}
+	} quiet;
+
+	bool ok = true;
+	ok &= failedBuildKeepsRuntime(blockBetweenShortArcsScene(), "scene.native.topology.blocks",
+		"Block section could not be mapped to track arcs", "a block without an arc");
+	ok &= failedBuildKeepsRuntime(platformBetweenShortArcsScene(), "scene.native.binding.platform",
+		"Platform node is not part of a block section", "a platform outside every section");
+	ok &= failedBuildKeepsRuntime(connectionBetweenShortArcsScene(), "scene.native.sections.mismatch",
+		"Legacy connection construction produced section IDs different from the planned inventory", "sections that differ from the plan");
+	ok &= failedBuildKeepsRuntime(crowdedDependencyScene(), "scene.native.capacity",
+		"Block dependency exceeds the runtime dependency capacity", "a section with all its dependency places taken");
+	ok &= failedBuildKeepsRuntime(boundaryWithoutEntranceScene(), "scene.native.ref.unresolved",
+		"Station boundary could not resolve a runtime section", "a station boundary without an entrance");
+	ok &= failedBuildKeepsRuntime(routeOverEndNodeSwitchesScene(), "scene.native.route.order",
+		"Native route order does not retain the authored section IDs", "a route cut outside its section");
+
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())) && Blocks == 2 && runtimePointersAreValid(),
+		"the scene builds again after the failed builds");
+	resetNativeInfrastructureState();
+	return ok;
+}
+
 int main() {
 	bool ok = runTinyBuilderChecks();
 	ok &= runAreaMappingChecks();
@@ -1829,5 +2061,6 @@ int main() {
 	ok &= runSignallingMessageChecks();
 	ok &= runOccupancyListChecks();
 	ok &= runNodeListChecks();
+	ok &= runFailedBuildChecks();
 	return ok ? 0 : 1;
 }

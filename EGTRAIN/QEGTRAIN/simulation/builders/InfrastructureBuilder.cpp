@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <list>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -171,6 +172,64 @@ bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
 			return true;
 	return false;
 }
+
+// The runtime infrastructure as it was before a build. The containers are swapped, not copied: the station boundaries point
+// into the sections and the sections point into the detection sections, and a swap leaves both where they are.
+class RuntimeInfrastructureBackup {
+public:
+	// Takes the infrastructure out of the runtime globals, which are left empty.
+	RuntimeInfrastructureBackup() {
+		exchange();
+	}
+	RuntimeInfrastructureBackup(const RuntimeInfrastructureBackup&) = delete;
+	RuntimeInfrastructureBackup& operator=(const RuntimeInfrastructureBackup&) = delete;
+
+	// Puts the infrastructure back. What the runtime globals hold instead is dropped with the backup.
+	void restore() {
+		exchange();
+	}
+
+private:
+	void exchange() {
+		std::swap(signalling_block_sections, sections_);
+		std::swap(train_route, routes_);
+		std::swap(list_of_TDS, detectionSections_);
+		std::swap(InfraElementsList, infraElements_);
+		std::swap(AllStationPlatforms, platforms_);
+		std::swap(singleTrackLimits, singleTrackLimits_);
+		std::swap(stationBoundarySections, stationBoundaries_);
+		std::swap_ranges(blockSets, blockSets + kNativeMaxTracks, tracks_.begin());
+		std::swap_ranges(connections, connections + kNativeMaxConnections, connections_.begin());
+		std::swap_ranges(StationArray, StationArray + kNativeMaxStations, stations_.begin());
+		std::swap(Final_Station, finalStation_);
+		std::swap(numTrackLines, numTrackLines_);
+		std::swap(numConnections, numConnections_);
+		std::swap(numStations, numStations_);
+		std::swap(numAllStationPlatforms, numAllStationPlatforms_);
+		std::swap(Blocks, blocks_);
+		std::swap(N_Routes, routeCount_);
+		std::swap(derivedSectionsExceedPlan, derivedSectionsExceedPlan_);
+	}
+
+	std::vector<Section> sections_;
+	std::vector<Route> routes_;
+	std::list<TDS> detectionSections_;
+	std::list<InfraEvent> infraElements_;
+	std::list<StationPlatform> platforms_;
+	decltype(singleTrackLimits) singleTrackLimits_;
+	std::vector<StationBoundarySection> stationBoundaries_;
+	std::vector<BlockSet> tracks_ = std::vector<BlockSet>(kNativeMaxTracks);
+	std::vector<Connections> connections_ = std::vector<Connections>(kNativeMaxConnections);
+	std::vector<Stations> stations_ = std::vector<Stations>(kNativeMaxStations);
+	Stations finalStation_;
+	int numTrackLines_ = 0;
+	int numConnections_ = 0;
+	int numStations_ = 0;
+	int numAllStationPlatforms_ = 0;
+	int blocks_ = 0;
+	int routeCount_ = 0;
+	bool derivedSectionsExceedPlan_ = false;
+};
 
 // Checks the whole scene and decides what the runtime will hold, without reading or writing a runtime global.
 // The plan is complete only when the diagnostics hold no error.
@@ -1045,6 +1104,9 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 	const InfrastructurePlan plan = planInfrastructure(scene, diagnostics);
 	if (nativeHasErrors(diagnostics))
 		return diagnostics;
+	RuntimeInfrastructureBackup previous;
 	commitInfrastructure(scene, plan, diagnostics);
+	if (nativeHasErrors(diagnostics))
+		previous.restore();
 	return diagnostics;
 }
