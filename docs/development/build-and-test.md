@@ -114,8 +114,8 @@ of it: in such a build the first show of the window starts no scenario and
 friend class of `MainWindow` that the runner calls. A scenario is a member of
 `MainWindowTestAccess` defined in its own file in that folder (the legacy import
 smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the scene
-render smoke `SceneRender.cpp`), or a private member of `MainWindow` that
-`MainWindowTestAccess` forwards to.
+render smoke `SceneRender.cpp`, the station overlay smoke `StationOverlay.cpp`),
+or a private member of `MainWindow` that `MainWindowTestAccess` forwards to.
 
 ### Warnings
 

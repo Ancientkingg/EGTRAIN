@@ -1016,7 +1016,6 @@ private:
 	bool replaySliderCovers(int from, int to) const;
 	QSize replayRowSizeAt(int time);
 	bool checkReplayRowE2E(int middle, QString& failure);
-	void runStationOverlayE2E();
 	void runEditorSmokeE2E();
 	void runCreatorAcceptanceE2E();
 	bool checkPreviewInfrastructureE2E(QString& failure);
