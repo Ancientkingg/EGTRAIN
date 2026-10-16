@@ -232,7 +232,7 @@ to the console directly.
   false result.
 - The default sink writes the text unchanged to `std::cout`, for every category and level.
   `eglog::setSink` replaces it; a sink must not call the logging core.
-- `installConsoleLogging()` (`widgets/ConsoleWidget.h`) is called first in `main()`. It installs
+- `installConsoleLogging()` (`widgets/ConsoleWidget.h`) is called at the start of `main()`, right after the startup timer starts. It installs
   the sink `consoleLogSink` and the Qt message handler `qtMessageToLog`, applies `EGTRAIN_LOG`
   with `eglog::configureFromEnvironment()` and opens the file named by `EGTRAIN_LOG_FILE`. It
   returns a warning for `main()` to print on `std::cerr` when a rule is malformed or the file
