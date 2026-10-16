@@ -99,6 +99,8 @@ that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
 
 Still compiled in more than one target: the telemetry sources of the hook flavours, and
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
+and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
+`SelfUpdater` and `UpdateNotices`.
 
 ## Renames
 
