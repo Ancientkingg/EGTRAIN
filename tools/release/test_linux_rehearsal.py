@@ -139,9 +139,10 @@ class ReadingTests(unittest.TestCase):
 
 class EnvironmentTests(unittest.TestCase):
     def test_application_gets_a_new_home_and_only_the_accessibility_switches_of_qt(self):
-        env = linux_rehearsal.application_environment(Path("/tmp/home"), Path("/tmp/runtime"))
-        self.assertEqual(env["HOME"], "/tmp/home")
-        self.assertEqual(env["XDG_RUNTIME_DIR"], "/tmp/runtime")
+        home, runtime = Path("/tmp/home"), Path("/tmp/runtime")
+        env = linux_rehearsal.application_environment(home, runtime)
+        self.assertEqual(env["HOME"], str(home))
+        self.assertEqual(env["XDG_RUNTIME_DIR"], str(runtime))
         self.assertEqual((env["QT_ACCESSIBILITY"], env["QT_LINUX_ACCESSIBILITY_ALWAYS_ON"]), ("1", "1"))
         self.assertEqual([name for name in env if name.startswith(("QT_", "QEGTRAIN_"))],
                          ["QT_ACCESSIBILITY", "QT_LINUX_ACCESSIBILITY_ALWAYS_ON"])
