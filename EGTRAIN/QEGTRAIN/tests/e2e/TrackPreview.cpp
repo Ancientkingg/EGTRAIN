@@ -1,6 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
-#include "app/SignalItemRoles.h"
+#include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
 #include "graphics/NetworkScene.h"

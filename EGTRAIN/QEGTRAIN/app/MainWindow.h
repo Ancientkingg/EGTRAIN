@@ -206,8 +206,6 @@ public:
 	// painting
 	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
 	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node, bool lineEnd);
-	void paintStationOverlay(QPointF coord, const StationVisual& visual, const string& sname,
-		qreal presentationScale = 1.0, QPointF decorationOffset = QPointF(), int platformCount = 0);
 	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
 	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
 	void paintPassengerInfoIcon(PassengerItem* paxItem);
@@ -457,7 +455,6 @@ private:
 	bool& m_sceneLoaded = m_document->m_loaded;
 	bool& m_sceneDirty = m_document->m_dirty;
 	quint64& m_sceneRevision = m_document->m_revision;
-	TrackPreviewResult m_cachedTrackPreview;
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
@@ -502,10 +499,6 @@ private:
 	QString m_infrastructureSelectionId;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
-	QRectF m_previewFitBounds;
-	QPointF m_previewZoomFocus;
-	bool m_previewHasSelectedTrack = false;
-	bool m_previewHasSignals = false;
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
 	bool m_sceneChangedDuringRun = false;
@@ -644,12 +637,6 @@ private:
 	QCheckBox* m_signalLayerCheck = nullptr;
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
-	bool m_stationLayerVisible = true;
-	bool m_stationNamesVisible = true;
-	bool m_trainLayerVisible = true;
-	bool m_trainSpeedLabelsVisible = true;
-	bool m_signalLayerVisible = true;
-	bool m_passengerLayerVisible = true;
 	QString m_selectedStationName;
 	QString m_previewSelectedStationId;
 	bool m_hasSelectedStationIdentity = false;
@@ -719,7 +706,6 @@ private:
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	bool maybeSaveScene();
 	const TrackPreviewLine* cachedTrackLine(int track) const;
-	qreal presentationScale() const;
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void clearPreviewInspection();
 	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
@@ -952,16 +938,6 @@ private:
 
 	// associates regions and station indexes
 	std::vector<std::vector<int>> regionStations;
-
-	// scene item sizes
-	int global_scale;
-	int node_size;
-	int station_node_size;
-	int station_name_graphID; // to be on the opposite side of tracks
-	int line_width;
-	int track_separation;
-	int station_size;
-	int geo_scale; // scale used to convert latitude,longitude to screen coordinates
 
 private slots:
 	void setStartTime();

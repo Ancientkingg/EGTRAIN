@@ -446,12 +446,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
 				}
 				w.refreshInfrastructurePanel();
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
@@ -459,7 +459,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_infrastructureTable->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = w.m_infrastructureSelectionId;
 				w.refreshInfrastructurePanel();
-				if (explicitlySelectedTrack.isEmpty() || !w.m_previewHasSelectedTrack || w.m_sceneDirty
+				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty
 					|| w.m_infrastructureSelectionId != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
@@ -469,7 +469,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
 				}
-				if (w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}

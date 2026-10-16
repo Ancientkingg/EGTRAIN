@@ -1,5 +1,9 @@
+// SceneModel.h has a member named signals, so it comes before the Qt headers.
+#include "scene/SceneModel.h"
+
 #include "graphics/NetworkPresenter.h"
 
+#include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
 #include "graphics/items/PassengerItem.h"
@@ -15,6 +19,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
+#include <QLoggingCategory>
 #include <QPixmap>
 
 #include <iostream>
@@ -81,6 +86,50 @@ static void fill(NetworkPresenter& presenter, QGraphicsScene& scene) {
 	badge->setGraphicsEffect(presenter.effect);
 }
 
+// Two tracks of a line with a connection at one end and three stations.
+static SceneModel previewModel() {
+	SceneModel scene;
+	scene.tracks = {{"B0"}, {"B1"}};
+	scene.nodes = {
+		{"B0.Gvc", "B0", 0.0, 1.0},
+		{"B0.Gdg", "B0", 28.0, 2.0},
+		{"B0.Ut", "B0", 64.0, 3.0},
+		{"B1.Ut", "B1", 100.0, -1.0},
+		{"B1.Gdg", "B1", 136.0, -2.0},
+		{"B1.Gvc", "B1", 164.0, -3.0},
+	};
+	scene.arcs = {
+		{"B0.arc.1", "B0", "B0.Gvc", "B0.Gdg", 0.0, 0.0, 12.0},
+		{"B0.arc.2", "B0", "B0.Gdg", "B0.Ut", 0.0, 0.0, 12.0},
+		{"B1.arc.1", "B1", "B1.Ut", "B1.Gdg", 0.0, 0.0, 12.0},
+		{"B1.arc.2", "B1", "B1.Gdg", "B1.Gvc", 0.0, 0.0, 12.0},
+	};
+	scene.blocks = {
+		{"B0.block.1", "B0", 28.0},
+		{"B0.block.2", "B0", 36.0},
+		{"B1.block.1", "B1", 36.0},
+		{"B1.block.2", "B1", 64.0},
+	};
+	scene.connections.push_back({"switch.7", "B0.Ut", "B1.Ut", false, 0.0});
+	scene.trackViews = {{"B0", 0, 0}, {"B1", 1, 1}};
+	scene.stationViews = {
+		{"Gvc", 52.0, 0.0, {{0, 0.0}, {1, 164.0}}, {}},
+		{"Gdg", 52.25, 0.28, {{0, 28.0}, {1, 136.0}}, {}},
+		{"Ut", 52.5, 0.64, {{0, 64.0}, {1, 100.0}}, {}},
+	};
+	for (const auto& stationData : {
+			 std::pair<const char*, const char*>{"Gvc", "B0.Gvc"},
+			 std::pair<const char*, const char*>{"Gdg", "B0.Gdg"},
+			 std::pair<const char*, const char*>{"Ut", "B0.Ut"}}) {
+		SceneStation station;
+		station.id = stationData.first;
+		station.name = stationData.first;
+		station.platforms.push_back({std::string(stationData.first) + ".platform", {stationData.second}});
+		scene.stations.push_back(std::move(station));
+	}
+	return scene;
+}
+
 static bool registriesEmpty(const NetworkPresenter& presenter) {
 	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
 		&& presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty() && presenter.m_signalDecorations.isEmpty()
@@ -98,11 +147,13 @@ static bool pointersNull(const NetworkPresenter& presenter) {
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
+	// The station icons are resources of the application, which this test does not have.
+	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 
 	{
 		QGraphicsScene scene;
-		NetworkPresenter presenter(&scene);
+		NetworkPresenter presenter(&scene, nullptr);
 		ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
 			"a new presenter has no registry entry and no pointer");
 		for (int cycle = 0; cycle < 3; ++cycle) {
@@ -118,7 +169,7 @@ int main(int argc, char* argv[]) {
 	}
 	{
 		auto scene = std::make_unique<QGraphicsScene>();
-		NetworkPresenter presenter(scene.get());
+		NetworkPresenter presenter(scene.get(), nullptr);
 		fill(presenter, *scene);
 		scene.reset();
 		presenter.clear();
@@ -126,10 +177,50 @@ int main(int argc, char* argv[]) {
 			"clear empties the registries after the scene is gone");
 	}
 	{
-		NetworkPresenter presenter(nullptr);
+		NetworkPresenter presenter(nullptr, nullptr);
 		presenter.m_prevTrainPositions.insert(0, QPointF());
 		presenter.clear();
 		ok &= expect(registriesEmpty(presenter), "clear works without a scene");
+	}
+
+	{
+		QGraphicsScene scene;
+		NetworkView view;
+		view.setScene(&scene);
+		NetworkPresenter presenter(&scene, &view);
+		const SceneModel model = previewModel();
+		int drawnItems = 0;
+		for (int cycle = 0; cycle < 3; ++cycle) {
+			const NetworkPresenter::PreviewOutcome outcome = presenter.showPreview(model);
+			ok &= expect(outcome.available && outcome.trackLines == 2 && outcome.fitted,
+				"the preview draws both track lines and fits the view");
+			ok &= expect(!presenter.m_stationOverlays.isEmpty() && !presenter.m_signalDecorations.isEmpty()
+					&& presenter.m_previewHasSignals && !presenter.m_previewFitBounds.isEmpty()
+					&& presenter.trackLine("B0") && !presenter.trackLine("none"),
+				"the preview fills the registries and keeps the preview it drew");
+			if (cycle == 0)
+				drawnItems = scene.items().size();
+			ok &= expect(drawnItems > 0 && scene.items().size() == drawnItems, "every cycle draws the same items");
+			presenter.clear();
+			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
+				"clear after a preview leaves the registries empty and the scene as empty as a new scene");
+		}
+
+		NetworkPresenter::PreviewOptions options;
+		options.selectedFacet = "tracks";
+		options.selectedId = "B1";
+		presenter.showPreview(model, options);
+		ok &= expect(presenter.m_previewHasSelectedTrack, "a selected track is marked");
+		const int stationDecorations = presenter.m_stationDecorations.size();
+		presenter.clear();
+		options.platformBars = true;
+		presenter.showPreview(model, options);
+		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
+		presenter.clear();
+
+		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
+		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
+			"a model without track lines draws nothing");
 	}
 
 	if (!ok)

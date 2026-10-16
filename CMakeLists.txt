@@ -429,7 +429,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
-    ${SRC_DIR}/app/SignalItemRoles.h
+    ${SRC_DIR}/graphics/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Log.h

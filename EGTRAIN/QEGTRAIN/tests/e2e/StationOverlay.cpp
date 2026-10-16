@@ -1,6 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
-#include "app/SignalItemRoles.h"
+#include "graphics/SignalItemRoles.h"
 
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
@@ -92,14 +92,14 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		// Independent case evidence, not a per-case product multiplier.
 		const qreal expectedScale = caseName == "Paimpol" ? 0.45
 														  : (caseName == "Netherlands" ? 0.444237158416
-																					   : (caseName == "Copenhagen" ? 0.397828421659 : w.presentationScale()));
-		if (qAbs(w.presentationScale() - expectedScale) > 1e-6)
+																					   : (caseName == "Copenhagen" ? 0.397828421659 : w.m_presenter->presentationScale()));
+		if (qAbs(w.m_presenter->presentationScale() - expectedScale) > 1e-6)
 			failures << "authored projection presentation factor mismatch";
 		marker(
 			QString("E2E_PRESENTATION_UNITS_%1_S_%2_K_%3")
 				.arg(caseName)
-				.arg(w.m_cachedTrackPreview.normalizationScale, 0, 'f', 6)
-				.arg(w.presentationScale(), 0, 'f', 9));
+				.arg(w.m_presenter->m_cachedTrackPreview.normalizationScale, 0, 'f', 6)
+				.arg(w.m_presenter->presentationScale(), 0, 'f', 9));
 		const QRectF topologyBounds = w.networkView->topologyBounds();
 		const auto pictureNativeSize = [](const QGraphicsPixmapItem* picture) {
 			return QSizeF(picture->pixmap().size()) / picture->pixmap().devicePixelRatio();
@@ -154,12 +154,12 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 					++pictures;
 					const qreal height = pictureDeviceHeight(picture);
 					const qreal sceneHeight = pictureNativeSize(picture).height()
-						* w.presentationScale() * qAbs(w.networkView->transform().m11());
+						* w.m_presenter->presentationScale() * qAbs(w.networkView->transform().m11());
 					if (height < minPictureHeight || height > qMax(minPictureHeight + 1.0, sceneHeight) + 0.5)
 						minimumOk = false;
 					if (!foundPicture) {
 						foundPicture = true;
-						if (picture->pixmap().width() != w.station_size
+						if (picture->pixmap().width() != w.m_presenter->station_size
 							|| !qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()))
 							failures << QString("%1 artwork lost its station identity").arg(zoom.second);
 					}
@@ -180,7 +180,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 					anchorsOk = false;
 				if (!name->isVisible()) {
 					++hiddenNames;
-					if (w.m_stationLayerVisible && w.m_stationNamesVisible && !overlay->isNameHiddenByCollision())
+					if (w.m_presenter->m_stationLayerVisible && w.m_presenter->m_stationNamesVisible && !overlay->isNameHiddenByCollision())
 						collisionOk = false;
 					continue;
 				}

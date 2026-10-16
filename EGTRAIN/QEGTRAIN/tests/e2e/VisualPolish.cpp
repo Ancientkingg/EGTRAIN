@@ -3,7 +3,7 @@
 #include "app/DispatchController.h"
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
-#include "app/SignalItemRoles.h"
+#include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
 #include "graphics/FollowCamera.h"
@@ -2795,7 +2795,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const auto paintedFill = [&w, &platformNode](bool lineEnd, int connections) {
 			platformNode.numConnections = connections;
 			const QList<QGraphicsItem*> before = w.scene->items();
-			w.paintStationNode(QPointF(), w.station_node_size, 1, 0, &platformNode, lineEnd);
+			w.paintStationNode(QPointF(), w.m_presenter->station_node_size, 1, 0, &platformNode, lineEnd);
 			QColor fill;
 			for (QGraphicsItem* item : w.scene->items()) {
 				if (before.contains(item))
@@ -2912,7 +2912,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					return track && track->pen().color() == kSelectionCueColor;
 				});
 				if (w.m_infrastructureTable->currentRow() != -1 || !w.m_infrastructureSelectionId.isEmpty()
-					|| w.m_previewHasSelectedTrack || cueDrawn) {
+					|| w.m_presenter->m_previewHasSelectedTrack || cueDrawn) {
 					ok = false;
 					failures << "Stop selected a track without a selection in the infrastructure editor";
 				} else {
