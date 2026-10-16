@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -48,6 +50,14 @@ struct Arguments {
 	// caller gave none, or gave a value that is not accepted; no record is written then.
 	std::string version;
 	std::filesystem::path record;
+	// Installer mode: the installer to run and the text of its command line arguments. The helper
+	// replaces no files in this mode, so --current, --staged and --backup are not accepted with it.
+	std::filesystem::path installer;
+	ArgumentString installerArguments;
+
+	bool runsInstaller() const {
+		return installer.has_filename();
+	}
 };
 
 // Digits and dots only, so that the text is safe to write as it is. The reader checks that it is a version.
@@ -111,6 +121,16 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 				return false;
 			result.observeMs = static_cast<unsigned>(milliseconds);
 #if defined(_WIN32)
+		} else if (name == L"--installer") {
+			result.installer = value;
+		} else if (name == L"--installer-args") {
+#else
+		} else if (name == "--installer") {
+			result.installer = value;
+		} else if (name == "--installer-args") {
+#endif
+			result.installerArguments = value;
+#if defined(_WIN32)
 		} else if (name == L"--version") {
 			result.version = acceptedVersion(value);
 		} else if (name == L"--record") {
@@ -126,8 +146,12 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 			return false;
 		}
 	}
-	return result.current.has_filename() && result.staged.has_filename()
-		&& result.backup.has_filename() && result.launch.has_filename();
+	if (!result.launch.has_filename())
+		return false;
+	if (result.runsInstaller())
+		return result.current.empty() && result.staged.empty() && result.backup.empty();
+	return result.installerArguments.empty() && result.current.has_filename()
+		&& result.staged.has_filename() && result.backup.has_filename();
 }
 
 bool waitForParent(unsigned long long pid) {
@@ -162,6 +186,23 @@ bool movePath(const std::filesystem::path& from, const std::filesystem::path& to
 	return !error;
 }
 
+#if defined(_WIN32)
+// Starts a program detached from this console. An empty commandLine is the path itself.
+bool startProcess(const std::wstring& path, std::wstring commandLine, const wchar_t* workingDirectory,
+	PROCESS_INFORMATION& process) {
+	STARTUPINFOW startup{};
+	startup.cb = sizeof(startup);
+	// The child inherits the error mode. Without these flags a missing DLL or a crash
+	// can leave a modal dialog open and the process alive, which would look like a good start.
+	const UINT previousMode = SetErrorMode(0);
+	SetErrorMode(previousMode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+	const BOOL created = CreateProcessW(path.c_str(), commandLine.empty() ? nullptr : commandLine.data(), nullptr,
+		nullptr, FALSE, CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, workingDirectory, &startup, &process);
+	SetErrorMode(previousMode);
+	return created != FALSE;
+}
+#endif
+
 // Starts the application in the directory of its executable and watches it for observeMs.
 // A process that exits with a non-zero code inside the window failed to start. One that
 // exits with code 0 or is still running when the window ends started. observeMs == 0 does not watch.
@@ -170,17 +211,8 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 	const std::wstring path = executable.wstring();
 	const std::wstring directory = executable.parent_path().wstring();
 	const wchar_t* workingDirectory = directory.empty() ? nullptr : directory.c_str();
-	STARTUPINFOW startup{};
-	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process{};
-	// The child inherits the error mode. Without these flags a missing DLL or a crash
-	// can leave a modal dialog open and the process alive, which would look like a good start.
-	const UINT previousMode = SetErrorMode(0);
-	SetErrorMode(previousMode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
-	const BOOL created = CreateProcessW(path.c_str(), nullptr, nullptr, nullptr, FALSE,
-		CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS, nullptr, workingDirectory, &startup, &process);
-	SetErrorMode(previousMode);
-	if (!created)
+	if (!startProcess(path, std::wstring(), workingDirectory, process))
 		return false;
 	CloseHandle(process.hThread);
 	bool started = true;
@@ -220,6 +252,59 @@ bool launch(const std::filesystem::path& executable, unsigned observeMs) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(25));
 	}
 	return true;
+}
+#endif
+
+// Runs the installer and waits for it to end. The result is its exit code, or nothing when it could not
+// be started or ended without one. Nothing limits the wait: an installer that is stopped halfway can
+// leave the installation unusable.
+#if defined(_WIN32)
+// The installer parses its own command line, so the text follows the quoted path as it is.
+std::optional<unsigned long> runInstaller(const std::filesystem::path& installer, const std::wstring& argumentText) {
+	const std::wstring path = installer.wstring();
+	std::wstring commandLine = L"\"" + path + L"\"";
+	if (!argumentText.empty())
+		commandLine += L" " + argumentText;
+	PROCESS_INFORMATION process{};
+	if (!startProcess(path, commandLine, nullptr, process))
+		return std::nullopt;
+	CloseHandle(process.hThread);
+	DWORD exitCode = 0;
+	const bool ended = WaitForSingleObject(process.hProcess, INFINITE) == WAIT_OBJECT_0
+		&& GetExitCodeProcess(process.hProcess, &exitCode);
+	CloseHandle(process.hProcess);
+	if (!ended)
+		return std::nullopt;
+	return exitCode;
+}
+#else
+// The text is split at white space and has no quoting; only the tests run an installer here.
+std::optional<unsigned long> runInstaller(const std::filesystem::path& installer, const std::string& argumentText) {
+	std::error_code error;
+	if (!std::filesystem::is_regular_file(installer, error) || access(installer.c_str(), X_OK) != 0)
+		return std::nullopt;
+	std::vector<std::string> parts = {installer.string()};
+	std::istringstream words(argumentText);
+	for (std::string word; words >> word;)
+		parts.push_back(word);
+	std::vector<char*> argv;
+	for (std::string& part : parts)
+		argv.push_back(part.data());
+	argv.push_back(nullptr);
+	const pid_t child = fork();
+	if (child < 0)
+		return std::nullopt;
+	if (child == 0) {
+		execv(installer.c_str(), argv.data());
+		_exit(127);
+	}
+	int status = 0;
+	while (waitpid(child, &status, 0) < 0)
+		if (errno != EINTR)
+			return std::nullopt;
+	if (!WIFEXITED(status))
+		return std::nullopt;
+	return static_cast<unsigned long>(WEXITSTATUS(status));
 }
 #endif
 
@@ -276,14 +361,15 @@ std::string utcTimestamp() {
 }
 
 // Leaves the record that the application reads at its next start (see update/UpdateRecord.h, which
-// holds the same format). Three lines, each ended by a line feed:
-//   outcome=rolled-back
+// holds the same format). Three lines, each ended by a line feed, and then the lines of details:
+//   outcome=rolled-back, installer-succeeded or installer-failed
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
-// The version is the one that failed to start and the time is the UTC time of this write. Best
-// effort: nothing here throws, and a record that cannot be written changes nothing else. The
-// previous version is started after this returns, so it never sees a half-written record.
-void writeRollbackRecord(const Arguments& arguments) {
+// The version is the one that failed to start or that the installer was to install, and the time is
+// the UTC time of this write. Best effort: nothing here throws, and a record that cannot be written
+// changes nothing else. The application is started after this returns, so it never sees a
+// half-written record.
+void writeRecord(const Arguments& arguments, const char* outcome, const std::string& details = std::string()) {
 	if (arguments.version.empty() || arguments.record.empty())
 		return;
 	const std::string time = utcTimestamp();
@@ -294,7 +380,8 @@ void writeRollbackRecord(const Arguments& arguments) {
 	if (error)
 		return;
 	std::ofstream output(arguments.record, std::ios::binary);
-	output << "outcome=rolled-back\nversion=" << arguments.version << "\ntime=" << time << "\n";
+	output << "outcome=" << outcome << "\nversion=" << arguments.version << "\ntime=" << time << "\n"
+		   << details;
 	output.close();
 	if (!output.good())
 		std::filesystem::remove(arguments.record, error);
@@ -311,7 +398,7 @@ void restoreBackup(const Arguments& arguments) {
 		return;
 	if (movePathWithRetries(arguments.backup, arguments.current)) {
 		removePath(failed);
-		writeRollbackRecord(arguments);
+		writeRecord(arguments, "rolled-back");
 		launch(arguments.launch, 0);
 	} else {
 		movePathWithRetries(failed, arguments.current);
@@ -344,6 +431,27 @@ bool transactionalInstall(const Arguments& arguments) {
 	return true;
 }
 
+// Runs the installer of an installer-managed copy and then starts the application. The helper
+// replaces no files itself. Only exit code 0 counts as installed. The installer is not
+// transactional, so after any other end the installation may be partly updated and the application
+// that starts is whatever it holds. The record names the version that was to be installed, so that
+// the application can check at its next start which version it has.
+bool installerUpdate(const Arguments& arguments) {
+	const std::optional<unsigned long> exitCode = runInstaller(arguments.installer, arguments.installerArguments);
+	const bool installed = exitCode && *exitCode == 0;
+	if (installed)
+		writeRecord(arguments, "installer-succeeded");
+	else if (exitCode)
+		writeRecord(arguments, "installer-failed", "exit-code=" + std::to_string(*exitCode) + "\n");
+	else
+		writeRecord(arguments, "installer-failed");
+	if (!launch(arguments.launch, installed ? arguments.observeMs : 0))
+		return false;
+	if (installed)
+		removeStaging(arguments.installer.parent_path());
+	return installed;
+}
+
 } // namespace
 
 int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
@@ -351,14 +459,21 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	if (!parseArguments(argc, argv, arguments)) {
 		std::cerr << "usage: egtrain_update_helper --parent-pid PID --current PATH "
 					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS] "
-					 "[--version X.Y.Z --record PATH]\n";
+					 "[--version X.Y.Z --record PATH]\n"
+					 "       egtrain_update_helper --parent-pid PID --installer PATH [--installer-args TEXT] "
+					 "--launch PATH [--observe-ms MILLISECONDS] [--version X.Y.Z --record PATH]\n";
 		return 2;
 	}
+	// The working directory is the parent of the installation, so that it never holds a folder of it.
+	const std::filesystem::path installation =
+		arguments.runsInstaller() ? arguments.launch.parent_path() : arguments.current;
 	std::error_code workingDirectoryError;
-	std::filesystem::current_path(arguments.current.parent_path(), workingDirectoryError);
+	std::filesystem::current_path(installation.parent_path(), workingDirectoryError);
 	if (workingDirectoryError)
 		return 1;
 	if (!waitForParent(arguments.parentPid))
 		return 1;
+	if (arguments.runsInstaller())
+		return installerUpdate(arguments) ? 0 : 1;
 	return transactionalInstall(arguments) ? 0 : 1;
 }

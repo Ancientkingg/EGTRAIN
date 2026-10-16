@@ -16,6 +16,11 @@
 //   version=X.Y.Z
 //   time=YYYY-MM-DDTHH:MM:SSZ
 // The version is the one that failed to start and the time is the UTC time of the write.
+// In installer mode the helper runs the installer of an installer-managed copy instead and leaves
+// outcome=installer-succeeded (the installer exited with 0) or outcome=installer-failed, with the same
+// version (the one to install) and time. A failed installer that ended with an exit code adds a fourth
+// line, exit-code=N. Only the first record is an UpdateRecord: parseUpdateRecord does not accept the
+// others, so they never produce the message about a rolled-back update.
 struct UpdateRecord {
 	SemanticVersion version;
 	QDateTime time;

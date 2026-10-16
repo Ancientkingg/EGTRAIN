@@ -1,7 +1,8 @@
-// Stand-in for an installed application in the update helper test. It reads
-// behavior.txt from its own directory (key=value lines) and acts on it:
+// Stand-in for an installed application, or for the installer of one, in the update helper test. It
+// reads behavior.txt from its own directory (key=value lines) and acts on it:
 //   label=NAME   name written to the log
-//   log=PATH     file that receives "NAME cwd DIRECTORY" and then "NAME started" when the probe starts
+//   log=PATH     file that receives "NAME cwd DIRECTORY" and then "NAME started" when the probe starts;
+//                between them "NAME args A|B" when it was started with the arguments A and B
 //   record=PATH  adds "NAME sees record" or "NAME sees no record" between those two lines, by whether PATH exists
 //   mode=exit    exit with code=N (default 0)
 //   mode=sleep   wait ms=N, write "NAME done", exit 0
@@ -55,7 +56,7 @@ void appendLog(const std::string& log, const std::string& text) {
 
 } // namespace
 
-int main(int, char** argv) {
+int main(int argc, char** argv) {
 	const std::filesystem::path directory = ownDirectory(argv[0]);
 	if (directory.empty())
 		return 70;
@@ -64,6 +65,12 @@ int main(int, char** argv) {
 	const std::string log = behavior["log"];
 	const std::string mode = behavior["mode"];
 	appendLog(log, label + " cwd " + std::filesystem::current_path().u8string());
+	if (argc > 1) {
+		std::string arguments = argv[1];
+		for (int i = 2; i < argc; ++i)
+			arguments += std::string("|") + argv[i];
+		appendLog(log, label + " args " + arguments);
+	}
 	const std::string record = behavior["record"];
 	if (!record.empty()) {
 		std::error_code error;
