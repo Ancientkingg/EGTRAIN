@@ -12,7 +12,7 @@ Choose the route that matches your task.
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [Amsterdam to Hilversum student case](guides/amsterdam-hilversum-student-case.md)
 - [How delays are calculated](guides/delay-analysis.md)
-- [How capacity is analysed](guides/capacity-analysis.md)
+- [How capacity is analysed](guides/capacity-analysis.md): the train chain window and the capacity by area window, with the choice of scope and period, the completeness rule, the governing resource and a figure reproduced by hand.
 - [Inspecting diagrams](ui/diagram-navigation.md): how to hover, select, zoom and pan in a result diagram, and how the timetable graph, the train-path graph and the blocking-time charts are drawn.
 
 ## Create or edit scenes
