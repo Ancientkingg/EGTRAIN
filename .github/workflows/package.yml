@@ -4,7 +4,8 @@ name: Package
 # The macOS package is a disk image. The Windows package is also built into an installer and a portable archive,
 # which are artifacts too. A push to production or a v* tag signs the three Windows program files first and the installer
 # last when the repository variable WINDOWS_SIGNING is signpath; every other run builds unsigned files and reports their
-# signatures.
+# signatures. The macOS app is signed ad hoc, except in a push to production or a v* tag when the environment macos-signing
+# holds a Developer ID certificate: then tools/release/sign_macos.sh signs it with that identity.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -22,6 +23,9 @@ permissions:
 jobs:
   package-macos:
     name: Package macOS
+    # A push to production or a v* tag runs in the environment macos-signing, which holds the Developer ID certificate, its
+    # password and the variable MACOS_SIGNING_IDENTITY. Every other run has no environment, so it cannot read them.
+    environment: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) && 'macos-signing' || '' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -120,13 +124,54 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string $minimum" "$APP/Contents/Info.plist"
           echo "macOS app minimum system version: $minimum" | tee -a "$GITHUB_STEP_SUMMARY"
 
-      - name: Ad-hoc code sign
+      - name: Import the signing certificate
+        # The certificate goes into a keychain of its own, which the last step deletes, and the file it came from is removed at
+        # once. Without a certificate the step does nothing and the app keeps the ad-hoc signature. This is the only step that
+        # reads the certificate and its password. It passes the identity to the later steps through the environment.
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) }}
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          IDENTITY: ${{ vars.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "macOS signing: no Developer ID certificate is configured, so the app keeps the ad-hoc signature." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -z "$MACOS_CERTIFICATE_PASSWORD" ] || [ -z "$IDENTITY" ]; then
+            echo "ERROR: the certificate is configured, but its password or the variable MACOS_SIGNING_IDENTITY is not"
+            exit 1
+          fi
+          keychain="$RUNNER_TEMP/egtrain-signing.keychain-db"
+          certificate="$RUNNER_TEMP/egtrain-signing-certificate.p12"
+          password="$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          trap 'rm -f "$certificate"' EXIT
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$certificate"
+          security create-keychain -p "$password" "$keychain"
+          echo "MACOS_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identities="$(security find-identity -v -p codesigning "$keychain")"
+          if ! grep -qF "$IDENTITY" <<< "$identities"; then
+            echo "ERROR: the keychain holds no valid code signing identity with the name in MACOS_SIGNING_IDENTITY"
+            exit 1
+          fi
+          echo "MACOS_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+          echo "macOS signing: the app is signed with the Developer ID identity of the environment." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Sign the app
         # macdeployqt rewrites install names with install_name_tool, which
         # invalidates the code signature. Apple Silicon kills a binary with a
-        # broken signature at load (SIGKILL), so re-sign the whole bundle
-        # ad-hoc. Students still see a Gatekeeper prompt on first open, but the
-        # app launches instead of being killed.
-        run: codesign --force --deep --sign - build/QEGTRAIN.app
+        # broken signature at load (SIGKILL), so the bundle is signed again.
+        # Without an identity the signature is ad-hoc: students still see a
+        # Gatekeeper warning on first open, but the app launches instead of being
+        # killed. With one, the script signs each nested file and then the bundle.
+        run: bash tools/release/sign_macos.sh build/QEGTRAIN.app
 
       - name: Verify the app is self-contained
         run: |
@@ -163,6 +208,25 @@ jobs:
           # The signature must be valid, or Apple Silicon kills the app at launch.
           codesign --verify --deep --strict --verbose=2 "$APP"
           echo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"
+
+      - name: Verify the signature
+        # Prints who signed the app. A Developer ID signature needs a team, the hardened runtime and a secure timestamp. Without
+        # an identity the signature has to be ad hoc.
+        run: |
+          set -euo pipefail
+          details="$(codesign -dvv build/QEGTRAIN.app 2>&1)"
+          grep -E '^(Identifier|Signature|Authority|TeamIdentifier|Timestamp|CodeDirectory)[ =]' <<< "$details"
+          expect() {
+            grep -Eq "$1" <<< "$details" || { echo "ERROR: $2"; exit 1; }
+          }
+          if [ -n "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            expect '^Authority=Developer ID Application: ' "the app is not signed with a Developer ID Application identity"
+            expect '^TeamIdentifier=[A-Z0-9]{10}$' "the signature names no team"
+            expect '^CodeDirectory .*flags=.*runtime' "the hardened runtime is off"
+            expect '^Timestamp=' "the signature has no secure timestamp"
+          else
+            expect '^Signature=adhoc$' "the signature is not ad hoc"
+          fi
 
       - name: Verify the packaged app
         run: |
@@ -338,6 +402,10 @@ jobs:
           name: QEGTRAIN-macos-arm64
           path: build/dmg/EGTRAIN-${{ inputs.version }}-macOS-arm64.dmg
           if-no-files-found: error
+
+      - name: Delete the signing keychain
+        if: ${{ always() && env.MACOS_KEYCHAIN != '' }}
+        run: security delete-keychain "$MACOS_KEYCHAIN"
 
   package-windows:
     name: Package Windows

@@ -338,6 +338,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument, the open events and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
+| `test_sign_macos` | yes | no | no | Signs a fixture bundle with `tools/release/sign_macos.sh`, ad hoc and with the identity `-`, and needs `cc`, `codesign` and `ditto`. It uses no certificate or keychain. |
 
 The update requests do not need Qt's TLS. On Windows `createHttpTransport` returns a
 WinHTTP transport, so `test_httptransport` and `test_selfupdater` exercise it there. They reach
@@ -487,8 +488,8 @@ two command lines equal. The Windows package keeps `vc_redist.x64.exe` (from
 
 The macOS package job removes the virtual keyboard input plugin with the Quick
 and QML frameworks that it links, and the WebP and TIFF image plugins with
-their libraries, from the app after `macdeployqt` and before the ad hoc
-signature. The CMake workflow assembles no macOS package. The package job runs
+their libraries, from the app after `macdeployqt` and before the signature.
+The CMake workflow assembles no macOS package. The package job runs
 `tools/release/package_start_smoke.py` on a copy of the app (step **Start the
 package**).
 
@@ -1324,8 +1325,9 @@ most of its checks, so run it locally to read its logs.
   guide into the app, to `Contents/MacOS/scene_tool` and
   `Contents/Resources/lebanon-case-study.md`, and removes the virtual keyboard
   input plugin with the Quick and QML frameworks, and the WebP and TIFF plugins
-  with their libraries, from the app. All of this comes before the one ad hoc
-  signature. After the signature the job fails when one of the removed files is in
+  with their libraries, from the app. All of this comes before the one
+  signature, which `tools/release/sign_macos.sh` makes (see
+  [macOS signing script](#macos-signing-script)). After the signature the job fails when one of the removed files is in
   the app, runs `scene_tool` on the Lebanon scene of the app and Paimpol without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
@@ -1363,7 +1365,7 @@ most of its checks, so run it locally to read its logs.
   application accepts by its rules for the file list and the package sizes, and
   that the assets it writes are exactly the files that a release publishes.
   It does not prove a release: nothing is signed with real credentials (the
-  macOS bundle carries the same ad-hoc signature as in a release), nothing is
+  macOS bundle is signed ad hoc, as in a release without a certificate), nothing is
   published, and the check has read permission only. It does not prove the
   release job either: that job runs only on a push to `production` or a `v*`
   tag, so its steps (the script step, the glob that publishes
@@ -1612,6 +1614,52 @@ message for a missing tool, and the command lines, the link, the staged
 for `ditto` and `hdiutil`, and that the committed layout file names the app and
 the link. Run it with
 `ctest --test-dir build -R test_make_dmg --output-on-failure`.
+
+### macOS signing script
+
+`tools/release/sign_macos.sh <app>` signs the app in the macOS package job
+(step **Sign the app**). Without `MACOS_SIGNING_IDENTITY`, or with it empty, it
+runs `codesign --force --deep --sign -`, an ad-hoc signature that carries no
+publisher. With the variable set to a Developer ID Application identity from a
+keychain on the search list, it signs each Mach-O file and each nested
+`.framework`, `.app` and `.xpc` bundle on its own, with `--options runtime
+--timestamp`: first those in `Contents/Frameworks`, the deepest first, then
+those in `Contents/PlugIns`, then the programs in `Contents/MacOS`
+(`egtrain_update_helper` and `scene_tool`), then the main executable, and
+finally the bundle, without `--deep`. It stops before it signs anything when a
+Mach-O file is somewhere else in the bundle, and it prints no credential.
+
+In the workflow, a push to `production` or a `v*` tag runs the job in the
+environment `macos-signing`. The step **Import the signing certificate** reads
+the environment secrets `MACOS_CERTIFICATE` (a base64 encoded `.p12` file with
+the private key) and `MACOS_CERTIFICATE_PASSWORD`, and the variable
+`MACOS_SIGNING_IDENTITY` (the name of the identity, as `security find-identity`
+prints it). It imports them into a keychain of its own, passes the identity to
+the later steps, and the last step of the job deletes the keychain. Without a
+certificate the step does nothing and the app keeps the ad-hoc signature. The
+step **Verify the signature** prints the identifier, authority and team of the
+app, and requires an ad-hoc signature without an identity and a Developer ID
+Application authority, a team, the hardened runtime and a timestamp with one.
+Neither the workflows nor the release scripts remove the quarantine attribute or
+turn Gatekeeper off; `test_ci_workflow` checks it.
+
+The test is `tools/release/test_sign_macos.sh`. It builds a fixture bundle with a
+framework, a flat library, a plug-in, two programs next to the main one and a
+data file, and runs the script with a `codesign` in front of the real one that
+records its arguments and turns `--timestamp` into `--timestamp=none`, because a
+secure timestamp needs Apple's server. It checks that the ad-hoc path makes one
+`--deep` call and that the bundle verifies with
+`codesign --verify --deep --strict`. It runs the identity path with the identity
+`-`, so that the real tool signs without a certificate, and compares the calls
+with the expected order and options, checks that the bundle verifies and that
+every piece of code has the hardened runtime. A recording that signs nothing
+shows that an identity name with spaces and parentheses reaches each call as one
+argument and that no credential in the environment is printed. It also checks
+that Mach-O code in `Contents/Resources` stops the script and that a missing app
+is refused. The test makes no certificate or keychain, so it does not show that
+a Developer ID certificate signs, that the timestamp server answers or that
+Apple accepts the app. Run it with
+`ctest --test-dir build -R test_sign_macos --output-on-failure`.
 
 ### Installer script
 
