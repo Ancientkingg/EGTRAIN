@@ -131,9 +131,10 @@ void OpenRequestRelay::readRequest(QLocalSocket* socket) {
 	}
 	socket->disconnect(this);
 	const bool accepted = applicationDir == m_applicationDir && !path.isEmpty();
+	// The sender closes the connection once it has read the answer. A disconnect from this end
+	// could discard an answer that is not read yet, as Windows does with a named pipe.
 	socket->putChar(accepted ? kAccepted : kRefused);
 	socket->flush();
-	socket->disconnectFromServer();
 	if (!accepted)
 		return;
 	// A newer request replaces one that waits.
