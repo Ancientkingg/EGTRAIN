@@ -1767,13 +1767,9 @@ bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) 
 		if (candidate.routeIndex < 0 || candidate.routeIndex >= static_cast<int>(train_route.size()))
 			return candidate;
 		const Route& route = train_route[static_cast<std::size_t>(candidate.routeIndex)];
-		const int first = std::min(firstBlock->currentIndex(), lastBlock->currentIndex());
-		const int last = std::max(firstBlock->currentIndex(), lastBlock->currentIndex());
-		for (int blockIndex = first; blockIndex <= last && blockIndex < route.N_Block_Sections; ++blockIndex)
-			if (blockIndex >= 0) {
-				candidate.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
-				candidate.sectionIndices.push_back(blockIndex);
-			}
+		candidate.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), route.N_Block_Sections);
+		for (int blockIndex : candidate.sectionIndices)
+			candidate.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
 		return candidate;
 	};
 	const auto refillOccurrences = [occurrences, cycleEnd, currentScope]() {
@@ -25305,7 +25301,7 @@ void MainWindow::onSimulationFinished() {
 			auto* blocking = windows.isEmpty() ? nullptr : windows.last();
 			auto* filter = blocking ? blocking->findChild<TrainFilterButton*>() : nullptr;
 			auto* list = filter ? filter->menu()->findChild<QListWidget*>() : nullptr;
-			// A scene with no routed train has no blocking-time window and nothing to export, as before.
+			// A scene with no routed train has no blocking-time window and nothing to export.
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
