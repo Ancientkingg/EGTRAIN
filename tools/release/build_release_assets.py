@@ -10,7 +10,7 @@ artifact name, one directory per artifact:
   QEGTRAIN-windows-x64-payload/                       the assembled Windows package, QEGTRAIN.exe at its top level
   EGTRAIN-windows-x64-portable/EGTRAIN-Portable-X.Y.Z-x64.zip
   EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe
-  QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip
+  QEGTRAIN-macos-arm64/EGTRAIN-X.Y.Z-macOS-arm64.dmg
   QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
   EGTRAIN-scenes/                                     the seven .egscene files
 
@@ -77,7 +77,7 @@ MANIFEST_NAME = "update-manifest.json"
 # Manifest key, public file name and artifact directory of each package, in manifest
 # order. {version} in a name stands for the release version.
 PACKAGES = (
-    ("macos-arm64", "QEGTRAIN-macos-arm64.zip", "QEGTRAIN-macos-arm64"),
+    ("macos-arm64", "EGTRAIN-{version}-macOS-arm64.dmg", "QEGTRAIN-macos-arm64"),
     (WINDOWS_KEY, PORTABLE_NAME, "EGTRAIN-windows-x64-portable"),
     ("windows-x64-installer", "EGTRAIN-Setup-{version}-x64.exe", "EGTRAIN-windows-x64-installer"),
     ("linux-x86_64", "QEGTRAIN-linux-x86_64.AppImage", "QEGTRAIN-linux-x86_64"),
