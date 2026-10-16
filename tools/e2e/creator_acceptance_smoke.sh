@@ -469,6 +469,7 @@ def check_exports(bundle_path):
         "area_capacity.csv": "incident",
         "capacity_compressed_blocking_time.csv": "incident",
         "capacity_compressed_blocking_time.png": "incident",
+        "delay_analysis.csv": "incident",
         "delay_comparison.csv": "delay",
     }
     for name, scenario in expected.items():
@@ -578,6 +579,43 @@ def check_exports(bundle_path):
     expect(all(row["Area"] == area_summary[0]["Area"] and row["Traffic"] == area_summary[0]["Traffic"]
                for row in area_rows),
            "area capacity records must name one area and one kind of traffic")
+
+    # delay_analysis.csv is the Calls tab of the incident run: the arrival of each timetable row with its delay.
+    with (exports / "timetable.csv").open(newline="", encoding="utf-8") as stream:
+        timetable_rows = {(row["Train"], row["Journey order"]): row for row in csv.DictReader(stream)}
+    with (exports / "delay_analysis.csv").open(newline="", encoding="utf-8") as stream:
+        calls = list(csv.DictReader(stream))
+    expect(calls and len(calls) == len(timetable_rows)
+           and {(row["Train"], row["Journey order"]) for row in calls} == set(timetable_rows),
+           "delay_analysis.csv does not list the arrival of each timetable row")
+    expect(all(row["Event"] == "Arrival"
+               and row["Delay[s]"] == timetable_rows[row["Train"], row["Journey order"]]["Arrival delay[s]"]
+               and (row["Delay[s]"] != "" or row["Class"] == "Not available")
+               for row in calls),
+           "delay_analysis.csv delays differ from timetable.csv or a missing delay is not marked")
+
+    # delay_comparison.csv is the Against baseline tab for a run whose arrivals are all 15 s later than the baseline.
+    with (exports / "delay_comparison.csv").open(newline="", encoding="utf-8") as stream:
+        comparison = list(csv.DictReader(stream))
+    occurrences = [row for row in comparison if row["Record type"] == "occurrence"]
+    totals = [row for row in comparison if row["Record type"] == "total"]
+    expect(len(occurrences) == len(EXPECTED_OCCURRENCES) and len(totals) == 1
+           and any(row["Record type"] == "call" for row in comparison),
+           "delay_comparison.csv lacks an occurrence record for each occurrence, its call records or its total")
+    expect(all(row["Arrival change"] == "Later" and number(row["Arrival difference[s]"], "arrival difference") == 15
+               and number(row["Input delay[s]"], "input delay") == 0 for row in occurrences),
+           "delay_comparison.csv occurrence records do not show a 15 s later final arrival and no input delay")
+    expect(any(row["Direct incident evidence"] == "yes" and row["Incident IDs"] for row in occurrences),
+           "delay_comparison.csv records no direct incident evidence for the incident run")
+    expect(all(number(row["Arrival difference[s]"], "call difference") == 15
+               for row in comparison if row["Record type"] == "call" and row["Arrival difference[s]"]),
+           "delay_comparison.csv call records do not show the 15 s of the altered arrivals")
+    total = totals[0]
+    expect(int(total["Occurrences"]) == len(EXPECTED_OCCURRENCES) and int(total["Later"]) == len(EXPECTED_OCCURRENCES)
+           and int(total["Not available"]) == 0 and total["Complete"] == "yes"
+           and number(total["Positive sum[s]"], "positive sum") == 15 * len(EXPECTED_OCCURRENCES)
+           and number(total["Net sum[s]"], "net sum") == 15 * len(EXPECTED_OCCURRENCES),
+           "delay_comparison.csv total does not add the 15 s of each occurrence")
 
 
 for label, root in (("saved folder", folder), ("unpacked bundle", unpacked)):

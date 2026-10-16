@@ -142,28 +142,6 @@ struct DelayRunSnapshot {
 	std::vector<TimetableResultRow> timetable;
 };
 
-struct DelayComparisonRow {
-	std::string serviceId;
-	int occurrence = 1;
-	std::string operatingCode;
-	RunResultValue baselineFinalArrival;
-	RunResultValue scenarioFinalArrival;
-	RunResultValue positiveContribution;
-	std::string attribution; // "primary" or "secondary"
-	std::vector<std::string> incidentIds;
-	RunResultValue firstDirectTime;
-	RunResultValue firstDirectLocation;
-	bool destinationTerminationRequested = false;
-	bool destinationTerminated = false;
-};
-
-struct DelayComparisonResult {
-	bool valid = false;
-	std::string diagnostic;
-	std::vector<DelayComparisonRow> rows;
-	RunResultValue totalArrivalDelay;
-};
-
 // Preserve the legacy MJ-to-kWh conversion used by text outputs.
 constexpr double kEnergyMJToKWh = 0.27778;
 constexpr double energyMJKWh(double energyMJ) {
@@ -172,7 +150,8 @@ constexpr double energyMJKWh(double energyMJ) {
 
 RunResults buildRunResults(const std::vector<const Train*>& trains, double timestepSeconds);
 std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Train*>& trains);
-DelayComparisonResult compareDelayRuns(const DelayRunSnapshot& baseline,
-	const DelayRunSnapshot& scenario);
+// For the Run Results summary: "Direct incident evidence recorded for 1 of 3 trains". A train counts when the
+// run recorded at least one direct incident effect on it.
+std::string directIncidentEvidenceText(const RunResults& results);
 
 #endif // RUNRESULTS_H

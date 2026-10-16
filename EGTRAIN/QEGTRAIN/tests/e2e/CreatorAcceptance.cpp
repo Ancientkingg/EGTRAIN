@@ -5,6 +5,7 @@
 #include "ui_MainWindow.h"
 
 #include "diagrams/AreaCapacityWindow.h"
+#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
@@ -180,6 +181,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		combo->setCurrentIndex(index);
 		process();
 		return combo->currentIndex() == index;
+	};
+	// The delay analysis window that opened last and is still shown.
+	auto newestDelayWindow = []() -> DelayAnalysisWindow* {
+		DelayAnalysisWindow* newest = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<DelayAnalysisWindow*>(widget); window && window->isVisible())
+				newest = window;
+		return newest;
 	};
 	auto acceptFileDialog = [&w, fail](const QString& path, bool directory) {
 		auto poll = std::make_shared<std::function<void()>>();
@@ -1739,11 +1748,45 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(static_cast<int>(w.m_completedRun->timetable.size())));
 			return;
 		}
-		if (!w.m_delayFeedbackLabel || w.m_compareDelayButton->isEnabled()
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("entrance delays"))) {
-			fail(QStringLiteral("entrance-delay result did not explain why delay comparison is disabled"));
+		// The values that the delay analysis reads carry the entrance delay and say which time of each call exists.
+		const DelayRunSnapshot entranceSnapshot = w.completedDelaySnapshot();
+		const TrainRunResult* delayedTrain = nullptr;
+		for (const TrainRunResult& train : entranceSnapshot.run.trains)
+			if (train.serviceId == "creator-service" && train.occurrence == 2)
+				delayedTrain = &train;
+		const TimetableResultRow* snapshotDeparture = stationADeparture(entranceSnapshot.timetable);
+		if (!entranceSnapshot.hasEntranceDelays || entranceSnapshot.hasIncidents || !delayedTrain
+			|| std::abs(delayedTrain->entranceDelaySeconds - 90.0) > 1e-9 || delayedTrain->entranceDelayStationId != "Creator A"
+			|| !snapshotDeparture || snapshotDeparture->departureStatus != TimetableValueStatus::Available) {
+			fail(QStringLiteral("the delay snapshot of the entrance run lacks the 90 second entrance delay of occurrence 2 or the status of its departure"));
 			return;
 		}
+		// The comparison accepts a scenario with entrance delays and shows the entrance delay as the input delay.
+		if (!w.m_delayFeedbackLabel || !w.m_compareDelayButton->isEnabled()
+			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("Compare delays shows"))) {
+			fail(QStringLiteral("entrance-delay result did not enable the delay comparison"));
+			return;
+		}
+		w.m_compareDelayButton->click();
+		process();
+		DelayAnalysisWindow* entranceWindow = newestDelayWindow();
+		const auto* entranceTabs = entranceWindow ? entranceWindow->findChild<QTabWidget*>("delayAnalysisTabs") : nullptr;
+		const auto* entranceInputs = entranceWindow ? entranceWindow->findChild<QTableWidget*>("delayBaselineOccurrences") : nullptr;
+		const auto inputDelayOf = [entranceInputs](const QString& occurrence) {
+			for (int row = 0; entranceInputs && row < entranceInputs->rowCount(); ++row)
+				if (entranceInputs->item(row, 1)->text() == occurrence)
+					return entranceInputs->item(row, 4)->text() + QStringLiteral(" at ") + entranceInputs->item(row, 5)->text();
+			return QString();
+		};
+		if (!entranceTabs || entranceTabs->currentIndex() != 2 || !entranceInputs || !entranceInputs->isVisible()
+			|| entranceInputs->rowCount() != 2 || inputDelayOf(QStringLiteral("2")) != QStringLiteral("90 at Creator A")
+			|| inputDelayOf(QStringLiteral("1")) != QStringLiteral("0 at ")) {
+			fail(QStringLiteral("the comparison of the entrance run did not show the entrance delay as the input delay: occurrence 1 '%1', occurrence 2 '%2'")
+					.arg(inputDelayOf(QStringLiteral("1")), inputDelayOf(QStringLiteral("2"))));
+			return;
+		}
+		entranceWindow->close();
+		process();
 		marker("E2E_CREATOR_ENTRANCE_RUN_OK");
 		int incidentRow = -1;
 		for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
@@ -1780,8 +1823,21 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		if (!w.m_compareDelayButton->isEnabled() || !w.m_delayFeedbackLabel
-			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("positive additional final-arrival delay"))) {
+			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("Compare delays shows"))) {
 			fail(QStringLiteral("incident result did not expose an enabled delay comparison next step"));
+			return;
+		}
+		// With the advanced details on, the summary says for how many of the trains the run recorded direct incident evidence.
+		int trainsWithEvidence = 0;
+		for (const auto& train : w.m_completedRun->results.trains)
+			trainsWithEvidence += train.directIncidentIds.empty() ? 0 : 1;
+		w.m_advancedDetailsAction->setChecked(true);
+		const QString evidenceSummary = w.m_runResultsSummaryLabel->text();
+		w.m_advancedDetailsAction->setChecked(false);
+		if (!evidenceSummary.contains(QString("Direct incident evidence recorded for %1 of %2 train")
+					.arg(trainsWithEvidence)
+					.arg(static_cast<int>(w.m_completedRun->results.trains.size())))) {
+			fail(QStringLiteral("the run summary does not say for how many trains direct incident evidence was recorded: ") + evidenceSummary);
 			return;
 		}
 		marker("E2E_CREATOR_INCIDENT_RUN_OK");
@@ -2067,40 +2123,79 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		area->close();
 		QPushButton* compareButton = w.findChild<QPushButton*>("compareDelayButton");
-		if (!compareButton) {
-			fail(QStringLiteral("delay comparison result control is unavailable"));
+		QAction* delayAnalysisResult = findResultAction(QStringLiteral("Delay analysis"));
+		QAction* delayAnalysisMenu = nullptr;
+		for (QAction* action : w.m_diagramsMenu->actions())
+			if (action->text() == QStringLiteral("Delay analysis..."))
+				delayAnalysisMenu = action;
+		if (!compareButton || !delayAnalysisResult || !delayAnalysisMenu || !delayAnalysisMenu->isEnabled()) {
+			fail(QStringLiteral("delay analysis result controls are unavailable"));
 			return;
 		}
-		bool initialComparisonSeen = false;
-		bool initialRejectionSeen = false;
-		QString initialRejectionText;
-		QTimer::singleShot(0, &w, [&initialComparisonSeen, &initialRejectionSeen, &initialRejectionText]() {
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* message = qobject_cast<QMessageBox*>(widget);
-				if (message && message->isVisible()) {
-					initialRejectionSeen = true;
-					initialRejectionText = message->text();
-					message->accept();
-					return;
-				}
-				auto* dialog = qobject_cast<QDialog*>(widget);
-				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
-					continue;
-				initialComparisonSeen = true;
-				dialog->accept();
-				return;
-			}
-		});
-		compareButton->click();
+		const auto delayChild = [](DelayAnalysisWindow* window, const char* name) {
+			return window ? window->findChild<QWidget*>(name) : nullptr;
+		};
+		const auto delayTable = [&delayChild](DelayAnalysisWindow* window, const char* name) {
+			return qobject_cast<QTableWidget*>(delayChild(window, name));
+		};
+		const auto delayLabelText = [&delayChild](DelayAnalysisWindow* window, const char* name) {
+			const auto* label = qobject_cast<QLabel*>(delayChild(window, name));
+			return label ? label->text() : QString();
+		};
+		const auto delayTab = [&delayChild](DelayAnalysisWindow* window) {
+			const auto* tabs = qobject_cast<QTabWidget*>(delayChild(window, "delayAnalysisTabs"));
+			return tabs ? tabs->currentIndex() : -1;
+		};
+
+		// The Diagrams menu and the result views open the window on its Calls tab, which exports delay_analysis.csv.
+		delayAnalysisMenu->trigger();
 		process();
-		if (!initialComparisonSeen && !initialRejectionSeen) {
-			fail(QStringLiteral("delay comparison button produced neither a result dialog nor a rejection diagnostic"));
+		DelayAnalysisWindow* menuWindow = newestDelayWindow();
+		if (!menuWindow || menuWindow->isModal() || delayTab(menuWindow) != 0) {
+			fail(QStringLiteral("the Diagrams menu did not open the delay analysis on its Calls tab"));
 			return;
 		}
-		if (initialRejectionSeen && initialRejectionText.trimmed().isEmpty()) {
-			fail(QStringLiteral("delay comparison rejection did not expose a diagnostic"));
+		menuWindow->close();
+		process();
+		delayAnalysisResult->trigger();
+		process();
+		DelayAnalysisWindow* callsWindow = newestDelayWindow();
+		const QTableWidget* callsTable = delayTable(callsWindow, "delayCalls");
+		if (!callsWindow || delayTab(callsWindow) != 0 || !callsTable || callsTable->rowCount() == 0
+			|| callsWindow->suggestedFileName() != QStringLiteral("delay_analysis.csv")
+			|| !exportButton(callsWindow, QStringLiteral("Export CSV..."), path("delay_analysis.csv"))) {
+			fail(QStringLiteral("the delay analysis did not open on its Calls tab and export through public controls"));
 			return;
 		}
+		callsWindow->close();
+		process();
+
+		// The Compare delays button opens it on the Against baseline tab. The tab exports delay_comparison.csv.
+		const auto openComparison = [&]() -> DelayAnalysisWindow* {
+			compareButton->click();
+			process();
+			DelayAnalysisWindow* window = newestDelayWindow();
+			return delayTab(window) == 2 && window->suggestedFileName() == QStringLiteral("delay_comparison.csv") ? window : nullptr;
+		};
+		const auto delayEvidenceShown = [&delayTable](DelayAnalysisWindow* window, const QString& prefix) {
+			const QTableWidget* occurrences = delayTable(window, "delayBaselineOccurrences");
+			for (int row = 0; occurrences && row < occurrences->rowCount(); ++row)
+				if (!occurrences->item(row, 6)->text().startsWith(prefix))
+					return false;
+			return occurrences && occurrences->rowCount() > 0;
+		};
+
+		DelayAnalysisWindow* incidentWindow = openComparison();
+		const QTableWidget* incidentOccurrences = delayTable(incidentWindow, "delayBaselineOccurrences");
+		bool incidentEvidenceShown = false;
+		for (int row = 0; incidentOccurrences && row < incidentOccurrences->rowCount(); ++row)
+			incidentEvidenceShown = incidentEvidenceShown || incidentOccurrences->item(row, 6)->text().startsWith(QStringLiteral("Yes:"));
+		if (!incidentOccurrences || !incidentOccurrences->isVisible() || incidentOccurrences->rowCount() != 2 || !incidentEvidenceShown) {
+			fail(QStringLiteral("Compare delays did not open the Against baseline tab with the incident run and its direct evidence"));
+			return;
+		}
+		incidentWindow->close();
+		process();
 
 		// The comparison reads the completed run, so each case below swaps in an altered copy of it and restores it after.
 		const std::shared_ptr<const CompletedRunData> incidentRun = w.m_completedRun;
@@ -2108,6 +2203,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			auto altered = std::make_shared<CompletedRunData>(*incidentRun);
 			change(*altered);
 			w.m_completedRun = altered;
+		};
+		const auto restoreRun = [&w, incidentRun]() {
+			w.m_completedRun = incidentRun;
+			w.refreshRunResults();
 		};
 		const std::vector<TimetableResultRow> baselineTimetable = w.m_delayBaseline
 			? w.m_delayBaseline->timetable
@@ -2123,104 +2222,79 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		});
 		if (!injectedPositiveDelay) {
-			w.m_completedRun = incidentRun;
-			w.refreshRunResults();
+			restoreRun();
 			fail(QStringLiteral("creator timetable had no final arrival row for positive comparison presentation"));
 			return;
 		}
 		w.refreshRunResults();
-		bool nonzeroComparisonSeen = false;
-		bool nonzeroComparisonOk = false;
-		acceptFileDialog(path("delay_comparison.csv"), false);
-		QTimer::singleShot(75, &w, [&nonzeroComparisonSeen, &nonzeroComparisonOk, &boundedResultDialog]() {
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* dialog = qobject_cast<QDialog*>(widget);
-				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
-					continue;
-				nonzeroComparisonSeen = true;
-				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
-				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
-				nonzeroComparisonOk = context && context->text().contains("Baseline:")
-					&& context->text().contains("Incident run:") && heading
-					&& heading->text().contains(QStringLiteral("positive additional final-arrival delay"), Qt::CaseInsensitive)
-					&& table && table->rowCount() > 0 && table->columnCount() == 13
-					&& boundedResultDialog(dialog, table,
-						dialog->findChild<QPushButton*>(QStringLiteral("delayComparisonExportCsvButton")));
-				for (QPushButton* button : dialog->findChildren<QPushButton*>())
-					if (button->text() == QStringLiteral("Export CSV...")) {
-						button->click();
-						dialog->accept();
-						return;
-					}
-			}
-		});
-		compareButton->click();
-		process();
-		if (!nonzeroComparisonSeen || !nonzeroComparisonOk) {
-			w.m_completedRun = incidentRun;
-			w.refreshRunResults();
-			fail(QStringLiteral("nonzero delay comparison did not expose its metric and rows"));
+		DelayAnalysisWindow* laterWindow = openComparison();
+		QTableWidget* laterOccurrences = delayTable(laterWindow, "delayBaselineOccurrences");
+		QPushButton* laterExport = qobject_cast<QPushButton*>(delayChild(laterWindow, "delayAnalysisExport"));
+		const auto* laterHeading = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogHeading")) : nullptr;
+		const auto* laterContext = laterWindow ? laterWindow->findChild<QLabel*>(QStringLiteral("dialogContext")) : nullptr;
+		const QString laterTotals = delayLabelText(laterWindow, "delayBaselineTotals");
+		const bool laterOk = laterOccurrences && laterOccurrences->rowCount() == 2 && laterHeading
+			&& laterHeading->text().startsWith(QStringLiteral("Delay analysis")) && laterContext
+			&& laterContext->text().contains("Run:") && laterContext->text().contains("Baseline:")
+			&& laterTotals.contains(QStringLiteral("Positive additional delay: +"))
+			&& boundedResultDialog(laterWindow, laterOccurrences, laterExport);
+		if (!laterOk || !exportButton(laterWindow, QStringLiteral("Export CSV..."), path("delay_comparison.csv"))) {
+			restoreRun();
+			fail(QStringLiteral("a later run did not show its additional delay and export through the Against baseline tab: ") + laterTotals);
 			return;
 		}
+		laterWindow->close();
+		process();
 
 		alterRun([&baselineTimetable](CompletedRunData& run) { run.timetable = baselineTimetable; });
 		w.refreshRunResults();
-		bool zeroComparisonSeen = false;
-		bool zeroComparisonOk = false;
-		QTimer::singleShot(0, &w, [&zeroComparisonSeen, &zeroComparisonOk, &boundedResultDialog]() {
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* dialog = qobject_cast<QDialog*>(widget);
-				if (!dialog || dialog->windowTitle() != QStringLiteral("Incident delay comparison"))
-					continue;
-				zeroComparisonSeen = true;
-				QLabel* context = dialog->findChild<QLabel*>(QStringLiteral("dialogContext"));
-				QTableWidget* table = dialog->findChild<QTableWidget*>(QStringLiteral("delayComparisonTable"));
-				QLabel* heading = dialog->findChild<QLabel*>(QStringLiteral("dialogHeading"));
-				zeroComparisonOk = context && context->text().contains("Baseline:")
-					&& context->text().contains("Incident run:") && heading
-					&& heading->text().contains(QStringLiteral("zero positive additional final-arrival delay"))
-					&& table && table->rowCount() == 0 && table->columnCount() == 13
-					&& boundedResultDialog(dialog, table,
-						dialog->findChild<QPushButton*>(QStringLiteral("delayComparisonExportCsvButton")));
-				dialog->accept();
-				return;
-			}
-		});
-		compareButton->click();
+		DelayAnalysisWindow* sameWindow = openComparison();
+		const QString sameTotals = delayLabelText(sameWindow, "delayBaselineTotals");
+		const QTableWidget* sameOccurrences = delayTable(sameWindow, "delayBaselineOccurrences");
+		const bool sameOk = sameOccurrences && sameOccurrences->rowCount() == 2
+			&& sameTotals.contains(QStringLiteral("Final arrival later: 0, same: 2, earlier: 0, not available: 0"))
+			&& sameTotals.contains(QStringLiteral("Positive additional delay: 0 s"));
+		if (sameWindow)
+			sameWindow->close();
 		process();
-		w.m_completedRun = incidentRun;
-		w.refreshRunResults();
-		if (!zeroComparisonSeen || !zeroComparisonOk) {
-			fail(QStringLiteral("zero delay comparison did not report explicit success"));
+		restoreRun();
+		if (!sameOk) {
+			fail(QStringLiteral("a run equal to the baseline did not report zero additional delay: ") + sameTotals);
 			return;
 		}
 
+		// A run without recorded direct evidence is still compared. Its evidence column says none was recorded.
 		alterRun([](CompletedRunData& run) {
 			for (TrainRunResult& train : run.results.trains)
 				train.directIncidentIds.clear();
 		});
-		bool rejectionSeen = false;
-		QString rejectionText;
-		QTimer::singleShot(0, &w, [&rejectionSeen, &rejectionText]() {
-			for (QWidget* widget : QApplication::topLevelWidgets()) {
-				auto* dialog = qobject_cast<QMessageBox*>(widget);
-				if (!dialog || !dialog->isVisible())
-					continue;
-				rejectionSeen = true;
-				rejectionText = dialog->text();
-				dialog->accept();
-				return;
-			}
-		});
-		compareButton->click();
-		process();
-		w.m_completedRun = incidentRun;
 		w.refreshRunResults();
-		if (!rejectionSeen || !rejectionText.contains(QStringLiteral("direct incident evidence"))) {
-			fail(QStringLiteral("invalid delay comparison did not expose rejection diagnostics (seen=%1, text=%2)")
-					.arg(rejectionSeen)
-					.arg(rejectionText));
+		DelayAnalysisWindow* noEvidenceWindow = openComparison();
+		const bool noEvidenceOk = delayEvidenceShown(noEvidenceWindow, QStringLiteral("None recorded"))
+			&& delayLabelText(noEvidenceWindow, "delayBaselineNote").contains(QStringLiteral("not shown to be propagated"));
+		if (noEvidenceWindow)
+			noEvidenceWindow->close();
+		process();
+		restoreRun();
+		if (!noEvidenceOk) {
+			fail(QStringLiteral("a run without direct incident evidence was not compared with 'None recorded' evidence"));
+			return;
+		}
+
+		// A baseline that does not fit is explained with each reason, and nothing is exported.
+		alterRun([](CompletedRunData& run) { run.settings.horizonSteps += 1.0; });
+		w.refreshRunResults();
+		DelayAnalysisWindow* mismatchWindow = openComparison();
+		const QTableWidget* reasons = delayTable(mismatchWindow, "delayBaselineDiagnostics");
+		const QPushButton* mismatchExport = qobject_cast<QPushButton*>(delayChild(mismatchWindow, "delayAnalysisExport"));
+		const bool mismatchOk = reasons && reasons->isVisible() && reasons->rowCount() == 1 && reasons->item(0, 0)->text() == QStringLiteral("duration_differs")
+			&& !delayChild(mismatchWindow, "delayBaselineOccurrences")->isVisible() && mismatchExport && !mismatchExport->isEnabled();
+		if (mismatchWindow)
+			mismatchWindow->close();
+		process();
+		restoreRun();
+		if (!mismatchOk) {
+			fail(QStringLiteral("a baseline with another duration was not explained by its reason"));
 			return;
 		}
 		marker("E2E_CREATOR_EXPORTS_OK");

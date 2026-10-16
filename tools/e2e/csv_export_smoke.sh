@@ -86,7 +86,7 @@ if [[ ! -s "$ASSIGNMENT_OUTDIR/blocking_time.csv" ]]; then
 fi
 
 # These result views always have data after a completed run.
-for name in trajectory timetable run_summary; do
+for name in trajectory timetable run_summary delay_analysis; do
 	if [[ ! -s "$OUTDIR/$name.csv" ]]; then
 		echo "missing or empty export: $OUTDIR/$name.csv" >&2
 		exit 1
@@ -114,6 +114,43 @@ head -n1 "$OUTDIR/timetable.csv" | grep -q "^Train,Station,Journey order,Operati
 	|| { echo "timetable.csv header mismatch" >&2; exit 1; }
 head -n1 "$OUTDIR/run_summary.csv" | grep -q "^Train,Operating code,Performance \[%\],Applied maximum speed \[km/h\],Start\[s\],End\[s\],Travel time\[s\]" \
 	|| { echo "run_summary.csv header mismatch" >&2; exit 1; }
+head -n1 "$OUTDIR/delay_analysis.csv" | grep -q "^Service,Occurrence,Train,Operating code,Station,Journey order,Call,Event,Planned\[s\],Simulated\[s\],Delay\[s\],Class,Status" \
+	|| { echo "delay_analysis.csv header mismatch" >&2; exit 1; }
+
+# The delay analysis lists the arrival of every timetable row with the same delay, and a missing time is never a zero delay.
+python3 - "$OUTDIR" <<'PY_DELAY'
+import csv
+import os
+import sys
+
+output = sys.argv[1]
+
+
+def load(name):
+    with open(os.path.join(output, name), newline="", encoding="utf-8") as stream:
+        return list(csv.DictReader(stream))
+
+
+timetable = {(row["Train"], row["Journey order"]): row for row in load("timetable.csv")}
+analysis = load("delay_analysis.csv")
+assert timetable and len(analysis) == len(timetable), \
+    f"delay_analysis.csv has {len(analysis)} rows for {len(timetable)} timetable rows"
+assert {(row["Train"], row["Journey order"]) for row in analysis} == set(timetable), \
+    "delay_analysis.csv and timetable.csv list other train calls"
+for row in analysis:
+    source = timetable[row["Train"], row["Journey order"]]
+    where = f"{row['Train']} at {row['Station']}"
+    assert row["Event"] == "Arrival" and row["Station"] == source["Station"], where
+    assert row["Planned[s]"] == source["Planned arrival[s]"] and row["Simulated[s]"] == source["Simulated arrival[s]"], where
+    assert row["Delay[s]"] == source["Arrival delay[s]"], f"{where}: delay differs from timetable.csv"
+    if row["Delay[s]"] == "":
+        assert row["Class"] == "Not available" and row["Status"] != "Available", f"{where}: a missing delay is not marked"
+        assert not (row["Planned[s]"] and row["Simulated[s]"]), f"{where}: both times exist but the delay is missing"
+    else:
+        delay = float(row["Delay[s]"])
+        expected = "Early" if delay < 0 else "Late" if delay > 0 else "On time"
+        assert row["Class"] == expected and row["Status"] == "Available", f"{where}: class {row['Class']} for delay {delay}"
+PY_DELAY
 if [[ -s "$OUTDIR/capacity_analysis.csv" ]]; then
 	[[ -s "$OUTDIR/capacity_analysis.csv.provenance.json" ]] \
 		|| { echo "missing capacity_analysis.csv provenance sidecar" >&2; exit 1; }
@@ -160,7 +197,7 @@ import re
 import sys
 
 scene, output = map(os.path.abspath, sys.argv[1:])
-artifacts = ["trajectory.csv", "timetable.csv", "run_summary.csv"]
+artifacts = ["trajectory.csv", "timetable.csv", "run_summary.csv", "delay_analysis.csv"]
 artifacts += [name for name in ("blocking_time.csv", "capacity_analysis.csv", "area_capacity.csv")
               if os.path.exists(os.path.join(output, name))]
 for name in artifacts:

@@ -113,6 +113,7 @@ class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
+class DelayAnalysisWindow;
 class PassengerPanel;
 class ServicePanel;
 class UserPrompts;
@@ -777,6 +778,9 @@ private:
 	QString runReviewText() const;
 	bool showRunReview();
 	void setDelayBaseline();
+	// Opens the delay analysis window for the completed run and the delay baseline. Null when there is no run.
+	DelayAnalysisWindow* openDelayAnalysis();
+	// The same, on the tab that compares the run with the baseline.
 	void showDelayComparison();
 	void refreshRunResultsSummary();
 	DelayRunSnapshot completedDelaySnapshot() const;
@@ -827,6 +831,7 @@ private slots:
 	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
 	void showTimetableTable();
 	void showDelayDiagram();
+	void showDelayAnalysis();
 	void showBlockingTimeDiagram();
 	void showCapacityAnalysis();
 	void showAreaCapacity();
