@@ -1,0 +1,104 @@
+name: Tidy
+
+# Runs clang-tidy on the sources outside simulation/ with tools/tidy.py, the command that a developer runs
+# locally. A pull request analyses the changed sources; the nightly and the manual run analyse all of them.
+on:
+  pull_request:
+    branches: [main]
+  # One run a night on main. A scheduled run uses the default branch.
+  schedule:
+    - cron: '37 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same pull request replaces its running check. A scheduled or manual run has
+# a group of its own and no other run cancels it.
+concurrency:
+  group: tidy-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Every pull request to main starts this workflow, so that the result job below always reports and main can require
+  # it. The tidy job runs for a pull request that changes the sources or the tidy settings, and for a nightly or manual run.
+  changes:
+    name: Select the tidy job
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tidy: ${{ steps.select.outputs.tidy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      - name: Select the tidy job from the changed files
+        id: select
+        run: |
+          tidy=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
+            tidy=false
+            while IFS= read -r file; do
+              case "$file" in
+                EGTRAIN/QEGTRAIN/*) tidy=true ;;
+                CMakeLists.txt) tidy=true ;;
+                .clang-tidy) tidy=true ;;
+                tools/tidy.py) tidy=true ;;
+                .github/workflows/tidy.yml) tidy=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "tidy=$tidy" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: tidy
+    needs: changes
+    if: needs.changes.outputs.tidy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
+            libzmq3-dev cppzmq-dev nlohmann-json3-dev
+
+      # PyPI stops at clang-tidy 22 and the runner image has an older release, so the 23.1 release comes from apt.llvm.org,
+      # which is the version that tools/tidy.py accepts. The script of apt.llvm.org adds the repository and installs the tools.
+      - name: Install clang-tidy
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/llvm.sh" https://apt.llvm.org/llvm.sh
+          chmod +x "$RUNNER_TEMP/llvm.sh"
+          sudo "$RUNNER_TEMP/llvm.sh" 23
+
+      - name: Run clang-tidy
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            python3 tools/tidy.py --changed-from HEAD^1
+          else
+            python3 tools/tidy.py
+          fi
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  result:
+    name: Tidy result
+    if: always()
+    needs: [changes, check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail when a job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

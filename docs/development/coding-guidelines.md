@@ -24,11 +24,80 @@ line, so wrap it at one of those places.
 `git config blame.ignoreRevsFile .git-blame-ignore-revs` makes `git blame` skip them, and
 the blame view of GitHub skips them without a setting.
 
-`.clang-tidy` selects the static checks. CMake writes `build/compile_commands.json` with
-the Makefile and Ninja generators, and `clang-tidy -p build <file>` reads it. With the
-Homebrew LLVM on macOS, add `--extra-arg=-isysroot --extra-arg=$(xcrun --show-sdk-path)`
-so that the standard library headers are found. `io/third_party/` has its own
-`.clang-tidy` that switches the analysis off.
+## Static checks
+
+`python3 tools/tidy.py` runs clang-tidy on the sources of the modules outside `simulation/`
+and lists the findings; it exits with 1 on any finding. The pull request checks run the
+same script. It configures a Ninja build in `build_tidy/` (`--build-dir` changes it), builds
+the files that Qt generates (moc, uic and resources), and analyses the sources of the build
+in parallel. It needs CMake, Ninja, Qt 5 and clang-tidy 23.1, the release that the findings
+are agreed for: `brew install llvm` on macOS, or the `llvm.sh` script of apt.llvm.org on
+Ubuntu (PyPI has no clang-tidy 23). The environment variable `CLANG_TIDY` names the
+executable when it is not the `clang-tidy` on PATH. The script adds the macOS SDK path
+itself.
+
+- `python3 tools/tidy.py` analyses every source.
+- `python3 tools/tidy.py FILE...` analyses the named sources.
+- `python3 tools/tidy.py --changed-from REV` analyses the sources that changed since `REV`
+  and the sources that include a changed header. The pull request check passes the base
+  of the pull request. It analyses every source when `.clang-tidy`, `tools/tidy.py`, a
+  `CMakeLists.txt` or the workflow changed. The nightly and the manual run of the Tidy
+  workflow analyse every source.
+- `--no-build` reuses the configured build directory, which is faster when only a source
+  changed.
+
+The checks are selected in `.clang-tidy`, and they apply to every analysed module:
+`app/`, `diagrams/`, `editors/`, `graphics/`, `io/`, `recovery/`, `scene/`, `telemetry/`,
+`update/`, `util/`, `widgets/` and `tests/`. Two places differ. `tests/.clang-tidy`
+inherits them and switches off the performance checks and a few others for the tests, with
+the reason of each next to it. `simulation/` is not analysed yet, and its headers are not
+in the header filter, so a finding in one of them does not fail a source that includes it.
+`io/third_party/` has its own `.clang-tidy` that switches the analysis off.
+
+A finding is fixed in the code. When the check is wrong for one place, the line carries
+`// NOLINT(check-name): reason`. These checks are switched off for every module because
+their findings are style or noise that a rewrite would not repay, or because the check
+cannot see how Qt owns objects. The counts are the findings of the first run, in the
+sources outside `tests/` and in `tests/`.
+
+| Check | Outside tests | Tests | Why it is off |
+| --- | --- | --- | --- |
+| `bugprone-signed-bitwise` | 59 | 15 | Qt flags, hashes and masks computed in `int` |
+| `bugprone-exception-escape` | 18 | 76 | `main`, destructors and lambdas of slots; the application does not throw across them |
+| `bugprone-throwing-static-initialization` | 6 | 34 | Statics that hold a `std::string` or a mutex |
+| `bugprone-implicit-widening-of-multiplication-result` | 11 | 25 | Products of small values, such as milliseconds per second |
+| `bugprone-unchecked-string-to-number-conversion` | 14 | 2 | `atoi` and `atof` on command line values in `app/main.cpp` |
+| `bugprone-nondeterministic-pointer-iteration-order` | 6 | 0 | Vectors of pointers that are sorted by a field, not by address |
+| `bugprone-derived-method-shadowing-base-method` | 1 | 2 | `NetworkView::centerOn` hides the Qt method on purpose |
+| `bugprone-misplaced-widening-cast` | 5 | 7 | `static_cast<std::size_t>(index + 1)` on a checked index |
+| `clang-analyzer-cplusplus.NewDeleteLeaks` | 15 | 3 | A Qt parent owns the object that `new` creates |
+| `clang-analyzer-optin.core.EnumCastOutOfRange` | 1 | 0 | In `zmq.hpp`, which is not ours |
+| `performance-enum-size` | 56 | 6 | Style |
+| `performance-avoid-endl` | 9 | 3 | The log wants the flush |
+| `performance-inefficient-vector-operation` | 14 | 27 | A `reserve` that would save little |
+| `performance-inefficient-string-concatenation` | 11 | 29 | A few temporaries in code that is not hot |
+| `performance-faster-string-find`, `performance-prefer-single-char-overloads` | 2 | 18 | Micro-optimisations |
+
+The first run found 615 findings. The table below gives them per module, and what is left
+after the selection above, which the change fixed or suppressed with `NOLINT`. Findings in
+`app/MainWindow.cpp`, `app/MainWindow.h` and `app/DispatchController.cpp` are not fixed
+yet because other work changes those files. `KNOWN_FINDINGS` in `tools/tidy.py` lists them
+(17 findings); delete an entry when its findings are fixed.
+
+| Module | First run | After the selection |
+| --- | --- | --- |
+| `app/` | 91 | 23 |
+| `diagrams/` | 17 | 3 |
+| `editors/` | 13 | 4 |
+| `graphics/` | 16 | 7 |
+| `io/` | 10 | 4 |
+| `recovery/` | 11 | 4 |
+| `scene/` | 70 | 10 |
+| `telemetry/` | 36 | 11 |
+| `update/` | 20 | 11 |
+| `util/` | 20 | 5 |
+| `widgets/` | 8 | 0 |
+| `tests/` | 303 | 0 |
 
 ## Warnings
 
