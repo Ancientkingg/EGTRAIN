@@ -14,6 +14,7 @@
 //   test_characterization --fixture DIR --expect DIR --case NAME
 //   test_characterization --repeat SCENE[#CASE]...
 //   test_characterization --repeat-files SCENE[#CASE]...
+//   test_characterization --aspects SCENE[#CASE]...
 //   test_characterization --single SCENE[#CASE] --output-dir DIR
 //
 // --repeat runs the steps in one process, in order, and requires that every
@@ -26,6 +27,10 @@
 // a folder of its own, then runs every distinct step once in a fresh process
 // and requires that every file of every run equals the file of the fresh run
 // byte for byte, except the timings in Computing_Times.txt.
+//
+// --aspects runs each step once and requires that at least one route section
+// leaves the clear code 270 and returns to it, which shows that the signalling
+// of the scene changed an aspect during the run.
 //
 // --single runs one step in this process and keeps its files in DIR, which
 // must not exist yet. --repeat-files starts it for the fresh runs.
@@ -689,7 +694,27 @@ struct RunOutcome {
 	std::vector<std::string> invariantFailures;
 	std::string error;
 	int steps = 0;
+	int aspectCycles = 0; // Route sections whose code left the clear code and returned to it.
 };
+
+// The code of a section that holds no train and no reservation.
+constexpr double kClearCode = 270.0;
+
+// True when a section leaves the clear code and returns to it, as it does when a train passes and releases it.
+bool leavesClearAndReturns(const std::vector<std::pair<int, double>>& changes) {
+	bool wasClear = false;
+	bool leftClear = false;
+	for (const auto& change : changes) {
+		if (change.second == kClearCode) {
+			if (leftClear)
+				return true;
+			wasClear = true;
+		} else if (wasClear) {
+			leftClear = true;
+		}
+	}
+	return false;
+}
 
 std::vector<std::string> splitWords(const std::string& text) {
 	std::istringstream in(text);
@@ -1476,6 +1501,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 				line.fields.push_back(field);
 			}
 			obs.push_back(std::move(line));
+			if (leavesClearAndReturns(route.changes[b]))
+				++outcome.aspectCycles;
 		}
 	}
 
@@ -2007,6 +2034,28 @@ int runRepeatMode(const std::vector<std::string>& steps) {
 	return 0;
 }
 
+int runAspectsMode(const std::vector<std::string>& steps) {
+	const std::vector<CaseSpec> cases = buildCaseTable();
+	int failures = 0;
+	for (const std::string& step : steps) {
+		std::string sceneDir;
+		CaseSpec spec;
+		if (!parseStep(cases, step, sceneDir, spec))
+			return 2;
+		const RunOutcome outcome = runCase(sceneDir, spec, false);
+		if (!outcome.error.empty()) {
+			std::cerr << "FAIL " << step << ": " << outcome.error;
+			++failures;
+		} else if (outcome.aspectCycles == 0) {
+			std::cerr << "FAIL " << step << ": no route section left the code 270 and returned to it\n";
+			++failures;
+		} else {
+			std::cout << "PASS " << step << ": " << outcome.aspectCycles << " route sections left the code 270 and returned to it\n";
+		}
+	}
+	return failures == 0 ? 0 : 1;
+}
+
 int runSingleMode(const std::string& step, const std::string& outputDir) {
 	const std::vector<CaseSpec> cases = buildCaseTable();
 	std::string sceneDir;
@@ -2099,9 +2148,10 @@ int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 
 	std::string fixture, expect, caseName, singleStep, outputDir;
-	std::vector<std::string> repeatSteps;
+	std::vector<std::string> steps;
 	bool repeat = false;
 	bool repeatFiles = false;
+	bool aspects = false;
 	for (int i = 1; i < argc; ++i) {
 		const std::string arg = argv[i];
 		auto value = [&]() -> std::string { return i + 1 < argc ? std::string(argv[++i]) : std::string(); };
@@ -2119,24 +2169,29 @@ int main(int argc, char** argv) {
 			repeat = true;
 		else if (arg == "--repeat-files")
 			repeatFiles = true;
-		else if (repeat || repeatFiles)
-			repeatSteps.push_back(arg);
+		else if (arg == "--aspects")
+			aspects = true;
+		else if (repeat || repeatFiles || aspects)
+			steps.push_back(arg);
 		else {
 			std::cerr << "unknown argument '" << arg << "'\n";
 			return 2;
 		}
 	}
-	if (repeat && !repeatSteps.empty())
-		return runRepeatMode(repeatSteps);
-	if (repeatFiles && !repeatSteps.empty())
-		return runRepeatFilesMode(repeatSteps);
+	if (repeat && !steps.empty())
+		return runRepeatMode(steps);
+	if (repeatFiles && !steps.empty())
+		return runRepeatFilesMode(steps);
+	if (aspects && !steps.empty())
+		return runAspectsMode(steps);
 	if (!singleStep.empty() && !outputDir.empty())
 		return runSingleMode(singleStep, outputDir);
-	if (!repeat && !repeatFiles && !fixture.empty() && !expect.empty() && !caseName.empty())
+	if (!repeat && !repeatFiles && !aspects && !fixture.empty() && !expect.empty() && !caseName.empty())
 		return runGoldenMode(fixture, expect, caseName);
 	std::cerr << "usage: test_characterization --fixture DIR --expect DIR --case NAME\n"
 				 "       test_characterization --repeat SCENE[#CASE]...\n"
 				 "       test_characterization --repeat-files SCENE[#CASE]...\n"
+				 "       test_characterization --aspects SCENE[#CASE]...\n"
 				 "       test_characterization --single SCENE[#CASE] --output-dir DIR\n";
 	return 2;
 }

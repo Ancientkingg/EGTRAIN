@@ -208,13 +208,20 @@ add_test(NAME characterization_repeat_files_fixture
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#single-track-level-4"
 		"${EGTRAIN_CHARACTERIZATION_FIXTURE}#sf-forward-level-3"
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# The Dutch scenes change an aspect during their run: a route section leaves the code 270 and returns to it.
+add_test(NAME characterization_aspects_dutch
+	COMMAND test_characterization --aspects
+		${EGTRAIN_COMMITTED_SCENES}/Netherlands
+		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
 	characterization_repeat_paimpol
 	characterization_repeat_lebanon_milano
 	characterization_repeat_netherlands
 	characterization_repeat_files_paimpol
 	characterization_repeat_files_lebanon_milano
-	characterization_repeat_files_fixture)
+	characterization_repeat_files_fixture
+	characterization_aspects_dutch)
 
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	LABELS "characterization;unit"
@@ -226,7 +233,7 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT ${EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT}
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol APPEND PROPERTY LABELS slow)
+set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol characterization_aspects_dutch APPEND PROPERTY LABELS slow)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)
 
