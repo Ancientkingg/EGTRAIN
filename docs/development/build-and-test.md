@@ -125,7 +125,9 @@ to the folder that Import Passengers reads in place of its dialog, and clears it
 The creator acceptance smoke starts without a scene: when `QEGTRAIN_E2E_CREATOR_ACCEPTANCE`
 is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the first show asks
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
-(`askCapacityScope`), which the scenario answers. A scenario keeps its state, such as whether it
+(`askCapacityScope`), which the scenario answers. The scenario opens the Time / distance window after the baseline
+run, runs two more scenarios, and then checks that the window still exports the baseline run and not the run that the
+application holds by then. A scenario keeps its state, such as whether it
 has begun its checks, in `MainWindowTestAccess`, not in the window.
 
 `Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and

@@ -10,9 +10,6 @@
 
 class QWidget;
 
-// Blocking-time inputs of the finished run. buildAllBlockingTimeSegments and buildBlockingTimePlannedReferences read
-// the run from the simulation globals regional_train, numRegions and train_route, not from arguments.
-
 struct BlockingTimeScope {
 	std::vector<std::string> trainIds;
 	std::vector<std::string> blockIds;
@@ -50,13 +47,9 @@ BlockingTimeScope defaultBlockingTimeScope(double caseEndSeconds);
 // route. False when the dialog is cancelled or the interval is empty.
 bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope);
 
-std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments();
 std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::map<std::string, RouteDiagramProjection>& projections, int& omitted,
 	std::vector<BlockingTimeDiagramSegment>* unmapped = nullptr);
-std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
-	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
-	const std::map<int, RouteDiagramProjection>& projections, int& omitted);
 
 #endif

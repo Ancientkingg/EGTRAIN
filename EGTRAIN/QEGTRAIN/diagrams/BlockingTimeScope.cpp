@@ -1,7 +1,5 @@
 #include "diagrams/BlockingTimeScope.h"
 
-#include "diagrams/CompletedRunData.h"
-#include "diagrams/SimulationHeaders.h"
 #include "widgets/DialogLayout.h"
 
 #include <QComboBox>
@@ -14,8 +12,6 @@
 #include <QWidget>
 
 #include <algorithm>
-#include <cmath>
-#include <limits>
 #include <optional>
 
 const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style) {
@@ -146,23 +142,6 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	return true;
 }
 
-std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
-	std::vector<std::vector<BlockingTimeDiagramInput>> trains;
-	std::vector<std::string> trainNames;
-	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
-	trainNames.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& t = regional_train[i];
-		std::vector<BlockingTimeDiagramInput> blocks;
-		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockSections)));
-		for (int j = 0; j < t.N_BlockSections; ++j)
-			blocks.push_back(blockingTimeInputFrom(t.BlockTime[j]));
-		trains.push_back(blocks);
-		trainNames.push_back(t.trainDescription);
-	}
-	return buildBlockingTimeDiagramSegments(trains, trainNames);
-}
-
 // A segment whose ends do not both map is counted in `omitted` and, when `unmapped` is given, kept there unchanged.
 std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
 	const std::vector<BlockingTimeDiagramSegment>& segments,
@@ -187,53 +166,4 @@ std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
 		mapped.push_back(std::move(segment));
 	}
 	return mapped;
-}
-
-std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
-	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
-	const std::map<int, RouteDiagramProjection>& projections, int& omitted) {
-	std::vector<BlockingTimePlannedReference> references;
-	const auto selectedSections = scope.routeIndex >= 0 && !scope.sectionIndices.empty()
-		? scopedBlockSectionExtents(buildBlockSectionExtents(blockSectionInputsForRoute(train_route[scope.routeIndex])), scope.sectionIndices)
-		: std::vector<BlockSectionExtent>();
-	if (scope.routeIndex >= 0 && scope.trainIds.empty())
-		return references;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
-		if (!scope.trainIds.empty() && std::find(scope.trainIds.begin(), scope.trainIds.end(), train.trainDescription) == scope.trainIds.end())
-			continue;
-		if (train.Stations.empty())
-			continue;
-		const int stationCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
-		for (int stationIndex = 0; stationIndex < stationCount; ++stationIndex) {
-			if (!train.stationIsOnRoute(stationIndex, scope.blockIds))
-				continue;
-			const auto path = paths.find(train.indexOfRoute);
-			const auto projection = projections.find(train.indexOfRoute);
-			CompletedStop stop;
-			stop.nodeId = train.Stations[stationIndex].sceneNodeId;
-			stop.routeX = train.Stations[stationIndex].X;
-			const auto positionKm = path == paths.end() || projection == projections.end()
-				? std::optional<double>()
-				: routeDiagramStopPosition(stop, path->second, projection->second);
-			if (!positionKm) {
-				++omitted;
-				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
-				continue;
-			}
-			if (!scope.sectionIndices.empty() && !positionInBlockSections(*positionKm, selectedSections)) {
-				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
-				continue; // Preserve the gap; do not bridge another visit of a repeated resource.
-			}
-			const auto append = [&](const char* eventType, double time) {
-				if (!std::isfinite(time) || time < 0.0)
-					return;
-				references.push_back({train.trainDescription, train.stationNameForArrivalStats(stationIndex),
-					eventType, time, *positionKm});
-			};
-			append("arrival", train.ScheduledArrivals[stationIndex]);
-			append("departure", train.ScheduledDepartures[stationIndex]);
-		}
-	}
-	return references;
 }

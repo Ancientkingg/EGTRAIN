@@ -529,12 +529,10 @@ private:
 	std::string m_selectedScenarioId;
 	std::string m_appliedScenarioId;
 	std::set<std::string> m_modifiedScenarioIds;
-	// The finished run as values. The result windows share it, so each keeps the run it was opened for.
+	// The finished run as values. The Run Results dock shows it and the result windows share it, so each window keeps
+	// the run it was opened for. Null while no run has completed.
 	std::shared_ptr<const CompletedRunData> m_completedRun;
-	RunResults m_completedRunResults;
-	std::vector<TimetableResultRow> m_completedTimetableResults;
 	RunProvenance m_pendingRunProvenance;
-	RunProvenance m_completedRunProvenance;
 	std::optional<DelayRunSnapshot> m_delayBaseline;
 	QString m_delayBaselineStatus;
 	QLabel* m_runResultsSummaryLabel = nullptr;

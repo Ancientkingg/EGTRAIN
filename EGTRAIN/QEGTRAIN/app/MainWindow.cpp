@@ -4639,10 +4639,7 @@ void MainWindow::invalidateRunResults() {
 	m_sceneChangedDuringRun = false;
 	m_appliedScenarioId.clear();
 	m_completedRun.reset();
-	m_completedRunResults = RunResults();
-	m_completedTimetableResults.clear();
 	m_pendingRunProvenance = RunProvenance();
-	m_completedRunProvenance = RunProvenance();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -12161,15 +12158,16 @@ RunProvenance MainWindow::captureRunProvenance() const {
 
 DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
-	if (!m_resultsAvailable || m_completedRunResults.trains.empty())
+	if (!m_resultsAvailable || !m_completedRun || m_completedRun->results.trains.empty())
 		return snapshot;
+	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_sceneRevision);
 	snapshot.scenarioId = m_appliedScenarioId;
 	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
-	snapshot.durationSeconds = std::isfinite(initial_variables.times)
-		? initial_variables.times
+	snapshot.durationSeconds = std::isfinite(run.settings.horizonSteps)
+		? run.settings.horizonSteps
 		: 0.0;
-	snapshot.timestep = timestep;
+	snapshot.timestep = run.settings.timestepSeconds;
 	for (const SceneScenario& scenario : m_sceneModel.scenarios) {
 		if (scenario.id != snapshot.scenarioId)
 			continue;
@@ -12177,9 +12175,9 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
 		break;
 	}
-	snapshot.provenance = m_completedRunProvenance;
-	snapshot.run = m_completedRunResults;
-	snapshot.timetable = m_completedTimetableResults;
+	snapshot.provenance = run.provenance;
+	snapshot.run = run.results;
+	snapshot.timetable = run.timetable;
 	return snapshot;
 }
 
@@ -12410,14 +12408,10 @@ void MainWindow::onSimulationFinished() {
 		// Freeze result values before a subsequent run replaces the runtime trains.
 		m_completedRun = std::make_shared<const CompletedRunData>(
 			captureCompletedRun(&m_sceneModel, m_startOffsetSeconds, m_pendingRunProvenance));
-		m_completedRunProvenance = m_completedRun->provenance;
-		m_completedRunResults = m_completedRun->results;
-		m_completedTimetableResults = m_completedRun->timetable;
 		refreshRunResults();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
 		m_completedRun.reset();
-		m_completedRunProvenance = RunProvenance();
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
@@ -13425,12 +13419,12 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		const auto operation = captureTelemetryOperation();
-		const RunProvenance provenance = m_completedRunProvenance;
+		const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 		saveCsvInteractive(
 			this, "run_summary.csv", operation,
-			[this] { return buildRunSummaryCsv(m_completedRunResults); },
-			[provenance](const QString& path, const std::string& bytes) {
-				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
+			[run] { return run ? buildRunSummaryCsv(run->results) : std::string(); },
+			[run](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance());
 			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
@@ -13451,7 +13445,8 @@ void MainWindow::setupRunResultsDock() {
 			return;
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
-		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance);
+		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes,
+			m_completedRun ? m_completedRun->provenance : RunProvenance());
 		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 		if (!written)
 			QMessageBox::warning(this, "Export failed",
@@ -13486,12 +13481,13 @@ void MainWindow::setupRunResultsDock() {
 }
 
 void MainWindow::refreshRunResults() {
-	if (!m_runResultsDock || !m_runResultsTable || m_completedRunResults.trains.empty())
+	if (!m_runResultsDock || !m_runResultsTable || !m_completedRun || m_completedRun->results.trains.empty())
 		return;
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	refreshRunResultsSummary();
-	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(completedRunContext(m_completedRunProvenance)));
+	m_runResultsDock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
 
-	const RunResults& results = m_completedRunResults;
+	const RunResults& results = run->results;
 	const int totalColumns = 11;
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
@@ -13503,9 +13499,9 @@ void MainWindow::refreshRunResults() {
 
 	// Start and end as clock times, travel time as a duration, energy with one
 	// decimal; a dash marks values the run did not produce.
-	const auto clockText = [this](const RunResultValue& value) {
+	const auto clockText = [&run](const RunResultValue& value) {
 		return value.available
-			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), m_startOffsetSeconds))
+			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), run->settings.startOffsetSeconds))
 			: QStringLiteral("-");
 	};
 	const auto durationText = [](const RunResultValue& value) {
@@ -13561,18 +13557,18 @@ void MainWindow::refreshRunResults() {
 }
 
 void MainWindow::refreshRunResultsSummary() {
-	if (!m_runResultsSummaryLabel || m_completedRunResults.trains.empty())
+	if (!m_runResultsSummaryLabel || !m_completedRun || m_completedRun->results.trains.empty())
 		return;
 	int directEvidenceCount = 0;
 	int destinationTerminationCount = 0;
-	for (const TrainRunResult& result : m_completedRunResults.trains) {
+	for (const TrainRunResult& result : m_completedRun->results.trains) {
 		if (!result.directIncidentIds.empty())
 			++directEvidenceCount;
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
 	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
-						  .arg(completedRunContext(m_completedRunProvenance))
+						  .arg(completedRunContext(m_completedRun->provenance))
 						  .arg(m_lastRunSelectedOccurrences)
 						  .arg(m_lastRunTotalOccurrences);
 	if (advancedDetailsEnabled()) {
@@ -15896,7 +15892,7 @@ void MainWindow::buildRouteDiagram(const std::shared_ptr<const CompletedRunData>
 	};
 	win->setCsvProvider(graphCsv, timetable ? "timetable_graph.csv" : "train_path_graph.csv");
 	if (const auto routeDiagramBuilt = mainWindowTestHooks().routeDiagramBuilt)
-		routeDiagramBuilt(graphCsv, timetable);
+		routeDiagramBuilt(graphCsv, trainIdsFrom(*run), timetable);
 	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
 	win->setTimeAxisY(true, run->settings.startOffsetSeconds);

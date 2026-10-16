@@ -10,12 +10,8 @@
 #include <vector>
 
 class QWidget;
-class Train;
 
-// Capacity inputs of the finished run. The functions with a name that ends in "ForScope" or "WithPair", and
-// capacityScopeIssue and capacityScopeLabel, read the run from the simulation globals regional_train, numRegions and
-// train_route. The functions with a name that ends in "From" read nothing but their arguments and give the same
-// values for the same run.
+// Capacity inputs of the finished run. The functions read nothing but their arguments.
 
 struct CapacityAnalysisScope {
 	int routeIndex = -1;
@@ -25,12 +21,6 @@ struct CapacityAnalysisScope {
 	std::string cycleEndOccurrenceId;
 	double periodSeconds = 3600.0;
 };
-
-std::string capacityScopeIssue(const CapacityAnalysisScope& scope);
-CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAnalysisScope& scope);
-std::vector<CapacityAnalysisTrain> capacityTrainsForScope(const CapacityAnalysisScope& scope);
-CapacityAnalysisScope firstCapacityScopeWithPair();
-QString capacityScopeLabel(const CapacityAnalysisScope& scope);
 
 // The occupations of one train in the scope, with the reference time that the capacity analysis uses.
 CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const CapacityAnalysisScope& scope);

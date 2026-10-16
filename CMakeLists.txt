@@ -1275,6 +1275,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_logging_contract.py)
 	add_test(NAME test_no_e2e_in_product
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_no_e2e_in_product.py)
+	add_test(NAME test_diagrams_no_sim_globals
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_diagrams_no_sim_globals.py)
 	add_test(NAME test_windows_subsystem_config
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_windows_subsystem_config.py)
 	add_test(NAME test_raii_contract
@@ -1423,7 +1425,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
-		test_ci_workflow test_signalling_bounds test_logging_contract test_no_e2e_in_product test_windows_subsystem_config test_raii_contract
+		test_ci_workflow test_signalling_bounds test_logging_contract test_diagrams_no_sim_globals test_no_e2e_in_product test_windows_subsystem_config test_raii_contract
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg)
 	egtrain_label_tests(integration

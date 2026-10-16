@@ -35,11 +35,6 @@ struct BlockingTimeDiagramInput {
 	double releaseTime = -1.0, runTimeMargin = -1.0;
 };
 
-class BlockingTimes;
-
-// The diagram input of one blocking-time record of the simulation. This is the only place that copies its fields.
-BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source);
-
 struct BlockingTimeDiagramSegment {
 	std::string trainName;
 	std::string blockId;

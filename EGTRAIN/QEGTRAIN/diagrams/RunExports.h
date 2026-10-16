@@ -18,32 +18,19 @@
 #include <utility>
 #include <vector>
 
-class Train;
+// CSV text of a finished run and the inputs of its diagrams. The functions read nothing but their arguments.
 
-// CSV text of the finished run. Most functions here read the run from the simulation globals
-// regional_train, numRegions, train_route, initial_variables and timestep, not from arguments.
-
-std::vector<const Train*> runResultTrainPointers();
 std::string csvValue(const RunResultValue& value);
 
-std::string buildTrajectoryCsv(const QStringList& visibleTrainIds);
-std::string buildTimetableCsv(const QStringList& visibleTrainIds);
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
 	const std::vector<BlockingTimePlannedReference>& plannedReferences,
 	const std::vector<std::vector<std::string>>& trajectories = {},
 	const std::vector<BlockSectionExtent>& extents = {},
 	const std::vector<BlockingTimeDiagramSegment>& unmapped = {});
-std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds);
 
-QStringList allTrainIds();
-std::function<std::string(const QStringList&)> snapshotCsv(
-	const std::function<std::string(const QStringList&)>& provider);
 bool writeCsvFileWithProvenance(const QString& path, const std::string& content,
 	const RunProvenance& provenance);
-
-// The same exports and diagram inputs from a completed run. They read nothing but their arguments and give the
-// same text and values as the functions above and in BlockingTimeScope.h and CapacityScope.h do for the same run.
 
 QStringList trainIdsFrom(const CompletedRunData& data);
 std::string trajectoryCsvFrom(const CompletedRunData& data, const QStringList& visibleTrainIds);

@@ -7,8 +7,6 @@
 #include "graphics/VisualPolish.h"
 #include "graphics/items/SignalItem.h"
 #include "scene/TrackPreview.h"
-#include "simulation/RollingStock.h"
-#include "simulation/Signalling.h"
 #include "util/CsvWriter.h"
 #include <QAbstractItemModel>
 #include <QComboBox>

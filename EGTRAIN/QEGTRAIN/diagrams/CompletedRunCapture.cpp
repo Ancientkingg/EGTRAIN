@@ -1,6 +1,5 @@
 #include "diagrams/CompletedRunData.h"
 
-#include "diagrams/RunExports.h"
 #include "diagrams/SimulationHeaders.h"
 #include "scene/SceneModel.h"
 
@@ -9,27 +8,6 @@
 #include <map>
 #include <unordered_map>
 #include <utility>
-
-BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
-	BlockingTimeDiagramInput block;
-	block.blockId = source.BlockID;
-	block.startOccTime = source.StartOccTime;
-	block.endOccTime = source.EndOccTime;
-	block.posStart = source.PosStart;
-	block.posEnd = source.PosEnd;
-	block.switchName = source.SwitchName;
-	block.stationName = source.stationName;
-	block.isComplete = source.IsComplete;
-	block.startApproachTime = source.StartApproachTime;
-	block.startRunTime = source.StartRunTime;
-	block.endRunTime = source.EndRunTime;
-	block.endClearTime = source.EndClearTime;
-	block.setupTime = source.setupTime;
-	block.sightReactionTime = source.sightReacTime;
-	block.releaseTime = source.ReleaseTime;
-	block.runTimeMargin = source.RunTimeMargin;
-	return block;
-}
 
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
 	RouteDiagramPath path;
@@ -75,6 +53,35 @@ std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route) {
 }
 
 namespace {
+
+BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
+	BlockingTimeDiagramInput block;
+	block.blockId = source.BlockID;
+	block.startOccTime = source.StartOccTime;
+	block.endOccTime = source.EndOccTime;
+	block.posStart = source.PosStart;
+	block.posEnd = source.PosEnd;
+	block.switchName = source.SwitchName;
+	block.stationName = source.stationName;
+	block.isComplete = source.IsComplete;
+	block.startApproachTime = source.StartApproachTime;
+	block.startRunTime = source.StartRunTime;
+	block.endRunTime = source.EndRunTime;
+	block.endClearTime = source.EndClearTime;
+	block.setupTime = source.setupTime;
+	block.sightReactionTime = source.sightReacTime;
+	block.releaseTime = source.ReleaseTime;
+	block.runTimeMargin = source.RunTimeMargin;
+	return block;
+}
+
+std::vector<const Train*> runResultTrainPointers() {
+	std::vector<const Train*> trains;
+	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int i = 0; i < numRegions; ++i)
+		trains.push_back(&regional_train[i]);
+	return trains;
+}
 
 std::vector<BlockingTimeDiagramInput> convertBlockTimes(const Train& train) {
 	std::vector<BlockingTimeDiagramInput> blocks;

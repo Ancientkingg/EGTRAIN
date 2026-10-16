@@ -43,6 +43,17 @@ docs/                     Guides and architecture, development, product, telemet
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases, the `e2e/` runner of the scripted GUI scenarios and the test `fixtures/` |
 
+## Completed-run data
+
+When a run ends, `captureCompletedRun` (`diagrams/CompletedRunCapture.cpp`) copies what the result views need out of the
+simulation into one `CompletedRunData`, and `MainWindow` holds it as `m_completedRun`, a
+`std::shared_ptr<const CompletedRunData>`. The Run Results dock reads it, and every result window and CSV export keeps
+its own pointer. So a window that was opened for one run goes on showing and exporting that run after another run has
+replaced the simulation state. The code in `diagrams/` reads the simulation only in `CompletedRunCapture.cpp` and
+`RunResults.cpp`. `tools/e2e/test_diagrams_no_sim_globals.py` fails when another file of `diagrams/`, or
+`app/MainWindowSupport.h`, includes a header of `simulation/` or names `regional_train`, `train_route`, `numRegions` or
+`initial_variables`.
+
 ## Includes
 
 Includes are path-qualified against the source root, for example:
