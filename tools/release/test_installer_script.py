@@ -230,7 +230,9 @@ def check_license(values, read, problems):
     if page is not None and posixpath.normpath(INSTALLER + "/" + page.replace("\\", "/")) != LICENSE:
         problems.append(f"license: LicenseFile must name the {LICENSE} of the repository, not {page}")
     workflow = read(PACKAGE_WORKFLOW)
-    job = WINDOWS_JOB.search(workflow.decode("utf-8", errors="replace") + "\n  end:\n") if workflow is not None else None
+    # A Windows checkout can have CRLF line ends, and the job pattern matches LF only.
+    workflow_text = workflow.decode("utf-8", errors="replace").replace("\r\n", "\n") if workflow is not None else None
+    job = WINDOWS_JOB.search(workflow_text + "\n  end:\n") if workflow_text is not None else None
     if job is None:
         problems.append(f"license: the package-windows job was not found in {PACKAGE_WORKFLOW}")
     else:
