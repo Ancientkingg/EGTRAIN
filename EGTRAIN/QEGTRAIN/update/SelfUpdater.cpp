@@ -22,7 +22,7 @@ constexpr qint64 kMaxManifestBytes = 128 * 1024;
 // A staging folder newer than this may belong to a download that another instance is running.
 constexpr std::chrono::minutes kStaleStagingAge{60};
 // The manifest entry of the installer that an installed Windows copy runs.
-[[maybe_unused]] constexpr char kInstallerKey[] = "windows-x64-installer";
+constexpr char kInstallerKey[] = "windows-x64-installer";
 // Runs the installer without a window or a message box and without restarting the computer.
 constexpr char kInstallerArguments[] = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART";
 
@@ -64,6 +64,13 @@ QString helperName() {
 }
 
 } // namespace
+
+UpdatePackage updatePackageFor(Distribution distribution, const QString& platformKey) {
+	UpdatePackage package;
+	package.usesInstaller = distribution == Distribution::WindowsInstalled;
+	package.manifestKey = package.usesInstaller && !platformKey.isEmpty() ? QString::fromLatin1(kInstallerKey) : platformKey;
+	return package;
+}
 
 SelfUpdater::SelfUpdater(QObject* parent)
 	: QObject(parent), m_transport(createHttpTransport(this)), m_timeout(this) {
@@ -150,11 +157,9 @@ SelfUpdateCapability SelfUpdater::capability() {
 	return result;
 #endif
 
-	// An installed Windows copy runs the installer of the release. Every other copy replaces its own files
-	// with the package of its platform.
-	const QString platformKey = updateDistributionKey();
-	result.usesInstaller = currentDistribution() == Distribution::WindowsInstalled;
-	result.manifestKey = result.usesInstaller && !platformKey.isEmpty() ? QString::fromLatin1(kInstallerKey) : platformKey;
+	const UpdatePackage package = updatePackageFor(currentDistribution(), updateDistributionKey());
+	result.manifestKey = package.manifestKey;
+	result.usesInstaller = package.usesInstaller;
 	if (!QFileInfo(result.helperPath).isFile()) {
 		result.reason = QStringLiteral("The packaged update helper is missing.");
 		return result;

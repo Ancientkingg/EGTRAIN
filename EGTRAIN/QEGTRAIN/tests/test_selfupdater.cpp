@@ -615,6 +615,24 @@ static bool testKeyChoosesPackage(const QString& base, const QString& helper) {
 	return ok;
 }
 
+// The kind of copy decides whether the installer or the archive of the platform is its package.
+static bool testPackageForDistribution() {
+	const QString platform = QStringLiteral("windows-x64");
+	const UpdatePackage installed = updatePackageFor(Distribution::WindowsInstalled, platform);
+	bool ok = expect(installed.usesInstaller && installed.manifestKey == kInstallerKey, "an installed Windows copy takes the installer");
+	const UpdatePackage portable = updatePackageFor(Distribution::WindowsPortable, platform);
+	ok &= expect(!portable.usesInstaller && portable.manifestKey == platform, "a portable Windows copy keeps the archive");
+	const UpdatePackage macApp = updatePackageFor(Distribution::MacApp, QStringLiteral("macos-arm64"));
+	ok &= expect(!macApp.usesInstaller && macApp.manifestKey == QStringLiteral("macos-arm64"), "a macOS app keeps its package");
+	const UpdatePackage appImage = updatePackageFor(Distribution::LinuxAppImage, QStringLiteral("linux-x86_64"));
+	ok &= expect(!appImage.usesInstaller && appImage.manifestKey == QStringLiteral("linux-x86_64"), "a Linux AppImage keeps its package");
+	const UpdatePackage unsupported = updatePackageFor(Distribution::Unsupported, QString());
+	ok &= expect(!unsupported.usesInstaller && unsupported.manifestKey.isEmpty(), "an unsupported platform has no package");
+	ok &= expect(updatePackageFor(Distribution::WindowsInstalled, QString()).manifestKey.isEmpty(),
+		"an installed copy of a platform without a manifest entry has no package");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 	QStandardPaths::setTestModeEnabled(true);
@@ -636,5 +654,6 @@ int main(int argc, char** argv) {
 	ok &= testCancel(temp.path(), probe);
 	ok &= testNotPossible(temp.path(), probe);
 	ok &= testKeyChoosesPackage(temp.path(), probe);
+	ok &= testPackageForDistribution();
 	return ok ? 0 : 1;
 }

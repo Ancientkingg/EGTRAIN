@@ -1,6 +1,7 @@
 #ifndef EGTRAIN_SELF_UPDATER_H
 #define EGTRAIN_SELF_UPDATER_H
 
+#include "update/Distribution.h"
 #include "update/HttpTransport.h"
 #include "update/ReleaseInfo.h"
 #include "update/UpdatePreparation.h"
@@ -23,6 +24,17 @@ struct SelfUpdateCapability {
 	QString launchPath;
 	QString helperPath;
 };
+
+struct UpdatePackage {
+	// The entry of update-manifest.json that describes the package.
+	QString manifestKey;
+	// True when the update runs the installer of the release instead of replacing the files of the copy.
+	bool usesInstaller = false;
+};
+
+// An installed Windows copy runs the installer of the release. Every other copy replaces its own files
+// with the package of its platform, whose manifest entry is platformKey.
+UpdatePackage updatePackageFor(Distribution distribution, const QString& platformKey);
 
 class SelfUpdater : public QObject {
 	Q_OBJECT
