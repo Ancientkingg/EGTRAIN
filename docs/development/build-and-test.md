@@ -1171,6 +1171,45 @@ canonical source directory directly.
 The reimported Assignment run must report no route section without a
 signalling level and must write section records to `BlockingTimes.txt`.
 
+## Live stream tests
+
+Five tests cover the live stream of `--live`. The promises they check are in [Live contract version 1](../architecture/external-sharing.md#live-contract-version-1).
+
+```bash
+ctest --test-dir build -R '^test_live' --output-on-failure
+```
+
+| Test | Label | What it covers |
+| --- | --- | --- |
+| `test_liveframe` | unit | The frames of `io/LiveFrame.h`: frames from hand-built snapshots, the rules for `null`, every frame against `docs/live/frame-v1.schema.json`, and the frames of a run of the line fixture against the golden files in `tests/live/expected`. A frame with a member that the schema does not name fails. |
+| `test_livecommand` | unit | `parseLiveRequest` in `io/LiveCommand.h`: every accepted command, every reason, the limits of size, id and delay, the order of the checks and the id that comes back. It also checks the event frame that reports a command. It uses no socket, thread or run. |
+| `test_liveserver` | unit | `LiveServer` with a synthetic producer and ZeroMQ clients on the loopback address: the endpoint file, the order of frames, the drop policy, a subscriber that never reads, disconnect and reconnect, restart, a port in use, bad requests, a full command queue, the final flush, shutdown with clients connected and producers on four threads. |
+| `test_livereplay` | integration | The commands of a client against a run of the line fixture in the test process. See below. |
+| `test_live_stream_smoke` | integration | The application with `--live` and `build/live_client`: a client that follows a run, sends `set_delay_ms` or leaves, a run that nobody reads, repeated services, a late client, a stopped run, a second run (macOS only) and the options that are refused. Each run with a stream is compared file by file, and by standard output, with a run without one. |
+
+`test_livereplay` starts a `LiveServer` with commands inside the test process and acts as the client. It plays the JSON-lines files in `tests/live/commands` against the line fixture. Each line is `{"step": N, "cmd": ..., "args": ...}`. The test sends it from the thread of the run through a REQ socket after step N-1, so the run takes the command at the top of step N. A reader on another thread follows the stream, and it ends each pause with a `resume` once the `applied` event for the pause has come and the run has stood still for a while. The test checks:
+
+- A run that receives `pause`, `resume` and `set_delay_ms` equals a run that receives nothing: every file of the output folder, the standard output and the state at each of the 1500 steps. A second run without commands is compared first, to show that a difference comes from the commands.
+- The `applied` and `rejected` events with their step numbers, and that no `state` frame comes while the run is paused.
+- A `stop` before step 100 ends the run as `cancelled` after 100 steps.
+- A command that is accepted before the run is turned down with `no_active_run` and does not reach the run, and one that is accepted after the last step is turned down with `run_ended`.
+- A command is turned down with `queue_full` when the control of the run holds 16 commands already.
+
+To add a case, add a line to a file in `tests/live/commands` and the events it should give to `testReplay` in `tests/test_livereplay.cpp`.
+
+### ThreadSanitizer
+
+CI runs no ThreadSanitizer. Run the live code under it before a change to the threads of the stream (the server, the step loop in `DispatchController` or `RunControl`), in a build directory of its own:
+
+```bash
+cmake -S . -B build-tsan -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread
+cmake --build build-tsan --target QEGTRAIN live_client test_liveserver test_livecommand test_livereplay
+ctest --test-dir build-tsan -R '^test_live(server|command|replay)$' --output-on-failure
+```
+
+Qt is not instrumented, so a window run reports data races in `ConsoleWidget` and in Qt's queued calls. They do not involve the live code. A run under ThreadSanitizer takes far longer than the limits of `test_live_stream_smoke`. The smoke test stretches its waits by `EGTRAIN_TEST_TIMEOUT_SCALE`, so configure with `-DEGTRAIN_TEST_TIMEOUT_SCALE=100` before you run it, and put `log_path` in `TSAN_OPTIONS` to keep the reports.
+
 ## Completed-run replay
 
 After a successful, unchanged full run, the Replay row appears under the network.

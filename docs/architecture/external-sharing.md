@@ -1,6 +1,6 @@
 # External state sharing
 
-A run shares its state in two ways: over the legacy channels of the options `-TSM` and `-RC`, which this page describes first, and as the supported [live stream](#live-stream) of `--live`.
+A run shares its state in two ways: over the legacy channels of the options `-TSM` and `-RC`, which this page describes first, and as the supported [live stream](#live-stream) of `--live`, whose promises are in [Live contract version 1](#live-contract-version-1). [Sharing a live run](../guides/live-sharing.md) is the guide for a client.
 
 With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is printed and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
 
@@ -221,6 +221,113 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 - A scripted window run that runs the case twice (`QEGTRAIN_E2E_OPERATIONAL_COMPLETION`), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.
 - Each option that is not valid, and a port that is in use.
 - `-TSM 1`, `-RC 1` and the answers of `--interactive`: one line of the notice on standard error.
+
+## Live contract version 1
+
+This section is what a consumer of the live stream can rely on. It holds for contract version 1, the value of `v` in every frame, request, reply and in `live-endpoint.json`. The sections around it describe the code that keeps these promises. [Sharing a live run](../guides/live-sharing.md) shows how to start a run with the stream and has a small client.
+
+### Transport
+
+- The run publishes frames on a ZeroMQ PUB socket and, with `--live-commands`, takes requests on a REP socket. Both listen on `127.0.0.1`. There is no host option and no other address, so only programs on the same machine can connect.
+- A client subscribes to the PUB socket, and sends each request through a REQ socket. The addresses and the token of the requests are in `live-endpoint.json` in the output folder of the scene (see [Sockets](#sockets)).
+- Without `--live` nothing is bound and nothing listens.
+
+### Frames
+
+A frame is two ZeroMQ parts: the topic, which is `hello`, `state` or `event`, and the frame as UTF-8 JSON text. A subscriber can filter on the topic. Every frame is a JSON object with these members:
+
+| Member | Meaning |
+| --- | --- |
+| `v` | The contract version, 1. |
+| `run_id` | 16 hexadecimal digits that name the run. All frames of a run carry the same value, and each run has a new one. |
+| `seq` | The position of the frame in its run, counted from 0 across all kinds of frame. |
+
+`hello` opens a run, and the server publishes it again when a client sends `describe`:
+
+| Member | Unit | Meaning |
+| --- | --- | --- |
+| `scene_name` | text | The name of the scene. |
+| `base_time_s` | s | The time of day of step 0, in seconds from midnight. |
+| `horizon_steps` | steps | The number of steps of the run. |
+| `step_s` | s | The seconds in one step. |
+| `units` | | The unit of each kind of value: `distance` `m`, `time` `s`, `speed` `m/s`, `x` `km`. |
+| `trains` | | Every train of the run, also one that has not entered, in a fixed order. Each has `service_id`, `occurrence` (counted from 1), `operating_code` and `route_index`. |
+
+A train is named by `service_id` and `occurrence` together, for the whole run.
+
+`state` is the state of one step. `trains` has one entry for each train of the `hello`, in the same order:
+
+| Member | Unit | Meaning |
+| --- | --- | --- |
+| `step` | steps | The number of the step, counted from 0. |
+| `sim_time_s` | s | `step` times `step_s`. |
+| `clock_s` | s | `base_time_s` plus `sim_time_s`. It is not reduced to one day. |
+| `trains` | | One entry for each train: `service_id`, `occurrence`, `operating_code`, `in_network`, `direction`, `route_pos_m`, `x_km`, `speed_ms` and `onboard`. |
+| `signals` | | The signal state of every section and direction, as entries with `section_id`, `code`, `level`, `failed` and `reversed`. It is in the first `state` frame of a run and in each later frame in which it differs from the last frame that had it. |
+
+`event` reports a change in the life of the run. Its `kind` says which:
+
+| `kind` | Other members | Meaning |
+| --- | --- | --- |
+| `steps_finished` | `step` | The step loop has ended and the positions are final. `step` is the number of steps that ran. The result files may still be written. |
+| `run_finished` | `step`, `status` | The stages of the run have ended. `status` is `completed`, or `cancelled` when the run was stopped. Not every result file is written yet. |
+| `applied` | `step`, `command_id`, `cmd` | The run takes the command before the next step. |
+| `rejected` | `step`, `command_id`, `cmd`, `reason` | The run does not take a command that the server accepted. See [Errors](#errors). |
+
+### Units and coordinates
+
+- Time is in seconds. `clock_s` is the time of day of the scene, with no date and no time zone, and it keeps counting past 24 hours.
+- `route_pos_m` is the position of the head of the train on the axis of its route, in metres. A route has its own axis, so positions compare for trains with the same `route_index` of the `hello` only. It is a position and not the distance that the train has run.
+- `x_km` is the coordinate of the head along the line, in km: the x of the block section that holds the head plus the distance into it, minus the distance on a reversed route. `direction` is `reversed` for a train on a reversed route.
+- `speed_ms` is in metres per second. The simulation holds km/h, and the frame divides it by 3.6.
+- A value that the run does not hold is `null`: the position, the coordinate and the speed of a train that has not entered or has left, and a coordinate of a head that lies in no block section. The internal marks for these (`-9999`, `-1`) never leave the process. A number that is not finite is `null` too.
+- `in_network` is true from the step in which the train is due until it has left the simulation.
+- `code` of a signal is the signalling code of the section (270 green, 180 yellow, 75 red, 751 red_red, 0 occupied or failed; see [Signalling levels](signalling-levels.md)). `level` is the signalling level, 0 to 5. Both are `null` for a section without a level. The frames have no aspect ahead of a train and no section of a train: only the list of signals.
+
+### Ordering
+
+- The thread of the run gives `seq`, so it is one order for the whole run: the `hello` is 0, and each frame that the run makes takes the next number, also a `state` frame that the server then drops.
+- Frames reach a subscriber in the order of `seq`. A `hello` that was published again keeps its `seq`, and it can arrive in the middle of a run.
+- A `state` frame is made at the end of its step. An `applied` event with `step` N comes after the `state` frame of step N-1 and before that of step N, because the run takes a command at the top of a step. The `steps_finished` event comes after the last `state` frame, and `run_finished` is the last frame of the run.
+- A subscriber that joins later gets no earlier frame. A subscriber that is too slow loses frames, and the gap shows in `seq`. The run does not wait for it.
+
+### Sampling
+
+- `--live-every N` makes a `state` frame for the steps 0, N, 2N and so on. The last step has a frame only if it is a multiple of N. `hello` and `event` frames are never thinned.
+- With N above 1 the `signals` of a frame can differ from those of the frame before in more than one section, because the frames between them were not made.
+- The stream does not set the pace of a run. A run goes as fast as it can, and `set_delay_ms` slows it for a viewer. The server keeps 8 `state` frames for its I/O thread and drops the oldest when the run is faster; see [Threads and loss](#threads-and-loss).
+
+### Compatibility
+
+- The server speaks one version. It sets `v` to 1 in every frame, reply and in the endpoint file, and it rejects a request with another `v` as `bad_version`.
+- Within version 1 a frame, a reply or the endpoint file can get new members, an `event` can get new kinds, and a request can get new commands. A consumer ignores a member and an event kind that it does not know.
+- A change that removes a member, changes a unit or the meaning of a member, or changes the rules of ordering or sampling raises `v`. A consumer stops when it sees a `v` that it does not know.
+- `docs/live/frame-v1.schema.json` names every member of every frame. `test_liveframe` checks the frames of the code against it and fails for a member that the schema does not name.
+
+### Threads and where commands act
+
+- One thread runs the steps: the worker thread of a window run, the main thread of a `-g 0` run. It builds the snapshot of a step, makes the text of each frame, gives `seq`, pushes the frame to the server and takes the commands. It never calls ZeroMQ and never waits for a socket or a client.
+- One I/O thread owns every ZeroMQ socket. It sends the frames, and it checks each request, answers it within about 10 ms and queues the commands that it accepts. It never touches the run.
+- A command acts at the top of a step, before any train moves, never in the middle of one. The thread of the run takes the accepted commands from the server and submits them to the `RunControl` of the run, which applies them in the order of arrival. While the run is paused it looks again every 50 ms.
+- A command that is accepted while no step is going to start, because no run goes on or the steps have ended, does not act. It gets a `rejected` event.
+- Any number of clients can subscribe. Each has its own buffer, so a slow client loses frames without effect on the run or on other clients.
+
+### Errors
+
+| Where | What | What happens |
+| --- | --- | --- |
+| Start | A `--live` option that is not valid. | The start stops with exit code 1. |
+| Start | The port is in use, or the endpoint file cannot be written. | The start stops with exit code 2 and the reason on standard error, before a run begins. |
+| Reply | The server rejects the request with `bad_json`, `too_large`, `bad_version`, `bad_argument`, `bad_token`, `unknown_command` or `queue_full`. | The reply has `status` `rejected` and the `reason`. Nothing is queued and the run does not see it. [Requests](#requests) gives the order of the checks. |
+| Reply | `describe` when no run has begun. | `rejected` with `no_active_run`. |
+| Event | An accepted command was waiting when the steps of the run ended. | `rejected` with `run_ended`. |
+| Event | A command was accepted between two runs, or before the first. | `rejected` with `no_active_run` right after the `hello` of the next run. |
+| Event | The control of the run held 16 commands that it had not applied. | `rejected` with `queue_full`. |
+| Stream | A client disconnects, never reads, or is slow. | The run and the other clients go on. The client loses frames. |
+| Stream | The I/O thread cannot hand a frame to its socket, or a socket call fails. | It logs the problem once for each kind in the category `io.zmq` and goes on. |
+| Stream | Text that is not UTF-8. | The frame has U+FFFD in its place. |
+
+A client that sends garbage, a request that is too large or a request with the wrong token cannot stop or change a run. Only an accepted command reaches it, and an accepted command is one of the four in [Commands](#commands).
 
 ## Live server
 
