@@ -1239,6 +1239,8 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_pe_image_size
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_image_size.py)
+	add_test(NAME test_pe_imports
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_pe_imports.py)
 	# The signature check runs on copies of scene_tool.exe that a throwaway self-signed certificate signs.
 	if(WIN32)
 		find_program(EGTRAIN_POWERSHELL NAMES pwsh powershell)
@@ -1327,7 +1329,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_operationsbuilder test_completedrun test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
-		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_make_dmg)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases

@@ -687,7 +687,7 @@ def main() -> None:
     package_step = next((block for block in blocks if block.startswith("name: Start an assembled Windows package\n")), "")
     package_assembly = (
         'installed/x64-windows/bin/*.dll" $dist/',
-        'windeployqt.exe" --release --no-translations --compiler-runtime --no-opengl-sw --no-angle'
+        'windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle'
         ' --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"',
         'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
     )
@@ -829,28 +829,45 @@ def main() -> None:
     windows_job = job_block(package_only, "package-windows")
     verify_step = step_block(windows_job, "Verify the package is complete")
     forbidden_files = (
-        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*")) {\n'
+        '          foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*","vc_redist*")) {\n'
         '            $found = @(Get-ChildItem "$dist" -Recurse -File -Filter $name)\n'
         '            if ($found.Count -gt 0) { throw "unexpected $name in the package: $($found[0].FullName)" }\n'
         "          }\n"
     )
     if forbidden_files not in verify_step or verify_step.find(forbidden_files) > verify_step.find("Write-Host"):
-        missing.append("Windows package check that forbids the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML and virtual keyboard files")
+        missing.append("Windows package check that forbids the OpenGL, ANGLE, Direct3D compiler, Qt Quick, QML, virtual keyboard and vc_redist files")
     for required_file in ("iconengines/qsvgicon.dll", "styles/qwindowsvistastyle.dll"):
         if f'          if (-not (Test-Path "$dist/{required_file}")) {{ throw "missing {required_file}" }}\n' not in verify_step:
             missing.append(f"Windows package check that requires {required_file}")
-    deploy_options = ("--no-opengl-sw", "--no-angle", "--no-system-d3d-compiler", "--no-virtualkeyboard", "--no-quick-import")
+    deploy_options = ("--no-compiler-runtime", "--no-opengl-sw", "--no-angle", "--no-system-d3d-compiler", "--no-virtualkeyboard", "--no-quick-import")
     package_deploy = [line.strip() for line in windows_job.splitlines() if "windeployqt.exe" in line]
     start_deploy = [line.strip() for line in package_step.splitlines() if "windeployqt.exe" in line]
     if len(package_deploy) != 1 or any(option not in package_deploy[0] for option in deploy_options):
         missing.append("windeployqt options of the Windows package job that leave out the OpenGL, ANGLE, Direct3D compiler, Qt Quick and virtual keyboard files")
     if package_deploy != start_deploy:
         missing.append("the same windeployqt line in the Windows package job and in the Windows package start check")
-    windows_steps = ("Assemble package", "Verify the package is complete", "Report package size", "Start the package", "Upload artifact")
+    windows_steps = ("Assemble package", "Copy the Visual C++ runtime", "Verify the package is complete",
+                     "Check the DLL imports of the package", "Report package size", "Start the package", "Upload artifact")
     windows_step_names = re.findall(r"^      - name: (.+)$", windows_job, re.MULTILINE)
     step_positions = [windows_step_names.index(name) if name in windows_step_names else -1 for name in windows_steps]
     if -1 in step_positions or step_positions != sorted(step_positions):
         missing.append("Windows package steps in the order " + ", ".join(windows_steps))
+    # The installer installs per user and cannot run the redistributable, so the package holds the runtime DLLs that its files
+    # import, copied from the x64 folder of the MSVC redistributable that the runner has, and a check fails the job when a file
+    # imports a DLL that the package lacks.
+    runtime_step = step_block(windows_job, "Copy the Visual C++ runtime")
+    imports_step = step_block(windows_job, "Check the DLL imports of the package")
+    if (
+        windows_job.count("vc_redist") != 1
+        or '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' not in runtime_step
+        or "python tools/release/pe_imports.py $dist --missing" not in runtime_step
+        or 'Copy-Item -LiteralPath $source "$dist/$name"' not in runtime_step
+        or "vcruntime|msvcp|concrt" not in runtime_step
+        or re.search(r"\d+\.\d+\.\d+", runtime_step)
+        or "python tools/release/pe_imports.py dist/QEGTRAIN\n" not in imports_step
+        or "$LASTEXITCODE -ne 0" not in imports_step
+    ):
+        missing.append("Windows package job that copies the Visual C++ runtime DLLs, ships no vc_redist and checks the DLL imports")
     size_step = step_block(windows_job, "Report package size")
     if (
         "Get-ChildItem dist/QEGTRAIN -Recurse -File" not in size_step
@@ -1112,6 +1129,7 @@ def main() -> None:
     if (
         'python -m zipfile -e "portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip" $start' not in portable_start
         or not portable_start.strip().endswith('python tools/release/package_start_smoke.py "$start"')
+        or 'python tools/release/pe_imports.py "$start"\n' not in portable_start
         or 'PYTHONUTF8: "1"' not in portable_start
     ):
         missing.append("Windows finalize start of the extracted portable archive")
