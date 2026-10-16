@@ -72,7 +72,7 @@ result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1319.000000 sim_de
 run_result F1-1 start=60.000000 end=1220.000000 travel=1160.000000
 run_result F2-1 start=200.000000 end=1321.000000 travel=1121.000000
 network start=60.000000 end=1321.000000 travel=1261.000000
-train F1-1 direct_incident count=1 ids=inc.stag.b first_time=807.000000 first_location=10000.000000
+train F1-1 direct_incident count=2 ids=inc.stag.a,inc.stag.b first_time=401.000000 first_location=8000.000000
 blocktime F1-1 n=0 complete=0
 train F2-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime F2-1 n=0 complete=0

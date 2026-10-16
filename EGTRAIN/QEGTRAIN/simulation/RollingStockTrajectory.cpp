@@ -251,6 +251,27 @@ void Train::recordDirectSignalFailure(const MovementAuthority& authority, double
 	recordDirectIncidentId(incidentId, timeSeconds, authority.AbsPosEoA);
 }
 
+namespace {
+// Records the signal failures that hold a standing train at a red aspect: the failed section is the next section on the
+// route of the train, and the train stands within 4 m of its entry, like a train stopped for the authority.
+void recordSignalFailuresAtRedAspect(Train& train, double head, double timeSeconds) {
+	if (train.Bs.state != SignalState::Red)
+		return;
+	const Route& route = train_route[train.indexOfRoute];
+	for (const MovementAuthority& authority : ETCS_MA) {
+		if (authority.type != "SignalFailure" || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
+			continue;
+		const double distance = train.authorityRoutePosition(authority, train.Bs) - head;
+		if (distance < 0 || distance >= 4)
+			continue;
+		for (int block = 0; block + 1 < route.N_Block_Sections; ++block)
+			if (route.sequence_of_block_sections[block].ID == train.Bs.ID
+				&& route.sequence_of_block_sections[block + 1].ID == authority.TrainInfo.NextSectionID)
+				train.recordDirectSignalFailure(authority, timeSeconds);
+	}
+}
+} // namespace
+
 double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 	const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, timestepIndex);
 	const double cap = incident ? incident->reducedSpeedKmh / 3.6 : 0.0;
@@ -392,6 +413,11 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				IsTrainStoppedForEoA = true;
 				recordDirectSignalFailure(Last_MA_StoppedAt, time_seconds * timestep);
 			}
+
+			// At the aspect levels a train is held by the red aspect before a failed section, and may never brake for the
+			// authority: it can stand there already when the failure begins.
+			if (instant_train_speed[time_seconds - 1] == 0)
+				recordSignalFailuresAtRedAspect(*this, instant_spatial_position[time_seconds - 1], time_seconds * timestep);
 
 			checkIfMovementAuthorityStillValid(instant_train_speed[time_seconds - 1], instant_spatial_position[time_seconds - 1], Bs);
 

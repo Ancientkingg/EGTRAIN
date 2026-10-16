@@ -154,6 +154,7 @@ set(EGTRAIN_CHARACTERIZATION_DELAY_PAIRS
 	follow-level-none|sf-forward-level-none
 	follow-level-3|sf-forward-level-3
 	follow-level-0|sf-forward-level-0
+	follow-level-0|sf-adjacent-level-0
 	follow-level-0|entrance-delay-f2-level-0
 	follow-level-0|breakdown-f1-level-0)
 foreach(pair IN LISTS EGTRAIN_CHARACTERIZATION_DELAY_PAIRS)
