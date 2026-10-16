@@ -260,14 +260,13 @@ regular intervals.
   the reference frames are too small to read, where the current build keeps the
   pictogram at least 24 px and the name at least 12 px high.
 - The names are larger in the current detail frames than in the reference frames
-  at the same extent, because the minimum name size applies at those zooms.
-  Pontrieaux is 84 px wide against 52 px, and Carlsberg 48 px against 33 px.
+  at the same extent. The current build draws a name at least 12 px high.
 - The current frames have the `#101a22` background and its grid, the reference
   frames a black background.
 - In both Paimpol detail frames a signal has a white post and base and a green
   head, and the opposing head sits on the other side of the line at the same
   offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
-  segments. The track is about 3 px wide in both frames.
+  segments. Both builds draw the track with a cosmetic pen of 2 px.
 - No capture shows a running state, so the red and yellow aspects, the unpainted
   track states and the white repaint of the reference are not shown.
 - Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
