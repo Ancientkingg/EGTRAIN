@@ -84,7 +84,7 @@ The scene, simulation, utility and RailML code is built once as static
 libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`
 and the vendored `egtrain_pugixml`. The Qt code that several targets use is
 built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_update`,
-`egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
+`egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
 `SimulationWorker`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
 tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
@@ -272,7 +272,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
-| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches run only on macOS and Linux. |
+| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches and the window launch with a bundle argument run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window there only, because the scene layer builds file paths from narrow strings. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 

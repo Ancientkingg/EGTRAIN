@@ -66,5 +66,16 @@ The simulator also accepts a bundle directly:
 QEGTRAIN --scene case-study.egscene -g 0 -TSM 0 -RC 0
 ```
 
+A file name without `--scene` opens the bundle in the same way:
+
+```bash
+QEGTRAIN case-study.egscene
+```
+
+Exactly one `.egscene` file is accepted. Another kind of file or several files
+are reported and the usual start follows; with `-g 0` the program exits with
+status 1 instead. When `--scene` is also given, `--scene` wins and the file name
+is ignored.
+
 See the [bundle specification](../architecture/scene-bundle.md) for the ZIP
 layout, version fields, entry limits, and safety rules.

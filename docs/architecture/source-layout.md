@@ -27,7 +27,7 @@ docs/                     Guides and architecture, development, product, telemet
 
 | Folder | Holds |
 | --- | --- |
-| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `resources.qrc` |
+| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `SceneOpenRequest`, `resources.qrc` |
 | `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockOccupation`, `RollingStockStops`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `SceneTool` |
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
@@ -69,6 +69,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
 | `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdatePreparation`, `UpdateSettings` | Qt Core, `egtrain_util` |
+| `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
