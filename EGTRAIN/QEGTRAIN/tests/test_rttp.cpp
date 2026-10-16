@@ -1,4 +1,5 @@
-#include "io/RailMLParser.h"
+#include "io/ExternalState.h"
+#include "io/RttpXml.h"
 #include "simulation/InitialParameters.h"
 
 #include <chrono>
@@ -13,8 +14,6 @@
 #include <zmq.hpp>
 
 InitialParameters initial_variables(0);
-
-void read_rttp_train_view(std::string rttp);
 
 namespace {
 using Names = std::vector<std::string>;
@@ -186,19 +185,46 @@ bool checkRouteChoiceXml() {
 			&& texts(document, "//departure_time") == Names{"28800", "29400"},
 		"origin, destination and departure_time hold the journey of each passenger");
 
-	// Today origin, destination and departure_time are siblings of person under the root, so the journey of a passenger
-	// is not linked to its person element. This pins the current output and does not endorse it; the check changes
-	// when the builder nests the three elements under person.
-	ok &= expect(elementNames(root) == Names{"person", "origin", "destination", "departure_time", "person", "origin", "destination", "departure_time"}
-			&& elementNames(root.child("person")).empty(),
-		"origin, destination and departure_time follow their person under the root");
+	bool journeysNested = true;
+	Names journeys;
+	for (const pugi::xml_node person : root.children("person")) {
+		journeysNested &= elementNames(person) == Names{"origin", "destination", "departure_time"};
+		journeys.push_back(std::string(person.child_value("origin")) + " to " + person.child_value("destination") + " at " + person.child_value("departure_time"));
+	}
+	ok &= expect(elementNames(root) == Names{"person", "person"} && journeysNested
+			&& journeys == Names{"StationA to StationB at 28800", "StationC to StationA at 29400"},
+		"origin, destination and departure_time are inside the person element of their passenger");
 	return ok;
+}
+
+// The part of a timestamp after the date.
+std::string timeOfDay(const std::string& timestamp) {
+	return timestamp.size() > 11 ? timestamp.substr(11, 8) : std::string();
+}
+
+// Both builders count their times from the start time of day of the scene. The date and the zone belong to the machine,
+// so the two builders are compared with each other and not with a fixed time.
+bool checkStartTimeOfDay() {
+	initial_variables.startingSimulationTime = 12 * 3600;
+	const nlohmann::json traffic = trafficStateInput(false);
+	nlohmann::json route = routeChoiceInput();
+	route["time"] = traffic["time"];
+	pugi::xml_document trafficDocument;
+	pugi::xml_document routeDocument;
+	if (!loadBuilderXml(trafficStateMonitoring_xml(traffic), "trafficState", trafficDocument)
+		|| !loadBuilderXml(routeChoice_xml(route), "routeChoiceRequest", routeDocument))
+		return false;
+	const std::string trafficTime = attributeText(trafficDocument.document_element(), "currentTime");
+	const std::string routeTime = attributeText(routeDocument.document_element(), "currentTime");
+	return expect(isTimestamp(trafficTime) && timeOfDay(trafficTime) == timeOfDay(routeTime),
+		"trafficState counts its time from the start time of the scene, as routeChoiceRequest does");
 }
 }
 
 int main() {
 	const bool trafficStateXml = checkTrafficStateXml();
 	const bool routeChoiceXml = checkRouteChoiceXml();
+	const bool startTimeOfDay = checkStartTimeOfDay();
 	std::ostringstream output;
 	std::ostringstream errors;
 	auto* oldOutput = std::cout.rdbuf(output.rdbuf());
@@ -250,10 +276,11 @@ int main() {
 	std::cout.rdbuf(oldOutput);
 	std::cerr.rdbuf(oldErrors);
 	const bool parseErrorReported = errors.str().find("RTTP XML parse error") != std::string::npos;
-	if (!trafficStateXml || !routeChoiceXml || !parsedPayload || !parseErrorReported || sentWithoutListener
+	if (!trafficStateXml || !routeChoiceXml || !startTimeOfDay || !parsedPayload || !parseErrorReported || sentWithoutListener
 		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope) {
-		std::cerr << "railmlparser test failed: traffic_state_xml=" << trafficStateXml
+		std::cerr << "rttp test failed: traffic_state_xml=" << trafficStateXml
 				  << " route_choice_xml=" << routeChoiceXml
+				  << " start_time_of_day=" << startTimeOfDay
 				  << " parsed=" << parsedPayload
 				  << " parse_error=" << parseErrorReported
 				  << " absent_peer_sent=" << sentWithoutListener

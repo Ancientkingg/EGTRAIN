@@ -44,7 +44,7 @@ target that links a library does not get them.
 - `egtrain_dispatch` has the flags only. Its own sources are clean, and the warnings in its
   build log come from the simulation headers.
 - These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
-  `egtrain_sim` and `egtrain_railml`, `QEGTRAIN`, and the test executables that use the
+  `egtrain_sim` and `egtrain_rttp`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
