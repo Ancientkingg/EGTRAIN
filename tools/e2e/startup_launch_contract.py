@@ -363,16 +363,21 @@ def terminate_process_group(proc: subprocess.Popen) -> None:
 
 
 # A window launch, with the arguments args and, when request is given, a QFileOpenEvent for that
-# file at the moment "launch" or "running" (the test hook QEGTRAIN_E2E_OPEN_REQUEST). The window
-# opens the files in wanted, adds them to the recent cases and does not open the chooser. A file in
-# refused does not open: the status line says so and the file stays out of the recent cases. The
-# window stays open, so the check stops it.
+# file at the moment "launch", "startup", "chooser" or "running" (the test hook
+# QEGTRAIN_E2E_OPEN_REQUEST). The window opens the files in wanted and adds them to the recent
+# cases. It does not open the chooser, except for the moment "chooser", where the event comes from
+# inside the open chooser and the chooser must give way, and for "startup" off macOS, where nothing
+# waits for the event before the chooser opens. A file in refused does not open: the status line
+# says so and the file stays out of the recent cases. The window stays open, so the check stops it.
 def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path], moment: str, wanted: list[Path], refused: list[Path], temp: Path, label: str) -> None:
     env = os.environ.copy()
     env["QT_QPA_PLATFORM"] = "offscreen"
     env["QEGTRAIN_OUTPUT_DIR"] = str(temp / "out")
     env["QEGTRAIN_E2E_SETTINGS_DIR"] = str(temp / "settings")
-    env["QEGTRAIN_E2E_STARTUP_CHOOSER"] = "1"
+    # That variable makes the chooser close itself and end the run, which the chooser moments must not.
+    chooser_may_open = moment in ("startup", "chooser")
+    if not chooser_may_open:
+        env["QEGTRAIN_E2E_STARTUP_CHOOSER"] = "1"
     for name in ("QEGTRAIN_E2E_OPEN_REQUEST", "QEGTRAIN_E2E_OPEN_REQUEST_AT"):
         env.pop(name, None)
     if request is not None:
@@ -419,6 +424,14 @@ def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path
         problem = f"{label} shows the status line {status[len(STATUS_PREFIX):]!r} after the open event"
     if not problem and "E2E_STARTUP_CHOOSER_" in text:
         problem = f"{label} opened the chooser"
+    sent = next((line for line in text.splitlines() if line.startswith("E2E_OPEN_REQUEST_SENT")), "")
+    if not problem and request is not None and "E2E_OPEN_REQUEST_CHOOSER_AFTER=no" not in text:
+        problem = f"{label} left the chooser open after the open event"
+    if not problem and moment == "chooser" and not sent.endswith("chooser=yes"):
+        problem = f"{label} sent the open event while no chooser was open ({sent!r})"
+    # macOS waits a moment before it opens the chooser, so an event that comes then is seen first.
+    if not problem and moment == "startup" and sys.platform == "darwin" and not sent.endswith("chooser=no"):
+        problem = f"{label} opened the chooser before the open event ({sent!r})"
     if problem:
         raise SystemExit(f"{problem}\n{tail(text)}")
 
@@ -564,6 +577,12 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
             assert_window_opens_files(app, [str(spaced)], second, "running", [spaced, second], [], root / "run-event-running", "running window with an open event")
             assert_window_opens_files(app, [], malformed, "launch", [], [malformed], root / "run-event-malformed", "window launch with an open event for a malformed file")
             print("open events at launch and in a running window opened the files, with spaces and non-ASCII characters, kept the chooser closed and kept a malformed file out of the recent cases")
+            # The system hands over the file that started the program after the startup callback has run.
+            assert_window_opens_files(app, [], second, "startup", [second], [], root / "run-event-startup",
+                "window launch with an open event after the start")
+            assert_window_opens_files(app, [], spaced, "chooser", [spaced], [], root / "run-event-chooser",
+                "window launch with an open event in the chooser")
+            print("an open event just after the start and one from inside the open chooser opened their files, and the chooser gave way")
             scripted = spaced.parent / "Scripted.egscene"
             shutil.copyfile(second, scripted)
             assert_file_launch_reaches_running_window(app, spaced, [second, unicode_bundle], malformed, scripted, root / "run-relay")

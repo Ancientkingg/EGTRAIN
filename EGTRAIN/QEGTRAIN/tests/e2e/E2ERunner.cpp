@@ -3,6 +3,7 @@
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
 #include <QCoreApplication>
+#include <QDialog>
 #include <QDir>
 #include <QFileOpenEvent>
 #include <QSettings>
@@ -35,12 +36,16 @@ const Scenario kScenarios[] = {
 
 // QEGTRAIN_E2E_OPEN_REQUEST names a file that the run hands to the application as the system does
 // when it opens a document with the program: a QFileOpenEvent. QEGTRAIN_E2E_OPEN_REQUEST_AT says
-// when. At "launch", the default, the event comes as the window first shows, as when the system
-// starts the program for the file. At "running" it comes once the start has settled, as when the
-// program already runs.
+// when. At "launch", the default, the event comes as the window first shows, before the startup
+// callback has run. At "startup" it comes a moment later, while the program still starts, as when
+// the system starts the program for the file. At "chooser" it comes once the case chooser is open,
+// from inside the chooser. At "running" it comes once the start has settled, as when the program
+// already runs.
 constexpr const char* kOpenRequest = "QEGTRAIN_E2E_OPEN_REQUEST";
 constexpr const char* kOpenRequestAt = "QEGTRAIN_E2E_OPEN_REQUEST_AT";
+constexpr int kStartupOpenRequestDelayMs = 50;
 constexpr int kRunningOpenRequestDelayMs = 1000;
+constexpr int kChooserPollMs = 20;
 constexpr int kOpenRequestStatusDelayMs = 3000;
 
 bool anyScenarioRequested() {
@@ -51,16 +56,35 @@ bool anyScenarioRequested() {
 	return qEnvironmentVariableIsSet(kOpenRequest);
 }
 
+const char* chooserState(const MainWindow& window) {
+	return window.findChild<QDialog*>(QStringLiteral("caseChooserDialog")) ? "yes" : "no";
+}
+
 void sendOpenRequest(MainWindow& window, const QString& file) {
+	// Whether the chooser is open when the event comes.
+	std::fprintf(stdout, "E2E_OPEN_REQUEST_SENT chooser=%s\n", chooserState(window));
+	std::fflush(stdout);
 	QFileOpenEvent event(QUrl::fromLocalFile(file));
 	QCoreApplication::sendEvent(QCoreApplication::instance(), &event);
-	std::fprintf(stdout, "E2E_OPEN_REQUEST_SENT\n");
-	std::fflush(stdout);
-	// The status line tells whether the file opened.
+	// The status line tells whether the file opened, and the chooser must have gone.
 	QTimer::singleShot(kOpenRequestStatusDelayMs, &window, [&window] {
+		std::fprintf(stdout, "E2E_OPEN_REQUEST_CHOOSER_AFTER=%s\n", chooserState(window));
 		std::fprintf(stdout, "E2E_OPEN_REQUEST_STATUS=%s\n", window.statusBar()->currentMessage().toUtf8().constData());
 		std::fflush(stdout);
 	});
+}
+
+// Sends the event from the event loop of the chooser, as soon as the chooser is open.
+void sendOpenRequestWhenChooserOpens(MainWindow& window, const QString& file) {
+	auto* poll = new QTimer(&window);
+	QObject::connect(poll, &QTimer::timeout, &window, [&window, poll, file] {
+		if (!window.findChild<QDialog*>(QStringLiteral("caseChooserDialog")))
+			return;
+		poll->stop();
+		poll->deleteLater();
+		sendOpenRequest(window, file);
+	});
+	poll->start(kChooserPollMs);
 }
 
 void startScenarios(MainWindow& window) {
@@ -73,7 +97,12 @@ void startScenarios(MainWindow& window) {
 	if (!qEnvironmentVariableIsSet(kOpenRequest))
 		return;
 	const QString file = qEnvironmentVariable(kOpenRequest);
-	if (qEnvironmentVariable(kOpenRequestAt) == QLatin1String("running"))
+	const QString at = qEnvironmentVariable(kOpenRequestAt);
+	if (at == QLatin1String("chooser"))
+		sendOpenRequestWhenChooserOpens(window, file);
+	else if (at == QLatin1String("startup"))
+		QTimer::singleShot(kStartupOpenRequestDelayMs, &window, [&window, file] { sendOpenRequest(window, file); });
+	else if (at == QLatin1String("running"))
 		QTimer::singleShot(kRunningOpenRequestDelayMs, &window, [&window, file] { sendOpenRequest(window, file); });
 	else
 		sendOpenRequest(window, file);
@@ -96,8 +125,9 @@ bool configureProcess() {
 		QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, absoluteSettingsDir);
 	}
 	const QString openRequestAt = qEnvironmentVariable(kOpenRequestAt);
-	if (!openRequestAt.isEmpty() && openRequestAt != QLatin1String("launch") && openRequestAt != QLatin1String("running")) {
-		std::cerr << "ERROR: QEGTRAIN_E2E_OPEN_REQUEST_AT must be launch or running.\n";
+	if (!openRequestAt.isEmpty() && openRequestAt != QLatin1String("launch") && openRequestAt != QLatin1String("startup")
+		&& openRequestAt != QLatin1String("chooser") && openRequestAt != QLatin1String("running")) {
+		std::cerr << "ERROR: QEGTRAIN_E2E_OPEN_REQUEST_AT must be launch, startup, chooser or running.\n";
 		return false;
 	}
 	mainWindowTestHooks().dialogsSuppressed = anyScenarioRequested();

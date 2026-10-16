@@ -23331,7 +23331,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	}
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
-	QTimer::singleShot(0, this, [this, relay]() {
+	const auto startup = [this, relay]() {
 		if (!initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		showPrivacySettings(true);
@@ -23339,7 +23339,21 @@ void MainWindow::showEvent(QShowEvent* e) {
 		reportInstallerUpdate(this);
 		reportRolledBackUpdate(this);
 		maybePromptForUpdateChecks();
+	};
+#ifdef Q_OS_MACOS
+	// Finder hands over the file that started the program as an open event, and that event reaches
+	// the application only after this callback has run. A chooser that is open by then holds it back
+	// until the user closes it, so the chooser waits for the event loop to deliver the event first.
+	QTimer::singleShot(0, this, [this, relay, startup]() {
+		constexpr int kOpenEventWaitMs = 300;
+		if (relay && !initial_variables.nArgProvided && !relay->hasPendingRequest())
+			QTimer::singleShot(kOpenEventWaitMs, this, startup);
+		else
+			startup();
 	});
+#else
+	QTimer::singleShot(0, this, startup);
+#endif
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
 	if (PlaybackProfiler::enabled()) {

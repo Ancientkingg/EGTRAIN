@@ -243,12 +243,18 @@ run with any `QEGTRAIN_E2E_` variable neither listens nor hands over a file,
 unless `QEGTRAIN_E2E_OPEN_RELAY` is set as well, which the contract sets for the
 window only. The test hook `QEGTRAIN_E2E_OPEN_REQUEST` names a file that the run
 hands to the application as a `QFileOpenEvent`, as the first show of the window
-begins (`QEGTRAIN_E2E_OPEN_REQUEST_AT=launch`, the default) or one second later
-(`running`), and prints the status line three seconds after the event. The contract
+begins (`QEGTRAIN_E2E_OPEN_REQUEST_AT=launch`, the default), 50 ms later while the
+program still starts (`startup`), from inside the open case chooser (`chooser`) or
+one second later (`running`). It prints whether the chooser is open when the event
+comes, and the chooser and the status line three seconds after it. The contract
 uses it to show that a window started without a file opens a file from an open
 event, with spaces or non-ASCII characters in its name, without the chooser, that a
-running window opens one too, and that a malformed file is reported and stays out of
-the recent cases. A real double-click in Finder is not part of it.
+running window opens one too, that an event from inside the open chooser closes the
+chooser and opens the file, and that a malformed file is reported and stays out of
+the recent cases. On macOS the startup callback waits 300 ms before it opens
+the chooser, so that the event of a launch from Finder is seen first; the `startup`
+moment checks that no chooser opens then. A real double-click in Finder is not part
+of it.
 
 ### Test labels
 
