@@ -332,11 +332,11 @@ ahead of `F2` and stands at the station at 8 km while `F2` arrives
 
 ### Levels 1 and 2 (`1 ETCS Level 1 fixed block`, `2 ETCS Level 2 fixed block`)
 
-The aspect routines of levels 1 and 2 are the same code with the level number
-changed: `etcsLev1MixedSignalling` and `etcsLev2MixedSignalling`. Their speed
-pass and the release of the last section are shared with levels 0 and 5
-(`applyBlockSpeedForLevel` and `releaseLastSections`). Trains move the same way
-at both levels. The levels differ in the blocking times only.
+The aspects of levels 1 and 2 are written by `applyFixedBlockAspects`, from two
+tables that differ in the level number only. Their speed pass and the release of
+the last section are shared with levels 0 and 5 (`applyBlockSpeedForLevel` and
+`releaseLastSections`). Trains move the same way at both levels. The levels
+differ in the blocking times only.
 
 - **Separation.** Fixed blocks. A train stops at the end of the block before the
   occupied one, as at level 0, with no speed limit.
@@ -718,7 +718,7 @@ source about a real system:
   751 and 0 and the limit of 11.111 m/s mean outside this program;
 - whether the stop at the end of the block before an occupied block, with no
   overlap, matches a real rule;
-- whether level 1 matches the system named in the comment of its routine, and
+- whether level 1 matches the system named in the comment of its table, and
   whether level 2 can be modelled as fixed block with the aspects of level 1;
 - whether the margin of 50 m, the release without delay, and the braking curve
   at every block end match a real system;

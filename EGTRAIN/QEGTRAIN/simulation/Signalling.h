@@ -388,14 +388,8 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 // Set infrastructure speed limits (from infrastructure, not signalling)
 void setInfraSpeedLimits(Section* BS, int Blocks);
 
-// --- ETCS L1 Mixed Signalling (level 1) ---
-// occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied; the routines below take it the same way.
-void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied);
-
-// --- ETCS L2 Mixed Signalling (level 2) ---
-void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied);
-
 // --- ETCS L3 Mixed Signalling (levels 3 and 4) ---
+// occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied.
 void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied);
 
 void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
