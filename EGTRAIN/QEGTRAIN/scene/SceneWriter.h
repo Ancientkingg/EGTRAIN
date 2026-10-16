@@ -42,5 +42,11 @@ nlohmann::json encodeSignalling(const SceneModel& scene);
 nlohmann::json encodeRollingStock(const SceneModel& scene);
 // The content of services.json.
 nlohmann::json encodeServices(const SceneModel& scene);
+// The content of scenarios.json.
+nlohmann::json encodeScenarios(const SceneModel& scene);
+// The content of views.json.
+nlohmann::json encodeViews(const SceneModel& scene);
+// The content of scene.json.
+nlohmann::json encodeSceneMetadata(const SceneModel& scene);
 
 #endif // SCENEWRITER_H

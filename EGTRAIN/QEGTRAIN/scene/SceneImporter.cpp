@@ -952,9 +952,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	report.converted("legacy_root", legacyDir);
 
 	SceneModel scene;
-	json scenarios = json::array();
-	json views = {{"tracks", json::array()}, {"stations", json::array()}};
-	bool hasViews = false;
 
 	// InitialParameters is compiled into the current runtime, not stored in
 	// the legacy case directory. Only these known case/name pairs are safe to
@@ -1417,22 +1414,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			json value = {{"track", trackId}, {"level", level}, {"region", region}};
-			if (hiddenTrackIds.count(trackId) != 0)
-				value["visible"] = false;
-			views["tracks"].push_back(std::move(value));
+			scene.trackViews.push_back(SceneTrackView{trackId, level, region, hiddenTrackIds.count(trackId) == 0});
 			report.converted("views.tracks", trackViewSource);
-			hasViews = true;
 			++rowIndex;
 		}
 	}
 	for (const auto& trackId : hiddenTrackIds) {
 		if (knownTrackIds.count(trackId) == 0 || !importedTrackIds.insert(trackId).second)
 			continue;
-		views["tracks"].push_back({{"track", trackId}, {"level", 0}, {"region", 0}, {"visible", false}});
+		scene.trackViews.push_back(SceneTrackView{trackId, 0, 0, false});
 		report.source("views.tracks", hiddenTracksPath.u8string());
 		report.converted("views.tracks", hiddenTracksPath.u8string());
-		hasViews = true;
 	}
 
 	const fs::path stationViewPath = guiDir.empty() ? fs::path()
@@ -1539,15 +1531,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			json regionsJson = json::array();
-			for (const auto& region : regions)
-				regionsJson.push_back({{"id", region.first}, {"position_km", region.second}});
-			json value = {{"station", stationId}, {"latitude", latitude}, {"longitude", longitude}, {"regions", regionsJson}};
-			if (!corridors.empty())
-				value["corridors"] = corridors;
-			views["stations"].push_back(std::move(value));
+			scene.stationViews.push_back(SceneStationView{stationId, latitude, longitude, std::move(regions), std::move(corridors)});
 			report.converted("views.stations", stationViewSource);
-			hasViews = true;
 			++rowIndex;
 		}
 	}
@@ -2166,8 +2151,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// Baseline incidents are the only flat legacy scenario input. Rollout files
 	// contain positional delay vectors; map them in manifest order and retain
 	// the same value at the two stations used by the runtime scenario loader.
-	const SceneScenario baselineScenario = makeBaselineScenario();
-	json baseline = {{"id", baselineScenario.id}, {"name", baselineScenario.name}, {"incidents", json::array()}, {"entrance_delays", json::array()}};
+	SceneScenario baseline = makeBaselineScenario();
 	const fs::path incidentsPath = findChild(legacyPath, "Incidents.txt");
 	const std::string incidentsSource = incidentsPath.empty() ? (legacyPath / "Incidents.txt").u8string() : incidentsPath.u8string();
 	if (!incidentsPath.empty()) {
@@ -2212,8 +2196,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				std::string id = "incident." + std::to_string(lineNo);
 				if (targets.size() > 1)
 					id += "." + std::to_string(targetIndex + 1);
-				baseline["incidents"].push_back({{"id", id}, {"type", tokens[0]},
-					{"target", targets[targetIndex]}, {"start_seconds", start}, {"end_seconds", end}});
+				SceneIncident incident;
+				incident.id = id;
+				incident.type = tokens[0];
+				incident.target = targets[targetIndex];
+				incident.startSeconds = start;
+				incident.endSeconds = end;
+				baseline.incidents.push_back(std::move(incident));
 			}
 			report.converted("scenarios.incidents", incidentsSource);
 		}
@@ -2241,11 +2230,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		readFile(rollout.second, content);
 		const auto values = readTokens(content);
 		const std::string scenarioId = "rollout_" + std::to_string(rollout.first);
-		json rolloutIncidents = baseline["incidents"];
-		for (auto& incident : rolloutIncidents)
-			incident["id"] = scenarioId + "." + incident["id"].get<std::string>();
-		json scenario = {{"id", scenarioId}, {"name", "Rollout " + std::to_string(rollout.first)},
-			{"incidents", rolloutIncidents}, {"entrance_delays", json::array()}};
+		SceneScenario scenario;
+		scenario.id = scenarioId;
+		scenario.name = "Rollout " + std::to_string(rollout.first);
+		scenario.incidents = baseline.incidents;
+		for (SceneIncident& incident : scenario.incidents)
+			incident.id = scenarioId + "." + incident.id;
 		std::size_t valueIndex = 0;
 		if (!knownSettings) {
 			const int valuesCount = static_cast<int>(values.size());
@@ -2254,7 +2244,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			row.skippedCount += valuesCount;
 			row.unresolvedReferences++;
 			addDiag(SceneSeverity::Warning, "scene.import.scenario", "Cannot map rollout without known duration", source);
-			scenarios.push_back(scenario);
+			scene.scenarios.push_back(std::move(scenario));
 			continue;
 		}
 		for (const auto& relation : relations) {
@@ -2283,8 +2273,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					for (const SceneStop& stop : serviceIt->stops) {
 						const std::string& station = stop.stationId;
 						if (station != "Guingamp" && station != "Paimpol") continue;
-						scenario["entrance_delays"].push_back({{"service", relation.serviceId}, {"occurrence", occurrence},
-							{"station", station}, {"delay_seconds", delay}});
+						scenario.entranceDelays.push_back(SceneEntranceDelay{relation.serviceId, occurrence, station, delay});
 						emitted = true;
 					}
 				}
@@ -2296,11 +2285,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			report.skipped("scenarios.rollouts", source);
 			addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout vector has extra values", source, "scenarios.rollouts", true);
 		}
-		scenarios.push_back(scenario);
+		scene.scenarios.push_back(std::move(scenario));
 	}
-	scenarios.insert(scenarios.begin(), baseline);
-	report.row("scenarios", "scenarios.json").sourceCount = static_cast<int>(scenarios.size());
-	report.row("scenarios", "scenarios.json").convertedCount = static_cast<int>(scenarios.size());
+	scene.defaultScenarioId = baseline.id;
+	scene.scenarios.insert(scene.scenarios.begin(), std::move(baseline));
+	report.row("scenarios", "scenarios.json").sourceCount = static_cast<int>(scene.scenarios.size());
+	report.row("scenarios", "scenarios.json").convertedCount = static_cast<int>(scene.scenarios.size());
 
 	// The passenger importer is intentionally gated by the same two exact files
 	// used by DispatchController. It keeps deterministic windows, never random
@@ -2316,20 +2306,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	const bool hasDas = passengerImport.sources.hasDas;
 	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
-	json sceneJson = {{"schema_version", kCurrentSceneSchemaVersion}, {"name", sceneName},
-		{"saved_with_app_version", EGTRAIN_APP_VERSION},
-		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}}};
+	scene.schemaVersion = kCurrentSceneSchemaVersion;
+	scene.name = sceneName;
 	if (knownSettings) {
-		sceneJson["base_time"] = baseTime;
-		sceneJson["simulation_settings"] = {{"duration_seconds", durationSeconds}, {"buffer_time_seconds", 0.0}, {"recovery_time_percent", 0.0}};
+		scene.baseTime = baseTime;
+		scene.settings.hasDuration = true;
+		scene.settings.durationSeconds = durationSeconds;
+		scene.settings.hasBufferTime = true;
+		scene.settings.hasRecoveryTime = true;
 	}
-	sceneJson["import_report"] = json::array();
-	for (const auto& row : report.rows) {
-		sceneJson["import_report"].push_back({{"category", row.category}, {"source_file", row.sourceFile},
-			{"source_count", row.sourceCount}, {"converted_count", row.convertedCount},
-			{"skipped_count", row.skippedCount}, {"unresolved_references", row.unresolvedReferences}});
-	}
-	json scenariosFile = {{"default_scenario_id", baselineScenario.id}, {"scenarios", scenarios}};
+	scene.importReport = report.rows;
+	scene.passengers = passengerImport.passengers;
 
 	// Preserve atomic staging/publish semantics: no destination is touched while
 	// parsing or validation can still fail.
@@ -2364,15 +2351,15 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			allWritten = false;
 		}
 	};
-	writeJson("scene.json", sceneJson);
+	writeJson("scene.json", encodeSceneMetadata(scene));
 	writeJson("infrastructure.json", encodeInfrastructure(scene));
 	writeJson("stations.json", encodeStations(scene));
 	writeJson("signalling.json", encodeSignalling(scene));
 	writeJson("rolling_stock.json", encodeRollingStock(scene));
 	writeJson("services.json", encodeServices(scene));
-	writeJson("scenarios.json", scenariosFile);
-	if (hasViews) writeJson("views.json", views);
-	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(passengerImport.passengers));
+	writeJson("scenarios.json", encodeScenarios(scene));
+	if (!scene.trackViews.empty() || !scene.stationViews.empty()) writeJson("views.json", encodeViews(scene));
+	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(scene.passengers));
 	if (!allWritten) return result;
 
 	if (hasErrors(result.diagnostics)) return result;

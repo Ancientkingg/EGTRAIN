@@ -355,7 +355,7 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 	return value;
 }
 
-static json writeScenarios(const SceneModel& scene) {
+json encodeScenarios(const SceneModel& scene) {
 	json scenarios = json::array();
 	if (scene.scenarios.empty()) {
 		scenarios.push_back(writeScenarioValue(makeBaselineScenario()));
@@ -543,7 +543,7 @@ json encodeStations(const SceneModel& scene) {
 	return {{"stations", stations}};
 }
 
-static json writeViews(const SceneModel& scene) {
+json encodeViews(const SceneModel& scene) {
 	json tracks = json::array();
 	for (const auto& view : scene.trackViews) {
 		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
@@ -570,19 +570,17 @@ static json writeViews(const SceneModel& scene) {
 	return {{"tracks", tracks}, {"stations", stations}};
 }
 
-static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
-	SceneSaveResult result;
-
-	json sceneJson = {
+json encodeSceneMetadata(const SceneModel& scene) {
+	json metadata = {
 		{"schema_version", scene.schemaVersion},
 		{"name", scene.name},
 		{"saved_with_app_version", EGTRAIN_APP_VERSION},
 		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
 	};
 	if (!scene.description.empty())
-		sceneJson["description"] = scene.description;
+		metadata["description"] = scene.description;
 	if (!scene.baseTime.empty())
-		sceneJson["base_time"] = scene.baseTime;
+		metadata["base_time"] = scene.baseTime;
 	json settings = json::object();
 	if (scene.settings.hasDuration)
 		settings["duration_seconds"] = scene.settings.durationSeconds;
@@ -591,11 +589,11 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	if (scene.settings.hasRecoveryTime)
 		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
 	if (!settings.empty())
-		sceneJson["simulation_settings"] = settings;
+		metadata["simulation_settings"] = settings;
 	if (!scene.importReport.empty()) {
-		sceneJson["import_report"] = json::array();
+		metadata["import_report"] = json::array();
 		for (const auto& row : scene.importReport) {
-			sceneJson["import_report"].push_back({
+			metadata["import_report"].push_back({
 				{"category", row.category},
 				{"source_file", row.sourceFile},
 				{"source_count", row.sourceCount},
@@ -605,21 +603,26 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 			});
 		}
 	}
+	return metadata;
+}
+
+static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
+	SceneSaveResult result;
 
 	const auto writeCanonical = [&](const std::string& filename, const json& value) {
 		return writeJsonFile(result, scenePath, filename, value);
 	};
 	bool wroteAll = true;
-	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
+	wroteAll = writeCanonical("scene.json", encodeSceneMetadata(scene)) && wroteAll;
 	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
 	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
 	wroteAll = writeCanonical("signalling.json", encodeSignalling(scene)) && wroteAll;
 	wroteAll = writeCanonical("rolling_stock.json", encodeRollingStock(scene)) && wroteAll;
 	wroteAll = writeCanonical("services.json", encodeServices(scene)) && wroteAll;
-	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
+	wroteAll = writeCanonical("scenarios.json", encodeScenarios(scene)) && wroteAll;
 	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
 	if (hasViews)
-		wroteAll = writeCanonical("views.json", writeViews(scene)) && wroteAll;
+		wroteAll = writeCanonical("views.json", encodeViews(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
 		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
 	}
