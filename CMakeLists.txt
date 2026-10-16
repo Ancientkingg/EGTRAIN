@@ -200,7 +200,11 @@ target_link_libraries(egtrain_railml
     PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
     PRIVATE cppzmq)
 
-foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_railml)
+# No Qt: the frames of the live contract, built from a GuiSimulationSnapshot.
+add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveFrame.cpp)
+target_link_libraries(egtrain_live PUBLIC nlohmann_json::nlohmann_json)
+
+foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_live)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
         AUTOMOC OFF AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
@@ -353,7 +357,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_live egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -725,6 +729,16 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_guisimulationsnapshot PRIVATE egtrain_dispatch)
     target_include_directories(test_guisimulationsnapshot PRIVATE ${SRC_DIR})
     add_test(NAME test_guisimulationsnapshot COMMAND test_guisimulationsnapshot)
+
+    # Runs the line fixture in this process and compares the live frames of its snapshots with the golden files.
+    add_executable(test_liveframe ${SRC_DIR}/tests/test_liveframe.cpp)
+    target_link_libraries(test_liveframe PRIVATE egtrain_live egtrain_dispatch egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_liveframe
+        COMMAND test_liveframe
+            --fixture ${SRC_DIR}/tests/fixtures/scenes/line
+            --expect ${SRC_DIR}/tests/live/expected
+            --schema ${CMAKE_CURRENT_SOURCE_DIR}/docs/live/frame-v1.schema.json)
+    set_tests_properties(test_liveframe PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 
     add_executable(test_followavailability ${SRC_DIR}/tests/test_followavailability.cpp)
     target_link_libraries(test_followavailability PRIVATE egtrain_util)
@@ -1254,7 +1268,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_liveframe test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay

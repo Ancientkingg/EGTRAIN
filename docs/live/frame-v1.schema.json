@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/live/frame-v1.schema.json",
+  "title": "EGTRAIN live frame version 1",
+  "description": "One frame of the live contract: a JSON object that describes a run (hello), one step of it (state) or a change in its life (event). Every frame carries the contract version v, the run it belongs to and its position in the run. A consumer ignores members it does not know: a new member does not change v, and a change that removes or reinterprets a member does. A value that the simulation does not hold, such as the position of a train that has not entered, is null and is never a sentinel number. The frames are built by io/LiveFrame.h.",
+  "oneOf": [
+    { "$ref": "#/$defs/hello" },
+    { "$ref": "#/$defs/state" },
+    { "$ref": "#/$defs/event" }
+  ],
+  "$defs": {
+    "version": {
+      "const": 1,
+      "description": "Version of the contract. Any other number is a different contract."
+    },
+    "runId": {
+      "type": "string",
+      "description": "Identifies one run. All frames of a run carry the same value."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Position of the frame in its run, counted from 0 across all kinds of frame. It increases strictly."
+    },
+    "serviceId": {
+      "type": "string",
+      "description": "Id of the service that the train runs."
+    },
+    "occurrence": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Occurrence of the service, counted from 1. With service_id it names one train for the whole run."
+    },
+    "operatingCode": {
+      "type": "string",
+      "description": "Operating code of the train, as shown in the timetable."
+    },
+    "hello": {
+      "type": "object",
+      "description": "Opens a run: who it is, its time axis, its units and the trains it reports.",
+      "required": ["v", "run_id", "seq", "scene_name", "base_time_s", "horizon_steps", "step_s", "units", "trains"],
+      "properties": {
+        "v": { "$ref": "#/$defs/version" },
+        "run_id": { "$ref": "#/$defs/runId" },
+        "seq": { "$ref": "#/$defs/seq" },
+        "scene_name": { "type": "string", "description": "Name of the scene that runs." },
+        "base_time_s": { "type": "number", "description": "Time of day of step 0, in seconds from midnight." },
+        "horizon_steps": { "type": "integer", "minimum": 0, "description": "Number of steps of the run." },
+        "step_s": { "type": "number", "description": "Seconds per step." },
+        "units": {
+          "type": "object",
+          "description": "The unit of each kind of value in the frames of this run.",
+          "required": ["distance", "time", "speed", "x"],
+          "properties": {
+            "distance": { "const": "m", "description": "Unit of route_pos_m." },
+            "time": { "const": "s", "description": "Unit of base_time_s, step_s, sim_time_s and clock_s." },
+            "speed": { "const": "m/s", "description": "Unit of speed_ms." },
+            "x": { "const": "km", "description": "Unit of x_km." }
+          }
+        },
+        "trains": {
+          "type": "array",
+          "description": "Every train of the run, also one that has not entered.",
+          "items": {
+            "type": "object",
+            "required": ["service_id", "occurrence", "operating_code", "route_index"],
+            "properties": {
+              "service_id": { "$ref": "#/$defs/serviceId" },
+              "occurrence": { "$ref": "#/$defs/occurrence" },
+              "operating_code": { "$ref": "#/$defs/operatingCode" },
+              "route_index": { "type": "integer", "description": "Position of the route of the train in the routes of the scene." }
+            }
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "description": "The state of one step.",
+      "required": ["v", "run_id", "seq", "step", "sim_time_s", "clock_s", "trains"],
+      "properties": {
+        "v": { "$ref": "#/$defs/version" },
+        "run_id": { "$ref": "#/$defs/runId" },
+        "seq": { "$ref": "#/$defs/seq" },
+        "step": { "type": "integer", "minimum": 0, "description": "Number of the step, counted from 0." },
+        "sim_time_s": { "type": "number", "description": "Seconds from the start of the run: step times step_s." },
+        "clock_s": { "type": "number", "description": "Time of day: base_time_s plus sim_time_s. It is not reduced to one day." },
+        "trains": {
+          "type": "array",
+          "description": "Every train of the run, also one that has not entered or has left.",
+          "items": {
+            "type": "object",
+            "required": ["service_id", "occurrence", "operating_code", "in_network", "direction", "route_pos_m", "x_km", "speed_ms", "onboard"],
+            "properties": {
+              "service_id": { "$ref": "#/$defs/serviceId" },
+              "occurrence": { "$ref": "#/$defs/occurrence" },
+              "operating_code": { "$ref": "#/$defs/operatingCode" },
+              "in_network": { "type": "boolean", "description": "True from the step in which the train is due until it has left the simulation." },
+              "direction": { "enum": ["forward", "reversed"], "description": "reversed when the route of the train is reversed." },
+              "route_pos_m": { "type": ["number", "null"], "description": "Position of the head on the route axis, in metres. null while the train has no position." },
+              "x_km": { "type": ["number", "null"], "description": "Coordinate of the head along the line, in km: the x of the block section that holds the head plus the distance into it, minus it on a reversed route. null while the train has no position or its head lies in no block section of its route." },
+              "speed_ms": { "type": ["number", "null"], "description": "Speed in m/s. null while the train has no position." },
+              "onboard": { "type": "integer", "minimum": 0, "description": "Number of passengers on board." }
+            }
+          }
+        },
+        "signals": {
+          "type": "array",
+          "description": "The signal state of every section and direction. A sender may leave it out of a frame in which nothing changed since the last frame that has it.",
+          "items": {
+            "type": "object",
+            "required": ["section_id", "code", "level", "failed", "reversed"],
+            "properties": {
+              "section_id": { "type": "string", "description": "Id of the section." },
+              "code": { "type": ["integer", "null"], "description": "Signalling code of the section: 270 green, 180 yellow, 75 red, 751 red_red (level 5 only) or 0 for an occupied or failed section; see docs/architecture/signalling-levels.md. null for a section without a signalling level." },
+              "level": { "type": ["integer", "null"], "minimum": 0, "maximum": 5, "description": "Signalling level of the section, 0 to 5. null for a section without a level." },
+              "failed": { "type": "boolean", "description": "A signal failure covers the section in this step." },
+              "reversed": { "type": "boolean", "description": "The entry describes the section for trains on a reversed route." }
+            }
+          }
+        }
+      }
+    },
+    "event": {
+      "description": "A change in the life of the run.",
+      "oneOf": [
+        { "$ref": "#/$defs/stepsFinished" },
+        { "$ref": "#/$defs/runFinished" }
+      ]
+    },
+    "stepsFinished": {
+      "type": "object",
+      "description": "The step loop has ended and the positions are final. The result files may still be written.",
+      "required": ["v", "run_id", "seq", "kind", "step"],
+      "properties": {
+        "v": { "$ref": "#/$defs/version" },
+        "run_id": { "$ref": "#/$defs/runId" },
+        "seq": { "$ref": "#/$defs/seq" },
+        "kind": { "const": "steps_finished" },
+        "step": { "type": "integer", "minimum": 0, "description": "Number of steps that have run." }
+      }
+    },
+    "runFinished": {
+      "type": "object",
+      "description": "The run has ended and its result files are written.",
+      "required": ["v", "run_id", "seq", "kind", "step", "status"],
+      "properties": {
+        "v": { "$ref": "#/$defs/version" },
+        "run_id": { "$ref": "#/$defs/runId" },
+        "seq": { "$ref": "#/$defs/seq" },
+        "kind": { "const": "run_finished" },
+        "step": { "type": "integer", "minimum": 0, "description": "Number of steps that have run." },
+        "status": { "enum": ["completed", "cancelled"], "description": "cancelled when the run was stopped before its last step." }
+      }
+    }
+  }
+}

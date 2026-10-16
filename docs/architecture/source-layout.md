@@ -35,7 +35,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `EditorLayout`, `ElidedLabel` |
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `CompletedRunData`, `CompletedRunCapture`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
-| `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
+| `io/` | Interoperability formats: `RailMLParser`, and `LiveFrame`, the JSON frames of the live contract (`docs/live/frame-v1.schema.json`); vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
@@ -67,6 +67,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
 | `egtrain_railml` | `io/RailMLParser.cpp` | `egtrain_pugixml`, cppzmq |
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
+| `egtrain_live` | `io/LiveFrame.cpp` | nlohmann-json |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
 | `egtrain_update` | `update/Distribution`, `HttpTransport`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings`, and on Windows `WinHttpTransport` | Qt Core and Network, `egtrain_util`, and on Windows WinHTTP |
@@ -77,7 +78,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
-`egtrain_miniz` holds the vendored zip code. The first five libraries and
+`egtrain_miniz` holds the vendored zip code. The first six libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
 `egtrain_recovery` is linked by `test_recoverystore` and `test_recoverycontroller` only.
 
