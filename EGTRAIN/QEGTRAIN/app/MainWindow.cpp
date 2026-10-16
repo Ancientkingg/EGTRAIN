@@ -2362,7 +2362,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// Passenger authoring: a deliberately direct list/detail editor over the
 	// canonical SceneModel.  Journeys and legs remain nested under the selected
 	// passenger; no second tree model or transient copy is needed.
-	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	m_passengerDock = new QDockWidget("Passengers", this);
 	m_passengerDock->setObjectName("passengerDock");
 	m_passengerPanel = new PassengerPanel(m_passengerDock);
