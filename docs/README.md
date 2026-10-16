@@ -44,7 +44,7 @@ use the canonical model.
 - [Custom dialog presentation contract](ui/dialog-presentation.md): the rules for custom dialogs, how to build one with `DialogLayout`, which dialogs use it, and the checks that cover them.
 - [Result-window presentation seam](ui/result-window-presentation.md): the contract for the heading, context and warning of the result windows, their size limits and the layout of the custom result dialogs.
 - [Network renderer style map](ui/renderer-style-map.md): how the network canvas draws each element, with colours, sizes and contrast ratios.
-- [Historical track presentation](ui/historical-track-comparison.md): the original renderer used as the visual reference, how its drawing distances convert to scene units and the visual acceptance work that it names, with two earlier Copenhagen comparison images kept as records.
+- [Historical track presentation](ui/historical-track-comparison.md): the original renderer used as the visual reference, the only intentional differences from it, the captures that compare the two renderers, and how its drawing distances convert to scene units.
 - [Playback profiling](development/playback-profiling.md): the opt-in tool that measures GUI playback of the Copenhagen case, with its protocol, what it measures and its decision rule.
 - [Peak-memory baselines](development/memory-baselines.md): how to record the peak memory of the Copenhagen and Milano-Brescia runs on macOS, and the baselines recorded so far.
 
