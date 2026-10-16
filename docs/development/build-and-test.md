@@ -139,10 +139,10 @@ so these variables start no run and run no check there.
 The hook of `QEGTRAIN_E2E_EXPORT_DIR` also opens the blocking-time diagram, the delay diagram and the four
 per-train diagrams. For the blocking-time, the delay and the speed vs distance window it writes the CSV
 that the window exports with all trains, with the first train and with none (`<window>_window_all.csv`,
-`_one`, `_none`). For the delay and the per-train diagrams it also writes a text dump of the chart
-(`delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes, then every series with its
-properties and points). Two builds of one scene give the same files, so `cmp` shows whether a change moved a
-diagram.
+`_one`, `_none`). For the blocking-time, the delay and the per-train diagrams it also writes a text dump of the
+chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes,
+then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
+shows whether a change moved a diagram.
 
 ### Warnings
 

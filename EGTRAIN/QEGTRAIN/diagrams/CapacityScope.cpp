@@ -6,31 +6,6 @@
 #include <algorithm>
 #include <cmath>
 
-namespace {
-
-BlockingTimeDiagramInput capacityOccupation(const BlockingTimes& source) {
-	BlockingTimeDiagramInput occupation;
-	occupation.blockId = source.BlockID;
-	occupation.startOccTime = source.StartOccTime;
-	occupation.endOccTime = source.EndOccTime;
-	occupation.posStart = source.PosStart;
-	occupation.posEnd = source.PosEnd;
-	occupation.switchName = source.SwitchName;
-	occupation.stationName = source.stationName;
-	occupation.isComplete = source.IsComplete;
-	occupation.startApproachTime = source.StartApproachTime;
-	occupation.startRunTime = source.StartRunTime;
-	occupation.endRunTime = source.EndRunTime;
-	occupation.endClearTime = source.EndClearTime;
-	occupation.setupTime = source.setupTime;
-	occupation.sightReactionTime = source.sightReacTime;
-	occupation.releaseTime = source.ReleaseTime;
-	occupation.runTimeMargin = source.RunTimeMargin;
-	return occupation;
-}
-
-} // namespace
-
 // The capacity calculation is resource-id based. Refuse only the selected ambiguity,
 // rather than choosing one route occurrence or changing the capacity mathematics.
 std::string capacityScopeIssue(const CapacityAnalysisScope& scope) {
@@ -42,7 +17,7 @@ std::string capacityScopeIssue(const CapacityAnalysisScope& scope) {
 		const Train& train = regional_train[index];
 		if (!scope.occurrenceIds.empty() && std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(), train.trainDescription) == scope.occurrenceIds.end()) continue;
 		std::vector<BlockingTimeDiagramInput> occupations;
-		for (int block = 0; block < train.N_BlockSections; ++block) occupations.push_back(capacityOccupation(train.BlockTime[block]));
+		for (int block = 0; block < train.N_BlockSections; ++block) occupations.push_back(blockingTimeInputFrom(train.BlockTime[block]));
 		if (blockingTimeEntryAmbiguous(occupations, scope.blockIds.front()))
 			return "Occurrence " + train.trainDescription + " has several records for the selected entry resource; capacity analysis cannot identify one entry.";
 	}
@@ -59,7 +34,7 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 	const BlockingTimes* reference = nullptr;
 	for (int blockIndex = 0; blockIndex < train.N_BlockSections; ++blockIndex) {
 		const BlockingTimes& source = train.BlockTime[blockIndex];
-		const BlockingTimeDiagramInput occupation = capacityOccupation(source);
+		const BlockingTimeDiagramInput occupation = blockingTimeInputFrom(source);
 		if (!validBlockingTimeDiagramInput(occupation))
 			continue;
 		if (!reference && shareBlockingTimeResource(occupation.blockId, scope.blockIds.front()))

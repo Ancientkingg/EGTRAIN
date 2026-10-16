@@ -1,6 +1,16 @@
 #include "diagrams/BlockingTimeScope.h"
 
 #include "diagrams/SimulationHeaders.h"
+#include "widgets/DialogLayout.h"
+
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QDoubleSpinBox>
+#include <QFormLayout>
+#include <QObject>
+#include <QString>
+#include <QWidget>
 
 #include <algorithm>
 #include <cmath>
@@ -29,10 +39,110 @@ const char* blockingSegmentTypeName(const BlockingTimeDiagramSegment& segment) {
 	return segment.capacityCritical ? "capacity critical block" : blockingSegmentTypeName(segment.style);
 }
 
-BlockingTimeScope defaultBlockingTimeScope() {
+BlockingTimeScope defaultBlockingTimeScope(double caseEndSeconds) {
 	BlockingTimeScope scope;
-	scope.endTime = std::max(0.0, initial_variables.times * timestep);
+	scope.endTime = std::max(0.0, caseEndSeconds);
 	return scope;
+}
+
+bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope) {
+	QDialog dialog(parent);
+	dialog.setWindowTitle("Blocking-time scope");
+	auto* body = new QWidget;
+	auto* form = new QFormLayout(body);
+	auto* routeCombo = new QComboBox(&dialog);
+	routeCombo->addItem("All routes / all corridors", -1);
+	for (std::size_t routeIndex = 0; routeIndex < choices.routes.size(); ++routeIndex) {
+		const BlockingTimeScopeChoices::Route& route = choices.routes[routeIndex];
+		const QString corridor = route.corridor.empty()
+			? QStringLiteral("no corridor")
+			: QString::fromStdString(route.corridor);
+		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
+			static_cast<int>(routeIndex));
+	}
+	auto* firstBlock = new QComboBox(&dialog);
+	auto* lastBlock = new QComboBox(&dialog);
+	auto* startTime = new QDoubleSpinBox(&dialog);
+	auto* endTime = new QDoubleSpinBox(&dialog);
+	const double caseEnd = std::max(0.0, choices.caseEndSeconds);
+	const double step = choices.stepSeconds > 0.0 ? choices.stepSeconds : 1.0;
+	for (QDoubleSpinBox* spinBox : {startTime, endTime}) {
+		spinBox->setRange(0.0, caseEnd);
+		spinBox->setDecimals(3);
+		spinBox->setSingleStep(step);
+		spinBox->setSuffix(" s");
+	}
+	startTime->setValue(scope.startTime);
+	endTime->setValue(scope.endTime);
+
+	const auto refillBlocks = [&choices, routeCombo, firstBlock, lastBlock]() {
+		firstBlock->clear();
+		lastBlock->clear();
+		const int routeIndex = routeCombo->currentData().toInt();
+		if (routeIndex < 0 || routeIndex >= static_cast<int>(choices.routes.size())) {
+			firstBlock->addItem("All blocks");
+			lastBlock->addItem("All blocks");
+			firstBlock->setEnabled(false);
+			lastBlock->setEnabled(false);
+			return;
+		}
+		const std::vector<std::string>& blockIds = choices.routes[static_cast<std::size_t>(routeIndex)].blockIds;
+		for (std::size_t blockIndex = 0; blockIndex < blockIds.size(); ++blockIndex) {
+			const QString blockId = QString::fromStdString(blockIds[blockIndex]);
+			firstBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
+			lastBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
+		}
+		const bool hasBlocks = firstBlock->count() > 0;
+		firstBlock->setEnabled(hasBlocks);
+		lastBlock->setEnabled(hasBlocks);
+		if (hasBlocks)
+			lastBlock->setCurrentIndex(lastBlock->count() - 1);
+	};
+	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[refillBlocks](int) { refillBlocks(); });
+	refillBlocks();
+
+	form->addRow("Route / corridor:", routeCombo);
+	form->addRow("First block:", firstBlock);
+	form->addRow("Last block:", lastBlock);
+	form->addRow("Start after case base:", startTime);
+	form->addRow("End after case base:", endTime);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	DialogLayout::install(dialog, "Blocking-time scope",
+		"Choose the route, blocks and elapsed interval to inspect.", body, buttons);
+	if (dialog.exec() != QDialog::Accepted)
+		return false;
+
+	scope.startTime = std::min(startTime->value(), endTime->value());
+	scope.endTime = std::max(startTime->value(), endTime->value());
+	if (scope.endTime <= scope.startTime) {
+		if (scope.startTime + step <= caseEnd)
+			scope.endTime = scope.startTime + step;
+		else
+			scope.startTime = std::max(0.0, scope.endTime - step);
+	}
+	if (scope.endTime <= scope.startTime)
+		return false;
+	scope.trainIds.clear();
+	scope.blockIds.clear();
+	scope.sectionIndices.clear();
+	const int routeIndex = routeCombo->currentData().toInt();
+	scope.routeIndex = routeIndex >= 0 && routeIndex < static_cast<int>(choices.routes.size())
+		? routeIndex
+		: -1;
+	if (scope.routeIndex < 0)
+		return true;
+
+	const BlockingTimeScopeChoices::Route& route = choices.routes[static_cast<std::size_t>(scope.routeIndex)];
+	scope.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), static_cast<int>(route.blockIds.size()));
+	for (int blockIndex : scope.sectionIndices)
+		scope.blockIds.push_back(route.blockIds[static_cast<std::size_t>(blockIndex)]);
+	for (const BlockingTimeScopeChoices::Train& train : choices.trains)
+		if (train.routeIndex == scope.routeIndex || train.routeId == route.id)
+			scope.trainIds.push_back(train.id);
+	return true;
 }
 
 std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
@@ -44,26 +154,8 @@ std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments() {
 		const Train& t = regional_train[i];
 		std::vector<BlockingTimeDiagramInput> blocks;
 		blocks.reserve(static_cast<std::size_t>(std::max(0, t.N_BlockSections)));
-		for (int j = 0; j < t.N_BlockSections; ++j) {
-			BlockingTimeDiagramInput block;
-			block.blockId = t.BlockTime[j].BlockID;
-			block.startOccTime = t.BlockTime[j].StartOccTime;
-			block.endOccTime = t.BlockTime[j].EndOccTime;
-			block.posStart = t.BlockTime[j].PosStart;
-			block.posEnd = t.BlockTime[j].PosEnd;
-			block.switchName = t.BlockTime[j].SwitchName;
-			block.stationName = t.BlockTime[j].stationName;
-			block.isComplete = t.BlockTime[j].IsComplete;
-			block.startApproachTime = t.BlockTime[j].StartApproachTime;
-			block.startRunTime = t.BlockTime[j].StartRunTime;
-			block.endRunTime = t.BlockTime[j].EndRunTime;
-			block.endClearTime = t.BlockTime[j].EndClearTime;
-			block.setupTime = t.BlockTime[j].setupTime;
-			block.sightReactionTime = t.BlockTime[j].sightReacTime;
-			block.releaseTime = t.BlockTime[j].ReleaseTime;
-			block.runTimeMargin = t.BlockTime[j].RunTimeMargin;
-			blocks.push_back(block);
-		}
+		for (int j = 0; j < t.N_BlockSections; ++j)
+			blocks.push_back(blockingTimeInputFrom(t.BlockTime[j]));
 		trains.push_back(blocks);
 		trainNames.push_back(t.trainDescription);
 	}

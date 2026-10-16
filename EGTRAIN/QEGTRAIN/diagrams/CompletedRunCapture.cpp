@@ -8,32 +8,34 @@
 #include <unordered_map>
 #include <utility>
 
+BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
+	BlockingTimeDiagramInput block;
+	block.blockId = source.BlockID;
+	block.startOccTime = source.StartOccTime;
+	block.endOccTime = source.EndOccTime;
+	block.posStart = source.PosStart;
+	block.posEnd = source.PosEnd;
+	block.switchName = source.SwitchName;
+	block.stationName = source.stationName;
+	block.isComplete = source.IsComplete;
+	block.startApproachTime = source.StartApproachTime;
+	block.startRunTime = source.StartRunTime;
+	block.endRunTime = source.EndRunTime;
+	block.endClearTime = source.EndClearTime;
+	block.setupTime = source.setupTime;
+	block.sightReactionTime = source.sightReacTime;
+	block.releaseTime = source.ReleaseTime;
+	block.runTimeMargin = source.RunTimeMargin;
+	return block;
+}
+
 namespace {
 
 std::vector<BlockingTimeDiagramInput> convertBlockTimes(const Train& train) {
 	std::vector<BlockingTimeDiagramInput> blocks;
 	blocks.reserve(static_cast<std::size_t>(std::max(0, train.N_BlockSections)));
-	for (int j = 0; j < train.N_BlockSections; ++j) {
-		const BlockingTimes& source = train.BlockTime[j];
-		BlockingTimeDiagramInput block;
-		block.blockId = source.BlockID;
-		block.startOccTime = source.StartOccTime;
-		block.endOccTime = source.EndOccTime;
-		block.posStart = source.PosStart;
-		block.posEnd = source.PosEnd;
-		block.switchName = source.SwitchName;
-		block.stationName = source.stationName;
-		block.isComplete = source.IsComplete;
-		block.startApproachTime = source.StartApproachTime;
-		block.startRunTime = source.StartRunTime;
-		block.endRunTime = source.EndRunTime;
-		block.endClearTime = source.EndClearTime;
-		block.setupTime = source.setupTime;
-		block.sightReactionTime = source.sightReacTime;
-		block.releaseTime = source.ReleaseTime;
-		block.runTimeMargin = source.RunTimeMargin;
-		blocks.push_back(std::move(block));
-	}
+	for (int j = 0; j < train.N_BlockSections; ++j)
+		blocks.push_back(blockingTimeInputFrom(train.BlockTime[j]));
 	return blocks;
 }
 

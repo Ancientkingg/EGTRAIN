@@ -187,7 +187,7 @@ std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 }
 
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds) {
-	const BlockingTimeScope scope = defaultBlockingTimeScope();
+	const BlockingTimeScope scope = defaultBlockingTimeScope(initial_variables.times * timestep);
 	if (train_route.empty()) return {};
 	int referenceIndex = -1;
 	for (int i = 0; i < numRegions; ++i)
@@ -395,9 +395,24 @@ std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& d
 }
 
 BlockingTimeScope defaultBlockingTimeScopeFrom(const CompletedRunData& data) {
-	BlockingTimeScope scope;
-	scope.endTime = std::max(0.0, data.settings.horizonSeconds());
-	return scope;
+	return defaultBlockingTimeScope(data.settings.horizonSeconds());
+}
+
+BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& data) {
+	BlockingTimeScopeChoices choices;
+	choices.caseEndSeconds = data.settings.horizonSeconds();
+	choices.stepSeconds = data.settings.timestepSeconds;
+	for (const CompletedRoute& route : data.routes) {
+		BlockingTimeScopeChoices::Route choice;
+		choice.id = route.id;
+		choice.corridor = route.corridor;
+		for (const BlockSectionInput& block : route.blocks)
+			choice.blockIds.push_back(block.id);
+		choices.routes.push_back(std::move(choice));
+	}
+	for (const CompletedTrain& train : data.trains)
+		choices.trains.push_back({train.trainId, train.routeIndex, train.routeId});
+	return choices;
 }
 
 std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedRunData& data,

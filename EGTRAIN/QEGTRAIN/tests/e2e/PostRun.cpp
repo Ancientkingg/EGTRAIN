@@ -415,7 +415,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		if (ok) {
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_completedRun, ids));
-			const std::string blockingCsv = buildBlockingTimeCsv(ids);
+			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_completedRun, ids);
 			ok &= dump("blocking_time.csv", blockingCsv);
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
@@ -426,7 +426,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (!blockingCsv.empty())
 				ok &= blocking && list && !blocking->csvContent().empty();
 			if (blocking && list) {
-				QApplication::processEvents();
+				ok &= exportChart(blocking, dir, "blocking_time");
 				ok &= blocking->grab().save(dir + "/blocking_time_window_all.png");
 				ok &= dump("blocking_time_window_all.csv", blocking->csvContent());
 				for (int row = 1; row < list->count(); ++row) list->item(row)->setCheckState(Qt::Unchecked);

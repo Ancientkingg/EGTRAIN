@@ -61,6 +61,7 @@ std::string blockingTimeCsvFrom(const CompletedRunData& data, const QStringList&
 // Every train's blocking-time segments, classified against the other trains.
 std::vector<BlockingTimeDiagramSegment> blockTimesFrom(const CompletedRunData& data);
 BlockingTimeScope defaultBlockingTimeScopeFrom(const CompletedRunData& data);
+BlockingTimeScopeChoices blockingTimeScopeChoicesFrom(const CompletedRunData& data);
 std::vector<BlockingTimePlannedReference> plannedReferencesFrom(const CompletedRunData& data,
 	const BlockingTimeScope& scope, const std::map<int, RouteDiagramPath>& paths,
 	const std::map<int, RouteDiagramProjection>& projections, int& omitted);

@@ -8,8 +8,10 @@
 #include <string>
 #include <vector>
 
-// Blocking-time inputs of the finished run. Most functions here read the run from the simulation
-// globals regional_train, numRegions, train_route, initial_variables and timestep, not from arguments.
+class QWidget;
+
+// Blocking-time inputs of the finished run. buildAllBlockingTimeSegments and buildBlockingTimePlannedReferences read
+// the run from the simulation globals regional_train, numRegions and train_route, not from arguments.
 
 struct BlockingTimeScope {
 	std::vector<std::string> trainIds;
@@ -20,10 +22,34 @@ struct BlockingTimeScope {
 	int routeIndex = -1;
 };
 
+// What the scope dialog offers: the routes with their block sections in order, the trains with the route each runs on
+// and the extent of the run.
+struct BlockingTimeScopeChoices {
+	struct Route {
+		std::string id;
+		std::string corridor;
+		std::vector<std::string> blockIds;
+	};
+	struct Train {
+		std::string id;
+		int routeIndex = -1;
+		std::string routeId;
+	};
+	std::vector<Route> routes;
+	std::vector<Train> trains;
+	double caseEndSeconds = 0.0;
+	double stepSeconds = 1.0;
+};
+
 const char* blockingSegmentTypeName(BlockingTimeSegmentStyle style);
 const char* blockingSegmentTypeName(const BlockingTimeDiagramSegment& segment);
 
-BlockingTimeScope defaultBlockingTimeScope();
+// The scope of the whole run.
+BlockingTimeScope defaultBlockingTimeScope(double caseEndSeconds);
+// Asks for a route, a range of its blocks and an interval. On accept the scope holds the choice and the trains of the
+// route. False when the dialog is cancelled or the interval is empty.
+bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope);
+
 std::vector<BlockingTimeDiagramSegment> buildAllBlockingTimeSegments();
 std::vector<BlockingTimeDiagramSegment> projectBlockingSegments(
 	const std::vector<BlockingTimeDiagramSegment>& segments,
