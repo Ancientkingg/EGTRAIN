@@ -7,7 +7,8 @@ Runs the application with a stream and reads it with live_client:
 
   * a headless run that a client follows from start to end, with the same output as a run without a stream;
   * a client that leaves in the middle of a run and a run that nobody follows, both with that output too;
-  * a client that joins after the run has ended (window run);
+  * a headless run of a scene that repeats its services, so that the trains of a service are told apart by their occurrence;
+  * a client that joins after the run has ended, and a run that is stopped (window runs);
   * with --second-run, a second run in the same process (scripted window run);
   * the options that are refused, and the notice for the legacy -TSM and -RC options.
 
@@ -51,7 +52,7 @@ class App:
     """One run of the application with its own folders and logs."""
 
     def __init__(self, app: Path, root: Path, scene: str, arguments: List[str], window: bool = False,
-                 extra_env: Optional[Dict[str, str]] = None):
+                 extra_env: Optional[Dict[str, str]] = None, answers: str = ""):
         self.root = root
         self.output = root / "output"
         self.output.mkdir(parents=True)
@@ -62,12 +63,15 @@ class App:
                     "QEGTRAIN_E2E_SETTINGS_DIR": str(root / "settings")})
         env.update(extra_env or {})
         command = [str(app), "--scene", str(SCENES / scene), "-g", "1" if window else "0"]
-        if "-TSM" not in arguments:
-            command += ["-TSM", "0", "-RC", "0"]
+        for legacy in ("-TSM", "-RC"):
+            if legacy not in arguments and "--interactive" not in arguments:
+                command += [legacy, "0"]
         command += arguments
+        (root / "answers.txt").write_text(answers, encoding="utf-8")
+        self.stdin = open(root / "answers.txt", "rb")
         self.stdout = open(self.stdout_path, "wb")
         self.stderr = open(self.stderr_path, "wb")
-        self.process = subprocess.Popen(command, cwd=root, env=env, stdout=self.stdout, stderr=self.stderr)
+        self.process = subprocess.Popen(command, cwd=root, env=env, stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
 
     def endpoint_file(self) -> Path:
         """The live-endpoint.json of the run, once the application has written all of it."""
@@ -106,6 +110,7 @@ class App:
         self.close()
 
     def close(self) -> None:
+        self.stdin.close()
         self.stdout.close()
         self.stderr.close()
 
@@ -135,7 +140,7 @@ def files_of(folder: Path) -> Dict[str, bytes]:
 
 
 def same_results(expected: App, actual: App, what: str) -> None:
-    """The result files of the two runs are the same, and the stream has left no file behind."""
+    """The result files and the standard output of the two runs are the same, and the stream has left no file behind."""
     left, right = expected.result_folders(), actual.result_folders()
     expect(len(left) == 1 and len(right) == 1 and left[0].name == right[0].name,
            "%s: the result folders differ: %s and %s" % (what, left, right))
@@ -145,12 +150,31 @@ def same_results(expected: App, actual: App, what: str) -> None:
            % (what, sorted(set(a) - set(b)), sorted(set(b) - set(a))))
     for name in a:
         expect(a[name] == b[name], "%s: %s differs from the run without a stream" % (what, name))
+    expect(expected.stdout_path.read_bytes() == actual.stdout_path.read_bytes(),
+           "%s: the standard output differs from the run without a stream" % what)
     expect("Live stream" not in expected.stderr_path.read_text(encoding="utf-8", errors="replace"),
            "%s: a run without --live mentions the stream" % what)
 
 
-def check_run(summary: dict, what: str, horizon: int, every: int, states: int) -> None:
-    """A run that the client read to its end. A fast run can lose state frames, so only a minimum is asked for."""
+def check_scene(summary: dict, what: str, scene: str) -> None:
+    """The hello frame names the start time of the scene and trains that are services of the scene, each once."""
+    hours, minutes, seconds = (int(part) for part in json.loads((SCENES / scene / "scene.json").read_text(encoding="utf-8"))["base_time"].split(":"))
+    expect(summary["base_time_s"] == hours * 3600 + minutes * 60 + seconds, "%s: base_time_s is not the start time of %s: %s" % (what, scene, summary))
+    known = {service["id"] for service in json.loads((SCENES / scene / "services.json").read_text(encoding="utf-8"))["services"]}
+    services = [tuple(service) for service in summary["services"]]
+    expect(len(services) == summary["trains"] and len(set(services)) == len(services),
+           "%s: the trains of the hello frame do not differ in service_id and occurrence: %s" % (what, summary["services"]))
+    expect(all(service_id in known and isinstance(occurrence, int) for service_id, occurrence in services),
+           "%s: a train is no service of %s: %s" % (what, scene, summary["services"]))
+
+
+def check_run(summary: dict, what: str, scene: str, horizon: Optional[int], every: int, states: int) -> None:
+    """A run that the client read to its end. A fast run can lose state frames, so only a minimum is asked for.
+
+    Without a horizon the run is the whole scene and the hello frame says how long it is."""
+    check_scene(summary, what, scene)
+    if horizon is None:
+        horizon = summary["horizon_steps"]
     expect(summary["status"] == "completed", "%s: the run did not end as completed: %s" % (what, summary))
     expect(summary["steps_finished"] == horizon, "%s: steps_finished is not %d: %s" % (what, horizon, summary))
     expect(summary["horizon_steps"] == horizon, "%s: wrong horizon: %s" % (what, summary))
@@ -172,7 +196,7 @@ def stream_run(app: Path, client: Path, temp: Path, reference: App) -> None:
     try:
         code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1"])
         expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
-        check_run(summaries[0], "followed run", HORIZON, EVERY, 5)
+        check_run(summaries[0], "followed run", "Paimpol", HORIZON, EVERY, 5)
         expect(run.wait() == 0, "the run with a stream failed\n%s" % tail(run.stdout_path))
         expect("Live stream on tcp://127.0.0.1:" in run.stderr_path.read_text(encoding="utf-8", errors="replace"),
                "the application did not say where the stream is")
@@ -187,6 +211,7 @@ def disconnect_run(app: Path, client: Path, temp: Path, reference: App) -> None:
     try:
         code, summaries, errors = run_client(client, run.endpoint_file(), ["--max-states", "3"])
         expect(code == 0 and len(summaries) == 1 and summaries[0]["states"] >= 3, "the client did not read 3 frames:\n%s" % errors)
+        expect(summaries[0]["last_step"] < HORIZON // 2, "the client did not leave in the first half of the run: %s" % summaries[0])
         expect(run.wait() == 0, "the run ended badly after the client had left\n%s" % tail(run.stdout_path))
         same_results(reference, run, "run after a client left")
     finally:
@@ -204,6 +229,24 @@ def unwatched_run(app: Path, temp: Path, reference: App) -> None:
     print("PASS a run that nobody follows ends, with the results of a run without a stream")
 
 
+def repeated_services_run(app: Path, client: Path, temp: Path) -> None:
+    """The scene repeats each of its services, so trains of one service are told apart by their occurrence.
+
+    The run is the whole scene, which takes seconds; a shorter run ends before the client has joined."""
+    scene = "Assignment_Gvc_Gdg_Ut"
+    run = App(app, temp / "repeated", scene, ["--live", "0", "--live-commands", "--live-every", "100"])
+    try:
+        code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1"])
+        expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
+        check_run(summaries[0], "repeated services", scene, None, 100, 3)
+        expect(len({service_id for service_id, _ in summaries[0]["services"]}) < summaries[0]["trains"],
+               "the trains of the repeated services do not share a service_id: %s" % summaries[0]["services"])
+        expect(run.wait() == 0, "the run failed\n%s" % tail(run.stdout_path))
+    finally:
+        run.stop()
+    print("PASS the trains of a repeated service differ in their occurrence")
+
+
 def completed_run(app: Path, client: Path, temp: Path) -> None:
     """A window run with a stream: a client that comes after the run has ended gets the hello and no state."""
     run = App(app, temp / "completed", "Paimpol", ["-h", "300", "--live", "0", "--live-commands", "--live-every", "50"], window=True,
@@ -212,7 +255,7 @@ def completed_run(app: Path, client: Path, temp: Path) -> None:
         endpoint = run.endpoint_file()
         code, summaries, errors = run_client(client, endpoint, ["--runs", "1"])
         expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
-        check_run(summaries[0], "window run", 300, 50, 3)
+        check_run(summaries[0], "window run", "Paimpol", 300, 50, 3)
         code, late, errors = run_client(client, endpoint, ["--runs", "0"])
         expect(code == 0 and len(late) == 1, "the late client found a problem (exit %d):\n%s" % (code, errors))
         expect(late[0]["run_id"] == summaries[0]["run_id"] and late[0]["states"] == 0 and not late[0]["joined_late"],
@@ -221,6 +264,23 @@ def completed_run(app: Path, client: Path, temp: Path) -> None:
     finally:
         run.stop()
     print("PASS a client that comes after a run has ended gets its hello and the application goes on")
+
+
+def cancelled_run(app: Path, client: Path, temp: Path) -> None:
+    """A window run that is stopped at its first displayed step publishes the steps that ran and the status cancelled."""
+    run = App(app, temp / "cancelled", "Paimpol", ["-h", str(HORIZON), "--live", "0", "--live-commands"], window=True,
+              extra_env={"QEGTRAIN_AUTOSTART": "1", "QEGTRAIN_E2E_CLOSE_DURING_RUN": "1"})
+    try:
+        code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1"])
+        expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
+        summary = summaries[0]
+        expect(summary["status"] == "cancelled", "the stopped run did not end as cancelled: %s" % summary)
+        expect(summary["steps_finished"] is not None and summary["steps_finished"] < HORIZON, "the stopped run ran all its steps: %s" % summary)
+        expect(not summary["joined_late"], "the client did not see the hello frame of the stopped run: %s" % summary)
+        expect(run.wait() == 0, "the application did not end after the stop\n%s" % tail(run.stdout_path))
+    finally:
+        run.stop()
+    print("PASS a run that is stopped publishes steps_finished and run_finished with the status cancelled")
 
 
 def second_run(app: Path, client: Path, temp: Path) -> None:
@@ -233,7 +293,7 @@ def second_run(app: Path, client: Path, temp: Path) -> None:
         expect(code == 0 and len(summaries) == 2, "the client did not read two runs (exit %d):\n%s" % (code, errors))
         expect(summaries[0]["run_id"] != summaries[1]["run_id"], "the two runs have the same run id: %s" % summaries)
         for number, summary in enumerate(summaries, 1):
-            check_run(summary, "run %d" % number, 600, 100, 3)
+            check_run(summary, "run %d" % number, "Assignment_Gvc_Gdg_Ut", 600, 100, 3)
             expect(not summary["joined_late"], "run %d: the client did not see the hello frame: %s" % (number, summary))
         expect(run.wait() == 0, "the scripted window run failed\n%s" % tail(run.stdout_path))
     finally:
@@ -266,14 +326,18 @@ def refused_options(app: Path, temp: Path) -> None:
 
 
 def legacy_notice(app: Path, temp: Path) -> None:
-    run = App(app, temp / "legacy", "Paimpol", ["-h", "1", "-TSM", "1"])
-    expect(run.wait() == 0, "the run with -TSM 1 failed\n%s" % tail(run.stdout_path))
-    lines = [line for line in run.stderr_path.read_text(encoding="utf-8", errors="replace").splitlines() if "legacy options" in line]
-    expect(len(lines) == 1 and "--live" in lines[0], "-TSM 1 did not give one line pointing to --live: %s" % lines)
+    """One line on standard error when -TSM or -RC is on, whether it comes from an option or from a question."""
+    # --interactive asks for -TSM and then -RC, because the call gives -n and -g.
+    cases = [("-TSM 1", ["-TSM", "1"], ""), ("-RC 1", ["-RC", "1"], ""), ("--interactive", ["--interactive", "-n", "2"], "1\n0\n")]
+    for number, (what, arguments, answers) in enumerate(cases):
+        run = App(app, temp / ("legacy-%d" % number), "Paimpol", ["-h", "1"] + arguments, answers=answers)
+        expect(run.wait() == 0, "the run with %s failed\n%s" % (what, tail(run.stdout_path)))
+        lines = [line for line in run.stderr_path.read_text(encoding="utf-8", errors="replace").splitlines() if "legacy options" in line]
+        expect(len(lines) == 1 and "--live" in lines[0], "%s did not give one line pointing to --live: %s" % (what, lines))
     plain = App(app, temp / "no-legacy", "Paimpol", ["-h", "1"])
-    expect(plain.wait() == 0, "the run without -TSM failed\n%s" % tail(plain.stdout_path))
+    expect(plain.wait() == 0, "the run without -TSM and -RC failed\n%s" % tail(plain.stdout_path))
     expect("legacy options" not in plain.stderr_path.read_text(encoding="utf-8", errors="replace"), "a run without -TSM and -RC gave the notice")
-    print("PASS -TSM 1 prints one line on standard error that points to --live")
+    print("PASS -TSM 1, -RC 1 and the answers of --interactive print one line on standard error that points to --live")
 
 
 def main() -> None:
@@ -293,7 +357,9 @@ def main() -> None:
         stream_run(app, client, temp, reference)
         disconnect_run(app, client, temp, reference)
         unwatched_run(app, temp, reference)
+        repeated_services_run(app, client, temp)
         completed_run(app, client, temp)
+        cancelled_run(app, client, temp)
         if arguments.second_run:
             second_run(app, client, temp)
         refused_options(app, temp)

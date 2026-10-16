@@ -15,10 +15,11 @@
 // run id, a seq that increases, steps that increase, the shape of each train, and a time axis that
 // agrees with the hello frame. It writes one JSON line per run to standard output:
 //
-//   run_id, scene_name, joined_late (the hello was not seen), trains, horizon_steps, states,
-//   first_step, last_step, missed (frames missing in seq), positions (train entries with a position),
-//   moving (train entries with a speed above 0), state_bytes, signal_frames (state frames with the
-//   signal list), steps_finished (the step of that event, or null), status (of run_finished, or null)
+//   run_id, scene_name, joined_late (the hello was not seen), base_time_s, trains, services (the
+//   [service_id, occurrence] of each train of the hello), horizon_steps, states, first_step, last_step,
+//   missed (frames missing in seq), positions (train entries with a position), moving (train entries
+//   with a speed above 0), state_bytes, signal_frames (state frames with the signal list),
+//   steps_finished (the step of that event, or null), status (of run_finished, or null)
 //
 // Each broken promise is written to standard error as "violation: ...". The exit status is 0 when the
 // runs were read and nothing was broken, 1 after a violation or a timeout, and 2 for a bad call.
@@ -72,6 +73,7 @@ struct Run {
 	bool sawHello = false;
 	std::string sceneName;
 	std::size_t trains = 0;
+	json services = json::array();
 	std::int64_t horizonSteps = 0;
 	double baseTimeSeconds = 0.0;
 	double stepSeconds = 1.0;
@@ -161,6 +163,14 @@ private:
 			return;
 		}
 		run.trains = frame.at("trains").size();
+		for (const json& train : frame.at("trains")) {
+			if (!train.is_object() || !train.contains("service_id") || !train.at("service_id").is_string() || !train.contains("occurrence")
+				|| !train.at("occurrence").is_number_integer() || train.at("occurrence").get<std::int64_t>() < 1) {
+				violation("run " + run.runId + ": a train of the hello frame has no service_id or no occurrence counted from 1");
+				return;
+			}
+			run.services.push_back(json::array({train.at("service_id"), train.at("occurrence")}));
+		}
 		run.sceneName = frame.at("scene_name").get<std::string>();
 		run.horizonSteps = frame.at("horizon_steps").get<std::int64_t>();
 		run.baseTimeSeconds = frame.at("base_time_s").get<double>();
@@ -293,7 +303,9 @@ json summary(const Run& run) {
 	line["run_id"] = run.runId;
 	line["scene_name"] = run.sceneName;
 	line["joined_late"] = !run.sawHello;
+	line["base_time_s"] = run.baseTimeSeconds;
 	line["trains"] = run.trains;
+	line["services"] = run.services;
 	line["horizon_steps"] = run.horizonSteps;
 	line["states"] = run.states;
 	line["first_step"] = run.firstStep;

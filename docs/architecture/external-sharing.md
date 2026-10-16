@@ -187,15 +187,18 @@ With `--live-commands` the server also answers `describe`, `pause`, `resume`, `s
 
 ### A client and its test
 
-`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, and a time axis that agrees with the hello. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. The comment at the top of the file lists the options.
+`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. The comment at the top of the file lists the options.
 
 `test_live_stream_smoke` (`tools/e2e/live_stream_smoke.py`, integration) starts the application and the client and runs these cases:
 
-- A headless Paimpol run that the client follows from start to end, and a run without `--live`: the two output folders are equal file by file, except `Computing_Times.txt`, and no endpoint file is left.
-- A client that leaves after 3 frames, and a run that no client reads: the same equality.
+- A headless Paimpol run that the client follows from start to end, and a run without `--live`: the two output folders are equal file by file, except `Computing_Times.txt`, the standard output is equal, and no endpoint file is left.
+- A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.
+- A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.
 - A window run (`QEGTRAIN_AUTOSTART`) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.
+- A window run that the test closes at its first displayed step (`QEGTRAIN_E2E_CLOSE_DURING_RUN`): the client sees `steps_finished` with fewer steps than the horizon and then `run_finished` with `cancelled`.
 - A scripted window run that runs the case twice (`QEGTRAIN_E2E_OPERATIONAL_COMPLETION`), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.
 - Each option that is not valid, and a port that is in use.
+- `-TSM 1`, `-RC 1` and the answers of `--interactive`: one line of the notice on standard error.
 
 ## Live server
 
