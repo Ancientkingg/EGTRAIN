@@ -97,7 +97,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 	if (cmdOptionEntered(argv, argv + argc, "-b")) {
 		char* argument = getCmdOption(argv, argv + argc, "-b");
 		if (argument) {
-			bufferTime = std::atof(argument);
+			initial_variables.bufferTime = std::atof(argument);
 			initial_variables.bufferTimeOverride = true;
 		}
 	}
@@ -106,7 +106,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 	if (cmdOptionEntered(argv, argv + argc, "-c")) {
 		char* argument = getCmdOption(argv, argv + argc, "-c");
 		if (argument) {
-			recoveryTimePercentage = std::atof(argument);
+			initial_variables.recoveryTimePercentage = std::atof(argument);
 			initial_variables.recoveryTimeOverride = true;
 		}
 	}
@@ -413,7 +413,6 @@ int main(int argc, char* argv[]) {
 			setStartupTimingPreloadIdentity(scenePath, loaded);
 			initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
 		}
-		InputMainFolder.clear();
 		initial_variables.InputMainFolder.clear();
 		if (!startLiveStream(windowReports ? resolveOutputDirectory(defaultName).toStdString() : initial_variables.OutputMainFolder, true))
 			return 2;
@@ -454,7 +453,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 	if (!startLiveStream(initial_variables.OutputMainFolder, false))
 		return 2;

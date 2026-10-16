@@ -2,10 +2,6 @@
 
 using namespace std;
 
-// Defining parameters for defining timetabling: Running time recovery and buffer time
-double recoveryTimePercentage = 0;
-double bufferTime = 0;
-
 // Function to change the departure time of the trains in order to fit them all in one hour of timetable
 void changeTrainDepartureTimesForHourlyTimetabling(Regional* Trains, int numTrains) {
 	list<TrainEvent> ListTrainsUP, ListTrainsDOWN;

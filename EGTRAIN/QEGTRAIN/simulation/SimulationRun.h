@@ -1,6 +1,7 @@
 #ifndef SIMULATIONRUN_H
 #define SIMULATIONRUN_H
 
+#include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
 #include "simulation/Passengers.h"
@@ -9,15 +10,63 @@
 
 #include <list>
 #include <string>
+#include <tuple>
 #include <vector>
+
+// The infrastructure and the routes that the scene builder makes: the tracks, connections and stations of the network, its block
+// sections and detection sections, the single-track data and the routes of the trains.
+//
+// The arrays of tracks, connections and stations have a fixed number of elements that nothing resizes, so the elements of a built
+// infrastructure and the buffers that they hold stay where they are until the infrastructure is reset or replaced. A build that fails
+// puts the earlier infrastructure back as it was. The canvas keeps Node* and Arc* into the tracks and Connections* into the
+// connections, a section keeps TDS* into the detection sections, and the station boundaries keep Section* into the sections. These
+// pointers are valid until the next reset or build, so the window removes its items first.
+struct RunInfrastructure {
+	// The first numTrackLines, numConnections and numStations elements are in use.
+	std::vector<BlockSet> blockSets = std::vector<BlockSet>(kMaxTrackLines);
+	std::vector<Connections> connections = std::vector<Connections>(kMaxConnections);
+	std::vector<Stations> stations = std::vector<Stations>(kMaxStations);
+	int numTrackLines = 0;
+	int numConnections = 0;
+	int numStations = 0;
+
+	// The block sections of the network, sized once per scene by the builder, and their number.
+	std::vector<Section> sections;
+	int numBlocks = 0;
+	std::list<TDS> detectionSections;
+	// The recorded events of the infrastructure elements.
+	std::list<InfraEvent> infraEvents;
+	// Set when createBlockConn needs more sections than the builder planned.
+	bool derivedSectionsExceedPlan = false;
+
+	// The single-track limits (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at
+	// the last end), the direction in which a train holds each of them and the pending reservations.
+	std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
+	std::vector<int> singleTrackHeld;
+	std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
+	// The station entrance sections.
+	std::vector<StationBoundarySection> stationBoundaries;
+
+	std::vector<Route> routes;
+	int numRoutes = 0;
+
+	// Returns every member to the state of a new object.
+	void reset();
+};
 
 // The state that one simulation run builds up and that the next run must not see.
 //
 // The process has one run, defaultRun(). It has a fixed address, so reset() clears every member in
 // place and the references that the headers declare under the old global names stay valid
 // (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). Code outside this file keeps
-// using those names. A member that is added here must be cleared in reset().
+// using those names. A member that is added here must be cleared in reset(), or in
+// resetInfrastructure() when it belongs to the infrastructure.
 struct SimulationRun {
+	// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
+	// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
+	// reach the run.
+	InitialParameters settings{0};
+
 	// Block sections that trains occupy and the sections connected to them. The signalling routines fill
 	// the lists during a step and the step clears them.
 	std::list<std::string> blocksOccupied;
@@ -64,8 +113,13 @@ struct SimulationRun {
 	double compTimeEgtrain = 0;
 	double compTimeRoma = 0;
 
-	// Returns every member to the state of a new run.
+	// The infrastructure and the routes. The scene builder replaces them, and the previous ones stay in place until then.
+	RunInfrastructure infra;
+
+	// Returns every member except the infrastructure to the state of a new run.
 	void reset();
+	// Returns the infrastructure to the state of a new run, and forgets the single-track zones derived from it.
+	void resetInfrastructure();
 };
 
 // The run of the process.

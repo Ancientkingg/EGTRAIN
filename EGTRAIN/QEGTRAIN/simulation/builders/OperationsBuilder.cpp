@@ -963,12 +963,14 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	stagedParameters.name = scene.name;
 	stagedParameters.startingSimulationTime = baseTime;
 	stagedParameters.times = durationSeconds;
-	stagedParameters.bufferTime = scene.settings.hasBufferTime
-		? static_cast<int>(std::llround(scene.settings.bufferTimeSeconds))
-		: 0;
-	stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
-		? static_cast<int>(std::llround(scene.settings.recoveryTimePercent))
-		: 0;
+	if (!stagedParameters.bufferTimeOverride)
+		stagedParameters.bufferTime = scene.settings.hasBufferTime
+			? static_cast<double>(std::llround(scene.settings.bufferTimeSeconds))
+			: 0.0;
+	if (!stagedParameters.recoveryTimeOverride)
+		stagedParameters.recoveryTimePercentage = scene.settings.hasRecoveryTime
+			? static_cast<double>(std::llround(scene.settings.recoveryTimePercent))
+			: 0.0;
 	stagedParameters.numTrackLines = static_cast<int>(scene.tracks.size());
 	stagedParameters.N_Routes = static_cast<int>(scene.routes.size());
 	stagedParameters.num_OrderLists = 0;
@@ -1100,10 +1102,6 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	}
 
 	initial_variables = stagedParameters;
-	if (!initial_variables.bufferTimeOverride)
-		bufferTime = initial_variables.bufferTime;
-	if (!initial_variables.recoveryTimeOverride)
-		recoveryTimePercentage = initial_variables.recoveryTimePercentage;
 	// The new storage exists before the old trains are released.
 	std::vector<Regional> storage(trains.size());
 	regional_train = std::move(storage);

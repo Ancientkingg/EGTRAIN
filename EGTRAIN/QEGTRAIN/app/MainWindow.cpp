@@ -8931,8 +8931,8 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
 	provenance.durationSeconds = initial_variables.times;
 	provenance.timestepSeconds = timestep;
-	provenance.bufferSeconds = bufferTime;
-	provenance.recoveryPercent = recoveryTimePercentage;
+	provenance.bufferSeconds = initial_variables.bufferTime;
+	provenance.recoveryPercent = initial_variables.recoveryTimePercentage;
 	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
 	provenance.tsmMode = initial_variables.TSM;
 	provenance.routeChoiceMode = initial_variables.RChoice;

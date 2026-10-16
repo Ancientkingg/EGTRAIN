@@ -18,7 +18,7 @@ The Timetable graph (Run Results > Open result view > Timetable graph (planned v
 
 ## Units and the reference timetable
 
-All values are seconds. One simulation step is one second: the global timestep is 1 and no code assigns another value.
+All values are seconds. One simulation step is one second: `timestep` is the constant 1.
 
 Planned times are the `planned_arrival_seconds` and `planned_departure_seconds` of the stops of a service, in seconds from the base-time origin of the scene. Each is optional. Occurrence n of a repeated service is shifted by (n - 1) times the headway. A planned time that is absent, or below 0 after the shift, counts as no planned time. Simulated times are seconds on the same axis.
 

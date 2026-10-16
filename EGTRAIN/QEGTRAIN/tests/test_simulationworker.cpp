@@ -89,7 +89,6 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	initial_variables.durationOverride = true;
 	initial_variables.times = horizonSeconds;
 	initial_variables.OutputMainFolder = outputDir.toStdString();
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	observed.prepared = !hasErrors(simulation.prepareScene(scene)) && numRegions > 0;

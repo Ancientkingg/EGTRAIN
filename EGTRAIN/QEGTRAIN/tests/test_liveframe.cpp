@@ -533,7 +533,6 @@ bool runFixture(const std::string& fixture, const std::string& outputDir, Fixtur
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = outputDir;
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	CoutSilencer silencer;

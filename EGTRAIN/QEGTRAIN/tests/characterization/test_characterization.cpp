@@ -1446,7 +1446,6 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	// --repeat-files compares every file of the kept folders, so these runs write the detailed files too.
 	initial_variables.exportDetailedTrajectories = !keptOutputDir.empty();
 	initial_variables.OutputMainFolder = outputDir;
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	CoutSilencer silencer;

@@ -420,7 +420,6 @@ Results runFixture(const std::string& fixture, const RunOptions& options, Stream
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = output.string();
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	CoutCapture standardOutput;

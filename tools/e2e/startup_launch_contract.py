@@ -181,6 +181,9 @@ def assert_deferred_success_path_resets() -> None:
         raise SystemExit("scene preparation does not clear lightweight state before validation")
     if prepare.count("resetState();") != 4:
         raise SystemExit("scene preparation failure paths do not all perform a full reset")
+    # The run keeps a copy of the settings, taken once the scene is built, and the reset of the run returns it to the default.
+    if "defaultRun().settings = initial_variables;" not in prepare or prepare.index("defaultRun().settings = initial_variables;") < prepare.index("buildOperationsFromScene("):
+        raise SystemExit("scene preparation does not copy the settings into the run after the scene is built")
 
     begin_preparation = dispatch[
         dispatch.index("void DispatchController::beginScenePreparation()"):
@@ -233,6 +236,23 @@ def assert_deferred_success_path_resets() -> None:
     run_reset = run[run.index("void SimulationRun::reset()"):run.index("namespace {")]
     if "swap(trains);" not in run_reset or "numTrains = 0;" not in run_reset:
         raise SystemExit("the reset of the run does not release the train storage")
+    if "settings = InitialParameters(0);" not in run_reset:
+        raise SystemExit("the reset of the run does not return the settings to the default")
+
+    # The infrastructure is not reset with the operations: the scene builder replaces it, and the window still shows the
+    # previous one until then. Only the full reset of the infrastructure clears it, through the run.
+    if "infra" in run[run.index("void SimulationRun::reset()"):run.index("void SimulationRun::resetInfrastructure()")]:
+        raise SystemExit("the reset of the run clears the infrastructure, which the scene builder replaces")
+    infra_reset = run[run.index("void RunInfrastructure::reset()"):run.index("void SimulationRun::reset()")]
+    if "swap(sections);" not in infra_reset or "numRoutes = 0;" not in infra_reset:
+        raise SystemExit("the reset of the infrastructure does not release the section storage and the routes")
+    builder = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/InfrastructureBuilder.cpp").read_text(encoding="utf-8")
+    native_reset = builder[builder.index("void nativeResetRuntime()"):builder.index("bool nativeHasErrors(")]
+    if "defaultRun().resetInfrastructure();" not in native_reset:
+        raise SystemExit("the native runtime reset does not reset the infrastructure of the run")
+    for name in ("train_route", "signalling_block_sections", "blockSets", "connections", "StationArray", "list_of_TDS"):
+        if name in native_reset:
+            raise SystemExit(f"the native runtime reset handles {name} itself instead of resetting the run")
 
 
 def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> None:

@@ -1858,7 +1858,7 @@ static bool runNodeListChecks() {
 }
 
 // The infrastructure globals of the runtime. Two snapshots are equal only when the storage is the same too, because the station
-// boundaries and the sections point into it.
+// boundaries, the sections and the items of the canvas point into it.
 struct InfrastructureSnapshot {
 	int blocks = 0;
 	int routeCount = 0;
@@ -1880,16 +1880,23 @@ struct InfrastructureSnapshot {
 	const Section* sectionStorage = nullptr;
 	const TDS* firstDetectionSection = nullptr;
 	std::vector<const Section*> boundaryEntrances;
+	// The first track and the buffers of its nodes and arcs, the first connection and the first station.
+	const BlockSet* trackStorage = nullptr;
+	const Node* trackNodes = nullptr;
+	const Arc* trackArcs = nullptr;
+	const Connections* connectionStorage = nullptr;
+	const Stations* stationStorage = nullptr;
 
 	bool operator==(const InfrastructureSnapshot& other) const {
 		return std::tie(blocks, routeCount, trackLines, connectionCount, stationCount, platformCount, platformListSize, routeListSize,
 				   detectionSectionCount, infraElementCount, singleTrackLimitCount, sectionIds, routeIds, firstTrackId,
-				   firstStationName, firstStationVirtualSignal, finalStationName, sectionStorage, firstDetectionSection, boundaryEntrances)
+				   firstStationName, firstStationVirtualSignal, finalStationName, sectionStorage, firstDetectionSection, boundaryEntrances,
+				   trackStorage, trackNodes, trackArcs, connectionStorage, stationStorage)
 			== std::tie(other.blocks, other.routeCount, other.trackLines, other.connectionCount, other.stationCount, other.platformCount,
 				other.platformListSize, other.routeListSize, other.detectionSectionCount, other.infraElementCount,
 				other.singleTrackLimitCount, other.sectionIds, other.routeIds, other.firstTrackId, other.firstStationName,
 				other.firstStationVirtualSignal, other.finalStationName, other.sectionStorage, other.firstDetectionSection,
-				other.boundaryEntrances);
+				other.boundaryEntrances, other.trackStorage, other.trackNodes, other.trackArcs, other.connectionStorage, other.stationStorage);
 	}
 };
 
@@ -1918,6 +1925,11 @@ static InfrastructureSnapshot takeInfrastructureSnapshot() {
 	snapshot.firstDetectionSection = list_of_TDS.empty() ? nullptr : &list_of_TDS.front();
 	for (const StationBoundarySection& boundary : stationBoundarySections)
 		snapshot.boundaryEntrances.push_back(boundary.entrance);
+	snapshot.trackStorage = &blockSets[0];
+	snapshot.trackNodes = blockSets[0].N.data();
+	snapshot.trackArcs = blockSets[0].member.data();
+	snapshot.connectionStorage = &connections[0];
+	snapshot.stationStorage = &StationArray[0];
 	return snapshot;
 }
 

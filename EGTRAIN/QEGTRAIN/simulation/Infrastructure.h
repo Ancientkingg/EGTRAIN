@@ -20,11 +20,11 @@
 #include "util/Logger.hpp"
 
 
-extern double timestep;
-extern double signalCode1, signalCode2, signalCode3; // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
-extern int numTrackLines;
-
-extern std::string InputMainFolder; // Root input folder for EGTRAIN
+// The length of a simulation step in seconds.
+inline constexpr double timestep = 1;
+// Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
+inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
+extern int& numTrackLines;
 
 // --- InfraElement: point infrastructure element (signal, switch, station stop board, track detection section border) ---
 
@@ -204,11 +204,14 @@ public:
 	BlockSet();
 };
 
-extern BlockSet blockSets[268];
+// The number of elements of the arrays of tracks, connections and stations. The builder rejects a scene that needs more.
+inline constexpr int kMaxTrackLines = 268;
+inline constexpr int kMaxConnections = 708;
+inline constexpr int kMaxStations = 95;
+
+extern std::vector<BlockSet>& blockSets; // kMaxTrackLines elements
 
 // --- Connections: links between track lines (switches, joints, etc.) ---
-
-extern int numConnections;
 
 class Connections {
 public:
@@ -221,8 +224,8 @@ public:
 	Connections();
 };
 
-extern Connections connections[708];
-extern int numConnections;
+extern std::vector<Connections>& connections; // kMaxConnections elements
+extern int& numConnections;
 
 // --- StationPlatform: platform details (length, capacity, waiting passengers) ---
 
@@ -277,12 +280,12 @@ public:
 	Stations();
 };
 
-extern Stations StationArray[95];  // All stations in the network
-extern Stations& TotalInputDelays; // Aggregated entrance delays and disturbances
+extern std::vector<Stations>& StationArray; // All stations in the network, kMaxStations elements
+extern Stations& TotalInputDelays;			// Aggregated entrance delays and disturbances
 extern Stations& EntranceInputDelays;
 extern Stations& DisturbanceInput;
 extern Stations& Final_Station; // Fictitious station to measure delays at trains' final stations
-extern int numStations;
+extern int& numStations;
 
 void Print_Station_Delay_Stats(std::string Name_StationDelay, std::string kindofdelay);
 

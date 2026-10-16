@@ -100,8 +100,6 @@ InfraEvent::InfraEvent() {
 	// The list of Recorded event is empty by default
 }
 
-list<InfraEvent> InfraElementsList;
-
 // Function to Update Status and Events of Infrastructure Elements collected in the InfraElementsList
 // the function below updates the status of an infrastructure element along a train route given the list of Infrastructure elements on the route of the train, the current time t in the simulation, the train positions at times t and t-1 along the route
 // the speed of the train at time t-1 and the description (i.e. the name) of the train service
@@ -228,9 +226,6 @@ TDS::TDS() {
 	occupied = false;
 	this->TracklineID = -1;
 }
-
-
-int Blocks = 0; /*Number of Block Sections within the whole network*/
 
 
 Section::Section() {
@@ -521,15 +516,6 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 }
 
 
-std::list<TDS> list_of_TDS;
-/**
- * \brief the small parts that can be occupied
- * max of 20 arcs
- */
-std::vector<Section> signalling_block_sections; // Signalling Block Sections, sized once per scene by the builder
-bool derivedSectionsExceedPlan = false;			// createBlockConn needed more sections than the builder planned
-
-
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
 	if (N1.X < N2.X) {
@@ -736,7 +722,7 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 								return;
 							}
 							Blocks++;
-							generateConnectBlock(connections, BS1, signalling_block_sections[i], Nb,
+							generateConnectBlock(connections.data(), BS1, signalling_block_sections[i], Nb,
 								(*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j], signalling_block_sections[Blocks - 1]);
 						}
 					}
@@ -1320,8 +1306,6 @@ void setGeoCoordinates(Section* BS, int N_BS) {
 	}
 }
 
-
-int N_Routes = 0; // Total number of routes: it is given by the total number of input file in the folder Routes
 
 Route::Route() {
 	ID = "None";
@@ -1910,8 +1894,6 @@ void Route::adjustRouteAcrossDiffRegions() {
 
 	// std::cout << "JumpX: " << diffRegionsJumpX.first << " and " << diffRegionsJumpX.second << std::endl;
 }
-
-std::vector<Route> train_route;
 
 void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes) {
 	if (N_Routes > 0) {
@@ -2736,7 +2718,7 @@ void setInfraSpeedLimits(Section* BS, int Blocks) {
 }
 
 namespace {
-// The signal speed limit that a row writes. The red speeds are the variables signalCode1 and signalCode2, so a row names the one it takes.
+// The signal speed limit that a row writes. The red speeds are the arguments of the activation, so a row names the one it takes.
 enum class SpeedSelector {
 	Unlimited,
 	V75,
@@ -2965,6 +2947,10 @@ unsigned routeLevelMask(const Route& route) {
 void activateMixedSignallingSystem() {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
+	activateMixedSignallingSystem(signalCode1, signalCode2);
+}
+
+void activateMixedSignallingSystem(double redSpeed1, double redSpeed2) {
 	// The set holds views of the entries of BlocksOccupied, so the entries a route adds leave the set before they leave the list.
 	std::unordered_set<std::string_view> occupiedIds;
 	occupiedIds.reserve(BlocksOccupied.size());
@@ -2998,29 +2984,29 @@ void activateMixedSignallingSystem() {
 
 		if ((levels & levelBit(SignallingLevel::Bacc)) != 0) {
 			// Set the aspect of signals and Signal Speed Limits for BACC
-			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
 		}
 
 		if ((levels & levelBit(SignallingLevel::Atb)) != 0) {
 			// Set the aspect of signals and signal speed limits for ATB
-			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel1)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 1
-			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel2)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 2
-			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
 		}
 
@@ -3149,11 +3135,6 @@ void setRouteVirtualSignals() {
 	}
 }
 
-// vector containing the limits of single tracks (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at the last end)
-std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
-
-std::vector<int> singleTrackHeld;
-std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
 static std::vector<SingleTrackZone> singleTrackZones; // index: limit * route count + route
 static std::size_t singleTrackZoneLimits = 0, singleTrackZoneRoutes = 0;
 static std::vector<char> singleTrackRouteZone; // 1 when any limit has a zone on the route
@@ -3288,9 +3269,6 @@ void StationBoundarySection::protectEntrance(int sectionIndex, int routeIndex, b
 	// release section ahead if still occupied because of protection on previous timestep
 	releaseLastBlockAndConnected(train_route[routeIndex].sequence_of_block_sections[sectionIndex]);
 }
-
-// vector containing the station entrance sections
-std::vector<StationBoundarySection> stationBoundarySections;
 
 namespace {
 bool runtimeIncidentHasEnd(const SimulationIncident& incident) {

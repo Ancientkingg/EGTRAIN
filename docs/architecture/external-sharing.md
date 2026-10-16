@@ -50,7 +50,7 @@ Each message is one ZeroMQ part with UTF-8 JSON text (`nlohmann::json::dump`). I
 
 ### Traffic state
 
-`time` is the step number `t`. A step is `timestep` seconds long, and `timestep` is 1 (`simulation/Infrastructure.cpp`). `trains` is an object keyed by the train description, which is the service id, `-` and the occurrence. It holds every train of the run in every message, also a train that is not due yet. Each train has these members:
+`time` is the step number `t`. A step is `timestep` seconds long, and `timestep` is the constant 1 (`simulation/Infrastructure.h`). `trains` is an object keyed by the train description, which is the service id, `-` and the occurrence. It holds every train of the run in every message, also a train that is not due yet. Each train has these members:
 
 | Member | Unit | How it is made |
 | --- | --- | --- |
