@@ -20,26 +20,24 @@ SimulationWorker::~SimulationWorker() {
 void SimulationWorker::run() {
 	emit simulationStarted();
 	// Each run uses a new worker, so a stop or pause requested before or during
-	// simulationStarted is kept. m_delayMs keeps the slider value set before
+	// simulationStarted is kept. The delay keeps the slider value set before
 	// clicking Start (see MainWindow::startSimulation).
 	simulation.runSimulation();
 	emit simulationFinished();
 }
 
 void SimulationWorker::requestStop() {
-	m_cancelled = true;
-	m_stop = true;
-	m_pause = false; // unpause so the worker thread can see the stop flag
+	m_control->requestStop();
 }
 
 void SimulationWorker::requestPause() {
-	m_pause = true;
+	m_control->requestPause();
 }
 
 void SimulationWorker::requestResume() {
-	m_pause = false;
+	m_control->requestResume();
 }
 
 void SimulationWorker::setDelayMs(int ms) {
-	m_delayMs = ms;
+	m_control->setDelayMs(ms);
 }

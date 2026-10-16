@@ -5,6 +5,7 @@
 #include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
+#include "simulation/RunControl.h"
 #include "simulation/SimulationWorker.h"
 #ifdef signals
 #undef signals
@@ -21,8 +22,10 @@
 #include <QTextStream>
 
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <string>
+#include <thread>
 
 Logger owl;
 
@@ -61,11 +64,25 @@ struct RunObservation {
 	bool stopRequested = false;
 };
 
+// How a run is driven. Without a mode it runs in a SimulationWorker and a stop is a request.
+struct RunMode {
+	// The run has no SimulationWorker and uses the thread of the caller, as with -g 0. Such a run has
+	// no control before it starts, so it cannot be stopped before the start.
+	bool headless;
+	// A stop goes through the command queue of the control instead of a request function.
+	bool stopByCommand;
+};
+const RunMode kWorkerRequest{false, false};
+const RunMode kWorkerCommand{false, true};
+const RunMode kHeadlessRequest{true, false};
+const RunMode kHeadlessCommand{true, true};
+
 // Runs the prepared scene the way MainWindow::startSimulation does and requests
 // the stop at the given point. A folder in chosenDuringRun is set as the output
 // folder of the next run once the worker thread has started.
 void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed,
-	const QString& chosenDuringRun = QString(), int horizonSeconds = kHorizonSeconds) {
+	const QString& chosenDuringRun = QString(), int horizonSeconds = kHorizonSeconds,
+	const RunMode& mode = kWorkerRequest) {
 	initial_variables.GUI = 0;
 	initial_variables.TSM = 0;
 	initial_variables.RChoice = 0;
@@ -85,12 +102,23 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	probe.IsIntheNetwork = true;
 	AllDailyPassengers.push_back(probe);
 
-	auto* worker = new SimulationWorker();
+	SimulationWorker* worker = nullptr;
 	QThread thread;
-	worker->moveToThread(&thread);
-	QObject::connect(&thread, &QThread::started, worker, &SimulationWorker::run);
+	if (!mode.headless) {
+		worker = new SimulationWorker();
+		worker->moveToThread(&thread);
+		QObject::connect(&thread, &QThread::started, worker, &SimulationWorker::run);
+	}
 
-	const auto stopWorker = [worker] { worker->requestStop(); };
+	const auto stopRun = [&] {
+		const auto control = worker ? worker->control() : simulation.runControl();
+		if (mode.stopByCommand)
+			control->submit({RunCommandKind::Stop});
+		else if (worker)
+			worker->requestStop();
+		else
+			control->requestStop();
+	};
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
 		// The mailbox only emits again once the previous snapshot has been taken.
@@ -100,23 +128,29 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 		if (QFileInfo::exists(outputDir + "/PassengerStatus/PassengerStatus.txt"))
 			++observed.statusFileDuringLoop;
 		if (++observed.snapshots == kStopAtSnapshot && stopAt == StopAt::TenthSnapshot)
-			stopWorker(); }, Qt::DirectConnection);
+			stopRun(); }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionPostprocessing, &context, [&] {
 		++observed.postprocessing;
 		if (stopAt == StopAt::Postprocessing)
-			stopWorker(); }, Qt::DirectConnection);
+			stopRun(); }, Qt::DirectConnection);
 	QObject::connect(&simulation, &DispatchController::executionReturned, &context, [&](qint64, bool cancelled) {
 		++observed.returned;
 		observed.cancelled = cancelled;
 		if (stopAt == StopAt::Returned)
-			stopWorker(); }, Qt::DirectConnection);
+			stopRun(); }, Qt::DirectConnection);
+	if (mode.headless) {
+		simulation.runSimulation();
+		observed.completed = simulation.lastRunCompleted();
+		observed.stopRequested = simulation.runControl()->isStopRequested();
+		return;
+	}
 	if (stopAt == StopAt::Started)
-		QObject::connect(worker, &SimulationWorker::simulationStarted, &context, stopWorker, Qt::DirectConnection);
+		QObject::connect(worker, &SimulationWorker::simulationStarted, &context, stopRun, Qt::DirectConnection);
 
 	QEventLoop loop;
 	QObject::connect(worker, &SimulationWorker::simulationFinished, &loop, &QEventLoop::quit);
 	if (stopAt == StopAt::BeforeStart)
-		worker->requestStop();
+		stopRun();
 	thread.start();
 	if (!chosenDuringRun.isEmpty())
 		simulation.setNextRunOutputFolder(chosenDuringRun.toStdString());
@@ -170,6 +204,155 @@ bool stoppedBeforeOutput(const char* name, const RunObservation& observed, const
 	return ok;
 }
 
+enum class Gate {
+	Open,
+	Stopped,
+	Blocked
+};
+
+// Runs beginStep on another thread. A gate that is still closed after five seconds is released with
+// a stop and reported as Blocked.
+Gate gateOutcome(RunControl& control) {
+	std::atomic<bool> done{false};
+	std::atomic<bool> proceed{false};
+	std::thread gate([&] {
+		proceed = control.beginStep();
+		done = true;
+	});
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+	while (!done && std::chrono::steady_clock::now() < deadline)
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	const bool blocked = !done;
+	if (blocked)
+		control.requestStop();
+	gate.join();
+	if (blocked)
+		return Gate::Blocked;
+	return proceed ? Gate::Open : Gate::Stopped;
+}
+
+std::chrono::steady_clock::duration timeOfBeginStep(RunControl& control, bool& proceed) {
+	const auto begin = std::chrono::steady_clock::now();
+	proceed = control.beginStep();
+	return std::chrono::steady_clock::now() - begin;
+}
+
+bool checkRunControl() {
+	bool ok = true;
+	{
+		RunControl control;
+		ok &= expect(!control.isStopRequested() && !control.wasCancellationRequested() && !control.isPauseRequested()
+				&& control.delayMs() == 0,
+			"new control: nothing requested");
+		control.requestPause();
+		ok &= expect(control.isPauseRequested(), "pause request");
+		control.requestResume();
+		ok &= expect(!control.isPauseRequested(), "resume request");
+		control.setDelayMs(25);
+		ok &= expect(control.delayMs() == 25, "delay request");
+		control.requestPause();
+		control.requestStop();
+		ok &= expect(control.isStopRequested() && control.wasCancellationRequested() && !control.isPauseRequested(),
+			"stop request: stops, records the cancellation and lifts the pause");
+	}
+	{
+		SimulationWorker worker;
+		const auto control = worker.control();
+		worker.requestPause();
+		ok &= expect(worker.isPauseRequested() && control->isPauseRequested(), "worker: pause reaches the control");
+		worker.requestResume();
+		ok &= expect(!worker.isPauseRequested() && !control->isPauseRequested(), "worker: resume reaches the control");
+		worker.setDelayMs(7);
+		ok &= expect(worker.delayMs() == 7 && control->delayMs() == 7, "worker: delay reaches the control");
+		ok &= expect(!worker.isStopRequested() && !worker.wasCancellationRequested(), "worker: no stop yet");
+		worker.requestStop();
+		ok &= expect(worker.isStopRequested() && worker.wasCancellationRequested() && control->isStopRequested(),
+			"worker: stop reaches the control");
+	}
+	{
+		RunControl control;
+		control.submit({RunCommandKind::Pause});
+		ok &= expect(!control.isPauseRequested(), "command: nothing happens before the step top");
+		control.applyQueuedCommands();
+		ok &= expect(control.isPauseRequested(), "command: applied at the step top");
+		control.requestResume();
+		control.applyQueuedCommands();
+		ok &= expect(!control.isPauseRequested(), "command: applied once");
+	}
+	{
+		RunControl control;
+		control.submit({RunCommandKind::Pause});
+		control.submit({RunCommandKind::Resume});
+		control.applyQueuedCommands();
+		ok &= expect(!control.isPauseRequested(), "commands: pause then resume leaves the run running");
+		control.submit({RunCommandKind::Resume});
+		control.submit({RunCommandKind::Pause});
+		control.applyQueuedCommands();
+		ok &= expect(control.isPauseRequested(), "commands: resume then pause leaves the run paused");
+	}
+	{
+		RunControl control;
+		control.submit({RunCommandKind::Pause});
+		control.submit({RunCommandKind::Stop});
+		control.applyQueuedCommands();
+		ok &= expect(control.isStopRequested() && control.wasCancellationRequested() && !control.isPauseRequested(),
+			"stop command: acts like a stop request");
+	}
+	{
+		RunControl control;
+		bool accepted = true;
+		for (std::size_t i = 1; i <= RunControl::kCommandQueueSize; ++i)
+			accepted &= control.submit({RunCommandKind::SetDelayMs, static_cast<int>(i)});
+		ok &= expect(accepted, "queue: holds kCommandQueueSize commands");
+		ok &= expect(!control.submit({RunCommandKind::SetDelayMs, 99}), "queue: refuses a command when full");
+		control.applyQueuedCommands();
+		ok &= expect(control.delayMs() == static_cast<int>(RunControl::kCommandQueueSize),
+			"queue: the last accepted command wins, the refused one is not applied");
+		ok &= expect(control.submit({RunCommandKind::SetDelayMs, 5}), "queue: takes commands again once emptied");
+		control.applyQueuedCommands();
+		ok &= expect(control.delayMs() == 5, "queue: the new command is applied");
+	}
+	{
+		RunControl control;
+		control.requestPause();
+		control.submit({RunCommandKind::Resume});
+		ok &= expect(gateOutcome(control) == Gate::Open, "step top: a queued resume ends a pause");
+	}
+	{
+		RunControl control;
+		control.requestPause();
+		control.submit({RunCommandKind::Stop});
+		ok &= expect(gateOutcome(control) == Gate::Stopped && control.wasCancellationRequested(),
+			"step top: a queued stop ends a pause and the run");
+	}
+	{
+		RunControl control;
+		control.requestPause();
+		std::thread sender([&] {
+			std::this_thread::sleep_for(std::chrono::milliseconds(120));
+			control.submit({RunCommandKind::Resume});
+		});
+		ok &= expect(gateOutcome(control) == Gate::Open, "step top: a resume that arrives during a pause is applied");
+		sender.join();
+	}
+	{
+		RunControl control;
+		control.submit({RunCommandKind::SetDelayMs, 60});
+		bool proceed = false;
+		const auto elapsed = timeOfBeginStep(control, proceed);
+		ok &= expect(proceed && elapsed >= std::chrono::milliseconds(40), "step top: a queued delay is applied before the delay is waited for");
+	}
+	{
+		RunControl control;
+		control.setDelayMs(5000);
+		control.requestStop();
+		bool proceed = true;
+		const auto elapsed = timeOfBeginStep(control, proceed);
+		ok &= expect(!proceed && elapsed < std::chrono::milliseconds(2000), "step top: a stop is checked before the delay");
+	}
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -178,7 +361,7 @@ int main(int argc, char** argv) {
 		std::cerr << "usage: test_simulationworker SCENE_DIR\n";
 		return 2;
 	}
-	bool ok = true;
+	bool ok = checkRunControl();
 
 	QObject parent;
 	DispatchController child(&parent);
@@ -269,6 +452,56 @@ int main(int argc, char** argv) {
 		ok &= expect(observed.stopRequested, "stop after completion: stop request kept");
 		for (const char* file : kLateFiles)
 			ok &= expect(exists(output, file), std::string("stop after completion: ") + file);
+	}
+
+	{
+		// A stop that is queued as a command takes effect at the top of a step, like a request.
+		QTemporaryDir output;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::BeforeStart, observed, QString(), kHorizonSeconds, kWorkerCommand);
+		ok &= expect(observed.snapshots == 0, "queued stop before start: no step published");
+		ok &= stoppedBeforeOutput("queued stop before start", observed, output);
+		ok &= expect(!exists(output, "PassengerStatus/PassengerStatus.txt"), "queued stop before start: no status file");
+	}
+	{
+		QTemporaryDir output;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::TenthSnapshot, observed, QString(), kHorizonSeconds, kWorkerCommand);
+		ok &= expect(observed.snapshots == kStopAtSnapshot,
+			"queued stop in the loop: no step after the command (" + std::to_string(observed.snapshots) + ")");
+		ok &= stoppedBeforeOutput("queued stop in the loop", observed, output);
+		ok &= finalStatus("queued stop in the loop", observed, output);
+	}
+	{
+		// A run without a worker, as with -g 0, has a control too.
+		QTemporaryDir output;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::TenthSnapshot, observed, QString(), kHorizonSeconds, kHeadlessRequest);
+		ok &= expect(observed.snapshots == kStopAtSnapshot,
+			"stop request without a worker: no step after the request (" + std::to_string(observed.snapshots) + ")");
+		ok &= stoppedBeforeOutput("stop request without a worker", observed, output);
+		ok &= finalStatus("stop request without a worker", observed, output);
+	}
+	{
+		QTemporaryDir output;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::TenthSnapshot, observed, QString(), kHorizonSeconds, kHeadlessCommand);
+		ok &= expect(observed.snapshots == kStopAtSnapshot,
+			"queued stop without a worker: no step after the command (" + std::to_string(observed.snapshots) + ")");
+		ok &= stoppedBeforeOutput("queued stop without a worker", observed, output);
+		ok &= finalStatus("queued stop without a worker", observed, output);
+	}
+	{
+		// The run after a stopped run starts with a new control.
+		QTemporaryDir output;
+		RunObservation observed;
+		runScene(loaded.scene, output.path(), StopAt::Never, observed, QString(), kHorizonSeconds, kHeadlessRequest);
+		ok &= expect(observed.prepared, "run without a worker after a stop: scene prepared with trains");
+		ok &= expect(observed.snapshots == kHorizonSeconds && observed.completed && !observed.stopRequested,
+			"run without a worker after a stop: every step, completed, no stop");
+		ok &= expect(!simulation.runControl()->wasCancellationRequested(), "run without a worker after a stop: not cancelled");
+		for (const char* file : kLateFiles)
+			ok &= expect(exists(output, file), std::string("run without a worker after a stop: ") + file);
 	}
 
 	{

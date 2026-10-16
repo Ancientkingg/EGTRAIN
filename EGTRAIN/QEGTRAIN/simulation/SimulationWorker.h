@@ -1,9 +1,11 @@
 #ifndef SIMULATIONWORKER_H
 #define SIMULATIONWORKER_H
 
+#include "simulation/RunControl.h"
+
 #include <QObject>
 #include <QThread>
-#include <atomic>
+#include <memory>
 
 class SimulationWorker : public QObject {
 	Q_OBJECT
@@ -11,15 +13,19 @@ public:
 	explicit SimulationWorker(QObject* parent = nullptr);
 	~SimulationWorker() override;
 
-	// Static accessor so the simulation engine can check controls
+	// Static accessor so the simulation engine can find the control of the run in the window
 	static SimulationWorker* active() { return s_active; }
 
+	// The stop, pause, delay and command queue of the run of this worker. The functions below forward
+	// to it. It exists from construction, so a request made before the run starts is kept.
+	std::shared_ptr<RunControl> control() const { return m_control; }
+
 	// Thread-safe accessors for the simulation engine
-	bool isStopRequested() const { return m_stop; }
+	bool isStopRequested() const { return m_control->isStopRequested(); }
 	// Observation-only latch; set by requestStop() and never cleared.
-	bool wasCancellationRequested() const { return m_cancelled; }
-	bool isPauseRequested() const { return m_pause; }
-	int delayMs() const { return m_delayMs; }
+	bool wasCancellationRequested() const { return m_control->wasCancellationRequested(); }
+	bool isPauseRequested() const { return m_control->isPauseRequested(); }
+	int delayMs() const { return m_control->delayMs(); }
 
 public slots:
 	// Called from the worker thread to run the full simulation.
@@ -36,10 +42,7 @@ signals:
 
 private:
 	static SimulationWorker* s_active;
-	std::atomic<bool> m_stop{false};
-	std::atomic<bool> m_cancelled{false};
-	std::atomic<bool> m_pause{false};
-	std::atomic<int> m_delayMs{0};
+	const std::shared_ptr<RunControl> m_control = std::make_shared<RunControl>();
 };
 
 #endif // SIMULATIONWORKER_H
