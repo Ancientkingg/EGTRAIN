@@ -93,6 +93,19 @@ are section-scoped results. The Gdg overtaking exercise therefore uses separate
 ordered sections before and after Gdg where the train order changes. Compression
 is analysis output and does not rewrite the authored timetable.
 
+The capacity consumption of step 18 is the cycle of the selected train chain as a
+percentage of the period that the student enters. EGTRAIN compares it with no
+threshold and states no recommended value, and the repository holds none. The
+course recommendation named in step 18 comes from the course material.
+
+**Capacity by area** reports the share of the period that the selected trains
+occupy each resource of an area, and names the resource with the largest share.
+It is a view of the selected traffic, not the capacity of the line, and it
+states no trains per hour. Its traffic is labelled complete only when no train
+of the run in the area is left unchecked and no occupation is unusable.
+Parity with the legacy tool is not established. See
+[How capacity is analysed](../guides/capacity-analysis.md#capacity-by-area).
+
 Delay comparison requires equivalent run settings and the same selected
 occurrences. A positive arrival difference is primary only when the runtime
 recorded direct incident evidence for that occurrence. Other positive rows are

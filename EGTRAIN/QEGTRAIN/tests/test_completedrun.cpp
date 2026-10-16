@@ -30,6 +30,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
@@ -1432,6 +1433,8 @@ void testCapacityDialog() {
 			return;
 		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s  (no corridor)", "the routes are listed");
 		check(combos[1]->count() == 2 && combos[1]->itemText(0) == "1:B" && combos[2]->currentIndex() == 1, "the blocks of the first route are listed");
+		for (const QLabel* label : dialog.findChildren<QLabel*>())
+			check(!label->text().contains("Gdg"), "the capacity dialog names no station of one case");
 		const auto list = dialog.findChild<QListWidget*>();
 		combos[2]->setCurrentIndex(0);
 		check(list && list->count() == 3, "three trains have an occupation on the first block");

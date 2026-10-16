@@ -4,6 +4,7 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "app/ReplayCoverage.h"
+#include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
 #include "diagrams/DiagramWindow.h"
@@ -462,6 +463,15 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
 			} else {
 				ok &= dump("capacity_analysis.csv", capacityCsv);
+			}
+			// The options of the area window with all its defaults: the first route, its whole block range and every train.
+			const AreaCapacityScope areaScope = AreaCapacityScopeDialog(*w.m_completedRun).scope();
+			const std::string areaCsv = areaCapacityCsv(analyzeAreaCapacity(areaCapacityInputFrom(*w.m_completedRun, areaScope)),
+				areaCapacityLabel(*w.m_completedRun, areaScope));
+			if (areaCsv.empty()) {
+				std::fprintf(stdout, "E2E_AREA_CAPACITY_EXPORT_UNAVAILABLE\n");
+			} else {
+				ok &= dump("area_capacity.csv", areaCsv);
 			}
 		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_CSV_EXPORT_OK\n" : "E2E_CSV_EXPORT_FAIL\n");

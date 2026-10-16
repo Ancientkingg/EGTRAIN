@@ -3984,7 +3984,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			&& w.signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
 		const bool resultsStructure = w.m_runResultsDock
 			&& w.m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton")
-			&& w.m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 10
+			&& w.m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 11
 			&& w.m_runResultsDock->findChildren<QPushButton*>(QRegularExpression("^resultView_")).size() == 2;
 		if (!serviceStructure || !signalDetails || !resultsStructure)
 			facetFailure(ok, "presentation", "editor tabs, wrapped signal details or result controls unavailable");
