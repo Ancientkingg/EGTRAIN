@@ -260,7 +260,7 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_occurrenceTable, &QTableWidget::itemChanged, this, &ServicePanel::updateOccurrenceSelection);
 	connect(m_selectAllButton, &QPushButton::clicked, this, &ServicePanel::selectAllOccurrences);
 	connect(m_selectNoneButton, &QPushButton::clicked, this, &ServicePanel::selectNoneOccurrences);
-	refresh();
+	ServicePanel::refresh();
 }
 
 void ServicePanel::setDocument(SceneDocument* document) {

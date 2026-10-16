@@ -146,7 +146,7 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 		m_clockMode = m_timeModeCombo->itemData(index).toBool();
 		refresh();
 	});
-	refresh();
+	TimetableStopsPanel::refresh();
 }
 
 void TimetableStopsPanel::setDocument(SceneDocument* document) {
