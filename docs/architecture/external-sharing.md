@@ -1,8 +1,10 @@
-# External state sharing (legacy)
+# External state sharing
+
+A run shares its state in two ways: over the legacy channels of the options `-TSM` and `-RC`, which this page describes first, and as the supported [live stream](#live-stream) of `--live`.
 
 With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is printed and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
 
-The supported interface is the [live stream](#live-stream) that a run publishes when it starts with `--live`. The two legacy channels are not the way to build a consumer.
+The two legacy channels are not the way to build a consumer. Use the live stream.
 
 This page describes the code as it is. Function names are given so that a maintainer can find them. The live stream and the [live server](#live-server) that carries it are described after the legacy channels.
 
@@ -140,7 +142,9 @@ Each run begins with a new run id, 16 hexadecimal digits from `std::random_devic
 | `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the `SceneModel` that `prepareScene` was given, `base_time_s` (`initial_variables.startingSimulationTime`), `horizon_steps` (`initial_variables.times`), `step_s` (`timestep`), and one entry for each train of the run, in the order of `regional_train`, with its service id, occurrence, operating code and route index |
 | `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
 | `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
-| `event` `run_finished` | where `executionReturned` is emitted, so after the result files are written | `status` `completed`, or `cancelled` when a stop was requested |
+| `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |
+
+`run_finished` means that the stages of `runSimulation` have ended. It does not mean that the output folder is complete: `printLastTrainServicePathDiagram` writes `TrainTrajectories/` after `runSimulation` returns (in `main` for a headless run, in the handler of `executionReturned` for a window run), and a window run does more end-of-run work there. A client must not read the output folder on this event.
 
 A run in which no train was loaded publishes nothing. A run that is stopped publishes `steps_finished` with the steps that ran (0 when the stop came first) and then `run_finished` with `cancelled`.
 
@@ -159,17 +163,7 @@ A state frame is made for a sampled step only. The snapshot of a step comes from
 
 The frames are made on the thread of the run, so a run with `--live` takes longer than one without, also when nobody reads. The cost has two parts: building the snapshot of the step, and making the JSON text of the frame. The peak memory of a run does not change.
 
-Wall time in seconds of a headless run of each committed scene on one macOS machine that other jobs were using, as the fastest of 3 runs (5 for Assignment and Amsterdam, 2 for Copenhagen), without a client:
-
-| Scene | Without `--live` | `--live 0` | `--live 0 --live-every 10` |
-| --- | ---: | ---: | ---: |
-| Lebanon | 0.11 | 0.14 | 0.12 |
-| Paimpol | 1.55 | 2.36 | 1.67 |
-| Amsterdam_Hilversum_Student | 2.63 | 6.31 | 3.39 |
-| Assignment_Gvc_Gdg_Ut | 3.21 | 3.57 | 3.44 |
-| Netherlands | 5.45 | 10.15 | 6.25 |
-| Milano_Brescia | 5.47 | 6.23 | 5.58 |
-| Copenhagen | 89.0 | 90.9 | 91.6 |
+Measured once on a macOS machine that other jobs were using, a headless run of a committed scene with `--live 0` and no client took 2% (Copenhagen) to 140% (Amsterdam_Hilversum_Student) longer than a run without `--live`, and with `--live-every 10` it took 2% to 29% longer. These numbers show the order of the cost and are not a promise.
 
 A scene with cheap steps and many signal sections pays most per frame, because the snapshot walks all sections of all routes and the signal list is the largest part of a frame. A scene with expensive steps, such as Copenhagen, pays little. `--live-every` is the control: a run that is read once every 10 steps makes a tenth of the frames.
 
