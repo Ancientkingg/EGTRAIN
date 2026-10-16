@@ -71,7 +71,8 @@ const TrainUnitSourceLinker::Link* TrainUnitSourceLinker::linkOf(const std::stri
 	return it == m_links.end() ? nullptr : &it->second;
 }
 
-void TrainUnitSourceLinker::link(std::string unitId, bool traction) {
+// The id is a copy: the dialog runs an event loop, and the model that owns the id of the caller can change meanwhile.
+void TrainUnitSourceLinker::link(std::string unitId, bool traction) { // NOLINT(performance-unnecessary-value-param)
 	if (!loaded() || !sceneTrainUnitById(m_document->model(), unitId))
 		return;
 	const quint64 sceneRevision = m_document->revision();

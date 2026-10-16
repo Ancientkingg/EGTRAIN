@@ -112,7 +112,7 @@ std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityA
 	if (!data.hasRoute(scope.routeIndex) || scope.blockIds.empty())
 		return {};
 	const auto extents = buildBlockSectionExtents(data.routes[static_cast<std::size_t>(scope.routeIndex)].blocks);
-	const std::string issue = blockSectionCapacityScopeIssue(extents, scope.sectionIndices);
+	std::string issue = blockSectionCapacityScopeIssue(extents, scope.sectionIndices);
 	if (!issue.empty())
 		return issue;
 	for (const CompletedTrain& train : data.trains) {

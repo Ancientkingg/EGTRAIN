@@ -291,7 +291,7 @@ private:
 	std::set<std::string> m_reported;
 };
 
-void ioMain(LiveServerState& state, IoConfig config, std::promise<IoStarted> started) {
+void ioMain(LiveServerState& state, const IoConfig& config, std::promise<IoStarted> started) {
 	bool answered = false;
 	try {
 		IoLoop loop(state, config);

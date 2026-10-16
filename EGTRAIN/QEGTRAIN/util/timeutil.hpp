@@ -51,6 +51,8 @@ inline std::string formatDateTime(const tm& tm) {
 		case 6:
 			ss << "Sat ";
 			break;
+		default:
+			break;
 	}
 
 	// date

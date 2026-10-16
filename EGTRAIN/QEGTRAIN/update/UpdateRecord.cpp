@@ -29,7 +29,7 @@ std::optional<QByteArray> readRecordFile(const QString& path) {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
 		return std::nullopt;
-	const QByteArray contents = file.read(kMaxRecordBytes);
+	QByteArray contents = file.read(kMaxRecordBytes);
 	if (!file.atEnd())
 		return std::nullopt;
 	return contents;
@@ -89,7 +89,7 @@ std::optional<UpdateRecord> takeUpdateRecord(const QString& path, const Semantic
 	QFile::remove(path);
 	if (!contents)
 		return std::nullopt;
-	const std::optional<UpdateRecord> record = parseUpdateRecord(*contents);
+	std::optional<UpdateRecord> record = parseUpdateRecord(*contents);
 	if (!record || !(installed < record->version))
 		return std::nullopt;
 	return record;

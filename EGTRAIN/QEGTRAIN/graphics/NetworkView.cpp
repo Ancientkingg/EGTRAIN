@@ -221,9 +221,8 @@ bool NetworkView::zoomBy(qreal factor, const QPointF& viewportAnchor) {
 }
 
 void NetworkView::wheelEvent(QWheelEvent* event) {
-	if (event->modifiers() & Qt::ControlModifier) {
-		QGraphicsView::wheelEvent(event);
-	} else if (!event->pixelDelta().isNull()) {
+	const bool control = event->modifiers() & Qt::ControlModifier;
+	if (!control && !event->pixelDelta().isNull()) {
 		const QPoint viewportCenter = viewport()->rect().center();
 		const QPointF previousCenter = mapToScene(viewportCenter);
 		const bool wasSuppressed = m_suppressViewportChanged;
@@ -236,7 +235,7 @@ void NetworkView::wheelEvent(QWheelEvent* event) {
 		if (!wasSuppressed && previousCenter != m_viewCenter)
 			emit viewportChanged();
 		event->accept();
-	} else if (event->angleDelta().y() != 0) {
+	} else if (!control && event->angleDelta().y() != 0) {
 		const qreal factor = std::pow(1.15, event->angleDelta().y() / 120.0);
 		zoomBy(factor, event->position());
 		event->accept();

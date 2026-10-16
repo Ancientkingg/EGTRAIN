@@ -8,8 +8,8 @@
 
 std::string trafficStateMonitoring_xml(nlohmann::json jsmsg);
 std::string routeChoice_xml(nlohmann::json jsmsg);
-void read_rttp_train_view(std::string rttp);
-void read_rttp_infra_view(std::string rttp);
+void read_rttp_train_view(const std::string& rttp);
+void read_rttp_infra_view(const std::string& rttp);
 
 
 #endif

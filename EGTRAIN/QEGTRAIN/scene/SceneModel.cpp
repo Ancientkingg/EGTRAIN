@@ -275,7 +275,7 @@ int sceneServiceOccurrenceCount(const SceneService& service, double durationSeco
 std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int occurrence) {
 	if (occurrence <= 0)
 		return {};
-	const std::string base = service.operatingCode.empty() ? service.id : service.operatingCode;
+	std::string base = service.operatingCode.empty() ? service.id : service.operatingCode;
 	if (base.empty())
 		return {};
 	if (service.hasOperatingCodeStep) {

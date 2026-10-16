@@ -13,15 +13,22 @@ bool parseComponent(const std::string& value, std::size_t& position, unsigned in
 	return true;
 }
 
+bool consume(const std::string& value, std::size_t& position, char expected) {
+	if (position >= value.size() || value[position] != expected)
+		return false;
+	++position;
+	return true;
+}
+
 } // namespace
 
 std::optional<SemanticVersion> parseStableVersion(const std::string& value) {
 	SemanticVersion result;
 	std::size_t position = 0;
 	if (!parseComponent(value, position, result.major)
-		|| position >= value.size() || value[position++] != '.'
+		|| !consume(value, position, '.')
 		|| !parseComponent(value, position, result.minor)
-		|| position >= value.size() || value[position++] != '.'
+		|| !consume(value, position, '.')
 		|| !parseComponent(value, position, result.patch)
 		|| position != value.size())
 		return std::nullopt;

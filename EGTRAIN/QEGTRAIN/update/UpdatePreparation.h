@@ -66,7 +66,7 @@ public:
 	// Runs in the worker thread. Emits exactly one finished() result and must
 	// not mutate any object owned by another thread.
 public slots:
-	void prepare(UpdatePreparationInput input);
+	void prepare(const UpdatePreparationInput& input);
 
 signals:
 	void finished(const UpdatePreparationResult& result);

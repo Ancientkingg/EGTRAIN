@@ -214,7 +214,7 @@ void TelemetryConsent::refreshLocked(Transition& change) {
 		change.usage = change.diagnostics = true;
 		change.receiver = receiverChangedNow;
 		if (!persist(reset)) return;
-		m_last = reset;
+		m_last = std::move(reset);
 		if (!advanced) m_failed = true;
 		return;
 	}
@@ -223,7 +223,7 @@ void TelemetryConsent::refreshLocked(Transition& change) {
 	const bool usageRevoked = m_last.usage && (!current.usage || m_last.id != current.id);
 	const bool diagnosticsRevoked = m_last.diagnostics
 		&& (!current.diagnostics || m_last.diagnosticsGeneration != current.diagnosticsGeneration);
-	m_last = current;
+	m_last = std::move(current);
 	if (receiverMoved || invalidated) {
 		change.usage = change.diagnostics = true;
 		change.receiver = receiverMoved;
@@ -293,7 +293,7 @@ bool TelemetryConsent::save(bool usage, bool diagnostics) {
 		next.diagnosticsGeneration = m_last.diagnosticsGeneration;
 		if (diagnosticsRevoked && !advanceGeneration(next.diagnosticsGeneration)) {
 			next.usage = next.diagnostics = false;
-			if (persist(next)) m_last = next;
+			if (persist(next)) m_last = std::move(next);
 			m_failed = true;
 		} else {
 			next.id = usage && m_last.usage && validUsageId(m_last.id) ? m_last.id : QString();
@@ -313,12 +313,12 @@ bool TelemetryConsent::save(bool usage, bool diagnostics) {
 					next.diagnosticsGeneration = staging.diagnosticsGeneration;
 				}
 				if (!m_failed && persist(staging)) {
-					m_last = staging;
+					m_last = std::move(staging);
 					next.id = QUuid::createUuid().toString(QUuid::WithoutBraces).toLower();
 				}
 			}
 			if (!m_failed && persist(next)) {
-				m_last = next;
+				m_last = std::move(next);
 				saved = true;
 			}
 		}

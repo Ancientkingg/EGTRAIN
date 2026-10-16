@@ -15,6 +15,7 @@
 #include "widgets/ConsoleWidget.h"
 #include <algorithm>
 #include <climits>
+#include <iterator>
 #include <optional>
 #include "util/portability.h"
 #include <QDir>
@@ -23,8 +24,6 @@
 #include <QStringList>
 #include <QTimer>
 
-//
-extern InitialParameters initial_variables;
 using namespace std;
 
 // Logging logger(initial_variables.full_path, boost::log::trivial::trace,initial_variables.enabled_log,initial_variables.log_to_file);
@@ -37,8 +36,8 @@ bool cmdOptionEntered(char** begin, char** end, const std::string& option) {
 // get command line argument (-option value)
 char* getCmdOption(char** begin, char** end, const std::string& option) {
 	char** it = std::find(begin, end, option);
-	if (it != end && ++it != end) {
-		return *it;
+	if (it != end && std::next(it) != end) {
+		return *std::next(it); // NOLINT(clang-analyzer-security.ArrayBound): the option is followed by its value
 	}
 	return 0;
 }

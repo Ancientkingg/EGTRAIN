@@ -20,7 +20,7 @@ void ConnectionItem::createSelectionPolygon() {
 			 << line().p1() + offset2
 			 << line().p2() + offset2
 			 << line().p2() + offset1;
-	selectionPolygon = nPolygon;
+	selectionPolygon = std::move(nPolygon);
 	update();
 }
 

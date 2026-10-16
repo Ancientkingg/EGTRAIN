@@ -30,7 +30,7 @@ QRectF ownRect(const QGraphicsItem* item) {
 		return item->sceneTransform().mapRect(ellipse->rect());
 	if (const auto* rectangle = dynamic_cast<const QGraphicsRectItem*>(item))
 		return item->sceneTransform().mapRect(rectangle->rect());
-	return item->sceneBoundingRect();
+	return item->sceneBoundingRect(); // NOLINT(clang-analyzer-core.CallAndMessage): the item is never null
 }
 
 // The pictogram of a station node: a child in the preview, a scene item that the overlay of the
@@ -76,7 +76,7 @@ void SelectionCueItem::readTarget(bool* isLine, QLineF* line, QRectF* rect) cons
 		*line = m_target->sceneTransform().map(lineItem->line());
 		return;
 	}
-	const QGraphicsItem* parent = m_target->parentItem();
+	const QGraphicsItem* parent = m_target->parentItem(); // NOLINT(clang-analyzer-core.CallAndMessage): the target is never null
 	if (m_target->type() == QGraphicsPixmapItem::Type && parent && dynamic_cast<const QAbstractGraphicsShapeItem*>(parent)) {
 		// The artwork of a station in the preview stands for the node it is attached to.
 		*rect = ownRect(parent).united(m_target->sceneBoundingRect());

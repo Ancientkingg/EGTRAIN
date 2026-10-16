@@ -52,7 +52,7 @@ void VirtualArcItem::createSelectionPolygon() {
 			 << secondLine.p2() + secOffset2
 			 << secondLine.p2() + secOffset1
 			 << avgMiddleOff1;
-	selectionPolygon = nPolygon;
+	selectionPolygon = std::move(nPolygon);
 	update();
 }
 

@@ -328,7 +328,7 @@ void GuiReplayHistory::evictOldest() {
 	releaseUnusedLayouts();
 }
 
-void GuiReplayHistory::record(std::shared_ptr<const GuiSimulationSnapshot> snapshot) {
+void GuiReplayHistory::record(const std::shared_ptr<const GuiSimulationSnapshot>& snapshot) {
 	if (!snapshot || oversize_)
 		return;
 	const bool final = snapshot->timestep >= snapshot->totalTimesteps - 1;
@@ -382,7 +382,7 @@ std::shared_ptr<const GuiSimulationSnapshot> GuiReplayHistory::atOrBefore(int ti
 		}
 		handedOut_[frame.timestep] = snapshot;
 	}
-	cached_ = snapshot;
+	cached_ = std::move(snapshot);
 	cachedTime_ = frame.timestep;
 	return cached_;
 }

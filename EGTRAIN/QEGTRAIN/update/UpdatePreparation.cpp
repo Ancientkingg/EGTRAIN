@@ -169,7 +169,7 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 }
 
 [[maybe_unused]] QString stageMacPackage(const UpdatePreparationInput& input, QString* error) {
-	const QString stagedPath = QDir(input.stagingRoot).filePath(QStringLiteral("QEGTRAIN.app"));
+	QString stagedPath = QDir(input.stagingRoot).filePath(QStringLiteral("QEGTRAIN.app"));
 	// Releases before the disk image publish a zip package.
 	const bool diskImage = input.packagePath.endsWith(QStringLiteral(".dmg"), Qt::CaseInsensitive);
 	if (!(diskImage ? copyMacAppFromDiskImage(input, stagedPath, error)
@@ -203,7 +203,7 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 			{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
 			60000, error, &environment))
 		return {};
-	const QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
+	QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
 	if (!WindowsStaging::buildStage(extract, stagedPath, input.manifest.files, error))
 		return {};
 	return stagedPath;
@@ -211,7 +211,7 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 
 [[maybe_unused]] QString stageLinuxPackage(const UpdatePreparationInput& input, QString* error) {
 	const QString root = input.stagingRoot;
-	const QString stagedPath = QDir(root).filePath(QStringLiteral("ready.AppImage"));
+	QString stagedPath = QDir(root).filePath(QStringLiteral("ready.AppImage"));
 	if (!QFile::copy(input.packagePath, stagedPath)) {
 		if (error)
 			*error = QStringLiteral("Could not stage the AppImage.");
@@ -301,7 +301,7 @@ void UpdatePreparationWorker::setPlatformStager(PlatformStager stager) {
 	m_platformStager = std::move(stager);
 }
 
-void UpdatePreparationWorker::prepare(UpdatePreparationInput input) {
+void UpdatePreparationWorker::prepare(const UpdatePreparationInput& input) {
 	UpdatePreparationResult result;
 	QString error;
 	QString stagedPath;
@@ -312,7 +312,7 @@ void UpdatePreparationWorker::prepare(UpdatePreparationInput input) {
 			stagedPath = stageUpdatePackage(input, &error);
 	}
 	result.success = !stagedPath.isEmpty();
-	result.error = error;
-	result.stagedPath = stagedPath;
+	result.error = std::move(error);
+	result.stagedPath = std::move(stagedPath);
 	emit finished(result);
 }

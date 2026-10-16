@@ -234,7 +234,7 @@ void RecoveryController::workerLoop() {
 		m_wake.wait(lock, [this]() { return m_stopping || m_job.has_value(); });
 		if (m_stopping)
 			return;
-		const Job job = std::move(*m_job);
+		const Job job = std::move(*m_job); // NOLINT(bugprone-unchecked-optional-access): the wait returned with a job or stopping
 		m_job.reset();
 		lock.unlock();
 		Outcome outcome;

@@ -685,6 +685,7 @@ void DiagramWindow::applyTimeAxis() {
 				break;
 			}
 		clock->setStartValue(low - interval);
+		// NOLINTNEXTLINE(bugprone-float-loop-counter,clang-analyzer-security.FloatLoopCounter): ticks are placed at multiples of the interval
 		for (double tick = std::ceil(low / interval) * interval; tick <= high; tick += interval)
 			clock->append(QString::fromStdString(formatSimTime(static_cast<long long>(tick), m_startOffset)), tick);
 	};
