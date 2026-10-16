@@ -20,11 +20,12 @@ ISCC.exe /DVersion=1.2.3 /DPayload=C:\build\dist\QEGTRAIN /OC:\build\installer-o
 
 The script stops with a message that names the parameter when `/DVersion` or `/DPayload` is missing. It does not check that the payload holds `QEGTRAIN.exe`.
 
-Besides the payload, the compiler reads two files of the repository: `installer/installed-by-setup.ini` and the icon `EGTRAIN/QEGTRAIN/resources/app/egtrain.ico`, which is the icon of Setup.
+Besides the payload, the compiler reads three files of the repository: `installer/installed-by-setup.ini`, the icon `EGTRAIN/QEGTRAIN/resources/app/egtrain.ico`, which is the icon of Setup, and `LICENSE`, the GPL-3.0 text that the licence page shows.
 
 ## What the installer does
 
 - It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.
+- It shows the GNU General Public License version 3 (`LICENSE` of the repository) on a licence page, and the user must accept it to go on. A silent install shows no page. The Windows package job copies `LICENSE` into the package, so the installation folder and the portable ZIP hold it too.
 - It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.
 - It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
 - It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.
@@ -57,7 +58,7 @@ EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="des
 - It downloads and compiles nothing. It installs the files of the payload directory.
 - It does not install the Visual C++ redistributable, which needs administrator rights. The package holds the runtime DLLs that its programs import next to `QEGTRAIN.exe`, and Setup copies them like any other file.
 - It leaves the setting that the user made in Windows for `.egscene` files (**Open with**) as it is.
-- It has no signing configuration and no licence page.
+- It has no signing configuration.
 - It was written for the package that the Windows package job assembles. Another layout needs another script.
 
 ## Updating an installed copy
@@ -81,4 +82,4 @@ Never change the `AppId`. Setup keeps the uninstall entry of an installation und
 
 ## Test
 
-`tools/release/test_installer_script.py` reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the constants and sections that may appear, the output name against `kAssetPatterns`, what may be deleted before an install and the registry entries of the file type. It does not compile the script and does not run an installer. See [Installer script](../docs/development/build-and-test.md#installer-script) for the checks and the command.
+`tools/release/test_installer_script.py` reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the licence page and the `LICENSE` in the Windows package, the constants and sections that may appear, the output name against `kAssetPatterns`, what may be deleted before an install and the registry entries of the file type. It does not compile the script and does not run an installer. See [Installer script](../docs/development/build-and-test.md#installer-script) for the checks and the command.

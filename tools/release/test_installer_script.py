@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Static checks of installer/egtrain.iss, the Inno Setup script of the Windows installer.
 
-The test reads the script, installer/installed-by-setup.ini, installer/README.md, the icon file and the asset
-names in update/ReleaseInfo.cpp, and holds them to the rules of check_script. It does not compile the script
+The test reads the script, installer/installed-by-setup.ini, installer/README.md, the icon file, the licence file, the
+Windows package job in .github/workflows/package.yml and the asset names in update/ReleaseInfo.cpp, and holds them to the rules of check_script. It does not compile the script
 and does not run an installer. A green run therefore shows nothing about Inno Setup accepting the file, or
 about an install, an upgrade or an uninstall on Windows.
 """
@@ -17,6 +17,8 @@ SCRIPT = INSTALLER + "/egtrain.iss"
 README = INSTALLER + "/README.md"
 MARKER = "installed-by-setup.ini"
 RELEASE_INFO = "EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp"
+LICENSE = "LICENSE"
+PACKAGE_WORKFLOW = ".github/workflows/package.yml"
 
 APP_ID = "{{16796959-230D-4A37-879B-D3963171F664}"
 PROGRAM = "{app}\\QEGTRAIN.exe"
@@ -47,6 +49,7 @@ SETUP_PINS = (
     ("ChangesAssociations", "yes"),
     ("UninstallDisplayIcon", PROGRAM),
     ("OutputBaseFilename", "EGTRAIN-Setup-{#Version}-x64"),
+    ("LicenseFile", "..\\" + LICENSE),
 )
 SETUP_FORBIDDEN = ("PrivilegesRequiredOverridesAllowed", "UninstallFilesDir", "CreateUninstallRegKey", "Uninstallable")
 
@@ -55,7 +58,10 @@ DIRECTIVE = re.compile(r"#(ifndef (Version|Payload)|error .+|endif)")
 MACRO = re.compile(r"\{#([^{}]*)\}")
 CONSTANT = re.compile(r"\{([^{}]*)\}")
 APP_ID_FORM = re.compile(r"\{\{[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}\}")
-ICON_PREFIX = re.compile(r"^(\s*SetupIconFile\s*=\s*)\.\.\\", re.IGNORECASE | re.MULTILINE)
+ICON_PREFIX = re.compile(r"^(\s*(?:SetupIconFile|LicenseFile)\s*=\s*)\.\.\\", re.IGNORECASE | re.MULTILINE)
+WINDOWS_JOB = re.compile(r"^  package-windows:\n(.*?)(?=^  \S)", re.DOTALL | re.MULTILINE)
+LICENSE_COPY = re.compile(r'^\s*Copy-Item\s+LICENSE\s+"\$dist/LICENSE"\s*$', re.MULTILINE)
+LICENSE_CHECK = re.compile(r'^\s*if \(-not \(Test-Path "\$dist/LICENSE"\)\) \{ throw "[^"]*" \}\s*$', re.MULTILINE)
 PLAIN_NAME = re.compile(r"[A-Za-z0-9_.-]+")
 ASSET_PATTERN = re.compile(r'\{\s*"windows-x64-installer"\s*,\s*"([^"]+)"\s*\}')
 
@@ -148,7 +154,7 @@ def check_text(text, problems):
     if "hklm" in lowered or "hkey_local_machine" in lowered:
         problems.append("hklm: nothing may name HKLM or HKEY_LOCAL_MACHINE")
     if ".." in ICON_PREFIX.sub(r"\1", text):
-        problems.append("parent-path: no path may contain .. (only SetupIconFile may start with ..\\)")
+        problems.append("parent-path: no path may contain .. (only SetupIconFile and LicenseFile may start with ..\\)")
     if len(APP_ID_FORM.findall(text)) != 1 or text.count(APP_ID[2:-1]) != 1:
         problems.append("app-id: the AppId must appear once, as {{ GUID }")
 
@@ -210,6 +216,28 @@ def check_setup(lines, read, problems):
         if path.startswith("..") or read(path) is None:
             problems.append(f"icon-file: SetupIconFile {icon} is not a file")
     return values
+
+
+def check_license(values, read, problems):
+    """The licence page shows the GPL-3.0 text of the repository, and the Windows package job puts that file into the package.
+
+    The package is installed as it is and also becomes the portable archive, so a LICENSE in the package reaches both."""
+    data = read(LICENSE)
+    text = data.decode("utf-8", errors="replace") if data is not None else ""
+    if "GNU GENERAL PUBLIC LICENSE" not in text or "Version 3, 29 June 2007" not in text:
+        problems.append(f"license: {LICENSE} is missing or is not the GPL-3.0 text")
+    page = values.get("licensefile")
+    if page is not None and posixpath.normpath(INSTALLER + "/" + page.replace("\\", "/")) != LICENSE:
+        problems.append(f"license: LicenseFile must name the {LICENSE} of the repository, not {page}")
+    workflow = read(PACKAGE_WORKFLOW)
+    job = WINDOWS_JOB.search(workflow.decode("utf-8", errors="replace") + "\n  end:\n") if workflow is not None else None
+    if job is None:
+        problems.append(f"license: the package-windows job was not found in {PACKAGE_WORKFLOW}")
+    else:
+        if not LICENSE_COPY.search(job.group(1)):
+            problems.append(f"license: the package-windows job must copy {LICENSE} into the package")
+        if not LICENSE_CHECK.search(job.group(1)):
+            problems.append(f"license: the package-windows job must check that the package holds {LICENSE}")
 
 
 def check_output_name(values, read, problems):
@@ -333,6 +361,7 @@ def check_script(text, read=read_repository_file):
     check_directives(directives, problems)
     check_braces(sections, problems)
     values = check_setup(sections.get("setup", []), read, problems)
+    check_license(values, read, problems)
     check_output_name(values, read, problems)
     entries = {
         name: [(number, parse_entry(line, number, problems)) for number, line in sections.get(name, [])]
@@ -559,6 +588,35 @@ class MutationTests(unittest.TestCase):
         ])
         icon = "EGTRAIN/QEGTRAIN/resources/app/egtrain.ico"
         self.assertReported("icon-file", self.text, "egtrain.ico", stand_in({icon: None}))
+
+    def test_license_page(self):
+        self.check_cases([
+            ("setup-pin", "LicenseFile", "LicenseFile=..\\LICENSE\n", ""),
+            ("setup-pin", "LicenseFile", "LicenseFile=..\\LICENSE", "LicenseFile=..\\README.md"),
+            ("license", "LicenseFile must name", "LicenseFile=..\\LICENSE", "LicenseFile=..\\README.md"),
+            ("parent-path", "", "LicenseFile=..\\LICENSE", "LicenseFile=..\\..\\LICENSE"),
+            ("setup-duplicate", "licensefile", "LicenseFile=..\\LICENSE\n", "LicenseFile=..\\LICENSE\nLicenseFile=..\\LICENSE\n"),
+        ])
+        self.assertReported("license", self.text, "GPL-3.0", stand_in({LICENSE: None}))
+        self.assertReported("license", self.text, "GPL-3.0", stand_in({LICENSE: b"The MIT License"}))
+
+    def test_the_package_holds_the_license(self):
+        workflow = read_repository_file(PACKAGE_WORKFLOW).decode("utf-8")
+        copy = LICENSE_COPY.search(workflow).group(0).strip()
+        check = LICENSE_CHECK.search(workflow).group(0).strip()
+        cases = (
+            ("copy", workflow.replace(copy, "", 1), "copy"),
+            ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md"), 1), "copy"),
+            ("check", workflow.replace(check, "", 1), "check"),
+            ("job", workflow.replace("  package-windows:", "  package-other:", 1), "not found"),
+        )
+        for name, changed, part in cases:
+            with self.subTest(name=name):
+                self.assertReported("license", self.text, part, stand_in({PACKAGE_WORKFLOW: changed.encode("utf-8")}))
+        self.assertReported("license", self.text, "not found", stand_in({PACKAGE_WORKFLOW: None}))
+        # A copy in another job does not count.
+        macos = workflow.replace(copy, "", 1).replace("  package-macos:\n", "  package-macos:\n      " + copy + "\n", 1)
+        self.assertReported("license", self.text, "copy", stand_in({PACKAGE_WORKFLOW: macos.encode("utf-8")}))
 
     def test_payload_entry(self):
         self.check_cases([

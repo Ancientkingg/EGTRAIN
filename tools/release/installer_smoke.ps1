@@ -19,11 +19,11 @@ uninstaller below it.
    holds no file type of .egscene.
 3. Silent install into a directory of -Work, without the desktop task. The only uninstall entry is under HKEY_CURRENT_USER and
    names the directory and the version. None is under HKEY_LOCAL_MACHINE. The Start Menu shortcut starts QEGTRAIN.exe in the
-   directory, and no desktop shortcut exists. The directory holds the files of the payload with the same bytes, the marker
-   file of the installer and one uninstaller, and nothing else. Under HKEY_CURRENT_USER\Software\Classes the extension key
-   of .egscene names the identifier EGTRAIN.Scene, whose open command starts QEGTRAIN.exe of the directory with the file as
-   its only argument, and which has a display name and the icon of QEGTRAIN.exe. package_start_smoke.py starts the installed
-   copy. The silent uninstall then removes the files, the shortcut, the entry and the file type, and a file beside the
+   directory, and no desktop shortcut exists. The directory holds the files of the payload with the same bytes, among them
+   the LICENSE of the repository, the marker file of the installer and one uninstaller, and nothing else. Under
+   HKEY_CURRENT_USER\Software\Classes the extension key of .egscene names the identifier EGTRAIN.Scene, whose open command
+   starts QEGTRAIN.exe of the directory with the file as its only argument, and which has a display name and the icon of
+   QEGTRAIN.exe. package_start_smoke.py starts the installed copy. The silent uninstall then removes the files, the shortcut, the entry and the file type, and a file beside the
    directory survives. A file that the program wrote into the directory during the start check may stay with the directory.
 4. The same with /TASKS=desktopicon: the desktop shortcut exists after the install and is gone after the uninstall. Here a value
    of another program is planted in the key of .egscene first. It survives the install and the uninstall, which removes only
@@ -247,6 +247,9 @@ function Assert-InstalledFiles([string]$Directory) {
     $marker = Join-Path $Directory 'installed-by-setup.ini'
     Assert-True (Test-Path -LiteralPath $marker -PathType Leaf) 'the installed copy lacks installed-by-setup.ini'
     Assert-True (Test-SameContent (Join-Path $repository 'installer\installed-by-setup.ini') $marker) 'installed-by-setup.ini differs from the repository file'
+    $license = Join-Path $Directory 'LICENSE'
+    Assert-True (Test-Path -LiteralPath $license -PathType Leaf) 'the installed copy lacks LICENSE'
+    Assert-True (Test-SameContent (Join-Path $repository 'LICENSE') $license) 'LICENSE differs from the repository file'
     $other = @(Get-RelativeFiles $Directory | Where-Object {
         $expected -notcontains $_ -and $_ -ne 'installed-by-setup.ini' -and $_ -notmatch '^unins\d+\.(exe|dat|msg)$'
     })
