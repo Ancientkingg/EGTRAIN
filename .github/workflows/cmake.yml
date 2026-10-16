@@ -185,17 +185,20 @@ jobs:
           restore-keys: |
             ${{ matrix.name }}
 
+      # The pull request checks build without interprocedural optimization (-DEGTRAIN_IPO=OFF). Linking with it generates the code of
+      # the whole program again for every test executable, which a compiler cache cannot store. The package and release workflows
+      # still build with it, so the shipped binaries and the package checks use it.
       - name: Configure (macOS)
         if: needs.changes.outputs.build == 'true' && runner.os == 'macOS'
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Configure (Linux)
         if: needs.changes.outputs.build == 'true' && runner.os == 'Linux'
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
 
       # The Visual Studio generator ignores a compiler launcher, so this leg builds with Ninja in the MSVC environment set
@@ -205,7 +208,7 @@ jobs:
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         shell: pwsh
         run: >
-          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON -DEGTRAIN_IPO=OFF
           -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
           -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"

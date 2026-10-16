@@ -659,6 +659,14 @@ def main() -> None:
         or "build/Release" in build_job
     ):
         missing.append("compiler cache for the macOS, Windows and Linux legs, set up before the configure steps, with Ninja and cl on Windows")
+    # The pull request checks build without interprocedural optimization, which a compiler cache cannot store. The package and release
+    # builds, and the CMake option, keep it.
+    if (
+        any(" -DEGTRAIN_IPO=OFF " not in " ".join(step_block(build_job, name).split()) + " " for name in configure_names)
+        or "EGTRAIN_IPO" in release_workflow
+        or not re.search(r'^option\(EGTRAIN_IPO ".*" ON\)$', cmake, re.MULTILINE)
+    ):
+        missing.append("interprocedural optimization off in the three CMake legs and left alone by the package and release workflows")
     test_step = test_steps[0] if test_steps else ""
     build_step = next((block for block in blocks if block.startswith("name: Build\n")), "")
     if "ctest --test-dir build -C Release" not in test_step:
