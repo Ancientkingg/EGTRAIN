@@ -6,6 +6,9 @@
 
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TractionCurve.h"
+#include "editors/CompositionPanel.h"
+#include "editors/TrainUnitPanel.h"
+#include "editors/TrainUnitSourceLinker.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -1959,7 +1962,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (!layoutOk)
 			facetFailure(facetOk, "rolling stock layout", "section order, typography, resize or empty selection changed");
 		w.m_trainUnitListWidget->setCurrentRow(0);
-		w.addTrainUnit();
+		w.m_trainUnitPanel->addUnit();
 		if (w.m_trainUnitListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "train unit", "add did not apply");
 		} else {
@@ -1967,7 +1970,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const std::string initialTrainUnitId = w.m_sceneModel.trainUnits[originalCount].id;
 			w.m_compositionListWidget->setCurrentRow(0);
 			acceptUnitChoice(QString::fromStdString(initialTrainUnitId));
-			w.addUnitToComposition();
+			w.m_compositionPanel->addUnit();
 			QApplication::processEvents();
 			bool assignedInitialId = false;
 			if (w.m_compositionListWidget->currentRow() >= 0
@@ -1985,7 +1988,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else if (w.m_trainUnitIdEdit) {
 				const std::string conflictingId = w.m_sceneModel.trainUnits.front().id;
 				w.m_trainUnitIdEdit->setText(QString::fromStdString(conflictingId));
-				w.commitTrainUnitIdEdit();
+				w.m_trainUnitPanel->commitIdEdit();
 				const bool selectedIdUnchanged = w.m_sceneModel.trainUnits[originalCount].id == initialIdBeforeDuplicateRename;
 				const bool editorIdRestored = w.m_trainUnitIdEdit->text().trimmed().toStdString() == initialIdBeforeDuplicateRename;
 				const bool referencesUnchanged = sameCompositions(compositionsBeforeDuplicateRename, w.m_sceneModel.compositions);
@@ -1998,7 +2001,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "train unit", "id editor unavailable");
 			} else {
 				w.m_trainUnitIdEdit->setText(QString::fromStdString(editedTrainUnitId));
-				w.commitTrainUnitIdEdit();
+				w.m_trainUnitPanel->commitIdEdit();
 			}
 			bool oldReferencePresent = false;
 			bool newReferencePresent = false;
@@ -2038,7 +2041,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			for (int field = 0; field < 9; ++field) {
 				if (w.m_trainUnitPhysicalEdits[static_cast<size_t>(field)])
 					w.m_trainUnitPhysicalEdits[static_cast<size_t>(field)]->setValue(physicalValues[field]);
-				w.commitTrainUnitPhysical(field);
+				w.m_trainUnitPanel->commitPhysical(field);
 			}
 			const SceneTrainPhysical& committedPhysical = w.m_sceneModel.trainUnits[originalCount].physical;
 			if (committedPhysical.mass_of_traction_unit_kg != physicalValues[0])
@@ -2060,7 +2063,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (committedPhysical.length_m != physicalValues[8])
 				facetFailure(facetOk, "train unit", "length did not commit the requested value");
 			const int initialCurveRows = static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size());
-			w.addTrainUnitTractionRow();
+			w.m_trainUnitPanel->addTractionRow();
 			if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1) {
 				facetFailure(facetOk, "train unit", "traction row add did not apply");
 			} else if (w.m_trainUnitTractionTable) {
@@ -2076,7 +2079,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 					edit->setValue(tractionValues[column]);
 				}
-				w.addTrainUnitTractionRow();
+				w.m_trainUnitPanel->addTractionRow();
 				if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
@@ -2090,7 +2093,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						secondRowEdit->setFocus();
 						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
 					}
-					w.removeTrainUnitTractionRow();
+					w.m_trainUnitPanel->removeTractionRow();
 					if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
 						facetFailure(facetOk, "train unit", "traction row delete did not apply");
 					else if (w.m_sceneModel.trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
@@ -2099,7 +2102,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 
 			w.m_trainUnitListWidget->setCurrentRow(originalCount);
-			w.duplicateTrainUnit();
+			w.m_trainUnitPanel->duplicateUnit();
 			if (w.m_trainUnitListWidget->count() != originalCount + 2) {
 				facetFailure(facetOk, "train unit", "duplicate did not apply");
 			} else {
@@ -2108,10 +2111,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::string duplicateId = w.m_sceneModel.trainUnits[duplicateRow].id;
 				w.m_compositionListWidget->setCurrentRow(0);
 				acceptUnitChoice(QString::fromStdString(duplicateId));
-				w.addUnitToComposition();
+				w.m_compositionPanel->addUnit();
 				QApplication::processEvents();
 				const int referencedCount = w.m_trainUnitListWidget->count();
-				w.deleteTrainUnit();
+				w.m_trainUnitPanel->deleteUnit();
 				const bool duplicateStillPresent = std::any_of(w.m_sceneModel.trainUnits.begin(),
 					w.m_sceneModel.trainUnits.end(), [&](const SceneTrainUnit& unit) { return unit.id == duplicateId; });
 				if (w.m_trainUnitListWidget->count() != referencedCount || !duplicateStillPresent)
@@ -2120,12 +2123,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				for (int unitRow = 0; unitRow < w.m_compositionUnitsListWidget->count(); ++unitRow) {
 					if (w.m_compositionUnitsListWidget->item(unitRow)->text().toStdString() == duplicateId) {
 						w.m_compositionUnitsListWidget->setCurrentRow(unitRow);
-						w.removeUnitFromComposition();
+						w.m_compositionPanel->removeUnit();
 						break;
 					}
 				}
 				acceptConfirmation();
-				w.deleteTrainUnit();
+				w.m_trainUnitPanel->deleteUnit();
 				if (w.m_trainUnitListWidget->count() != originalCount + 1
 					|| std::any_of(w.m_sceneModel.trainUnits.begin(), w.m_sceneModel.trainUnits.end(),
 						[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
@@ -2170,13 +2173,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			});
 		};
-		MainWindow::TrainUnitSourceLink link;
+		TrainUnitSourceLinker::Link link;
 		link.dataPath = sourcePhysicalPath;
 		link.tractionPath = sourceTractionPath;
 		link.acceptedPhysical = w.m_sceneModel.trainUnits.front().physical;
 		link.acceptedTraction = w.m_sceneModel.trainUnits.front().tractionCurve;
-		w.m_trainUnitSourceLinks[sourceLinkUnitId] = link;
-		w.refreshTrainUnitSourceWatches();
+		w.m_trainUnitSourceLinker->m_links[sourceLinkUnitId] = link;
+		w.m_trainUnitSourceLinker->refreshWatches();
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 71\n");
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		settle();
@@ -2184,27 +2187,27 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			|| w.m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
 			facetFailure(facetOk, "source links", "complete file changes did not apply");
 		const quint64 acceptedRevision = w.m_sceneRevision;
-		w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred = true;
+		w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred = true;
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		bool unchangedPrompted = false;
 		answerReload("Keep local", &unchangedPrompted);
-		w.m_pendingTrainUnitSourcePaths.insert(sourceTractionPath);
-		w.processTrainUnitSourceChanges();
+		w.m_trainUnitSourceLinker->m_pendingPaths.insert(sourceTractionPath);
+		w.m_trainUnitSourceLinker->processChanges();
 		settle();
 		if (w.m_sceneRevision != acceptedRevision || unchangedPrompted
-			|| w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionDeferred)
+			|| w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred)
 			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
 		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 210000
-			|| !w.m_trainUnitSourceLinks.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
+			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
 		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
 		settle();
 		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 220000
-			|| !w.m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
 		// The focused editor must commit before comparing with the accepted source.
 		w.m_trainUnitDock->show();
@@ -2217,7 +2220,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_trainUnitPhysicalEdits[8]->findChild<QLineEdit*>()->setText("73");
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
 		answerReload("Keep local");
-		w.processTrainUnitSourceFile(sourcePhysicalPath, false);
+		w.m_trainUnitSourceLinker->processFile(sourcePhysicalPath, false);
 		if (w.m_sceneModel.trainUnits.front().physical.length_m != 73.0)
 			facetFailure(facetOk, "source links", "focused local edit was overwritten");
 		const quint64 keptRevision = w.m_sceneRevision;
@@ -2225,16 +2228,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_sceneRevision != keptRevision)
 			facetFailure(facetOk, "source links", "rejected content was reapplied");
 		answerReload("Reload");
-		w.retryTrainUnitSource(false);
-		w.processTrainUnitSourceChanges();
+		w.m_trainUnitSourceLinker->retry(sourceLinkUnitId, false);
+		w.m_trainUnitSourceLinker->processChanges();
 		if (w.m_sceneModel.trainUnits.front().physical.length_m != 72.0)
 			facetFailure(facetOk, "source links", "explicit retry did not reload");
 		// A duplicate shares values, not the authority to watch an external file.
-		w.duplicateTrainUnit();
+		w.m_trainUnitPanel->duplicateUnit();
 		const std::string duplicateId = w.m_sceneModel.trainUnits[1].id;
-		if (w.m_trainUnitSourceLinks.count(duplicateId))
+		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId))
 			facetFailure(facetOk, "source links", "duplicate inherited a live link");
-		w.m_trainUnitSourceLinks[duplicateId] = w.m_trainUnitSourceLinks.at(sourceLinkUnitId);
+		w.m_trainUnitSourceLinker->m_links[duplicateId] = w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId);
 		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
 		settle();
 		if (w.m_sceneModel.trainUnits[0].tractionCurve.front()[2] != 230000
@@ -2243,22 +2246,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QString("shared source values %1 / %2; status %3")
 					.arg(w.m_sceneModel.trainUnits[0].tractionCurve.front()[2])
 					.arg(w.m_sceneModel.trainUnits[1].tractionCurve.front()[2])
-					.arg(w.m_trainUnitSourceLinks.at(duplicateId).tractionStatus));
+					.arg(w.m_trainUnitSourceLinker->m_links.at(duplicateId).tractionStatus));
 		w.m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
-		w.commitTrainUnitIdEdit();
-		if (w.m_trainUnitSourceLinks.count(duplicateId)
-			|| !w.m_trainUnitSourceLinks.count(duplicateId + "_renamed"))
+		w.m_trainUnitPanel->commitIdEdit();
+		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId)
+			|| !w.m_trainUnitSourceLinker->m_links.count(duplicateId + "_renamed"))
 			facetFailure(facetOk, "source links", "rename did not migrate the link");
 		acceptConfirmation();
-		w.deleteTrainUnit();
-		if (w.m_trainUnitSourceLinks.size() != 1
-			|| !w.m_trainUnitSourceWatcher->files().contains(sourceTractionPath))
+		w.m_trainUnitPanel->deleteUnit();
+		if (w.m_trainUnitSourceLinker->m_links.size() != 1
+			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deleting one shared-file unit removed the remaining watch");
 		w.m_trainUnitListWidget->setCurrentRow(0);
-		w.unlinkTrainUnitSource(false);
-		w.unlinkTrainUnitSource(true);
-		if (!w.m_trainUnitSourceLinks.empty() || !w.m_trainUnitSourceWatcher->files().isEmpty()
-			|| !w.m_trainUnitSourceWatcher->directories().isEmpty())
+		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, false);
+		w.m_trainUnitSourceLinker->unlink(sourceLinkUnitId, true);
+		if (!w.m_trainUnitSourceLinker->m_links.empty() || !w.m_trainUnitSourceLinker->watchedFiles().isEmpty()
+			|| !w.m_trainUnitSourceLinker->watchedDirectories().isEmpty())
 			facetFailure(facetOk, "source links", "unlink retained watches");
 		QFile::remove(sourcePhysicalPath);
 		QFile::remove(sourceTractionPath);
@@ -2300,7 +2303,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "composition", "unit source data label empty");
 				}
 			}
-			w.duplicateComposition();
+			w.m_compositionPanel->duplicateComposition();
 			if (w.m_compositionListWidget->count() != originalCount + 1) {
 				facetFailure(facetOk, "composition", "duplicate did not apply");
 			} else {
@@ -2313,13 +2316,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "composition", "id editor unavailable");
 				} else {
 					w.m_compositionIdEdit->setText(QString());
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					const bool emptyRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
 						&& w.m_compositionListWidget->currentRow() == assignedCompositionRow;
 					w.m_compositionIdEdit->setText(QString::fromStdString(duplicateCompositionId));
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					const bool duplicateRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
@@ -2329,7 +2332,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 					editedCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_composition");
 					w.m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					int migratedServiceCount = 0;
 					int staleServiceCount = 0;
 					for (const auto& service : w.m_sceneModel.services) {
@@ -2348,14 +2351,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const int referencedCompositionCount = w.m_compositionListWidget->count();
 			w.m_compositionListWidget->setCurrentRow(assignedCompositionRow);
-			w.deleteComposition();
+			w.m_compositionPanel->deleteComposition();
 			if (w.m_compositionListWidget->count() != referencedCompositionCount
 				|| !std::any_of(w.m_sceneModel.compositions.begin(), w.m_sceneModel.compositions.end(),
 					[&](const SceneComposition& composition) {
 						return composition.id == editedCompositionId;
 					}))
 				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
-			w.addComposition();
+			w.m_compositionPanel->addComposition();
 			const std::string temporaryCompositionId = w.m_sceneModel.compositions.back().id;
 			if (w.m_compositionListWidget->count() != originalCount + 2
 				|| !w.m_serviceCompositionCombo
@@ -2365,7 +2368,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
 				acceptConfirmation();
-				w.deleteComposition();
+				w.m_compositionPanel->deleteComposition();
 				if (w.m_compositionListWidget->count() != originalCount + 1
 					|| w.m_serviceCompositionCombo->findText(
 						   QString::fromStdString(temporaryCompositionId))

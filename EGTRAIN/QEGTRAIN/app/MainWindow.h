@@ -105,7 +105,6 @@ QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
 class UpdateChecker;
-class QFileSystemWatcher;
 class SelfUpdater;
 class TelemetryConsent;
 class QSettings;
@@ -114,7 +113,11 @@ class QProgressDialog;
 class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
+class CompositionPanel;
 class QPlainTextEdit;
+class TrainUnitPanel;
+class TrainUnitSourceLinker;
+class UserPrompts;
 struct UpdateCheckResult;
 struct StableRelease;
 
@@ -432,6 +435,8 @@ private:
 	QAction* m_newSceneAction = nullptr;
 	QAction* m_checkForUpdatesAction = nullptr;
 	QAction* m_automaticUpdateChecksAction = nullptr;
+	// The messages and questions of the editors that have moved out of the window
+	std::unique_ptr<UserPrompts> m_userPrompts;
 	std::unique_ptr<QSettings> m_telemetrySettings;
 	std::unique_ptr<TelemetryConsent> m_telemetryConsent;
 	std::unique_ptr<telemetry::TelemetrySender> m_telemetrySender;
@@ -460,24 +465,6 @@ private:
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
-	struct TrainUnitSourceLink {
-		QString dataPath;
-		QString tractionPath;
-		std::optional<SceneTrainPhysical> acceptedPhysical;
-		std::vector<std::array<double, 5>> acceptedTraction;
-		QString dataSignature;
-		QString tractionSignature;
-		QString dataStatus;
-		QString tractionStatus;
-		bool dataDeferred = false;
-		bool tractionDeferred = false;
-		quint64 generation = 0;
-	};
-	std::map<std::string, TrainUnitSourceLink> m_trainUnitSourceLinks;
-	QFileSystemWatcher* m_trainUnitSourceWatcher = nullptr;
-	QTimer* m_trainUnitSourceDebounceTimer = nullptr;
-	QSet<QString> m_pendingTrainUnitSourcePaths;
-	bool m_processingTrainUnitSourceChanges = false;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -547,42 +534,29 @@ private:
 
 	// train-unit editor dock: physical values and piecewise traction rows
 	QDockWidget* m_trainUnitDock = nullptr;
+	TrainUnitPanel* m_trainUnitPanel = nullptr;
+	TrainUnitSourceLinker* m_trainUnitSourceLinker = nullptr;
+	// Parts of m_trainUnitPanel, for the scripted runs in tests/e2e
 	QListWidget* m_trainUnitListWidget = nullptr;
 	QLineEdit* m_trainUnitIdEdit = nullptr;
 	std::array<QDoubleSpinBox*, 9> m_trainUnitPhysicalEdits{};
 	QLineEdit* m_trainUnitSourceDataEdit = nullptr;
 	QLineEdit* m_trainUnitSourceTractionEdit = nullptr;
-	QPushButton* m_linkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceDataButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceDataButton = nullptr;
-	QLabel* m_trainUnitSourceDataStatusLabel = nullptr;
-	QPushButton* m_linkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_unlinkTrainUnitSourceTractionButton = nullptr;
-	QPushButton* m_retryTrainUnitSourceTractionButton = nullptr;
-	QLabel* m_trainUnitSourceTractionStatusLabel = nullptr;
 	QTableWidget* m_trainUnitTractionTable = nullptr;
 	QPushButton* m_addTrainUnitButton = nullptr;
-	QPushButton* m_duplicateTrainUnitButton = nullptr;
-	QPushButton* m_deleteTrainUnitButton = nullptr;
 	QPushButton* m_addTrainUnitTractionButton = nullptr;
-	QPushButton* m_removeTrainUnitTractionButton = nullptr;
 
-	// composition editor dock (first editable scene panel)
+	// composition editor dock
 	QDockWidget* m_compositionDock = nullptr;
-	QListWidget* m_compositionListWidget = nullptr;		 // one row per SceneComposition
-	QLineEdit* m_compositionIdEdit = nullptr;			 // id of the selected composition
-	QListWidget* m_compositionUnitsListWidget = nullptr; // ordered unit ids of the selected composition
+	CompositionPanel* m_compositionPanel = nullptr;
+	// Parts of m_compositionPanel, for the scripted runs in tests/e2e
+	QListWidget* m_compositionListWidget = nullptr;
+	QLineEdit* m_compositionIdEdit = nullptr;
+	QListWidget* m_compositionUnitsListWidget = nullptr;
 	QPushButton* m_addCompositionButton = nullptr;
-	QPushButton* m_duplicateCompositionButton = nullptr;
-	QPushButton* m_deleteCompositionButton = nullptr;
 	QPushButton* m_addUnitButton = nullptr;
-	QPushButton* m_removeUnitButton = nullptr;
-	QPushButton* m_moveUnitUpButton = nullptr;
-	QPushButton* m_moveUnitDownButton = nullptr;
-	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// original parameter source of the selected unit
-	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // original tractive-effort source of the selected unit
-	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
-	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;
+	QPushButton* m_plotTractionButton = nullptr;
 	QPushButton* m_plotTrainUnitTractionButton = nullptr;
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
@@ -850,44 +824,12 @@ private:
 	ScenePassengerJourney* selectedPassengerJourney();
 	ScenePassengerLeg* selectedPassengerLeg();
 
-	// composition editor
-	void refreshCompositionPanel();
-	void updateCompositionDetailPanel();
-	void updateCompositionUnitButtons();
-	void addComposition();
-	void duplicateComposition();
-	void deleteComposition();
-	void commitCompositionIdEdit();
-	void addUnitToComposition();
-	void removeUnitFromComposition();
-	void moveCompositionUnitUp();
-	void moveCompositionUnitDown();
-	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	// opens the tractive-effort plot of a unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
 
 	// train-unit editor
-	void refreshTrainUnitPanel();
-	void updateTrainUnitDetailPanel();
-	void refreshTrainUnitTractionTable();
-	void addTrainUnit();
-	void duplicateTrainUnit();
-	void deleteTrainUnit();
-	void commitTrainUnitIdEdit();
-	void commitTrainUnitSources();
-	void linkTrainUnitSource(bool traction);
-	void unlinkTrainUnitSource(bool traction);
-	void retryTrainUnitSource(bool traction);
-	void scheduleTrainUnitSourceChange(const QString& path);
-	void processTrainUnitSourceChanges();
-	void processTrainUnitSourceFile(const QString& path, bool traction);
-	void refreshTrainUnitSourceWatches();
-	void clearTrainUnitSourceLinks();
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
-	void commitTrainUnitPhysical(int fieldIndex);
-	void addTrainUnitTractionRow();
-	void removeTrainUnitTractionRow();
-	void commitTrainUnitTractionCell(int row, int column, double value);
 
 	// service editor (service-level fields; stops are edited by the stop editor below)
 	void refreshServicePanel();
