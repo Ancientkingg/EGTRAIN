@@ -6,6 +6,7 @@
 
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TractionCurve.h"
+#include "editors/CompositionPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -1967,7 +1968,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const std::string initialTrainUnitId = w.m_sceneModel.trainUnits[originalCount].id;
 			w.m_compositionListWidget->setCurrentRow(0);
 			acceptUnitChoice(QString::fromStdString(initialTrainUnitId));
-			w.addUnitToComposition();
+			w.m_compositionPanel->addUnit();
 			QApplication::processEvents();
 			bool assignedInitialId = false;
 			if (w.m_compositionListWidget->currentRow() >= 0
@@ -2108,7 +2109,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::string duplicateId = w.m_sceneModel.trainUnits[duplicateRow].id;
 				w.m_compositionListWidget->setCurrentRow(0);
 				acceptUnitChoice(QString::fromStdString(duplicateId));
-				w.addUnitToComposition();
+				w.m_compositionPanel->addUnit();
 				QApplication::processEvents();
 				const int referencedCount = w.m_trainUnitListWidget->count();
 				w.deleteTrainUnit();
@@ -2120,7 +2121,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				for (int unitRow = 0; unitRow < w.m_compositionUnitsListWidget->count(); ++unitRow) {
 					if (w.m_compositionUnitsListWidget->item(unitRow)->text().toStdString() == duplicateId) {
 						w.m_compositionUnitsListWidget->setCurrentRow(unitRow);
-						w.removeUnitFromComposition();
+						w.m_compositionPanel->removeUnit();
 						break;
 					}
 				}
@@ -2300,7 +2301,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "composition", "unit source data label empty");
 				}
 			}
-			w.duplicateComposition();
+			w.m_compositionPanel->duplicateComposition();
 			if (w.m_compositionListWidget->count() != originalCount + 1) {
 				facetFailure(facetOk, "composition", "duplicate did not apply");
 			} else {
@@ -2313,13 +2314,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "composition", "id editor unavailable");
 				} else {
 					w.m_compositionIdEdit->setText(QString());
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					const bool emptyRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
 						&& w.m_compositionListWidget->currentRow() == assignedCompositionRow;
 					w.m_compositionIdEdit->setText(QString::fromStdString(duplicateCompositionId));
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					const bool duplicateRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
@@ -2329,7 +2330,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 					editedCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_composition");
 					w.m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
-					w.commitCompositionIdEdit();
+					w.m_compositionPanel->commitIdEdit();
 					int migratedServiceCount = 0;
 					int staleServiceCount = 0;
 					for (const auto& service : w.m_sceneModel.services) {
@@ -2348,14 +2349,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const int referencedCompositionCount = w.m_compositionListWidget->count();
 			w.m_compositionListWidget->setCurrentRow(assignedCompositionRow);
-			w.deleteComposition();
+			w.m_compositionPanel->deleteComposition();
 			if (w.m_compositionListWidget->count() != referencedCompositionCount
 				|| !std::any_of(w.m_sceneModel.compositions.begin(), w.m_sceneModel.compositions.end(),
 					[&](const SceneComposition& composition) {
 						return composition.id == editedCompositionId;
 					}))
 				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
-			w.addComposition();
+			w.m_compositionPanel->addComposition();
 			const std::string temporaryCompositionId = w.m_sceneModel.compositions.back().id;
 			if (w.m_compositionListWidget->count() != originalCount + 2
 				|| !w.m_serviceCompositionCombo
@@ -2365,7 +2366,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "composition", "add did not refresh the service selector");
 			} else {
 				acceptConfirmation();
-				w.deleteComposition();
+				w.m_compositionPanel->deleteComposition();
 				if (w.m_compositionListWidget->count() != originalCount + 1
 					|| w.m_serviceCompositionCombo->findText(
 						   QString::fromStdString(temporaryCompositionId))

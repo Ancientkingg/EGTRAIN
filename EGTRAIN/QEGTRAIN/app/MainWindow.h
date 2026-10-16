@@ -114,7 +114,9 @@ class QProgressDialog;
 class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
+class CompositionPanel;
 class QPlainTextEdit;
+class UserPrompts;
 struct UpdateCheckResult;
 struct StableRelease;
 
@@ -432,6 +434,8 @@ private:
 	QAction* m_newSceneAction = nullptr;
 	QAction* m_checkForUpdatesAction = nullptr;
 	QAction* m_automaticUpdateChecksAction = nullptr;
+	// The messages and questions of the editors that have moved out of the window
+	std::unique_ptr<UserPrompts> m_userPrompts;
 	std::unique_ptr<QSettings> m_telemetrySettings;
 	std::unique_ptr<TelemetryConsent> m_telemetryConsent;
 	std::unique_ptr<telemetry::TelemetrySender> m_telemetrySender;
@@ -567,22 +571,17 @@ private:
 	QPushButton* m_addTrainUnitTractionButton = nullptr;
 	QPushButton* m_removeTrainUnitTractionButton = nullptr;
 
-	// composition editor dock (first editable scene panel)
+	// composition editor dock
 	QDockWidget* m_compositionDock = nullptr;
-	QListWidget* m_compositionListWidget = nullptr;		 // one row per SceneComposition
-	QLineEdit* m_compositionIdEdit = nullptr;			 // id of the selected composition
-	QListWidget* m_compositionUnitsListWidget = nullptr; // ordered unit ids of the selected composition
+	CompositionPanel* m_compositionPanel = nullptr;
+	// Parts of m_compositionPanel, for the scripted runs in tests/e2e
+	QListWidget* m_compositionListWidget = nullptr;
+	QLineEdit* m_compositionIdEdit = nullptr;
+	QListWidget* m_compositionUnitsListWidget = nullptr;
 	QPushButton* m_addCompositionButton = nullptr;
-	QPushButton* m_duplicateCompositionButton = nullptr;
-	QPushButton* m_deleteCompositionButton = nullptr;
 	QPushButton* m_addUnitButton = nullptr;
-	QPushButton* m_removeUnitButton = nullptr;
-	QPushButton* m_moveUnitUpButton = nullptr;
-	QPushButton* m_moveUnitDownButton = nullptr;
-	QLabel* m_compositionUnitSourceDataLabel = nullptr;		// original parameter source of the selected unit
-	QLabel* m_compositionUnitSourceTractionLabel = nullptr; // original tractive-effort source of the selected unit
-	QLabel* m_compositionUnitWarningLabel = nullptr;		// missing or mismatched association
-	QPushButton* m_plotTractionButton = nullptr;			// open the tractive-effort plot
+	QLabel* m_compositionUnitSourceDataLabel = nullptr;
+	QPushButton* m_plotTractionButton = nullptr;
 	QPushButton* m_plotTrainUnitTractionButton = nullptr;
 
 	// service editor dock (service-level fields, plus the per-stop timetable editor)
@@ -850,19 +849,7 @@ private:
 	ScenePassengerJourney* selectedPassengerJourney();
 	ScenePassengerLeg* selectedPassengerLeg();
 
-	// composition editor
-	void refreshCompositionPanel();
-	void updateCompositionDetailPanel();
-	void updateCompositionUnitButtons();
-	void addComposition();
-	void duplicateComposition();
-	void deleteComposition();
-	void commitCompositionIdEdit();
-	void addUnitToComposition();
-	void removeUnitFromComposition();
-	void moveCompositionUnitUp();
-	void moveCompositionUnitDown();
-	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
+	// opens the tractive-effort plot of a unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
 
 	// train-unit editor

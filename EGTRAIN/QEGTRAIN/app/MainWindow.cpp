@@ -40,6 +40,7 @@
 #include "diagrams/CapacityScope.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
+#include "editors/CompositionPanel.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
@@ -1092,6 +1093,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
 
 	ui->setupUi(this);
+	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	m_trainUnitSourceWatcher = new QFileSystemWatcher(this);
 	m_trainUnitSourceDebounceTimer = new QTimer(this);
@@ -2114,93 +2116,29 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_removeTrainUnitTractionButton->setEnabled(m_trainUnitTractionTable->currentRow() >= 0);
 	});
 
-	// composition editor: dockable panel to view and edit train compositions.
-	// this is the first editable scene panel, so it sets the pattern later
-	// panes follow: a read-only list picks the record, a details area with
-	// explicit fields/buttons edits it, no inline table editing.
 	m_compositionDock = new QDockWidget("Compositions", this);
 	m_compositionDock->setObjectName("compositionDock");
-	QWidget* compositionWidget = new QWidget(m_compositionDock);
-	QHBoxLayout* compositionLayout = new QHBoxLayout(compositionWidget);
-
-	// left: the list of compositions and the buttons that manage it
-	QWidget* compositionListPane = new QWidget(compositionWidget);
-	QVBoxLayout* compositionListLayout = new QVBoxLayout(compositionListPane);
-	compositionListLayout->addWidget(new QLabel("Compositions", compositionListPane));
-	m_compositionListWidget = new QListWidget(compositionListPane);
-	compositionListLayout->addWidget(m_compositionListWidget);
-	QGridLayout* compositionButtonLayout = new QGridLayout();
-	m_addCompositionButton = new QPushButton("Add Composition", compositionListPane);
-	m_duplicateCompositionButton = new QPushButton("Duplicate", compositionListPane);
-	m_deleteCompositionButton = new QPushButton("Delete", compositionListPane);
-	compositionButtonLayout->addWidget(m_addCompositionButton, 0, 0);
-	compositionButtonLayout->addWidget(m_duplicateCompositionButton, 0, 1);
-	compositionButtonLayout->addWidget(m_deleteCompositionButton, 1, 0);
-	compositionListLayout->addLayout(compositionButtonLayout);
-	compositionListPane->setMaximumWidth(compositionListPane->fontMetrics().averageCharWidth() * 32);
-	compositionLayout->addWidget(compositionListPane);
-
-	// right: the selected composition's id and its ordered unit membership
-	QWidget* compositionDetailPane = new QWidget(compositionWidget);
-	QVBoxLayout* compositionDetailLayout = new QVBoxLayout(compositionDetailPane);
-	compositionDetailLayout->addWidget(new QLabel("Composition Id", compositionDetailPane));
-	m_compositionIdEdit = new QLineEdit(compositionDetailPane);
-	compositionDetailLayout->addWidget(m_compositionIdEdit);
-	compositionDetailLayout->addWidget(new QLabel("Rolling stock units (in order)", compositionDetailPane));
-	m_compositionUnitsListWidget = new QListWidget(compositionDetailPane);
-	compositionDetailLayout->addWidget(m_compositionUnitsListWidget);
-	QHBoxLayout* unitButtonLayout = new QHBoxLayout();
-	m_addUnitButton = new QPushButton("Add Unit", compositionDetailPane);
-	m_removeUnitButton = new QPushButton("Remove Unit", compositionDetailPane);
-	m_moveUnitUpButton = new QPushButton("Move Up", compositionDetailPane);
-	m_moveUnitDownButton = new QPushButton("Move Down", compositionDetailPane);
-	unitButtonLayout->addWidget(m_addUnitButton);
-	unitButtonLayout->addWidget(m_removeUnitButton);
-	unitButtonLayout->addWidget(m_moveUnitUpButton);
-	unitButtonLayout->addWidget(m_moveUnitDownButton);
-	compositionDetailLayout->addLayout(unitButtonLayout);
-
-	// selected unit: its original sources and the tractive-effort plot
-	compositionDetailLayout->addWidget(new QLabel("Original parameter source", compositionDetailPane));
-	m_compositionUnitSourceDataLabel = new QLabel(compositionDetailPane);
-	m_compositionUnitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	m_compositionUnitSourceDataLabel->setWordWrap(true);
-	compositionDetailLayout->addWidget(m_compositionUnitSourceDataLabel);
-	compositionDetailLayout->addWidget(new QLabel("Original tractive-effort source", compositionDetailPane));
-	m_compositionUnitSourceTractionLabel = new QLabel(compositionDetailPane);
-	m_compositionUnitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	m_compositionUnitSourceTractionLabel->setWordWrap(true);
-	compositionDetailLayout->addWidget(m_compositionUnitSourceTractionLabel);
-	m_plotTractionButton = new QPushButton("Plot input traction characteristic", compositionDetailPane);
-	compositionDetailLayout->addWidget(m_plotTractionButton);
-	m_compositionUnitWarningLabel = new QLabel(compositionDetailPane);
-	m_compositionUnitWarningLabel->setWordWrap(true);
-	m_compositionUnitWarningLabel->setStyleSheet("color: #b00020;");
-	compositionDetailLayout->addWidget(m_compositionUnitWarningLabel);
-	connect(m_plotTractionButton, &QPushButton::clicked, this, &MainWindow::plotSelectedCompositionUnitTraction);
-
-	compositionLayout->addWidget(compositionDetailPane);
-
-	m_compositionDock->setWidget(compositionWidget);
+	m_compositionPanel = new CompositionPanel(m_compositionDock);
+	m_compositionListWidget = m_compositionPanel->listWidget();
+	m_compositionIdEdit = m_compositionPanel->idEdit();
+	m_compositionUnitsListWidget = m_compositionPanel->unitsListWidget();
+	m_addCompositionButton = m_compositionPanel->addButton();
+	m_addUnitButton = m_compositionPanel->addUnitButton();
+	m_compositionUnitSourceDataLabel = m_compositionPanel->unitSourceDataLabel();
+	m_plotTractionButton = m_compositionPanel->plotTractionButton();
+	m_compositionDock->setWidget(m_compositionPanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_compositionDock);
 	m_compositionDock->hide();
 	tabifyDockWidget(m_trainUnitDock, m_compositionDock);
 	registerEditorDock(m_compositionDock);
-
-	connect(m_compositionListWidget, &QListWidget::currentRowChanged, this, [this](int) {
-		updateCompositionDetailPanel();
+	m_compositionPanel->setPrompts(m_userPrompts.get());
+	m_compositionPanel->setDocument(m_document);
+	connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, this, &MainWindow::updateServiceDetailPanel);
+	connect(m_compositionPanel, &CompositionPanel::changed, this, &MainWindow::refreshValidationPanel);
+	connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, this, [this](const QString& unitId) {
+		if (const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, unitId.toStdString()))
+			plotTrainUnitTraction(*unit);
 	});
-	connect(m_compositionUnitsListWidget, &QListWidget::currentRowChanged, this, [this](int) {
-		updateCompositionUnitButtons();
-	});
-	connect(m_compositionIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitCompositionIdEdit);
-	connect(m_addCompositionButton, &QPushButton::clicked, this, &MainWindow::addComposition);
-	connect(m_duplicateCompositionButton, &QPushButton::clicked, this, &MainWindow::duplicateComposition);
-	connect(m_deleteCompositionButton, &QPushButton::clicked, this, &MainWindow::deleteComposition);
-	connect(m_addUnitButton, &QPushButton::clicked, this, &MainWindow::addUnitToComposition);
-	connect(m_removeUnitButton, &QPushButton::clicked, this, &MainWindow::removeUnitFromComposition);
-	connect(m_moveUnitUpButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitUp);
-	connect(m_moveUnitDownButton, &QPushButton::clicked, this, &MainWindow::moveCompositionUnitDown);
 
 	// service editor: dockable panel for service-level fields plus the selected
 	// service's timetable (stops). tabbed alongside Compositions, same list +
@@ -2938,7 +2876,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			.arg(initial_variables.numTrackLines)
 			.arg(initial_variables.N_Routes));
 
-	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
@@ -3062,7 +2999,6 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	updateCaseLayersPanel();
 	updateSceneActions();
 	statusBar()->showMessage("New case study created; save it to choose a location");
-	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
@@ -3326,7 +3262,6 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	updateCaseLayersPanel();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	refreshCompositionPanel();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
@@ -3846,7 +3781,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	refreshTrainUnitPanel();
 	refreshServicePanel();
 	refreshIncidentPanel();
@@ -4718,7 +4653,7 @@ void MainWindow::commitPendingEditorValues() {
 		commitPassengerLegOccurrence();
 	}
 	commitTrainUnitSources();
-	commitCompositionIdEdit();
+	m_compositionPanel->commitPendingEditors();
 	commitPendingServiceSettings();
 	// Scenario and incident controls are disabled and cleared during a run.
 	// Their placeholder values are not pending edits.
@@ -6886,7 +6821,7 @@ void MainWindow::addTrainUnit() {
 	updateSceneActions();
 	refreshValidationPanel();
 	refreshTrainUnitPanel();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	if (m_trainUnitListWidget)
 		m_trainUnitListWidget->setCurrentRow(static_cast<int>(m_sceneModel.trainUnits.size()) - 1);
 }
@@ -6905,7 +6840,7 @@ void MainWindow::duplicateTrainUnit() {
 	updateSceneActions();
 	refreshValidationPanel();
 	refreshTrainUnitPanel();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	if (m_trainUnitListWidget)
 		m_trainUnitListWidget->setCurrentRow(row + 1);
 }
@@ -6938,7 +6873,7 @@ void MainWindow::deleteTrainUnit() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshTrainUnitPanel();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	refreshValidationPanel();
 }
 
@@ -6989,7 +6924,7 @@ void MainWindow::commitTrainUnitIdEdit() {
 	updateSceneActions();
 	refreshTrainUnitSourceWatches();
 	updateTrainUnitSourceStatus();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	refreshValidationPanel();
 }
 
@@ -7011,7 +6946,7 @@ void MainWindow::commitTrainUnitSources() {
 	updateSceneWindowTitle();
 	updateSceneActions();
 	refreshValidationPanel();
-	updateCompositionUnitButtons();
+	m_compositionPanel->refreshUnitDetails();
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
@@ -7491,7 +7426,7 @@ void MainWindow::processTrainUnitSourceFile(const QString& path, bool traction) 
 	if (changed)
 		markSceneDirty();
 	refreshTrainUnitPanel();
-	refreshCompositionPanel();
+	m_compositionPanel->refresh();
 	refreshValidationPanel();
 	for (const std::string& unitId : changedTractionUnits)
 		refreshInputTractionDiagrams(unitId);
@@ -7593,121 +7528,6 @@ void MainWindow::commitTrainUnitTractionCell(int row, int column, double value) 
 	refreshValidationPanel();
 }
 
-void MainWindow::refreshCompositionPanel() {
-	bool hasScene = m_sceneLoaded;
-
-	if (m_compositionListWidget) {
-		int previousRow = m_compositionListWidget->currentRow();
-		const QSignalBlocker blocker(m_compositionListWidget);
-		m_compositionListWidget->clear();
-		if (hasScene) {
-			for (const auto& composition : m_sceneModel.compositions)
-				m_compositionListWidget->addItem(QString::fromStdString(composition.id));
-		}
-		int rowCount = m_compositionListWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		m_compositionListWidget->setCurrentRow(rowToSelect);
-		m_compositionListWidget->setEnabled(hasScene);
-	}
-
-	if (m_addCompositionButton)
-		m_addCompositionButton->setEnabled(hasScene);
-
-	updateCompositionDetailPanel();
-}
-
-void MainWindow::updateCompositionDetailPanel() {
-	int row = m_compositionListWidget ? m_compositionListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.compositions.size());
-
-	if (m_compositionIdEdit) {
-		const QSignalBlocker blocker(m_compositionIdEdit);
-		m_compositionIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.compositions[row].id) : QString());
-		m_compositionIdEdit->setEnabled(hasSelection);
-	}
-
-	if (m_compositionUnitsListWidget) {
-		const QSignalBlocker blocker(m_compositionUnitsListWidget);
-		m_compositionUnitsListWidget->clear();
-		if (hasSelection) {
-			for (const auto& unitId : m_sceneModel.compositions[row].units)
-				m_compositionUnitsListWidget->addItem(QString::fromStdString(unitId));
-		}
-		m_compositionUnitsListWidget->setEnabled(hasSelection);
-	}
-
-	if (m_duplicateCompositionButton)
-		m_duplicateCompositionButton->setEnabled(hasSelection);
-	if (m_deleteCompositionButton)
-		m_deleteCompositionButton->setEnabled(hasSelection);
-	if (m_addUnitButton)
-		m_addUnitButton->setEnabled(hasSelection && !m_sceneModel.trainUnits.empty());
-
-	updateCompositionUnitButtons();
-}
-
-void MainWindow::updateCompositionUnitButtons() {
-	int unitRow = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->currentRow() : -1;
-	int unitCount = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->count() : 0;
-	bool hasUnitSelection = unitRow >= 0;
-
-	if (m_removeUnitButton)
-		m_removeUnitButton->setEnabled(hasUnitSelection);
-	if (m_moveUnitUpButton)
-		m_moveUnitUpButton->setEnabled(hasUnitSelection && unitRow > 0);
-	if (m_moveUnitDownButton)
-		m_moveUnitDownButton->setEnabled(hasUnitSelection && unitRow < unitCount - 1);
-
-	// resolve the selected unit and surface its source files, association state,
-	// and whether a traction curve can be plotted
-	const SceneTrainUnit* unit = nullptr;
-	if (hasUnitSelection && m_compositionUnitsListWidget->item(unitRow))
-		unit = sceneTrainUnitById(m_sceneModel, m_compositionUnitsListWidget->item(unitRow)->text().toStdString());
-
-	const auto sourceText = [](const std::string& value) {
-		return value.empty() ? QStringLiteral("(none)") : QString::fromStdString(value);
-	};
-	if (m_compositionUnitSourceDataLabel)
-		m_compositionUnitSourceDataLabel->setText(unit ? sourceText(unit->sourceDataFile) : QStringLiteral("(none)"));
-	if (m_compositionUnitSourceTractionLabel)
-		m_compositionUnitSourceTractionLabel->setText(unit ? sourceText(unit->sourceTractionFile) : QStringLiteral("(none)"));
-
-	const bool canPlot = unit && !unit->tractionCurve.empty();
-	if (m_plotTractionButton)
-		m_plotTractionButton->setEnabled(canPlot);
-	if (m_compositionUnitWarningLabel) {
-		QString warning;
-		if (hasUnitSelection) {
-			warning = QString::fromStdString(tractionAssociationWarning(
-				unit != nullptr,
-				unit && !unit->tractionCurve.empty()));
-		}
-		m_compositionUnitWarningLabel->setText(warning);
-	}
-}
-
-void MainWindow::plotSelectedCompositionUnitTraction() {
-	int unitRow = m_compositionUnitsListWidget ? m_compositionUnitsListWidget->currentRow() : -1;
-	if (unitRow < 0 || !m_compositionUnitsListWidget->item(unitRow))
-		return;
-	const std::string unitId = m_compositionUnitsListWidget->item(unitRow)->text().toStdString();
-	const SceneTrainUnit* unit = sceneTrainUnitById(m_sceneModel, unitId);
-	if (!unit || unit->tractionCurve.empty()) {
-		QMessageBox::information(this, "No Traction Data",
-			"The selected unit has no traction curve to plot.");
-		return;
-	}
-	plotTrainUnitTraction(*unit);
-}
-
 void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	QChart* chart = buildInputTractionChart(unit);
 
@@ -7718,226 +7538,6 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	win->setPresentation("Input traction characteristic", inputTractionContext(unit), inputTractionWarning(unit));
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
-}
-
-void MainWindow::addComposition() {
-	if (!m_sceneLoaded)
-		return;
-
-	SceneComposition composition;
-	composition.id = sceneUniqueCompositionId(m_sceneModel, "new_composition");
-	m_sceneModel.compositions.push_back(composition);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshCompositionPanel();
-	updateServiceDetailPanel();
-	refreshValidationPanel();
-
-	if (m_compositionListWidget)
-		m_compositionListWidget->setCurrentRow(static_cast<int>(m_sceneModel.compositions.size()) - 1);
-}
-
-void MainWindow::duplicateComposition() {
-	if (!m_sceneLoaded || !m_compositionListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	SceneComposition duplicate = m_sceneModel.compositions[row];
-	duplicate.id = sceneUniqueCompositionId(m_sceneModel, duplicate.id + "_copy");
-	m_sceneModel.compositions.insert(m_sceneModel.compositions.begin() + row + 1, duplicate);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshCompositionPanel();
-	updateServiceDetailPanel();
-	refreshValidationPanel();
-
-	if (m_compositionListWidget)
-		m_compositionListWidget->setCurrentRow(row + 1);
-}
-
-void MainWindow::deleteComposition() {
-	if (!m_sceneLoaded || !m_compositionListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	const std::string id = m_sceneModel.compositions[row].id;
-	const QStringList consumers = directDeleteConsumers(m_sceneModel, QStringLiteral("composition"), id);
-	if (!consumers.isEmpty()) {
-		showBlockingError(this, "Cannot Delete Composition",
-			QString("Cannot delete composition '%1' because it is still referenced by:\n• %2\nReassign those services first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")),
-			true);
-		return;
-	}
-	auto response = QMessageBox::question(this,
-		"Delete Composition",
-		QString("Delete composition '%1'?").arg(QString::fromStdString(id)),
-		QMessageBox::Yes | QMessageBox::No,
-		QMessageBox::No);
-	if (response != QMessageBox::Yes)
-		return;
-
-	m_sceneModel.compositions.erase(m_sceneModel.compositions.begin() + row);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshCompositionPanel();
-	updateServiceDetailPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitCompositionIdEdit() {
-	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionIdEdit)
-		return;
-	const int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	const std::string oldId = m_sceneModel.compositions[row].id;
-	const std::string newId = m_compositionIdEdit->text().trimmed().toStdString();
-	if (newId == oldId)
-		return;
-	const bool duplicate = newId.empty() || sceneUniqueCompositionId(m_sceneModel, newId) != newId;
-	if (duplicate) {
-		m_compositionIdEdit->setText(QString::fromStdString(oldId));
-		return;
-	}
-
-	m_sceneModel.compositions[row].id = newId;
-	sceneRewriteCompositionReferences(m_sceneModel, oldId, newId);
-	updateServiceDetailPanel();
-
-	// update the list row label in place instead of rebuilding the panel, so a
-	// focus-out that lands on another control keeps that pending click intact
-	if (QListWidgetItem* item = m_compositionListWidget->item(row)) {
-		const QSignalBlocker blocker(m_compositionListWidget);
-		item->setText(QString::fromStdString(newId));
-	}
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-}
-
-void MainWindow::addUnitToComposition() {
-	if (!m_sceneLoaded || !m_compositionListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-	if (m_sceneModel.trainUnits.empty()) {
-		QMessageBox::information(this, "Add Rolling Stock Unit", "This scene has no rolling stock units defined.");
-		return;
-	}
-
-	QStringList unitIds;
-	for (const auto& unit : m_sceneModel.trainUnits)
-		unitIds << QString::fromStdString(unit.id);
-
-	bool ok = false;
-	QString chosen = QInputDialog::getItem(this, "Add Rolling Stock Unit", "Rolling stock unit:", unitIds, 0, false, &ok);
-	if (!ok || chosen.isEmpty())
-		return;
-
-	m_sceneModel.compositions[row].units.push_back(chosen.toStdString());
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshCompositionPanel();
-
-	if (m_compositionUnitsListWidget)
-		m_compositionUnitsListWidget->setCurrentRow(m_compositionUnitsListWidget->count() - 1);
-}
-
-void MainWindow::removeUnitFromComposition() {
-	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
-	int unitRow = m_compositionUnitsListWidget->currentRow();
-	if (unitRow < 0 || unitRow >= static_cast<int>(units.size()))
-		return;
-
-	units.erase(units.begin() + unitRow);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshCompositionPanel();
-
-	if (m_compositionUnitsListWidget) {
-		int remaining = m_compositionUnitsListWidget->count();
-		if (remaining > 0)
-			m_compositionUnitsListWidget->setCurrentRow(unitRow < remaining ? unitRow : remaining - 1);
-	}
-}
-
-void MainWindow::moveCompositionUnitUp() {
-	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
-	int unitRow = m_compositionUnitsListWidget->currentRow();
-	if (unitRow <= 0 || unitRow >= static_cast<int>(units.size()))
-		return;
-
-	std::string moved = units[unitRow];
-	units[unitRow] = units[unitRow - 1];
-	units[unitRow - 1] = moved;
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshCompositionPanel();
-
-	if (m_compositionUnitsListWidget)
-		m_compositionUnitsListWidget->setCurrentRow(unitRow - 1);
-}
-
-void MainWindow::moveCompositionUnitDown() {
-	if (!m_sceneLoaded || !m_compositionListWidget || !m_compositionUnitsListWidget)
-		return;
-	int row = m_compositionListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.compositions.size()))
-		return;
-
-	std::vector<std::string>& units = m_sceneModel.compositions[row].units;
-	int unitRow = m_compositionUnitsListWidget->currentRow();
-	if (unitRow < 0 || unitRow + 1 >= static_cast<int>(units.size()))
-		return;
-
-	std::string moved = units[unitRow];
-	units[unitRow] = units[unitRow + 1];
-	units[unitRow + 1] = moved;
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshCompositionPanel();
-
-	if (m_compositionUnitsListWidget)
-		m_compositionUnitsListWidget->setCurrentRow(unitRow + 1);
 }
 
 void MainWindow::refreshServicePanel() {
