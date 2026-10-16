@@ -18,7 +18,8 @@ or consults an `Input/` tree.
 The infrastructure builder checks the whole scene before it writes a runtime
 global. If it still finds an error while it builds the runtime, it puts the
 previous infrastructure back, so a build that returns an error leaves it in
-place.
+place. Only the single-track locks of a run are cleared, as at the start of
+every build.
 
 ## Canonical directory
 
