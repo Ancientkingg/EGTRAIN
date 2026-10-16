@@ -153,6 +153,33 @@
                 }
             ],
             "name": "Signal failure retarget"
+        },
+        {
+            "entrance_delays": [
+                {
+                    "delay_seconds": 120.0,
+                    "occurrence": 1,
+                    "service": "F2",
+                    "station": "A"
+                }
+            ],
+            "id": "entrance-delay-f2",
+            "incidents": [],
+            "name": "Entrance delay F2"
+        },
+        {
+            "entrance_delays": [],
+            "id": "breakdown-f1",
+            "incidents": [
+                {
+                    "id": "inc.slow",
+                    "reduced_speed_kmh": 40.0,
+                    "start_seconds": 200.0,
+                    "target": "F1",
+                    "type": "train_breakdown"
+                }
+            ],
+            "name": "Breakdown F1"
         }
     ]
 }

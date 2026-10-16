@@ -367,6 +367,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
+    ${SRC_DIR}/diagrams/DelayAnalysis.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
@@ -817,6 +818,10 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_runresults ${SRC_DIR}/tests/test_runresults.cpp)
     target_link_libraries(test_runresults PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_runresults COMMAND test_runresults)
+
+    add_executable(test_delayanalysis ${SRC_DIR}/tests/test_delayanalysis.cpp)
+    target_link_libraries(test_delayanalysis PRIVATE egtrain_diagrams)
+    add_test(NAME test_delayanalysis COMMAND test_delayanalysis)
 
     add_executable(test_simulationworker ${SRC_DIR}/tests/test_simulationworker.cpp)
     target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
@@ -1420,7 +1425,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
-			test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
+			test_delayanalysis test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
@@ -1452,7 +1457,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay

@@ -12,10 +12,15 @@
 // platform lists and the passenger files of the real run.
 //
 //   test_characterization --fixture DIR --expect DIR --case NAME
+//   test_characterization --fixture DIR --expect DIR --pair BASELINE_CASE INCIDENT_CASE
 //   test_characterization --repeat SCENE[#CASE]...
 //   test_characterization --repeat-files SCENE[#CASE]...
 //   test_characterization --aspects SCENE[#CASE]...
 //   test_characterization --single SCENE[#CASE] --output-dir DIR
+//
+// --pair runs two cases of the table in this process and compares the delays of
+// the second with those of the first, as the delay analysis does for a baseline
+// and an incident run. Its golden file is delay-pair-INCIDENT_CASE.txt.
 //
 // --repeat runs the steps in one process, in order, and requires that every
 // step that appears twice produces exactly the same observations both times.
@@ -35,12 +40,13 @@
 // --single runs one step in this process and keeps its files in DIR, which
 // must not exist yet. --repeat-files starts it for the fresh runs.
 //
-// EGTRAIN_UPDATE_EXPECTATIONS=1 rewrites the golden file of --case instead of
-// comparing; it is refused when the CI environment variable is set.
+// EGTRAIN_UPDATE_EXPECTATIONS=1 rewrites the golden file of --case or --pair instead
+// of comparing; it is refused when the CI environment variable is set.
 
 #include "app/DispatchController.h"
 #include "diagrams/AreaCapacity.h"
 #include "diagrams/CapacityAnalysis.h"
+#include "diagrams/DelayAnalysis.h"
 #include "diagrams/RunResults.h"
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
@@ -238,6 +244,8 @@ struct CaseSpec {
 	// Writes the capacity lines of the two trains of the case. They are written only when both trains run on one route
 	// and have complete blocking times.
 	bool capacityLines = false;
+	// Writes the delay lines of the run: the summary of the arrivals and departures of each station and the entrance delay of each train.
+	bool delayLines = false;
 };
 
 // Cases whose current behaviour is wrong, as "#<issue> <reason>" with the open issue that describes it. The table is
@@ -395,6 +403,12 @@ std::vector<CaseSpec> buildCaseTable() {
 			spec.capacity = set == "full" ? 3 : 0;
 			cases.push_back(spec);
 		}
+	}
+	// The line at level 0 with F2 delayed at its entrance, and with F1 slowed by a breakdown. Both write the delay lines.
+	for (const char* scenario : {"entrance-delay-f2", "breakdown-f1"}) {
+		CaseSpec spec{std::string(scenario) + "-level-0", scenario, {"F1", "F2"}, 0, ""};
+		spec.delayLines = true;
+		cases.push_back(spec);
 	}
 	return cases;
 }
@@ -695,6 +709,12 @@ struct RunOutcome {
 	std::string error;
 	int steps = 0;
 	int aspectCycles = 0; // Route sections whose code left the clear code and returned to it.
+	// What the delay analysis reads of the run.
+	std::vector<TimetableResultRow> timetable;
+	RunResults results;
+	double baseTimeSeconds = 0.0;
+	bool hasIncidents = false;
+	bool hasEntranceDelays = false;
 };
 
 // The code of a section that holds no train and no reservation.
@@ -1216,6 +1236,94 @@ Observation capacityObservation(const std::vector<const Train*>& trains) {
 	return lines;
 }
 
+// The delay analysis of a run, as lines. A label ("baseline", "incident") goes in front of the kind when two runs
+// share a file.
+void addDelayStatistics(Observation& lines, const std::string& key, const DelayStatistics& statistics) {
+	std::vector<Field> fields = {integerField("calls", statistics.calls), integerField("available", statistics.available),
+		integerField("no_plan", statistics.noPlan), integerField("not_reached", statistics.notReached),
+		integerField("no_plan_not_reached", statistics.noPlanAndNotReached), integerField("early", statistics.early),
+		integerField("on_time", statistics.onTime), integerField("late", statistics.late), resultField("sum", statistics.sumSeconds),
+		resultField("mean", statistics.meanSeconds), resultField("min", statistics.minimumSeconds),
+		resultField("max", statistics.maximumSeconds)};
+	for (const DelayShare& share : statistics.shares)
+		fields.push_back(integerField("later_" + std::to_string(static_cast<long long>(share.thresholdSeconds)), share.later));
+	fields.push_back(integerField("of", statistics.available));
+	for (const DelayShare& share : statistics.shares)
+		fields.push_back(resultField("pct_" + std::to_string(static_cast<long long>(share.thresholdSeconds)), share.percent));
+	lines.push_back({key, std::move(fields)});
+}
+
+Observation delayObservation(const std::string& label, const std::vector<TimetableResultRow>& rows, const RunResults& results) {
+	Observation lines;
+	const std::string prefix = label.empty() ? "" : label + " ";
+	const std::vector<DelayEvent> events = buildDelayEvents(rows, results);
+	for (const DelayEventKind kind : {DelayEventKind::Arrival, DelayEventKind::Departure}) {
+		DelayFilter filter;
+		filter.kind = kind;
+		const DelaySummary summary = summarizeDelays(events, filter);
+		const std::string key = "delay_summary " + prefix + (kind == DelayEventKind::Arrival ? "arrival " : "departure ");
+		for (const StationDelaySummary& station : summary.stations)
+			addDelayStatistics(lines, key + station.stationId, station.statistics);
+		addDelayStatistics(lines, key + "network", summary.network);
+	}
+	for (const TrainRunResult& train : results.trains)
+		lines.push_back({"delay_input " + prefix + train.trainId,
+			{realField("entrance_delay", train.entranceDelaySeconds), textField("station", train.entranceDelayStationId)}});
+	return lines;
+}
+
+const char* delayChangeName(DelayChange change) {
+	switch (change) {
+		case DelayChange::Earlier:
+			return "earlier";
+		case DelayChange::Same:
+			return "same";
+		case DelayChange::Later:
+			return "later";
+		case DelayChange::NotAvailable:
+			break;
+	}
+	return "not_available";
+}
+
+std::vector<Field> delayDifferenceFields(const std::string& prefix, const DelayDifference& difference) {
+	return {resultField(prefix + "baseline", difference.baselineSeconds), resultField(prefix + "scenario", difference.scenarioSeconds),
+		resultField(prefix + "additional", difference.additionalSeconds), textField(prefix + "change", delayChangeName(difference.change))};
+}
+
+Observation delayCompareLines(const DelayBaselineComparison& comparison) {
+	Observation lines;
+	lines.push_back({"delay_compare status",
+		{integerField("compatible", comparison.compatible ? 1 : 0), integerField("diagnostics", static_cast<long long>(comparison.diagnostics.size()))}});
+	for (const DelayDiagnostic& diagnostic : comparison.diagnostics)
+		lines.push_back({std::string("delay_compare diagnostic ") + delayDiagnosticCode(diagnostic.kind),
+			{textField("service", diagnostic.serviceId), integerField("occurrence", diagnostic.occurrence)}});
+	for (const BaselineOccurrence& occurrence : comparison.occurrences) {
+		std::vector<Field> fields = {realField("input_delay", occurrence.inputDelaySeconds), textField("input_station", occurrence.inputDelayStationId),
+			integerField("evidence", occurrence.hasDirectEvidence ? 1 : 0), textField("incidents", joinSet(occurrence.incidentIds)),
+			textField("final_station", occurrence.finalStationId), integerField("final_journey", occurrence.finalJourneyIndex),
+			integerField("final_call", occurrence.finalCallIndex)};
+		const std::vector<Field> finalFields = delayDifferenceFields("final_", occurrence.finalArrival);
+		fields.insert(fields.end(), finalFields.begin(), finalFields.end());
+		fields.push_back(resultField("secondary", occurrence.secondarySeconds));
+		lines.push_back({"delay_compare occurrence " + occurrence.trainId, std::move(fields)});
+	}
+	for (const BaselineCall& call : comparison.calls) {
+		std::vector<Field> fields = {integerField("final", call.finalCall ? 1 : 0)};
+		const std::vector<Field> arrival = delayDifferenceFields("arr_", call.arrival);
+		const std::vector<Field> departure = delayDifferenceFields("dep_", call.departure);
+		fields.insert(fields.end(), arrival.begin(), arrival.end());
+		fields.insert(fields.end(), departure.begin(), departure.end());
+		lines.push_back({"delay_compare call " + call.trainId + " " + call.stationId + " " + std::to_string(call.callIndex), std::move(fields)});
+	}
+	const BaselineTotals& totals = comparison.totals;
+	lines.push_back({"delay_compare total",
+		{integerField("occurrences", totals.occurrences), integerField("later", totals.later), integerField("same", totals.same),
+			integerField("earlier", totals.earlier), integerField("not_available", totals.notAvailable),
+			resultField("positive", totals.positiveSeconds), resultField("net", totals.netSeconds), integerField("complete", totals.complete ? 1 : 0)}});
+	return lines;
+}
+
 // Driver for one run. Everything read from the simulation globals happens
 // here, so the next run starts from whatever prepareScene resets. The files of
 // the run go to a temporary folder that is removed when the run ends, or, with
@@ -1546,6 +1654,10 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		const Observation capacity = capacityObservation(trains);
 		obs.insert(obs.end(), capacity.begin(), capacity.end());
 	}
+	if (spec.delayLines) {
+		const Observation delays = delayObservation("", rows, results);
+		obs.insert(obs.end(), delays.begin(), delays.end());
+	}
 
 	for (const SimulationIncident& incident : simulationIncidents)
 		add("incident " + incident.id,
@@ -1616,6 +1728,15 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	}
 	if (!keptOutputDir.empty())
 		simulation.printLastTrainServicePathDiagram();
+	outcome.timetable = rows;
+	outcome.results = results;
+	outcome.baseTimeSeconds = initial_variables.startingSimulationTime;
+	for (const SceneScenario& scenario : loaded.scene.scenarios) {
+		if (scenario.id != spec.scenario)
+			continue;
+		outcome.hasIncidents = !scenario.incidents.empty();
+		outcome.hasEntranceDelays = !scenario.entranceDelays.empty();
+	}
 	return outcome;
 }
 
@@ -1645,9 +1766,20 @@ std::string knownWrongText(const CaseSpec& spec) {
 	return spec.knownWrong.empty() ? "none" : spec.knownWrong;
 }
 
-std::string renderGolden(const CaseSpec& spec, int horizon, const Observation& observation) {
-	std::string text = "# egtrain-characterization 1\n# case: " + spec.name + "\n# run: " + describeRun(spec, horizon)
-		+ "\n# known-wrong: " + knownWrongText(spec) + "\n";
+// The header lines of a golden file.
+struct GoldenHeader {
+	std::string name;
+	std::string run;
+	std::string knownWrong;
+};
+
+GoldenHeader headerOf(const CaseSpec& spec, int horizon) {
+	return {spec.name, describeRun(spec, horizon), knownWrongText(spec)};
+}
+
+std::string renderGolden(const GoldenHeader& header, const Observation& observation) {
+	std::string text = "# egtrain-characterization 1\n# case: " + header.name + "\n# run: " + header.run
+		+ "\n# known-wrong: " + header.knownWrong + "\n";
 	for (const Line& line : observation)
 		text += renderLine(line) + "\n";
 	return text;
@@ -1731,16 +1863,15 @@ std::string compareLine(const Line& actual, const std::string& expectedText) {
 	return "";
 }
 
-bool compareWithGolden(const CaseSpec& spec, int horizon, const Golden& golden, const Observation& observation) {
+bool compareWithGolden(const GoldenHeader& header, const Golden& golden, const Observation& observation) {
 	std::vector<std::string> problems;
-	if (golden.caseName != spec.name)
-		problems.push_back("golden file is for case '" + golden.caseName + "', not '" + spec.name + "'");
-	if (golden.run != describeRun(spec, horizon))
-		problems.push_back("golden file was recorded for '" + golden.run + "', the case runs '"
-			+ describeRun(spec, horizon) + "'");
-	if (golden.knownWrong != knownWrongText(spec))
+	if (golden.caseName != header.name)
+		problems.push_back("golden file is for case '" + golden.caseName + "', not '" + header.name + "'");
+	if (golden.run != header.run)
+		problems.push_back("golden file was recorded for '" + golden.run + "', the case runs '" + header.run + "'");
+	if (golden.knownWrong != header.knownWrong)
 		problems.push_back("known-wrong marker differs: golden says '" + golden.knownWrong
-			+ "', case table says '" + knownWrongText(spec) + "'");
+			+ "', case table says '" + header.knownWrong + "'");
 	const size_t common = std::min(golden.lines.size(), observation.size());
 	size_t mismatches = 0;
 	for (size_t i = 0; i < common; ++i) {
@@ -1944,35 +2075,21 @@ bool parseStep(const std::vector<CaseSpec>& cases, const std::string& step, std:
 	return true;
 }
 
-int runGoldenMode(const std::string& fixture, const std::string& expectDir, const std::string& caseName) {
-	const std::vector<CaseSpec> cases = buildCaseTable();
-	const CaseSpec* spec = findCase(cases, caseName);
-	if (!spec) {
-		std::cerr << "unknown case '" << caseName << "'\n";
-		return 2;
-	}
+// True when EGTRAIN_UPDATE_EXPECTATIONS=1 asks for the golden file to be rewritten. Prints the reason and sets refused
+// when the CI environment variable is set as well.
+bool updateRequested(bool& refused) {
 	const char* updateValue = std::getenv("EGTRAIN_UPDATE_EXPECTATIONS");
 	const bool update = updateValue && std::string(updateValue) == "1";
 	const char* ci = std::getenv("CI");
-	if (update && ci && *ci) {
+	refused = update && ci && *ci;
+	if (refused)
 		std::cerr << "EGTRAIN_UPDATE_EXPECTATIONS=1 is refused when CI is set\n";
-		return 1;
-	}
-	if (!spec->knownWrong.empty())
-		std::cout << "KNOWN-WRONG " << spec->knownWrong << "\n";
+	return update;
+}
 
-	RunOutcome outcome = runCase(fixture, *spec, true);
-	if (!outcome.error.empty()) {
-		std::cerr << "FAIL " << caseName << ": " << outcome.error;
-		return 1;
-	}
-	for (const std::string& failure : outcome.invariantFailures)
-		std::cerr << "FAIL " << caseName << " invariant: " << failure << "\n";
-	if (!outcome.invariantFailures.empty())
-		return 1;
-
-	const std::string goldenPath = expectDir + "/" + caseName + ".txt";
-	const std::string rendered = renderGolden(*spec, outcome.steps, outcome.observation);
+// Writes the golden file when update is set, else compares the observation with it. Returns the exit code.
+int finishGolden(const std::string& caseName, const std::string& goldenPath, bool update, const GoldenHeader& header, const Observation& observation) {
+	const std::string rendered = renderGolden(header, observation);
 	if (update) {
 		if (!writeText(goldenPath, rendered)) {
 			std::cerr << "cannot write " << goldenPath << "\n";
@@ -1988,7 +2105,7 @@ int runGoldenMode(const std::string& fixture, const std::string& expectDir, cons
 		return 1;
 	}
 	std::cerr.flush();
-	if (!compareWithGolden(*spec, outcome.steps, golden, outcome.observation)) {
+	if (!compareWithGolden(header, golden, observation)) {
 		const std::string actualPath = caseName + ".actual.txt";
 		writeText(actualPath, rendered);
 		std::cerr << "FAIL " << caseName << ": output differs from " << goldenPath << "\n  actual output written to "
@@ -1997,6 +2114,89 @@ int runGoldenMode(const std::string& fixture, const std::string& expectDir, cons
 	}
 	std::cout << "PASS " << caseName << "\n";
 	return 0;
+}
+
+// Runs the case with the invariant checks. Prints the reason and returns false when it fails.
+bool runCheckedCase(const std::string& fixture, const CaseSpec& spec, RunOutcome& outcome) {
+	outcome = runCase(fixture, spec, true);
+	if (!outcome.error.empty()) {
+		std::cerr << "FAIL " << spec.name << ": " << outcome.error;
+		return false;
+	}
+	for (const std::string& failure : outcome.invariantFailures)
+		std::cerr << "FAIL " << spec.name << " invariant: " << failure << "\n";
+	return outcome.invariantFailures.empty();
+}
+
+int runGoldenMode(const std::string& fixture, const std::string& expectDir, const std::string& caseName) {
+	const std::vector<CaseSpec> cases = buildCaseTable();
+	const CaseSpec* spec = findCase(cases, caseName);
+	if (!spec) {
+		std::cerr << "unknown case '" << caseName << "'\n";
+		return 2;
+	}
+	bool refused = false;
+	const bool update = updateRequested(refused);
+	if (refused)
+		return 1;
+	if (!spec->knownWrong.empty())
+		std::cout << "KNOWN-WRONG " << spec->knownWrong << "\n";
+
+	RunOutcome outcome;
+	if (!runCheckedCase(fixture, *spec, outcome))
+		return 1;
+	return finishGolden(caseName, expectDir + "/" + caseName + ".txt", update, headerOf(*spec, outcome.steps), outcome.observation);
+}
+
+DelayRunSnapshot delaySnapshotOf(const std::string& fixture, const CaseSpec& spec, const RunOutcome& outcome) {
+	DelayRunSnapshot snapshot;
+	snapshot.caseRevision = fixture;
+	snapshot.scenarioId = spec.scenario;
+	snapshot.baseTimeSeconds = outcome.baseTimeSeconds;
+	snapshot.durationSeconds = outcome.steps;
+	snapshot.timestep = timestep;
+	snapshot.hasIncidents = outcome.hasIncidents;
+	snapshot.hasEntranceDelays = outcome.hasEntranceDelays;
+	snapshot.run = outcome.results;
+	snapshot.timetable = outcome.timetable;
+	return snapshot;
+}
+
+// Runs the baseline case and then the incident case in this process and pins the delay analysis of both and the
+// comparison of the incident run with the baseline. The golden file is named after the incident case.
+int runPairMode(const std::string& fixture, const std::string& expectDir, const std::string& baselineName, const std::string& incidentName) {
+	const std::vector<CaseSpec> cases = buildCaseTable();
+	const CaseSpec* baselineSpec = findCase(cases, baselineName);
+	const CaseSpec* incidentSpec = findCase(cases, incidentName);
+	if (!baselineSpec || !incidentSpec) {
+		std::cerr << "unknown case '" << (baselineSpec ? incidentName : baselineName) << "'\n";
+		return 2;
+	}
+	bool refused = false;
+	const bool update = updateRequested(refused);
+	if (refused)
+		return 1;
+	const std::string pairName = "delay-pair-" + incidentName;
+	for (const CaseSpec* spec : {baselineSpec, incidentSpec})
+		if (!spec->knownWrong.empty())
+			std::cout << "KNOWN-WRONG " << spec->name << " " << spec->knownWrong << "\n";
+
+	RunOutcome baseline, incident;
+	if (!runCheckedCase(fixture, *baselineSpec, baseline) || !runCheckedCase(fixture, *incidentSpec, incident))
+		return 1;
+
+	Observation observation = delayObservation("baseline", baseline.timetable, baseline.results);
+	const Observation incidentLines = delayObservation("incident", incident.timetable, incident.results);
+	observation.insert(observation.end(), incidentLines.begin(), incidentLines.end());
+	const DelayBaselineComparison comparison =
+		compareAgainstBaseline(delaySnapshotOf(fixture, *baselineSpec, baseline), delaySnapshotOf(fixture, *incidentSpec, incident));
+	const Observation compareLines = delayCompareLines(comparison);
+	observation.insert(observation.end(), compareLines.begin(), compareLines.end());
+	GoldenHeader header;
+	header.name = pairName;
+	header.run = "baseline: " + describeRun(*baselineSpec, baseline.steps) + "; incident: " + describeRun(*incidentSpec, incident.steps);
+	header.knownWrong = incidentSpec->knownWrong.empty() ? knownWrongText(*baselineSpec) : knownWrongText(*incidentSpec);
+	return finishGolden(pairName, expectDir + "/" + pairName + ".txt", update, header, observation);
 }
 
 int runRepeatMode(const std::vector<std::string>& steps) {
@@ -2157,7 +2357,7 @@ int runRepeatFilesMode(const std::vector<std::string>& steps) {
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 
-	std::string fixture, expect, caseName, singleStep, outputDir;
+	std::string fixture, expect, caseName, singleStep, outputDir, pairBaseline, pairIncident;
 	std::vector<std::string> steps;
 	bool repeat = false;
 	bool repeatFiles = false;
@@ -2171,7 +2371,10 @@ int main(int argc, char** argv) {
 			expect = value();
 		else if (arg == "--case")
 			caseName = value();
-		else if (arg == "--single")
+		else if (arg == "--pair") {
+			pairBaseline = value();
+			pairIncident = value();
+		} else if (arg == "--single")
 			singleStep = value();
 		else if (arg == "--output-dir")
 			outputDir = value();
@@ -2198,7 +2401,10 @@ int main(int argc, char** argv) {
 		return runSingleMode(singleStep, outputDir);
 	if (!repeat && !repeatFiles && !aspects && !fixture.empty() && !expect.empty() && !caseName.empty())
 		return runGoldenMode(fixture, expect, caseName);
+	if (!repeat && !repeatFiles && !aspects && !fixture.empty() && !expect.empty() && !pairBaseline.empty() && !pairIncident.empty())
+		return runPairMode(fixture, expect, pairBaseline, pairIncident);
 	std::cerr << "usage: test_characterization --fixture DIR --expect DIR --case NAME\n"
+				 "       test_characterization --fixture DIR --expect DIR --pair BASELINE_CASE INCIDENT_CASE\n"
 				 "       test_characterization --repeat SCENE[#CASE]...\n"
 				 "       test_characterization --repeat-files SCENE[#CASE]...\n"
 				 "       test_characterization --aspects SCENE[#CASE]...\n"
