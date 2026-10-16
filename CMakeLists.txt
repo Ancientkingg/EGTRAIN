@@ -1225,11 +1225,17 @@ if(EGTRAIN_BUILD_TESTS)
 	endif()
 	add_test(NAME test_package_start_smoke
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_package_start_smoke.py)
-	# A 32-bit configure stops with the message that names the supported platform.
-	if(WIN32 AND CMAKE_GENERATOR MATCHES "Visual Studio")
+	# A 32-bit configure stops with the message that names the supported platform. A Ninja build tree checks this with
+	# the default generator, which is Visual Studio on Windows.
+	if(WIN32)
+		if(CMAKE_GENERATOR MATCHES "Visual Studio")
+			set(egtrain_win32_generator -G ${CMAKE_GENERATOR})
+		else()
+			set(egtrain_win32_generator)
+		endif()
 		add_test(NAME test_win32_configure_rejected
 			COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}
-				-B ${CMAKE_CURRENT_BINARY_DIR}/win32-configure-check -G ${CMAKE_GENERATOR} -A Win32)
+				-B ${CMAKE_CURRENT_BINARY_DIR}/win32-configure-check ${egtrain_win32_generator} -A Win32)
 		set_tests_properties(test_win32_configure_rejected PROPERTIES
 			PASS_REGULAR_EXPRESSION "EGTRAIN supports 64-bit Windows"
 			TIMEOUT 300)
