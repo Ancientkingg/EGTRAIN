@@ -191,6 +191,19 @@ static bool connectRaw(QLocalSocket& socket, const QString& name) {
 	return waitFor([&socket] { return socket.state() == QLocalSocket::ConnectedState; }, 5000);
 }
 
+// True when the relay has ended the connection of a client that wrote something. A named pipe may
+// report the end differently, so Windows does not wait for it.
+#ifdef Q_OS_WIN
+static bool waitForDrop(QLocalSocket&) {
+	settle(200);
+	return true;
+}
+#else
+static bool waitForDrop(QLocalSocket& socket) {
+	return waitFor([&socket] { return socket.state() != QLocalSocket::ConnectedState; }, 5000);
+}
+#endif
+
 static bool testPartialAndMalformedRequests() {
 	bool ok = true;
 	const QString name = serverName("raw");
@@ -218,7 +231,21 @@ static bool testPartialAndMalformedRequests() {
 		ok &= expect(connectRaw(socket, name), "another client connects");
 		socket.write("junk");
 		socket.flush();
-		settle(200);
+		ok &= expect(waitForDrop(socket), "bytes that are no request end the connection");
+	}
+	{
+		// So are more bytes than a request can hold, even when they start like a request.
+		QLocalSocket socket;
+		ok &= expect(connectRaw(socket, name), "a client that sends too much connects");
+		QByteArray tooMuch;
+		{
+			QDataStream out(&tooMuch, QIODevice::WriteOnly);
+			out.setVersion(QDataStream::Qt_5_9);
+			out << quint32(1 << 20);
+		}
+		tooMuch.append(QByteArray(70000, 'a'));
+		socket.write(tooMuch);
+		ok &= expect(waitForDrop(socket), "more bytes than a request holds end the connection");
 	}
 	{
 		// A client that connects and leaves, like the check of a second instance for a live one.
@@ -250,8 +277,14 @@ static bool testPostpone() {
 		OpenRequestRelay relay;
 		Received received(relay);
 		ok &= expect(relay.listen(name, kDir), "the instance listens");
+		// The client is connected before the path waits, and writes at once, so that the request arrives
+		// well before the waiting path is due.
+		QLocalSocket socket;
+		ok &= expect(connectRaw(socket, name), "a client connects");
 		relay.postpone(QStringLiteral("/data/old.egscene"));
-		ok &= expect(forwardFromChild(name, kDir, QStringLiteral("/data/new.egscene")) == 0, "a request arrives while one waits");
+		socket.write(requestBytes(kDir, QStringLiteral("/data/new.egscene")));
+		socket.flush();
+		ok &= expect(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "a request arrives while one waits");
 		settle(800);
 		ok &= expect(received.paths == QStringList{QStringLiteral("/data/new.egscene")}, "the new request replaces the one that waited");
 	}
