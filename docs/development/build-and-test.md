@@ -1881,13 +1881,18 @@ by default, adds a Start Menu entry and an optional desktop shortcut, and
 registers an uninstall entry under the current user. It also associates the
 `.egscene` file type with `{app}\QEGTRAIN.exe` for the current user, which the
 uninstaller removes. It replaces the `Scenes` folder of the installation folder
-on every install and runs no program. The
+on every install and runs no program. Setup shows the GPL-3.0 text of `LICENSE`
+on a licence page, and the Windows package job copies `LICENSE` into the
+package, so the installed folder and the portable archive hold it. The
 Windows finalize job of `package.yml` compiles the script, and
 `tools/release/installer_smoke.ps1` installs the result on the runner.
 
 The test is `tools/release/test_installer_script.py`. It reads the script,
-`installer/installed-by-setup.ini`, `installer/README.md` and `kAssetPatterns`
-in `update/ReleaseInfo.cpp` as text, looks for the icon file, and checks that:
+`installer/installed-by-setup.ini`, `installer/README.md`, `kAssetPatterns`
+in `update/ReleaseInfo.cpp`, `LICENSE` and the Windows package job of
+`.github/workflows/package.yml` as text, looks for the icon file, and checks
+that the script names `LICENSE` as its licence file and the package job copies
+and checks it, and that:
 
 - the script is ASCII and names neither `HKEY_LOCAL_MACHINE` nor a parent folder;
 - it has only the sections `Setup`, `Tasks`, `Files`, `InstallDelete`, `Icons`

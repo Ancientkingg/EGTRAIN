@@ -27,6 +27,7 @@ CloseApplications=yes
 ChangesAssociations=yes
 UninstallDisplayIcon={app}\QEGTRAIN.exe
 SetupIconFile=..\EGTRAIN\QEGTRAIN\resources\app\egtrain.ico
+LicenseFile=..\LICENSE
 OutputBaseFilename=EGTRAIN-Setup-{#Version}-x64
 Compression=lzma2
 SolidCompression=yes
