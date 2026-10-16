@@ -77,6 +77,31 @@ int main() {
 	}
 
 	{
+		SceneModel scene;
+		const SceneModel& readOnly = scene;
+		RunSelection selection;
+		ok &= expect(selection.selectedScenario(readOnly) == nullptr && scene.scenarios.empty(),
+			"a scene without scenarios has no selected scenario, and looking for it adds none");
+		SceneScenario first;
+		first.id = "a";
+		SceneScenario second;
+		second.id = "b";
+		scene.scenarios = {first, second};
+		scene.defaultScenarioId = "b";
+		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[1] && selection.selectedScenario(scene) == &scene.scenarios[1],
+			"a selection that names no scenario gives the default scenario");
+		selection.selectScenario("a");
+		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[0] && selection.selectedScenario(scene) == &scene.scenarios[0],
+			"the selected scenario is the one with the selected id");
+		selection.selectScenario("gone");
+		ok &= expect(selection.selectedScenario(readOnly) == &scene.scenarios[1], "a selected id that is not in the scene gives the default scenario");
+
+		SceneModel empty;
+		ok &= expect(selection.selectedScenario(empty) != nullptr && empty.scenarios.size() == 1 && empty.scenarios[0].id == "baseline",
+			"asking for the scenario for an edit adds the baseline scenario to a scene without scenarios");
+	}
+
+	{
 		const SceneModel scene = runScene();
 		ok &= expect(sceneTotalOccurrences(scene, kPeriod) == 5 && sceneInPeriodOccurrences(scene, kPeriod) == 4,
 			"the scene has 5 occurrences over the period and 4 of them enter inside it");
