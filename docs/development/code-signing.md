@@ -1,8 +1,8 @@
 # Code signing
 
-This document covers Authenticode signing of the Windows program files and the Windows installer. It records state,
-ownership and checks. It states no decision of any signing service: every fact that only the owner can give is a field
-that reads Not recorded.
+This document covers Authenticode signing of the Windows program files and the Windows installer, and the two modes of
+the macOS release (see [macOS releases](#macos-releases)). It records state, ownership and checks. It states no decision
+of any signing service: every fact that only the owner can give is a field that reads Not recorded.
 
 ## Current state
 
@@ -18,14 +18,16 @@ that reads Not recorded.
   [macOS signing script](build-and-test.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
   With notarization credentials in the same environment, `tools/release/notarize_macos.sh` also notarizes and staples the
   app and the disk image (see the
-  [macOS notarization script](build-and-test.md#macos-notarization-script)); without them nothing is notarized. The
-  owner's Developer ID setup is #404 and is not covered here. The Linux AppImage is not signed.
+  [macOS notarization script](build-and-test.md#macos-notarization-script)); without them nothing is notarized. The two
+  modes, the settings that the owner adds and what a user sees at the first start are in
+  [macOS releases](#macos-releases). The Linux AppImage is not signed.
 - The in-app update checks the SHA-256 and the size of the downloaded package against `update-manifest.json`, an asset
   of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
   published the package. On macOS the staged app is also checked with `codesign --verify`, which an ad-hoc signature
   passes.
-- A release page does not say whether the Windows files are signed. The release text, built by the Prepare release step
-  of the release job in `.github/workflows/release.yml`, says nothing about signing.
+- A release page does not say whether the macOS app is notarized or whether the Windows files are signed. The release
+  text, built by the Prepare release step of the release job in `.github/workflows/release.yml`, says nothing about
+  signing. [Release text](#release-text) has the lines for macOS.
 
 ## What would be signed
 
@@ -273,3 +275,132 @@ Windows desktop check.
 A valid signature shows who signed a file. Whether Windows still warns for a signed program depends on the Windows
 version and on checks of its own that the project has not observed. This document makes no promise either way. When a
 release is signed, its release text must say which Windows files are signed.
+
+## macOS releases
+
+The macOS download is the disk image `EGTRAIN-<version>-macOS-arm64.dmg`. The package workflow builds it in one of two
+modes. A push to `production` or a `v*` tag runs the macOS job in the environment `macos-signing`, and what that
+environment holds decides the mode. Every other run, including every pull request, has no environment and builds the ad
+hoc mode, so a pull request or a development build needs no credential. A paid Apple Developer membership is not needed
+to release in the ad hoc mode.
+
+| | Ad hoc, not notarized | Developer ID, notarized |
+| --- | --- | --- |
+| What `macos-signing` holds | None of the settings in [What the owner adds](#what-the-owner-adds) | The signing certificate and notarization credentials |
+| Signature of the app | Ad hoc (`Signature=adhoc`). It keeps the app runnable on Apple silicon and names no developer. | Every nested file, then the app, signed with the Developer ID identity, the hardened runtime and a secure timestamp |
+| Disk image | Not signed | Signed with the same identity |
+| Notarization | None | Apple notarizes the app and then the image, and the ticket is stapled to both |
+| First start | macOS refuses it until the owner of the Mac allows it in System Settings ([details](#first-start-of-an-ad-hoc-build)) | The confirmation that macOS asks for an app that was downloaded, and no other dialog ([details](#first-start-of-a-notarized-build)) |
+
+Set the certificate and the notarization credentials together. A certificate alone signs the app and the image with the
+Developer ID and notarizes nothing. That is neither mode, and what macOS shows for it has not been observed.
+Notarization credentials without a certificate fail the job, because Apple accepts only a Developer ID signature and
+`tools/release/notarize_macos.sh` stops when it finds none. With credentials, a failing step fails the job, so a file
+that Apple refused is never published as notarized. Without credentials the job succeeds and the files are not
+notarized.
+
+### What the owner adds
+
+The owner adds these to the environment `macos-signing` in the repository settings and limits the environment to the
+`production` branch and `v*` tags, the runs that use it. A secret is stored as a secret of the environment and a
+variable as a variable of it. None of them is committed, and the scripts print none of the values. The job imports the
+certificate into a keychain of its own and deletes that keychain in its last step.
+
+| Name | Kind | What it holds |
+| --- | --- | --- |
+| `MACOS_CERTIFICATE` | Secret | The Developer ID Application certificate with its private key, as a `.p12` file, base64 encoded |
+| `MACOS_CERTIFICATE_PASSWORD` | Secret | The password of the `.p12` file |
+| `MACOS_SIGNING_IDENTITY` | Variable | The name of the identity, as `security find-identity` prints it |
+| `MACOS_NOTARY_KEY` | Secret | For an App Store Connect API key: the text of the `.p8` file |
+| `MACOS_NOTARY_KEY_ID` | Variable | For an API key: the key id |
+| `MACOS_NOTARY_ISSUER_ID` | Variable | For an API key: the issuer id |
+| `MACOS_NOTARY_APPLE_ID` | Variable | For an Apple ID: the Apple ID |
+| `MACOS_NOTARY_TEAM_ID` | Variable | For an Apple ID: the team id |
+| `MACOS_NOTARY_PASSWORD` | Secret | For an Apple ID: an app-specific password |
+
+Notarization needs all three entries of one group, the API key or the Apple ID. The API key is used when both groups are
+complete. A group that is only partly set, with the other group not complete, fails the job and names what is missing.
+A certificate without its password or without the identity name fails it too. The scripts are described in
+[macOS signing script](build-and-test.md#macos-signing-script) and
+[macOS notarization script](build-and-test.md#macos-notarization-script). The roles in [Ownership](#ownership) and the
+rules in [Repository authorization](#repository-authorization) apply to these values.
+
+### Apple Developer identity record
+
+Before anyone buys a personal Apple Developer Program membership, someone asks whether an institutional or distributor
+team can sign for EGTRAIN and whether a fee waiver of the programme applies. These are messages to people, for example
+at the university, and the table records the answers. Not recorded means that nothing has been recorded. Without the
+settings above the release is built in the ad hoc mode.
+
+| Item | Record |
+| --- | --- |
+| Who was asked about an institutional or distributor Apple Developer team, the date, and the link to the answer | Not recorded |
+| Result: a team that can sign for EGTRAIN, or none | Not recorded |
+| Who was asked about a fee waiver of the Apple Developer Program, the date, and the link to the answer | Not recorded |
+| Result: a waiver, or none | Not recorded |
+| Decision taken, and by whom (a team, a waiver, a personal membership, or staying ad hoc) | Not recorded |
+| Developer ID Application identity as issued, and the team id | Not recorded |
+| Notarization credentials used (API key or Apple ID) | Not recorded |
+| Expiry date of the certificate, and who watches it | Not recorded |
+| Environment `macos-signing` created and limited to `production` and `v*` | Not recorded |
+
+### First start of an ad hoc build
+
+This was observed on 2026-10-16 on a clean macOS 26.6.2 with the setting **Allow applications from** at **App Store &
+Known Developers**, for a disk image that carried the download mark that a browser sets. Opening the image shows a
+Finder window named `EGTRAIN` with `QEGTRAIN` and `Applications`, and no warning. After the app is copied to the
+Applications folder, opening it from there shows:
+
+1. A dialog titled `"QEGTRAIN" Not Opened`. Its text is
+   `Apple could not verify "QEGTRAIN" is free of malware that may harm your Mac or compromise your privacy.`
+   Its buttons are **Move to Trash** and **Done**. It has no **Open** button.
+2. **System Settings > Privacy & Security**, in the section **Security**, shows
+   `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**.
+3. **Open Anyway** opens a dialog titled `Open "QEGTRAIN"?` with the buttons **Move to Trash**, **Open Anyway** and
+   **Done**.
+4. **Open Anyway** in that dialog asks for an administrator's name and password:
+   `Enter an administrator's username and password to allow this.` The exception needs an administrator. What follows
+   the password was not observed.
+
+This is the normal macOS override for an app from an unidentified developer, and the only way to open an ad hoc build
+that this project documents. No workflow and no release script removes the download mark (the quarantine attribute) or
+turns Gatekeeper off, and no document tells a user to, because that lowers the protection of the whole Mac.
+`tools/e2e/test_ci_workflow.py` checks the workflows and the release scripts.
+
+### First start of a notarized build
+
+The app and the image carry a Developer ID signature and a ticket from Apple that is stapled to each. A user who opens
+the image, drags the app onto `Applications` and opens it is expected to see no dialog beyond the confirmation that
+macOS asks for an app that was downloaded, and to need no visit to System Settings and no administrator password. No
+release of EGTRAIN has been built in this mode, so this has not been observed. Row M5 of the
+[release testing checklist](release-testing-checklist.md#macos-app) records it for the first release that has one.
+
+### Release text
+
+The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
+adds one of these paragraphs to its description on the releases page. The first is for a release whose macOS app is not
+notarized. The second is only for one whose app and image are, which the logs of the steps **Notarize the app** and
+**Notarize the disk image** of the package job show. Each log ends with a line `OK: ... is notarized, stapled and
+accepted by Gatekeeper` for the second text, and a line `Notarization skipped` means the first text.
+
+```text
+macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the README: https://github.com/Ancientkingg/EGTRAIN#macos-disk-image
+```
+
+```text
+macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS asks only for the usual confirmation for an app that was downloaded.
+```
+
+### Checking a macOS download
+
+Run these on the copy of the app in the Applications folder. They do not start the app.
+
+```bash
+codesign -dvv /Applications/QEGTRAIN.app
+xcrun stapler validate /Applications/QEGTRAIN.app
+```
+
+`codesign` shows `Signature=adhoc` for an ad hoc build. For a Developer ID build it shows a line
+`Authority=Developer ID Application:` with the name of the signer, and a `TeamIdentifier`. `stapler validate` succeeds
+only when the app carries a ticket and fails for an ad hoc build. The package job runs the same checks before it uploads
+the image (the steps **Verify the signature** and **Notarize the app**).
