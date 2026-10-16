@@ -40,10 +40,11 @@ def step_block(job: str, name: str) -> str:
 
 
 def main() -> None:
-    # The release script names the artifact directories and the scene bundles that the workflows must agree with.
-    # Other tests import this file, so the script is imported here and not at module level.
+    # The release script names the artifact directories and the scene bundles that the workflows must agree with, and the
+    # disk image script names the image. Other tests import this file, so the scripts are imported here and not at module level.
     sys.path.insert(0, str(ROOT / "tools/release"))
     import build_release_assets
+    import make_dmg
 
     workflow = (ROOT / ".github/workflows/cmake.yml").read_text(encoding="utf-8")
     cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
@@ -235,23 +236,23 @@ def main() -> None:
     production_metadata = production_metadata.split("          fi", 1)[0]
     if "prerelease=false" not in production_metadata or "make_latest=true" not in production_metadata:
         missing.append("production releases offered by the stable updater")
-    macos_package_verification = release_workflow.split(
-        "      - name: Verify the presentation package\n", 1
-    )[1].split("\n      - ", 1)[0]
+    macos_package_verification = step_block(job_block(package_only, "package-macos"), "Verify the packaged app")
     required_macos_validation = (
         "set +e",
-        'validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"',
+        'validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1)"',
         "validation_status=$?",
         "set -e",
         '[ "$validation_status" -eq 0 ]',
     )
     if (
         any(check not in macos_package_verification for check in required_macos_validation)
-        or '"$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1 | grep' in macos_package_verification
+        or '"$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1 | grep' in macos_package_verification
     ):
         missing.append("macOS scene validation status handling")
     required_macos_package_checks = (
-        'APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"',
+        'APP="$PWD/build/QEGTRAIN.app"',
+        'test -x "$APP/Contents/MacOS/scene_tool"',
+        'test -f "$APP/Contents/Resources/lebanon-case-study.md"',
         'test -d "$APP/Contents/Resources/Scenes/Paimpol"',
         'RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"',
         'rm -rf "$RUN_DIR"',
@@ -267,7 +268,7 @@ def main() -> None:
     )
     if any(check not in macos_package_verification for check in required_macos_package_checks):
         missing.append("macOS packaged Paimpol headless smoke")
-    app_path_index = macos_package_verification.find('APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"')
+    app_path_index = macos_package_verification.find('APP="$PWD/build/QEGTRAIN.app"')
     run_dir_index = macos_package_verification.find('cd "$RUN_DIR"')
     if (
         "QT_QPA_PLATFORM=offscreen" in macos_package_verification
@@ -631,16 +632,20 @@ def main() -> None:
         missing.append("installer smoke script with the silent switches, the desktop task, the start check and the checks of scope and manifest")
     # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
     # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
-    # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the package.
+    # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the app. The
+    # app holds scene_tool and the Lebanon guide, and the disk image is built from it after the one signature.
     macos_job = job_block(package_only, "package-macos")
     macos_steps = (
         "Bundle Qt and dependencies into the app",
+        "Add scene_tool and the Lebanon guide to the app",
         "Remove unused Qt modules and plugins",
+        "Set the minimum macOS version",
         "Ad-hoc code sign",
         "Verify the app is self-contained",
-        "Verify the presentation package",
+        "Verify the packaged app",
         "Start the package",
-        "Package zip",
+        "Build the disk image",
+        "Verify the disk image",
         "Upload artifact",
     )
     macos_step_names = re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)
@@ -703,13 +708,74 @@ def main() -> None:
     if (
         not macos_start.strip().endswith('python3 tools/release/package_start_smoke.py "$start"')
         or 'start="$RUNNER_TEMP/package-start"\n' not in macos_start
-        or 'ditto build/dist/QEGTRAIN-Lebanon/QEGTRAIN.app "$start/QEGTRAIN.app"\n' not in macos_start
-        or macos_start.count("build/dist") != 1
+        or 'ditto build/QEGTRAIN.app "$start/QEGTRAIN.app"\n' not in macos_start
         or 'PYTHONUTF8: "1"' not in macos_start
         or "python-version: '3.12'" not in macos_python
         or not 0 <= macos_job.find("uses: actions/setup-python@v5") < macos_job.find("name: Start the package")
     ):
         missing.append("macOS package start of a copy under RUNNER_TEMP with Python set up")
+    # scene_tool and the guide go into the app before the signature, which seals them, and not into a folder beside it. The
+    # app is built for macOS 26 and says so in its property list, in the same step order.
+    add_step = step_block(macos_job, "Add scene_tool and the Lebanon guide to the app")
+    if (
+        '          cp build/scene_tool "$APP/Contents/MacOS/scene_tool"\n' not in add_step
+        or '          cp docs/guides/lebanon-case-study.md "$APP/Contents/Resources/lebanon-case-study.md"\n' not in add_step
+    ):
+        missing.append("macOS package step that copies scene_tool and the Lebanon guide into the app")
+    if "          -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0\n" not in step_block(macos_job, "Configure"):
+        missing.append("macOS package configure for the deployment target macOS 26")
+    minimum_step = step_block(macos_job, "Set the minimum macOS version")
+    if (
+        "otool -l \"$APP/Contents/MacOS/QEGTRAIN\"" not in minimum_step
+        or 'PlistBuddy -c "Add :LSMinimumSystemVersion string $minimum" "$APP/Contents/Info.plist"\n' not in minimum_step
+    ):
+        missing.append("macOS package step that writes the minimum system version of the executable into the property list")
+    # The image is the macOS package and the only macOS artifact. The script builds it after every step that runs or changes
+    # the app, and no step after it uses build/QEGTRAIN.app: the image is mounted read-only and detached on every path, and
+    # the app is checked as the copy that ditto takes out of it.
+    if "zip" in macos_job.lower() or "build/dist" in macos_job or "QEGTRAIN-Lebanon" in release_workflow:
+        missing.append("macOS package without a folder of the presentation package and without an archive")
+    image_step = step_block(macos_job, "Build the disk image")
+    if not image_step.strip().endswith('run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg'):
+        missing.append("macOS disk image built by the script from the final app")
+    after_image = macos_job.split("      - name: Verify the disk image\n", 1)[-1]
+    if "build/QEGTRAIN.app" in after_image or any(
+        change in after_image for change in ("codesign --force", "install_name_tool", "macdeployqt", "chmod", "PlistBuddy -c \"Add")
+    ):
+        missing.append("macOS app left as signed after the disk image is built")
+    image_name = make_dmg.dmg_name("${{ inputs.version }}")
+    image_verify = step_block(macos_job, "Verify the disk image")
+    verification_in_order = (
+        f'DMG="$PWD/build/dmg/{image_name}"\n',
+        "trap 'hdiutil detach \"$MOUNT\" -force >/dev/null 2>&1 || true' EXIT\n",
+        'hdiutil attach -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"\n',
+        'test "$(ls "$MOUNT" | tr \'\\n\' \' \')" = "Applications QEGTRAIN.app "\n',
+        'test "$(readlink "$MOUNT/Applications")" = "/Applications"\n',
+        'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
+        'ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"\n',
+        'hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force\n          trap - EXIT\n',
+        'codesign --verify --deep --strict --verbose=2 "$COPY/QEGTRAIN.app"\n',
+        '[ "$version" = "${{ inputs.version }}" ]',
+        '"$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1\n',
+        'grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"',
+        'test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"',
+    )
+    verification_positions = [image_verify.find(check) for check in verification_in_order]
+    if -1 in verification_positions or verification_positions != sorted(verification_positions):
+        missing.append("macOS disk image check that mounts it read-only, detaches it on every path, verifies the signature of the app in it and of a copy, and runs the copy")
+    if any(
+        f'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/{program}"\n' not in image_verify for program in ("QEGTRAIN", "egtrain_update_helper", "scene_tool")
+    ) or 'test -f "$COPY/QEGTRAIN.app/Contents/Resources/lebanon-case-study.md"\n' not in image_verify:
+        missing.append("macOS disk image check of the programs and the guide in the copy of the app")
+    if step_block(macos_job, "Upload artifact") != (
+        "name: Upload artifact\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: QEGTRAIN-macos-arm64\n"
+        f"          path: build/dmg/{image_name}\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("macOS upload of the disk image as the only file of the artifact that the release script reads")
     package_check_paths = (
         ".github/workflows/package-check.yml",
         ".github/workflows/package.yml",

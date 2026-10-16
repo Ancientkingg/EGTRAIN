@@ -1162,19 +1162,34 @@ most of its checks, so run it locally to read its logs.
   needs an installer of a higher version for its upgrade check, so the job
   compiles a second one with the next patch version and uploads only the first.
   When the job fails, it uploads the logs of Setup and of the uninstaller as the
-  artifact `finalize-windows-diagnostics`. The macOS package job removes the
-  virtual keyboard input plugin with the Quick and QML frameworks, and the WebP
-  and TIFF plugins with their libraries, from the app before the signature,
-  fails when one of them is in the app, starts a copy of the app with the same
-  script, and prints the number of files and bytes of the app before and
-  after the removal in its job summary. The Linux package job extracts its
-  AppImage and starts the extracted image with the same script on a virtual
-  display, after the script has checked that every Qt 5 and ZeroMQ library of
-  the programs and plugins comes from the image. The start in each of the three
-  package jobs includes the CSV and PNG exports of Paimpol through the test
-  hooks of the application. The check does not show how the SVG icons look,
-  typing into text fields, the native file dialogs, or a start on a machine
-  without Qt or a display server; the clean-install rehearsal in the
+  artifact `finalize-windows-diagnostics`. The macOS package job builds for
+  macOS 26 (`-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0`) and writes the minimum system
+  version of the executable into the `LSMinimumSystemVersion` key of the property
+  list, so the app needs macOS 26 or later. It copies `scene_tool` and the Lebanon
+  guide into the app, to `Contents/MacOS/scene_tool` and
+  `Contents/Resources/lebanon-case-study.md`, and removes the virtual keyboard
+  input plugin with the Quick and QML frameworks, and the WebP and TIFF plugins
+  with their libraries, from the app. All of this comes before the one ad hoc
+  signature. After the signature the job fails when one of the removed files is in
+  the app, runs `scene_tool` on the Lebanon scene of the app and Paimpol without
+  the GUI, starts a copy of the app with the same script, and prints the number
+  of files and bytes of the app before and after the removal in its job summary.
+  Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the app with
+  `tools/release/make_dmg.py`, and no later step changes the app. The job mounts
+  the image read-only and detaches it on every path. It checks that the volume
+  holds only `QEGTRAIN.app` and the link `Applications`, that the app in the image
+  and a `ditto` copy of it pass `codesign --verify --deep --strict`, that the copy
+  has the version and the identifier of the build, its programs and the guide, and
+  that the copy runs Paimpol without the GUI to `End of Simulation`. The image is
+  the only file of the artifact `QEGTRAIN-macos-arm64`; no zip is made. The Linux
+  package job extracts its AppImage and starts the extracted image with the same
+  script on a virtual display, after the script has checked that every Qt 5 and
+  ZeroMQ library of the programs and plugins comes from the image. The start in
+  each of the three package jobs includes the CSV and PNG exports of Paimpol
+  through the test hooks of the application. The check does not show how the SVG
+  icons look, typing into text fields, the native file dialogs, how Finder
+  presents the disk image, or a start on a machine without Qt or a display
+  server; the clean-install rehearsal in the
   [release testing checklist](release-testing-checklist.md) covers them. After
   the three packages are built, the job `release-assets` downloads the
   artifacts and runs `tools/release/build_release_assets.py` on them with the
@@ -1303,7 +1318,7 @@ makes them when it is given no artifact name:
   `QEGTRAIN.exe` at its top level, uploaded by the Windows package job
 - `EGTRAIN-windows-x64-portable/EGTRAIN-Portable-X.Y.Z-x64.zip`
 - `EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe`
-- `QEGTRAIN-macos-arm64/QEGTRAIN-macos-arm64.zip`
+- `QEGTRAIN-macos-arm64/EGTRAIN-X.Y.Z-macOS-arm64.dmg`
 - `QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage`
 - `EGTRAIN-scenes/`: the `.egscene` files of the case studies
 
@@ -1392,8 +1407,9 @@ and exits with the command and its error text.
 Two images made from the same bundle have the same file name, volume name and
 contents. The script does not promise equal image bytes. It sets no Finder
 layout, background picture, volume icon or licence text, and it does not sign,
-notarize or upload anything. The release workflow does not call it yet: the
-package job still publishes `QEGTRAIN-macos-arm64.zip`.
+notarize or upload anything. The macOS package job in `package.yml` calls it
+once the app is signed and checked, with `--output build/dmg`, and uploads the
+image as the artifact `QEGTRAIN-macos-arm64`.
 
 The test is `tools/release/test_make_dmg.py`. On macOS it signs a small fixture
 bundle (a program that exits with 0, a data file and a symbolic link inside the

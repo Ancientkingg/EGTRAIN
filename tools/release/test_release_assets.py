@@ -15,11 +15,12 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_release_assets
+import make_dmg
 
 SCRIPT = Path(__file__).resolve().with_name("build_release_assets.py")
 SCENES = ("Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon",
           "Amsterdam_Hilversum_Student")
-MACOS, LINUX = "QEGTRAIN-macos-arm64.zip", "QEGTRAIN-linux-x86_64.AppImage"
+MACOS, LINUX = "EGTRAIN-1.2.3-macOS-arm64.dmg", "QEGTRAIN-linux-x86_64.AppImage"
 PORTABLE, INSTALLER = "EGTRAIN-Portable-1.2.3-x64.zip", "EGTRAIN-Setup-1.2.3-x64.exe"
 MANIFEST = "update-manifest.json"
 EXPECTED_NAMES = sorted([MACOS, PORTABLE, INSTALLER, LINUX, MANIFEST] + [scene + ".egscene" for scene in SCENES])
@@ -177,7 +178,12 @@ class ReleaseAssetsTests(unittest.TestCase):
                 path.write_bytes(content)
 
     def test_package_named_for_another_version_is_rejected(self):
+        self.assertRejected("missing file " + str(self.macos.with_name("EGTRAIN-1.2.4-macOS-arm64.dmg")), "1.2.4")
+        self.macos.rename(self.macos.with_name("EGTRAIN-1.2.4-macOS-arm64.dmg"))
         self.assertRejected("missing file " + str(self.portable.with_name("EGTRAIN-Portable-1.2.4-x64.zip")), "1.2.4")
+
+    def test_macos_package_is_the_image_that_make_dmg_writes(self):
+        self.assertEqual(MACOS, make_dmg.dmg_name("1.2.3"))
 
     def test_stray_file_in_an_artifact_directory_is_rejected(self):
         write(self.linux.with_name("notes.txt"), b"x")

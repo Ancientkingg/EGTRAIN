@@ -1,7 +1,8 @@
 name: Package
 
 # Builds the macOS, Windows, and Linux packages and uploads each as an artifact of the run.
-# The Windows package is also built into an installer and a portable archive, which are artifacts too.
+# The macOS package is a disk image. The Windows package is also built into an installer and a portable archive,
+# which are artifacts too.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -32,6 +33,7 @@ jobs:
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ inputs.version }}"
           -DCMAKE_BUILD_TYPE=Release
           -DEGTRAIN_PACKAGED_BUILD=ON
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
           -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Build
@@ -71,6 +73,16 @@ jobs:
             done < <(find "$frameworks" -maxdepth 1 -type f -name '*.dylib')
           done
 
+      - name: Add scene_tool and the Lebanon guide to the app
+        # The disk image holds only the app and the link to /Applications, so these files live in the bundle. The
+        # signature below seals them.
+        run: |
+          set -euxo pipefail
+          APP="build/QEGTRAIN.app"
+          cp build/scene_tool "$APP/Contents/MacOS/scene_tool"
+          chmod +x "$APP/Contents/MacOS/scene_tool"
+          cp docs/guides/lebanon-case-study.md "$APP/Contents/Resources/lebanon-case-study.md"
+
       - name: Remove unused Qt modules and plugins
         run: |
           set -euo pipefail
@@ -91,6 +103,17 @@ jobs:
           rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libsharpyuv*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib \
             "$APP"/Contents/Frameworks/liblzma*.dylib
           report_size "after trimming"
+
+      - name: Set the minimum macOS version
+        # The app is built for the deployment target of the configure step. This key tells Launch Services the same, so an
+        # older macOS says that the app needs a newer one. The signature below seals the property list.
+        run: |
+          set -euo pipefail
+          APP="build/QEGTRAIN.app"
+          minimum="$(otool -l "$APP/Contents/MacOS/QEGTRAIN" | awk '/cmd LC_BUILD_VERSION/ { found = 1 } found && $1 == "minos" && !printed { print $2; printed = 1 }')"
+          test -n "$minimum"
+          /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string $minimum" "$APP/Contents/Info.plist"
+          echo "macOS app minimum system version: $minimum" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Ad-hoc code sign
         # macdeployqt rewrites install names with install_name_tool, which
@@ -136,38 +159,25 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$APP"
           echo "OK: app is self-contained and signed, without the virtual keyboard, QML, WebP and TIFF files"
 
-      - name: Assemble presentation package
-        run: |
-          set -euxo pipefail
-          PKG="build/dist/QEGTRAIN-Lebanon"
-          rm -rf "$PKG"
-          mkdir -p "$PKG/Scenes"
-          # ditto preserves the signed bundle; plain cp can break the signature.
-          ditto build/QEGTRAIN.app "$PKG/QEGTRAIN.app"
-          cp build/scene_tool "$PKG/scene_tool"
-          ditto EGTRAIN/QEGTRAIN/Scenes/Lebanon "$PKG/Scenes/Lebanon"
-          cp docs/guides/lebanon-case-study.md "$PKG/lebanon-case-study.md"
-
-      - name: Verify the presentation package
+      - name: Verify the packaged app
         run: |
           set -euo pipefail
-          PKG="build/dist/QEGTRAIN-Lebanon"
-          test -x "$PKG/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
-          test -x "$PKG/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper"
-          test -x "$PKG/scene_tool"
-          test -f "$PKG/Scenes/Lebanon/stations.json"
-          test -f "$PKG/Scenes/Lebanon/scene.json"
-          test -f "$PKG/Scenes/Lebanon/scenarios.json"
-          test -f "$PKG/lebanon-case-study.md"
+          APP="$PWD/build/QEGTRAIN.app"
+          test -x "$APP/Contents/MacOS/QEGTRAIN"
+          test -x "$APP/Contents/MacOS/egtrain_update_helper"
+          test -x "$APP/Contents/MacOS/scene_tool"
+          test -f "$APP/Contents/Resources/lebanon-case-study.md"
+          test -f "$APP/Contents/Resources/Scenes/Lebanon/stations.json"
+          test -f "$APP/Contents/Resources/Scenes/Lebanon/scene.json"
+          test -f "$APP/Contents/Resources/Scenes/Lebanon/scenarios.json"
+          test -d "$APP/Contents/Resources/Scenes/Paimpol"
           # scene_tool uses header-only JSON and vendored miniz, so it runs without Qt.
           set +e
-          validation_output="$("$PKG/scene_tool" validate "$PKG/Scenes/Lebanon" 2>&1)"
+          validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1)"
           validation_status=$?
           set -e
           printf '%s\n' "$validation_output"
           [ "$validation_status" -eq 0 ]
-          APP="$(cd "$PKG/QEGTRAIN.app" && pwd)"
-          test -d "$APP/Contents/Resources/Scenes/Paimpol"
           RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"
           rm -rf "$RUN_DIR"
           mkdir -p "$RUN_DIR"
@@ -189,10 +199,10 @@ jobs:
             cat "$RUN_DIR/qegtrain.log"
             exit 1
           fi
-          echo "OK: presentation package holds the app, scene_tool, canonical scenes, and guide"
+          echo "OK: the app holds scene_tool, the canonical scenes and the guide"
 
       - name: Start the package
-        # The program may write files next to itself, so it starts from a copy and the package that is zipped stays as built.
+        # The program may write files next to itself, so it starts from a copy and the app for the disk image stays as built.
         env:
           PYTHONUTF8: "1"
         run: |
@@ -200,7 +210,7 @@ jobs:
           start="$RUNNER_TEMP/package-start"
           rm -rf "$start"
           mkdir -p "$start"
-          ditto build/dist/QEGTRAIN-Lebanon/QEGTRAIN.app "$start/QEGTRAIN.app"
+          ditto build/QEGTRAIN.app "$start/QEGTRAIN.app"
           python3 tools/release/package_start_smoke.py "$start"
 
       - name: Generate scene bundles
@@ -233,16 +243,66 @@ jobs:
           path: build/scene-bundles/*.egscene
           if-no-files-found: error
 
-      - name: Package zip
+      - name: Build the disk image
+        # The app is final: no later step changes it.
+        run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg
+
+      - name: Verify the disk image
+        # Mount the image read-only, as a user does, and take the app out of it with ditto. The copy is what a drag
+        # to Applications gives, so it has to keep its signature and has to run.
         run: |
-          cd build/dist
-          ditto -c -k --keepParent QEGTRAIN-Lebanon ../QEGTRAIN-macos-arm64.zip
+          set -euo pipefail
+          DMG="$PWD/build/dmg/EGTRAIN-${{ inputs.version }}-macOS-arm64.dmg"
+          MOUNT="$RUNNER_TEMP/dmg-mount"
+          COPY="$RUNNER_TEMP/dmg-copy"
+          RUN_DIR="$RUNNER_TEMP/qegtrain-dmg-paimpol"
+          rm -rf "$MOUNT" "$COPY" "$RUN_DIR"
+          mkdir -p "$MOUNT" "$COPY" "$RUN_DIR"
+          # Detach the image on every path, by force when it is busy or when the step fails while it is attached.
+          trap 'hdiutil detach "$MOUNT" -force >/dev/null 2>&1 || true' EXIT
+          hdiutil attach -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"
+          # The volume holds the app and the link to /Applications, and no scene folder, scene_tool or guide beside the app.
+          test "$(ls "$MOUNT" | tr '\n' ' ')" = "Applications QEGTRAIN.app "
+          test "$(readlink "$MOUNT/Applications")" = "/Applications"
+          codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"
+          ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"
+          hdiutil detach "$MOUNT" || hdiutil detach "$MOUNT" -force
+          trap - EXIT
+          codesign --verify --deep --strict --verbose=2 "$COPY/QEGTRAIN.app"
+          test -x "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
+          test -x "$COPY/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper"
+          test -x "$COPY/QEGTRAIN.app/Contents/MacOS/scene_tool"
+          test -f "$COPY/QEGTRAIN.app/Contents/Resources/lebanon-case-study.md"
+          test -d "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol"
+          identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$COPY/QEGTRAIN.app/Contents/Info.plist")"
+          [ "$identifier" = "com.egtrain.simulator" ] || { echo "ERROR: the app in the disk image has the identifier $identifier"; exit 1; }
+          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$COPY/QEGTRAIN.app/Contents/Info.plist")"
+          [ "$version" = "${{ inputs.version }}" ] || { echo "ERROR: the app in the disk image is version $version, not ${{ inputs.version }}"; exit 1; }
+          cd "$RUN_DIR"
+          set +e
+          QEGTRAIN_OUTPUT_DIR="$RUN_DIR" \
+          "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN" --scene "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol" -h 300 -g 0 -pax 0 -TSM 0 -RC 0 >"$RUN_DIR/qegtrain.log" 2>&1
+          run_status=$?
+          set -e
+          if [ "$run_status" -ne 0 ]; then
+            cat "$RUN_DIR/qegtrain.log"
+          fi
+          [ "$run_status" -eq 0 ]
+          if ! grep -q "End of Simulation" "$RUN_DIR/qegtrain.log"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
+          if ! test -f "$RUN_DIR/Output/Paimpol/EnergyConsumptionPerTrain.txt"; then
+            cat "$RUN_DIR/qegtrain.log"
+            exit 1
+          fi
+          echo "OK: the app in the disk image keeps its signature, its files and runs from a copy"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: QEGTRAIN-macos-arm64
-          path: build/QEGTRAIN-macos-arm64.zip
+          path: build/dmg/EGTRAIN-${{ inputs.version }}-macOS-arm64.dmg
           if-no-files-found: error
 
   package-windows:
