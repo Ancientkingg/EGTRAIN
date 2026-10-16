@@ -31,12 +31,15 @@ jobs:
           - name: macOS
             os: macos-latest
             jobs: 3
+            cache: ccache
           - name: Windows
             os: windows-latest
             jobs: 4
+            cache: sccache
           - name: Linux
             os: ubuntu-latest
             jobs: 4
+            cache: ccache
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.jobs }}
       PYTHONUTF8: "1"
@@ -47,6 +50,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      # The runner image fixes the compiler and, on Windows, the vcpkg checkout. Its version is part of the key of the
+      # compiler cache and of the vcpkg binary cache, so a new image starts a new entry.
+      - name: Identify the runner image
+        id: image
+        shell: pwsh
+        run: |
+          "id=$($env:ImageOS ?? 'unknown')-$($env:ImageVersion ?? 'unknown')" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
 
       # CTest GUI checks write logs to the platform temp dir; point it at
       # runner.temp so failure diagnostics can find them.
@@ -89,13 +100,16 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # vcpkg names an archive by an ABI hash that covers its own checkout, its CMake and the compiler. A runner image with
+      # another vcpkg commit restores no archive from an older entry, so the key has the image version and a new image
+      # writes a new entry. Raise v1 to start over.
       - name: Restore vcpkg binary cache
         if: runner.os == 'Windows'
         id: vcpkg-cache
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
 
       - name: Install ZeroMQ, cppzmq, nlohmann-json (vcpkg)
         if: runner.os == 'Windows'
@@ -111,7 +125,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/vcpkg-binary-cache
-          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-v1
+          key: vcpkg-x64-windows-zeromq-cppzmq-nlohmann-json-${{ steps.image.outputs.id }}-v1
 
       # The tests find the vcpkg and Qt DLLs here, so the build copies none next to each executable.
       - name: Add runtime DLL directories to PATH (Windows)
@@ -121,19 +135,42 @@ jobs:
           "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
           "$env:QT_ROOT_DIR/bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
 
+      # Compiled objects are cached: ccache on macOS and Linux, sccache on Windows. The post step of the action prints the
+      # hits and misses of the job and saves a new entry under the key and a timestamp. A run restores the newest entry of
+      # its leg and image, or else of its leg. A pull request sees its own earlier entries and those of main, which only
+      # the nightly run writes. That is enough: a pull request compiles again what changed since the last night or since
+      # its previous run, and a push trigger would add a full run after every merge.
+      - name: Set up compiler cache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: ${{ matrix.cache }}
+          key: ${{ matrix.name }}-${{ steps.image.outputs.id }}
+          restore-keys: |
+            ${{ matrix.name }}
+
       - name: Configure (macOS)
         if: runner.os == 'macOS'
-        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
+          -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Configure (Linux)
         if: runner.os == 'Linux'
-        run: cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Release
+        run: >
+          cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
 
+      # The Visual Studio generator ignores a compiler launcher, so this leg builds with Ninja in the MSVC environment set
+      # up above, and names cl because CMake would otherwise take the gcc of the runner image. The Release configuration
+      # adds no /Zi, so sccache can store the objects. The executable is build/QEGTRAIN.exe.
       - name: Configure (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: >
           cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_NETWORK_TESTS=ON
+          -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+          -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DVCPKG_APPLOCAL_DEPS=OFF
@@ -146,7 +183,7 @@ jobs:
       - name: Report Windows image size
         if: runner.os == 'Windows'
         shell: pwsh
-        run: python tools/release/pe_image_size.py build/Release/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+        run: python tools/release/pe_image_size.py build/QEGTRAIN.exe --max-bytes 4294967295 | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
 
       - name: Test
         shell: bash
@@ -168,7 +205,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $dist = "$env:RUNNER_TEMP/package/QEGTRAIN"
           New-Item -ItemType Directory -Force -Path $dist | Out-Null
-          Copy-Item build/Release/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
+          Copy-Item build/QEGTRAIN.exe "$dist/QEGTRAIN.exe"
           Copy-Item "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/*.dll" $dist/
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"

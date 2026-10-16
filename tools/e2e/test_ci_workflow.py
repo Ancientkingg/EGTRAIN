@@ -408,9 +408,54 @@ def main() -> None:
         for package in apt_packages
     ):
         missing.append("Linux packages shared with the release workflow")
-    cache_keys = re.findall(r"^\s+key: (\S+)\s*$", workflow, re.MULTILINE)
-    if not cache_keys or any(not re.search(r"-v\d+$", key) for key in cache_keys):
-        missing.append("fixed dependency cache keys with a manual version suffix")
+    build_job = job_block(workflow, "build")
+    build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
+    # The runner image sets the compiler, CMake and the vcpkg checkout, and an archive of the vcpkg binary cache is named by a hash of
+    # them. The key of that cache has the image and a manual version, so a new image writes a new entry, and the save step runs when
+    # no entry has the exact key.
+    image_step = step_block(build_job, "Identify the runner image")
+    vcpkg_restore = step_block(build_job, "Restore vcpkg binary cache")
+    vcpkg_save = step_block(build_job, "Save vcpkg binary cache")
+    image_key = "-${{ steps.image.outputs.id }}"
+    vcpkg_key = re.search(r"^ +key: (vcpkg-[\w-]+" + re.escape(image_key) + r"-v\d+)$", vcpkg_restore, re.MULTILINE)
+    vcpkg_key = vcpkg_key.group(1) if vcpkg_key else ""
+    if (
+        "id: image\n" not in image_step
+        or "$env:ImageVersion" not in image_step
+        or "$env:GITHUB_OUTPUT" not in image_step
+        or not vcpkg_key
+        or f"          key: {vcpkg_key}\n" not in vcpkg_save + "\n"
+        or "steps.vcpkg-cache.outputs.cache-hit != 'true'" not in vcpkg_save
+        or workflow.count(f"key: {vcpkg_key}") != 2
+        or "Identify the runner image" not in build_step_names
+        or build_step_names.index("Identify the runner image") > build_step_names.index("Restore vcpkg binary cache")
+    ):
+        missing.append("vcpkg binary cache keyed by the runner image and a manual version, saved under the key that the restore missed")
+    # Every leg of the build compiles through a compiler cache, ccache on macOS and Linux and sccache on Windows. The matrix names the tool;
+    # the cache step and the configure steps read it. The Visual Studio generator ignores a compiler launcher, so the Windows leg builds
+    # with Ninja and names cl, and its executable is not in a Release directory.
+    cache_legs = dict(re.findall(r"^ +- name: (\w+)\n +os: \S+\n +jobs: \d+\n +cache: (\w+)$", build_job, re.MULTILINE))
+    compiler_cache = step_block(build_job, "Set up compiler cache")
+    launcher_flags = "-DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.cache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.cache }}"
+    configure_names = ("Configure (macOS)", "Configure (Linux)", "Configure (Windows)")
+    windows_configure = " ".join(step_block(build_job, "Configure (Windows)").split()) + " "
+    if (
+        cache_legs != {"macOS": "ccache", "Windows": "sccache", "Linux": "ccache"}
+        or "        uses: hendrikmuhs/ccache-action@v1.2\n" not in compiler_cache
+        or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
+        or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
+        or "          restore-keys: |\n            ${{ matrix.name }}\n" not in compiler_cache
+        or "        if:" in compiler_cache
+        or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
+        or "Set up compiler cache" not in build_step_names
+        or build_step_names.index("Identify the runner image") > build_step_names.index("Set up compiler cache")
+        or any(build_step_names.index("Set up compiler cache") > build_step_names.index(name) for name in configure_names)
+        or " -G Ninja " not in windows_configure
+        or " -DCMAKE_BUILD_TYPE=Release " not in windows_configure
+        or " -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl " not in windows_configure
+        or "build/Release" in build_job
+    ):
+        missing.append("compiler cache for the macOS, Windows and Linux legs, set up before the configure steps, with Ninja and cl on Windows")
     test_step = test_steps[0] if test_steps else ""
     build_step = next((block for block in blocks if block.startswith("name: Build\n")), "")
     if "ctest --test-dir build -C Release" not in test_step:
@@ -473,8 +518,6 @@ def main() -> None:
         missing.append("HTTPS probe test registered only with EGTRAIN_NETWORK_TESTS, labelled network, skipped on the code that the program returns")
     if not re.search(r"add_test\(NAME test_updatetransport_https_cases COMMAND \$\{Python3_EXECUTABLE\}\n[^\n]*test_updatetransport_https_cases\.py \$<TARGET_FILE:test_updatetransport_https>\)", cmake):
         missing.append("HTTPS probe answers test registered for every platform")
-    build_job = job_block(workflow, "build")
-    build_step_names = re.findall(r"^      - name: (.+)$", build_job, re.MULTILINE)
     https_step = step_block(build_job, "Check HTTPS (Windows)")
     if (
         workflow.count("-DEGTRAIN_NETWORK_TESTS=ON") != 1
