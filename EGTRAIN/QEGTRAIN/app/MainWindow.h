@@ -93,6 +93,7 @@
 #include <QSet>
 
 #include "editors/SceneDocument.h"
+#include "app/RunSelection.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
 #include "scene/TrackPreview.h"
@@ -504,9 +505,7 @@ private:
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
 	bool m_sceneChangedDuringRun = false;
-	std::string m_selectedScenarioId;
-	std::string m_appliedScenarioId;
-	std::set<std::string> m_modifiedScenarioIds;
+	RunSelection m_runSelection;
 	// The finished run as values. The Run Results dock shows it and the result windows share it, so each window keeps
 	// the run it was opened for. Null while no run has completed.
 	std::shared_ptr<const CompletedRunData> m_completedRun;
@@ -576,7 +575,6 @@ private:
 	QPushButton* m_selectNoneOccurrencesButton = nullptr;
 	QLabel* m_serviceOccurrenceSelectionLabel = nullptr;
 	bool m_updatingServiceOccurrencePreview = false;
-	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
 	QTableWidget* m_stopTableWidget = nullptr;
@@ -808,11 +806,6 @@ private:
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
-	int selectedServiceOccurrences() const;
-	int selectedServiceOccurrencesInPeriod() const;
-	SceneRunSelection selectedSceneOccurrences() const;
-	void pruneExcludedServiceOccurrences();
-	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
 	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
 	// stop (timetable) editor: edits copied SceneStop records through one modal

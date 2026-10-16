@@ -2,6 +2,7 @@
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
+#include "app/RunSelection.h"
 #include "app/OpenRequestRelay.h"
 #include "app/ReplayCoverage.h"
 #include "app/SceneOpenRequest.h"
@@ -2558,7 +2559,7 @@ void MainWindow::newScene() {
 }
 
 void MainWindow::createNewScene(const telemetry::OperationObservation& operation) {
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
 	teardownGUI();
@@ -2575,8 +2576,8 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_delayBaseline.reset();
 	m_sceneIsBundle = false;
 	m_sceneBundleVersion.reset();
-	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
-	m_modifiedScenarioIds.clear();
+	m_runSelection.selectScenario(m_sceneModel.defaultScenarioId);
+	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
 	m_passengerPanel->clearImportResult();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
@@ -2815,7 +2816,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	teardownGUI();
 	simulation.resetState();
 
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
 	m_sceneDir = scenePath;
@@ -2830,12 +2831,12 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	m_sceneIsBundle = sceneIsBundle;
 	m_sceneBundleVersion = result.bundleVersion;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
-	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
-	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
-		m_selectedScenarioId = m_sceneModel.scenarios.front().id;
-		m_sceneModel.defaultScenarioId = m_selectedScenarioId;
+	m_runSelection.selectScenario(m_sceneModel.defaultScenarioId);
+	if (m_runSelection.scenarioId().empty() && !m_sceneModel.scenarios.empty()) {
+		m_runSelection.selectScenario(m_sceneModel.scenarios.front().id);
+		m_sceneModel.defaultScenarioId = m_runSelection.scenarioId();
 	}
-	m_modifiedScenarioIds.clear();
+	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
 	m_passengerPanel->clearImportResult();
 	invalidateRunResults();
@@ -2941,7 +2942,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	m_sceneModel.savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_document->markSaved();
-	m_modifiedScenarioIds.clear();
+	m_runSelection.clearModifiedScenarios();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
@@ -3488,7 +3489,7 @@ void MainWindow::updateScenarioPresentation() {
 		}
 		if (scenario.id == m_sceneModel.defaultScenarioId)
 			label += QStringLiteral(" | default");
-		if (m_modifiedScenarioIds.count(scenario.id) > 0)
+		if (m_runSelection.isScenarioModified(scenario.id))
 			label += QStringLiteral(" | modified");
 		if (auto* item = m_scenarioListWidget->item(static_cast<int>(index))) {
 			item->setText(label);
@@ -3613,7 +3614,7 @@ void MainWindow::refreshLoadedDataTree() {
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Runtime rolling stock", QString(), "1",
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Applied scenario", m_appliedScenarioId.empty() ? QStringLiteral("(none)") : QString::fromStdString(m_appliedScenarioId), "1",
+	addRow(runtimeAndResults, "Applied scenario", m_runSelection.appliedScenarioId().empty() ? QStringLiteral("(none)") : QString::fromStdString(m_runSelection.appliedScenarioId()), "1",
 		runAttempted ? m_runtimeStatus : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Current run", QString(), "1", m_runtimeStatus);
 	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
@@ -3740,7 +3741,7 @@ void MainWindow::invalidateRunResults() {
 	m_runtimeDiagnostics.clear();
 	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
-	m_appliedScenarioId.clear();
+	m_runSelection.clearAppliedScenario();
 	m_completedRun.reset();
 	m_pendingRunProvenance = RunProvenance();
 	if (m_runResultsTable)
@@ -5402,120 +5403,19 @@ double MainWindow::serviceOccurrenceDuration() const {
 		: computeHorizon(m_sceneModel);
 }
 
-void MainWindow::pruneExcludedServiceOccurrences() {
-	if (!m_sceneLoaded)
-		return;
-	const double durationSeconds = serviceOccurrenceDuration();
-	for (auto it = m_excludedSceneOccurrences.begin(); it != m_excludedSceneOccurrences.end();) {
-		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-			[&](const SceneService& candidate) { return candidate.id == it->serviceId; });
-		if (service == m_sceneModel.services.end() || it->occurrence < 1
-			|| it->occurrence > sceneServiceOccurrenceCount(*service, durationSeconds))
-			it = m_excludedSceneOccurrences.erase(it);
-		else
-			++it;
-	}
-}
-
-void MainWindow::migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId) {
-	if (oldId == newId)
-		return;
-	SceneRunSelection migrated;
-	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
-		SceneServiceOccurrence replacement = value;
-		if (replacement.serviceId == oldId)
-			replacement.serviceId = newId;
-		migrated.insert(replacement);
-	}
-	m_excludedSceneOccurrences.swap(migrated);
-}
-
 int MainWindow::totalServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	int total = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		if (count > std::numeric_limits<int>::max() - total)
-			return std::numeric_limits<int>::max();
-		total += count;
-	}
-	return total;
+	return m_sceneLoaded ? sceneTotalOccurrences(m_sceneModel, serviceOccurrenceDuration()) : 0;
 }
 
 int MainWindow::inPeriodServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	long long total = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		total += sceneServiceInWindowCount(service, serviceOccurrenceDuration());
-		if (total >= std::numeric_limits<int>::max())
-			return std::numeric_limits<int>::max();
-	}
-	return static_cast<int>(total);
-}
-
-int MainWindow::selectedServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	int excluded = 0;
-	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
-		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-			[&](const SceneService& candidate) { return candidate.id == value.serviceId; });
-		if (service != m_sceneModel.services.end() && value.occurrence >= 1
-			&& value.occurrence <= sceneServiceOccurrenceCount(*service, durationSeconds))
-			++excluded;
-	}
-	return std::max(0, totalServiceOccurrences() - excluded);
-}
-
-int MainWindow::selectedServiceOccurrencesInPeriod() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	const int configured = totalServiceOccurrences();
-	if (m_excludedSceneOccurrences.empty() || configured > Max_N_Reg)
-		return inPeriodServiceOccurrences();
-	int selected = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			const SceneServiceOccurrence value{service.id, occurrence};
-			const double entry = sceneServiceScheduledEntry(service, occurrence);
-			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end()
-				&& std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds)
-				++selected;
-		}
-	}
-	return selected;
-}
-
-SceneRunSelection MainWindow::selectedSceneOccurrences() const {
-	SceneRunSelection selection;
-	if (!m_sceneLoaded || m_excludedSceneOccurrences.empty())
-		return selection;
-	if (totalServiceOccurrences() > Max_N_Reg)
-		return selection;
-	const double durationSeconds = serviceOccurrenceDuration();
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			SceneServiceOccurrence value;
-			value.serviceId = service.id;
-			value.occurrence = occurrence;
-			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end())
-				selection.insert(value);
-		}
-	}
-	return selection;
+	return m_sceneLoaded ? sceneInPeriodOccurrences(m_sceneModel, serviceOccurrenceDuration()) : 0;
 }
 
 void MainWindow::refreshServiceOccurrencePreview() {
 	if (!m_serviceOccurrenceTable)
 		return;
-	pruneExcludedServiceOccurrences();
+	if (m_sceneLoaded)
+		m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 	m_updatingServiceOccurrencePreview = true;
 	m_serviceOccurrenceTable->clearContents();
 	if (!m_sceneLoaded) {
@@ -5534,7 +5434,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	const int totalOccurrences = totalServiceOccurrences();
 	const int displayedOccurrences = std::min(totalOccurrences, Max_N_Reg);
 	if (totalOccurrences > Max_N_Reg)
-		m_excludedSceneOccurrences.clear();
+		m_runSelection.includeAll();
 	m_serviceOccurrenceTable->setRowCount(displayedOccurrences);
 	int row = 0;
 	for (const SceneService& service : m_sceneModel.services) {
@@ -5544,7 +5444,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 			SceneServiceOccurrence value;
 			value.serviceId = service.id;
 			value.occurrence = occurrence;
-			const bool checked = m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end();
+			const bool checked = !m_runSelection.isExcluded(value);
 			auto* include = new QTableWidgetItem();
 			include->setFlags(include->flags() | Qt::ItemIsUserCheckable);
 			include->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
@@ -5581,8 +5481,8 @@ void MainWindow::refreshServiceOccurrencePreview() {
 							   "Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
 						   .arg(totalOccurrences)
 						   .arg(inPeriodServiceOccurrences())
-						   .arg(selectedServiceOccurrences())
-						   .arg(selectedServiceOccurrencesInPeriod())
+						   .arg(m_runSelection.selectedCount(m_sceneModel, durationSeconds))
+						   .arg(m_runSelection.selectedInPeriodCount(m_sceneModel, durationSeconds))
 						   .arg(QString::number(durationSeconds, 'g', 12));
 		if (totalOccurrences > displayedOccurrences)
 			text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
@@ -5607,34 +5507,21 @@ void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
 	SceneServiceOccurrence value;
 	value.serviceId = item->data(Qt::UserRole).toString().toStdString();
 	value.occurrence = item->data(Qt::UserRole + 1).toInt();
-	if (item->checkState() == Qt::Checked)
-		m_excludedSceneOccurrences.erase(value);
-	else
-		m_excludedSceneOccurrences.insert(value);
+	m_runSelection.setExcluded(value, item->checkState() != Qt::Checked);
 	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::selectAllServiceOccurrences() {
 	if (m_worker)
 		return;
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::selectNoneServiceOccurrences() {
 	if (m_worker || totalServiceOccurrences() > Max_N_Reg)
 		return;
-	const double durationSeconds = serviceOccurrenceDuration();
-	m_excludedSceneOccurrences.clear();
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			SceneServiceOccurrence value;
-			value.serviceId = service.id;
-			value.occurrence = occurrence;
-			m_excludedSceneOccurrences.insert(value);
-		}
-	}
+	m_runSelection.excludeAll(m_sceneModel, serviceOccurrenceDuration());
 	refreshServiceOccurrencePreview();
 }
 
@@ -5704,7 +5591,7 @@ void MainWindow::deleteService() {
 		return;
 
 	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
-	pruneExcludedServiceOccurrences();
+	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 
 	markSceneDirty();
 	updateSceneWindowTitle();
@@ -5738,7 +5625,7 @@ void MainWindow::commitServiceIdEdit() {
 		return;
 	}
 	sceneRewriteServiceReferences(m_sceneModel, oldId, newId);
-	migrateExcludedServiceOccurrences(oldId, newId);
+	m_runSelection.serviceRenamed(oldId, newId);
 	m_sceneModel.services[row].id = newId;
 
 	// update the list row label in place instead of rebuilding the panel, so a
@@ -6680,7 +6567,7 @@ SceneScenario* MainWindow::selectedScenario() {
 	if (!m_sceneLoaded)
 		return nullptr;
 	for (auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_selectedScenarioId)
+		if (scenario.id == m_runSelection.scenarioId())
 			return &scenario;
 	}
 	return defaultScenario(m_sceneModel);
@@ -6690,7 +6577,7 @@ const SceneScenario* MainWindow::selectedScenario() const {
 	if (!m_sceneLoaded)
 		return nullptr;
 	for (const auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_selectedScenarioId)
+		if (scenario.id == m_runSelection.scenarioId())
 			return &scenario;
 	}
 	return defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
@@ -6727,15 +6614,15 @@ SceneEntranceDelay* MainWindow::selectedEntranceDelay() {
 }
 
 QString MainWindow::scenarioContext() const {
-	if (!m_appliedScenarioId.empty())
-		return QString::fromStdString(m_appliedScenarioId);
+	if (!m_runSelection.appliedScenarioId().empty())
+		return QString::fromStdString(m_runSelection.appliedScenarioId());
 	const SceneScenario* scenario = selectedScenario();
 	return scenario ? QString::fromStdString(scenario->id) : QStringLiteral("(none)");
 }
 
 void MainWindow::markScenarioModified() {
 	if (const SceneScenario* scenario = selectedScenario())
-		m_modifiedScenarioIds.insert(scenario->id);
+		m_runSelection.markScenarioModified(scenario->id);
 	markSceneDirty();
 }
 
@@ -6744,12 +6631,12 @@ void MainWindow::selectScenario(int row) {
 		|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
 		return;
 	const std::string id = m_sceneModel.scenarios[static_cast<std::size_t>(row)].id;
-	if (id == m_selectedScenarioId) {
+	if (id == m_runSelection.scenarioId()) {
 		updateScenarioDetailPanel();
 		updateIncidentDetailPanel();
 		return;
 	}
-	m_selectedScenarioId = id;
+	m_runSelection.selectScenario(id);
 	invalidateRunResults();
 	refreshIncidentPanel();
 }
@@ -6793,9 +6680,9 @@ void MainWindow::updateScenarioDetailPanel() {
 
 void MainWindow::refreshScenarioList() {
 	const bool hasScene = m_sceneLoaded;
-	if (m_selectedScenarioId.empty() && hasScene) {
+	if (m_runSelection.scenarioId().empty() && hasScene) {
 		if (const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel)))
-			m_selectedScenarioId = scenario->id;
+			m_runSelection.selectScenario(scenario->id);
 	}
 
 	if (m_scenarioListWidget) {
@@ -6805,7 +6692,7 @@ void MainWindow::refreshScenarioList() {
 		for (std::size_t index = 0; hasScene && index < m_sceneModel.scenarios.size(); ++index) {
 			const SceneScenario& scenario = m_sceneModel.scenarios[index];
 			new QListWidgetItem(m_scenarioListWidget);
-			if (scenario.id == m_selectedScenarioId)
+			if (scenario.id == m_runSelection.scenarioId())
 				rowToSelect = static_cast<int>(index);
 		}
 		updateScenarioPresentation();
@@ -7129,7 +7016,7 @@ void MainWindow::addBlankScenario() {
 	scenario.id = sceneUniqueScenarioId(m_sceneModel, "new_scenario");
 	scenario.name = "New scenario";
 	m_sceneModel.scenarios.push_back(std::move(scenario));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -7145,7 +7032,7 @@ void MainWindow::duplicateScenario() {
 	for (auto& incident : copy.incidents)
 		incident.id = sceneUniqueIncidentId(m_sceneModel, incident.id + "_copy");
 	m_sceneModel.scenarios.push_back(std::move(copy));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -7182,8 +7069,7 @@ void MainWindow::deleteScenario() {
 	if (it == m_sceneModel.scenarios.end())
 		return;
 	m_sceneModel.scenarios.erase(it);
-	m_modifiedScenarioIds.erase(deletedId);
-	m_selectedScenarioId = defaultId;
+	m_runSelection.scenarioDeleted(deletedId, defaultId);
 	markSceneDirty();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -7250,14 +7136,14 @@ void MainWindow::importScenario() {
 		return;
 	}
 	m_sceneModel.scenarios.push_back(std::move(imported));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
-	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_selectedScenarioId));
+	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_runSelection.scenarioId()));
 	if (scenarioConflict)
 		message += QString(" (ID %1 already existed; imported as %2)")
-					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_selectedScenarioId));
+					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_runSelection.scenarioId()));
 	if (adjustedIncidentCount > 0)
 		message += QString(" %1 incident ID(s) adjusted to remain globally unique.")
 					   .arg(adjustedIncidentCount);
@@ -7286,8 +7172,7 @@ void MainWindow::commitScenarioIdEdit() {
 	const std::string oldId = scenario->id;
 	scenario->id = newId;
 	sceneRewriteScenarioReferences(m_sceneModel, oldId, newId);
-	m_selectedScenarioId = newId;
-	m_modifiedScenarioIds.erase(oldId);
+	m_runSelection.scenarioRenamed(oldId, newId);
 	markScenarioModified();
 	refreshValidationPanel();
 }
@@ -9098,10 +8983,10 @@ void MainWindow::updateDiagramActions() {
 		feedback = QStringLiteral("Baseline: %1. Run an incident scenario without entrance delays, then compare.")
 					   .arg(completedRunContext(m_delayBaseline->provenance));
 	}
-	if (!current.scenarioId.empty() && !m_selectedScenarioId.empty()
-		&& current.scenarioId != m_selectedScenarioId) {
+	if (!current.scenarioId.empty() && !m_runSelection.scenarioId().empty()
+		&& current.scenarioId != m_runSelection.scenarioId()) {
 		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
-						.arg(QString::fromStdString(m_selectedScenarioId));
+						.arg(QString::fromStdString(m_runSelection.scenarioId()));
 	}
 	if (m_delayFeedbackLabel)
 		m_delayFeedbackLabel->setText(feedback);
@@ -9218,8 +9103,8 @@ QString MainWindow::runReviewText() const {
 						  .arg(static_cast<int>(m_sceneModel.services.size()))
 						  .arg(totalServiceOccurrences())
 						  .arg(inPeriodServiceOccurrences())
-						  .arg(selectedServiceOccurrences())
-						  .arg(selectedServiceOccurrencesInPeriod())
+						  .arg(m_runSelection.selectedCount(m_sceneModel, serviceOccurrenceDuration()))
+						  .arg(m_runSelection.selectedInPeriodCount(m_sceneModel, serviceOccurrenceDuration()))
 						  .arg(static_cast<int>(m_sceneModel.compositions.size()))
 						  .arg(static_cast<int>(selectedScenarioIncidents().size()))
 						  .arg(counts.errors)
@@ -9246,8 +9131,8 @@ bool MainWindow::showRunReview() {
 	layout->setSpacing(8);
 	const bool detailsEnabled = advancedDetailsEnabled();
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
-	const int selectedInPeriod = selectedServiceOccurrencesInPeriod();
 	const double duration = serviceOccurrenceDuration();
+	const int selectedInPeriod = m_runSelection.selectedInPeriodCount(m_sceneModel, duration);
 	const long long baseSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	auto* facts = new QGridLayout();
 	facts->setHorizontalSpacing(20);
@@ -9390,7 +9275,7 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.sceneSchemaVersion = m_sceneModel.schemaVersion;
 	provenance.input = captureSavedInput(m_sceneDir.toStdString(),
 		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty, m_savedSceneSha256);
-	provenance.appliedScenario = m_appliedScenarioId;
+	provenance.appliedScenario = m_runSelection.appliedScenarioId();
 	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
 	provenance.durationSeconds = initial_variables.times;
 	provenance.timestepSeconds = timestep;
@@ -9415,7 +9300,7 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		return snapshot;
 	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_sceneRevision);
-	snapshot.scenarioId = m_appliedScenarioId;
+	snapshot.scenarioId = m_runSelection.appliedScenarioId();
 	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
 	snapshot.durationSeconds = std::isfinite(run.settings.horizonSteps)
 		? run.settings.horizonSteps
@@ -9810,7 +9695,7 @@ void MainWindow::runScene() {
 			QCoreApplication::exit(2);
 			return;
 		}
-		m_selectedScenarioId = configured->id;
+		m_runSelection.selectScenario(configured->id);
 	}
 
 	refreshValidationPanel();
@@ -9821,9 +9706,9 @@ void MainWindow::runScene() {
 			QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 		return;
 	}
-	pruneExcludedServiceOccurrences();
+	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 	m_lastRunTotalOccurrences = totalServiceOccurrences();
-	m_lastRunSelectedOccurrences = selectedServiceOccurrences();
+	m_lastRunSelectedOccurrences = m_runSelection.selectedCount(m_sceneModel, serviceOccurrenceDuration());
 	if (m_lastRunSelectedOccurrences <= 0) {
 		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
 		showBlockingError(this, "Cannot Run Scene", "Select at least one generated service occurrence before running.", true);
@@ -9854,12 +9739,12 @@ void MainWindow::runScene() {
 	}
 	initial_variables.GUI = 1;
 	invalidateRunResults();
-	m_appliedScenarioId = m_selectedScenarioId;
-	const SceneRunSelection selection = selectedSceneOccurrences();
+	m_runSelection.applySelectedScenario();
+	const SceneRunSelection selection = m_runSelection.selectedOccurrences(m_sceneModel, serviceOccurrenceDuration());
 	const bool identityBeforePrepare = !startupTimingEnabled()
 		|| startupTimingIdentityMatches(m_sceneDir, m_sceneModel);
 	const qint64 prepareStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
-	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId, selection);
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_runSelection.scenarioId(), selection);
 	const bool timingIdentityOk = identityBeforePrepare
 		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_sceneDir, m_sceneModel));
 	if (startupTimingEnabled())
@@ -9902,7 +9787,7 @@ void MainWindow::runScene() {
 		config.requestedScenario = qEnvironmentVariable(
 			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
 									   .toStdString();
-		config.scenario = m_appliedScenarioId;
+		config.scenario = m_runSelection.appliedScenarioId();
 		config.defaultScenario = m_sceneModel.defaultScenarioId;
 		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
 		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");

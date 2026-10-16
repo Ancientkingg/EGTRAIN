@@ -27,7 +27,7 @@ docs/                     Guides and architecture, development, product, telemet
 
 | Folder | Holds |
 | --- | --- |
-| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `SceneOpenRequest`, `SceneOutputDirectory`, `OpenRequestRelay`, `resources.qrc` |
+| `app/` | Entry point and the service occurrences that a run leaves out), top-level window: `main.cpp`, `MainWindow`, `RunSelection` (the selected scenario `DispatchController`, `SceneOpenRequest`, `SceneOutputDirectory`, `OpenRequestRelay`, `resources.qrc` |
 | `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RunControl`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockDynamics`, `RollingStockOccupation`, `RollingStockStops`, `RollingStockTrajectory`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `SimulationRun`, `InitialParameters`, `RuntimeLimits` |
 | `simulation/builders/` | The builders that fill the runtime globals from a scene: `InfrastructureBuilder` (infrastructure and signalling) and `OperationsBuilder` (trains, platforms and passengers), and `InfrastructureBuilderInternal.h` for the two declarations the first shares with `Signalling.cpp` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SceneFieldReader`, `SceneHistory`, `SceneIds`, `SceneReferences`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `Utf8Path`, `SceneTool` |
@@ -85,6 +85,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_editors` | `editors/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_diagrams` |
 | `egtrain_http` | `update/HttpTransport`, and on Windows `WinHttpTransport` | Qt Core and Network, and on Windows WinHTTP and Crypt32 |
 | `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings` | Qt Core and Network, `egtrain_http`, `egtrain_util` |
+| `egtrain_runselection` | `app/RunSelection.cpp` | `egtrain_scene` |
 | `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core, Gui and Network |
 | `egtrain_recovery` | `recovery/` | Qt Core, Gui and Widgets, `egtrain_scene` |

@@ -296,6 +296,11 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core Qt5::Network egtrain_http egtrain_util)
 
+# What the next run uses of the scene apart from the scene itself: the selected scenario and the service
+# occurrences that are left out. No Qt; the application and test_runselection link it.
+add_library(egtrain_runselection STATIC ${SRC_DIR}/app/RunSelection.cpp)
+target_link_libraries(egtrain_runselection PUBLIC egtrain_scene)
+
 # What a command line asks the application to open. Qt Core only; the application and
 # test_sceneopenrequest link it.
 add_library(egtrain_sceneopen STATIC ${SRC_DIR}/app/SceneOpenRequest.cpp)
@@ -394,7 +399,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_live egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_runselection egtrain_live egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets egtrain_editors ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -529,6 +534,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_openrelay
     egtrain_rttp
     egtrain_sim
+    egtrain_runselection
     egtrain_scene
     egtrain_util
     nlohmann_json::nlohmann_json
@@ -1067,6 +1073,10 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_scenedocument PRIVATE egtrain_editors)
     add_test(NAME test_scenedocument COMMAND test_scenedocument)
 
+    add_executable(test_runselection ${SRC_DIR}/tests/test_runselection.cpp)
+    target_link_libraries(test_runselection PRIVATE egtrain_runselection)
+    add_test(NAME test_runselection COMMAND test_runselection)
+
     add_executable(test_sceneimporter ${SRC_DIR}/tests/test_sceneimporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE egtrain_scene)
 	add_test(NAME test_sceneimporter COMMAND test_sceneimporter)
@@ -1436,7 +1446,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
 			test_recoverycontroller test_recoveryprompt test_trackpreview test_routestations test_scenevalidator test_stopinsertion
-			test_scenereferences test_scenedocument
+			test_scenereferences test_scenedocument test_runselection
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
@@ -1479,7 +1489,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_networkscene_selection test_networkpresenter test_playbackprofiler test_playback_profile test_networkview test_followcamera
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
-		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_sceneimporter
+		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
