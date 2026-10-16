@@ -203,10 +203,11 @@ each step:
   route, and a train obeys only the authorities of its own direction.
 - The authority is a stop target at every level, including none.
 - A train that the failure holds records it as direct incident evidence: a train
-  that stops at the authority, or, at levels 0, 1 and 2, a train that stands at a
-  red aspect within 4 m of the authority when the failed section is the next
-  section on its route. A train held only by the train ahead does not
-  (`sf-adjacent-level-*`, `sf-staggered-level-*`).
+  that stops at the authority, or a train that stands at a red aspect within
+  4 m of the authority when the failed section is the next section on its
+  route. Only levels 0, 1 and 2 show that red aspect. A train held only by the
+  train ahead does not record it (`sf-adjacent-level-0`, `-1` and `-2`,
+  `sf-staggered-level-0`, `-1` and `-2`).
 - A train that waits to enter does not enter while the first section of its route
   is failed.
 - A train that is already inside the section when the failure starts is not
