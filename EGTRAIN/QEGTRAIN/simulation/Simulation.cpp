@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <map>
 #include <numeric>
 #include <optional>
 #include <vector>
@@ -292,40 +293,52 @@ void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, list<P
 	}
 }
 
-void Update_List_Passengers_Waiting_At_Platform(StationPlatform& PLAT, const list<Passenger>& ALL_PAX) {
-	// Reset the previous number of people on the platform
-	PLAT.Current_N_Passengers = 0;
-	PLAT.Current_List_Pax_On_Platform.clear(); // Delete the previous list of passengers on the platform
-	for (list<Passenger>::const_iterator p = ALL_PAX.begin(); p != ALL_PAX.end(); p++) {
-		if ((p->IsIntheNetwork == 1) && (p->CurrentStatus == "OnPlatform") && (p->Current_WaitingStationID == PLAT.StationID) && (p->Current_WaitingStationPlatformID == PLAT.ID)) {
+namespace {
+bool isWaitingOnPlatform(const Passenger& p) {
+	return p.IsIntheNetwork && p.CurrentStatus == "OnPlatform";
+}
 
-			PLAT.Current_N_Passengers++; // Increasing number of passengers on platform
+// Counts a passenger who waits on a platform and adds the pair of the passenger ID and the actual departure time of the trip
+// to wait for to the list of the platform
+void addWaitingPassenger(const Passenger& p, WaitingAtPlatform& waiting) {
+	waiting.count++;
+	for (const Journey& journey : p.Journeys) {
+		if (journey.ID != p.current_JourneyID)
+			continue;
+		const auto activetrip = std::find_if(journey.Trips.begin(), journey.Trips.end(),
+			[&p](const Trip& trip) { return trip.TripID == p.current_TripID; });
+		if (activetrip != journey.Trips.end())
+			waiting.passengers.emplace_back(p.ID, activetrip->Actual_Departure_Time);
+	}
+}
+} // namespace
 
-			if (p->Journeys.empty() != 1) {
-				for (list<Journey>::const_iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-					if (j->ID == p->current_JourneyID) {
-						for (list<Trip>::const_iterator activetrip = j->Trips.begin(); activetrip != j->Trips.end(); activetrip++) {
-							if (activetrip->TripID == p->current_TripID) {
-								PLAT.Current_List_Pax_On_Platform.push_back(make_pair(p->ID, activetrip->Actual_Departure_Time)); // Assigning PAx ID and Actual Departure time in the passenger list of the platform
-								break;																							  // break loop over trips
-							}
-						}
-					}
-				}
-			}
-		}
+WaitingAtPlatform passengersWaitingAtPlatform(const string& stationId, const string& platformId, const list<Passenger>& ALL_PAX) {
+	WaitingAtPlatform waiting;
+	for (const Passenger& p : ALL_PAX) {
+		if (isWaitingOnPlatform(p) && p.Current_WaitingStationID == stationId && p.Current_WaitingStationPlatformID == platformId)
+			addWaitingPassenger(p, waiting);
 	}
 	// Order the list of passengers waiting at the platform in chronological order of their actual departure time
-	if (PLAT.Current_List_Pax_On_Platform.empty() != 1) {
-		PLAT.Current_List_Pax_On_Platform.sort(orderPassengerListOnPlatform);
-	}
+	waiting.passengers.sort(orderPassengerListOnPlatform);
+	return waiting;
 }
 
 void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_PLAT, const list<Passenger>& ALL_PAX) {
-	if (ALL_PLAT.empty() != 1) {
-		for (list<StationPlatform>::iterator plat = ALL_PLAT.begin(); plat != ALL_PLAT.end(); plat++) {
-			Update_List_Passengers_Waiting_At_Platform(*plat, ALL_PAX);
-		}
+	map<pair<string, string>, WaitingAtPlatform> waitingAt; // by station ID and platform ID
+	for (const Passenger& p : ALL_PAX) {
+		if (isWaitingOnPlatform(p))
+			addWaitingPassenger(p, waitingAt[{p.Current_WaitingStationID, p.Current_WaitingStationPlatformID}]);
+	}
+	for (auto& platformWaiting : waitingAt)
+		platformWaiting.second.passengers.sort(orderPassengerListOnPlatform);
+
+	const WaitingAtPlatform nobody;
+	for (StationPlatform& plat : ALL_PLAT) {
+		const auto found = waitingAt.find({plat.StationID, plat.ID});
+		const WaitingAtPlatform& waiting = found == waitingAt.end() ? nobody : found->second;
+		plat.Current_N_Passengers = waiting.count;
+		plat.Current_List_Pax_On_Platform = waiting.passengers;
 	}
 }
 
@@ -477,24 +490,23 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 		std::optional<PlatformIndex> callPlatforms;
 		const StationPlatform* PlatformIt = indexOf(AllStationPlatformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
 		if (PlatformIt != nullptr) {
-			// Boarding refreshes the waiting list and counts on a local copy; the shared platform list is not modified here
-			StationPlatform Platform = *PlatformIt;
-
-			// Update the list of passengers currently waiting at the platform
-			// it would be possible to update the list of passenger waiting at the platform only when a train approaches a stop and not at every single time instant
-			// NOTE: if you want to show the list of passengers updating on the platform at every time instant then you should comment the line below and uncommnet ,hence use the function "UPdateList of Waiting PAssengers at all platforms" in the "Train_Simulation_Mixed_Signalling_With_Passengersfunction"
+			// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant.
+			// Without it they are worked out here for this platform only, and the platform is not modified.
+			std::optional<WaitingAtPlatform> refreshed;
 			if (!initial_variables.PAX_GUI) {
-				Update_List_Passengers_Waiting_At_Platform(Platform, AllDailyPassengers);
+				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, AllDailyPassengers);
 			}
+			const int waitingCount = refreshed ? refreshed->count : PlatformIt->Current_N_Passengers;
+			const list<pair<string, double>>& waitingList = refreshed ? refreshed->passengers : PlatformIt->Current_List_Pax_On_Platform;
 
 			// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-			CurrentPlatformOccupationRate = passengerOccupancyRatio(Platform.Current_N_Passengers + N_AlightPax, Platform.Max_Passenger_Volume);
+			CurrentPlatformOccupationRate = passengerOccupancyRatio(waitingCount + N_AlightPax, PlatformIt->Max_Passenger_Volume);
 
-			if (Platform.Current_List_Pax_On_Platform.empty() != 1) {
+			if (!waitingList.empty()) {
 				std::optional<PassengerIndex> callPassengers;
 				const PassengerIndex& passengerIndex = indexOf(AllDailyPassengerIndex, ALLPAX, callPassengers);
-				for (list<pair<string, double>>::iterator Pax = Platform.Current_List_Pax_On_Platform.begin(); Pax != Platform.Current_List_Pax_On_Platform.end(); Pax++) {
-					for (Passenger* p : passengerIndex.find(Pax->first)) {
+				for (const pair<string, double>& Pax : waitingList) {
+					for (Passenger* p : passengerIndex.find(Pax.first)) {
 						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
 						// if the passenger p needs to board the current train then
 						if ((p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
