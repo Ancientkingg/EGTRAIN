@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <system_error>
 #include <utility>
 
@@ -172,7 +171,69 @@ static json writePhysical(const SceneTrainPhysical& physical) {
 	return value;
 }
 
-static json writeTrainUnits(const SceneModel& scene) {
+json encodeSignallingArea(const SceneSignallingArea& area) {
+	json value = {
+		{"id", area.id},
+		{"start_km", area.startKm},
+		{"end_km", area.endKm},
+		{"level", area.level},
+	};
+	if (!area.trackId.empty())
+		value["track"] = area.trackId;
+	return value;
+}
+
+json encodeSignalling(const SceneModel& scene) {
+	json signalling = {
+		{"signals", json::array()},
+		{"routes", json::array()},
+		{"block_dependencies", json::array()},
+		{"single_track_restrictions", json::array()},
+		{"station_boundaries", json::array()},
+	};
+	for (const auto& signal : scene.signals) {
+		json value = {{"id", signal.id}};
+		if (!signal.protectedSection.empty())
+			value["protected_section"] = signal.protectedSection;
+		signalling["signals"].push_back(std::move(value));
+	}
+	if (!scene.signallingAreas.empty()) {
+		signalling["signalling_areas"] = json::array();
+		for (const auto& area : scene.signallingAreas)
+			signalling["signalling_areas"].push_back(encodeSignallingArea(area));
+	}
+	for (const auto& route : scene.routes) {
+		json value = {{"id", route.id}, {"blocks", route.blocks}};
+		if (route.hasCorridor || !route.corridor.empty())
+			value["corridor"] = route.corridor;
+		if (route.reversed)
+			value["reversed"] = true;
+		signalling["routes"].push_back(value);
+	}
+	for (const auto& dependency : scene.blockDependencies) {
+		signalling["block_dependencies"].push_back({
+			{"block", dependency.block},
+			{"depends_on", dependency.dependsOn},
+		});
+	}
+	for (const auto& restriction : scene.singleTrackRestrictions) {
+		signalling["single_track_restrictions"].push_back({
+			{"start_block", restriction.startBlock},
+			{"end_block", restriction.endBlock},
+			{"protected_start_block", restriction.protectedStartBlock},
+			{"protected_end_block", restriction.protectedEndBlock},
+		});
+	}
+	for (const auto& boundary : scene.stationBoundaries) {
+		json value = {{"entrance_block", boundary.entranceBlock}, {"direction", boundary.direction}};
+		if (boundary.hasExitBlock || !boundary.exitBlock.empty())
+			value["exit_block"] = boundary.exitBlock;
+		signalling["station_boundaries"].push_back(value);
+	}
+	return signalling;
+}
+
+json encodeRollingStock(const SceneModel& scene) {
 	json trainUnits = json::array();
 	for (const auto& unit : scene.trainUnits) {
 		json value = {{"id", unit.id}};
@@ -193,18 +254,14 @@ static json writeTrainUnits(const SceneModel& scene) {
 		}
 		trainUnits.push_back(value);
 	}
-	return trainUnits;
-}
-
-static json writeCompositions(const SceneModel& scene) {
 	json compositions = json::array();
 	for (const auto& composition : scene.compositions) {
 		compositions.push_back({{"id", composition.id}, {"units", composition.units}});
 	}
-	return compositions;
+	return {{"train_units", trainUnits}, {"compositions", compositions}};
 }
 
-static json writeStops(const SceneService& service) {
+static json encodeStops(const SceneService& service) {
 	json stops = json::array();
 	for (const auto& stop : service.stops) {
 		json value = {
@@ -222,14 +279,14 @@ static json writeStops(const SceneService& service) {
 	return stops;
 }
 
-static json writeServices(const SceneModel& scene) {
+json encodeServices(const SceneModel& scene) {
 	json services = json::array();
 	for (const auto& service : scene.services) {
 		json value = {
 			{"id", service.id},
 			{"composition", service.composition},
 			{"route", service.route},
-			{"stops", writeStops(service)},
+			{"stops", encodeStops(service)},
 		};
 		if (!service.operatingCode.empty())
 			value["operating_code"] = service.operatingCode;
@@ -254,7 +311,7 @@ static json writeServices(const SceneModel& scene) {
 		}
 		services.push_back(value);
 	}
-	return services;
+	return {{"services", services}};
 }
 
 static json writeScenarioValue(const SceneScenario& scenario) {
@@ -297,7 +354,7 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 	return value;
 }
 
-static json writeScenarios(const SceneModel& scene) {
+json encodeScenarios(const SceneModel& scene) {
 	json scenarios = json::array();
 	if (scene.scenarios.empty()) {
 		scenarios.push_back(writeScenarioValue(makeBaselineScenario()));
@@ -351,32 +408,8 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 		return result;
 	}
 
-	const std::set<std::string> allowed = {"id", "name", "description", "incidents", "entrance_delays"};
-	for (const auto& field : value.items()) {
-		if (allowed.find(field.key()) == allowed.end())
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
-				"Scenario JSON does not allow field " + field.key(), field.key());
-	}
 	const SceneFieldReader reader("scenario.json", kScenarioFileFieldCodes, result.diagnostics);
-	reader.stringField(value, "id", "scenario", result.scenario.id);
-	reader.stringField(value, "name", "scenario", result.scenario.name);
-	reader.stringField(value, "description", "scenario", result.scenario.description, false);
-	if (reader.arraySection(value, "incidents", "", true)) {
-		for (std::size_t index = 0; index < value["incidents"].size(); ++index) {
-			const json& item = value["incidents"][index];
-			const std::string path = "incidents[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Incident must be an object"))
-				result.scenario.incidents.push_back(decodeIncident(reader, item, path));
-		}
-	}
-	if (reader.arraySection(value, "entrance_delays", "", false)) {
-		for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index) {
-			const json& item = value["entrance_delays"][index];
-			const std::string path = "entrance_delays[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Entrance delay must be an object"))
-				result.scenario.entranceDelays.push_back(decodeEntranceDelay(reader, item, path));
-		}
-	}
+	result.scenario = decodeScenarioFile(reader, value);
 	return result;
 }
 
@@ -417,69 +450,7 @@ json encodePassengers(const std::vector<ScenePassenger>& passengers) {
 	return {{"passengers", values}};
 }
 
-static json writeViews(const SceneModel& scene) {
-	json tracks = json::array();
-	for (const auto& view : scene.trackViews) {
-		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
-		if (!view.visible)
-			value["visible"] = false;
-		tracks.push_back(std::move(value));
-	}
-
-	json stations = json::array();
-	for (const auto& view : scene.stationViews) {
-		json regions = json::array();
-		for (const auto& region : view.regions)
-			regions.push_back({{"id", region.first}, {"position_km", region.second}});
-		json value = {
-			{"station", view.stationId},
-			{"latitude", view.latitude},
-			{"longitude", view.longitude},
-			{"regions", std::move(regions)},
-		};
-		if (!view.corridors.empty())
-			value["corridors"] = view.corridors;
-		stations.push_back(std::move(value));
-	}
-	return {{"tracks", tracks}, {"stations", stations}};
-}
-
-static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
-	SceneSaveResult result;
-
-	json sceneJson = {
-		{"schema_version", scene.schemaVersion},
-		{"name", scene.name},
-		{"saved_with_app_version", EGTRAIN_APP_VERSION},
-		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
-	};
-	if (!scene.description.empty())
-		sceneJson["description"] = scene.description;
-	if (!scene.baseTime.empty())
-		sceneJson["base_time"] = scene.baseTime;
-	json settings = json::object();
-	if (scene.settings.hasDuration)
-		settings["duration_seconds"] = scene.settings.durationSeconds;
-	if (scene.settings.hasBufferTime)
-		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
-	if (scene.settings.hasRecoveryTime)
-		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
-	if (!settings.empty())
-		sceneJson["simulation_settings"] = settings;
-	if (!scene.importReport.empty()) {
-		sceneJson["import_report"] = json::array();
-		for (const auto& row : scene.importReport) {
-			sceneJson["import_report"].push_back({
-				{"category", row.category},
-				{"source_file", row.sourceFile},
-				{"source_count", row.sourceCount},
-				{"converted_count", row.convertedCount},
-				{"skipped_count", row.skippedCount},
-				{"unresolved_references", row.unresolvedReferences},
-			});
-		}
-	}
-
+json encodeInfrastructure(const SceneModel& scene) {
 	json infrastructure = {
 		{"tracks", json::array()},
 		{"nodes", json::array()},
@@ -525,7 +496,10 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 			value["speed_limit_ms"] = connection.speedLimitMs;
 		infrastructure["connections"].push_back(value);
 	}
+	return infrastructure;
+}
 
+json encodeStations(const SceneModel& scene) {
 	json stations = json::array();
 	for (const auto& station : scene.stations) {
 		json value = {{"id", station.id}, {"name", station.name}, {"platforms", json::array()}};
@@ -541,79 +515,89 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 		}
 		stations.push_back(value);
 	}
+	return {{"stations", stations}};
+}
 
-	json signalling = {
-		{"signals", json::array()},
-		{"routes", json::array()},
-		{"block_dependencies", json::array()},
-		{"single_track_restrictions", json::array()},
-		{"station_boundaries", json::array()},
-	};
-	for (const auto& signal : scene.signals) {
-		json value = {{"id", signal.id}};
-		if (!signal.protectedSection.empty())
-			value["protected_section"] = signal.protectedSection;
-		signalling["signals"].push_back(std::move(value));
+json encodeViews(const SceneModel& scene) {
+	json tracks = json::array();
+	for (const auto& view : scene.trackViews) {
+		json value = {{"track", view.trackId}, {"level", view.level}, {"region", view.region}};
+		if (!view.visible)
+			value["visible"] = false;
+		tracks.push_back(std::move(value));
 	}
-	if (!scene.signallingAreas.empty()) {
-		signalling["signalling_areas"] = json::array();
-		for (const auto& area : scene.signallingAreas) {
-			json value = {
-				{"id", area.id},
-				{"start_km", area.startKm},
-				{"end_km", area.endKm},
-				{"level", area.level},
-			};
-			if (!area.trackId.empty())
-				value["track"] = area.trackId;
-			signalling["signalling_areas"].push_back(std::move(value));
+
+	json stations = json::array();
+	for (const auto& view : scene.stationViews) {
+		json regions = json::array();
+		for (const auto& region : view.regions)
+			regions.push_back({{"id", region.first}, {"position_km", region.second}});
+		json value = {
+			{"station", view.stationId},
+			{"latitude", view.latitude},
+			{"longitude", view.longitude},
+			{"regions", std::move(regions)},
+		};
+		if (!view.corridors.empty())
+			value["corridors"] = view.corridors;
+		stations.push_back(std::move(value));
+	}
+	return {{"tracks", tracks}, {"stations", stations}};
+}
+
+json encodeSceneMetadata(const SceneModel& scene) {
+	json metadata = {
+		{"schema_version", scene.schemaVersion},
+		{"name", scene.name},
+		{"saved_with_app_version", EGTRAIN_APP_VERSION},
+		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}},
+	};
+	if (!scene.description.empty())
+		metadata["description"] = scene.description;
+	if (!scene.baseTime.empty())
+		metadata["base_time"] = scene.baseTime;
+	json settings = json::object();
+	if (scene.settings.hasDuration)
+		settings["duration_seconds"] = scene.settings.durationSeconds;
+	if (scene.settings.hasBufferTime)
+		settings["buffer_time_seconds"] = scene.settings.bufferTimeSeconds;
+	if (scene.settings.hasRecoveryTime)
+		settings["recovery_time_percent"] = scene.settings.recoveryTimePercent;
+	if (!settings.empty())
+		metadata["simulation_settings"] = settings;
+	if (!scene.importReport.empty()) {
+		metadata["import_report"] = json::array();
+		for (const auto& row : scene.importReport) {
+			metadata["import_report"].push_back({
+				{"category", row.category},
+				{"source_file", row.sourceFile},
+				{"source_count", row.sourceCount},
+				{"converted_count", row.convertedCount},
+				{"skipped_count", row.skippedCount},
+				{"unresolved_references", row.unresolvedReferences},
+			});
 		}
 	}
-	for (const auto& route : scene.routes) {
-		json value = {{"id", route.id}, {"blocks", route.blocks}};
-		if (route.hasCorridor || !route.corridor.empty())
-			value["corridor"] = route.corridor;
-		if (route.reversed)
-			value["reversed"] = true;
-		signalling["routes"].push_back(value);
-	}
-	for (const auto& dependency : scene.blockDependencies) {
-		signalling["block_dependencies"].push_back({
-			{"block", dependency.block},
-			{"depends_on", dependency.dependsOn},
-		});
-	}
-	for (const auto& restriction : scene.singleTrackRestrictions) {
-		signalling["single_track_restrictions"].push_back({
-			{"start_block", restriction.startBlock},
-			{"end_block", restriction.endBlock},
-			{"protected_start_block", restriction.protectedStartBlock},
-			{"protected_end_block", restriction.protectedEndBlock},
-		});
-	}
-	for (const auto& boundary : scene.stationBoundaries) {
-		json value = {{"entrance_block", boundary.entranceBlock}, {"direction", boundary.direction}};
-		if (boundary.hasExitBlock || !boundary.exitBlock.empty())
-			value["exit_block"] = boundary.exitBlock;
-		signalling["station_boundaries"].push_back(value);
-	}
+	return metadata;
+}
+
+static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::path& scenePath) {
+	SceneSaveResult result;
 
 	const auto writeCanonical = [&](const std::string& filename, const json& value) {
 		return writeJsonFile(result, scenePath, filename, value);
 	};
 	bool wroteAll = true;
-	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
-	wroteAll = writeCanonical("infrastructure.json", infrastructure) && wroteAll;
-	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
-	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
-	wroteAll = writeCanonical("rolling_stock.json",
-				   {{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}})
-		&& wroteAll;
-	wroteAll = writeCanonical("services.json", {{"services", writeServices(scene)}}) && wroteAll;
-	wroteAll = writeCanonical("scenarios.json", writeScenarios(scene)) && wroteAll;
+	wroteAll = writeCanonical("scene.json", encodeSceneMetadata(scene)) && wroteAll;
+	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
+	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
+	wroteAll = writeCanonical("signalling.json", encodeSignalling(scene)) && wroteAll;
+	wroteAll = writeCanonical("rolling_stock.json", encodeRollingStock(scene)) && wroteAll;
+	wroteAll = writeCanonical("services.json", encodeServices(scene)) && wroteAll;
+	wroteAll = writeCanonical("scenarios.json", encodeScenarios(scene)) && wroteAll;
 	const bool hasViews = !scene.trackViews.empty() || !scene.stationViews.empty();
 	if (hasViews)
-		wroteAll = writeCanonical("views.json", writeViews(scene)) && wroteAll;
+		wroteAll = writeCanonical("views.json", encodeViews(scene)) && wroteAll;
 	if (!scene.passengers.empty()) {
 		wroteAll = writeCanonical("passengers.json", encodePassengers(scene.passengers)) && wroteAll;
 	}

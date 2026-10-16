@@ -1,7 +1,7 @@
 #include "scene/SceneValidator.h"
+#include "scene/RuntimeLimits.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
-#include "simulation/RuntimeLimits.h"
 
 #include <algorithm>
 #include <array>
@@ -77,14 +77,14 @@ std::vector<std::string> routeComponents(const std::string& token) {
 	return components;
 }
 
-constexpr std::size_t kNativeMaxTracks = 268;
-constexpr std::size_t kNativeMaxConnections = 708;
-constexpr std::size_t kNativeMaxStations = 95;
-constexpr std::size_t kNativeMaxRouteBlocks = 600;
-constexpr std::size_t kNativeMaxNodeConnections = 6;
-constexpr std::size_t kNativeMaxDependencies = 10;
-constexpr std::size_t kNativeMaxSectionArcs = 20;
-constexpr double kNativeCoordinateTolerance = 1e-8;
+using RuntimeLimits::kNativeCoordinateTolerance;
+using RuntimeLimits::kNativeMaxConnections;
+using RuntimeLimits::kNativeMaxDependencies;
+using RuntimeLimits::kNativeMaxNodeConnections;
+using RuntimeLimits::kNativeMaxRouteBlocks;
+using RuntimeLimits::kNativeMaxSectionArcs;
+using RuntimeLimits::kNativeMaxStations;
+using RuntimeLimits::kNativeMaxTracks;
 
 std::string nativeRuntimeBlockId(const std::string& id) {
 	if (id.empty() || id.front() == '@' || id.find('/') != std::string::npos)

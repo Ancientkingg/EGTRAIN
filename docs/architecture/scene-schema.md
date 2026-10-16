@@ -531,9 +531,11 @@ operating_code entry_time_seconds headway_seconds route_index data_file traction
 It maps the explicit physical, traction, and timetable relationships into the
 canonical files, imports numeric `Routes/Route<N>.txt` files as routes, reads
 stations from the legacy track-line station file, and reports skipped or
-unresolved values in `scene.json.import_report`. Import is an explicit boundary;
-the resulting scene must be validated and corrected before it is used when the
-report exposes ambiguous source relationships.
+unresolved values in `scene.json.import_report`. The importer writes the files
+with the encoders of `SceneWriter`, so an imported scene has the form of a saved
+one: `signalling_areas` is absent when the area sidecar lists no area. Import is
+an explicit boundary; the resulting scene must be validated and corrected before
+it is used when the report exposes ambiguous source relationships.
 
 The reverse exporter remains available for interoperability. It does not make
 legacy files authoritative, and the normal runtime never invokes it. Canonical

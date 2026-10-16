@@ -1,3 +1,4 @@
+#include "scene/RuntimeLimits.h"
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
 #include "simulation/Passengers.h"
@@ -40,12 +41,12 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 
 namespace {
 
-constexpr int kNativeMaxTracks = 268;
-constexpr int kNativeMaxConnections = 708;
-constexpr int kNativeMaxStations = 95;
-constexpr int kNativeMaxRouteBlocks = 600;
-constexpr int kNativeMaxSectionArcs = 20;
-constexpr double kNativeCoordinateTolerance = 1e-8;
+using RuntimeLimits::kNativeCoordinateTolerance;
+using RuntimeLimits::kNativeMaxConnections;
+using RuntimeLimits::kNativeMaxRouteBlocks;
+using RuntimeLimits::kNativeMaxSectionArcs;
+using RuntimeLimits::kNativeMaxStations;
+using RuntimeLimits::kNativeMaxTracks;
 
 struct NativeTrack {
 	std::string id;
@@ -154,14 +155,14 @@ void nativeResetRuntime() {
 	singleTrackLimits.clear();
 	resetSingleTrackLocks();
 	stationBoundarySections.clear();
-	for (int i = 0; i < kNativeMaxTracks; ++i)
+	for (std::size_t i = 0; i < kNativeMaxTracks; ++i)
 		blockSets[i] = BlockSet();
-	for (int i = 0; i < kNativeMaxConnections; ++i)
+	for (std::size_t i = 0; i < kNativeMaxConnections; ++i)
 		connections[i] = Connections();
 	// A node list is freed with the last section that holds it
 	std::vector<Section>().swap(signalling_block_sections);
 	derivedSectionsExceedPlan = false;
-	for (int i = 0; i < kNativeMaxStations; ++i)
+	for (std::size_t i = 0; i < kNativeMaxStations; ++i)
 		StationArray[i] = Stations();
 	// The fictitious station of the delay statistics at the final stop of every train
 	Final_Station = Stations();
@@ -395,7 +396,7 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more stations than the runtime capacity",
 			"stations.json", "station", "", "stations", std::to_string(kNativeMaxStations));
 	std::unordered_set<std::string> connectionIds;
-	std::unordered_map<std::string, int> nodeConnectionCounts;
+	std::unordered_map<std::string, std::size_t> nodeConnectionCounts;
 	for (const auto& connection : scene.connections) {
 		if (!connectionIds.insert(connection.id).second)
 			add(SceneSeverity::Error, "scene.native.id.duplicate", "Duplicate connection id",
@@ -411,9 +412,9 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 					"infrastructure.json", "connection", connection.id, "connections.to", connection.toNodeId);
 			continue;
 		}
-		const int fromCount = ++nodeConnectionCounts[connection.fromNodeId];
-		const int toCount = ++nodeConnectionCounts[connection.toNodeId];
-		if (fromCount > 6 || toCount > 6)
+		const std::size_t fromCount = ++nodeConnectionCounts[connection.fromNodeId];
+		const std::size_t toCount = ++nodeConnectionCounts[connection.toNodeId];
+		if (fromCount > RuntimeLimits::kNativeMaxNodeConnections || toCount > RuntimeLimits::kNativeMaxNodeConnections)
 			add(SceneSeverity::Error, "scene.native.capacity", "Node has more than six runtime connections",
 				"infrastructure.json", "connection", connection.id, "connections", connection.fromNodeId,
 				"Reduce connections at the node");
@@ -591,9 +592,10 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 			plannedDependencies[source].insert(target);
 	}
 	for (const auto& dependency : plannedDependencies)
-		if (dependency.second.size() > 10)
+		if (dependency.second.size() > RuntimeLimits::kNativeMaxDependencies)
 			add(SceneSeverity::Error, "scene.native.capacity", "Block dependency exceeds the runtime dependency capacity",
-				"signalling.json", "block_dependency", dependency.first, "block_dependencies", std::to_string(10));
+				"signalling.json", "block_dependency", dependency.first, "block_dependencies",
+				std::to_string(RuntimeLimits::kNativeMaxDependencies));
 	for (const auto& restriction : scene.singleTrackRestrictions) {
 		for (const auto& ref : {restriction.startBlock, restriction.endBlock,
 				 restriction.protectedStartBlock, restriction.protectedEndBlock}) {
@@ -999,7 +1001,7 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 		for (int index = 0; index < source.N_ConnectedBS; ++index)
 			if (source.IDConnectedBS[index] == target)
 				return;
-		if (source.N_ConnectedBS >= 10) {
+		if (static_cast<std::size_t>(source.N_ConnectedBS) >= RuntimeLimits::kNativeMaxDependencies) {
 			add(SceneSeverity::Error, "scene.native.capacity", "Block dependency exceeds the runtime dependency capacity",
 				"signalling.json", "block_dependency", itemId, "block_dependencies", target);
 			return;

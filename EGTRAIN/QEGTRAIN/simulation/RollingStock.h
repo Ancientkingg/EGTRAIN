@@ -23,7 +23,7 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 #include "simulation/Signalling.h"
-#include "simulation/RuntimeLimits.h"
+#include "scene/RuntimeLimits.h"
 #include "util/Log.h"
 #include "util/TrajectoryUtil.h"
 

@@ -48,6 +48,26 @@ passengers. A committed file in another form is rewritten by the next save. A
 scene that this version of the writer has saved gives the same bytes when it is
 loaded and saved again.
 
+Each key of the scene files is written in one place and read in one place.
+`SceneWriter.cpp` has an encoder for each file (`encodeSceneMetadata`,
+`encodeInfrastructure`, `encodeStations`, `encodeSignalling`,
+`encodeRollingStock`, `encodeServices`, `encodeScenarios`, `encodeViews` and
+`encodePassengers`), and `loadScene` in `SceneModel.cpp` and
+`SceneFieldReader.cpp` read the files. The importer fills a `SceneModel` and
+writes it with the encoders, so an imported scene has the form of a saved one.
+The exporter writes the items of its area sidecar with `encodeSignallingArea`,
+and the importer reads them with `decodeSignallingArea`.
+
+`test_scene_codec_contract` (`tools/e2e/test_scene_codec_contract.py`) fails when
+a key of the scene files is written outside `SceneWriter.cpp`, is read outside
+`SceneModel.cpp` and `SceneFieldReader.cpp`, or when a file in `scene/` includes a
+header of `simulation/`. It lists four exceptions with their reasons:
+`SceneBundle.cpp` and `SceneCompatibility.cpp` read `schema_version` and
+`saved_with_app_version` before the loader runs, and `SceneExporter.cpp` and
+`SceneImporter.cpp` handle `signalling_areas` as the top-level key of the area
+sidecar of a legacy folder. The limits of the native runtime, which the validator
+and the builders check against, are in `scene/RuntimeLimits.h`.
+
 ## Model ownership
 
 `SceneModel` owns the canonical values, not a second flat copy of legacy

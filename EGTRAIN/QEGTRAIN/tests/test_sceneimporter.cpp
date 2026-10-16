@@ -528,6 +528,13 @@ int main() {
 			const SceneLoadResult importedScene = loadScene(output.dir);
 			ok &= expect(passengers == encodePassengers(importLegacyPassengers(legacyDir.dir, importedScene.scene).passengers),
 				"Full legacy import writes the passengers with the scene writer's encoding");
+			const SceneModel& model = importedScene.scene;
+			json stationsFile;
+			ok &= expect(readJson(fs::path(output.dir) / "stations.json", stationsFile) && scene == encodeSceneMetadata(model)
+					&& infrastructure == encodeInfrastructure(model) && stationsFile == encodeStations(model)
+					&& signalling == encodeSignalling(model) && rolling == encodeRollingStock(model)
+					&& services == encodeServices(model) && scenarios == encodeScenarios(model) && views == encodeViews(model),
+				"Full legacy import writes each file with the scene writer's encoding");
 			ok &= expect(passengers["passengers"][0]["journeys"][0]["activity"] == "work"
 					&& !passengers["passengers"][1]["journeys"][0].contains("activity"),
 				"A journey without an activity leaves the key out of the imported file");
@@ -995,7 +1002,8 @@ int main() {
 		writeText(sidecar, json({{"format_version", 1}, {"signalling_areas", json::array()}}).dump());
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
 		ok &= expect(imported.success() && readJson(destination / "signalling.json", signalling)
-				&& signalling["signalling_areas"] == json::array(),
+				&& !signalling.contains("signalling_areas")
+				&& !hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning),
 			"Empty sidecar remains authoritative over TXT");
 		fs::remove(sidecar);
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");

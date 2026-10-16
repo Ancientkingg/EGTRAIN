@@ -1,4 +1,5 @@
 #include "scene/SceneImporter.h"
+#include "scene/SceneFieldReader.h"
 #include "scene/SceneFields.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
@@ -950,19 +951,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	report.row("legacy_root", legacyDir).sourceCount = 1;
 	report.converted("legacy_root", legacyDir);
 
-	json infrastructure = {{"tracks", json::array()}, {"nodes", json::array()},
-		{"arcs", json::array()}, {"blocks", json::array()}, {"connections", json::array()}};
-	json stations = json::array();
-	json routes = json::array();
-	json trainUnits = json::array();
-	json compositions = json::array();
-	json services = json::array();
-	json blockDependencies = json::array();
-	json singleTrackRestrictions = json::array();
-	json stationBoundaries = json::array();
-	json scenarios = json::array();
-	json views = {{"tracks", json::array()}, {"stations", json::array()}};
-	bool hasViews = false;
+	SceneModel scene;
 
 	// InitialParameters is compiled into the current runtime, not stored in
 	// the legacy case directory. Only these known case/name pairs are safe to
@@ -1044,7 +1033,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	for (const auto& track : trackDirs) {
 		const int trackNumber = track.first;
 		const std::string trackId = "B" + std::to_string(trackNumber);
-		infrastructure["tracks"].push_back({{"id", trackId}});
+		scene.tracks.push_back(SceneTrack{trackId});
 		report.converted("infrastructure.tracks", trackSource);
 
 		const fs::path nodesPath = findChild(track.second, "NodiCumPari.txt");
@@ -1078,7 +1067,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					continue;
 				}
 				const std::string nodeId = trackId + ".node." + tokens[0];
-				infrastructure["nodes"].push_back({{"id", nodeId}, {"track", trackId}, {"x_km", x}, {"y_km", y}});
+				scene.nodes.push_back(SceneNode{nodeId, trackId, x, y});
 				nodesByTrack[trackId].push_back({nodeId, x});
 				allNodes.push_back({nodeId, x});
 				report.converted("infrastructure.nodes", nodeSource);
@@ -1135,8 +1124,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				const int arcOccurrence = arcIdentityCounts[arcBaseId]++;
 				const std::string arcId = arcOccurrence == 0 ? arcBaseId
 															 : arcBaseId + "." + std::to_string(arcOccurrence + 1);
-				infrastructure["arcs"].push_back({{"id", arcId}, {"track", trackId}, {"from", fromId}, {"to", toId},
-					{"curvature_radius_m", radius}, {"gradient_percent", gradient}, {"speed_limit_ms", speed}});
+				scene.arcs.push_back(SceneArc{arcId, trackId, fromId, toId, radius, gradient, speed});
 				report.converted("infrastructure.arcs", arcSource);
 				if (!fromKnown || !toKnown) {
 					addDiag(SceneSeverity::Warning, "scene.import.ref", "Arc refers to an unknown node: " + arcId,
@@ -1174,7 +1162,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 						blocksPath.u8string());
 				}
 				const std::string blockId = std::to_string(rowIndex) + "-" + trackId;
-				infrastructure["blocks"].push_back({{"id", blockId}, {"track", trackId}, {"length_km", length}});
+				scene.blocks.push_back(SceneBlock{blockId, trackId, length});
 				blockIds.insert(blockId);
 				report.converted("infrastructure.blocks", blockSource);
 				++rowIndex;
@@ -1265,10 +1253,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				continue;
 			}
 			const std::string connectionId = "connection." + std::to_string(rowIndex);
-			json value = {{"id", connectionId}, {"from", firstMatches[0].id}, {"to", secondMatches[0].id}};
-			if (tokens.size() == 5)
-				value["speed_limit_ms"] = speed;
-			infrastructure["connections"].push_back(value);
+			scene.connections.push_back(SceneConnection{connectionId, firstMatches[0].id, secondMatches[0].id, tokens.size() == 5, speed});
 			report.converted("infrastructure.connections", connectionsSource);
 			++rowIndex;
 		}
@@ -1289,16 +1274,16 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	std::unordered_map<std::string, std::size_t> stationIndex;
 	auto stationIdFor = [&](const std::string& raw, bool& ambiguous) {
 		ambiguous = false;
-		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (stations[i]["id"] == raw)
+		for (const SceneStation& station : scene.stations)
+			if (station.id == raw)
 				return raw;
 		const std::string normalized = normaliseStationName(raw);
 		std::vector<std::size_t> matches;
-		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (normaliseStationName(stations[i]["id"].get<std::string>()) == normalized)
+		for (std::size_t i = 0; i < scene.stations.size(); ++i)
+			if (normaliseStationName(scene.stations[i].id) == normalized)
 				matches.push_back(i);
 		if (matches.size() == 1)
-			return stations[matches[0]]["id"].get<std::string>();
+			return scene.stations[matches[0]].id;
 		if (matches.size() > 1)
 			ambiguous = true;
 		return raw;
@@ -1341,9 +1326,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			std::size_t index = 0;
 			const auto found = stationIndex.find(stationName);
 			if (found == stationIndex.end()) {
-				index = stations.size();
+				index = scene.stations.size();
 				stationIndex[stationName] = index;
-				stations.push_back({{"id", stationName}, {"name", stationName}, {"position_km", position}, {"platforms", json::array()}});
+				SceneStation station;
+				station.id = stationName;
+				station.name = stationName;
+				station.hasPosition = true;
+				station.positionKm = position;
+				scene.stations.push_back(std::move(station));
 			} else {
 				index = found->second;
 			}
@@ -1353,8 +1343,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				if (node.x != position)
 					continue;
 				++matched;
-				const std::string platformId = stationName + ".platform." + std::to_string(stations[index]["platforms"].size() + 1);
-				stations[index]["platforms"].push_back({{"id", platformId}, {"nodes", {node.id}}});
+				ScenePlatform platform;
+				platform.id = stationName + ".platform." + std::to_string(scene.stations[index].platforms.size() + 1);
+				platform.nodeIds = {node.id};
+				scene.stations[index].platforms.push_back(std::move(platform));
 			}
 			if (matched == 0) {
 				addDiag(SceneSeverity::Warning, "scene.import.coordinate",
@@ -1386,8 +1378,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		? (legacyPath / "GUI/caseStudyTrackData.txt").u8string()
 		: trackViewPath.u8string();
 	std::unordered_set<std::string> knownTrackIds;
-	for (const auto& track : infrastructure["tracks"])
-		knownTrackIds.insert(track["id"].get<std::string>());
+	for (const auto& track : scene.tracks)
+		knownTrackIds.insert(track.id);
 	std::unordered_set<std::string> importedTrackIds;
 	if (!trackViewPath.empty()) {
 		std::string content;
@@ -1422,22 +1414,17 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			json value = {{"track", trackId}, {"level", level}, {"region", region}};
-			if (hiddenTrackIds.count(trackId) != 0)
-				value["visible"] = false;
-			views["tracks"].push_back(std::move(value));
+			scene.trackViews.push_back(SceneTrackView{trackId, level, region, hiddenTrackIds.count(trackId) == 0});
 			report.converted("views.tracks", trackViewSource);
-			hasViews = true;
 			++rowIndex;
 		}
 	}
 	for (const auto& trackId : hiddenTrackIds) {
 		if (knownTrackIds.count(trackId) == 0 || !importedTrackIds.insert(trackId).second)
 			continue;
-		views["tracks"].push_back({{"track", trackId}, {"level", 0}, {"region", 0}, {"visible", false}});
+		scene.trackViews.push_back(SceneTrackView{trackId, 0, 0, false});
 		report.source("views.tracks", hiddenTracksPath.u8string());
 		report.converted("views.tracks", hiddenTracksPath.u8string());
-		hasViews = true;
 	}
 
 	const fs::path stationViewPath = guiDir.empty() ? fs::path()
@@ -1456,9 +1443,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 									const std::vector<std::pair<int, double>>& regions, bool& ambiguous) {
 			ambiguous = false;
 			std::vector<std::string> exact;
-			for (const auto& station : stations)
-				if (station["id"] == raw)
-					exact.push_back(station["id"].get<std::string>());
+			for (const SceneStation& station : scene.stations)
+				if (station.id == raw)
+					exact.push_back(station.id);
 			if (exact.size() == 1)
 				return exact.front();
 			if (exact.size() > 1) {
@@ -1467,9 +1454,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			const std::string normalized = normaliseStationName(raw);
 			std::set<std::string> matches;
-			for (const auto& station : stations) {
-				if (normaliseStationName(station["id"].get<std::string>()) == normalized || normaliseStationName(station.value("name", station["id"].get<std::string>())) == normalized)
-					matches.insert(station["id"].get<std::string>());
+			for (const SceneStation& station : scene.stations) {
+				if (normaliseStationName(station.id) == normalized || normaliseStationName(station.name) == normalized)
+					matches.insert(station.id);
 			}
 			if (matches.size() == 1)
 				return *matches.begin();
@@ -1479,16 +1466,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			std::set<std::string> positionMatches;
 			constexpr double positionToleranceKm = 1e-6;
-			for (const auto& station : stations) {
-				if (!station.contains("position_km") || !station["position_km"].is_number())
-					continue;
-				const double stationPosition = station["position_km"].get<double>();
-				if (!std::isfinite(stationPosition))
+			for (const SceneStation& station : scene.stations) {
+				if (!station.hasPosition || !std::isfinite(station.positionKm))
 					continue;
 				for (const auto& region : regions) {
 					if (std::isfinite(region.second)
-						&& std::fabs(stationPosition - region.second) <= positionToleranceKm) {
-						positionMatches.insert(station["id"].get<std::string>());
+						&& std::fabs(station.positionKm - region.second) <= positionToleranceKm) {
+						positionMatches.insert(station.id);
 						break;
 					}
 				}
@@ -1547,15 +1531,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			json regionsJson = json::array();
-			for (const auto& region : regions)
-				regionsJson.push_back({{"id", region.first}, {"position_km", region.second}});
-			json value = {{"station", stationId}, {"latitude", latitude}, {"longitude", longitude}, {"regions", regionsJson}};
-			if (!corridors.empty())
-				value["corridors"] = corridors;
-			views["stations"].push_back(std::move(value));
+			scene.stationViews.push_back(SceneStationView{stationId, latitude, longitude, std::move(regions), std::move(corridors)});
 			report.converted("views.stations", stationViewSource);
-			hasViews = true;
 			++rowIndex;
 		}
 	}
@@ -1700,7 +1677,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing route file: " + source, source);
 			continue;
 		}
-		json blockList = json::array();
+		SceneRoute route;
+		route.id = routeId;
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -1719,11 +1697,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				report.skipped("signalling.routes", source);
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed route block token at row " + std::to_string(rowIndex), source);
 			}
-			blockList.push_back(basic ? stripOuterAt(token) : token);
+			route.blocks.push_back(basic ? stripOuterAt(token) : token);
 			report.converted("signalling.routes", source);
 			++rowIndex;
 		}
-		routes.push_back({{"id", routeId}, {"blocks", blockList}});
+		scene.routes.push_back(std::move(route));
 		loadedRouteIds.insert(routeId);
 	}
 	for (const auto& routeId : referencedRoutes) {
@@ -1755,9 +1733,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			const std::string id = "route" + std::to_string(routeIndex);
 			bool found = false;
-			for (auto& route : routes) {
-				if (route["id"] == id) {
-					route["corridor"] = tokens[1];
+			for (SceneRoute& route : scene.routes) {
+				if (route.id == id) {
+					route.hasCorridor = true;
+					route.corridor = tokens[1];
 					found = true;
 					break;
 				}
@@ -1799,18 +1778,18 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				if (refs.empty() && !number.empty() && !parseIntegerToken(number, ref)) break;
 			}
 			bool valid = !refs.empty();
-			json joinedBlocks = json::array();
+			std::vector<std::string> joinedBlocks;
 			if (valid) {
 				for (const int ref : refs) {
 					const std::string id = "route" + std::to_string(ref);
-					const auto found = std::find_if(routes.begin(), routes.end(), [&](const json& route) { return route["id"] == id; });
-					if (found == routes.end()) {
+					const auto found = std::find_if(scene.routes.begin(), scene.routes.end(), [&](const SceneRoute& route) { return route.id == id; });
+					if (found == scene.routes.end()) {
 						valid = false;
 						addDiag(SceneSeverity::Warning, "scene.import.ref", "Joined route refers to unknown route " + id,
 							joinsPath.u8string(), "signalling.joined_routes", true);
 						break;
 					}
-					for (const auto& block : (*found)["blocks"]) joinedBlocks.push_back(block);
+					joinedBlocks.insert(joinedBlocks.end(), found->blocks.begin(), found->blocks.end());
 				}
 			}
 			if (!valid) {
@@ -1821,9 +1800,11 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			while (loadedRouteIds.count("route" + std::to_string(nextJoinedRouteIndex)))
 				++nextJoinedRouteIndex;
 			const std::string joinedId = "route" + std::to_string(nextJoinedRouteIndex++);
-			json joined = {{"id", joinedId}, {"blocks", joinedBlocks}};
-			if (reversed) joined["reversed"] = true;
-			routes.push_back(joined);
+			SceneRoute joined;
+			joined.id = joinedId;
+			joined.blocks = std::move(joinedBlocks);
+			joined.reversed = reversed;
+			scene.routes.push_back(std::move(joined));
 			loadedRouteIds.insert(joinedId);
 			report.converted("signalling.joined_routes", joinsSource);
 		}
@@ -1846,9 +1827,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Malformed single-track restriction row", singleTrackPath.u8string());
 				continue;
 			}
-			json restriction = {{"start_block", stripOuterAt(tokens[0])}, {"end_block", stripOuterAt(tokens[1])},
-				{"protected_start_block", tokens[2]}, {"protected_end_block", tokens[3]}};
-			singleTrackRestrictions.push_back(restriction);
+			scene.singleTrackRestrictions.push_back(SceneSingleTrackRestriction{stripOuterAt(tokens[0]), stripOuterAt(tokens[1]), tokens[2], tokens[3]});
 			report.converted("signalling.single_track_restrictions", singleTrackSource);
 			for (int i = 0; i < 4; ++i) {
 				const std::string ref = i < 2 ? stripOuterAt(tokens[i]) : tokens[i];
@@ -1883,9 +1862,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Invalid station-boundary direction", boundaryPath.u8string(), "signalling.station_boundaries", true);
 				continue;
 			}
-			json boundary = {{"entrance_block", stripOuterAt(tokens[0])}, {"direction", direction != 0}};
+			SceneStationBoundary boundary;
+			boundary.entranceBlock = stripOuterAt(tokens[0]);
+			boundary.direction = direction != 0;
 			if (!tokens[1].empty()) {
-				boundary["exit_block"] = stripOuterAt(tokens[1]);
+				boundary.hasExitBlock = true;
+				boundary.exitBlock = stripOuterAt(tokens[1]);
 				if (!blockReferenceKnown(tokens[1])) {
 					addDiag(SceneSeverity::Warning, "scene.import.ref", "Station boundary refers to unknown exit block " + tokens[1],
 						boundaryPath.u8string(), "signalling.station_boundaries", true);
@@ -1895,14 +1877,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				addDiag(SceneSeverity::Warning, "scene.import.ref", "Station boundary refers to unknown entrance block " + tokens[0],
 					boundaryPath.u8string(), "signalling.station_boundaries", true);
 			}
-			stationBoundaries.push_back(boundary);
+			scene.stationBoundaries.push_back(std::move(boundary));
 			report.converted("signalling.station_boundaries", boundarySource);
 		}
 	}
 
 	// A canonical export sidecar is authoritative. Historical capacity/signalling rows
 	// remain ambiguous and are reported only when that metadata is absent.
-	json signallingAreas;
+	std::vector<SceneDiagnostic> areaDiagnostics;
 	if (!areaSidecar.empty()) {
 		std::string content;
 		std::error_code sidecarEc;
@@ -1917,27 +1899,27 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.areas", "Malformed or unsupported canonical signalling area sidecar", areaSidecar.u8string());
 			return result;
 		}
-		signallingAreas = sidecar["signalling_areas"];
-		if (signallingAreas.is_array()) {
-			for (auto& area : signallingAreas) {
-				if (!area.is_object() || !area.contains("track") || !area["track"].is_string() || area["track"] == "") continue;
-				const std::string exportedTrack = area["track"].get<std::string>();
-				const auto track = std::find_if(trackDirs.begin(), trackDirs.end(), [&](const auto& entry) {
-					return "B" + entry.second.filename().u8string().substr(1) == exportedTrack;
-				});
-				if (track == trackDirs.end()) {
-					addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical signalling area refers to an unknown exported track " + exportedTrack, areaSidecar.u8string());
-					return result;
-				}
-				area["track"] = "B" + std::to_string(track->first);
+		// An area is read as signalling.json holds it. The errors of that read are reported with the checks of the staged scene.
+		const SceneFieldReader reader("signalling.json", kSceneFileFieldCodes, areaDiagnostics);
+		if (reader.arraySection(sidecar, "signalling_areas", "", false)) {
+			for (std::size_t index = 0; index < sidecar["signalling_areas"].size(); ++index)
+				scene.signallingAreas.push_back(decodeSignallingArea(reader, sidecar["signalling_areas"][index],
+					"signalling_areas[" + std::to_string(index) + "]"));
+		}
+		for (SceneSignallingArea& area : scene.signallingAreas) {
+			if (area.trackId.empty()) continue;
+			const auto track = std::find_if(trackDirs.begin(), trackDirs.end(), [&](const auto& entry) {
+				return "B" + entry.second.filename().u8string().substr(1) == area.trackId;
+			});
+			if (track == trackDirs.end()) {
+				addDiag(SceneSeverity::Error, "scene.import.ref", "Canonical signalling area refers to an unknown exported track " + area.trackId, areaSidecar.u8string());
+				return result;
 			}
+			area.trackId = "B" + std::to_string(track->first);
 		}
-		// Field shape and semantics are checked by the native loader/validator in private staging.
 		auto& row = report.row("signalling.areas", areaSidecar.u8string());
-		if (signallingAreas.is_array()) {
-			row.sourceCount = static_cast<int>(signallingAreas.size());
-			row.convertedCount = row.sourceCount;
-		}
+		row.sourceCount = static_cast<int>(scene.signallingAreas.size());
+		row.convertedCount = row.sourceCount;
 	}
 	// Legacy area rows combined the signalling level with capacity reporting
 	// and are not converted. The file is reported so that the user adds the
@@ -1992,7 +1974,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing timetable file: " + relation.timetablePath, timetablePath.u8string());
 			continue;
 		}
-		json stops = json::array();
+		std::vector<SceneStop> stops;
 		std::stringstream input(content);
 		std::string line;
 		int rowIndex = 0;
@@ -2019,7 +2001,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			for (std::size_t i = 1; i + 3 < tokens.size(); ++i) stationName += tokens[i];
 			bool ambiguous = false;
 			const std::string stationId = stationIdFor(stationName, ambiguous);
-			if (ambiguous || std::none_of(stations.begin(), stations.end(), [&](const json& station) { return station["id"] == stationId; })) {
+			if (ambiguous || std::none_of(scene.stations.begin(), scene.stations.end(), [&](const SceneStation& station) { return station.id == stationId; })) {
 				addDiag(SceneSeverity::Warning, "scene.import.ref", "Timetable refers to unresolved station " + stationName,
 					timetablePath.u8string(), "timetable", true);
 			}
@@ -2029,23 +2011,35 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					"Legacy departure preceded arrival at " + stationName + "; clamped to arrival",
 					timetablePath.u8string());
 			}
-			json stop = {{"station", stationId}, {"dwell_seconds", dwell}};
+			SceneStop stop;
+			stop.stationId = stationId;
+			stop.dwellSeconds = dwell;
 			if (arrival != -1.0) {
-				stop["planned_arrival_seconds"] = arrival;
+				stop.hasPlannedArrival = true;
+				stop.plannedArrivalSeconds = arrival;
 			}
 			if (departure != -1.0) {
-				stop["planned_departure_seconds"] = departure;
+				stop.hasPlannedDeparture = true;
+				stop.plannedDepartureSeconds = departure;
 			}
-			stops.push_back(stop);
+			stops.push_back(std::move(stop));
 			report.converted("timetable", timetableSource);
 			++rowIndex;
 		}
-		json service = {{"id", relation.serviceId}, {"operating_code", relation.operatingCode},
-			{"composition", relation.compositionId},
-			{"route", "route" + std::to_string(relation.routeIndex)}, {"entry_time_seconds", relation.entryTime}, {"stops", stops}};
-		if (stops.empty()) service["through"] = true;
-		if (relation.hasRepeat) service["repeat"] = {{"headway_seconds", relation.headway}};
-		services.push_back(service);
+		SceneService service;
+		service.id = relation.serviceId;
+		service.operatingCode = relation.operatingCode;
+		service.composition = relation.compositionId;
+		service.route = "route" + std::to_string(relation.routeIndex);
+		service.hasEntryTime = true;
+		service.entryTimeSeconds = relation.entryTime;
+		service.through = stops.empty();
+		service.stops = std::move(stops);
+		if (relation.hasRepeat) {
+			service.hasRepeat = true;
+			service.headwaySeconds = relation.headway;
+		}
+		scene.services.push_back(std::move(service));
 		report.source("services", relation.serviceId);
 		report.converted("services", relation.serviceId);
 	}
@@ -2069,12 +2063,15 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed train data file", dataPath.u8string());
 			continue;
 		}
-		json physical = json::object();
+		SceneTrainUnit unit;
+		unit.id = relation.id;
+		unit.hasPhysical = true;
+		unit.sourceDataFile = relation.dataPath;
+		unit.sourceTractionFile = relation.tractionPath;
 		bool physicalValid = true;
 		for (std::size_t i = 0; i < kSceneTrainPhysicalFields.size(); ++i) {
-			double value = 0.0;
+			double& value = unit.physical.*kSceneTrainPhysicalFields[i].member;
 			if (!parseDoubleToken(dataTokens[i], value)) physicalValid = false;
-			physical[kSceneTrainPhysicalFields[i].key] = value;
 		}
 		if (!physicalValid) {
 			report.skipped("rolling_stock.data", dataSource);
@@ -2090,8 +2087,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.ref", "Missing traction file: " + relation.tractionPath, tractionPath.u8string());
 			continue;
 		}
-		json curve = json::array();
-		std::vector<json> validTractionRows;
+		std::vector<std::array<double, 5>> validTractionRows;
 		std::size_t retainedStart = 0;
 		double previousLowerSpeed = 0.0;
 		bool havePreviousLowerSpeed = false;
@@ -2109,18 +2105,16 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				++rowIndex;
 				continue;
 			}
-			json row = json::array();
+			std::array<double, 5> row{};
 			bool valid = true;
-			for (int i = 0; i < 5; ++i) {
-				double value = 0.0;
-				if (!parseDoubleToken(tokens[static_cast<std::size_t>(i)], value) || !std::isfinite(value)) valid = false;
-				row.push_back(value);
+			for (std::size_t i = 0; i < row.size(); ++i) {
+				if (!parseDoubleToken(tokens[i], row[i]) || !std::isfinite(row[i])) valid = false;
 			}
 			if (!valid) {
 				report.skipped("rolling_stock.traction", tractionSource);
 				addDiag(SceneSeverity::Warning, "scene.import.parse", "Invalid traction row " + std::to_string(rowIndex), tractionPath.u8string());
 			} else {
-				const double lowerSpeed = row[0].get<double>();
+				const double lowerSpeed = row[0];
 				if (havePreviousLowerSpeed && lowerSpeed <= previousLowerSpeed) {
 					retainedStart = validTractionRows.size();
 					if (!reportedRestart) {
@@ -2141,19 +2135,15 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				report.skipped("rolling_stock.traction", tractionSource);
 				continue;
 			}
-			curve.push_back(std::move(validTractionRows[index]));
+			unit.tractionCurve.push_back(validTractionRows[index]);
 			report.converted("rolling_stock.traction", tractionSource);
 		}
-		if (curve.empty()) {
+		if (unit.tractionCurve.empty()) {
 			addDiag(SceneSeverity::Error, "scene.import.parse", "Train traction file has no valid rows", tractionPath.u8string());
 			continue;
 		}
-		trainUnits.push_back(
-			{{"id", relation.id},
-				{"physical", physical},
-				{"traction_curve", curve},
-				{"source", {{"data_file", relation.dataPath}, {"traction_file", relation.tractionPath}}}});
-		compositions.push_back({{"id", relation.id}, {"units", {relation.id}}});
+		scene.trainUnits.push_back(std::move(unit));
+		scene.compositions.push_back(SceneComposition{relation.id, {relation.id}});
 		report.source("rolling_stock.compositions", relation.id);
 		report.converted("rolling_stock.compositions", relation.id);
 	}
@@ -2161,8 +2151,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// Baseline incidents are the only flat legacy scenario input. Rollout files
 	// contain positional delay vectors; map them in manifest order and retain
 	// the same value at the two stations used by the runtime scenario loader.
-	const SceneScenario baselineScenario = makeBaselineScenario();
-	json baseline = {{"id", baselineScenario.id}, {"name", baselineScenario.name}, {"incidents", json::array()}, {"entrance_delays", json::array()}};
+	SceneScenario baseline = makeBaselineScenario();
 	const fs::path incidentsPath = findChild(legacyPath, "Incidents.txt");
 	const std::string incidentsSource = incidentsPath.empty() ? (legacyPath / "Incidents.txt").u8string() : incidentsPath.u8string();
 	if (!incidentsPath.empty()) {
@@ -2207,8 +2196,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				std::string id = "incident." + std::to_string(lineNo);
 				if (targets.size() > 1)
 					id += "." + std::to_string(targetIndex + 1);
-				baseline["incidents"].push_back({{"id", id}, {"type", tokens[0]},
-					{"target", targets[targetIndex]}, {"start_seconds", start}, {"end_seconds", end}});
+				SceneIncident incident;
+				incident.id = id;
+				incident.type = tokens[0];
+				incident.target = targets[targetIndex];
+				incident.startSeconds = start;
+				incident.endSeconds = end;
+				baseline.incidents.push_back(std::move(incident));
 			}
 			report.converted("scenarios.incidents", incidentsSource);
 		}
@@ -2236,11 +2230,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		readFile(rollout.second, content);
 		const auto values = readTokens(content);
 		const std::string scenarioId = "rollout_" + std::to_string(rollout.first);
-		json rolloutIncidents = baseline["incidents"];
-		for (auto& incident : rolloutIncidents)
-			incident["id"] = scenarioId + "." + incident["id"].get<std::string>();
-		json scenario = {{"id", scenarioId}, {"name", "Rollout " + std::to_string(rollout.first)},
-			{"incidents", rolloutIncidents}, {"entrance_delays", json::array()}};
+		SceneScenario scenario;
+		scenario.id = scenarioId;
+		scenario.name = "Rollout " + std::to_string(rollout.first);
+		scenario.incidents = baseline.incidents;
+		for (SceneIncident& incident : scenario.incidents)
+			incident.id = scenarioId + "." + incident.id;
 		std::size_t valueIndex = 0;
 		if (!knownSettings) {
 			const int valuesCount = static_cast<int>(values.size());
@@ -2249,7 +2244,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			row.skippedCount += valuesCount;
 			row.unresolvedReferences++;
 			addDiag(SceneSeverity::Warning, "scene.import.scenario", "Cannot map rollout without known duration", source);
-			scenarios.push_back(scenario);
+			scene.scenarios.push_back(std::move(scenario));
 			continue;
 		}
 		for (const auto& relation : relations) {
@@ -2272,16 +2267,15 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					continue;
 				}
 				++valueIndex;
-				json serviceStops;
-				const auto serviceIt = std::find_if(services.begin(), services.end(), [&](const json& service) { return service["id"] == relation.serviceId; });
-				if (serviceIt != services.end()) serviceStops = (*serviceIt)["stops"];
+				const auto serviceIt = std::find_if(scene.services.begin(), scene.services.end(), [&](const SceneService& service) { return service.id == relation.serviceId; });
 				bool emitted = false;
-				for (const auto& stop : serviceStops) {
-					const std::string station = stop["station"].get<std::string>();
-					if (station != "Guingamp" && station != "Paimpol") continue;
-					scenario["entrance_delays"].push_back({{"service", relation.serviceId}, {"occurrence", occurrence},
-						{"station", station}, {"delay_seconds", delay}});
-					emitted = true;
+				if (serviceIt != scene.services.end()) {
+					for (const SceneStop& stop : serviceIt->stops) {
+						const std::string& station = stop.stationId;
+						if (station != "Guingamp" && station != "Paimpol") continue;
+						scenario.entranceDelays.push_back(SceneEntranceDelay{relation.serviceId, occurrence, station, delay});
+						emitted = true;
+					}
 				}
 				if (emitted) report.converted("scenarios.rollouts", source);
 				else report.skipped("scenarios.rollouts", source);
@@ -2291,59 +2285,38 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			report.skipped("scenarios.rollouts", source);
 			addDiag(SceneSeverity::Warning, "scene.import.scenario", "Rollout vector has extra values", source, "scenarios.rollouts", true);
 		}
-		scenarios.push_back(scenario);
+		scene.scenarios.push_back(std::move(scenario));
 	}
-	scenarios.insert(scenarios.begin(), baseline);
-	report.row("scenarios", "scenarios.json").sourceCount = static_cast<int>(scenarios.size());
-	report.row("scenarios", "scenarios.json").convertedCount = static_cast<int>(scenarios.size());
+	scene.defaultScenarioId = baseline.id;
+	scene.scenarios.insert(scene.scenarios.begin(), std::move(baseline));
+	report.row("scenarios", "scenarios.json").sourceCount = static_cast<int>(scene.scenarios.size());
+	report.row("scenarios", "scenarios.json").convertedCount = static_cast<int>(scene.scenarios.size());
 
 	// The passenger importer is intentionally gated by the same two exact files
 	// used by DispatchController. It keeps deterministic windows, never random
 	// draws or generated runtime results.
 	std::vector<LegacyPassengerStationReference> passengerStations;
-	for (const auto& station : stations)
-		passengerStations.push_back({station["id"].get<std::string>(),
-			station.value("name", station["id"].get<std::string>())});
-	std::vector<SceneService> passengerServices;
-	for (const auto& value : services) {
-		SceneService service;
-		service.id = value.value("id", "");
-		service.operatingCode = value.value("operating_code", service.id);
-		for (const auto& stopValue : value.value("stops", json::array())) {
-			SceneStop stop;
-			stop.stationId = stopValue.value("station", "");
-			service.stops.push_back(std::move(stop));
-		}
-		passengerServices.push_back(std::move(service));
-	}
+	for (const SceneStation& station : scene.stations)
+		passengerStations.push_back({station.id, station.name});
 	const LegacyPassengerParseResult passengerImport = parseLegacyPassengers(legacyPath,
-		passengerStations, passengerServices);
+		passengerStations, scene.services);
 	report.append(passengerImport.report);
 	result.diagnostics.insert(result.diagnostics.end(), passengerImport.diagnostics.begin(),
 		passengerImport.diagnostics.end());
 	const bool hasDas = passengerImport.sources.hasDas;
 	const bool hasRouteChoice = passengerImport.sources.hasRouteChoice;
 
-	json sceneJson = {{"schema_version", kCurrentSceneSchemaVersion}, {"name", sceneName},
-		{"saved_with_app_version", EGTRAIN_APP_VERSION},
-		{"units", {{"distance", "m"}, {"time", "s"}, {"speed", "m/s"}}}};
+	scene.schemaVersion = kCurrentSceneSchemaVersion;
+	scene.name = sceneName;
 	if (knownSettings) {
-		sceneJson["base_time"] = baseTime;
-		sceneJson["simulation_settings"] = {{"duration_seconds", durationSeconds}, {"buffer_time_seconds", 0.0}, {"recovery_time_percent", 0.0}};
+		scene.baseTime = baseTime;
+		scene.settings.hasDuration = true;
+		scene.settings.durationSeconds = durationSeconds;
+		scene.settings.hasBufferTime = true;
+		scene.settings.hasRecoveryTime = true;
 	}
-	sceneJson["import_report"] = json::array();
-	for (const auto& row : report.rows) {
-		sceneJson["import_report"].push_back({{"category", row.category}, {"source_file", row.sourceFile},
-			{"source_count", row.sourceCount}, {"converted_count", row.convertedCount},
-			{"skipped_count", row.skippedCount}, {"unresolved_references", row.unresolvedReferences}});
-	}
-	json signalling = {{"signals", json::array()}, {"routes", routes}, {"block_dependencies", blockDependencies},
-		{"single_track_restrictions", singleTrackRestrictions}, {"station_boundaries", stationBoundaries}};
-	if (!areaSidecar.empty()) signalling["signalling_areas"] = signallingAreas;
-	json rollingStock = {{"train_units", trainUnits}, {"compositions", compositions}};
-	json servicesFile = {{"services", services}};
-	json stationsFile = {{"stations", stations}};
-	json scenariosFile = {{"default_scenario_id", baselineScenario.id}, {"scenarios", scenarios}};
+	scene.importReport = report.rows;
+	scene.passengers = passengerImport.passengers;
 
 	// Preserve atomic staging/publish semantics: no destination is touched while
 	// parsing or validation can still fail.
@@ -2378,21 +2351,20 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			allWritten = false;
 		}
 	};
-	writeJson("scene.json", sceneJson);
-	writeJson("infrastructure.json", infrastructure);
-	writeJson("stations.json", stationsFile);
-	writeJson("signalling.json", signalling);
-	writeJson("rolling_stock.json", rollingStock);
-	writeJson("services.json", servicesFile);
-	writeJson("scenarios.json", scenariosFile);
-	if (hasViews) writeJson("views.json", views);
-	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(passengerImport.passengers));
+	writeJson("scene.json", encodeSceneMetadata(scene));
+	writeJson("infrastructure.json", encodeInfrastructure(scene));
+	writeJson("stations.json", encodeStations(scene));
+	writeJson("signalling.json", encodeSignalling(scene));
+	writeJson("rolling_stock.json", encodeRollingStock(scene));
+	writeJson("services.json", encodeServices(scene));
+	writeJson("scenarios.json", encodeScenarios(scene));
+	if (!scene.trackViews.empty() || !scene.stationViews.empty()) writeJson("views.json", encodeViews(scene));
+	if (hasDas && hasRouteChoice) writeJson("passengers.json", encodePassengers(scene.passengers));
 	if (!allWritten) return result;
 
 	if (hasErrors(result.diagnostics)) return result;
 
 	if (!areaSidecar.empty()) {
-		const auto loaded = loadScene(staged.path.u8string());
 		// Existing historical imports retain their current policy outside area metadata.
 		const auto appendAreaDiagnostics = [&](const std::vector<SceneDiagnostic>& diagnostics) {
 			for (auto diagnostic : diagnostics) {
@@ -2401,6 +2373,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				result.diagnostics.push_back(std::move(diagnostic));
 			}
 		};
+		appendAreaDiagnostics(areaDiagnostics);
+		if (hasErrors(result.diagnostics)) return result;
+		const auto loaded = loadScene(staged.path.u8string());
 		appendAreaDiagnostics(loaded.diagnostics);
 		if (hasErrors(result.diagnostics)) return result;
 		appendAreaDiagnostics(validateRunnableScene(loaded.scene));

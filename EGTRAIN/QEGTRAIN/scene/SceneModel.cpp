@@ -1194,16 +1194,11 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			}
 		}
 		if (arraySection(signallingJson, "signalling_areas", "signalling.json", "", false)) {
+			const SceneFieldReader reader("signalling.json", kSceneFileFieldCodes, result.diagnostics);
 			for (std::size_t index = 0; index < signallingJson["signalling_areas"].size(); ++index) {
 				const std::string path = "signalling_areas[" + std::to_string(index) + "]";
-				const json& value = signallingJson["signalling_areas"][index];
-				SceneSignallingArea area;
-				stringField(value, "id", "signalling.json", path, area.id);
-				numberField(value, "start_km", "signalling.json", path, area.startKm);
-				numberField(value, "end_km", "signalling.json", path, area.endKm);
-				integerField(value, "level", "signalling.json", path, area.level);
-				stringField(value, "track", "signalling.json", path, area.trackId, false);
-				result.scene.signallingAreas.push_back(std::move(area));
+				result.scene.signallingAreas.push_back(
+					decodeSignallingArea(reader, signallingJson["signalling_areas"][index], path));
 			}
 		}
 		if (arraySection(signallingJson, "routes", "signalling.json", "", true)) {
