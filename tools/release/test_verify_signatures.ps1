@@ -84,7 +84,7 @@ try {
     Test-Verifier 'a copy signed with SHA-1 fails' $sha1 ($name + $require + $untrusted) 1 'not SHA-256'
     Test-Verifier 'another subject fails' $signed ($name + '-Require' + '-ExpectedSubject' + 'CN=Someone-else' + $untrusted) 1 'not by ''CN=Someone-else'''
     Test-Verifier 'a missing file fails' $signed (@('-Name', 'absent.exe') + $require + $untrusted) 1 'the file is missing'
-    Test-Verifier 'an untrusted chain fails without -AllowUntrustedRoot' $signed ($name + $require + '-NoTimestampCheck') 1 'status \w+'
+    Test-Verifier 'an untrusted chain fails without -AllowUntrustedRoot' $signed ($name + $require + '-NoTimestampCheck') 1 'status (UnknownError|NotTrusted)'
     Test-Verifier 'a missing timestamp fails without -NoTimestampCheck' $signed ($name + $require + '-AllowUntrustedRoot') 1 'no timestamp'
     Test-Verifier '-Report prints the findings and passes' $unsigned ($name + '-Report') 0 'scene_tool.exe: not signed'
     Test-Verifier '-Require without a subject is refused' $signed ($name + '-Require') 1 'needs -ExpectedSubject'
