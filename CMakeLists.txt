@@ -236,6 +236,7 @@ target_link_libraries(egtrain_widgets
 # The update code that both the application and a test use. UpdateChecker and SelfUpdater belong
 # to the application alone.
 add_library(egtrain_update STATIC
+    ${SRC_DIR}/update/Distribution.cpp
     ${SRC_DIR}/update/ReleaseInfo.cpp
     ${SRC_DIR}/update/UpdatePreparation.cpp
     ${SRC_DIR}/update/UpdateSettings.cpp)
@@ -627,6 +628,10 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
+    add_executable(test_distribution ${SRC_DIR}/tests/test_distribution.cpp)
+    target_link_libraries(test_distribution PRIVATE egtrain_update Qt5::Core)
+    add_test(NAME test_distribution COMMAND test_distribution)
 
     add_executable(test_recoverystore ${SRC_DIR}/tests/test_recoverystore.cpp)
     target_link_libraries(test_recoverystore PRIVATE egtrain_recovery Qt5::Core)
@@ -1092,6 +1097,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_playbackprofiler
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_recoverystore
+			test_distribution
 			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility
@@ -1126,6 +1132,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_recoverystore
+		test_distribution
 		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice

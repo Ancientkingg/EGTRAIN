@@ -1207,7 +1207,12 @@ most of its checks, so run it locally to read its logs.
   `name`, `sha256` and `size`. The running copy picks its entry by key and downloads
   the asset that `name` gives. The keys are `windows-x64` (portable package), `windows-x64-installer`,
   `macos-arm64` and `linux-x86_64`; the running copy uses the portable package key
-  on Windows and no installer key yet. The updater accepts a `name` only when it
+  on Windows and no installer key yet. A Windows copy with `installed-by-setup.ini`
+  next to `QEGTRAIN.exe` is installer-managed (`currentDistribution` in
+  `update/Distribution.cpp`), so it picks no manifest entry and does not update
+  itself by replacing files; the installer is the only intended source of that
+  file, and the package payload and the portable archive must not contain it.
+  The updater accepts a `name` only when it
   fits a pattern of its key, where `<version>` is the version of the manifest,
   which must equal the release tag without its leading `v`. The same patterns
   decide which release assets the update check keeps (`kAssetPatterns` in
