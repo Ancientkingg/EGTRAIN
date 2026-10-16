@@ -5,12 +5,6 @@
 #include "simulation/Passengers.h"
 #include <vector>
 
-// Function to Detect the implemented Order for all the OL in the network
-void Detect_Implemented_Order_For_All_OL();
-
-// Function to Print the Implemented Order of all the OLs in a text file
-void Print_Implemented_Order_For_All_OL(string FolderName);
-
 // Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
 void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
 
@@ -35,7 +29,9 @@ void calculateDelayStatsForAllStations();
 // Function to calculate positive and negative train delay statistics for all stations
 void calculatePosAndNegDelayStatsForAllStations();
 
-extern double Comp_Time_EGTRAIN, Comp_Time_ROMA; // variable to measure the computation times of EGTRAIN and ROMA
+// Computation times of EGTRAIN and ROMA
+extern double& Comp_Time_EGTRAIN;
+extern double& Comp_Time_ROMA;
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
 void Print_Computing_Times(string FolderName);

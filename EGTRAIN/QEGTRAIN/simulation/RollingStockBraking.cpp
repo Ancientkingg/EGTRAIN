@@ -693,11 +693,10 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	std::vector<Target> targets;
 	int incumbent = -1;
 	for (const Node& node : BrakingPoints) {
-		const bool mustStop = Train_Must_Stop_For_OL_Order(node.respectOrder, node.indexOrderList);
-		const double position = node.isSignalled && !mustStop ? node.X : node.X * 1000;
-		const double speed = mustStop || (node.isSignalled && node.stationName == "DecoupleTrain") ? 0
-			: node.isSignalled																	   ? TargetSpeedForMA
-																								   : node.arcSpeedLimit;
+		const double position = node.isSignalled ? node.X : node.X * 1000;
+		const double speed = node.isSignalled && node.stationName == "DecoupleTrain" ? 0
+			: node.isSignalled														 ? TargetSpeedForMA
+																					 : node.arcSpeedLimit;
 		targets.push_back({node, position, speed});
 		if (position > S && position == Xob[PreviousInstant] && speed == Vob[PreviousInstant])
 			incumbent = static_cast<int>(targets.size()) - 1;

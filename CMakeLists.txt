@@ -201,6 +201,7 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/RollingStockStops.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
     ${SRC_DIR}/simulation/Simulation.cpp
+    ${SRC_DIR}/simulation/SimulationRun.cpp
     ${SRC_DIR}/simulation/builders/InfrastructureBuilder.cpp)
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
@@ -442,6 +443,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/RollingStock.h
     ${SRC_DIR}/simulation/Signalling.h
     ${SRC_DIR}/simulation/Simulation.h
+    ${SRC_DIR}/simulation/SimulationRun.h
     ${SRC_DIR}/util/TimeFormat.h
     ${SRC_DIR}/util/Version.h
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.h
@@ -1132,6 +1134,13 @@ if(EGTRAIN_BUILD_TESTS)
 		set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 	endif()
 
+	# Runs a line fixture and Paimpol in this process, in the order that the test explains.
+	add_executable(test_simulationrun ${SRC_DIR}/tests/test_simulationrun.cpp)
+	target_link_libraries(test_simulationrun PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets)
+	add_test(NAME test_simulationrun
+		COMMAND test_simulationrun ${SRC_DIR}/tests/fixtures/scenes/line ${SRC_DIR}/Scenes/Paimpol)
+	set_tests_properties(test_simulationrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
+
 	# Behaviour characterization of the simulation core (see tests/characterization).
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
 
@@ -1467,7 +1476,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
-		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
+		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_diagrams_no_sim_globals test_no_e2e_in_product test_windows_subsystem_config test_raii_contract
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg)

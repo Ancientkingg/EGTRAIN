@@ -36,7 +36,7 @@ struct SimulationIncident {
 	bool hasEndSeconds = false;
 };
 
-extern std::vector<SimulationIncident> simulationIncidents;
+extern std::vector<SimulationIncident>& simulationIncidents;
 bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
 const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex);
 void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
@@ -353,11 +353,11 @@ public:
 };
 
 // --- Signalling System Functions ---
-extern double S_delay; // Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep)
+extern double& S_delay; // Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep)
 
-extern list<string> BlocksOccupied;		// All blocks occupied by trains (directly occupied + connected)
-extern list<string> BlocksConnected;	// Blocks connected to occupied blocks (released when train leaves)
-extern list<MovementAuthority> ETCS_MA; // Movement authorities: levels 3 and 4, and failed signals at every level
+extern list<string>& BlocksOccupied;	 // All blocks occupied by trains (directly occupied + connected)
+extern list<string>& BlocksConnected;	 // Blocks connected to occupied blocks (released when train leaves)
+extern list<MovementAuthority>& ETCS_MA; // Movement authorities: levels 3 and 4, and failed signals at every level
 
 // Occupy a block section and all connected blocks
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);

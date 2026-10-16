@@ -1,11 +1,6 @@
 #include "simulation/Passengers.h"
 #include <algorithm>
 
-list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
-int numAllDailyPassengers = 0;		// This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
-PassengerIndex AllDailyPassengerIndex;
-PlatformIndex AllStationPlatformIndex;
-
 void PassengerIndex::build(list<Passenger>& passengers) {
 	clear();
 	source_ = &passengers;

@@ -25,7 +25,6 @@
 
 //
 extern InitialParameters initial_variables;
-extern int numRegions;
 using namespace std;
 
 // Logging logger(initial_variables.full_path, boost::log::trivial::trace,initial_variables.enabled_log,initial_variables.log_to_file);

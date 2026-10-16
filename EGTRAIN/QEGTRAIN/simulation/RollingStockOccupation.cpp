@@ -3,84 +3,13 @@
 #include "util/Log.h"
 
 #include <algorithm>
-#include <fstream>
 #include <list>
 #include <string>
 
-void OrderList::Print_Implemented_Order(string FolderName, int Index_OL) {
-	string FileName = FolderName + "/Implemented_Order_OL" + std::to_string(Index_OL) + ".txt"; // Fixing the right name for the OutputFile
-	ofstream ImplementedOrder;
-	ImplementedOrder.open(FileName);
-	ImplementedOrder << Node_X << "\n"; // print the location of the OL on the top of the list
-	list<string>::iterator it;			// iterator of the TrainsCrossingOL
-
-	for (it = Implemented_Order.begin(); it != Implemented_Order.end(); it++) {
-		ImplementedOrder << *it << "\n";
-	}
-	ImplementedOrder.close();
-}
-
-bool Train::Train_Must_Stop_For_OL_Order(bool respectOrder, int IndexOrderList) {
-	bool TrainMustStop = false;
-	// Check if in this Node an Order given by an OL list has to be respected
-	if (respectOrder == 1) {
-		int IndexOL = IndexOrderList;
-		string PreviousTrain = "None";
-		for (int j = 1; j < OL[IndexOL].numTeList; j++) { // Determining the Previous train that has to pass in this Node
-			if (OL[IndexOL].TE[j].trainDescription == trainDescription) {
-				PreviousTrain = OL[IndexOL].TE[j - 1].trainDescription;
-				break;
-			}
-		}
-		// if the previous train has not passed yet and if this train is different from the first train of the OL list or the train is not in the list at all (PreviousTrain=None), then this train has to stop
-		if ((PreviousTrain != OL[IndexOL].LastEnteredTrain) && (PreviousTrain != "None") && (trainDescription != OL[IndexOL].TE[0].trainDescription))
-			TrainMustStop = true;
-	}
-	return TrainMustStop;
-}
-
-bool Train::Conditions_To_Stop_Train_For_OL_Order(bool respectOrder, int IndexOrderList, const Section& BS) {
-	bool Condition_To_Stop_Train = false;
-	// Verifying if the train must stop because the previous train of the list has not passed yet
-	bool TrainMustStop = Train_Must_Stop_For_OL_Order(respectOrder, IndexOrderList);
-	// if the previous train has passed and the signal is different from restrictive aspects(red for signalling levels different than BACC or red_red for BACC) Condition_To_Stop_Train is false
-	if ((TrainMustStop == 1) || ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::RedRed))
-		|| ((BS.SignallingLevel != levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::Red)))
-		Condition_To_Stop_Train = true;
-	// else stop the train
-	else
-		Condition_To_Stop_Train = false;
-	return Condition_To_Stop_Train;
-}
-
-void Train::Update_LastEnteredTrain_For_All_OL_Improved(int i, const Section& BS) {
-	// Search if in the Block Section there are Nodes connected with Ordered Lists (thereofore in which a certain Order has to be respected)
-	double AbsoluteChecklistPos = -1;
-	double RelativeChecklistPos = -1;
-	int IndexOrderList = -1;
-	for (int j = 0; j < BS.total_arcs; j++) {
-		if ((BS.arcs_in_signalling_block_section[j].startNode.respectOrder == 1) || (BS.arcs_in_signalling_block_section[j].endNode.respectOrder == 1)) {
-
-			if (BS.arcs_in_signalling_block_section[j].startNode.respectOrder == 1) {
-				RelativeChecklistPos = BS.arcs_in_signalling_block_section[j].startNode.X * 1000;
-				IndexOrderList = BS.arcs_in_signalling_block_section[j].startNode.indexOrderList;
-			} else if (BS.arcs_in_signalling_block_section[j].endNode.respectOrder == 1) {
-				RelativeChecklistPos = BS.arcs_in_signalling_block_section[j].endNode.X * 1000;
-				IndexOrderList = BS.arcs_in_signalling_block_section[j].endNode.indexOrderList;
-			}
-			if (train_route[this->indexOfRoute].reversed_direction == 1) {
-				AbsoluteChecklistPos = BS.GeoXBegNode - (RelativeChecklistPos - BS.start_node.X * 1000);
-			} else {
-				AbsoluteChecklistPos = RelativeChecklistPos;
-			}
-
-			// In particular to update this value it is necessary that the train has passed with all its length train_length the checklist Node to guarantee a safe train separation
-			if ((instant_spatial_position[i - 1] - train_length <= RelativeChecklistPos) && (instant_spatial_position[i] - train_length > RelativeChecklistPos)) {
-				OL[IndexOrderList].LastEnteredTrain = trainDescription;
-				EG_LOG(SimStep, Info) << OL[IndexOrderList].LastEnteredTrain << "\n";
-			}
-		}
-	}
+bool Train::isAspectRestrictive(const Section& BS) const {
+	// red-red is the restrictive aspect of level 5 (BACC), red that of the other levels
+	return ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::RedRed))
+		|| ((BS.SignallingLevel != levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::Red));
 }
 
 void Train::Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks) {

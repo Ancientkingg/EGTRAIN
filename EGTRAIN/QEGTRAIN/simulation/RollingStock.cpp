@@ -12,24 +12,6 @@
 #include <limits>
 #include <sstream>
 
-// GUI - Virtual Coupling notifications
-vector<int> VCmsgTimestep;
-vector<string> VCmsgTrain;
-vector<string> VCmsgText;
-// --------------
-
-int N_OrderLists = initial_variables.num_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
-
-OrderList::OrderList() {
-	Node_X = -10000;
-	numTeList = 0;
-	LastEnteredTrain = "None";
-	BlockID = "None";
-	Is_DivergingJunction = Is_MergingJunction = 0;
-}
-
-OrderList OL[20];
-
 BlockingTimes::BlockingTimes() {
 	StartOccTime = -1;
 	EndOccTime = -1;
@@ -57,16 +39,12 @@ BlockingTimes::BlockingTimes() {
 	NextBlockIDPreviousTrain = "None";
 }
 
-int numRegions = 0; /*Number of Speed ranges in the characteristic Tractive effort-speed curve of trains, Number of Trains loaded for the simulation( N_Train+N_TrainD)*/
-
-int N_Train, N_TrainD; /*Number of Trains with even path, Number of Trains with odd path*/
-
 // const int Max_N_Reg = 150;
 
 Train::Train() {
 	velocityIntervals = temp = stop = counter = counter2 = CounterFollowingMode = IsTrainCoupling = 0;
 	BrakStep = -1;
-	End_Time = (int)((initial_variables.times - 1) / timestep);
+	End_Time = -1; // setTrainVectorSizesFromInput sets the last step of the trajectory arrays
 	numStations = 0;
 	Xobmin = Vobmin = 0;
 	// instant_train_energy_consumption[0] = 0; // moved to function that sets the size of vectors from user input (at this point vector size is zero, can't set value)
@@ -278,8 +256,6 @@ Regional::Regional() {
 	massFactor = sceneTrainMassFactor(SceneTrainPhysical());
 	total_train_mass = mass_of_traction_unit + massPerWagonAxle;
 }
-
-std::vector<Regional> regional_train;
 
 // Function to compute Blocking Times of trains in mixed signalling areas
 void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {

@@ -199,6 +199,11 @@ def assert_deferred_success_path_resets() -> None:
     for reset in ("resetNativeInfrastructureState();", "resetNativeOperationsState();"):
         if reset not in full_reset:
             raise SystemExit(f"full dispatch reset no longer calls {reset}")
+    # The lists of the run are cleared by SimulationRun::reset(), which the operation state calls.
+    for name in ("BlocksOccupied", "BlocksConnected", "ETCS_MA"):
+        for label, body in (("lightweight scene preparation", begin_preparation), ("full dispatch reset", full_reset)):
+            if f"{name}.clear();" in body:
+                raise SystemExit(f"{label} clears {name} itself instead of resetting the run")
 
     operations = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/OperationsBuilder.cpp").read_text(encoding="utf-8")
     lightweight = operations[
@@ -209,10 +214,25 @@ def assert_deferred_success_path_resets() -> None:
         operations.index("void resetNativeOperationsState()"):
         operations.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
     ]
-    if "regional_train" in lightweight or "nativeClearRegionalTrains" in lightweight:
-        raise SystemExit("lightweight operation preparation releases the regional_train storage")
-    if "prepareNativeOperationsState();" not in full_operations_reset or "regional_train" not in full_operations_reset:
-        raise SystemExit("full operation reset does not combine lightweight clearing with releasing the trains")
+    if "defaultRun().reset();" not in lightweight:
+        raise SystemExit("operation preparation does not reset the run")
+    # The trains are state of the run too: its reset releases their storage, so neither function names them.
+    moved = (
+        "simulationIncidents", "VCmsgTimestep", "VCmsgTrain", "VCmsgText", "AllStationPlatforms", "AllStationPlatformIndex",
+        "AllDailyPassengers", "AllDailyPassengerIndex", "numAllStationPlatforms", "numAllDailyPassengers",
+        "regional_train", "numRegions", "nativeClearRegionalTrains",
+    )
+    for label, body in (("operation preparation", lightweight), ("full operation reset", full_operations_reset)):
+        for name in moved:
+            if name in body:
+                raise SystemExit(f"{label} handles {name} itself instead of resetting the run")
+    if "prepareNativeOperationsState();" not in full_operations_reset:
+        raise SystemExit("full operation reset does not combine the preparation with the reset of the run")
+
+    run = (ROOT / "EGTRAIN/QEGTRAIN/simulation/SimulationRun.cpp").read_text(encoding="utf-8")
+    run_reset = run[run.index("void SimulationRun::reset()"):run.index("namespace {")]
+    if "swap(trains);" not in run_reset or "numTrains = 0;" not in run_reset:
+        raise SystemExit("the reset of the run does not release the train storage")
 
 
 def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> None:

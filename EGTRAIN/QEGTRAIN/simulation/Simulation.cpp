@@ -9,8 +9,6 @@
 #include <optional>
 #include <vector>
 
-double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
-
 extern InitialParameters initial_variables;
 
 namespace {
@@ -229,13 +227,6 @@ void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains) {
 	}
 }
 
-// Function to Detect the implemented Order for all the OL in the network
-void Detect_Implemented_Order_For_All_OL() {
-	for (int i = 0; i < N_OrderLists; i++) {
-		OL[i].Detect_Implemented_Order();
-	}
-}
-
 // Function to Print all the trajectories
 void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
 	string FileName;
@@ -276,12 +267,6 @@ void Print_Computing_Times(string FolderName) {
 	Comp_Times << "TOT_Comp_Time_EGTRAIN[s]" << " " << "TOT_Comp_Time_ROMA" << " " << "TOT_COMP_TIME" << "\n";
 	Comp_Times << Comp_Time_EGTRAIN << " " << Comp_Time_ROMA << " " << Comp_Time_EGTRAIN + Comp_Time_ROMA << "\n";
 	Comp_Times.close();
-}
-
-// Function to Print the Implemented Order of all the OLs in a text file
-void Print_Implemented_Order_For_All_OL(string FolderName) {
-	for (int i = 0; i < N_OrderLists; i++)
-		OL[i].Print_Implemented_Order(FolderName, i);
 }
 
 // Function to check the start of the Journey (hence check their entrance on the network) for all simulated passengers

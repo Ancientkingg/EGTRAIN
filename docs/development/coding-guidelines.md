@@ -152,8 +152,12 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
   `telemetry/TelemetryQueue.h` owns a `std::unique_ptr<QLockFile>`.
 - `simulation/` uses fixed-size global arrays and `extern` globals. Do not add more.
-  `regional_train` is a `std::vector<Regional>` created with the
-  number of trains of the scene (`extern` in `simulation/RollingStock.h`); `Max_N_Reg` is
+  State that a run builds up and the next run must not see is a member of `SimulationRun`
+  (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member in place. The old
+  global names of the members that moved there, such as `BlocksOccupied` and `ETCS_MA`, are
+  references to them. A new member needs a line in `reset()`.
+  `regional_train` is a reference to the `std::vector<Regional>` of the run, created with the
+  number of trains of the scene (declared in `simulation/RollingStock.h`); `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps
   the stops of its service in a `std::vector<Node>`, and `regional_train` is created once
   per build and not grown while the trains are live. A `Section` keeps the nodes of its block

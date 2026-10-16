@@ -45,70 +45,28 @@ void Train::checkEntrance(int i, Section* BS) {
 		return;
 	if (waiting && separated && i >= departure_time && entryConflictsWithCrossover(i, BS[0]))
 		return;
-	string PreviousTrain = "None"; // the previous Train according to the list
-	int IndexOL = BS[0].arcs_in_signalling_block_section[0].startNode.indexOrderList;
-
-	if ((IndexOL >= 0) && (IndexOL < N_OrderLists) && (IndexOL < 20) && (OL[IndexOL].numTeList > 0)) {
-		EG_LOG(SimStep, Info) << "this is the indexOL TRUE \n"
-							  << IndexOL;
-		for (int j = 1; j < OL[IndexOL].numTeList; j++) { // Determining which is the previous train in the list
-			if (trainDescription == OL[IndexOL].TE[j].trainDescription)
-				PreviousTrain = OL[IndexOL].TE[j - 1].trainDescription;
-		}
-		// if the Previous Train has already departed or if this train is the first of the list to depart
-		if ((PreviousTrain == OL[IndexOL].LastEnteredTrain) || (PreviousTrain == "None") || (trainDescription == OL[IndexOL].TE[0].trainDescription)) {
-			// if the time is equal or higher than the departure time and the signals are permissive set CanEnter true
-			if (isMovingBlockLevel(BS[0].SignallingLevel)) {
-				bool IsRouteStartingPointOccupied = false; // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
-				if (ETCS_MA.size() > 0) {
-					for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-						// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-						if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
-							IsRouteStartingPointOccupied = true;
-							break;
-						}
-					}
-				}
-				if ((i >= departure_time) && (IsRouteStartingPointOccupied == 0)) {
-					counter2++;
-					if (counter2 == 1)
-						CanEnter = true;
-				}
-			} else {
-				if ((i >= departure_time) && ((BS[0].code == 270) || (BS[0].code == 180))) {
-					counter2++;
-					if (counter2 == 1)
-						CanEnter = true;
+	if (isMovingBlockLevel(BS[0].SignallingLevel)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
+		bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
+		if (ETCS_MA.size() > 0) {
+			for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+				// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
+				if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
+					IsRouteStartingPointOccupied = true;
+					break;
 				}
 			}
 		}
-	}
+		if ((i >= departure_time) && (IsRouteStartingPointOccupied == 0)) {
+			counter2++;
+			if (counter2 == 1)
+				CanEnter = true;
+		}
 
-	else { // In case there is no ordered sequence of trains to be respected by trains at the beginning of the route
-
-		if (isMovingBlockLevel(BS[0].SignallingLevel)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
-			bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
-			if (ETCS_MA.size() > 0) {
-				for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-					// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-					if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
-						IsRouteStartingPointOccupied = true;
-						break;
-					}
-				}
-			}
-			if ((i >= departure_time) && (IsRouteStartingPointOccupied == 0)) {
-				counter2++;
-				if (counter2 == 1)
-					CanEnter = true;
-			}
-
-		} else { // if instead the signalling system of the first block section is a fixed-block signalling system
-			if ((i >= departure_time) && ((BS[0].code == 270) || (BS[0].code == 180))) {
-				counter2++;
-				if (counter2 == 1)
-					CanEnter = true;
-			}
+	} else { // if instead the signalling system of the first block section is a fixed-block signalling system
+		if ((i >= departure_time) && ((BS[0].code == 270) || (BS[0].code == 180))) {
+			counter2++;
+			if (counter2 == 1)
+				CanEnter = true;
 		}
 	}
 	if (waiting && separated && CanEnter) // the entering train occupies the first section at once
@@ -369,7 +327,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			double V_lim;
 			int U;
 			U = time_seconds;
-			int Previous_Block_Index = 0;
 			Arc As; // use local variable instead of Train class member (faster simulation)
 			string Occupied_TDS;
 
@@ -380,12 +337,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					Bs = train_route[indexOfRoute].sequence_of_block_sections[h];
 					instant_block_section_occupied[time_seconds] = Bs.ID;
 
-					if (h == 0)
-						Previous_Block_Index = h;
-					else {
-						Previous_Block_Index = h - 1;
+					if (h != 0)
 						break;
-					}
 				}
 			}
 
@@ -741,8 +694,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 					// Check if in this Station the train has also to respect a given OL Order
 					if (As.endNode.respectOrder == 1) {
-						bool Condition_To_Stop_Train = Conditions_To_Stop_Train_For_OL_Order(As.endNode.respectOrder, As.endNode.indexOrderList, Bs);
-						// The train can leave the station only if the previous train has passed, it has satisfied the min dwell time and the signal aspect is non restrictive and there is not condition to stop the train becasue of an ETCS 3 EoA
+						bool Condition_To_Stop_Train = isAspectRestrictive(Bs);
+						// The train can leave the station only if it has satisfied the min dwell time and the signal aspect is non restrictive and there is not condition to stop the train becasue of an ETCS 3 EoA
 						if ((Condition_To_Stop_Train == 0) && ((time_seconds - stop) > stoptime) && (time_seconds > dep_time) && (authorityHold == 0)) {
 							instant_train_speed[time_seconds] = 0.0001;
 							instant_spatial_position[time_seconds] = As.endNode.X * 1000 + 0.0001;
@@ -781,7 +734,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				// Stopping at a checkpoint Node where a certain train order must be respected
 				else if ((As.endNode.X * 1000 - instant_spatial_position[time_seconds - 1] < 4) && (As.endNode.respectOrder == 1)) {
 					counter = 0;
-					bool Cond_To_Stop_Train = Conditions_To_Stop_Train_For_OL_Order(As.endNode.respectOrder, As.endNode.indexOrderList, Bs);
+					bool Cond_To_Stop_Train = isAspectRestrictive(Bs);
 
 
 					if ((Cond_To_Stop_Train == 0) && (authorityHold == 0)) { // the checkpoint Node can coincide with an ETCS3 EoA, that is why the train can depart from this Node only after having verified that the checkpoint does not coincide with an ETCS3 EoA or that the EoA has been deleted
@@ -853,9 +806,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					instant_train_speed[time_seconds - 1],
 					trainDescription);
 			}
-
-			// if the train has just entered the track therefore its position instant_spatial_position[i] is higher than 1 meter and lower than 3 meters VirtualQ[ID-1] must be updated to ID
-			Update_LastEnteredTrain_For_All_OL_Improved(time_seconds, train_route[indexOfRoute].sequence_of_block_sections[Previous_Block_Index]);
 		}
 		/***********************************************************************************************************************/
 		else {
