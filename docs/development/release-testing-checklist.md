@@ -43,8 +43,8 @@ A fix after a failed row needs a new candidate and a new record.
 ## Automated release evidence
 
 The release is ready to rehearse only when the version, validation, sanitizer
-and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows
-and Linux) are green. The release job needs all of them.
+and the package jobs of the `Release` workflow (macOS, Windows, Finalize Windows,
+Linux and Rehearse Linux) are green. The release job needs all of them.
 [CI and release branches](build-and-test.md#ci-and-release-branches) describes
 what the workflow does.
 
@@ -139,6 +139,33 @@ What the jobs prove today:
   It then starts the extracted image through its `AppRun` on a virtual display,
   after it has checked that every Qt 5 and ZeroMQ library of the programs and
   plugins comes from the image and not from the runner.
+- The Rehearse Linux job runs the steps 1 to 9 of the clean-install rehearsal
+  on the AppImage that the Package Linux job uploaded. It runs on every package
+  run, so the release run rehearses the frozen candidate. The runner is a GitHub
+  Ubuntu 24.04 machine with a virtual display, a D-Bus session and the AT-SPI
+  accessibility bus. The job installs no Qt package. It extracts the
+  image, packs the Paimpol scene of the image into a `.egscene` bundle with the
+  `scene_tool` of the image, and runs `tools/release/linux_rehearsal.py`. The
+  bundle comes from the image because the macOS job, which uploads the
+  case-study bundles, would end this job after the Windows jobs. The script
+  starts the image through its `AppRun` with a new home directory and no
+  `QEGTRAIN_` variable, and drives the real menus and dialogs through AT-SPI,
+  with `xdotool` only for typing and for giving the keyboard to a field or a
+  table cell. The release package has no test hook. Each
+  step prints `STEP n PASS` or `STEP n FAIL` with what it saw, and the job stops
+  at the first step that fails. The script also fails when the area of the
+  buttons Zoom In and Zoom Out of the toolbar, which show an icon and no text,
+  has one colour, which shows that the SVG icons are drawn, and when typed text
+  does not reach a text field or a table cell. The screenshots of the
+  steps, the output of the application and the log of the script are the
+  artifact `linux-rehearsal-evidence` of the run, also when a step fails. The
+  artifact is for diagnosis and is not a release asset.
+  Record the result of the steps 1 to 9 on Linux from this job, and label it as
+  a run on a GitHub Ubuntu runner with a virtual display. The job does not cover
+  dragging a bundle from a file manager (row R2), a real desktop session, the
+  questions that a desktop environment asks at the first start, the file dialog
+  of a desktop environment (the job uses the dialog of Qt) and the rows R1 and R3
+  to R12.
 - Each package job also runs the update helper tests
   (`ctest -R '^test_update(helper|preparation)$'`, step **Verify update helper
   transaction**).
@@ -156,8 +183,9 @@ What the jobs prove today:
   ask for one. The Windows leg of the CMake workflow starts a
   Windows package assembled in that workflow (step **Start an assembled Windows
   package**). Except for the installer and the portable archive of the Finalize
-  Windows job, none of this starts the released file itself, and none of it
-  shows how the SVG icons look or typing into text fields.
+  Windows job and the extracted AppImage of the Rehearse Linux job, none of this
+  starts the released file itself, and only the Rehearse Linux job shows how the
+  SVG icons look or typing into text fields, on Linux.
 
 The Finalize Windows job runs as an administrator on a machine that has the
 Visual C++ runtime. It does not show that a standard user installs without an
@@ -174,7 +202,7 @@ in the disk image but opens no file. It does not show that Finder knows the
 `.egscene` file type of the installed app or that a double-click opens a file in
 EGTRAIN, with EGTRAIN closed or open (#416); the rows M1 to M3 do.
 
-None of this shows the GUI student workflow.
+Apart from the Rehearse Linux job, none of this shows the GUI student workflow.
 
 ## Package contents
 
@@ -201,6 +229,11 @@ or other development dependencies in the test path. The test account must not
 have `QEGTRAIN_` variables set: any `QEGTRAIN_E2E_` variable,
 `QEGTRAIN_DISABLE_UPDATES` and `QEGTRAIN_AUTOSTART` switch the update entries
 off and are not part of a student launch.
+
+On Linux, the steps 1 to 9 run in the Rehearse Linux job of every package run, on
+a GitHub Ubuntu runner with a virtual display, and need no machine of their own.
+[Automated release evidence](#automated-release-evidence) says what that job does
+and does not cover.
 
 On Windows there are two downloads, and each one gets this section. Row W2 below
 installs the installer and runs the steps on the installed copy. Row W6 unzips

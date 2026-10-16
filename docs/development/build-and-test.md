@@ -1542,7 +1542,8 @@ most of its checks, so run it locally to read its logs.
 - `production` is the release branch. Its full pipeline packages macOS,
   Windows, and Linux applications, runs CTest, sanitizers, and the complete
   smoke suite, validates the scene bundles, and publishes a stable `vX.Y.Z`
-  release. The three package jobs are in `.github/workflows/package.yml`, which
+  release. The three package jobs and the Rehearse Linux job, which runs the
+  clean-install steps on the Linux package, are in `.github/workflows/package.yml`, which
   `release.yml` calls from its `package` job with the selected version. The
   Windows package job uploads the assembled directory as the artifact
   `QEGTRAIN-windows-x64-payload`, and the Windows finalize job builds the

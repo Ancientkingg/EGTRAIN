@@ -481,8 +481,8 @@ def main() -> None:
     ):
         missing.append("quoted shared release version in all five build jobs")
     # The package workflow selects no version. Its only needs: are the signing job, the finalize job and the installer signing
-    # job, which follow the Windows package job.
-    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 3:
+    # job, which follow the Windows package job, and the Linux rehearsal, which follows the Linux package job.
+    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 4:
         missing.append("version selection before all builds")
     for marker in (
         "fetch-depth: 0",
@@ -842,7 +842,8 @@ def main() -> None:
         missing.append(
             "package workflow whose only credentials are the macOS certificate and notarization key with their passwords and the Windows signing token"
         )
-    package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux"]
+    package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux",
+                    "rehearse-linux"]
     if job_ids(package_only) != package_jobs:
         missing.append("package workflow jobs: " + ", ".join(package_jobs))
     # The release script reads one artifact directory for each package, the Windows payload and the scene bundles. The
@@ -1742,6 +1743,70 @@ def main() -> None:
         missing.append("Linux package start with the platform plugin that the image holds, without a Qt variable")
     if package_only.count("tools/release/package_start_smoke.py") != 4:
         missing.append("package start script in the three package jobs and for the portable archive")
+    # The Linux rehearsal runs on a runner of its own, with a display and the accessibility bus but no Qt. It takes the AppImage that
+    # the Linux package job uploaded, packs the bundle that it opens from the image, runs tools/release/linux_rehearsal.py and
+    # uploads the screenshots and logs under a name that the release script does not read. The job belongs to the package
+    # workflow, so the package check result and the release job count it through the package job like every other package job.
+    rehearse_job = job_block(package_only, "rehearse-linux")
+    rehearse_steps = ["Download the AppImage", "Install the display, the accessibility bus and the test tools",
+                      "Extract the AppImage and pack the downloaded bundle", "Rehearse the clean-install steps", "Upload the evidence"]
+    if (
+        re.findall(r"^    needs: (.+)$", rehearse_job, re.MULTILINE) != ["package-linux"]
+        or re.findall(r"^    runs-on: (.+)$", rehearse_job, re.MULTILINE) != ["ubuntu-24.04"]
+        or not re.search(r"^    timeout-minutes: \d+$", rehearse_job, re.MULTILINE)
+        or re.findall(r"^      - name: (.+)$", rehearse_job, re.MULTILINE) != rehearse_steps
+        or "      - uses: actions/checkout@v4\n        with:\n          sparse-checkout: tools/release\n" not in rehearse_job
+        or re.findall(r"^    if: ", rehearse_job, re.MULTILINE)
+    ):
+        missing.append("Linux rehearsal job after the Linux package job, on ubuntu-24.04, with a checkout of tools/release and its steps")
+    rehearse_download = step_block(rehearse_job, "Download the AppImage")
+    if (
+        "        uses: actions/download-artifact@v4\n" not in rehearse_download
+        or "          name: QEGTRAIN-linux-x86_64\n" not in rehearse_download
+    ):
+        missing.append("Linux rehearsal that downloads the artifact QEGTRAIN-linux-x86_64 of the Linux package job")
+    rehearse_install = re.search(r"apt-get install -y --no-install-recommends((?:.*\\\n)*.*\n)",
+                                 step_block(rehearse_job, "Install the display, the accessibility bus and the test tools"))
+    rehearse_packages = rehearse_install.group(1).replace("\\", " ").split() if rehearse_install else []
+    needed_packages = ("xvfb", "xauth", "xdotool", "imagemagick", "dbus-x11", "at-spi2-core", "python3-gi", "gir1.2-atspi-2.0")
+    if not all(package in rehearse_packages for package in needed_packages) or any("qt" in package.lower() for package in rehearse_packages):
+        missing.append("Linux rehearsal that installs the display, session bus, accessibility bus, key and screen tools and no Qt package")
+    rehearse_pack = step_block(rehearse_job, "Extract the AppImage and pack the downloaded bundle")
+    if (
+        '"$work/download/QEGTRAIN-linux-x86_64.AppImage" --appimage-extract' not in rehearse_pack
+        or '"$image/usr/bin/scene_tool" pack "$image/usr/bin/Scenes/Paimpol" "$work/Downloads/Paimpol.egscene"' not in rehearse_pack
+        or 'if ! "$image/usr/bin/scene_tool" validate "$work/Downloads/Paimpol.egscene" >"$work/bundle-validation.log" 2>&1; then\n'
+        not in rehearse_pack
+    ):
+        missing.append("Linux rehearsal that packs and validates the bundle with the scene_tool of the extracted AppImage")
+    rehearse_run = step_block(rehearse_job, "Rehearse the clean-install steps")
+    if (
+        'xvfb-run -a -s "-screen 0 1920x1080x24" dbus-run-session -- /usr/bin/python3 tools/release/linux_rehearsal.py' not in rehearse_run
+        or '"$work/package/squashfs-root" "$work/Downloads/Paimpol.egscene"' not in rehearse_run
+        or '--expected-version "${{ inputs.version }}"' not in rehearse_run
+        or "--evidence" not in rehearse_run
+        or re.findall(r"^          (\w+):", rehearse_run, re.MULTILINE) != ["PYTHONUTF8"]
+        or "QT_" in rehearse_run
+        or "QEGTRAIN_" in rehearse_run
+    ):
+        missing.append("Linux rehearsal script run on a virtual display with a session bus, with the version and no Qt or QEGTRAIN variable")
+    rehearse_upload = step_block(rehearse_job, "Upload the evidence")
+    if (
+        "        if: ${{ always() }}\n" not in rehearse_upload
+        or "        uses: actions/upload-artifact@v4\n" not in rehearse_upload
+        or "          name: linux-rehearsal-evidence\n          path: ${{ runner.temp }}/linux-rehearsal/evidence\n" not in rehearse_upload
+    ):
+        missing.append("Linux rehearsal evidence uploaded as linux-rehearsal-evidence even when a step fails")
+    release_artifacts = [directory for _key, _template, directory in build_release_assets.PACKAGES]
+    release_artifacts += [build_release_assets.WINDOWS_PAYLOAD, build_release_assets.SCENES_ARTIFACT]
+    if "linux-rehearsal-evidence" in release_artifacts or "rehearse-linux" in release_only or "rehearse-linux" in package_check:
+        missing.append("Linux rehearsal evidence that is no release asset and a job that only the package workflow names")
+    if (
+        "add_test(NAME test_linux_rehearsal\n"
+        "\t\tCOMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_linux_rehearsal.py)\n" not in cmake
+        or not re.search(r"egtrain_label_tests\(unit\b[^)]*\btest_linux_rehearsal\b", cmake)
+    ):
+        missing.append("Linux rehearsal unit test registered in CTest with the unit label")
     publishing = ("action-gh-release", "gh release", "gh api", "git push", "git commit")
     if (
         any(word in text for text in (package_check, package_only) for word in publishing)
