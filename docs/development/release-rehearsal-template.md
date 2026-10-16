@@ -21,7 +21,9 @@ follow the [release testing checklist](release-testing-checklist.md).
 | Platform and asset | Exact file name | Downloaded from |
 | --- | --- | --- |
 | macOS package |  |  |
-| Windows package |  |  |
+| Windows installer |  |  |
+| Windows portable archive |  |  |
+| Older Windows installer (row W5) |  |  |
 | Linux package |  |  |
 | Assignment bundle |  |  |
 | Bundle used for the workflow |  |  |
@@ -69,6 +71,12 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | R8 Manual update check |  |  |  |  |
 | R9 In-app update |  |  |  |  |
 | R10 Installation that cannot be updated in place |  |  |  |  |
+| W1 Windows assets |  |  |  |  |
+| W2 Install |  |  |  |  |
+| W3 Uninstall |  |  |  |  |
+| W4 Reinstall |  |  |  |  |
+| W5 Upgrade |  |  |  |  |
+| W6 Portable archive |  |  |  |  |
 
 ## Source bundle
 

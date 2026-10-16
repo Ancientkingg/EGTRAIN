@@ -8,7 +8,8 @@ can give is a field that reads Not recorded.
 
 - No Windows file is signed. No workflow step signs a Windows file or checks a signature, and the workflows use no
   credential other than the token that GitHub gives to each run.
-- The Windows download is the portable ZIP `QEGTRAIN-windows-x64.zip`. There is no installer (#401).
+- The Windows downloads are the installer `EGTRAIN-Setup-<version>-x64.exe` and the portable ZIP
+  `EGTRAIN-Portable-<version>-x64.zip`.
 - The macOS app is ad-hoc signed in the release workflow. An ad-hoc signature carries no publisher identity. Developer
   ID signing for macOS is #404 and is not covered here. The Linux AppImage is not signed.
 - The in-app update checks the SHA-256 and the size of the downloaded package against `update-manifest.json`, an asset
@@ -20,12 +21,12 @@ can give is a field that reads Not recorded.
 
 ## What would be signed
 
-The files are `QEGTRAIN.exe`, `egtrain_update_helper.exe`, `scene_tool.exe` and the Windows installer when it exists.
-The ZIP and the installer must contain the same signed program files, so signing happens before the ZIP is built and
-before the installer is compiled. The release job writes the ZIP from the directory that the Windows package job uploads
-and takes the SHA-256 and the size of the ZIP it wrote, so that directory must already hold the signed files. A ZIP file
-carries no Authenticode signature of its own. Signatures use SHA-256 and a trusted timestamp where the signing service
-supports them.
+The files are `QEGTRAIN.exe`, `egtrain_update_helper.exe`, `scene_tool.exe` and the Windows installer. The ZIP and the
+installer must contain the same signed program files, so signing happens before the ZIP is built and before the
+installer is compiled. The Windows finalize job writes the ZIP and compiles the installer from the directory that the
+Windows package job uploads, so that directory must already hold the signed files. The release job takes the SHA-256 and
+the size of each file it publishes for `update-manifest.json`. A ZIP file carries no Authenticode signature of its own.
+Signatures use SHA-256 and a trusted timestamp where the signing service supports them.
 
 This project does not sign the Qt, ZeroMQ and other runtime libraries and plugins in the package; they keep whatever
 signature they have, which may be none. The scenes, the guide and the `.egscene` case studies are data and are never
