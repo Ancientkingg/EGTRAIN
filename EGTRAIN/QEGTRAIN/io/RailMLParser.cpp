@@ -75,9 +75,6 @@ std::string trafficStateMonitoring_xml(nlohmann::json jsmsg) {
 	*/
 
 	std::stringstream ss;
-	// this is the simulation time to use in XML, since it is not the current time equal to simulation time
-	// It is equal to 3600*H where H is the start of timetable e.g. 07:00==> 3600*7=25200 seconds
-	int startingSimulationTime = 23300; // 25200; 23300=>06:28:20
 
 	time_t now = time(0);
 	time_t production_time = now;
@@ -85,7 +82,7 @@ std::string trafficStateMonitoring_xml(nlohmann::json jsmsg) {
 	struct tm ltm, prtm, stime;
 	localtime_r(&now, &ltm);
 
-	now = now - ((ltm.tm_hour * 3600) + (ltm.tm_min * 60) + ltm.tm_sec) + startingSimulationTime;
+	now = now - ((ltm.tm_hour * 3600) + (ltm.tm_min * 60) + ltm.tm_sec) + initial_variables.startingSimulationTime;
 	time_t simulation_time = now + static_cast<long>(jsmsg["time"]);
 	localtime_r(&now, &ltm); // recalculate on new time
 	localtime_r(&simulation_time, &stime);
@@ -179,10 +176,6 @@ std::string routeChoice_xml(nlohmann::json jsmsg) {
 
 	std::stringstream ss;
 
-	// this is the simulation time to use in XML, since it is not the current time equal to simulation time
-	// It is equal to 3600*H where H is the start of timetable e.g. 07:00==> 3600*7=25200 seconds
-	int startingSimulationTime = 23300; // 25200; 23300=>06:28:20
-
 	time_t now = time(0);
 	time_t production_time = now;
 
@@ -226,15 +219,15 @@ std::string routeChoice_xml(nlohmann::json jsmsg) {
 		person.append_attribute("person_id") = person_id.c_str(); // person_id=
 		person.append_attribute("trip_id") = trip_id.c_str();	  // trip_id=
 
-		pugi::xml_node origin = root.append_child("origin");
+		pugi::xml_node origin = person.append_child("origin");
 		std::string origin_station = it.value()["origin"];
 		origin.append_child(pugi::node_pcdata).set_value(origin_station.c_str()); //<origin>
 
-		pugi::xml_node destination = root.append_child("destination");
+		pugi::xml_node destination = person.append_child("destination");
 		std::string destination_station = it.value()["destination"];
 		destination.append_child(pugi::node_pcdata).set_value(destination_station.c_str()); //<destination>
 
-		pugi::xml_node departure_time = root.append_child("departure_time");
+		pugi::xml_node departure_time = person.append_child("departure_time");
 		int departure_time_station = it.value()["departure_time"];
 		departure_time.append_child(pugi::node_pcdata).set_value(std::to_string(departure_time_station).c_str()); //<departure_time>
 	}

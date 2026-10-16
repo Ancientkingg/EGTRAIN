@@ -89,23 +89,20 @@ trafficState                  currentTime
 
 ```text
 routeChoiceRequest            currentTime
-  person                      person_id trip_id
-  origin                      text
-  destination                 text
-  departure_time              text, a whole number
-  person ...                  the four elements repeat for the next passenger
+  person                      person_id trip_id, one for each passenger
+    origin                    text
+    destination               text
+    departure_time            text, a whole number
 ```
 
-`person_id` is the key of the passenger in the payload, and `trip_id` is always `1`. The four elements of a passenger are children of the root, one after the other; `origin`, `destination` and `departure_time` are not inside `person`. With no passenger in the payload the root is empty.
+`person_id` is the key of the passenger in the payload, and `trip_id` is always `1`. With no passenger in the payload the root is empty.
 
-`currentTime` is local midnight of the day on which the message is made, plus the start time of day, plus `t` seconds; a sum past 24 hours gives the next day. `lastOccupationTime` and `expectedEntranceTime` are counted the same way, with `lastOccTime` or `depTime` seconds in place of `t`. The start time of day is 23300 s in `trafficStateMonitoring_xml` and `initial_variables.startingSimulationTime` in `routeChoice_xml`. Every time is written as `YYYY-MM-DD HH:MM:SS.000 CEST`, with the literal text `CEST`.
+`currentTime` is local midnight of the day on which the message is made, plus the start time of day, plus `t` seconds; a sum past 24 hours gives the next day. `lastOccupationTime` and `expectedEntranceTime` are counted the same way, with `lastOccTime` or `depTime` seconds in place of `t`. The start time of day is `initial_variables.startingSimulationTime`, the start time of the scene. Every time is written as `YYYY-MM-DD HH:MM:SS.000 CEST`, with the literal text `CEST`.
 
 ## Known limits
 
-- The traffic-state builder uses a fixed start time of day, 23300 s (06:28:20), and not the start time of the scene. The route-choice builder uses `initial_variables.startingSimulationTime`.
 - Both builders write the literal `CEST` whatever the time zone of the machine. The date is the date of the machine, not of the scene.
 - The traffic-state JSON object is declared once for the whole step loop and updated in place. A train stays in it after it has left the network, and `inArea` stays 1 because it depends only on `departure_time <= t`.
-- The route-choice XML puts `origin`, `destination` and `departure_time` next to the `person` element and not inside it.
 - When a module does not answer within 100 ms, the socket is destroyed, and the next send goes through a new socket whose connection may not be complete. That send can return `false` at once. The retry loop in `tests/test_railmlparser.cpp` is the sign that this happens.
 
 ## What is not an interface
@@ -187,7 +184,7 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 
 ## Tests and code
 
-- `test_railmlparser` (unit) builds both XMLs from a fixed payload and checks the element and attribute names, their nesting and the form of every time, but not the value of a time. It also parses one RTTP train view, checks the parse error text for a broken document, checks that a send without a listener returns `false` in under one second, and checks the JSON envelope (`time` and `xml`) against a REP socket on the loopback address.
+- `test_railmlparser` (unit) builds both XMLs from a fixed payload and checks the element and attribute names, their nesting and the form of every time, but not the value of a time. It checks that both builders count their time from the same start time of day. It also parses one RTTP train view, checks the parse error text for a broken document, checks that a send without a listener returns `false` in under one second, and checks the JSON envelope (`time` and `xml`) against a REP socket on the loopback address.
 - `test_external_sharing_no_listener` (integration) runs the Paimpol scene with `-g 0 -h 1 -TSM 1 -RC 1` and no listener. It runs one step and expects the run to finish.
 - `test_route_choice_missing_data` (integration) starts the `Assignment_Gvc_Gdg_Ut` scene with `-RC 1` and expects the diagnostic `scene.route_choice.passengers.none`.
 - `test_operationsbuilder` checks `routeChoicePayload`.
