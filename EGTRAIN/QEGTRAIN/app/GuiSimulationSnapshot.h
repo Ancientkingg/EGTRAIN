@@ -24,6 +24,8 @@ struct GuiTrainState {
 	std::string description;
 	std::string operatingCode;
 	std::string serviceId;
+	// Occurrence of the service that this train runs, counted from 1.
+	int occurrence = 1;
 	int routeIndex = -1;
 	bool reversedDirection = false;
 	int wagonCount = 0;
