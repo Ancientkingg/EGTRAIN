@@ -426,9 +426,10 @@ def read_ini(ini: Path) -> str:
 # opens it like File > Open Case Study. The window is a test run with the relay switched on. It was
 # started with a file, or without one so that the case chooser is open; the chooser then gives way.
 # The second launch has no test variable, as when the system opens a file. A scripted launch that
-# has a test variable and no switch opens the file in a window of its own. The socket of the relay
-# lies in a folder of this check, so that other runs do not meet it.
-def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], handed: list[Path], scripted: Optional[Path], temp: Path) -> None:
+# has a test variable and no switch opens the file in a window of its own. A file that does not load
+# is handed over last, because the window then shows a message box that holds back further files.
+# The socket of the relay lies in a folder of this check, so that other runs do not meet it.
+def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], handed: list[Path], malformed: Optional[Path], scripted: Optional[Path], temp: Path) -> None:
     label = "file launch while a window runs" if first else "file launch while the chooser is open"
     temp.mkdir()
     sockets = Path(tempfile.mkdtemp(prefix="egtrelay-", dir="/tmp"))
@@ -466,7 +467,7 @@ def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], 
         else:
             # The listener has just been created; give it a moment to be ready.
             time.sleep(0.5)
-        for bundle in handed:
+        for bundle, opens in [(b, True) for b in handed] + ([(malformed, False)] if malformed else []):
             if problem:
                 break
             try:
@@ -477,8 +478,12 @@ def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], 
                 break
             if second.returncode != 0:
                 problem = f"{label}: the second launch with {ascii(bundle.name)} ended with {second.returncode}, expected 0\n{tail(second.stdout)}"
-            elif not wait_until(lambda: ini_form(bundle) in read_ini(ini), 30, window):
+            elif opens and not wait_until(lambda: ini_form(bundle) in read_ini(ini), 30, window):
                 problem = f"{label}: the window did not open {ascii(bundle.name)} within 30 s"
+            elif not opens:
+                time.sleep(2)
+                if ini_form(bundle) in read_ini(ini):
+                    problem = f"{label}: the window added {ascii(bundle.name)}, which does not load, to the recent cases"
         if not problem and window.poll() is not None:
             problem = f"{label}: the window ended with {window.poll()} instead of staying open"
         if not problem and scripted:
@@ -539,9 +544,9 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
             print("window launch with a bundle argument added it to the recent cases and kept the chooser closed")
             scripted = spaced.parent / "Scripted.egscene"
             shutil.copyfile(second, scripted)
-            assert_file_launch_reaches_running_window(app, spaced, [second, unicode_bundle], scripted, root / "run-relay")
-            assert_file_launch_reaches_running_window(app, None, [second], None, root / "run-relay-chooser")
-            print("file launches while a window runs were opened by that window, which closed its chooser; a scripted launch kept its own window")
+            assert_file_launch_reaches_running_window(app, spaced, [second, unicode_bundle], malformed, scripted, root / "run-relay")
+            assert_file_launch_reaches_running_window(app, None, [second], None, None, root / "run-relay-chooser")
+            print("file launches while a window runs were taken by that window, which closed its chooser and kept a malformed file out of the recent cases; a scripted launch kept its own window")
 
 
 def main() -> None:

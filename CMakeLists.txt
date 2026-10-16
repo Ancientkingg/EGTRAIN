@@ -955,8 +955,10 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_startup_launch_contract
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/startup_launch_contract.py $<TARGET_FILE:QEGTRAIN> $<TARGET_FILE:scene_tool>)
 	# Cover two 60-second child launches, two 8-second PTY checks, a 60-second wait for the window
-	# launch with a file name and cleanup, plus 30 seconds for the other file name launches.
-	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 240)
+	# launch with a file name and cleanup, plus 30 seconds for the other file name launches. The
+	# launches that hand a file to a running window add 60 seconds for the window to start, 60 seconds
+	# for a file to arrive and 60 seconds for a scripted launch.
+	set_tests_properties(test_startup_launch_contract PROPERTIES TIMEOUT 480)
 	if(NOT WIN32)
 		add_test(NAME test_case_chooser_contract
 			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/case_chooser_contract.py

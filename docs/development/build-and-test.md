@@ -210,15 +210,16 @@ checks that a path with spaces and non-ASCII characters arrives once and
 unchanged and that the second process ends with 0, that a request for another
 application folder is refused, that a name held by a running instance is not
 taken over while a name left behind by a killed one is, that a request in two
-parts is accepted and bytes that are no request are dropped, that only the
-newest postponed request comes back, and the rule for the test variables. On
-macOS and Linux the socket files lie in a folder directly below `/tmp`, because
-a socket path is limited to about 100 characters. `test_startup_launch_contract`
-adds the window: a window started with a file, and one with the chooser open,
-each open a file that a launch without test variables hands to them, and a
-scripted launch with a file keeps its own window. A run with any
-`QEGTRAIN_E2E_` variable neither listens nor hands over a file, unless
-`QEGTRAIN_E2E_OPEN_RELAY` is set as well, which the contract sets for the
+parts is accepted and bytes that are no request, or more than a request holds,
+are dropped, that only the newest postponed request comes back, and the rule for
+the test variables. On macOS and Linux the socket files lie in a folder directly
+below `/tmp`, because a socket path is limited to about 100 characters.
+`test_startup_launch_contract` adds the window: a window started with a file,
+and one with the chooser open, each open a file that a launch without test
+variables hands to them, the window leaves a handed file that does not load out
+of the recent cases, and a scripted launch with a file keeps its own window. A
+run with any `QEGTRAIN_E2E_` variable neither listens nor hands over a file,
+unless `QEGTRAIN_E2E_OPEN_RELAY` is set as well, which the contract sets for the
 window only.
 
 ### Test labels
