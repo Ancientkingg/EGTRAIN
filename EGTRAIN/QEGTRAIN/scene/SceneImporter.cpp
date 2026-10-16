@@ -64,11 +64,11 @@ static fs::path resolvePath(const fs::path& base, const std::string& relPath) {
 		bool found = false;
 		if (fs::is_directory(current, ec)) {
 			std::string lowerComp = component;
-			std::transform(lowerComp.begin(), lowerComp.end(), lowerComp.begin(), ::tolower);
+			std::transform(lowerComp.begin(), lowerComp.end(), lowerComp.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 			for (const auto& entry : fs::directory_iterator(current, ec)) {
 				std::string name = entry.path().filename().u8string();
 				std::string lowerName = name;
-				std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+				std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 				if (lowerName == lowerComp) {
 					current = entry.path();
 					found = true;

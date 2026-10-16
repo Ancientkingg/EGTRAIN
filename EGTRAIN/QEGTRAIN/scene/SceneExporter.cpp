@@ -1216,7 +1216,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 			result.wroteAll = false;
 		}
 
-		std::ofstream ttf(outputDir / ttPathRel);
+		std::ofstream ttf(outputDir / pathFromUtf8(ttPathRel));
 		if (ttf) {
 			for (const auto& stop : svc.stops) {
 				if (stop.stationId.find_first_of(" \t\r\n") != std::string::npos) {
