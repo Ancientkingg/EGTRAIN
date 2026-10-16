@@ -12,5 +12,5 @@ public:
 	static void runSceneRender(MainWindow& w);
 	static void runTrackPreview(MainWindow& w) { w.runTrackPreviewE2E(); }
 	static void runLegacyImport(MainWindow& w);
-	static void runSceneDrop(MainWindow& w) { w.runSceneDropE2E(); }
+	static void runSceneDrop(MainWindow& w);
 };
