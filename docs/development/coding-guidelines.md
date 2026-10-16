@@ -300,6 +300,8 @@ tests are built. `MainWindowTestAccess` is the friend of `MainWindow` for them, 
 own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `SceneRender.cpp`, `StationOverlay.cpp`,
 `TrackPreview.cpp`, `VisualPolish.cpp`, `EditorSmoke.cpp`, `CreatorAcceptance.cpp`) is a member of
 it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
+`PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
+the hooks of `MainWindowTestHooks`.
 
 ## Avoid in new code
 

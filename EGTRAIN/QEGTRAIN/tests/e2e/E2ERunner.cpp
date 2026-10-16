@@ -53,9 +53,17 @@ constexpr int kRunningOpenRequestDelayMs = 1000;
 constexpr int kChooserPollMs = 20;
 constexpr int kOpenRequestStatusDelayMs = 3000;
 
+// The variables of a run that goes on without a scenario and has no user to answer a dialog.
+constexpr const char* kRunVariables[] = {"QEGTRAIN_AUTOSTART", "QEGTRAIN_E2E_EXPORT_DIR", "QEGTRAIN_E2E_ROUTE_DIAGRAM",
+	"QEGTRAIN_E2E_OPERATIONAL_COMPLETION"};
+
 bool anyScenarioRequested() {
 	for (const Scenario& scenario : kScenarios) {
 		if (qEnvironmentVariableIsSet(scenario.variable))
+			return true;
+	}
+	for (const char* variable : kRunVariables) {
+		if (qEnvironmentVariableIsSet(variable))
 			return true;
 	}
 	return qEnvironmentVariableIsSet(kOpenRequest);
@@ -93,6 +101,9 @@ void sendOpenRequestWhenChooserOpens(MainWindow& window, const QString& file) {
 }
 
 void startScenarios(MainWindow& window) {
+	// A window without a scene has no run to start.
+	if (!mainWindowTestHooks().suppressStartupPrompts)
+		MainWindowTestAccess::autostart(window);
 	for (const Scenario& scenario : kScenarios) {
 		if (!qEnvironmentVariableIsSet(scenario.variable))
 			continue;
@@ -144,6 +155,12 @@ bool configureProcess() {
 	// The visual polish scenario also starts from the frames of a run.
 	if (qEnvironmentVariableIsSet(kVisualPolish))
 		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
+	mainWindowTestHooks().snapshotDelivered = &MainWindowTestAccess::snapshotDelivered;
+	mainWindowTestHooks().snapshotDrawn = &MainWindowTestAccess::checkSignalHeads;
+	mainWindowTestHooks().runResultsRefreshed = &MainWindowTestAccess::runResultsRefreshed;
+	mainWindowTestHooks().runFinished = &MainWindowTestAccess::runFinished;
+	mainWindowTestHooks().runSettled = &MainWindowTestAccess::runSettled;
+	mainWindowTestHooks().routeDiagramBuilt = &MainWindowTestAccess::routeDiagramBuilt;
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
 	return true;
 }

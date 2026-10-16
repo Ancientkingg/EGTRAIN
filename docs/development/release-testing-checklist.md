@@ -147,9 +147,9 @@ What the jobs prove today:
 - The Package macOS job starts a copy of the app that goes into the disk image, the
   Package Windows job starts a copy of the directory it uploads, and the Package
   Linux job starts the extracted AppImage, all with
-  `tools/release/package_start_smoke.py` (step **Start the package**). All three
-  also run the CSV export and the PNG export of the Paimpol scene through the
-  test hooks of the application. The Windows leg of the CMake workflow starts a
+  `tools/release/package_start_smoke.py` (step **Start the package**). None of
+  them makes a CSV or PNG export, because a release build has no test hooks to
+  ask for one. The Windows leg of the CMake workflow starts a
   Windows package assembled in that workflow (step **Start an assembled Windows
   package**). Except for the installer and the portable archive of the Finalize
   Windows job, none of this starts the released file itself, and none of it
