@@ -21,6 +21,7 @@ RELEASE_INFO = Path(__file__).resolve().parents[2] / "EGTRAIN" / "QEGTRAIN" / "u
 TOOL_TIMEOUT = 120
 IMAGE_BYTES = b"image bytes"
 NOTICE = "hdiutil: WARNING: 'hdiutil create -srcfolder ...' is deprecated.\n"
+DS_STORE_MAGIC = b"\x00\x00\x00\x01Bud1"
 
 
 def make_app(root, name="QEGTRAIN.app"):
@@ -40,12 +41,15 @@ class FakeTools:
         self.stderr = stderr
         self.calls = []
         self.staged = None
+        self.layout = None
 
     def run(self, command, **kwargs):
         self.calls.append((list(command), kwargs))
         name = command[0]
         if name == "hdiutil":
-            self.staged = sorted(os.listdir(command[command.index("-srcfolder") + 1]))
+            stage = Path(command[command.index("-srcfolder") + 1])
+            self.staged = sorted(os.listdir(stage))
+            self.layout = (stage / ".DS_Store").read_bytes() if (stage / ".DS_Store").exists() else None
             Path(command[-1]).write_bytes(IMAGE_BYTES)
         if name == self.timing_out:
             raise subprocess.TimeoutExpired(command, kwargs["timeout"])
@@ -74,11 +78,21 @@ class DiskImageInputTests(unittest.TestCase):
         self.target = self.output / "EGTRAIN-1.2.3-macOS-arm64.dmg"
         self.tools = FakeTools()
 
-    def build(self, app=None, output=None, version="1.2.3", **fakes):
+    def build(self, app=None, output=None, version="1.2.3", layout=False, **fakes):
         tools = FakeTools(**fakes) if fakes else self.tools
         self.tools = tools
         with fake_environment(tools) as self.symlink:
-            return make_dmg.build_dmg(app or self.app, output or self.output, version)
+            return make_dmg.build_dmg(app or self.app, output or self.output, version, layout)
+
+    def use_layout_file(self, content=b"layout bytes"):
+        """Stands in for the committed layout file."""
+        path = self.root / "DS_Store"
+        if content is not None:
+            path.write_bytes(content)
+        patcher = mock.patch.object(make_dmg, "LAYOUT_FILE", path)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return path
 
     def assertRefused(self, part, **arguments):
         with self.assertRaises(SystemExit) as raised:
@@ -86,8 +100,9 @@ class DiskImageInputTests(unittest.TestCase):
         self.assertIn(part, str(raised.exception))
         self.assertEqual(self.tools.calls, [])
 
-    def assertCommands(self):
-        """Both commands and the link are as promised. Returns the staging folder."""
+    def assertCommands(self, staged=()):
+        """Both commands and the link are as promised, and the staging folder holds the named files besides them. Returns
+        the staging folder."""
         ditto, hdiutil = self.tools.calls
         stage = Path(ditto[0][-1]).parent
         self.assertEqual(ditto[0], ["ditto", str(self.app), str(stage / "QEGTRAIN.app")])
@@ -99,7 +114,7 @@ class DiskImageInputTests(unittest.TestCase):
         self.assertEqual(self.symlink.call_count, 1)
         self.assertEqual([str(argument) for argument in self.symlink.call_args[0]], ["/Applications", str(stage / "Applications")])
         # The fake ditto and the mocked link create nothing, so the script added nothing else.
-        self.assertEqual(self.tools.staged, [])
+        self.assertEqual(self.tools.staged, sorted(staged))
         return stage
 
     def test_name_holds_the_version(self):
@@ -181,6 +196,25 @@ class DiskImageInputTests(unittest.TestCase):
         stage = self.assertCommands()
         self.assertFalse(stage.exists())
 
+    def test_layout_file_is_staged_as_ds_store(self):
+        self.use_layout_file()
+        self.assertEqual(self.build(layout=True), self.target)
+        stage = self.assertCommands(staged=[".DS_Store"])
+        self.assertEqual(self.tools.layout, b"layout bytes")
+        self.assertFalse(stage.exists())
+
+    def test_no_layout_file_is_staged_without_the_option(self):
+        self.use_layout_file()
+        self.build()
+        self.assertCommands()
+        self.assertIsNone(self.tools.layout)
+
+    def test_missing_layout_file_is_reported_before_anything_is_created(self):
+        path = self.use_layout_file(content=None)
+        self.assertRefused(str(path), layout=True)
+        self.assertFalse(self.output.exists())
+        self.assertEqual(self.build(), self.target)
+
     def test_failing_command_removes_the_partial_image_and_the_stage(self):
         with self.assertRaises(SystemExit) as raised:
             self.build(failing="hdiutil", stderr="boom")
@@ -213,6 +247,29 @@ class DiskImageInputTests(unittest.TestCase):
         with fake_environment(self.tools), contextlib.redirect_stdout(output):
             make_dmg.main(["--version", "1.2.3", "--app", str(self.app), "--output", str(self.output)])
         self.assertEqual(output.getvalue().splitlines(), [f"{self.target.name}  {len(IMAGE_BYTES)} bytes", f"OK: {self.target}"])
+
+    def test_main_stages_the_layout_file_only_with_the_option(self):
+        self.use_layout_file()
+        for options, staged, layout in (([], [], None), (["--layout"], [".DS_Store"], b"layout bytes")):
+            with self.subTest(options=options):
+                self.tools = FakeTools()
+                output = self.root / f"out{len(options)}"
+                with fake_environment(self.tools), contextlib.redirect_stdout(io.StringIO()):
+                    make_dmg.main(["--version", "1.2.3", "--app", str(self.app), "--output", str(output)] + options)
+                self.assertEqual(self.tools.staged, staged)
+                self.assertEqual(self.tools.layout, layout)
+
+
+class CommittedLayoutTests(unittest.TestCase):
+    """The committed layout file is a Finder settings file that places the app and the link, on every platform."""
+
+    def test_layout_file_places_the_app_and_the_link(self):
+        data = make_dmg.LAYOUT_FILE.read_bytes()
+        self.assertTrue(data.startswith(DS_STORE_MAGIC), f"{make_dmg.LAYOUT_FILE} is not a .DS_Store file")
+        # The records are keyed by file name in UTF-16, and each icon position is an Iloc record.
+        for name in (make_dmg.APP_NAME, make_dmg.LINK_NAME):
+            self.assertIn(name.encode("utf-16-be"), data, f"the layout does not place {name}")
+        self.assertIn(b"Iloc", data)
 
 
 def compare_trees(source, copy):
@@ -299,6 +356,18 @@ def detach(mountpoint):
     run_tool(["hdiutil", "detach", "-force", mountpoint])
 
 
+def build_image(fixture, output, **options):
+    """SystemExit would end the run without the class cleanups, so it becomes an assertion failure."""
+    try:
+        return make_dmg.build_dmg(fixture, output, "1.2.3", **options)
+    except SystemExit as error:
+        raise AssertionError(f"make_dmg ended while building the image: {error}") from error
+
+
+def attach(image, mountpoint):
+    run_tool(["hdiutil", "attach", "-readonly", "-nobrowse", "-noautoopen", "-noverify", "-mountpoint", mountpoint, image])
+
+
 @unittest.skipUnless(sys.platform == "darwin", "the disk image can only be built and mounted on macOS")
 class DiskImageTests(unittest.TestCase):
     """Builds a real image of a signed fixture bundle and reads it back. A Mac that builds EGTRAIN has cc, codesign,
@@ -311,20 +380,20 @@ class DiskImageTests(unittest.TestCase):
         cls.addClassCleanup(temp.cleanup)
         root = Path(temp.name)
         cls.fixture = build_fixture(root / "fixture")
-        try:
-            cls.dmg = make_dmg.build_dmg(cls.fixture, root / "image", "1.2.3")
-        except SystemExit as error:
-            # SystemExit would end the run without the class cleanups.
-            raise AssertionError(f"make_dmg ended while building the image: {error}") from error
+        cls.dmg = build_image(cls.fixture, root / "image")
         cls.mount = root / "mnt"
         cls.addClassCleanup(detach, cls.mount)
-        run_tool(["hdiutil", "attach", "-readonly", "-nobrowse", "-noautoopen", "-noverify", "-mountpoint", cls.mount, cls.dmg])
+        attach(cls.dmg, cls.mount)
         cls.mounted_app = cls.mount / "QEGTRAIN.app"
         # What dragging the app to the Applications folder does.
         cls.copy = root / "copy" / "QEGTRAIN.app"
         cls.copy.parent.mkdir()
         run_tool(["ditto", cls.mounted_app, cls.copy])
         cls.root = root
+        cls.layout_dmg = build_image(cls.fixture, root / "layout", layout=True)
+        cls.layout_mount = root / "mnt-layout"
+        cls.addClassCleanup(detach, cls.layout_mount)
+        attach(cls.layout_dmg, cls.layout_mount)
 
     def test_image_has_the_promised_name_format_and_volume(self):
         self.assertEqual(self.dmg.name, "EGTRAIN-1.2.3-macOS-arm64.dmg")
@@ -344,6 +413,20 @@ class DiskImageTests(unittest.TestCase):
                 self.assertFalse(name.endswith(".egscene"), f"{Path(directory, name)} is a scene bundle")
             if "Scenes" in directories:
                 self.assertIn(self.mounted_app, Path(directory, "Scenes").parents, "a Scenes folder outside the app")
+
+    def test_image_without_the_option_has_no_layout_file(self):
+        self.assertNotIn(".DS_Store", os.listdir(self.mount))
+
+    def test_layout_file_is_on_the_volume_beside_the_app_and_the_link(self):
+        names = os.listdir(self.layout_mount)
+        self.assertIn(".DS_Store", names)
+        self.assertEqual(sorted(name for name in names if not name.startswith(".")), ["Applications", "QEGTRAIN.app"])
+        self.assertEqual(os.readlink(self.layout_mount / "Applications"), "/Applications")
+        self.assertTrue(filecmp.cmp(self.layout_mount / ".DS_Store", make_dmg.LAYOUT_FILE, shallow=False))
+
+    def test_layout_leaves_the_app_and_its_signature_as_they_are(self):
+        self.assertEqual(compare_trees(self.fixture, self.layout_mount / "QEGTRAIN.app"), [])
+        check_signature(self.layout_mount / "QEGTRAIN.app")
 
     def test_app_in_the_image_equals_the_fixture(self):
         self.assertEqual(compare_trees(self.fixture, self.mounted_app), [])
