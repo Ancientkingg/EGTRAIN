@@ -3805,8 +3805,8 @@ void writeAspect(Section& section, const AspectRow& row, double v75, double v751
 	}
 }
 
-// Whether the routine of a level writes the aspect of a section behind an occupied one: when the section has that
-// level, or when it has no level and the occupied section has that level.
+// Whether the ETCS 1 and 2 rows of a level write the aspect of a section behind an occupied one: when the section
+// has that level, or when it has no level and the occupied section has that level.
 bool levelWritesAspectBehind(int level, const Section& occupied, const Section& behind) {
 	return behind.SignallingLevel == level || (behind.SignallingLevel == kSignallingLevelUnset && occupied.SignallingLevel == level);
 }
