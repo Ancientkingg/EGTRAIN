@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <locale>
 #include <sstream>
@@ -471,6 +472,21 @@ void checkAnchors(Report& report) {
 			"anchor without a level and dirty start: section " + section.ID + " is " + tokenText(section));
 }
 
+// The release reads the connected ids of every route: the routes have different lengths and the second one runs its ids backwards.
+void checkReleaseOnTwoRoutes(Report& report) {
+	RouteSpec back = routeSpec(uniform(kNoLevel, 5));
+	back.reversedIds = true;
+	installRoutes({routeSpec(uniform(kNoLevel, kLongRoute)), back});
+	report.expect(runRelease(idsOf({3})), "the lists changed in the release of the two routes");
+	// s3 is the fourth section of the first route and the second section of the second route. A released section has the code 270 and
+	// no signal speed limit; the state of the connected section stays as it was and the sections before it become green.
+	const std::string expected[] = {"270:G:999 270:G:999 270:G:999 270:?:999 11:?:7 11:?:7 11:?:7", "270:G:999 270:?:999 11:?:7 11:?:7 11:?:7"};
+	for (std::size_t route = 0; route < std::size(expected); ++route) {
+		const std::string actual = sectionsText(sectionsOf(route), aspectText);
+		report.expect(actual == expected[route], "release of s3 on route " + std::to_string(route) + ": expected " + expected[route] + ", actual " + actual);
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Groups
 // ---------------------------------------------------------------------------
@@ -765,6 +781,7 @@ Report buildReport() {
 	Report report;
 	const SavedGlobals saved;
 	checkAnchors(report);
+	checkReleaseOnTwoRoutes(report);
 	checkLevelMask(report);
 	writeHeader(report);
 	groupUniform(report);

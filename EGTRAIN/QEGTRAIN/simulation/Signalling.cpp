@@ -3910,100 +3910,21 @@ void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks) {
 }
 
 // Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
-void releaseBlocksMixedSignalling(Section* BS, int Blocks) {
-	list<string>::iterator it;
-	if (BlocksConnected.empty() != 1) {
-		for (it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			for (int h = 0; h < Blocks; h++) {
-				if (BS[h].ID == *it) {
-					if (h == 0) {
-						BS[h].code = 270;
+// connected has one flag per section of the route, nonzero when the section is in BlocksConnected. A connected section and the four sections
+// before it get the code 270 and lose their signal speed limit. The four sections before a connected section also get the state green.
+void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected) {
+	for (int j = 0; j < Blocks; j++) {
+		const int lastBehind = std::min(j + 4, Blocks - 1);
+		const bool isBeforeConnected = std::any_of(connected + j + 1, connected + lastBehind + 1, [](char flag) { return flag != 0; });
+		if (connected[j] == 0 && !isBeforeConnected)
+			continue;
+		BS[j].code = 270;
+		if (isBeforeConnected)
+			strcpy_s(BS[j].state, "green");
 
-						// clear signalSpeedLimit restrictions
-						for (int k = 0; k < BS[h].total_arcs; k++) {
-							BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-					} else if (h == 1) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-
-						// clear signalSpeedLimit restrictions
-						for (int k = 0; k < BS[h].total_arcs; k++) {
-							BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-							BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-					} else if (h == 2) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-
-						// clear signalSpeedLimit restrictions
-						for (int k = 0; k < BS[h].total_arcs; k++) {
-							BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-							BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-							BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-					} else if (h == 3) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-
-						// clear signalSpeedLimit restrictions
-						for (int k = 0; k < BS[h].total_arcs; k++) {
-							BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-							BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-							BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-							BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-					} else if (h >= 4) {
-						BS[h].code = 270;
-						BS[h - 1].code = 270;
-						strcpy_s(BS[h - 1].state, "green");
-						BS[h - 2].code = 270;
-						strcpy_s(BS[h - 2].state, "green");
-						BS[h - 3].code = 270;
-						strcpy_s(BS[h - 3].state, "green");
-						BS[h - 4].code = 270;
-						strcpy_s(BS[h - 4].state, "green");
-
-						// clear signalSpeedLimit restrictions
-						for (int k = 0; k < BS[h].total_arcs; k++) {
-							BS[h].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-							BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-							BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-							BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-						for (int k = 0; k < BS[h - 4].total_arcs; k++) {
-							BS[h - 4].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-						}
-					}
-				}
-			}
+		// clear signalSpeedLimit restrictions
+		for (int k = 0; k < BS[j].total_arcs; k++) {
+			BS[j].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 		}
 	}
 }
@@ -4011,8 +3932,8 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks) {
 /***********************************************************************************************************************************************************************************************************/
 
 namespace {
-// Sets flags[h] to 1 when the ID of section h of the route is in ids, otherwise to 0. The views in ids point into BlocksOccupied.
-void setOccupiedFlags(const Route& route, const std::unordered_set<std::string_view>& ids, std::vector<char>& flags) {
+// Sets flags[h] to 1 when the ID of section h of the route is in ids, otherwise to 0.
+void setIdFlags(const Route& route, const std::unordered_set<std::string_view>& ids, std::vector<char>& flags) {
 	flags.assign(route.N_Block_Sections, 0);
 	if (ids.empty())
 		return;
@@ -4054,7 +3975,7 @@ void activateMixedSignallingSystem() {
 		const unsigned levels = routeLevelMask(train_route[i]);
 		if (levels != 0) {
 			occupiedIds.insert(firstAdded, BlocksOccupied.end());
-			setOccupiedFlags(train_route[i], occupiedIds, occupied);
+			setIdFlags(train_route[i], occupiedIds, occupied);
 			// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
 			// route-local occupancy does not propagate recursively through adjacent crossover chains.
 			const Route& route = train_route[i];
@@ -4114,8 +4035,16 @@ void activateMixedSignallingSystem() {
 void releaseMixedSignallingSystem() {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/release_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
+	if (BlocksConnected.empty())
+		return;
+	// The set holds views of the entries of BlocksConnected.
+	std::unordered_set<std::string_view> connectedIds;
+	connectedIds.reserve(BlocksConnected.size());
+	connectedIds.insert(BlocksConnected.begin(), BlocksConnected.end());
+	std::vector<char> connected;
 	for (int t = 0; t < N_Routes; t++) {
-		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections.data(), train_route[t].N_Block_Sections);
+		setIdFlags(train_route[t], connectedIds, connected);
+		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections.data(), train_route[t].N_Block_Sections, connected.data());
 	}
 }
 
