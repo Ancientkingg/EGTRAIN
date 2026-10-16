@@ -167,6 +167,39 @@ struct Fixture {
 	bool idle() const { return controller->isIdle(); }
 };
 
+// Sets the interval of the controllers that are made while it is in scope, then restores the one that the other cases use.
+struct IntervalScope {
+	explicit IntervalScope(const char* milliseconds) { qputenv("QEGTRAIN_RECOVERY_INTERVAL_MS", milliseconds); }
+	~IntervalScope() { qputenv("QEGTRAIN_RECOVERY_INTERVAL_MS", "10"); }
+};
+
+// Takes the right to add and remove files away from a folder while it is in scope.
+class ReadOnlyFolder {
+public:
+	explicit ReadOnlyFolder(const QString& path)
+		: m_path(path), m_changed(QFile::setPermissions(path, QFile::ReadOwner | QFile::ExeOwner)) {}
+	~ReadOnlyFolder() {
+		if (m_changed)
+			QFile::setPermissions(m_path, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+	}
+	ReadOnlyFolder(const ReadOnlyFolder&) = delete;
+	ReadOnlyFolder& operator=(const ReadOnlyFolder&) = delete;
+	// False when the folder still accepts a new file, as it does for a superuser.
+	bool effective() const {
+		QFile probe(QDir(m_path).filePath(QStringLiteral("probe")));
+		if (!m_changed || probe.open(QIODevice::WriteOnly)) {
+			probe.close();
+			probe.remove();
+			return false;
+		}
+		return true;
+	}
+
+private:
+	QString m_path;
+	bool m_changed;
+};
+
 static bool testInterval() {
 	bool ok = true;
 	const auto intervalWith = [](const char* value) {
@@ -179,9 +212,9 @@ static bool testInterval() {
 	ok &= expect(intervalWith("25") == 25, "the variable sets the interval");
 	ok &= expect(intervalWith(nullptr) == RecoveryController::kDefaultIntervalMs, "the default interval without the variable");
 	ok &= expect(RecoveryController::kDefaultIntervalMs == 30000, "the default interval is 30 seconds");
-	for (const char* bad : {"", "abc", "0", "-5", "12x"})
+	for (const char* bad : {"", "abc", "0", "-5", "12x", "0x10"})
 		ok &= expect(intervalWith(bad) == RecoveryController::kDefaultIntervalMs, "an unusable value keeps the default interval");
-	intervalWith("10");
+	ok &= expect(intervalWith("010") == 10, "the number is decimal, so a leading zero is not octal");
 	return ok;
 }
 
@@ -222,6 +255,21 @@ static bool testDebounce() {
 	return ok;
 }
 
+// The first edit arms the timer and the later ones leave it alone, so editing without a pause cannot keep the write away.
+// The write is due 2000 ms after the first edit. A timer that restarts on the second edit would write 2000 ms after
+// that edit, which is more than 1700 ms later, so the margins on both sides are several hundred milliseconds.
+static bool testLaterEditsDoNotMoveTimer() {
+	const IntervalScope interval("2000");
+	Fixture f;
+	bool ok = expect(f.controller->intervalMs() == 2000, "the case uses a long interval");
+	f.controller->noteEdited(makeScene("first"), makeSource("first"), 1);
+	settle(800);
+	f.controller->noteEdited(makeScene("second"), makeSource("second"), 2);
+	ok &= expect(waitFor([&]() { return !f.written.isEmpty(); }, 1700), "the write comes one interval after the first edit");
+	ok &= expect(f.written == QVector<quint64>{2} && copyName(f.root) == "second", "the write holds the newest scene");
+	return ok;
+}
+
 static bool testSingleFlightWithCoalescing() {
 	Fixture f;
 	bool ok = true;
@@ -236,10 +284,14 @@ static bool testSingleFlightWithCoalescing() {
 	settle(100);
 	f.controller->noteEdited(makeScene("fourth"), makeSource("fourth"), 4);
 	settle(100);
-	ok &= expect(f.gate.jobStarts() == 1 && f.gate.beforeWrites() == 1, "no second job starts while one runs");
 	ok &= expect(f.written.isEmpty() && !f.idle(), "the running write has not finished");
 
+	// The event loop does not run for a while, so the owning thread has not taken the result of the write
+	// and cannot hand over a job. A worker that finds a second job by itself got it from the timer while
+	// the first job was running.
 	f.gate.open();
+	QThread::msleep(100);
+	ok &= expect(f.gate.jobStarts() == 1, "the edits that arrived during a job wait for it to end");
 	ok &= expect(waitFor([&]() { return f.written.size() == 2 && f.idle(); }), "the waiting edits are written");
 	settle(100);
 	ok &= expect(f.written == (QVector<quint64>{1, 4}), "the edits that arrived during the job give one more write, of the newest scene");
@@ -343,6 +395,21 @@ static bool testShutdownBeforeJobStarts() {
 	return ok;
 }
 
+// A controller that is destroyed without a shutdown ends its thread and leaves the copy for the next start.
+static bool testDestructorKeepsCopy() {
+	Fixture f;
+	bool ok = true;
+	f.controller->noteEdited(makeScene("edited"), makeSource("edited"), 1);
+	ok &= expect(waitFor([&]() { return f.written.size() == 1 && f.idle(); }), "the copy is written");
+	f.controller.reset();
+	ok &= expect(f.gate.endedWorkers() == 1, "the destructor joins the worker thread");
+	ok &= expect(copyFiles(f.root).size() == 2 && copyName(f.root) == "edited", "the copy stays on disk");
+	RecoveryStore next(f.root);
+	const RecoveryScan scan = next.scan();
+	ok &= expect(scan.candidates.size() == 1 && scan.candidates.first().source.displayName == "edited", "the lock is released, so the next start finds the copy");
+	return ok;
+}
+
 // A scene that the bundle writer refuses: a coordinate that is not a number.
 static std::shared_ptr<const SceneModel> makeInvalidScene() {
 	SceneModel scene = *makeScene("invalid");
@@ -399,6 +466,47 @@ static bool testFailureReportedOnce() {
 	ok &= expect(attempt(good) && written.size() == 2, "a valid scene is written again");
 	ok &= expect(attempt(bad) && failures.size() == 3, "the next refusal is a new run");
 	return ok;
+}
+
+// A removal that fails is reported like a write that fails, once per run, and the copy stays.
+static bool testFailedRemovalReportedOnce() {
+#ifdef Q_OS_UNIX
+	Fixture f;
+	bool ok = true;
+	f.controller->noteEdited(makeScene("edited"), makeSource("edited"), 1);
+	ok &= expect(waitFor([&]() { return f.written.size() == 1 && f.idle(); }), "the copy is written");
+	const QStringList folders = instanceFolders(f.root);
+	if (!expect(folders.size() == 1, "there is one instance folder"))
+		return false;
+	const QString folder = QDir(f.root).filePath(folders.first());
+	if (!ReadOnlyFolder(folder).effective()) {
+		std::cerr << "skipped: the permissions of a folder do not stop this user\n";
+		return ok;
+	}
+	const auto saveWithoutPermission = [&]() {
+		const ReadOnlyFolder locked(folder);
+		f.controller->noteSaved();
+		return waitFor([&]() { return f.idle(); });
+	};
+
+	ok &= expect(saveWithoutPermission(), "the first removal ends");
+	ok &= expect(f.failures.size() == 1 && copyFiles(f.root).size() == 2, "a removal that fails is reported and the copy stays");
+	ok &= expect(!f.failures.isEmpty() && !f.failures.first().isEmpty() && !f.failures.first().contains(QLatin1Char('/')),
+		"the message is a sentence without a path");
+	ok &= expect(saveWithoutPermission() && f.failures.size() == 1 && copyFiles(f.root).size() == 2, "a second failing removal is not reported");
+
+	f.controller->noteSaved();
+	ok &= expect(waitFor([&]() { return f.idle(); }) && copyFiles(f.root).isEmpty(), "the removal runs again and succeeds");
+	ok &= expect(f.failures.size() == 1 && f.written == QVector<quint64>{1}, "the success reports nothing");
+
+	// The success ended the run: the next failing removal is reported again.
+	f.controller->noteEdited(makeScene("again"), makeSource("again"), 2);
+	ok &= expect(waitFor([&]() { return f.written.size() == 2 && f.idle(); }), "a new copy is written");
+	ok &= expect(saveWithoutPermission() && f.failures.size() == 2, "a failing removal after a success is a new run");
+	return ok;
+#else
+	return true;
+#endif
 }
 
 // Scans, adopts and discards go through the controller, and an adoption cancels what waits.
@@ -490,12 +598,45 @@ static bool testAdoptAfterSaveDuringWrite() {
 	return ok;
 }
 
+// The removal of the replaced scene's copy has been handed to the worker when the adoption starts, and the
+// adoption bumps the epoch, so the worker skips the removal. When the store then refuses the adoption, the
+// removal has to run again.
+static bool testFailedAdoptKeepsRemoval() {
+	Fixture f;
+	bool ok = true;
+	{
+		RecoveryStore old(f.root);
+		ok &= expect(old.open().ok && old.write(*makeScene("gone"), makeSource("gone")).ok, "the old copy is written");
+	}
+	const RecoveryScan scan = f.controller->scan();
+	if (!expect(scan.candidates.size() == 1, "the scan lists the old copy"))
+		return false;
+	const RecoveryCandidate gone = scan.candidates.first();
+	ok &= expect(f.controller->discard(gone).ok, "the old copy is discarded, so the candidate is out of date");
+
+	f.controller->noteEdited(makeScene("edited"), makeSource("edited"), 1);
+	ok &= expect(waitFor([&]() { return f.written.size() == 1 && f.idle(); }), "the copy of the scene is written");
+	ok &= expect(copyFiles(f.root).size() == 2, "the copy is on disk");
+
+	f.gate.closeAt(RecoveryHookPoint::JobStart);
+	f.controller->noteReplaced();
+	ok &= expect(waitFor([&]() { return f.gate.jobStarts() == 2; }), "the worker took the removal");
+	ok &= expect(!f.controller->adopt(gone).ok, "a copy that is gone cannot be taken over");
+	f.gate.open();
+	ok &= expect(waitFor([&]() { return f.idle(); }), "the jobs end");
+	settle(100);
+	ok &= expect(copyFiles(f.root).isEmpty(), "the copy of the replaced scene is removed although the adoption failed");
+	ok &= expect(f.written == QVector<quint64>{1} && f.failures.isEmpty(), "nothing else was written or reported");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 	bool ok = testInterval();
 	qputenv("QEGTRAIN_RECOVERY_INTERVAL_MS", "10");
 	ok &= testNothingWithoutEdits();
 	ok &= testDebounce();
+	ok &= testLaterEditsDoNotMoveTimer();
 	ok &= testSingleFlightWithCoalescing();
 	ok &= testCancelDuringWrite(&RecoveryController::noteSaved, "a save during a write leaves no copy");
 	ok &= testCancelDuringWrite(&RecoveryController::noteClean, "back at clean during a write leaves no copy");
@@ -504,9 +645,12 @@ int main(int argc, char** argv) {
 	ok &= testRemoveAndWriteAgain();
 	ok &= testShutdownWaitsAndRemoves();
 	ok &= testShutdownBeforeJobStarts();
+	ok &= testDestructorKeepsCopy();
 	ok &= testFailureReportedOnce();
+	ok &= testFailedRemovalReportedOnce();
 	ok &= testStoreCalls();
 	ok &= testAdoptBeforeJobWrites();
 	ok &= testAdoptAfterSaveDuringWrite();
+	ok &= testFailedAdoptKeepsRemoval();
 	return ok ? 0 : 1;
 }

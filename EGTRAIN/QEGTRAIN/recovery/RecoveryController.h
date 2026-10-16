@@ -81,7 +81,8 @@ public:
 	RecoveryScan scan();
 	// Takes over the copy of a candidate as the copy of the scene that is now open. It cancels the
 	// edits and the removal that wait, like a replacement, but keeps the copy it took over, so a
-	// replacement of the previous scene belongs before it. Refused after shutdown.
+	// replacement of the previous scene belongs before it. When the store refuses the copy, the copy
+	// of the previous scene is still removed, as after a replacement. Refused after shutdown.
 	RecoveryResult adopt(const RecoveryCandidate& candidate);
 	RecoveryResult discard(const RecoveryCandidate& candidate);
 

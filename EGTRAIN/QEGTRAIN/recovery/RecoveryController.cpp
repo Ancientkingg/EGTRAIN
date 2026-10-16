@@ -2,6 +2,7 @@
 
 #include "recovery/RecoveryController.h"
 
+#include <QByteArray>
 #include <QMetaObject>
 
 #include <utility>
@@ -10,7 +11,7 @@ namespace {
 
 int intervalFromEnvironment() {
 	bool ok = false;
-	const int value = qEnvironmentVariableIntValue("QEGTRAIN_RECOVERY_INTERVAL_MS", &ok);
+	const int value = qgetenv("QEGTRAIN_RECOVERY_INTERVAL_MS").toInt(&ok, 10);
 	return ok && value > 0 ? value : RecoveryController::kDefaultIntervalMs;
 }
 
@@ -123,7 +124,8 @@ RecoveryResult RecoveryController::adopt(const RecoveryCandidate& candidate) {
 	if (result.ok) {
 		m_recordMayExist = true;
 	} else {
-		m_clearWanted = removalWanted;
+		// A removal that was skipped because of the new epoch must run again, as after a replacement.
+		m_clearWanted = removalWanted || m_recordMayExist;
 		dispatchNext();
 	}
 	return result;
