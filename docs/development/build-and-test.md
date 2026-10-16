@@ -345,7 +345,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
 | `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
-| `test_visual_polish_smoke` | yes | no | no | A Bash script, registered on macOS only. |
+| `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
@@ -365,8 +365,8 @@ their server on the loopback address over plain http only because the tests ask 
 the transport of the application fetches https addresses only.
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
-application path from `QEGTRAIN_APP`; `test_visual_polish_smoke` passes it on to
-the scripts it runs. `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`
+application path from `QEGTRAIN_APP`; `visual_polish_smoke.sh` passes it on to
+the two scripts that its `scripts` phase runs. `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`
 and `test_dialog_presentation_contract` also read the `scene_tool` path from
 `QEGTRAIN_SCENE_TOOL`. CTest sets these variables from the build targets. Run by
 hand without them, the scripts use the macOS paths under `build/`.
@@ -375,7 +375,7 @@ the directory of the test executables as the two arguments of
 `route_diagram_smoke.py`, which uses the paths under `build/` when it gets none.
 
 `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`,
-`test_route_diagram_smoke` and `test_visual_polish_smoke` are not registered in a
+`test_route_diagram_smoke` and the five `test_visual_polish_smoke_*` tests are not registered in a
 build with `EGTRAIN_ENABLE_SANITIZERS=ON`: the time limits of their scripts are set
 for an uninstrumented build.
 
@@ -1136,12 +1136,31 @@ a step of its own.
 tools/e2e/visual_polish_smoke.sh
 ```
 
-Run this after UI or rendering changes. On macOS CTest runs the same script as
-`test_visual_polish_smoke`. The other GUI smokes are CTest tests of their own,
-`test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`
+Run this after UI or rendering changes. The script runs in phases, one after another, and
+runs only the phases named on its command line, for example
+`tools/e2e/visual_polish_smoke.sh signals stations`. Each phase writes file names of its own below
+`${TMPDIR:-/tmp}`, so phases do not disturb each other. On macOS CTest runs the phases as five
+tests that can run side by side, and `ctest --test-dir build -R test_visual_polish_smoke
+--output-on-failure` starts all five:
+
+| Test | Phase | What it runs |
+| --- | --- | --- |
+| `test_visual_polish_smoke_live` | `dpr1` | The live run of Copenhagen at a device pixel ratio of 1: screenshots, selection cues, the Follow checks, the labels of the timetable window and the absence of the Show Graph action |
+| | `color` | A copy of Copenhagen in which the first service has a colour |
+| | `dpr2` | The live run of Copenhagen at a device pixel ratio of 2 |
+| `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row and the Follow checks of the replay |
+| | `replay` | The whole-run replay of Lebanon, Assignment, Paimpol, Milano_Brescia and Netherlands |
+| | `discard` | The preview legend after a discarded run |
+| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other five scenes together |
+| `test_visual_polish_smoke_signals` | `signals` | The signal head checks |
+| `test_visual_polish_smoke_stations` | `stations` | The station overlays of the six scenes, and of Copenhagen at a device pixel ratio of 2 |
+| none | `scripts` | `scene_render_smoke.sh` and `legacy_import_smoke.sh`, which are tests of their own |
+
+The script without arguments runs all phases in the order of the table. The other GUI smokes are CTest tests of
+their own, `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`
 and `test_route_diagram_smoke` (see [Platform coverage](#platform-coverage)), and
 `ctest --test-dir build -R <name> --output-on-failure` starts one. CTest gives these
-tests and `test_visual_polish_smoke` a settings folder below `build/settings` and an output
+tests and the five visual tests a settings folder below `build/settings` and an output
 folder below `build/output`; `visual_polish_smoke.sh` replaces the settings folder with a
 temporary one. The release workflow also runs `scene_render_smoke.sh`, `track_preview_smoke.sh` and
 `visual_polish_smoke.sh` as steps of their own. The scripts need an application built with
@@ -1182,8 +1201,8 @@ replayed, a first kept time of 0, a run of one frame and a clock that wraps over
 A real scene is checked with `QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1`. The window runs the scene
 to its end at its own horizon, applies the checks of `E2E_REPLAY_ROW_WHOLE_OK` to the
 history of that run and exits, printing `E2E_REPLAY_WHOLE_RUN_OK` with the number of
-frames, the last time and the accounted bytes and budget. `visual_polish_smoke.sh` does so
-for all six committed scenes, so a history that drops the first part of one of them, or
+frames, the last time and the accounted bytes and budget. The `replay` and `replay-copenhagen` phases of
+`visual_polish_smoke.sh` do so for all six committed scenes, so a history that drops the first part of one of them, or
 ends before the last timestep of the run, fails the script. No committed scene is larger
 than the budget at its own horizon, which is why the dropped row is built from a smaller
 budget in the Assignment run.

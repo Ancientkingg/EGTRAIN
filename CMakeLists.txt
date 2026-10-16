@@ -1132,9 +1132,6 @@ if(EGTRAIN_BUILD_TESTS)
 				COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/route_diagram_smoke.py
 					$<TARGET_FILE:QEGTRAIN> $<TARGET_FILE_DIR:test_diagramwindow>)
 			set_tests_properties(test_route_diagram_smoke PROPERTIES TIMEOUT 480)
-			# visual_polish_smoke.sh runs the other two scripts, and all three write fixed file names below TMPDIR,
-			# so they must not run side by side.
-			set_tests_properties(test_scene_render_smoke test_legacy_import_smoke PROPERTIES RESOURCE_LOCK egtrain_gui_smoke_logs)
 			# The scripts get the built application and a platform plugin that needs no display.
 			set_tests_properties(test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke
 				PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QT_QPA_PLATFORM=offscreen")
@@ -1142,13 +1139,24 @@ if(EGTRAIN_BUILD_TESTS)
 			message(STATUS "Windows: skipping the GUI smoke tests (test_scene_render_smoke, test_track_preview_smoke, test_legacy_import_smoke, test_route_diagram_smoke)")
 		endif()
 		if(APPLE)
-			add_test(NAME test_visual_polish_smoke
-				COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/visual_polish_smoke.sh)
-			set_tests_properties(test_visual_polish_smoke PROPERTIES
-				ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QT_QPA_PLATFORM=offscreen"
-				TIMEOUT 900
-				COST 100
-				RESOURCE_LOCK egtrain_gui_smoke_logs)
+			# visual_polish_smoke.sh runs its phases one after another when it gets no argument. The phases write file
+			# names of their own below TMPDIR, so CTest runs them as separate tests side by side. The last phase, which
+			# runs scene_render_smoke.sh and legacy_import_smoke.sh, has no test of its own: those two are tests above.
+			# The cost is about the seconds that the test takes on a development machine, so that the longest start first.
+			macro(egtrain_add_visual_polish_smoke name cost timeout)
+				add_test(NAME test_visual_polish_smoke_${name}
+					COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/visual_polish_smoke.sh ${ARGN})
+				set_tests_properties(test_visual_polish_smoke_${name} PROPERTIES
+					ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QT_QPA_PLATFORM=offscreen"
+					TIMEOUT ${timeout}
+					COST ${cost})
+				list(APPEND egtrain_visual_polish_smokes test_visual_polish_smoke_${name})
+			endmacro()
+			egtrain_add_visual_polish_smoke(replay_copenhagen 100 600 replay-copenhagen)
+			egtrain_add_visual_polish_smoke(replay 45 300 completion replay discard)
+			egtrain_add_visual_polish_smoke(signals 45 300 signals)
+			egtrain_add_visual_polish_smoke(live 35 300 dpr1 color dpr2)
+			egtrain_add_visual_polish_smoke(stations 30 240 stations)
 		endif()
 	endif()
 	if(APPLE)
@@ -1322,7 +1330,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
-		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke test_visual_polish_smoke
+		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes}
 		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
@@ -1334,8 +1342,8 @@ if(EGTRAIN_BUILD_TESTS)
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
-		test_visual_polish_smoke)
-	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract test_visual_polish_smoke)
+		${egtrain_visual_polish_smokes})
+	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract ${egtrain_visual_polish_smokes})
 	egtrain_label_tests(network test_updatetransport_https)
 
 	# Fail configuration unless a test has exactly one of the unit and integration labels.
@@ -1358,7 +1366,7 @@ if(EGTRAIN_BUILD_TESTS)
 	# or changing the settings of the user.
 	foreach(name IN ITEMS test_startup_launch_contract test_scene_drop test_gui_autostart_smoke
 			test_close_during_run_smoke test_csv_export_smoke test_scene_render_smoke test_track_preview_smoke
-			test_legacy_import_smoke test_route_diagram_smoke test_visual_polish_smoke)
+			test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes})
 		if(TEST ${name})
 			set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT
 				"QEGTRAIN_E2E_SETTINGS_DIR=${CMAKE_CURRENT_BINARY_DIR}/settings/${name}")
@@ -1367,7 +1375,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Without this, these tests write their run output below the application data directory of the user. Each gets an output folder of its own.
 	foreach(name IN ITEMS test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
-			test_visual_polish_smoke)
+			${egtrain_visual_polish_smokes})
 		if(TEST ${name})
 			set_property(TEST ${name} APPEND PROPERTY ENVIRONMENT
 				"QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/output/${name}")
