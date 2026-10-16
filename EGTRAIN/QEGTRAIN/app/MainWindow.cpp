@@ -1691,32 +1691,6 @@ std::vector<std::string> previewRouteComponents(const std::string& token) {
 	return components;
 }
 
-const std::vector<SceneSignal>& sceneSignals(const SceneModel& sceneModel) {
-#ifdef signals
-#define EGTRAIN_RESTORE_SIGNALS_HELPER
-#undef signals
-#endif
-	const auto& result = sceneModel.signals;
-#ifdef EGTRAIN_RESTORE_SIGNALS_HELPER
-#define signals Q_SIGNALS
-#undef EGTRAIN_RESTORE_SIGNALS_HELPER
-#endif
-	return result;
-}
-
-std::vector<SceneSignal>& sceneSignals(SceneModel& sceneModel) {
-#ifdef signals
-#define EGTRAIN_RESTORE_SIGNALS_HELPER
-#undef signals
-#endif
-	auto& result = sceneModel.signals;
-#ifdef EGTRAIN_RESTORE_SIGNALS_HELPER
-#define signals Q_SIGNALS
-#undef EGTRAIN_RESTORE_SIGNALS_HELPER
-#endif
-	return result;
-}
-
 std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
 	std::vector<std::string> targets;
 	std::set<std::string> seen;

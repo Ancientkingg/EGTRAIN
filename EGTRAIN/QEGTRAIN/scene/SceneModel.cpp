@@ -522,6 +522,14 @@ const std::vector<SceneIncident>& defaultScenarioIncidents(const SceneModel& sce
 	return scenario ? scenario->incidents : empty;
 }
 
+std::vector<SceneSignal>& sceneSignals(SceneModel& scene) {
+	return scene.signals;
+}
+
+const std::vector<SceneSignal>& sceneSignals(const SceneModel& scene) {
+	return scene.signals;
+}
+
 void refreshLoadedDataSummary(SceneModel& scene) {
 	scene.loadedData.clear();
 
