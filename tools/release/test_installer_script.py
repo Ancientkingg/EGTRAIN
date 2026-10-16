@@ -38,6 +38,7 @@ SETUP_PINS = (
     ("AppId", APP_ID),
     ("AppName", "EGTRAIN"),
     ("AppVersion", "{#Version}"),
+    ("UninstallDisplayName", "EGTRAIN"),
     ("DefaultDirName", "{userpf}\\EGTRAIN"),
     ("PrivilegesRequired", "lowest"),
     ("ArchitecturesAllowed", "x64compatible"),
