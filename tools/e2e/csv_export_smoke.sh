@@ -139,6 +139,19 @@ else
 	grep -q "E2E_CAPACITY_EXPORT_UNAVAILABLE" "$LOG" \
 		|| { echo "capacity export was skipped without an explicit unavailable marker" >&2; exit 1; }
 fi
+if [[ -s "$OUTDIR/area_capacity.csv" ]]; then
+	[[ -s "$OUTDIR/area_capacity.csv.provenance.json" ]] \
+		|| { echo "missing area_capacity.csv provenance sidecar" >&2; exit 1; }
+	head -n1 "$OUTDIR/area_capacity.csv" | grep -q "^Record type,Area,Traffic,Period\[s\],Resource,Trains,Occupations,Occupation\[s\],Union\[s\],Rate \[% of period\],Governing," \
+		|| { echo "area_capacity.csv header mismatch" >&2; exit 1; }
+	for record in summary resource; do
+		grep -q "^$record," "$OUTDIR/area_capacity.csv" \
+			|| { echo "area_capacity.csv missing $record records" >&2; exit 1; }
+	done
+else
+	grep -q "E2E_AREA_CAPACITY_EXPORT_UNAVAILABLE" "$LOG" \
+		|| { echo "area capacity export was skipped without an explicit unavailable marker" >&2; exit 1; }
+fi
 
 python3 - "$SCENE" "$OUTDIR" <<'PY'
 import json
@@ -148,7 +161,7 @@ import sys
 
 scene, output = map(os.path.abspath, sys.argv[1:])
 artifacts = ["trajectory.csv", "timetable.csv", "run_summary.csv"]
-artifacts += [name for name in ("blocking_time.csv", "capacity_analysis.csv")
+artifacts += [name for name in ("blocking_time.csv", "capacity_analysis.csv", "area_capacity.csv")
               if os.path.exists(os.path.join(output, name))]
 for name in artifacts:
     with open(os.path.join(output, name + ".provenance.json"), encoding="utf-8") as stream:

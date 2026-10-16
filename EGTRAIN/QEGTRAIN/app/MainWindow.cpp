@@ -33,6 +33,7 @@
 #include "util/TrajectoryUtil.h"
 #include "util/CsvWriter.h"
 #include "util/PlaybackProfiler.h"
+#include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/BlockingTimeDiagram.h"
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
@@ -2920,6 +2921,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Timetable graph (planned vs simulated stops)...", this, &MainWindow::showTimetableGraph);
 	m_diagramsMenu->addAction("Blocking-time overlay...", this, &MainWindow::showBlockingTimeDiagram);
 	m_diagramsMenu->addAction("Capacity analysis...", this, &MainWindow::showCapacityAnalysis);
+	m_diagramsMenu->addAction("Capacity by area...", this, &MainWindow::showAreaCapacity);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
@@ -13416,6 +13418,7 @@ void MainWindow::setupRunResultsDock() {
 	addResultViewAction("Train paths (simulated movement)", &MainWindow::displayTrainPathDiagrams);
 	addResultViewAction("Blocking time", &MainWindow::showBlockingTimeDiagram);
 	addResultViewAction("Capacity", &MainWindow::showCapacityAnalysis);
+	addResultViewAction("Capacity by area", &MainWindow::showAreaCapacity);
 	resultViews->addWidget(diagramsButton);
 	QPushButton* exportCsvBtn = new QPushButton("Export CSV...", container);
 	exportCsvBtn->setObjectName("resultView_ExportCSV");
@@ -16140,7 +16143,7 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		QMessageBox::information(this, "Capacity analysis",
-			"No route section has two occurrences with a common entry block. Choose a common entry or split the analysis into pre-/post-Gdg sections.");
+			"No route section has two occurrences with a common entry block. Choose a common entry or analyze the route in separate sections.");
 		return;
 	}
 	const std::string scopeIssue = capacityScopeIssueFrom(*run, scope);
@@ -16159,7 +16162,7 @@ void MainWindow::showCapacityAnalysis() {
 		scope.cycleEndOccurrenceId);
 	if (!result.analyzable) {
 		QMessageBox::information(this, "Capacity analysis",
-			"The selected occurrences do not form a valid shared-resource chain. Choose a common entry or split pre-/post-Gdg order into separate sections.");
+			"The selected occurrences do not form a valid shared-resource chain. Choose a common entry or analyze the route in separate sections.");
 		return;
 	}
 	if (result.cycleEndIdentity.empty() || result.cycleTime < 0.0) {
@@ -16317,12 +16320,22 @@ void MainWindow::showCapacityAnalysis() {
 	auto* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
 	connect(closeButtons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
 	DialogLayout::install(*dialog,
-		QString("Cycle: %1 s  |  %2% of period")
+		QString("Selected train chain: cycle %1 s, %2% of period; not network capacity")
 			.arg(QString::number(result.cycleTime, 'f', 1),
 				QString::number(result.cyclePercentage, 'f', 1)),
 		QString("Section: %1\nRun: %2").arg(sectionLabel, completedRunContext(provenance)),
 		body, closeButtons);
 	dialog->show();
+}
+
+void MainWindow::showAreaCapacity() {
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open capacity by area", 5000);
+		return;
+	}
+	// The options dialog reads the run until it closes, so this call holds it.
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	openAreaCapacityWindow(this, *run, [this] { return captureTelemetryOperation(); });
 }
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,

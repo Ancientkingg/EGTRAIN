@@ -4,6 +4,7 @@
 #include "app/MainWindowSupport.h"
 #include "ui_MainWindow.h"
 
+#include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
@@ -290,6 +291,37 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				}
 				cycleEnd->setCurrentIndex(2);
 				buttons->button(QDialogButtonBox::Ok)->click();
+				return;
+			}
+			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
+		};
+		QTimer::singleShot(0, &w, [poll]() { (*poll)(); });
+	};
+	auto acceptAreaCapacityScope = [&w, fail]() {
+		auto poll = std::make_shared<std::function<void()>>();
+		auto attempts = std::make_shared<int>(0);
+		*poll = [&w, poll, attempts, fail]() {
+			if (++*attempts > 200) {
+				fail(QStringLiteral("capacity by area options did not appear"));
+				return;
+			}
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				if (auto* message = qobject_cast<QMessageBox*>(widget); message && message->isVisible()) {
+					const QString detail = message->text();
+					message->accept();
+					fail(QStringLiteral("capacity by area rejected the creator run: ") + detail);
+					return;
+				}
+				auto* dialog = dynamic_cast<AreaCapacityScopeDialog*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				QDialogButtonBox* buttons = dialog->findChild<QDialogButtonBox*>();
+				QPushButton* ok = buttons ? buttons->button(QDialogButtonBox::Ok) : nullptr;
+				if (!ok || !ok->isEnabled()) {
+					fail(QStringLiteral("capacity by area options do not accept the creator run"));
+					return;
+				}
+				ok->click();
 				return;
 			}
 			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });
@@ -1973,6 +2005,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("capacity calculation details have an invalid percentage unit"));
 			return;
 		}
+		const auto* capacityHeading = capacity->findChild<QLabel*>(QStringLiteral("dialogHeading"));
+		if (!capacityHeading || !capacityHeading->text().startsWith(QStringLiteral("Selected train chain: cycle "))
+			|| !capacityHeading->text().endsWith(QStringLiteral("% of period; not network capacity"))) {
+			fail(QStringLiteral("capacity analysis does not say that it describes the selected train chain"));
+			return;
+		}
 		QPushButton* compressedButton = nullptr;
 		for (QPushButton* candidate : capacity->findChildren<QPushButton*>())
 			if (candidate->text().contains(QStringLiteral("compressed blocking-time")))
@@ -1997,6 +2035,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		capacity->close();
+		QAction* areaButton = findResultAction(QStringLiteral("Capacity by area"));
+		if (!areaButton) {
+			fail(QStringLiteral("capacity by area result control is unavailable"));
+			return;
+		}
+		acceptAreaCapacityScope();
+		areaButton->trigger();
+		process();
+		AreaCapacityWindow* area = nullptr;
+		for (QWidget* widget : QApplication::topLevelWidgets())
+			if (auto* window = dynamic_cast<AreaCapacityWindow*>(widget); window && window->isVisible())
+				area = window;
+		if (!area || area->isModal()
+			|| !exportButton(area, QStringLiteral("Export area capacity CSV..."), path("area_capacity.csv"))) {
+			fail(QStringLiteral("capacity by area did not open and export through public controls"));
+			return;
+		}
+		area->close();
 		QPushButton* compareButton = w.findChild<QPushButton*>("compareDelayButton");
 		if (!compareButton) {
 			fail(QStringLiteral("delay comparison result control is unavailable"));

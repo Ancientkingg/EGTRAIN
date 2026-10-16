@@ -340,8 +340,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	layout->addLayout(form);
 	auto* note = new QLabel(
 		"Checked occurrences are analyzed in the displayed order (A → B); selecting exactly two enables the pair workflow. "
-		"Pre-/post-Gdg order changes are separate explicit sections. Select the occurrence of the first service in the next "
-		"period that closes the capacity cycle; EGTRAIN does not infer it from the last row.",
+		"Where the order of trains changes along the route, analyze each part as a separate section. Select the occurrence of the "
+		"first service in the next period that closes the capacity cycle; EGTRAIN does not infer it from the last row.",
 		&dialog);
 	note->setWordWrap(true);
 	layout->addWidget(note);

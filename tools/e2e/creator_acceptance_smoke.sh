@@ -466,6 +466,7 @@ def check_exports(bundle_path):
         "run_summary.csv": "incident",
         "run_summary.png": "incident",
         "capacity_analysis.csv": "incident",
+        "area_capacity.csv": "incident",
         "capacity_compressed_blocking_time.csv": "incident",
         "capacity_compressed_blocking_time.png": "incident",
         "delay_comparison.csv": "delay",
@@ -563,6 +564,20 @@ def check_exports(bundle_path):
     summary = next(row for row in capacity_rows if row["Record type"] == "summary")
     expect(number(summary["Cycle time[s]"], "capacity cycle") > 0,
            "capacity cycle is not positive")
+
+    with (exports / "area_capacity.csv").open(newline="", encoding="utf-8") as stream:
+        area_rows = list(csv.DictReader(stream))
+    area_summary = [row for row in area_rows if row["Record type"] == "summary"]
+    area_resources = [row for row in area_rows if row["Record type"] == "resource"]
+    expect(len(area_summary) == 1 and area_resources,
+           "area capacity export lacks its summary or resource records")
+    expect(number(area_summary[0]["Period[s]"], "area capacity period") > 0,
+           "area capacity period is not positive")
+    expect(any(row["Governing"] == "yes" for row in area_resources),
+           "area capacity export must name a governing resource")
+    expect(all(row["Area"] == area_summary[0]["Area"] and row["Traffic"] == area_summary[0]["Traffic"]
+               for row in area_rows),
+           "area capacity records must name one area and one kind of traffic")
 
 
 for label, root in (("saved folder", folder), ("unpacked bundle", unpacked)):

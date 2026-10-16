@@ -1065,6 +1065,7 @@ private slots:
 	void showDelayDiagram();
 	void showBlockingTimeDiagram();
 	void showCapacityAnalysis();
+	void showAreaCapacity();
 	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
 		const std::shared_ptr<const CompletedRunData>& run, std::vector<BlockingTimeDiagramSegment> segments,
 		double axisMinKm, double axisMaxKm, const QString& referenceId,
