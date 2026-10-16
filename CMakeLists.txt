@@ -234,8 +234,8 @@ add_library(egtrain_widgets STATIC
 target_link_libraries(egtrain_widgets
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_graphics egtrain_util)
 
-# The update code that both the application and a test use. UpdateChecker and SelfUpdater belong
-# to the application alone.
+# The update code that both the application and a test use. UpdateChecker, SelfUpdater and
+# UpdateNotices belong to the application alone.
 add_library(egtrain_update STATIC
     ${SRC_DIR}/update/Distribution.cpp
     ${SRC_DIR}/update/ReleaseInfo.cpp
