@@ -455,6 +455,9 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 		std::cerr << sceneDir << " ran no train\n";
 		return false;
 	}
+	// No committed scene has a reversed route. Marking every other route shows the capture both ways.
+	for (std::size_t r = 0; r < train_route.size(); ++r)
+		train_route[r].reversed_direction = r % 2 == 0;
 	RunProvenance provenance;
 	provenance.caseName = run.loaded.scene.name;
 	run.data = captureCompletedRun(&run.loaded.scene, initial_variables.startingSimulationTime, provenance);
@@ -479,6 +482,7 @@ void compareCapture(const CapturedRun& run) {
 	for (std::size_t r = 0; r < data.routes.size() && r < train_route.size(); ++r) {
 		const CompletedRoute& route = data.routes[r];
 		check(route.id == train_route[r].ID && route.corridor == train_route[r].corridor, scene + ": route identity " + std::to_string(r));
+		check(route.reversedDirection == (r % 2 == 0), scene + ": route direction " + std::to_string(r));
 		const auto inputs = blockSectionInputsForRoute(train_route[r]);
 		bool same = inputs.size() == route.blocks.size();
 		for (std::size_t b = 0; same && b < inputs.size(); ++b)

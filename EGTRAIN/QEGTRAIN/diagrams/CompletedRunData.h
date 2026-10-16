@@ -89,6 +89,7 @@ struct CompletedTrain {
 struct CompletedRoute {
 	std::string id;
 	std::string corridor;
+	bool reversedDirection = false;		   // True when trains run opposite to the route definition direction
 	std::vector<BlockSectionInput> blocks; // In route order
 	RouteDiagramPath path;
 };
