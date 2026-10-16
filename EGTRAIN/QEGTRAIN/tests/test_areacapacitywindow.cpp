@@ -396,9 +396,19 @@ bool exerciseDialog() {
 	list->item(0)->setCheckState(Qt::Checked);
 	ok &= expect(accept->isEnabled() && status && status->isHidden(), "the refusal goes away when the train is checked again");
 
-	// The order of the rows is the order of the chain.
-	list->insertItem(1, list->takeItem(0));
+	// A cycle-closing train that runs the other way is accepted with a warning, because the chain leaves it out.
+	combo(dialog, "areaCapacityCycleEnd")->setCurrentIndex(3);
+	ok &= expect(dialog.scope().cycleEndOccurrenceId == "G" && accept->isEnabled() && status && status->isVisible()
+			&& status->text().contains("other direction"),
+		"a cycle-closing train that runs the other way is warned about");
+	combo(dialog, "areaCapacityCycleEnd")->setCurrentIndex(2);
+	ok &= expect(accept->isEnabled() && status && status->isHidden(), "the warning goes away with another cycle-closing train");
+
+	// Moving a row, as a drop does, changes the order of the chain and checks the cycle-closing train again: F2 is first now.
+	ok &= expect(list->model()->moveRow(QModelIndex(), 0, QModelIndex(), 2), "a row moves");
 	ok &= expect(dialog.scope().occurrenceIds == std::vector<std::string>({"F2", "F1", "G"}), "the displayed order is the order of the chain");
+	ok &= expect(!accept->isEnabled() && status && status->isVisible() && status->text().contains("cycle-closing"),
+		"moving a row checks the cycle-closing train against the new order");
 
 	// A narrower range of the first route leaves G out; the second route brings it back.
 	combo(dialog, "areaCapacityLastBlock")->setCurrentIndex(3);
@@ -427,6 +437,69 @@ bool exerciseDialog() {
 	ok &= expect(emptyButtons && !emptyButtons->button(QDialogButtonBox::Ok)->isEnabled() && empty.scope().routeIndex == -1
 			&& empty.scope().blockIds.empty(),
 		"a run without a route cannot be accepted");
+	return ok;
+}
+
+// Scopes that give no figures or leave out traffic, built as the dialog builds them.
+bool exerciseEdgeCases() {
+	const CompletedRunData data = lineRun();
+
+	// An area without a resource is reported and nothing is computed or exported.
+	AreaCapacityScope noArea = lineScope({"F1", "F2"});
+	noArea.routeIndex = -1;
+	noArea.blockIds.clear();
+	AreaCapacityWindow empty = makeWindow(analyze(data, noArea));
+	const auto* emptyStatuses = empty.findChild<QLabel*>("areaCapacityStatuses");
+	const auto* emptyExport = empty.findChild<QPushButton*>("areaCapacityExport");
+	bool ok = expect(heading(empty) == "Selected chain: not available | partial traffic" && table(empty, "areaCapacityResources")->rowCount() == 0
+			&& emptyStatuses && emptyStatuses->text() == "Statuses: Empty scope (1)" && emptyExport && !emptyExport->isEnabled(),
+		"an area without a resource is reported");
+
+	// A period of zero gives no percentage anywhere and an empty field in the export.
+	AreaCapacityScope zero = lineScope({"F1", "F2", "G"});
+	zero.periodSeconds = 0.0;
+	const AreaCapacityResult noPeriod = analyze(data, zero);
+	AreaCapacityWindow window = makeWindow(noPeriod);
+	window.show();
+	QApplication::processEvents();
+	ok &= expect(heading(window) == "Selected chain: cycle 471.5 s, no valid period | complete traffic", "the header of a period of zero");
+	const auto* summary = window.findChild<QLabel*>("areaCapacityChainSummary");
+	ok &= expect(summary && summary->text().startsWith("Cycle 471.5 s, no valid period. Cycle start: F1"), "the chain tab of a period of zero");
+	const QTableWidget* resources = table(window, "areaCapacityResources");
+	const int governing = rowOf(resources, "@3-B0@");
+	ok &= expect(governing >= 0 && cell(resources, governing, 1) == "-" && cell(resources, governing, 2) == "governing resource",
+		"the rate of a period of zero is not available");
+	const QString context = window.findChild<QLabel*>("dialogContext") ? window.findChild<QLabel*>("dialogContext")->text() : QString();
+	const auto* statuses = window.findChild<QLabel*>("areaCapacityStatuses");
+	ok &= expect(context.contains("Governing resource: @3-B0@ (no valid period)") && statuses
+			&& statuses->text() == "Statuses: Invalid period (1), Opposing train (1)",
+		"the governing resource and the statuses of a period of zero");
+	const std::string csvText = areaCapacityCsv(noPeriod, "area");
+	ok &= expect(csvText.find("summary,area,complete traffic,,") != std::string::npos
+			&& csvText.find("resource,area,complete traffic,,@3-B0@,2,2,1033,701.5,,yes,") != std::string::npos,
+		"the export leaves the period and the rate empty");
+
+	// A cycle-closing train that runs the other way is not in the chain.
+	AreaCapacityScope opposing = lineScope({"F1", "F2", "G"});
+	opposing.cycleEndOccurrenceId = "G";
+	AreaCapacityWindow other = makeWindow(analyze(data, opposing));
+	const auto* otherSummary = other.findChild<QLabel*>("areaCapacityChainSummary");
+	ok &= expect(heading(other) == "Selected chain: no cycle-closing train | complete traffic" && otherSummary
+			&& otherSummary->text() == "The chain can be analysed, but it has no cycle-closing train after the first one."
+			&& rowOf(table(other, "areaCapacityExcluded"), "Opposing train") == 0,
+		"an opposing cycle-closing train is left out of the chain and listed as opposing");
+
+	// A train that occupies a resource twice counts both occupations and is noted.
+	CompletedRunData repeated = data;
+	repeated.trains[1].blockTimes.push_back(occupation("@0-B0@", 400.0, 450.0));
+	AreaCapacityWindow twice = makeWindow(analyze(repeated, lineScope({"F1", "F2"})));
+	const QTableWidget* twiceResources = table(twice, "areaCapacityResources");
+	const int first = rowOf(twiceResources, "@0-B0@");
+	const QTableWidget* twiceNotes = table(twice, "areaCapacityNotes");
+	const int note = rowOf(twiceNotes, "Repeated resource");
+	ok &= expect(first >= 0 && cell(twiceResources, first, 3) == "2" && cell(twiceResources, first, 4) == "3" && cell(twiceResources, first, 5) == "224"
+			&& note >= 0 && cell(twiceNotes, note, 1) == "F1" && cell(twiceNotes, note, 3) == "@0-B0@",
+		"a repeated resource is counted twice and noted");
 	return ok;
 }
 
@@ -465,6 +538,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseStatuses();
 	ok &= exerciseExport();
 	ok &= exerciseDialog();
+	ok &= exerciseEdgeCases();
 	ok &= exerciseOpen();
 	return ok ? 0 : 1;
 }

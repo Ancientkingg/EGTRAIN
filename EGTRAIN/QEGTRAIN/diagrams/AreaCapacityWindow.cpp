@@ -175,12 +175,15 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 
 	QString summary;
 	if (chainHasCycle(chain)) {
-		summary = QString("Cycle %1 s of a period of %2 s: %3% of period. Cycle start: %4. Cycle end: %5.")
-					  .arg(secondsText(chain.cycleTime), secondsText(chain.periodSeconds), percentText(chain.cyclePercentage),
-						  QString::fromStdString(chain.firstIdentity) + " " + referenceText(chain, chain.firstIdentity),
+		const QString cycle = chain.cyclePercentage >= 0.0
+			? QString("Cycle %1 s of a period of %2 s: %3% of period.")
+				  .arg(secondsText(chain.cycleTime), secondsText(chain.periodSeconds), percentText(chain.cyclePercentage))
+			: QString("Cycle %1 s, no valid period.").arg(secondsText(chain.cycleTime));
+		summary = QString("%1 Cycle start: %2. Cycle end: %3.")
+					  .arg(cycle, QString::fromStdString(chain.firstIdentity) + " " + referenceText(chain, chain.firstIdentity),
 						  QString::fromStdString(chain.cycleEndIdentity) + " " + referenceText(chain, chain.cycleEndIdentity));
 	} else if (chain.analyzable) {
-		summary = QStringLiteral("The chain can be analysed, but no cycle-closing train after the first one is chosen.");
+		summary = QStringLiteral("The chain can be analysed, but it has no cycle-closing train after the first one.");
 	} else {
 		summary = QStringLiteral("The selected chain cannot be analysed. The notes say why.");
 	}
@@ -325,12 +328,21 @@ std::vector<std::string> areaResources(const AreaCapacityScope& scope) {
 	return resources;
 }
 
+bool runsReversed(const CompletedRunData& data, const CompletedTrain& train) {
+	return knownRoute(data, train.routeIndex) && data.routes[static_cast<std::size_t>(train.routeIndex)].reversedDirection;
+}
+
+bool runsReversed(const CompletedRunData& data, const std::string& trainId) {
+	const auto train = std::find_if(data.trains.begin(), data.trains.end(), [&trainId](const CompletedTrain& candidate) { return candidate.trainId == trainId; });
+	return train != data.trains.end() && runsReversed(data, *train);
+}
+
 AreaCapacityTrain areaTrainFor(const CompletedRunData& data, const CompletedTrain& train, const CapacityAnalysisScope& reference) {
 	AreaCapacityTrain result;
 	result.train = capacityInputFrom(train, reference);
 	// capacityInputFrom keeps the usable occupations of the first route only. The analysis picks the occupations of the area and reports the unusable ones.
 	result.train.occupations = train.blockTimes;
-	result.reversedDirection = knownRoute(data, train.routeIndex) && data.routes[static_cast<std::size_t>(train.routeIndex)].reversedDirection;
+	result.reversedDirection = runsReversed(data, train);
 	return result;
 }
 
@@ -360,10 +372,7 @@ AreaCapacityInput areaCapacityInputFrom(const CompletedRunData& data, const Area
 }
 
 QString areaCapacityLabel(const CompletedRunData& data, const AreaCapacityScope& scope) {
-	CapacityAnalysisScope first;
-	first.routeIndex = scope.routeIndex;
-	first.blockIds = scope.blockIds;
-	QString label = capacityScopeLabelFrom(data, first);
+	QString label = capacityScopeLabelFrom(data, referenceScope(scope));
 	if (knownRoute(data, scope.secondRouteIndex)) {
 		CapacityAnalysisScope second;
 		second.routeIndex = scope.secondRouteIndex;
@@ -689,6 +698,8 @@ void AreaCapacityScopeDialog::validate() {
 		const auto position = std::find(current.occurrenceIds.begin(), current.occurrenceIds.end(), current.cycleEndOccurrenceId);
 		if (position == current.occurrenceIds.end() || position == current.occurrenceIds.begin())
 			error = QStringLiteral("The cycle-closing occurrence must be a checked occurrence after the first checked one.");
+		else if (runsReversed(m_data, *position) != runsReversed(m_data, current.occurrenceIds.front()))
+			warning = QStringLiteral("The cycle-closing occurrence runs in the other direction than the first checked one. The chain leaves it out.");
 	}
 	if (error.isEmpty() && current.occurrenceIds.empty())
 		warning = QStringLiteral("No occurrence is checked. The window will report no selected traffic.");
