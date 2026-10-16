@@ -189,6 +189,11 @@ static bool testTakeInstaller(const QString& directory) {
 	const std::optional<UpdateRecord> rolledBack = takeUpdateRecord(path, SemanticVersion{9, 8, 6});
 	ok &= expect(rolledBack && rolledBack->version == SemanticVersion{9, 8, 7}, "the rolled-back reader still gets it");
 
+	// takeUpdateRecord removes any record it finds, so an installer record that it reads first is lost unseen.
+	ok &= expect(writeFile(path, kInstallerSucceeded), "installer fixture is writable again");
+	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 8, 6}) && !QFileInfo::exists(path),
+		"the rolled-back reader removes an installer record without returning it");
+
 	ok &= expect(writeFile(path, "outcome=installer-failed\n"), "malformed fixture is writable");
 	ok &= expect(!takeInstallerRecord(path) && QFileInfo::exists(path), "a malformed record is left for the other reader");
 	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 8, 6}) && !QFileInfo::exists(path),
