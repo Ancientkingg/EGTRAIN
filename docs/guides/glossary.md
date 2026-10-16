@@ -116,7 +116,7 @@ A timetable stop is one scheduled call of a service at a station: the station, a
 
 ### Dwell
 
-The dwell is the time that has to pass before a train that has reached a stop can leave it: the key `dwell_seconds` and the field **Minimum dwell (s)**, which is required and not negative. A train that has reached a stop leaves it no earlier than the dwell has passed and no earlier than the planned departure of the stop, when it has one. A train that begins its route at a stop is not held there ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
+The dwell is the time that has to pass before a train that has reached a stop can leave it: the key `dwell_seconds` and the field **Minimum dwell (s)**, which is required and not negative. A train that has reached a stop leaves it no earlier than the dwell has passed and no earlier than the planned departure of the stop, when it has one. Passengers who board or alight can make the stop longer than the dwell, never shorter, and a stop where nobody boards or alights lasts exactly the dwell ([the rule](../architecture/scene-schema.md#servicesjson)). A train that begins its route at a stop is not held there ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
 
 ### Elapsed time and clock time
 

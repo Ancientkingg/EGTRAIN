@@ -314,6 +314,18 @@ other field. Validation may warn when an intermediate schedule is incomplete.
 These are input plans in seconds relative to the scene's base-time origin, not
 simulation results.
 
+A train stands at a stop for `dwell_seconds`, counted from its arrival in steps
+of one second, and also until the planned departure of the stop when it has
+one. Boarding and alighting passengers can make the stop longer, never shorter:
+the stop lasts the passenger-dependent dwell when that is longer than
+`dwell_seconds`. The passenger-dependent dwell is 0 when nobody boards or
+alights, so a stop without passengers lasts exactly its planned dwell, in a
+scene without passengers as well. Otherwise it is a fixed time plus the time of
+the busiest door of the train. A door takes a boarding time and an alighting
+time, both counted per passenger, so a door that nobody uses takes no time
+(`Train::computePaxDependentDwellTimeAtStations`, after Fernandez et al. 2007
+and Gibson et al. 1989).
+
 An empty `stops` array means no scheduled calls without requiring `through`.
 Nonempty stops take precedence over `through: true`. Legacy export writes the
 actual stops, or an empty timetable for no calls; legacy import marks an empty
