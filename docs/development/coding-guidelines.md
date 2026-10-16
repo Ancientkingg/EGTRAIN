@@ -297,8 +297,9 @@ lower in that block, and to the `gui` and `slow` lists where they apply
 
 `tests/e2e/CMakeLists.txt` adds the sources of the scripted GUI scenarios to `QEGTRAIN` when
 tests are built. `MainWindowTestAccess` is the friend of `MainWindow` for them, a scenario with its
-own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `SceneRender.cpp`) is a member of it, and the
-table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
+own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `SceneRender.cpp`, `StationOverlay.cpp`) is a
+member of it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_`
+variable.
 
 ## Avoid in new code
 
