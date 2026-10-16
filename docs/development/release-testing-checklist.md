@@ -227,8 +227,8 @@ in-place save. Row R11 checks the installed-example path.
      the application menu;
    - any operating system warning shown at the first launch, with its text. An
      ad hoc macOS package is refused at the first start (row M4), and a
-     notarized one is not (row M5). Do not assume a warning on Windows or
-     Linux; record what appears;
+     notarized one is expected not to be (row M5). Do not assume a warning on
+     Windows or Linux; record what appears;
    - the title of every dialog shown before the main window can be used;
    - anything you had to install or change to make the package start. On
      Windows, say whether the Visual C++ runtime was installed before the test.
@@ -335,9 +335,11 @@ in this order. The signature of the copy in the Applications folder shows which
 of M4 and M5 applies. Run `codesign -dvv /Applications/QEGTRAIN.app` before the
 first launch; it does not start the app. `Signature=adhoc` means M4, and the
 line `Authority=Developer ID Application:` means M5. Mark the other row not
-applicable, with that reason. macOS may need a moment to learn the file type of
-a new app. If Finder does not know it yet, record that and what you did before
-it did, and go on with **Open With**.
+applicable, with that reason. A Developer ID signature without a ticket, where
+`xcrun stapler validate` fails, is neither M4 nor M5: record it as a finding on
+the signing configuration. macOS may need a moment to learn the file type of a
+new app. If Finder does not know it yet, record that and what you did before it
+did, and go on with **Open With**.
 
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |

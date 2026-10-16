@@ -291,7 +291,7 @@ to release in the ad hoc mode.
 | Signature of the app | Ad hoc (`Signature=adhoc`). It keeps the app runnable on Apple silicon and names no developer. | Every nested file, then the app, signed with the Developer ID identity, the hardened runtime and a secure timestamp |
 | Disk image | Not signed | Signed with the same identity |
 | Notarization | None | Apple notarizes the app and then the image, and the ticket is stapled to both |
-| First start | macOS refuses it until the owner of the Mac allows it in System Settings ([details](#first-start-of-an-ad-hoc-build)) | The confirmation that macOS asks for an app that was downloaded, and no other dialog ([details](#first-start-of-a-notarized-build)) |
+| First start | macOS refuses it until the owner of the Mac allows it in System Settings ([details](#first-start-of-an-ad-hoc-build)) | Expected: only the confirmation that macOS asks for an app that was downloaded, and no other dialog. Not yet observed ([details](#first-start-of-a-notarized-build)) |
 
 Set the certificate and the notarization credentials together. A certificate alone signs the app and the image with the
 Developer ID and notarizes nothing. That is neither mode, and what macOS shows for it has not been observed.
