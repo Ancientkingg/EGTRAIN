@@ -7,9 +7,11 @@
 #include <QPen>
 #include <QPointF>
 #include <QPointer>
+#include <QPolygonF>
 #include <QRectF>
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -20,23 +22,30 @@
 #include "graphics/items/HighlightEffect.h"
 #include "scene/TrackPreview.h"
 
+class Arc;
+class Connections;
+class Node;
 class PassengerItem;
 class PlatformItem;
 class QGraphicsItem;
 class QGraphicsItemGroup;
 class QGraphicsPixmapItem;
+class RuntimeGeometrySource;
 class SignalItem;
 class StationOverlayItem;
 class TrackLineItem;
 class TrainBadgeItem;
+class TrainBodyItem;
 class TrainItemGroup;
+struct GuiPassengerState;
+struct GuiTrainState;
 struct SceneModel;
 struct SceneStationView;
 struct StationVisual;
 
-// Draws the track preview on the network canvas and keeps track of the items on it. The scene owns
-// every item; the lists, maps and pointers below only observe them and are never used to delete
-// one. They are public until all the code that fills them is in this class.
+// Draws the track preview and the items of a run on the network canvas and keeps track of the items on
+// it. The scene owns every item; the lists, maps and pointers below only observe them and are never
+// used to delete one. They are public until all the code that fills them is in this class.
 //
 // clear() deletes every item of the scene and then forgets all the pointers to them. A pointer
 // that stays after the scene is cleared would dangle, so the registries belong with the code that
@@ -65,10 +74,46 @@ public:
 	};
 
 	NetworkPresenter(QGraphicsScene* scene, NetworkView* view);
+	~NetworkPresenter();
 
 	// Deletes every item of the scene and empties every registry. The signal under inspection is
 	// forgotten first, so nothing reads it while the scene deletes its items.
 	void clear();
+
+	// Sets where the items of a run take the infrastructure from. Without a source nothing of a run
+	// is drawn.
+	void setGeometrySource(std::unique_ptr<RuntimeGeometrySource> source);
+
+	// Lays out the stations of the run and draws its connections, track lines, nodes, station
+	// overlays, platforms and signals on the scene, which holds no item. It then indexes the signals
+	// and the track lines. The caller clears the scene first. A drawn item points to its arc, node
+	// or connection in the source, which therefore keeps them until the next clear().
+	void showRuntime(const SceneModel& sceneModel);
+
+	// The line of the preview that a track line of the run is drawn on, or null.
+	const TrackPreviewLine* cachedTrackLine(int track) const;
+
+	// Adds a train of the run with one body for each wagon and its badge. The train is promoted
+	// when it is selected or followed.
+	void paintTrain(const GuiTrainState& train, const SceneModel& sceneModel, bool promoted);
+
+	// Gives each body of the list the shape of its wagon at the present position of the train, and
+	// tells whether one of them has a shape.
+	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
+
+	// The shape of one wagon of a train. The polygon stays empty when the train has no route or the
+	// wagon has no position.
+	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
+
+	// Adds a station node of a track line. The node is darker at the end of a line when its platform
+	// is known.
+	void paintStationNode(QPointF coord, int size, int track, Node* node, bool lineEnd);
+
+	// Shows the passengers on board above a train, the details of a passenger above its icon, and
+	// the message of a virtual coupling above a train.
+	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
+	void paintPassengerInfoIcon(PassengerItem* paxItem, const GuiPassengerState& passenger, bool replayActive);
+	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 	// Draws the track lines, the connections, the nodes, the station overlays and the signals of the
 	// model on the scene, which holds no item, and fits the view to them. The caller clears the
@@ -159,6 +204,27 @@ public:
 private:
 	QPointer<QGraphicsScene> m_scene;
 	QPointer<NetworkView> m_view;
+
+	// Where the items of a run take the infrastructure from, and the stations of each region ordered by
+	// position along the track.
+	std::unique_ptr<RuntimeGeometrySource> m_source;
+	std::vector<std::vector<int>> m_regionStations;
+
+	QPointF Coord2ScreenPoint(double x, double y, double factor) const;
+	void calculateStationCoordAndShift();
+	bool hasTrackGeometry(int track) const;
+	void neighbourStations(double X, int tracklineID, int* stationIdx) const;
+	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY) const;
+	void egtrainPoint2Screen(Node* node, int track, double separation) const;
+	void egtrainPoint2Screen(Connections* connection, int track1, int track2, double separation) const;
+	void paintNode(QPointF coord, int size, int track, Node* node);
+	void paintStationPlatform(QPointF coord, int size, Node* node);
+	void paintArc(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
+	void arcDrawing(QPointF start, QPointF end, int penWidth, int track, Arc* arc);
+	void paintConnection(QPointF start, QPointF end, int penWidth, Connections* connection);
+	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex);
+	void buildSignalIndex();
+	void buildTrackIndexes();
 };
 
 // The pen of a connection, shared by the preview before Run and a run.

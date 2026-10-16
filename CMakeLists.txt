@@ -422,6 +422,7 @@ egtrain_target_warnings(egtrain_dispatch)
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/MainWindow.cpp
+    ${SRC_DIR}/app/RuntimeGeometryFromGlobals.cpp
     ${SRC_DIR}/app/SceneOutputDirectory.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
@@ -439,7 +440,9 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/io/RttpXml.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
+    ${SRC_DIR}/app/RuntimeGeometryFromGlobals.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
+    ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
@@ -937,6 +940,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_networkpresenter PRIVATE egtrain_graphics Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_networkpresenter COMMAND test_networkpresenter)
     set_tests_properties(test_networkpresenter PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_runtimecanvas ${SRC_DIR}/tests/test_runtimecanvas.cpp)
+    target_link_libraries(test_runtimecanvas PRIVATE egtrain_graphics egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    add_test(NAME test_runtimecanvas COMMAND test_runtimecanvas)
+    set_tests_properties(test_runtimecanvas PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_followcamera ${SRC_DIR}/tests/test_followcamera.cpp)
@@ -1511,7 +1520,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
-		test_networkscene_selection test_networkpresenter test_playbackprofiler test_playback_profile test_networkview test_followcamera
+		test_networkscene_selection test_networkpresenter test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
@@ -1535,7 +1544,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_sign_macos)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
-		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter
+		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_runtimecanvas
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke

@@ -268,9 +268,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "cannot inject virtual coupling overlay";
 		} else {
-			w.paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			w.m_presenter->paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
 			const int afterFirst = w.scene->items().size();
-			w.paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
+			w.m_presenter->paintVCouplingMsg(testTrain, "E2E virtual coupling overlay");
 			const int afterSecond = w.scene->items().size();
 			if (afterSecond != afterFirst) {
 				ok = false;
@@ -2195,7 +2195,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			const auto hasRenderableGeometry = [&w, selectedTrain](const GuiTrainState& state) {
 				if (!selectedTrain->trainPolygonItemList)
 					return false;
-				return w.getTrainPolygonItemList(selectedTrain->trainPolygonItemList, state);
+				return w.m_presenter->getTrainPolygonItemList(selectedTrain->trainPolygonItemList, state);
 			};
 			double step = 0.0;
 			if (baseState) {
@@ -2795,7 +2795,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const auto paintedFill = [&w, &platformNode](bool lineEnd, int connections) {
 			platformNode.numConnections = connections;
 			const QList<QGraphicsItem*> before = w.scene->items();
-			w.paintStationNode(QPointF(), w.m_presenter->station_node_size, 1, 0, &platformNode, lineEnd);
+			w.m_presenter->paintStationNode(QPointF(), w.m_presenter->station_node_size, 0, &platformNode, lineEnd);
 			QColor fill;
 			for (QGraphicsItem* item : w.scene->items()) {
 				if (before.contains(item))

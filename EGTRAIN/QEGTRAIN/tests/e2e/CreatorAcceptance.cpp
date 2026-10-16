@@ -2318,7 +2318,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				const auto line = std::find_if(w.m_presenter->m_cachedTrackPreview.lines.begin(), w.m_presenter->m_cachedTrackPreview.lines.end(),
 					[&](const auto& candidate) {
 						return w.m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
-													   : &candidate == w.cachedTrackLine(head->trackID);
+													   : &candidate == w.m_presenter->cachedTrackLine(head->trackID);
 					});
 				if (line == w.m_presenter->m_cachedTrackPreview.lines.end()) return false;
 				QPointF center, before, after, normal;
@@ -2469,7 +2469,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 		wagon.wagonHeadPositions = {0.8};
 		wagon.wagonTailPositions = {0.7};
 		QPolygonF polygon;
-		w.getTrainPolygon(&polygon, 0, wagon);
+		w.m_presenter->getTrainPolygon(&polygon, 0, wagon);
 		if (polygon.size() != 4 || qAbs(polygon.boundingRect().width() - 100) > 1e-6
 			|| qAbs(polygon.boundingRect().height() - 30 * expectedScale) > 1e-6
 			|| wagon.length != 100 || wagon.wagonHeadPositions[0] != 0.8 || wagon.wagonTailPositions[0] != 0.7) {

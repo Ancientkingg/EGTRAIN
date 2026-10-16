@@ -677,9 +677,9 @@ def main() -> None:
         raise SystemExit(f"scene_tool executable not found: {scene_tool}")
 
     assert_deferred_success_path_resets()
-    source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
+    source = (ROOT / "EGTRAIN/QEGTRAIN/graphics/NetworkPresenter.cpp").read_text(encoding="utf-8")
     for name in ("paintStationPlatform", "arcDrawing", "paintConnection", "paintSignal"):
-        start = source.index(f"void MainWindow::{name}(")
+        start = source.index(f"void NetworkPresenter::{name}(")
         if "fitInView(" in source[start:source.index("\n}\n", start)]:
             raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_option_list_matches_reads()

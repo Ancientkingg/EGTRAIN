@@ -1,8 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#define PI 3.14159265
-
 #include "telemetry/TelemetryOperation.h"
 
 #ifdef signals
@@ -206,23 +204,6 @@ public:
 	// track ordering
 	void orderTracks();
 
-	// painting
-	void paintNode(QPointF coord, int size, int pen_width, int track, Node* Node);
-	void paintStationNode(QPointF coord, int size, int pen_width, int track, Node* Node, bool lineEnd);
-	void paintStationPlatform(QPointF coord, int size, int pen_width, Node* Node);
-	void paintTrainPassengerInfo(TrainItemGroup* trainItem);
-	void paintPassengerInfoIcon(PassengerItem* paxItem);
-	void paintArc(QPointF start, QPointF end, int pen_width, int track, Arc* Arc, int track_separation);
-	void arcDrawing(QPointF start, QPointF end, int pen_width, int track, Arc* Arc);
-	void paintConnection(QPointF start, QPointF end, int pen_width, Connections* connection);
-	void paintSignal(double X, int size, int pen_width, int track, int track_separation, int sectionIndex);
-	void paintTrain(const GuiTrainState& train, int size, int pen_width);
-	QPointF Coord2ScreenPoint(double x, double y, double factor);
-	void calculateStationCoordAndShift(int geo_scale);
-	void egtrainPoint2Screen(double X, int track, double separation, double& graphX, double& graphY);
-	void egtrainPoint2Screen(Node* Node, int track, double separation);
-	void egtrainPoint2Screen(Connections* connections, int track1, int track2, double separation);
-
 	// loading GIF
 	void setLoadingGIF();
 	void showLoadingGIF();
@@ -235,10 +216,6 @@ public:
 	// double to string with precision
 	string to_string_precision(double value, int precision);
 
-	// geographical functions
-	void neighbourStations(double X, int tracklineID, int* stationIdx);
-	bool hasTrackGeometry(int track) const;
-
 	// setup info dock widget
 	void setupInfoDockWidget();
 	void setupRunResultsDock();
@@ -246,10 +223,6 @@ public:
 
 	// update signal aspects
 	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
-
-	// get train polygon (list)
-	bool getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train);
-	void getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTrainState& train);
 
 	// train path diagram
 	bool hasRunResults() const;
@@ -259,7 +232,6 @@ public:
 
 	// VCoupling notifications
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
-	void paintVCouplingMsg(TrainItemGroup* trainItem, const std::string& message);
 
 protected:
 	void showEvent(QShowEvent* e) override;
@@ -703,7 +675,6 @@ private:
 	void revealEditorDock(QDockWidget* dock);
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	bool maybeSaveScene();
-	const TrackPreviewLine* cachedTrackLine(int track) const;
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void clearPreviewInspection();
 	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
@@ -886,11 +857,10 @@ private:
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;
 
-	void buildSignalIndex();
-	void buildTrackIndexes();
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
 	bool isTrainOverlayPromoted(int trainIndex) const;
+	GuiPassengerState passengerState(const std::string& id) const;
 	void updateViewportOverlays();
 	void updateSignalCues();
 	void updateZoomStatus();
@@ -898,9 +868,6 @@ private:
 	bool paxTextVisible() const;
 	void updateNetworkLegend();
 	bool hasRawRunResults() const;
-
-	// associates regions and station indexes
-	std::vector<std::vector<int>> regionStations;
 
 private slots:
 	void setStartTime();
