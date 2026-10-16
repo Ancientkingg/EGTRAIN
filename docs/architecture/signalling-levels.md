@@ -659,7 +659,7 @@ section only to resolve signal failures. See the
 
 | Scene | Signalling areas | Runs with |
 | --- | --- | --- |
-| `Netherlands` | none | no level |
+| `Netherlands` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 | `Assignment_Gvc_Gdg_Ut` | one network-wide area, 0 to 165 km, level 0 | `0 ATB fixed block` |
 | `Copenhagen` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
 | `Milano_Brescia` | one network-wide area, 0 to 79 km, level 0 | `0 ATB fixed block` |
@@ -668,9 +668,9 @@ section only to resolve signal failures. See the
 | `Amsterdam_Hilversum_Student` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 
 The scene descriptions of `Paimpol`, `Lebanon`, `Milano_Brescia` and
-`Copenhagen` call their area a placeholder. The descriptions of
+`Copenhagen` call their area a placeholder. The descriptions of `Netherlands`,
 `Assignment_Gvc_Gdg_Ut` and `Amsterdam_Hilversum_Student` say that the level is
-a project decision. `Netherlands` is the one scene left without an area (#459).
+a project decision.
 
 `Copenhagen` also has four single-track restrictions, two at Hellerup, one at
 Hoje Taastrup and one at Farum. With the area and without them an arriving and a
@@ -682,7 +682,6 @@ of the scene.
 
 Open on this version:
 
-- #459: the committed scene `Netherlands` has no signalling area.
 - #439: historical cases without the canonical area sidecar still report
   `TrackLines/AreasCaseStudy.txt` without converting its rows. They need an
   explicit signalling assignment; canonical exports preserve their assignment.

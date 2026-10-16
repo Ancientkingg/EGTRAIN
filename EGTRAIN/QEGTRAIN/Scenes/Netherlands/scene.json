@@ -1,5 +1,6 @@
 {
   "base_time": "06:28:20",
+  "description": "Signalling: one network-wide area, level 0 (ATB, fixed block), assigned by project decision. 14 trains enter up to 180 s after their entry time and SPR_6 reaches its last stop 284 s later than without the area.",
   "import_report": [
     {
       "category": "legacy_root",

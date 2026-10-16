@@ -29,7 +29,7 @@ ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose trains all reach every stop of their route within the run.
 ASSERT_EVERY_STOP_REACHED = {6}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 3, 4, 5, 6, 7}
+SIGNALLING_COVERED = {1, 2, 3, 4, 5, 6, 7}
 # Cases whose services end at their last stop: no stop there holds the train past its dwell.
 ASSERT_SERVICES_END = {1}
 # A train that reaches its last stop this long before the end of the run has left it by the end.
