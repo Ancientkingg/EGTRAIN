@@ -239,11 +239,23 @@ private:
 			return false;
 		}
 
+		// WinHttpReadData waits until it has all the bytes it is asked for or the response ends, which would
+		// hold back a body that arrives in parts. WinHttpQueryDataAvailable waits for the next part and
+		// reports 0 at the end of the response, so each read is limited to what it reports.
 		std::vector<char> chunk(kReadChunkBytes);
 		qint64 received = 0;
 		for (;;) {
+			DWORD available = 0;
+			if (!WinHttpQueryDataAvailable(handle, &available)) {
+				*error = describeError(GetLastError());
+				return false;
+			}
+			if (available == 0)
+				break;
+			// Not std::min, which the min macro of windows.h breaks.
+			const DWORD wanted = available < kReadChunkBytes ? available : kReadChunkBytes;
 			DWORD read = 0;
-			if (!WinHttpReadData(handle, chunk.data(), kReadChunkBytes, &read)) {
+			if (!WinHttpReadData(handle, chunk.data(), wanted, &read)) {
 				*error = describeError(GetLastError());
 				return false;
 			}
