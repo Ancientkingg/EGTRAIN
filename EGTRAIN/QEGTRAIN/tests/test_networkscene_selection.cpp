@@ -457,6 +457,51 @@ int main(int argc, char* argv[]) {
 		ok &= expect(context == &signal, "node padding does not obscure painted signal context");
 	}
 
+	// A small head keeps its device-sized pick target above the track or connection beneath it.
+	for (bool useConnection : {false, true}) {
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		TrackLineItem track(QLineF(-60.0, 0.0, 60.0, 0.0));
+		ConnectionItem connection(QLineF(-60.0, 0.0, 60.0, 0.0));
+		QGraphicsItem* line = useConnection ? static_cast<QGraphicsItem*>(&connection) : &track;
+		SignalItem signal(QRectF(-1.0, -1.0, 2.0, 2.0));
+		signal.setPos(0.0, 10.0);
+		scene.addItem(line);
+		scene.addItem(&signal);
+		QGraphicsItem* clicked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnSignal, [&](SignalItem* item) { clicked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnArc, [&](TrackLineItem* item) { clicked = item; });
+		QObject::connect(&scene, &NetworkScene::MousePressedOnConnection, [&](ConnectionItem* item) { clicked = item; });
+		const auto clickedAt = [&](const QPointF& offset) {
+			clicked = nullptr;
+			sendLeftClick(scene, view, signal.scenePos() + offset);
+			return clicked;
+		};
+		ok &= expect(clickedAt(QPointF(0.0, 0.0)) == &signal, "click inside a small head selects the signal");
+		ok &= expect(clickedAt(QPointF(3.0, 0.0)) == &signal, "pick target of a small head wins over the line beneath it");
+		ok &= expect(clickedAt(QPointF(20.0, 0.0)) == line, "click beyond the pick target of a head selects the line");
+	}
+
+	{
+		NetworkScene scene(nullptr);
+		QGraphicsView view(&scene);
+		QPixmap pixmap(40, 40);
+		pixmap.fill(Qt::white);
+		QGraphicsPixmapItem artwork(pixmap);
+		artwork.setData(PreviewGraphics::Kind, "station");
+		artwork.setPos(-20.0, -20.0);
+		artwork.setZValue(1.0);
+		TrackLineItem track(QLineF(-60.0, 0.0, 60.0, 0.0));
+		SignalItem signal(QRectF(-1.0, -1.0, 2.0, 2.0));
+		scene.addItem(&track);
+		scene.addItem(&artwork);
+		scene.addItem(&signal);
+		QGraphicsItem* clicked = nullptr;
+		QObject::connect(&scene, &NetworkScene::MousePressedOnPreview, [&](QGraphicsItem* item) { clicked = item; });
+		sendLeftClick(scene, view, QPointF(3.0, 0.0));
+		ok &= expect(clicked == &artwork, "station artwork keeps its priority over the pick target of a head");
+	}
+
 	for (bool useConnection : {false, true}) {
 		NetworkScene scene(nullptr);
 		QGraphicsView view(&scene);
