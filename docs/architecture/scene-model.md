@@ -194,6 +194,30 @@ windows using the existing random-number behavior. Platform stopping lists are
 populated from the resolved occurrence stops without invoking the
 filesystem-era platform loader.
 
+### Edit history
+
+`scene/SceneHistory` keeps whole-scene snapshots for Undo and Redo and has no Qt
+dependency. `record` appends a copy of the scene and drops the snapshots after
+the current position, so an edit after Undo abandons the Redo branch. `undo`
+and `redo` move the position and return the snapshot that becomes the live
+scene. Each snapshot carries a label that `record` derives from the counts of
+the parts of the scene (`Add service`, `Delete stop`, or `Edit` when the change
+is not one part added or removed), the scenarios that differ from the saved
+scene, and its memory as `estimateSceneModelBytes` counts it. That estimate
+adds up the structs, the vectors and the strings too long for the string
+object, so it depends on the standard library and is a bound, not a
+measurement.
+
+The history keeps at most 100 undo steps and an estimated 128 MiB. Both limits
+are parameters of the constructor. When either is exceeded the oldest
+snapshots are dropped; the live one never is, even when it alone is larger than
+the memory limit. One position can be marked as saved, by `markSaved` or by
+`reset` for a scene that was just opened. The scene is clean exactly when the
+position is the saved one. A saved snapshot that is dropped, by the abandoned
+Redo branch or by a limit, leaves no saved position, and the scene stays dirty
+until the next save. `reset` starts a new history from a scene that was opened,
+created or recovered.
+
 ## Validation layers
 
 The public validator separates three questions:
