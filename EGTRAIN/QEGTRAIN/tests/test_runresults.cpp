@@ -307,6 +307,93 @@ int main() {
 	}
 
 	{
+		// Plan and simulated time present, plan only, simulated time only, neither; the second call of Central has
+		// no timetable point because the train never got there.
+		auto train = makeTimetableTrain("status", {"OnPlan", "NoPlanStop", "Central", "Central", "Absent"});
+		const double plans[5][2] = {{10.0, 20.0}, {-1.0, -1.0}, {60.0, 70.0}, {80.0, 90.0}, {-1.0, -1.0}};
+		for (int index = 0; index < 5; ++index) {
+			train->ScheduledArrivals[index] = plans[index][0];
+			train->ScheduledDepartures[index] = plans[index][1];
+		}
+		train->TimetablePoints.push_back(makeTimetableEvent("OnPlan", 11.0, 21.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("NoPlanStop", 40.0, 50.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("Central", 61.0, 71.0));
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
+		ok &= expect(rows.size() == 5, "every stop keeps a row whatever its status");
+		if (rows.size() == 5) {
+			ok &= expect(rows[0].arrivalStatus == TimetableValueStatus::Available
+					&& rows[0].departureStatus == TimetableValueStatus::Available,
+				"a planned and simulated time is available");
+			ok &= expect(rows[1].arrivalStatus == TimetableValueStatus::NoPlan
+					&& rows[1].departureStatus == TimetableValueStatus::NoPlan,
+				"a simulated time without a plan is NoPlan");
+			ok &= expect(rows[2].arrivalStatus == TimetableValueStatus::Available
+					&& rows[3].callIndex == 2 && rows[3].arrivalStatus == TimetableValueStatus::NotReached
+					&& rows[3].departureStatus == TimetableValueStatus::NotReached,
+				"the second call of a repeated station without a timetable point is NotReached");
+			ok &= expect(rows[4].arrivalStatus == TimetableValueStatus::NoPlanAndNotReached
+					&& rows[4].departureStatus == TimetableValueStatus::NoPlanAndNotReached,
+				"a stop with neither plan nor simulated time is NoPlanAndNotReached");
+			bool statusMatchesDelay = true;
+			for (const TimetableResultRow& row : rows) {
+				statusMatchesDelay &= (row.arrivalStatus == TimetableValueStatus::Available) == row.arrivalDelaySeconds.available;
+				statusMatchesDelay &= (row.departureStatus == TimetableValueStatus::Available) == row.departureDelaySeconds.available;
+			}
+			ok &= expect(statusMatchesDelay, "a delay is available exactly when the status is Available");
+		}
+	}
+
+	{
+		// Arrival and departure are classified independently.
+		auto train = makeTimetableTrain("status-split", {"ArrivalOnly", "DepartureOnly"});
+		train->ScheduledArrivals[0] = 5.0;
+		train->ScheduledDepartures[0] = -1.0;
+		train->ScheduledArrivals[1] = -1.0;
+		train->ScheduledDepartures[1] = 30.0;
+		train->TimetablePoints.push_back(makeTimetableEvent("ArrivalOnly", -1.0, 9.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("DepartureOnly", 25.0, -1.0));
+		const std::vector<const Train*> trains{train.get()};
+		const auto rows = buildTimetableResults(trains);
+		ok &= expect(rows.size() == 2 && rows[0].arrivalStatus == TimetableValueStatus::NotReached
+				&& rows[0].departureStatus == TimetableValueStatus::NoPlan
+				&& rows[1].arrivalStatus == TimetableValueStatus::NoPlan
+				&& rows[1].departureStatus == TimetableValueStatus::NotReached,
+			"arrival and departure statuses are independent");
+	}
+
+	{
+		// The planned departure at B already contains the 120 s entrance delay; it is passed on unchanged.
+		auto train = makeTimetableTrain("entrance", {"A", "B"});
+		train->EntranceDelay = 120.0;
+		train->entranceDelayStationId = "B";
+		train->ScheduledArrivals[0] = -1.0;
+		train->ScheduledDepartures[0] = 100.0;
+		train->ScheduledArrivals[1] = 400.0;
+		train->ScheduledDepartures[1] = 620.0;
+		train->TimetablePoints.push_back(makeTimetableEvent("A", 100.0, 100.0));
+		train->TimetablePoints.push_back(makeTimetableEvent("B", 450.0, 650.0));
+		auto plain = makeTimetableTrain("no-entrance", {"A", "B"});
+		const std::vector<const Train*> trains{train.get(), plain.get()};
+		const auto results = buildRunResults(trains, 1.0);
+		ok &= expect(results.trains.size() == 2 && closeTo(results.trains[0].entranceDelaySeconds, 120.0)
+				&& results.trains[0].entranceDelayStationId == "B",
+			"the run result carries the entrance delay and its station");
+		ok &= expect(closeTo(results.trains[1].entranceDelaySeconds, 0.0)
+				&& results.trains[1].entranceDelayStationId.empty(),
+			"a train without an entrance delay has none in the run result");
+		const auto rows = buildTimetableResults(trains);
+		ok &= expect(rows.size() == 4 && rows[1].stationId == results.trains[0].entranceDelayStationId
+				&& closeTo(rows[1].plannedDepartureSeconds.value, 620.0)
+				&& closeTo(rows[1].plannedArrivalSeconds.value, 400.0)
+				&& closeTo(rows[1].departureDelaySeconds.value, 30.0),
+			"the entrance delay station matches a timetable row and the plans stay as set");
+		const Train copied(*train);
+		ok &= expect(closeTo(copied.EntranceDelay, 120.0) && copied.entranceDelayStationId == "B",
+			"a copy of a train keeps its entrance delay station");
+	}
+
+	{
 		std::vector<std::string> stations;
 		for (int index = 0; index < Train::kMaxTimetableStations; ++index)
 			stations.push_back("S" + std::to_string(index));

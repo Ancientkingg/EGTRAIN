@@ -3375,6 +3375,9 @@ int main() {
 			&& regional_train[1].ScheduledDepartures[1] == 160.0
 			&& regional_train[1].EntranceDelay == 5.0,
 		"selected entrance delays apply to the requested occurrence and stops");
+	ok &= expect(regional_train[0].entranceDelayStationId.empty() && regional_train[1].entranceDelayStationId == "Zero"
+			&& regional_train[2].entranceDelayStationId.empty(),
+		"the first delayed stop of the delayed occurrence names the entrance delay station");
 	ok &= expect(regional_train[0].departure_time == 1.0 && regional_train[1].departure_time == 1201.0
 			&& regional_train[2].departure_time == 2401.0,
 		"hourly departure retiming preserves the legacy algorithm");

@@ -81,6 +81,21 @@ struct TrainRunResult {
 	RunResultValue firstDirectIncidentLocation;
 	bool destinationTerminationRequested = false;
 	bool destinationTerminated = false;
+	// Entrance delay the scenario applied to this train, in seconds.  Zero with an empty station when none was
+	// applied.  The station uses the same names as TimetableResultRow::stationId; its planned departure already
+	// contains the delay.
+	double entranceDelaySeconds = 0.0;
+	std::string entranceDelayStationId;
+};
+
+// Whether the planned and the simulated time of an arrival or departure exist.  Available: both.  NoPlan: only the
+// simulated time.  NotReached: only the planned time.  NoPlanAndNotReached: neither.  The delay is available only
+// with Available.
+enum class TimetableValueStatus {
+	Available,
+	NoPlan,
+	NotReached,
+	NoPlanAndNotReached
 };
 
 struct TimetableResultRow {
@@ -97,6 +112,8 @@ struct TimetableResultRow {
 	RunResultValue simulatedDepartureSeconds;
 	RunResultValue arrivalDelaySeconds;
 	RunResultValue departureDelaySeconds;
+	TimetableValueStatus arrivalStatus = TimetableValueStatus::NoPlanAndNotReached;
+	TimetableValueStatus departureStatus = TimetableValueStatus::NoPlanAndNotReached;
 };
 
 struct RunResults {

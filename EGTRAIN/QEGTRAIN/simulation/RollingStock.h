@@ -270,6 +270,7 @@ public:
 	int delayed;						// This is a boolean parameter: if delayed =1 the train will experience a delay at a determined station, else if delayed=0 the train won't experience any delay
 	double TotalInputDelays = 0.0;		// Sum of the Entrance Delays +stochastic disturbances to dwell times
 	double EntranceDelay;				// This is the entrance delay of the train on the network
+	std::string entranceDelayStationId; // Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty when none was applied
 	bool CanEnter;						// This Variable becomes True when time is major than departure_time and if for the first Time signalling_block_sections[0] is free (i.e. its code is 270)
 	bool OutOfSimulation;				// if true it means that the train is out of the simulation, i.e. it has been already simulated
 	int counter2;						// When Counter2 becomes 1, CanEnter variable becomes true and the train can start the simulation

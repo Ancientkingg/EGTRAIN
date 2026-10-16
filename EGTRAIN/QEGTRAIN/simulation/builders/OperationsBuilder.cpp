@@ -54,6 +54,7 @@ struct NativeTrainPlan {
 	bool destinationTerminationRequested = false;
 	double scheduledDeparture = 0.0;
 	double entranceDelay = 0.0;
+	std::string entranceDelayStationId;
 };
 
 bool nativeFinite(double value) {
@@ -245,6 +246,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.scheduled_departure_time = plan.scheduledDeparture;
 	train.departure_time = plan.scheduledDeparture;
 	train.EntranceDelay = plan.entranceDelay;
+	train.entranceDelayStationId = plan.entranceDelayStationId;
 	train.TotalInputDelays = plan.entranceDelay;
 	train.Initialise_Gibson_Dwell_Time_Parameters(7, 0.32, 18.23, 0.564, 4.838, 22.24, 0.04, 0.562);
 	train.numStations = static_cast<int>(plan.stops.size());
@@ -847,6 +849,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			for (NativeStopPlan& trainStop : train.stops) {
 				if (trainStop.stationId == delay.stationId) {
 					trainStop.plannedDeparture += delay.delaySeconds;
+					if (train.entranceDelayStationId.empty())
+						train.entranceDelayStationId = trainStop.stationName;
 					break;
 				}
 			}
