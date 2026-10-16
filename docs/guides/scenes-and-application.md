@@ -283,6 +283,15 @@ or unprojectable blocks are omitted. Recorded movement is sampled only within
 the scoped envelopes; planned station references are a separate dashed layer.
 Compressed blocking-time diagrams shift calculated envelopes, not recorded
 movement. Neither view extrapolates missing route projections.
+Both charts show physical reference sections separately as neutral boundaries and an
+`order:ID` extent strip. Hover shows full IDs and directed runtime coordinates;
+labels thin when crowded and remain with train filters and PNG export. Missing
+geometry is reported inside the chart, never replaced by equal-width blocks.
+Both CSVs list the displayed physical occurrences once, including a section-only
+export when no train is visible. A unique Reference section order is blank when
+matching is ambiguous. Envelopes that cannot be placed on the reference route
+are exported without X values. Capacity analysis reports an unavailable scope
+when its resource-ID calculation cannot distinguish the selected occurrences.
 
 Input traction plots show rolling-stock input, not simulated effort. Their
 warning remains visible when a curve contains negative effort below the default

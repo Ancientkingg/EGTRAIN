@@ -2,6 +2,7 @@
 #define DIAGRAMWINDOW_H
 
 #include <QDialog>
+#include "diagrams/BlockingTimeDiagram.h"
 #include "telemetry/TelemetryOperation.h"
 #include <QHash>
 #include <QPen>
@@ -21,6 +22,7 @@
 
 QT_CHARTS_USE_NAMESPACE
 
+class QGraphicsObject;
 class QLabel;
 class QPushButton;
 class TrainFilterButton;
@@ -70,9 +72,14 @@ public:
 
 	// Supply raw source data for CSV export. The provider receives the ids of the
 	// trains currently visible so it can export only what the user is looking at.
+	// Optional captured train ids include real trains with only unplottable CSV rows.
 	// An empty return means there is nothing to export. The CSV button is shown only while a provider is set.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
-		const QString& suggestedFileName);
+		const QString& suggestedFileName, const QStringList& trainIds = {});
+	// Set after setChart. A chart-owned physical layer, not train series. Chart replacement clears it.
+	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId);
+	// The same provider/filter snapshot that Export CSV writes, without opening a file dialog.
+	std::string csvContent() const;
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
 			const char* artifactKind, const std::string& artifactBytes)>
 			writer);
@@ -104,6 +111,7 @@ private:
 	void applyTimeAxis();
 	QAbstractSeries* inspectAt(const QPoint& viewportPosition);
 	void clearTooltip();
+	void showTooltip(const QPoint& viewportPosition);
 	void navigate(double factor, const QPointF& chartPosition, const QPointF& pan = {});
 	void applyTrainColors(const QHash<QString, QColor>& colors, bool paintSeries);
 	void rebuildFilterGroups();
@@ -126,6 +134,7 @@ private:
 	bool m_timeAxis = false;
 	Qt::Orientation m_timeOrientation = Qt::Horizontal;
 	QPointer<QLabel> m_tooltip;
+	QPointer<QGraphicsObject> m_sectionOverlay;
 	QHash<QAbstractAxis*, QPair<double, double>> m_fullBounds;
 	long long m_startOffset = 0;
 	QVector<SeriesGroup> m_groups;
@@ -139,6 +148,7 @@ private:
 	QString m_pinnedTrainId;
 	std::function<std::string(const QStringList&)> m_csvProvider;
 	QString m_csvSuggestedName;
+	QStringList m_csvTrainIds;
 	std::function<bool(const QString&, const char*, const std::string&)> m_provenanceWriter;
 };
 

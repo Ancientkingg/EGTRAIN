@@ -2832,6 +2832,16 @@ static bool runRollingStockMessageChecks() {
 	return ok;
 }
 
+static bool sameSections(const std::vector<BlockSectionInput>& actual, const std::vector<BlockSectionInput>& expected) {
+	if (actual.size() != expected.size())
+		return false;
+	for (std::size_t i = 0; i < actual.size(); ++i)
+		if (actual[i].id != expected[i].id || std::fabs(actual[i].startKm - expected[i].startKm) > 1e-9
+			|| std::fabs(actual[i].endKm - expected[i].endKm) > 1e-9)
+			return false;
+	return true;
+}
+
 int main() {
 	bool ok = generatorTests();
 	SceneModel scene = completeScene();
@@ -2876,6 +2886,17 @@ int main() {
 		ok &= expect(forwardAtSample && reverseAtSample && std::fabs(*forwardAtSample - *forwardStop) < 1e-6
 				&& std::fabs(*reverseAtSample - *backwardStop) < 1e-6,
 			"runtime sample metres project without a second direction reversal");
+		// Forward: block.0 to block.2 over the nodes at 42 to 45 km. Reversed: the route length is the
+		// end of the first listed block (45 km) and each section becomes [length - end, length - start],
+		// so the sections run 0 to 1, 1 to 2 and 2 to 3 km in travel direction.
+		const std::vector<BlockSectionInput> forwardSections = {{"@block.0@", 42.0, 43.0}, {"@block.1@", 43.0, 44.0},
+			{"@block.2@", 44.0, 45.0}};
+		const std::vector<BlockSectionInput> reverseSections = {{"@block.2@", 0.0, 1.0}, {"@block.1@", 1.0, 2.0},
+			{"@block.0@", 2.0, 3.0}};
+		ok &= expect(sameSections(blockSectionInputsForRoute(train_route[forward.indexOfRoute]), forwardSections),
+			"forward route sections keep the block ends in route order");
+		ok &= expect(sameSections(blockSectionInputsForRoute(train_route[reverse.indexOfRoute]), reverseSections),
+			"reversed route sections increase along the travel direction");
 	}
 	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";

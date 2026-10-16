@@ -1,6 +1,7 @@
 #include "diagrams/RouteDiagramCoordinates.h"
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 int main() {
 	const RouteDiagramPath reference{"main", {{"a", "A", "Alpha", 42}, {"b", "B", "Beta", 47}, {"c", "C", "Gamma", 53}}};
@@ -36,6 +37,21 @@ int main() {
 	const RouteDiagramPath compact{"labels", {{"n", "Paimpol", "Paimpol", 0}, {"m", "Unnamed", "", 1}}};
 	const auto compactLabels = routeDiagramStationLabels(compact);
 	if (compactLabels.at(0) != "Paimpol" || compactLabels.at(1) != "Unnamed") return 10;
+	// Distance range of a section chart: usable sections first, else the whole reference path, with one margin.
+	const auto closeTo = [](const std::pair<double, double>& range, double low, double high) {
+		return std::abs(range.first - low) < 1e-12 && std::abs(range.second - high) < 1e-12;
+	};
+	const double nan = std::numeric_limits<double>::quiet_NaN();
+	if (!closeTo(blockSectionAxisRange(buildBlockSectionExtents({{"@a@", 4.0, 5.0}, {"@b@", 5.0, 6.0}}), reference), 3.99, 6.01)) return 11;
+	if (!closeTo(blockSectionAxisRange(buildBlockSectionExtents({{"@a@", 6.0, 4.0}}), reference), 3.99, 6.01)) return 12;
+	if (!closeTo(blockSectionAxisRange(buildBlockSectionExtents({{"@a@", 1.0, 1.001}}), reference), 0.99, 1.02)) return 13;
+	const auto unusable = buildBlockSectionExtents({{"@zero@", 3.0, 3.0}, {"@nan@", 1.0, nan}});
+	if (!closeTo(blockSectionAxisRange(unusable, reference), 41.99, 53.01)) return 14;
+	const RouteDiagramPath falling{"back", {{"c", "C", "Gamma", 53}, {"b", "B", "Beta", 47}, {"a", "A", "Alpha", 42}}};
+	if (!closeTo(blockSectionAxisRange({}, falling), 41.99, 53.01)) return 15;
+	const RouteDiagramPath returning{"loop", {{"a", "A", "Alpha", 2}, {"b", "B", "Beta", 8}, {"c", "C", "Gamma", -2}, {"n", "", "", nan}}};
+	if (!closeTo(blockSectionAxisRange(unusable, returning), -2.01, 8.01)) return 16;
+	if (!closeTo(blockSectionAxisRange(unusable, RouteDiagramPath{}), -0.01, 1.01)) return 17;
 	std::cout << "route coordinate projection passed\n";
 	return 0;
 }

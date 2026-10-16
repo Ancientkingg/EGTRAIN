@@ -524,10 +524,25 @@ def check_exports(bundle_path):
                for row in actual), "scope clipping must retain original end-time evidence")
 
     with (exports / "capacity_compressed_blocking_time.csv").open(newline="", encoding="utf-8") as stream:
-        compressed_rows = list(csv.DictReader(stream))
+        compressed_all = list(csv.DictReader(stream))
+    section_layers = {"block section extent", "block section extent (geometry missing)"}
+    compressed_rows = [row for row in compressed_all if row["Layer"] not in section_layers]
+    compressed_sections = [row for row in compressed_all if row["Layer"] in section_layers]
     expect(compressed_rows and all(row["Layer"] == "calculated blocking envelope"
                and row["Start X[km]"] and row["End X[km]"] for row in compressed_rows),
            "compressed diagram must have projected envelopes and no recorded movement")
+    # The physical sections of the reference route are listed once, in route order, without a train.
+    ordinary_sections = [row for row in blocking_rows if row["Layer"] in section_layers]
+    section_key = lambda rows: [(row["Block"], row["Start X[km]"], row["End X[km]"], row["Reference section"])
+                                for row in rows]
+    expect(compressed_sections and all(row["Layer"] == "block section extent" and not row["Train"]
+               and row["Start X[km]"] and row["End X[km]"] for row in compressed_sections),
+           "compressed CSV must list physical sections with their extents and no train")
+    expect([row["Reference section"] for row in compressed_sections]
+           == [str(order) for order in range(1, len(compressed_sections) + 1)],
+           "each physical section must appear once in the compressed CSV, in route order")
+    expect(section_key(compressed_sections) == section_key(ordinary_sections),
+           "compressed and ordinary blocking-time CSV must list the same physical sections")
     original_by_block = {(row["Train"], row["Block"]):
                          (float(row["Original start[s]"]), float(row["Original end[s]"]))
                          for row in actual}

@@ -78,6 +78,23 @@ std::optional<double> RouteDiagramProjection::map(double positionKm) const {
 }
 
 
+std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionExtent>& extents, const RouteDiagramPath& reference) {
+	double low = 0.0, high = 1.0;
+	if (const auto bounds = blockSectionBounds(extents)) {
+		low = bounds->first;
+		high = bounds->second;
+	} else {
+		bool any = false;
+		for (const auto& node : reference.nodes) {
+			if (!std::isfinite(node.positionKm)) continue;
+			low = any ? std::min(low, node.positionKm) : node.positionKm;
+			high = any ? std::max(high, node.positionKm) : node.positionKm;
+			any = true;
+		}
+	}
+	return {low - 0.01, std::max(low + 0.02, high + 0.01)};
+}
+
 double routeDiagramTrajectoryKm(double positionMeters) {
 	return positionMeters / 1000.0;
 }

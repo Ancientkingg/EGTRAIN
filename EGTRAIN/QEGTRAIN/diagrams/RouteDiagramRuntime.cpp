@@ -1,6 +1,7 @@
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "scene/SceneModel.h"
 #include "diagrams/SimulationHeaders.h"
+#include <algorithm>
 #include <cmath>
 #include <map>
 
@@ -33,6 +34,18 @@ RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
 		add(section.end_node);
 	}
 	return path;
+}
+
+std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route) {
+	std::vector<BlockSectionInput> inputs;
+	const std::size_t count = std::min(static_cast<std::size_t>(std::max(route.N_Block_Sections, 0)),
+		route.sequence_of_block_sections.size());
+	inputs.reserve(count);
+	for (std::size_t i = 0; i < count; ++i) {
+		const Section& section = route.sequence_of_block_sections[i];
+		inputs.push_back({section.ID, section.start_node.X, section.end_node.X});
+	}
+	return inputs;
 }
 
 // Runtime stop nodes retain the canonical node ID and route X assigned by the
