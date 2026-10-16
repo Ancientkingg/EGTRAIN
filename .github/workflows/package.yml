@@ -2,8 +2,9 @@ name: Package
 
 # Builds the macOS, Windows, and Linux packages and uploads each as an artifact of the run.
 # The macOS package is a disk image. The Windows package is also built into an installer and a portable archive,
-# which are artifacts too. A push to production or a v* tag signs the three Windows program files first when the
-# repository variable WINDOWS_SIGNING is signpath; every other run builds unsigned files and reports their signatures.
+# which are artifacts too. A push to production or a v* tag signs the three Windows program files first and the installer
+# last when the repository variable WINDOWS_SIGNING is signpath; every other run builds unsigned files and reports their
+# signatures.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -518,7 +519,8 @@ jobs:
   finalize-windows:
     name: Finalize Windows
     # The job reads the unsigned package when signing is skipped and the signed one when signing succeeded. It does not run
-    # when signing failed, so no installer or archive comes from files that were not signed.
+    # when signing failed, so no installer or archive comes from files that were not signed. When signing succeeded, the job
+    # sign-windows-installer signs the installer that this job uploads.
     needs: [package-windows, sign-windows]
     if: ${{ !cancelled() && needs.package-windows.result == 'success' && (needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped') }}
     runs-on: windows-latest
@@ -637,6 +639,79 @@ jobs:
           name: finalize-windows-diagnostics
           path: ${{ runner.temp }}/installer-smoke/logs/*.log
           if-no-files-found: ignore
+
+  sign-windows-installer:
+    name: Sign Windows installer
+    # This job runs when sign-windows signed the program files, and in no other run. The finalize job then compiled the installer
+    # from the signed files and uploaded it unsigned. The job sends the installer alone to the signing service, checks the
+    # signatures of the installer and of the three program files of the payload that the installer and the portable archive were
+    # built from, and only then replaces the installer artifact with the signed file. The release workflow runs its release job
+    # only after the whole package workflow succeeded, so a failure here stops the release.
+    needs: [sign-windows, finalize-windows]
+    if: ${{ needs.sign-windows.result == 'success' }}
+    runs-on: windows-latest
+    environment: windows-signing
+    permissions:
+      actions: read
+      contents: read
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: QEGTRAIN-windows-x64-payload
+          path: payload
+
+      - name: Download the installer
+        uses: actions/download-artifact@v4
+        with:
+          name: EGTRAIN-windows-x64-installer
+          path: installer
+
+      - name: Upload the installer to sign
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-windows-x64-installer-unsigned
+          path: installer/EGTRAIN-Setup-${{ inputs.version }}-x64.exe
+          overwrite: true
+          if-no-files-found: error
+
+      - name: Sign the installer
+        # The service waits for the approval of a person, so the wait is long.
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+
+      - name: Verify the program files
+        shell: pwsh
+        env:
+          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT
+
+      - name: Verify the installer
+        shell: pwsh
+        env:
+          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+        run: ./tools/release/verify_signatures.ps1 -Directory signed -Name "EGTRAIN-Setup-${{ inputs.version }}-x64.exe" -Require -ExpectedSubject $env:EXPECTED_SUBJECT
+
+      - name: Upload the signed installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: EGTRAIN-windows-x64-installer
+          path: signed/EGTRAIN-Setup-${{ inputs.version }}-x64.exe
+          overwrite: true
+          if-no-files-found: error
 
   package-linux:
     name: Package Linux

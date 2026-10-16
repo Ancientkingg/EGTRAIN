@@ -6,11 +6,11 @@ that reads Not recorded.
 
 ## Current state
 
-- No Windows file is signed. The package workflow has a job that signs the three program files through SignPath, and
-  the job is off until the owner sets it up (see [Signing in CI](#signing-in-ci)). Every run of the package workflow
-  reports the signature state of the program files with `tools/release/verify_signatures.ps1` and fails for no file.
-  Nothing signs the installer yet. Without the setup, the workflows use no credential other than the token that GitHub
-  gives to each run.
+- No Windows file is signed. The package workflow has two jobs that sign the three program files and then the installer
+  through SignPath, and both are off until the owner sets them up (see [Signing in CI](#signing-in-ci)). Every run of
+  the package workflow reports the signature state of the program files with `tools/release/verify_signatures.ps1` and
+  fails for no file. Without the setup, the workflows use no credential other than the token that GitHub gives to each
+  run.
 - The Windows downloads are the installer `EGTRAIN-Setup-<version>-x64.exe` and the portable ZIP
   `EGTRAIN-Portable-<version>-x64.zip`.
 - The macOS app is ad-hoc signed in the release workflow. An ad-hoc signature carries no publisher identity. Developer
@@ -28,9 +28,10 @@ The files are `QEGTRAIN.exe`, `egtrain_update_helper.exe`, `scene_tool.exe` and 
 installer must contain the same signed program files, so signing happens before the ZIP is built and before the
 installer is compiled. The Windows finalize job writes the ZIP and compiles the installer from the directory that the
 Windows package job uploads, so that directory must already hold the signed files. The signing job does this: it
-replaces the uploaded directory with one that holds the signed files. The release job takes the SHA-256 and the size of
-each file it publishes for `update-manifest.json`. A ZIP file carries no Authenticode signature of its own. Signatures
-use SHA-256 and a trusted timestamp where the signing service supports them.
+replaces the uploaded directory with one that holds the signed files. The installer can be signed only once it is
+compiled, so a second job signs it and replaces the uploaded installer. The release job takes the SHA-256 and the size
+of each file it publishes for `update-manifest.json`. A ZIP file carries no Authenticode signature of its own.
+Signatures use SHA-256 and a trusted timestamp where the signing service supports them.
 
 This project does not sign the Qt, ZeroMQ and other runtime libraries and plugins in the package; they keep whatever
 signature they have, which may be none. The scenes, the guide and the `.egscene` case studies are data and are never
@@ -121,7 +122,19 @@ artifact, copies the three signed files into the payload, runs `verify_signature
 replaces the artifact `QEGTRAIN-windows-x64-payload` with it. The finalize job and the release job read that artifact.
 When the request is rejected or times out, or a check fails, the job fails and the finalize job does not run, so no
 installer or ZIP is built from unsigned files. A re-run of the failed job replaces the artifacts of the first attempt.
-SignPath Foundation needs a person to approve each request, and the signing step waits up to one hour for it.
+
+The `sign-windows-installer` job runs after the finalize job, and only when `sign-windows` succeeded, so every run that
+did not sign the program files skips it and keeps the unsigned installer. It downloads the installer that the finalize
+job compiled from the signed files and uploaded unsigned, uploads that file alone as the artifact
+`EGTRAIN-windows-x64-installer-unsigned`, and submits a second signing request for it. It then runs
+`verify_signatures.ps1 -Require` on the signed installer and on the three program files of the payload, and replaces the
+artifact `EGTRAIN-windows-x64-installer` with the signed installer only after both checks passed. When the request or a
+check fails, the job fails, and the release job, which waits for the whole package workflow, does not run. The installer
+smoke of the finalize job installs the installer before it is signed, and nothing in CI installs the signed file. Only the
+compiled installer is signed here; whether the uninstaller that Setup writes carries a signature has not been checked.
+
+SignPath Foundation needs a person to approve each request, so a signed release needs two approvals, one for the program
+files and one for the installer, and each signing step waits up to one hour for its approval.
 
 The names below are the placeholders that the workflow reads. The owner creates them in the repository settings and in
 SignPath. The SignPath documentation (https://docs.signpath.io/trusted-build-systems/github) describes the inputs. It
@@ -134,24 +147,25 @@ project, and for the SignPath GitHub App to be installed when audit log checks a
 | `SIGNPATH_ORGANIZATION_ID` | Repository variable | The organization id that SignPath issues |
 | `SIGNPATH_PROJECT_SLUG` | Repository variable | The project slug that SignPath issues |
 | `SIGNPATH_SIGNING_POLICY_SLUG` | Repository variable | The slug of the release signing policy |
-| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration below. It must be set |
+| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration of the program files below. It must be set |
+| `SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration of the installer below. It must be set |
 | `WINDOWS_SIGNING_SUBJECT` | Repository variable | The subject of the signing certificate as `Get-AuthenticodeSignature` prints it. The check fails for any other signer |
 | `SIGNPATH_API_TOKEN` | Secret of the environment `windows-signing` | The API token of a SignPath user who may submit requests for the policy |
 | `windows-signing` | Environment | Deployment branches and tags limited to `production` and `v*` |
 
 A called workflow receives only the secrets that its caller passes, so the release workflow passes the token to
 `package.yml` by name (`secrets: SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}`) and passes no other secret. The
-package check passes none, so it never holds the token. The job `sign-windows` sets the environment, so it reads the value
-stored in the environment `windows-signing`, and the token needs no other place.
+package check passes none, so it never holds the token. The jobs `sign-windows` and `sign-windows-installer` set the
+environment, so they read the value stored in the environment `windows-signing`, and the token needs no other place.
 
 The signing action reads the run and downloads the uploaded files with the token of its job, which its documentation says
-needs `actions: read` and `contents: read`. The job `sign-windows` therefore has its own `permissions` block with those two
+needs `actions: read` and `contents: read`. Each of the two jobs therefore has its own `permissions` block with those two
 read permissions. A called workflow cannot hold more than its caller grants, so the `package` job of the release workflow
 and the `package` job of the package check have the same block. No workflow has a write permission except the release
 job (`contents: write`).
 
-The artifact configuration in SignPath lists exactly the three program files at the top of the artifact, which GitHub
-uploads as a ZIP file:
+The artifact configuration of the program files in SignPath lists exactly the three program files at the top of the
+artifact, which GitHub uploads as a ZIP file:
 
 ```xml
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
@@ -168,16 +182,37 @@ uploads as a ZIP file:
 </artifact-configuration>
 ```
 
+The artifact configuration of the installer lists the one file, whose name `kAssetPatterns` in
+`EGTRAIN/QEGTRAIN/update/ReleaseInfo.cpp` fixes:
+
+```xml
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file-set>
+      <include path="EGTRAIN-Setup-*-x64.exe"/>
+      <for-each>
+        <authenticode-sign/>
+      </for-each>
+    </pe-file-set>
+  </zip-file>
+</artifact-configuration>
+```
+
 `tools/release/verify_signatures.ps1` checks the signatures. Its usage and the rules for a file to pass are in
 [Signature check](build-and-test.md#signature-check). The installer is checked by naming it with `-Name` in the
-directory that holds it. Every run of the package workflow uses `-Report` on the unsigned package, and the signing job
-uses `-Require`.
+directory that holds it. Every run of the package workflow uses `-Report` on the unsigned package. The job
+`sign-windows` uses `-Require` on the payload, and the job `sign-windows-installer` uses `-Require` on the signed
+installer and again on the payload.
 
 `test_verify_signatures` runs on Windows only. It creates a self-signed code-signing certificate in the certificate
 store of the current user, signs copies of `scene_tool.exe` with it and expects the check to pass for a SHA-256
 signature and to fail for an unsigned copy, a SHA-1 signature, another signer, a missing file, an untrusted chain and a
 missing timestamp. The certificate is never exported or trusted, and it is removed when the test ends. The test runs in
-the Windows leg of the pull request checks. The signing request itself has not run against a real SignPath project.
+the Windows leg of the pull request checks. `tools/e2e/test_ci_workflow.py` reads `package.yml` and pins the order of the
+signing: the finalize job reads the payload that `sign-windows` replaced and signs nothing, the installer job runs only
+after a successful `sign-windows`, checks the installer and the program files before it replaces the installer artifact,
+and the release job runs only after the whole package workflow succeeded. The signing requests themselves have not run
+against a real SignPath project, and a pull request run shows the signing jobs as skipped.
 
 ## Renewal and maintenance
 

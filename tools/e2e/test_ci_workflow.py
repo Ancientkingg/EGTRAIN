@@ -216,9 +216,9 @@ def main() -> None:
         or "needs.version" in package_only
     ):
         missing.append("quoted shared release version in all five build jobs")
-    # The package workflow selects no version. Its only needs: are the signing job and the finalize job, which follow the
-    # Windows package job.
-    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 2:
+    # The package workflow selects no version. Its only needs: are the signing job, the finalize job and the installer signing
+    # job, which follow the Windows package job.
+    if release_only.count("    needs: version\n") != 3 or package_only.count("needs:") != 3:
         missing.append("version selection before all builds")
     for marker in (
         "fetch-depth: 0",
@@ -424,8 +424,8 @@ def main() -> None:
         or "  pull_request:\n" not in format_workflow
     ):
         missing.append("format check on pull requests with the clang-format version of tools/format.py")
-    # The package jobs live in a reusable workflow that the release workflow and the package check call. The signing job of
-    # that workflow asks for two read permissions, and a called workflow cannot hold more than its caller grants, so both
+    # The package jobs live in a reusable workflow that the release workflow and the package check call. The two signing jobs
+    # of that workflow ask for two read permissions, and a called workflow cannot hold more than its caller grants, so both
     # callers grant exactly those two. Only the release workflow passes the signing token, by name.
     package_call = (
         "    needs: version\n"
@@ -467,15 +467,16 @@ def main() -> None:
         missing.append("package workflow starts only by call, with the version as its only input and an optional signing token")
     if (
         "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
-        or package_only.count("permissions:") != 2
+        or package_only.count("permissions:") != 3
         or re.search(r":\s*write", package_only)
     ):
-        missing.append("package workflow with read permission at the top, one more block, and no write permission")
-    # The signing token is named in one step of the signing job. No script of any job can read it.
-    if re.findall(r"\bsecrets\.\w+", package_only) != ["secrets.SIGNPATH_API_TOKEN"]:
+        missing.append("package workflow with read permission at the top, one more block in each signing job, and no write permission")
+    # The signing token is named in one step of each signing job. No script of any job can read it.
+    if re.findall(r"\bsecrets\.\w+", package_only) != ["secrets.SIGNPATH_API_TOKEN"] * 2:
         missing.append("package workflow whose only credential is the signing token")
-    if job_ids(package_only) != ["package-macos", "package-windows", "sign-windows", "finalize-windows", "package-linux"]:
-        missing.append("package workflow jobs: package-macos, package-windows, sign-windows, finalize-windows, package-linux")
+    package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux"]
+    if job_ids(package_only) != package_jobs:
+        missing.append("package workflow jobs: " + ", ".join(package_jobs))
     # The release script reads one artifact directory for each package, the Windows payload and the scene bundles. The
     # package workflow uploads exactly those names, and each package as the file that the script publishes. A name with
     # the release version in it is uploaded with the version input of the workflow.
@@ -579,9 +580,9 @@ def main() -> None:
         re.findall(r"^    needs: (.+)$", sign_job, re.MULTILINE) != ["package-windows"]
         or re.findall(r"^    runs-on: (.+)$", sign_job, re.MULTILINE) != ["windows-latest"]
         or re.findall(r"^    environment: (.+)$", sign_job, re.MULTILINE) != ["windows-signing"]
-        or package_only.count("environment:") != 1
+        or package_only.count("environment:") != 2
     ):
-        missing.append("Windows signing job after the Windows package job, on windows-latest, in the only environment")
+        missing.append("Windows signing job after the Windows package job, on windows-latest, in an environment that only the two signing jobs use")
     # The signing action reads the run and downloads the uploaded files with the token of the job (its documentation names
     # actions: read and contents: read), and the workflow grants contents: read only. The job holds the second block of the
     # workflow, with nothing else in it.
@@ -627,7 +628,7 @@ def main() -> None:
             "          wait-for-completion: true\n",
             "          output-artifact-directory: signed\n",
         )
-    ) or package_only.count("SIGNPATH_API_TOKEN") != 2 or "set -x" in package_only:
+    ) or package_only.count("SIGNPATH_API_TOKEN") != 3 or "set -x" in package_only:
         missing.append("Windows signing request for the uploaded files with the token as the input of the signing step only")
     sign_put = step_block(sign_job, "Put the signed files into the package")
     if (
@@ -782,6 +783,117 @@ def main() -> None:
         "          if-no-files-found: error\n"
     ):
         missing.append("Windows finalize upload of the portable archive that was started")
+    # The installer is signed after it is compiled, in a job of its own that runs only when sign-windows signed the program
+    # files. The finalize job compiles the installer and writes the archive from the payload that sign-windows replaced, and
+    # it signs and changes nothing, so both come from the signed files. The installer job sends the installer alone to the
+    # signing service, requires valid signatures by the expected signer on the installer and on the three program files of the
+    # payload, and replaces the installer artifact only after both checks passed.
+    if any(
+        word in finalize_job.lower()
+        for word in ("signtool", "authenticode", "signpath", "environment:", "secrets.", "copy-item", "move-item", "remove-item")
+    ):
+        missing.append("Windows finalize job that signs nothing and changes no file of the payload")
+    installer_artifact, installer_template = next(
+        (directory, template) for key, template, directory in build_release_assets.PACKAGES if key == "windows-x64-installer"
+    )
+    installer_file = installer_template.format(version="${{ inputs.version }}")
+    installer_job = job_block(package_only, "sign-windows-installer")
+    installer_sign_steps = [
+        "Download the package",
+        "Download the installer",
+        "Upload the installer to sign",
+        "Sign the installer",
+        "Verify the program files",
+        "Verify the installer",
+        "Upload the signed installer",
+    ]
+    if re.findall(r"^      - name: (.+)$", installer_job, re.MULTILINE) != installer_sign_steps:
+        missing.append("Windows installer signing steps: " + ", ".join(installer_sign_steps))
+    if (
+        re.findall(r"^    needs: (.+)$", installer_job, re.MULTILINE) != ["[sign-windows, finalize-windows]"]
+        or re.findall(r"^    if: (.+)$", installer_job, re.MULTILINE) != ["${{ needs.sign-windows.result == 'success' }}"]
+        or re.findall(r"^    runs-on: (.+)$", installer_job, re.MULTILINE) != ["windows-latest"]
+        or re.findall(r"^    environment: (.+)$", installer_job, re.MULTILINE) != ["windows-signing"]
+        or installer_job.count("permissions:") != 1
+        or "    environment: windows-signing\n    permissions:\n      actions: read\n      contents: read\n    timeout-minutes: 90\n"
+        not in installer_job
+    ):
+        missing.append(
+            "Windows installer signing job after the signing job and the finalize job, only when the program files were signed, "
+            "in the environment of the signing job with the same two read permissions"
+        )
+    if step_block(installer_job, "Download the package") != step_block(finalize_job, "Download the package"):
+        missing.append("Windows installer signing download of the payload artifact that the installer and the archive were built from")
+    if step_block(installer_job, "Download the installer") != (
+        "name: Download the installer\n"
+        "        uses: actions/download-artifact@v4\n"
+        "        with:\n"
+        f"          name: {installer_artifact}\n"
+        "          path: installer\n"
+    ):
+        missing.append("Windows installer signing download of the installer that the finalize job uploaded")
+    if step_block(installer_job, "Upload the installer to sign") != (
+        "name: Upload the installer to sign\n"
+        "        id: upload-unsigned\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        f"          name: {installer_artifact}-unsigned\n"
+        f"          path: installer/{installer_file}\n"
+        "          overwrite: true\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows installer signing upload of the installer alone, replaceable on a re-run, as the artifact that the signing request names")
+    installer_request = step_block(installer_job, "Sign the installer")
+    if any(
+        part not in installer_request
+        for part in (
+            "        uses: signpath/github-action-submit-signing-request@v3\n",
+            "          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}\n",
+            "          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}\n",
+            "          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}\n",
+            "          wait-for-completion: true\n",
+            "          output-artifact-directory: signed\n",
+        )
+    ):
+        missing.append("Windows installer signing request for the uploaded installer with its own artifact configuration")
+    installer_verify_env = (
+        "        shell: pwsh\n"
+        "        env:\n"
+        "          EXPECTED_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}\n"
+    )
+    if step_block(installer_job, "Verify the program files") != (
+        "name: Verify the program files\n" + installer_verify_env +
+        "        run: ./tools/release/verify_signatures.ps1 -Directory payload -Require -ExpectedSubject $env:EXPECTED_SUBJECT\n"
+    ) or step_block(installer_job, "Verify the installer") != (
+        "name: Verify the installer\n" + installer_verify_env +
+        f'        run: ./tools/release/verify_signatures.ps1 -Directory signed -Name "{installer_file}" -Require '
+        "-ExpectedSubject $env:EXPECTED_SUBJECT\n"
+    ):
+        missing.append(
+            "Windows installer signing check that requires the expected signer on QEGTRAIN.exe, egtrain_update_helper.exe, "
+            "scene_tool.exe and the signed installer, each in a step of its own so that one failure fails the job"
+        )
+    if step_block(installer_job, "Upload the signed installer") != (
+        "name: Upload the signed installer\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        f"          name: {installer_artifact}\n"
+        f"          path: signed/{installer_file}\n"
+        "          overwrite: true\n"
+        "          if-no-files-found: error\n"
+    ):
+        missing.append("Windows installer signing upload of the checked installer in place of the installer artifact")
+    # The release job takes the package workflow as a whole, so it runs only after every job of that workflow, the signing and
+    # the checks of the signatures included, succeeded or was skipped. A condition with a status function, or a step that
+    # ignores a failure, would let it publish files that were not checked.
+    if (
+        re.findall(r"^    needs: (.+)$", release_job, re.MULTILINE) != ["[version, validation, sanitizer, package]"]
+        or re.findall(r"^    if: (.+)$", release_job, re.MULTILINE)
+        != ["github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))"]
+        or "continue-on-error" in release_only
+        or "continue-on-error" in package_only
+    ):
+        missing.append("release job that publishes only after the whole package workflow succeeded, with no failure ignored")
     # The smoke script cannot run in this test. It has to keep the silent switches, the directory, the desktop task and
     # the calls of its start, manifest, registry, upgrade and uninstall checks, and no hash, no Program Files and no
     # /CURRENTUSER, which has no effect while the installer script offers no choice of scope.
