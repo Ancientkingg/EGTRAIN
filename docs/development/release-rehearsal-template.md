@@ -71,6 +71,8 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | R8 Manual update check |  |  |  |  |
 | R9 In-app update |  |  |  |  |
 | R10 Installation that cannot be updated in place |  |  |  |  |
+| R11 Save an installed example |  |  |  |  |
+| R12 Bundle of the previous release |  |  |  |  |
 | M1 File type in Finder |  |  |  |  |
 | M2 Open a case study by double-click |  |  |  |  |
 | M3 Double-click a damaged file and a special path |  |  |  |  |

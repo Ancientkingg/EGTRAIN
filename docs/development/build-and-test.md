@@ -200,6 +200,17 @@ number is checked on a copy that the test makes, with the diagnostic that names
 it. A guard fails when a version constant is raised without a fixture of the
 previous number and either a migration for it or manifest entries that list
 every fixture of that number as unsupported.
+
+A release that raises `kCurrentSceneSchemaVersion` or `kCurrentSceneBundleVersion`
+changes the scene format. After it is published, download one of its bundles from
+the release and copy it unchanged into `tests/fixtures/scene-versions`. Add an
+entry to `manifest.json` with the release in `origin` and the other keys of an
+existing entry (`counts` come from the loaded model). If the bundle is meant to
+run, add a `test_scene_version_run_*` test next to the existing ones in the root
+`CMakeLists.txt`, with the same `TIMEOUT`, and add its name to the `integration`
+list of `egtrain_label_tests`. The next raise of a number then finds a fixture of
+the current one.
+
 `scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
 `export` and `validate`. The
 [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)

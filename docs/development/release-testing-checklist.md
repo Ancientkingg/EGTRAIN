@@ -288,6 +288,7 @@ downloaded bundle open and edited.
 | R9 In-app update | Run it last on a platform. Meet the precondition below, then choose **Update and Restart**. | The application restarts and **About EGTRAIN** shows the newer version. The hidden folder `.qegtrain-update-*` next to the installation is gone. On Windows the update helper cannot delete itself, so the application removes the rest about 20 seconds after it started. One backup of the previous installation, named like the installation plus `.egtrain-old`, stays next to it until the next update. If the dialog says the installation is not writable although the folder is writable, record the path and the text. | All |
 | R10 Installation that cannot be updated in place | First confirm the precondition of R9 in a writable folder. Then place the installation where the folder that holds it cannot be written by the test account. That folder is the parent of `QEGTRAIN.app`, of the Windows application folder or of the AppImage. Choose **Help > Check for Updates...** again. | The update dialog has no **Update and Restart** button. Its text says `The packaged installation is not writable. Use the release page to update manually.` On macOS, a copy that runs from a mounted disk image shows `EGTRAIN is running from a read-only location, such as a disk image. Move EGTRAIN to the Applications folder first. Use the release page to update manually.` instead. | All |
 | R11 Save an installed example | Copy the installed scene folder before testing, then open the installed example through **Open Case**, edit it, and choose **Save Scene**. Cancel once, then save a new `.egscene` outside the installation. Reopen and edit the installed example before repeating through **Save** in **Unsaved Scene**. Try an installed folder as the destination of **Save Scene As Folder...**, and a file inside it through **Save Case Study As...**. | The dialog starts in the user's home folder. Cancel retains the edit and current case; a successful save makes the new bundle current. Installed destinations are rejected. The original folder's file paths and bytes remain unchanged. A later edit saves in place to the external bundle. | All |
+| R12 Bundle of the previous release | Download one `.egscene` bundle from the assets of the latest stable release before the candidate, for example `Paimpol.egscene`. Open it in the application under test with **File > Open Case Study...** and run a short simulation as in step 6. | The bundle opens without a version message, and the simulation runs to its end. Record the tag of the release. A message that the scene is older, newer or unsupported is a finding, unless the candidate deliberately drops support for that format. | All |
 
 Notes on the update rows:
 
@@ -313,6 +314,13 @@ Notes on the update rows:
   exception to the rule of one source, so record its tag. Put the
   installation in a folder the test account can write to. Run R10 before R9, or
   on a separate copy of the package, because R9 replaces the installation.
+- R12 uses a bundle of an earlier release, which is an exception to the rule of
+  one source, like R9; record its tag. It shows that the scenes released
+  before still open in the candidate. If the candidate changes the scene
+  format, add one of its own bundles to the scene fixtures once the release is
+  published, as [Unit Tests](build-and-test.md#unit-tests) says. Mark R12 not
+  applicable, with the reason, when no earlier stable release with bundles
+  exists.
 - R9 installs the latest published stable release, not the candidate. It shows
   the update path of the installed version and says nothing about the contents
   of a manual candidate.
