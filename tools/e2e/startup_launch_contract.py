@@ -10,7 +10,6 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/performance"))
@@ -121,7 +120,7 @@ def assert_no_argument_chooser_continuation(
     app: Path,
     args: tuple[str, ...] = (),
     label: str = "no-argument chooser continuation",
-    rejection: Optional[str] = None,
+    rejection: str | None = None,
 ) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-chooser-continuation-") as temp:
         returncode, output = run_app(app, list(args), Path(temp), label, chooser=True)
@@ -153,7 +152,9 @@ def assert_no_argument_chooser_continuation(
         mismatches.append(
             f"E2E_STARTUP_CHOOSER_STATUS={status!r}, expected 'Ready - Netherlands'"
         )
-    if rejection is not None and (REJECTION_LINE not in output or rejection not in output):
+    if rejection is not None and not any(
+        line.startswith(REJECTION_LINE) and rejection in line for line in output.splitlines()
+    ):
         mismatches.append(f"the output has no {REJECTION_LINE!r} line with {rejection!r}")
     if mismatches:
         raise SystemExit(
@@ -261,7 +262,11 @@ def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> No
 
 def assert_option_list_matches_reads() -> None:
     source = (RUN_DIR / "app/main.cpp").read_text(encoding="utf-8")
-    read = set(re.findall(r'getCmdOption\(\s*argv\s*,\s*argv\s*\+\s*argc\s*,\s*"([^"]+)"\s*\)', source))
+    calls = re.findall(r'getCmdOption\(\s*argv\s*,\s*argv\s*\+\s*argc\s*,\s*"([^"]+)"\s*\)', source)
+    read = set(calls)
+    # Every call except the definition must have the form above, or its option would be missed.
+    if len(re.findall(r"(?<!char\* )getCmdOption\(", source)) != len(calls):
+        raise SystemExit('app/main.cpp: a getCmdOption call is not written as getCmdOption(argv, argv + argc, "-x")')
     declared = re.search(r"optionsWithValue\s*=\s*\{([^}]*)\}", source)
     if not read or not declared:
         raise SystemExit("app/main.cpp: the options read with getCmdOption or the list optionsWithValue were not found")
@@ -427,7 +432,7 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
 
         for name, args, reason in (
             ("a text file", [str(notes)], "the file must use the .egscene extension"),
-            ("a malformed bundle", [str(malformed)], ""),
+            ("a malformed bundle", [str(malformed)], "not a ZIP archive"),
             ("two bundles", [str(spaced), str(second)], "open exactly one .egscene file"),
         ):
             assert_no_argument_chooser_continuation(app, tuple(args), f"window launch with {name}", reason)
