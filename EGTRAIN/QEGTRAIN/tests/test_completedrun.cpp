@@ -1,10 +1,10 @@
 // Tests of the completed-run data of diagrams/CompletedRunData.h.
 //
-// Two committed scenes run in this process, one after the other. The data captured from the simulation globals
-// must give the exports and diagram inputs that the functions give that read the globals, and it must not change
-// when the next scene replaces the globals. A result window opened for a scene must keep exporting that scene. Hand-made
-// data then pins the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the
-// order of the capacity trains and shared resources.
+// Two committed scenes run in this process, one after the other. The data captured from the simulation globals must
+// agree with them, the exports and diagram inputs must follow from it, and none of it may change when the next scene
+// replaces the globals. A result window opened for a scene must keep exporting that scene. Hand-made data then pins
+// the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the order of the
+// capacity trains and shared resources.
 //
 //   test_completedrun SCENE_DIR...
 
@@ -90,6 +90,23 @@ void checkSame(const std::string& what, const std::string& expected, const std::
 			  << actualLines.size() << " lines)\n  expected: " << shown(expectedLines) << "\n  actual:   " << shown(actualLines) << "\n";
 }
 
+std::vector<std::string> dataLines(const std::string& csvText) {
+	std::vector<std::string> result;
+	std::size_t start = 0;
+	bool header = true;
+	while (start < csvText.size()) {
+		const std::size_t end = csvText.find("\r\n", start);
+		const std::string line = csvText.substr(start, end == std::string::npos ? std::string::npos : end - start);
+		if (!header)
+			result.push_back(line);
+		header = false;
+		if (end == std::string::npos)
+			break;
+		start = end + 2;
+	}
+	return result;
+}
+
 class CoutSilencer {
 public:
 	CoutSilencer() : m_saved(std::cout.rdbuf(m_sink.rdbuf())) {}
@@ -117,22 +134,6 @@ std::string describe(const BlockingTimeDiagramInput& o) {
 	for (double t : {o.startApproachTime, o.startRunTime, o.endRunTime, o.endClearTime, o.setupTime, o.sightReactionTime, o.releaseTime, o.runTimeMargin})
 		text << '|' << num(t);
 	return text.str();
-}
-
-std::string describe(const CapacityAnalysisTrain& t) {
-	std::ostringstream text;
-	text << t.runtimeId << '|' << t.operatingCode << '|' << num(t.profileReferenceTime) << '|' << num(t.scheduledReferenceTime)
-		 << '|' << t.referenceLabel << '|' << t.referenceSource << '\n';
-	for (const auto& occupation : t.occupations)
-		text << "  " << describe(occupation) << '\n';
-	return text.str();
-}
-
-std::string describe(const std::vector<CapacityAnalysisTrain>& trains) {
-	std::string text;
-	for (const auto& train : trains)
-		text += describe(train);
-	return text;
 }
 
 std::string describe(const BlockingTimeDiagramSegment& s) {
@@ -199,227 +200,6 @@ std::string describe(const std::optional<RouteDiagramData>& d) {
 	return d ? describe(*d) : std::string("no diagram\n");
 }
 
-// --- The readers that take the run from the simulation globals ---
-// These are the readers that MainWindow uses for the route and blocking-time diagrams, with the chart replaced by
-// the data that goes into it.
-
-std::vector<std::pair<int, std::string>> legacyUsedRouteReferences() {
-	std::vector<std::pair<int, std::string>> used;
-	for (int i = 0; i < numRegions; ++i) {
-		const int index = regional_train[i].indexOfRoute;
-		if (index >= 0 && index < static_cast<int>(train_route.size())
-			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
-			used.emplace_back(index, train_route[index].ID);
-	}
-	return used;
-}
-
-std::optional<BlockingTimeDiagramData> legacyBlockingTimeDiagram(const SceneModel& scene, const BlockingTimeScope& scope) {
-	const std::vector<BlockingTimeDiagramSegment> allSegments = buildAllBlockingTimeSegments();
-	const auto scoped = scope.routeIndex >= 0 && scope.trainIds.empty()
-		? std::vector<BlockingTimeDiagramSegment>()
-		: filterBlockingTimeDiagramSegments(allSegments, scope.trainIds, scope.blockIds,
-			  scope.startTime, scope.endTime);
-	const int referenceIndex = scope.routeIndex >= 0 ? scope.routeIndex : [&]() {
-		for (int i = 0; i < numRegions; ++i)
-			if ((scope.trainIds.empty() || std::find(scope.trainIds.begin(), scope.trainIds.end(), regional_train[i].trainDescription) != scope.trainIds.end())
-				&& regional_train[i].indexOfRoute >= 0
-				&& regional_train[i].indexOfRoute < static_cast<int>(train_route.size()))
-				return regional_train[i].indexOfRoute;
-		return -1;
-	}();
-	if (referenceIndex < 0)
-		return std::nullopt;
-	const RouteDiagramPath referencePath = routeDiagramPath(train_route[referenceIndex], &scene);
-	std::map<int, RouteDiagramPath> paths;
-	std::map<int, RouteDiagramProjection> projections;
-	std::map<std::string, RouteDiagramProjection> byTrain;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
-		const int index = train.indexOfRoute;
-		if (index < 0 || index >= static_cast<int>(train_route.size()))
-			continue;
-		if (!paths.count(index)) {
-			paths.emplace(index, routeDiagramPath(train_route[index], &scene));
-			projections.emplace(index, buildRouteDiagramProjection(paths.at(index), referencePath));
-		}
-		byTrain.emplace(train.trainDescription, projections.at(index));
-	}
-	int omitted = 0;
-	std::vector<BlockingTimeDiagramSegment> unmapped;
-	auto segments = projectBlockingSegments(scoped, byTrain, omitted, &unmapped);
-	const auto allExtents = buildBlockSectionExtents(blockSectionInputsForRoute(train_route[referenceIndex]));
-	const auto extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
-	matchBlockingSegmentsToSections(segments, allExtents, referencePath.id);
-	if (!scope.sectionIndices.empty())
-		segments.erase(std::remove_if(segments.begin(), segments.end(),
-						   [&extents](const auto& segment) { return !blockingSegmentInSections(segment, extents); }),
-			segments.end());
-	const auto allPlannedReferences = buildBlockingTimePlannedReferences(scope, paths, projections, omitted);
-	BlockingTimeDiagramData result;
-	result.plannedReferences = filterBlockingTimePlannedReferences(allPlannedReferences, scope.startTime, scope.endTime);
-	result.plannedLines = clipBlockingTimePlannedReferences(allPlannedReferences, scope.startTime, scope.endTime);
-
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
-		if (train.earliestActiveTrajectoryIndex < 0)
-			continue;
-		const auto projection = byTrain.find(train.trainDescription);
-		if (projection == byTrain.end())
-			continue;
-		for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
-				 train.earliestActiveTrajectoryIndex, train.End_Time)) {
-			bool open = false;
-			for (int t = valid.first; t <= valid.last; ++t) {
-				const double time = t * timestep;
-				const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
-				const auto x = projection->second.map(sourceKm);
-				const bool inScope = x && time >= scope.startTime && time <= scope.endTime
-					&& std::any_of(segments.begin(), segments.end(), [&](const auto& block) {
-						   return block.trainName == train.trainDescription && time >= block.startTime
-							   && time <= block.endTime && *x >= std::min(block.startPositionKm, block.endPositionKm)
-							   && *x <= std::max(block.startPositionKm, block.endPositionKm);
-					   });
-				if (!inScope) {
-					open = false;
-					continue;
-				}
-				if (!open) {
-					result.trajectories.push_back({train.trainDescription, {}});
-					open = true;
-				}
-				result.trajectories.back().points.emplace_back(*x, time);
-				result.trajectoryRows.push_back({train.trainDescription, "", "", "", csv::formatDouble(*x),
-					"recorded sample", "", "", csv::formatDouble(time), "", "", "", "", "", "", "", "", "", "", "", "", "recorded trajectory"});
-			}
-		}
-	}
-	result.referencePath = referencePath;
-	result.segments = std::move(segments);
-	result.unmapped = std::move(unmapped);
-	result.extents = extents;
-	result.omitted = omitted;
-	return result;
-}
-
-std::optional<RouteDiagramData> legacyRouteDiagram(const SceneModel& scene, bool timetable, int referenceIndex) {
-	if (referenceIndex < 0 || referenceIndex >= static_cast<int>(train_route.size()))
-		return std::nullopt;
-	const Route& reference = train_route[referenceIndex];
-	RouteDiagramData result;
-	result.referencePath = routeDiagramPath(reference, &scene);
-	if (result.referencePath.nodes.empty())
-		return std::nullopt;
-	std::map<int, RouteDiagramPath> paths;
-	std::map<int, RouteDiagramProjection> projections;
-	for (int i = 0; i < numRegions; ++i) {
-		const int routeIndex = regional_train[i].indexOfRoute;
-		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()) || paths.count(routeIndex))
-			continue;
-		paths.emplace(routeIndex, routeDiagramPath(train_route[routeIndex], &scene));
-		projections.emplace(routeIndex, buildRouteDiagramProjection(paths.at(routeIndex), result.referencePath));
-	}
-	const auto position = [&](const Train& train, double sourceKm) -> std::optional<double> {
-		const auto projection = projections.find(train.indexOfRoute);
-		return projection == projections.end() ? std::optional<double>() : projection->second.map(sourceKm);
-	};
-	const auto record = [&](const Train& train, const char* kind, const std::string& station,
-							int journey, int call, const RunResultValue& time, std::optional<double> x) {
-		result.csvRows.push_back({train.trainDescription, reference.ID, train_route[train.indexOfRoute].ID,
-			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
-			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
-	};
-	const auto newSeries = [](RouteDiagramSeries::Kind kind, const Train& train, int index, const std::string& event, bool planned) {
-		RouteDiagramSeries series;
-		series.kind = kind;
-		series.trainId = train.trainDescription;
-		series.trainIndex = index;
-		series.event = event;
-		series.planned = planned;
-		return series;
-	};
-	if (timetable) {
-		const auto rows = buildTimetableResults(runResultTrainPointers());
-		for (int i = 0; i < numRegions; ++i) {
-			const Train& train = regional_train[i];
-			const auto path = paths.find(train.indexOfRoute);
-			const auto projection = projections.find(train.indexOfRoute);
-			if (path == paths.end() || projection == projections.end())
-				continue;
-			for (int kind = 0; kind < 4; ++kind) {
-				bool open = false;
-				for (const auto& row : rows) {
-					if (row.trainId != train.trainDescription)
-						continue;
-					const int stopIndex = row.journeyIndex - 1;
-					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
-					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
-						: kind == 2																  ? row.simulatedArrivalSeconds
-																								  : row.simulatedDepartureSeconds;
-					const char* event = kind == 0 ? "planned arrival" : kind == 1 ? "planned departure"
-						: kind == 2												  ? "simulated arrival"
-																				  : "simulated departure";
-					record(train, event, row.stationId, row.journeyIndex, row.callIndex, time, x);
-					if (!x || !time.available) {
-						open = false;
-						continue;
-					}
-					if (!open) {
-						result.series.push_back(newSeries(RouteDiagramSeries::Kind::Event, train, i, event, kind < 2));
-						open = true;
-					}
-					result.series.back().points.push_back({*x, time.value, row.stationId, row.journeyIndex, row.callIndex});
-				}
-			}
-			for (const auto& row : rows) {
-				if (row.trainId != train.trainDescription)
-					continue;
-				const auto x = routeDiagramStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
-				for (int planned = 0; planned < 2; ++planned) {
-					const auto arrival = planned ? row.plannedArrivalSeconds : row.simulatedArrivalSeconds;
-					const auto departure = planned ? row.plannedDepartureSeconds : row.simulatedDepartureSeconds;
-					if (!x || !arrival.available || !departure.available)
-						continue;
-					RouteDiagramSeries dwell = newSeries(RouteDiagramSeries::Kind::Dwell, train, i, planned ? "planned dwell" : "simulated dwell", planned != 0);
-					dwell.points.push_back({*x, arrival.value, row.stationId, row.journeyIndex, row.callIndex});
-					dwell.points.push_back({*x, departure.value, row.stationId, row.journeyIndex, row.callIndex});
-					result.series.push_back(std::move(dwell));
-				}
-			}
-		}
-	} else {
-		for (int i = 0; i < numRegions; ++i) {
-			const Train& train = regional_train[i];
-			if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size()))
-				continue;
-			if (train.earliestActiveTrajectoryIndex < 0)
-				continue;
-			for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
-					 train.earliestActiveTrajectoryIndex, train.End_Time)) {
-				bool open = false;
-				for (int t = valid.first; t <= valid.last; ++t) {
-					const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
-					const auto x = position(train, sourceKm);
-					const RunResultValue time{true, t * timestep};
-					record(train, "trajectory", "", 0, 0, time, x);
-					if (!x) {
-						open = false;
-						continue;
-					}
-					if (!open) {
-						RouteDiagramSeries line = newSeries(RouteDiagramSeries::Kind::Trajectory, train, i, std::string(), false);
-						line.routeId = train_route[train.indexOfRoute].ID;
-						result.series.push_back(std::move(line));
-						open = true;
-					}
-					result.series.back().points.push_back({*x, time.value, std::string(), 0, 0});
-				}
-			}
-		}
-	}
-	return result;
-}
-
 // --- Running a scene ---
 
 struct CapturedRun {
@@ -465,7 +245,7 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 	return true;
 }
 
-// --- Old and new side by side ---
+// --- The data against the simulation, and what follows from it ---
 
 void compareCapture(const CapturedRun& run) {
 	const std::string scene = run.scene;
@@ -476,7 +256,7 @@ void compareCapture(const CapturedRun& run) {
 	check(data.settings.startOffsetSeconds == initial_variables.startingSimulationTime, scene + ": start offset");
 	check(data.settings.caseName == run.loaded.scene.name && data.provenance.caseName == run.loaded.scene.name, scene + ": case name");
 	check(static_cast<int>(data.trains.size()) == numRegions, scene + ": train count");
-	check(data.results.trains.size() == buildRunResults(runResultTrainPointers(), timestep).trains.size(), scene + ": result rows");
+	check(static_cast<int>(data.results.trains.size()) == numRegions, scene + ": result rows");
 	check(!data.timetable.empty(), scene + ": timetable rows");
 
 	check(data.routes.size() == train_route.size(), scene + ": route count");
@@ -578,11 +358,39 @@ void compareCapture(const CapturedRun& run) {
 	}
 }
 
-void compareExports(const CapturedRun& run) {
+// Whether each row of a CSV text starts with a train of the list. Rows without a train are the sections of a route.
+bool rowsOnlyOf(const std::string& text, const QStringList& trainIds) {
+	for (const std::string& line : dataLines(text)) {
+		if (line.empty() || line.front() == ',')
+			continue;
+		const std::string train = line.substr(0, line.find(','));
+		if (!trainIds.contains(QString::fromStdString(train)))
+			return false;
+	}
+	return true;
+}
+
+// The samples that the trajectory export lists for the trains of the list: those in the valid ranges of the simulation.
+std::size_t trajectorySamples(const QStringList& trainIds) {
+	std::size_t count = 0;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (!trainIds.contains(QString::fromStdString(train.trainDescription)) || train.earliestActiveTrajectoryIndex < 0)
+			continue;
+		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position, train.earliestActiveTrajectoryIndex, train.End_Time))
+			count += static_cast<std::size_t>(segment.last - segment.first + 1);
+	}
+	return count;
+}
+
+void checkExports(const CapturedRun& run) {
 	const std::string scene = run.scene;
 	const CompletedRunData& data = run.data;
-	const QStringList ids = allTrainIds();
-	check(trainIdsFrom(data) == ids, scene + ": train ids");
+	const QStringList ids = trainIdsFrom(data);
+	bool sameIds = static_cast<int>(ids.size()) == numRegions;
+	for (int i = 0; sameIds && i < numRegions; ++i)
+		sameIds = ids[i].toStdString() == regional_train[i].trainDescription;
+	check(sameIds, scene + ": train ids");
 
 	std::vector<QStringList> selections = {ids, QStringList(), QStringList{"no such train"}};
 	if (!ids.isEmpty()) {
@@ -592,24 +400,25 @@ void compareExports(const CapturedRun& run) {
 	}
 	for (std::size_t k = 0; k < selections.size(); ++k) {
 		const std::string label = scene + ", selection " + std::to_string(k);
-		checkSame(label + ": trajectory.csv", buildTrajectoryCsv(selections[k]), trajectoryCsvFrom(data, selections[k]));
-		checkSame(label + ": timetable.csv", buildTimetableCsv(selections[k]), timetableCsvFrom(data, selections[k]));
-		checkSame(label + ": blocking_time.csv", buildBlockingTimeCsv(selections[k]), blockingTimeCsvFrom(data, selections[k]));
+		const std::string trajectory = trajectoryCsvFrom(data, selections[k]);
+		const std::string timetable = timetableCsvFrom(data, selections[k]);
+		check(rowsOnlyOf(trajectory, selections[k]) && rowsOnlyOf(timetable, selections[k])
+				&& rowsOnlyOf(blockingTimeCsvFrom(data, selections[k]), selections[k]),
+			label + ": the exports list the selected trains only");
+		check(dataLines(trajectory).size() == trajectorySamples(selections[k]), label + ": trajectory.csv has the valid samples");
+		std::size_t timetableRows = 0;
+		for (const TimetableResultRow& timetableRow : data.timetable)
+			timetableRows += selections[k].contains(QString::fromStdString(timetableRow.trainId)) ? 1 : 0;
+		check(dataLines(timetable).size() == timetableRows, label + ": timetable.csv has the rows of the run");
 	}
 	check(!trajectoryCsvFrom(data, ids).empty(), scene + ": trajectory.csv has rows");
 	check(!timetableCsvFrom(data, ids).empty(), scene + ": timetable.csv has rows");
 	check(!blockingTimeCsvFrom(data, ids).empty(), scene + ": blocking_time.csv has rows");
-	const auto oldSegments = buildAllBlockingTimeSegments();
-	const auto newSegments = blockTimesFrom(data);
-	check(!oldSegments.empty(), scene + ": blocking-time segments exist");
-	bool sameSegments = oldSegments.size() == newSegments.size();
-	for (std::size_t k = 0; sameSegments && k < oldSegments.size(); ++k)
-		sameSegments = describe(oldSegments[k]) == describe(newSegments[k]);
-	check(sameSegments, scene + ": all blocking-time segments");
-	const BlockingTimeScope oldScope = defaultBlockingTimeScope(initial_variables.times * timestep);
-	const BlockingTimeScope newScope = defaultBlockingTimeScopeFrom(data);
-	check(oldScope.startTime == newScope.startTime && oldScope.endTime == newScope.endTime && oldScope.routeIndex == newScope.routeIndex
-			&& oldScope.trainIds == newScope.trainIds && oldScope.blockIds == newScope.blockIds && oldScope.sectionIndices == newScope.sectionIndices,
+	check(!blockTimesFrom(data).empty(), scene + ": blocking-time segments exist");
+	const BlockingTimeScope whole = defaultBlockingTimeScope(initial_variables.times * timestep);
+	const BlockingTimeScope scope = defaultBlockingTimeScopeFrom(data);
+	check(whole.startTime == scope.startTime && whole.endTime == scope.endTime && whole.routeIndex == scope.routeIndex
+			&& whole.trainIds == scope.trainIds && whole.blockIds == scope.blockIds && whole.sectionIndices == scope.sectionIndices,
 		scene + ": default blocking-time scope");
 }
 
@@ -634,7 +443,7 @@ void compareScopeChoices(const CapturedRun& run) {
 			scene + ": scope choice train " + std::to_string(i));
 }
 
-std::vector<BlockingTimeScope> blockingScopes() {
+std::vector<BlockingTimeScope> blockingScopes(const CompletedRunData& data) {
 	std::vector<BlockingTimeScope> scopes;
 	const BlockingTimeScope whole = defaultBlockingTimeScope(initial_variables.times * timestep);
 	scopes.push_back(whole);
@@ -646,7 +455,7 @@ std::vector<BlockingTimeScope> blockingScopes() {
 	BlockingTimeScope late = whole;
 	late.startTime = whole.endTime * 0.5;
 	scopes.push_back(late);
-	for (const auto& used : legacyUsedRouteReferences()) {
+	for (const auto& used : usedRouteReferencesFrom(data)) {
 		const Route& route = train_route[used.first];
 		BlockingTimeScope scope = whole;
 		scope.routeIndex = used.first;
@@ -674,71 +483,91 @@ std::vector<BlockingTimeScope> blockingScopes() {
 	return scopes;
 }
 
-void compareBlockingDiagrams(const CapturedRun& run) {
-	const QStringList ids = allTrainIds();
-	const auto scopes = blockingScopes();
+void checkBlockingDiagrams(const CapturedRun& run) {
+	const auto scopes = blockingScopes(run.data);
 	std::size_t withSegments = 0, withPlanned = 0, withTrajectory = 0, withSections = 0;
 	for (std::size_t k = 0; k < scopes.size(); ++k) {
-		const auto expected = legacyBlockingTimeDiagram(run.loaded.scene, scopes[k]);
-		const auto actual = blockingTimeDiagramData(run.data, scopes[k]);
-		checkSame(run.scene + ": blocking-time diagram of scope " + std::to_string(k), describe(expected, ids), describe(actual, ids));
-		if (!actual)
+		const std::string label = run.scene + ": blocking-time diagram of scope " + std::to_string(k);
+		const auto diagram = blockingTimeDiagramData(run.data, scopes[k]);
+		if (!diagram)
 			continue;
-		withSegments += actual->segments.empty() ? 0 : 1;
-		withPlanned += actual->plannedReferences.empty() ? 0 : 1;
-		withTrajectory += actual->trajectories.empty() ? 0 : 1;
-		withSections += actual->extents.empty() ? 0 : 1;
+		std::size_t points = 0;
+		bool inScope = true;
+		for (const BlockingTimeTrajectory& line : diagram->trajectories)
+			for (const auto& point : line.points) {
+				++points;
+				inScope = inScope && point.second >= scopes[k].startTime && point.second <= scopes[k].endTime;
+			}
+		check(points == diagram->trajectoryRows.size() && inScope, label + ": the recorded samples are those of the scope");
+		bool ofScope = true;
+		for (const BlockingTimeDiagramSegment& segment : diagram->segments)
+			ofScope = ofScope && (scopes[k].trainIds.empty() || std::find(scopes[k].trainIds.begin(), scopes[k].trainIds.end(), segment.trainName) != scopes[k].trainIds.end());
+		check(ofScope, label + ": the envelopes are those of the trains of the scope");
+		withSegments += diagram->segments.empty() ? 0 : 1;
+		withPlanned += diagram->plannedReferences.empty() ? 0 : 1;
+		withTrajectory += diagram->trajectories.empty() ? 0 : 1;
+		withSections += diagram->extents.empty() ? 0 : 1;
 	}
 	check(withSegments > 1 && withPlanned > 0 && withTrajectory > 0 && withSections > 0,
 		run.scene + ": the scopes cover envelopes, planned references, trajectories and sections");
 }
 
-CapacityAnalysisScope capacityScopeOf(int routeIndex, const std::vector<int>& sections) {
+CapacityAnalysisScope capacityScopeOf(const CompletedRunData& data, int routeIndex, const std::vector<int>& sections) {
 	CapacityAnalysisScope scope;
 	scope.routeIndex = routeIndex;
 	for (int index : sections) {
 		scope.sectionIndices.push_back(index);
-		scope.blockIds.push_back(train_route[routeIndex].sequence_of_block_sections[index].ID);
+		scope.blockIds.push_back(data.routes[static_cast<std::size_t>(routeIndex)].blocks[static_cast<std::size_t>(index)].id);
 	}
 	return scope;
 }
 
-void compareCapacity(const CapturedRun& run) {
+void checkCapacity(const CapturedRun& run) {
 	const std::string scene = run.scene;
 	const CompletedRunData& data = run.data;
 	std::size_t pairs = 0;
-	for (int r = 0; r < static_cast<int>(train_route.size()); ++r) {
-		const int count = train_route[r].N_Block_Sections;
+	for (int r = 0; r < static_cast<int>(data.routes.size()); ++r) {
+		const int count = static_cast<int>(data.routes[static_cast<std::size_t>(r)].blocks.size());
 		std::vector<CapacityAnalysisScope> scopes;
 		for (int b = 0; b < count; ++b)
-			scopes.push_back(capacityScopeOf(r, {b}));
+			scopes.push_back(capacityScopeOf(data, r, {b}));
 		if (count > 1)
-			scopes.push_back(capacityScopeOf(r, blockSectionRangeIndices(0, count - 1, count)));
+			scopes.push_back(capacityScopeOf(data, r, blockSectionRangeIndices(0, count - 1, count)));
 		for (std::size_t k = 0; k < scopes.size(); ++k) {
 			const std::string label = scene + ": capacity scope " + std::to_string(r) + "/" + std::to_string(k);
-			const auto expected = capacityTrainsForScope(scopes[k]);
-			checkSame(label + " inputs", describe(expected), describe(capacityInputsFrom(data, scopes[k])));
-			check(capacityScopeIssue(scopes[k]) == capacityScopeIssueFrom(data, scopes[k]), label + " issue");
-			check(capacityScopeLabel(scopes[k]) == capacityScopeLabelFrom(data, scopes[k]), label + " label");
-			pairs += expected.size() > 1 ? 1 : 0;
-			for (int i = 0; i < numRegions; ++i)
-				checkSame(label + " train " + std::to_string(i), describe(capacityTrainForScope(regional_train[i], scopes[k])),
-					describe(capacityInputFrom(data.trains[i], scopes[k])));
+			const auto inputs = capacityInputsFrom(data, scopes[k]);
+			// The trains keep the order of the run, and each holds an occupation of a block of the scope.
+			std::size_t next = 0;
+			bool ordered = true, occupied = true;
+			for (const CapacityAnalysisTrain& input : inputs) {
+				while (next < data.trains.size() && data.trains[next].trainId != input.runtimeId)
+					++next;
+				ordered = ordered && next < data.trains.size();
+				++next;
+				occupied = occupied && !input.occupations.empty();
+				for (const BlockingTimeDiagramInput& occupation : input.occupations)
+					occupied = occupied && std::any_of(scopes[k].blockIds.begin(), scopes[k].blockIds.end(), [&occupation](const std::string& block) {
+						return shareBlockingTimeResource(occupation.blockId, block);
+					});
+			}
+			check(ordered && occupied, label + " inputs");
+			pairs += inputs.size() > 1 ? 1 : 0;
+			const QString routeLabel = capacityScopeLabelFrom(data, scopes[k]);
+			check(routeLabel.startsWith(QString::fromStdString(data.routes[static_cast<std::size_t>(r)].id)), label + " label");
 		}
 	}
-	check(capacityScopeLabel(CapacityAnalysisScope()) == capacityScopeLabelFrom(data, CapacityAnalysisScope()), scene + ": label without a route");
+	check(capacityScopeLabelFrom(data, CapacityAnalysisScope()).toStdString() == "no selected route", scene + ": label without a route");
 
-	const CapacityAnalysisScope first = firstCapacityScopeWithPair();
-	const CapacityAnalysisScope firstFromData = firstCapacityScopeWithPairFrom(data);
-	check(first.routeIndex == firstFromData.routeIndex && first.blockIds == firstFromData.blockIds
-			&& first.sectionIndices == firstFromData.sectionIndices && first.occurrenceIds == firstFromData.occurrenceIds
-			&& first.cycleEndOccurrenceId == firstFromData.cycleEndOccurrenceId && first.periodSeconds == firstFromData.periodSeconds,
-		scene + ": first scope with a pair");
+	const CapacityAnalysisScope first = firstCapacityScopeWithPairFrom(data);
 	if (first.routeIndex < 0) {
 		std::cout << scene << ": no scope with two trains, so no capacity analysis\n";
 		return;
 	}
 	check(pairs > 0, scene + ": scopes with a pair");
+	std::vector<std::string> trainsOfFirst;
+	for (const CapacityAnalysisTrain& input : capacityInputsFrom(data, first))
+		trainsOfFirst.push_back(input.runtimeId);
+	check(trainsOfFirst.size() > 1 && trainsOfFirst == first.occurrenceIds, scene + ": the first scope with a pair holds its trains");
 	CapacityAnalysisScope scope = first;
 	std::vector<CapacityAnalysisScope> analysed = {scope};
 	scope.cycleEndOccurrenceId = scope.occurrenceIds.back();
@@ -747,29 +576,51 @@ void compareCapacity(const CapturedRun& run) {
 	scope.cycleEndOccurrenceId = scope.occurrenceIds.front();
 	analysed.push_back(scope);
 	bool anyCsv = false;
-	for (std::size_t k = 0; k < analysed.size(); ++k) {
-		const std::string expected = capacityScopeIssue(analysed[k]).empty()
-			? capacityAnalysisCsv(analyzeCapacity(capacityTrainsForScope(analysed[k]), analysed[k].periodSeconds, analysed[k].cycleEndOccurrenceId),
-				  capacityScopeLabel(analysed[k]))
-			: std::string();
-		checkSame(scene + ": capacity_analysis.csv of scope " + std::to_string(k), expected, capacityCsvFrom(data, analysed[k]));
-		anyCsv = anyCsv || !expected.empty();
-	}
+	for (const CapacityAnalysisScope& analysis : analysed)
+		anyCsv = anyCsv || !capacityCsvFrom(data, analysis).empty();
 	check(anyCsv, scene + ": a capacity_analysis.csv exists");
 }
 
-void compareRouteDiagrams(const CapturedRun& run) {
+// The routes that the trains of the simulation run on, in order of first use.
+std::vector<std::pair<int, std::string>> routesOfTrains() {
+	std::vector<std::pair<int, std::string>> used;
+	for (int i = 0; i < numRegions; ++i) {
+		const int index = regional_train[i].indexOfRoute;
+		if (index >= 0 && index < static_cast<int>(train_route.size())
+			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
+			used.emplace_back(index, train_route[index].ID);
+	}
+	return used;
+}
+
+void checkRouteDiagrams(const CapturedRun& run) {
 	const std::string scene = run.scene;
-	const auto expectedUsed = legacyUsedRouteReferences();
+	const auto expectedUsed = routesOfTrains();
 	check(expectedUsed == usedRouteReferencesFrom(run.data), scene + ": used routes");
 	check(!expectedUsed.empty(), scene + ": routes are used");
+	// Every sample and every timetable event of a train on a known route is a row of the export, whether it projects or not.
+	std::size_t samples = 0, timetableRows = 0;
+	for (int i = 0; i < numRegions; ++i) {
+		const Train& train = regional_train[i];
+		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size()))
+			continue;
+		if (train.earliestActiveTrajectoryIndex >= 0)
+			for (const auto& segment : validTrajectorySegments(train.instant_spatial_position, train.earliestActiveTrajectoryIndex, train.End_Time))
+				samples += static_cast<std::size_t>(segment.last - segment.first + 1);
+		for (const TimetableResultRow& timetableRow : run.data.timetable)
+			timetableRows += timetableRow.trainId == train.trainDescription ? 1 : 0;
+	}
 	std::size_t withSeries = 0;
 	for (const auto& used : expectedUsed)
 		for (bool timetable : {false, true}) {
-			const auto expected = legacyRouteDiagram(run.loaded.scene, timetable, used.first);
-			const auto actual = routeDiagramData(run.data, timetable, used.first);
-			checkSame(scene + ": " + (timetable ? "timetable graph" : "train paths") + " on " + used.second, describe(expected), describe(actual));
-			withSeries += actual && !actual->series.empty() ? 1 : 0;
+			const std::string label = scene + ": " + (timetable ? "timetable graph" : "train paths") + " on " + used.second;
+			const auto diagram = routeDiagramData(run.data, timetable, used.first);
+			check(diagram.has_value(), label);
+			if (!diagram)
+				continue;
+			check(diagram->referencePath.id == used.second, label + ": reference route");
+			check(diagram->csvRows.size() == (timetable ? 4 * timetableRows : samples), label + ": export rows");
+			withSeries += diagram->series.empty() ? 0 : 1;
 		}
 	check(withSeries >= 2, scene + ": route diagrams have lines");
 	check(!routeDiagramData(run.data, false, -1) && !routeDiagramData(run.data, true, static_cast<int>(run.data.routes.size())),
@@ -884,23 +735,6 @@ const RunResultValue kAbsent{false, 0.0};
 
 RunResultValue at(double seconds) {
 	return {true, seconds};
-}
-
-std::vector<std::string> dataLines(const std::string& csvText) {
-	std::vector<std::string> result;
-	std::size_t start = 0;
-	bool header = true;
-	while (start < csvText.size()) {
-		const std::size_t end = csvText.find("\r\n", start);
-		const std::string line = csvText.substr(start, end == std::string::npos ? std::string::npos : end - start);
-		if (!header)
-			result.push_back(line);
-		header = false;
-		if (end == std::string::npos)
-			break;
-		start = end + 2;
-	}
-	return result;
 }
 
 std::string row(const std::vector<std::string>& cells) {
@@ -1496,11 +1330,11 @@ int main(int argc, char** argv) {
 		if (!runScene(argv[k], output.path().toStdString(), run))
 			return 1;
 		compareCapture(run);
-		compareExports(run);
+		checkExports(run);
 		compareScopeChoices(run);
-		compareBlockingDiagrams(run);
-		compareCapacity(run);
-		compareRouteDiagrams(run);
+		checkBlockingDiagrams(run);
+		checkCapacity(run);
+		checkRouteDiagrams(run);
 		exports.push_back(exportsOf(run.data));
 		windows.push_back(openWindows(run));
 	}

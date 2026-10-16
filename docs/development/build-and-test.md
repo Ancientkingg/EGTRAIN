@@ -125,7 +125,9 @@ to the folder that Import Passengers reads in place of its dialog, and clears it
 The creator acceptance smoke starts without a scene: when `QEGTRAIN_E2E_CREATOR_ACCEPTANCE`
 is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the first show asks
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
-(`askCapacityScope`), which the scenario answers. A scenario keeps its state, such as whether it
+(`askCapacityScope`), which the scenario answers. The scenario opens the Time / distance window after the baseline
+run, runs two more scenarios, and then checks that the window still exports the baseline run and not the run that the
+application holds by then. A scenario keeps its state, such as whether it
 has begun its checks, in `MainWindowTestAccess`, not in the window.
 
 `Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and
@@ -170,6 +172,11 @@ that the window exports with all trains, with the first train and with none (`<w
 chart (`blocking_time_series.txt`, `delay_diagram_series.txt`, `speed_distance_series.txt` and so on: the axes,
 then every series with its properties and points). Two builds of one scene give the same files, so `cmp`
 shows whether a change moved a diagram.
+
+The hook of `QEGTRAIN_E2E_ROUTE_DIAGRAM` builds the train paths and the timetable graph with each route that trains
+run on as reference. For each of them it writes the text dump of the chart and the CSV of the window with all trains
+(`train_path_graph_route<N>_series.txt`, `train_path_graph_route<N>.csv`, and `timetable_graph_route<N>` likewise, with
+`N` the index of the route in the run).
 
 ### Warnings
 

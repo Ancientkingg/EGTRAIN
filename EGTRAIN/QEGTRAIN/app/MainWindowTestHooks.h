@@ -55,8 +55,10 @@ struct MainWindowTestHooks {
 	void (*runStarting)(MainWindow& window) = nullptr;
 	// Called at the end of the destructor of the window.
 	void (*windowDestroyed)() = nullptr;
-	// Called once the window of a route diagram is built, with the function that gives its CSV for the trains shown.
-	void (*routeDiagramBuilt)(const std::function<std::string(const QStringList&)>& csv, bool timetable) = nullptr;
+	// Called once the window of a route diagram is built, with the function that gives its CSV for the trains shown and
+	// the ids of the trains of the run.
+	void (*routeDiagramBuilt)(const std::function<std::string(const QStringList&)>& csv, const QStringList& trainIds,
+		bool timetable) = nullptr;
 };
 
 // The one set of hooks of the process: free functions read it, and main builds one MainWindow.

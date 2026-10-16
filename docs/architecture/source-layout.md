@@ -35,13 +35,24 @@ docs/                     Guides and architecture, development, product, telemet
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `CaseChooserDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `EditorLayout`, `ElidedLabel`, `UserPrompts` |
-| `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `AreaCapacityWindow`, `CompletedRunData`, `CompletedRunCapture`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
+| `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `AreaCapacityWindow`, `CompletedRunData`, `CompletedRunCapture`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats: `RttpXml`, the XML of the legacy channels, and `ExternalState`, the sender of that XML; `LiveFrame`, the JSON frames of the live contract (`docs/live/frame-v1.schema.json`), and `LiveServer`, the ZeroMQ transport that publishes them; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. `RecoveryPrompt`: the dialog that offers the copies that an earlier run left behind. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases, the `e2e/` runner of the scripted GUI scenarios and the test `fixtures/` |
+
+## Completed-run data
+
+When a run ends, `captureCompletedRun` (`diagrams/CompletedRunCapture.cpp`) copies what the result views need out of the
+simulation into one `CompletedRunData`, and `MainWindow` holds it as `m_completedRun`, a
+`std::shared_ptr<const CompletedRunData>`. The Run Results dock reads it, and every result window and CSV export keeps
+its own pointer. So a window that was opened for one run goes on showing and exporting that run after another run has
+replaced the simulation state. The code in `diagrams/` reads the simulation only in `CompletedRunCapture.cpp` and
+`RunResults.cpp`. `tools/e2e/test_diagrams_no_sim_globals.py` fails when another file of `diagrams/`, or
+`app/MainWindowSupport.h`, includes a header of `simulation/` or names `regional_train`, `train_route`, `numRegions` or
+`initial_variables`.
 
 ## Includes
 

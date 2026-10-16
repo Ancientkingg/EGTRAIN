@@ -99,6 +99,7 @@ struct CreatorAcceptanceState {
 	int phase = 0;
 	int polls = 0;
 	QPointer<DiagramWindow> baselineDiagram;
+	std::string baselineCsv; // What the baseline diagram exported when it opened
 };
 
 CreatorAcceptanceState creatorAcceptance;
@@ -1624,8 +1625,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		creatorAcceptance.polls = 0;
-		if (w.m_completedRunProvenance.appliedScenario != "baseline"
-			|| w.m_completedRunProvenance.selectedOccurrences.size() != 2) {
+		if (w.m_completedRun->provenance.appliedScenario != "baseline"
+			|| w.m_completedRun->provenance.selectedOccurrences.size() != 2) {
 			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
 			return;
 		}
@@ -1647,6 +1648,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		if (!creatorAcceptance.baselineDiagram) {
 			fail(QStringLiteral("baseline result diagram did not open"));
+			return;
+		}
+		creatorAcceptance.baselineCsv = creatorAcceptance.baselineDiagram->csvContent();
+		if (creatorAcceptance.baselineCsv.empty()) {
+			fail(QStringLiteral("baseline result diagram has nothing to export"));
 			return;
 		}
 		w.m_setDelayBaselineButton->click();
@@ -1688,7 +1694,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		creatorAcceptance.polls = 0;
-		if (w.m_completedRunProvenance.appliedScenario != "entrance") {
+		if (w.m_completedRun->provenance.appliedScenario != "entrance") {
 			fail(QStringLiteral("entrance run did not stage the entrance scenario"));
 			return;
 		}
@@ -1703,7 +1709,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const TimetableResultRow* baselineDeparture = w.m_delayBaseline
 			? stationADeparture(w.m_delayBaseline->timetable)
 			: nullptr;
-		const TimetableResultRow* delayedDeparture = stationADeparture(w.m_completedTimetableResults);
+		const TimetableResultRow* delayedDeparture = stationADeparture(w.m_completedRun->timetable);
 		if (!baselineDeparture || !delayedDeparture
 			|| !baselineDeparture->plannedDepartureSeconds.available
 			|| !delayedDeparture->plannedDepartureSeconds.available
@@ -1729,7 +1735,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 							? delayedDeparture->departureDelaySeconds.value
 							: -1.0)
 					.arg(w.m_delayBaseline ? static_cast<int>(w.m_delayBaseline->timetable.size()) : -1)
-					.arg(static_cast<int>(w.m_completedTimetableResults.size())));
+					.arg(static_cast<int>(w.m_completedRun->timetable.size())));
 			return;
 		}
 		if (!w.m_delayFeedbackLabel || w.m_compareDelayButton->isEnabled()
@@ -1765,10 +1771,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		creatorAcceptance.polls = 0;
 		bool directEvidence = false;
-		for (const auto& train : w.m_completedRunResults.trains)
+		for (const auto& train : w.m_completedRun->results.trains)
 			if (!train.directIncidentIds.empty())
 				directEvidence = true;
-		if (w.m_completedRunProvenance.appliedScenario != "incident" || !directEvidence) {
+		if (w.m_completedRun->provenance.appliedScenario != "incident" || !directEvidence) {
 			fail(QStringLiteral("final incident run lacked direct incident evidence"));
 			return;
 		}
@@ -1824,6 +1830,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !exportButton(creatorAcceptance.baselineDiagram, QStringLiteral("Export CSV..."),
 				path("baseline_time_distance.csv"))) {
 			fail(QStringLiteral("baseline diagram CSV export was not driven through its public button"));
+			return;
+		}
+		// The baseline run is two runs behind. Its diagram still exports it, not the run the application holds now.
+		if (creatorAcceptance.baselineDiagram->csvContent() != creatorAcceptance.baselineCsv
+			|| creatorAcceptance.baselineCsv == trajectoryCsvFrom(*w.m_completedRun, trainIdsFrom(*w.m_completedRun))) {
+			fail(QStringLiteral("the baseline diagram did not keep exporting the baseline run after later runs"));
 			return;
 		}
 		QAction* speedButton = findResultAction(QStringLiteral("Speed / distance"));
@@ -2089,21 +2101,28 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 
-		const RunResults incidentResults = w.m_completedRunResults;
-		const std::vector<TimetableResultRow> incidentTimetable = w.m_completedTimetableResults;
-		w.m_completedTimetableResults = w.m_delayBaseline
+		// The comparison reads the completed run, so each case below swaps in an altered copy of it and restores it after.
+		const std::shared_ptr<const CompletedRunData> incidentRun = w.m_completedRun;
+		const auto alterRun = [&w, incidentRun](const std::function<void(CompletedRunData&)>& change) {
+			auto altered = std::make_shared<CompletedRunData>(*incidentRun);
+			change(*altered);
+			w.m_completedRun = altered;
+		};
+		const std::vector<TimetableResultRow> baselineTimetable = w.m_delayBaseline
 			? w.m_delayBaseline->timetable
 			: std::vector<TimetableResultRow>();
 		bool injectedPositiveDelay = false;
-		for (TimetableResultRow& row : w.m_completedTimetableResults) {
-			if (row.simulatedArrivalSeconds.available) {
-				row.simulatedArrivalSeconds.value += 15.0;
-				injectedPositiveDelay = true;
+		alterRun([&baselineTimetable, &injectedPositiveDelay](CompletedRunData& run) {
+			run.timetable = baselineTimetable;
+			for (TimetableResultRow& row : run.timetable) {
+				if (row.simulatedArrivalSeconds.available) {
+					row.simulatedArrivalSeconds.value += 15.0;
+					injectedPositiveDelay = true;
+				}
 			}
-		}
+		});
 		if (!injectedPositiveDelay) {
-			w.m_completedRunResults = incidentResults;
-			w.m_completedTimetableResults = incidentTimetable;
+			w.m_completedRun = incidentRun;
 			w.refreshRunResults();
 			fail(QStringLiteral("creator timetable had no final arrival row for positive comparison presentation"));
 			return;
@@ -2138,16 +2157,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		compareButton->click();
 		process();
 		if (!nonzeroComparisonSeen || !nonzeroComparisonOk) {
-			w.m_completedRunResults = incidentResults;
-			w.m_completedTimetableResults = incidentTimetable;
+			w.m_completedRun = incidentRun;
 			w.refreshRunResults();
 			fail(QStringLiteral("nonzero delay comparison did not expose its metric and rows"));
 			return;
 		}
 
-		w.m_completedTimetableResults = w.m_delayBaseline
-			? w.m_delayBaseline->timetable
-			: std::vector<TimetableResultRow>();
+		alterRun([&baselineTimetable](CompletedRunData& run) { run.timetable = baselineTimetable; });
 		w.refreshRunResults();
 		bool zeroComparisonSeen = false;
 		bool zeroComparisonOk = false;
@@ -2172,17 +2188,17 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		compareButton->click();
 		process();
-		w.m_completedRunResults = incidentResults;
-		w.m_completedTimetableResults = incidentTimetable;
+		w.m_completedRun = incidentRun;
 		w.refreshRunResults();
 		if (!zeroComparisonSeen || !zeroComparisonOk) {
 			fail(QStringLiteral("zero delay comparison did not report explicit success"));
 			return;
 		}
 
-		const RunResults incidentResultsForRejection = w.m_completedRunResults;
-		for (TrainRunResult& train : w.m_completedRunResults.trains)
-			train.directIncidentIds.clear();
+		alterRun([](CompletedRunData& run) {
+			for (TrainRunResult& train : run.results.trains)
+				train.directIncidentIds.clear();
+		});
 		bool rejectionSeen = false;
 		QString rejectionText;
 		QTimer::singleShot(0, &w, [&rejectionSeen, &rejectionText]() {
@@ -2198,7 +2214,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		compareButton->click();
 		process();
-		w.m_completedRunResults = incidentResultsForRejection;
+		w.m_completedRun = incidentRun;
 		w.refreshRunResults();
 		if (!rejectionSeen || !rejectionText.contains(QStringLiteral("direct incident evidence"))) {
 			fail(QStringLiteral("invalid delay comparison did not expose rejection diagnostics (seen=%1, text=%2)")

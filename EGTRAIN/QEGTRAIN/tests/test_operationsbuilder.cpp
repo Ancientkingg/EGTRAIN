@@ -6,6 +6,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "diagrams/CompletedRunData.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "util/Log.h"
 #include "util/timeutil.hpp"
@@ -3276,8 +3277,14 @@ int main() {
 		const Train& reverse = regional_train[numRegions - 1];
 		const RouteDiagramPath reversePath = routeDiagramPath(train_route[reverse.indexOfRoute], &diagramScene);
 		const auto reverseProjection = buildRouteDiagramProjection(reversePath, reference);
-		const auto forwardStop = routeDiagramStopPosition(forward, 1, reference, identity);
-		const auto backwardStop = routeDiagramStopPosition(reverse, 1, reversePath, reverseProjection);
+		const auto stopOf = [](const Train& train, int index) {
+			CompletedStop stop;
+			stop.nodeId = train.Stations[index].sceneNodeId;
+			stop.routeX = train.Stations[index].X;
+			return stop;
+		};
+		const auto forwardStop = routeDiagramStopPosition(stopOf(forward, 1), reference, identity);
+		const auto backwardStop = routeDiagramStopPosition(stopOf(reverse, 1), reversePath, reverseProjection);
 		ok &= expect(forwardStop && backwardStop && std::fabs(*forwardStop - 43.0) < 1e-6
 				&& std::fabs(*backwardStop - 43.0) < 1e-6,
 			"native forward/reverse stop nodes share reference coordinates");

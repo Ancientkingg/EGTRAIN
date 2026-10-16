@@ -313,8 +313,8 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		}
 		if (mode == "install_failure") {
 			const int ordinal = smoke->completedProbeRuns;
-			if (!w.m_resultsAvailable
-				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(w.m_completedRunResults),
+			if (!w.m_resultsAvailable || !w.m_completedRun
+				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(w.m_completedRun->results),
 					QString::fromStdString(initial_variables.OutputMainFolder) + "/EnergyConsumptionPerTrain.txt")) {
 				std::fprintf(stderr, "E2E_TELEMETRY_INSTALL_RUN_FAILED\n");
 				QCoreApplication::exit(2);

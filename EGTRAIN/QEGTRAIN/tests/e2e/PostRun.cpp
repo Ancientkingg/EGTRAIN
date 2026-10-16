@@ -337,20 +337,21 @@ void MainWindowTestAccess::checkSignalHeads(MainWindow& w) {
 void MainWindowTestAccess::runResultsRefreshed(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		std::fprintf(stdout, "\nE2E_GUI_RUN_RESULTS rows=%d trains=%d dock_visible=%d output_dir=%s\n",
-			w.m_runResultsTable->rowCount(), static_cast<int>(w.m_completedRunResults.trains.size()),
+			w.m_runResultsTable->rowCount(), static_cast<int>(w.m_completedRun->results.trains.size()),
 			w.m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
 	}
 }
 
 // QEGTRAIN_E2E_ROUTE_DIAGRAM writes the CSV of each route diagram for all trains and for the first one.
-void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(const QStringList&)>& csv, bool timetable) {
+void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(const QStringList&)>& csv,
+	const QStringList& trainIds, bool timetable) {
 	if (!qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM"))
 		return;
 	const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
 	const QString basename = timetable ? "timetable_graph" : "train_path_graph";
-	for (const auto& selection : {std::pair<QString, QStringList>{"all", allTrainIds()},
-			 std::pair<QString, QStringList>{"first", QStringList{allTrainIds().first()}}}) {
+	for (const auto& selection : {std::pair<QString, QStringList>{"all", trainIds},
+			 std::pair<QString, QStringList>{"first", QStringList{trainIds.first()}}}) {
 		QFile out(dir + "/" + basename + "_" + selection.first + ".csv");
 		if (out.open(QIODevice::WriteOnly)) out.write(QByteArray::fromStdString(csv(selection.second)));
 	}
@@ -360,11 +361,11 @@ void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(con
 // run. Both end the run and the process.
 bool MainWindowTestAccess::runFinished(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
-		bool ok = w.m_resultsAvailable && numRegions > 0;
+		bool ok = w.m_resultsAvailable && !w.m_completedRun->trains.empty();
 		if (ok) {
-			const int reference = regional_train[0].indexOfRoute;
-			w.buildRouteDiagram(false, reference);
-			w.buildRouteDiagram(true, reference);
+			const int reference = w.m_completedRun->trains.front().routeIndex;
+			w.buildRouteDiagram(w.m_completedRun, false, reference);
+			w.buildRouteDiagram(w.m_completedRun, true, reference);
 			QApplication::processEvents();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			ok = windows.size() == 2;
@@ -386,8 +387,21 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					ok &= view->grab().save(file);
 				}
 			}
+			// Each route that trains run on is the reference once: the dump of the chart and the CSV for all trains.
+			const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
+			for (const auto& used : usedRouteReferencesFrom(*w.m_completedRun)) {
+				for (const bool timetable : {false, true}) {
+					w.buildRouteDiagram(w.m_completedRun, timetable, used.first);
+					DiagramWindow* window = newestWindow(w);
+					const QString name = QString("%1_route%2").arg(timetable ? "timetable_graph" : "train_path_graph").arg(used.first);
+					ok &= exportChart(window, dir, name);
+					ok &= window && writeFile(dir + "/" + name + ".csv", window->csvContent());
+					if (window)
+						window->close();
+				}
+			}
 			const QVector<RouteReferenceChoice> choices =
-				buildRouteReferenceChoices(w.m_sceneModel, usedRouteReferences());
+				buildRouteReferenceChoices(w.m_sceneModel, usedRouteReferencesFrom(*w.m_completedRun));
 			for (const RouteReferenceChoice& choice : choices)
 				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
 			RouteReferenceDialog chooser(choices, "train paths", &w);
@@ -402,19 +416,19 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 	// verification hook: write every CSV export from the completed run, then exit
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_EXPORT_DIR")) {
 		const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_EXPORT_DIR");
-		const QStringList ids = allTrainIds();
 		// Skip an export with no rows, matching the interactive "nothing to export".
 		const auto dump = [&dir, &w](const QString& file, const std::string& content) {
 			if (content.empty())
 				return true;
 			const QString path = dir + "/" + file;
-			if (writeCsvFileWithProvenance(path, content, w.m_completedRunProvenance))
+			if (writeCsvFileWithProvenance(path, content, w.m_completedRun->provenance))
 				return true;
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;
 		};
 		bool ok = w.m_resultsAvailable;
 		if (ok) {
+			const QStringList ids = trainIdsFrom(*w.m_completedRun);
 			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_completedRun, ids));
 			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_completedRun, ids));
 			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_completedRun, ids);
@@ -458,7 +472,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				if (perTrain)
 					perTrain->close();
 			}
-			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRunResults));
+			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRun->results));
 			const std::string capacityCsv = capacityCsvFrom(*w.m_completedRun, firstCapacityScopeWithPairFrom(*w.m_completedRun));
 			if (capacityCsv.empty()) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
@@ -564,8 +578,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const int first = w.m_completedReplay.firstTime();
 	const int last = w.m_completedReplay.lastTime();
 	const int middle = first + (last - first) / 2;
-	const RunResults completedResults = w.m_completedRunResults;
-	const auto completedTimetable = w.m_completedTimetableResults;
+	const RunResults completedResults = w.m_completedRun->results;
+	const auto completedTimetable = w.m_completedRun->timetable;
 	QString rowProblem;
 	if (!checkReplayRow(w, middle, rowProblem)) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay row, %s\n", qPrintable(rowProblem));
@@ -581,9 +595,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 					&& pair.first.value == pair.second.value;
 			});
 		};
-		const auto& now = w.m_completedRunResults;
+		if (!w.m_completedRun)
+			return false;
+		const auto& now = w.m_completedRun->results;
 		if (now.trains.size() != completedResults.trains.size()
-			|| w.m_completedTimetableResults.size() != completedTimetable.size()
+			|| w.m_completedRun->timetable.size() != completedTimetable.size()
 			|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
 				{now.networkEndSeconds, completedResults.networkEndSeconds},
 				{now.networkTravelSeconds, completedResults.networkTravelSeconds},
@@ -614,7 +630,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 					{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
 		}
 		for (std::size_t i = 0; i < completedTimetable.size(); ++i) {
-			const auto& a = w.m_completedTimetableResults[i];
+			const auto& a = w.m_completedRun->timetable[i];
 			const auto& b = completedTimetable[i];
 			if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
 				|| a.serviceId != b.serviceId || a.occurrence != b.occurrence

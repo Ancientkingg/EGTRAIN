@@ -34,7 +34,8 @@ public:
 	static void runResultsRefreshed(MainWindow& w);
 	static bool runFinished(MainWindow& w);
 	static void runSettled(MainWindow& w);
-	static void routeDiagramBuilt(const std::function<std::string(const QStringList&)>& csv, bool timetable);
+	static void routeDiagramBuilt(const std::function<std::string(const QStringList&)>& csv, const QStringList& trainIds,
+		bool timetable);
 
 	// The scripts for the dialogs that the window opens, defined in Dialogs.cpp. Each acts on the dialogs for which the
 	// variables of its scenario are set.

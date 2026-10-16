@@ -4444,10 +4444,7 @@ void MainWindow::invalidateRunResults() {
 	m_sceneChangedDuringRun = false;
 	m_appliedScenarioId.clear();
 	m_completedRun.reset();
-	m_completedRunResults = RunResults();
-	m_completedTimetableResults.clear();
 	m_pendingRunProvenance = RunProvenance();
-	m_completedRunProvenance = RunProvenance();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -10799,15 +10796,16 @@ RunProvenance MainWindow::captureRunProvenance() const {
 
 DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 	DelayRunSnapshot snapshot;
-	if (!m_resultsAvailable || m_completedRunResults.trains.empty())
+	if (!m_resultsAvailable || !m_completedRun || m_completedRun->results.trains.empty())
 		return snapshot;
+	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_sceneRevision);
 	snapshot.scenarioId = m_appliedScenarioId;
 	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
-	snapshot.durationSeconds = std::isfinite(initial_variables.times)
-		? initial_variables.times
+	snapshot.durationSeconds = std::isfinite(run.settings.horizonSteps)
+		? run.settings.horizonSteps
 		: 0.0;
-	snapshot.timestep = timestep;
+	snapshot.timestep = run.settings.timestepSeconds;
 	for (const SceneScenario& scenario : m_sceneModel.scenarios) {
 		if (scenario.id != snapshot.scenarioId)
 			continue;
@@ -10815,9 +10813,9 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
 		break;
 	}
-	snapshot.provenance = m_completedRunProvenance;
-	snapshot.run = m_completedRunResults;
-	snapshot.timetable = m_completedTimetableResults;
+	snapshot.provenance = run.provenance;
+	snapshot.run = run.results;
+	snapshot.timetable = run.timetable;
 	return snapshot;
 }
 
@@ -11048,14 +11046,10 @@ void MainWindow::onSimulationFinished() {
 		// Freeze result values before a subsequent run replaces the runtime trains.
 		m_completedRun = std::make_shared<const CompletedRunData>(
 			captureCompletedRun(&m_sceneModel, m_startOffsetSeconds, m_pendingRunProvenance));
-		m_completedRunProvenance = m_completedRun->provenance;
-		m_completedRunResults = m_completedRun->results;
-		m_completedTimetableResults = m_completedRun->timetable;
 		refreshRunResults();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
 		m_completedRun.reset();
-		m_completedRunProvenance = RunProvenance();
 		if (m_runResultsTable)
 			m_runResultsTable->setRowCount(0);
 		if (m_runResultsSummaryLabel)
@@ -12063,12 +12057,12 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		const auto operation = captureTelemetryOperation();
-		const RunProvenance provenance = m_completedRunProvenance;
+		const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 		saveCsvInteractive(
 			this, "run_summary.csv", operation,
-			[this] { return buildRunSummaryCsv(m_completedRunResults); },
-			[provenance](const QString& path, const std::string& bytes) {
-				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
+			[run] { return run ? buildRunSummaryCsv(run->results) : std::string(); },
+			[run](const QString& path, const std::string& bytes) {
+				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, run ? run->provenance : RunProvenance());
 			});
 	});
 	QPushButton* exportPngBtn = new QPushButton("Export PNG...", container);
@@ -12089,7 +12083,8 @@ void MainWindow::setupRunResultsDock() {
 			return;
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
-		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes, m_completedRunProvenance);
+		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes,
+			m_completedRun ? m_completedRun->provenance : RunProvenance());
 		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 		if (!written)
 			QMessageBox::warning(this, "Export failed",
@@ -12124,12 +12119,13 @@ void MainWindow::setupRunResultsDock() {
 }
 
 void MainWindow::refreshRunResults() {
-	if (!m_runResultsDock || !m_runResultsTable || m_completedRunResults.trains.empty())
+	if (!m_runResultsDock || !m_runResultsTable || !m_completedRun || m_completedRun->results.trains.empty())
 		return;
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	refreshRunResultsSummary();
-	m_runResultsDock->setWindowTitle(QString("Run Results — %1").arg(completedRunContext(m_completedRunProvenance)));
+	m_runResultsDock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
 
-	const RunResults& results = m_completedRunResults;
+	const RunResults& results = run->results;
 	const int totalColumns = 11;
 	m_runResultsTable->clear();
 	m_runResultsTable->setColumnCount(totalColumns);
@@ -12141,9 +12137,9 @@ void MainWindow::refreshRunResults() {
 
 	// Start and end as clock times, travel time as a duration, energy with one
 	// decimal; a dash marks values the run did not produce.
-	const auto clockText = [this](const RunResultValue& value) {
+	const auto clockText = [&run](const RunResultValue& value) {
 		return value.available
-			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), m_startOffsetSeconds))
+			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), run->settings.startOffsetSeconds))
 			: QStringLiteral("-");
 	};
 	const auto durationText = [](const RunResultValue& value) {
@@ -12199,18 +12195,18 @@ void MainWindow::refreshRunResults() {
 }
 
 void MainWindow::refreshRunResultsSummary() {
-	if (!m_runResultsSummaryLabel || m_completedRunResults.trains.empty())
+	if (!m_runResultsSummaryLabel || !m_completedRun || m_completedRun->results.trains.empty())
 		return;
 	int directEvidenceCount = 0;
 	int destinationTerminationCount = 0;
-	for (const TrainRunResult& result : m_completedRunResults.trains) {
+	for (const TrainRunResult& result : m_completedRun->results.trains) {
 		if (!result.directIncidentIds.empty())
 			++directEvidenceCount;
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
 	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
-						  .arg(completedRunContext(m_completedRunProvenance))
+						  .arg(completedRunContext(m_completedRun->provenance))
 						  .arg(m_lastRunSelectedOccurrences)
 						  .arg(m_lastRunTotalOccurrences);
 	if (advancedDetailsEnabled()) {
@@ -14161,8 +14157,8 @@ void MainWindow::getTrainPolygon(QPolygonF* trainPolygon, int wagon, const GuiTr
 }
 
 // Choose a reference from routes that were actually used in this run.
-int chooseRouteDiagramReference(QWidget* parent, const SceneModel& model, const QString& purpose) {
-	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(model, usedRouteReferences());
+int chooseRouteDiagramReference(QWidget* parent, const SceneModel& model, const CompletedRunData& run, const QString& purpose) {
+	const QVector<RouteReferenceChoice> choices = buildRouteReferenceChoices(model, usedRouteReferencesFrom(run));
 	if (choices.isEmpty()) return -1;
 	if (e2eDialogsSuppressed()) return choices.first().runtimeIndex;
 	RouteReferenceDialog dialog(choices, purpose, parent);
@@ -14171,8 +14167,9 @@ int chooseRouteDiagramReference(QWidget* parent, const SceneModel& model, const 
 
 void MainWindow::displayTrainPathDiagrams() {
 	if (!hasRunResults()) return;
-	const int reference = chooseRouteDiagramReference(this, m_sceneModel, "train paths");
-	if (reference >= 0) buildRouteDiagram(false, reference);
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const int reference = chooseRouteDiagramReference(this, m_sceneModel, *run, "train paths");
+	if (reference >= 0) buildRouteDiagram(run, false, reference);
 }
 
 // manage VCoupling notifications
@@ -14434,27 +14431,15 @@ void MainWindow::showDelayDiagram() {
 
 void MainWindow::showTimetableGraph() {
 	if (!hasRunResults()) return;
-	const int reference = chooseRouteDiagramReference(this, m_sceneModel, "timetable");
-	if (reference >= 0) buildRouteDiagram(true, reference);
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const int reference = chooseRouteDiagramReference(this, m_sceneModel, *run, "timetable");
+	if (reference >= 0) buildRouteDiagram(run, true, reference);
 }
 
-void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
-	if (!hasRunResults() || referenceIndex < 0 || referenceIndex >= static_cast<int>(train_route.size())) return;
-	const Route& reference = train_route[referenceIndex];
-	const RouteDiagramPath referencePath = routeDiagramPath(reference, &m_sceneModel);
-	if (referencePath.nodes.empty()) return;
-	std::map<int, RouteDiagramPath> paths;
-	std::map<int, RouteDiagramProjection> projections;
-	for (int i = 0; i < numRegions; ++i) {
-		const int routeIndex = regional_train[i].indexOfRoute;
-		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()) || paths.count(routeIndex)) continue;
-		paths.emplace(routeIndex, routeDiagramPath(train_route[routeIndex], &m_sceneModel));
-		projections.emplace(routeIndex, buildRouteDiagramProjection(paths.at(routeIndex), referencePath));
-	}
-	const auto position = [&](const Train& train, double sourceKm) -> std::optional<double> {
-		const auto projection = projections.find(train.indexOfRoute);
-		return projection == projections.end() ? std::optional<double>() : projection->second.map(sourceKm);
-	};
+void MainWindow::buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex) {
+	const std::optional<RouteDiagramData> diagram = routeDiagramData(*run, timetable, referenceIndex);
+	if (!diagram) return;
+	const RouteDiagramPath& referencePath = diagram->referencePath;
 	const double origin = referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.back().positionKm;
 	const QString heading = timetable ? "Timetable graph: planned vs simulated stops"
@@ -14464,113 +14449,33 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 		: "Recorded position samples, not planned stop times.";
 	auto* chart = new QChart();
 	chart->setTitle(heading);
-	std::vector<std::vector<std::string>> exportRows;
-	const auto record = [&](const Train& train, const char* kind, const std::string& station,
-							int journey, int call, const RunResultValue& time, std::optional<double> x) {
-		exportRows.push_back({train.trainDescription, reference.ID, train_route[train.indexOfRoute].ID,
-			kind, station, journey ? std::to_string(journey) : "", call ? std::to_string(call) : "",
-			time.available ? csv::formatDouble(time.value) : "", x ? csv::formatDouble(*x) : ""});
-	};
-	if (timetable) {
-		const auto rows = buildTimetableResults(runResultTrainPointers());
-		for (int i = 0; i < numRegions; ++i) {
-			const Train& train = regional_train[i];
-			const auto path = paths.find(train.indexOfRoute);
-			const auto projection = projections.find(train.indexOfRoute);
-			if (path == paths.end() || projection == projections.end()) continue;
-			const QString name = QString::fromStdString(train.trainDescription);
-			// Separate series at every absent or unprojectable event. Never connect
-			// across a missing schedule value or an unavailable station visit.
-			for (int kind = 0; kind < 4; ++kind) {
-				QLineSeries* segment = nullptr;
-				for (const auto& row : rows) {
-					if (row.trainId != train.trainDescription) continue;
-					const int stopIndex = row.journeyIndex - 1;
-					const auto x = routeDiagramStopPosition(train, stopIndex, path->second, projection->second);
-					const RunResultValue time = kind == 0 ? row.plannedArrivalSeconds : kind == 1 ? row.plannedDepartureSeconds
-						: kind == 2																  ? row.simulatedArrivalSeconds
-																								  : row.simulatedDepartureSeconds;
-					const char* event = kind == 0 ? "planned arrival" : kind == 1 ? "planned departure"
-						: kind == 2												  ? "simulated arrival"
-																				  : "simulated departure";
-					record(train, event, row.stationId, row.journeyIndex, row.callIndex, time, x);
-					if (!x || !time.available) {
-						segment = nullptr;
-						continue;
-					}
-					if (!segment) {
-						segment = new QLineSeries();
-						segment->setName(name + " (" + event + ")");
-						segment->setProperty("trainId", name);
-						segment->setPointsVisible(true);
-						QPen pen(QColor::fromHsv((i * 71) % 360, 175, kind < 2 ? 170 : 235));
-						if (kind < 2) pen.setStyle(Qt::DashLine);
-						segment->setPen(pen);
-						chart->addSeries(segment);
-					}
-					appendInspectedPoint(segment, *x, time.value,
-						QString("Station: %1 | Call: %2 | Journey: %3 | %4")
-							.arg(QString::fromStdString(row.stationId))
-							.arg(row.callIndex)
-							.arg(row.journeyIndex)
-							.arg(event));
-				}
-			}
-			// A dwell is vertical: fixed reference distance, advancing time.
-			for (const auto& row : rows) {
-				if (row.trainId != train.trainDescription) continue;
-				const auto x = routeDiagramStopPosition(train, row.journeyIndex - 1, path->second, projection->second);
-				for (int planned = 0; planned < 2; ++planned) {
-					const auto arrival = planned ? row.plannedArrivalSeconds : row.simulatedArrivalSeconds;
-					const auto departure = planned ? row.plannedDepartureSeconds : row.simulatedDepartureSeconds;
-					if (!x || !arrival.available || !departure.available) continue;
-					auto* dwell = new QLineSeries();
-					dwell->setName(name + (planned ? " (planned dwell)" : " (simulated dwell)"));
-					dwell->setProperty("trainId", name);
-					QPen pen(QColor::fromHsv((i * 71) % 360, 175, planned ? 170 : 235));
-					if (planned) pen.setStyle(Qt::DashLine);
-					dwell->setPen(pen);
-					const QString context = QString("Station: %1 | Call: %2 | %3 dwell")
-												.arg(QString::fromStdString(row.stationId))
-												.arg(row.callIndex)
-												.arg(planned ? "Planned" : "Simulated");
-					appendInspectedPoint(dwell, *x, arrival.value, context);
-					appendInspectedPoint(dwell, *x, departure.value, context);
-					chart->addSeries(dwell);
-				}
+	for (const RouteDiagramSeries& source : diagram->series) {
+		const QString name = QString::fromStdString(source.trainId);
+		auto* series = new QLineSeries();
+		series->setProperty("trainId", name);
+		if (source.kind == RouteDiagramSeries::Kind::Trajectory) {
+			series->setName(name);
+			series->setProperty("inspectionInterval",
+				QString("Route: %1 | Simulated trajectory").arg(QString::fromStdString(source.routeId)));
+			for (const RouteDiagramPoint& point : source.points) series->append(point.positionKm, point.seconds);
+			series->setPointsVisible(source.points.size() == 1); // Preserve an isolated valid sample.
+		} else {
+			const QString event = QString::fromStdString(source.event);
+			series->setName(name + " (" + event + ")");
+			QPen pen(QColor::fromHsv((source.trainIndex * 71) % 360, 175, source.planned ? 170 : 235));
+			if (source.planned) pen.setStyle(Qt::DashLine);
+			series->setPen(pen);
+			const bool dwell = source.kind == RouteDiagramSeries::Kind::Dwell;
+			series->setPointsVisible(!dwell);
+			for (const RouteDiagramPoint& point : source.points) {
+				const QString station = QString::fromStdString(point.station);
+				const QString context = dwell
+					? QString("Station: %1 | Call: %2 | %3 dwell").arg(station).arg(point.call).arg(source.planned ? "Planned" : "Simulated")
+					: QString("Station: %1 | Call: %2 | Journey: %3 | %4").arg(station).arg(point.call).arg(point.journey).arg(event);
+				appendInspectedPoint(series, point.positionKm, point.seconds, context);
 			}
 		}
-	} else {
-		for (int i = 0; i < numRegions; ++i) {
-			const Train& train = regional_train[i];
-			if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
-			if (train.earliestActiveTrajectoryIndex < 0) continue;
-			for (const auto& valid : validTrajectorySegments(train.instant_spatial_position,
-					 train.earliestActiveTrajectoryIndex, train.End_Time)) {
-				QLineSeries* segment = nullptr;
-				for (int t = valid.first; t <= valid.last; ++t) {
-					const double sourceKm = routeDiagramTrajectoryKm(train.instant_spatial_position[t]);
-					const auto x = position(train, sourceKm);
-					const RunResultValue time{true, t * timestep};
-					record(train, "trajectory", "", 0, 0, time, x);
-					if (!x) {
-						segment = nullptr;
-						continue;
-					}
-					if (!segment) {
-						segment = new QLineSeries();
-						segment->setName(QString::fromStdString(train.trainDescription));
-						segment->setProperty("trainId", QString::fromStdString(train.trainDescription));
-						segment->setProperty("inspectionInterval",
-							QString("Route: %1 | Simulated trajectory").arg(QString::fromStdString(train_route[train.indexOfRoute].ID)));
-						segment->setPointsVisible(true); // Preserve an isolated valid sample.
-						chart->addSeries(segment);
-					}
-					segment->append(*x, time.value);
-					if (segment->count() == 2) segment->setPointsVisible(false);
-				}
-			}
-		}
+		chart->addSeries(series);
 	}
 	chart->createDefaultAxes();
 	if (chart->axes(Qt::Horizontal).isEmpty()) chart->addAxis(new QValueAxis(), Qt::AlignBottom);
@@ -14586,7 +14491,7 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	if (chart->axes(Qt::Vertical).isEmpty()) chart->addAxis(axisY, Qt::AlignLeft);
 	axisY->setTitleText("Elapsed simulation time (s), downward");
 	axisY->setReverse(true);
-	axisY->setRange(0, std::max(1.0, initial_variables.times * timestep));
+	axisY->setRange(0, std::max(1.0, run->settings.horizonSeconds()));
 	for (auto* series : chart->series()) {
 		if (!series->attachedAxes().contains(axisY)) series->attachAxis(axisY);
 		if (!series->attachedAxes().contains(chart->axes(Qt::Horizontal).first()))
@@ -14613,23 +14518,22 @@ void MainWindow::buildRouteDiagram(bool timetable, int referenceIndex) {
 	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
-	win->setTrainColors(trainColorsForRun(m_completedRunResults, m_sceneModel));
+	win->setTrainColors(trainColorsForRun(run->results, m_sceneModel));
 	win->setPresentation(heading,
 		QString("Reference: %1 | %2 | 0 s = run start; time downward")
-			.arg(QString::fromStdString(reference.ID), completedRunContext(m_completedRunProvenance)),
+			.arg(QString::fromStdString(referencePath.id), completedRunContext(run->provenance)),
 		explanation + " Ambiguous/unmapped portions omitted; no extrapolation.");
-	const auto csvRows = std::move(exportRows);
-	const auto graphCsv = [csvRows](const QStringList& visible) {
+	const auto graphCsv = [csvRows = diagram->csvRows](const QStringList& visible) {
 		std::vector<std::string> ids;
 		for (const QString& id : visible) ids.push_back(id.toStdString());
 		return buildRouteDiagramCsv(csvRows, ids);
 	};
 	win->setCsvProvider(graphCsv, timetable ? "timetable_graph.csv" : "train_path_graph.csv");
 	if (const auto routeDiagramBuilt = mainWindowTestHooks().routeDiagramBuilt)
-		routeDiagramBuilt(graphCsv, timetable);
-	attachRunProvenance(win, m_completedRunProvenance);
+		routeDiagramBuilt(graphCsv, trainIdsFrom(*run), timetable);
+	attachRunProvenance(win, run->provenance);
 	connect(win, &DiagramWindow::trainSelected, this, &MainWindow::focusTrainInScene);
-	win->setTimeAxisY(true, m_startOffsetSeconds);
+	win->setTimeAxisY(true, run->settings.startOffsetSeconds);
 	win->setAttribute(Qt::WA_DeleteOnClose);
 	win->show();
 }

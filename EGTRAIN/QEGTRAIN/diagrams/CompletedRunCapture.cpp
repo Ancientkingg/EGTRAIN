@@ -1,12 +1,58 @@
 #include "diagrams/CompletedRunData.h"
 
-#include "diagrams/RunExports.h"
 #include "diagrams/SimulationHeaders.h"
+#include "scene/SceneModel.h"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <unordered_map>
 #include <utility>
+
+RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene) {
+	RouteDiagramPath path;
+	path.id = route.ID;
+	std::map<std::string, std::pair<std::string, std::string>> stationNodes;
+	if (scene)
+		for (const auto& station : scene->stations)
+			for (const auto& platform : station.platforms)
+				for (const auto& id : platform.nodeIds)
+					stationNodes[id] = {station.id, station.name.empty() ? station.id : station.name};
+	const auto add = [&](const Node& node) {
+		if (!std::isfinite(node.X)) return;
+		RouteDiagramNode point;
+		point.nodeId = node.sceneNodeId;
+		point.positionKm = node.X;
+		const auto station = stationNodes.find(point.nodeId);
+		if (station != stationNodes.end()) {
+			point.stationId = station->second.first;
+			point.stationName = station->second.second;
+		}
+		path.nodes.push_back(std::move(point));
+	};
+	for (int s = 0; s < route.N_Block_Sections; ++s) {
+		const Section& section = route.sequence_of_block_sections[s];
+		add(section.start_node);
+		for (int a = 0; a < section.total_arcs; ++a)
+			add(section.arcs_in_signalling_block_section[a].endNode);
+		add(section.end_node);
+	}
+	return path;
+}
+
+std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route) {
+	std::vector<BlockSectionInput> inputs;
+	const std::size_t count = std::min(static_cast<std::size_t>(std::max(route.N_Block_Sections, 0)),
+		route.sequence_of_block_sections.size());
+	inputs.reserve(count);
+	for (std::size_t i = 0; i < count; ++i) {
+		const Section& section = route.sequence_of_block_sections[i];
+		inputs.push_back({section.ID, section.start_node.X, section.end_node.X});
+	}
+	return inputs;
+}
+
+namespace {
 
 BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
 	BlockingTimeDiagramInput block;
@@ -29,7 +75,13 @@ BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
 	return block;
 }
 
-namespace {
+std::vector<const Train*> runResultTrainPointers() {
+	std::vector<const Train*> trains;
+	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
+	for (int i = 0; i < numRegions; ++i)
+		trains.push_back(&regional_train[i]);
+	return trains;
+}
 
 std::vector<BlockingTimeDiagramInput> convertBlockTimes(const Train& train) {
 	std::vector<BlockingTimeDiagramInput> blocks;

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+class Route;
 struct SceneModel;
 
 // A finished run as plain values. It holds nothing of the simulation, so a window can show and export it
@@ -105,6 +106,11 @@ struct CompletedRunData {
 
 	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }
 };
+
+// The route as the nodes of its path, with the stations of the scene when it is given, and as its block sections in route
+// order. Both read the simulation route and serve the capture.
+RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
+std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 
 // Copies the finished run out of the simulation globals. The scene gives the route nodes their station names and
 // may be null.
