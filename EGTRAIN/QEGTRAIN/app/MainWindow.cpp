@@ -3564,6 +3564,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_servicePerformancePercentEdit->setRange(1.0, 100.0);
 	m_servicePerformancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_servicePerformancePercentEdit->setValue(100);
+	m_servicePerformancePercentEdit->setKeyboardTracking(false);
 	performanceLayout->addWidget(m_servicePerformancePercentEdit);
 	serviceDetailLayout->addLayout(performanceLayout);
 
@@ -19461,6 +19462,81 @@ void MainWindow::runEditorSmokeE2E() {
 				m_serviceRepeatCountEdit->setText("3");
 				QMetaObject::invokeMethod(m_serviceRepeatCountEdit, "editingFinished", Qt::DirectConnection);
 			}
+			// Typed digits change nothing until editing ends. Return applies the typed value as one scene change,
+			// and commitPendingServiceSettings applies a text that is still being typed.
+			const bool dirtyBeforeTyping = m_sceneDirty;
+			const QString typingFailure = [&]() -> QString {
+				if (!m_servicePerformancePercentEdit || !m_servicePerformancePercentEdit->isEnabled())
+					return QStringLiteral("running performance editor unavailable");
+				QLineEdit* performanceField = m_servicePerformancePercentEdit->findChild<QLineEdit*>();
+				if (!performanceField)
+					return QStringLiteral("running performance editor has no text field");
+				if (m_serviceListWidget->currentRow() != 1 || m_sceneModel.services.size() < 2)
+					return QStringLiteral("running performance editor is not showing service row 1");
+				const double valueBeforeTyping = m_sceneModel.services[1].performancePercent;
+				if (m_servicePerformancePercentEdit->value() != valueBeforeTyping)
+					return QString("running performance editor shows %1 but the service has %2")
+						.arg(m_servicePerformancePercentEdit->value())
+						.arg(valueBeforeTyping);
+				if (valueBeforeTyping == 9.0 || valueBeforeTyping == 93.0 || valueBeforeTyping == 94.0)
+					return QString("service running performance %1 equals a value typed by the check").arg(valueBeforeTyping);
+				const auto typeDigits = [&](const QString& digits) -> QString {
+					const double valueBefore = m_sceneModel.services[1].performancePercent;
+					m_sceneDirty = false;
+					const quint64 revisionBefore = m_sceneRevision;
+					m_servicePerformancePercentEdit->selectAll();
+					QString typedSoFar;
+					for (const QChar digit : digits) {
+						QKeyEvent keyPress(QEvent::KeyPress, digit.unicode(), Qt::NoModifier, QString(digit));
+						QApplication::sendEvent(performanceField, &keyPress);
+						typedSoFar += digit;
+						const double appliedValue = m_sceneModel.services[1].performancePercent;
+						if (appliedValue != valueBefore || m_sceneRevision != revisionBefore || m_sceneDirty)
+							return QString("running performance was applied while typing \"%1\": the service has %2 instead of %3 "
+										   "and the scene revision moved by %4")
+								.arg(typedSoFar)
+								.arg(appliedValue)
+								.arg(valueBefore)
+								.arg(m_sceneRevision - revisionBefore);
+					}
+					if (m_servicePerformancePercentEdit->text() != digits)
+						return QString("running performance editor shows \"%1\" after typing \"%2\"")
+							.arg(m_servicePerformancePercentEdit->text(), digits);
+					return QString();
+				};
+				QString failure = typeDigits(QStringLiteral("94"));
+				if (!failure.isEmpty())
+					return failure;
+				const quint64 revisionBeforeReturn = m_sceneRevision;
+				QKeyEvent returnPress(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+				QKeyEvent returnRelease(QEvent::KeyRelease, Qt::Key_Return, Qt::NoModifier);
+				QApplication::sendEvent(m_servicePerformancePercentEdit, &returnPress);
+				QApplication::sendEvent(m_servicePerformancePercentEdit, &returnRelease);
+				if (m_sceneModel.services[1].performancePercent != 94.0 || m_sceneRevision != revisionBeforeReturn + 1
+					|| !m_sceneDirty)
+					return QString("Return did not apply the typed running performance once: the service has %1 instead of 94 "
+								   "and the scene revision moved by %2")
+						.arg(m_sceneModel.services[1].performancePercent)
+						.arg(m_sceneRevision - revisionBeforeReturn);
+				failure = typeDigits(QStringLiteral("93"));
+				if (!failure.isEmpty())
+					return failure;
+				const quint64 revisionBeforeCommit = m_sceneRevision;
+				commitPendingServiceSettings();
+				if (m_sceneModel.services[1].performancePercent != 93.0 || m_sceneRevision != revisionBeforeCommit + 1
+					|| !m_sceneDirty)
+					return QString("committing pending settings did not apply the typed running performance once: the service has %1 "
+								   "instead of 93 and the scene revision moved by %2")
+						.arg(m_sceneModel.services[1].performancePercent)
+						.arg(m_sceneRevision - revisionBeforeCommit);
+				if (m_servicePerformancePercentEdit->value() != 93.0 || m_servicePerformancePercentEdit->text() != "93")
+					return QString("running performance editor shows \"%1\" after the pending commit of 93")
+						.arg(m_servicePerformancePercentEdit->text());
+				return QString();
+			}();
+			m_sceneDirty = dirtyBeforeTyping;
+			if (!typingFailure.isEmpty())
+				facetFailure(facetOk, "service", typingFailure);
 			if (m_servicePerformancePercentEdit)
 				m_servicePerformancePercentEdit->setValue(95.5);
 			if (m_serviceHasMaximumSpeedCheck)
