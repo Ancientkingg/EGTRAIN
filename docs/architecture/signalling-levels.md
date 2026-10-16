@@ -668,9 +668,12 @@ section only to resolve signal failures. See the
 | `Amsterdam_Hilversum_Student` | one network-wide area, 0 to 64 km, level 0 | `0 ATB fixed block` |
 
 The scene descriptions of `Paimpol`, `Lebanon`, `Milano_Brescia` and
-`Copenhagen` call their area a placeholder. The descriptions of `Netherlands`,
-`Assignment_Gvc_Gdg_Ut` and `Amsterdam_Hilversum_Student` say that the level is
-a project decision.
+`Copenhagen` call their area a placeholder.
+
+`Netherlands` and `Assignment_Gvc_Gdg_Ut` use level 0 (`0 ATB fixed block`) by
+project decision, with no line and no year. Their descriptions say that the
+level is a project decision, and so does the description of
+`Amsterdam_Hilversum_Student`, which uses the Netherlands network.
 
 `Copenhagen` also has four single-track restrictions, two at Hellerup, one at
 Hoje Taastrup and one at Farum. With the area and without them an arriving and a
@@ -680,11 +683,13 @@ of the scene.
 
 ## Known limits and open issues
 
-Open on this version:
+Decided, not open:
 
-- #439: historical cases without the canonical area sidecar still report
-  `TrackLines/AreasCaseStudy.txt` without converting its rows. They need an
-  explicit signalling assignment; canonical exports preserve their assignment.
+- #439: historical cases without the canonical area sidecar report
+  `TrackLines/AreasCaseStudy.txt` in the warning `scene.import.areas.skipped` and
+  convert none of its rows. The scene has no signalling area until the user adds
+  one in Infrastructure > Signalling area. Canonical exports keep their
+  assignment in the sidecar.
 
 Limits that no issue tracks:
 
@@ -727,6 +732,9 @@ source about a real system:
   real concept called virtual coupling; the distances of 30 m and 0.278 m/s are
   constants of the model;
 - whether level 5 matches a real system, and its double red block;
+- whether the level 0 of `Netherlands` and `Assignment_Gvc_Gdg_Ut` matches the
+  Dutch signalling. The project assigned it, with no line and no year, and the
+  assignment is not checked against a source;
 - what a real traffic controller allows at a failed signal. The model lets no
   train enter a failed section until the failure ends.
 
