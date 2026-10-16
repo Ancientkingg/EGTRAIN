@@ -1128,7 +1128,7 @@ def main() -> None:
     if (
         'python -m zipfile -e "portable/EGTRAIN-Portable-${{ inputs.version }}-x64.zip" $start' not in portable_start
         or not portable_start.strip().endswith('python tools/release/package_start_smoke.py "$start"')
-        or 'python tools/release/pe_imports.py "$start"\n' not in portable_start
+        or 'python tools/release/pe_imports.py "$start"\n          if ($LASTEXITCODE -ne 0) { throw ' not in portable_start
         or 'PYTHONUTF8: "1"' not in portable_start
     ):
         missing.append("Windows finalize start of the extracted portable archive")
