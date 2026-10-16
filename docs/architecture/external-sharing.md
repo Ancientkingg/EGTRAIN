@@ -187,11 +187,11 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 
 ## Tests and code
 
-- `test_railmlparser` (unit) parses one RTTP train view, checks the parse error text for a broken document, checks that a send without a listener returns `false` in under one second, and checks the JSON envelope (`time` and `xml`) against a REP socket on the loopback address.
+- `test_railmlparser` (unit) builds both XMLs from a fixed payload and checks the element and attribute names, their nesting and the form of every time, but not the value of a time. It also parses one RTTP train view, checks the parse error text for a broken document, checks that a send without a listener returns `false` in under one second, and checks the JSON envelope (`time` and `xml`) against a REP socket on the loopback address.
 - `test_external_sharing_no_listener` (integration) runs the Paimpol scene with `-g 0 -h 1 -TSM 1 -RC 1` and no listener. It runs one step and expects the run to finish.
 - `test_route_choice_missing_data` (integration) starts the `Assignment_Gvc_Gdg_Ut` scene with `-RC 1` and expects the diagnostic `scene.route_choice.passengers.none`.
 - `test_operationsbuilder` checks `routeChoicePayload`.
 - `test_liveserver` (unit) starts a `LiveServer` in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for `describe` until the hello arrives, not by waiting.
-- No test covers the content of either XML builder or the traffic-state JSON that the step loop builds.
+- No test covers the traffic-state JSON that the step loop builds.
 
 The library `egtrain_railml` is built from the one source `io/RailMLParser.cpp`. Its header `io/RailMLParser.h` declares `send_external_state`, `trafficStateMonitoring_xml` and `routeChoice_xml`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt.
