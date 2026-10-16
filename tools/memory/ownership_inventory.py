@@ -24,7 +24,7 @@ QT_PARENT_TYPES = {
     "QTreeWidgetItem", "QVBoxLayout", "QValueAxis", "QVariantAnimation", "QWidget",
 }
 CONFIRMED_OBSERVERS = {
-    "EGTRAIN/QEGTRAIN/app/MainWindow.h": {
+    "EGTRAIN/QEGTRAIN/graphics/NetworkPresenter.h": {
         "trainPaxInfoItem",
         "trainPaxItem",
         "paxIconInfoItem",

@@ -28,7 +28,7 @@ class TestOwnershipInventory(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "EGTRAIN/QEGTRAIN"
-            (source / "app").mkdir(parents=True)
+            (source / "graphics").mkdir(parents=True)
             (source / "simulation").mkdir()
             fixture = source / "simulation/Fixture.cpp"
             fixture.write_text(
@@ -47,7 +47,7 @@ class TestOwnershipInventory(unittest.TestCase):
                 'new (storage) Widget;\n'
                 'auto text = R"tag(new HiddenWidget; int hidden[900];)tag";\n'
             )
-            (source / "app/MainWindow.h").write_text(
+            (source / "graphics/NetworkPresenter.h").write_text(
                 "class QGraphicsItemGroup;\n"
                 "class TrainItemGroup;\n"
                 "class PassengerItem;\n"

@@ -1093,12 +1093,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	station_size = 30 * global_scale;
 	geo_scale = 80000 * global_scale; // scale used to convert latitude,longitude to screen coordinates
 
-	// initialize trainPaxInfoItem
-	trainPaxInfoItem = nullptr;
-
-	// initialize paxIconInfoItem
-	paxIconInfoItem = nullptr;
-
 	// define central widget
 	centralWidget = new QWidget();
 
@@ -1201,6 +1195,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
+	m_presenter = std::make_unique<NetworkPresenter>(scene.data());
 	networkView->setScene(scene);
 	connect(networkView, &NetworkView::viewportChanged, this, [this]() {
 		// The camera changes the position of the view and never its scale, so the overlays and the zoom
@@ -1333,9 +1328,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	window_icon.addFile(":/app/egtrain-1024.png", QSize(1024, 1024));
 	setWindowIcon(window_icon);
 
-	// effect on (last) clicked item
-	effect = nullptr;
-
 	// --- Build toolbar ---
 	m_toolBar = ui->mainToolBar;
 	m_toolBar->clear();
@@ -1442,10 +1434,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	connect(m_stationLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_stationLayerVisible = checked;
-		for (auto* item : m_stationDecorations)
+		for (auto* item : m_presenter->m_stationDecorations)
 			if (item)
 				item->setVisible(checked);
-		for (auto* label : m_stationLabels)
+		for (auto* label : m_presenter->m_stationLabels)
 			if (label)
 				label->setVisible(checked && m_stationNamesVisible);
 		// updateViewportOverlays owns station name visibility
@@ -1453,25 +1445,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_stationNamesCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_stationNamesVisible = checked;
-		for (auto* overlay : m_stationOverlays)
+		for (auto* overlay : m_presenter->m_stationOverlays)
 			if (overlay)
 				overlay->setNameVisible(checked);
-		for (auto* label : m_stationLabels)
+		for (auto* label : m_presenter->m_stationLabels)
 			if (label)
 				label->setVisible(checked && m_stationLayerVisible);
 		updateViewportOverlays();
 	});
 	connect(m_trainLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_trainLayerVisible = checked;
-		for (auto* train : allTrains)
+		for (auto* train : m_presenter->allTrains)
 			if (train)
 				train->setVisible(checked && (m_replayActive ? replayTrainHasPosition(train->index) : !train->outOfSimulation));
-		for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+		for (auto it = m_presenter->m_trainBadges.cbegin(); it != m_presenter->m_trainBadges.cend(); ++it) {
 			if (!it.value())
 				continue;
-			auto trainIt = std::find_if(allTrains.cbegin(), allTrains.cend(),
+			auto trainIt = std::find_if(m_presenter->allTrains.cbegin(), m_presenter->allTrains.cend(),
 				[it](const TrainItemGroup* train) { return train && train->index == it.key(); });
-			it.value()->setVisible(checked && trainIt != allTrains.cend()
+			it.value()->setVisible(checked && trainIt != m_presenter->allTrains.cend()
 				&& (m_replayActive ? replayTrainHasPosition(it.key()) : !(*trainIt)->outOfSimulation));
 		}
 		updateViewportOverlays();
@@ -1479,7 +1471,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_trainSpeedLabelsCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_trainSpeedLabelsVisible = checked;
-		for (auto* badge : m_trainBadges)
+		for (auto* badge : m_presenter->m_trainBadges)
 			if (badge)
 				badge->setSpeedVisible(checked);
 	});
@@ -1489,7 +1481,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	});
 	connect(m_passengerLayerCheck, &QCheckBox::toggled, this, [this](bool checked) {
 		m_passengerLayerVisible = checked;
-		for (auto* platform : allPlatforms) {
+		for (auto* platform : m_presenter->allPlatforms) {
 			if (!platform)
 				continue;
 			if (platform->textIcon)
@@ -1498,10 +1490,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				if (icon)
 					icon->setVisible(checked);
 		}
-		if (trainPaxInfoItem)
-			trainPaxInfoItem->setVisible(checked);
-		if (paxIconInfoItem)
-			paxIconInfoItem->setVisible(checked);
+		if (m_presenter->trainPaxInfoItem)
+			m_presenter->trainPaxInfoItem->setVisible(checked);
+		if (m_presenter->paxIconInfoItem)
+			m_presenter->paxIconInfoItem->setVisible(checked);
 		if (checked) {
 			updateTrainPaxInfo();
 			updatePaxIconInfo();
@@ -3178,7 +3170,13 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	m_previewHasSelectedTrack = false;
 	m_previewHasSignals = false;
 	const QString selectedInfrastructureId = m_infrastructureSelectionId;
-	const bool hasRuntimeGraphics = static_cast<bool>(m_snapshot) || !allTrains.isEmpty() || !allArcs.isEmpty() || !allSignals.isEmpty() || !allPlatforms.isEmpty() || !m_stationOverlays.isEmpty() || !m_stationDecorations.isEmpty() || !m_signalDecorations.isEmpty() || !m_vcMessageItems.isEmpty() || !m_trainAnimations.isEmpty() || !m_tracksBySectionId.empty() || !m_tracksByOccupiedArc.empty() || !m_activeTrackItems.empty();
+	const bool hasRuntimeGraphics = static_cast<bool>(m_snapshot) || !m_presenter->allTrains.isEmpty()
+		|| !m_presenter->allArcs.isEmpty() || !m_presenter->allSignals.isEmpty()
+		|| !m_presenter->allPlatforms.isEmpty() || !m_presenter->m_stationOverlays.isEmpty()
+		|| !m_presenter->m_stationDecorations.isEmpty() || !m_presenter->m_signalDecorations.isEmpty()
+		|| !m_presenter->m_vcMessageItems.isEmpty() || !m_trainAnimations.isEmpty()
+		|| !m_presenter->m_tracksBySectionId.empty() || !m_presenter->m_tracksByOccupiedArc.empty()
+		|| !m_presenter->m_activeTrackItems.empty();
 	if (hasRuntimeGraphics) {
 		// A dirty edit invalidates run results; clear the runtime-owned item
 		// observers before rebuilding the authoring preview so no stale pointers
@@ -3186,11 +3184,11 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 		teardownGUI();
 		m_infrastructureSelectionId = selectedInfrastructureId;
 	} else if (scene) {
-		m_inspectedSignal = nullptr;
+		m_presenter->m_inspectedSignal = nullptr;
 		scene->clear();
 	}
 	m_showingTrackPreview = true;
-	effect = nullptr;
+	m_presenter->effect = nullptr;
 	const QString selectedFacet = m_infrastructureFacetCombo
 		? m_infrastructureFacetCombo->currentData().toString()
 		: QString();
@@ -3387,7 +3385,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 					auto* bar = new PlatformItem(barRect, square);
 					bar->setPen(QPen(Qt::white, 0));
 					bar->setBrush(Qt::white);
-					m_stationDecorations.push_back(bar);
+					m_presenter->m_stationDecorations.push_back(bar);
 					bar->setVisible(m_stationLayerVisible);
 				}
 			} else {
@@ -3484,7 +3482,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			paintStationOverlay(anchor, classifyStation(), station.name, presentationScale(),
 				stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale(),
 				sceneStation == sceneModel.stations.cend() ? 0 : static_cast<int>(sceneStation->platforms.size()));
-			auto* overlay = m_stationOverlays.back();
+			auto* overlay = m_presenter->m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
 			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
 				if (artwork) tagPreviewItem(decoration, "station", station.id);
@@ -3495,9 +3493,9 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 					decoration->setPos(node->second->mapFromScene(position));
 				}
 			};
-			if (auto* picture = m_stationPictures.value(overlay, nullptr))
+			if (auto* picture = m_presenter->m_stationPictures.value(overlay, nullptr))
 				bind(picture, true);
-			bind(m_stationLabels.back(), false);
+			bind(m_presenter->m_stationLabels.back(), false);
 			break;
 		}
 	}
@@ -3543,7 +3541,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 				line->setData(kSignalTrackRole, -1);
 				line->setData(kSignalBaseVisibleRole, true);
 				line->setAcceptedMouseButtons(Qt::NoButton);
-				m_signalDecorations.push_back(line);
+				m_presenter->m_signalDecorations.push_back(line);
 				line->setVisible(m_signalLayerVisible);
 			}
 			auto* glyph = new SignalItem(QRectF(-node_size * presentationScale() / 2.0, -node_size * presentationScale() / 2.0,
@@ -3569,12 +3567,12 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 			glyph->setData(kSignalAnchorRole, head);
 			glyph->setAcceptedMouseButtons(Qt::NoButton);
 			scene->addItem(glyph);
-			m_signalDecorations.push_back(glyph);
+			m_presenter->m_signalDecorations.push_back(glyph);
 			glyph->setVisible(m_signalLayerVisible);
 		}
 	}
 	m_previewHasSignals = !preview.previewSignals.empty()
-		&& std::any_of(m_signalDecorations.cbegin(), m_signalDecorations.cend(),
+		&& std::any_of(m_presenter->m_signalDecorations.cbegin(), m_presenter->m_signalDecorations.cend(),
 			[](QGraphicsItem* item) { return qgraphicsitem_cast<SignalItem*>(item) != nullptr; });
 
 	// Fit the drawn geometry directly; the generic fitView minimum-scale clamp
@@ -9370,9 +9368,9 @@ void MainWindow::setStartOffset(long long seconds) {
 }
 
 bool MainWindow::trainHasGeometry(int trainIndex) const {
-	const auto item = std::find_if(allTrains.cbegin(), allTrains.cend(),
+	const auto item = std::find_if(m_presenter->allTrains.cbegin(), m_presenter->allTrains.cend(),
 		[trainIndex](const TrainItemGroup* candidate) { return candidate && candidate->index == trainIndex; });
-	if (item == allTrains.cend() || !(*item)->trainPolygonItemList)
+	if (item == m_presenter->allTrains.cend() || !(*item)->trainPolygonItemList)
 		return false;
 	return std::any_of((*item)->trainPolygonItemList->cbegin(), (*item)->trainPolygonItemList->cend(),
 		[](const TrainBodyItem* body) { return body && !body->polygon().isEmpty(); });
@@ -11120,39 +11118,15 @@ void MainWindow::teardownGUI() {
 
 	stopTrainAnimations();
 
-	// Clearing the scene deletes all owned QGraphicsItems.
-	m_inspectedSignal = nullptr;
-	scene->clear();
-
-	// Clear list pointers - the items were owned by the scene and are now deleted.
-	m_trainBadges.clear(); // items deleted by scene->clear() above
-	m_prevTrainPositions.clear();
-	allTrains.clear();
-	allSignals.clear();
-	m_signalDecorations.clear();
-	m_stationOverlays.clear();
+	// The presenter deletes all items of the scene and drops the pointers to them.
+	m_presenter->clear();
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
 	m_selectedStationNodeId = 0.0;
 	m_selectedStationTrack = -1;
-	m_vcMessageItems.clear();
-	m_stationDecorations.clear();
-	m_stationLabels.clear();
-	m_stationPictures.clear();
-	m_signalsByAheadId.clear();
-	allArcs.clear();
-	allPlatforms.clear();
 	if (m_networkLegendWidget)
 		m_networkLegendWidget->setCaseContent(NetworkLegendContent());
-	m_tracksBySectionId.clear();
-	m_tracksByOccupiedArc.clear();
-	m_activeTrackItems.clear();
 	m_infrastructureSelectionId.clear();
-	trainPaxInfoItem = nullptr;
-	trainPaxItem = nullptr;
-	paxIconInfoItem = nullptr;
-	paxIconItem = nullptr;
-	effect = nullptr; // owned and deleted by the cleared item
 
 	regionStations.clear();
 	setFollowTrain(-1);
@@ -11490,8 +11464,8 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	auto* overlay = new StationOverlayItem(QString::fromStdString(sname), coord, visual);
 	overlay->setSceneDecoration(true);
 	scene->addItem(overlay);
-	m_stationOverlays.push_back(overlay);
-	m_stationDecorations.push_back(overlay);
+	m_presenter->m_stationOverlays.push_back(overlay);
+	m_presenter->m_stationDecorations.push_back(overlay);
 	overlay->setNameVisible(m_stationNamesVisible);
 	overlay->setVisible(m_stationLayerVisible);
 
@@ -11506,8 +11480,8 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 			artworkCoord.y() - (station_size + symbolSize) * presentationScale / 2.0);
 		picture->setTransformationMode(Qt::SmoothTransformation);
 		picture->setAcceptedMouseButtons(Qt::NoButton);
-		m_stationDecorations.push_back(picture);
-		m_stationPictures.insert(overlay, picture);
+		m_presenter->m_stationDecorations.push_back(picture);
+		m_presenter->m_stationPictures.insert(overlay, picture);
 		picture->setVisible(m_stationLayerVisible);
 	}
 	QFont font;
@@ -11518,9 +11492,9 @@ void MainWindow::paintStationOverlay(QPointF coord, const StationVisual& visual,
 	label->setZValue(3);
 	label->setPos(artworkCoord - QPointF(label->boundingRect().width() * presentationScale / 2.0, label->boundingRect().height() * presentationScale / 2.0));
 	label->setAcceptedMouseButtons(Qt::NoButton);
-	m_stationLabels.push_back(label);
+	m_presenter->m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
-	overlay->attachArtwork(m_stationPictures.value(overlay, nullptr), label, platformCount);
+	overlay->attachArtwork(m_presenter->m_stationPictures.value(overlay, nullptr), label, platformCount);
 }
 
 // paint platform next to station Node (upper side)
@@ -11578,14 +11552,14 @@ void MainWindow::paintStationPlatform(QPointF coord, int size, int pen_width, No
 	// add to scene
 	scene->addItem(platformItem);
 	scene->addItem(textItem);
-	m_stationDecorations.push_back(platformItem);
+	m_presenter->m_stationDecorations.push_back(platformItem);
 	platformItem->setVisible(m_stationLayerVisible);
 
 	// hide textItem at first
 	textItem->setVisible(false);
 
 	// add item to allPlatforms list
-	allPlatforms.push_back(platformItem);
+	m_presenter->allPlatforms.push_back(platformItem);
 }
 
 // paint train passenger info on top of train
@@ -11656,8 +11630,8 @@ void MainWindow::paintTrainPassengerInfo(TrainItemGroup* trainItem) {
 	scene->addItem(msgGroup);
 
 	// set current items
-	trainPaxInfoItem = msgGroup;
-	trainPaxItem = trainItem;
+	m_presenter->trainPaxInfoItem = msgGroup;
+	m_presenter->trainPaxItem = trainItem;
 }
 
 // paint passenger info on top of passenger icon
@@ -11738,8 +11712,8 @@ void MainWindow::paintPassengerInfoIcon(PassengerItem* paxItem) {
 	scene->addItem(msgGroup);
 
 	// set current items
-	paxIconInfoItem = msgGroup;
-	paxIconItem = paxItem;
+	m_presenter->paxIconInfoItem = msgGroup;
+	m_presenter->paxIconItem = paxItem;
 }
 
 
@@ -11764,7 +11738,7 @@ void MainWindow::arcDrawing(QPointF start, QPointF end, int pen_width, int track
 	line->arc = Arc;
 
 	// RIGOS
-	allArcs.push_back(line);
+	m_presenter->allArcs.push_back(line);
 
 	// add item to scene
 	scene->addItem(line);
@@ -11899,7 +11873,7 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 		item->setData(kSignalTrackRole, track);
 		item->setData(kSignalBaseVisibleRole, true);
 		scene->addItem(item);
-		m_signalDecorations.push_back(item);
+		m_presenter->m_signalDecorations.push_back(item);
 		item->setVisible(m_signalLayerVisible);
 	};
 	addSignalDecoration(post1);
@@ -11910,8 +11884,8 @@ void MainWindow::paintSignal(double X, int size, int pen_width, int track, int t
 	addSignalDecoration(basis2);
 
 	// add signals to allSignals list
-	allSignals.push_back(plate1);
-	allSignals.push_back(plate2);
+	m_presenter->allSignals.push_back(plate1);
+	m_presenter->allSignals.push_back(plate2);
 }
 
 // draws a train
@@ -11975,7 +11949,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	trainPolygonGroup->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 
 	// add train to allTrains list
-	allTrains.push_back(trainPolygonGroup);
+	m_presenter->allTrains.push_back(trainPolygonGroup);
 
 	TrainBadgeItem* badge = new TrainBadgeItem();
 	badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(train)));
@@ -11992,7 +11966,7 @@ void MainWindow::paintTrain(const GuiTrainState& train, int size, int pen_width)
 	scene->addItem(badge);
 	badge->setVisible(m_trainLayerVisible && !train.outOfSimulation && hasVisibleGeometry);
 	badge->setPos(trainPolygonGroup->sceneBoundingRect().center());
-	m_trainBadges[train.index] = badge;
+	m_presenter->m_trainBadges[train.index] = badge;
 }
 
 // converts geodetic to cartesian coordinates
@@ -12374,8 +12348,6 @@ void MainWindow::setupInfoDockWidget() {
 	connectionInfoWidget->hide();
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
-	removeTrainPaxInfoIcon();
-	removePaxInfoIcon();
 }
 
 // help from menu
@@ -12391,13 +12363,13 @@ void MainWindow::handleHelpAbout() {
 // removes highlight from last clicked item
 void MainWindow::handleCloseInfoDockWidget() {
 	m_previewSelectedStationId.clear();
-	m_inspectedSignal = nullptr;
+	m_presenter->m_inspectedSignal = nullptr;
 	m_selectedStationName.clear();
 	m_hasSelectedStationIdentity = false;
 	m_selectedStationNodeId = 0.0;
 	m_selectedStationTrack = -1;
 	m_selectedTrainIndex = -1;
-	for (auto* overlay : m_stationOverlays)
+	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->setSelected(false);
 
@@ -12408,13 +12380,13 @@ void MainWindow::handleCloseInfoDockWidget() {
 	signallingInfoWidget->hide();
 	trainInfoWidget->hide();
 	removeTrainPaxInfoIcon();
-	trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
+	m_presenter->trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
 	removePaxInfoIcon();
 
 	// remove highlight
-	if (effect) {
-		delete effect;
-		effect = nullptr;
+	if (m_presenter->effect) {
+		delete m_presenter->effect;
+		m_presenter->effect = nullptr;
 	}
 	updateViewportOverlays();
 }
@@ -12601,10 +12573,10 @@ void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
 	infoDockWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	item->setGraphicsEffect(effect);
+	item->setGraphicsEffect(m_presenter->effect);
 	updateViewportOverlays();
 	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
 }
@@ -12639,10 +12611,10 @@ void MainWindow::displayNodeInfo(NodeItem* el) {
 	nodeInfoWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	el->setGraphicsEffect(effect);
+	el->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows station Node info on dock widget
@@ -12654,7 +12626,7 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	m_hasSelectedStationIdentity = true;
 	m_selectedStationNodeId = re->node->ID;
 	m_selectedStationTrack = re->track;
-	for (auto* overlay : m_stationOverlays)
+	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->setSelected(overlay->hasSourceIdentity()
 					? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
@@ -12698,10 +12670,10 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	nodeInfoWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	re->setGraphicsEffect(effect);
+	re->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows Arc info on dock widget
@@ -12745,7 +12717,7 @@ void MainWindow::displayArcInfo(TrackLineItem* line) {
 	const auto sectionTouchesArc = [&startSection, &endSection](const std::string& sectionId) {
 		return !sectionId.empty() && (sectionId == startSection || sectionId == endSection);
 	};
-	for (auto* candidate : allSignals) {
+	for (auto* candidate : m_presenter->allSignals) {
 		if (!candidate || candidate->trackID != line->track)
 			continue;
 		const bool positionMatches = candidate->X >= arcStart - 1e-9 && candidate->X <= arcEnd + 1e-9;
@@ -12772,10 +12744,10 @@ void MainWindow::displayArcInfo(TrackLineItem* line) {
 	arcInfoWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	line->setGraphicsEffect(effect);
+	line->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows connection info on dock widget
@@ -12804,10 +12776,10 @@ void MainWindow::displayConnectionInfo(ConnectionItem* line) {
 	connectionInfoWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	line->setGraphicsEffect(effect);
+	line->setGraphicsEffect(m_presenter->effect);
 }
 
 // shows signalling info on dock widget
@@ -12815,7 +12787,7 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	if (!signal)
 		return;
 	handleCloseInfoDockWidget();
-	m_inspectedSignal = signal;
+	m_presenter->m_inspectedSignal = signal;
 
 	// update signalling info displayed on widget
 	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
@@ -12856,10 +12828,10 @@ void MainWindow::displaySignallingInfo(SignalItem* signal) {
 	signallingInfoWidget->show();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	signal->setGraphicsEffect(effect);
+	signal->setGraphicsEffect(m_presenter->effect);
 	updateSignalCues();
 }
 
@@ -12898,11 +12870,11 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	updateViewportOverlays();
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
 	if (trainItem->parentItem()) {
-		trainItem->parentItem()->setGraphicsEffect(effect);
+		trainItem->parentItem()->setGraphicsEffect(m_presenter->effect);
 	} // effect on entire train
 }
 
@@ -12930,10 +12902,10 @@ void MainWindow::displayPassengerInfo(PassengerItem* paxItem) {
 	paintPassengerInfoIcon(paxItem);
 
 	// effect on clicked item
-	if (!effect) {
-		effect = new HighlightEffect(Qt::blue, 1);
+	if (!m_presenter->effect) {
+		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
 	}
-	paxItem->setGraphicsEffect(effect);
+	paxItem->setGraphicsEffect(m_presenter->effect);
 }
 
 void MainWindow::handleDisableHighlight() {
@@ -13324,7 +13296,7 @@ void MainWindow::waitForUpdates() {
 		&& !PlaybackProfiler::instance().measuring()
 		&& !PlaybackProfiler::instance().frozen()) {
 		TrainItemGroup* selected = nullptr;
-		for (TrainItemGroup* train : allTrains)
+		for (TrainItemGroup* train : m_presenter->allTrains)
 			if (train && train->isVisible() && (!selected || train->index < selected->index))
 				selected = train;
 		if (selected) {
@@ -13350,9 +13322,9 @@ void MainWindow::seekReplay(int requestedTime) {
 	// Passenger journey inspection is not historical. Retain train, station and
 	// signal selection; the shared renderer refreshes their frame-derived values.
 	removePaxInfoIcon();
-	paxIconItem = nullptr;
+	m_presenter->paxIconItem = nullptr;
 	stopTrainAnimations();
-	m_prevTrainPositions.clear();
+	m_presenter->m_prevTrainPositions.clear();
 	m_snapshot = frame;
 	{
 		const QSignalBlocker blocker(m_replaySlider);
@@ -13360,11 +13332,11 @@ void MainWindow::seekReplay(int requestedTime) {
 	}
 	writeReplayText(frame->timestep);
 	renderSnapshot(true);
-	if (trainPaxItem && !replayTrainHasPosition(trainPaxItem->index))
+	if (m_presenter->trainPaxItem && !replayTrainHasPosition(m_presenter->trainPaxItem->index))
 		removeTrainPaxInfoIcon();
-	else if (trainPaxItem && !trainPaxInfoItem && initial_variables.PAX_GUI
+	else if (m_presenter->trainPaxItem && !m_presenter->trainPaxInfoItem && initial_variables.PAX_GUI
 		&& m_passengerLayerVisible)
-		paintTrainPassengerInfo(trainPaxItem);
+		paintTrainPassengerInfo(m_presenter->trainPaxItem);
 	updateViewportOverlays();
 }
 
@@ -13415,7 +13387,7 @@ void MainWindow::updateSignalling() {
 		updateSignalAspect(signal, updated);
 	// A head without a state has no route running through its section in its
 	// direction. It has nothing to show, so it must not keep an earlier aspect.
-	for (SignalItem* signal : allSignals) {
+	for (SignalItem* signal : m_presenter->allSignals) {
 		if (updated.count(signal))
 			continue;
 		signal->setAspectCode(kGuiSignalUnavailable);
@@ -13431,12 +13403,12 @@ void MainWindow::updatePlatforms(int t) {
 		return;
 	// show text items from the beginning of the simulation
 	if (m_snapshot->timestep == 0) {
-		for (auto* platformIcon : allPlatforms) {
+		for (auto* platformIcon : m_presenter->allPlatforms) {
 			platformIcon->textIcon->setVisible(paxTextVisible());
 		}
 	}
 
-	for (auto* platformIcon : allPlatforms) {
+	for (auto* platformIcon : m_presenter->allPlatforms) {
 		auto platformState = std::find_if(m_snapshot->platforms.begin(), m_snapshot->platforms.end(),
 			[platformIcon](const GuiPlatformState& value) {
 				return value.stationId == platformIcon->stationId && value.platformId == platformIcon->platformId;
@@ -13449,12 +13421,12 @@ void MainWindow::updatePlatforms(int t) {
 		bool selectionCueLost = false;
 		for (auto* icon : platformIcon->passengerIcons) {
 			// if icon had a message, store its pax ID
-			if (icon == paxIconItem) {
+			if (icon == m_presenter->paxIconItem) {
 				currentlyHighlightedPaxID = icon->passengerId;
-				paxIconItem = nullptr;
+				m_presenter->paxIconItem = nullptr;
 			}
 			// the icon deletes its highlight effect
-			if (effect && icon->graphicsEffect() == effect)
+			if (m_presenter->effect && icon->graphicsEffect() == m_presenter->effect)
 				selectionCueLost = true;
 
 			scene->removeItem(icon);
@@ -13496,13 +13468,13 @@ void MainWindow::updatePlatforms(int t) {
 
 				// update current highlighted pax icon
 				if (!currentlyHighlightedPaxID.empty() && item->passengerId == currentlyHighlightedPaxID) {
-					paxIconItem = item;
+					m_presenter->paxIconItem = item;
 				}
 
 				scene->addItem(item);
 				if (selectionCueLost && item->passengerId == currentlyHighlightedPaxID) {
-					effect = new HighlightEffect(Qt::blue, 1);
-					item->setGraphicsEffect(effect);
+					m_presenter->effect = new HighlightEffect(Qt::blue, 1);
+					item->setGraphicsEffect(m_presenter->effect);
 					selectionCueLost = false;
 				}
 				item->setVisible(m_passengerLayerVisible);
@@ -13517,72 +13489,72 @@ void MainWindow::updatePlatforms(int t) {
 // slot to update passenger counter from clicked train
 void MainWindow::updateTrainPaxInfo() {
 	if (!m_passengerLayerVisible) {
-		if (trainPaxInfoItem)
-			trainPaxInfoItem->setVisible(false);
+		if (m_presenter->trainPaxInfoItem)
+			m_presenter->trainPaxInfoItem->setVisible(false);
 		return;
 	}
-	if (trainPaxInfoItem) {
+	if (m_presenter->trainPaxInfoItem) {
 		// remove existing item
 		removeTrainPaxInfoIcon();
-		if (trainPaxItem)
-			paintTrainPassengerInfo(trainPaxItem);
+		if (m_presenter->trainPaxItem)
+			paintTrainPassengerInfo(m_presenter->trainPaxItem);
 	}
 }
 
 // slot to update passenger info from clicked passenger icon
 void MainWindow::updatePaxIconInfo() {
 	if (!m_passengerLayerVisible) {
-		if (paxIconInfoItem)
-			paxIconInfoItem->setVisible(false);
+		if (m_presenter->paxIconInfoItem)
+			m_presenter->paxIconInfoItem->setVisible(false);
 		return;
 	}
-	if (paxIconInfoItem) {
+	if (m_presenter->paxIconInfoItem) {
 		// remove existing item
 		removePaxInfoIcon();
-		if (paxIconItem)
-			paintPassengerInfoIcon(paxIconItem);
+		if (m_presenter->paxIconItem)
+			paintPassengerInfoIcon(m_presenter->paxIconItem);
 	}
 }
 
 void MainWindow::removeTrainPaxInfoIcon() {
-	if (trainPaxInfoItem) {
-		scene->removeItem(trainPaxInfoItem);
-		delete trainPaxInfoItem;
-		trainPaxInfoItem = nullptr;
+	if (m_presenter->trainPaxInfoItem) {
+		scene->removeItem(m_presenter->trainPaxInfoItem);
+		delete m_presenter->trainPaxInfoItem;
+		m_presenter->trainPaxInfoItem = nullptr;
 	}
 }
 
 void MainWindow::removePaxInfoIcon() {
-	if (paxIconInfoItem) {
-		scene->removeItem(paxIconInfoItem);
-		delete paxIconInfoItem;
-		paxIconInfoItem = nullptr;
+	if (m_presenter->paxIconInfoItem) {
+		scene->removeItem(m_presenter->paxIconInfoItem);
+		delete m_presenter->paxIconInfoItem;
+		m_presenter->paxIconInfoItem = nullptr;
 	}
 }
 
 void MainWindow::updateBlockOccupationStatus(const GuiTrainState& train) {
 	for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
-		auto it = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
-		if (it == m_tracksByOccupiedArc.end() || !it->second)
+		auto it = m_presenter->m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
+		if (it == m_presenter->m_tracksByOccupiedArc.end() || !it->second)
 			continue;
 		TrackLineItem* track = it->second;
 		if (trackStatePriority(TrackOperationalState::Occupied) >= trackStatePriority(track->operationalState())) {
 			track->setOperationalState(TrackOperationalState::Occupied);
-			m_activeTrackItems.insert(track);
+			m_presenter->m_activeTrackItems.insert(track);
 		}
 	}
 }
 
 void MainWindow::clearOperationalTrackStates() {
-	for (auto* track : m_activeTrackItems)
+	for (auto* track : m_presenter->m_activeTrackItems)
 		if (track)
 			track->setOperationalState(TrackOperationalState::Free);
-	m_activeTrackItems.clear();
+	m_presenter->m_activeTrackItems.clear();
 }
 
 void MainWindow::updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated) {
-	const auto heads = m_signalsByAheadId.find(state.sectionId);
-	if (heads == m_signalsByAheadId.end())
+	const auto heads = m_presenter->m_signalsByAheadId.find(state.sectionId);
+	if (heads == m_presenter->m_signalsByAheadId.end())
 		return;
 	for (auto* signal : heads->second) {
 		if (signal->reversedDirection != state.reversedDirection)
@@ -13600,7 +13572,7 @@ void MainWindow::updateTrainPosition(int t) {
 	bool legendNeedsUpdate = false;
 	// The camera was given the position of the followed train in this update.
 	bool followedTrainMoved = false;
-	for (auto* group : m_vcMessageItems)
+	for (auto* group : m_presenter->m_vcMessageItems)
 		if (group)
 			group->setVisible(false);
 	// update every train
@@ -13610,14 +13582,14 @@ void MainWindow::updateTrainPosition(int t) {
 			return;
 		if (!state.blocked && visualState == TrackOperationalState::Blocked)
 			return;
-		auto tracks = m_tracksBySectionId.find(state.sectionId);
-		if (tracks == m_tracksBySectionId.end())
+		auto tracks = m_presenter->m_tracksBySectionId.find(state.sectionId);
+		if (tracks == m_presenter->m_tracksBySectionId.end())
 			return;
 		for (auto* track : tracks->second) {
 			if (!track || trackStatePriority(visualState) < trackStatePriority(track->operationalState()))
 				continue;
 			track->setOperationalState(visualState);
-			m_activeTrackItems.insert(track);
+			m_presenter->m_activeTrackItems.insert(track);
 		}
 	};
 	for (const GuiSectionState& state : m_snapshot->sectionStates)
@@ -13638,7 +13610,7 @@ void MainWindow::updateTrainPosition(int t) {
 		}
 		// check if train item exists
 		TrainItemGroup* trainItem = nullptr;
-		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
+		for (auto it = m_presenter->allTrains.begin(); it != m_presenter->allTrains.end(); ++it) {
 			if ((*it)->index == train) {
 				trainItem = *it;
 				break;
@@ -13652,21 +13624,21 @@ void MainWindow::updateTrainPosition(int t) {
 			trainItem->maxOnboardPassengers = state.maxOnboardPassengers;
 			const bool hasPosition = guiReplayTrainHasPosition(state, t);
 			trainItem->setVisible(m_trainLayerVisible && (m_replayActive ? hasPosition : !state.outOfSimulation));
-			if (m_replayActive && !hasPosition && m_trainBadges.contains(train))
-				m_trainBadges[train]->hide();
+			if (m_replayActive && !hasPosition && m_presenter->m_trainBadges.contains(train))
+				m_presenter->m_trainBadges[train]->hide();
 			// update train position
 			if (!state.outOfSimulation && (!m_replayActive || hasPosition)) {
 				// Capture the currently displayed center before replacing the polygons.
 				// An interrupted animation leaves a temporary group offset that must
 				// not become part of the next geometry center.
 				const QPointF oldCenter = trainItem->sceneBoundingRect().center();
-				auto prevIt = m_prevTrainPositions.find(train);
-				const QPointF oldBadgeCenter = prevIt != m_prevTrainPositions.end()
+				auto prevIt = m_presenter->m_prevTrainPositions.find(train);
+				const QPointF oldBadgeCenter = prevIt != m_presenter->m_prevTrainPositions.end()
 					? prevIt.value()
 					: oldCenter;
 				stopTrainAnimation(train);
 				trainItem->setPos(QPointF(0, 0));
-				TrainBadgeItem* badge = m_trainBadges.value(train, nullptr);
+				TrainBadgeItem* badge = m_presenter->m_trainBadges.value(train, nullptr);
 				if (badge)
 					badge->setPos(oldBadgeCenter);
 
@@ -13690,7 +13662,7 @@ void MainWindow::updateTrainPosition(int t) {
 						networkView ? networkView->zoomRatio() : 1.0, promoted));
 					badge->setVisible(m_trainLayerVisible && hasVisibleGeometry);
 				}
-				m_prevTrainPositions[train] = newCenter;
+				m_presenter->m_prevTrainPositions[train] = newCenter;
 				QPointF delta = oldCenter - newCenter;
 				const QPointF badgeCenter = newCenter;
 				if (!m_replayActive && delta.manhattanLength() > 0.5) {
@@ -13737,8 +13709,8 @@ void MainWindow::updateTrainPosition(int t) {
 			else {
 				stopTrainAnimation(train);
 				trainItem->hide();
-				if (m_trainBadges.contains(train))
-					m_trainBadges[train]->setVisible(false);
+				if (m_presenter->m_trainBadges.contains(train))
+					m_presenter->m_trainBadges[train]->setVisible(false);
 				if (m_followTrainIndex == train)
 					m_followCamera->stop();
 			}
@@ -13748,7 +13720,7 @@ void MainWindow::updateTrainPosition(int t) {
 		// train state) is what says whether the train is on the network at t
 		else if (m_replayActive ? guiReplayTrainHasPosition(state, t)
 								: t >= state.departureTime && state.routeAxisPosition != -9999) {
-			const bool firstTrain = allTrains.isEmpty();
+			const bool firstTrain = m_presenter->allTrains.isEmpty();
 			paintTrain(state, node_size, line_width);
 			legendNeedsUpdate = true;
 			TrainItemGroup* newTrain = resolveTrainItem(train);
@@ -14204,7 +14176,7 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 	QPen pen = QPen(QColor(242, 161, 106));
 	pen.setWidth(line_width);
 	pen.setCosmetic(true);
-	QGraphicsItemGroup* msgGroup = m_vcMessageItems.value(trainItem->index, nullptr);
+	QGraphicsItemGroup* msgGroup = m_presenter->m_vcMessageItems.value(trainItem->index, nullptr);
 	QGraphicsLineItem* line = nullptr;
 	QGraphicsTextItem* text = nullptr;
 	QGraphicsRectItem* textBox = nullptr;
@@ -14218,7 +14190,7 @@ void MainWindow::paintVCouplingMsg(TrainItemGroup* trainItem, const std::string&
 		msgGroup->addToGroup(text);
 		msgGroup->setZValue(5);
 		scene->addItem(msgGroup);
-		m_vcMessageItems.insert(trainItem->index, msgGroup);
+		m_presenter->m_vcMessageItems.insert(trainItem->index, msgGroup);
 	} else {
 		for (QGraphicsItem* child : msgGroup->childItems()) {
 			if (auto* item = qgraphicsitem_cast<QGraphicsLineItem*>(child))
@@ -14352,7 +14324,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 // Centre the network view on the train selected in a diagram, when it is present.
 void MainWindow::focusTrainInScene(const QString& trainId) {
 	const std::string id = trainId.toStdString();
-	for (TrainItemGroup* item : allTrains) {
+	for (TrainItemGroup* item : m_presenter->allTrains) {
 		if (item && item->trainDescription == id) {
 			networkView->centerOn(item->sceneBoundingRect().center());
 			statusBar()->showMessage(QString("Selected train %1 in the network view").arg(trainId), 5000);
@@ -15031,22 +15003,22 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 }
 
 void MainWindow::buildSignalIndex() {
-	m_signalsByAheadId.clear();
-	for (auto* signal : allSignals) {
+	m_presenter->m_signalsByAheadId.clear();
+	for (auto* signal : m_presenter->allSignals) {
 		if (!signal->sectionAheadId.empty()) {
-			m_signalsByAheadId[signal->sectionAheadId].push_back(signal);
+			m_presenter->m_signalsByAheadId[signal->sectionAheadId].push_back(signal);
 		}
 	}
 }
 
 void MainWindow::buildTrackIndexes() {
-	m_tracksBySectionId.clear();
-	m_tracksByOccupiedArc.clear();
+	m_presenter->m_tracksBySectionId.clear();
+	m_presenter->m_tracksByOccupiedArc.clear();
 
-	for (auto* item : allArcs) {
+	for (auto* item : m_presenter->allArcs) {
 		if (!item || !item->arc)
 			continue;
-		m_tracksByOccupiedArc[{item->track, item->arc->startNode.X}] = item;
+		m_presenter->m_tracksByOccupiedArc[{item->track, item->arc->startNode.X}] = item;
 	}
 
 	const auto sameArc = [](const Arc& left, const Arc& right) {
@@ -15061,10 +15033,10 @@ void MainWindow::buildTrackIndexes() {
 		const int arcCount = std::min(section.total_arcs,
 			static_cast<int>(sizeof(section.arcs_in_signalling_block_section)
 				/ sizeof(section.arcs_in_signalling_block_section[0])));
-		auto& tracks = m_tracksBySectionId[section.ID];
+		auto& tracks = m_presenter->m_tracksBySectionId[section.ID];
 		for (int arcIndex = 0; arcIndex < arcCount; ++arcIndex) {
 			const Arc& sectionArc = section.arcs_in_signalling_block_section[arcIndex];
-			for (auto* item : allArcs) {
+			for (auto* item : m_presenter->allArcs) {
 				if (!item || !item->arc || !sameArc(*item->arc, sectionArc))
 					continue;
 				const bool trackMatches = section.trackLineId < 0
@@ -15077,7 +15049,7 @@ void MainWindow::buildTrackIndexes() {
 			}
 		}
 		if (tracks.empty())
-			m_tracksBySectionId.erase(section.ID);
+			m_presenter->m_tracksBySectionId.erase(section.ID);
 	}
 }
 
@@ -15091,16 +15063,16 @@ void MainWindow::updateNetworkLegend() {
 	content.hasTracks = numTrackLines > 0 || !m_sceneModel.tracks.empty();
 	content.showOperationalTrackStates = !preview;
 	content.hasSelectedTrack = preview && m_previewHasSelectedTrack;
-	for (const TrainItemGroup* train : allTrains) {
+	for (const TrainItemGroup* train : m_presenter->allTrains) {
 		if (train)
 			content.trains << NetworkLegendTrain{train->fillColor, train->outlineColor,
 				QString::fromStdString(train->serviceId)};
 	}
-	for (const StationOverlayItem* station : m_stationOverlays) {
+	for (const StationOverlayItem* station : m_presenter->m_stationOverlays) {
 		if (station)
 			content.stationVisuals << station->visual();
 	}
-	content.hasSignals = !preview && !allSignals.isEmpty();
+	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_previewHasSignals;
 	content.hasPassengers = !preview && initial_variables.PAX_GUI;
@@ -15117,23 +15089,23 @@ void MainWindow::bindStationOverlaySources() {
 			stationNodes.append(station);
 	}
 	QList<QList<StationNodeItem*>> assignments;
-	assignments.reserve(m_stationOverlays.size());
-	for (int index = 0; index < m_stationOverlays.size(); ++index)
+	assignments.reserve(m_presenter->m_stationOverlays.size());
+	for (int index = 0; index < m_presenter->m_stationOverlays.size(); ++index)
 		assignments.append(QList<StationNodeItem*>());
 	for (auto* station : stationNodes) {
 		const QString stationName = QString::fromStdString(station->node->stationName);
 		const QPointF stationCenter = station->sceneBoundingRect().center();
 		int nearestIndex = -1;
 		qreal nearestDistance = std::numeric_limits<qreal>::max();
-		for (int index = 0; index < m_stationOverlays.size(); ++index) {
-			const auto* overlay = m_stationOverlays.at(index);
+		for (int index = 0; index < m_presenter->m_stationOverlays.size(); ++index) {
+			const auto* overlay = m_presenter->m_stationOverlays.at(index);
 			if (!overlay || overlay->stationName() != stationName)
 				continue;
 			const QPointF delta = stationCenter - overlay->stableAnchor();
 			const qreal distance = delta.x() * delta.x() + delta.y() * delta.y();
 			bool nearer = nearestIndex < 0 || distance < nearestDistance;
 			if (!nearer && distance == nearestDistance) {
-				const QPointF currentAnchor = m_stationOverlays.at(nearestIndex)->stableAnchor();
+				const QPointF currentAnchor = m_presenter->m_stationOverlays.at(nearestIndex)->stableAnchor();
 				const QPointF candidateAnchor = overlay->stableAnchor();
 				nearer = candidateAnchor.x() < currentAnchor.x()
 					|| (candidateAnchor.x() == currentAnchor.x()
@@ -15148,8 +15120,8 @@ void MainWindow::bindStationOverlaySources() {
 			assignments[nearestIndex].append(station);
 	}
 
-	for (int index = 0; index < m_stationOverlays.size(); ++index) {
-		auto* overlay = m_stationOverlays.at(index);
+	for (int index = 0; index < m_presenter->m_stationOverlays.size(); ++index) {
+		auto* overlay = m_presenter->m_stationOverlays.at(index);
 		if (!overlay)
 			continue;
 		auto& assigned = assignments[index];
@@ -15171,7 +15143,7 @@ void MainWindow::bindStationOverlaySources() {
 		// The scene-sized artwork belongs to the real semantic station node.
 		// It can be picked at its painted location, not at a stale screen-space
 		// collision slot owned by the decorative overlay.
-		if (QGraphicsPixmapItem* picture = m_stationPictures.value(overlay, nullptr)) {
+		if (QGraphicsPixmapItem* picture = m_presenter->m_stationPictures.value(overlay, nullptr)) {
 			const QPointF scenePosition = picture->scenePos();
 			StationNodeItem* target = assigned.isEmpty() ? nullptr : assigned.first();
 			picture->setParentItem(target);
@@ -15219,7 +15191,7 @@ void MainWindow::updateStationOverlayDegrees() {
 		}
 	}
 
-	for (auto* overlay : m_stationOverlays) {
+	for (auto* overlay : m_presenter->m_stationOverlays) {
 		if (!overlay)
 			continue;
 		int highestDegree = 0;
@@ -15274,7 +15246,7 @@ void MainWindow::updateViewportOverlays() {
 	}
 	StationOverlayItem* nearestFollowed = nullptr;
 	qreal nearestDistance = std::numeric_limits<qreal>::max();
-	for (auto* overlay : m_stationOverlays) {
+	for (auto* overlay : m_presenter->m_stationOverlays) {
 		if (!overlay)
 			continue;
 		const bool selectedByIdentity = m_hasSelectedStationIdentity && overlay->hasSourceIdentity()
@@ -15300,22 +15272,22 @@ void MainWindow::updateViewportOverlays() {
 	if (nearestFollowed)
 		nearestFollowed->setFollowed(true);
 	const qreal viewScale = std::abs(networkView->transform().m11());
-	if (effect)
-		effect->setViewScale(viewScale);
-	for (auto* overlay : m_stationOverlays)
+	if (m_presenter->effect)
+		m_presenter->effect->setViewScale(viewScale);
+	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay)
 			overlay->applyViewScale(viewScale);
-	StationOverlayItem::resolveNameCollisions(m_stationOverlays, networkView->viewportTransform());
-	for (auto* overlay : m_stationOverlays)
+	StationOverlayItem::resolveNameCollisions(m_presenter->m_stationOverlays, networkView->viewportTransform());
+	for (auto* overlay : m_presenter->m_stationOverlays)
 		if (overlay && overlay->nameItem())
 			overlay->nameItem()->setVisible(m_stationLayerVisible && m_stationNamesVisible
 				&& !overlay->isNameHiddenByCollision());
 	updateSignalCues();
 	const bool paxText = paxTextVisible();
-	for (auto* platform : allPlatforms)
+	for (auto* platform : m_presenter->allPlatforms)
 		if (platform && platform->textIcon)
 			platform->textIcon->setVisible(paxText);
-	for (auto it = m_trainBadges.cbegin(); it != m_trainBadges.cend(); ++it) {
+	for (auto it = m_presenter->m_trainBadges.cbegin(); it != m_presenter->m_trainBadges.cend(); ++it) {
 		if (!it.value())
 			continue;
 		const bool promoted = isTrainOverlayPromoted(it.key());
@@ -15330,7 +15302,7 @@ void MainWindow::updateViewportOverlays() {
 void MainWindow::updateSignalCues() {
 	if (!networkView)
 		return;
-	for (QGraphicsItem* item : m_signalDecorations) {
+	for (QGraphicsItem* item : m_presenter->m_signalDecorations) {
 		if (!item)
 			continue;
 		const bool visible = m_signalLayerVisible && item->data(kSignalBaseVisibleRole).toBool();
@@ -15346,14 +15318,14 @@ void MainWindow::updateSignalCues() {
 		item->setVisible(visible);
 	}
 	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
-		&& m_inspectedSignal && m_signalDecorations.contains(m_inspectedSignal)) {
-		const QString details = m_inspectedSignal->toolTip();
+		&& m_presenter->m_inspectedSignal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
+		const QString details = m_presenter->m_inspectedSignal->toolTip();
 		if (signallingGroupDetails->toPlainText() != details) {
 			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
 			signallingGroupDetails->setPlainText(details);
 			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
 		}
-		signallingAspectText->setText(signalAspectLabel(m_inspectedSignal));
+		signallingAspectText->setText(signalAspectLabel(m_presenter->m_inspectedSignal));
 	}
 }
 

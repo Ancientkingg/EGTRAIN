@@ -124,6 +124,7 @@ struct StableRelease;
 // custom GUI files
 #include "graphics/NetworkView.h"
 #include "graphics/FollowCamera.h"
+#include "graphics/NetworkPresenter.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/items/TrackLineItem.h"
 #include "graphics/items/VirtualArcItem.h"
@@ -321,6 +322,9 @@ private:
 	// QGraphicsView
 	NetworkView* networkView;
 
+	// The registries of the items on the scene, and the clearing of the scene
+	std::unique_ptr<NetworkPresenter> m_presenter;
+
 	// progess bar
 	TimeProgressBar* progressBar;
 
@@ -385,9 +389,6 @@ private:
 	QLineEdit* trainWagonsText;
 	QFormLayout* trainFormLayout;
 
-	// effect on clicked item; the item deletes it with itself
-	QPointer<HighlightEffect> effect;
-
 	// MainWindow creates the worker and thread. Qt owns deletion through deleteLater connections.
 	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
 	QPointer<SimulationWorker> m_worker;
@@ -415,8 +416,6 @@ private:
 	int m_followTrainIndex = -1;
 	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
-	QMap<int, QPointF> m_prevTrainPositions;
-	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
 	// Draws the newest delivered snapshot once the 33 ms render limit is over,
@@ -425,9 +424,6 @@ private:
 	QPointer<SimulationWorker> m_trailingRenderWorker;
 	std::shared_ptr<const GuiSimulationSnapshot> m_lastRenderedSnapshot;
 	bool m_playbackProfileViewApplied = false;
-	std::map<std::string, std::vector<TrackLineItem*>> m_tracksBySectionId;
-	std::map<std::pair<int, double>, TrackLineItem*> m_tracksByOccupiedArc;
-	std::set<TrackLineItem*> m_activeTrackItems;
 
 	// toolbar
 	QToolBar* m_toolBar;
@@ -654,17 +650,11 @@ private:
 	bool m_trainSpeedLabelsVisible = true;
 	bool m_signalLayerVisible = true;
 	bool m_passengerLayerVisible = true;
-	QList<QGraphicsItem*> m_stationDecorations;
-	QList<StationOverlayItem*> m_stationOverlays;
-	QList<QGraphicsItem*> m_stationLabels;
-	QMap<StationOverlayItem*, QGraphicsPixmapItem*> m_stationPictures;
 	QString m_selectedStationName;
 	QString m_previewSelectedStationId;
 	bool m_hasSelectedStationIdentity = false;
 	double m_selectedStationNodeId = 0.0;
 	int m_selectedStationTrack = -1;
-	QList<QGraphicsItem*> m_signalDecorations;
-	QMap<int, QGraphicsItemGroup*> m_vcMessageItems;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
@@ -947,10 +937,6 @@ private:
 	void renderSnapshot(bool historical);
 	bool replayTrainHasPosition(int trainIndex) const;
 
-	// list of signals
-	QList<SignalItem*> allSignals;
-	SignalItem* m_inspectedSignal = nullptr; // scene-owned; cleared before scene teardown
-	std::unordered_map<std::string, QList<SignalItem*>> m_signalsByAheadId;
 	void buildSignalIndex();
 	void buildTrackIndexes();
 	void bindStationOverlaySources();
@@ -963,23 +949,6 @@ private:
 	bool paxTextVisible() const;
 	void updateNetworkLegend();
 	bool hasRawRunResults() const;
-
-	// list of train items (whose simulation is running)
-	QList<TrainItemGroup*> allTrains;
-
-	// list of arcs
-	QList<TrackLineItem*> allArcs;
-
-	// list of platform items
-	QList<PlatformItem*> allPlatforms;
-
-	// Non-owning scene item observers. scene->clear() deletes these items.
-	QGraphicsItemGroup* trainPaxInfoItem;
-	TrainItemGroup* trainPaxItem;
-
-	// Non-owning scene item observers. scene->clear() deletes these items.
-	QGraphicsItemGroup* paxIconInfoItem;
-	PassengerItem* paxIconItem;
 
 	// associates regions and station indexes
 	std::vector<std::vector<int>> regionStations;

@@ -1203,7 +1203,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				++previewConnections;
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
-			|| !w.allArcs.isEmpty() || !w.allSignals.isEmpty() || !w.allPlatforms.isEmpty()
+			|| !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allSignals.isEmpty() || !w.m_presenter->allPlatforms.isEmpty()
 			|| w.m_worker || w.m_sceneDirty || !w.m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
 					.arg(previewArcs)
@@ -2333,12 +2333,12 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
 				if (stroke->pen().width() > 0 && !stroke->pen().isCosmetic()) return false;
 		}
-		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || w.m_stationPictures.isEmpty()
-			|| w.m_stationLabels.size() != w.m_stationOverlays.size()) return false;
-		for (int i = 0; i < w.m_stationOverlays.size(); ++i) {
-			const auto* overlay = w.m_stationOverlays[i];
-			const auto* picture = w.m_stationPictures.value(w.m_stationOverlays[i], nullptr);
-			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_stationLabels[i]);
+		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || w.m_presenter->m_stationPictures.isEmpty()
+			|| w.m_presenter->m_stationLabels.size() != w.m_presenter->m_stationOverlays.size()) return false;
+		for (int i = 0; i < w.m_presenter->m_stationOverlays.size(); ++i) {
+			const auto* overlay = w.m_presenter->m_stationOverlays[i];
+			const auto* picture = w.m_presenter->m_stationPictures.value(w.m_presenter->m_stationOverlays[i], nullptr);
+			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_presenter->m_stationLabels[i]);
 			const auto source = std::find_if(w.m_sceneModel.stations.begin(), w.m_sceneModel.stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_sceneModel.stations.end() || !picture || !label) return false;
@@ -2590,8 +2590,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_sceneRevision == initialRevision && w.m_sceneDirty == savedDirty
-				&& w.m_infrastructureSelectionId == editorSelection && !w.m_worker && w.allArcs.isEmpty()
-				&& w.allSignals.isEmpty() && w.allPlatforms.isEmpty(),
+				&& w.m_infrastructureSelectionId == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
 			"inspection mutated Open state")) return false;
 
 	const bool unchangedNodes = w.m_sceneModel.nodes.size() == saved.nodes.size()
@@ -2648,7 +2648,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				.arg(w.nodeStationNameText->text(), w.nodeXText->text(), w.infoDockWidget->windowTitle()))) return false;
 	StationOverlayItem* earlier = nullptr;
 	StationOverlayItem* between = nullptr;
-	for (auto* overlay : w.m_stationOverlays) {
+	for (auto* overlay : w.m_presenter->m_stationOverlays) {
 		if (overlay->data(PreviewGraphics::Id).toString() == "earlier") earlier = overlay;
 		if (overlay->data(PreviewGraphics::Id).toString() == "between") between = overlay;
 	}
@@ -2657,7 +2657,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	previewPointAtX(line, 1.5, line.displayOffset, expectedBetween);
 	if (!require(earlier && between && between->stableAnchor() == expectedBetween,
 			"position-only artwork uses authored Z-before-A track")) return false;
-	auto* picture = w.m_stationPictures.value(earlier, nullptr);
+	auto* picture = w.m_presenter->m_stationPictures.value(earlier, nullptr);
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
 	picture->setPos(picture->pos() + QPointF(150, -150));
 	clickArtwork(picture);
@@ -2665,7 +2665,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.m_previewSelectedStationId == "earlier",
 			"displaced artwork owns canonical station identity")) return false;
 	// Position-only artwork has a real station, not an invented node.
-	auto* positionPicture = w.m_stationPictures.value(between, nullptr);
+	auto* positionPicture = w.m_presenter->m_stationPictures.value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
@@ -2675,16 +2675,16 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const bool oldLayer = w.m_stationLayerVisible, oldNames = w.m_stationNamesVisible;
 	w.m_stationLayerVisible = false;
 	w.m_stationNamesVisible = false;
-	for (auto* decoration : w.m_stationDecorations) decoration->setVisible(false);
+	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(false);
 	w.updateViewportOverlays();
-	if (!require(z1->isVisible() && !picture->isVisible() && !w.m_stationLabels.front()->isVisible(),
+	if (!require(z1->isVisible() && !picture->isVisible() && !w.m_presenter->m_stationLabels.front()->isVisible(),
 			"station layers must not hide structural squares")) return false;
 	w.m_stationLayerVisible = true;
 	w.updateViewportOverlays();
-	if (!require(!w.m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
+	if (!require(!w.m_presenter->m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
 	w.m_stationLayerVisible = oldLayer;
 	w.m_stationNamesVisible = oldNames;
-	for (auto* decoration : w.m_stationDecorations) decoration->setVisible(oldLayer);
+	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(oldLayer);
 	w.updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
 	if (!require(w.arcIDText->text() == "No authored arc (fallback)" && w.arcFirstNodeIDText->text().isEmpty()
@@ -2700,8 +2700,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 					&& w.signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}
-	if (!require(w.m_previewFitBounds == topologyBounds && !w.m_worker && w.allArcs.isEmpty()
-				&& w.allPlatforms.isEmpty() && w.allSignals.isEmpty(),
+	if (!require(w.m_previewFitBounds == topologyBounds && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_presenter->allPlatforms.isEmpty() && w.m_presenter->allSignals.isEmpty(),
 			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.
 	const auto held = [&w, fixtureRevision]() {

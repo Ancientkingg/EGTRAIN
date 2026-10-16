@@ -51,7 +51,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 	if (scenarioStarted)
 		return;
 	const bool waitingForAutostart = qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART") && !w.m_snapshot;
-	if ((!w.m_sceneLoaded || !w.networkView || w.m_stationOverlays.isEmpty() || waitingForAutostart)
+	if ((!w.m_sceneLoaded || !w.networkView || w.m_presenter->m_stationOverlays.isEmpty() || waitingForAutostart)
 		&& scenarioAttempts < 120) {
 		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runStationOverlay(w); });
@@ -71,7 +71,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			QCoreApplication::exit(code);
 		}
 	};
-	if (!w.scene || !w.networkView || w.m_stationOverlays.isEmpty()) {
+	if (!w.scene || !w.networkView || w.m_presenter->m_stationOverlays.isEmpty()) {
 		failures << "station renderer scene is empty";
 	} else {
 		w.resize(1200, 800);
@@ -79,9 +79,9 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		const QString caseName = QString::fromStdString(w.m_sceneModel.name);
 		const QString screenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
 		if (caseName == QLatin1String("Copenhagen")) {
-			const auto kb = std::find_if(w.m_stationOverlays.cbegin(), w.m_stationOverlays.cend(),
+			const auto kb = std::find_if(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 				[](const StationOverlayItem* station) { return station && station->stationName() == QLatin1String("KBHallen"); });
-			if (kb == w.m_stationOverlays.cend() || (*kb)->displayName() != QLatin1String("KB Hallen")
+			if (kb == w.m_presenter->m_stationOverlays.cend() || (*kb)->displayName() != QLatin1String("KB Hallen")
 				|| (*kb)->sourceIdentityCount() != 2)
 				failures << "Copenhagen station name or source identity changed";
 			else {
@@ -128,7 +128,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		QHash<const StationOverlayItem*, QPointF> pictureAnchors, nameAnchors;
 		bool minimumOk = true, anchorsOk = true, collisionOk = true;
 		// The detail captures are centred on the station with most platforms.
-		const auto detailStation = std::max_element(w.m_stationOverlays.cbegin(), w.m_stationOverlays.cend(),
+		const auto detailStation = std::max_element(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),
 			[](const StationOverlayItem* left, const StationOverlayItem* right) {
 				return (left ? left->platformCount() : -1) < (right ? right->platformCount() : -1);
 			});
@@ -137,7 +137,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			w.fitView();
 			if (zoom.first > 1.0) {
 				w.networkView->zoomBy(zoom.first);
-				if (detailStation != w.m_stationOverlays.cend() && *detailStation)
+				if (detailStation != w.m_presenter->m_stationOverlays.cend() && *detailStation)
 					w.networkView->centerOn((*detailStation)->stableAnchor());
 			}
 			w.updateViewportOverlays();
@@ -148,7 +148,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			bool foundPicture = false;
 			int pictures = 0, namedStations = 0, shownNames = 0, hiddenNames = 0;
 			QList<QRectF> shownRects;
-			for (const StationOverlayItem* overlay : std::as_const(w.m_stationOverlays)) {
+			for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
 				const QGraphicsPixmapItem* picture = overlay->pictureItem();
 				if (picture && picture->isVisible()) {
 					++pictures;
@@ -194,12 +194,12 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 				shownRects.append(rect);
 			}
 			// A name that is shown does not cover the pictogram of another station.
-			for (const StationOverlayItem* overlay : std::as_const(w.m_stationOverlays)) {
+			for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
 				const QGraphicsTextItem* name = overlay->nameItem();
 				if (!name || !name->isVisible() || overlay->isSelected() || overlay->isFollowed())
 					continue;
 				const QRectF nameRect = nameDeviceRect(name);
-				for (const StationOverlayItem* other : std::as_const(w.m_stationOverlays)) {
+				for (const StationOverlayItem* other : std::as_const(w.m_presenter->m_stationOverlays)) {
 					const QGraphicsPixmapItem* picture = other != overlay ? other->pictureItem() : nullptr;
 					if (!picture || !picture->isVisible())
 						continue;
@@ -209,9 +209,9 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 						collisionOk = false;
 				}
 			}
-			if (!foundPicture || w.m_stationLabels.size() != w.m_stationOverlays.size())
+			if (!foundPicture || w.m_presenter->m_stationLabels.size() != w.m_presenter->m_stationOverlays.size())
 				failures << QString("%1 has no scene-scaled station picture/name").arg(zoom.second);
-			if (pictures != w.m_stationPictures.size())
+			if (pictures != w.m_presenter->m_stationPictures.size())
 				failures << QString("%1 hides a station pictogram").arg(zoom.second);
 			if (namedStations > 0 && shownNames < 1)
 				failures << QString("%1 shows no station name").arg(zoom.second);
@@ -246,8 +246,8 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		w.networkView->zoomBy(100.0);
 		w.updateViewportOverlays();
 		QApplication::processEvents();
-		bool sceneSized = !w.m_stationPictures.isEmpty();
-		for (const StationOverlayItem* overlay : std::as_const(w.m_stationOverlays)) {
+		bool sceneSized = !w.m_presenter->m_stationPictures.isEmpty();
+		for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays)) {
 			const QGraphicsPixmapItem* picture = overlay->pictureItem();
 			const QGraphicsTextItem* name = overlay->nameItem();
 			if ((picture && !picture->transform().isIdentity()) || (name && !name->transform().isIdentity()))
@@ -264,7 +264,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		marker(QString("E2E_STATION_OVERLAY_DPR_%1").arg(w.windowHandle() ? w.windowHandle()->devicePixelRatio() : 1.0, 0, 'f', 1));
 		if (caseName == QLatin1String("Netherlands")) {
 			int independent = 0;
-			for (auto* decoration : w.m_signalDecorations) {
+			for (auto* decoration : w.m_presenter->m_signalDecorations) {
 				auto* signal = decoration ? qgraphicsitem_cast<SignalItem*>(decoration) : nullptr;
 				if (!signal || !signal->isVisible())
 					continue;
@@ -280,7 +280,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 				marker(QString("E2E_NETHERLANDS_SIGNALS_INDIVIDUAL_OK heads=%1").arg(independent));
 		}
 		bool exactPicture = false;
-		for (auto it = w.m_stationPictures.cbegin(); it != w.m_stationPictures.cend(); ++it) {
+		for (auto it = w.m_presenter->m_stationPictures.cbegin(); it != w.m_presenter->m_stationPictures.cend(); ++it) {
 			auto* picture = it.value();
 			auto* target = picture ? qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()) : nullptr;
 			if (!target || !target->node || !picture->isVisible())
@@ -325,7 +325,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		ghost->setSourceIdentities({{-987.0, -987}});
 		w.scene->addItem(ghostStation);
 		w.scene->addItem(ghost);
-		w.m_stationOverlays.append(ghost);
+		w.m_presenter->m_stationOverlays.append(ghost);
 		const QPointF oldSlot = ghost->stableAnchor()
 			+ w.networkView->viewportTransform().inverted().map(QPointF(60.0, 0.0))
 			- w.networkView->viewportTransform().inverted().map(QPointF());
@@ -348,7 +348,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			w.m_sceneContextMenu->close();
 			w.m_sceneContextMenu.clear();
 		}
-		w.m_stationOverlays.removeAll(ghost);
+		w.m_presenter->m_stationOverlays.removeAll(ghost);
 		w.scene->removeItem(ghost);
 		delete ghost;
 		w.scene->removeItem(ghostStation);
@@ -356,7 +356,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		marker("E2E_STATION_MULTI_SOURCE_BINDING_OK");
 		const auto shownNames = [&w]() {
 			QSet<const StationOverlayItem*> stations;
-			for (const StationOverlayItem* overlay : std::as_const(w.m_stationOverlays))
+			for (const StationOverlayItem* overlay : std::as_const(w.m_presenter->m_stationOverlays))
 				if (overlay->nameItem() && overlay->nameItem()->isVisible())
 					stations.insert(overlay);
 			return stations;
@@ -392,7 +392,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			marker("E2E_STATION_NAMES_TOGGLE_OK");
 		// A selected station keeps its name even where it would collide at Fit.
 		StationOverlayItem* chosen = nullptr;
-		for (auto* overlay : std::as_const(w.m_stationOverlays))
+		for (auto* overlay : std::as_const(w.m_presenter->m_stationOverlays))
 			if (overlay->nameItem() && overlay->hasSourceIdentity()
 				&& (!chosen || overlay->isNameHiddenByCollision())) {
 				chosen = overlay;

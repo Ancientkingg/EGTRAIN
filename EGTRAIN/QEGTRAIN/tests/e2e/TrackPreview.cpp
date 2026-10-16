@@ -237,8 +237,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			marker("E2E_FOLLOW_NO_SERVICES_OK");
 		if (diagnosticsOk && itemCount >= 2 && bounds.width() >= 10.0 && visible.intersects(bounds))
 			marker("E2E_TRACK_PREVIEW_OPEN_OK");
-		const bool previewHasSignalGlyph = std::any_of(w.m_signalDecorations.cbegin(),
-			w.m_signalDecorations.cend(), [](QGraphicsItem* item) {
+		const bool previewHasSignalGlyph = std::any_of(w.m_presenter->m_signalDecorations.cbegin(),
+			w.m_presenter->m_signalDecorations.cend(), [](QGraphicsItem* item) {
 				return item && qgraphicsitem_cast<SignalItem*>(item) != nullptr;
 			});
 		const QVector<NetworkLegendEntry> legendEntries = w.m_networkLegendWidget
@@ -253,7 +253,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		if (previewHasSignalGlyph && w.networkView) {
 			w.updateViewportOverlays();
 			const QTransform transform = w.networkView->viewportTransform();
-			for (QGraphicsItem* item : w.m_signalDecorations) {
+			for (QGraphicsItem* item : w.m_presenter->m_signalDecorations) {
 				auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 				if (!signal || !signal->isVisible() || !item->data(kSignalAnchorRole).isValid())
 					continue;
@@ -267,8 +267,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			const bool layerWasChecked = w.m_signalLayerCheck->isChecked();
 			w.m_signalLayerCheck->setChecked(false);
 			QApplication::processEvents();
-			const bool hidden = std::none_of(w.m_signalDecorations.cbegin(),
-				w.m_signalDecorations.cend(), [](QGraphicsItem* item) {
+			const bool hidden = std::none_of(w.m_presenter->m_signalDecorations.cbegin(),
+				w.m_presenter->m_signalDecorations.cend(), [](QGraphicsItem* item) {
 					return item && qgraphicsitem_cast<SignalItem*>(item) != nullptr && item->isVisible();
 				});
 			w.m_signalLayerCheck->setChecked(layerWasChecked);
@@ -498,7 +498,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
 			w.renderTrackPreview(identified);
 			w.updateViewportOverlays();
-			const bool inspectable = std::any_of(w.m_signalDecorations.cbegin(), w.m_signalDecorations.cend(),
+			const bool inspectable = std::any_of(w.m_presenter->m_signalDecorations.cbegin(), w.m_presenter->m_signalDecorations.cend(),
 				[&](QGraphicsItem* item) {
 					auto* signal = item ? qgraphicsitem_cast<SignalItem*>(item) : nullptr;
 					return signal && signal->isVisible()
@@ -548,7 +548,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			const auto* lineItem = dynamic_cast<const QGraphicsLineItem*>(target);
 			clickAt(lineItem ? target->mapToScene(lineItem->line().pointAt(0.5)) : target->sceneBoundingRect().center());
 			++clicked;
-			SelectionCueItem* cue = w.effect ? w.effect->cue() : nullptr;
+			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
 			if (!cue || !cue->isVisible() || cueCount() != 1 || !w.infoDockWidget->isVisible()) {
 				cuesOk = false;
 				fail("selection", QString("a click on a preview %1 gives no single cue").arg(kind));
@@ -556,7 +556,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		}
 		const QRectF bounds = w.networkView->topologyBounds();
 		clickAt(bounds.bottomRight() + QPointF(bounds.width() + 1000.0, bounds.height() + 1000.0));
-		if (cueCount() != 0 || w.effect) {
+		if (cueCount() != 0 || w.m_presenter->effect) {
 			cuesOk = false;
 			fail("selection", "a click on empty preview canvas left a cue");
 		}
