@@ -47,7 +47,12 @@ test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info
 # conforms to public.data only, so no archive type such as ZIP is claimed.
 PLIST="$APP/Contents/Info.plist"
 plist_value() { /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST"; }
-plist_absent() { ! /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST" >/dev/null 2>&1; }
+plist_absent() {
+	if /usr/libexec/PlistBuddy -c "Print :$1" "$PLIST" >/dev/null 2>&1; then
+		echo "unexpected entry in Info.plist: $1" >&2
+		exit 1
+	fi
+}
 plutil -lint "$PLIST" >/dev/null
 test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeName)" = "EGTRAIN Case Study"
 test "$(plist_value CFBundleDocumentTypes:0:CFBundleTypeRole)" = "Editor"
