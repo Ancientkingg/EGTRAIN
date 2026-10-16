@@ -789,263 +789,6 @@ std::string delayComparisonCsv(const DelayRunSnapshot& baseline,
 		rows);
 }
 
-std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence) {
-	QStringList values;
-	for (const auto& item : evidence)
-		values << QString("%1/%2 (leader=%3 s; follower=%4 s; candidate=%5 s)")
-					  .arg(QString::fromStdString(item.leaderBlockId), QString::fromStdString(item.followerBlockId),
-						  QString::fromStdString(csv::formatDouble(item.leaderOffset)),
-						  QString::fromStdString(csv::formatDouble(item.followerOffset)),
-						  QString::fromStdString(csv::formatDouble(item.candidateHeadway)));
-	return values.join("; ").toStdString();
-}
-
-std::string buildCapacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel) {
-	if (!result.analyzable || result.cycleEndIdentity.empty() || !std::isfinite(result.cycleTime)
-		|| result.cycleTime < 0.0 || !std::isfinite(result.cyclePercentage))
-		return std::string();
-	const std::vector<std::string> header = {
-		"Record type", "Leader", "Follower", "Identity", "Operating code", "Original reference[s]",
-		"Scheduled reference[s]", "Compressed reference[s]", "Shift[s]", "Scheduled headway[s]",
-		"Minimum headway[s]", "Buffer[s]", "Block", "Leader offset[s]", "Follower offset[s]",
-		"Candidate headway[s]", "Gap[s]", "Cycle time[s]", "Period[s]", "Cycle / period [%]",
-		"Section", "Reference label", "Reference source", "Notes"};
-	constexpr std::size_t kColumnCount = 24;
-	std::vector<std::vector<std::string>> rows;
-	const auto referenceSource = [&result](const std::string& identity) {
-		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
-			if (result.trainIdentities[index] == identity && index < result.referenceSources.size())
-				return result.referenceSources[index];
-		return std::string();
-	};
-	const auto referenceLabel = [&result](const std::string& identity) {
-		for (std::size_t index = 0; index < result.trainIdentities.size(); ++index)
-			if (result.trainIdentities[index] == identity && index < result.referenceLabels.size())
-				return result.referenceLabels[index];
-		return std::string();
-	};
-	std::vector<std::string> summary(kColumnCount);
-	summary[0] = "summary";
-	summary[1] = result.firstIdentity;
-	summary[2] = result.cycleEndIdentity;
-	summary[17] = csv::formatDouble(result.cycleTime);
-	summary[18] = csv::formatDouble(result.periodSeconds);
-	summary[19] = csv::formatDouble(result.cyclePercentage);
-	summary[20] = sectionLabel.toStdString();
-	summary[21] = referenceLabel(result.firstIdentity) + " -> " + referenceLabel(result.cycleEndIdentity);
-	summary[22] = referenceSource(result.firstIdentity) + " -> " + referenceSource(result.cycleEndIdentity);
-	summary[23] = "explicit cycle start and next-period closing occurrence";
-	rows.push_back(std::move(summary));
-	for (const auto& pair : result.allPairs) {
-		if (pair.governingEvidence.empty()) {
-			std::vector<std::string> record(kColumnCount);
-			record[0] = "pair";
-			record[1] = pair.leaderIdentity;
-			record[2] = pair.followerIdentity;
-			record[9] = csv::formatDouble(pair.scheduledHeadway);
-			record[10] = csv::formatDouble(pair.minimumHeadway);
-			record[11] = csv::formatDouble(pair.buffer);
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
-			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
-			record[23] = pair.adjacent ? "no shared constraint" : "nonadjacent; no shared constraint";
-			rows.push_back(std::move(record));
-			continue;
-		}
-		for (const auto& evidence : pair.governingEvidence) {
-			std::vector<std::string> record(kColumnCount);
-			record[0] = "pair";
-			record[1] = pair.leaderIdentity;
-			record[2] = pair.followerIdentity;
-			record[9] = csv::formatDouble(pair.scheduledHeadway);
-			record[10] = csv::formatDouble(pair.minimumHeadway);
-			record[11] = csv::formatDouble(pair.buffer);
-			record[12] = evidence.leaderBlockId + " / " + evidence.followerBlockId;
-			record[13] = csv::formatDouble(evidence.leaderOffset);
-			record[14] = csv::formatDouble(evidence.followerOffset);
-			record[15] = csv::formatDouble(evidence.candidateHeadway);
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(pair.leaderIdentity) + " -> " + referenceLabel(pair.followerIdentity);
-			record[22] = referenceSource(pair.leaderIdentity) + " -> " + referenceSource(pair.followerIdentity);
-			record[23] = pair.adjacent ? "governing resource" : "nonadjacent ordered constraint; governing resource";
-			rows.push_back(std::move(record));
-		}
-	}
-	for (const auto& row : result.compression) {
-		const auto appendCompressionRecord = [&](const CapacityCompressionEvidence* governing) {
-			const std::string predecessor = governing ? governing->predecessorIdentity : std::string();
-			std::vector<std::string> record(kColumnCount);
-			record[0] = "compression";
-			record[1] = predecessor;
-			record[3] = row.identity;
-			record[4] = row.operatingCode;
-			record[5] = csv::formatDouble(row.originalReference);
-			record[6] = csv::formatDouble(row.scheduledReference);
-			record[7] = csv::formatDouble(row.compressedReference);
-			record[8] = csv::formatDouble(row.shift);
-			record[12] = governing ? capacityEvidenceText(governing->governingEvidence) : std::string();
-			record[20] = sectionLabel.toStdString();
-			record[21] = referenceLabel(row.identity);
-			record[22] = referenceSource(row.identity);
-			record[23] = "governing predecessor=" + predecessor;
-			rows.push_back(std::move(record));
-		};
-		if (row.governingPredecessors.empty())
-			appendCompressionRecord(nullptr);
-		else
-			for (const auto& governing : row.governingPredecessors)
-				appendCompressionRecord(&governing);
-	}
-	for (const auto& critical : result.criticalBlocks) {
-		std::vector<std::string> record(kColumnCount);
-		record[0] = "critical";
-		record[1] = critical.leaderIdentity;
-		record[2] = critical.followerIdentity;
-		record[12] = critical.leaderBlockId + " / " + critical.followerBlockId;
-		record[16] = csv::formatDouble(critical.gap);
-		record[20] = sectionLabel.toStdString();
-		record[21] = referenceLabel(critical.leaderIdentity) + " -> " + referenceLabel(critical.followerIdentity);
-		record[22] = referenceSource(critical.leaderIdentity) + " -> " + referenceSource(critical.followerIdentity);
-		record[23] = "capacity critical block";
-		rows.push_back(std::move(record));
-	}
-	return csv::makeDocument(header, rows);
-}
-
-bool chooseCapacityAnalysisScope(QWidget* parent, CapacityAnalysisScope& scope) {
-	if (train_route.empty())
-		return false;
-	QDialog dialog(parent);
-	dialog.setWindowTitle("Capacity analysis");
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-	auto* form = new QFormLayout();
-	auto* routeCombo = new QComboBox(&dialog);
-	for (std::size_t routeIndex = 0; routeIndex < train_route.size(); ++routeIndex) {
-		const Route& route = train_route[routeIndex];
-		const QString corridor = route.corridor.empty()
-			? QStringLiteral("no corridor")
-			: QString::fromStdString(route.corridor);
-		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.ID), corridor),
-			static_cast<int>(routeIndex));
-	}
-	auto* firstBlock = new QComboBox(&dialog);
-	auto* lastBlock = new QComboBox(&dialog);
-	auto* period = new QDoubleSpinBox(&dialog);
-	period->setRange(0.001, std::numeric_limits<double>::max());
-	period->setDecimals(3);
-	period->setSingleStep(60.0);
-	period->setSuffix(" s");
-	period->setValue(3600.0);
-	auto* cycleEnd = new QComboBox(&dialog);
-	cycleEnd->addItem("Select the first train in the next period...");
-	auto* occurrences = new QListWidget(&dialog);
-	occurrences->setSelectionMode(QAbstractItemView::SingleSelection);
-	occurrences->setDragDropMode(QAbstractItemView::InternalMove);
-	occurrences->setDefaultDropAction(Qt::MoveAction);
-	occurrences->setMinimumHeight(180);
-	form->addRow("Route / corridor:", routeCombo);
-	form->addRow("First block:", firstBlock);
-	form->addRow("Last block:", lastBlock);
-	form->addRow("Analysis period:", period);
-	form->addRow("Cycle-closing occurrence:", cycleEnd);
-	layout->addLayout(form);
-	auto* note = new QLabel(
-		"Checked occurrences are analyzed in the displayed order (A → B); selecting exactly two enables the pair workflow. "
-		"Pre-/post-Gdg order changes are separate explicit sections. Select the occurrence of the first service in the next "
-		"period that closes the capacity cycle; EGTRAIN does not infer it from the last row.",
-		&dialog);
-	note->setWordWrap(true);
-	layout->addWidget(note);
-	layout->addWidget(new QLabel("Occurrences with complete occupations on the selected section:", &dialog));
-	layout->addWidget(occurrences);
-
-	const auto refillBlocks = [routeCombo, firstBlock, lastBlock]() {
-		firstBlock->clear();
-		lastBlock->clear();
-		const int routeIndex = routeCombo->currentData().toInt();
-		if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
-			return;
-		const Route& route = train_route[static_cast<std::size_t>(routeIndex)];
-		for (int blockIndex = 0; blockIndex < route.N_Block_Sections; ++blockIndex) {
-			const QString blockId = QString::fromStdString(route.sequence_of_block_sections[blockIndex].ID);
-			firstBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
-			lastBlock->addItem(QString("%1:%2").arg(blockIndex + 1).arg(blockId));
-		}
-		if (firstBlock->count() > 0)
-			lastBlock->setCurrentIndex(lastBlock->count() - 1);
-	};
-	const auto currentScope = [routeCombo, firstBlock, lastBlock, period]() {
-		CapacityAnalysisScope candidate;
-		candidate.routeIndex = routeCombo->currentData().toInt();
-		candidate.periodSeconds = period->value();
-		if (candidate.routeIndex < 0 || candidate.routeIndex >= static_cast<int>(train_route.size()))
-			return candidate;
-		const Route& route = train_route[static_cast<std::size_t>(candidate.routeIndex)];
-		candidate.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), route.N_Block_Sections);
-		for (int blockIndex : candidate.sectionIndices)
-			candidate.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
-		return candidate;
-	};
-	const auto refillOccurrences = [occurrences, cycleEnd, currentScope]() {
-		occurrences->clear();
-		cycleEnd->clear();
-		cycleEnd->addItem("Select the first train in the next period...");
-		const auto trains = capacityTrainsForScope(currentScope());
-		for (const CapacityAnalysisTrain& train : trains) {
-			const QString identity = QString::fromStdString(train.runtimeId);
-			const QString code = QString::fromStdString(train.operatingCode);
-			auto* item = new QListWidgetItem(
-				QString("%1 | %2 | %3").arg(identity, code, QString::fromStdString(train.referenceSource)), occurrences);
-			item->setData(Qt::UserRole, identity);
-			item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
-			item->setCheckState(Qt::Checked);
-			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
-		}
-	};
-	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillBlocks, refillOccurrences](int) { refillBlocks(); refillOccurrences(); });
-	QObject::connect(firstBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillOccurrences](int) { refillOccurrences(); });
-	QObject::connect(lastBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillOccurrences](int) { refillOccurrences(); });
-	if (routeCombo->count() > 0)
-		routeCombo->setCurrentIndex(0);
-	refillBlocks();
-	refillOccurrences();
-
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
-		int selected = 0;
-		for (int row = 0; row < occurrences->count(); ++row)
-			selected += occurrences->item(row)->checkState() == Qt::Checked ? 1 : 0;
-		if (selected < 2) {
-			QMessageBox::information(&dialog, "Capacity analysis", "Select at least two ordered occurrences with a common entry block.");
-			return;
-		}
-		scope = currentScope();
-		scope.occurrenceIds.clear();
-		for (int row = 0; row < occurrences->count(); ++row) {
-			const QListWidgetItem* item = occurrences->item(row);
-			if (item->checkState() == Qt::Checked)
-				scope.occurrenceIds.push_back(item->data(Qt::UserRole).toString().toStdString());
-		}
-		scope.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();
-		const auto selectedCycleEnd = std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(),
-			scope.cycleEndOccurrenceId);
-		if (selectedCycleEnd == scope.occurrenceIds.end() || selectedCycleEnd == scope.occurrenceIds.begin()) {
-			QMessageBox::information(&dialog, "Capacity analysis",
-				"Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.");
-			return;
-		}
-		dialog.accept();
-	});
-	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	DialogLayout::install(dialog, "Capacity analysis",
-		"Choose a route section and ordered service occurrences.", body, buttons);
-	return dialog.exec() == QDialog::Accepted;
-}
-
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
 // failure never leaves a partial file behind.
 void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
@@ -17558,7 +17301,8 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 
-	CapacityAnalysisScope scope = firstCapacityScopeWithPair();
+	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
 		QMessageBox::information(this, "Capacity analysis",
 			"No retained native blocking-time section has two occurrences with a common entry block. "
@@ -17566,25 +17310,25 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 	if ((!e2eDialogsSuppressed() || mainWindowTestHooks().askCapacityScope)
-		&& !chooseCapacityAnalysisScope(this, scope))
+		&& !chooseCapacityAnalysisScope(this, *run, scope))
 		return;
 	if (scope.routeIndex < 0 || scope.blockIds.empty()) {
 		QMessageBox::information(this, "Capacity analysis",
 			"No route section has two occurrences with a common entry block. Choose a common entry or split the analysis into pre-/post-Gdg sections.");
 		return;
 	}
-	const std::string scopeIssue = capacityScopeIssue(scope);
+	const std::string scopeIssue = capacityScopeIssueFrom(*run, scope);
 	if (!scopeIssue.empty()) {
 		QMessageBox::information(this, "Capacity scope unavailable", QString::fromStdString(scopeIssue));
 		return;
 	}
-	const auto trains = capacityTrainsForScope(scope);
+	const auto trains = capacityInputsFrom(*run, scope);
 	if (trains.size() < 2) {
 		QMessageBox::information(this, "Capacity analysis",
 			"Fewer than two occurrences share the selected section entry. Choose a common entry or a narrower section.");
 		return;
 	}
-	const QString sectionLabel = capacityScopeLabel(scope);
+	const QString sectionLabel = capacityScopeLabelFrom(*run, scope);
 	const CapacityAnalysisResult result = analyzeCapacity(trains, scope.periodSeconds,
 		scope.cycleEndOccurrenceId);
 	if (!result.analyzable) {
@@ -17598,8 +17342,7 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
-	const RunProvenance provenance = m_completedRunProvenance;
+	const RunProvenance provenance = run->provenance;
 	QDialog* dialog = new QDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setWindowTitle("Capacity analysis");
@@ -17717,26 +17460,21 @@ void MainWindow::showCapacityAnalysis() {
 		const auto operation = captureTelemetryOperation();
 		saveCsvInteractive(
 			this, "capacity_analysis.csv", operation,
-			[result, sectionLabel] { return buildCapacityAnalysisCsv(result, sectionLabel); },
+			[result, sectionLabel] { return capacityAnalysisCsv(result, sectionLabel); },
 			[provenance](const QString& path, const std::string& bytes) {
 				return writeRunArtifactWithProvenance(path.toStdString(), "csv", bytes, provenance);
 			});
 	});
 	QPushButton* diagramButton = new QPushButton("Open compressed blocking-time diagram", body);
-	const RouteDiagramPath compressedReference = routeDiagramPath(train_route[scope.routeIndex], &m_sceneModel);
-	std::map<std::string, RouteDiagramProjection> compressedProjections;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
-		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())) continue;
-		compressedProjections.emplace(train.trainDescription,
-			buildRouteDiagramProjection(routeDiagramPath(train_route[train.indexOfRoute], &m_sceneModel), compressedReference));
-	}
+	const CompletedRoute& compressedRoute = run->routes[static_cast<std::size_t>(scope.routeIndex)];
+	const RouteDiagramPath& compressedReference = compressedRoute.path;
+	const auto compressedProjections = routeProjectionsByTrain(*run, compressedReference);
 	int compressedOmitted = 0;
 	auto shiftedSegments = buildBlockingTimeDiagramSegments(result.compressedOccupations, result.trainIdentities);
 	restoreCompressedOriginalTimes(shiftedSegments, result.compression);
 	std::vector<BlockingTimeDiagramSegment> compressedUnmapped;
 	auto compressedSegments = projectBlockingSegments(shiftedSegments, compressedProjections, compressedOmitted, &compressedUnmapped);
-	const auto allCompressedExtents = buildBlockSectionExtents(blockSectionInputsForRoute(train_route[scope.routeIndex]));
+	const auto allCompressedExtents = buildBlockSectionExtents(compressedRoute.blocks);
 	const auto compressedExtents = scopedBlockSectionExtents(allCompressedExtents, scope.sectionIndices);
 	matchBlockingSegmentsToSections(compressedSegments, allCompressedExtents, compressedReference.id);
 	const auto axisRange = blockSectionAxisRange(compressedExtents, compressedReference);

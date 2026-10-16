@@ -30,6 +30,8 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QListWidget>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -1383,6 +1385,88 @@ void testScopeDialog() {
 	check(accepted && plain.routeIndex == -1 && plain.startTime == 0.0 && plain.endTime == 30.0, "a run without routes gives the whole run");
 }
 
+// Runs the capacity scope dialog on a hand-made run and lets `answer` act on it once it is open.
+bool askCapacityScope(const CompletedRunData& run, CapacityAnalysisScope& scope, const std::function<void(QDialog&)>& answer) {
+	QTimer::singleShot(0, [&answer]() {
+		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+		check(dialog && dialog->windowTitle() == "Capacity analysis", "the capacity dialog opens");
+		if (dialog)
+			answer(*dialog);
+	});
+	return chooseCapacityAnalysisScope(nullptr, run, scope);
+}
+
+// Closes the message box that the next click on OK opens.
+void expectMessage(const std::string& what) {
+	QTimer::singleShot(0, [what]() {
+		auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
+		check(box, what);
+		if (box)
+			box->accept();
+	});
+}
+
+void testCapacityDialog() {
+	CompletedRunData run;
+	const auto trainWithEntry = [](const std::string& id, double entry) {
+		CompletedTrain train = trainOn(id, 0);
+		train.blockTimes = {occupation("B", entry, entry + 10.0, 0.0, 100.0, entry)};
+		return train;
+	};
+	run.trains = {trainWithEntry("a", 0.0), trainWithEntry("b", 100.0), trainWithEntry("c", 200.0), trainOn("d", 0)};
+	run.routes = {routeOf("r", {{"n", 0.0}}, {{"B", 0.0, 1.0}, {"C", 1.0, 2.0}}), routeOf("s", {{"n", 0.0}}, {{"X", 0.0, 1.0}})};
+	run.routes[0].corridor = "north";
+
+	CapacityAnalysisScope none;
+	check(!chooseCapacityAnalysisScope(nullptr, CompletedRunData(), none), "a run without routes has nothing to choose");
+
+	CapacityAnalysisScope scope;
+	bool accepted = askCapacityScope(run, scope, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		check(combos.size() == 4, "the dialog has the route, the two blocks and the closing occurrence");
+		if (combos.size() != 4)
+			return;
+		check(combos[0]->count() == 2 && combos[0]->itemText(0) == "r  (north)" && combos[0]->itemText(1) == "s  (no corridor)", "the routes are listed");
+		check(combos[1]->count() == 2 && combos[1]->itemText(0) == "1:B" && combos[2]->currentIndex() == 1, "the blocks of the first route are listed");
+		const auto list = dialog.findChild<QListWidget*>();
+		combos[2]->setCurrentIndex(0);
+		check(list && list->count() == 3, "three trains have an occupation on the first block");
+		check(list && list->item(0)->text() == "a | OC-a | canonical scheduled entry + elapsed from RunStartTime" && list->item(0)->checkState() == Qt::Checked, "an occurrence is listed with its code and reference");
+		check(combos[3]->count() == 4 && combos[3]->itemText(3) == "c | OC-c", "the closing occurrence can be any listed train");
+		const auto spin = dialog.findChild<QDoubleSpinBox*>();
+		if (spin)
+			spin->setValue(7200.0);
+		list->item(1)->setCheckState(Qt::Unchecked);
+		combos[3]->setCurrentIndex(3);
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
+	});
+	check(accepted && scope.routeIndex == 0 && scope.blockIds == std::vector<std::string>({"B"}) && scope.sectionIndices == std::vector<int>({0})
+			&& scope.occurrenceIds == std::vector<std::string>({"a", "c"}) && scope.cycleEndOccurrenceId == "c" && scope.periodSeconds == 7200.0,
+		"the dialog accepts the checked occurrences and the closing one");
+
+	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open.
+	CapacityAnalysisScope kept;
+	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		const auto list = dialog.findChild<QListWidget*>();
+		auto* ok = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok);
+		if (combos.size() != 4 || !list)
+			return;
+		combos[2]->setCurrentIndex(0);
+		list->item(1)->setCheckState(Qt::Unchecked);
+		list->item(2)->setCheckState(Qt::Unchecked);
+		expectMessage("fewer than two occurrences are refused");
+		ok->click();
+		list->item(1)->setCheckState(Qt::Checked);
+		combos[3]->setCurrentIndex(1);
+		expectMessage("a closing occurrence that is the first row is refused");
+		ok->click();
+		check(dialog.isVisible(), "the dialog stays open after a refusal");
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
+	});
+	check(!accepted, "cancel gives no scope");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -1433,6 +1517,7 @@ int main(int argc, char** argv) {
 	testSharedResources();
 	testUsedRoutes();
 	testScopeDialog();
+	testCapacityDialog();
 
 	if (failures)
 		std::cerr << failures << " checks failed\n";

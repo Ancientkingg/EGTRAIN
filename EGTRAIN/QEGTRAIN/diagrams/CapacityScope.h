@@ -2,16 +2,20 @@
 #define CAPACITYSCOPE_H
 
 #include "diagrams/CapacityAnalysis.h"
+#include "diagrams/CompletedRunData.h"
 
 #include <QString>
 
 #include <string>
 #include <vector>
 
+class QWidget;
 class Train;
 
-// Capacity inputs of the finished run. Most functions here read the run from the simulation globals
-// regional_train, numRegions and train_route, not from arguments.
+// Capacity inputs of the finished run. The functions with a name that ends in "ForScope" or "WithPair", and
+// capacityScopeIssue and capacityScopeLabel, read the run from the simulation globals regional_train, numRegions and
+// train_route. The functions with a name that ends in "From" read nothing but their arguments and give the same
+// values for the same run.
 
 struct CapacityAnalysisScope {
 	int routeIndex = -1;
@@ -27,5 +31,17 @@ CapacityAnalysisTrain capacityTrainForScope(const Train& train, const CapacityAn
 std::vector<CapacityAnalysisTrain> capacityTrainsForScope(const CapacityAnalysisScope& scope);
 CapacityAnalysisScope firstCapacityScopeWithPair();
 QString capacityScopeLabel(const CapacityAnalysisScope& scope);
+
+// The occupations of one train in the scope, with the reference time that the capacity analysis uses.
+CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const CapacityAnalysisScope& scope);
+// The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.
+std::vector<CapacityAnalysisTrain> capacityInputsFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& data);
+QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+
+// Asks for a route, a range of its blocks, a period, the occurrences to analyse in order and the occurrence that closes
+// the cycle. On accept the scope holds the choice. False when the dialog is cancelled or the run has no route.
+bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, CapacityAnalysisScope& scope);
 
 #endif

@@ -457,15 +457,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 					perTrain->close();
 			}
 			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRunResults));
-			const CapacityAnalysisScope capacityScope = firstCapacityScopeWithPair();
-			std::string capacityCsv;
-			if (capacityScope.routeIndex >= 0 && capacityScopeIssue(capacityScope).empty()) {
-				const auto capacityTrains = capacityTrainsForScope(capacityScope);
-				capacityCsv = capacityAnalysisCsv(
-					analyzeCapacity(capacityTrains, capacityScope.periodSeconds,
-						capacityScope.cycleEndOccurrenceId),
-					capacityScopeLabel(capacityScope));
-			}
+			const std::string capacityCsv = capacityCsvFrom(*w.m_completedRun, firstCapacityScopeWithPairFrom(*w.m_completedRun));
 			if (capacityCsv.empty()) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
 			} else {

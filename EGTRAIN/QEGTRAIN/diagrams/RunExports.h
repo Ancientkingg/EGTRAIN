@@ -89,18 +89,15 @@ struct BlockingTimeDiagramData {
 std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRunData& data,
 	const BlockingTimeScope& scope);
 
-// The occupations of one train in the scope, with the reference time that the capacity analysis uses.
-CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const CapacityAnalysisScope& scope);
-// The trains with occupations in the scope. The order follows scope.occurrenceIds when it is given.
-std::vector<CapacityAnalysisTrain> capacityInputsFrom(const CompletedRunData& data,
-	const CapacityAnalysisScope& scope);
-std::string capacityScopeIssueFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
-CapacityAnalysisScope firstCapacityScopeWithPairFrom(const CompletedRunData& data);
-QString capacityScopeLabelFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+std::string capacityEvidenceText(const std::vector<CapacityHeadwayEvidence>& evidence);
 // Empty when the result cannot be analysed.
 std::string capacityAnalysisCsv(const CapacityAnalysisResult& result, const QString& sectionLabel);
 // Empty when the scope has an issue or the occurrences do not form a chain.
 std::string capacityCsvFrom(const CompletedRunData& data, const CapacityAnalysisScope& scope);
+
+// The projection of the route of each train onto a reference route, by train id.
+std::map<std::string, RouteDiagramProjection> routeProjectionsByTrain(const CompletedRunData& data,
+	const RouteDiagramPath& reference);
 
 // The routes that trains run on, as (route index, route id) in order of first use.
 std::vector<std::pair<int, std::string>> usedRouteReferencesFrom(const CompletedRunData& data);
