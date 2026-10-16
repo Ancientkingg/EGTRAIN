@@ -698,11 +698,24 @@ static bool exerciseBlockSections() {
 		"section hover retains full escaped/plain text and both coincident occurrence identities");
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
-	QMouseEvent press(QEvent::MouseButtonPress, header, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-	QMouseEvent release(QEvent::MouseButtonRelease, header, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-	QApplication::sendEvent(view->viewport(), &press);
-	QApplication::sendEvent(view->viewport(), &release);
-	ok &= expect(selected.isEmpty(), "physical section click never selects the underlying train");
+	const auto click = [&](const QPoint& position) {
+		QMouseEvent press(QEvent::MouseButtonPress, position, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, position, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(view->viewport(), &press);
+		QApplication::sendEvent(view->viewport(), &release);
+	};
+	// The strip lies above the plot, where no click can select a series. A click that reaches the section code shows its details.
+	click(header);
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("Physical reference section"),
+		"a click on the section strip inspects the section and selects no train");
+	// A boundary inside the plot, away from every sample: the dotted line is inspected but belongs to no train.
+	click(view->mapFromScene(chart->mapToScene(chartPoint(8, chart->plotArea().height() / 2))));
+	ok &= expect(selected.isEmpty() && tooltip->isVisible() && tooltip->text().contains("@reverse@"),
+		"a click on a physical boundary inside the plot inspects the section and selects no train");
+	// The same click path selects a train when it lands on its series, so the checks above can fail.
+	click(view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(2, 50), first))));
+	ok &= expect(selected == "A", "a click on a train series selects it while the section layer is present");
+	QMetaObject::invokeMethod(&window, "clearPin");
 	const auto earlyVisible = [&](const QPointF& value) {
 		moveTo(view, value, early);
 		const bool inspected = tooltip->isVisible() && tooltip->text().contains("early recorded sample");
