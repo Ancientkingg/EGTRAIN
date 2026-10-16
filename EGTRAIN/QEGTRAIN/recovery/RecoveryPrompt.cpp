@@ -114,7 +114,8 @@ RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const 
 		// An ampersand would make the next letter a shortcut.
 		const QString shortName = selector->fontMetrics().elidedText(name, Qt::ElideMiddle, lineHeight * kNameWidthInLines);
 		selector->setText(QString(shortName).replace(QLatin1Char('&'), QStringLiteral("&&")));
-		selector->setToolTip(name.toHtmlEscaped());
+		// The paragraph makes Qt read the tooltip as rich text, so the escaped name shows as typed.
+		selector->setToolTip(QStringLiteral("<p>%1</p>").arg(name.toHtmlEscaped()));
 		selector->setAccessibleName(name);
 		// The row takes the width of the list, so that a name never widens the dialog.
 		selector->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
