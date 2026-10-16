@@ -165,6 +165,8 @@ void parseCmdOptions(int argc, char* argv[]) {
 		initial_variables.RChoice = 0;
 	}
 	initial_variables.exportDetailedTrajectories = cmdOptionEntered(argv, argv + argc, "--detailed-trajectories");
+	if (initial_variables.TSM || initial_variables.RChoice)
+		std::cerr << "WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.\n";
 }
 
 // Reads a whole number from low to high from the text of an option. Returns false when the text is none.

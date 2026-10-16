@@ -9,7 +9,7 @@ Runs the application with a stream and reads it with live_client:
   * a client that leaves in the middle of a run and a run that nobody follows, both with that output too;
   * a client that joins after the run has ended (window run);
   * with --second-run, a second run in the same process (scripted window run);
-  * the options that are refused.
+  * the options that are refused, and the notice for the legacy -TSM and -RC options.
 
 The scripted window run of --second-run is checked on macOS only, so CMake passes the option there.
 """
@@ -265,6 +265,17 @@ def refused_options(app: Path, temp: Path) -> None:
     print("PASS options that are not valid, or a port in use, stop the start before a run")
 
 
+def legacy_notice(app: Path, temp: Path) -> None:
+    run = App(app, temp / "legacy", "Paimpol", ["-h", "1", "-TSM", "1"])
+    expect(run.wait() == 0, "the run with -TSM 1 failed\n%s" % tail(run.stdout_path))
+    lines = [line for line in run.stderr_path.read_text(encoding="utf-8", errors="replace").splitlines() if "legacy options" in line]
+    expect(len(lines) == 1 and "--live" in lines[0], "-TSM 1 did not give one line pointing to --live: %s" % lines)
+    plain = App(app, temp / "no-legacy", "Paimpol", ["-h", "1"])
+    expect(plain.wait() == 0, "the run without -TSM failed\n%s" % tail(plain.stdout_path))
+    expect("legacy options" not in plain.stderr_path.read_text(encoding="utf-8", errors="replace"), "a run without -TSM and -RC gave the notice")
+    print("PASS -TSM 1 prints one line on standard error that points to --live")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("app", type=Path)
@@ -286,6 +297,7 @@ def main() -> None:
         if arguments.second_run:
             second_run(app, client, temp)
         refused_options(app, temp)
+        legacy_notice(app, temp)
     except Failure as failure:
         print("FAIL %s" % failure, file=sys.stderr)
         print("logs: %s" % temp, file=sys.stderr)

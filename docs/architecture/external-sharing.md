@@ -14,6 +14,7 @@ This page describes the code as it is. Function names are given so that a mainta
 | `-RC <int>` | passenger route choice | `tcp://127.0.0.1:5556` |
 
 - `parseCmdOptions` (`app/main.cpp`) reads both options with `std::atoi`. Any nonzero value switches the channel on. The default is 0.
+- The options are deprecated and kept for one release. When either is nonzero, whether from the command line or from the `--interactive` questions, `parseCmdOptions` prints one line on standard error: `WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.` Nothing else about the channels changes.
 - The options exist on the command line only. `--interactive` asks for both when the command line leaves them out (see [Command-line options](../guides/command-line.md)). The window has no control for them, but a window run sends when the option was given at the start. The provenance file of exported results records both values as `tsm_mode` and `route_choice_mode`.
 - `-RC 1` needs a usable passenger journey in the prepared run. `DispatchController::prepareScene` rejects the run otherwise, with the diagnostic `scene.route_choice.passengers.none` (`test_route_choice_missing_data`).
 - With both options at 0, no socket is created and nothing is bound or sent: `send_external_state` is called only from the two blocks of the step loop that these options guard. The ZeroMQ context is made by the first send, so such a run holds no context either.
