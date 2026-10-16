@@ -57,7 +57,7 @@ ORIGINAL_CASE_PARITY = {
         "station_ids": "7eb1725701ff3d105f0ff84ba9ac23cd27fe5642f462947d9fa7bf28492305ff",
         "route_ids": "dea4515fec5d4b1cf241b7276b38dce3d283474635db5b379d6582e21f10e3c9",
         "trains": 40,
-        "representative": ("SPR_2-1", 100, 18940.6, 1278, 1253.65, 0, 100),
+        "representative": ("SPR_2-1", 100, 18940.6, 1263, 1253.65, 0, 100),
         "stops": ("425d9c987fddb82cf8812520e9094efd165533d5265aa4dd59367fb9ea146f28", 132, 847, 10, 350),
     },
     2: {

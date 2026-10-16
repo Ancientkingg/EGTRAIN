@@ -1057,6 +1057,10 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_scenebuilder PRIVATE egtrain_sim)
 	add_test(NAME test_scenebuilder COMMAND test_scenebuilder)
 
+	add_executable(test_stopdwell ${SRC_DIR}/tests/test_stopdwell.cpp)
+	target_link_libraries(test_stopdwell PRIVATE egtrain_sim)
+	add_test(NAME test_stopdwell COMMAND test_stopdwell ${SRC_DIR}/tests/fixtures/scenes/crossovers)
+
 	add_executable(test_operationsbuilder ${SRC_DIR}/tests/test_operationsbuilder.cpp)
 	target_link_libraries(test_operationsbuilder PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	target_compile_definitions(test_operationsbuilder PRIVATE EGTRAIN_TEST_SOURCE_DIR="${SRC_DIR}/tests")
@@ -1364,7 +1368,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenereferences test_scenesavepolicy test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenereferences test_scenesavepolicy test_scenewriter test_scenebuilder test_stopdwell test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
@@ -1393,7 +1397,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_sceneimporter
-		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder
+		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract

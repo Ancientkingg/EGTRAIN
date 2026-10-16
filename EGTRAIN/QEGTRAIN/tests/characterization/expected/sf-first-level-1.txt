@@ -3,7 +3,7 @@
 # run: scenario=signal-failure-first services=F1,F2 level=1 horizon=1500
 # known-wrong: none
 run steps=1500 trains=2
-train F1-1 active start=402 end=1054
+train F1-1 active start=402 end=1008
 train F1-1 sample t=402 x=0.615074 v=1.230149
 train F1-1 sample t=462 x=1278.266026 v=31.292706
 train F1-1 sample t=522 x=3394.638283 v=36.111111
@@ -15,12 +15,10 @@ train F1-1 sample t=822 x=10202.974930 v=36.111111
 train F1-1 sample t=882 x=12369.641596 v=36.111111
 train F1-1 sample t=942 x=14536.308263 v=36.111111
 train F1-1 sample t=1002 x=15997.034411 v=2.570291
-train F1-1 sample t=1054 x=16000.000100 v=0.000100
+train F1-1 sample t=1008 x=16000.000100 v=0.000100
 train F1-1 stop t_first=673 t_last=734 x=7999.998000 dwell=61
 train F1-1 braking t=628 x=7222.416060 v=36.111111 stop_t=673
-train F1-1 stop t_first=1006 t_last=1054 x=15999.998000 dwell=48
-train F1-1 braking t=961 x=15222.419374 v=36.111111 stop_t=1006
-train F2-1 active start=542 end=1225
+train F2-1 active start=542 end=1179
 train F2-1 sample t=542 x=0.615074 v=1.230149
 train F2-1 sample t=602 x=1278.266026 v=31.292706
 train F2-1 sample t=662 x=3394.638283 v=36.111111
@@ -32,30 +30,27 @@ train F2-1 sample t=962 x=9154.918350 v=30.380830
 train F2-1 sample t=1022 x=11250.197152 v=36.111111
 train F2-1 sample t=1082 x=13416.863819 v=36.111111
 train F2-1 sample t=1142 x=15541.820422 v=27.988537
-train F2-1 sample t=1202 x=15999.999900 v=0.000000
-train F2-1 sample t=1225 x=16000.000100 v=0.000100
+train F2-1 sample t=1179 x=16000.000100 v=0.000100
 train F2-1 stop t_first=844 t_last=905 x=7999.998000 dwell=61
 train F2-1 braking t=804 x=7371.868815 v=32.577092 stop_t=844
-train F2-1 stop t_first=1177 t_last=1225 x=15999.998000 dwell=48
-train F2-1 braking t=1132 x=15222.419374 v=36.111111 stop_t=1177
 separation F1-1>F2-1 min_gap_t=743 min_gap=2050.457047
 aspect route0 @0-B0@ 0:0 401:270 402:0 486:75 541:180 542:0 626:75 681:180 754:270
 aspect route0 @1-B0@ 0:270 484:0 541:75 597:180 624:0 681:75 754:180 916:270
 aspect route0 @2-B0@ 0:270 539:0 597:75 679:0 754:75 916:180 990:270
 aspect route0 @3-B0@ 0:270 595:0 745:75 750:0 916:75 990:180 1045:270
 aspect route0 @4-B0@ 0:270 734:0 819:75 874:180 905:0 990:75 1045:180 1101:270
-aspect route0 @5-B0@ 0:270 817:0 874:75 930:180 988:0 1045:75 1101:180 1226:270
-aspect route0 @6-B0@ 0:270 872:0 930:75 1043:0 1101:75 1226:270
-aspect route0 @7-B0@ 0:270 928:0 1055:270 1099:0 1226:270
+aspect route0 @5-B0@ 0:270 817:0 874:75 930:180 988:0 1045:75 1101:180 1180:270
+aspect route0 @6-B0@ 0:270 872:0 930:75 1009:270 1043:0 1101:75 1180:270
+aspect route0 @7-B0@ 0:270 928:0 1009:270 1099:0 1180:270
 result F1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result F1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=673.000000 sim_dep=733.000000 arr_delay=73.000000 dep_delay=73.000000
-result F1-1 C planned_arr=1100.000000 planned_dep=n/a sim_arr=1006.000000 sim_dep=1053.000000 arr_delay=-94.000000 dep_delay=n/a
+result F1-1 C planned_arr=1100.000000 planned_dep=n/a sim_arr=1006.000000 sim_dep=1007.000000 arr_delay=-94.000000 dep_delay=n/a
 result F2-1 A planned_arr=n/a planned_dep=180.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result F2-1 B planned_arr=660.000000 planned_dep=720.000000 sim_arr=844.000000 sim_dep=904.000000 arr_delay=184.000000 dep_delay=184.000000
-result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1177.000000 sim_dep=1224.000000 arr_delay=17.000000 dep_delay=n/a
-run_result F1-1 start=402.000000 end=1054.000000 travel=652.000000
-run_result F2-1 start=542.000000 end=1225.000000 travel=683.000000
-network start=402.000000 end=1225.000000 travel=823.000000
+result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1177.000000 sim_dep=1178.000000 arr_delay=17.000000 dep_delay=n/a
+run_result F1-1 start=402.000000 end=1008.000000 travel=606.000000
+run_result F2-1 start=542.000000 end=1179.000000 travel=637.000000
+network start=402.000000 end=1179.000000 travel=777.000000
 train F1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime F1-1 n=0 complete=0
 train F2-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000

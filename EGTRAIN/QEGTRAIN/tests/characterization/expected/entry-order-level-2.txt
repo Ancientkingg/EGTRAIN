@@ -3,7 +3,7 @@
 # run: scenario=signal-failure-first services=F2,L1 level=2 horizon=1500
 # known-wrong: none
 run steps=1500 trains=2
-train F2-1 active start=542 end=1255
+train F2-1 active start=542 end=1209
 train F2-1 sample t=542 x=0.615074 v=1.230149
 train F2-1 sample t=602 x=1278.266026 v=31.292706
 train F2-1 sample t=662 x=3394.638283 v=36.111111
@@ -16,11 +16,9 @@ train F2-1 sample t=1022 x=11250.197152 v=36.111111
 train F2-1 sample t=1082 x=13405.348108 v=32.024795
 train F2-1 sample t=1142 x=14632.991903 v=26.811674
 train F2-1 sample t=1202 x=15993.125085 v=3.698365
-train F2-1 sample t=1255 x=16000.000100 v=0.000100
+train F2-1 sample t=1209 x=16000.000100 v=0.000100
 train F2-1 stop t_first=844 t_last=905 x=7999.998000 dwell=61
 train F2-1 braking t=804 x=7371.868815 v=32.577092 stop_t=844
-train F2-1 stop t_first=1207 t_last=1255 x=15999.998000 dwell=48
-train F2-1 braking t=1167 x=15379.572817 v=32.738886 stop_t=1207
 train L1-1 active start=402 end=1107
 train L1-1 sample t=402 x=0.615074 v=1.230149
 train L1-1 sample t=462 x=1278.266026 v=31.292706
@@ -45,18 +43,18 @@ aspect route0 @1-B0@ 0:270 484:0 541:75 597:180 624:0 681:75 754:180 916:270
 aspect route0 @2-B0@ 0:270 539:0 597:75 679:0 754:75 916:180 990:270
 aspect route0 @3-B0@ 0:270 595:0 745:75 750:0 916:75 990:180 1045:270
 aspect route0 @4-B0@ 0:270 734:0 819:75 874:180 905:0 990:75 1045:180 1118:270
-aspect route0 @5-B0@ 0:270 817:0 874:75 930:180 988:0 1045:75 1118:180 1256:270
-aspect route0 @6-B0@ 0:270 872:0 930:75 1043:0 1118:75 1256:270
-aspect route0 @7-B0@ 0:270 928:0 1108:270 1113:0 1256:270
+aspect route0 @5-B0@ 0:270 817:0 874:75 930:180 988:0 1045:75 1118:180 1210:270
+aspect route0 @6-B0@ 0:270 872:0 930:75 1043:0 1118:75 1210:270
+aspect route0 @7-B0@ 0:270 928:0 1108:270 1113:0 1210:270
 result F2-1 A planned_arr=n/a planned_dep=180.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result F2-1 B planned_arr=660.000000 planned_dep=720.000000 sim_arr=844.000000 sim_dep=904.000000 arr_delay=184.000000 dep_delay=184.000000
-result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1207.000000 sim_dep=1254.000000 arr_delay=47.000000 dep_delay=n/a
+result F2-1 C planned_arr=1160.000000 planned_dep=n/a sim_arr=1207.000000 sim_dep=1208.000000 arr_delay=47.000000 dep_delay=n/a
 result L1-1 A planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result L1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=673.000000 sim_dep=733.000000 arr_delay=73.000000 dep_delay=73.000000
 result L1-1 C planned_arr=1100.000000 planned_dep=n/a sim_arr=1006.000000 sim_dep=1106.000000 arr_delay=-94.000000 dep_delay=n/a
-run_result F2-1 start=542.000000 end=1255.000000 travel=713.000000
+run_result F2-1 start=542.000000 end=1209.000000 travel=667.000000
 run_result L1-1 start=402.000000 end=1107.000000 travel=705.000000
-network start=402.000000 end=1255.000000 travel=853.000000
+network start=402.000000 end=1209.000000 travel=807.000000
 train F2-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime F2-1 n=8 complete=8
 blocktime F2-1 @0-B0@ level=-99999999 complete=1 start_occ=541.000000 end_occ=628.000000 start_run=541.000000 end_run=623.000000 end_clear=625.000000
@@ -66,7 +64,7 @@ blocktime F2-1 @3-B0@ level=-99999999 complete=1 start_occ=704.500000 end_occ=91
 blocktime F2-1 @4-B0@ level=-99999999 complete=1 start_occ=796.500000 end_occ=992.000000 start_run=904.000000 end_run=987.000000 end_clear=989.000000
 blocktime F2-1 @5-B0@ level=-99999999 complete=1 start_occ=961.500000 end_occ=1047.000000 start_run=987.000000 end_run=1042.000000 end_clear=1044.000000
 blocktime F2-1 @6-B0@ level=-99999999 complete=1 start_occ=1012.500000 end_occ=1120.000000 start_run=1042.000000 end_run=1112.000000 end_clear=1117.000000
-blocktime F2-1 @7-B0@ level=-99999999 complete=1 start_occ=1068.500000 end_occ=1257.000000 start_run=1112.000000 end_run=1254.000000 end_clear=1254.000000
+blocktime F2-1 @7-B0@ level=-99999999 complete=1 start_occ=1068.500000 end_occ=1211.000000 start_run=1112.000000 end_run=1208.000000 end_clear=1208.000000
 train L1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime L1-1 n=8 complete=8
 blocktime L1-1 @0-B0@ level=-99999999 complete=1 start_occ=401.000000 end_occ=488.000000 start_run=401.000000 end_run=483.000000 end_clear=485.000000

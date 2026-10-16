@@ -19,7 +19,7 @@ train R1-1 sample t=660 x=7999.999900 v=0.000000
 train R1-1 sample t=661 x=8000.000100 v=0.000100
 train R1-1 stop t_first=331 t_last=661 x=7999.998000 dwell=330
 train R1-1 braking t=286 x=7222.416060 v=36.111111 stop_t=331
-train S1-1 active start=63 end=1264
+train S1-1 active start=63 end=1218
 train S1-1 sample t=63 x=0.615074 v=1.230149
 train S1-1 sample t=123 x=627.247841 v=11.111000
 train S1-1 sample t=183 x=1293.907841 v=11.111000
@@ -40,27 +40,24 @@ train S1-1 sample t=1023 x=5949.437879 v=11.111000
 train S1-1 sample t=1083 x=6616.097879 v=11.111000
 train S1-1 sample t=1143 x=7282.757879 v=11.111000
 train S1-1 sample t=1203 x=7947.168024 v=9.584282
-train S1-1 sample t=1263 x=7999.999900 v=0.000000
-train S1-1 sample t=1264 x=8000.000100 v=0.000100
+train S1-1 sample t=1218 x=8000.000100 v=0.000100
 train S1-1 stop t_first=255 t_last=663 x=1999.998000 dwell=408
 train S1-1 braking t=240 x=1927.234841 v=11.111000 stop_t=255
-train S1-1 stop t_first=1216 t_last=1264 x=7999.998000 dwell=48
-train S1-1 braking t=1201 x=7927.195879 v=11.111000 stop_t=1216
-aspect routeAB @0-B0@ 0:270 63:0 674:751 854:75 1034:180 1264:270
-aspect routeAB @1-B0@ 0:270 68:751 662:270 663:0 854:751 1034:75 1264:270
-aspect routeAB @2-B0@ 0:270 68:0 662:270 848:0 1034:751 1264:270
-aspect routeAB @3-B0@ 0:270 68:0 662:270 1028:0 1264:270
-aspect routeCB @7-B0@ 0:270 60:0 144:751 199:75 255:180 661:270 662:75 1265:270
-aspect routeCB @6-B0@ 0:270 142:0 199:751 255:75 661:270 662:751 1265:270
-aspect routeCB @5-B0@ 0:270 197:0 255:751 661:270 662:0 1265:270
-aspect routeCB @4-B0@ 0:270 253:0 661:270 662:0 1265:270
+aspect routeAB @0-B0@ 0:270 63:0 674:751 854:75 1034:180 1218:270
+aspect routeAB @1-B0@ 0:270 68:751 662:270 663:0 854:751 1034:75 1218:270
+aspect routeAB @2-B0@ 0:270 68:0 662:270 848:0 1034:751 1218:270
+aspect routeAB @3-B0@ 0:270 68:0 662:270 1028:0 1218:270
+aspect routeCB @7-B0@ 0:270 60:0 144:751 199:75 255:180 661:270 662:75 1219:270
+aspect routeCB @6-B0@ 0:270 142:0 199:751 255:75 661:270 662:751 1219:270
+aspect routeCB @5-B0@ 0:270 197:0 255:751 661:270 662:0 1219:270
+aspect routeCB @4-B0@ 0:270 253:0 661:270 662:0 1219:270
 result R1-1 C planned_arr=n/a planned_dep=120.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
 result R1-1 B planned_arr=600.000000 planned_dep=660.000000 sim_arr=331.000000 sim_dep=660.000000 arr_delay=-269.000000 dep_delay=0.000000
 result S1-1 A planned_arr=n/a planned_dep=123.000000 sim_arr=n/a sim_dep=n/a arr_delay=n/a dep_delay=n/a
-result S1-1 B planned_arr=603.000000 planned_dep=n/a sim_arr=1216.000000 sim_dep=1263.000000 arr_delay=613.000000 dep_delay=n/a
+result S1-1 B planned_arr=603.000000 planned_dep=n/a sim_arr=1216.000000 sim_dep=1217.000000 arr_delay=613.000000 dep_delay=n/a
 run_result R1-1 start=60.000000 end=661.000000 travel=601.000000
-run_result S1-1 start=63.000000 end=1264.000000 travel=1201.000000
-network start=60.000000 end=1264.000000 travel=1204.000000
+run_result S1-1 start=63.000000 end=1218.000000 travel=1155.000000
+network start=60.000000 end=1218.000000 travel=1158.000000
 train R1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000
 blocktime R1-1 n=0 complete=0
 train S1-1 direct_incident count=0 ids=- first_time=-1.000000 first_location=-1.000000

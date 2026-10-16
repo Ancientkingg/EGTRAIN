@@ -1476,9 +1476,22 @@ static bool brakingPhaseTests() {
 		ok &= expect(service.Eq[2] == 5 && service.StoppedForServiceStop && service.Stations[station].StepStopped == 1
 				&& service.stop == 2 && service.instant_train_speed[2] == 0,
 			"zero-authored dwell retains first service entry for the post-movement passenger initializer");
-		std::list<Passenger> passengers;
-		std::list<StationPlatform> platforms;
+		// One passenger boards, so the passenger phase sets a dwell.
+		Passenger boarding;
+		boarding.ID = "boarding";
+		boarding.CurrentStatus = "OnPlatform";
+		boarding.Current_Train_To_Wait = service.trainDescription;
+		boarding.Current_WaitingStationID = service.Stations[station].stationName;
+		std::list<Passenger> passengers{boarding};
+		StationPlatform platform;
+		platform.StationID = service.Stations[station].stationName;
+		platform.ID = service.Stations[station].stationPlatformId;
+		platform.Current_List_Pax_On_Platform = {{boarding.ID, 0.0}};
+		std::list<StationPlatform> platforms{platform};
+		const bool savedPaxGui = initial_variables.PAX_GUI;
+		initial_variables.PAX_GUI = true;
 		Simulate_Train_Passenger_Interactions(2, initial_variables.startingSimulationTime, service, passengers, platforms);
+		initial_variables.PAX_GUI = savedPaxGui;
 		ok &= expect(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
 		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
 		ok &= expect(service.StoppedForServiceStop && service.instant_train_speed[3] == 0 && service.stop == 2,
