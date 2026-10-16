@@ -1308,19 +1308,22 @@ most of its checks, so run it locally to read its logs.
 - `main` is the validation branch. Pull requests build the project and run
   the whole CTest suite, in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
-  documentation filters. The same checks run on `main` once a night (02:17 UTC)
+  documentation rule below. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
-  ignore the filters, and both also start the [leak check](#leak-check) on Linux.
+  always build, and both also start the [leak check](#leak-check) on Linux.
   A push to `main` starts no run. A scheduled workflow runs
   on the default branch only, and GitHub pauses schedules in a repository
   without activity for 60 days. The three legs run independently
-  (`fail-fast: false`) and share the same filters. A newer push to a pull
+  (`fail-fast: false`) and follow the same rule. A newer push to a pull
   request cancels its running checks; a scheduled or manual run is never
   cancelled. After the tests, the Windows leg also makes the request of the
   [HTTPS update check](#https-update-check) in a step of its own. A failed leg
   uploads `ctest.log` and the GUI autostart log as an artifact named after the
-  leg. Do not make any of these legs a required check; see the
-  branch-protection note below.
+  leg. Do not make any of these legs a required check; `main` requires the
+  result checks described below.
+- The format check (`format.yml`) runs `tools/format.py` for a pull request to
+  `main` that changes `EGTRAIN/QEGTRAIN/`, `.clang-format`, `.clang-format-ignore`,
+  `tools/format.py` or `format.yml`, and when started by hand.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
@@ -1500,20 +1503,39 @@ most of its checks, so run it locally to read its logs.
 - Releases remain drafts until every package and scene bundle is uploaded.
   Stable production releases then appear in the application's update checks.
 
-Automatic pull requests to `main` and pushes and pull requests to `production`
-skip their workflows when changes are limited to Markdown files (`**.md`),
-`docs/`, the root `LICENSE`, or `.github/ISSUE_TEMPLATE/`. Mixed changes still run the full
-workflow, as do changes to source, tests, scenes, build settings, or workflows.
-The package check is the exception on `main`: for a pull request it runs only
-for the packaging inputs listed above.
+Pushes and pull requests to `production` skip the release workflow when changes
+are limited to Markdown files (`**.md`), `docs/`, the root `LICENSE`, or
+`.github/ISSUE_TEMPLATE/`. Mixed changes still run the full workflow, as do
+changes to source, tests, scenes, build settings, or workflows.
 Documentation-only production pushes do not publish a new release. Updated
 packaged guides ship with the next release; `v*` tags and manual release runs
 are not filtered by changed paths.
 
-Do not require these path-filtered workflows, the package check included, as
-branch-protection checks:
-GitHub leaves skipped required workflows pending, which would block
-documentation-only pull requests.
+### Required checks on `main`
+
+Every pull request to `main` starts the CMake, Format and Package check
+workflows; their triggers have no path filter. The first job of each, `changes`,
+compares the files of the pull request with the rule of the workflow, and the
+real jobs skip when the rule selects nothing:
+
+- CMake builds unless every changed file is a Markdown file (`**.md`), under
+  `docs/` or `.github/ISSUE_TEMPLATE/`, or the root `LICENSE`.
+- Format runs for the files of the format check, listed above.
+- The package check runs its jobs for the packaging inputs, listed above.
+
+A nightly or manual run always does its jobs. The condition of a job is
+evaluated before its matrix is expanded, so a skipped `build` job would be
+listed as `build (${{ matrix.name }})`. The three legs of the CMake workflow
+therefore always start, and their steps skip.
+
+The last job of each workflow reports one check: `CMake result`, `Format result`
+or `Package check result`. It runs whatever the other jobs did, fails when any of
+them failed or was cancelled, and succeeds when they succeeded or were skipped.
+A documentation-only pull request gets three successful result checks without a
+build. `main` requires these three checks and no others, so a pull request can
+merge automatically when they are green. Do not require the build legs, the
+format job or the package jobs: a required check that no run reports under its
+own name leaves the pull request waiting forever.
 
 ### Release assets script
 

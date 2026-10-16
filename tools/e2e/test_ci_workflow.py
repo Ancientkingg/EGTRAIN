@@ -1,10 +1,73 @@
 #!/usr/bin/env python3
+import fnmatch
+import itertools
 import re
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+# The path rules that decide which workflows start, in the filter syntax of GitHub, where * stays within a directory and
+# ** crosses directories. The CMake workflow skips a pull request that changes only these files. The production release
+# workflow still skips on them as a trigger filter.
+DOCUMENTATION_PATHS = ["**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"]
+# The format workflow runs for a pull request that changes one of these files.
+FORMAT_PATHS = [
+    "EGTRAIN/QEGTRAIN/**",
+    ".clang-format",
+    ".clang-format-ignore",
+    "tools/format.py",
+    ".github/workflows/format.yml",
+]
+# The package check runs for a pull request that changes one of these files.
+PACKAGE_CHECK_PATHS = [
+    ".github/workflows/package-check.yml",
+    ".github/workflows/package.yml",
+    ".github/workflows/release.yml",
+    "tools/release/**",
+    "installer/**",
+    "Info.plist.in",
+    "EGTRAIN/QEGTRAIN/update/**",
+    "EGTRAIN/QEGTRAIN/app/main.cpp",
+]
+# Paths on both sides of every rule above.
+RULE_SAMPLES = [
+    "README.md",
+    ".hidden.md",
+    "notes.mdx",
+    "sub/dir/guide.md",
+    "docs/a.png",
+    "docs/x/y.txt",
+    "LICENSE",
+    "LICENSE.txt",
+    "sub/LICENSE",
+    ".github/ISSUE_TEMPLATE/bug.yml",
+    ".github/workflows/cmake.yml",
+    ".github/workflows/format.yml",
+    ".github/workflows/package.yml",
+    ".github/workflows/package-check.yml",
+    ".github/workflows/release.yml",
+    "CMakeLists.txt",
+    "EGTRAIN/QEGTRAIN/a.cpp",
+    "EGTRAIN/QEGTRAIN/scene/b.h",
+    "EGTRAIN/QEGTRAIN/notes.md",
+    "EGTRAIN/QEGTRAIN/update/u.cpp",
+    "EGTRAIN/QEGTRAIN/app/main.cpp",
+    "EGTRAIN/QEGTRAIN/app/other.cpp",
+    ".clang-format",
+    ".clang-format-ignore",
+    ".clang-format.bak",
+    "tools/format.py",
+    "tools/format.pyc",
+    "tools/release/version.py",
+    "tools/release/x/y.sh",
+    "tools/e2e/test_ci_workflow.py",
+    "installer/a.iss",
+    "installer/x/y.iss",
+    "Info.plist.in",
+    "sub/Info.plist.in",
+]
 
 
 def workflow_text(name: str) -> str:
@@ -37,6 +100,148 @@ def job_block(text: str, job: str) -> str:
 
 def step_block(job: str, name: str) -> str:
     return next((block for block in job.split("\n      - ") if block.startswith(f"name: {name}\n")), "")
+
+
+def filter_regex(pattern: str) -> "re.Pattern[str]":
+    regex = ""
+    index = 0
+    while index < len(pattern):
+        if pattern.startswith("**", index):
+            regex += ".*"
+            index += 2
+        elif pattern[index] == "*":
+            regex += "[^/]*"
+            index += 1
+        else:
+            regex += re.escape(pattern[index])
+            index += 1
+    return re.compile(regex + r"\Z")
+
+
+def runs_by_filter(files: list[str], patterns: list[str], ignore: bool) -> bool:
+    """Whether GitHub starts a workflow for a pull request that changes the files: it starts unless every file matches
+    a paths-ignore pattern, or when a file matches a paths pattern."""
+    matches = [any(filter_regex(pattern).match(file) for pattern in patterns) for file in files]
+    return not all(matches) if ignore else any(matches)
+
+
+def case_branches(job: str) -> list[tuple[str, str]]:
+    """The pattern and the action of each branch of the case statement that reads the changed files."""
+    body = job.split('case "$file" in\n', 1)[-1].split("esac", 1)[0]
+    branches = re.findall(r"^ +(\S+)\) ([^;\n]*?) ?;;$", body, re.MULTILINE)
+    return branches if len(branches) == len(body.strip().splitlines()) else []
+
+
+def selects(branches: list[tuple[str, str]], files: list[str], action: str) -> bool:
+    """Whether the first matching branch of any file takes the action. A case pattern matches a slash with *."""
+    for file in files:
+        for pattern, branch_action in branches:
+            if fnmatch.fnmatchcase(file, pattern):
+                if branch_action == action:
+                    return True
+                break
+    return False
+
+
+def result_job_problems(text: str, name: str) -> list[str]:
+    """The last job of a pull request workflow reports the result of all other jobs under a fixed name."""
+    ids = job_ids(text)
+    job = job_block(text, "result")
+    needs = re.findall(r"^    needs: \[(.+)\]$", job, re.MULTILINE)
+    steps = re.findall(r"^      - name: (.+)$", job, re.MULTILINE)
+    fail_step = step_block(job, "Fail when a job failed or was cancelled")
+    problems = []
+    if not ids or ids[-1] != "result" or ids.count("result") != 1:
+        problems.append(f"{name} as the last job")
+    if f"    name: {name}\n" not in job or "    if: always()\n" not in job:
+        problems.append(f"{name} that always runs")
+    if len(needs) != 1 or needs[0].split(", ") != ids[:-1]:
+        problems.append(f"{name} that needs every other job")
+    if (
+        steps != ["Fail when a job failed or was cancelled"]
+        or "        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')\n" not in fail_step
+        or "        run: exit 1\n" not in fail_step
+    ):
+        problems.append(f"{name} that fails when a needed job failed or was cancelled")
+    return problems
+
+
+def required_result_problems(workflow: str, format_workflow: str, package_check: str) -> list[str]:
+    """Every pull request to main starts the CMake, Format and Package check workflows, and each reports one result job
+    that main can require. The path rules that the triggers had decide in a first job whether the other jobs work."""
+    problems = []
+    for name, text, label in (
+        ("CMake", workflow, "CMake result"),
+        ("Format", format_workflow, "Format result"),
+        ("Package check", package_check, "Package check result"),
+    ):
+        trigger = trigger_block(text)
+        pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", trigger, re.MULTILINE)
+        if "paths" in trigger or not pull_request or pull_request.group(1) != "    branches: [main]\n":
+            problems.append(f"{name} starting for every pull request to main, without a path filter")
+        problems.extend(result_job_problems(text, label))
+        changes = job_block(text, "changes")
+        if (
+            "    runs-on: ubuntu-latest\n" not in changes
+            or "          fetch-depth: 2\n" not in changes
+            or 'if [ "$GITHUB_EVENT_NAME" = pull_request ]; then\n' not in changes
+            or "files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)\n" not in changes
+        ):
+            problems.append(f"{name} changes job that reads the files of a pull request and selects the other events without a diff")
+
+    # CMake: the build job needs the changes job, and every step but the failure upload checks its output. A skipped matrix
+    # job would be listed under its unexpanded name, so the legs start and their steps skip.
+    gate = "needs.changes.outputs.build == 'true'"
+    build_job = job_block(workflow, "build")
+    ungated = []
+    for block in build_job.split("\n      - ")[1:]:
+        conditions = re.findall(r"^        if: (.+)$", block, re.MULTILINE)
+        if not block.startswith("name: Upload failure diagnostics\n") and not any(
+            condition == gate or condition.startswith(gate + " && ") for condition in conditions
+        ):
+            ungated.append(block.split("\n", 1)[0])
+    if "    needs: changes\n" not in build_job or ungated:
+        problems.append("CMake build job after the changes job, with every step but the failure upload checking its output")
+    changes = job_block(workflow, "changes")
+    if "      build: ${{ steps.select.outputs.build }}\n" not in changes or 'echo "build=$build" >> "$GITHUB_OUTPUT"\n' not in changes:
+        problems.append("CMake changes job with the output build")
+    if "build=true\n          if [" not in changes:
+        problems.append("CMake build for every event but a pull request")
+    cmake_branches = case_branches(changes)
+    if cmake_branches[-1:] != [("*", "build=true")] or any(action for _, action in cmake_branches[:-1]):
+        problems.append("CMake build for every file that no documentation pattern matches")
+    # Format and the package check: one job waits for the changes job and checks its output. The package check skips only the
+    # version job, and the package and release assets jobs follow it.
+    format_job = job_block(format_workflow, "check")
+    if "    name: format\n    needs: changes\n    if: needs.changes.outputs.format == 'true'\n" not in format_job:
+        problems.append("format job after the changes job, checking its output")
+    format_changes = job_block(format_workflow, "changes")
+    if "      format: ${{ steps.select.outputs.format }}\n" not in format_changes or "format=true\n          if [" not in format_changes:
+        problems.append("format changes job with the output format, true for every event but a pull request")
+    package_version = job_block(package_check, "version")
+    if "    name: Select application version\n    needs: changes\n    if: needs.changes.outputs.package == 'true'\n" not in package_version:
+        problems.append("package check version job after the changes job, checking its output")
+    package_changes = job_block(package_check, "changes")
+    if "      package: ${{ steps.select.outputs.package }}\n" not in package_changes or "package=true\n          if [" not in package_changes:
+        problems.append("package check changes job with the output package, true for every event but a pull request")
+
+    # The case patterns select the same pull requests as the filters did: on every file and every pair of files of the samples.
+    format_branches = case_branches(format_changes)
+    package_branches = case_branches(package_changes)
+    if not cmake_branches or not format_branches or not package_branches:
+        problems.append("changes jobs with a case statement of one pattern for each branch")
+    if any(action != "format=true" for _, action in format_branches) or any(action != "package=true" for _, action in package_branches):
+        problems.append("format and package check changes jobs whose patterns only select")
+    sets = [[sample] for sample in RULE_SAMPLES] + [list(pair) for pair in itertools.combinations(RULE_SAMPLES, 2)]
+    for files in sets:
+        for label, selected, expected in (
+            ("CMake", selects(cmake_branches, files, "build=true"), runs_by_filter(files, DOCUMENTATION_PATHS, ignore=True)),
+            ("Format", selects(format_branches, files, "format=true"), runs_by_filter(files, FORMAT_PATHS, ignore=False)),
+            ("Package check", selects(package_branches, files, "package=true"), runs_by_filter(files, PACKAGE_CHECK_PATHS, ignore=False)),
+        ):
+            if selected != expected:
+                problems.append(f"{label} jobs that run for {files} as the path filter did ({expected})")
+    return problems
 
 
 def main() -> None:
@@ -167,6 +372,7 @@ def main() -> None:
         missing.append("only a newer push to a pull request cancels a run")
     if "paths:" in validation_trigger:
         missing.append("main validation must not use a code allowlist")
+    missing.extend(required_result_problems(workflow, format_workflow, package_check))
     release_trigger = release_only.split("\njobs:", 1)[0]
     if not re.search(r"push:\n\s+branches:\n\s+- production\n", release_trigger):
         missing.append("production release trigger")
@@ -174,11 +380,8 @@ def main() -> None:
         missing.append("production pull request validation trigger")
     if "paths:" in release_trigger:
         missing.append("production release must not use a code allowlist")
-    expected_ignored_paths = {"**.md", "docs/**", "LICENSE", ".github/ISSUE_TEMPLATE/**"}
-    for name, trigger, events in (
-        ("main", validation_trigger, ("pull_request",)),
-        ("production", release_trigger, ("push", "pull_request")),
-    ):
+    expected_ignored_paths = set(DOCUMENTATION_PATHS)
+    for name, trigger, events in (("production", release_trigger, ("push", "pull_request")),):
         for event in events:
             event_match = re.search(
                 rf"^  {event}:\n((?:    .*\n|\n)*)", trigger, re.MULTILINE
@@ -445,7 +648,7 @@ def main() -> None:
         or "          variant: ${{ matrix.cache }}\n" not in compiler_cache
         or f"          key: ${{{{ matrix.name }}}}{image_key}\n" not in compiler_cache
         or "          restore-keys: |\n            ${{ matrix.name }}\n" not in compiler_cache
-        or "        if:" in compiler_cache
+        or re.findall(r"^        if: (.+)$", compiler_cache, re.MULTILINE) != ["needs.changes.outputs.build == 'true'"]
         or any(launcher_flags not in step_block(build_job, name) for name in configure_names)
         or "Set up compiler cache" not in build_step_names
         or build_step_names.index("Identify the runner image") > build_step_names.index("Set up compiler cache")
@@ -523,7 +726,7 @@ def main() -> None:
         workflow.count("-DEGTRAIN_NETWORK_TESTS=ON") != 1
         or "-DEGTRAIN_NETWORK_TESTS=ON" not in step_block(build_job, "Configure (Windows)")
         or "-LE network" not in test_step
-        or "if: runner.os == 'Windows'\n" not in https_step
+        or "if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'\n" not in https_step
         or "        run: ctest --test-dir build -C Release -L network --no-tests=error --output-on-failure\n" not in https_step
         or "Check HTTPS (Windows)" not in build_step_names
         or build_step_names.index("Test") > build_step_names.index("Check HTTPS (Windows)")
@@ -1370,25 +1573,9 @@ def main() -> None:
         or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_sign_macos\b", cmake)
     ):
         missing.append("signing script test registered in CTest on macOS only, with the integration label")
-    package_check_paths = (
-        ".github/workflows/package-check.yml",
-        ".github/workflows/package.yml",
-        ".github/workflows/release.yml",
-        "tools/release/**",
-        "installer/**",
-        "Info.plist.in",
-        "EGTRAIN/QEGTRAIN/update/**",
-        "EGTRAIN/QEGTRAIN/app/main.cpp",
-    )
     package_check_trigger = trigger_block(package_check)
-    package_check_pull_request = re.search(r"^  pull_request:\n((?:    .*\n)*)", package_check_trigger, re.MULTILINE)
-    if (
-        trigger_events(package_check) != ["pull_request", "schedule", "workflow_dispatch"]
-        or not package_check_pull_request
-        or package_check_pull_request.group(1)
-        != "    branches: [main]\n    paths:\n" + "".join(f"      - '{path}'\n" for path in package_check_paths)
-    ):
-        missing.append("package check starts on pull requests to main only for a packaging input, and never for a push")
+    if trigger_events(package_check) != ["pull_request", "schedule", "workflow_dispatch"]:
+        missing.append("package check starts on pull requests to main, nightly and by hand, and never for a push")
     package_check_nightly = re.search(
         r"^  schedule:\n    - cron: '(\d+) (\d+) \* \* \*'\n(?!    -)", package_check_trigger, re.MULTILINE
     )
@@ -1410,10 +1597,14 @@ def main() -> None:
         "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
     ):
         missing.append("package check replaces only the older run of the same pull request")
-    if job_ids(package_check) != ["version", "package", "release-assets"]:
-        missing.append("package check jobs: version, package, release-assets")
+    if job_ids(package_check) != ["changes", "version", "package", "release-assets", "result"]:
+        missing.append("package check jobs: changes, version, package, release-assets, result")
+    # The version job is the one of the release workflow. It waits for the changes job and skips with it, and the package and
+    # release assets jobs skip with the version job.
+    version_gate = "    needs: changes\n    if: needs.changes.outputs.package == 'true'\n"
     if (
-        job_block(package_check, "version") != job_block(release_only, "version")
+        job_block(package_check, "version").replace(version_gate, "", 1) != job_block(release_only, "version")
+        or "    name: Select application version\n" + version_gate not in job_block(package_check, "version")
         or "run: python3 tools/release/version.py\n" not in package_check
     ):
         missing.append("package check selects the version with the script and job of the release workflow")

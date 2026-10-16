@@ -7,17 +7,8 @@ name: Package check
 on:
   pull_request:
     branches: [main]
-    paths:
-      - '.github/workflows/package-check.yml'
-      - '.github/workflows/package.yml'
-      - '.github/workflows/release.yml'
-      - 'tools/release/**'
-      - 'installer/**'
-      - 'Info.plist.in'
-      - 'EGTRAIN/QEGTRAIN/update/**'
-      - 'EGTRAIN/QEGTRAIN/app/main.cpp'
   # One run a night on main covers changes that reach the packages through other files, such as the
-  # root CMakeLists.txt. A scheduled run uses the default branch and ignores the path filter.
+  # root CMakeLists.txt. A scheduled run uses the default branch.
   schedule:
     - cron: '47 3 * * *'
   workflow_dispatch:
@@ -32,8 +23,47 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Every pull request to main starts this workflow, so that the result job below always reports and main can require
+  # it. The packages build for a pull request that changes a packaging input, and for a nightly or manual run.
+  changes:
+    name: Select the package jobs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      package: ${{ steps.select.outputs.package }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # The merge commit of a pull request has the base branch as its first parent. A failure here fails the job.
+      - name: Select the package jobs from the changed files
+        id: select
+        run: |
+          package=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git -c core.quotepath=false diff --name-only --no-renames HEAD^1 HEAD)
+            package=false
+            while IFS= read -r file; do
+              case "$file" in
+                .github/workflows/package-check.yml) package=true ;;
+                .github/workflows/package.yml) package=true ;;
+                .github/workflows/release.yml) package=true ;;
+                tools/release/*) package=true ;;
+                installer/*) package=true ;;
+                Info.plist.in) package=true ;;
+                EGTRAIN/QEGTRAIN/update/*) package=true ;;
+                EGTRAIN/QEGTRAIN/app/main.cpp) package=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+
+  # The package and release assets jobs follow this job, so a skipped version job skips them too.
   version:
     name: Select application version
+    needs: changes
+    if: needs.changes.outputs.package == 'true'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -78,3 +108,15 @@ jobs:
 
       - name: List the release assets
         run: ls -l release-assets
+
+  # The one check that main requires. It succeeds when every job above succeeded or was skipped.
+  result:
+    name: Package check result
+    if: always()
+    needs: [changes, version, package, release-assets]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail when a job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
