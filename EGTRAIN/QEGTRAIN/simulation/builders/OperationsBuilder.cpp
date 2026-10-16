@@ -276,6 +276,8 @@ void prepareNativeOperationsState() {
 		orderList = OrderList();
 	AllStationPlatforms.clear();
 	AllDailyPassengers.clear();
+	AllStationPlatformIndex.clear();
+	AllDailyPassengerIndex.clear();
 	simulationIncidents.clear();
 	VCmsgTimestep.clear();
 	VCmsgTrain.clear();
@@ -1132,6 +1134,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	numAllStationPlatforms = static_cast<int>(AllStationPlatforms.size());
 	AllDailyPassengers = std::move(stagedPassengers);
 	numAllDailyPassengers = static_cast<int>(AllDailyPassengers.size());
+	AllStationPlatformIndex.build(AllStationPlatforms);
+	AllDailyPassengerIndex.build(AllDailyPassengers);
 	simulationIncidents = std::move(stagedIncidents);
 	return diagnostics;
 }

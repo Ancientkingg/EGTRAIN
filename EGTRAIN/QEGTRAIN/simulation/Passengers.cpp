@@ -3,6 +3,58 @@
 
 list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
 int numAllDailyPassengers = 0;		// This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
+PassengerIndex AllDailyPassengerIndex;
+PlatformIndex AllStationPlatformIndex;
+
+void PassengerIndex::build(list<Passenger>& passengers) {
+	clear();
+	source_ = &passengers;
+	count_ = passengers.size();
+	for (Passenger& passenger : passengers)
+		byId_[passenger.ID].push_back(&passenger);
+}
+
+void PassengerIndex::clear() {
+	source_ = nullptr;
+	count_ = 0;
+	byId_.clear();
+}
+
+bool PassengerIndex::covers(const list<Passenger>& passengers) const {
+	return source_ == &passengers && count_ == passengers.size();
+}
+
+const vector<Passenger*>& PassengerIndex::find(const string& id) const {
+	static const vector<Passenger*> none;
+	const auto match = byId_.find(id);
+	return match == byId_.end() ? none : match->second;
+}
+
+void PlatformIndex::build(const list<StationPlatform>& platforms) {
+	clear();
+	source_ = &platforms;
+	count_ = platforms.size();
+	for (const StationPlatform& platform : platforms)
+		byId_[platform.StationID].emplace(platform.ID, &platform);
+}
+
+void PlatformIndex::clear() {
+	source_ = nullptr;
+	count_ = 0;
+	byId_.clear();
+}
+
+bool PlatformIndex::covers(const list<StationPlatform>& platforms) const {
+	return source_ == &platforms && count_ == platforms.size();
+}
+
+const StationPlatform* PlatformIndex::find(const string& stationId, const string& platformId) const {
+	const auto station = byId_.find(stationId);
+	if (station == byId_.end())
+		return nullptr;
+	const auto platform = station->second.find(platformId);
+	return platform == station->second.end() ? nullptr : platform->second;
+}
 
 nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep) {
 	nlohmann::json payload = {{"passengers", nlohmann::json::object()}, {"time", timestep}};

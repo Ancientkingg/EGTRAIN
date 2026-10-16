@@ -4,6 +4,8 @@
 #include "simulation/Infrastructure.h"
 #include "simulation/RollingStock.h"
 #include <nlohmann/json.hpp>
+#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -87,6 +89,43 @@ public:
 // Define a global list of passengers
 extern list<Passenger> AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
 extern int numAllDailyPassengers;		   // This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
+
+// Passengers by ID, in list order, for one passenger list. The index points into the list, so it describes the list only
+// while the list keeps the same elements: a list that was cleared or replaced needs a new index.
+class PassengerIndex {
+public:
+	void build(list<Passenger>& passengers);
+	void clear();
+	// True when the index was built for this list and the list has the size it had then.
+	bool covers(const list<Passenger>& passengers) const;
+	// The passengers with this ID in list order. There are several only when an ID repeats.
+	const vector<Passenger*>& find(const string& id) const;
+
+private:
+	const list<Passenger>* source_ = nullptr;
+	size_t count_ = 0;
+	unordered_map<string, vector<Passenger*>> byId_;
+};
+
+// Station platforms by station ID and platform ID, for one platform list, with the same rules as PassengerIndex.
+class PlatformIndex {
+public:
+	void build(const list<StationPlatform>& platforms);
+	void clear();
+	bool covers(const list<StationPlatform>& platforms) const;
+	// The first platform in list order with these IDs, or null.
+	const StationPlatform* find(const string& stationId, const string& platformId) const;
+
+private:
+	const list<StationPlatform>* source_ = nullptr;
+	size_t count_ = 0;
+	unordered_map<string, unordered_map<string, const StationPlatform*>> byId_;
+};
+
+// The indexes of AllDailyPassengers and AllStationPlatforms. The operations builder builds them and the operations state
+// reset clears them.
+extern PassengerIndex AllDailyPassengerIndex;
+extern PlatformIndex AllStationPlatformIndex;
 
 void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, string MainFolder);
 

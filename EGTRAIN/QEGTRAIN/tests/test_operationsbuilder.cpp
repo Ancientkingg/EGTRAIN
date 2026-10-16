@@ -1951,6 +1951,158 @@ static bool passengerRateTests() {
 	return ok;
 }
 
+// Passengers and platforms are found by ID in list order. Boarding takes them from the shared indexes for the lists
+// those describe and from an index of its own for any other list.
+static bool passengerLookupTests() {
+	bool ok = true;
+	std::list<Passenger> passengers(4);
+	std::vector<Passenger*> order;
+	for (Passenger& passenger : passengers)
+		order.push_back(&passenger);
+	const char* const passengerIds[] = {"A", "B", "A", "C"};
+	for (std::size_t index = 0; index < order.size(); ++index)
+		order[index]->ID = passengerIds[index];
+
+	PassengerIndex passengerIndex;
+	ok &= expect(!passengerIndex.covers(passengers) && passengerIndex.find("A").empty(),
+		"a passenger index that was not built describes no list");
+	passengerIndex.build(passengers);
+	ok &= expect(passengerIndex.covers(passengers), "a passenger index describes the list it was built for");
+	ok &= expect(passengerIndex.find("A") == std::vector<Passenger*>({order[0], order[2]}),
+		"a repeated passenger ID is found in list order");
+	ok &= expect(passengerIndex.find("B") == std::vector<Passenger*>({order[1]}) && passengerIndex.find("Z").empty(),
+		"a passenger ID is found once and an unknown one not at all");
+	const std::list<Passenger> passengerCopy = passengers;
+	ok &= expect(!passengerIndex.covers(passengerCopy), "a passenger index does not describe a copy of its list");
+	passengers.emplace_back();
+	ok &= expect(!passengerIndex.covers(passengers), "a passenger index does not describe a list that grew");
+	passengerIndex.clear();
+	ok &= expect(!passengerIndex.covers(passengers) && passengerIndex.find("A").empty(),
+		"a cleared passenger index describes no list");
+
+	std::list<StationPlatform> platforms(4);
+	std::vector<const StationPlatform*> platformOrder;
+	for (const StationPlatform& platform : platforms)
+		platformOrder.push_back(&platform);
+	const char* const platformStations[] = {"S1", "S1", "S1", "S2"};
+	const char* const platformIds[] = {"P1", "P2", "P1", "P1"};
+	{
+		std::size_t index = 0;
+		for (StationPlatform& platform : platforms) {
+			platform.StationID = platformStations[index];
+			platform.ID = platformIds[index];
+			++index;
+		}
+	}
+	PlatformIndex platformIndex;
+	ok &= expect(!platformIndex.covers(platforms) && platformIndex.find("S1", "P1") == nullptr,
+		"a platform index that was not built describes no list");
+	platformIndex.build(platforms);
+	ok &= expect(platformIndex.covers(platforms), "a platform index describes the list it was built for");
+	ok &= expect(platformIndex.find("S1", "P1") == platformOrder[0] && platformIndex.find("S1", "P2") == platformOrder[1]
+			&& platformIndex.find("S2", "P1") == platformOrder[3],
+		"a platform is found by station and platform ID, the first one when the IDs repeat");
+	ok &= expect(platformIndex.find("S2", "P2") == nullptr && platformIndex.find("S3", "P1") == nullptr,
+		"an unknown platform is not found");
+	platforms.emplace_back();
+	ok &= expect(!platformIndex.covers(platforms), "a platform index does not describe a list that grew");
+	platformIndex.clear();
+	ok &= expect(!platformIndex.covers(platforms) && platformIndex.find("S1", "P1") == nullptr,
+		"a cleared platform index describes no list");
+
+	// Boarding at platform S1 P1 of the global lists, where the waiting list names Pb before Pa.
+	std::list<Passenger> savedPassengers;
+	savedPassengers.swap(AllDailyPassengers);
+	std::list<StationPlatform> savedPlatforms;
+	savedPlatforms.swap(AllStationPlatforms);
+	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
+	const PlatformIndex savedPlatformIndex = AllStationPlatformIndex;
+	const bool savedPaxGui = initial_variables.PAX_GUI;
+	initial_variables.PAX_GUI = true;
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+
+	const auto waiting = [](const std::string& id) {
+		Passenger passenger;
+		passenger.ID = id;
+		passenger.CurrentStatus = "OnPlatform";
+		passenger.Current_Train_To_Wait = "T1";
+		passenger.Current_WaitingStationID = "S1";
+		return passenger;
+	};
+	const auto boardedIds = [](const std::list<Passenger>& everyone) {
+		std::string boarded;
+		for (const Passenger& passenger : everyone)
+			if (passenger.CurrentStatus == "OnBoard")
+				boarded += passenger.ID + " ";
+		return boarded;
+	};
+	Train train;
+	train.StoppedForServiceStop = true;
+	train.trainDescription = "T1";
+	train.CurrentServiceStop = "S1";
+	train.CurrentServiceStopPlatform = "P1";
+	const auto board = [&train](int capacity, std::list<Passenger>& everyone, const std::list<StationPlatform>& everyPlatform) {
+		train.MAX_OnBoard_Passengers = capacity;
+		train.Current_OnBoard_Passengers = 0;
+		Simulate_Train_Passenger_Interactions(10, 0, train, everyone, everyPlatform);
+	};
+	StationPlatform stop;
+	stop.StationID = "S1";
+	stop.ID = "P1";
+	stop.Current_List_Pax_On_Platform = {{"Pb", 0.0}, {"Pa", 0.0}};
+	AllStationPlatforms.push_back(stop);
+	AllStationPlatformIndex.build(AllStationPlatforms);
+
+	AllDailyPassengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
+	AllDailyPassengerIndex.build(AllDailyPassengers);
+	board(1, AllDailyPassengers, AllStationPlatforms);
+	ok &= expect(boardedIds(AllDailyPassengers) == "Pb ", "passengers board in the order of the waiting list");
+	AllDailyPassengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
+	AllDailyPassengerIndex.build(AllDailyPassengers);
+	board(2, AllDailyPassengers, AllStationPlatforms);
+	ok &= expect(boardedIds(AllDailyPassengers) == "Pa Pb ", "of two passengers with one ID the first in the list boards");
+
+	// A passenger added after the index was built still boards: the shared index no longer describes the list.
+	AllDailyPassengers = {waiting("Pa"), waiting("Pb")};
+	AllDailyPassengerIndex.build(AllDailyPassengers);
+	AllDailyPassengers.push_back(waiting("Pc"));
+	AllStationPlatforms.front().Current_List_Pax_On_Platform = {{"Pc", 0.0}};
+	board(2, AllDailyPassengers, AllStationPlatforms);
+	ok &= expect(boardedIds(AllDailyPassengers) == "Pc ", "a passenger added after the index was built boards");
+
+	// Another list of the same size as the global one is not looked up in the global index.
+	AllDailyPassengers = {waiting("Pa"), waiting("Pb")};
+	AllDailyPassengerIndex.build(AllDailyPassengers);
+	AllStationPlatforms.front().Current_List_Pax_On_Platform = {{"Pb", 0.0}};
+	std::list<Passenger> others = {waiting("Pb"), waiting("Pa")};
+	board(2, others, AllStationPlatforms);
+	ok &= expect(boardedIds(others) == "Pb " && boardedIds(AllDailyPassengers).empty(),
+		"a passenger list that is not the global one is looked up in its own index");
+
+	// The same holds for a platform list.
+	StationPlatform otherStop = stop;
+	otherStop.Current_List_Pax_On_Platform = {{"Pa", 0.0}};
+	const std::list<StationPlatform> otherPlatforms = {otherStop};
+	others = {waiting("Pb"), waiting("Pa")};
+	board(2, others, otherPlatforms);
+	ok &= expect(boardedIds(others) == "Pa ", "a platform list that is not the global one is looked up in its own index");
+
+	// A train at a platform that does not exist boards nobody.
+	others = {waiting("Pb"), waiting("Pa")};
+	train.CurrentServiceStopPlatform = "P9";
+	board(2, others, AllStationPlatforms);
+	ok &= expect(boardedIds(others).empty() && train.Current_OnBoard_Passengers == 0,
+		"a train at an unknown platform boards nobody");
+
+	eglog::setSink({});
+	initial_variables.PAX_GUI = savedPaxGui;
+	AllDailyPassengers.swap(savedPassengers);
+	AllStationPlatforms.swap(savedPlatforms);
+	AllDailyPassengerIndex = savedPassengerIndex;
+	AllStationPlatformIndex = savedPlatformIndex;
+	return ok;
+}
+
 // Block sections of 2 km on the heap, in an array of exactly n, so that a sanitizer reports an
 // access before the first or after the last section. The speed limit and the train length are
 // the ones of the characterization line scene.
@@ -2121,6 +2273,13 @@ static bool regionalTrainStorageTests() {
 			"the train storage holds exactly the trains of the build");
 	}
 
+	// A platform list that an infrastructure build fills again to the same size is not described by the old index.
+	const auto platformCountBefore = AllStationPlatforms.size();
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(completeScene())) && AllStationPlatforms.size() == platformCountBefore
+			&& !AllStationPlatformIndex.covers(AllStationPlatforms),
+		"an infrastructure build clears the platform index");
+	ok &= expect(!hasErrors(buildTrains(2)), "train storage fixture builds again");
+
 	const Regional* const keptStorage = regional_train.data();
 	SceneModel rejected = completeScene();
 	ok &= expect(hasErrors(buildOperationsFromScene(rejected, "scenario.missing"))
@@ -2128,9 +2287,19 @@ static bool regionalTrainStorageTests() {
 			&& !regional_train[0].Stations.empty(),
 		"a rejected build leaves the train storage untouched");
 
+	ok &= expect(AllDailyPassengerIndex.covers(AllDailyPassengers) && AllStationPlatformIndex.covers(AllStationPlatforms),
+		"a build indexes the passengers and the platforms");
+	const std::size_t passengerCount = AllDailyPassengers.size();
+	const std::size_t platformCount = AllStationPlatforms.size();
 	resetNativeOperationsState();
 	ok &= expect(numRegions == 0 && regional_train.empty() && regional_train.capacity() == 0,
 		"a reset releases the train storage");
+	AllDailyPassengers.resize(passengerCount);
+	AllStationPlatforms.resize(platformCount);
+	ok &= expect(!AllDailyPassengerIndex.covers(AllDailyPassengers) && !AllStationPlatformIndex.covers(AllStationPlatforms),
+		"a reset clears the indexes of lists that are filled again to the same size");
+	AllDailyPassengers.clear();
+	AllStationPlatforms.clear();
 	return ok;
 }
 
@@ -3108,6 +3277,11 @@ int main() {
 			&& (!AllStationPlatforms.empty() && AllStationPlatforms.front().length == previousPlatformLength),
 		"unsafe platform capacity is rejected before native state publication");
 	ok &= expect(AllDailyPassengers.size() == 1, "passenger journeys are built without filesystem input");
+	ok &= expect(!AllDailyPassengers.empty() && AllDailyPassengerIndex.covers(AllDailyPassengers)
+			&& AllDailyPassengerIndex.find(AllDailyPassengers.front().ID) == std::vector<Passenger*>({&AllDailyPassengers.front()})
+			&& !AllStationPlatforms.empty() && AllStationPlatformIndex.covers(AllStationPlatforms)
+			&& AllStationPlatformIndex.find(AllStationPlatforms.front().StationID, AllStationPlatforms.front().ID) == &AllStationPlatforms.front(),
+		"the last accepted build is indexed, also after a rejected one");
 	if (!AllDailyPassengers.empty() && !AllDailyPassengers.front().Journeys.empty()) {
 		const Journey& journey = AllDailyPassengers.front().Journeys.front();
 		ok &= expect(journey.N_Trips == 2 && std::isfinite(journey.Actual_Planned_Departure_Time)
@@ -3775,6 +3949,7 @@ int main() {
 			"a stop with a planned arrival is in the signed statistics");
 	}
 	ok &= passengerRateTests();
+	ok &= passengerLookupTests();
 	ok &= brakingPointTests();
 	ok &= brakingCurveTests();
 	ok &= forwardBrakingTests();

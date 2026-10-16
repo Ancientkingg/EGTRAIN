@@ -1,5 +1,6 @@
 #include "scene/SceneModel.h"
 #include "scene/SectionInventory.h"
+#include "simulation/Passengers.h"
 #include "simulation/Signalling.h"
 #include "simulation/builders/InfrastructureBuilderInternal.h"
 #include "util/Log.h"
@@ -149,6 +150,7 @@ void nativeResetRuntime() {
 	list_of_TDS.clear();
 	InfraElementsList.clear();
 	AllStationPlatforms.clear();
+	AllStationPlatformIndex.clear();
 	singleTrackLimits.clear();
 	resetSingleTrackLocks();
 	stationBoundarySections.clear();

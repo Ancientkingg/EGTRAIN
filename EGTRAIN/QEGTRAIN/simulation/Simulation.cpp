@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cmath>
 #include <numeric>
+#include <optional>
 #include <vector>
 
 double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
@@ -328,6 +329,18 @@ void Update_List_Passengers_Waiting_At_ALL_Platforms(list<StationPlatform>& ALL_
 	}
 }
 
+namespace {
+// The shared index when it describes the list, otherwise an index of the list that lives in `own`.
+template <class Index, class List>
+const Index& indexOf(const Index& shared, List& list, std::optional<Index>& own) {
+	if (shared.covers(list))
+		return shared;
+	own.emplace();
+	own->build(list);
+	return *own;
+}
+} // namespace
+
 void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
 	// if the train is stopped for a service stop
 	if (T.StoppedForServiceStop == 1) {
@@ -461,68 +474,69 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 		}
 		// Specifying Boarding procedure
 		// Boarding procedure will follow the order at which passengers arrived at the platform
-		for (list<StationPlatform>::const_iterator PlatformIt = ALLPLATFORMS.begin(); PlatformIt != ALLPLATFORMS.end(); PlatformIt++) {
-			if ((PlatformIt->StationID == T.CurrentServiceStop) && (PlatformIt->ID == T.CurrentServiceStopPlatform)) {
-				// Boarding refreshes the waiting list and counts on a local copy; the shared platform list is not modified here
-				StationPlatform Platform = *PlatformIt;
+		std::optional<PlatformIndex> callPlatforms;
+		const StationPlatform* PlatformIt = indexOf(AllStationPlatformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
+		if (PlatformIt != nullptr) {
+			// Boarding refreshes the waiting list and counts on a local copy; the shared platform list is not modified here
+			StationPlatform Platform = *PlatformIt;
 
-				// Update the list of passengers currently waiting at the platform
-				// it would be possible to update the list of passenger waiting at the platform only when a train approaches a stop and not at every single time instant
-				// NOTE: if you want to show the list of passengers updating on the platform at every time instant then you should comment the line below and uncommnet ,hence use the function "UPdateList of Waiting PAssengers at all platforms" in the "Train_Simulation_Mixed_Signalling_With_Passengersfunction"
-				if (!initial_variables.PAX_GUI) {
-					Update_List_Passengers_Waiting_At_Platform(Platform, AllDailyPassengers);
-				}
+			// Update the list of passengers currently waiting at the platform
+			// it would be possible to update the list of passenger waiting at the platform only when a train approaches a stop and not at every single time instant
+			// NOTE: if you want to show the list of passengers updating on the platform at every time instant then you should comment the line below and uncommnet ,hence use the function "UPdateList of Waiting PAssengers at all platforms" in the "Train_Simulation_Mixed_Signalling_With_Passengersfunction"
+			if (!initial_variables.PAX_GUI) {
+				Update_List_Passengers_Waiting_At_Platform(Platform, AllDailyPassengers);
+			}
 
-				// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
-				CurrentPlatformOccupationRate = passengerOccupancyRatio(Platform.Current_N_Passengers + N_AlightPax, Platform.Max_Passenger_Volume);
+			// The current platform occupation rate is given by the total number of pax waiting at the platform + those just alighted from the train
+			CurrentPlatformOccupationRate = passengerOccupancyRatio(Platform.Current_N_Passengers + N_AlightPax, Platform.Max_Passenger_Volume);
 
-				if (Platform.Current_List_Pax_On_Platform.empty() != 1) {
-					for (list<pair<string, double>>::iterator Pax = Platform.Current_List_Pax_On_Platform.begin(); Pax != Platform.Current_List_Pax_On_Platform.end(); Pax++) {
-						for (list<Passenger>::iterator p = ALLPAX.begin(); p != ALLPAX.end(); p++) {
-							// iterating through the list of All passengers in the order in which passengers have appeared and arrived at the platform
-							// if the ID of the passenger is the same ID of the one in the listo of passengers on the platform and the passenger p needs to board the current train then
-							if ((p->ID == Pax->first) && (p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
-								// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
-								// passengers can board only if the number of onboard passengers is lower than the max capacity
-								if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
-									N_BoardedPax++;
-									T.Current_OnBoard_Passengers++;
-									p->CurrentStatus = "OnBoard";
-									p->Current_Train_Boarded = T.trainDescription;
-									p->Current_WaitingStationID = "None";
-									p->Current_WaitingStationPlatformID = "None";
-									p->Current_Train_To_Wait = "None";
+			if (Platform.Current_List_Pax_On_Platform.empty() != 1) {
+				std::optional<PassengerIndex> callPassengers;
+				const PassengerIndex& passengerIndex = indexOf(AllDailyPassengerIndex, ALLPAX, callPassengers);
+				for (list<pair<string, double>>::iterator Pax = Platform.Current_List_Pax_On_Platform.begin(); Pax != Platform.Current_List_Pax_On_Platform.end(); Pax++) {
+					for (Passenger* p : passengerIndex.find(Pax->first)) {
+						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers
+						// if the passenger p needs to board the current train then
+						if ((p->CurrentStatus == "OnPlatform") && (p->Current_Train_To_Wait == T.trainDescription) && (p->Current_WaitingStationID == T.CurrentServiceStop)) {
+							// Let the passenger having as train to wait the current train T and Waiting station the currentService Stop board the train
+							// passengers can board only if the number of onboard passengers is lower than the max capacity
+							if (T.Current_OnBoard_Passengers < T.MAX_OnBoard_Passengers) {
+								N_BoardedPax++;
+								T.Current_OnBoard_Passengers++;
+								p->CurrentStatus = "OnBoard";
+								p->Current_Train_Boarded = T.trainDescription;
+								p->Current_WaitingStationID = "None";
+								p->Current_WaitingStationPlatformID = "None";
+								p->Current_Train_To_Wait = "None";
 
-									if (p->Journeys.empty() != 1) {
-										for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
-											if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) {
-												list<Trip>::iterator currenttrip = j->Trips.begin();
-												while (currenttrip != j->Trips.end()) {
-													if (currenttrip->TripID == p->current_TripID) {
+								if (p->Journeys.empty() != 1) {
+									for (list<Journey>::iterator j = p->Journeys.begin(); j != p->Journeys.end(); j++) {
+										if ((j->ID == p->current_JourneyID) && (j->IsJourneyCompleted == 0)) {
+											list<Trip>::iterator currenttrip = j->Trips.begin();
+											while (currenttrip != j->Trips.end()) {
+												if (currenttrip->TripID == p->current_TripID) {
 
-														int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
-														j->Waitingtime = j->Waitingtime + Waiting_Time;
-														break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
-													}
-													currenttrip++; // advance the current trip iterator by one.
+													int Waiting_Time = t + SimulationStartingTime - currenttrip->Actual_Departure_Time;
+													j->Waitingtime = j->Waitingtime + Waiting_Time;
+													break; // when the waiting time has been set for the correct journey and trip it is possible to break the while loop over the trips in the active journey
 												}
+												currenttrip++; // advance the current trip iterator by one.
 											}
-											break; // break the loop over the journey once the active one has been found
 										}
+										break; // break the loop over the journey once the active one has been found
 									}
-
 								}
 
-								else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
+							}
 
-									EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
-									// Call Route Choice Function TO BE ADDED
-								}
+							else { // if the train is full and the passenger cannot board the train then the Route Choice Function shall be called
+
+								EG_LOG(SimPax, Info) << "Call RouteChoice model as passenger ID: " << p->ID << " could not board train " << T.trainDescription << " as it was full\n";
+								// Call Route Choice Function TO BE ADDED
 							}
 						}
 					}
 				}
-				break; // breaking the for loop over all platforms when the correct one has been found
 			}
 		}
 
