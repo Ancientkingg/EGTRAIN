@@ -1141,6 +1141,28 @@ def main() -> None:
     verification_positions = [image_verify.find(check) for check in verification_in_order]
     if -1 in verification_positions or verification_positions != sorted(verification_positions):
         missing.append("macOS disk image check that mounts it read-only, detaches it on every path, verifies the signature of the app in it and of a copy, and runs the copy")
+    # Finder takes the document type from the property list of the app in the image: .egscene is the one type of the app and
+    # conforms to public.data only. The checks read the mounted app, between its signature and the copy.
+    document_type_checks = (
+        'codesign --verify --deep --strict --verbose=2 "$MOUNT/QEGTRAIN.app"\n',
+        'PLIST="$MOUNT/QEGTRAIN.app/Contents/Info.plist"\n',
+        'expect_plist CFBundleDocumentTypes:0:CFBundleTypeName "EGTRAIN Case Study"\n',
+        "expect_plist CFBundleDocumentTypes:0:CFBundleTypeRole Editor\n",
+        "expect_plist CFBundleDocumentTypes:0:LSHandlerRank Owner\n",
+        "expect_plist CFBundleDocumentTypes:0:LSItemContentTypes:0 com.egtrain.simulator.egscene\n",
+        "expect_no_plist CFBundleDocumentTypes:0:LSItemContentTypes:1\n",
+        "expect_no_plist CFBundleDocumentTypes:1\n",
+        "expect_plist UTExportedTypeDeclarations:0:UTTypeIdentifier com.egtrain.simulator.egscene\n",
+        "expect_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:0 public.data\n",
+        "expect_no_plist UTExportedTypeDeclarations:0:UTTypeConformsTo:1\n",
+        "expect_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:0 egscene\n",
+        "expect_no_plist UTExportedTypeDeclarations:0:UTTypeTagSpecification:public.filename-extension:1\n",
+        "expect_no_plist UTExportedTypeDeclarations:1\n",
+        'ditto "$MOUNT/QEGTRAIN.app" "$COPY/QEGTRAIN.app"\n',
+    )
+    document_type_positions = [image_verify.find(check) for check in document_type_checks]
+    if -1 in document_type_positions or document_type_positions != sorted(document_type_positions):
+        missing.append("macOS disk image check of the .egscene document type and its type declaration in the property list of the mounted app")
     if any(
         f'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/{program}"\n' not in image_verify for program in ("QEGTRAIN", "egtrain_update_helper", "scene_tool")
     ) or 'test -f "$COPY/QEGTRAIN.app/Contents/Resources/lebanon-case-study.md"\n' not in image_verify:
