@@ -9,6 +9,7 @@
 #include "editors/CompositionPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
+#include "editors/PassengerPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -1491,7 +1492,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_journey");
 					journeyAdd->click();
 					QApplication::processEvents();
-					ScenePassenger* authoredPassenger = w.selectedPassenger();
+					ScenePassenger* authoredPassenger = w.m_passengerPanel->selectedPassenger();
 					if (!authoredPassenger || authoredPassenger->journeys.empty()) {
 						facetFailure(facetOk, "passenger", "Journey Add did not create a selected journey");
 					} else {
@@ -1521,9 +1522,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							legOccurrence->setValue(1);
 							QApplication::processEvents();
 							return idOk && serviceOk && originOk && destinationOk
-								&& w.selectedPassengerLeg() && w.selectedPassengerLeg()->id == id
-								&& w.selectedPassengerLeg()->serviceId == passengerService->id
-								&& w.selectedPassengerLeg()->occurrence == 1;
+								&& w.m_passengerPanel->selectedPassengerLeg() && w.m_passengerPanel->selectedPassengerLeg()->id == id
+								&& w.m_passengerPanel->selectedPassengerLeg()->serviceId == passengerService->id
+								&& w.m_passengerPanel->selectedPassengerLeg()->occurrence == 1;
 						};
 						if (!configureLeg(e2eLegId))
 							facetFailure(facetOk, "passenger", "leg ID, typed stops, service, or occurrence did not commit");
@@ -1534,23 +1535,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							facetFailure(facetOk, "passenger", "second leg authoring did not commit");
 						legMoveUp->click();
 						QApplication::processEvents();
-						const bool movedUp = w.selectedPassengerJourney() && w.selectedPassengerJourney()->legs.size() >= 2
-							&& w.selectedPassengerJourney()->legs[0].id == secondLegId;
+						const bool movedUp = w.m_passengerPanel->selectedPassengerJourney() && w.m_passengerPanel->selectedPassengerJourney()->legs.size() >= 2
+							&& w.m_passengerPanel->selectedPassengerJourney()->legs[0].id == secondLegId;
 						legMoveDown->click();
 						QApplication::processEvents();
-						const bool movedDown = w.selectedPassengerJourney() && w.selectedPassengerJourney()->legs.size() >= 2
-							&& w.selectedPassengerJourney()->legs[0].id == e2eLegId;
+						const bool movedDown = w.m_passengerPanel->selectedPassengerJourney() && w.m_passengerPanel->selectedPassengerJourney()->legs.size() >= 2
+							&& w.m_passengerPanel->selectedPassengerJourney()->legs[0].id == e2eLegId;
 						if (!movedUp || !movedDown)
 							facetFailure(facetOk, "passenger", "leg Move Up/Down did not retain order");
 						acceptConfirmation();
 						legDelete->click();
 						QApplication::processEvents();
-						if (!w.selectedPassengerJourney() || w.selectedPassengerJourney()->legs.size() != 1
-							|| w.selectedPassengerJourney()->legs.front().id != e2eLegId)
+						if (!w.m_passengerPanel->selectedPassengerJourney() || w.m_passengerPanel->selectedPassengerJourney()->legs.size() != 1
+							|| w.m_passengerPanel->selectedPassengerJourney()->legs.front().id != e2eLegId)
 							facetFailure(facetOk, "passenger", "leg Delete did not remove only the temporary leg");
 
-						const std::size_t journeyCountBefore = w.selectedPassenger()
-							? w.selectedPassenger()->journeys.size()
+						const std::size_t journeyCountBefore = w.m_passengerPanel->selectedPassenger()
+							? w.m_passengerPanel->selectedPassenger()->journeys.size()
 							: 0;
 						journeyAdd->click();
 						QApplication::processEvents();
@@ -1560,7 +1561,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						acceptConfirmation();
 						journeyDelete->click();
 						QApplication::processEvents();
-						if (!w.selectedPassenger() || w.selectedPassenger()->journeys.size() != journeyCountBefore)
+						if (!w.m_passengerPanel->selectedPassenger() || w.m_passengerPanel->selectedPassenger()->journeys.size() != journeyCountBefore)
 							facetFailure(facetOk, "passenger", "Journey Delete did not remove the temporary journey");
 						const int passengerCountWithAuthor = passengerList->count();
 						passengerAdd->click();
@@ -1632,8 +1633,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								passengerList->setCurrentRow(unresolvedRow);
 								passengerTabs->setCurrentIndex(1);
 								QApplication::processEvents();
-								const ScenePassengerJourney* unresolvedJourney = w.selectedPassengerJourney();
-								const ScenePassengerLeg* unresolvedLeg = w.selectedPassengerLeg();
+								const ScenePassengerJourney* unresolvedJourney = w.m_passengerPanel->selectedPassengerJourney();
+								const ScenePassengerLeg* unresolvedLeg = w.m_passengerPanel->selectedPassengerLeg();
 								const bool invalidOriginVisible = unresolvedJourney
 									&& unresolvedJourney->originStationId == "missing-origin"
 									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin");
@@ -1671,7 +1672,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(w.m_sceneModel);
 						const auto operationsDiagnostics = buildOperationsFromScene(
-							w.m_sceneModel, w.m_selectedScenarioId, SceneRunSelection());
+							w.m_sceneModel, w.m_runSelection.scenarioId(), SceneRunSelection());
 						const auto stagedPassenger = std::find_if(AllDailyPassengers.begin(), AllDailyPassengers.end(),
 							[&](const Passenger& passenger) { return passenger.ID == e2ePassengerId; });
 						bool nativePassengerOk = !hasErrors(infrastructureDiagnostics)
@@ -1736,7 +1737,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			failures << "service: pane empty";
 		}
 		bool scenarioOk = w.m_scenarioListWidget && w.m_scenarioListWidget->count() > 0
-			&& w.m_selectedScenarioId == w.m_sceneModel.defaultScenarioId;
+			&& w.m_runSelection.scenarioId() == w.m_sceneModel.defaultScenarioId;
 		if (!scenarioOk) {
 			ok = false;
 			failures << "scenario: canonical default was not initially selected";
@@ -1757,7 +1758,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			w.m_scenarioListWidget->setCurrentRow(0);
 			QApplication::processEvents();
-			if (w.m_selectedScenarioId != w.m_sceneModel.defaultScenarioId) {
+			if (w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId) {
 				ok = false;
 				failures << "scenario: selection did not return to canonical default";
 			}
@@ -1766,7 +1767,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.deleteScenario();
 			QApplication::processEvents();
 			if (w.m_scenarioListWidget->count() != countBeforeDefaultDelete
-				|| w.m_selectedScenarioId != w.m_sceneModel.defaultScenarioId
+				|| w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId
 				|| w.m_deleteScenarioButton->isEnabled()) {
 				ok = false;
 				failures << "scenario: default deletion was not refused or button stayed enabled";
@@ -1778,7 +1779,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_deleteScenarioButton->click();
 			QApplication::processEvents();
 			if (w.m_scenarioListWidget->count() != originalScenarioCount + 1
-				|| w.m_selectedScenarioId != w.m_sceneModel.defaultScenarioId
+				|| w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId
 				|| !defaultScenario(static_cast<const SceneModel&>(w.m_sceneModel))) {
 				ok = false;
 				failures << "scenario: non-default deletion did not select a valid default";
@@ -2518,7 +2519,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			int temporaryDelayRow = -1;
 			std::size_t temporaryIncidentCount = 0;
 			for (int scenarioRow = 0; scenarioRow < static_cast<int>(w.m_sceneModel.scenarios.size()); ++scenarioRow) {
-				if (w.m_sceneModel.scenarios[static_cast<std::size_t>(scenarioRow)].id == w.m_selectedScenarioId) {
+				if (w.m_sceneModel.scenarios[static_cast<std::size_t>(scenarioRow)].id == w.m_runSelection.scenarioId()) {
 					referenceScenarioRow = scenarioRow;
 					break;
 				}
@@ -2551,7 +2552,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				referenceScenario.incidents.push_back(incident);
 				++temporaryIncidentCount;
 			}
-			w.m_excludedSceneOccurrences.insert(SceneServiceOccurrence{oldServiceId, 1});
+			w.m_runSelection.setExcluded(SceneServiceOccurrence{oldServiceId, 1}, true);
 			editedServiceId = sceneUniqueServiceId(w.m_sceneModel, "e2e_service");
 			if (!w.m_serviceIdEdit) {
 				facetFailure(facetOk, "service", "id editor unavailable");
@@ -2566,8 +2567,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const bool incidentStillOld = temporaryIncidentCount == 0
 						|| (!scenario.incidents.empty() && scenario.incidents.back().target == oldServiceId);
 					return delayStillOld && incidentStillOld
-						&& w.m_excludedSceneOccurrences.find(SceneServiceOccurrence{oldServiceId, 1})
-						!= w.m_excludedSceneOccurrences.end();
+						&& w.m_runSelection.isExcluded(SceneServiceOccurrence{oldServiceId, 1});
 				};
 				w.m_serviceIdEdit->setText(QString());
 				w.commitServiceIdEdit();
@@ -2596,8 +2596,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					referencesUpdated = referencesUpdated && !referenceScenario.incidents.empty()
 						&& referenceScenario.incidents.back().target == editedServiceId;
 			}
-			if (w.m_excludedSceneOccurrences.find(SceneServiceOccurrence{editedServiceId, 1})
-				== w.m_excludedSceneOccurrences.end())
+			if (!w.m_runSelection.isExcluded(SceneServiceOccurrence{editedServiceId, 1}))
 				referencesUpdated = false;
 			if (!referencesUpdated)
 				facetFailure(facetOk, "service", "service ID rename did not update canonical references or occurrence exclusions");
@@ -2775,7 +2774,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const SceneService serviceBeforeSelection = w.m_sceneModel.services[1];
 			const bool dirtyBeforeSelection = w.m_sceneDirty;
 			w.selectNoneServiceOccurrences();
-			if (w.selectedServiceOccurrencesInPeriod() != 0)
+			if (w.m_runSelection.selectedInPeriodCount(w.m_sceneModel, w.serviceOccurrenceDuration()) != 0)
 				facetFailure(facetOk, "service", "empty GUI selection counted all services in period");
 			if (w.m_serviceOccurrenceTable) {
 				for (int previewRow = 0; previewRow < w.m_serviceOccurrenceTable->rowCount(); ++previewRow) {
@@ -2785,8 +2784,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						include->setCheckState(Qt::Checked);
 				}
 			}
-			const bool oneOccurrenceSelected = w.selectedServiceOccurrences() == 1
-				&& w.selectedSceneOccurrences().count(SceneServiceOccurrence{editedServiceId, 1}) == 1;
+			const bool oneOccurrenceSelected = w.m_runSelection.selectedCount(w.m_sceneModel, w.serviceOccurrenceDuration()) == 1
+				&& w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration())
+						.count(SceneServiceOccurrence{editedServiceId, 1})
+					== 1;
 			const bool selectionDidNotDirty = w.m_sceneDirty == dirtyBeforeSelection
 				&& sameServices({serviceBeforeSelection}, {w.m_sceneModel.services[1]});
 			if (!oneOccurrenceSelected || !selectionDidNotDirty)
@@ -2801,16 +2802,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_selectNoneOccurrencesButton->click();
 				QApplication::processEvents();
 			}
-			const bool occurrenceExclusionCreated = w.m_excludedSceneOccurrences.find(
-														SceneServiceOccurrence{unreferencedServiceId, 1})
-				!= w.m_excludedSceneOccurrences.end();
+			const bool occurrenceExclusionCreated = w.m_runSelection.isExcluded(
+				SceneServiceOccurrence{unreferencedServiceId, 1});
 			acceptConfirmation();
 			w.deleteService();
 			if (w.m_serviceListWidget->count() != originalCount + 1
 				|| std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
 					[&](const SceneService& service) { return service.id == unreferencedServiceId; })
 				|| (occurrenceExclusionCreated
-					&& w.m_excludedSceneOccurrences.find(SceneServiceOccurrence{unreferencedServiceId, 1}) != w.m_excludedSceneOccurrences.end()))
+					&& w.m_runSelection.isExcluded(SceneServiceOccurrence{unreferencedServiceId, 1})))
 				facetFailure(facetOk, "service", "unreferenced service delete did not prune occurrence exclusions");
 		}
 		int editedRow = -1;
@@ -3332,7 +3332,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const SceneRunSelection delayedOccurrence{{entranceDelayServiceId, 2}};
 					const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(w.m_sceneModel);
 					const auto operationsDiagnostics = buildOperationsFromScene(
-						w.m_sceneModel, w.m_selectedScenarioId, delayedOccurrence);
+						w.m_sceneModel, w.m_runSelection.scenarioId(), delayedOccurrence);
 					if (hasErrors(infrastructureDiagnostics) || hasErrors(operationsDiagnostics)
 						|| numRegions != 1
 						|| regional_train[0].trainDescription != entranceDelayServiceId + "-2"
@@ -3596,16 +3596,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const std::string pendingJourneyId = e2eJourneyId + "_focused";
 					w.m_passengerJourneyIdEdit->setText(QString::fromStdString(pendingJourneyId));
 					w.m_passengerJourneyIdEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerJourney()
-						|| w.selectedPassengerJourney()->id != pendingJourneyId)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+						|| w.m_passengerPanel->selectedPassengerJourney()->id != pendingJourneyId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger journey ID");
 					else
 						e2eJourneyId = pendingJourneyId;
 					const std::string pendingActivity = "e2e focused activity";
 					w.m_passengerJourneyActivityEdit->setText(QString::fromStdString(pendingActivity));
 					w.m_passengerJourneyActivityEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerJourney()
-						|| w.selectedPassengerJourney()->activity != pendingActivity)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+						|| w.m_passengerPanel->selectedPassengerJourney()->activity != pendingActivity)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger activity");
 					if (w.m_passengerJourneyWindowEdits[0]) {
 						QLineEdit* pendingWindow = spinTextEdit(w.m_passengerJourneyWindowEdits[0]);
@@ -3615,8 +3615,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						} else {
 							pendingWindow->setText(QString::number(pendingWindowValue, 'g', 16));
 							pendingWindow->setFocus();
-							if (!triggerPendingSave() || !w.selectedPassengerJourney()
-								|| w.selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
+							if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+								|| w.m_passengerPanel->selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
 								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger planned window");
 						}
 					}
@@ -3627,8 +3627,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const std::string pendingLegId = e2eLegId + "_focused";
 					w.m_passengerLegIdEdit->setText(QString::fromStdString(pendingLegId));
 					w.m_passengerLegIdEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerLeg()
-						|| w.selectedPassengerLeg()->id != pendingLegId)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerLeg()
+						|| w.m_passengerPanel->selectedPassengerLeg()->id != pendingLegId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger leg ID");
 					else
 						e2eLegId = pendingLegId;
@@ -3648,15 +3648,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						pendingOccurrence->setFocus();
 						QApplication::processEvents();
 						const bool savedOccurrence = triggerPendingSave();
-						if (!savedOccurrence || !w.selectedPassengerLeg()
-							|| w.selectedPassengerLeg()->occurrence != 2) {
+						if (!savedOccurrence || !w.m_passengerPanel->selectedPassengerLeg()
+							|| w.m_passengerPanel->selectedPassengerLeg()->occurrence != 2) {
 							facetFailure(facetOk, "save/reload",
 								QString("Save did not commit the still-focused passenger occurrence "
 										"(range %1..%2, editor %3, model %4, saved %5)")
 									.arg(w.m_passengerLegOccurrenceEdit->minimum())
 									.arg(w.m_passengerLegOccurrenceEdit->maximum())
 									.arg(w.m_passengerLegOccurrenceEdit->value())
-									.arg(w.selectedPassengerLeg() ? w.selectedPassengerLeg()->occurrence : -1)
+									.arg(w.m_passengerPanel->selectedPassengerLeg() ? w.m_passengerPanel->selectedPassengerLeg()->occurrence : -1)
 									.arg(savedOccurrence));
 						}
 					}
@@ -3845,7 +3845,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 					const int scenarioRow = [&]() {
 						for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
-							if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == w.m_selectedScenarioId)
+							if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == w.m_runSelection.scenarioId())
 								return row;
 						return -1;
 					}();
@@ -3953,7 +3953,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								w.selectedScenario()->entranceDelays))
 							facetFailure(facetOk, "save/reload", "pending editor values did not survive Save and reopen");
 					}
-					bool selectionRoundtripOk = w.m_excludedSceneOccurrences.empty();
+					bool selectionRoundtripOk = !w.m_runSelection.hasExclusions();
 					if (w.m_serviceOccurrenceTable) {
 						for (int row = 0; row < w.m_serviceOccurrenceTable->rowCount(); ++row) {
 							QTableWidgetItem* include = w.m_serviceOccurrenceTable->item(row, 0);

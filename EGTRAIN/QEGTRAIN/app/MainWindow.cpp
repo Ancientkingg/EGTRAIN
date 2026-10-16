@@ -2,6 +2,7 @@
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
+#include "app/RunSelection.h"
 #include "app/OpenRequestRelay.h"
 #include "app/ReplayCoverage.h"
 #include "app/SceneOpenRequest.h"
@@ -41,6 +42,7 @@
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
+#include "editors/PassengerPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/SignalGeometry.h"
@@ -525,56 +527,6 @@ void populateSignallingAreaTrackCombo(QComboBox* combo, const SceneModel& scene,
 			id);
 	}
 	combo->setCurrentIndex(combo->findData(QString::fromStdString(current)));
-}
-
-void populatePassengerStationCombo(QComboBox* combo, const SceneModel& sceneModel,
-	const std::string& current, const std::set<std::string>* allowed = nullptr,
-	bool hasSelection = true) {
-	if (!combo)
-		return;
-	combo->clear();
-	if (!hasSelection) {
-		combo->addItem("Select a journey or leg", QString());
-		return;
-	}
-	for (const auto& station : sceneModel.stations) {
-		if (allowed && allowed->find(station.id) == allowed->end())
-			continue;
-		const QString label = station.name.empty()
-			? QString::fromStdString(station.id)
-			: QStringLiteral("%1 | %2").arg(QString::fromStdString(station.id),
-				  QString::fromStdString(station.name));
-		combo->addItem(label, QString::fromStdString(station.id));
-	}
-	int selected = combo->findData(QString::fromStdString(current));
-	if (selected < 0) {
-		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
-			QString::fromStdString(current));
-		selected = combo->count() - 1;
-	}
-	combo->setCurrentIndex(selected);
-}
-
-void populatePassengerServiceCombo(QComboBox* combo, const SceneModel& sceneModel,
-	const std::string& current, bool hasSelection = true) {
-	if (!combo)
-		return;
-	combo->clear();
-	if (!hasSelection) {
-		combo->addItem("Select a leg", QString());
-		return;
-	}
-	for (const auto& service : sceneModel.services)
-		combo->addItem(QString::fromStdString(service.id), QString::fromStdString(service.id));
-	int selected = combo->findData(QString::fromStdString(current));
-	if (selected < 0) {
-		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
-			QString::fromStdString(current));
-		selected = combo->count() - 1;
-	}
-	combo->setCurrentIndex(selected);
 }
 
 const QColor kBlockingSwitchColor(240, 210, 40, 180);
@@ -2412,167 +2364,26 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// passenger; no second tree model or transient copy is needed.
 	m_passengerDock = new QDockWidget("Passengers", this);
 	m_passengerDock->setObjectName("passengerDock");
-	QWidget* passengerWidget = new QWidget(m_passengerDock);
-	QHBoxLayout* passengerLayout = new QHBoxLayout(passengerWidget);
-	QWidget* passengerListPane = new QWidget(passengerWidget);
-	QVBoxLayout* passengerListLayout = new QVBoxLayout(passengerListPane);
-	passengerListLayout->addWidget(new QLabel("Passengers", passengerListPane));
-	m_passengerListWidget = new QListWidget(passengerListPane);
-	m_passengerListWidget->setObjectName("passengerListWidget");
-	m_passengerListWidget->setAccessibleName("Passengers");
-	m_passengerListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 12);
-	passengerListLayout->addWidget(m_passengerListWidget, 1);
-	QHBoxLayout* passengerButtonLayout = new QHBoxLayout();
-	m_addPassengerButton = new QPushButton("Add", passengerListPane);
-	m_addPassengerButton->setObjectName("passengerAddButton");
-	m_deletePassengerButton = new QPushButton("Delete", passengerListPane);
-	m_deletePassengerButton->setObjectName("passengerDeleteButton");
-	passengerButtonLayout->addWidget(m_addPassengerButton);
-	passengerButtonLayout->addWidget(m_deletePassengerButton);
-	passengerListLayout->addLayout(passengerButtonLayout);
-	m_importPassengerButton = new QPushButton("Import...", passengerListPane);
-	m_importPassengerButton->setObjectName("passengerImportButton");
-	m_importPassengerButton->setToolTip("Import the exact legacy DAS and RouteChoice passenger pair; imported records are appended.");
-	passengerListLayout->addWidget(m_importPassengerButton);
-	passengerListLayout->addStretch();
-	passengerListPane->setMaximumWidth(passengerListPane->fontMetrics().averageCharWidth() * 30);
-	passengerLayout->addWidget(passengerListPane);
-
-	QWidget* passengerDetailPane = new QWidget(passengerWidget);
-	QVBoxLayout* passengerDetailLayout = new QVBoxLayout(passengerDetailPane);
-	QFormLayout* passengerForm = new QFormLayout();
-	m_passengerIdEdit = new QLineEdit(passengerDetailPane);
-	m_passengerIdEdit->setObjectName("passengerIdEdit");
-	passengerForm->addRow("Passenger ID", m_passengerIdEdit);
-	passengerDetailLayout->addLayout(passengerForm);
-	m_passengerDiagnosticLabel = new QLabel(passengerDetailPane);
-	m_passengerDiagnosticLabel->setObjectName("passengerDiagnosticLabel");
-	m_passengerDiagnosticLabel->setWordWrap(true);
-	m_passengerDiagnosticLabel->setStyleSheet("color: #5b6871;");
-	passengerDetailLayout->addWidget(m_passengerDiagnosticLabel);
-
-	m_passengerTabs = new QTabWidget(passengerDetailPane);
-	m_passengerTabs->setObjectName("passengerEditorTabs");
-
-	QWidget* journeysPane = new QWidget(m_passengerTabs);
-	QVBoxLayout* journeysLayout = new QVBoxLayout(journeysPane);
-	QWidget* journeyListPane = new QWidget(journeysPane);
-	QVBoxLayout* journeyListLayout = new QVBoxLayout(journeyListPane);
-	journeyListLayout->addWidget(new QLabel("Journeys", journeyListPane));
-	m_passengerJourneyListWidget = new QListWidget(journeyListPane);
-	m_passengerJourneyListWidget->setObjectName("passengerJourneyListWidget");
-	journeyListLayout->addWidget(m_passengerJourneyListWidget, 1);
-	QHBoxLayout* journeyButtons = new QHBoxLayout();
-	m_addPassengerJourneyButton = new QPushButton("Add", journeyListPane);
-	m_addPassengerJourneyButton->setObjectName("passengerJourneyAddButton");
-	m_deletePassengerJourneyButton = new QPushButton("Delete", journeyListPane);
-	m_deletePassengerJourneyButton->setObjectName("passengerJourneyDeleteButton");
-	journeyButtons->addWidget(m_addPassengerJourneyButton);
-	journeyButtons->addWidget(m_deletePassengerJourneyButton);
-	journeyListLayout->addLayout(journeyButtons);
-	m_passengerJourneyListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
-	journeysLayout->addWidget(journeyListPane);
-
-	QWidget* journeyDetailPane = new QWidget(journeysPane);
-	QFormLayout* journeyForm = new QFormLayout(journeyDetailPane);
-	journeyForm->setRowWrapPolicy(QFormLayout::WrapLongRows);
-	m_passengerJourneyIdEdit = new QLineEdit(journeyDetailPane);
-	m_passengerJourneyIdEdit->setObjectName("passengerJourneyIdEdit");
-	journeyForm->addRow("Journey ID", m_passengerJourneyIdEdit);
-	m_passengerJourneyActivityEdit = new QLineEdit(journeyDetailPane);
-	m_passengerJourneyActivityEdit->setObjectName("passengerJourneyActivityEdit");
-	journeyForm->addRow("Activity", m_passengerJourneyActivityEdit);
-	m_passengerJourneyOriginCombo = new QComboBox(journeyDetailPane);
-	m_passengerJourneyOriginCombo->setObjectName("passengerJourneyOriginCombo");
-	journeyForm->addRow("Origin station", m_passengerJourneyOriginCombo);
-	m_passengerJourneyDestinationCombo = new QComboBox(journeyDetailPane);
-	m_passengerJourneyDestinationCombo->setObjectName("passengerJourneyDestinationCombo");
-	journeyForm->addRow("Destination station", m_passengerJourneyDestinationCombo);
-	const std::array<std::pair<const char*, const char*>, 4> passengerWindowFields = {
-		std::make_pair("Departure start (s)", "passengerDepartureStartSecondsEdit"),
-		std::make_pair("Departure end (s)", "passengerDepartureEndSecondsEdit"),
-		std::make_pair("Arrival start (s)", "passengerArrivalStartSecondsEdit"),
-		std::make_pair("Arrival end (s)", "passengerArrivalEndSecondsEdit")};
-	for (std::size_t index = 0; index < passengerWindowFields.size(); ++index) {
-		auto* edit = new CompactDoubleSpinBox(journeyDetailPane);
-		edit->setObjectName(passengerWindowFields[index].second);
-		edit->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-		edit->setDecimals(std::numeric_limits<double>::max_digits10);
-		edit->setSingleStep(1.0);
-		edit->setKeyboardTracking(false);
-		m_passengerJourneyWindowEdits[index] = edit;
-		journeyForm->addRow(passengerWindowFields[index].first, edit);
-	}
-	journeysLayout->addWidget(journeyDetailPane, 1);
-	m_passengerTabs->addTab(journeysPane, "Journeys");
-
-	QWidget* legsPane = new QWidget(m_passengerTabs);
-	QVBoxLayout* legsLayout = new QVBoxLayout(legsPane);
-	QWidget* legListPane = new QWidget(legsPane);
-	QVBoxLayout* legListLayout = new QVBoxLayout(legListPane);
-	legListLayout->addWidget(new QLabel("Legs", legListPane));
-	m_passengerLegListWidget = new QListWidget(legListPane);
-	m_passengerLegListWidget->setObjectName("passengerLegListWidget");
-	legListLayout->addWidget(m_passengerLegListWidget, 1);
-	QGridLayout* legButtons = new QGridLayout();
-	m_addPassengerLegButton = new QPushButton("Add", legListPane);
-	m_addPassengerLegButton->setObjectName("passengerLegAddButton");
-	m_deletePassengerLegButton = new QPushButton("Delete", legListPane);
-	m_deletePassengerLegButton->setObjectName("passengerLegDeleteButton");
-	m_movePassengerLegUpButton = new QPushButton("Move Up", legListPane);
-	m_movePassengerLegUpButton->setObjectName("passengerLegMoveUpButton");
-	m_movePassengerLegDownButton = new QPushButton("Move Down", legListPane);
-	m_movePassengerLegDownButton->setObjectName("passengerLegMoveDownButton");
-	legButtons->addWidget(m_addPassengerLegButton, 0, 0);
-	legButtons->addWidget(m_deletePassengerLegButton, 0, 1);
-	legButtons->addWidget(m_movePassengerLegUpButton, 1, 0);
-	legButtons->addWidget(m_movePassengerLegDownButton, 1, 1);
-	legListLayout->addLayout(legButtons);
-	m_passengerLegListWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
-	legsLayout->addWidget(legListPane);
-
-	QWidget* legDetailPane = new QWidget(legsPane);
-	QFormLayout* legForm = new QFormLayout(legDetailPane);
-	legForm->setRowWrapPolicy(QFormLayout::WrapLongRows);
-	m_passengerLegIdEdit = new QLineEdit(legDetailPane);
-	m_passengerLegIdEdit->setObjectName("passengerLegIdEdit");
-	legForm->addRow("Leg ID", m_passengerLegIdEdit);
-	m_passengerLegOriginCombo = new QComboBox(legDetailPane);
-	m_passengerLegOriginCombo->setObjectName("passengerLegOriginCombo");
-	legForm->addRow("Origin station", m_passengerLegOriginCombo);
-	m_passengerLegDestinationCombo = new QComboBox(legDetailPane);
-	m_passengerLegDestinationCombo->setObjectName("passengerLegDestinationCombo");
-	legForm->addRow("Destination station", m_passengerLegDestinationCombo);
-	m_passengerLegServiceCombo = new QComboBox(legDetailPane);
-	m_passengerLegServiceCombo->setObjectName("passengerLegServiceCombo");
-	legForm->addRow("Service", m_passengerLegServiceCombo);
-	m_passengerLegOccurrenceEdit = new QSpinBox(legDetailPane);
-	m_passengerLegOccurrenceEdit->setObjectName("passengerLegOccurrenceSpin");
-	m_passengerLegOccurrenceEdit->setKeyboardTracking(false);
-	legForm->addRow("Occurrence", m_passengerLegOccurrenceEdit);
-	legsLayout->addWidget(legDetailPane, 1);
-	m_passengerTabs->addTab(legsPane, "Legs");
-	passengerDetailLayout->addWidget(m_passengerTabs, 1);
-
-	m_passengerImportResultTable = new QTableWidget(0, 4, passengerDetailPane);
-	m_passengerImportResultTable->setObjectName("passengerImportResultTable");
-	m_passengerImportResultTable->setHorizontalHeaderLabels({"Source", "Row", "Status", "Detail"});
-	m_passengerImportResultTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_passengerImportResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_passengerImportResultTable->setMaximumHeight(130);
-	m_passengerImportResultTable->horizontalHeader()->setStretchLastSection(true);
-	m_passengerImportResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
-	passengerDetailLayout->addWidget(m_passengerImportResultTable);
-	m_passengerImportResultTable->hide();
-	const auto updateImportVisibility = [this]() {
-		m_passengerImportResultTable->setVisible(m_passengerImportResultTable->rowCount() > 0);
-	};
-	connect(m_passengerImportResultTable->model(), &QAbstractItemModel::rowsInserted,
-		m_passengerImportResultTable, updateImportVisibility);
-	connect(m_passengerImportResultTable->model(), &QAbstractItemModel::rowsRemoved,
-		m_passengerImportResultTable, updateImportVisibility);
-	passengerLayout->addWidget(passengerDetailPane, 2);
-	m_passengerDock->setWidget(passengerWidget);
+	m_passengerPanel = new PassengerPanel(m_passengerDock);
+	m_passengerListWidget = m_passengerPanel->passengerList();
+	m_passengerIdEdit = m_passengerPanel->passengerIdEdit();
+	m_addPassengerButton = m_passengerPanel->addPassengerButton();
+	m_passengerTabs = m_passengerPanel->tabs();
+	m_passengerJourneyListWidget = m_passengerPanel->journeyList();
+	m_addPassengerJourneyButton = m_passengerPanel->addJourneyButton();
+	m_passengerJourneyIdEdit = m_passengerPanel->journeyIdEdit();
+	m_passengerJourneyActivityEdit = m_passengerPanel->journeyActivityEdit();
+	m_passengerJourneyOriginCombo = m_passengerPanel->journeyOriginCombo();
+	m_passengerJourneyDestinationCombo = m_passengerPanel->journeyDestinationCombo();
+	m_passengerJourneyWindowEdits = m_passengerPanel->journeyWindowEdits();
+	m_passengerLegListWidget = m_passengerPanel->legList();
+	m_addPassengerLegButton = m_passengerPanel->addLegButton();
+	m_passengerLegIdEdit = m_passengerPanel->legIdEdit();
+	m_passengerLegOriginCombo = m_passengerPanel->legOriginCombo();
+	m_passengerLegDestinationCombo = m_passengerPanel->legDestinationCombo();
+	m_passengerLegServiceCombo = m_passengerPanel->legServiceCombo();
+	m_passengerLegOccurrenceEdit = m_passengerPanel->legOccurrenceEdit();
+	m_passengerDock->setWidget(m_passengerPanel);
 	// A dock's viewport, rather than its form, limits the main window size.
 	// Keep wide tables and enlarged-font controls reachable when space is tight.
 	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
@@ -2591,40 +2402,23 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_serviceDock, m_passengerDock);
 	registerEditorDock(m_passengerDock);
 
-	connect(m_passengerListWidget, &QListWidget::currentRowChanged, this,
-		[this](int) { updatePassengerDetailPanel(); });
-	connect(m_passengerJourneyListWidget, &QListWidget::currentRowChanged, this,
-		[this](int) { updatePassengerJourneyPanel(); });
-	connect(m_passengerLegListWidget, &QListWidget::currentRowChanged, this,
-		[this](int) { updatePassengerLegPanel(); });
-	connect(m_addPassengerButton, &QPushButton::clicked, this, &MainWindow::addPassenger);
-	connect(m_deletePassengerButton, &QPushButton::clicked, this, &MainWindow::deletePassenger);
-	connect(m_importPassengerButton, &QPushButton::clicked, this, &MainWindow::importPassengers);
-	connect(m_addPassengerJourneyButton, &QPushButton::clicked, this, &MainWindow::addPassengerJourney);
-	connect(m_deletePassengerJourneyButton, &QPushButton::clicked, this, &MainWindow::deletePassengerJourney);
-	connect(m_addPassengerLegButton, &QPushButton::clicked, this, &MainWindow::addPassengerLeg);
-	connect(m_deletePassengerLegButton, &QPushButton::clicked, this, &MainWindow::deletePassengerLeg);
-	connect(m_movePassengerLegUpButton, &QPushButton::clicked, this, [this]() { movePassengerLeg(-1); });
-	connect(m_movePassengerLegDownButton, &QPushButton::clicked, this, [this]() { movePassengerLeg(1); });
-	connect(m_passengerIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerIdEdit);
-	connect(m_passengerJourneyIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerJourneyIdEdit);
-	connect(m_passengerJourneyActivityEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerJourneyActivity);
-	connect(m_passengerJourneyOriginCombo, &QComboBox::currentTextChanged, this,
-		[this](const QString& text) { commitPassengerJourneyStation(true, text); });
-	connect(m_passengerJourneyDestinationCombo, &QComboBox::currentTextChanged, this,
-		[this](const QString& text) { commitPassengerJourneyStation(false, text); });
-	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
-		connect(m_passengerJourneyWindowEdits[index], QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-			this, [this, index](double) { commitPassengerJourneyWindow(static_cast<int>(index)); });
-	}
-	connect(m_passengerLegIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitPassengerLegIdEdit);
-	connect(m_passengerLegOriginCombo, &QComboBox::currentTextChanged, this,
-		[this](const QString& text) { commitPassengerLegStation(true, text); });
-	connect(m_passengerLegDestinationCombo, &QComboBox::currentTextChanged, this,
-		[this](const QString& text) { commitPassengerLegStation(false, text); });
-	connect(m_passengerLegServiceCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitPassengerLegService);
-	connect(m_passengerLegOccurrenceEdit, QOverload<int>::of(&QSpinBox::valueChanged), this,
-		[this](int) { commitPassengerLegOccurrence(); });
+	m_passengerPanel->setPrompts(m_userPrompts.get());
+	m_passengerPanel->setDiagnostics(&m_sceneDiagnostics);
+	m_passengerPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
+	m_passengerPanel->setImportFolderChooser([this]() -> QString {
+		if (const auto& passengerSource = mainWindowTestHooks().passengerSource) {
+			const QString sourcePath = passengerSource();
+			if (!sourcePath.isEmpty())
+				return sourcePath;
+		}
+		const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+		return QFileDialog::getExistingDirectory(this, "Select Legacy Passenger Folder", startDir);
+	});
+	m_passengerPanel->setDocument(m_document);
+	m_passengerDock->setEnabled(false);
+	connect(m_passengerPanel, &PassengerPanel::statusMessage, this,
+		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
+	connect(m_passengerPanel, &PassengerPanel::changed, this, &MainWindow::refreshValidationPanel);
 
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
@@ -2675,7 +2469,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
-	refreshPassengerPanel();
 	// Dock/editor construction above can rebuild the top-level focus chain;
 	// restore the command-bar sequence after every child widget exists.
 	setCommandBarTabOrder();
@@ -2765,7 +2558,7 @@ void MainWindow::newScene() {
 }
 
 void MainWindow::createNewScene(const telemetry::OperationObservation& operation) {
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
 	teardownGUI();
@@ -2782,11 +2575,10 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_delayBaseline.reset();
 	m_sceneIsBundle = false;
 	m_sceneBundleVersion.reset();
-	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
-	m_modifiedScenarioIds.clear();
+	m_runSelection.selectScenario(m_sceneModel.defaultScenarioId);
+	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
-	if (m_passengerImportResultTable)
-		m_passengerImportResultTable->setRowCount(0);
+	m_passengerPanel->clearImportResult();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	invalidateRunResults();
 	updateSceneWindowTitle();
@@ -2796,7 +2588,6 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
-	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	telemetry::revealEditor(m_caseSettingsDock, operation);
@@ -3024,7 +2815,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	teardownGUI();
 	simulation.resetState();
 
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
 	m_sceneDir = scenePath;
@@ -3039,15 +2830,14 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	m_sceneIsBundle = sceneIsBundle;
 	m_sceneBundleVersion = result.bundleVersion;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
-	m_selectedScenarioId = m_sceneModel.defaultScenarioId;
-	if (m_selectedScenarioId.empty() && !m_sceneModel.scenarios.empty()) {
-		m_selectedScenarioId = m_sceneModel.scenarios.front().id;
-		m_sceneModel.defaultScenarioId = m_selectedScenarioId;
+	m_runSelection.selectScenario(m_sceneModel.defaultScenarioId);
+	if (m_runSelection.scenarioId().empty() && !m_sceneModel.scenarios.empty()) {
+		m_runSelection.selectScenario(m_sceneModel.scenarios.front().id);
+		m_sceneModel.defaultScenarioId = m_runSelection.scenarioId();
 	}
-	m_modifiedScenarioIds.clear();
+	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
-	if (m_passengerImportResultTable)
-		m_passengerImportResultTable->setRowCount(0);
+	m_passengerPanel->clearImportResult();
 	invalidateRunResults();
 	m_startOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	updateSceneWindowTitle();
@@ -3057,7 +2847,6 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel(!reloadingSameScene);
-	refreshPassengerPanel();
 	refreshValidationPanel();
 	renderTrackPreview(m_sceneModel);
 	statusBar()->showMessage(QString("%1: %2 (%3 services, %4 routes)")
@@ -3152,7 +2941,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	m_sceneModel.savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_document->markSaved();
-	m_modifiedScenarioIds.clear();
+	m_runSelection.clearModifiedScenarios();
 	updateSceneWindowTitle();
 	updateSceneActions();
 	statusBar()->showMessage("Scene saved");
@@ -3162,7 +2951,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
-	refreshPassengerPanel();
+	m_passengerPanel->refresh();
 	return true;
 }
 
@@ -3699,7 +3488,7 @@ void MainWindow::updateScenarioPresentation() {
 		}
 		if (scenario.id == m_sceneModel.defaultScenarioId)
 			label += QStringLiteral(" | default");
-		if (m_modifiedScenarioIds.count(scenario.id) > 0)
+		if (m_runSelection.isScenarioModified(scenario.id))
 			label += QStringLiteral(" | modified");
 		if (auto* item = m_scenarioListWidget->item(static_cast<int>(index))) {
 			item->setText(label);
@@ -3720,7 +3509,7 @@ void MainWindow::refreshValidationPanel() {
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
 		refreshScenarioList();
-		refreshPassengerPanel();
+		m_passengerPanel->refresh();
 		updateSceneActions();
 		updateCaseLayersPanel();
 		return;
@@ -3754,7 +3543,7 @@ void MainWindow::refreshValidationPanel() {
 	updateDiagnosticPresentation();
 	refreshLoadedDataTree();
 	refreshScenarioList();
-	refreshPassengerPanel();
+	m_passengerPanel->refresh();
 	updateSceneActions();
 }
 
@@ -3824,7 +3613,7 @@ void MainWindow::refreshLoadedDataTree() {
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Runtime rolling stock", QString(), "1",
 		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Applied scenario", m_appliedScenarioId.empty() ? QStringLiteral("(none)") : QString::fromStdString(m_appliedScenarioId), "1",
+	addRow(runtimeAndResults, "Applied scenario", m_runSelection.appliedScenarioId().empty() ? QStringLiteral("(none)") : QString::fromStdString(m_runSelection.appliedScenarioId()), "1",
 		runAttempted ? m_runtimeStatus : QStringLiteral("Not built"));
 	addRow(runtimeAndResults, "Current run", QString(), "1", m_runtimeStatus);
 	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
@@ -3951,7 +3740,7 @@ void MainWindow::invalidateRunResults() {
 	m_runtimeDiagnostics.clear();
 	m_resultsAvailable = false;
 	m_sceneChangedDuringRun = false;
-	m_appliedScenarioId.clear();
+	m_runSelection.clearAppliedScenario();
 	m_completedRun.reset();
 	m_pendingRunProvenance = RunProvenance();
 	if (m_runResultsTable)
@@ -3995,21 +3784,7 @@ void MainWindow::commitPendingEditorValues() {
 		for (const auto& pending : pendingGeometry)
 			commitPlatformGeometryCell(std::get<0>(pending), std::get<1>(pending), std::get<2>(pending));
 	}
-	commitPassengerIdEdit();
-	commitPassengerJourneyIdEdit();
-	commitPassengerJourneyActivity();
-	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
-		QDoubleSpinBox* edit = m_passengerJourneyWindowEdits[index];
-		if (hasEditorFocus(edit)) {
-			edit->interpretText();
-			commitPassengerJourneyWindow(static_cast<int>(index));
-		}
-	}
-	commitPassengerLegIdEdit();
-	if (m_passengerLegOccurrenceEdit && hasEditorFocus(m_passengerLegOccurrenceEdit)) {
-		m_passengerLegOccurrenceEdit->interpretText();
-		commitPassengerLegOccurrence();
-	}
+	m_passengerPanel->commitPendingEditors();
 	m_compositionPanel->commitPendingEditors();
 	commitPendingServiceSettings();
 	// Scenario and incident controls are disabled and cleared during a run.
@@ -5024,675 +4799,6 @@ void MainWindow::commitPlatformGeometryCell(int row, int column, double value) {
 	}
 }
 
-ScenePassenger* MainWindow::selectedPassenger() {
-	const int row = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
-	return m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.passengers.size())
-		? &m_sceneModel.passengers[static_cast<std::size_t>(row)]
-		: nullptr;
-}
-
-ScenePassengerJourney* MainWindow::selectedPassengerJourney() {
-	ScenePassenger* passenger = selectedPassenger();
-	const int row = m_passengerJourneyListWidget ? m_passengerJourneyListWidget->currentRow() : -1;
-	return passenger && row >= 0 && row < static_cast<int>(passenger->journeys.size())
-		? &passenger->journeys[static_cast<std::size_t>(row)]
-		: nullptr;
-}
-
-ScenePassengerLeg* MainWindow::selectedPassengerLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	const int row = m_passengerLegListWidget ? m_passengerLegListWidget->currentRow() : -1;
-	return journey && row >= 0 && row < static_cast<int>(journey->legs.size())
-		? &journey->legs[static_cast<std::size_t>(row)]
-		: nullptr;
-}
-
-void MainWindow::refreshPassengerPanel() {
-	const bool editable = m_sceneLoaded && !m_worker;
-	if (m_passengerDock)
-		m_passengerDock->setEnabled(editable);
-	if (m_passengerListWidget) {
-		const int previousRow = m_passengerListWidget->currentRow();
-		const QSignalBlocker blocker(m_passengerListWidget);
-		m_passengerListWidget->clear();
-		if (m_sceneLoaded) {
-			for (const auto& passenger : m_sceneModel.passengers)
-				m_passengerListWidget->addItem(QString::fromStdString(passenger.id));
-		}
-		const int count = m_passengerListWidget->count();
-		const int selected = count == 0 ? -1
-										: (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
-		m_passengerListWidget->setCurrentRow(selected);
-		m_passengerListWidget->setEnabled(editable);
-	}
-	if (m_passengerImportResultTable && !m_sceneLoaded)
-		m_passengerImportResultTable->setRowCount(0);
-	if (m_addPassengerButton)
-		m_addPassengerButton->setEnabled(editable);
-	if (m_importPassengerButton)
-		m_importPassengerButton->setEnabled(editable);
-	updatePassengerDetailPanel();
-}
-
-void MainWindow::updatePassengerDetailPanel() {
-	const int passengerRow = m_passengerListWidget ? m_passengerListWidget->currentRow() : -1;
-	ScenePassenger* passenger = selectedPassenger();
-	const bool enabled = passenger && m_sceneLoaded && !m_worker;
-	if (m_passengerTabs)
-		m_passengerTabs->setVisible(passenger != nullptr);
-	if (m_passengerIdEdit) {
-		const QSignalBlocker blocker(m_passengerIdEdit);
-		m_passengerIdEdit->setText(passenger ? QString::fromStdString(passenger->id) : QString());
-		m_passengerIdEdit->setEnabled(enabled);
-	}
-	if (m_passengerJourneyListWidget) {
-		const int previousRow = m_passengerJourneyListWidget->currentRow();
-		const QSignalBlocker blocker(m_passengerJourneyListWidget);
-		m_passengerJourneyListWidget->clear();
-		if (passenger) {
-			for (const auto& journey : passenger->journeys) {
-				QString label = QString::fromStdString(journey.id);
-				if (!journey.activity.empty())
-					label += QStringLiteral(" | ") + QString::fromStdString(journey.activity);
-				m_passengerJourneyListWidget->addItem(label);
-			}
-		}
-		const int count = m_passengerJourneyListWidget->count();
-		m_passengerJourneyListWidget->setCurrentRow(count == 0 ? -1
-															   : (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
-		m_passengerJourneyListWidget->setEnabled(enabled);
-	}
-	if (m_addPassengerJourneyButton)
-		m_addPassengerJourneyButton->setEnabled(enabled);
-	if (m_deletePassengerButton)
-		m_deletePassengerButton->setEnabled(enabled);
-	if (m_deletePassengerJourneyButton)
-		m_deletePassengerJourneyButton->setEnabled(enabled && !m_passengerJourneyListWidget->selectedItems().isEmpty());
-	updatePassengerJourneyPanel();
-
-	QStringList messages;
-	if (passenger) {
-		const QString passengerPrefix = QStringLiteral("passengers[%1]").arg(passengerRow);
-		const int journeyRow = m_passengerJourneyListWidget ? m_passengerJourneyListWidget->currentRow() : -1;
-		const int legRow = m_passengerLegListWidget ? m_passengerLegListWidget->currentRow() : -1;
-		const ScenePassengerJourney* journey = selectedPassengerJourney();
-		const ScenePassengerLeg* leg = selectedPassengerLeg();
-		const QString journeyPrefix = journeyRow >= 0
-			? passengerPrefix + QStringLiteral(".journeys[%1]").arg(journeyRow)
-			: QString();
-		const QString legPrefix = journey && legRow >= 0
-			? journeyPrefix + QStringLiteral(".legs[%1]").arg(legRow)
-			: QString();
-		const QString passengerId = QString::fromStdString(passenger->id);
-		const QString journeyId = journey ? QString::fromStdString(journey->id) : QString();
-		const QString legId = leg ? QString::fromStdString(leg->id) : QString();
-		for (const auto& diagnostic : m_sceneDiagnostics) {
-			const QString path = QString::fromStdString(diagnostic.path);
-			const QString itemId = QString::fromStdString(diagnostic.itemId);
-			const QString relatedId = QString::fromStdString(diagnostic.relatedId);
-			const bool match = (!legPrefix.isEmpty() && path.startsWith(legPrefix))
-				|| (!journeyPrefix.isEmpty() && path.startsWith(journeyPrefix))
-				|| path.startsWith(passengerPrefix)
-				|| itemId == passengerId || itemId == journeyId || itemId == legId
-				|| relatedId == passengerId || relatedId == journeyId || relatedId == legId;
-			if (match)
-				messages << QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
-						+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
-		}
-	}
-	if (m_passengerDiagnosticLabel) {
-		m_passengerDiagnosticLabel->setText(messages.isEmpty()
-				? (passenger ? QStringLiteral("No validation messages for this passenger selection.")
-							 : QStringLiteral("Select a passenger or use Add to create one."))
-				: messages.join(QStringLiteral("\n")));
-		m_passengerDiagnosticLabel->setStyleSheet(messages.isEmpty() ? "color: #5b6871;"
-				: std::any_of(messages.begin(), messages.end(), [](const QString& message) {
-					  return message.startsWith("ERROR:");
-				  })
-				? "color: #81352d;"
-				: "color: #965c22;");
-	}
-}
-
-void MainWindow::updatePassengerJourneyPanel() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	const bool enabled = journey && m_sceneLoaded && !m_worker;
-	if (m_passengerLegListWidget) {
-		const int previousRow = m_passengerLegListWidget->currentRow();
-		const QSignalBlocker blocker(m_passengerLegListWidget);
-		m_passengerLegListWidget->clear();
-		if (journey) {
-			for (const auto& leg : journey->legs)
-				m_passengerLegListWidget->addItem(QString::fromStdString(leg.id));
-		}
-		const int count = m_passengerLegListWidget->count();
-		m_passengerLegListWidget->setCurrentRow(count == 0 ? -1
-														   : (previousRow < 0 ? 0 : std::min(previousRow, count - 1)));
-		m_passengerLegListWidget->setEnabled(enabled);
-	}
-	if (m_passengerJourneyIdEdit) {
-		const QSignalBlocker blocker(m_passengerJourneyIdEdit);
-		m_passengerJourneyIdEdit->setText(journey ? QString::fromStdString(journey->id) : QString());
-		m_passengerJourneyIdEdit->setEnabled(enabled);
-	}
-	if (m_passengerJourneyActivityEdit) {
-		const QSignalBlocker blocker(m_passengerJourneyActivityEdit);
-		m_passengerJourneyActivityEdit->setText(journey ? QString::fromStdString(journey->activity) : QString());
-		m_passengerJourneyActivityEdit->setEnabled(enabled);
-	}
-	if (m_passengerJourneyOriginCombo) {
-		const QSignalBlocker blocker(m_passengerJourneyOriginCombo);
-		populatePassengerStationCombo(m_passengerJourneyOriginCombo, m_sceneModel,
-			journey ? journey->originStationId : std::string(), nullptr, journey != nullptr);
-		m_passengerJourneyOriginCombo->setEnabled(enabled);
-	}
-	if (m_passengerJourneyDestinationCombo) {
-		const QSignalBlocker blocker(m_passengerJourneyDestinationCombo);
-		populatePassengerStationCombo(m_passengerJourneyDestinationCombo, m_sceneModel,
-			journey ? journey->destinationStationId : std::string(), nullptr, journey != nullptr);
-		m_passengerJourneyDestinationCombo->setEnabled(enabled);
-	}
-	const std::array<double, 4> values = journey
-		? std::array<double, 4>{journey->plannedDepartureStartSeconds, journey->plannedDepartureEndSeconds,
-			  journey->plannedArrivalStartSeconds, journey->plannedArrivalEndSeconds}
-		: std::array<double, 4>{0.0, 0.0, 0.0, 0.0};
-	for (std::size_t index = 0; index < m_passengerJourneyWindowEdits.size(); ++index) {
-		if (!m_passengerJourneyWindowEdits[index])
-			continue;
-		const QSignalBlocker blocker(m_passengerJourneyWindowEdits[index]);
-		m_passengerJourneyWindowEdits[index]->setValue(values[index]);
-		m_passengerJourneyWindowEdits[index]->setEnabled(enabled);
-	}
-	if (m_deletePassengerJourneyButton)
-		m_deletePassengerJourneyButton->setEnabled(enabled);
-	updatePassengerLegPanel();
-}
-
-void MainWindow::updatePassengerLegPanel() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
-	const bool enabled = leg && m_sceneLoaded && !m_worker;
-	if (m_passengerLegIdEdit) {
-		const QSignalBlocker blocker(m_passengerLegIdEdit);
-		m_passengerLegIdEdit->setText(leg ? QString::fromStdString(leg->id) : QString());
-		m_passengerLegIdEdit->setEnabled(enabled);
-	}
-	if (m_passengerLegServiceCombo) {
-		const QSignalBlocker blocker(m_passengerLegServiceCombo);
-		populatePassengerServiceCombo(m_passengerLegServiceCombo, m_sceneModel,
-			leg ? leg->serviceId : std::string(), leg != nullptr);
-		m_passengerLegServiceCombo->setEnabled(enabled);
-	}
-	std::set<std::string> stopStations;
-	if (leg) {
-		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-			[leg](const SceneService& value) { return value.id == leg->serviceId; });
-		if (service != m_sceneModel.services.end())
-			for (const auto& stop : service->stops)
-				stopStations.insert(stop.stationId);
-	}
-	const std::set<std::string>* allowed = &stopStations;
-	if (m_passengerLegOriginCombo) {
-		const QSignalBlocker blocker(m_passengerLegOriginCombo);
-		populatePassengerStationCombo(m_passengerLegOriginCombo, m_sceneModel,
-			leg ? leg->originStationId : std::string(), allowed, leg != nullptr);
-		m_passengerLegOriginCombo->setEnabled(enabled);
-	}
-	if (m_passengerLegDestinationCombo) {
-		const QSignalBlocker blocker(m_passengerLegDestinationCombo);
-		populatePassengerStationCombo(m_passengerLegDestinationCombo, m_sceneModel,
-			leg ? leg->destinationStationId : std::string(), allowed, leg != nullptr);
-		m_passengerLegDestinationCombo->setEnabled(enabled);
-	}
-	if (m_passengerLegOccurrenceEdit) {
-		const int current = leg ? leg->occurrence : 1;
-		int count = 1;
-		if (leg) {
-			const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-				[leg](const SceneService& value) { return value.id == leg->serviceId; });
-			if (service != m_sceneModel.services.end())
-				count = std::max(1, sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration()));
-		}
-		const QSignalBlocker blocker(m_passengerLegOccurrenceEdit);
-		m_passengerLegOccurrenceEdit->setRange(std::min(0, current), std::max({1, current, count}));
-		m_passengerLegOccurrenceEdit->setValue(current);
-		m_passengerLegOccurrenceEdit->setEnabled(enabled);
-	}
-	if (m_deletePassengerLegButton)
-		m_deletePassengerLegButton->setEnabled(enabled);
-	if (m_movePassengerLegUpButton)
-		m_movePassengerLegUpButton->setEnabled(enabled && m_passengerLegListWidget->currentRow() > 0);
-	if (m_movePassengerLegDownButton)
-		m_movePassengerLegDownButton->setEnabled(enabled
-			&& m_passengerLegListWidget->currentRow() + 1 < m_passengerLegListWidget->count());
-	if (m_addPassengerLegButton)
-		m_addPassengerLegButton->setEnabled(selectedPassengerJourney() && m_sceneLoaded && !m_worker);
-}
-
-void MainWindow::addPassenger() {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	ScenePassenger passenger;
-	passenger.id = sceneUniquePassengerId(m_sceneModel, "new_passenger");
-	m_sceneModel.passengers.push_back(std::move(passenger));
-	markSceneDirty();
-	refreshPassengerPanel();
-	if (m_passengerListWidget)
-		m_passengerListWidget->setCurrentRow(static_cast<int>(m_sceneModel.passengers.size()) - 1);
-	refreshValidationPanel();
-}
-
-void MainWindow::deletePassenger() {
-	if (!m_sceneLoaded || m_worker || !m_passengerListWidget)
-		return;
-	const int row = m_passengerListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.passengers.size()))
-		return;
-	const std::string id = m_sceneModel.passengers[static_cast<std::size_t>(row)].id;
-	if (QMessageBox::question(this, "Delete Passenger",
-			QString("Delete passenger '%1' and its journeys?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-		!= QMessageBox::Yes)
-		return;
-	m_sceneModel.passengers.erase(m_sceneModel.passengers.begin() + row);
-	markSceneDirty();
-	// Refresh widgets before validation so a shifted row cannot write stale
-	// detail values back into the newly selected passenger.
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::addPassengerJourney() {
-	ScenePassenger* passenger = selectedPassenger();
-	if (!passenger || m_worker)
-		return;
-	ScenePassengerJourney journey;
-	journey.id = sceneUniquePassengerJourneyId(m_sceneModel, passenger->id + ".journey");
-	if (!m_sceneModel.stations.empty()) {
-		journey.originStationId = m_sceneModel.stations.front().id;
-		journey.destinationStationId = m_sceneModel.stations.front().id;
-	}
-	passenger->journeys.push_back(std::move(journey));
-	markSceneDirty();
-	refreshPassengerPanel();
-	if (m_passengerJourneyListWidget)
-		m_passengerJourneyListWidget->setCurrentRow(static_cast<int>(passenger->journeys.size()) - 1);
-	refreshValidationPanel();
-}
-
-void MainWindow::deletePassengerJourney() {
-	ScenePassenger* passenger = selectedPassenger();
-	if (!passenger || m_worker || !m_passengerJourneyListWidget)
-		return;
-	const int row = m_passengerJourneyListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(passenger->journeys.size()))
-		return;
-	const std::string id = passenger->journeys[static_cast<std::size_t>(row)].id;
-	if (QMessageBox::question(this, "Delete Journey",
-			QString("Delete journey '%1' and its legs?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-		!= QMessageBox::Yes)
-		return;
-	passenger->journeys.erase(passenger->journeys.begin() + row);
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::addPassengerLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!journey || m_worker)
-		return;
-	ScenePassengerLeg leg;
-	leg.id = sceneUniquePassengerLegId(m_sceneModel, journey->id + ".leg");
-	if (!m_sceneModel.services.empty()) {
-		const SceneService& service = m_sceneModel.services.front();
-		leg.serviceId = service.id;
-		if (!service.stops.empty()) {
-			leg.originStationId = service.stops.front().stationId;
-			leg.destinationStationId = service.stops.size() > 1
-				? service.stops[1].stationId
-				: service.stops.front().stationId;
-		}
-	}
-	if (leg.originStationId.empty() && !m_sceneModel.stations.empty()) {
-		leg.originStationId = m_sceneModel.stations.front().id;
-		leg.destinationStationId = m_sceneModel.stations.front().id;
-	}
-	journey->legs.push_back(std::move(leg));
-	markSceneDirty();
-	refreshPassengerPanel();
-	if (m_passengerLegListWidget)
-		m_passengerLegListWidget->setCurrentRow(static_cast<int>(journey->legs.size()) - 1);
-	if (m_passengerTabs)
-		m_passengerTabs->setCurrentIndex(1);
-	refreshValidationPanel();
-}
-
-void MainWindow::deletePassengerLeg() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!journey || m_worker || !m_passengerLegListWidget)
-		return;
-	const int row = m_passengerLegListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(journey->legs.size()))
-		return;
-	const std::string id = journey->legs[static_cast<std::size_t>(row)].id;
-	if (QMessageBox::question(this, "Delete Leg",
-			QString("Delete passenger leg '%1'?").arg(QString::fromStdString(id)),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-		!= QMessageBox::Yes)
-		return;
-	journey->legs.erase(journey->legs.begin() + row);
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::movePassengerLeg(int offset) {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!journey || m_worker || !m_passengerLegListWidget)
-		return;
-	const int row = m_passengerLegListWidget->currentRow();
-	const int target = row + offset;
-	if (row < 0 || target < 0 || target >= static_cast<int>(journey->legs.size()))
-		return;
-	std::swap(journey->legs[static_cast<std::size_t>(row)], journey->legs[static_cast<std::size_t>(target)]);
-	markSceneDirty();
-	refreshPassengerPanel();
-	if (m_passengerLegListWidget)
-		m_passengerLegListWidget->setCurrentRow(target);
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerIdEdit() {
-	if (!m_sceneLoaded || m_worker || !m_passengerListWidget || !m_passengerIdEdit)
-		return;
-	const int row = m_passengerListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.passengers.size()))
-		return;
-	const std::string oldId = m_sceneModel.passengers[static_cast<std::size_t>(row)].id;
-	const std::string newId = m_passengerIdEdit->text().trimmed().toStdString();
-	bool duplicate = false;
-	for (int index = 0; index < static_cast<int>(m_sceneModel.passengers.size()); ++index)
-		if (index != row && m_sceneModel.passengers[static_cast<std::size_t>(index)].id == newId)
-			duplicate = true;
-	if (newId.empty() || (newId != oldId && duplicate)) {
-		const QSignalBlocker blocker(m_passengerIdEdit);
-		m_passengerIdEdit->setText(QString::fromStdString(oldId));
-		showBlockingError(this, newId.empty() ? "Invalid Passenger ID" : "Passenger ID already exists",
-			newId.empty() ? "Passenger IDs must not be empty." : "Choose a unique passenger ID.", true);
-		return;
-	}
-	if (newId == oldId)
-		return;
-	m_sceneModel.passengers[static_cast<std::size_t>(row)].id = newId;
-	if (auto* item = m_passengerListWidget->item(row)) {
-		const QSignalBlocker blocker(m_passengerListWidget);
-		item->setText(QString::fromStdString(newId));
-	}
-	markSceneDirty();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerJourneyIdEdit() {
-	ScenePassenger* passenger = selectedPassenger();
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!passenger || !journey || m_worker || !m_passengerJourneyIdEdit)
-		return;
-	const std::string oldId = journey->id;
-	const std::string newId = m_passengerJourneyIdEdit->text().trimmed().toStdString();
-	bool duplicate = false;
-	for (const auto& owner : m_sceneModel.passengers)
-		for (const auto& candidate : owner.journeys)
-			if (&candidate != journey && candidate.id == newId)
-				duplicate = true;
-	if (newId.empty() || (newId != oldId && duplicate)) {
-		const QSignalBlocker blocker(m_passengerJourneyIdEdit);
-		m_passengerJourneyIdEdit->setText(QString::fromStdString(oldId));
-		showBlockingError(this, newId.empty() ? "Invalid Journey ID" : "Journey ID already exists",
-			newId.empty() ? "Journey IDs must not be empty." : "Choose a unique journey ID.", true);
-		return;
-	}
-	if (newId == oldId)
-		return;
-	journey->id = newId;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerJourneyActivity() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!journey || m_worker || !m_passengerJourneyActivityEdit)
-		return;
-	const std::string value = m_passengerJourneyActivityEdit->text().toStdString();
-	if (value == journey->activity)
-		return;
-	journey->activity = value;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerJourneyStation(bool origin, const QString& text) {
-	Q_UNUSED(text);
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	QComboBox* combo = origin ? m_passengerJourneyOriginCombo : m_passengerJourneyDestinationCombo;
-	if (!journey || m_worker || !combo)
-		return;
-	const std::string value = combo->currentData().toString().toStdString();
-	std::string& target = origin ? journey->originStationId : journey->destinationStationId;
-	if (target == value)
-		return;
-	target = value;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerJourneyWindow(int index) {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	if (!journey || m_worker || index < 0 || index >= static_cast<int>(m_passengerJourneyWindowEdits.size())
-		|| !m_passengerJourneyWindowEdits[static_cast<std::size_t>(index)])
-		return;
-	const double value = m_passengerJourneyWindowEdits[static_cast<std::size_t>(index)]->value();
-	double* target = index == 0 ? &journey->plannedDepartureStartSeconds
-								: (index == 1 ? &journey->plannedDepartureEndSeconds
-											  : (index == 2 ? &journey->plannedArrivalStartSeconds : &journey->plannedArrivalEndSeconds));
-	if (*target == value)
-		return;
-	*target = value;
-	markSceneDirty();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerLegIdEdit() {
-	ScenePassengerJourney* journey = selectedPassengerJourney();
-	ScenePassengerLeg* leg = selectedPassengerLeg();
-	if (!journey || !leg || m_worker || !m_passengerLegIdEdit)
-		return;
-	const std::string oldId = leg->id;
-	const std::string newId = m_passengerLegIdEdit->text().trimmed().toStdString();
-	bool duplicate = false;
-	for (const auto& passenger : m_sceneModel.passengers)
-		for (const auto& owner : passenger.journeys)
-			for (const auto& candidate : owner.legs)
-				if (&candidate != leg && candidate.id == newId)
-					duplicate = true;
-	if (newId.empty() || (newId != oldId && duplicate)) {
-		const QSignalBlocker blocker(m_passengerLegIdEdit);
-		m_passengerLegIdEdit->setText(QString::fromStdString(oldId));
-		showBlockingError(this, newId.empty() ? "Invalid Leg ID" : "Leg ID already exists",
-			newId.empty() ? "Leg IDs must not be empty." : "Choose a unique leg ID.", true);
-		return;
-	}
-	if (newId == oldId)
-		return;
-	leg->id = newId;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerLegStation(bool origin, const QString& text) {
-	Q_UNUSED(text);
-	ScenePassengerLeg* leg = selectedPassengerLeg();
-	QComboBox* combo = origin ? m_passengerLegOriginCombo : m_passengerLegDestinationCombo;
-	if (!leg || m_worker || !combo)
-		return;
-	const std::string value = combo->currentData().toString().toStdString();
-	std::string& target = origin ? leg->originStationId : leg->destinationStationId;
-	if (target == value)
-		return;
-	target = value;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerLegService(const QString& text) {
-	Q_UNUSED(text);
-	ScenePassengerLeg* leg = selectedPassengerLeg();
-	if (!leg || m_worker || !m_passengerLegServiceCombo)
-		return;
-	const std::string value = m_passengerLegServiceCombo->currentData().toString().toStdString();
-	if (leg->serviceId == value)
-		return;
-	leg->serviceId = value;
-	markSceneDirty();
-	refreshPassengerPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitPassengerLegOccurrence() {
-	ScenePassengerLeg* leg = selectedPassengerLeg();
-	if (!leg || m_worker || !m_passengerLegOccurrenceEdit)
-		return;
-	m_passengerLegOccurrenceEdit->interpretText();
-	const int value = m_passengerLegOccurrenceEdit->value();
-	if (leg->occurrence == value)
-		return;
-	leg->occurrence = value;
-	markSceneDirty();
-	refreshValidationPanel();
-}
-
-void MainWindow::importPassengers() {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	QString sourcePath;
-	if (const auto& passengerSource = mainWindowTestHooks().passengerSource)
-		sourcePath = passengerSource();
-	if (sourcePath.isEmpty()) {
-		const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
-		sourcePath = QFileDialog::getExistingDirectory(this, "Select Legacy Passenger Folder", startDir);
-	}
-	if (sourcePath.isEmpty())
-		return;
-	const ScenePassengerImportResult imported = importLegacyPassengers(sourcePath.toStdString(), m_sceneModel);
-	if (m_passengerImportResultTable)
-		m_passengerImportResultTable->setRowCount(0);
-	const auto addResultRow = [this](const QString& source, int row, const QString& status, const QString& detail) {
-		if (!m_passengerImportResultTable)
-			return;
-		const int target = m_passengerImportResultTable->rowCount();
-		m_passengerImportResultTable->insertRow(target);
-		m_passengerImportResultTable->setItem(target, 0, new QTableWidgetItem(source));
-		m_passengerImportResultTable->setItem(target, 1, new QTableWidgetItem(row > 0 ? QString::number(row) : QStringLiteral("-")));
-		m_passengerImportResultTable->setItem(target, 2, new QTableWidgetItem(status));
-		m_passengerImportResultTable->setItem(target, 3, new QTableWidgetItem(detail));
-	};
-	if (!imported.success()) {
-		for (const auto& row : imported.rows)
-			addResultRow(QFileInfo(QString::fromStdString(row.sourceFile)).fileName(), row.row,
-				QStringLiteral("Rejected"), QString::fromStdString(row.context));
-		if (imported.rows.empty())
-			addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
-				QStringLiteral("The exact DAS and RouteChoice passenger pair could not be read"));
-		QString message = firstDiagnosticMessage(imported.diagnostics);
-		if (message.isEmpty())
-			message = QStringLiteral("Passenger import reported errors.");
-		showBlockingError(this, "Passenger Import Diagnostics", message, true);
-		if (m_passengerImportResultTable)
-			m_passengerImportResultTable->resizeColumnsToContents();
-		statusBar()->showMessage(QStringLiteral("Passenger import rejected; the scene was not changed"), 7000);
-		return;
-	}
-
-	std::set<std::string> passengerIds;
-	std::set<std::string> journeyIds;
-	std::set<std::string> legIds;
-	for (const auto& passenger : m_sceneModel.passengers) {
-		passengerIds.insert(passenger.id);
-		for (const auto& journey : passenger.journeys) {
-			journeyIds.insert(journey.id);
-			for (const auto& leg : journey.legs)
-				legIds.insert(leg.id);
-		}
-	}
-	int acceptedPassengers = 0;
-	int rejectedPassengers = 0;
-	std::set<std::string> rejectedPassengerIds;
-	for (const auto& passenger : imported.passengers) {
-		bool collision = passenger.id.empty() || passengerIds.count(passenger.id) > 0;
-		std::set<std::string> candidateJourneyIds;
-		std::set<std::string> candidateLegIds;
-		for (const auto& journey : passenger.journeys) {
-			if (journey.id.empty() || journeyIds.count(journey.id) > 0
-				|| !candidateJourneyIds.insert(journey.id).second)
-				collision = true;
-			for (const auto& leg : journey.legs) {
-				if (leg.id.empty() || legIds.count(leg.id) > 0
-					|| !candidateLegIds.insert(leg.id).second)
-					collision = true;
-			}
-		}
-		if (collision) {
-			++rejectedPassengers;
-			if (!passenger.id.empty())
-				rejectedPassengerIds.insert(passenger.id);
-			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), 0,
-				QStringLiteral("Rejected"),
-				QStringLiteral("Passenger, journey, or leg ID collides with existing or earlier imported data"));
-			continue;
-		}
-		passengerIds.insert(passenger.id);
-		journeyIds.insert(candidateJourneyIds.begin(), candidateJourneyIds.end());
-		legIds.insert(candidateLegIds.begin(), candidateLegIds.end());
-		m_sceneModel.passengers.push_back(passenger);
-		++acceptedPassengers;
-	}
-	for (const auto& row : imported.rows) {
-		const QString source = QFileInfo(QString::fromStdString(row.sourceFile)).fileName();
-		const bool rejectedByBatch = rejectedPassengerIds.count(row.passengerId) > 0;
-		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
-																: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
-		const QString detail = rejectedByBatch
-			? QStringLiteral("Passenger ID collides with existing or earlier imported data")
-			: QString::fromStdString(row.context);
-		addResultRow(source, row.row, status, detail);
-	}
-	if (imported.rows.empty() && imported.diagnostics.empty())
-		addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
-			QStringLiteral("No passenger source rows were found"));
-	for (const auto& report : imported.report)
-		m_sceneModel.importReport.push_back(report);
-	if (rejectedPassengers > 0) {
-		m_sceneModel.importReport.push_back({"passengers.editor", sourcePath.toStdString(),
-			acceptedPassengers + rejectedPassengers, acceptedPassengers, rejectedPassengers, 0});
-	}
-	if (acceptedPassengers > 0 || rejectedPassengers > 0 || !imported.report.empty()) {
-		markSceneDirty();
-		refreshPassengerPanel();
-		refreshValidationPanel();
-	}
-	if (m_passengerImportResultTable)
-		m_passengerImportResultTable->resizeColumnsToContents();
-	statusBar()->showMessage(QString("Passenger import: %1 accepted, %2 rejected; unresolved rows remain visible")
-								 .arg(acceptedPassengers)
-								 .arg(rejectedPassengers),
-		7000);
-}
-
 void MainWindow::addInfrastructureEntity() {
 	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo)
 		return;
@@ -6296,120 +5402,19 @@ double MainWindow::serviceOccurrenceDuration() const {
 		: computeHorizon(m_sceneModel);
 }
 
-void MainWindow::pruneExcludedServiceOccurrences() {
-	if (!m_sceneLoaded)
-		return;
-	const double durationSeconds = serviceOccurrenceDuration();
-	for (auto it = m_excludedSceneOccurrences.begin(); it != m_excludedSceneOccurrences.end();) {
-		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-			[&](const SceneService& candidate) { return candidate.id == it->serviceId; });
-		if (service == m_sceneModel.services.end() || it->occurrence < 1
-			|| it->occurrence > sceneServiceOccurrenceCount(*service, durationSeconds))
-			it = m_excludedSceneOccurrences.erase(it);
-		else
-			++it;
-	}
-}
-
-void MainWindow::migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId) {
-	if (oldId == newId)
-		return;
-	SceneRunSelection migrated;
-	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
-		SceneServiceOccurrence replacement = value;
-		if (replacement.serviceId == oldId)
-			replacement.serviceId = newId;
-		migrated.insert(replacement);
-	}
-	m_excludedSceneOccurrences.swap(migrated);
-}
-
 int MainWindow::totalServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	int total = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		if (count > std::numeric_limits<int>::max() - total)
-			return std::numeric_limits<int>::max();
-		total += count;
-	}
-	return total;
+	return m_sceneLoaded ? sceneTotalOccurrences(m_sceneModel, serviceOccurrenceDuration()) : 0;
 }
 
 int MainWindow::inPeriodServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	long long total = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		total += sceneServiceInWindowCount(service, serviceOccurrenceDuration());
-		if (total >= std::numeric_limits<int>::max())
-			return std::numeric_limits<int>::max();
-	}
-	return static_cast<int>(total);
-}
-
-int MainWindow::selectedServiceOccurrences() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	int excluded = 0;
-	for (const SceneServiceOccurrence& value : m_excludedSceneOccurrences) {
-		const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-			[&](const SceneService& candidate) { return candidate.id == value.serviceId; });
-		if (service != m_sceneModel.services.end() && value.occurrence >= 1
-			&& value.occurrence <= sceneServiceOccurrenceCount(*service, durationSeconds))
-			++excluded;
-	}
-	return std::max(0, totalServiceOccurrences() - excluded);
-}
-
-int MainWindow::selectedServiceOccurrencesInPeriod() const {
-	if (!m_sceneLoaded)
-		return 0;
-	const double durationSeconds = serviceOccurrenceDuration();
-	const int configured = totalServiceOccurrences();
-	if (m_excludedSceneOccurrences.empty() || configured > Max_N_Reg)
-		return inPeriodServiceOccurrences();
-	int selected = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			const SceneServiceOccurrence value{service.id, occurrence};
-			const double entry = sceneServiceScheduledEntry(service, occurrence);
-			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end()
-				&& std::isfinite(entry) && entry >= 0.0 && entry < durationSeconds)
-				++selected;
-		}
-	}
-	return selected;
-}
-
-SceneRunSelection MainWindow::selectedSceneOccurrences() const {
-	SceneRunSelection selection;
-	if (!m_sceneLoaded || m_excludedSceneOccurrences.empty())
-		return selection;
-	if (totalServiceOccurrences() > Max_N_Reg)
-		return selection;
-	const double durationSeconds = serviceOccurrenceDuration();
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			SceneServiceOccurrence value;
-			value.serviceId = service.id;
-			value.occurrence = occurrence;
-			if (m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end())
-				selection.insert(value);
-		}
-	}
-	return selection;
+	return m_sceneLoaded ? sceneInPeriodOccurrences(m_sceneModel, serviceOccurrenceDuration()) : 0;
 }
 
 void MainWindow::refreshServiceOccurrencePreview() {
 	if (!m_serviceOccurrenceTable)
 		return;
-	pruneExcludedServiceOccurrences();
+	if (m_sceneLoaded)
+		m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 	m_updatingServiceOccurrencePreview = true;
 	m_serviceOccurrenceTable->clearContents();
 	if (!m_sceneLoaded) {
@@ -6428,7 +5433,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 	const int totalOccurrences = totalServiceOccurrences();
 	const int displayedOccurrences = std::min(totalOccurrences, Max_N_Reg);
 	if (totalOccurrences > Max_N_Reg)
-		m_excludedSceneOccurrences.clear();
+		m_runSelection.includeAll();
 	m_serviceOccurrenceTable->setRowCount(displayedOccurrences);
 	int row = 0;
 	for (const SceneService& service : m_sceneModel.services) {
@@ -6438,7 +5443,7 @@ void MainWindow::refreshServiceOccurrencePreview() {
 			SceneServiceOccurrence value;
 			value.serviceId = service.id;
 			value.occurrence = occurrence;
-			const bool checked = m_excludedSceneOccurrences.find(value) == m_excludedSceneOccurrences.end();
+			const bool checked = !m_runSelection.isExcluded(value);
 			auto* include = new QTableWidgetItem();
 			include->setFlags(include->flags() | Qt::ItemIsUserCheckable);
 			include->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
@@ -6475,8 +5480,8 @@ void MainWindow::refreshServiceOccurrencePreview() {
 							   "Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
 						   .arg(totalOccurrences)
 						   .arg(inPeriodServiceOccurrences())
-						   .arg(selectedServiceOccurrences())
-						   .arg(selectedServiceOccurrencesInPeriod())
+						   .arg(m_runSelection.selectedCount(m_sceneModel, durationSeconds))
+						   .arg(m_runSelection.selectedInPeriodCount(m_sceneModel, durationSeconds))
 						   .arg(QString::number(durationSeconds, 'g', 12));
 		if (totalOccurrences > displayedOccurrences)
 			text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
@@ -6501,34 +5506,21 @@ void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
 	SceneServiceOccurrence value;
 	value.serviceId = item->data(Qt::UserRole).toString().toStdString();
 	value.occurrence = item->data(Qt::UserRole + 1).toInt();
-	if (item->checkState() == Qt::Checked)
-		m_excludedSceneOccurrences.erase(value);
-	else
-		m_excludedSceneOccurrences.insert(value);
+	m_runSelection.setExcluded(value, item->checkState() != Qt::Checked);
 	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::selectAllServiceOccurrences() {
 	if (m_worker)
 		return;
-	m_excludedSceneOccurrences.clear();
+	m_runSelection.includeAll();
 	refreshServiceOccurrencePreview();
 }
 
 void MainWindow::selectNoneServiceOccurrences() {
 	if (m_worker || totalServiceOccurrences() > Max_N_Reg)
 		return;
-	const double durationSeconds = serviceOccurrenceDuration();
-	m_excludedSceneOccurrences.clear();
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::max(0, sceneServiceOccurrenceCount(service, durationSeconds));
-		for (int occurrence = 1; occurrence <= count; ++occurrence) {
-			SceneServiceOccurrence value;
-			value.serviceId = service.id;
-			value.occurrence = occurrence;
-			m_excludedSceneOccurrences.insert(value);
-		}
-	}
+	m_runSelection.excludeAll(m_sceneModel, serviceOccurrenceDuration());
 	refreshServiceOccurrencePreview();
 }
 
@@ -6598,7 +5590,7 @@ void MainWindow::deleteService() {
 		return;
 
 	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
-	pruneExcludedServiceOccurrences();
+	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 
 	markSceneDirty();
 	updateSceneWindowTitle();
@@ -6632,7 +5624,7 @@ void MainWindow::commitServiceIdEdit() {
 		return;
 	}
 	sceneRewriteServiceReferences(m_sceneModel, oldId, newId);
-	migrateExcludedServiceOccurrences(oldId, newId);
+	m_runSelection.serviceRenamed(oldId, newId);
 	m_sceneModel.services[row].id = newId;
 
 	// update the list row label in place instead of rebuilding the panel, so a
@@ -7574,7 +6566,7 @@ SceneScenario* MainWindow::selectedScenario() {
 	if (!m_sceneLoaded)
 		return nullptr;
 	for (auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_selectedScenarioId)
+		if (scenario.id == m_runSelection.scenarioId())
 			return &scenario;
 	}
 	return defaultScenario(m_sceneModel);
@@ -7584,7 +6576,7 @@ const SceneScenario* MainWindow::selectedScenario() const {
 	if (!m_sceneLoaded)
 		return nullptr;
 	for (const auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_selectedScenarioId)
+		if (scenario.id == m_runSelection.scenarioId())
 			return &scenario;
 	}
 	return defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
@@ -7621,15 +6613,15 @@ SceneEntranceDelay* MainWindow::selectedEntranceDelay() {
 }
 
 QString MainWindow::scenarioContext() const {
-	if (!m_appliedScenarioId.empty())
-		return QString::fromStdString(m_appliedScenarioId);
+	if (!m_runSelection.appliedScenarioId().empty())
+		return QString::fromStdString(m_runSelection.appliedScenarioId());
 	const SceneScenario* scenario = selectedScenario();
 	return scenario ? QString::fromStdString(scenario->id) : QStringLiteral("(none)");
 }
 
 void MainWindow::markScenarioModified() {
 	if (const SceneScenario* scenario = selectedScenario())
-		m_modifiedScenarioIds.insert(scenario->id);
+		m_runSelection.markScenarioModified(scenario->id);
 	markSceneDirty();
 }
 
@@ -7638,12 +6630,12 @@ void MainWindow::selectScenario(int row) {
 		|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
 		return;
 	const std::string id = m_sceneModel.scenarios[static_cast<std::size_t>(row)].id;
-	if (id == m_selectedScenarioId) {
+	if (id == m_runSelection.scenarioId()) {
 		updateScenarioDetailPanel();
 		updateIncidentDetailPanel();
 		return;
 	}
-	m_selectedScenarioId = id;
+	m_runSelection.selectScenario(id);
 	invalidateRunResults();
 	refreshIncidentPanel();
 }
@@ -7687,9 +6679,9 @@ void MainWindow::updateScenarioDetailPanel() {
 
 void MainWindow::refreshScenarioList() {
 	const bool hasScene = m_sceneLoaded;
-	if (m_selectedScenarioId.empty() && hasScene) {
+	if (m_runSelection.scenarioId().empty() && hasScene) {
 		if (const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel)))
-			m_selectedScenarioId = scenario->id;
+			m_runSelection.selectScenario(scenario->id);
 	}
 
 	if (m_scenarioListWidget) {
@@ -7699,7 +6691,7 @@ void MainWindow::refreshScenarioList() {
 		for (std::size_t index = 0; hasScene && index < m_sceneModel.scenarios.size(); ++index) {
 			const SceneScenario& scenario = m_sceneModel.scenarios[index];
 			new QListWidgetItem(m_scenarioListWidget);
-			if (scenario.id == m_selectedScenarioId)
+			if (scenario.id == m_runSelection.scenarioId())
 				rowToSelect = static_cast<int>(index);
 		}
 		updateScenarioPresentation();
@@ -8023,7 +7015,7 @@ void MainWindow::addBlankScenario() {
 	scenario.id = sceneUniqueScenarioId(m_sceneModel, "new_scenario");
 	scenario.name = "New scenario";
 	m_sceneModel.scenarios.push_back(std::move(scenario));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -8039,7 +7031,7 @@ void MainWindow::duplicateScenario() {
 	for (auto& incident : copy.incidents)
 		incident.id = sceneUniqueIncidentId(m_sceneModel, incident.id + "_copy");
 	m_sceneModel.scenarios.push_back(std::move(copy));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -8076,8 +7068,7 @@ void MainWindow::deleteScenario() {
 	if (it == m_sceneModel.scenarios.end())
 		return;
 	m_sceneModel.scenarios.erase(it);
-	m_modifiedScenarioIds.erase(deletedId);
-	m_selectedScenarioId = defaultId;
+	m_runSelection.scenarioDeleted(deletedId, defaultId);
 	markSceneDirty();
 	refreshIncidentPanel();
 	refreshValidationPanel();
@@ -8144,14 +7135,14 @@ void MainWindow::importScenario() {
 		return;
 	}
 	m_sceneModel.scenarios.push_back(std::move(imported));
-	m_selectedScenarioId = m_sceneModel.scenarios.back().id;
+	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
 	markScenarioModified();
 	refreshIncidentPanel();
 	refreshValidationPanel();
-	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_selectedScenarioId));
+	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_runSelection.scenarioId()));
 	if (scenarioConflict)
 		message += QString(" (ID %1 already existed; imported as %2)")
-					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_selectedScenarioId));
+					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_runSelection.scenarioId()));
 	if (adjustedIncidentCount > 0)
 		message += QString(" %1 incident ID(s) adjusted to remain globally unique.")
 					   .arg(adjustedIncidentCount);
@@ -8180,8 +7171,7 @@ void MainWindow::commitScenarioIdEdit() {
 	const std::string oldId = scenario->id;
 	scenario->id = newId;
 	sceneRewriteScenarioReferences(m_sceneModel, oldId, newId);
-	m_selectedScenarioId = newId;
-	m_modifiedScenarioIds.erase(oldId);
+	m_runSelection.scenarioRenamed(oldId, newId);
 	markScenarioModified();
 	refreshValidationPanel();
 }
@@ -9992,10 +8982,10 @@ void MainWindow::updateDiagramActions() {
 		feedback = QStringLiteral("Baseline: %1. Run an incident scenario without entrance delays, then compare.")
 					   .arg(completedRunContext(m_delayBaseline->provenance));
 	}
-	if (!current.scenarioId.empty() && !m_selectedScenarioId.empty()
-		&& current.scenarioId != m_selectedScenarioId) {
+	if (!current.scenarioId.empty() && !m_runSelection.scenarioId().empty()
+		&& current.scenarioId != m_runSelection.scenarioId()) {
 		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
-						.arg(QString::fromStdString(m_selectedScenarioId));
+						.arg(QString::fromStdString(m_runSelection.scenarioId()));
 	}
 	if (m_delayFeedbackLabel)
 		m_delayFeedbackLabel->setText(feedback);
@@ -10112,8 +9102,8 @@ QString MainWindow::runReviewText() const {
 						  .arg(static_cast<int>(m_sceneModel.services.size()))
 						  .arg(totalServiceOccurrences())
 						  .arg(inPeriodServiceOccurrences())
-						  .arg(selectedServiceOccurrences())
-						  .arg(selectedServiceOccurrencesInPeriod())
+						  .arg(m_runSelection.selectedCount(m_sceneModel, serviceOccurrenceDuration()))
+						  .arg(m_runSelection.selectedInPeriodCount(m_sceneModel, serviceOccurrenceDuration()))
 						  .arg(static_cast<int>(m_sceneModel.compositions.size()))
 						  .arg(static_cast<int>(selectedScenarioIncidents().size()))
 						  .arg(counts.errors)
@@ -10140,8 +9130,8 @@ bool MainWindow::showRunReview() {
 	layout->setSpacing(8);
 	const bool detailsEnabled = advancedDetailsEnabled();
 	const SceneDiagnosticCounts counts = countDiagnostics(m_sceneDiagnostics);
-	const int selectedInPeriod = selectedServiceOccurrencesInPeriod();
 	const double duration = serviceOccurrenceDuration();
+	const int selectedInPeriod = m_runSelection.selectedInPeriodCount(m_sceneModel, duration);
 	const long long baseSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
 	auto* facts = new QGridLayout();
 	facts->setHorizontalSpacing(20);
@@ -10284,7 +9274,7 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.sceneSchemaVersion = m_sceneModel.schemaVersion;
 	provenance.input = captureSavedInput(m_sceneDir.toStdString(),
 		m_sceneIsBundle ? "bundle" : "directory", m_sceneDirty, m_savedSceneSha256);
-	provenance.appliedScenario = m_appliedScenarioId;
+	provenance.appliedScenario = m_runSelection.appliedScenarioId();
 	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
 	provenance.durationSeconds = initial_variables.times;
 	provenance.timestepSeconds = timestep;
@@ -10309,7 +9299,7 @@ DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
 		return snapshot;
 	const CompletedRunData& run = *m_completedRun;
 	snapshot.caseRevision = std::to_string(m_sceneRevision);
-	snapshot.scenarioId = m_appliedScenarioId;
+	snapshot.scenarioId = m_runSelection.appliedScenarioId();
 	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_sceneModel.baseTime));
 	snapshot.durationSeconds = std::isfinite(run.settings.horizonSteps)
 		? run.settings.horizonSteps
@@ -10704,7 +9694,7 @@ void MainWindow::runScene() {
 			QCoreApplication::exit(2);
 			return;
 		}
-		m_selectedScenarioId = configured->id;
+		m_runSelection.selectScenario(configured->id);
 	}
 
 	refreshValidationPanel();
@@ -10715,9 +9705,9 @@ void MainWindow::runScene() {
 			QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
 		return;
 	}
-	pruneExcludedServiceOccurrences();
+	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
 	m_lastRunTotalOccurrences = totalServiceOccurrences();
-	m_lastRunSelectedOccurrences = selectedServiceOccurrences();
+	m_lastRunSelectedOccurrences = m_runSelection.selectedCount(m_sceneModel, serviceOccurrenceDuration());
 	if (m_lastRunSelectedOccurrences <= 0) {
 		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
 		showBlockingError(this, "Cannot Run Scene", "Select at least one generated service occurrence before running.", true);
@@ -10748,12 +9738,12 @@ void MainWindow::runScene() {
 	}
 	initial_variables.GUI = 1;
 	invalidateRunResults();
-	m_appliedScenarioId = m_selectedScenarioId;
-	const SceneRunSelection selection = selectedSceneOccurrences();
+	m_runSelection.applySelectedScenario();
+	const SceneRunSelection selection = m_runSelection.selectedOccurrences(m_sceneModel, serviceOccurrenceDuration());
 	const bool identityBeforePrepare = !startupTimingEnabled()
 		|| startupTimingIdentityMatches(m_sceneDir, m_sceneModel);
 	const qint64 prepareStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
-	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_selectedScenarioId, selection);
+	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_sceneModel, m_runSelection.scenarioId(), selection);
 	const bool timingIdentityOk = identityBeforePrepare
 		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_sceneDir, m_sceneModel));
 	if (startupTimingEnabled())
@@ -10796,7 +9786,7 @@ void MainWindow::runScene() {
 		config.requestedScenario = qEnvironmentVariable(
 			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
 									   .toStdString();
-		config.scenario = m_appliedScenarioId;
+		config.scenario = m_runSelection.appliedScenarioId();
 		config.defaultScenario = m_sceneModel.defaultScenarioId;
 		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
 		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");

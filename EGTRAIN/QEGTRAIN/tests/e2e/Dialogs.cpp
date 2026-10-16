@@ -204,7 +204,7 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 	reviewDiagnostic = QJsonObject();
 	reviewRevisionBefore = w.m_sceneRevision;
-	reviewSelectionBefore = w.selectedSceneOccurrences();
+	reviewSelectionBefore = w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration());
 	reviewAdvanced = w.advancedDetailsEnabled();
 	auto* body = review.findChild<QWidget*>("runReviewBody");
 	auto* buttons = review.findChild<QDialogButtonBox*>("runReviewButtons");
@@ -367,7 +367,7 @@ void MainWindowTestAccess::reviewClosed(MainWindow& w, QDialog& review) {
 	std::fprintf(stdout, "E2E_RUN_REVIEW_VALIDATION_VISIBLE=%d\n", details.contains("Validation:") ? 1 : 0);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_CANCELLED=%d\n", cancelled ? 1 : 0);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_UNCHANGED=%d\n",
-		w.m_sceneRevision == reviewRevisionBefore && w.selectedSceneOccurrences() == reviewSelectionBefore ? 1 : 0);
+		w.m_sceneRevision == reviewRevisionBefore && w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration()) == reviewSelectionBefore ? 1 : 0);
 	std::fflush(stdout);
 	QCoreApplication::exit(0);
 }

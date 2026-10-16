@@ -93,6 +93,7 @@
 #include <QSet>
 
 #include "editors/SceneDocument.h"
+#include "app/RunSelection.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
 #include "scene/TrackPreview.h"
@@ -114,6 +115,8 @@ class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
+class PassengerPanel;
+class UserPrompts;
 class QPlainTextEdit;
 class TrainUnitPanel;
 class TrainUnitSourceLinker;
@@ -502,9 +505,7 @@ private:
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
 	bool m_sceneChangedDuringRun = false;
-	std::string m_selectedScenarioId;
-	std::string m_appliedScenarioId;
-	std::set<std::string> m_modifiedScenarioIds;
+	RunSelection m_runSelection;
 	// The finished run as values. The Run Results dock shows it and the result windows share it, so each window keeps
 	// the run it was opened for. Null while no run has completed.
 	std::shared_ptr<const CompletedRunData> m_completedRun;
@@ -574,7 +575,6 @@ private:
 	QPushButton* m_selectNoneOccurrencesButton = nullptr;
 	QLabel* m_serviceOccurrenceSelectionLabel = nullptr;
 	bool m_updatingServiceOccurrencePreview = false;
-	SceneRunSelection m_excludedSceneOccurrences;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
 	QTableWidget* m_stopTableWidget = nullptr;
@@ -747,17 +747,14 @@ private:
 
 	// passenger editor: canonical passengers, journeys, and ordered legs
 	QDockWidget* m_passengerDock = nullptr;
+	PassengerPanel* m_passengerPanel = nullptr;
+	// The fields of m_passengerPanel, for the scripted runs in tests/e2e
 	QListWidget* m_passengerListWidget = nullptr;
 	QLineEdit* m_passengerIdEdit = nullptr;
 	QPushButton* m_addPassengerButton = nullptr;
-	QPushButton* m_deletePassengerButton = nullptr;
-	QPushButton* m_importPassengerButton = nullptr;
-	QTableWidget* m_passengerImportResultTable = nullptr;
-	QLabel* m_passengerDiagnosticLabel = nullptr;
 	QTabWidget* m_passengerTabs = nullptr;
 	QListWidget* m_passengerJourneyListWidget = nullptr;
 	QPushButton* m_addPassengerJourneyButton = nullptr;
-	QPushButton* m_deletePassengerJourneyButton = nullptr;
 	QLineEdit* m_passengerJourneyIdEdit = nullptr;
 	QLineEdit* m_passengerJourneyActivityEdit = nullptr;
 	QComboBox* m_passengerJourneyOriginCombo = nullptr;
@@ -765,38 +762,11 @@ private:
 	std::array<QDoubleSpinBox*, 4> m_passengerJourneyWindowEdits{};
 	QListWidget* m_passengerLegListWidget = nullptr;
 	QPushButton* m_addPassengerLegButton = nullptr;
-	QPushButton* m_deletePassengerLegButton = nullptr;
-	QPushButton* m_movePassengerLegUpButton = nullptr;
-	QPushButton* m_movePassengerLegDownButton = nullptr;
 	QLineEdit* m_passengerLegIdEdit = nullptr;
 	QComboBox* m_passengerLegOriginCombo = nullptr;
 	QComboBox* m_passengerLegDestinationCombo = nullptr;
 	QComboBox* m_passengerLegServiceCombo = nullptr;
 	QSpinBox* m_passengerLegOccurrenceEdit = nullptr;
-	void refreshPassengerPanel();
-	void updatePassengerDetailPanel();
-	void updatePassengerJourneyPanel();
-	void updatePassengerLegPanel();
-	void addPassenger();
-	void deletePassenger();
-	void addPassengerJourney();
-	void deletePassengerJourney();
-	void addPassengerLeg();
-	void deletePassengerLeg();
-	void movePassengerLeg(int offset);
-	void importPassengers();
-	void commitPassengerIdEdit();
-	void commitPassengerJourneyIdEdit();
-	void commitPassengerJourneyActivity();
-	void commitPassengerJourneyStation(bool origin, const QString& text);
-	void commitPassengerJourneyWindow(int index);
-	void commitPassengerLegIdEdit();
-	void commitPassengerLegStation(bool origin, const QString& text);
-	void commitPassengerLegService(const QString& text);
-	void commitPassengerLegOccurrence();
-	ScenePassenger* selectedPassenger();
-	ScenePassengerJourney* selectedPassengerJourney();
-	ScenePassengerLeg* selectedPassengerLeg();
 
 	// opens the tractive-effort plot of a unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
@@ -836,11 +806,6 @@ private:
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
-	int selectedServiceOccurrences() const;
-	int selectedServiceOccurrencesInPeriod() const;
-	SceneRunSelection selectedSceneOccurrences() const;
-	void pruneExcludedServiceOccurrences();
-	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
 	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
 	// stop (timetable) editor: edits copied SceneStop records through one modal
