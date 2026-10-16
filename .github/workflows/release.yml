@@ -130,12 +130,15 @@ jobs:
       - name: Install Qt
         run: brew install qt@5 zeromq cppzmq nlohmann-json
 
+      # The instrumented tests run many times slower than the default time limits allow, so the limits are scaled up.
       - name: Configure
         run: >
           cmake -S . -B build "-DEGTRAIN_VERSION=${{ needs.version.outputs.version }}"
           -DCMAKE_BUILD_TYPE=Debug
           -DEGTRAIN_BUILD_TESTS=ON
           -DEGTRAIN_ENABLE_SANITIZERS=ON
+          -DEGTRAIN_TEST_TIMEOUT_SCALE=10
+          -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=5400
           -DCMAKE_PREFIX_PATH="$(brew --prefix qt@5)"
 
       - name: Build
@@ -147,7 +150,7 @@ jobs:
           ASAN_OPTIONS: abort_on_error=1:halt_on_error=1
           QEGTRAIN_GUI_SMOKE_MARKER_SECONDS: "360"
           QEGTRAIN_GUI_SMOKE_SECONDS: "30"
-        run: ctest --test-dir build --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
+        run: ctest --test-dir build --parallel 3 --output-on-failure --output-log "$RUNNER_TEMP/ctest-sanitizer.log"
 
       - name: Upload failure diagnostics
         if: failure()

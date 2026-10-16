@@ -409,6 +409,14 @@ the directory of the test executables as the two arguments of
 build with `EGTRAIN_ENABLE_SANITIZERS=ON`: the time limits of their scripts are set
 for an uninstrumented build.
 
+A build with sanitizers runs several times slower than the time limits in `CMakeLists.txt` allow.
+`-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies the limit of every test that the top-level
+`CMakeLists.txt` registers by N; the default 1 leaves the limits as they are. The characterization
+tests that run committed scenes have a limit of their own, `-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS`
+(default 300), which the scale does not change. The `Sanitizers` job of `release.yml` passes a scale
+of 10 and a scene limit of 5400 seconds, and runs `ctest --parallel 3` like the macOS leg of the CMake
+workflow. The leak check passes only a scene limit of 1500 seconds.
+
 `test_dialog_presentation_contract` runs `creator_acceptance_smoke.sh --dialog-contract`,
 which starts the creator acceptance run and then checks the case chooser and the Run
 simulation dialog in the built application, as [Dialog presentation](../ui/dialog-presentation.md#checks)

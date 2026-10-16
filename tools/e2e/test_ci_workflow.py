@@ -416,8 +416,8 @@ def main() -> None:
         missing.append("single-source application version propagation")
     if "\n  validation:\n" not in release_workflow or release_workflow.count(
         "ctest --test-dir build --output-on-failure"
-    ) != 2:
-        missing.append("production validation and sanitizer CTest jobs")
+    ) != 1:
+        missing.append("production validation CTest job")
     if any(smoke not in release_workflow for smoke in standalone_smokes):
         missing.append("production standalone smoke steps")
     if "\n  sanitizer:\n" not in release_workflow or "EGTRAIN_ENABLE_SANITIZERS=ON" not in release_workflow:
@@ -433,6 +433,31 @@ def main() -> None:
         )
     ):
         missing.append("production sanitizer diagnostics and time budgets")
+    # An instrumented build runs several times slower. The sanitizer job scales the time limits of the tests and runs as many
+    # tests at once as the macOS leg of the CMake workflow, so that it neither times out nor takes an hour. The scale is 1 by
+    # default and no other build passes it, so every other build keeps its limits.
+    sanitizer_job = job_block(release_only, "sanitizer")
+    sanitizer_configure = " ".join(step_block(sanitizer_job, "Configure").split()) + " "
+    sanitizer_ctest = step_block(sanitizer_job, "Test")
+    macos_jobs = re.search(r"^ +- name: macOS\n +os: \S+\n +jobs: (\d+)$", workflow, re.MULTILINE)
+    timeout_scale = re.search(r" -DEGTRAIN_TEST_TIMEOUT_SCALE=(\d+) ", sanitizer_configure)
+    scene_timeout = re.search(r" -DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=(\d+) ", sanitizer_configure)
+    if (
+        not macos_jobs
+        or f"run: ctest --test-dir build --parallel {macos_jobs.group(1)} --output-on-failure " not in sanitizer_ctest
+        or not timeout_scale
+        or int(timeout_scale.group(1)) < 2
+        or not scene_timeout
+        or int(scene_timeout.group(1)) <= 300
+    ):
+        missing.append("production sanitizer job that runs CTest in parallel with a scaled test time limit")
+    if (
+        'set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "' not in cmake
+        or "set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING" not in characterization_cmake
+        or "EGTRAIN_TEST_TIMEOUT_SCALE" in workflow
+        or "EGTRAIN_TEST_TIMEOUT_SCALE" in job_block(release_only, "validation")
+    ):
+        missing.append("test time limits that only the sanitizer job of the release workflow scales")
     publish_job = release_only.split("\n  release:\n", 1)[1]
     publish_condition = publish_job.split("\n    runs-on:", 1)[0]
     if "needs: [version, validation, sanitizer, package]" not in publish_condition:
