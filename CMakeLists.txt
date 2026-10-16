@@ -252,6 +252,11 @@ target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 add_library(egtrain_sceneopen STATIC ${SRC_DIR}/app/SceneOpenRequest.cpp)
 target_link_libraries(egtrain_sceneopen PUBLIC Qt5::Core)
 
+# Hands a file that a second process was asked to open to the running instance. Qt Core and Network
+# only; the application and test_openrequestrelay link it.
+add_library(egtrain_openrelay STATIC ${SRC_DIR}/app/OpenRequestRelay.cpp)
+target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Network)
+
 # Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the
 # controller that writes them in the background. Only the recovery tests link it.
 add_library(egtrain_recovery STATIC
@@ -321,7 +326,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
 endif()
 
-foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
@@ -330,7 +335,7 @@ endforeach()
 
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
-foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_sceneopen egtrain_recovery egtrain_diagrams
+foreach(egtrain_lib egtrain_util egtrain_scene egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
         egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
@@ -456,6 +461,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     ${EGTRAIN_APP_TELEMETRY}
     egtrain_update
     egtrain_sceneopen
+    egtrain_openrelay
     egtrain_railml
     egtrain_sim
     egtrain_scene
@@ -509,7 +515,7 @@ endif()
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
     set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
-        egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_recovery egtrain_dispatch egtrain_diagrams
+        egtrain_graphics egtrain_widgets egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
@@ -903,6 +909,12 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_sceneopenrequest PRIVATE egtrain_sceneopen Qt5::Core)
 	add_test(NAME test_sceneopenrequest COMMAND test_sceneopenrequest)
 
+	# The test starts copies of itself as the second process.
+	add_executable(test_openrequestrelay ${SRC_DIR}/tests/test_openrequestrelay.cpp)
+	target_link_libraries(test_openrequestrelay PRIVATE egtrain_openrelay Qt5::Core Qt5::Network)
+	add_test(NAME test_openrequestrelay COMMAND test_openrequestrelay)
+	set_tests_properties(test_openrequestrelay PROPERTIES TIMEOUT 120)
+
 	add_executable(test_scenecompatibility ${SRC_DIR}/tests/test_scenecompatibility.cpp)
 	target_link_libraries(test_scenecompatibility PRIVATE egtrain_scene)
 	add_test(NAME test_scenecompatibility
@@ -1143,7 +1155,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_distribution
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
-			test_scenecompatibility test_sceneopenrequest
+			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
@@ -1190,7 +1202,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
 	egtrain_label_tests(integration
-		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process
+		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure

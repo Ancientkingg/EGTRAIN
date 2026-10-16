@@ -84,7 +84,7 @@ The scene, simulation, utility and RailML code is built once as static
 libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`
 and the vendored `egtrain_pugixml`. The Qt code that several targets use is
 built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_update`,
-`egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
+`egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
 `SimulationWorker`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
 tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
@@ -203,6 +203,24 @@ fixed 100 to 150 ms, and the timer case uses an interval of 2 s. The removal
 case changes the permissions of a folder and is skipped where that has no
 effect, as for a superuser and on Windows.
 
+`test_openrequestrelay` (label `integration`) checks `OpenRequestRelay`, which
+hands a file from a second launch to the running window. The test program is
+the running instance, and it starts itself again as the second process. It
+checks that a path with spaces and non-ASCII characters arrives once and
+unchanged and that the second process ends with 0, that a request for another
+application folder is refused, that a name held by a running instance is not
+taken over while a name left behind by a killed one is, that a request in two
+parts is accepted and bytes that are no request are dropped, that only the
+newest postponed request comes back, and the rule for the test variables. On
+macOS and Linux the socket files lie in a folder directly below `/tmp`, because
+a socket path is limited to about 100 characters. `test_startup_launch_contract`
+adds the window: a window started with a file, and one with the chooser open,
+each open a file that a launch without test variables hands to them, and a
+scripted launch with a file keeps its own window. A run with any
+`QEGTRAIN_E2E_` variable neither listens nor hands over a file, unless
+`QEGTRAIN_E2E_OPEN_RELAY` is set as well, which the contract sets for the
+window only.
+
 ### Test labels
 
 Every test has exactly one of `unit` or `integration`. Configuration fails
@@ -273,7 +291,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_verify_signatures` | no | no | yes | Signs copies of `scene_tool.exe` with a throwaway self-signed certificate through `New-SelfSignedCertificate` and `Set-AuthenticodeSignature`, and runs `tools/release/verify_signatures.ps1` on them. It is not registered when no PowerShell is found. |
-| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches and the window launch with a bundle argument run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window there only, because the scene layer builds file paths from narrow strings. |
+| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window there only, because the scene layer builds file paths from narrow strings. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 

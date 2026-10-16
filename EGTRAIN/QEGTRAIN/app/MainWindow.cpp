@@ -2,7 +2,9 @@
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 #include "app/TelemetrySmokeSupport.h"
 #endif
+#include "app/OpenRequestRelay.h"
 #include "app/ReplayCoverage.h"
+#include "app/SceneOpenRequest.h"
 #include "app/SceneSavePolicy.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
@@ -24017,6 +24019,32 @@ void MainWindow::showEvent(QShowEvent* e) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE")) {
 		QTimer::singleShot(0, this, &MainWindow::runCreatorAcceptanceE2E);
 		return;
+	}
+	// A file that the system opens with a second process arrives from the relay that main created.
+	// It takes the steps of File > Open Case Study. A modal dialog, such as the first-run questions or
+	// the question about unsaved changes, holds it back until the dialog has closed.
+	if (auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly)) {
+		connect(relay, &OpenRequestRelay::openRequested, this, [this, relay](const QString& request) {
+			// The request names the case, so the startup chooser stays closed.
+			initial_variables.nArgProvided = true;
+			// A chooser that is open gives way to the request.
+			QDialog* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
+			if (chooser)
+				chooser->reject();
+			if (chooser || QApplication::activeModalWidget()) {
+				relay->postpone(request);
+				return;
+			}
+			setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+			raise();
+			activateWindow();
+			const SceneOpenChoice choice = classifyOpenPaths({request});
+			if (!choice.rejection.isEmpty()) {
+				statusBar()->showMessage(QStringLiteral("Open request rejected: %1. Scene unchanged.").arg(choice.rejection), 8000);
+				return;
+			}
+			requestOpenScene(choice.path);
+		});
 	}
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.

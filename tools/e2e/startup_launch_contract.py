@@ -404,6 +404,99 @@ def assert_window_opens_bundle_argument(app: Path, bundle: Path, temp: Path) -> 
         raise SystemExit(f"{problem}\n{tail(text)}")
 
 
+# How the settings file spells a path: Qt writes a character outside ASCII as \x and its code.
+def ini_form(path: Path) -> str:
+    return "".join(c if ord(c) < 128 else "\\x%x" % ord(c) for c in str(path))
+
+
+def wait_until(condition, timeout: float, proc: subprocess.Popen) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and proc.poll() is None:
+        if condition():
+            return True
+        time.sleep(0.25)
+    return condition()
+
+
+def read_ini(ini: Path) -> str:
+    return ini.read_text(encoding="utf-8", errors="replace") if ini.is_file() else ""
+
+
+# A launch that only names a file hands it to the window that runs and ends with 0, and the window
+# opens it like File > Open Case Study. The window is a test run with the relay switched on. It was
+# started with a file, or without one so that the case chooser is open; the chooser then gives way.
+# The second launch has no test variable, as when the system opens a file. A scripted launch that
+# has a test variable and no switch opens the file in a window of its own. The socket of the relay
+# lies in a folder of this check, so that other runs do not meet it.
+def assert_file_launch_reaches_running_window(app: Path, first: Optional[Path], handed: list[Path], scripted: Optional[Path], temp: Path) -> None:
+    label = "file launch while a window runs" if first else "file launch while the chooser is open"
+    temp.mkdir()
+    sockets = Path(tempfile.mkdtemp(prefix="egtrelay-", dir="/tmp"))
+    base = os.environ.copy()
+    base["QT_QPA_PLATFORM"] = "offscreen"
+    base["TMPDIR"] = str(sockets)
+    # The home folder names the relay of the user, so every launch has the same one, and it is a
+    # throwaway folder: the second launch has no settings folder of its own.
+    home = temp / "home"
+    home.mkdir()
+    base["HOME"] = base["CFFIXED_USER_HOME"] = str(home)
+    if sys.platform.startswith("linux"):
+        base["LC_ALL"] = "C.UTF-8"
+    window_env = {**base, "QEGTRAIN_OUTPUT_DIR": str(temp / "out"), "QEGTRAIN_E2E_SETTINGS_DIR": str(temp / "settings"), "QEGTRAIN_E2E_OPEN_RELAY": "1"}
+    window_env.pop("QEGTRAIN_E2E_STARTUP_CHOOSER", None)
+    # Should the relay fail, the second launch is a window with the settings of a throwaway folder.
+    plain_env = {k: v for k, v in base.items() if not k.startswith("QEGTRAIN_E2E_")}
+    plain_env.update({"QEGTRAIN_OUTPUT_DIR": str(temp / "plain-out"), "XDG_CONFIG_HOME": str(temp / "plain-config"), "QEGTRAIN_DISABLE_UPDATES": "1"})
+    scripted_env = {k: v for k, v in base.items() if k != "QEGTRAIN_E2E_OPEN_RELAY"}
+    scripted_env.update({"QEGTRAIN_OUTPUT_DIR": str(temp / "scripted-out"), "QEGTRAIN_E2E_SETTINGS_DIR": str(temp / "scripted-settings")})
+    ini = temp / "settings/EGTRAIN/EGTRAIN.ini"
+    scripted_ini = temp / "scripted-settings/EGTRAIN/EGTRAIN.ini"
+    window_log = temp / "window.log"
+    scripted_log = temp / "scripted.log"
+    problem = ""
+    procs: list[subprocess.Popen] = []
+    try:
+        with window_log.open("wb") as log:
+            window = subprocess.Popen([str(app)] + ([str(first)] if first else []), cwd=RUN_DIR, env=window_env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+        procs.append(window)
+        if first and not wait_until(lambda: ini_form(first) in read_ini(ini), 60, window):
+            problem = f"{label}: the window did not open the first file within 60 s"
+        elif not wait_until(lambda: any(sockets.glob("egtrain-open-*")), 60, window):
+            problem = f"{label}: the window did not start to listen within 60 s"
+        else:
+            # The listener has just been created; give it a moment to be ready.
+            time.sleep(0.5)
+        for bundle in handed:
+            if problem:
+                break
+            try:
+                second = subprocess.run([str(app), str(bundle)], cwd=RUN_DIR, env=plain_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    text=True, encoding="utf-8", errors="replace", timeout=30)
+            except subprocess.TimeoutExpired:
+                problem = f"{label}: the second launch with {ascii(bundle.name)} did not end within 30 s"
+                break
+            if second.returncode != 0:
+                problem = f"{label}: the second launch with {ascii(bundle.name)} ended with {second.returncode}, expected 0\n{tail(second.stdout)}"
+            elif not wait_until(lambda: ini_form(bundle) in read_ini(ini), 30, window):
+                problem = f"{label}: the window did not open {ascii(bundle.name)} within 30 s"
+        if not problem and window.poll() is not None:
+            problem = f"{label}: the window ended with {window.poll()} instead of staying open"
+        if not problem and scripted:
+            with scripted_log.open("wb") as log:
+                other = subprocess.Popen([str(app), str(scripted)], cwd=RUN_DIR, env=scripted_env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            procs.append(other)
+            if not wait_until(lambda: ini_form(scripted) in read_ini(scripted_ini), 60, other):
+                problem = f"{label}: a scripted launch did not open its file in a window of its own within 60 s"
+            elif ini_form(scripted) in read_ini(ini):
+                problem = f"{label}: a scripted launch handed its file to the running window"
+    finally:
+        for proc in procs:
+            terminate_process_group(proc)
+        shutil.rmtree(sockets, ignore_errors=True)
+    if problem:
+        raise SystemExit(f"{problem}\n{tail(window_log.read_text(encoding='utf-8', errors='replace'))}")
+
+
 def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-open-argument-") as root_name:
         root = Path(root_name)
@@ -440,10 +533,15 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
         print("window launches with a file that does not open start as without an argument")
 
         if os.name == "nt":
-            print("window launch with a bundle argument skipped on Windows: the settings file escapes backslashes")
+            print("window launch with a bundle argument and file launches while a window runs skipped on Windows: the settings file escapes backslashes")
         else:
             assert_window_opens_bundle_argument(app, spaced, root / "run-window")
             print("window launch with a bundle argument added it to the recent cases and kept the chooser closed")
+            scripted = spaced.parent / "Scripted.egscene"
+            shutil.copyfile(second, scripted)
+            assert_file_launch_reaches_running_window(app, spaced, [second, unicode_bundle], scripted, root / "run-relay")
+            assert_file_launch_reaches_running_window(app, None, [second], None, root / "run-relay-chooser")
+            print("file launches while a window runs were opened by that window, which closed its chooser; a scripted launch kept its own window")
 
 
 def main() -> None:

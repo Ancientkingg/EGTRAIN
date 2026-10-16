@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
+#include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneValidator.h"
@@ -308,6 +309,12 @@ int main(int argc, char* argv[]) {
 			return application.exec();
 		}
 		const SceneRequest request = readSceneRequest(sceneOption, true);
+		// A launch that only names a file, as the system starts it, hands the file to the instance that
+		// runs, when there is one.
+		const bool relayAllowed = OpenRequestRelay::allowedByEnvironment();
+		if (relayAllowed && request.positional && QCoreApplication::arguments().size() == 2
+			&& OpenRequestRelay::forward(OpenRequestRelay::defaultServerName(), OpenRequestRelay::currentApplicationDir(), request.path))
+			return 0;
 		const auto preload = [&effectiveDurationOverride](const QString& path) {
 			const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 			SceneLoadResult loaded = loadScenePath(path.toStdString());
@@ -353,7 +360,11 @@ int main(int argc, char* argv[]) {
 				QStringLiteral("main"), true, true);
 		if (!window.openSceneDirectory(scenePath))
 			return 1;
+		// The window connects to the relay when it first shows. Requests wait until the event loop runs.
+		OpenRequestRelay relay(&window);
 		window.openGUI();
+		if (relayAllowed)
+			relay.listen(OpenRequestRelay::defaultServerName(), OpenRequestRelay::currentApplicationDir());
 		return application.exec();
 	}
 
