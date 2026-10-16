@@ -124,8 +124,8 @@ Level 5 writes 0 on the section with code 751.
 `releaseBlocksMixedSignalling` clears the codes. It runs for the sections that
 trains have left, and in each step for the section before each occupied section.
 For each of them it sets the code of the section and of the four sections before
-it to 270 and removes their signal speed limits. It sets the state of the four
-sections before it to green. Fewer sections are cleared at the start of a route.
+it to 270, their state to green and removes their signal speed limits. Fewer
+sections are cleared at the start of a route.
 It does not depend on the level.
 When a train leaves the last section of its route, `relLastSectionMixedSignalling`
 hands that section to the release function. It also sets the code of that
