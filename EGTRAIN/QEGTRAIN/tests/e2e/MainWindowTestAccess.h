@@ -6,7 +6,8 @@
 // that has its own source in this folder is defined there; the others forward to a private member of MainWindow.
 class MainWindowTestAccess {
 public:
-	static void runVisualPolish(MainWindow& w) { w.runVisualPolishE2E(); }
+	static void runVisualPolish(MainWindow& w);
+	static void visualPolishFrame(MainWindow& w, bool historical);
 	static void runStationOverlay(MainWindow& w);
 	static void runEditorSmoke(MainWindow& w) { w.runEditorSmokeE2E(); }
 	static void runSceneRender(MainWindow& w);

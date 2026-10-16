@@ -84,7 +84,7 @@ def test_preview_snapshot_comparator() -> None:
     if not re.search(
         r"if\s*\(\s*actual\.size\(\)\s*!=\s*expected\.size\(\)\s*"
         r"\|\|\s*!std::equal\(actual\.begin\(\),\s*actual\.end\(\),\s*expected\.begin\(\)\)\s*\)",
-        source,
+        e2e_source,
     ):
         raise SystemExit("Tab traversal comparison must size-check before std::equal")
     match = re.search(

@@ -23,8 +23,10 @@ struct Scenario {
 	void (*run)(MainWindow&);
 };
 
+constexpr const char* kVisualPolish = "QEGTRAIN_E2E_VISUAL_POLISH";
+
 const Scenario kScenarios[] = {
-	{"QEGTRAIN_E2E_VISUAL_POLISH", 2600, &MainWindowTestAccess::runVisualPolish},
+	{kVisualPolish, 2600, &MainWindowTestAccess::runVisualPolish},
 	{"QEGTRAIN_E2E_STATION_OVERLAYS", 1000, &MainWindowTestAccess::runStationOverlay},
 	// let the startup case load and the docks settle before the smoke runs
 	{"QEGTRAIN_E2E_EDITOR_SMOKE", 1000, &MainWindowTestAccess::runEditorSmoke},
@@ -131,6 +133,9 @@ bool configureProcess() {
 		return false;
 	}
 	mainWindowTestHooks().dialogsSuppressed = anyScenarioRequested();
+	// The visual polish scenario also starts from the frames of a run.
+	if (qEnvironmentVariableIsSet(kVisualPolish))
+		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
 	return true;
 }

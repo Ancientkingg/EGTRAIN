@@ -1009,7 +1009,6 @@ private:
 	DelayRunSnapshot completedDelaySnapshot() const;
 	RunProvenance captureRunProvenance() const;
 
-	void runVisualPolishE2E();
 	void checkSignalHeadsE2E();
 	void runReplaySignalsE2E();
 	bool checkReplayWholeRunE2E(int middle, QString& failure);
