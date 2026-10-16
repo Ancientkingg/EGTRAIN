@@ -1902,6 +1902,10 @@ void Route::adjustRouteAcrossDiffRegions() {
 		}
 	}
 
+	// The first section does not move, so only the end of the route follows the sections that did.
+	if (N_Block_Sections > 0)
+		x_of_end_node = sequence_of_block_sections[N_Block_Sections - 1].end_node.X;
+
 	// std::cout << "JumpX: " << diffRegionsJumpX.first << " and " << diffRegionsJumpX.second << std::endl;
 }
 
@@ -2913,7 +2917,8 @@ void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks) {
 
 // Function to Release Block Sections when a train has passed over. This function must be applied especially for the block connected which are contained in the list BlocksConnected and when a train exits simulation
 // connected has one flag per section of the route, nonzero when the section is in BlocksConnected. A connected section and the four sections
-// before it get the code 270 and lose their signal speed limit. The four sections before a connected section also get the state green.
+// before it get the code 270, the state green and no signal speed limit. The activation then writes the aspects behind the occupied sections
+// again.
 void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected) {
 	for (int j = 0; j < Blocks; j++) {
 		const int lastBehind = std::min(j + 4, Blocks - 1);
@@ -2921,8 +2926,7 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected
 		if (connected[j] == 0 && !isBeforeConnected)
 			continue;
 		BS[j].code = 270;
-		if (isBeforeConnected)
-			strcpy_s(BS[j].state, "green");
+		strcpy_s(BS[j].state, "green");
 
 		// clear signalSpeedLimit restrictions
 		for (int k = 0; k < BS[j].total_arcs; k++) {

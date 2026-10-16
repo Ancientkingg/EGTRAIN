@@ -1,5 +1,6 @@
 {
   "base_time": "06:28:20",
+  "description": "Signalling: one network-wide area, level 0 (ATB, fixed block), assigned by project decision. Services end at their last stop. The fifth runs of SPR_1, SPR_2 and SPR_5 to SPR_8 enter after 7300 s and do not reach their last stop within the 8000 s run.",
   "import_report": [
     {
       "category": "legacy_root",

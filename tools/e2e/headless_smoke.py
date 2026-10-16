@@ -29,7 +29,12 @@ ASSERT_NO_STATION_DELAYS = {1}
 # Cases whose trains all reach every stop of their route within the run.
 ASSERT_EVERY_STOP_REACHED = {6}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {2, 3, 4, 5, 6, 7}
+SIGNALLING_COVERED = {1, 2, 3, 4, 5, 6, 7}
+# Cases whose services end at their last stop: the train leaves the network after its dwell there.
+ASSERT_SERVICES_END = {1}
+# A train that reaches its last stop this long before the end of the run has left the network by the end. In the
+# Netherlands run the longest wait is 99 s, the dwell of 60 s and the drive to the end of the route.
+LAST_STOP_MARGIN_SECONDS = 400
 # The files that the Amsterdam to Hilversum scene shares with the Netherlands scene.
 NETHERLANDS_FILES = ("infrastructure.json", "rolling_stock.json", "scenarios.json", "stations.json", "views.json")
 # The service of the Amsterdam to Hilversum scene whose runs must all reach Hilversum.
@@ -44,13 +49,15 @@ BACKWARD_TOLERANCE_M = 0.1
 # original case instead of retaining large generated output trees.
 # Case 4 runs with a fixed block area: its representative queues behind the
 # train that stands at Rovato to the end of the run and does not reach its last stop.
+# The Netherlands services end at their last stop: the end of the representative is the
+# instant its head passes the end of its route, not the end of the run.
 ORIGINAL_CASE_PARITY = {
     1: {
         "structure": (1984, 708, 41, 156, 74),
         "station_ids": "7eb1725701ff3d105f0ff84ba9ac23cd27fe5642f462947d9fa7bf28492305ff",
         "route_ids": "dea4515fec5d4b1cf241b7276b38dce3d283474635db5b379d6582e21f10e3c9",
         "trains": 40,
-        "representative": ("SPR_2-1", 100, 18940.6, 7999, 1252.38, 0, 100),
+        "representative": ("SPR_2-1", 100, 18940.6, 1278, 1253.65, 0, 100),
         "stops": ("425d9c987fddb82cf8812520e9094efd165533d5265aa4dd59367fb9ea146f28", 132, 847, 10, 350),
     },
     2: {
@@ -219,6 +226,50 @@ def unreached_stops(timetable_text: str) -> list[str]:
         if len(arrivals) != len(stations):
             errors.append(f"{train} has {len(arrivals)} arrival times for {len(stations)} stations")
         errors += [f"{train} did not reach {station}" for station, arrival in zip(stations, arrivals) if float(arrival) == NO_ARRIVAL]
+    return errors
+
+
+def trajectory_end_times(trajectory_text: str) -> dict[str, int]:
+    """Return the second of the last position of every train in TrainServicePathDiagram.txt.
+
+    A row holds the train, three more cells and one position per second; a second without a position is empty.
+    """
+    ends = {}
+    for line in trajectory_text.splitlines():
+        cells = line.split("\t")
+        seconds = [second for second, cell in enumerate(cells[4:]) if cell.strip()]
+        if seconds:
+            ends[cells[0]] = seconds[-1]
+    return ends
+
+
+def services_not_ended(timetable_text: str, trajectory_text: str, duration_seconds: float) -> list[str]:
+    """Name every train that reached its last stop with time to spare and did not leave the network.
+
+    A service ends at its last stop: after its dwell the train leaves, TimetablePoints.txt holds that departure,
+    and the trajectory of the train ends before the last second of the run. Trains that arrive within
+    LAST_STOP_MARGIN_SECONDS of the end of the run are not judged. Judging no train is an error too.
+    """
+    ends = trajectory_end_times(trajectory_text)
+    lines = timetable_text.splitlines()
+    errors = []
+    judged = 0
+    for index in range(0, len(lines) - 5, 6):
+        cells, arrivals, departures = lines[index].split(), lines[index + 4].split(), lines[index + 5].split()
+        if not cells or not arrivals or not departures:
+            continue
+        train, arrival, departure = cells[0], float(arrivals[-1]), float(departures[-1])
+        if not NO_ARRIVAL < arrival <= duration_seconds - LAST_STOP_MARGIN_SECONDS:
+            continue
+        judged += 1
+        if departure == NO_ARRIVAL:
+            errors.append(f"{train} has no departure from its last stop")
+        elif train not in ends:
+            errors.append(f"{train} has no trajectory")
+        elif ends[train] >= duration_seconds - 1:
+            errors.append(f"{train} is still in the network at the end of the run")
+    if judged == 0:
+        errors.append("no train reached its last stop with time to spare")
     return errors
 
 
@@ -461,6 +512,21 @@ def check_every_stop_reached(case_id: int, out_base: Path = RUN_DIR) -> None:
     print(f"PASS case {case_id} reaches every stop of its route")
 
 
+def check_services_end_at_last_stop(case_id: int, out_base: Path = RUN_DIR) -> None:
+    """Every train that reached its last stop in time leaves it and then the network."""
+    scene_dir = SCENE_DIR / SCENES[case_id]
+    duration = json.loads((scene_dir / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
+    output_dir = scene_output_dir(case_id, out_base) / "TrainTrajectories"
+    errors = services_not_ended(
+        (output_dir / "TimetablePoints.txt").read_text(encoding="utf-8", errors="replace"),
+        (output_dir / "TrainServicePathDiagram.txt").read_text(encoding="utf-8", errors="replace"),
+        duration,
+    )
+    if errors:
+        raise SystemExit(f"case {case_id} services do not end at their last stop: " + ", ".join(errors))
+    print(f"PASS case {case_id} trains leave their last stop and the network")
+
+
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     expected = ORIGINAL_CASE_PARITY[case_id]
     output_dir = scene_output_dir(case_id, out_base)
@@ -529,6 +595,8 @@ def main() -> None:
             check_every_stop_reached(case_id)
         if case_id == 7:
             check_amsterdam_hilversum_occurrences(case_id)
+        if case_id in ASSERT_SERVICES_END:
+            check_services_end_at_last_stop(case_id)
         if case_id in ORIGINAL_CASE_PARITY:
             check_original_case_runtime(case_id)
     for case_id in selected:

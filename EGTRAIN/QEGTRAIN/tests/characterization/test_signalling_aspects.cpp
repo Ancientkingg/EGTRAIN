@@ -477,10 +477,17 @@ void checkReleaseOnTwoRoutes(Report& report) {
 	RouteSpec back = routeSpec(uniform(kNoLevel, 5));
 	back.reversedIds = true;
 	installRoutes({routeSpec(uniform(kNoLevel, kLongRoute)), back});
+	// s3 is red on both routes before the release.
+	for (Route& route : train_route) {
+		for (Section& section : route.sequence_of_block_sections) {
+			if (section.ID == idOf(3))
+				std::snprintf(section.state, sizeof section.state, "%s", "red");
+		}
+	}
 	report.expect(runRelease(idsOf({3})), "the lists changed in the release of the two routes");
-	// s3 is the fourth section of the first route and the second section of the second route. A released section has the code 270 and
-	// no signal speed limit; the state of the connected section stays as it was and the sections before it become green.
-	const std::string expected[] = {"270:G:999 270:G:999 270:G:999 270:?:999 11:?:7 11:?:7 11:?:7", "270:G:999 270:?:999 11:?:7 11:?:7 11:?:7"};
+	// s3 is the fourth section of the first route and the second section of the second route. A released section has the code 270, the
+	// state green and no signal speed limit: the connected section and the sections before it.
+	const std::string expected[] = {"270:G:999 270:G:999 270:G:999 270:G:999 11:?:7 11:?:7 11:?:7", "270:G:999 270:G:999 11:?:7 11:?:7 11:?:7"};
 	for (std::size_t route = 0; route < std::size(expected); ++route) {
 		const std::string actual = sectionsText(sectionsOf(route), aspectText);
 		report.expect(actual == expected[route], "release of s3 on route " + std::to_string(route) + ": expected " + expected[route] + ", actual " + actual);
