@@ -168,9 +168,11 @@ add_library(egtrain_scene STATIC
     ${SRC_DIR}/scene/SceneExporter.cpp
     ${SRC_DIR}/scene/SceneFieldReader.cpp
     ${SRC_DIR}/scene/SceneHistory.cpp
+    ${SRC_DIR}/scene/SceneIds.cpp
     ${SRC_DIR}/scene/SceneImporter.cpp
     ${SRC_DIR}/scene/SceneMigration.cpp
     ${SRC_DIR}/scene/SceneModel.cpp
+    ${SRC_DIR}/scene/SceneReferences.cpp
     ${SRC_DIR}/scene/SceneValidator.cpp
     ${SRC_DIR}/scene/SceneWriter.cpp
     ${SRC_DIR}/scene/SectionInventory.cpp
@@ -259,6 +261,14 @@ add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/TimeProgressBar.cpp)
 target_link_libraries(egtrain_widgets
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_graphics egtrain_util)
+
+# The scene document and the panels of the scene editors. SceneEditorPanel.h has no source file, so it is listed here for moc.
+add_library(egtrain_editors STATIC
+    ${SRC_DIR}/editors/CaseSettingsPanel.cpp
+    ${SRC_DIR}/editors/SceneDocument.cpp
+    ${SRC_DIR}/editors/SceneEditorPanel.h)
+target_link_libraries(egtrain_editors
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_scene)
 
 # The HTTP requests of the update check and the telemetry sender. Qt 5.15 has no TLS library on
 # Windows, so the requests go through WinHTTP there.
@@ -365,7 +375,7 @@ if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE)
     target_compile_definitions(egtrain_diagrams PRIVATE EGTRAIN_SENDER_TEST_HOOK=1)
 endif()
 
-foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
+foreach(egtrain_lib egtrain_graphics egtrain_widgets egtrain_editors egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery ${EGTRAIN_TELEMETRY_LIBS}
         egtrain_dispatch egtrain_diagrams)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
@@ -375,7 +385,7 @@ endforeach()
 # Warning flags per target. Strict targets build without a warning, so a new warning is an error
 # when EGTRAIN_WARNINGS_AS_ERRORS is ON.
 foreach(egtrain_lib egtrain_util egtrain_scene egtrain_live egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_diagrams
-        egtrain_graphics egtrain_widgets ${EGTRAIN_TELEMETRY_LIBS})
+        egtrain_graphics egtrain_widgets egtrain_editors ${EGTRAIN_TELEMETRY_LIBS})
     egtrain_target_warnings(${egtrain_lib} STRICT)
 endforeach()
 # Flags only: egtrain_dispatch has no warning of its own. The 57 warning lines of its build come
@@ -404,6 +414,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/DialogLayout.h
     ${SRC_DIR}/widgets/ChoiceComboBox.h
     ${SRC_DIR}/widgets/EditorLayout.h
+    ${SRC_DIR}/widgets/UserPrompts.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
     ${SRC_DIR}/io/ExternalState.h
@@ -496,6 +507,7 @@ endif()
 target_link_libraries(QEGTRAIN PRIVATE
     egtrain_dispatch
     egtrain_diagrams
+    egtrain_editors
     egtrain_widgets
     egtrain_graphics
     ${EGTRAIN_APP_TELEMETRY}
@@ -900,6 +912,22 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_choicecombo COMMAND test_choicecombo)
     set_tests_properties(test_choicecombo PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_userprompts ${SRC_DIR}/tests/test_userprompts.cpp)
+    target_link_libraries(test_userprompts PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_userprompts COMMAND test_userprompts)
+    # The test answers real message boxes. Qt 5.15 crashes when a QMessageBox is shown on the offscreen platform
+    # on Windows, so the test uses the native platform there.
+    if(WIN32)
+        set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
+    else()
+        set_tests_properties(test_userprompts PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endif()
+
+    add_executable(test_editor_casesettings ${SRC_DIR}/tests/test_editor_casesettings.cpp)
+    target_link_libraries(test_editor_casesettings PRIVATE egtrain_editors Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_editor_casesettings COMMAND test_editor_casesettings)
+    set_tests_properties(test_editor_casesettings PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_editorlayout ${SRC_DIR}/tests/test_editorlayout.cpp)
     target_link_libraries(test_editorlayout PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
     target_compile_definitions(test_editorlayout PRIVATE
@@ -967,6 +995,14 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_stopinsertion ${SRC_DIR}/tests/test_stopinsertion.cpp)
     target_link_libraries(test_stopinsertion PRIVATE egtrain_scene)
     add_test(NAME test_stopinsertion COMMAND test_stopinsertion)
+
+    add_executable(test_scenereferences ${SRC_DIR}/tests/test_scenereferences.cpp)
+    target_link_libraries(test_scenereferences PRIVATE egtrain_scene)
+    add_test(NAME test_scenereferences COMMAND test_scenereferences)
+
+    add_executable(test_scenedocument ${SRC_DIR}/tests/test_scenedocument.cpp)
+    target_link_libraries(test_scenedocument PRIVATE egtrain_editors)
+    add_test(NAME test_scenedocument COMMAND test_scenedocument)
 
     add_executable(test_sceneimporter ${SRC_DIR}/tests/test_sceneimporter.cpp)
     target_link_libraries(test_sceneimporter PRIVATE egtrain_scene)
@@ -1299,6 +1335,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
+			test_scenereferences test_scenedocument
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
@@ -1306,14 +1343,14 @@ if(EGTRAIN_BUILD_TESTS)
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
-			test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar test_highlighteffect
+			test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_liveserver)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
 	# Canonical V1 is the product path. Legacy tests cover only converter and
 	# compatibility boundaries and can be selected with `ctest -L legacy-compat`.
-	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenesavepolicy test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
+	set_tests_properties(test_scenevalidator test_routestations test_stopinsertion test_scenereferences test_scenesavepolicy test_scenewriter test_scenebuilder test_operationsbuilder test_scene_tool_diagnostics test_trackpreview
 		PROPERTIES LABELS "scene-v1")
 	set_tests_properties(test_sceneimporter test_sceneexporter test_headless_smoke_decode
 		PROPERTIES LABELS "legacy-compat")
@@ -1339,9 +1376,9 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
-		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
+		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
@@ -1363,7 +1400,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel
+		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel
 		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract

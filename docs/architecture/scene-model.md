@@ -173,6 +173,13 @@ one window bind to its visits in order. `sceneServiceTraversal` and
 `sceneRemainingStopTraversal` build the traversal and the visits left after the
 resolved stops before an index.
 
+`scene/SceneReferences` and `scene/SceneIds` hold the id rules of the editors, without Qt.
+`sceneDirectDeleteConsumers` lists what still uses a track, node, block, connection, station,
+platform, signal, route, train unit, composition or service, so that a delete can be refused with
+that list. The `sceneRewrite...References` functions rewrite every reference to an entity after a
+rename; the caller renames the entity itself. The `sceneUnique...Id` functions return the base id
+when it is free and otherwise the first of `base_2`, `base_3` and so on.
+
 Scheduled entry uses explicit entry time first, otherwise the first finite
 planned departure, otherwise zero, plus the repeat offset. The editor's
 in-period count includes entries in `[0, effective duration)`. Configured totals

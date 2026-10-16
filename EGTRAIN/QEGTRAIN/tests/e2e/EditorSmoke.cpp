@@ -9,7 +9,9 @@
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
+#include "scene/SceneIds.h"
 #include "scene/SceneModel.h"
+#include "scene/SceneReferences.h"
 #include "scene/SceneWriter.h"
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
@@ -1470,7 +1472,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!passengerService) {
 				facetFailure(facetOk, "passenger", "no service with two canonical station stops was available");
 			} else {
-				e2ePassengerId = w.uniquePassengerId("e2e_passenger");
+				e2ePassengerId = sceneUniquePassengerId(w.m_sceneModel, "e2e_passenger");
 				const int passengerCountBefore = passengerList->count();
 				passengerAdd->click();
 				QApplication::processEvents();
@@ -1480,7 +1482,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					passengerId->setText(QString::fromStdString(e2ePassengerId));
 					if (!commitLineEdit(passengerId))
 						facetFailure(facetOk, "passenger", "passenger ID edit did not commit");
-					e2eJourneyId = w.uniquePassengerJourneyId("e2e_journey");
+					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_journey");
 					journeyAdd->click();
 					QApplication::processEvents();
 					ScenePassenger* authoredPassenger = w.selectedPassenger();
@@ -1500,7 +1502,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						passengerTabs->setCurrentIndex(1);
 						legAdd->click();
 						QApplication::processEvents();
-						e2eLegId = w.uniquePassengerLegId("e2e_leg");
+						e2eLegId = sceneUniquePassengerLegId(w.m_sceneModel, "e2e_leg");
 						const auto configureLeg = [&](const std::string& id) {
 							legId->setText(QString::fromStdString(id));
 							const bool idOk = commitLineEdit(legId);
@@ -1519,7 +1521,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						};
 						if (!configureLeg(e2eLegId))
 							facetFailure(facetOk, "passenger", "leg ID, typed stops, service, or occurrence did not commit");
-						const std::string secondLegId = w.uniquePassengerLegId("e2e_leg_second");
+						const std::string secondLegId = sceneUniquePassengerLegId(w.m_sceneModel, "e2e_leg_second");
 						legAdd->click();
 						QApplication::processEvents();
 						if (!configureLeg(secondLegId))
@@ -1546,7 +1548,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							: 0;
 						journeyAdd->click();
 						QApplication::processEvents();
-						const std::string temporaryJourneyId = w.uniquePassengerJourneyId("e2e_temp_journey");
+						const std::string temporaryJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_temp_journey");
 						journeyId->setText(QString::fromStdString(temporaryJourneyId));
 						commitLineEdit(journeyId);
 						acceptConfirmation();
@@ -1557,7 +1559,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						const int passengerCountWithAuthor = passengerList->count();
 						passengerAdd->click();
 						QApplication::processEvents();
-						const std::string temporaryPassengerId = w.uniquePassengerId("e2e_temp_passenger");
+						const std::string temporaryPassengerId = sceneUniquePassengerId(w.m_sceneModel, "e2e_temp_passenger");
 						passengerId->setText(QString::fromStdString(temporaryPassengerId));
 						commitLineEdit(passengerId);
 						acceptConfirmation();
@@ -1988,7 +1990,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "train unit", "duplicate-id rename changed the selected unit or composition references");
 			}
 
-			editedTrainUnitId = w.uniqueTrainUnitId("e2e_train_unit");
+			editedTrainUnitId = sceneUniqueTrainUnitId(w.m_sceneModel, "e2e_train_unit");
 			if (!w.m_trainUnitIdEdit) {
 				facetFailure(facetOk, "train unit", "id editor unavailable");
 			} else {
@@ -2285,7 +2287,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (w.m_compositionUnitsListWidget && w.m_compositionUnitsListWidget->count() > 0 && w.m_compositionUnitsListWidget->item(0)) {
 				w.m_compositionUnitsListWidget->setCurrentRow(0);
 				const SceneTrainUnit* tractionUnit =
-					w.trainUnitById(w.m_compositionUnitsListWidget->item(0)->text().toStdString());
+					sceneTrainUnitById(w.m_sceneModel, w.m_compositionUnitsListWidget->item(0)->text().toStdString());
 				if (tractionUnit && !tractionUnit->tractionCurve.empty()) {
 					if (!w.m_plotTractionButton || !w.m_plotTractionButton->isEnabled())
 						facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
@@ -2322,7 +2324,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!emptyRejected || !duplicateRejected)
 						facetFailure(facetOk, "composition", "empty or duplicate ID was not rejected with the prior text restored");
 
-					editedCompositionId = w.uniqueCompositionId("e2e_composition");
+					editedCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_composition");
 					w.m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
 					w.commitCompositionIdEdit();
 					int migratedServiceCount = 0;
@@ -2536,7 +2538,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "service", "public entrance-delay controls unavailable for rename coverage");
 				}
 				SceneIncident incident;
-				incident.id = w.uniqueIncidentId("e2e_service_rename_incident");
+				incident.id = sceneUniqueIncidentId(w.m_sceneModel, "e2e_service_rename_incident");
 				incident.type = "train_breakdown";
 				incident.target = oldServiceId;
 				incident.endSeconds = 1.0;
@@ -2544,7 +2546,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				++temporaryIncidentCount;
 			}
 			w.m_excludedSceneOccurrences.insert(SceneServiceOccurrence{oldServiceId, 1});
-			editedServiceId = w.uniqueServiceId("e2e_service");
+			editedServiceId = sceneUniqueServiceId(w.m_sceneModel, "e2e_service");
 			if (!w.m_serviceIdEdit) {
 				facetFailure(facetOk, "service", "id editor unavailable");
 			} else {
@@ -3359,7 +3361,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		bool facetOk = true;
 		const double preciseBreakdownSpeed = 40.125;
 		const int originalCount = w.m_incidentListWidget->count();
-		editedIncidentId = w.uniqueIncidentId("e2e_incident");
+		editedIncidentId = sceneUniqueIncidentId(w.m_sceneModel, "e2e_incident");
 		w.addIncident();
 		if (w.m_incidentListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "incident", "add did not apply");
@@ -3800,7 +3802,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							facetFailure(facetOk, "save/reload", "focused train-unit text was not committed before Save");
 					}
 
-					const std::string pendingCompositionId = w.uniqueCompositionId("e2e_pending_composition");
+					const std::string pendingCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_pending_composition");
 					if (w.m_compositionDock) {
 						w.m_compositionDock->show();
 						w.m_compositionDock->raise();
