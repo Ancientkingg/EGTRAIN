@@ -429,9 +429,10 @@ occurrence has direct runtime evidence (incident ID plus first direct time and
 location); otherwise it is `secondary`. No attribution is inferred from a
 timetable difference alone. A comparison is rejected when the incident run
 has no direct evidence anywhere. Signal-failure evidence is direct only when
-the train stops at an active `SignalFailure` EoA; a breakdown hold or applied
-speed cap is direct evidence. Destination request and termination outcome are
-reported with each row.
+the train stops at an active `SignalFailure` EoA, or stands at a red aspect
+before the failed section that is next on its route; a breakdown hold or
+applied speed cap is direct evidence. Destination request and termination
+outcome are reported with each row.
 
 ## `passengers.json`
 
