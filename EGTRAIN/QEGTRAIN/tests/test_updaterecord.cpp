@@ -21,6 +21,7 @@ static bool writeFile(const QString& path, const QByteArray& contents) {
 }
 
 static const QByteArray kValidRecord("outcome=rolled-back\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
+static const QByteArray kNotAppliedRecord("outcome=not-applied\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
 
 // A valid record followed by an unknown key that makes the whole file the given size.
 static QByteArray recordOfSize(int size) {
@@ -36,6 +37,12 @@ static bool testParse() {
 	ok &= expect(record && record->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC),
 		"a valid record gives its time");
 	ok &= expect(record && record->time.timeSpec() == Qt::UTC, "the time is UTC");
+	ok &= expect(record && record->outcome == UpdateOutcome::RolledBack, "a rolled-back record gives that outcome");
+	const std::optional<UpdateRecord> notApplied = parseUpdateRecord(kNotAppliedRecord);
+	ok &= expect(notApplied && notApplied->outcome == UpdateOutcome::NotApplied
+			&& notApplied->version == SemanticVersion{9, 8, 7}
+			&& notApplied->time == QDateTime(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC),
+		"a not-applied record gives that outcome, its version and its time");
 
 	const std::optional<UpdateRecord> crlf =
 		parseUpdateRecord("outcome=rolled-back\r\nversion=9.8.7\r\ntime=2026-10-09T12:00:00Z\r\n");
@@ -59,7 +66,7 @@ static bool testParse() {
 		{"a record without an outcome", "version=9.8.7\ntime=2026-10-09T12:00:00Z\n"},
 		{"a record without a version", "outcome=rolled-back\ntime=2026-10-09T12:00:00Z\n"},
 		{"a record without a time", "outcome=rolled-back\nversion=9.8.7\n"},
-		{"another outcome", "outcome=not-applied\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n"},
+		{"another outcome", "outcome=unknown\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n"},
 		{"a version of two parts", "outcome=rolled-back\nversion=1.2\ntime=2026-10-09T12:00:00Z\n"},
 		{"a version with a prefix", "outcome=rolled-back\nversion=v1.2.3\ntime=2026-10-09T12:00:00Z\n"},
 		{"a version with a leading zero", "outcome=rolled-back\nversion=01.2.3\ntime=2026-10-09T12:00:00Z\n"},
@@ -82,6 +89,12 @@ static bool testTake(const QString& directory) {
 	const std::optional<UpdateRecord> taken = takeUpdateRecord(path, installed);
 	ok &= expect(taken && taken->version == SemanticVersion{9, 8, 7}, "a record for a newer version is returned");
 	ok &= expect(!QFileInfo::exists(path), "a returned record is removed");
+
+	ok &= expect(writeFile(path, kNotAppliedRecord), "not-applied fixture is writable");
+	const std::optional<UpdateRecord> notApplied = takeUpdateRecord(path, installed);
+	ok &= expect(notApplied && notApplied->outcome == UpdateOutcome::NotApplied,
+		"a not-applied record for a newer version is returned");
+	ok &= expect(!QFileInfo::exists(path), "a returned not-applied record is removed");
 
 	ok &= expect(writeFile(path, kValidRecord), "record fixture is writable again");
 	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 8, 7}), "a record for the installed version is stale");
@@ -141,6 +154,7 @@ static bool testParseInstaller() {
 	} rejected[] = {
 		{"an empty installer record", ""},
 		{"a rolled-back record", kValidRecord},
+		{"a not-applied record", kNotAppliedRecord},
 		{"another outcome", "outcome=installer-unknown\nversion=9.8.7\n"},
 		{"an installer record without a version", "outcome=installer-succeeded\ntime=2026-10-09T12:00:00Z\n"},
 		{"an installer record with a version of two parts", "outcome=installer-succeeded\nversion=1.2\n"},
@@ -211,6 +225,23 @@ static bool testTakeInstaller(const QString& directory) {
 	return ok;
 }
 
+static bool testDescribe() {
+	const QDateTime time(QDate(2026, 10, 9), QTime(12, 0, 0), Qt::UTC);
+	const UpdateRecordText rolledBack =
+		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::RolledBack});
+	const UpdateRecordText notApplied =
+		describeUpdateRecord(UpdateRecord{SemanticVersion{9, 8, 7}, time, UpdateOutcome::NotApplied});
+	bool ok = expect(rolledBack.text.contains("9.8.7") && rolledBack.text.contains("could not be started")
+			&& rolledBack.text.contains("restored"),
+		"a rolled-back update says that it did not start and that the previous version was restored");
+	ok &= expect(notApplied.text.contains("9.8.7") && notApplied.text.contains("could not be applied")
+			&& notApplied.text.contains("previous version is still installed"),
+		"a not-applied update says that it failed and that the previous version is still installed");
+	ok &= expect(!notApplied.advice.isEmpty() && notApplied.advice != rolledBack.advice,
+		"the advice differs for the two outcomes");
+	return ok;
+}
+
 static bool testPathAndArguments() {
 	bool ok = true;
 	const QString path = updateRecordPath();
@@ -236,6 +267,7 @@ int main(int argc, char** argv) {
 	ok &= testParseInstaller();
 	ok &= testCheckInstaller();
 	ok &= testTakeInstaller(temp.path());
+	ok &= testDescribe();
 	ok &= testPathAndArguments();
 	return ok ? 0 : 1;
 }

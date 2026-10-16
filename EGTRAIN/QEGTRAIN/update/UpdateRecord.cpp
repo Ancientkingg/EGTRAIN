@@ -42,13 +42,27 @@ std::optional<UpdateRecord> parseUpdateRecord(const QByteArray& contents) {
 	const QByteArray outcome = firstValue(lines, "outcome");
 	const QByteArray version = firstValue(lines, "version");
 	const QByteArray time = firstValue(lines, "time");
-	if (outcome != "rolled-back" || !time.endsWith('Z'))
+	if ((outcome != "rolled-back" && outcome != "not-applied") || !time.endsWith('Z'))
 		return std::nullopt;
 	const std::optional<SemanticVersion> parsedVersion = parseStableVersion(version.toStdString());
 	const QDateTime parsedTime = QDateTime::fromString(QString::fromLatin1(time), Qt::ISODate);
 	if (!parsedVersion || !parsedTime.isValid())
 		return std::nullopt;
-	return UpdateRecord{*parsedVersion, parsedTime.toUTC()};
+	return UpdateRecord{*parsedVersion, parsedTime.toUTC(),
+		outcome == "not-applied" ? UpdateOutcome::NotApplied : UpdateOutcome::RolledBack};
+}
+
+UpdateRecordText describeUpdateRecord(const UpdateRecord& record) {
+	const QString version = formatSemanticVersion(record.version);
+	if (record.outcome == UpdateOutcome::NotApplied)
+		return {QStringLiteral("The update to EGTRAIN %1 could not be applied. The previous version is still installed.")
+					.arg(version),
+			QStringLiteral("Nothing was changed. Choose Check for Updates in the Help menu to try again.")};
+	return {QStringLiteral("The update to EGTRAIN %1 could not be started, so the previous version was restored.")
+				.arg(version),
+		QStringLiteral("Automatic update checks will not offer %1 again. A newer version is offered as usual, "
+					   "and Check for Updates in the Help menu still offers %1.")
+			.arg(version)};
 }
 
 std::optional<InstallerRecord> parseInstallerRecord(const QByteArray& contents) {
