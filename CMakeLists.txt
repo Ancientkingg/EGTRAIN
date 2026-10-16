@@ -110,6 +110,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
 # --- ZeroMQ / nlohmann_json ---
 find_package(cppzmq REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(Threads REQUIRED)
 
 # --- Warnings ---
 # egtrain_target_warnings(<target> [STRICT]) adds -Wall -Wextra (/W4 on MSVC) to the C++ sources
@@ -201,9 +202,11 @@ target_link_libraries(egtrain_railml
     PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
     PRIVATE cppzmq)
 
-# No Qt: the frames of the live contract, built from a GuiSimulationSnapshot.
-add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveFrame.cpp)
-target_link_libraries(egtrain_live PUBLIC nlohmann_json::nlohmann_json)
+# No Qt: the frames of the live contract, built from a GuiSimulationSnapshot, and the server that publishes them.
+add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveFrame.cpp ${SRC_DIR}/io/LiveServer.cpp)
+target_link_libraries(egtrain_live
+    PUBLIC nlohmann_json::nlohmann_json
+    PRIVATE egtrain_util cppzmq Threads::Threads)
 
 foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_live)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
@@ -741,6 +744,12 @@ if(EGTRAIN_BUILD_TESTS)
             --schema ${CMAKE_CURRENT_SOURCE_DIR}/docs/live/frame-v1.schema.json)
     set_tests_properties(test_liveframe PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
 
+    # Starts the live server in this process and talks to it through ZeroMQ sockets on the loopback address.
+    add_executable(test_liveserver ${SRC_DIR}/tests/test_liveserver.cpp)
+    target_link_libraries(test_liveserver PRIVATE egtrain_live cppzmq nlohmann_json::nlohmann_json Threads::Threads)
+    add_test(NAME test_liveserver COMMAND test_liveserver)
+    set_tests_properties(test_liveserver PROPERTIES TIMEOUT 120)
+
     add_executable(test_followavailability ${SRC_DIR}/tests/test_followavailability.cpp)
     target_link_libraries(test_followavailability PRIVATE egtrain_util)
     target_include_directories(test_followavailability PRIVATE ${SRC_DIR})
@@ -1242,7 +1251,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
 			test_dialoglayout test_choicecombo test_editorlayout test_elidedlabel test_timeprogressbar test_highlighteffect
-			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage)
+			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_liveserver)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
@@ -1269,7 +1278,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_liveframe test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay

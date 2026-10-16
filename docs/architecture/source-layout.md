@@ -35,7 +35,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `graphics/items/` | The `QGraphicsItem` subclasses that draw the network (see the rename table) |
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `EditorLayout`, `ElidedLabel` |
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `CompletedRunData`, `CompletedRunCapture`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
-| `io/` | Interoperability formats: `RailMLParser`, and `LiveFrame`, the JSON frames of the live contract (`docs/live/frame-v1.schema.json`); vendored pugixml in `io/third_party/` |
+| `io/` | Interoperability formats: `RailMLParser`, `LiveFrame`, the JSON frames of the live contract (`docs/live/frame-v1.schema.json`), and `LiveServer`, the ZeroMQ transport that publishes them; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
@@ -67,7 +67,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
 | `egtrain_railml` | `io/RailMLParser.cpp` | `egtrain_pugixml`, cppzmq |
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
-| `egtrain_live` | `io/LiveFrame.cpp` | nlohmann-json |
+| `egtrain_live` | `io/LiveFrame.cpp`, `io/LiveServer.cpp` | nlohmann-json, `egtrain_util`, cppzmq |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
 | `egtrain_update` | `update/Distribution`, `HttpTransport`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings`, and on Windows `WinHttpTransport` | Qt Core and Network, `egtrain_util`, and on Windows WinHTTP |
