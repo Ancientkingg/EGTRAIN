@@ -108,9 +108,11 @@ start of `main()` it redirects the user settings to the folder named by
 scenario, with blocking dialogs switched off, when the variable of that scenario
 is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and
-`QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. The scenario functions are
-private members of `MainWindow` that the runner reaches through the friend class
-`MainWindowTestAccess`.
+`QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. `MainWindowTestAccess` is the
+friend class of `MainWindow` that the runner calls. A scenario is a member of
+`MainWindowTestAccess` defined in its own file in that folder (the legacy import
+smoke is `LegacyImport.cpp`), or a private member of `MainWindow` that
+`MainWindowTestAccess` forwards to.
 
 ### Warnings
 
