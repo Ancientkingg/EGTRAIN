@@ -218,6 +218,42 @@ static bool blockSectionTests() {
 	const auto selectedRepeat = scopedBlockSectionExtents(returning, {2});
 	ok &= expect(selectedRepeat.size() == 1 && selectedRepeat[0].order == 3 && selectedRepeat[0].startKm == -2,
 		"scope selects repeated occurrence by index and retains original order");
+	// A repeated id selected by index: only the interval of the chosen visit counts.
+	const auto visits = buildBlockSectionExtents({{"@r@", 0.0, 2.0}, {"@other@", 2.0, 4.0}, {"@r@", 4.0, 6.0}, {"@bad@", 6.0, 6.0}});
+	const auto secondVisit = scopedBlockSectionExtents(visits, {2});
+	ok &= expect(blockingSegmentInSections(envelope("@r@", 4.5, 5.5), secondVisit)
+			&& blockingSegmentInSections(envelope("@r@", 5.5, 4.5), secondVisit),
+		"an envelope on the selected visit of a repeated id is kept in either direction");
+	ok &= expect(!blockingSegmentInSections(envelope("@r@", 0.5, 1.5), secondVisit),
+		"an envelope on the other visit of the same id is dropped");
+	ok &= expect(blockingSegmentInSections(envelope("@r@", 0.5, 1.5), scopedBlockSectionExtents(visits, {0})),
+		"the same envelope is kept when the first visit is selected");
+	ok &= expect(!blockingSegmentInSections(envelope("@other@", 4.5, 5.5), secondVisit),
+		"an envelope of another resource on the selected interval is dropped");
+	ok &= expect(!blockingSegmentInSections(envelope("@r@", 6.0, 7.0), secondVisit)
+			&& !blockingSegmentInSections(envelope("@r@", 3.0, 4.0), secondVisit),
+		"an envelope that only touches the selected interval is dropped");
+	ok &= expect(blockingSegmentInSections(envelope("@r@", 5.0, 5.0), secondVisit)
+			&& !blockingSegmentInSections(envelope("@r@", 1.0, 1.0), secondVisit),
+		"a zero-length envelope is kept only inside the selected interval");
+	ok &= expect(!blockingSegmentInSections(envelope("@bad@", 6.0, 6.0), scopedBlockSectionExtents(visits, {3}))
+			&& !blockingSegmentInSections(envelope("@r@", 4.5, 5.5), {}),
+		"a section without geometry and an empty scope hold no envelope");
+	ok &= expect(positionInBlockSections(5.0, secondVisit) && positionInBlockSections(4.0, secondVisit)
+			&& positionInBlockSections(6.0, secondVisit),
+		"a planned position on the selected visit, ends included, is inside the scope");
+	ok &= expect(!positionInBlockSections(1.0, secondVisit) && !positionInBlockSections(3.9, secondVisit)
+			&& !positionInBlockSections(1.0, {}),
+		"a planned position on the other visit of the same id is outside the scope and becomes a gap");
+	ok &= expect(!positionInBlockSections(6.0, scopedBlockSectionExtents(visits, {3})),
+		"a section without geometry holds no planned position");
+	ok &= expect(blockSectionRangeIndices(1, 3, 5) == std::vector<int>({1, 2, 3})
+			&& blockSectionRangeIndices(3, 1, 5) == std::vector<int>({1, 2, 3})
+			&& blockSectionRangeIndices(2, 2, 5) == std::vector<int>({2}),
+		"the chooser range is zero-based, inclusive and in either order");
+	ok &= expect(blockSectionRangeIndices(2, 9, 4) == std::vector<int>({2, 3})
+			&& blockSectionRangeIndices(-1, -1, 3).empty() && blockSectionRangeIndices(0, 0, 0).empty(),
+		"the chooser range stops at the last section and is empty without sections");
 	ok &= expect(!blockSectionBounds({broken[1], broken[3]}),
 		"missing geometry yields no invented coordinate bounds");
 	ok &= expect(!blockSectionCapacityScopeIssue(returning, {0}).empty(), "capacity rejects a selected repeated resource with another occurrence outside scope");

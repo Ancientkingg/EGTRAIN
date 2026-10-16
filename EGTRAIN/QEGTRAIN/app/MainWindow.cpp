@@ -1080,9 +1080,7 @@ std::vector<BlockingTimePlannedReference> buildBlockingTimePlannedReferences(
 				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
 				continue;
 			}
-			if (!scope.sectionIndices.empty() && std::none_of(selectedSections.begin(), selectedSections.end(), [&positionKm](const auto& section) {
-					return section.geometryValid && *positionKm >= section.lowerKm() && *positionKm <= section.upperKm();
-				})) {
+			if (!scope.sectionIndices.empty() && !positionInBlockSections(*positionKm, selectedSections)) {
 				references.push_back({train.trainDescription, "", "", std::numeric_limits<double>::quiet_NaN(), 0.0});
 				continue; // Preserve the gap; do not bridge another visit of a repeated resource.
 			}
@@ -1309,12 +1307,9 @@ bool chooseBlockingTimeScope(QWidget* parent, BlockingTimeScope& scope) {
 		return true;
 
 	const Route& route = train_route[static_cast<std::size_t>(scope.routeIndex)];
-	const int first = std::min(firstBlock->currentIndex(), lastBlock->currentIndex());
-	const int last = std::max(firstBlock->currentIndex(), lastBlock->currentIndex());
-	for (int blockIndex = first; blockIndex >= 0 && blockIndex <= last && blockIndex < route.N_Block_Sections; ++blockIndex) {
+	scope.sectionIndices = blockSectionRangeIndices(firstBlock->currentIndex(), lastBlock->currentIndex(), route.N_Block_Sections);
+	for (int blockIndex : scope.sectionIndices)
 		scope.blockIds.push_back(route.sequence_of_block_sections[blockIndex].ID);
-		scope.sectionIndices.push_back(blockIndex);
-	}
 	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
 		const Train& train = regional_train[trainIndex];
 		if (train.indexOfRoute == scope.routeIndex || train.TrainRouteID == route.ID)
@@ -30159,15 +30154,8 @@ void MainWindow::showBlockingTimeDiagram() {
 	const auto extents = scopedBlockSectionExtents(allExtents, scope.sectionIndices);
 	matchBlockingSegmentsToSections(segments, allExtents, referencePath.id);
 	if (!scope.sectionIndices.empty())
-		segments.erase(std::remove_if(segments.begin(), segments.end(), [&extents](const auto& segment) {
-			return std::none_of(extents.begin(), extents.end(), [&segment](const auto& section) {
-				return section.geometryValid && shareBlockingTimeResource(section.id, segment.blockId)
-					&& (segment.startPositionKm == segment.endPositionKm
-							? segment.startPositionKm >= section.lowerKm() && segment.startPositionKm <= section.upperKm()
-							: std::min(section.upperKm(), std::max(segment.startPositionKm, segment.endPositionKm))
-								> std::max(section.lowerKm(), std::min(segment.startPositionKm, segment.endPositionKm)));
-			});
-		}),
+		segments.erase(std::remove_if(segments.begin(), segments.end(),
+						   [&extents](const auto& segment) { return !blockingSegmentInSections(segment, extents); }),
 			segments.end());
 	const auto allPlannedReferences = buildBlockingTimePlannedReferences(scope, paths, projections, omitted);
 	const auto plannedReferences = filterBlockingTimePlannedReferences(

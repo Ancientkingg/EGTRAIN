@@ -137,6 +137,13 @@ void matchBlockingSegmentsToSections(std::vector<BlockingTimeDiagramSegment>& se
 std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<BlockSectionExtent>& extents,
 	const std::vector<int>& indices);
 std::optional<std::pair<double, double>> blockSectionBounds(const std::vector<BlockSectionExtent>& extents);
+// Zero-based route indices from `first` to `last` (either order) that exist in a route of `count` sections.
+std::vector<int> blockSectionRangeIndices(int first, int last, int count);
+// An envelope belongs to the scope when it shares a resource with a section that has geometry and lies on its interval
+// (a zero-length envelope is a location). A repeated id selects only the occurrence whose interval holds the envelope.
+bool blockingSegmentInSections(const BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& sections);
+// Whether a position on the reference route lies on the interval of a section that has geometry.
+bool positionInBlockSections(double positionKm, const std::vector<BlockSectionExtent>& sections);
 // The existing capacity API selects resources by id and needs a unique entry occurrence.
 std::string blockSectionCapacityScopeIssue(const std::vector<BlockSectionExtent>& extents,
 	const std::vector<int>& indices);

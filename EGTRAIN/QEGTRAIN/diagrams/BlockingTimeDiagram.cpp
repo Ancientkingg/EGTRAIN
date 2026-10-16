@@ -328,6 +328,30 @@ std::vector<BlockSectionExtent> scopedBlockSectionExtents(const std::vector<Bloc
 	return selected;
 }
 
+std::vector<int> blockSectionRangeIndices(int first, int last, int count) {
+	std::vector<int> indices;
+	const int low = std::min(first, last), high = std::max(first, last);
+	for (int index = low; index >= 0 && index <= high && index < count; ++index)
+		indices.push_back(index);
+	return indices;
+}
+
+bool blockingSegmentInSections(const BlockingTimeDiagramSegment& segment, const std::vector<BlockSectionExtent>& sections) {
+	const double lower = std::min(segment.startPositionKm, segment.endPositionKm);
+	const double upper = std::max(segment.startPositionKm, segment.endPositionKm);
+	return std::any_of(sections.begin(), sections.end(), [&](const BlockSectionExtent& section) {
+		return section.geometryValid && shareBlockingTimeResource(section.id, segment.blockId)
+			&& (lower == upper ? lower >= section.lowerKm() && lower <= section.upperKm()
+							   : std::min(section.upperKm(), upper) > std::max(section.lowerKm(), lower));
+	});
+}
+
+bool positionInBlockSections(double positionKm, const std::vector<BlockSectionExtent>& sections) {
+	return std::any_of(sections.begin(), sections.end(), [positionKm](const BlockSectionExtent& section) {
+		return section.geometryValid && positionKm >= section.lowerKm() && positionKm <= section.upperKm();
+	});
+}
+
 std::optional<std::pair<double, double>> blockSectionBounds(const std::vector<BlockSectionExtent>& extents) {
 	std::optional<std::pair<double, double>> bounds;
 	for (const auto& extent : extents) {
