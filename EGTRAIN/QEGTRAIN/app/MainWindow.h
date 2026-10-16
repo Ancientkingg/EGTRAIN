@@ -103,7 +103,6 @@
 QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
-class DiagramWindow;
 class UpdateChecker;
 class QFileSystemWatcher;
 class SelfUpdater;
@@ -417,10 +416,6 @@ private:
 	bool m_e2eFinished = false;
 	int m_operationalLifecycleE2eCompletions = 0;
 	bool m_editorE2eFinished = false;
-	bool m_creatorAcceptanceFinished = false;
-	int m_creatorAcceptancePhase = 0;
-	int m_creatorAcceptancePolls = 0;
-	QPointer<DiagramWindow> m_creatorBaselineDiagram;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
@@ -1015,9 +1010,6 @@ private:
 	bool replaySliderCovers(int from, int to) const;
 	QSize replayRowSizeAt(int time);
 	bool checkReplayRowE2E(int middle, QString& failure);
-	void runCreatorAcceptanceE2E();
-	bool checkPreviewInfrastructureE2E(QString& failure);
-	bool checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation = false);
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
 		const std::string* inputSnapshot = nullptr) const;

@@ -9,6 +9,10 @@ class MainWindow;
 struct MainWindowTestHooks {
 	// A scripted run has no user to answer a dialog.
 	bool dialogsSuppressed = false;
+	// A scripted run that starts without a scene: the first show asks no startup question and starts nothing but afterFirstShow.
+	bool suppressStartupPrompts = false;
+	// Capacity analysis asks for its scope although dialogs are suppressed, for a scripted run that answers the dialog.
+	bool askCapacityScope = false;
 	// Called once, at the end of the first showEvent.
 	std::function<void(MainWindow&)> afterFirstShow;
 	// Called at the end of every frame that renderSnapshot draws, with whether the frame comes from a replay.
