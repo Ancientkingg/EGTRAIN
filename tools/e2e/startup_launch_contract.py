@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from typing import Optional
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/performance"))
@@ -31,7 +32,7 @@ TIMING_PREFIX = "QEGTRAIN_TIMING "
 # These are functional launch checks, not startup performance thresholds.
 # Allow instrumented Debug builds to finish both fresh and warm scene preparation.
 LAUNCH_TIMEOUT_SECONDS = 60
-# A file name with characters outside the Western Windows code page (e acute, then two CJK characters).
+# A file name with an e acute and two CJK characters; the CJK characters are outside the Western Windows code page.
 NON_ASCII_NAME = "Paimpol \u00e9\u6771\u4eac.egscene"
 HEADLESS_OPTIONS = ["-g", "0", "-h", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
 REJECTION_LINE = "ERROR: Cannot open"
@@ -120,7 +121,7 @@ def assert_no_argument_chooser_continuation(
     app: Path,
     args: tuple[str, ...] = (),
     label: str = "no-argument chooser continuation",
-    rejection: str | None = None,
+    rejection: Optional[str] = None,
 ) -> None:
     with tempfile.TemporaryDirectory(prefix="qegtrain-chooser-continuation-") as temp:
         returncode, output = run_app(app, list(args), Path(temp), label, chooser=True)
