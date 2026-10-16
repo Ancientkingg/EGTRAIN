@@ -182,7 +182,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost {
 	Q_OBJECT
 
 public:
@@ -221,17 +221,11 @@ public:
 	void setupRunResultsDock();
 	void refreshRunResults();
 
-	// update signal aspects
-	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
-
 	// train path diagram
 	bool hasRunResults() const;
 	void updateDiagramActions();
 	QMenu* editorsMenu();
 	void showStartupChooser();
-
-	// VCoupling notifications
-	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, int t);
 
 protected:
 	void showEvent(QShowEvent* e) override;
@@ -253,15 +247,6 @@ public slots:
 	void handleDisableHighlight();
 	// updates according to simulation
 	void waitForUpdates();
-	void updateSignalling();
-	void updatePlatforms(int t);
-	void updateTrainPaxInfo();
-	void updatePaxIconInfo();
-	void removeTrainPaxInfoIcon();
-	void removePaxInfoIcon();
-	void updateBlockOccupationStatus(const GuiTrainState& train);
-	void clearOperationalTrackStates();
-	void updateTrainPosition(int t);
 	void startSimulation(const telemetry::OperationObservation& operation);
 	void runCurrent();
 	void onSimulationFinished();
@@ -304,10 +289,6 @@ private:
 	// loading
 	QLabel* loadingLabel;
 	QMovie* loadingMovie;
-
-	// passenger icon
-	QPixmap pax_pixmap;
-	QPixmap pax_pixmap_scaled;
 
 	// dock widget
 	QWidget* infoWidget;
@@ -389,7 +370,6 @@ private:
 	int m_followTrainIndex = -1;
 	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
-	QMap<int, QVariantAnimation*> m_trainAnimations;
 	qint64 m_lastRenderMs = 0;
 	// Draws the newest delivered snapshot once the 33 ms render limit is over,
 	// for a pause or an end of run that no later snapshot follows.
@@ -848,8 +828,6 @@ private:
 	void clearSimulationWorker(bool requestStop);
 	bool deferUntilRunStopped(std::function<void()> action);
 	void runDeferredAction();
-	void stopTrainAnimation(int train);
-	void stopTrainAnimations();
 	void clearReplay();
 	void showReplayBar();
 	bool writeReplayText(std::optional<int> shownTime);
@@ -859,13 +837,21 @@ private:
 
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
-	bool isTrainOverlayPromoted(int trainIndex) const;
 	GuiPassengerState passengerState(const std::string& id) const;
+
+	// NetworkPresenter::FrameHost: the parts of a frame that the follow camera, the legend and the signal inspector take.
+	bool isTrainOverlayPromoted(int trainIndex) const override;
+	void trainWillUpdate(int trainIndex) override;
+	bool trainPlaced(int trainIndex, const QPointF& center) override;
+	void trainHidden(int trainIndex) override;
+	bool trainAdded(int trainIndex, bool firstLiveTrain) override;
+	void signalsApplied() override;
+	void trainsApplied(bool anyAdded, bool cameraMoved) override;
+
 	void updateViewportOverlays();
 	void updateSignalCues();
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
-	bool paxTextVisible() const;
 	void updateNetworkLegend();
 	bool hasRawRunResults() const;
 

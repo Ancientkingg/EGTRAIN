@@ -1652,7 +1652,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	if (!contextPassenger) {
-		contextPassenger = new PassengerItem(w.pax_pixmap_scaled);
+		contextPassenger = new PassengerItem(w.m_presenter->pax_pixmap_scaled);
 		contextPassenger->passengerId = "__e2e_context_passenger__";
 		contextPassenger->setPos(w.scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
 		w.scene->addItem(contextPassenger);
@@ -1683,7 +1683,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			w.scene->removeItem(contextPassenger);
 			delete contextPassenger;
 		}
-		w.removePaxInfoIcon();
+		w.m_presenter->removePaxInfoIcon();
 		w.m_presenter->paxIconItem = nullptr;
 	}
 
@@ -1745,7 +1745,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	if (w.scene && w.networkView) {
 		const std::string stalePassengerId = "__e2e_stale_passenger__";
-		auto* temporaryPassenger = new PassengerItem(w.pax_pixmap_scaled);
+		auto* temporaryPassenger = new PassengerItem(w.m_presenter->pax_pixmap_scaled);
 		temporaryPassenger->passengerId = stalePassengerId;
 		temporaryPassenger->setPos(w.scene->itemsBoundingRect().bottomRight() + QPointF(100.0, 100.0));
 		w.scene->addItem(temporaryPassenger);
@@ -1970,7 +1970,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					}
 				}
 				w.m_snapshot = skippedSnapshot;
-				w.updateTrainPosition(skippedSnapshot->timestep);
+				updateTrainPosition(w, skippedSnapshot->timestep);
 				if (w.m_followTrainIndex != -1 || w.m_followAction->isChecked()) {
 					ok = false;
 					failures << "skipped train exit did not clear armed follow";
@@ -2028,7 +2028,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const QPointF cameraBeforeEntry = w.networkView->mapToScene(
 						w.networkView->viewport()->rect().center());
 					w.m_snapshot = entrySnapshot;
-					w.updateTrainPosition(futureEntryTime);
+					updateTrainPosition(w, futureEntryTime);
 					enteredTrainIndex = futureFollowIndex;
 					QApplication::processEvents();
 					TrainItemGroup* enteredTrain = w.resolveTrainItem(futureFollowIndex);
@@ -2058,8 +2058,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					}
 					// A frame that changes no state leaves the list alone, so that an open list does not flicker.
 					const FollowListUnderFrames listUnderFrames = showFramesOverMarkedList(w.m_followTrainCombo, [&w, futureEntryTime]() {
-						w.updateTrainPosition(futureEntryTime);
-						w.updateTrainPosition(futureEntryTime);
+						updateTrainPosition(w, futureEntryTime);
+						updateTrainPosition(w, futureEntryTime);
 					});
 					w.setStartOffset(w.m_startOffsetSeconds); // writes every row again
 					if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept) {
@@ -2083,7 +2083,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const bool emphasisGone = emphasisBefore && !stationEmphasised();
 					w.networkView->centerOn(w.networkView->sceneRect().topLeft());
 					const QPointF cameraAway = viewCentre();
-					w.updateTrainPosition(futureEntryTime);
+					updateTrainPosition(w, futureEntryTime);
 					const QPointF cameraHidden = viewCentre();
 					const bool hiddenShown = w.m_followStatusLabel->text()
 							== futureName + " is running, but the Trains layer is switched off, so the view does not follow it."
@@ -2226,8 +2226,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				interruptedSnapshot->timestep = firstSnapshot->timestep + 2;
 
 				w.m_snapshot = firstSnapshot;
-				w.updateTrainPosition(firstSnapshot->timestep);
-				w.stopTrainAnimation(selectedTrain->index);
+				updateTrainPosition(w, firstSnapshot->timestep);
+				w.m_presenter->stopTrainAnimation(selectedTrain->index);
 				selectedTrain->setPos(QPointF(0.0, 0.0));
 				if (TrainBadgeItem* badge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr))
 					badge->setPos(w.m_presenter->m_prevTrainPositions.value(selectedTrain->index,
@@ -2250,10 +2250,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const QPointF cameraBefore = viewCentre();
 
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				const QPointF movedTarget = clampedCameraCenter(w.m_presenter->m_prevTrainPositions.value(selectedTrain->index));
 				const QPointF cameraAfterFrame = viewCentre();
-				QVariantAnimation* firstAnimation = w.m_trainAnimations.value(selectedTrain->index, nullptr);
+				QVariantAnimation* firstAnimation = w.m_presenter->m_trainAnimations.value(selectedTrain->index, nullptr);
 				if (!firstAnimation || firstAnimation->state() != QAbstractAnimation::Running
 					|| firstAnimation->duration() <= 0 || selectedTrain->pos().manhattanLength() <= 0.5) {
 					ok = false;
@@ -2303,9 +2303,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				*cameraClock += 5000;
 				const QPointF cameraPaused = viewCentre();
 				w.m_snapshot = interruptedSnapshot;
-				w.updateTrainPosition(interruptedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				const QPointF cameraResumed = viewCentre();
-				QVariantAnimation* replacementAnimation = w.m_trainAnimations.value(selectedTrain->index, nullptr);
+				QVariantAnimation* replacementAnimation = w.m_presenter->m_trainAnimations.value(selectedTrain->index, nullptr);
 				// Stopped animations are deleted later; no events have run since
 				// the first pointer was captured, so its stopped state is inspectable.
 				if (!replacementAnimation || replacementAnimation == firstAnimation
@@ -2352,7 +2352,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				animationWait.start();
 				while (animationWait.elapsed() < 250)
 					QApplication::processEvents(QEventLoop::AllEvents, 20);
-				if (w.m_trainAnimations.contains(selectedTrain->index)
+				if (w.m_presenter->m_trainAnimations.contains(selectedTrain->index)
 					|| selectedTrain->pos().manhattanLength() > 0.01) {
 					ok = false;
 					failures << "follow animation did not finish and clear its offset";
@@ -2401,14 +2401,14 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				panViewAway(w.networkView);
 				const QPointF cameraPannedAway = viewCentre();
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				const qreal panDistance = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				const bool panKept = panDistance > 20.0 && pixelsBetween(cameraPannedAway, viewCentre()) <= 1.0 && w.m_followCamera->running();
 				tickCamera();
 				const qreal panDistanceAfterTick = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				const bool panGlided = panKept && panDistanceAfterTick > 3.0 && panDistanceAfterTick < panDistance - 3.0 && glideEndsOnTrain();
 				w.m_snapshot = interruptedSnapshot;
-				w.updateTrainPosition(interruptedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				tickCamera();
 				const QSize viewportBeforeResize = w.networkView->viewport()->size();
 				w.resize(1100, 760);
@@ -2436,21 +2436,21 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				// A zoom of the toolbar, in or out, centres the view on the train at once, although the view lags behind it in
 				// a glide. Fit shows the whole network and stops the camera.
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				tickCamera();
 				const qreal lagBeforeZoomIn = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				w.zoomIn();
 				const qreal offAfterZoomIn = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				const bool zoomInCentred = lagBeforeZoomIn > 20.0 && offAfterZoomIn <= 3.0 && !w.m_followCamera->running();
 				w.m_snapshot = interruptedSnapshot;
-				w.updateTrainPosition(interruptedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				tickCamera();
 				const qreal lagBeforeZoomOut = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				w.zoomOut();
 				const qreal offAfterZoomOut = pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre()));
 				const bool zoomOutCentred = lagBeforeZoomOut > 20.0 && offAfterZoomOut <= 3.0 && !w.m_followCamera->running();
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				tickCamera();
 				const bool glidingBeforeFit = w.m_followCamera->running();
 				w.fitView();
@@ -2489,10 +2489,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					state.outOfSimulation = false;
 				}
 				w.m_snapshot = cutSnapshot;
-				w.updateTrainPosition(cutSnapshot->timestep);
+				updateTrainPosition(w, cutSnapshot->timestep);
 				TrainItemGroup* otherTrain = w.resolveTrainItem(enteredTrainIndex);
 				if (otherTrain) {
-					w.stopTrainAnimation(otherTrain->index);
+					w.m_presenter->stopTrainAnimation(otherTrain->index);
 					otherTrain->setPos(QPointF(0.0, 0.0));
 				}
 				tickCamera();
@@ -2509,7 +2509,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				// Switching Follow off, and the end of the followed train, stop the camera and leave the view where it is.
 				// Switching it on again with the view away from the train moves the view to the train at once.
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				tickCamera();
 				const bool glidingBeforeOff = w.m_followCamera->running();
 				const QPointF cameraBeforeOff = viewCentre();
@@ -2536,25 +2536,25 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				// Switching the Trains layer off, and a train with no position on the map, stop the camera. With the layer
 				// on again, and when the train has its position back, the view moves to the train at once.
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				const bool glidingBeforeLayer = w.m_followCamera->running();
 				w.m_trainLayerCheck->setChecked(false);
 				const bool layerStopped = glidingBeforeLayer && !w.m_followCamera->running() && !w.m_followCamera->hasTarget();
 				w.m_trainLayerCheck->setChecked(true);
 				const bool layerCut = w.m_followCamera->hasTarget() && !w.m_followCamera->running()
 					&& pixelsBetween(viewCentre(), clampedCameraCenter(selectedTrain->sceneBoundingRect().center())) <= 3.0;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				const bool glidingBeforeBlind = w.m_followCamera->running();
 				auto blindSnapshot = std::make_shared<GuiSimulationSnapshot>(*movedSnapshot);
 				for (GuiTrainState& state : blindSnapshot->trains)
 					if (state.index == selectedTrain->index)
 						state.routeIndex = -1;
 				w.m_snapshot = blindSnapshot;
-				w.updateTrainPosition(blindSnapshot->timestep);
+				updateTrainPosition(w, blindSnapshot->timestep);
 				const bool blindStopped = glidingBeforeBlind && !w.m_followCamera->running() && !w.m_followCamera->hasTarget()
 					&& w.m_followAction->isChecked() && w.m_followTrainIndex == selectedTrain->index;
 				w.m_snapshot = movedSnapshot;
-				w.updateTrainPosition(movedSnapshot->timestep);
+				updateTrainPosition(w, movedSnapshot->timestep);
 				const bool blindCut = w.m_followCamera->hasTarget() && !w.m_followCamera->running()
 					&& pixelsBetween(viewCentre(), clampedCameraCenter(followedCentre())) <= 3.0;
 				if (!layerStopped || !layerCut || !blindStopped || !blindCut) {
@@ -2569,7 +2569,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 									.arg(blindCut);
 				}
 				w.m_snapshot = interruptedSnapshot;
-				w.updateTrainPosition(interruptedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				const bool glidingBeforeEnd = w.m_followCamera->running();
 				if (!offStopped || !glidingBeforeEnd) {
 					ok = false;
@@ -2586,7 +2586,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					if (state.index == selectedTrain->index)
 						state.outOfSimulation = true;
 				w.m_snapshot = exitedSnapshot;
-				w.updateTrainPosition(exitedSnapshot->timestep);
+				updateTrainPosition(w, exitedSnapshot->timestep);
 				QApplication::processEvents();
 				const int exitedComboIndex = w.m_followTrainCombo->findData(selectedTrain->index);
 				const QString exitedName = w.m_followTrainCombo->itemData(exitedComboIndex, kFollowNameRole).toString();
@@ -2620,7 +2620,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					failures << "reselecting an exited train re-enabled Follow";
 				}
 				w.m_snapshot = interruptedSnapshot;
-				w.updateTrainPosition(interruptedSnapshot->timestep);
+				updateTrainPosition(w, interruptedSnapshot->timestep);
 				w.m_followCamera->stop();
 				w.m_followCamera->setClock({});
 				w.setFollowTrain(selectedTrain->index);
@@ -2636,7 +2636,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (w.m_worker)
 			w.m_worker->requestPause();
 		QApplication::processEvents();
-		w.stopTrainAnimation(selectedTrain->index);
+		w.m_presenter->stopTrainAnimation(selectedTrain->index);
 		if (w.m_worker && !w.m_worker->isPauseRequested()) {
 			ok = false;
 			failures << "train movement was not paused before reselection";
@@ -2949,6 +2949,14 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		return;
 	}
 	QCoreApplication::exit(2);
+}
+
+// The trains of the displayed snapshot as at time t, the way a frame of the run or of the replay shows them.
+void MainWindowTestAccess::updateTrainPosition(MainWindow& w, int t) {
+	if (!w.m_snapshot)
+		return;
+	w.m_presenter->updateTrainPosition(*w.m_snapshot, t,
+		w.m_replayActive ? NetworkPresenter::Playback::Replay : NetworkPresenter::Playback::Live);
 }
 
 // renderSnapshot reports every frame it draws. A scenario that waits for trains starts on the first live frame that has some.

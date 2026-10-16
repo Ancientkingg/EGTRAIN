@@ -5,8 +5,11 @@
 
 #include "app/GuiSimulationSnapshot.h"
 #include "graphics/RuntimeGeometrySource.h"
+#include "graphics/VisualPolish.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/SignalItem.h"
+#include "graphics/items/TrackLineItem.h"
+#include "graphics/items/TrainBadgeItem.h"
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "simulation/Signalling.h"
@@ -17,6 +20,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <string>
 #include <vector>
 
 Logger owl;
@@ -131,6 +135,39 @@ static bool bodyAt(const NetworkPresenter& presenter, double headKm) {
 		&& near(polygon[3].x(), head) && near(polygon[3].y(), -half);
 }
 
+// Records what apply() asks of its host, in order.
+class RecordingHost final : public NetworkPresenter::FrameHost {
+public:
+	std::vector<std::string> calls;
+	bool promoted = false;
+	bool cameraMoves = false;
+
+	bool isTrainOverlayPromoted(int) const override { return promoted; }
+	void trainWillUpdate(int train) override { calls.push_back("willUpdate " + std::to_string(train)); }
+	bool trainPlaced(int train, const QPointF&) override {
+		calls.push_back("placed " + std::to_string(train));
+		return cameraMoves;
+	}
+	void trainHidden(int train) override { calls.push_back("hidden " + std::to_string(train)); }
+	bool trainAdded(int train, bool firstLiveTrain) override {
+		calls.push_back("added " + std::to_string(train) + (firstLiveTrain ? " first" : ""));
+		return cameraMoves;
+	}
+	void signalsApplied() override { calls.push_back("signals"); }
+	void trainsApplied(bool anyAdded, bool cameraMoved) override {
+		calls.push_back(std::string("trains") + (anyAdded ? " added" : "") + (cameraMoved ? " moved" : ""));
+	}
+
+	// The calls of one apply(), which are then forgotten.
+	std::vector<std::string> take() {
+		std::vector<std::string> taken;
+		taken.swap(calls);
+		return taken;
+	}
+};
+
+using Calls = std::vector<std::string>;
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -189,6 +226,81 @@ int main(int argc, char* argv[]) {
 				&& presenter.m_signalsByAheadId.empty() && presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty()
 				&& presenter.allPlatforms.isEmpty() && presenter.m_stationOverlays.isEmpty(),
 			"clear leaves nothing of the run");
+	}
+
+	// apply() shows the steps of a run on the items that showRuntime drew.
+	{
+		source->passengers = true;
+		presenter.showRuntime(model);
+		RecordingHost host;
+		presenter.setFrameHost(&host);
+		SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+		TrackLineItem* const track = presenter.m_tracksByOccupiedArc.at({0, 0.0});
+		PlatformItem* const platform = presenter.allPlatforms.value(0);
+		const auto platformText = [platform]() { return platform->textIcon->toPlainText(); };
+
+		GuiSimulationSnapshot snapshot;
+		snapshot.timestep = 10;
+		snapshot.trains = {trainAt(7.5)};
+		snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
+		snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
+		snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2"}}};
+
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "added 0 first", "trains added"}),
+			"a live step reports the signals, then each train, then the end of the trains to the host");
+		ok &= expect(presenter.allTrains.size() == 1 && bodyAt(presenter, 7.5), "a train of the step that is not on the canvas is added");
+		ok &= expect(head->aspectCode() == 75, "the head of a signal shows the state of its section");
+		ok &= expect(presenter.allSignals.size() == 2 && presenter.allSignals[0] != presenter.allSignals[1]
+				&& (presenter.allSignals[0] == head ? presenter.allSignals[1] : presenter.allSignals[0])->aspectCode() == kGuiSignalUnavailable,
+			"a head without a state shows nothing");
+		ok &= expect(track->operationalState() == TrackOperationalState::Occupied, "the track of an occupied arc shows as occupied");
+		ok &= expect(platform->passengerIcons.size() == 2 && platformText() == "Pax on platform: 2\nMax pax volume: 40",
+			"the platform shows its passengers");
+
+		snapshot.timestep = 11;
+		snapshot.trains = {trainAt(8.0)};
+		snapshot.signalStates.clear();
+		snapshot.platforms[0].passengerIds = {"p1"};
+		snapshot.virtualCouplingMessages = {GuiVirtualCouplingState{11, "T1", "message"}};
+		host.promoted = true;
+		host.cameraMoves = true;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "placed 0", "trains moved"}),
+			"a train on the canvas is placed, and the host hears whether the camera moved");
+		ok &= expect(bodyAt(presenter, 8.0), "the body follows the train");
+		ok &= expect(head->aspectCode() == kGuiSignalUnavailable, "a head keeps no earlier aspect");
+		ok &= expect(track->operationalState() == TrackOperationalState::Free, "a track that is no longer occupied is free again");
+		ok &= expect(platform->passengerIcons.size() == 1 && platformText() == "Pax on platform: 1\nMax pax volume: 40",
+			"the platform shows the passengers that are left");
+		ok &= expect(presenter.m_vcMessageItems.contains(0) && presenter.m_vcMessageItems[0]->isVisible(),
+			"the message of a virtual coupling shows above the train");
+		ok &= expect(presenter.m_trainBadges.value(0) && presenter.m_trainBadges.value(0)->isPromoted(),
+			"the host decides whether the badge of a train is promoted");
+		ok &= expect(!presenter.m_trainAnimations.isEmpty(), "a live train glides to its new place");
+
+		snapshot.timestep = 12;
+		snapshot.trains = {trainAt(8.5)};
+		snapshot.virtualCouplingMessages.clear();
+		presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "placed 0", "trains moved"}), "a replay step reports the same calls");
+		ok &= expect(presenter.m_trainAnimations.isEmpty() && bodyAt(presenter, 8.5), "a replay step places the train without gliding");
+		ok &= expect(presenter.m_vcMessageItems.contains(0) && !presenter.m_vcMessageItems[0]->isVisible(),
+			"a message that the step does not carry is hidden");
+
+		snapshot.trains[0].outOfSimulation = true;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(host.take() == Calls({"signals", "willUpdate 0", "hidden 0", "trains"}), "a train that has left is hidden");
+		ok &= expect(!presenter.allTrains[0]->isVisible(), "the item of a train that has left is not shown");
+
+		snapshot.trains = {trainAt(7.5)};
+		presenter.setFrameHost(nullptr);
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(host.take().empty() && presenter.allTrains[0]->isVisible() && bodyAt(presenter, 7.5),
+			"a presenter without a host still shows the step");
+
+		presenter.clear();
+		ok &= expect(presenter.m_trainAnimations.isEmpty() && scene.items().isEmpty(), "clear stops the movement of the trains");
 	}
 
 	if (!ok)

@@ -5,6 +5,7 @@
 #include <QList>
 #include <QMap>
 #include <QPen>
+#include <QPixmap>
 #include <QPointF>
 #include <QPointer>
 #include <QPolygonF>
@@ -30,6 +31,7 @@ class PlatformItem;
 class QGraphicsItem;
 class QGraphicsItemGroup;
 class QGraphicsPixmapItem;
+class QVariantAnimation;
 class RuntimeGeometrySource;
 class SignalItem;
 class StationOverlayItem;
@@ -38,6 +40,8 @@ class TrainBadgeItem;
 class TrainBodyItem;
 class TrainItemGroup;
 struct GuiPassengerState;
+struct GuiSignalState;
+struct GuiSimulationSnapshot;
 struct GuiTrainState;
 struct SceneModel;
 struct SceneStationView;
@@ -73,11 +77,42 @@ public:
 		bool fitted = false;
 	};
 
+	// What a snapshot is a step of.
+	enum class Playback {
+		Live,  // the run that is being simulated
+		Replay // the replay of a finished run
+	};
+
+	// The parts of a frame that are not on the canvas: the follow camera, the legend and the signal inspector.
+	// apply() calls them at the points of a frame where they belong. Without a host no train is selected or followed.
+	class FrameHost {
+	public:
+		virtual ~FrameHost() = default;
+
+		// The overlay of the train is drawn in full, because the train is selected or followed.
+		virtual bool isTrainOverlayPromoted(int train) const = 0;
+		// A train of the snapshot is about to be updated. The frame can be one in which the train has already left.
+		virtual void trainWillUpdate(int train) = 0;
+		// The train has the shape and the place of the frame. Tells whether this moved the camera to the train.
+		virtual bool trainPlaced(int train, const QPointF& center) = 0;
+		// The train has left the network and is hidden.
+		virtual void trainHidden(int train) = 0;
+		// The train was added to the canvas. Tells whether this moved the camera to the train.
+		virtual bool trainAdded(int train, bool firstLiveTrain) = 0;
+		// The signals show the aspects of the frame.
+		virtual void signalsApplied() = 0;
+		// Every train has been updated. A train was added, or the camera moved to the followed train.
+		virtual void trainsApplied(bool anyAdded, bool cameraMoved) = 0;
+	};
+
 	NetworkPresenter(QGraphicsScene* scene, NetworkView* view);
 	~NetworkPresenter();
 
-	// Deletes every item of the scene and empties every registry. The signal under inspection is
-	// forgotten first, so nothing reads it while the scene deletes its items.
+	// Sets who takes the parts of a frame that are not on the canvas. The presenter does not own the host.
+	void setFrameHost(FrameHost* host);
+
+	// Stops the movement of the trains, deletes every item of the scene and empties every registry. The
+	// signal under inspection is forgotten first, so nothing reads it while the scene deletes its items.
 	void clear();
 
 	// Sets where the items of a run take the infrastructure from. Without a source nothing of a run
@@ -89,6 +124,32 @@ public:
 	// and the track lines. The caller clears the scene first. A drawn item points to its arc, node
 	// or connection in the source, which therefore keeps them until the next clear().
 	void showRuntime(const SceneModel& sceneModel);
+
+	// Shows one step of a run: the signal aspects and the trains, and with the passenger GUI the platforms and the
+	// passenger information. The signals, the track lines and the platforms of the run are on the canvas by showRuntime.
+	void apply(const GuiSimulationSnapshot& snapshot, Playback playback);
+
+	// Adds, moves and hides the trains of the snapshot at time t and shows the state of the sections on the track lines.
+	// apply() does this; it is public so that the trains can be updated alone.
+	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
+
+	// Draws the passenger information of the selected train and of the selected passenger icon again, or removes it.
+	// The snapshot gives the details of the passenger and can be null.
+	void updateTrainPaxInfo();
+	void updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback);
+	void removeTrainPaxInfoIcon();
+	void removePaxInfoIcon();
+
+	// Shows every track line as free.
+	void clearOperationalTrackStates();
+
+	// Stops the movement of one train, or of every train, between its last two places.
+	void stopTrainAnimation(int train);
+	void stopTrainAnimations();
+
+	// Whether the labels of the platforms show: the passenger layer is shown and the view is zoomed in far enough to
+	// read them.
+	bool paxTextVisible() const;
 
 	// The line of the preview that a track line of the run is drawn on, or null.
 	const TrackPreviewLine* cachedTrackLine(int track) const;
@@ -139,6 +200,9 @@ public:
 	QList<TrainItemGroup*> allTrains;
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QPointF> m_prevTrainPositions;
+
+	// The movement of each train between its last two places by train index. The parent of an animation is the scene.
+	QMap<int, QVariantAnimation*> m_trainAnimations;
 
 	// The signals, the signals of each section by the id of the section ahead of them, and the
 	// decorations of the signals.
@@ -193,6 +257,9 @@ public:
 	int station_size = 30 * global_scale;
 	int geo_scale = 80000 * global_scale; // scale used to convert latitude,longitude to screen coordinates
 
+	// The icon of a passenger on a platform, as large as a tenth of a station.
+	QPixmap pax_pixmap_scaled;
+
 	// Which layers are shown.
 	bool m_stationLayerVisible = true;
 	bool m_stationNamesVisible = true;
@@ -210,6 +277,12 @@ private:
 	std::unique_ptr<RuntimeGeometrySource> m_source;
 	std::vector<std::vector<int>> m_regionStations;
 
+	// The scene of the run, which gives the colour of each service for the trains that apply() adds. It is the
+	// model that showRuntime drew, and the caller keeps it until the next clear().
+	const SceneModel* m_runModel = nullptr;
+	// Who takes the parts of a frame that are not on the canvas. It is never null.
+	FrameHost* m_host;
+
 	QPointF Coord2ScreenPoint(double x, double y, double factor) const;
 	void calculateStationCoordAndShift();
 	bool hasTrackGeometry(int track) const;
@@ -225,7 +298,16 @@ private:
 	void paintSignal(double X, int size, int penWidth, int track, int separation, int sectionIndex);
 	void buildSignalIndex();
 	void buildTrackIndexes();
+	bool passengerGui() const;
+	void updateSignalling(const GuiSimulationSnapshot& snapshot);
+	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
+	void updatePlatforms(const GuiSimulationSnapshot& snapshot);
+	void updateBlockOccupationStatus(const GuiTrainState& train);
+	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, const GuiSimulationSnapshot& snapshot, int t);
 };
+
+// The details of a passenger in the snapshot; only the id is known when the snapshot is null or does not list the passenger.
+GuiPassengerState passengerStateIn(const GuiSimulationSnapshot* snapshot, const std::string& id);
 
 // The pen of a connection, shared by the preview before Run and a run.
 QPen connectionPen(int width);
