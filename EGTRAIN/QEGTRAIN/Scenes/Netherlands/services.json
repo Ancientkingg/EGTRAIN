@@ -28,7 +28,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Hvs"
                 }
             ]
@@ -61,7 +60,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Ut"
                 }
             ]
@@ -82,7 +80,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Brn"
                 }
             ]
@@ -103,7 +100,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Hvs"
                 }
             ]
@@ -132,7 +128,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Dld"
                 }
             ]
@@ -161,7 +156,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Ut"
                 }
             ]
@@ -206,7 +200,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Brn"
                 }
             ]
@@ -251,7 +244,6 @@
                 },
                 {
                     "dwell_seconds": 60.0,
-                    "planned_departure_seconds": 90000.0,
                     "station": "Ut"
                 }
             ]

@@ -11,6 +11,7 @@ from headless_smoke import (
     check_no_position_jump,
     check_scene_matches_netherlands,
     check_scene_structure,
+    held_at_last_stop,
     occurrence_errors,
     route_errors,
     run_command,
@@ -134,6 +135,17 @@ def main() -> None:
         errors = occurrence_errors(timetable_sample(*replaced), 8000, "IC", 4)
         if len(errors) != 1 or not errors[0].startswith(train) or cause not in errors[0]:
             raise SystemExit(f"{train} ({cause}) was not reported as the only error: {errors}")
+
+    # Only A-2 reached its last stop with time to spare and did not leave it.
+    stopped = [
+        ("A-1", stations, [120, 1500], [180, 1560]),
+        ("A-2", stations, [1920, 3300], [1980, NO_ARRIVAL]),
+        ("A-3", stations, [3720, 7700], [3780, NO_ARRIVAL]),
+        ("A-4", stations, [5520, NO_ARRIVAL], [5580, NO_ARRIVAL]),
+    ]
+    held = held_at_last_stop(timetable_sample(*stopped), 8000)
+    if held != ["A-2"]:
+        raise SystemExit(f"trains held at their last stop were reported as {held}, expected ['A-2']")
 
     stations = ["A", "B"]
     for sample, expected in (
