@@ -754,6 +754,8 @@ private:
 	bool openRequestedScene(const QString& path, const telemetry::OperationObservation& operation);
 	void createNewScene(const telemetry::OperationObservation& operation);
 	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation);
+	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
+		const telemetry::OperationObservation& operation);
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept;
 	void registerEditorDock(QDockWidget* dock);
 	QMenu* createPopupMenu() override;
@@ -1021,7 +1023,6 @@ private:
 	bool checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation = false);
 	void runSceneRenderE2E();
 	void runTrackPreviewE2E();
-	void runLegacyImportE2E();
 	void runSceneDropE2E();
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,

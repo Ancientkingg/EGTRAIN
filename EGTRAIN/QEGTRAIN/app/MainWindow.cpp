@@ -20823,64 +20823,6 @@ void MainWindow::runTrackPreviewE2E() {
 	QCoreApplication::exit(2);
 }
 
-void MainWindow::runLegacyImportE2E() {
-	if (m_e2eFinished)
-		return;
-	m_e2eFinished = true;
-
-	bool ok = true;
-	QStringList failures;
-	auto marker = [](const char* name) {
-		std::fprintf(stdout, "%s\n", name);
-		std::fflush(stdout);
-	};
-	auto fail = [&](const QString& message) {
-		ok = false;
-		failures << message;
-	};
-
-	const QString destinationInput = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_DEST");
-	const QString destinationCanonical = QFileInfo(destinationInput).canonicalFilePath();
-	const QString destination = destinationCanonical.isEmpty() ? QDir(destinationInput).absolutePath() : destinationCanonical;
-	actionLoad_Network();
-	if (m_sceneLoaded && QDir(m_sceneDir).absolutePath() == destination && !m_sceneModel.stations.empty()
-		&& scene && !scene->items().isEmpty())
-		marker("E2E_LEGACY_IMPORT_SUCCESS");
-	else
-		fail("successful import did not open the destination scene");
-
-	const QString previousDir = m_sceneDir;
-	const std::string previousName = m_sceneModel.name;
-	const int previousItemCount = scene ? scene->items().size() : -1;
-	const QString badSource = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_SOURCE");
-	const QString badDestination = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_DEST");
-	qputenv("QEGTRAIN_E2E_LEGACY_SOURCE", badSource.toUtf8());
-	qputenv("QEGTRAIN_E2E_LEGACY_DEST", badDestination.toUtf8());
-	actionLoad_Network();
-
-	const bool failedImport = !QFileInfo(QDir(badDestination).filePath("scene.json")).exists();
-	if (failedImport)
-		marker("E2E_LEGACY_IMPORT_FAILURE");
-	else
-		fail("malformed import unexpectedly wrote a scene");
-	const bool preserved = m_sceneDir == previousDir && m_sceneModel.name == previousName
-		&& (!scene || scene->items().size() == previousItemCount);
-	if (preserved)
-		marker("E2E_LEGACY_IMPORT_STATE_PRESERVED");
-	else
-		fail("failed import replaced the current scene or preview");
-
-	if (ok) {
-		marker("E2E_LEGACY_IMPORT_OK");
-		QCoreApplication::exit(0);
-		return;
-	}
-
-	std::fprintf(stderr, "E2E_LEGACY_IMPORT_FAIL: %s\n", failures.join(", ").toStdString().c_str());
-	std::fflush(stderr);
-	QCoreApplication::exit(2);
-}
-
 void MainWindow::runCreatorAcceptanceE2E() {
 	if (m_creatorAcceptanceFinished)
 		return;
@@ -25852,18 +25794,15 @@ void MainWindow::runScene() {
 
 void MainWindow::actionLoad_Network() {
 	const auto operation = captureTelemetryOperation();
-	const bool e2e = qEnvironmentVariableIsSet("QEGTRAIN_E2E_LEGACY_IMPORT");
-	QString sourceDir;
-	QString destinationDir;
-	if (e2e) {
-		sourceDir = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_SOURCE");
-		destinationDir = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_DEST");
-	} else {
-		sourceDir = QFileDialog::getExistingDirectory(this, "Select Legacy Case Folder", QDir::homePath());
-		if (sourceDir.isEmpty())
-			return;
-		destinationDir = QFileDialog::getExistingDirectory(this, "Select Scene Destination", QDir::homePath());
-	}
+	const QString sourceDir = QFileDialog::getExistingDirectory(this, "Select Legacy Case Folder", QDir::homePath());
+	if (sourceDir.isEmpty())
+		return;
+	const QString destinationDir = QFileDialog::getExistingDirectory(this, "Select Scene Destination", QDir::homePath());
+	importLegacyCase(sourceDir, destinationDir, operation);
+}
+
+void MainWindow::importLegacyCase(const QString& sourceDir, const QString& destinationDir,
+	const telemetry::OperationObservation& operation) {
 	if (sourceDir.isEmpty() || destinationDir.isEmpty())
 		return;
 
