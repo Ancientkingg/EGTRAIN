@@ -5,7 +5,9 @@ name: Package
 # which are artifacts too. A push to production or a v* tag signs the three Windows program files first and the installer
 # last when the repository variable WINDOWS_SIGNING is signpath; every other run builds unsigned files and reports their
 # signatures. The macOS app is signed ad hoc, except in a push to production or a v* tag when the environment macos-signing
-# holds a Developer ID certificate: then tools/release/sign_macos.sh signs it with that identity.
+# holds a Developer ID certificate: then tools/release/sign_macos.sh signs it with that identity. With notarization
+# credentials in that environment as well, tools/release/notarize_macos.sh notarizes and staples the app, and then the disk
+# image built from it.
 # The release workflow and the package check call this workflow with the version to build.
 on:
   workflow_call:
@@ -50,6 +52,10 @@ jobs:
 
       - name: Verify update helper transaction
         run: ctest --test-dir build -R '^test_update(helper|preparation)$' --output-on-failure
+
+      - name: Test the notarization script
+        # The script runs here against stand-ins for Apple's tools, so a change to it is tried before a release needs it.
+        run: bash tools/release/test_notarize_macos.sh
 
       - name: Bundle Qt and dependencies into the app
         run: |
@@ -312,9 +318,52 @@ jobs:
           path: build/scene-bundles/*.egscene
           if-no-files-found: error
 
+      - name: Notarize the app
+        # The app is notarized and gets its ticket before the disk image is built, so a copy of the app taken out of the image
+        # passes Gatekeeper without a network. The script reads the notarization credentials of the environment macos-signing
+        # from this step alone and does nothing without them: the app is then not notarized. When it runs, a verdict other
+        # than Accepted, or a ticket or an assessment that fails, fails the job.
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) }}
+        timeout-minutes: 60
+        env:
+          MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
+          MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}
+          MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}
+          MACOS_NOTARY_APPLE_ID: ${{ vars.MACOS_NOTARY_APPLE_ID }}
+          MACOS_NOTARY_TEAM_ID: ${{ vars.MACOS_NOTARY_TEAM_ID }}
+          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+        run: bash tools/release/notarize_macos.sh build/QEGTRAIN.app
+
       - name: Build the disk image
         # The app is final: no later step changes it.
         run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout
+
+      - name: Sign the disk image
+        # Gatekeeper assesses the image as well as the app in it. The image gets the Developer ID identity of the app; without
+        # an identity it stays unsigned, as the app keeps its ad-hoc signature.
+        run: |
+          set -euo pipefail
+          DMG="build/dmg/EGTRAIN-${{ inputs.version }}-macOS-arm64.dmg"
+          if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then
+            echo "macOS signing: no Developer ID identity, so the disk image is not signed." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$DMG"
+          codesign --verify --verbose=2 "$DMG"
+
+      - name: Notarize the disk image
+        # The same script, credentials and rules as for the app. The image is notarized and stapled last, and the next step
+        # checks the app in it.
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) }}
+        timeout-minutes: 60
+        env:
+          MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}
+          MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}
+          MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}
+          MACOS_NOTARY_APPLE_ID: ${{ vars.MACOS_NOTARY_APPLE_ID }}
+          MACOS_NOTARY_TEAM_ID: ${{ vars.MACOS_NOTARY_TEAM_ID }}
+          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+        run: bash tools/release/notarize_macos.sh build/dmg/EGTRAIN-${{ inputs.version }}-macOS-arm64.dmg
 
       - name: Verify the disk image
         # Mount the image read-only, as a user does, and take the app out of it with ditto. The copy is what a drag

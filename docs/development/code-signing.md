@@ -16,7 +16,10 @@ that reads Not recorded.
 - The macOS app is signed by `tools/release/sign_macos.sh` in the package workflow. The signature is ad hoc unless the
   environment `macos-signing` holds a Developer ID certificate (see the
   [macOS signing script](build-and-test.md#macos-signing-script)). An ad-hoc signature carries no publisher identity.
-  Notarization and the owner's Developer ID setup are #404 and are not covered here. The Linux AppImage is not signed.
+  With notarization credentials in the same environment, `tools/release/notarize_macos.sh` also notarizes and staples the
+  app and the disk image (see the
+  [macOS notarization script](build-and-test.md#macos-notarization-script)); without them nothing is notarized. The
+  owner's Developer ID setup is #404 and is not covered here. The Linux AppImage is not signed.
 - The in-app update checks the SHA-256 and the size of the downloaded package against `update-manifest.json`, an asset
   of the same release. On Windows it checks no signature, so these checks detect a damaged download and do not show who
   published the package. On macOS the staged app is also checked with `codesign --verify`, which an ad-hoc signature

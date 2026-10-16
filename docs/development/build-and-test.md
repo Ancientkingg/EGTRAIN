@@ -1332,8 +1332,13 @@ most of its checks, so run it locally to read its logs.
   the app, runs `scene_tool` on the Lebanon scene of the app and Paimpol without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
-  Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the app with
-  `tools/release/make_dmg.py --layout`, and no later step changes the app. The
+  In a push to `production` or a `v*` tag it then notarizes and staples the app
+  when the environment holds notarization credentials (see
+  [macOS notarization script](#macos-notarization-script)). It builds
+  `EGTRAIN-<version>-macOS-arm64.dmg` from the app with
+  `tools/release/make_dmg.py --layout`, and no later step changes the app. With
+  a Developer ID identity the image is signed, and with notarization credentials
+  it is notarized and stapled. The
   job mounts the image read-only and detaches it on every path. It checks that
   the volume holds only `QEGTRAIN.app`, the link `Applications` and the hidden
   file `.DS_Store`, that this file equals `tools/release/dmg/DS_Store`, that the
@@ -1661,6 +1666,62 @@ is refused. The test makes no certificate or keychain, so it does not show that
 a Developer ID certificate signs, that the timestamp server answers or that
 Apple accepts the app. Run it with
 `ctest --test-dir build -R test_sign_macos --output-on-failure`.
+
+### macOS notarization script
+
+`tools/release/notarize_macos.sh <app or disk image>` notarizes a file that is
+signed with a Developer ID Application identity. It stops when the signature is
+not one, sends the file to Apple with `xcrun notarytool submit --wait` (an app
+as a zip archive made with `ditto`, an image as it is) and requires the verdict
+`Accepted`. For any other verdict it prints Apple's log of the submission and
+fails. Then it staples the ticket with `xcrun stapler staple`, tried up to five
+times because Apple may not hand out the ticket at once, and checks it with
+`xcrun stapler validate` and `spctl --assess` (`--type execute` for an app,
+`--type open --context context:primary-signature` for an image). Any failing
+command fails the script.
+
+The credentials come from the environment and nowhere else. The script uses
+either an App Store Connect API key, with `MACOS_NOTARY_KEY` (the text of the
+`.p8` file), `MACOS_NOTARY_KEY_ID` and `MACOS_NOTARY_ISSUER_ID`, or an Apple ID,
+with `MACOS_NOTARY_APPLE_ID`, `MACOS_NOTARY_TEAM_ID` and `MACOS_NOTARY_PASSWORD`
+(an app-specific password). The API key wins when both are complete. With none
+of the six set, or all of them empty, the script says that it skipped the file
+and succeeds, so the file is not notarized. With some set and neither group
+complete it fails and names the missing variables. It prints no value, and it
+writes the key to a file in a private temporary folder that it removes on every
+exit.
+
+In the workflow, the credentials belong to the environment `macos-signing`: the
+key and the password are environment secrets, the other four are environment
+variables. Two steps read them and nothing else does. **Notarize the app** runs
+after **Start the package** and before **Build the disk image**, so the app in
+the image already carries its ticket and keeps it when it is copied out of the
+image offline. After the image is built, **Sign the disk image** signs it with
+the identity of the import step (`codesign --force --timestamp --sign`), or
+leaves it unsigned when there is no identity, and **Notarize the disk image**
+sends it as a second submission. Both notarization steps run only for a push to
+`production` or a `v*` tag, have a time limit of 60 minutes, and have no
+condition on a credential and no `continue-on-error`: a release job without
+credentials succeeds and ships files that are not notarized, and one with
+credentials fails when any command of the script fails, so a file that Apple
+rejected is never published as notarized. **Verify the disk image** then checks
+the signature of the app in the finished image as before.
+
+The test is `tools/release/test_notarize_macos.sh`. It puts stand-ins for
+`codesign`, `xcrun` and `spctl` in front of the real tools, so nothing reaches
+Apple, and uses the real `ditto`. It checks the arguments and the order of the
+calls for an app with an API key and for an image with an Apple ID, that the app
+goes to `notarytool` as an archive that holds it and the image as it is, that the
+key file has the mode 600 and is gone afterwards, that the script skips without
+credentials and fails for partial ones, wrong calls, a file without a Developer
+ID signature, a verdict of `Invalid`, no verdict, a failing `notarytool`, a
+ticket that `stapler` hands out only at the third attempt or never, a ticket that
+does not validate and a refusal by Gatekeeper, and that no value of a credential
+reaches the output. It runs on macOS only. The package job runs it in the step
+**Test the notarization script**, and it is not registered in CTest. It does not
+show that Apple accepts the app, that the ticket attaches to the files or that
+Gatekeeper accepts them: the first run with real credentials is the first proof of
+that. Run the test with `bash tools/release/test_notarize_macos.sh`.
 
 ### Installer script
 

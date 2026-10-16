@@ -547,15 +547,22 @@ def main() -> None:
         or re.search(r":\s*write", package_only)
     ):
         missing.append("package workflow with read permission at the top, one more block in each signing job, and no write permission")
-    # The signing token is named in one step of each Windows signing job, and the certificate and its password of the macOS
-    # signing are named in the one step that imports them. No script of any job can read them.
+    # The signing token is named in one step of each Windows signing job, the certificate and its password of the macOS
+    # signing in the one step that imports them, and the key and the password of the notarization in the two steps that
+    # run the notarization script. No other step of any job can read them.
     if re.findall(r"\bsecrets\.\w+", package_only) != [
         "secrets.MACOS_CERTIFICATE",
         "secrets.MACOS_CERTIFICATE_PASSWORD",
+        "secrets.MACOS_NOTARY_KEY",
+        "secrets.MACOS_NOTARY_PASSWORD",
+        "secrets.MACOS_NOTARY_KEY",
+        "secrets.MACOS_NOTARY_PASSWORD",
         "secrets.SIGNPATH_API_TOKEN",
         "secrets.SIGNPATH_API_TOKEN",
     ]:
-        missing.append("package workflow whose only credentials are the macOS certificate with its password and the Windows signing token")
+        missing.append(
+            "package workflow whose only credentials are the macOS certificate and notarization key with their passwords and the Windows signing token"
+        )
     package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux"]
     if job_ids(package_only) != package_jobs:
         missing.append("package workflow jobs: " + ", ".join(package_jobs))
@@ -1019,6 +1026,7 @@ def main() -> None:
     # app holds scene_tool and the Lebanon guide, and the disk image is built from it after the one signature.
     macos_job = job_block(package_only, "package-macos")
     macos_steps = (
+        "Test the notarization script",
         "Bundle Qt and dependencies into the app",
         "Add scene_tool and the Lebanon guide to the app",
         "Remove unused Qt modules and plugins",
@@ -1029,7 +1037,10 @@ def main() -> None:
         "Verify the signature",
         "Verify the packaged app",
         "Start the package",
+        "Notarize the app",
         "Build the disk image",
+        "Sign the disk image",
+        "Notarize the disk image",
         "Verify the disk image",
         "Upload artifact",
         "Delete the signing keychain",
@@ -1212,10 +1223,10 @@ def main() -> None:
     if (
         not sign_step.endswith("        run: bash tools/release/sign_macos.sh build/QEGTRAIN.app\n")
         or "env:" in sign_step
-        or "codesign --force" in package_only
+        or package_only.count("codesign --force") != 1
         or "--deep --sign" in package_only
     ):
-        missing.append("macOS app signed by the script alone, with the identity from the environment of the import step and no codesign call in the workflow")
+        missing.append("macOS app signed by the script alone, with the identity from the environment of the import step and no codesign call in the workflow but the one for the disk image")
     signature_step = step_block(macos_job, "Verify the signature")
     if any(
         part not in signature_step
@@ -1229,6 +1240,62 @@ def main() -> None:
         )
     ):
         missing.append("macOS signature check that prints who signed the app and requires Developer ID, a team, the hardened runtime and a timestamp, or an ad-hoc signature without an identity")
+    # Notarization follows the signing. The app is notarized and stapled before the disk image is built from it, so that its
+    # ticket is in the image. The image is signed with the identity of the app, if there is one, and then notarized. Both
+    # notarization steps run only where the signing steps run, read the notarization credentials of the environment in the
+    # step alone, and fail the job when the script fails: the script itself does nothing without credentials, so no step
+    # condition and no continue-on-error is needed or allowed.
+    image_sign_step = step_block(macos_job, "Sign the disk image")
+    image_sign_run = image_sign_step.split("        run: |\n", 1)[-1]
+    if (
+        "env:" in image_sign_step
+        or "--deep" in image_sign_step
+        or f'DMG="build/dmg/{image_name}"\n' not in image_sign_run
+        or 'codesign --force --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$DMG"\n' not in image_sign_run
+        or not 0
+        <= image_sign_run.find('if [ -z "${MACOS_SIGNING_IDENTITY:-}" ]; then\n')
+        < image_sign_run.find("            exit 0\n")
+        < image_sign_run.find("codesign --force")
+        < image_sign_run.find('codesign --verify --verbose=2 "$DMG"\n')
+    ):
+        missing.append("macOS disk image signed with the identity of the app, and left unsigned without an identity")
+    notary_environment = (
+        "        env:\n"
+        "          MACOS_NOTARY_KEY: ${{ secrets.MACOS_NOTARY_KEY }}\n"
+        "          MACOS_NOTARY_KEY_ID: ${{ vars.MACOS_NOTARY_KEY_ID }}\n"
+        "          MACOS_NOTARY_ISSUER_ID: ${{ vars.MACOS_NOTARY_ISSUER_ID }}\n"
+        "          MACOS_NOTARY_APPLE_ID: ${{ vars.MACOS_NOTARY_APPLE_ID }}\n"
+        "          MACOS_NOTARY_TEAM_ID: ${{ vars.MACOS_NOTARY_TEAM_ID }}\n"
+        "          MACOS_NOTARY_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}\n"
+    )
+    for notary_name, notary_target in (
+        ("Notarize the app", "build/QEGTRAIN.app"),
+        ("Notarize the disk image", f"build/dmg/{image_name}"),
+    ):
+        notary_step = step_block(macos_job, notary_name)
+        if (
+            "        if: ${{ " + signing_gate + " }}\n" not in notary_step
+            or "        timeout-minutes: 60\n" not in notary_step
+            or notary_environment not in notary_step
+            or not notary_step.endswith(f"        run: bash tools/release/notarize_macos.sh {notary_target}\n")
+        ):
+            missing.append(f"macOS step '{notary_name}' that runs the notarization script for a push to production or a v* tag with the notarization credentials of its environment")
+    step_conditions = re.findall(r"^        if: (.+)$", macos_job, re.MULTILINE)
+    if "continue-on-error" in macos_job or any(re.search(r"secrets\.|vars\.|NOTARY|CERTIFICATE", condition) for condition in step_conditions):
+        missing.append("macOS package job whose steps all fail the job and whose step conditions read no credential")
+    notarize_script = (ROOT / "tools/release/notarize_macos.sh").read_text(encoding="utf-8")
+    notarize_commands = ("xcrun notarytool submit", "--wait", "xcrun stapler staple", "xcrun stapler validate", "spctl --assess")
+    notarize_positions = [notarize_script.find(command) for command in notarize_commands]
+    printed_credentials = [
+        line for line in notarize_script.splitlines() if re.search(r"\b(echo|printf|fail)\b.*\$\{?MACOS_NOTARY_", line) and "key.p8" not in line
+    ]
+    if (
+        -1 in notarize_positions
+        or notarize_positions != sorted(notarize_positions)
+        or re.search(r"\bset\s+-\w*x", notarize_script)
+        or printed_credentials
+    ):
+        missing.append("notarization script that submits to Apple and waits, staples, validates and assesses in that order, and neither traces nor prints a credential")
     if re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)[-1] != "Delete the signing keychain" or step_block(
         macos_job, "Delete the signing keychain"
     ) != (
