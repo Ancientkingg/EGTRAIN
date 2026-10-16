@@ -13,6 +13,7 @@
 #include "diagrams/RunExports.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TrainFilterButton.h"
+#include "editors/ScenarioPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/FollowCamera.h"
 #include "graphics/NetworkView.h"
@@ -1164,7 +1165,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		w.m_replayTimer->start();
-		w.selectScenario(static_cast<int>(w.m_sceneModel.scenarios.size()) - 1);
+		w.m_scenarioPanel->selectScenario(static_cast<int>(w.m_sceneModel.scenarios.size()) - 1);
 		if (w.m_replayTimer->isActive() || !w.m_completedReplay.empty() || w.m_snapshot
 			|| !w.m_showingTrackPreview || !w.m_presenter->allTrains.isEmpty() || !w.m_presenter->m_activeTrackItems.empty()
 			|| w.m_followTrainIndex >= 0 || w.m_followCamera->hasTarget() || w.m_followCamera->running() || w.m_replayBar->isVisible()) {

@@ -115,6 +115,7 @@ class ColorChoiceButton;
 class CompositionPanel;
 class DelayAnalysisWindow;
 class PassengerPanel;
+class ScenarioPanel;
 class ServicePanel;
 class UserPrompts;
 class QPlainTextEdit;
@@ -541,6 +542,8 @@ private:
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
+	ScenarioPanel* m_scenarioPanel = nullptr;
+	// Parts of m_scenarioPanel, for the scripted runs in tests/e2e
 	QListWidget* m_scenarioListWidget = nullptr;
 	QLineEdit* m_scenarioIdEdit = nullptr;
 	QLineEdit* m_scenarioNameEdit = nullptr;
@@ -548,8 +551,6 @@ private:
 	QPushButton* m_blankScenarioButton = nullptr;
 	QPushButton* m_duplicateScenarioButton = nullptr;
 	QPushButton* m_deleteScenarioButton = nullptr;
-	QPushButton* m_importScenarioButton = nullptr;
-	QPushButton* m_exportScenarioButton = nullptr;
 	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
 	QLineEdit* m_incidentIdEdit = nullptr;			 // id of the selected incident
 	QComboBox* m_incidentTypeCombo = nullptr;		 // "signal_failure" | "train_breakdown"
@@ -688,7 +689,6 @@ private:
 	void updateInfrastructureSelection();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
-	void updateScenarioPresentation();
 	bool advancedDetailsEnabled() const;
 	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
@@ -732,18 +732,7 @@ private:
 	int inPeriodServiceOccurrences() const;
 
 	// incident editor
-	void refreshScenarioList();
 	void refreshIncidentPanel();
-	void updateScenarioDetailPanel();
-	void selectScenario(int row);
-	void addBlankScenario();
-	void duplicateScenario();
-	void deleteScenario();
-	void importScenario();
-	void exportScenario();
-	void commitScenarioIdEdit();
-	void commitScenarioNameEdit();
-	void commitScenarioDescriptionEdit();
 	void updateIncidentDetailPanel();
 	void refreshIncidentTargetCombo();
 	void addIncident();

@@ -10,6 +10,7 @@
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/PassengerPanel.h"
+#include "editors/ScenarioPanel.h"
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 #include "graphics/items/HighlightEffect.h"
@@ -514,7 +515,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			};
 			const auto applyPresentation = [&w]() {
 				w.updateDiagnosticPresentation();
-				w.updateScenarioPresentation();
+				w.m_scenarioPanel->updatePresentation();
 				w.refreshLoadedDataTree();
 				QApplication::processEvents();
 			};
@@ -1767,7 +1768,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			const int countBeforeDefaultDelete = w.m_scenarioListWidget->count();
 			w.m_deleteScenarioButton->click();
-			w.deleteScenario();
+			w.m_scenarioPanel->deleteScenario();
 			QApplication::processEvents();
 			if (w.m_scenarioListWidget->count() != countBeforeDefaultDelete
 				|| w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId

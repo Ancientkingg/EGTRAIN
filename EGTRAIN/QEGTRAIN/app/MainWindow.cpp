@@ -48,6 +48,7 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/PassengerPanel.h"
+#include "editors/ScenarioPanel.h"
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
@@ -1546,7 +1547,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		if (!enabled && m_validationDock)
 			m_validationDock->hide();
 		updateDiagnosticPresentation();
-		updateScenarioPresentation();
+		m_scenarioPanel->updatePresentation();
 		refreshRunResultsSummary();
 		updateDiagramActions();
 	});
@@ -1857,44 +1858,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QWidget* incidentWidget = new QWidget(m_incidentDock);
 	QVBoxLayout* incidentLayout = new QVBoxLayout(incidentWidget);
 
-	QWidget* scenarioPane = new QWidget(incidentWidget);
-	QVBoxLayout* scenarioLayout = new QVBoxLayout(scenarioPane);
-	scenarioLayout->addWidget(new QLabel("Scenarios", scenarioPane));
-	m_scenarioListWidget = new QListWidget(scenarioPane);
-	m_scenarioListWidget->setObjectName("scenarioListWidget");
-	m_scenarioListWidget->setAccessibleName("Scenario library");
-	m_scenarioListWidget->setTextElideMode(Qt::ElideRight);
-	m_scenarioListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	scenarioLayout->addWidget(m_scenarioListWidget);
-	QGridLayout* scenarioButtonLayout = new QGridLayout();
-	m_blankScenarioButton = new QPushButton("Blank", scenarioPane);
-	m_blankScenarioButton->setObjectName("blankScenarioButton");
-	m_duplicateScenarioButton = new QPushButton("Duplicate", scenarioPane);
-	m_duplicateScenarioButton->setObjectName("duplicateScenarioButton");
-	m_deleteScenarioButton = new QPushButton("Delete", scenarioPane);
-	m_deleteScenarioButton->setObjectName("deleteScenarioButton");
-	m_importScenarioButton = new QPushButton("Import JSON...", scenarioPane);
-	m_importScenarioButton->setObjectName("importScenarioButton");
-	m_exportScenarioButton = new QPushButton("Export JSON...", scenarioPane);
-	m_exportScenarioButton->setObjectName("exportScenarioButton");
-	const QList<QPushButton*> scenarioButtons{m_blankScenarioButton, m_duplicateScenarioButton,
-		m_deleteScenarioButton, m_importScenarioButton, m_exportScenarioButton};
-	for (int index = 0; index < scenarioButtons.size(); ++index)
-		scenarioButtonLayout->addWidget(scenarioButtons[index], index / 2, index % 2);
-	scenarioLayout->addLayout(scenarioButtonLayout);
-	QFormLayout* scenarioDetailLayout = new QFormLayout();
-	m_scenarioIdEdit = new QLineEdit(scenarioPane);
-	m_scenarioIdEdit->setObjectName("scenarioIdEdit");
-	m_scenarioNameEdit = new QLineEdit(scenarioPane);
-	m_scenarioNameEdit->setObjectName("scenarioNameEdit");
-	m_scenarioDescriptionEdit = new QLineEdit(scenarioPane);
-	m_scenarioDescriptionEdit->setObjectName("scenarioDescriptionEdit");
-	scenarioDetailLayout->addRow("Scenario ID", m_scenarioIdEdit);
-	scenarioDetailLayout->addRow("Name", m_scenarioNameEdit);
-	scenarioDetailLayout->addRow("Description", m_scenarioDescriptionEdit);
-	scenarioLayout->addLayout(scenarioDetailLayout);
-
-	incidentLayout->addWidget(scenarioPane, 0);
+	m_scenarioPanel = new ScenarioPanel(incidentWidget);
+	m_scenarioListWidget = m_scenarioPanel->listWidget();
+	m_scenarioIdEdit = m_scenarioPanel->idEdit();
+	m_scenarioNameEdit = m_scenarioPanel->nameEdit();
+	m_scenarioDescriptionEdit = m_scenarioPanel->descriptionEdit();
+	m_blankScenarioButton = m_scenarioPanel->blankButton();
+	m_duplicateScenarioButton = m_scenarioPanel->duplicateButton();
+	m_deleteScenarioButton = m_scenarioPanel->deleteButton();
+	incidentLayout->addWidget(m_scenarioPanel, 0);
 
 	QTabWidget* scenarioEditorTabs = new QTabWidget(incidentWidget);
 	scenarioEditorTabs->setObjectName("scenarioEditorTabs");
@@ -2026,15 +1998,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
 		updateIncidentDetailPanel();
 	});
-	connect(m_scenarioListWidget, &QListWidget::currentRowChanged, this, &MainWindow::selectScenario);
-	connect(m_scenarioIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioIdEdit);
-	connect(m_scenarioNameEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioNameEdit);
-	connect(m_scenarioDescriptionEdit, &QLineEdit::editingFinished, this, &MainWindow::commitScenarioDescriptionEdit);
-	connect(m_blankScenarioButton, &QPushButton::clicked, this, &MainWindow::addBlankScenario);
-	connect(m_duplicateScenarioButton, &QPushButton::clicked, this, &MainWindow::duplicateScenario);
-	connect(m_deleteScenarioButton, &QPushButton::clicked, this, &MainWindow::deleteScenario);
-	connect(m_importScenarioButton, &QPushButton::clicked, this, &MainWindow::importScenario);
-	connect(m_exportScenarioButton, &QPushButton::clicked, this, &MainWindow::exportScenario);
+	m_scenarioPanel->setPrompts(m_userPrompts.get());
+	m_scenarioPanel->setRunSelection(&m_runSelection);
+	m_scenarioPanel->setDiagnostics(&m_sceneDiagnostics);
+	m_scenarioPanel->setAdvancedDetails([this] { return advancedDetailsEnabled(); });
+	m_scenarioPanel->setExportObserver([this] {
+		const auto operation = captureTelemetryOperation();
+		return [operation](const std::vector<SceneDiagnostic>& diagnostics) {
+			operation.failure(telemetry::Operation::Export, telemetryDiagnosticError(diagnostics));
+		};
+	});
+	m_scenarioPanel->setDocument(m_document);
+	connect(m_scenarioPanel, &ScenarioPanel::scenarioSelected, this, [this] {
+		invalidateRunResults();
+		refreshIncidentPanel();
+	});
+	connect(m_scenarioPanel, &ScenarioPanel::statusMessage, this,
+		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
+	connect(m_scenarioPanel, &ScenarioPanel::changed, this, &MainWindow::refreshValidationPanel);
 	connect(m_incidentIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentIdEdit);
 	connect(m_incidentTypeCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentType);
 	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
@@ -3150,60 +3131,6 @@ void MainWindow::updateDiagnosticPresentation() {
 	updateCaseLayersPanel();
 }
 
-void MainWindow::updateScenarioPresentation() {
-	if (!m_scenarioListWidget)
-		return;
-	const bool details = advancedDetailsEnabled();
-	const auto validationStatus = [this](std::size_t index) {
-		const std::string prefix = "scenarios[" + std::to_string(index) + "]";
-		int errors = 0;
-		int warnings = 0;
-		for (const auto& diagnostic : m_sceneDiagnostics) {
-			if (diagnostic.path.rfind(prefix, 0) != 0)
-				continue;
-			if (diagnostic.severity == SceneSeverity::Error)
-				++errors;
-			else if (diagnostic.severity == SceneSeverity::Warning)
-				++warnings;
-		}
-		return errors > 0 ? QStringLiteral("Invalid")
-						  : (warnings > 0 ? QStringLiteral("Warning") : QStringLiteral("Ready"));
-	};
-	for (std::size_t index = 0; index < m_sceneModel.scenarios.size()
-		&& index < static_cast<std::size_t>(m_scenarioListWidget->count());
-		++index) {
-		const SceneScenario& scenario = m_sceneModel.scenarios[index];
-		const QString description = scenario.description.empty()
-			? QStringLiteral("(no description)")
-			: QString::fromStdString(scenario.description);
-		QString label = QString("%1 — %2")
-							.arg(QString::fromStdString(scenario.id), QString::fromStdString(scenario.name));
-		if (details) {
-			label += QString(" | %1 | %2 incident(s) | %3 delay(s) | %4")
-						 .arg(description)
-						 .arg(static_cast<int>(scenario.incidents.size()))
-						 .arg(static_cast<int>(scenario.entranceDelays.size()))
-						 .arg(validationStatus(index));
-		} else {
-			label += QString(" | %1 incident(s) | %2 delay(s)")
-						 .arg(static_cast<int>(scenario.incidents.size()))
-						 .arg(static_cast<int>(scenario.entranceDelays.size()));
-			if (!scenario.description.empty())
-				label += QString(" | %1").arg(description);
-			if (validationStatus(index) == QStringLiteral("Invalid"))
-				label += QStringLiteral(" | Invalid");
-		}
-		if (scenario.id == m_sceneModel.defaultScenarioId)
-			label += QStringLiteral(" | default");
-		if (m_runSelection.isScenarioModified(scenario.id))
-			label += QStringLiteral(" | modified");
-		if (auto* item = m_scenarioListWidget->item(static_cast<int>(index))) {
-			item->setText(label);
-			item->setToolTip(label);
-		}
-	}
-}
-
 void MainWindow::refreshValidationPanel() {
 	if (m_committingPendingEditorValues)
 		return;
@@ -3215,7 +3142,7 @@ void MainWindow::refreshValidationPanel() {
 		if (m_validationStatusLabel)
 			m_validationStatusLabel->clear();
 		refreshLoadedDataTree();
-		refreshScenarioList();
+		m_scenarioPanel->refresh();
 		m_passengerPanel->refresh();
 		updateSceneActions();
 		updateCaseLayersPanel();
@@ -3249,7 +3176,7 @@ void MainWindow::refreshValidationPanel() {
 
 	updateDiagnosticPresentation();
 	refreshLoadedDataTree();
-	refreshScenarioList();
+	m_scenarioPanel->refresh();
 	m_passengerPanel->refresh();
 	updateSceneActions();
 }
@@ -3500,9 +3427,7 @@ void MainWindow::commitPendingEditorValues() {
 		m_committingPendingEditorValues = false;
 		return;
 	}
-	commitScenarioIdEdit();
-	commitScenarioNameEdit();
-	commitScenarioDescriptionEdit();
+	m_scenarioPanel->commitPendingEditors();
 	commitIncidentIdEdit();
 	commitIncidentStartSeconds();
 	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck && m_incidentHasEndSecondsCheck->isChecked()) || hasEditorFocus(m_incidentEndSecondsEdit)))
@@ -4914,23 +4839,11 @@ int MainWindow::inPeriodServiceOccurrences() const {
 }
 
 SceneScenario* MainWindow::selectedScenario() {
-	if (!m_sceneLoaded)
-		return nullptr;
-	for (auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_runSelection.scenarioId())
-			return &scenario;
-	}
-	return defaultScenario(m_sceneModel);
+	return m_sceneLoaded ? m_runSelection.selectedScenario(m_sceneModel) : nullptr;
 }
 
 const SceneScenario* MainWindow::selectedScenario() const {
-	if (!m_sceneLoaded)
-		return nullptr;
-	for (const auto& scenario : m_sceneModel.scenarios) {
-		if (scenario.id == m_runSelection.scenarioId())
-			return &scenario;
-	}
-	return defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
+	return m_sceneLoaded ? m_runSelection.selectedScenario(static_cast<const SceneModel&>(m_sceneModel)) : nullptr;
 }
 
 std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() {
@@ -4976,86 +4889,9 @@ void MainWindow::markScenarioModified() {
 	markSceneDirty();
 }
 
-void MainWindow::selectScenario(int row) {
-	if (!m_sceneLoaded || m_worker || row < 0
-		|| row >= static_cast<int>(m_sceneModel.scenarios.size()))
-		return;
-	const std::string id = m_sceneModel.scenarios[static_cast<std::size_t>(row)].id;
-	if (id == m_runSelection.scenarioId()) {
-		updateScenarioDetailPanel();
-		updateIncidentDetailPanel();
-		return;
-	}
-	m_runSelection.selectScenario(id);
-	invalidateRunResults();
-	refreshIncidentPanel();
-}
-
-void MainWindow::updateScenarioDetailPanel() {
-	const SceneScenario* scenario = selectedScenario();
-	const bool enabled = m_sceneLoaded && !m_worker && scenario != nullptr;
-	if (m_scenarioIdEdit) {
-		const QSignalBlocker blocker(m_scenarioIdEdit);
-		m_scenarioIdEdit->setText(enabled ? QString::fromStdString(scenario->id) : QString());
-		m_scenarioIdEdit->setEnabled(enabled);
-	}
-	if (m_scenarioNameEdit) {
-		const QSignalBlocker blocker(m_scenarioNameEdit);
-		m_scenarioNameEdit->setText(enabled ? QString::fromStdString(scenario->name) : QString());
-		m_scenarioNameEdit->setEnabled(enabled);
-	}
-	if (m_scenarioDescriptionEdit) {
-		const QSignalBlocker blocker(m_scenarioDescriptionEdit);
-		m_scenarioDescriptionEdit->setText(enabled ? QString::fromStdString(scenario->description) : QString());
-		m_scenarioDescriptionEdit->setEnabled(enabled);
-	}
-	if (m_blankScenarioButton)
-		m_blankScenarioButton->setEnabled(m_sceneLoaded && !m_worker);
-	if (m_duplicateScenarioButton)
-		m_duplicateScenarioButton->setEnabled(enabled);
-	if (m_deleteScenarioButton) {
-		const bool hasPersistedDefault = m_sceneLoaded && !m_sceneModel.defaultScenarioId.empty()
-			&& std::any_of(m_sceneModel.scenarios.begin(), m_sceneModel.scenarios.end(),
-				[this](const SceneScenario& candidate) {
-					return candidate.id == m_sceneModel.defaultScenarioId;
-				});
-		m_deleteScenarioButton->setEnabled(enabled && hasPersistedDefault
-			&& scenario->id != m_sceneModel.defaultScenarioId);
-	}
-	if (m_importScenarioButton)
-		m_importScenarioButton->setEnabled(m_sceneLoaded && !m_worker);
-	if (m_exportScenarioButton)
-		m_exportScenarioButton->setEnabled(enabled);
-}
-
-void MainWindow::refreshScenarioList() {
-	const bool hasScene = m_sceneLoaded;
-	if (m_runSelection.scenarioId().empty() && hasScene) {
-		if (const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(m_sceneModel)))
-			m_runSelection.selectScenario(scenario->id);
-	}
-
-	if (m_scenarioListWidget) {
-		const QSignalBlocker blocker(m_scenarioListWidget);
-		m_scenarioListWidget->clear();
-		int rowToSelect = -1;
-		for (std::size_t index = 0; hasScene && index < m_sceneModel.scenarios.size(); ++index) {
-			const SceneScenario& scenario = m_sceneModel.scenarios[index];
-			new QListWidgetItem(m_scenarioListWidget);
-			if (scenario.id == m_runSelection.scenarioId())
-				rowToSelect = static_cast<int>(index);
-		}
-		updateScenarioPresentation();
-		m_scenarioListWidget->setCurrentRow(rowToSelect);
-		m_scenarioListWidget->setEnabled(hasScene && !m_worker);
-	}
-
-	updateScenarioDetailPanel();
-}
-
 void MainWindow::refreshIncidentPanel() {
 	const bool hasScene = m_sceneLoaded;
-	refreshScenarioList();
+	m_scenarioPanel->refresh();
 	const auto& incidents = selectedScenarioIncidents();
 
 	if (m_incidentListWidget) {
@@ -5357,198 +5193,6 @@ void MainWindow::commitEntranceDelaySeconds() {
 	markScenarioModified();
 	refreshValidationPanel();
 	refreshEntranceDelayPanel();
-}
-
-void MainWindow::addBlankScenario() {
-	if (!m_sceneLoaded)
-		return;
-	SceneScenario scenario;
-	scenario.id = sceneUniqueScenarioId(m_sceneModel, "new_scenario");
-	scenario.name = "New scenario";
-	m_sceneModel.scenarios.push_back(std::move(scenario));
-	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
-	markScenarioModified();
-	refreshIncidentPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::duplicateScenario() {
-	const SceneScenario* selected = selectedScenario();
-	if (!selected)
-		return;
-	SceneScenario copy = *selected;
-	copy.id = sceneUniqueScenarioId(m_sceneModel, copy.id + "_copy");
-	copy.name = "Copy of " + copy.name;
-	for (auto& incident : copy.incidents)
-		incident.id = sceneUniqueIncidentId(m_sceneModel, incident.id + "_copy");
-	m_sceneModel.scenarios.push_back(std::move(copy));
-	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
-	markScenarioModified();
-	refreshIncidentPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::deleteScenario() {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	SceneScenario* selected = selectedScenario();
-	const auto persistedDefault = std::find_if(m_sceneModel.scenarios.begin(), m_sceneModel.scenarios.end(),
-		[this](const SceneScenario& scenario) { return scenario.id == m_sceneModel.defaultScenarioId; });
-	if (!selected || m_sceneModel.defaultScenarioId.empty() || persistedDefault == m_sceneModel.scenarios.end()) {
-		showBlockingError(this, "Cannot Delete Scenario",
-			"The scene has no valid persisted default scenario; correct validation before deleting scenarios.", true);
-		return;
-	}
-	const std::string defaultId = m_sceneModel.defaultScenarioId;
-	if (selected->id == defaultId) {
-		showBlockingError(this, "Cannot Delete Scenario", "The default scenario cannot be deleted.", true);
-		updateScenarioDetailPanel();
-		return;
-	}
-
-	const std::string deletedId = selected->id;
-	const QMessageBox::StandardButton answer = QMessageBox::question(
-		this, "Delete Scenario",
-		QString("Delete scenario '%1'?").arg(QString::fromStdString(deletedId)),
-		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-	if (answer != QMessageBox::Yes)
-		return;
-
-	auto it = std::find_if(m_sceneModel.scenarios.begin(), m_sceneModel.scenarios.end(),
-		[&deletedId](const SceneScenario& scenario) { return scenario.id == deletedId; });
-	if (it == m_sceneModel.scenarios.end())
-		return;
-	m_sceneModel.scenarios.erase(it);
-	m_runSelection.scenarioDeleted(deletedId, defaultId);
-	markSceneDirty();
-	refreshIncidentPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::exportScenario() {
-	const auto operation = captureTelemetryOperation();
-	const SceneScenario* scenario = selectedScenario();
-	if (!scenario)
-		return;
-	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", dialog_folders::suggestedPath(scenarioContext() + ".json"),
-		"Scenario JSON (*.json)");
-	if (path.isEmpty())
-		return;
-	if (!path.endsWith(".json", Qt::CaseInsensitive))
-		path += ".json";
-	const SceneSaveResult result = saveScenarioJson(*scenario, path.toStdString());
-	if (!result.success()) {
-		operation.failure(telemetry::Operation::Export, telemetryDiagnosticError(result.diagnostics));
-		showBlockingError(this, "Scenario export failed", firstDiagnosticMessage(result.diagnostics), true);
-		return;
-	}
-	statusBar()->showMessage(QString("Exported scenario %1").arg(scenarioContext()), 4000);
-}
-
-void MainWindow::importScenario() {
-	if (!m_sceneLoaded)
-		return;
-	const QString path = QFileDialog::getOpenFileName(this, "Import Scenario", QDir::homePath(),
-		"Scenario JSON (*.json)");
-	if (path.isEmpty())
-		return;
-	const ScenarioLoadResult loaded = loadScenarioJson(path.toStdString());
-	if (!loaded.success()) {
-		showBlockingError(this, "Scenario import failed", firstDiagnosticMessage(loaded.diagnostics), true);
-		return;
-	}
-	SceneScenario imported = loaded.scenario;
-	const std::string requestedId = imported.id;
-	const std::string uniqueId = sceneUniqueScenarioId(m_sceneModel, imported.id);
-	const bool scenarioConflict = uniqueId != imported.id;
-	if (scenarioConflict)
-		imported.id = uniqueId;
-	int adjustedIncidentCount = 0;
-	for (auto& incident : imported.incidents) {
-		const std::string uniqueIncident = sceneUniqueIncidentId(m_sceneModel, incident.id);
-		if (uniqueIncident != incident.id) {
-			incident.id = uniqueIncident;
-			++adjustedIncidentCount;
-		}
-	}
-
-	SceneModel candidate = m_sceneModel;
-	candidate.scenarios.push_back(imported);
-	const std::size_t candidateIndex = candidate.scenarios.size() - 1;
-	const std::string prefix = "scenarios[" + std::to_string(candidateIndex) + "]";
-	QStringList errors;
-	for (const auto& diagnostic : validateScene(candidate)) {
-		if (diagnostic.severity == SceneSeverity::Error && diagnostic.path.rfind(prefix, 0) == 0)
-			errors << QString::fromStdString(diagnostic.message);
-	}
-	if (!errors.isEmpty()) {
-		showBlockingError(this, "Scenario import rejected", errors.join("\n"), true);
-		return;
-	}
-	m_sceneModel.scenarios.push_back(std::move(imported));
-	m_runSelection.selectScenario(m_sceneModel.scenarios.back().id);
-	markScenarioModified();
-	refreshIncidentPanel();
-	refreshValidationPanel();
-	QString message = QString("Imported scenario %1").arg(QString::fromStdString(m_runSelection.scenarioId()));
-	if (scenarioConflict)
-		message += QString(" (ID %1 already existed; imported as %2)")
-					   .arg(QString::fromStdString(requestedId), QString::fromStdString(m_runSelection.scenarioId()));
-	if (adjustedIncidentCount > 0)
-		message += QString(" %1 incident ID(s) adjusted to remain globally unique.")
-					   .arg(adjustedIncidentCount);
-	statusBar()->showMessage(message, 7000);
-	if ((scenarioConflict || adjustedIncidentCount > 0) && !e2eDialogsSuppressed())
-		QMessageBox::information(this, "Scenario ID adjusted", message);
-}
-
-void MainWindow::commitScenarioIdEdit() {
-	SceneScenario* scenario = selectedScenario();
-	if (!scenario || !m_scenarioIdEdit)
-		return;
-	const std::string newId = m_scenarioIdEdit->text().trimmed().toStdString();
-	if (newId == scenario->id)
-		return;
-	if (newId.empty()) {
-		showBlockingError(this, "Invalid Scenario ID", "Scenario IDs must not be empty.", true);
-		updateScenarioDetailPanel();
-		return;
-	}
-	if (sceneUniqueScenarioId(m_sceneModel, newId) != newId) {
-		showBlockingError(this, "Scenario ID already exists", "Choose a unique scenario ID.", true);
-		updateScenarioDetailPanel();
-		return;
-	}
-	const std::string oldId = scenario->id;
-	scenario->id = newId;
-	sceneRewriteScenarioReferences(m_sceneModel, oldId, newId);
-	m_runSelection.scenarioRenamed(oldId, newId);
-	markScenarioModified();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitScenarioNameEdit() {
-	SceneScenario* scenario = selectedScenario();
-	if (!scenario || !m_scenarioNameEdit)
-		return;
-	const std::string value = m_scenarioNameEdit->text().toStdString();
-	if (value == scenario->name)
-		return;
-	scenario->name = value;
-	markScenarioModified();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitScenarioDescriptionEdit() {
-	SceneScenario* scenario = selectedScenario();
-	if (!scenario || !m_scenarioDescriptionEdit)
-		return;
-	const std::string value = m_scenarioDescriptionEdit->text().toStdString();
-	if (value == scenario->description)
-		return;
-	scenario->description = value;
-	markScenarioModified();
-	refreshValidationPanel();
 }
 
 void MainWindow::updateIncidentDetailPanel() {
