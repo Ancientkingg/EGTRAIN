@@ -10,6 +10,9 @@ struct MainWindowTestHooks {
 	bool dialogsSuppressed = false;
 	// Called once, at the end of the first showEvent.
 	std::function<void(MainWindow&)> afterFirstShow;
+	// Called at the end of every frame that renderSnapshot draws, with whether the frame comes from a replay.
+	// A plain pointer, so that a normal run pays one test per frame.
+	void (*frameRendered)(MainWindow& window, bool historical) = nullptr;
 };
 
 // The one set of hooks of the process: free functions read it, and main builds one MainWindow.
