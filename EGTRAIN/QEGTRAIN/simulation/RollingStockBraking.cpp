@@ -1,4 +1,5 @@
 #include "simulation/RollingStock.h"
+#include "scene/SignallingLevel.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -462,13 +463,13 @@ bool Train::needsSingleTrackReservation(double head, double speed, double entry,
 	// rather than introducing a speed cap on a train already in the block carrying it.
 	for (int b = 0; b < count; ++b)
 		if (sections[b].start_node.X * 1000 == entry) {
-			if (b > 0 && sections[b - 1].SignallingLevel == 0
+			if (b > 0 && sections[b - 1].SignallingLevel == levelValue(SignallingLevel::Atb)
 				&& needsBraking(sections[b - 1].start_node.X * 1000, signalCode1))
 				return true;
-			if (b > 0 && sections[b - 1].SignallingLevel == 5
+			if (b > 0 && sections[b - 1].SignallingLevel == levelValue(SignallingLevel::Bacc)
 				&& needsBraking(sections[b - 1].start_node.X * 1000, 0))
 				return true;
-			if (b > 1 && sections[b - 2].SignallingLevel == 5
+			if (b > 1 && sections[b - 2].SignallingLevel == levelValue(SignallingLevel::Bacc)
 				&& needsBraking(sections[b - 2].start_node.X * 1000, signalCode1))
 				return true;
 			break;
@@ -557,7 +558,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 				break;
 			}
 		}
-		if ((BS[z + BlockPos].SignallingLevel == 3) || (BS[z + BlockPos].SignallingLevel == 4) || hasSignalFailureMa) {
+		if (isMovingBlockLevel(BS[z + BlockPos].SignallingLevel) || hasSignalFailureMa) {
 			// Identifying Braking Points computed by the EVC if the train is virtually coupled to a train ahead
 			if (IsTrainInFollowingMode == 1) { // if the train is in following mode
 				if ((Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription != "None") && (Predicted_MA_To_DecoupleAt.TrainInfo.trainDescription == LeadingTrainInFollowingMode)) {
@@ -582,7 +583,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 						ETCSBrakingPoint.X = authorityRoutePosition(*it, BS[z + BlockPos]);
 						// A behind or front end cannot become a forward leader through virtual projection.
-						if (BS[z + BlockPos].SignallingLevel == 4 && it->type == "TrainEnd"
+						if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && it->type == "TrainEnd"
 							&& it->ReversedDirection == train_route[indexOfRoute].reversed_direction
 							&& (it->typePart != "Tale" || !(ETCSBrakingPoint.X > S)))
 							continue;
@@ -590,10 +591,10 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 						if (it->type == "SignalFailure") {
 							// a failed signal or a held single-track section is a stop target at every signalling level
 							SpeedForEoA = 0;
-						} else if (BS[z + BlockPos].SignallingLevel == 3) {
+						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::EtcsLevel3)) {
 							SpeedForEoA = 0;
 
-						} else if (BS[z + BlockPos].SignallingLevel == 4) {
+						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
 							string NextBlockID;
 							if (z + BlockPos == train_route[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
 								NextBlockID = "None";

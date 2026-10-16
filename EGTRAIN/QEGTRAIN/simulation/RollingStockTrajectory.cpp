@@ -1,4 +1,5 @@
 #include "simulation/RollingStock.h"
+#include "scene/SignallingLevel.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -38,7 +39,7 @@ void Train::checkEntrance(int i, Section* BS) {
 	// is cleared at the end of every step, so here it holds only entries of this step. Waiting trains are
 	// visited in the order in which they are due, so the one due first enters first.
 	const bool waiting = !CanEnter;
-	const bool separated = BS[0].SignallingLevel >= 0;
+	const bool separated = BS[0].SignallingLevel >= levelValue(SignallingLevel::Atb);
 	if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())
 		return;
 	if (waiting && isFirstSectionFailed(BS[0])) // enters when the failure has ended, at any signalling level
@@ -58,7 +59,7 @@ void Train::checkEntrance(int i, Section* BS) {
 		// if the Previous Train has already departed or if this train is the first of the list to depart
 		if ((PreviousTrain == OL[IndexOL].LastEnteredTrain) || (PreviousTrain == "None") || (trainDescription == OL[IndexOL].TE[0].trainDescription)) {
 			// if the time is equal or higher than the departure time and the signals are permissive set CanEnter true
-			if ((BS[0].SignallingLevel == 3) || (BS[0].SignallingLevel == 4)) {
+			if (isMovingBlockLevel(BS[0].SignallingLevel)) {
 				bool IsRouteStartingPointOccupied = false; // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
 				if (ETCS_MA.size() > 0) {
 					for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
@@ -86,8 +87,8 @@ void Train::checkEntrance(int i, Section* BS) {
 
 	else { // In case there is no ordered sequence of trains to be respected by trains at the beginning of the route
 
-		if ((BS[0].SignallingLevel == 3) || (BS[0].SignallingLevel == 4)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
-			bool IsRouteStartingPointOccupied = false;						// this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
+		if (isMovingBlockLevel(BS[0].SignallingLevel)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
+			bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
 			if (ETCS_MA.size() > 0) {
 				for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
 					// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
@@ -316,7 +317,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 		return nullptr;
 	for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
 		const Section& section = route.sequence_of_block_sections[block];
-		if (section.SignallingLevel != 4 || section.ID != Last_Received_MA.BSID)
+		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling) || section.ID != Last_Received_MA.BSID)
 			continue;
 		for (const MovementAuthority& authority : ETCS_MA)
 			if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"

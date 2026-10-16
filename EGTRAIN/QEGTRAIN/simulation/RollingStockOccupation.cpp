@@ -1,4 +1,5 @@
 #include "simulation/RollingStock.h"
+#include "scene/SignallingLevel.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -48,7 +49,8 @@ bool Train::Conditions_To_Stop_Train_For_OL_Order(bool respectOrder, int IndexOr
 	// Verifying if the train must stop because the previous train of the list has not passed yet
 	bool TrainMustStop = Train_Must_Stop_For_OL_Order(respectOrder, IndexOrderList);
 	// if the previous train has passed and the signal is different from restrictive aspects(red for signalling levels different than BACC or red_red for BACC) Condition_To_Stop_Train is false
-	if ((TrainMustStop == 1) || ((BS.SignallingLevel == 5) && (strcmp(BS.state, "red_red") == 0)) || ((BS.SignallingLevel != 5) && (strcmp(BS.state, "red") == 0)))
+	if ((TrainMustStop == 1) || ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (strcmp(BS.state, "red_red") == 0))
+		|| ((BS.SignallingLevel != levelValue(SignallingLevel::Bacc)) && (strcmp(BS.state, "red") == 0)))
 		Condition_To_Stop_Train = true;
 	// else stop the train
 	else
@@ -144,7 +146,7 @@ void Train::Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks) {
 				// if the Block Section has a switch in diverging position
 
 				if (BS[h].withSwitchDiv == true) {
-					if ((BS[h].SignallingLevel == 3) || (BS[h].SignallingLevel == 4)) {
+					if (isMovingBlockLevel(BS[h].SignallingLevel)) {
 						activateBlocksWithSwitchesDiv(BS[h], BS[Prev_Block].trackLineId, (instant_spatial_position[i - (int)(S_delay / timestep)] - train_length));
 					} else {
 						activateBlocksWithSwitchesDivFixedBlock(BS[h], BS[Prev_Block].trackLineId, (instant_spatial_position[i - (int)(S_delay / timestep)] - train_length));
@@ -177,7 +179,7 @@ void Train::ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3Safety
 			}
 
 			for (int h = 0; h < N_BS; h++) {
-				if ((BS[h].SignallingLevel == 3) || (BS[h].SignallingLevel == 4)) {
+				if (isMovingBlockLevel(BS[h].SignallingLevel)) {
 
 					// Report the position of the max safe rear end
 

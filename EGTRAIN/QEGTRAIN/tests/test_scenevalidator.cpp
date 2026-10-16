@@ -1102,6 +1102,13 @@ int main(int argc, char** argv) {
 		ok &= expect(isValidSignallingLevel(level), "the numbers 0 to 5 are signalling levels");
 	for (const int level : {-1, 6, kSignallingLevelUnset, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()})
 		ok &= expect(!isValidSignallingLevel(level), "numbers outside 0 to 5 are not signalling levels");
+	for (const int level : {levelValue(SignallingLevel::Atb), levelValue(SignallingLevel::EtcsLevel1), levelValue(SignallingLevel::EtcsLevel2),
+			 levelValue(SignallingLevel::Bacc)})
+		ok &= expect(isFixedBlockLevel(level) && !isMovingBlockLevel(level), "levels 0, 1, 2 and 5 are fixed block levels");
+	for (const int level : {levelValue(SignallingLevel::EtcsLevel3), levelValue(SignallingLevel::VirtualCoupling)})
+		ok &= expect(isMovingBlockLevel(level) && !isFixedBlockLevel(level), "levels 3 and 4 are moving block levels");
+	for (const int level : {-1, 6, kSignallingLevelUnset, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()})
+		ok &= expect(!isFixedBlockLevel(level) && !isMovingBlockLevel(level), "numbers outside 0 to 5 are in neither kind of level");
 	ok &= expect(kSignallingLevelUnset == -99999999, "the unset level has its stored value");
 	SceneModel highestAreaLevel = clean;
 	highestAreaLevel.signallingAreas = {{"area", 0.0, 1.0, 5, {}}};

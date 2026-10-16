@@ -1,4 +1,5 @@
 #include "simulation/RollingStock.h"
+#include "scene/SignallingLevel.h"
 #include "util/Log.h"
 
 #include <cmath>
@@ -810,7 +811,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 void Train::ConnectBlockTimesOfSwitchesForTrainCentricSignalling() {
 	if (this->N_BlockTimeComplete > 0) {
 		for (int i = 0; i < this->N_BlockTimeComplete; i++) {
-			if ((BlockTime[i].SignallingLevel >= 3) && (BlockTime[i].IsComplete == 1) && (BlockTime[i].LocationWithSwitch == 1) && (BlockTime[i].ConnectedBlockingTimeID != "None")) { // if the blocktime has a signalling level higher then 3, it is complete, it is a switch and it has a connected point (so it is a diverging switch)
+			if ((BlockTime[i].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[i].IsComplete == 1) && (BlockTime[i].LocationWithSwitch == 1) && (BlockTime[i].ConnectedBlockingTimeID != "None")) { // if the blocktime has a signalling level higher then 3, it is complete, it is a switch and it has a connected point (so it is a diverging switch)
 				bool ConnectedBlockingTimeFound = false;
 
 				if (BlockTime[i].IsAlreadyUniformedToConnectedSwitch == 0) { // if this blocking time has not already been uniformed to the one of the connected diverging switch edge
@@ -818,7 +819,7 @@ void Train::ConnectBlockTimesOfSwitchesForTrainCentricSignalling() {
 
 						// If there is a diverging switch having the same SwitchName and position but different ID, tthis means that this is a switch linked to two other switches and it has for this reason a left side that is a Point-End connected to a switch and the right sight that is a Point-Start connected to a different switch (the situation described in the figure here at the right) o-----oo----o
 						// Point-Start-----Point-End Point-Start-----Point-End
-						if ((BlockTime[j].SignallingLevel >= 3) && (BlockTime[j].SwitchName == BlockTime[i].SwitchName) && (BlockTime[j].GeoPosStart = BlockTime[i].GeoPosStart) && (BlockTime[j].BlockID != BlockTime[i].BlockID)) {
+						if ((BlockTime[j].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[j].SwitchName == BlockTime[i].SwitchName) && (BlockTime[j].GeoPosStart = BlockTime[i].GeoPosStart) && (BlockTime[j].BlockID != BlockTime[i].BlockID)) {
 							BlockTime[i].StartOccTime = BlockTime[j].StartOccTime;
 							BlockTime[i].EndOccTime = BlockTime[j].EndOccTime;
 							BlockTime[i].StartApproachTime = BlockTime[j].StartApproachTime;
@@ -838,7 +839,7 @@ void Train::ConnectBlockTimesOfSwitchesForTrainCentricSignalling() {
 						}
 
 						// HEre we look for the connected blocking time of the connected switch edge
-						if ((BlockTime[j].SignallingLevel >= 3) && (BlockTime[j].IsComplete == 1) && (BlockTime[j].LocationWithSwitch == 1) && (BlockTime[j].BlockID == BlockTime[i].ConnectedBlockingTimeID)) { // if the blocking time has a signalling level higher than 3, it is complete, it is a switch and has the switch name that is the same of the connected switch for BlockTime[i]
+						if ((BlockTime[j].SignallingLevel >= levelValue(SignallingLevel::EtcsLevel3)) && (BlockTime[j].IsComplete == 1) && (BlockTime[j].LocationWithSwitch == 1) && (BlockTime[j].BlockID == BlockTime[i].ConnectedBlockingTimeID)) { // if the blocking time has a signalling level higher than 3, it is complete, it is a switch and has the switch name that is the same of the connected switch for BlockTime[i]
 							// The first part of the blocking time that goes from start occupation to startRunTime needs to be transferred from BlockTime[i] to BlockTime[j]
 							BlockTime[j].StartOccTime = BlockTime[i].StartOccTime;
 							BlockTime[j].setupTime = BlockTime[i].setupTime;
@@ -885,15 +886,16 @@ void Train::ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double 
 
 	if (train_route[indexOfRoute].N_Block_Sections > 0) { // if the route is composed of at least one block section
 		for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-			if (train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel == 0) { // if block sections have Signalling level 0 then we must apply the conventional signalling rules
+			const int level = train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel;
+			if (level == levelValue(SignallingLevel::Atb)) { // if block sections have Signalling level 0 then we must apply the conventional signalling rules
 				this->ComputeBlockingTimeForSingleLocation(i, "Conventional", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
-			} else if (train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel == 2) { // if Signalling level is 2 apply ETCS Level 2 rules
+			} else if (level == levelValue(SignallingLevel::EtcsLevel2)) { // if Signalling level is 2 apply ETCS Level 2 rules
 				this->ComputeBlockingTimeForSingleLocation(i, "ETCS2", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
-			} else if (train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel == 3) { // if Signalling Level is 3 Apply ETCS Level 3 rules
+			} else if (level == levelValue(SignallingLevel::EtcsLevel3)) { // if Signalling Level is 3 Apply ETCS Level 3 rules
 				// ComputeBlockTimeETCS3ForSingleLocation(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 				// the function below now replaces the function ComputeBlockingTimeETCS3ForSingleLocation
 				this->ComputeBlockTime_ETCSLevel_3_ForSection(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);
-			} else if (train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel == 4) {
+			} else if (level == levelValue(SignallingLevel::VirtualCoupling)) {
 				this->ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);
 			}
 		}

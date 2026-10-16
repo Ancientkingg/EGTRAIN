@@ -31,7 +31,8 @@ in code font. They are the characterization cases in
 - The word "level" also appears in `views.json`, for the display level of a
   track in the network view. That has nothing to do with the signalling level.
 
-The level numbers and the check that a number is a level are defined in
+The level numbers and the checks on them (whether a number is a level, a
+fixed-block level or a moving-block level) are defined in
 `scene/SignallingLevel.h`. The labels are defined in
 `scene/SignallingLevelNames.h`. The validation message about areas that give one
 section different levels shows them. The editor shows the labels of the levels
