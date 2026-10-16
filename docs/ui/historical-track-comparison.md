@@ -66,17 +66,20 @@ requests that made the change, or the issue where none did.
 These differences come from the canonical scenes or from the historical input,
 not from the renderer, and are not on the list above.
 
-- Paimpol: the current frames show a siding next to Pontrieaux, joined to the
-  main line by two diagonal connections. The reference frames of the same line
-  show the main line only. The Paimpol historical blank mainline level and
-  Guingamp anchor mismatch remain excluded layout and data differences.
-- Copenhagen: the reference frames show one line. The current frame at the
-  junction also shows vertical connectors between lines. Canonical geometry
-  draws every authored segment, and the case-specific arc and endpoint omissions
-  of the reference are not restored.
-- Netherlands: the reference build `472d0b5` opens the case without trains and
-  draws only a partial polyline, also after Fit, so it gives no pair for a
-  comparison at a useful scale. The current build draws the whole network.
+- Paimpol: the current frames show a siding below the line at Pontrieaux, with
+  signals of its own, joined to the main line by a diagonal connection at each
+  end. The reference frames of the same line show the main line only. The
+  Paimpol historical blank mainline level and Guingamp anchor mismatch remain
+  excluded layout and data differences.
+- Copenhagen: the reference frame draws one line where the current frame draws
+  two parallel rows joined by crossovers. Canonical geometry draws every authored
+  segment, and the case-specific arc and endpoint omissions of the reference are
+  not restored.
+- Netherlands: the reference frame draws a single line where the current frame
+  draws doubled tracks, stations beside them and crossovers. The reference
+  build `472d0b5` opens this case without trains and draws only part of the
+  polyline, so the pair uses `f138134`, the same renderer with a repaired
+  Netherlands case.
 
 ## Preview and runtime infrastructure
 
@@ -144,75 +147,118 @@ matched-extent application captures and manual interaction checks.
 
 ## Evidence
 
-The captures compare the reference build with the current build in a macOS guest.
-Both windows are maximised on a 1280x800 display at device pixel ratio 1, and each
-image is cropped to the network canvas. The reference build has no side dock, so
-its canvas is 1256 px wide against 1075 px for the current one, and the
-Copenhagen reference image stops at 1240 px, before a scroll bar. Each image
-names the build, the scene and the zoom. Both builds zoom by 1.15 per click. The
-zoom label of the current build is the ratio to its own Fit scale. The reference
-build has no zoom label, so its zoom is the number of zoom-in clicks from Fit.
+Each pair below shows the same stretch of the network in the reference build
+and in the current build, at the same size in pixels. The windows were 1280x800
+at device pixel ratio 1, and each image shows part of the network canvas. The
+reference builds are `472d0b5` and, for the Netherlands, `f138134`. The current
+build is main `037a2e43`. Both builds zoom by 1.15 per click. The zoom label of
+the current build is the ratio to its own Fit scale. The reference build has no
+zoom label, so its zoom is the number of zoom-in clicks from Fit. The reference
+build fits the scene rectangle and the current build fits the painted track
+with 24 px of padding, yet on Paimpol the whole line fills the same width in
+both Fit frames.
+
+Under each pair the first paragraph gives the build, the scene, the zoom and the
+landmarks, and the second says what differs inside the pair: the symbols first,
+then the geometry. The geometry differences come from the scenes, not from the
+renderer; [Geometry and data differences](#geometry-and-data-differences) lists
+them.
 
 ### Paimpol at Fit
 
-![Paimpol at Fit in the reference build](images/paimpol-historical-fit.png)
+![Paimpol at Fit in the reference build](images/paimpol-fit-historical.png)
 
-Build `472d0b5`, scene Paimpol, 1280x800, device pixel ratio 1, Fit.
+![Paimpol at Fit in the current build](images/paimpol-fit-current.png)
 
-![Paimpol at Fit in the current build](images/paimpol-current-fit.png)
+Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Paimpol at Fit in both builds, so the whole line shows, with Guingamp at the left
+end and Paimpol at the right end. The positions of the ten stations agree within
+about 0.5 percent of the frame width.
 
-Build main `037a2e43`, scene Paimpol, 1280x800, device pixel ratio 1, zoom label Fit.
+In the symbols, the current frame draws a pictogram and a readable name for each
+station and hides the name of Pontrieaux_Halte where it overlaps the name of
+Pontrieaux, while the reference frame has no pictogram and names too small to
+read. In the geometry, the siding at Pontrieaux shows in the current frame only,
+as a short second row under the line.
 
 ### Paimpol at detail
 
-![Paimpol at detail in the reference build](images/paimpol-historical-detail.png)
+![Paimpol at detail in the reference build](images/paimpol-detail-historical.png)
 
-Build `472d0b5`, scene Paimpol, 1280x800, device pixel ratio 1, 20 zoom-in clicks from Fit.
+![Paimpol at detail in the current build](images/paimpol-detail-current.png)
 
-![Paimpol at detail in the current build](images/paimpol-current-detail.png)
+Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Paimpol, 16 zoom-in clicks from Fit (zoom label 9.4x in the current build), then
+10 arrow-key presses in both builds. Pontrieaux_Halte and Pontrieaux stand at the
+same x in both frames, and the signals, node dots and station squares line up.
 
-Build main `037a2e43`, scene Paimpol, 1280x800, device pixel ratio 1, zoom label 21.6x.
+In the symbols, the current frame adds a pictogram above each name, draws the
+names larger and writes Pontrieaux_Halte without the space after the underscore
+that the reference frame draws. In the geometry, the siding below the line at Pontrieaux, with its
+diagonal connection and its signals, is in the current frame only.
 
 ### Copenhagen junction
 
-![Copenhagen in the reference build](images/copenhagen-historical-junction.png)
+![Copenhagen in the reference build](images/copenhagen-junction-historical.png)
 
-Build `472d0b5`, scene Copenhagen, 1280x800, device pixel ratio 1, 26 zoom-in clicks from Fit.
+![Copenhagen junction in the current build](images/copenhagen-junction-current.png)
 
-![Copenhagen junction in the current build](images/copenhagen-current-junction.png)
+Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Copenhagen, 22 zoom-in clicks from Fit (zoom label 21.6x in the current build),
+then 10 arrow-key presses in both builds. Carlsberg, Dybbolsbro, Kobenhavn H and
+Vesterport stand at the same x in both frames, within 3 px.
 
-Build main `037a2e43`, scene Copenhagen, 1280x800, device pixel ratio 1, zoom label 37.9x.
+In the symbols, the current frame adds a pictogram above each name and draws the
+names larger, and the signals of both rows stand at the x positions of the
+signals on the reference line. In the geometry, the reference frame draws one line where the current
+frame draws two parallel rows joined by crossovers.
+
+### Netherlands stretch
+
+![Netherlands stretch in the reference build](images/netherlands-stretch-historical.png)
+
+![Netherlands stretch in the current build](images/netherlands-stretch-current.png)
+
+Reference build `f138134` above, current build main `037a2e43` below. Scene
+Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
+The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
+the corner at Blm, which agree within about 15 px in the 500 px frames. This is
+the loosest match of the pairs, because the current case has doubled tracks.
+
+In the symbols, the current frame draws a pictogram and a name at each station,
+and the reference frame has no readable station label. In the geometry, the
+current frame draws doubled tracks, stations beside them and crossovers where the
+reference frame draws a single line.
 
 ### Assignment corridor
 
-The reference build has no capture of this scene, so only the current build is shown.
+The reference build has no capture of this scene, so only the current build is
+shown.
 
-![Assignment corridor at Fit in the current build](images/assignment-current-fit.png)
+![Assignment corridor at Fit in the current build](images/assignment-corridor-current.png)
 
-Build main `2524aa13`, scene Assignment_Gvc_Gdg_Ut, 1280x800, device pixel ratio 1, zoom label Fit.
+![Assignment corridor at detail in the current build](images/assignment-detail-current.png)
 
-![Assignment corridor at detail in the current build](images/assignment-current-detail.png)
-
-Build main `2524aa13`, scene Assignment_Gvc_Gdg_Ut, 1280x800, device pixel ratio 1, zoom label 5.4x.
+Current build main `037a2e43`, scene Assignment_Gvc_Gdg_Ut. The first frame is at
+Fit with the stations Gvc, Gdg and Ut, and the two parallel tracks of the corridor
+read as one band. The second frame is zoomed in around Gdg and shows the two
+tracks apart, with a signal on each track at regular intervals.
 
 ### What the captures show and do not show
 
-- The two builds fit differently: the reference build fits the scene rectangle
-  and the current build fits the painted track with 24 px of padding. The Fit
-  frames and the zoom counts therefore do not give one scale on screen.
-- In the Paimpol detail pair the evenly spaced signals are about 165 px apart in
-  the reference frame and 164 px in the current frame, so the scale matches. The
-  frames show different stretches of the line: the reference frame includes a
-  station and the current frame does not.
-- The Copenhagen pair compares symbols only. The frames show different places
-  at different scales: the node dots of the main line are about 12 px apart in
-  the reference frame and 44 px in the current one.
+- The reference frames show the station names and no pictogram, so the
+  pictogram of the current frames has no counterpart in them. At Fit the names in
+  the reference frames are too small to read, where the current build keeps the
+  pictogram at least 24 px and the name at least 12 px high.
+- The names are larger in the current detail frames than in the reference frames
+  at the same extent. Pontrieaux is 84 px wide against 52 px, and Carlsberg 48 px
+  against 33 px.
+- The current frames have the `#101a22` background and its grid, the reference
+  frames a black background.
 - In both Paimpol detail frames a signal has a white post and base and a green
-  head (0,255,0), and the opposing head sits on the other side of the line at
-  the same offsets. Node dots are light gray (192,192,192) and sit at the ends of
-  the track segments. The track is (120,120,120) and its stroke covers 2 device
-  pixels, which the reference frame spreads over three pixel rows.
-- The Assignment detail frame shows the two parallel tracks of the corridor.
+  head, and the opposing head sits on the other side of the line at the same
+  offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
+  segments. The track is about 3 px wide in both frames.
 - No capture shows a running state, so the red and yellow aspects, the unpainted
   track states and the white repaint of the reference are not shown.
 - Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
