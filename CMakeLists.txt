@@ -243,9 +243,11 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 
-# Recovery copies of a scene with unsaved edits, kept below a folder that the caller names.
-# Only test_recoverystore links it.
-add_library(egtrain_recovery STATIC ${SRC_DIR}/recovery/RecoveryStore.cpp)
+# Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the
+# controller that writes them in the background. Only the recovery tests link it.
+add_library(egtrain_recovery STATIC
+    ${SRC_DIR}/recovery/RecoveryController.cpp
+    ${SRC_DIR}/recovery/RecoveryStore.cpp)
 target_link_libraries(egtrain_recovery PUBLIC Qt5::Core egtrain_scene)
 
 # The test hooks change the layout of TelemetrySender, TelemetryConsent and TelemetryQueue, so a
@@ -640,6 +642,11 @@ if(EGTRAIN_BUILD_TESTS)
     # The same program, started again as the child that holds or loses a copy.
     add_test(NAME test_recoverystore_process COMMAND test_recoverystore --processes)
     set_tests_properties(test_recoverystore_process PROPERTIES TIMEOUT 120)
+
+    add_executable(test_recoverycontroller ${SRC_DIR}/tests/test_recoverycontroller.cpp)
+    target_link_libraries(test_recoverycontroller PRIVATE egtrain_recovery Qt5::Core)
+    add_test(NAME test_recoverycontroller COMMAND test_recoverycontroller)
+    set_tests_properties(test_recoverycontroller PROPERTIES TIMEOUT 120)
 
     add_executable(test_guisimulationsnapshot
         ${SRC_DIR}/tests/test_guisimulationsnapshot.cpp)
@@ -1099,7 +1106,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_recoverystore
 			test_distribution
-			test_trackpreview test_routestations test_scenevalidator test_stopinsertion
+			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
 			test_scenecompatibility
 			test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
@@ -1134,7 +1141,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_trackpreview test_speedformat test_trajectory test_runresults
+		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay

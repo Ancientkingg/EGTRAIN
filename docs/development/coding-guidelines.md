@@ -92,7 +92,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
 | `util/` | Helpers shared by several folders: formatting, CSV output, versions, profiling |
 | `update/` | Release check, package download, self-update and the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events, see the [wire contract](../telemetry/README.md) |
-| `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names |
+| `recovery/` | Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the controller that writes them in the background |
 | `tests/` | C++ test executables, one per file, with data in `tests/fixtures/` |
 | `tools/` | At the repository root: Python and shell tests and helpers (`e2e/`, `golden_master/`, `memory/`, `performance/`, `release/`) |
 

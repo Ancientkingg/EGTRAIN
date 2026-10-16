@@ -90,7 +90,8 @@ tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
 every test that pulls in Infrastructure, Signalling or RollingStock from
 `egtrain_sim` define the global `Logger owl`. `egtrain_recovery` holds
-`RecoveryStore`, and `test_recoverystore` is the only target that links it.
+`RecoveryStore` and `RecoveryController`, and `test_recoverystore` and
+`test_recoverycontroller` are the only targets that link it.
 
 Two things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
@@ -184,6 +185,23 @@ as a child that writes a copy and holds its lock, and as a child that ends
 without a clean close. The parent checks that a scan lists nothing for the
 running child, that it lists the copy once the child was killed or has ended,
 and that a new store can adopt that copy.
+
+`test_recoverycontroller` runs `RecoveryController` with an event loop and an
+interval of 10 ms, which it sets in `QEGTRAIN_RECOVERY_INTERVAL_MS`; the default
+is 30 s. It checks the interval variable, that the edits of one interval give
+one write of the newest scene, that later edits do not move the timer, that a
+revision on disk is not written again, that edits during a write give one more
+write, that a save, a replacement or a return to the clean state leaves no copy
+when a write is running or waiting, that shutdown waits for the write and
+removes the instance folder, that the destructor leaves the copy, that a failed
+write or removal is reported once per run, and the scan, adopt and discard
+calls, including an adoption that fails after the removal of the previous copy
+was handed to the worker. The test holds the worker thread at two points of a
+job with a hook that the constructor takes, so the cases for a write in flight
+do not depend on how fast the write is. The checks that nothing happens wait a
+fixed 100 to 150 ms, and the timer case uses an interval of 2 s. The removal
+case changes the permissions of a folder and is skipped where that has no
+effect, as for a superuser and on Windows.
 
 ### Test labels
 

@@ -38,7 +38,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
-| `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. It has nothing to do with the recovery time of a timetable |
+| `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases and the test `fixtures/` |
 
 ## Includes
@@ -76,7 +76,7 @@ The application, `scene_tool` and the tests link them.
 
 `egtrain_miniz` holds the vendored zip code. The first five libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
-`egtrain_recovery` is linked by `test_recoverystore` only.
+`egtrain_recovery` is linked by `test_recoverystore` and `test_recoverycontroller` only.
 
 The telemetry sources also build with test hooks, which add members and a constructor
 parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours
