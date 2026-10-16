@@ -417,6 +417,55 @@ json encodePassengers(const std::vector<ScenePassenger>& passengers) {
 	return {{"passengers", values}};
 }
 
+json encodeInfrastructure(const SceneModel& scene) {
+	json infrastructure = {
+		{"tracks", json::array()},
+		{"nodes", json::array()},
+		{"arcs", json::array()},
+		{"blocks", json::array()},
+		{"connections", json::array()},
+	};
+	for (const auto& track : scene.tracks)
+		infrastructure["tracks"].push_back({{"id", track.id}});
+	for (const auto& node : scene.nodes) {
+		infrastructure["nodes"].push_back({
+			{"id", node.id},
+			{"track", node.trackId},
+			{"x_km", node.xKm},
+			{"y_km", node.yKm},
+		});
+	}
+	for (const auto& arc : scene.arcs) {
+		infrastructure["arcs"].push_back({
+			{"id", arc.id},
+			{"track", arc.trackId},
+			{"from", arc.fromNodeId},
+			{"to", arc.toNodeId},
+			{"curvature_radius_m", arc.curvatureRadiusM},
+			{"gradient_percent", arc.gradientPercent},
+			{"speed_limit_ms", arc.speedLimitMs},
+		});
+	}
+	for (const auto& block : scene.blocks) {
+		infrastructure["blocks"].push_back({
+			{"id", block.id},
+			{"track", block.trackId},
+			{"length_km", block.lengthKm},
+		});
+	}
+	for (const auto& connection : scene.connections) {
+		json value = {
+			{"id", connection.id},
+			{"from", connection.fromNodeId},
+			{"to", connection.toNodeId},
+		};
+		if (connection.hasSpeedLimit)
+			value["speed_limit_ms"] = connection.speedLimitMs;
+		infrastructure["connections"].push_back(value);
+	}
+	return infrastructure;
+}
+
 static json writeViews(const SceneModel& scene) {
 	json tracks = json::array();
 	for (const auto& view : scene.trackViews) {
@@ -478,52 +527,6 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 				{"unresolved_references", row.unresolvedReferences},
 			});
 		}
-	}
-
-	json infrastructure = {
-		{"tracks", json::array()},
-		{"nodes", json::array()},
-		{"arcs", json::array()},
-		{"blocks", json::array()},
-		{"connections", json::array()},
-	};
-	for (const auto& track : scene.tracks)
-		infrastructure["tracks"].push_back({{"id", track.id}});
-	for (const auto& node : scene.nodes) {
-		infrastructure["nodes"].push_back({
-			{"id", node.id},
-			{"track", node.trackId},
-			{"x_km", node.xKm},
-			{"y_km", node.yKm},
-		});
-	}
-	for (const auto& arc : scene.arcs) {
-		infrastructure["arcs"].push_back({
-			{"id", arc.id},
-			{"track", arc.trackId},
-			{"from", arc.fromNodeId},
-			{"to", arc.toNodeId},
-			{"curvature_radius_m", arc.curvatureRadiusM},
-			{"gradient_percent", arc.gradientPercent},
-			{"speed_limit_ms", arc.speedLimitMs},
-		});
-	}
-	for (const auto& block : scene.blocks) {
-		infrastructure["blocks"].push_back({
-			{"id", block.id},
-			{"track", block.trackId},
-			{"length_km", block.lengthKm},
-		});
-	}
-	for (const auto& connection : scene.connections) {
-		json value = {
-			{"id", connection.id},
-			{"from", connection.fromNodeId},
-			{"to", connection.toNodeId},
-		};
-		if (connection.hasSpeedLimit)
-			value["speed_limit_ms"] = connection.speedLimitMs;
-		infrastructure["connections"].push_back(value);
 	}
 
 	json stations = json::array();
@@ -603,7 +606,7 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	};
 	bool wroteAll = true;
 	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
-	wroteAll = writeCanonical("infrastructure.json", infrastructure) && wroteAll;
+	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
 	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
 	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
 	wroteAll = writeCanonical("rolling_stock.json",

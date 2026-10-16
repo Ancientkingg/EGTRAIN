@@ -950,8 +950,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	report.row("legacy_root", legacyDir).sourceCount = 1;
 	report.converted("legacy_root", legacyDir);
 
-	json infrastructure = {{"tracks", json::array()}, {"nodes", json::array()},
-		{"arcs", json::array()}, {"blocks", json::array()}, {"connections", json::array()}};
+	SceneModel scene;
 	json stations = json::array();
 	json routes = json::array();
 	json trainUnits = json::array();
@@ -1044,7 +1043,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	for (const auto& track : trackDirs) {
 		const int trackNumber = track.first;
 		const std::string trackId = "B" + std::to_string(trackNumber);
-		infrastructure["tracks"].push_back({{"id", trackId}});
+		scene.tracks.push_back(SceneTrack{trackId});
 		report.converted("infrastructure.tracks", trackSource);
 
 		const fs::path nodesPath = findChild(track.second, "NodiCumPari.txt");
@@ -1078,7 +1077,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 					continue;
 				}
 				const std::string nodeId = trackId + ".node." + tokens[0];
-				infrastructure["nodes"].push_back({{"id", nodeId}, {"track", trackId}, {"x_km", x}, {"y_km", y}});
+				scene.nodes.push_back(SceneNode{nodeId, trackId, x, y});
 				nodesByTrack[trackId].push_back({nodeId, x});
 				allNodes.push_back({nodeId, x});
 				report.converted("infrastructure.nodes", nodeSource);
@@ -1135,8 +1134,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				const int arcOccurrence = arcIdentityCounts[arcBaseId]++;
 				const std::string arcId = arcOccurrence == 0 ? arcBaseId
 															 : arcBaseId + "." + std::to_string(arcOccurrence + 1);
-				infrastructure["arcs"].push_back({{"id", arcId}, {"track", trackId}, {"from", fromId}, {"to", toId},
-					{"curvature_radius_m", radius}, {"gradient_percent", gradient}, {"speed_limit_ms", speed}});
+				scene.arcs.push_back(SceneArc{arcId, trackId, fromId, toId, radius, gradient, speed});
 				report.converted("infrastructure.arcs", arcSource);
 				if (!fromKnown || !toKnown) {
 					addDiag(SceneSeverity::Warning, "scene.import.ref", "Arc refers to an unknown node: " + arcId,
@@ -1174,7 +1172,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 						blocksPath.u8string());
 				}
 				const std::string blockId = std::to_string(rowIndex) + "-" + trackId;
-				infrastructure["blocks"].push_back({{"id", blockId}, {"track", trackId}, {"length_km", length}});
+				scene.blocks.push_back(SceneBlock{blockId, trackId, length});
 				blockIds.insert(blockId);
 				report.converted("infrastructure.blocks", blockSource);
 				++rowIndex;
@@ -1265,10 +1263,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				continue;
 			}
 			const std::string connectionId = "connection." + std::to_string(rowIndex);
-			json value = {{"id", connectionId}, {"from", firstMatches[0].id}, {"to", secondMatches[0].id}};
-			if (tokens.size() == 5)
-				value["speed_limit_ms"] = speed;
-			infrastructure["connections"].push_back(value);
+			scene.connections.push_back(SceneConnection{connectionId, firstMatches[0].id, secondMatches[0].id, tokens.size() == 5, speed});
 			report.converted("infrastructure.connections", connectionsSource);
 			++rowIndex;
 		}
@@ -1386,8 +1381,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		? (legacyPath / "GUI/caseStudyTrackData.txt").u8string()
 		: trackViewPath.u8string();
 	std::unordered_set<std::string> knownTrackIds;
-	for (const auto& track : infrastructure["tracks"])
-		knownTrackIds.insert(track["id"].get<std::string>());
+	for (const auto& track : scene.tracks)
+		knownTrackIds.insert(track.id);
 	std::unordered_set<std::string> importedTrackIds;
 	if (!trackViewPath.empty()) {
 		std::string content;
@@ -2379,7 +2374,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 	};
 	writeJson("scene.json", sceneJson);
-	writeJson("infrastructure.json", infrastructure);
+	writeJson("infrastructure.json", encodeInfrastructure(scene));
 	writeJson("stations.json", stationsFile);
 	writeJson("signalling.json", signalling);
 	writeJson("rolling_stock.json", rollingStock);

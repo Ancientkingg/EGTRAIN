@@ -30,4 +30,7 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath);
 // The content of passengers.json. A journey without an activity leaves the key out.
 nlohmann::json encodePassengers(const std::vector<ScenePassenger>& passengers);
 
+// The content of infrastructure.json.
+nlohmann::json encodeInfrastructure(const SceneModel& scene);
+
 #endif // SCENEWRITER_H
