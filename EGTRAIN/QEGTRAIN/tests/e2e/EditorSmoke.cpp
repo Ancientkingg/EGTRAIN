@@ -9,6 +9,7 @@
 #include "editors/CompositionPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
+#include "editors/PassengerPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -1491,7 +1492,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_journey");
 					journeyAdd->click();
 					QApplication::processEvents();
-					ScenePassenger* authoredPassenger = w.selectedPassenger();
+					ScenePassenger* authoredPassenger = w.m_passengerPanel->selectedPassenger();
 					if (!authoredPassenger || authoredPassenger->journeys.empty()) {
 						facetFailure(facetOk, "passenger", "Journey Add did not create a selected journey");
 					} else {
@@ -1521,9 +1522,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							legOccurrence->setValue(1);
 							QApplication::processEvents();
 							return idOk && serviceOk && originOk && destinationOk
-								&& w.selectedPassengerLeg() && w.selectedPassengerLeg()->id == id
-								&& w.selectedPassengerLeg()->serviceId == passengerService->id
-								&& w.selectedPassengerLeg()->occurrence == 1;
+								&& w.m_passengerPanel->selectedPassengerLeg() && w.m_passengerPanel->selectedPassengerLeg()->id == id
+								&& w.m_passengerPanel->selectedPassengerLeg()->serviceId == passengerService->id
+								&& w.m_passengerPanel->selectedPassengerLeg()->occurrence == 1;
 						};
 						if (!configureLeg(e2eLegId))
 							facetFailure(facetOk, "passenger", "leg ID, typed stops, service, or occurrence did not commit");
@@ -1534,23 +1535,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							facetFailure(facetOk, "passenger", "second leg authoring did not commit");
 						legMoveUp->click();
 						QApplication::processEvents();
-						const bool movedUp = w.selectedPassengerJourney() && w.selectedPassengerJourney()->legs.size() >= 2
-							&& w.selectedPassengerJourney()->legs[0].id == secondLegId;
+						const bool movedUp = w.m_passengerPanel->selectedPassengerJourney() && w.m_passengerPanel->selectedPassengerJourney()->legs.size() >= 2
+							&& w.m_passengerPanel->selectedPassengerJourney()->legs[0].id == secondLegId;
 						legMoveDown->click();
 						QApplication::processEvents();
-						const bool movedDown = w.selectedPassengerJourney() && w.selectedPassengerJourney()->legs.size() >= 2
-							&& w.selectedPassengerJourney()->legs[0].id == e2eLegId;
+						const bool movedDown = w.m_passengerPanel->selectedPassengerJourney() && w.m_passengerPanel->selectedPassengerJourney()->legs.size() >= 2
+							&& w.m_passengerPanel->selectedPassengerJourney()->legs[0].id == e2eLegId;
 						if (!movedUp || !movedDown)
 							facetFailure(facetOk, "passenger", "leg Move Up/Down did not retain order");
 						acceptConfirmation();
 						legDelete->click();
 						QApplication::processEvents();
-						if (!w.selectedPassengerJourney() || w.selectedPassengerJourney()->legs.size() != 1
-							|| w.selectedPassengerJourney()->legs.front().id != e2eLegId)
+						if (!w.m_passengerPanel->selectedPassengerJourney() || w.m_passengerPanel->selectedPassengerJourney()->legs.size() != 1
+							|| w.m_passengerPanel->selectedPassengerJourney()->legs.front().id != e2eLegId)
 							facetFailure(facetOk, "passenger", "leg Delete did not remove only the temporary leg");
 
-						const std::size_t journeyCountBefore = w.selectedPassenger()
-							? w.selectedPassenger()->journeys.size()
+						const std::size_t journeyCountBefore = w.m_passengerPanel->selectedPassenger()
+							? w.m_passengerPanel->selectedPassenger()->journeys.size()
 							: 0;
 						journeyAdd->click();
 						QApplication::processEvents();
@@ -1560,7 +1561,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						acceptConfirmation();
 						journeyDelete->click();
 						QApplication::processEvents();
-						if (!w.selectedPassenger() || w.selectedPassenger()->journeys.size() != journeyCountBefore)
+						if (!w.m_passengerPanel->selectedPassenger() || w.m_passengerPanel->selectedPassenger()->journeys.size() != journeyCountBefore)
 							facetFailure(facetOk, "passenger", "Journey Delete did not remove the temporary journey");
 						const int passengerCountWithAuthor = passengerList->count();
 						passengerAdd->click();
@@ -1632,8 +1633,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								passengerList->setCurrentRow(unresolvedRow);
 								passengerTabs->setCurrentIndex(1);
 								QApplication::processEvents();
-								const ScenePassengerJourney* unresolvedJourney = w.selectedPassengerJourney();
-								const ScenePassengerLeg* unresolvedLeg = w.selectedPassengerLeg();
+								const ScenePassengerJourney* unresolvedJourney = w.m_passengerPanel->selectedPassengerJourney();
+								const ScenePassengerLeg* unresolvedLeg = w.m_passengerPanel->selectedPassengerLeg();
 								const bool invalidOriginVisible = unresolvedJourney
 									&& unresolvedJourney->originStationId == "missing-origin"
 									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin");
@@ -3596,16 +3597,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const std::string pendingJourneyId = e2eJourneyId + "_focused";
 					w.m_passengerJourneyIdEdit->setText(QString::fromStdString(pendingJourneyId));
 					w.m_passengerJourneyIdEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerJourney()
-						|| w.selectedPassengerJourney()->id != pendingJourneyId)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+						|| w.m_passengerPanel->selectedPassengerJourney()->id != pendingJourneyId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger journey ID");
 					else
 						e2eJourneyId = pendingJourneyId;
 					const std::string pendingActivity = "e2e focused activity";
 					w.m_passengerJourneyActivityEdit->setText(QString::fromStdString(pendingActivity));
 					w.m_passengerJourneyActivityEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerJourney()
-						|| w.selectedPassengerJourney()->activity != pendingActivity)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+						|| w.m_passengerPanel->selectedPassengerJourney()->activity != pendingActivity)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger activity");
 					if (w.m_passengerJourneyWindowEdits[0]) {
 						QLineEdit* pendingWindow = spinTextEdit(w.m_passengerJourneyWindowEdits[0]);
@@ -3615,8 +3616,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						} else {
 							pendingWindow->setText(QString::number(pendingWindowValue, 'g', 16));
 							pendingWindow->setFocus();
-							if (!triggerPendingSave() || !w.selectedPassengerJourney()
-								|| w.selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
+							if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerJourney()
+								|| w.m_passengerPanel->selectedPassengerJourney()->plannedDepartureStartSeconds != pendingWindowValue)
 								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger planned window");
 						}
 					}
@@ -3627,8 +3628,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const std::string pendingLegId = e2eLegId + "_focused";
 					w.m_passengerLegIdEdit->setText(QString::fromStdString(pendingLegId));
 					w.m_passengerLegIdEdit->setFocus();
-					if (!triggerPendingSave() || !w.selectedPassengerLeg()
-						|| w.selectedPassengerLeg()->id != pendingLegId)
+					if (!triggerPendingSave() || !w.m_passengerPanel->selectedPassengerLeg()
+						|| w.m_passengerPanel->selectedPassengerLeg()->id != pendingLegId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger leg ID");
 					else
 						e2eLegId = pendingLegId;
@@ -3648,15 +3649,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						pendingOccurrence->setFocus();
 						QApplication::processEvents();
 						const bool savedOccurrence = triggerPendingSave();
-						if (!savedOccurrence || !w.selectedPassengerLeg()
-							|| w.selectedPassengerLeg()->occurrence != 2) {
+						if (!savedOccurrence || !w.m_passengerPanel->selectedPassengerLeg()
+							|| w.m_passengerPanel->selectedPassengerLeg()->occurrence != 2) {
 							facetFailure(facetOk, "save/reload",
 								QString("Save did not commit the still-focused passenger occurrence "
 										"(range %1..%2, editor %3, model %4, saved %5)")
 									.arg(w.m_passengerLegOccurrenceEdit->minimum())
 									.arg(w.m_passengerLegOccurrenceEdit->maximum())
 									.arg(w.m_passengerLegOccurrenceEdit->value())
-									.arg(w.selectedPassengerLeg() ? w.selectedPassengerLeg()->occurrence : -1)
+									.arg(w.m_passengerPanel->selectedPassengerLeg() ? w.m_passengerPanel->selectedPassengerLeg()->occurrence : -1)
 									.arg(savedOccurrence));
 						}
 					}
