@@ -79,8 +79,10 @@ What the jobs prove today:
 - The Full validation job builds the project with tests on macOS and runs
   CTest and the end-to-end smoke tests. The Sanitizers job runs CTest again in
   a debug build with sanitizers.
-- In the Package macOS job, the app has no Homebrew dependency and a valid ad
-  hoc signature. The job removes the virtual keyboard input plugin with the Quick
+- In the Package macOS job, the app has no Homebrew dependency and a valid
+  signature, which is ad hoc unless the environment `macos-signing` holds a
+  Developer ID certificate (see [macOS releases](code-signing.md#macos-releases)).
+  The job removes the virtual keyboard input plugin with the Quick
   and QML frameworks, and the WebP and TIFF plugins with their libraries, from
   the app before the signature, and fails when one of them is in the app or when
   the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
@@ -223,10 +225,10 @@ in-place save. Row R11 checks the installed-example path.
      same height;
    - the version shown by **About EGTRAIN**, in the **Help** menu or, on macOS,
      the application menu;
-   - any operating system warning shown at the first launch, with its text. The
-     macOS package has an ad hoc signature only, so the system is expected to
-     ask for confirmation there. Do not assume a warning on Windows or Linux;
-     record what appears;
+   - any operating system warning shown at the first launch, with its text. An
+     ad hoc macOS package is refused at the first start (row M4), and a
+     notarized one is expected not to be (row M5). Do not assume a warning on
+     Windows or Linux; record what appears;
    - the title of every dialog shown before the main window can be used;
    - anything you had to install or change to make the package start. On
      Windows, say whether the Visual C++ runtime was installed before the test.
@@ -328,15 +330,24 @@ Notes on the update rows:
 Run these rows on macOS with the disk image of the candidate, and mark them not
 applicable on Windows and Linux. Use the copy of `QEGTRAIN.app` that step 1 of
 the clean-install rehearsal put in the Applications folder, and downloaded
-`.egscene` files. Run M1, M2 and M3 in this order. macOS may need a moment to
-learn the file type of a new app. If Finder does not know it yet, record that and
-what you did before it did, and go on with **Open With**.
+`.egscene` files. Run M4 or M5 as the first launch of step 1, then M1, M2 and M3
+in this order. The signature of the copy in the Applications folder shows which
+of M4 and M5 applies. Run `codesign -dvv /Applications/QEGTRAIN.app` before the
+first launch; it does not start the app. `Signature=adhoc` means M4, and the
+line `Authority=Developer ID Application:` means M5. Mark the other row not
+applicable, with that reason. A Developer ID signature without a ticket, where
+`xcrun stapler validate` fails, is neither M4 nor M5: record it as a finding on
+the signing configuration. macOS may need a moment to learn the file type of a
+new app. If Finder does not know it yet, record that and what you did before it
+did, and go on with **Open With**.
 
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |
 | M1 File type in Finder | Quit EGTRAIN. In Finder select a downloaded `.egscene` file and choose **File > Get Info**. Note the **Kind** and the application under **Open with**. Do the same for a `.zip` file. Then Control-click the `.egscene` file and open **Open With**. | **Kind** reads `EGTRAIN Case Study` and **Open with** names `QEGTRAIN`, which the **Open With** menu lists. Record the icon that Finder shows for the file. The `.zip` file keeps the application it had, and EGTRAIN is not the one that opens it. If Finder shows another Kind or application, record it, and whether choosing `QEGTRAIN` under **Open with** and **Change All...** corrects it. | macOS |
 | M2 Open a case study by double-click | With EGTRAIN closed, double-click a downloaded `.egscene` file in Finder. Then change a value and double-click a second `.egscene` file: answer **Cancel**, double-click again and answer **Discard**, and never **Save**. Last, quit EGTRAIN, start it from the Applications folder, leave **Open a Case** open and double-click a file. | The first file opens in EGTRAIN, and **Open a Case** does not open first; record it if it does. The second double-click brings the open window to the front and asks **Unsaved Scene**. No second EGTRAIN icon appears in the Dock and no second window opens. **Cancel** keeps the open case and the edit, and the status bar reads `Open canceled. Current scene retained.` After **Discard** the second file is open, and both files are in **File > Recent Scenes**. With **Open a Case** open, that window closes and the file opens. Record any question that macOS asks, with its text. | macOS |
 | M3 Double-click a damaged file and a special path | Rename a plain text file to `something.egscene`. Put a copy of a bundle in a folder whose name and file name contain accented letters (for example é or ü) and one character outside the Latin alphabet. With EGTRAIN closed, double-click the damaged file, quit EGTRAIN, and double-click the bundle. With EGTRAIN open on another case, double-click the damaged file and then the bundle. | Record the message title and text for the damaged file, and which case and which window are shown after it. EGTRAIN does not crash, does not change the file and does not list it under **File > Recent Scenes**. With EGTRAIN open, the case that was open stays after the damaged file. The bundle opens each time. | macOS |
+| M4 First start of an ad hoc build | Run it as the first launch of step 1 on an ad hoc candidate. Download the disk image with a browser, from the run page or the release page, so that macOS knows it came from the internet. Open it, drag `QEGTRAIN.app` onto `Applications`, eject the image and open the copy from the Applications folder in Finder. Use no terminal command that removes the download mark or changes Gatekeeper. | Record every dialog with its title, text and buttons. The first start is refused with the dialog `"QEGTRAIN" Not Opened`, whose buttons are **Move to Trash** and **Done**, and which has no **Open** button. **System Settings > Privacy & Security** shows, in the section **Security**, `"QEGTRAIN" was blocked to protect your Mac.` with the button **Open Anyway**. **Open Anyway** opens the dialog `Open "QEGTRAIN"?` with **Move to Trash**, **Open Anyway** and **Done**, and its **Open Anyway** asks for an administrator's name and password. Record whether EGTRAIN starts after that and which dialog, if any, comes next. Another dialog or another order is a finding: record its text. | macOS |
+| M5 First start of a notarized build | Run it as the first launch of step 1 on a Developer ID candidate. Download, copy and open the disk image as in M4. Before the first launch run `xcrun stapler validate /Applications/QEGTRAIN.app`, which must succeed. | EGTRAIN starts through the normal Finder path. The only dialog before the main window is the confirmation that macOS asks for an app that was downloaded: record its title and text. No **Open Anyway**, no visit to System Settings, no administrator password and no terminal command is needed. If one is, M5 fails, whatever the package job reported. | macOS |
 
 ## Windows installer and portable archive
 
@@ -362,15 +373,14 @@ list of installed apps shows only what the archive itself adds.
 
 ## Not available yet
 
-The release does not build these today, so they have no subject.
+The release does not build this today, so it has no subject.
 
 | Check | What the release has today | Status |
 | --- | --- | --- |
-| macOS Developer ID signing and notarization: first open without a system warning | An ad hoc signature only (#404). | No row until the release provides it |
 | Windows binary signature | None (#402). | No row until the release provides it |
 
-These rows are not part of the gate. They are added to the table of the record
-when the release provides the asset.
+This row is not part of the gate. It is added to the table of the record when
+the release provides the asset.
 
 ## Result record
 
@@ -382,6 +392,6 @@ macOS rehearsal of an older candidate.
 
 The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
-to W9 belong to Windows only and the rows M1 to M3 to macOS only. Open one
+to W9 belong to Windows only and the rows M1 to M5 to macOS only. Open one
 focused defect for each failed root cause instead of adding implementation work
 to issue #74.

@@ -74,6 +74,8 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | M1 File type in Finder |  |  |  |  |
 | M2 Open a case study by double-click |  |  |  |  |
 | M3 Double-click a damaged file and a special path |  |  |  |  |
+| M4 First start of an ad hoc build |  |  |  |  |
+| M5 First start of a notarized build |  |  |  |  |
 | W1 Windows assets |  |  |  |  |
 | W2 Install |  |  |  |  |
 | W3 Uninstall |  |  |  |  |
