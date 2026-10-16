@@ -245,7 +245,7 @@ static bool buildFixtureApp(const QString& app, const QString& version, bool wit
 // The disk image that tools/release/make_dmg.py builds from the bundle, or an empty string.
 static QString buildDiskImage(const QString& app, const QString& outputDirectory) {
 	const QString python = QStandardPaths::findExecutable("python3");
-	const QString script = QDir::cleanPath(QFileInfo(QString::fromUtf8(__FILE__)).absolutePath() + "/../../../tools/release/make_dmg.py");
+	const QString script = QDir::cleanPath(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR "/../../../tools/release/make_dmg.py"));
 	if (python.isEmpty() || !runTool(python, {script, "--version", "1.2.3", "--app", app, "--output", outputDirectory}))
 		return {};
 	return QDir(outputDirectory).filePath("EGTRAIN-1.2.3-macOS-arm64.dmg");

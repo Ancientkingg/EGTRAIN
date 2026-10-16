@@ -76,7 +76,7 @@ int main() {
 	// 6. Minimal fixture scene
 	{
 		TempDir outDir;
-		const std::string fixture = (fs::path(__FILE__).parent_path() / "fixtures/scenes/minimal").string();
+		const std::string fixture = (fs::path(EGTRAIN_TEST_SOURCE_DIR) / "fixtures/scenes/minimal").string();
 		auto res = exportLegacyScene(fixture, outDir.dir);
 		ok &= expect(!res.success(), "Minimal scene export fails");
 		ok &= expect(hasDiag(res.diagnostics, "scene.export.ref"), "scene.export.ref produced");
