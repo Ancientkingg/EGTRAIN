@@ -7,14 +7,15 @@
 // code, state, signal speed limit, speed in braking and exit speed of every section as one line of text. The lines
 // are compared with the golden file FILE. The speed limits of the sections are numbers of this test, not railway data.
 //
-// EGTRAIN_UPDATE_EXPECTATIONS=1 writes FILE instead. Two kinds of check do not read FILE and run first: the aspects
-// of one step for every level, written out below, and the two lists of occupied and connected sections, which a step
-// must leave as they were. When one of them fails, nothing is written.
+// EGTRAIN_UPDATE_EXPECTATIONS=1 writes FILE instead. Three kinds of check do not read FILE and run first: the aspects
+// of one step for every level, written out below, the level mask of a route, and the two lists of occupied and connected
+// sections, which a step must leave as they were. When one of them fails, nothing is written.
 
 #include "scene/SignallingLevel.h"
 #include "simulation/Signalling.h"
 
 #include <algorithm>
+#include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -724,10 +725,47 @@ void writeHeader(Report& report) {
 	report.comment("  K  a held single-track zone seen from two routes");
 }
 
+// ---------------------------------------------------------------------------
+// The level mask of a route: the expected bits are written out here, not computed.
+// ---------------------------------------------------------------------------
+
+void expectLevelMask(Report& report, const std::string& name, const Route& route, unsigned expected) {
+	const unsigned actual = routeLevelMask(route);
+	report.expect(actual == expected, "level mask of " + name + ": expected " + std::to_string(expected) + ", actual " + std::to_string(actual));
+}
+
+void checkLevelMask(Report& report) {
+	expectLevelMask(report, "a route without sections", Route(), 0);
+	expectLevelMask(report, "seven sections without a level", makeRoute(routeSpec(uniform(kNoLevel, kLongRoute))), 0);
+
+	// A route of seven sections with one level on its first, a middle or its last section and no level on the others.
+	const std::pair<int, unsigned> bits[] = {{kAtb, 0x01}, {kEtcsL1, 0x02}, {kEtcsL2, 0x04}, {kEtcsL3, 0x08}, {kVirtualCoupling, 0x10}, {kBacc, 0x20}};
+	const Indices positions = {0, 3, kLongRoute - 1};
+	for (const auto& [level, bit] : bits) {
+		for (const std::size_t position : positions) {
+			Levels levels = uniform(kNoLevel, kLongRoute);
+			levels[position] = level;
+			expectLevelMask(report, "level " + levelsText({level}) + " on section " + std::to_string(position), makeRoute(routeSpec(levels)), bit);
+		}
+	}
+
+	expectLevelMask(report, "all six levels", makeRoute(routeSpec({kAtb, kEtcsL1, kEtcsL2, kEtcsL3, kVirtualCoupling, kBacc})), 0x3F);
+	expectLevelMask(report, "levels 5 5 0 0 2 and two sections without a level",
+		makeRoute(routeSpec({kBacc, kBacc, kAtb, kAtb, kEtcsL2, kNoLevel, kNoLevel})), 0x25);
+
+	// A stored number that is no level sets no bit.
+	for (const int number : {6, -1, kSignallingLevelUnset, INT_MIN, INT_MAX}) {
+		const std::string name = "the number " + std::to_string(number);
+		expectLevelMask(report, name, makeRoute(routeSpec(uniform(number, 3))), 0);
+		expectLevelMask(report, name + " next to level 2", makeRoute(routeSpec({number, kEtcsL2, number})), 0x04);
+	}
+}
+
 Report buildReport() {
 	Report report;
 	const SavedGlobals saved;
 	checkAnchors(report);
+	checkLevelMask(report);
 	writeHeader(report);
 	groupUniform(report);
 	groupBorder(report);
