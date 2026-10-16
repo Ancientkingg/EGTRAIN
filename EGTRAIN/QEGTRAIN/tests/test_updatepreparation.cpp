@@ -137,6 +137,65 @@ static bool testStaleStagingSweep(const QString& base) {
 	return ok;
 }
 
+static bool testCanCreateFilesIn(const QString& base) {
+	const QString writable = QDir(base).filePath("probe-writable");
+	bool ok = expect(QDir().mkpath(writable), "probe fixture is writable");
+	ok &= expect(canCreateFilesIn(writable), "a folder that accepts files is writable");
+	ok &= expect(QDir(writable).entryList(QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden).isEmpty(),
+		"the probe leaves no file behind");
+	ok &= expect(!canCreateFilesIn(QDir(base).filePath("probe-missing")), "a folder that does not exist is not writable");
+	ok &= expect(writeFile(base + "/probe-file", "f") && !canCreateFilesIn(base + "/probe-file"), "a file is not a writable folder");
+
+	// A process that may write anywhere, such as root, creates the file in a folder without permission too.
+	const QString locked = QDir(base).filePath("probe-locked");
+	ok &= expect(QDir().mkpath(locked) && QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner),
+		"the locked fixture is made");
+	if (!QFileInfo(locked).isWritable())
+		ok &= expect(!canCreateFilesIn(locked), "a folder without write permission is not writable");
+	QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+	return ok;
+}
+
+// The package of an installed Windows copy is the installer. It is checked against the manifest and
+// then staged as it is: nothing is extracted, on any platform.
+static bool testInstallerStaging(const QString& base) {
+	const QString staging = QDir(base).filePath("installer-staging");
+	const QByteArray installerBytes = QByteArray("MZ") + QByteArray(5000, 'i');
+	UpdatePreparationInput input;
+	input.packagePath = QDir(staging).filePath("EGTRAIN-Setup-1.2.3-x64.exe");
+	input.stagingRoot = staging;
+	input.installer = true;
+	input.manifest.version = QStringLiteral("1.2.3");
+	input.manifest.assetName = QStringLiteral("EGTRAIN-Setup-1.2.3-x64.exe");
+	input.manifest.sha256 = QString::fromLatin1(QCryptographicHash::hash(installerBytes, QCryptographicHash::Sha256).toHex());
+	input.manifest.assetSize = installerBytes.size();
+	bool ok = expect(QDir().mkpath(staging) && writeFile(input.packagePath, installerBytes), "installer fixture is writable");
+
+	QString error;
+	ok &= expect(stageUpdatePackage(input, &error) == input.packagePath && error.isEmpty(), "the staged path of an installer is the installer");
+
+	const auto prepare = [](const UpdatePreparationInput& preparation) {
+		UpdatePreparationWorker worker;
+		UpdatePreparationResult result;
+		QObject::connect(&worker, &UpdatePreparationWorker::finished, &worker,
+			[&result](const UpdatePreparationResult& outcome) { result = outcome; });
+		worker.prepare(preparation);
+		return result;
+	};
+	const UpdatePreparationResult prepared = prepare(input);
+	ok &= expect(prepared.success && prepared.stagedPath == input.packagePath && prepared.error.isEmpty(),
+		"an installer that fits the manifest is prepared");
+	ok &= expect(QDir(staging).entryList(QDir::AllEntries | QDir::NoDotAndDotDot) == QStringList({"EGTRAIN-Setup-1.2.3-x64.exe"}),
+		"preparing an installer extracts nothing");
+
+	input.manifest.sha256 = QString(64, '0');
+	const UpdatePreparationResult mismatch = prepare(input);
+	ok &= expect(!mismatch.success && mismatch.stagedPath.isEmpty()
+			&& mismatch.error == QStringLiteral("The downloaded update failed its SHA-256 check."),
+		"an installer that differs from the manifest is not staged");
+	return ok;
+}
+
 static bool testReadOnlyLocation(const QString& base) {
 	bool ok = expect(!isReadOnlyLocation(base), "a writable folder is not a read-only location");
 	ok &= expect(isReadOnlyLocation("/private/var/folders/ab/cd/T/AppTranslocation/0123/d/QEGTRAIN.app"),
@@ -348,6 +407,8 @@ int main(int argc, char** argv) {
 
 	ok &= testStaleStagingSweep(temp.path());
 	ok &= testReadOnlyLocation(temp.path());
+	ok &= testCanCreateFilesIn(temp.path());
+	ok &= testInstallerStaging(temp.path());
 #if defined(Q_OS_MACOS)
 	ok &= testMacDiskImage(temp.path());
 #endif

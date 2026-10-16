@@ -97,10 +97,14 @@ application is. The moc object of `egtrain_diagrams` references both windows, so
 that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
 `RouteReferenceDialog` also links one telemetry library.
 
-Still compiled in more than one target: the telemetry sources of the hook flavours, and
+Still compiled in more than one target: the telemetry sources of the hook flavours,
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
-and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
-`SelfUpdater` and `UpdateNotices`. When tests are built, `QEGTRAIN` also compiles `tests/e2e`.
+and `test_telemetryconsent` with it, and `SelfUpdater.cpp`, which `test_selfupdater`
+builds with `EGTRAIN_UPDATE_TEST_HOOK`. The hook lets that test replace the
+capability of the running copy and the base of the package URLs, so that it can update
+from a server on the loopback address into a folder of its own. Only the application
+builds the rest of `app/` and `UpdateNotices`. When tests are built, `QEGTRAIN` also
+compiles `tests/e2e`.
 
 ## Renames
 

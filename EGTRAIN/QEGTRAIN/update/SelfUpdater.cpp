@@ -21,6 +21,31 @@ constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
 // A staging folder newer than this may belong to a download that another instance is running.
 constexpr std::chrono::minutes kStaleStagingAge{60};
+// The manifest entry of the installer that an installed Windows copy runs.
+[[maybe_unused]] constexpr char kInstallerKey[] = "windows-x64-installer";
+// Runs the installer without a window or a message box and without restarting the computer.
+constexpr char kInstallerArguments[] = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART";
+
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+struct TestHook {
+	SelfUpdateCapability capability;
+	QString releaseBase;
+};
+
+TestHook& testHook() {
+	static TestHook hook;
+	return hook;
+}
+#endif
+
+// True when url is where the release publishes the package with this name.
+bool isTrustedPackageUrl(const QString& tag, const QString& name, const QUrl& url) {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+	if (!testHook().releaseBase.isEmpty())
+		return url == QUrl(QStringLiteral("%1/%2/%3").arg(testHook().releaseBase, tag, name));
+#endif
+	return isExpectedReleaseAssetUrl(tag, name, url);
+}
 
 [[maybe_unused]] QString executableName() {
 #if defined(Q_OS_WIN)
@@ -36,12 +61,6 @@ QString helperName() {
 #else
 	return QStringLiteral("egtrain_update_helper");
 #endif
-}
-
-[[maybe_unused]] bool writableParent(const QString& path) {
-	const QFileInfo info(path);
-	const QFileInfo parent(info.absolutePath());
-	return parent.exists() && parent.isDir() && parent.isWritable();
 }
 
 } // namespace
@@ -70,7 +89,17 @@ SelfUpdater::~SelfUpdater() {
 	}
 }
 
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+void SelfUpdater::setTestHook(const SelfUpdateCapability& replacement, const QString& releaseBase) {
+	testHook() = {replacement, releaseBase};
+}
+#endif
+
 SelfUpdateCapability SelfUpdater::capability() {
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+	if (!testHook().releaseBase.isEmpty())
+		return testHook().capability;
+#endif
 	SelfUpdateCapability result;
 #if !EGTRAIN_PACKAGED_BUILD
 	result.reason = QStringLiteral("Self-update is available only in packaged release builds.");
@@ -121,14 +150,16 @@ SelfUpdateCapability SelfUpdater::capability() {
 	return result;
 #endif
 
-	result.reason = selfReplacementBlockedReason(currentDistribution());
-	if (!result.reason.isEmpty())
-		return result;
+	// An installed Windows copy runs the installer of the release. Every other copy replaces its own files
+	// with the package of its platform.
+	const QString platformKey = updateDistributionKey();
+	result.usesInstaller = currentDistribution() == Distribution::WindowsInstalled;
+	result.manifestKey = result.usesInstaller && !platformKey.isEmpty() ? QString::fromLatin1(kInstallerKey) : platformKey;
 	if (!QFileInfo(result.helperPath).isFile()) {
 		result.reason = QStringLiteral("The packaged update helper is missing.");
 		return result;
 	}
-	if (!writableParent(result.currentPath)) {
+	if (!canCreateFilesIn(QFileInfo(result.currentPath).absolutePath())) {
 		result.reason = QStringLiteral("The packaged installation is not writable.");
 		return result;
 	}
@@ -146,7 +177,7 @@ void SelfUpdater::cleanupStaleStaging() {
 bool SelfUpdater::canSelfUpdate(const StableRelease& release) const {
 	const SelfUpdateCapability current = capability();
 	return current.supported && release.asset(updateManifestAssetName())
-		&& releaseHasUpdatePackage(release, updateDistributionKey());
+		&& releaseHasUpdatePackage(release, current.manifestKey);
 }
 
 void SelfUpdater::start(const StableRelease& release) {
@@ -157,7 +188,7 @@ void SelfUpdater::start(const StableRelease& release) {
 		emit finished(false, current.reason);
 		return;
 	}
-	if (!release.asset(updateManifestAssetName()) || !releaseHasUpdatePackage(release, updateDistributionKey())) {
+	if (!release.asset(updateManifestAssetName()) || !releaseHasUpdatePackage(release, current.manifestKey)) {
 		emit finished(false, QStringLiteral("This release does not provide a verified update package."));
 		return;
 	}
@@ -165,6 +196,8 @@ void SelfUpdater::start(const StableRelease& release) {
 	m_ready = false;
 	m_cancelRequested = false;
 	m_release = release;
+	m_manifestKey = current.manifestKey;
+	m_usesInstaller = current.usesInstaller;
 	m_currentPath = current.currentPath;
 	m_launchPath = current.launchPath;
 	m_helperPath = current.helperPath;
@@ -208,7 +241,7 @@ void SelfUpdater::requestManifest() {
 
 void SelfUpdater::requestPackage(const UpdateManifest& manifest) {
 	const ReleaseAsset* asset = m_release.asset(manifest.assetName);
-	if (!asset || !isExpectedReleaseAssetUrl(m_release.tag, manifest.assetName, asset->downloadUrl)) {
+	if (!asset || !isTrustedPackageUrl(m_release.tag, manifest.assetName, asset->downloadUrl)) {
 		fail(QStringLiteral("The release package URL is not trusted."));
 		return;
 	}
@@ -298,7 +331,7 @@ void SelfUpdater::handleReply(HttpReply* reply, bool manifestReply) {
 		}
 		QString error;
 		const std::optional<UpdateManifest> manifest = parseUpdateManifest(
-			m_manifestData, m_release.tag, updateDistributionKey(), &error);
+			m_manifestData, m_release.tag, m_manifestKey, &error);
 		m_manifestData.clear();
 		reply->deleteLater();
 		if (!manifest) {
@@ -366,6 +399,7 @@ void SelfUpdater::startPreparation() {
 	input.packagePath = m_packageFile.fileName();
 	input.stagingRoot = m_stagingRoot;
 	input.currentPath = m_currentPath;
+	input.installer = m_usesInstaller;
 	input.manifest = m_manifest;
 
 	emit preparing(m_manifest.version);
@@ -432,6 +466,16 @@ bool SelfUpdater::startHelper() {
 	if (helperFile.open(QIODevice::ReadWrite | QIODevice::ExistingOnly)) {
 		helperFile.setFileTime(QDateTime::fromSecsSinceEpoch(0), QFileDevice::FileModificationTime);
 		helperFile.close();
+	}
+	if (m_usesInstaller) {
+		// The staged path is the installer. The helper replaces no file of the installation itself.
+		QStringList installerArguments = {
+			QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
+			QStringLiteral("--installer"), m_stagedPath,
+			QStringLiteral("--installer-args"), QString::fromLatin1(kInstallerArguments),
+			QStringLiteral("--launch"), m_launchPath};
+		installerArguments += updateRecordArguments(m_release.version, updateRecordPath());
+		return QProcess::startDetached(helperCopy, installerArguments);
 	}
 	QString backup = m_currentPath + QStringLiteral(".egtrain-old");
 	const QFileInfo previousBackup(backup);

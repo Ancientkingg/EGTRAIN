@@ -27,9 +27,3 @@ Distribution currentDistribution() {
 	return Distribution::Unsupported;
 #endif
 }
-
-QString selfReplacementBlockedReason(Distribution distribution) {
-	return distribution == Distribution::WindowsInstalled
-		? QStringLiteral("This copy was installed with the EGTRAIN installer and cannot replace its own files.")
-		: QString();
-}

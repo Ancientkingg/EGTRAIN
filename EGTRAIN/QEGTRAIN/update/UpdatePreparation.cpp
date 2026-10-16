@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QTemporaryFile>
 #include <QThread>
 #include <QXmlStreamReader>
 
@@ -229,6 +230,8 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 } // namespace
 
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) {
+	if (input.installer)
+		return input.packagePath;
 #if defined(Q_OS_MACOS)
 	return stageMacPackage(input, error);
 #elif defined(Q_OS_WIN)
@@ -240,6 +243,13 @@ QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) 
 		*error = QStringLiteral("Self-update is not supported on this platform.");
 	return {};
 #endif
+}
+
+bool canCreateFilesIn(const QString& directory) {
+	if (!QFileInfo(directory).isDir())
+		return false;
+	QTemporaryFile probe(QDir(directory).filePath(QStringLiteral(".qegtrain-write-test-XXXXXX")));
+	return probe.open() && probe.remove();
 }
 
 bool isReadOnlyLocation(const QString& path) {

@@ -25,8 +25,4 @@ Distribution windowsDistributionOf(const QString& applicationDirectory);
 // not check that the process runs from a bundle or an AppImage: SelfUpdater::capability does.
 Distribution currentDistribution();
 
-// Why a copy of this kind must not replace its own files, as a sentence that ends with a full
-// stop, or an empty string when it may.
-QString selfReplacementBlockedReason(Distribution distribution);
-
 #endif

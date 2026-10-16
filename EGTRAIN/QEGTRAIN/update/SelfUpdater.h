@@ -15,6 +15,10 @@
 struct SelfUpdateCapability {
 	bool supported = false;
 	QString reason;
+	// The entry of update-manifest.json that describes the package of this copy.
+	QString manifestKey;
+	// True when the update runs the installer of the release instead of replacing the files of the copy.
+	bool usesInstaller = false;
 	QString currentPath;
 	QString launchPath;
 	QString helperPath;
@@ -36,6 +40,13 @@ public:
 	void start(const StableRelease& release);
 	void cancel();
 	bool restart();
+
+#ifdef EGTRAIN_UPDATE_TEST_HOOK
+	// Makes capability() return the replacement and accepts the package of a release only at
+	// releaseBase/<tag>/<name>, so that a test can update from a server on the loopback address into
+	// a folder of its own. An empty releaseBase ends the replacement.
+	static void setTestHook(const SelfUpdateCapability& replacement, const QString& releaseBase);
+#endif
 
 signals:
 	void progress(qint64 received, qint64 total);
@@ -61,6 +72,7 @@ private:
 	QByteArray m_manifestData;
 	StableRelease m_release;
 	UpdateManifest m_manifest;
+	QString m_manifestKey;
 	QString m_stagingRoot;
 	QString m_stagedPath;
 	QString m_currentPath;
@@ -68,6 +80,7 @@ private:
 	QString m_helperPath;
 	QThread* m_preparationThread = nullptr;
 	qint64 m_packageBytes = 0;
+	bool m_usesInstaller = false;
 	bool m_busy = false;
 	bool m_cancelRequested = false;
 	bool m_ready = false;

@@ -62,9 +62,16 @@ EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="des
 
 ## Updating an installed copy
 
-EGTRAIN does not replace the files of an installed copy itself. When `installed-by-setup.ini` is next to `QEGTRAIN.exe`, **Check for Updates...** names a newer release but offers only the release page (`selfReplacementBlockedReason` in `update/Distribution.cpp`). The in-app update would replace the whole installation folder with the files of the portable package, which hold neither the uninstaller nor `installed-by-setup.ini`, and Windows would keep an uninstall entry whose uninstaller is gone.
+EGTRAIN does not replace the files of an installed copy itself. The portable package holds neither the uninstaller nor `installed-by-setup.ini`, so Windows would keep an uninstall entry whose uninstaller is gone.
 
-An installed copy is therefore updated by running a newer Setup over it.
+When `installed-by-setup.ini` is next to `QEGTRAIN.exe`, **Update and Restart** in **Check for Updates...** runs the installer instead (`SelfUpdater` in `update/SelfUpdater.cpp`):
+
+1. It downloads the manifest entry `windows-x64-installer`, which names `EGTRAIN-Setup-<version>-x64.exe`, into a hidden `.qegtrain-update-*` folder next to the installation folder, so that folder must accept new files. It checks the size and the SHA-256 of the file against `update-manifest.json`. It checks no signature yet.
+2. EGTRAIN closes. The update helper (`update/UpdateHelper.cpp`, installer mode) waits for it, runs the Setup with `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` and waits for it to end. The helper replaces no file itself. The Setup upgrades the installation as described above.
+3. The helper writes a record with the outcome `installer-succeeded` or `installer-failed` and the version that the Setup was to install, and starts `QEGTRAIN.exe`.
+4. At its next start EGTRAIN reads the record and compares that version with the version that runs (`reportInstallerUpdate` in `update/UpdateNotices.cpp`). It reports that EGTRAIN was updated, that the Setup finished but an older version runs, or that the Setup did not finish. A Setup that failed can leave a partly updated installation, which is why the exit of the Setup alone is not taken as success.
+
+Running a newer Setup by hand over the installed copy works as well.
 
 ## Changing the script
 

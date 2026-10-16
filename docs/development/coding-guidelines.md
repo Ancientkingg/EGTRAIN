@@ -48,6 +48,7 @@ target that links a library does not get them.
   simulation. A comment next to the calls gives the number of warnings.
 - `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
+  `update/SelfUpdater.cpp` is the exception in the strict `test_selfupdater`, which compiles it with the flags.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
 `add_library` or `add_executable`, or add a test to the list of strict tests in the test block,

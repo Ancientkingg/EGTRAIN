@@ -5797,6 +5797,9 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 		availability = capability.supported
 			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
 			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
+	} else if (m_selfUpdater && m_selfUpdater->capability().usesInstaller) {
+		availability = QStringLiteral("\n\nUpdate and Restart runs the EGTRAIN installer. EGTRAIN closes while the installer "
+									  "updates this installation and starts again afterwards.");
 	}
 	QMessageBox dialog(QMessageBox::Information,
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
@@ -5871,8 +5874,10 @@ void MainWindow::handleSelfUpdateFinished(bool success, const QString& error) {
 			error.isEmpty() ? QStringLiteral("The update was not installed. EGTRAIN is unchanged.") : error);
 		return;
 	}
+	const bool installer = m_selfUpdater && m_selfUpdater->capability().usesInstaller;
 	QMessageBox::information(this, QStringLiteral("EGTRAIN Update"),
-		QStringLiteral("The update is ready. EGTRAIN will restart now."));
+		installer ? QStringLiteral("The installer is ready. EGTRAIN will close now, run the installer and start again.")
+				  : QStringLiteral("The update is ready. EGTRAIN will restart now."));
 	if (!m_selfUpdater || !m_selfUpdater->restart()) {
 		QMessageBox::warning(this, QStringLiteral("EGTRAIN Update"),
 			QStringLiteral("Could not start the update installer. EGTRAIN is unchanged."));
@@ -24048,12 +24053,12 @@ void MainWindow::showEvent(QShowEvent* e) {
 			showStartupChooser();
 		showPrivacySettings(true);
 		startTelemetryAfterInitialConsent();
+		reportInstallerUpdate(this);
 		reportRolledBackUpdate(this);
 		maybePromptForUpdateChecks();
 	});
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
-		reportInstallerUpdate(this);
 	if (PlaybackProfiler::enabled()) {
 		if (PlaybackProfiler::startupTimingConflict()) {
 			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"startup_timing_enabled\"}\n");
