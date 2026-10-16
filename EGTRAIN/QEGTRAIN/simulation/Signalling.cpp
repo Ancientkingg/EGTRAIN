@@ -1956,11 +1956,6 @@ MovementAuthority::MovementAuthority() {
 	type = typePart = "None";
 }
 
-double S_delay = 0; // Variable representing the delay of Signalling Systems (in seconds): To put a delay of x seconds this variable must be set to x-1 seconds (because you have to consider also the timestep delay of the integration
-
-list<string> BlocksOccupied;	 // This is the list of the All Blocks Occupied by trains: i.e. Blocks where train are on and blocks which are connected to occupied blocks
-list<string> BlocksConnected;	 // This is the list of all the Blocks Connected with the Blocks occupied by trains. This list is needed in order to release the blocks contained in there when the train on the connected block has left it.
-list<MovementAuthority> ETCS_MA; // This is the list of all the movement authorities provided by the RBC where ETCS is active
 // Function to Occupy a Block Section and all the Block sections connected with it
 void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
 	int NumBlocksToFind = BLS.N_ConnectedBS + 1;
@@ -3294,8 +3289,6 @@ void StationBoundarySection::protectEntrance(int sectionIndex, int routeIndex, b
 
 // vector containing the station entrance sections
 std::vector<StationBoundarySection> stationBoundarySections;
-
-std::vector<SimulationIncident> simulationIncidents;
 
 namespace {
 bool runtimeIncidentHasEnd(const SimulationIncident& incident) {

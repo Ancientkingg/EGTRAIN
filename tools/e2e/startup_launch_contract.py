@@ -199,6 +199,11 @@ def assert_deferred_success_path_resets() -> None:
     for reset in ("resetNativeInfrastructureState();", "resetNativeOperationsState();"):
         if reset not in full_reset:
             raise SystemExit(f"full dispatch reset no longer calls {reset}")
+    # The lists of the run are cleared by SimulationRun::reset(), which the operation state calls.
+    for name in ("BlocksOccupied", "BlocksConnected", "ETCS_MA"):
+        for label, body in (("lightweight scene preparation", begin_preparation), ("full dispatch reset", full_reset)):
+            if f"{name}.clear();" in body:
+                raise SystemExit(f"{label} clears {name} itself instead of resetting the run")
 
     operations = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/OperationsBuilder.cpp").read_text(encoding="utf-8")
     lightweight = operations[
@@ -209,6 +214,11 @@ def assert_deferred_success_path_resets() -> None:
         operations.index("void resetNativeOperationsState()"):
         operations.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
     ]
+    if "defaultRun().reset();" not in lightweight:
+        raise SystemExit("operation preparation does not reset the run")
+    for name in ("simulationIncidents", "VCmsgTimestep", "VCmsgTrain", "VCmsgText"):
+        if name in lightweight:
+            raise SystemExit(f"operation preparation clears {name} itself instead of resetting the run")
     if "regional_train" in lightweight or "nativeClearRegionalTrains" in lightweight:
         raise SystemExit("lightweight operation preparation releases the regional_train storage")
     if "prepareNativeOperationsState();" not in full_operations_reset or "regional_train" not in full_operations_reset:

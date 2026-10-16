@@ -12,12 +12,6 @@
 #include <limits>
 #include <sstream>
 
-// GUI - Virtual Coupling notifications
-vector<int> VCmsgTimestep;
-vector<string> VCmsgTrain;
-vector<string> VCmsgText;
-// --------------
-
 int N_OrderLists = initial_variables.num_OrderLists; // This is the number of OrderLists that have to be respected at critical nodes
 
 OrderList::OrderList() {

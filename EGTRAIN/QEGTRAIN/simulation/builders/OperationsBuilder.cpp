@@ -3,6 +3,7 @@
 #include "scene/SectionInventory.h"
 #include "simulation/Optimisation.h"
 #include "simulation/Passengers.h"
+#include "simulation/SimulationRun.h"
 
 #include <algorithm>
 #include <array>
@@ -280,10 +281,7 @@ void prepareNativeOperationsState() {
 	AllDailyPassengers.clear();
 	AllStationPlatformIndex.clear();
 	AllDailyPassengerIndex.clear();
-	simulationIncidents.clear();
-	VCmsgTimestep.clear();
-	VCmsgTrain.clear();
-	VCmsgText.clear();
+	defaultRun().reset();
 }
 
 void resetNativeOperationsState() {

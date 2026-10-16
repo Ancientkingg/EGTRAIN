@@ -9,8 +9,6 @@
 #include <optional>
 #include <vector>
 
-double Comp_Time_EGTRAIN = 0, Comp_Time_ROMA = 0; // variable to measure the computation times of EGTRAIN and ROMA
-
 extern InitialParameters initial_variables;
 
 namespace {

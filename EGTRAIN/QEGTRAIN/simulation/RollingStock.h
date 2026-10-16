@@ -33,9 +33,9 @@
 #include <deque>
 #include <limits>
 #include <vector>
-extern vector<int> VCmsgTimestep;
-extern vector<string> VCmsgTrain;
-extern vector<string> VCmsgText;
+extern vector<int>& VCmsgTimestep;
+extern vector<string>& VCmsgTrain;
+extern vector<string>& VCmsgText;
 
 // -------------
 

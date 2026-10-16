@@ -323,9 +323,6 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 void DispatchController::beginScenePreparation() {
 	snapshotMailbox_.take();
 	prepareNativeOperationsState();
-	BlocksOccupied.clear();
-	BlocksConnected.clear();
-	ETCS_MA.clear();
 }
 
 // Reset all native runtime state before loading another canonical scene.
@@ -333,9 +330,6 @@ void DispatchController::resetState() {
 	snapshotMailbox_.take();
 	resetNativeInfrastructureState();
 	resetNativeOperationsState();
-	BlocksOccupied.clear();
-	BlocksConnected.clear();
-	ETCS_MA.clear();
 }
 
 std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationSnapshot() {
