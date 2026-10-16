@@ -2718,7 +2718,7 @@ void setInfraSpeedLimits(Section* BS, int Blocks) {
 }
 
 namespace {
-// The signal speed limit that a row writes. The red speeds are the variables signalCode1 and signalCode2, so a row names the one it takes.
+// The signal speed limit that a row writes. The red speeds are the arguments of the activation, so a row names the one it takes.
 enum class SpeedSelector {
 	Unlimited,
 	V75,
@@ -2947,6 +2947,10 @@ unsigned routeLevelMask(const Route& route) {
 void activateMixedSignallingSystem() {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
+	activateMixedSignallingSystem(signalCode1, signalCode2);
+}
+
+void activateMixedSignallingSystem(double redSpeed1, double redSpeed2) {
 	// The set holds views of the entries of BlocksOccupied, so the entries a route adds leave the set before they leave the list.
 	std::unordered_set<std::string_view> occupiedIds;
 	occupiedIds.reserve(BlocksOccupied.size());
@@ -2980,29 +2984,29 @@ void activateMixedSignallingSystem() {
 
 		if ((levels & levelBit(SignallingLevel::Bacc)) != 0) {
 			// Set the aspect of signals and Signal Speed Limits for BACC
-			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
 		}
 
 		if ((levels & levelBit(SignallingLevel::Atb)) != 0) {
 			// Set the aspect of signals and signal speed limits for ATB
-			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel1)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 1
-			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel2)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 2
-			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
-				signalCode2);
+			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+				redSpeed2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
 		}
 

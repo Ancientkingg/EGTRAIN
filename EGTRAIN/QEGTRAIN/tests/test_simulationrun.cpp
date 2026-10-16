@@ -1,9 +1,10 @@
 // Tests of the run state of simulation/SimulationRun.h.
 //
-// reset() has to return every member to the state of a new run, and the global names of the members have to refer
-// to them. Runs in this process then show that nothing of one run reaches the next. A run that was stopped part way is
-// followed by another scene, a failed preparation by a good one, and a scene with passengers runs twice. Every run after
-// such a gap has to write the files that the first run of its scene wrote.
+// reset() and resetInfrastructure() have to return every member to the state of a new run, and the global names of the
+// members have to refer to them. Runs in this process then show that nothing of one run reaches the next. A run that was
+// stopped part way is followed by another scene, a failed preparation by a good one, and a scene with passengers runs twice.
+// Every run after such a gap has to write the files that the first run of its scene wrote. prepareScene copies the settings
+// of the application into the run, and the run goes on with the copy.
 //
 //   test_simulationrun LINE_SCENE_DIR PASSENGER_SCENE_DIR
 
@@ -91,15 +92,16 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 }
 
 Description describe(const SimulationRun& run) {
-	const auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
-		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
-		infrastructure] = run;
+	const auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers,
+		numPassengers, passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay,
+		egtrainTime, romaTime, infrastructure] = run;
 	const auto station = [](const Stations& s) {
 		return s.stationName + "/" + std::to_string(s.N_Stopped_Trains) + "/" + std::to_string(s.totalArrivalDelay);
 	};
 	NumberGenerator draws = generator;
 	const std::string draw = std::to_string(draws.getUniformFloat()) + "/" + std::to_string(draws.getGaussianFloat());
-	Description description = {{"blocksOccupied", std::to_string(occupied.size())},
+	Description description = {{"settings", settings.name + "/" + std::to_string(settings.times) + "/" + settings.OutputMainFolder + "/" + std::to_string(settings.bufferTime) + "/" + std::to_string(settings.recoveryTimePercentage) + "/" + std::to_string(settings.GUI)},
+		{"blocksOccupied", std::to_string(occupied.size())},
 		{"blocksConnected", std::to_string(connected.size())},
 		{"etcsMa", std::to_string(authorities.size())},
 		{"incidents", std::to_string(incidents.size())},
@@ -156,10 +158,10 @@ bool infrastructureIs(const SimulationRun& run, bool isNew) {
 	return true;
 }
 
-// True when the run is as a new run in every member that the builders do not fill. A prepared scene has its infrastructure, platforms,
-// passengers, incidents and seeded generator, and the name of the final station.
+// True when the run is as a new run in every member that the builders do not fill. A prepared scene has its settings, infrastructure,
+// platforms, passengers, incidents and seeded generator, and the name of the final station.
 bool carriesNothingOver(const SimulationRun& run) {
-	const std::set<std::string> builderState = {"incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
+	const std::set<std::string> builderState = {"settings", "incidents", "platforms", "numPlatforms", "passengers", "numPassengers",
 		"passengerIndex", "platformIndex", "finalStation", "trains", "numTrains", "numberGenerator"};
 	const std::vector<std::string> unchanged = membersOfNewRun(run);
 	for (const auto& [name, text] : describe(run))
@@ -171,9 +173,15 @@ bool carriesNothingOver(const SimulationRun& run) {
 
 // Gives every member of the run a value that a new run does not have.
 void fill(SimulationRun& run) {
-	auto& [occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
+	auto& [settings, occupied, connected, authorities, incidents, vcTimesteps, vcTrains, vcTexts, platforms, numPlatforms, passengers, numPassengers,
 		passengerIndex, platformIndex, totalDelays, entranceDelays, disturbances, finalStation, trains, numTrains, generator, delay, egtrainTime, romaTime,
 		infrastructure] = run;
+	settings.name = "scene";
+	settings.times = 90;
+	settings.OutputMainFolder = "output";
+	settings.bufferTime = 2.5;
+	settings.recoveryTimePercentage = 3.5;
+	settings.GUI = false;
 	occupied.push_back("1-B0");
 	connected.push_back("2-B0");
 	authorities.emplace_back();
@@ -329,7 +337,6 @@ Outcome runScene(const RunSetup& setup) {
 	initial_variables.times = setup.horizonSeconds;
 	initial_variables.exportDetailedTrajectories = setup.detailedFiles;
 	initial_variables.OutputMainFolder = output.path().toStdString();
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	CoutSilencer silencer;
@@ -413,6 +420,50 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	return ok;
 }
 
+// prepareScene copies the settings of the application into the run, and the controller goes on with the copy when the application
+// changes its settings. The buffer time, the recovery time and the output folder are the ones that the files of the run show.
+bool settingsTests(const SceneModel& line) {
+	bool ok = true;
+	QTemporaryDir prepared;
+	QTemporaryDir changed;
+	initial_variables.GUI = 0;
+	initial_variables.TSM = 0;
+	initial_variables.RChoice = 0;
+	initial_variables.PAX_GUI = false;
+	initial_variables.durationOverride = true;
+	initial_variables.times = 600;
+	initial_variables.exportDetailedTrajectories = false;
+	initial_variables.bufferTimeOverride = true;
+	initial_variables.bufferTime = 2.5;
+	initial_variables.recoveryTimeOverride = true;
+	initial_variables.recoveryTimePercentage = 3.5;
+	initial_variables.OutputMainFolder = prepared.path().toStdString();
+
+	CoutSilencer silencer;
+	ok &= expect(!hasErrors(simulation.prepareScene(line, "baseline", {{"T1", 1}})) && numRegions > 0, "the scene is prepared");
+	const InitialParameters& settings = defaultRun().settings;
+	ok &= expect(settings.times == 600 && settings.bufferTime == 2.5 && settings.recoveryTimePercentage == 3.5
+			&& settings.OutputMainFolder == prepared.path().toStdString() && settings.name == line.name,
+		"prepareScene copies the settings, with the buffer time, the recovery time and the output folder");
+
+	initial_variables.bufferTime = 9;
+	initial_variables.recoveryTimePercentage = 9;
+	initial_variables.OutputMainFolder = changed.path().toStdString();
+	ok &= expect(settings.bufferTime == 2.5 && settings.recoveryTimePercentage == 3.5 && settings.OutputMainFolder == prepared.path().toStdString(),
+		"a change to the settings of the application does not reach the copy");
+	simulation.runSimulation();
+	const std::filesystem::path trajectories = std::filesystem::path(prepared.path().toStdString()) / "TrainTrajectories";
+	ok &= expect(simulation.lastRunCompleted() && std::filesystem::exists(trajectories / "Stats_Stations.txt")
+			&& !std::filesystem::exists(std::filesystem::path(changed.path().toStdString()) / "TrainTrajectories"),
+		"the run writes to the output folder of the copy");
+
+	simulation.resetState();
+	ok &= expect(isNewRun(defaultRun()), "a reset returns the settings of the run to those of a new run");
+	initial_variables.bufferTimeOverride = false;
+	initial_variables.recoveryTimeOverride = false;
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -428,5 +479,6 @@ int main(int argc, char** argv) {
 	if (!expect(!hasErrors(line.diagnostics) && !hasErrors(passengers.diagnostics), "the scenes load"))
 		return 1;
 	ok &= gapTests(line.scene, passengers.scene);
+	ok &= settingsTests(line.scene);
 	return ok ? 0 : 1;
 }

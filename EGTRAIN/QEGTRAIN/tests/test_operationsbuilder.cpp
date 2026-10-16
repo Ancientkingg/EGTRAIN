@@ -365,8 +365,6 @@ static bool brakingTargetAdmissible(Train& train, double head, double speed, dou
 
 static bool brakingPointTests() {
 	bool ok = true;
-	const double savedTimestep = timestep;
-	timestep = 1.0;
 	const auto at = [](double value, double expected) { return std::fabs(value - expected) <= 1e-6; };
 	Train train = brakingTrain(1.0);
 	std::vector<Section> route = brakingRoute(0.0, 10.0, 0.0);
@@ -414,7 +412,6 @@ static bool brakingPointTests() {
 		ok &= expect(at(start, beforeOrigin) && end == -1,
 			"the braking point of a curve that leaves the route does not depend on the stack");
 	}
-	timestep = savedTimestep;
 	return ok;
 }
 
@@ -480,8 +477,6 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 // Lebanon trace (36.1111 and 16.67 m/s).
 static bool brakingCurveTests() {
 	bool ok = true;
-	const double savedTimestep = timestep;
-	timestep = 1.0;
 	const auto at = [](double value, double expected) { return std::fabs(value - expected) <= 1e-6; };
 	const double speed = 36.1111, targetSpeed = 16.67;
 
@@ -596,7 +591,6 @@ static bool brakingCurveTests() {
 		ok &= expect(search.BrakDist_Block(speed, targetSpeed, 100.0, route.data(), 1) < 50.0,
 			"the braking-point search gives a braking point before the train for the second case");
 	}
-	timestep = savedTimestep;
 	return ok;
 }
 
@@ -663,7 +657,6 @@ struct LinearBrakingReference : Train {
 
 static bool brakingLookupReuseTests() {
 	bool ok = true;
-	const double savedTimestep = timestep;
 	Train train = brakingTrain(1);
 	LinearBrakingReference reference;
 	static_cast<Train&>(reference) = train;
@@ -759,14 +752,10 @@ static bool brakingLookupReuseTests() {
 	// First-match order also holds across sections whose coordinate order differs.
 	std::vector<Section> crossSection{brakingRoute(0.03, 0.06, 0.02)[0], brakingRoute(0, 0.1, -0.005)[0]};
 	routes.push_back(crossSection);
-	for (double dt : {1.0, 0.0, -1.0}) {
-		timestep = dt; // Zero/backward malformed timesteps must retain their old behavior.
-		for (auto& route : routes)
-			for (double head : {-1.0, 0.0, 10.0, std::nextafter(30.0, 0.0), 30.0, 35.0, 40.0, 60.0, 100.0})
-				for (int steps : {-1, 0, 1, 12, 1998, 1999})
-					compare(route, head, 30, steps);
-	}
-	timestep = 1;
+	for (auto& route : routes)
+		for (double head : {-1.0, 0.0, 10.0, std::nextafter(30.0, 0.0), 30.0, 35.0, 40.0, 60.0, 100.0})
+			for (int steps : {-1, 0, 1, 12, 1998, 1999})
+				compare(route, head, 30, steps);
 	compare(overlap, 10, 0, 12);
 	compare(overlap, 10, -1, 12);
 	compare(overlap, std::numeric_limits<double>::quiet_NaN(), 30, 12);
@@ -787,15 +776,12 @@ static bool brakingLookupReuseTests() {
 		}
 		ok &= expect(predicted && below && recovered, "exact differential prefix includes below-ceiling gradient recovery");
 	}
-	timestep = savedTimestep;
 	return ok;
 }
 
 // Fractions shift the entry coordinate, not a linearly interpolated nonlinear flow.
 static bool forwardBrakingTests() {
 	bool ok = true;
-	const double savedTimestep = timestep;
-	timestep = 1;
 	std::vector<std::vector<Section>> routes;
 	for (double gradient : {0.0, 0.005, -0.005})
 		routes.push_back(brakingRoute(0, 10, gradient));
@@ -1004,7 +990,6 @@ static bool forwardBrakingTests() {
 		}
 	}
 
-	timestep = savedTimestep;
 	return ok;
 }
 
@@ -2391,11 +2376,9 @@ static bool routeBoundaryTests() {
 	savedRoutes.swap(train_route);
 	train_route.resize(1);
 	train_route[0].x_of_end_node = 100.0;
-	const double savedTimestep = timestep;
 	const double savedDelay = S_delay;
 	const auto savedOccupied = BlocksOccupied;
 	const auto savedConnected = BlocksConnected;
-	timestep = 1.0;
 	S_delay = 0.0;
 
 	{
@@ -2432,7 +2415,6 @@ static bool routeBoundaryTests() {
 			"a first section that starts with a virtual signal has no double switch before it to release");
 	}
 
-	timestep = savedTimestep;
 	S_delay = savedDelay;
 	BlocksOccupied = savedOccupied;
 	BlocksConnected = savedConnected;
@@ -2502,9 +2484,7 @@ static bool singleTrackLockTests() {
 	// Two trains of its own, whatever the last build left in the storage.
 	std::vector<Regional> savedTrains(2);
 	savedTrains.swap(regional_train);
-	const double savedTimestep = timestep;
 	const double savedDelay = S_delay;
-	timestep = 1.0;
 	S_delay = 0.0;
 
 	// Two routes over sections lock.0 to lock.5 of 2 km: route 0 forward, route 1 the same sections reversed.
@@ -2926,7 +2906,6 @@ static bool singleTrackLockTests() {
 		"the zones follow the current routes");
 	resetSingleTrackLocks();
 
-	timestep = savedTimestep;
 	S_delay = savedDelay;
 	numRegions = savedRegions;
 	regional_train.swap(savedTrains);
@@ -3269,7 +3248,6 @@ int main() {
 	}
 	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
 	initial_variables.InputMainFolder = "/__egtrain_nonexistent_native_input__";
-	InputMainFolder = initial_variables.InputMainFolder;
 	auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(scene);
 	ok &= expect(!hasErrors(infrastructureDiagnostics), "M2 infrastructure builder accepts the complete fixture");
 	if (hasErrors(infrastructureDiagnostics))
@@ -3290,8 +3268,7 @@ int main() {
 	const auto tooManyTrainsDiagnostics = buildOperationsFromScene(tooManyTrains, "scenario.base");
 	ok &= expect(hasCode(tooManyTrainsDiagnostics, "scene.native.capacity.trains"),
 		"native operations rejects one expanded train above the limit");
-	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__"
-			&& InputMainFolder == initial_variables.InputMainFolder,
+	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__",
 		"native builders do not access or rewrite the legacy input folder");
 	ok &= expect(numRegions == 3, "repeat expansion populates train counts");
 	ok &= expect(regional_train[0].trainDescription == "service.native-1"
@@ -3527,10 +3504,19 @@ int main() {
 			&& initial_variables.times == 90.0
 			&& initial_variables.bufferTime == 7
 			&& initial_variables.recoveryTimePercentage == 12
-			&& bufferTime == 7.0
-			&& recoveryTimePercentage == 12.0
 			&& initial_variables.num_OrderLists == 0,
 		"canonical simulation settings are committed");
+
+	// A buffer time and a recovery time from the command line replace the ones of the scene.
+	initial_variables.bufferTimeOverride = true;
+	initial_variables.bufferTime = 2.5;
+	initial_variables.recoveryTimeOverride = true;
+	initial_variables.recoveryTimePercentage = 3.5;
+	const auto overridden = buildOperationsFromScene(completeScene(), "scenario.selected");
+	ok &= expect(!hasErrors(overridden) && initial_variables.bufferTime == 2.5 && initial_variables.recoveryTimePercentage == 3.5,
+		"the buffer time and the recovery time of the command line stay");
+	initial_variables.bufferTimeOverride = false;
+	initial_variables.recoveryTimeOverride = false;
 
 	SceneModel stepped = completeScene();
 	stepped.services[0].operatingCode = "1723";

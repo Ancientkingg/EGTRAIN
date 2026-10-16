@@ -221,7 +221,6 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 	initial_variables.PAX_GUI = false;
 	initial_variables.exportDetailedTrajectories = false;
 	initial_variables.OutputMainFolder = outputDir;
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 
 	CoutSilencer silencer;

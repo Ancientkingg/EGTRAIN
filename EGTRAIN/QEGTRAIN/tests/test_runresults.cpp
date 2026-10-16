@@ -122,7 +122,6 @@ int main() {
 	}
 	{
 		const int savedBlocks = Blocks;
-		const double savedTimestep = timestep;
 		const double savedDelay = S_delay;
 		const auto savedRoutes = train_route;
 		const auto savedAuthorities = ETCS_MA;
@@ -154,7 +153,6 @@ int main() {
 		train_route.clear();
 		train_route.push_back(*route);
 		Blocks = 2;
-		timestep = 1;
 		S_delay = 0;
 		ETCS_MA.clear();
 
@@ -193,7 +191,6 @@ int main() {
 			"reporting skips delayed samples before the trajectory");
 
 		Blocks = savedBlocks;
-		timestep = savedTimestep;
 		S_delay = savedDelay;
 		train_route = savedRoutes;
 		ETCS_MA = savedAuthorities;
@@ -884,7 +881,6 @@ int main() {
 
 	{
 		const auto savedRoutes = train_route;
-		const double savedTimestep = timestep;
 		const std::string savedOutputFolder = initial_variables.OutputMainFolder;
 		QTemporaryDir temp;
 		ok &= expect(temp.isValid() && QDir().mkpath(temp.filePath("TEMP")),
@@ -892,7 +888,6 @@ int main() {
 		if (!temp.isValid())
 			return 1;
 		initial_variables.OutputMainFolder = temp.path().toStdString();
-		timestep = 1;
 		train_route.clear();
 		train_route.resize(2);
 		train_route[1].reversed_direction = true;
@@ -941,7 +936,6 @@ int main() {
 			}
 		}
 		train_route = savedRoutes;
-		timestep = savedTimestep;
 		initial_variables.OutputMainFolder = savedOutputFolder;
 	}
 

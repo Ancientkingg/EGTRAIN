@@ -6,15 +6,8 @@
 using namespace std;
 
 extern Logger owl;
-double timestep = 1;
-// double times = 0;
-double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling speed limits in m/s, see Infrastructure.h
 
 InitialParameters initial_variables(0);
-string InputMainFolder = initial_variables.InputMainFolder; // "Input_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
-// string OutputMainFolder = initial_variables.OutputMainFolder;// "Output_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
-
-// extern InitialParameters initial_variables;
 
 
 // Class constructor function

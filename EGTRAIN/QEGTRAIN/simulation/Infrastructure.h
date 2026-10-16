@@ -20,11 +20,11 @@
 #include "util/Logger.hpp"
 
 
-extern double timestep;
-extern double signalCode1, signalCode2, signalCode3; // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
+// The length of a simulation step in seconds.
+inline constexpr double timestep = 1;
+// Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
+inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
 extern int& numTrackLines;
-
-extern std::string InputMainFolder; // Root input folder for EGTRAIN
 
 // --- InfraElement: point infrastructure element (signal, switch, station stop board, track detection section border) ---
 

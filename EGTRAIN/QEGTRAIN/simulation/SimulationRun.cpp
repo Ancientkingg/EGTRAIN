@@ -29,6 +29,7 @@ void RunInfrastructure::reset() {
 }
 
 void SimulationRun::reset() {
+	settings = InitialParameters(0);
 	blocksOccupied.clear();
 	blocksConnected.clear();
 	etcsMa.clear();

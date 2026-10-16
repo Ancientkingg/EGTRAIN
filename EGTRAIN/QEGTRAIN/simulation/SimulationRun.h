@@ -1,6 +1,7 @@
 #ifndef SIMULATIONRUN_H
 #define SIMULATIONRUN_H
 
+#include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/NumberGenerator.h"
 #include "simulation/Passengers.h"
@@ -61,6 +62,11 @@ struct RunInfrastructure {
 // using those names. A member that is added here must be cleared in reset(), or in
 // resetInfrastructure() when it belongs to the infrastructure.
 struct SimulationRun {
+	// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
+	// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
+	// reach the run.
+	InitialParameters settings{0};
+
 	// Block sections that trains occupy and the sections connected to them. The signalling routines fill
 	// the lists during a step and the step clears them.
 	std::list<std::string> blocksOccupied;

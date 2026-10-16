@@ -226,7 +226,6 @@ int runCreatorAcceptanceMain() {
 	// Like a folder from Choose Output Folder, this one stays in force when the window opens or creates a scene.
 	initial_variables.OutputMainFolder = output.toStdString();
 	simulation.setNextRunOutputFolder(output.toStdString());
-	InputMainFolder.clear();
 	initial_variables.InputMainFolder.clear();
 	MainWindow window;
 	window.openGUI();

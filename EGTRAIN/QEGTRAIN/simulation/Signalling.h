@@ -412,6 +412,9 @@ unsigned routeLevelMask(const Route& route);
 
 // Activate mixed signalling areas
 void activateMixedSignallingSystem();
+// The same with other red speeds, the limits that the fixed-block levels write behind an occupied section. The call above passes
+// signalCode1 and signalCode2.
+void activateMixedSignallingSystem(double redSpeed1, double redSpeed2);
 
 // Release all block sections in mixed signalling areas
 void releaseMixedSignallingSystem();

@@ -16,8 +16,9 @@ public:
 	int numTrackLines;
 	int N_Routes;
 	int num_OrderLists;
-	int bufferTime;
-	int recoveryTimePercentage;
+	// The buffer time in seconds and the running time recovery in percent. A scene sets them unless the command line gave a value.
+	double bufferTime;
+	double recoveryTimePercentage;
 	// Explicit legacy readers may still receive a source root. Native runs leave it empty.
 	std::string InputMainFolder;
 	std::string OutputMainFolder;

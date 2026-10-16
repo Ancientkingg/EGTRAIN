@@ -156,6 +156,11 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member except the
   infrastructure in place. The old global names of the members that moved there, such as
   `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
+  `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
+  takes once the scene is built. `DispatchController` reads the buffer time, the recovery time, the
+  output folder and the other settings of a run from the copy, so a change to `initial_variables`
+  afterwards does not reach the run. `timestep` and `signalCode1` to `signalCode3` are `constexpr`
+  values in `simulation/Infrastructure.h`.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
   tracks, connections and stations (`blockSets`, `connections` and `StationArray`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,

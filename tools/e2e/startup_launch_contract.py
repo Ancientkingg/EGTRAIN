@@ -181,6 +181,9 @@ def assert_deferred_success_path_resets() -> None:
         raise SystemExit("scene preparation does not clear lightweight state before validation")
     if prepare.count("resetState();") != 4:
         raise SystemExit("scene preparation failure paths do not all perform a full reset")
+    # The run keeps a copy of the settings, taken once the scene is built, and the reset of the run returns it to the default.
+    if "defaultRun().settings = initial_variables;" not in prepare or prepare.index("defaultRun().settings = initial_variables;") < prepare.index("buildOperationsFromScene("):
+        raise SystemExit("scene preparation does not copy the settings into the run after the scene is built")
 
     begin_preparation = dispatch[
         dispatch.index("void DispatchController::beginScenePreparation()"):
@@ -233,6 +236,8 @@ def assert_deferred_success_path_resets() -> None:
     run_reset = run[run.index("void SimulationRun::reset()"):run.index("namespace {")]
     if "swap(trains);" not in run_reset or "numTrains = 0;" not in run_reset:
         raise SystemExit("the reset of the run does not release the train storage")
+    if "settings = InitialParameters(0);" not in run_reset:
+        raise SystemExit("the reset of the run does not return the settings to the default")
 
     # The infrastructure is not reset with the operations: the scene builder replaces it, and the window still shows the
     # previous one until then. Only the full reset of the infrastructure clears it, through the run.

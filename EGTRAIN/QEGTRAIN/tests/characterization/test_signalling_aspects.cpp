@@ -119,8 +119,6 @@ public:
 		N_Routes = m_routeCount;
 		BlocksOccupied = m_occupied;
 		BlocksConnected = m_connected;
-		signalCode1 = m_signalCode1;
-		signalCode2 = m_signalCode2;
 		singleTrackLimits = m_limits;
 		resetSingleTrackLocks();
 		singleTrackHeld = m_held;
@@ -134,8 +132,6 @@ private:
 	int m_routeCount = N_Routes;
 	Ids m_occupied = BlocksOccupied;
 	Ids m_connected = BlocksConnected;
-	double m_signalCode1 = signalCode1;
-	double m_signalCode2 = signalCode2;
 	std::vector<std::tuple<std::string, std::string, std::string, std::string>> m_limits = singleTrackLimits;
 	std::vector<int> m_held = singleTrackHeld;
 };
@@ -149,13 +145,15 @@ const std::vector<Section>& sectionsOf(std::size_t route) {
 	return train_route[route].sequence_of_block_sections;
 }
 
+// The red speeds that runStep gives the activation: the ones of the simulation, or the other ones of group V.
+std::pair<double, double> redSpeeds = {signalCode1, signalCode2};
+
 std::pair<double, double> signalSpeeds() {
-	return {signalCode1, signalCode2};
+	return redSpeeds;
 }
 
 void setSignalSpeeds(const std::pair<double, double>& speeds) {
-	signalCode1 = speeds.first;
-	signalCode2 = speeds.second;
+	redSpeeds = speeds;
 }
 
 // Single-track limit between s1 and s4, protected by s2 and s3, held in the direction held (1, -1 or 0).
@@ -178,7 +176,7 @@ bool runStep(const Ids& occupied, const Ids& connected) {
 	BlocksConnected = connected;
 	releaseMixedSignallingSystem();
 	const bool unchangedByRelease = BlocksOccupied == occupied && BlocksConnected == connected;
-	activateMixedSignallingSystem();
+	activateMixedSignallingSystem(redSpeeds.first, redSpeeds.second);
 	const bool unchangedByActivation = BlocksOccupied == occupied && BlocksConnected == connected;
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
