@@ -151,11 +151,19 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   object that is not a QObject. `SceneModel` holds its entity lists in `std::vector` members,
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
   `telemetry/TelemetryQueue.h` owns a `std::unique_ptr<QLockFile>`.
-- `simulation/` uses fixed-size global arrays and `extern` globals. Do not add more.
+- `simulation/` uses `extern` globals. Do not add more.
   State that a run builds up and the next run must not see is a member of `SimulationRun`
-  (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member in place. The old
-  global names of the members that moved there, such as `BlocksOccupied` and `ETCS_MA`, are
-  references to them. A new member needs a line in `reset()`.
+  (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member except the
+  infrastructure in place. The old global names of the members that moved there, such as
+  `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
+  The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
+  tracks, connections and stations (`blockSets`, `connections` and `StationArray`, vectors with
+  a fixed number of elements that nothing resizes), the block sections, the detection sections,
+  the single-track data and `train_route`. The scene builder replaces them and the previous ones
+  stay until then, so `resetInfrastructure()` is a separate call, and a build that fails puts the
+  earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
+  the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
+  infrastructure needs a line in `RunInfrastructure::reset()`.
   `regional_train` is a reference to the `std::vector<Regional>` of the run, created with the
   number of trains of the scene (declared in `simulation/RollingStock.h`); `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps

@@ -4,6 +4,30 @@
 
 using namespace std;
 
+void RunInfrastructure::reset() {
+	for (BlockSet& track : blockSets)
+		track = BlockSet();
+	for (Connections& connection : connections)
+		connection = Connections();
+	for (Stations& station : stations)
+		station = Stations();
+	numTrackLines = 0;
+	numConnections = 0;
+	numStations = 0;
+	// A node list is freed with the last section that holds it
+	std::vector<Section>().swap(sections);
+	numBlocks = 0;
+	detectionSections.clear();
+	infraEvents.clear();
+	derivedSectionsExceedPlan = false;
+	singleTrackLimits.clear();
+	singleTrackHeld.clear();
+	singleTrackReservations.clear();
+	stationBoundaries.clear();
+	routes.clear();
+	numRoutes = 0;
+}
+
 void SimulationRun::reset() {
 	blocksOccupied.clear();
 	blocksConnected.clear();
@@ -28,6 +52,11 @@ void SimulationRun::reset() {
 	signallingDelay = 0;
 	compTimeEgtrain = 0;
 	compTimeRoma = 0;
+}
+
+void SimulationRun::resetInfrastructure() {
+	infra.reset();
+	resetSingleTrackLocks();
 }
 
 namespace {
@@ -70,3 +99,20 @@ Stations& Final_Station = theRun.finalStation;
 double& S_delay = theRun.signallingDelay;
 double& Comp_Time_EGTRAIN = theRun.compTimeEgtrain;
 double& Comp_Time_ROMA = theRun.compTimeRoma;
+int& numTrackLines = theRun.infra.numTrackLines;
+vector<BlockSet>& blockSets = theRun.infra.blockSets;
+int& numConnections = theRun.infra.numConnections;
+vector<Connections>& connections = theRun.infra.connections;
+int& numStations = theRun.infra.numStations;
+vector<Stations>& StationArray = theRun.infra.stations;
+int& Blocks = theRun.infra.numBlocks;
+vector<Section>& signalling_block_sections = theRun.infra.sections;
+list<TDS>& list_of_TDS = theRun.infra.detectionSections;
+list<InfraEvent>& InfraElementsList = theRun.infra.infraEvents;
+bool& derivedSectionsExceedPlan = theRun.infra.derivedSectionsExceedPlan;
+vector<tuple<string, string, string, string>>& singleTrackLimits = theRun.infra.singleTrackLimits;
+vector<int>& singleTrackHeld = theRun.infra.singleTrackHeld;
+vector<vector<SingleTrackReservation>>& singleTrackReservations = theRun.infra.singleTrackReservations;
+vector<StationBoundarySection>& stationBoundarySections = theRun.infra.stationBoundaries;
+int& N_Routes = theRun.infra.numRoutes;
+vector<Route>& train_route = theRun.infra.routes;

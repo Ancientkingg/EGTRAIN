@@ -98,7 +98,7 @@ public:
 	}
 };
 
-extern std::list<InfraEvent> InfraElementsList;
+extern std::list<InfraEvent>& InfraElementsList;
 
 // Update status of an infrastructure element along a train route given the list of infrastructure elements,
 // current time t, train positions at t and t-1, train speed at t-1, and train description
@@ -124,9 +124,9 @@ public:
 	TDS();
 };
 
-extern std::list<TDS> list_of_TDS;
+extern std::list<TDS>& list_of_TDS;
 
-extern int Blocks; // Total number of block sections in the network
+extern int& Blocks; // Total number of block sections in the network
 
 // Main signal aspect of a block section.
 enum class SignalState : unsigned char {
@@ -253,7 +253,7 @@ public:
 	friend void SetBlockSpeed();
 };
 
-extern std::vector<Section> signalling_block_sections; // Global block sections, sized by the scene builder
+extern std::vector<Section>& signalling_block_sections; // Global block sections, sized by the scene builder
 
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
@@ -284,7 +284,7 @@ void setGeoCoordinates(Section* BS, int N_BS);
 
 
 // --- Route: train route as sequence of block sections ---
-extern int N_Routes; // Total number of routes (from input files in Routes folder)
+extern int& N_Routes; // Total number of routes (from input files in Routes folder)
 
 class Route {
 public:
@@ -315,7 +315,7 @@ public:
 	void adjustRouteAcrossDiffRegions();
 };
 
-extern std::vector<Route> train_route;
+extern std::vector<Route>& train_route;
 
 // Set up all routes from canonical scene model.
 void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections = {});
@@ -428,13 +428,13 @@ void setRouteVirtualSignals();
 
 // Single track limits: (first plain block ID, last plain block ID, protected block ID at the first end,
 // protected block ID at the last end).
-extern std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
+extern std::vector<std::tuple<std::string, std::string, std::string, std::string>>& singleTrackLimits;
 
 // Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
 // opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed
 // route, 0 when it is free. Pending entries reserve before their last braking opportunity; forward wins
 // simultaneous requests on a free zone. Routes against the holder see it as occupied.
-extern std::vector<int> singleTrackHeld;
+extern std::vector<int>& singleTrackHeld;
 
 // Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted
 // train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears.
@@ -444,7 +444,7 @@ struct SingleTrackReservation {
 	double departureTime, origin, destination;
 	std::pair<double, double> interval;
 };
-extern std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
+extern std::vector<std::vector<SingleTrackReservation>>& singleTrackReservations;
 
 // Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
 // neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
@@ -477,6 +477,6 @@ public:
 	Section* exit;	   // Exit section (unused at end of lines)
 };
 
-extern std::vector<StationBoundarySection> stationBoundarySections;
+extern std::vector<StationBoundarySection>& stationBoundarySections;
 
 #endif

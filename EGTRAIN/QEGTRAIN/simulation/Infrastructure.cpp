@@ -9,7 +9,6 @@ extern Logger owl;
 double timestep = 1;
 // double times = 0;
 double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0; // Signalling speed limits in m/s, see Infrastructure.h
-int numTrackLines = 0;										   // This is the total number of TrackLines
 
 InitialParameters initial_variables(0);
 string InputMainFolder = initial_variables.InputMainFolder; // "Input_EGTRAIN";       //This is the Folder of all the input of EGTRAIN
@@ -95,11 +94,8 @@ BlockSet::BlockSet() {
 	firstSwitchX = -1;
 	lastSwitchX = DBL_MAX;
 }
-BlockSet blockSets[268];
 
 // This class define all connections amongst TrackLines, therefore represents switches, joints and all the other track connections
-int numConnections = 0;
-
 Connections::Connections() {
 	sceneFirstNodeId.clear();
 	sceneSecondNodeId.clear();
@@ -108,8 +104,6 @@ Connections::Connections() {
 	speedlimit = 16.667; // by default the speedlimit on a switch is set to 16.667 m /s; i.e. 60 km/h
 	graphXFirstNode = graphYFirstNode = graphXSecondNode = graphYSecondNode = 0;
 }
-
-Connections connections[708];
 
 // Function to order pairs of elements
 bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>& blockSets) {
@@ -127,9 +121,6 @@ Stations::Stations() {
 	latitude = longitude = graphX = graphY = 0;
 	N_StationPlatforms = 0;
 }
-
-Stations StationArray[95]; // Array of all the station in the network
-int numStations = 0;
 
 void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 	ofstream FileOutput;

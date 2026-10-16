@@ -3,6 +3,7 @@
 #include "scene/SectionInventory.h"
 #include "simulation/Passengers.h"
 #include "simulation/Signalling.h"
+#include "simulation/SimulationRun.h"
 #include "simulation/builders/InfrastructureBuilderInternal.h"
 #include "util/Log.h"
 
@@ -42,11 +43,8 @@ void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& route
 namespace {
 
 using RuntimeLimits::kNativeCoordinateTolerance;
-using RuntimeLimits::kNativeMaxConnections;
 using RuntimeLimits::kNativeMaxRouteBlocks;
 using RuntimeLimits::kNativeMaxSectionArcs;
-using RuntimeLimits::kNativeMaxStations;
-using RuntimeLimits::kNativeMaxTracks;
 
 struct NativeTrack {
 	std::string id;
@@ -141,29 +139,10 @@ std::vector<std::string> nativeBlockReferenceComponents(const std::string& refer
 }
 
 void nativeResetRuntime() {
-	numTrackLines = 0;
-	numConnections = 0;
-	numStations = 0;
+	defaultRun().resetInfrastructure();
 	numAllStationPlatforms = 0;
-	Blocks = 0;
-	N_Routes = 0;
-	train_route.clear();
-	list_of_TDS.clear();
-	InfraElementsList.clear();
 	AllStationPlatforms.clear();
 	AllStationPlatformIndex.clear();
-	singleTrackLimits.clear();
-	resetSingleTrackLocks();
-	stationBoundarySections.clear();
-	for (std::size_t i = 0; i < kNativeMaxTracks; ++i)
-		blockSets[i] = BlockSet();
-	for (std::size_t i = 0; i < kNativeMaxConnections; ++i)
-		connections[i] = Connections();
-	// A node list is freed with the last section that holds it
-	std::vector<Section>().swap(signalling_block_sections);
-	derivedSectionsExceedPlan = false;
-	for (std::size_t i = 0; i < kNativeMaxStations; ++i)
-		StationArray[i] = Stations();
 	// The fictitious station of the delay statistics at the final stop of every train
 	Final_Station = Stations();
 	Final_Station.stationName = "Final_Station";
@@ -176,62 +155,35 @@ bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
 	return false;
 }
 
-// The runtime infrastructure as it was before a build. The containers are swapped, not copied: the station boundaries point
+// The infrastructure of the run as it was before a build. The members are swapped, not copied: the station boundaries point
 // into the sections and the sections point into the detection sections, and a swap leaves both where they are.
 class RuntimeInfrastructureBackup {
 public:
-	// Takes the infrastructure out of the runtime globals, which are left empty.
+	// Takes the infrastructure out of the run, which is left with an empty one.
 	RuntimeInfrastructureBackup() {
 		exchange();
 	}
 	RuntimeInfrastructureBackup(const RuntimeInfrastructureBackup&) = delete;
 	RuntimeInfrastructureBackup& operator=(const RuntimeInfrastructureBackup&) = delete;
 
-	// Puts the infrastructure back. What the runtime globals hold instead is dropped with the backup.
+	// Puts the infrastructure back. What the run holds instead is dropped with the backup.
 	void restore() {
 		exchange();
 	}
 
 private:
 	void exchange() {
-		std::swap(signalling_block_sections, sections_);
-		std::swap(train_route, routes_);
-		std::swap(list_of_TDS, detectionSections_);
-		std::swap(InfraElementsList, infraElements_);
-		std::swap(AllStationPlatforms, platforms_);
-		std::swap(singleTrackLimits, singleTrackLimits_);
-		std::swap(stationBoundarySections, stationBoundaries_);
-		std::swap_ranges(blockSets, blockSets + kNativeMaxTracks, tracks_.begin());
-		std::swap_ranges(connections, connections + kNativeMaxConnections, connections_.begin());
-		std::swap_ranges(StationArray, StationArray + kNativeMaxStations, stations_.begin());
-		std::swap(Final_Station, finalStation_);
-		std::swap(numTrackLines, numTrackLines_);
-		std::swap(numConnections, numConnections_);
-		std::swap(numStations, numStations_);
-		std::swap(numAllStationPlatforms, numAllStationPlatforms_);
-		std::swap(Blocks, blocks_);
-		std::swap(N_Routes, routeCount_);
-		std::swap(derivedSectionsExceedPlan, derivedSectionsExceedPlan_);
+		SimulationRun& run = defaultRun();
+		std::swap(run.infra, infra_);
+		std::swap(run.platforms, platforms_);
+		std::swap(run.numPlatforms, numPlatforms_);
+		std::swap(run.finalStation, finalStation_);
 	}
 
-	std::vector<Section> sections_;
-	std::vector<Route> routes_;
-	std::list<TDS> detectionSections_;
-	std::list<InfraEvent> infraElements_;
+	RunInfrastructure infra_;
 	std::list<StationPlatform> platforms_;
-	decltype(singleTrackLimits) singleTrackLimits_;
-	std::vector<StationBoundarySection> stationBoundaries_;
-	std::vector<BlockSet> tracks_ = std::vector<BlockSet>(kNativeMaxTracks);
-	std::vector<Connections> connections_ = std::vector<Connections>(kNativeMaxConnections);
-	std::vector<Stations> stations_ = std::vector<Stations>(kNativeMaxStations);
+	int numPlatforms_ = 0;
 	Stations finalStation_;
-	int numTrackLines_ = 0;
-	int numConnections_ = 0;
-	int numStations_ = 0;
-	int numAllStationPlatforms_ = 0;
-	int blocks_ = 0;
-	int routeCount_ = 0;
-	bool derivedSectionsExceedPlan_ = false;
 };
 
 // Checks the whole scene and decides what the runtime will hold, without reading or writing a runtime global.
@@ -255,9 +207,9 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 	std::sort(orderedTracks.begin(), orderedTracks.end(), [](const SceneTrack* left, const SceneTrack* right) {
 		return left->id < right->id;
 	});
-	if (orderedTracks.size() > kNativeMaxTracks)
+	if (orderedTracks.size() > kMaxTrackLines)
 		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more tracks than the runtime capacity",
-			"infrastructure.json", "track", "", "tracks", std::to_string(kNativeMaxTracks),
+			"infrastructure.json", "track", "", "tracks", std::to_string(kMaxTrackLines),
 			"Reduce tracks or use a runtime with a larger fixed capacity");
 
 	std::unordered_map<std::string, const SceneNode*> nodesById;
@@ -389,12 +341,12 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 		}
 	}
 
-	if (scene.connections.size() > kNativeMaxConnections)
+	if (scene.connections.size() > kMaxConnections)
 		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more connections than the runtime capacity",
-			"infrastructure.json", "connection", "", "connections", std::to_string(kNativeMaxConnections));
-	if (scene.stations.size() > kNativeMaxStations)
+			"infrastructure.json", "connection", "", "connections", std::to_string(kMaxConnections));
+	if (scene.stations.size() > kMaxStations)
 		add(SceneSeverity::Error, "scene.native.capacity", "Scene has more stations than the runtime capacity",
-			"stations.json", "station", "", "stations", std::to_string(kNativeMaxStations));
+			"stations.json", "station", "", "stations", std::to_string(kMaxStations));
 	std::unordered_set<std::string> connectionIds;
 	std::unordered_map<std::string, std::size_t> nodeConnectionCounts;
 	for (const auto& connection : scene.connections) {
