@@ -3,19 +3,15 @@
 #include "util/Log.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <list>
 #include <string>
 
 void OrderList::Print_Implemented_Order(string FolderName, int Index_OL) {
-	string FileName;
-	char Ind_OL[20];
-	snprintf(Ind_OL, sizeof(Ind_OL), "%d", Index_OL); // Fixing the right name for the OutputFile
-	FileName = FileName + FolderName + "/Implemented_Order_OL" + Ind_OL + ".txt";
+	string FileName = FolderName + "/Implemented_Order_OL" + std::to_string(Index_OL) + ".txt"; // Fixing the right name for the OutputFile
 	ofstream ImplementedOrder;
-	ImplementedOrder.open((char*)FileName.c_str());
+	ImplementedOrder.open(FileName);
 	ImplementedOrder << Node_X << "\n"; // print the location of the OL on the top of the list
 	list<string>::iterator it;			// iterator of the TrainsCrossingOL
 
