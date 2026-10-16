@@ -45,7 +45,7 @@ All times are seconds on the time axis of the run. One simulation step is one se
 
 ## The calculation
 
-The steps follow `analyzeCapacity` and the helpers of `app/MainWindow.cpp`. Times are in seconds.
+The steps follow `analyzeCapacity` and the helpers of `diagrams/CapacityScope.cpp`. Times are in seconds.
 
 1. **Candidates.** `capacityTrainsForScope` offers every train of the run whose first valid occupation that shares a resource with the first selected block has a finite `StartRunTime` of 0 or more. That record gives the profile reference of step 2. A train without such a record is not offered. The occupations of an offered train are all its valid occupations that share a resource with a selected block. The direction of the train is not examined.
 2. **References.** The profile reference is the `StartRunTime` of that record. The scheduled reference is, in this order:

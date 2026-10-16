@@ -313,11 +313,14 @@ target_link_libraries(egtrain_dispatch
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/AreaCapacity.cpp
     ${SRC_DIR}/diagrams/BlockingTimeDiagram.cpp
+    ${SRC_DIR}/diagrams/BlockingTimeScope.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
+    ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
+    ${SRC_DIR}/diagrams/RunExports.cpp
     ${SRC_DIR}/diagrams/RunResults.cpp
     ${SRC_DIR}/diagrams/TimetableTableWindow.cpp
     ${SRC_DIR}/diagrams/TractionCurve.cpp
