@@ -13,7 +13,7 @@ Download the package for your system from the [releases page](https://github.com
 
 The macOS and Windows packages hold the EGTRAIN application, its Qt and runtime libraries, the `scene_tool` command, the Lebanon scene, and this guide.
 
-- macOS: unzip `QEGTRAIN-macos-arm64.zip`. It unpacks to the folder `QEGTRAIN-Lebanon`, which holds `QEGTRAIN.app`, `scene_tool`, `Scenes/Lebanon`, and this guide. Open `QEGTRAIN.app`. If the system blocks the first launch, open it once from the right-click menu and choose Open.
+- macOS: open `EGTRAIN-<version>-macOS-arm64.dmg`, drag `QEGTRAIN.app` onto `Applications`, and open it from there. The app needs macOS 26 or later and is the package of this guide: `scene_tool` is inside it at `Contents/MacOS/scene_tool`, the scenes at `Contents/Resources/Scenes`, and this guide at `Contents/Resources/lebanon-case-study.md`. If the system blocks the first launch, choose Open Anyway for EGTRAIN in System Settings > Privacy & Security.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start EGTRAIN from the Start Menu entry EGTRAIN. Setup installs for your user, without administrator rights, into `%LOCALAPPDATA%\Programs\EGTRAIN`, unless you choose another folder. That folder is the package folder of this guide; Setup replaces its `Scenes` folder at every install, so keep your own files outside it. If you do not want to install, unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe` from it. That folder is then the package folder; keep it intact so the application finds its libraries. The Windows files are not code signed, so Windows may show a warning before the first start. The [README](https://github.com/Ancientkingg/EGTRAIN#windows-installer-and-portable-archive) says how to upgrade and remove either copy.
 - Linux: the download is the single file `QEGTRAIN-linux-x86_64.AppImage`. Make it executable and run it. There is no unpacked folder and no package folder, so open Lebanon from the file `Lebanon.egscene`, as the next section describes.
 
@@ -23,7 +23,7 @@ The main window opens with a menu bar, a toolbar, and the network view. The menu
 
 Every time EGTRAIN is started as the section Install and launch describes, it shows the window Open a Case over the case it has loaded already. Continue closes it. At the first start only, EGTRAIN may then ask whether it may check for updates automatically. Either answer works, and the Help menu entry Automatically Check for Updates changes it later.
 
-Choose File > Open Scene Folder... and select the `Scenes/Lebanon` folder of the package. The `Scenes` folder lies next to `QEGTRAIN.app` on macOS and next to `QEGTRAIN.exe` on Windows. The network view draws the Lebanon track layout and the 34 stations. If you downloaded `Lebanon.egscene` from the releases page, choose File > Open Case Study... and select that file instead. On Linux there is no package folder, so open the scene from that file.
+On macOS, select Lebanon under Bundled cases in the window Open a Case; the toolbar button Open Case shows that window again. The scenes are inside the app, so there is no `Scenes` folder to choose. On Windows, choose File > Open Scene Folder... and select the `Scenes/Lebanon` folder of the package, which lies next to `QEGTRAIN.exe`. The network view draws the Lebanon track layout and the 34 stations. If you downloaded `Lebanon.egscene` from the releases page, choose File > Open Case Study... and select that file instead. On Linux there is no package folder, so open the scene from that file.
 
 Before you change anything, save a working copy, as [Save a working copy](#save-a-working-copy) describes.
 
@@ -91,7 +91,7 @@ Run stays gated while errors remain.
 
 Choose File > Save Case Study As... and write `Lebanon-working.egscene` outside the package. This leaves the supplied Lebanon scene unchanged. Use File > Save Scene, or Ctrl+S, to save later edits to that working copy. Use File > Save Scene As Folder... only when you need editable JSON files.
 
-Do not save into the package folder. Keep the supplied scene as your clean starting point.
+Do not save into the package: not into the folder that holds `QEGTRAIN.exe` on Windows, and not into `QEGTRAIN.app` on macOS. Keep the supplied scene as your clean starting point.
 
 ## Run the simulation
 
@@ -144,20 +144,20 @@ If a run stops with an error:
 
 ## Command reference
 
-`scene_tool` runs the import, validate, and export steps without the window, and it packs and unpacks bundles. The macOS and Windows packages hold it next to the application. The [command-line page](https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/guides/command-line.md#scene_tool) lists its commands and exit codes. Run it from the package folder:
+`scene_tool` runs the import, validate, and export steps without the window, and it packs and unpacks bundles. The macOS and Windows packages hold it. The [command-line page](https://github.com/Ancientkingg/EGTRAIN/blob/main/docs/guides/command-line.md#scene_tool) lists its commands and exit codes. On macOS it is inside the app. In Terminal, run it from the folder that holds `QEGTRAIN.app`:
 
 ```bash
-./scene_tool validate Scenes/Lebanon
+QEGTRAIN.app/Contents/MacOS/scene_tool validate QEGTRAIN.app/Contents/Resources/Scenes/Lebanon
 ```
 
-On Windows the command is `scene_tool.exe`. `validate --runnable` prints the errors the Scene Validation dock shows, which include the checks the application makes before a run. Without `--runnable` it leaves those checks out.
+On Windows it lies next to the application; run `scene_tool.exe validate Scenes/Lebanon` from the package folder. `validate --runnable` prints the errors the Scene Validation dock shows, which include the checks the application makes before a run. Without `--runnable` it leaves those checks out.
 
 ## Before you present
 
 Run this once on the presentation machine before the session.
 
 - [ ] The package launches with no missing-library error. Note the Open a Case window and, at the first start, the question about update checks if it appears.
-- [ ] The Lebanon scene opens, from `Scenes/Lebanon` or from `Lebanon.egscene`, and the network draws.
+- [ ] The Lebanon scene opens, from Bundled cases in Open Case, from the `Scenes/Lebanon` folder on Windows or from `Lebanon.egscene`, and the network draws.
 - [ ] The supplied teaching baseline runs once without edits.
 - [ ] A working copy is saved with File > Save Case Study As... before the first edit.
 - [ ] The presentation rolling stock units, compositions, services, and timetable stops are authored and saved to the working copy.
@@ -166,4 +166,4 @@ Run this once on the presentation machine before the session.
 - [ ] Every diagram you present opens with readable data.
 - [ ] The Run Results dock shows travel time and energy per train and the network totals.
 - [ ] One PNG and one CSV export open correctly outside the package.
-- [ ] The supplied scene (the `Scenes/Lebanon` folder or `Lebanon.egscene`) is unchanged; edits live in `Lebanon-working.egscene`.
+- [ ] The supplied scene (the bundled Lebanon scene or `Lebanon.egscene`) is unchanged; edits live in `Lebanon-working.egscene`.

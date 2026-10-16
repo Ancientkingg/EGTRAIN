@@ -10,9 +10,9 @@ The loaded network of Milano_Brescia in the main window before a run.
 
 ## Quick start
 
-1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `QEGTRAIN-macos-arm64.zip` (Apple silicon Macs), `EGTRAIN-Setup-<version>-x64.exe` or `EGTRAIN-Portable-<version>-x64.zip` (64-bit Windows; [choose one](#windows-installer-and-portable-archive)) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). `<version>` is the version of the release. Download a case study file from the same page too, such as `Paimpol.egscene`.
+1. Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases): `EGTRAIN-<version>-macOS-arm64.dmg` (Apple silicon Macs with macOS 26 or later; [details](#macos-disk-image)), `EGTRAIN-Setup-<version>-x64.exe` or `EGTRAIN-Portable-<version>-x64.zip` (64-bit Windows; [choose one](#windows-installer-and-portable-archive)) or `QEGTRAIN-linux-x86_64.AppImage` (64-bit Linux). `<version>` is the version of the release. Download a case study file from the same page too, such as `Paimpol.egscene`.
 2. Start the application.
-   - macOS: unzip the package and open `QEGTRAIN.app` from the extracted folder.
+   - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications` in its window, and open EGTRAIN from there.
    - Windows: run the installer and open **EGTRAIN** from the Start Menu, or unzip the portable archive into a new, empty folder and run `QEGTRAIN.exe` from it. Keep that folder intact. The Windows files are not code signed, so Windows may warn before the installer or the program starts; [Code signing](docs/development/code-signing.md) explains the state and how to check a download.
    - Linux: make the AppImage executable and run it.
 3. The application first shows the **Open a Case** window over the case that is already loaded; choose a case in it or continue with the loaded case, and answer any first-start question. Then open the case study with **File > Open Case Study...** and select the downloaded file.
@@ -20,6 +20,16 @@ The loaded network of Milano_Brescia in the main window before a run.
 5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / Distance (per train)...**. The result windows have **Export CSV...** and **Export PNG...**.
 
 [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) has the details. [Command-line options and scene_tool](docs/guides/command-line.md) covers headless runs, options and the output folder.
+
+### macOS disk image
+
+`EGTRAIN-<version>-macOS-arm64.dmg` holds `QEGTRAIN.app` and `Applications`, a shortcut to the Applications folder. It needs an Apple silicon Mac with macOS 26 or later. Releases up to v1.0.2 offer the app as `QEGTRAIN-macos-arm64.zip` instead.
+
+- **Install.** Open the image and drag `QEGTRAIN.app` onto `Applications`, then eject the image. The app is self-contained and needs no installer, so a copy in any other folder that you can write to works the same way. Run EGTRAIN from a copy and not from the image: an app on the image is read-only and cannot update itself.
+- **First start.** The app is signed ad hoc and not notarized, so macOS may refuse the first start. If it does, choose **Open Anyway** for EGTRAIN in **System Settings > Privacy & Security**.
+- **Update.** For a copy outside the image, **Help > Check for Updates...** offers **Update and Restart** when a newer release exists.
+- **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.
+- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes`, the Lebanon guide is `Contents/Resources/lebanon-case-study.md` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](docs/guides/command-line.md)). The image holds no other file.
 
 ### Windows installer and portable archive
 

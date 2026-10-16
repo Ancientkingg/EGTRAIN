@@ -94,6 +94,6 @@ Usage:
 
 Each command exits with 0 on success and 1 otherwise. There is no `migrate` command.
 
-The macOS and Windows packages contain `scene_tool` next to the application: `QEGTRAIN-Lebanon/scene_tool` in the extracted macOS folder and `scene_tool.exe` in the extracted or installed Windows folder. A build from source also produces it; see [Build And Test](../development/build-and-test.md).
+The macOS and Windows packages contain `scene_tool`: `QEGTRAIN.app/Contents/MacOS/scene_tool` inside the macOS app, and `scene_tool.exe` next to the application in the extracted or installed Windows folder. A build from source also produces it; see [Build And Test](../development/build-and-test.md).
 
 [Opening an `.egscene` case study](opening-a-case-study.md#instructor-and-command-line-use) has examples of `pack`, `validate` and `unpack`, including the rule that the unpack destination must be a new path.

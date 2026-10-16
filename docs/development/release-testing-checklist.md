@@ -12,7 +12,7 @@ from one of two sources.
 
 - One run of the `Release` workflow, either a manual run or the run of a
   pull request to `production`. The run has these artifacts:
-  - `QEGTRAIN-macos-arm64`, holding `QEGTRAIN-macos-arm64.zip`
+  - `QEGTRAIN-macos-arm64`, holding `EGTRAIN-<version>-macOS-arm64.dmg`
   - `EGTRAIN-windows-x64-installer`, holding `EGTRAIN-Setup-<version>-x64.exe`
   - `EGTRAIN-windows-x64-portable`, holding
     `EGTRAIN-Portable-<version>-x64.zip`
@@ -50,13 +50,14 @@ what the workflow does.
 
 Expected application assets:
 
-- `QEGTRAIN-macos-arm64.zip`
+- `EGTRAIN-<version>-macOS-arm64.dmg`
 - `EGTRAIN-Setup-<version>-x64.exe`
 - `EGTRAIN-Portable-<version>-x64.zip`
 - `QEGTRAIN-linux-x86_64.AppImage`
 
 `<version>` is the version of the release without the leading `v`. The releases
-up to v1.0.2 have `QEGTRAIN-windows-x64.zip` for Windows instead of the two
+up to v1.0.2 have `QEGTRAIN-macos-arm64.zip` for macOS and
+`QEGTRAIN-windows-x64.zip` for Windows instead of the disk image and the two
 Windows names above.
 
 Expected case-study assets:
@@ -83,15 +84,19 @@ What the jobs prove today:
   and QML frameworks, and the WebP and TIFF plugins with their libraries, from
   the app before the signature, and fails when one of them is in the app or when
   the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
-  The package holds the app, `scene_tool`, `Scenes/Lebanon` and the guide.
-  `scene_tool` validates the packaged Lebanon scene, and the packaged app runs
-  Paimpol without the GUI from `Contents/Resources/Scenes` to
-  `End of Simulation`. The job starts a copy of the app with
-  `tools/release/package_start_smoke.py` (step **Start the package**), which
-  first checks that every dependency of the app is a system library or a file
-  inside the app and that every library inside the app is loaded by some file.
+  The app holds `scene_tool` and the guide. `scene_tool` validates the Lebanon
+  scene of the app, and the app runs Paimpol without the GUI from
+  `Contents/Resources/Scenes` to `End of Simulation`. The job starts a copy of
+  the app with `tools/release/package_start_smoke.py` (step
+  **Start the package**), which first checks that every dependency of the app is
+  a system library or a file inside the app and that every library inside the
+  app is loaded by some file.
   The job prints the number of files and bytes of the app before and after the
   removal in its job summary. It also packs and validates the seven bundles.
+  Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the signed app,
+  mounts the image read-only, checks that the volume holds only `QEGTRAIN.app`
+  and the link `Applications`, that the app in the image and a `ditto` copy of it
+  have a valid signature, and that the copy runs Paimpol to `End of Simulation`.
 - The Package Windows job checks that these files exist: `QEGTRAIN.exe`,
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
   `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
@@ -149,7 +154,7 @@ None of this shows the GUI student workflow.
 
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
-| macOS | `QEGTRAIN-macos-arm64.zip` | Unpacks to the folder `QEGTRAIN-Lebanon` with `QEGTRAIN.app`, `scene_tool`, `Scenes/Lebanon` and `lebanon-case-study.md`. The scene folders of the seven cases are inside the app, under `Contents/Resources/Scenes`. | `QEGTRAIN.app` |
+| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
 | Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut and an entry in the list of installed apps. | The Start Menu entry `EGTRAIN` |
 | Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
@@ -190,7 +195,10 @@ user folder. This does not protect an ordinary downloaded bundle from an
 in-place save. Row R11 checks the installed-example path.
 
 1. Launch the downloaded application through the platform's normal GUI path.
+   On macOS that path is: open the disk image, drag `QEGTRAIN.app` onto
+   `Applications`, eject the image and open the copy in the Applications folder.
    Record:
+   - on macOS, what the window of the disk image shows;
    - the version shown by **About EGTRAIN**, in the **Help** menu or, on macOS,
      the application menu;
    - any operating system warning shown at the first launch, with its text. The
@@ -245,7 +253,7 @@ downloaded bundle open and edited.
 
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |
-| R1 Run from a second location | Move or copy the unpacked package to another writable folder and repeat steps 1 and 2. On macOS, copy the `QEGTRAIN-Lebanon` folder with Finder or `ditto`, not file by file out of the app. On Windows, copy the folder that holds `QEGTRAIN.exe`. On Linux, copy the AppImage. | The application starts from the new location and opens a bundle. | All |
+| R1 Run from a second location | Move or copy the unpacked package to another writable folder and repeat steps 1 and 2. On macOS, copy `QEGTRAIN.app` with Finder or `ditto`, not file by file out of the app. On Windows, copy the folder that holds `QEGTRAIN.exe`. On Linux, copy the AppImage. | The application starts from the new location and opens a bundle. | All |
 | R2 Drop a bundle onto the open window | Drag one `.egscene` file from the file manager onto the open main window. | It opens like **File > Open Case Study...**. The application accepts exactly one local `.egscene` file. | All |
 | R3 Unsaved changes | Run it after step 9, when the open case is the working copy and not the downloaded bundle. Change a scenario value and choose **File > Open Case Study...**. In the file dialog choose another copy of a bundle, never the downloaded bundle. The **Unsaved Scene** message follows the choice of a file. Then repeat with **File > Quit** (on macOS, **Quit** in the application menu). Make the change again before each repeat, and reopen the working copy after **Discard**. | The message offers **Save**, **Discard** and **Cancel**. Answer **Cancel** first and record that the edit and the open case stay. For the open request the status bar then shows `Open canceled. Current scene retained.` Then answer **Save** and **Discard** once each, and record what happened to the working copy. Afterwards the downloaded bundle must still equal its copy. | All |
 | R4 Damaged file | Rename a plain text file to `something.egscene` and open it with **File > Open Case Study...**. | Record the message title and text, and whether the case that was open before is still shown. The application must not crash and must not change the file. | All |
@@ -320,7 +328,6 @@ The release does not build these today, so they have no subject.
 
 | Check | What the release has today | Status |
 | --- | --- | --- |
-| macOS disk image: open, copy to Applications, launch, run from a second folder | A zip of the folder `QEGTRAIN-Lebanon` (#403). | No row until the release provides it |
 | macOS Developer ID signing and notarization: first open without a system warning | An ad hoc signature only (#404). | No row until the release provides it |
 | Windows binary signature | None (#402). | No row until the release provides it |
 | Open a bundle from the file manager or the command line, with the application closed and with it running | **File > Open Case Study...**, a drop onto the window and the `--scene` option (#416). | No row until the release provides it |
