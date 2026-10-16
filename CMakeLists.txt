@@ -180,6 +180,7 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/RollingStockTrajectory.cpp
     ${SRC_DIR}/simulation/RollingStockBlockingTimes.cpp
     ${SRC_DIR}/simulation/RollingStockBraking.cpp
+    ${SRC_DIR}/simulation/RollingStockDynamics.cpp
     ${SRC_DIR}/simulation/RollingStockOccupation.cpp
     ${SRC_DIR}/simulation/RollingStockStops.cpp
     ${SRC_DIR}/simulation/Signalling.cpp
