@@ -3748,24 +3748,48 @@ struct AspectRow {
 	SpeedSelector speed;
 };
 
-// The rows of a fixed-block system, from the occupied section back. A section is written only when it has the level of the system. With
-// clearFirst, every section of the level is first set to the aspect of the last row.
+// Which sections behind an occupied section a row writes.
+enum class AspectGate {
+	// The sections that have the level of the system.
+	Level,
+	// The sections that have the level of the system, and the sections without a level when the occupied section has the level of the
+	// system. The second section of a route is the exception: its first row behind writes the first section only when that has the level.
+	LevelOrUnsetBehindOccupied
+};
+
+// The rows of a fixed-block system, from the occupied section back. With clearFirst, every section of the level is first set to the aspect
+// of the last row.
 struct FixedBlockSystem {
 	int level;
 	bool clearFirst;
 	int rowCount;
 	AspectRow rows[5];
+	AspectGate gate;
 };
 
 // Level 0, ATB: the section behind an occupied one is red with a speed limit, then yellow, then green.
 constexpr FixedBlockSystem kAtb = {levelValue(SignallingLevel::Atb), false, 4,
 	{{0, nullptr, SpeedSelector::Unlimited}, {75, "red", SpeedSelector::V75}, {180, "yellow", SpeedSelector::Unlimited},
-		{270, "green", SpeedSelector::Unlimited}}};
+		{270, "green", SpeedSelector::Unlimited}},
+	AspectGate::Level};
 
 // Level 5, BACC: one more row than ATB. The first row behind an occupied section is double red, with a speed limit that stops the train.
 constexpr FixedBlockSystem kBacc = {levelValue(SignallingLevel::Bacc), true, 5,
 	{{0, nullptr, SpeedSelector::Unlimited}, {751, "red_red", SpeedSelector::V751}, {75, "red", SpeedSelector::V75},
-		{180, "yellow", SpeedSelector::Unlimited}, {270, "green", SpeedSelector::Unlimited}}};
+		{180, "yellow", SpeedSelector::Unlimited}, {270, "green", SpeedSelector::Unlimited}},
+	AspectGate::Level};
+
+// Levels 1 and 2, ETCS fixed block: the rows of level 0 with no speed limit on the red section. The two levels differ in their number only.
+constexpr FixedBlockSystem etcsFixedBlock(SignallingLevel level) {
+	return {levelValue(level), false, 4,
+		{{0, nullptr, SpeedSelector::Unlimited}, {75, "red", SpeedSelector::Unlimited}, {180, "yellow", SpeedSelector::Unlimited},
+			{270, "green", SpeedSelector::Unlimited}},
+		AspectGate::LevelOrUnsetBehindOccupied};
+}
+
+// ETCS Level 1 Signalling System - Italian Version (SCMT)
+constexpr FixedBlockSystem kEtcs1 = etcsFixedBlock(SignallingLevel::EtcsLevel1);
+constexpr FixedBlockSystem kEtcs2 = etcsFixedBlock(SignallingLevel::EtcsLevel2);
 
 // Gives the section the code, state and signal speed limit of the row.
 void writeAspect(Section& section, const AspectRow& row, double v75, double v751) {
@@ -3779,6 +3803,20 @@ void writeAspect(Section& section, const AspectRow& row, double v75, double v751
 	for (int a = 0; a < section.total_arcs; a++) {
 		section.arcs_in_signalling_block_section[a].signalSpeedLimit = limit;
 	}
+}
+
+// Whether the ETCS 1 and 2 rows of a level write the aspect of a section behind an occupied one: when the section
+// has that level, or when it has no level and the occupied section has that level.
+bool levelWritesAspectBehind(int level, const Section& occupied, const Section& behind) {
+	return behind.SignallingLevel == level || (behind.SignallingLevel == kSignallingLevelUnset && occupied.SignallingLevel == level);
+}
+
+// Whether row k of the system writes the section k blocks behind the occupied section h (k = 0 is the occupied section itself).
+bool rowWritesSection(const FixedBlockSystem& rules, const Section* BS, int h, int k) {
+	const bool onlyLevel = rules.gate == AspectGate::Level || (h == 1 && k == 1);
+	if (onlyLevel)
+		return BS[h - k].SignallingLevel == rules.level;
+	return levelWritesAspectBehind(rules.level, BS[h], BS[h - k]);
 }
 
 // Writes the aspects of a fixed-block system behind every occupied section of the route, from the last section to the first. Near the start of
@@ -3798,9 +3836,9 @@ void applyFixedBlockAspects(const FixedBlockSystem& rules, Section* BS, int bloc
 		if (occupied[h] == 0)
 			continue;
 		for (int k = 0; k < rules.rowCount && k <= h; k++) {
-			Section& section = BS[h - k];
-			if (section.SignallingLevel != rules.level)
+			if (!rowWritesSection(rules, BS, h, k))
 				continue;
+			Section& section = BS[h - k];
 			if (k == 0) {
 				section.code = rules.rows[0].code;
 				section.exit_speed = section.arcs_in_signalling_block_section[section.total_arcs - 1].speedInBraking;
@@ -3838,166 +3876,6 @@ void releaseLastSections(Section* BS, int blockIndex, int count) {
 	}
 }
 } // namespace
-
-namespace {
-// Whether the routine of a level writes the aspect of a section behind an occupied one: when the section has that
-// level, or when it has no level and the occupied section has that level.
-bool levelWritesAspectBehind(int level, const Section& occupied, const Section& behind) {
-	return behind.SignallingLevel == level || (behind.SignallingLevel == kSignallingLevelUnset && occupied.SignallingLevel == level);
-}
-} // namespace
-
-// ETCS Level 1 Signalling System - Italian Version (SCMT)
-
-void etcsLev1MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied) {
-
-	for (int h = Blocks - 1; h >= 0; h--) {
-		if (occupied[h] != 0) {
-			if (h == 0) {
-				if (BS[h].SignallingLevel == 1) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-			}
-
-			else if (h == 1) {
-				if (BS[h].SignallingLevel == 1) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 1) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			} else if (h == 2) {
-				if (BS[h].SignallingLevel == 1) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (levelWritesAspectBehind(1, BS[h], BS[h - 1])) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(1, BS[h], BS[h - 2])) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-
-			else if (h >= 3) {
-				if (BS[h].SignallingLevel == 1) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (levelWritesAspectBehind(1, BS[h], BS[h - 1])) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(1, BS[h], BS[h - 2])) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(1, BS[h], BS[h - 3])) {
-					BS[h - 3].code = 270;
-					strcpy_s(BS[h - 3].state, "green");
-					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-		}
-	}
-}
-
-void etcsLev2MixedSignalling(double V_0, Section* BS, int Blocks, const char* occupied) {
-
-	for (int h = Blocks - 1; h >= 0; h--) {
-		if (occupied[h] != 0) {
-			if (h == 0) {
-				if (BS[h].SignallingLevel == 2) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-			}
-
-			else if (h == 1) {
-				if (BS[h].SignallingLevel == 2) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (BS[h - 1].SignallingLevel == 2) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			} else if (h == 2) {
-				if (BS[h].SignallingLevel == 2) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (levelWritesAspectBehind(2, BS[h], BS[h - 1])) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(2, BS[h], BS[h - 2])) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-
-			else if (h >= 3) {
-				if (BS[h].SignallingLevel == 2) {
-					BS[h].code = 0;
-					BS[h].exit_speed = BS[h].arcs_in_signalling_block_section[BS[h].total_arcs - 1].speedInBraking;
-				}
-				if (levelWritesAspectBehind(2, BS[h], BS[h - 1])) {
-					BS[h - 1].code = 75;
-					strcpy_s(BS[h - 1].state, "red");
-					for (int k = 0; k < BS[h - 1].total_arcs; k++) {
-						BS[h - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(2, BS[h], BS[h - 2])) {
-					BS[h - 2].code = 180;
-					strcpy_s(BS[h - 2].state, "yellow");
-					for (int k = 0; k < BS[h - 2].total_arcs; k++) {
-						BS[h - 2].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-				if (levelWritesAspectBehind(2, BS[h], BS[h - 3])) {
-					BS[h - 3].code = 270;
-					strcpy_s(BS[h - 3].state, "green");
-					for (int k = 0; k < BS[h - 3].total_arcs; k++) {
-						BS[h - 3].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
-					}
-				}
-			}
-		}
-	}
-}
 
 // Marks the occupied sections of levels 3 and 4 with code 0, so that the routines of the other levels see them. The movement authorities are made by ReportPositionToRBC.
 void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied) {
@@ -4209,13 +4087,15 @@ void activateMixedSignallingSystem() {
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel1)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 1
-			etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
+				signalCode2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel2)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 2
-			etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), signalCode1,
+				signalCode2);
 			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
 		}
 
