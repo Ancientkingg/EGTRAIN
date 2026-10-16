@@ -38,6 +38,9 @@ RouteDiagramProjection buildRouteDiagramProjection(const RouteDiagramPath& sourc
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
 // The sections of a route in order with the ends the route holds, in runtime route coordinates.
 std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
+// Distance-axis range of a chart of the reference route, with the margin every such chart uses: the sections that have
+// geometry, else the finite nodes of the reference path, else 0 to 1. Envelopes are projected onto that path.
+std::pair<double, double> blockSectionAxisRange(const std::vector<BlockSectionExtent>& extents, const RouteDiagramPath& reference);
 std::optional<double> routeDiagramStopPosition(const Train& train, int index,
 	const RouteDiagramPath& source, const RouteDiagramProjection& projection);
 // Simulation samples already use runtime route X in metres, including reversed routes.

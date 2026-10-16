@@ -30253,13 +30253,13 @@ void MainWindow::showBlockingTimeDiagram() {
 	}
 	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
-	const auto bounds = blockSectionBounds(extents);
 
 	axisX->setTitleText(QString("Reference %1 X (km); origin %2, travel %3")
 			.arg(QString::fromStdString(referencePath.id))
 			.arg(origin, 0, 'f', 3)
 			.arg(end >= origin ? "right" : "left"));
-	axisX->setRange(bounds ? bounds->first - 0.01 : 0.0, bounds ? bounds->second + 0.01 : 1.0);
+	const auto axisRange = blockSectionAxisRange(extents, referencePath);
+	axisX->setRange(axisRange.first, axisRange.second);
 
 	axisY->setTitleText("Elapsed simulation time (s), downward");
 	axisY->setReverse(true);
@@ -30483,14 +30483,12 @@ void MainWindow::showCapacityAnalysis() {
 	const auto allCompressedExtents = buildBlockSectionExtents(blockSectionInputsForRoute(train_route[scope.routeIndex]));
 	const auto compressedExtents = scopedBlockSectionExtents(allCompressedExtents, scope.sectionIndices);
 	matchBlockingSegmentsToSections(compressedSegments, allCompressedExtents, compressedReference.id);
-	const auto bounds = blockSectionBounds(compressedExtents);
-	const double routeStartKm = bounds ? bounds->first : 0.0;
-	const double routeEndKm = bounds ? bounds->second : 1.0;
+	const auto axisRange = blockSectionAxisRange(compressedExtents, compressedReference);
 	const QString referenceId = QString::fromStdString(compressedReference.id);
 	connect(diagramButton, &QPushButton::clicked, dialog,
-		[this, result, sectionLabel, provenance, compressedSegments, compressedUnmapped, compressedExtents, routeStartKm, routeEndKm, referenceId]() {
+		[this, result, sectionLabel, provenance, compressedSegments, compressedUnmapped, compressedExtents, axisRange, referenceId]() {
 			showCompressedBlockingTimeDiagram(result, sectionLabel, provenance, compressedSegments,
-				routeStartKm, routeEndKm, referenceId, compressedExtents, compressedUnmapped);
+				axisRange.first, axisRange.second, referenceId, compressedExtents, compressedUnmapped);
 		});
 	secondaryActions->addWidget(exportButton);
 	secondaryActions->addWidget(diagramButton);
@@ -30509,7 +30507,7 @@ void MainWindow::showCapacityAnalysis() {
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
 	const QString& sectionLabel, RunProvenance provenance,
-	std::vector<BlockingTimeDiagramSegment> segments, double routeStartKm, double routeEndKm,
+	std::vector<BlockingTimeDiagramSegment> segments, double axisMinKm, double axisMaxKm,
 	const QString& referenceId, std::vector<BlockSectionExtent> extents,
 	std::vector<BlockingTimeDiagramSegment> unmapped) {
 	QChart* chart = new QChart();
@@ -30529,8 +30527,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		series->attachAxis(axisY);
 	}
 	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId));
-	axisX->setRange(std::min(routeStartKm, routeEndKm) - 0.01,
-		std::max(std::min(routeStartKm, routeEndKm) + 0.02, std::max(routeStartKm, routeEndKm) + 0.01));
+	axisX->setRange(axisMinKm, axisMaxKm);
 
 	axisY->setTitleText("Compressed envelope time (s), downward");
 	axisY->setReverse(true);
