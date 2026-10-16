@@ -820,6 +820,7 @@ def main() -> None:
     if (
         not tidy_version
         or f'sudo "$RUNNER_TEMP/llvm.sh" {tidy_version.group(1)}\n' not in tidy_install
+        or f"sudo apt-get install -y clang-tidy-{tidy_version.group(1)}\n" not in tidy_install
         or "python3 tools/tidy.py --changed-from HEAD^1\n" not in tidy_step
         or tidy_step.count("python3 tools/tidy.py") != 2
         or '[ "$GITHUB_EVENT_NAME" = pull_request ]' not in tidy_step
@@ -842,14 +843,33 @@ def main() -> None:
         or tidy.select_changed([prefix + "scene/SceneModel.h"], sources) != [prefix + "scene/SceneModel.cpp", prefix + "scene/SceneValidator.cpp"]
         or tidy.select_changed([".clang-tidy"], sources) != sorted(sources)
         or tidy.select_changed([prefix + "scene/CMakeLists.txt"], sources) != sorted(sources)
+        or tidy.select_changed([prefix + "app/MainWindow.ui"], sources) != sorted(sources)
+        or tidy.select_changed([prefix + "simulation/RuntimeLimits.h"], sources) != [prefix + "scene/SceneValidator.cpp"]
         or tidy.select_changed(["docs/development/build-and-test.md"], sources)
     ):
         missing.append("tidy run that selects the changed sources, the sources that include a changed header, and all sources for a configuration change")
-    known_file, known_checks = next(iter(tidy.KNOWN_FINDINGS.items()))
-    known_check, known_count = next(iter(known_checks.items()))
-    known = {(known_file, line, 1, known_check): "" for line in range(1, known_count + 1)}
-    if tidy.without_known(known) or len(tidy.without_known({**known, (known_file, 0, 1, known_check): ""})) != known_count + 1:
-        missing.append("tidy run that leaves out the known findings of a file and reports all of them when there are more")
+    saved_known = tidy.KNOWN_FINDINGS
+    tidy.KNOWN_FINDINGS = {"a.cpp": {"x": 2}}
+    try:
+        known = {("a.cpp", line, 1, "x"): "" for line in (1, 2)}
+        other = {("a.cpp", 3, 1, "y"): "", ("b.cpp", 4, 1, "x"): ""}
+        if tidy.without_known(known) or len(tidy.without_known({**known, ("a.cpp", 3, 1, "x"): ""})) != 3 or tidy.without_known(other) != other:
+            missing.append("tidy run that leaves out the known findings of a file and reports all of them when there are more")
+    finally:
+        tidy.KNOWN_FINDINGS = saved_known
+    sample = "/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]"
+    found = tidy.FINDING.match(sample)
+    if (
+        not found
+        or (found["line"], found["column"], found["check"]) != ("12", "5", "bugprone-foo")
+        or tidy.FINDING.match("Log.cpp:12:5: warning: message text [bugprone-foo]")
+        or tidy.FINDING.match("/work/Log.cpp:12:5: note: message text")
+        or not tidy.analysed(prefix + "util/Log.cpp")
+        or tidy.analysed(prefix + "simulation/Train.cpp")
+        or tidy.analysed(prefix + "io/third_party/zmq.hpp")
+        or tidy.analysed("tools/tidy.py")
+    ):
+        missing.append("tidy run that reads clang-tidy findings and leaves out simulation/ and vendored code")
     # The package jobs live in a reusable workflow that the release workflow and the package check call. The two signing jobs
     # of that workflow ask for two read permissions, and a called workflow cannot hold more than its caller grants, so both
     # callers grant exactly those two. Only the release workflow passes the signing token, by name.

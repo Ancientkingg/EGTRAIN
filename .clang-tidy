@@ -16,7 +16,7 @@
 #
 # A check is switched off below only when its findings are a matter of style, or
 # when it cannot see how Qt owns and connects objects. docs/development/coding-guidelines.md
-# gives the reason and the findings of each one.
+# gives the reason of each one.
 Checks: >
   -*,
   bugprone-*,

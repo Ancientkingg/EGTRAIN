@@ -76,12 +76,13 @@ jobs:
             libzmq3-dev cppzmq-dev nlohmann-json3-dev
 
       # PyPI stops at clang-tidy 22 and the runner image has an older release, so the 23.1 release comes from apt.llvm.org,
-      # which is the version that tools/tidy.py accepts. The script of apt.llvm.org adds the repository and installs the tools.
+      # which is the version that tools/tidy.py accepts. The script of apt.llvm.org adds the repository, and clang-tidy is a package of its own.
       - name: Install clang-tidy
         run: |
           curl -fsSL -o "$RUNNER_TEMP/llvm.sh" https://apt.llvm.org/llvm.sh
           chmod +x "$RUNNER_TEMP/llvm.sh"
           sudo "$RUNNER_TEMP/llvm.sh" 23
+          sudo apt-get install -y clang-tidy-23
 
       - name: Run clang-tidy
         run: |

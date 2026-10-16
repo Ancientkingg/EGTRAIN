@@ -30,8 +30,10 @@ SOURCE_ROOT = "EGTRAIN/QEGTRAIN"
 MODULES = ("app", "diagrams", "editors", "graphics", "io", "recovery", "scene", "telemetry", "tests", "update", "util", "widgets")
 VENDORED = SOURCE_ROOT + "/io/third_party/"
 HEADER_SUFFIXES = (".h", ".hpp")
-# A change to one of these files can change the findings of any source.
+# A change to one of these files can change the findings of any source. So can a change to a form or resource file, which
+# the build turns into headers and sources.
 GLOBAL_INPUTS = ("tools/tidy.py", "CMakeLists.txt", ".clang-tidy", ".github/workflows/tidy.yml")
+GLOBAL_SUFFIXES = ("/.clang-tidy", "/CMakeLists.txt", ".ui", ".qrc")
 INSTALL_HINT = "brew install llvm (macOS), or on Ubuntu add apt.llvm.org and install clang-tidy-23"
 # The findings of files that other work is changing right now: the number of findings of each check in each file.
 # A file with more findings of a check than listed here reports all of them. Remove an entry when its findings are fixed.
@@ -75,12 +77,12 @@ def run(command: list, **options) -> subprocess.CompletedProcess:
     return subprocess.run(command, cwd=ROOT, check=True, **options)
 
 
-def configure(build_dir: Path, cmake_arguments: list) -> None:
+def configure(build_dir: Path) -> None:
     arguments = ["-DCMAKE_BUILD_TYPE=Debug", "-DEGTRAIN_BUILD_TESTS=ON", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"]
     homebrew_qt = Path("/opt/homebrew/opt/qt@5")
-    if sys.platform == "darwin" and homebrew_qt.is_dir() and not any(a.startswith("-DCMAKE_PREFIX_PATH") for a in cmake_arguments):
+    if sys.platform == "darwin" and homebrew_qt.is_dir():
         arguments.append(f"-DCMAKE_PREFIX_PATH={homebrew_qt}")
-    run(["cmake", "-S", str(ROOT), "-B", str(build_dir), "-G", "Ninja", *arguments, *cmake_arguments])
+    run(["cmake", "-S", str(ROOT), "-B", str(build_dir), "-G", "Ninja", *arguments])
 
 
 def build_generated_sources(build_dir: Path) -> None:
@@ -128,14 +130,14 @@ def changed_files(revision: str) -> list:
 def select_changed(changed: list, sources: set) -> list:
     """A source is analysed when it changed, when it includes a changed header directly or through other headers, or when
     the configuration changed. The include test reads the name of the header, not the include path."""
-    if any(name in GLOBAL_INPUTS or name.endswith(("/.clang-tidy", "/CMakeLists.txt")) for name in changed):
+    if any(name in GLOBAL_INPUTS or name.endswith(GLOBAL_SUFFIXES) for name in changed):
         return sorted(sources)
     selected = {name for name in changed if name in sources}
-    pending = [Path(name).name for name in changed if name.endswith(HEADER_SUFFIXES) and analysed(name)]
+    pending = [Path(name).name for name in changed if name.endswith(HEADER_SUFFIXES) and name.startswith(SOURCE_ROOT + "/")]
     if pending:
         includers = {}
         for name in tracked_files():
-            if analysed(name) and name.endswith(HEADER_SUFFIXES + (".cpp",)):
+            if name.endswith(HEADER_SUFFIXES + (".cpp",)):
                 for included in INCLUDE.findall((ROOT / name).read_text(encoding="utf-8", errors="replace")):
                     includers.setdefault(included, []).append(name)
         reached = set(pending)
@@ -179,14 +181,13 @@ def main() -> int:
     parser.add_argument("files", nargs="*", help="analyse these sources only")
     parser.add_argument("--changed-from", metavar="REV", help="analyse the sources changed since REV")
     parser.add_argument("--build-dir", default="build_tidy", help="build directory (default: build_tidy)")
-    parser.add_argument("--cmake-arg", action="append", default=[], help="extra argument for the CMake configure step")
     parser.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 2, help="parallel clang-tidy processes")
     parser.add_argument("--no-build", action="store_true", help="reuse the configured build directory and its generated sources")
     arguments = parser.parse_args()
     clang_tidy = find_clang_tidy()
     build_dir = (ROOT / arguments.build_dir).resolve()
     if not arguments.no_build:
-        configure(build_dir, arguments.cmake_arg)
+        configure(build_dir)
         build_generated_sources(build_dir)
     sources = compiled_sources(build_dir)
     if arguments.files:
