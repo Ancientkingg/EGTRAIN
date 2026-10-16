@@ -29,10 +29,11 @@ Besides the payload, the compiler reads two files of the repository: `installer/
 - It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
 - It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.
 - It adds an uninstall entry that Inno Setup writes under the current user, named after the `AppId` of the script. Windows lists it with the installed apps.
+- It associates the file type `.egscene` with the installed program for the current user. Under `HKEY_CURRENT_USER\Software\Classes` it sets the default value of `.egscene` to the identifier `EGTRAIN.Scene`, and it adds that identifier with the display name `EGTRAIN case study`, the first icon of `QEGTRAIN.exe` and the open command `"<installation folder>\QEGTRAIN.exe" "%1"`. Opening a `.egscene` file in Explorer therefore starts `QEGTRAIN.exe` with the file as its only argument, and EGTRAIN opens it as **File > Open Case Study** does, in the window of the same installation when one is open (see [Startup of the window](../docs/guides/command-line.md#startup-of-the-window)). The script registers no other extension, so a `.zip` file is not touched. The portable ZIP registers nothing.
 - It writes `installed-by-setup.ini` next to `QEGTRAIN.exe`. Only the installer writes this file, so its presence marks a copy that the installer manages. The portable ZIP does not hold it.
 - An install over an older version is an upgrade of that installation: the `AppId` is the same, so Setup uses the installation that the first install made instead of making a second one. It asks Windows to close a running `QEGTRAIN.exe` first.
 - The `Scenes` folder inside the installation folder is deleted before each install and replaced by the one in the package, so scenes of an older version do not stay behind. Keep your own cases outside it. Nothing else is deleted before the copy, so other files of an older version stay in the folder.
-- Uninstalling removes the files that Setup installed, the shortcuts, the uninstall entry, and the installation folder when it is then empty. It leaves the run output of the program, exported results and case studies. By default the program writes run output below the application data folder of the user, or below `QEGTRAIN_OUTPUT_DIR` when that variable is set. A file that the program creates inside the installation folder stays, and so does the folder.
+- Uninstalling removes the files that Setup installed, the shortcuts, the uninstall entry, the file type, and the installation folder when it is then empty. It deletes the default value of `.egscene`, the key of `.egscene` when nothing else is left in it, and the key `EGTRAIN.Scene` with everything below it. A value that another program keeps in the key of `.egscene` stays. It leaves the run output of the program, exported results and case studies. By default the program writes run output below the application data folder of the user, or below `QEGTRAIN_OUTPUT_DIR` when that variable is set. A file that the program creates inside the installation folder stays, and so does the folder.
 
 ## Silent install
 
@@ -55,7 +56,7 @@ EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="des
 
 - It downloads and compiles nothing. It installs the files of the payload directory.
 - It does not run the Visual C++ redistributable (`vc_redist.x64.exe`) that the package may hold. Setup copies the file like any other, and running it needs administrator rights.
-- It registers no file type. The application reads its options by name and cannot open a file that is given on the command line.
+- It leaves the setting that the user made in Windows for `.egscene` files (**Open with**) as it is.
 - It has no signing configuration and no licence page.
 - It was written for the package that the Windows package job assembles. Another layout needs another script.
 
@@ -73,4 +74,4 @@ Never change the `AppId`. Setup keeps the uninstall entry of an installation und
 
 ## Test
 
-`tools/release/test_installer_script.py` reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the constants and sections that may appear, the output name against `kAssetPatterns` and what may be deleted before an install. It does not compile the script and does not run an installer. See [Installer script](../docs/development/build-and-test.md#installer-script) for the checks and the command.
+`tools/release/test_installer_script.py` reads the script and the files it names and checks the rules that keep the installer per user and small, for example the privilege setting, the constants and sections that may appear, the output name against `kAssetPatterns`, what may be deleted before an install and the registry entries of the file type. It does not compile the script and does not run an installer. See [Installer script](../docs/development/build-and-test.md#installer-script) for the checks and the command.

@@ -3,25 +3,32 @@
 Installs, upgrades and uninstalls the EGTRAIN installer on this machine and checks what each step leaves behind.
 
 .DESCRIPTION
-Run it on a Windows machine that has no EGTRAIN installation. It changes the registry, the Start Menu and the desktop of the
-current user and %LOCALAPPDATA%\Programs\EGTRAIN, and it removes what it installs.
+Run it on a Windows machine that has no EGTRAIN installation and no .egscene file type. It changes the registry, the Start Menu
+and the desktop of the current user and %LOCALAPPDATA%\Programs\EGTRAIN, and it removes what it installs.
 
   installer_smoke.ps1 -Installer EXE -UpgradeInstaller EXE -Payload DIR -Version X.Y.Z -UpgradeVersion X.Y.Z [-Work DIR] [-Python NAME]
 
 -Installer and -UpgradeInstaller are two installers of the same payload, built with /DVersion=-Version and with a higher
 /DVersion=-UpgradeVersion. -Payload is the package directory they were built from. -Work is a directory that does not exist or
-is empty. The script puts its installations, the files outside them and the logs of Setup and of the uninstaller below it.
+is empty. The script puts a copy of the payload, its installations, the files outside them and the logs of Setup and of the
+uninstaller below it.
 -Python names the interpreter that runs package_start_smoke.py.
 
 1. Both installers ask for the invoking user's rights (asInvoker) in their manifest.
-2. Silent install into a directory of -Work, without the desktop task. The only uninstall entry is under HKEY_CURRENT_USER and
+2. A copy of the payload is started with package_start_smoke.py, as a portable copy is. Before and after the start the registry
+   holds no file type of .egscene.
+3. Silent install into a directory of -Work, without the desktop task. The only uninstall entry is under HKEY_CURRENT_USER and
    names the directory and the version. None is under HKEY_LOCAL_MACHINE. The Start Menu shortcut starts QEGTRAIN.exe in the
    directory, and no desktop shortcut exists. The directory holds the files of the payload with the same bytes, the marker
-   file of the installer and one uninstaller, and nothing else. package_start_smoke.py starts the installed copy.
-   The silent uninstall then removes the files, the shortcut and the entry, and a file beside the directory survives. A file
-   that the program wrote into the directory during the start check may stay with the directory.
-3. The same with /TASKS=desktopicon: the desktop shortcut exists after the install and is gone after the uninstall.
-4. Install into the default directory, which is %LOCALAPPDATA%\Programs\EGTRAIN. Plant a scene folder that the payload does not
+   file of the installer and one uninstaller, and nothing else. Under HKEY_CURRENT_USER\Software\Classes the extension key
+   of .egscene names the identifier EGTRAIN.Scene, whose open command starts QEGTRAIN.exe of the directory with the file as
+   its only argument, and which has a display name and the icon of QEGTRAIN.exe. package_start_smoke.py starts the installed
+   copy. The silent uninstall then removes the files, the shortcut, the entry and the file type, and a file beside the
+   directory survives. A file that the program wrote into the directory during the start check may stay with the directory.
+4. The same with /TASKS=desktopicon: the desktop shortcut exists after the install and is gone after the uninstall. Here a value
+   of another program is planted in the key of .egscene first. It survives the install and the uninstall, which removes only
+   the default value of the key. The key of .egscene is gone after the other uninstalls, as nothing else is left in it.
+5. Install into the default directory, which is %LOCALAPPDATA%\Programs\EGTRAIN. Plant a scene folder that the payload does not
    have. Install -UpgradeInstaller over it without a directory: the entry and the directory stay one, the entry names the
    higher version, the planted folder is gone and the files are those of the payload. The uninstall leaves a file outside the
    directory.
@@ -65,6 +72,10 @@ $registryRoots = @(
 $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EGTRAIN.lnk'
 $desktopLink = Join-Path ([Environment]::GetFolderPath('Desktop')) 'EGTRAIN.lnk'
 $defaultDirectory = Join-Path $env:LOCALAPPDATA 'Programs\EGTRAIN'
+$extensionKey = 'HKCU:\Software\Classes\.egscene'
+$progIdKey = 'HKCU:\Software\Classes\EGTRAIN.Scene'
+$machineProgIdKey = 'HKLM:\Software\Classes\EGTRAIN.Scene'
+$foreignValue = 'SmokeTestValueOfAnotherProgram'
 $logs = Join-Path $Work 'logs'
 
 function Assert-True([bool]$Condition, [string]$Message) {
@@ -113,6 +124,52 @@ function Get-UninstallEntries {
                 ForEach-Object { $_.Name }
         }
     }
+}
+
+# The default value of a registry key, or $null when the key or the value does not exist.
+function Get-DefaultValue([string]$Key) {
+    if (-not (Test-Path -LiteralPath $Key)) { return $null }
+    return (Get-Item -LiteralPath $Key).GetValue('')
+}
+
+function Assert-Unassociated([string]$When) {
+    Assert-True (-not (Test-Path -LiteralPath $extensionKey)) "$extensionKey exists $When"
+    Assert-True (-not (Test-Path -LiteralPath $progIdKey)) "$progIdKey exists $When"
+    Write-Host "PASS the registry holds no file type of .egscene $When"
+}
+
+function Assert-Associated([string]$Directory) {
+    $program = Join-Path $Directory 'QEGTRAIN.exe'
+    $progId = Get-DefaultValue $extensionKey
+    Assert-True ($progId -eq 'EGTRAIN.Scene') "the default value of $extensionKey is '$progId', not EGTRAIN.Scene"
+    Assert-True (-not [string]::IsNullOrEmpty((Get-DefaultValue $progIdKey))) "$progIdKey has no display name"
+    $icon = Get-DefaultValue "$progIdKey\DefaultIcon"
+    $isFirstIcon = $icon -match '^(.+),0$' -and (Test-SamePath $Matches[1] $program)
+    Assert-True $isFirstIcon "the icon of $progIdKey is '$icon', not the first icon of $program"
+    $command = Get-DefaultValue "$progIdKey\shell\open\command"
+    $opensFile = $command -match '^"([^"]+)" "%1"$' -and (Test-SamePath $Matches[1] $program)
+    Assert-True $opensFile "the open command of $progIdKey is '$command', not $program with the file as its argument"
+    Assert-True (-not (Test-Path -LiteralPath $machineProgIdKey)) "$machineProgIdKey exists"
+    Write-Host "PASS .egscene opens with $program for the current user, and nothing is registered under HKEY_LOCAL_MACHINE"
+}
+
+# Another program's value in the key of the extension. The install and the uninstall must leave it alone.
+function Add-ForeignValue {
+    New-Item -Path $extensionKey -Force | Out-Null
+    Set-ItemProperty -LiteralPath $extensionKey -Name $foreignValue -Value 'kept'
+}
+
+function Assert-ForeignValue([string]$When) {
+    $kept = (Get-Item -LiteralPath $extensionKey).GetValue($foreignValue)
+    Assert-True ($kept -eq 'kept') "the value of another program in $extensionKey is gone $When"
+    Write-Host "PASS the value of another program in $extensionKey is still there $When"
+}
+
+# Removes the planted value, and the key of the extension when no value is left in it.
+function Remove-ForeignValue {
+    if (-not (Test-Path -LiteralPath $extensionKey)) { return }
+    Remove-ItemProperty -LiteralPath $extensionKey -Name $foreignValue -ErrorAction SilentlyContinue
+    if (@((Get-Item -LiteralPath $extensionKey).GetValueNames()).Count -eq 0) { Remove-Item -LiteralPath $extensionKey -Recurse }
 }
 
 function Show-Log([string]$Log) {
@@ -206,9 +263,16 @@ function Invoke-StartSmoke([string]$Directory) {
 }
 
 # $Kept lists the files that may stay in the directory, because the program wrote them.
-function Assert-Uninstalled([string]$Directory, [string[]]$Kept) {
+# With -ForeignValueKept the key of .egscene holds a value of another program, which must stay with the key. Else the key goes.
+function Assert-Uninstalled([string]$Directory, [string[]]$Kept, [switch]$ForeignValueKept) {
     Wait-Until { @(Get-UninstallEntries).Count -eq 0 } 'the uninstall entry is removed'
     Wait-Until { -not (Test-Path -LiteralPath $startMenuLink) -and -not (Test-Path -LiteralPath $desktopLink) } 'the shortcuts are removed'
+    Wait-Until { -not (Test-Path -LiteralPath $progIdKey) -and $null -eq (Get-DefaultValue $extensionKey) } 'the file type of .egscene is removed'
+    if ($ForeignValueKept) {
+        Assert-ForeignValue 'after the uninstall'
+    } else {
+        Wait-Until { -not (Test-Path -LiteralPath $extensionKey) } "$extensionKey is removed"
+    }
     if ($Kept.Count -eq 0) {
         Wait-Until { -not (Test-Path -LiteralPath $Directory) } "$Directory is removed"
     } else {
@@ -216,7 +280,7 @@ function Assert-Uninstalled([string]$Directory, [string[]]$Kept) {
             -not (Test-Path -LiteralPath $Directory) -or @(Get-RelativeFiles $Directory | Where-Object { $Kept -notcontains $_ }).Count -eq 0
         } "only the files of the program are left in $Directory"
     }
-    Write-Host "PASS the uninstall removed the entry, the shortcuts and the files of $Directory"
+    Write-Host "PASS the uninstall removed the entry, the shortcuts, the file type and the files of $Directory"
 }
 
 function Assert-Survives([string]$Path) {
@@ -252,7 +316,7 @@ if ((Test-Path -LiteralPath $Work) -and @(Get-ChildItem -LiteralPath $Work -Forc
 }
 New-Item -ItemType Directory -Force -Path $logs | Out-Null
 Assert-True (@(Get-UninstallEntries).Count -eq 0) 'EGTRAIN is already installed here; run the smoke test on a machine without it'
-foreach ($path in @($startMenuLink, $desktopLink, $defaultDirectory)) {
+foreach ($path in @($startMenuLink, $desktopLink, $defaultDirectory, $extensionKey, $progIdKey)) {
     Assert-True (-not (Test-Path -LiteralPath $path)) "$path exists already; run the smoke test on a machine without EGTRAIN"
 }
 
@@ -260,11 +324,18 @@ try {
     Assert-AsInvoker $Installer
     Assert-AsInvoker $UpgradeInstaller
 
+    # A portable copy is the package without an installer. Starting it must not register a file type.
+    $portable = Join-Path $Work 'portable'
+    Copy-Item -LiteralPath $Payload -Destination $portable -Recurse
+    Invoke-StartSmoke $portable
+    Assert-Unassociated 'after the start of a copy of the package'
+
     $directory = Join-Path $Work 'plain\EGTRAIN'
     $outside = Join-Path $Work 'plain\notes.txt'
     New-UserFile $outside
     Install-Egtrain $Installer 'plain-install' $directory
     Assert-Registered $directory $Version
+    Assert-Associated $directory
     Assert-Shortcut $startMenuLink $directory
     Assert-True (-not (Test-Path -LiteralPath $desktopLink)) 'a silent install without the task created a desktop shortcut'
     Assert-InstalledFiles $directory
@@ -277,22 +348,29 @@ try {
     Assert-Survives $outside
 
     $directory = Join-Path $Work 'icon\EGTRAIN'
+    Add-ForeignValue
     Install-Egtrain $Installer 'icon-install' $directory @('/TASKS=desktopicon')
     Assert-Registered $directory $Version
+    Assert-Associated $directory
+    Assert-ForeignValue 'after the install'
     Assert-Shortcut $startMenuLink $directory
     Assert-Shortcut $desktopLink $directory
     Uninstall-Egtrain $directory 'icon-uninstall'
-    Assert-Uninstalled $directory @()
+    Assert-Uninstalled $directory @() -ForeignValueKept
+    Remove-ForeignValue
+    Assert-Unassociated 'after the value of another program was removed'
 
     $outside = Join-Path $Work 'upgrade\notes.txt'
     New-UserFile $outside
     Install-Egtrain $Installer 'upgrade-install'
     Assert-Registered $defaultDirectory $Version
+    Assert-Associated $defaultDirectory
     Assert-InstalledFiles $defaultDirectory
     $stale = Join-Path $defaultDirectory 'Scenes\RemovedInNewerVersion'
     New-UserFile (Join-Path $stale 'scene.json')
     Install-Egtrain $UpgradeInstaller 'upgrade-over'
     Assert-Registered $defaultDirectory $UpgradeVersion
+    Assert-Associated $defaultDirectory
     Assert-True (-not (Test-Path -LiteralPath $stale)) 'the Scenes folder of the older version was not replaced'
     Assert-InstalledFiles $defaultDirectory
     $directories = @(Get-ChildItem -LiteralPath (Split-Path -Parent $defaultDirectory) -Directory -Filter 'EGTRAIN*')
@@ -304,6 +382,11 @@ try {
 }
 finally {
     Remove-Leftover
+    try {
+        Remove-ForeignValue
+    } catch {
+        Write-Host "Could not remove the value of another program: $_"
+    }
 }
 
 Write-Host 'OK: the installer installs, upgrades and uninstalls for the current user as checked'

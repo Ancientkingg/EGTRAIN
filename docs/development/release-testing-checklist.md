@@ -113,12 +113,15 @@ What the jobs prove today:
   current user and none for the machine, a Start Menu shortcut, no desktop
   shortcut, the files of the package with the same bytes, the marker file
   `installed-by-setup.ini` and one uninstaller, and `package_start_smoke.py`
-  starts the installed copy. The uninstall removes the entry, the shortcut and
-  the files and leaves a file beside the folder in place. An install with the desktop
+  starts the installed copy. The install registers the `.egscene` file type for
+  the current user, with the installed `QEGTRAIN.exe` as the program that opens
+  it, and the uninstall removes it together with the entry, the shortcut and the
+  files, and leaves a file beside the folder in place. An install with the desktop
   task creates the desktop shortcut and the uninstall removes it. A second
   installer of the next patch version installed over the first, in the default
   folder, leaves one entry, one folder and the higher version, and replaces the
-  `Scenes` folder. The job then writes the portable archive from the same
+  `Scenes` folder. A copy of the same directory, started as a portable copy is,
+  registers no file type. The job then writes the portable archive from that
   directory, extracts it and starts the extracted program with the same start
   script.
 - The Package Linux job extracts the AppImage and checks the executable,
@@ -144,9 +147,10 @@ The Finalize Windows job runs as an administrator on a machine that has the
 Visual C++ runtime. It does not show that a standard user installs without an
 elevation request, that the package starts on a machine without the runtime, or
 how Windows presents the unsigned installer and the entry in the list of
-installed apps. The installer registers no file type, so a double-click on a
-`.egscene` file does not open EGTRAIN (#416). The rows W1 to W6 below cover what
-the job cannot.
+installed apps. The job reads the registry keys of the `.egscene` file type but
+opens no file, so it does not show that a double-click on a `.egscene` file in
+Explorer opens EGTRAIN (#416); row W7 does. The rows W1 to W7 below cover the rest
+of what the job cannot.
 
 None of this shows the GUI student workflow.
 
@@ -155,7 +159,7 @@ None of this shows the GUI student workflow.
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
 | macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
-| Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut and an entry in the list of installed apps. | The Start Menu entry `EGTRAIN` |
+| Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut, an entry in the list of installed apps and the `.egscene` file type for the current user. | The Start Menu entry `EGTRAIN` |
 | Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe` and `lebanon-case-study.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
 | Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md` and the Qt libraries. Mark it executable. | The AppImage file |
 
@@ -308,7 +312,7 @@ Notes on the update rows:
 Run these rows on Windows with the installer and the portable archive of the
 candidate, and mark them not applicable on macOS and Linux. Use an account that
 is not an administrator, on a machine without development tools and without a
-copy of EGTRAIN. W2 to W5 follow each other on that account. W5 needs the Setup
+copy of EGTRAIN. W2 to W5 follow each other on that account, and W7 runs between W2 and W3. W5 needs the Setup
 of an older version: it is the one exception to the rule of one source besides
 R9, so record where it came from. Run W6 after the last uninstall, so that the
 list of installed apps shows only what the archive itself adds.
@@ -317,10 +321,11 @@ list of installed apps shows only what the archive itself adds.
 | --- | --- | --- | --- |
 | W1 Windows assets | Open the release page or the run page of the candidate. For a published release also open `update-manifest.json`. | `EGTRAIN-Setup-<version>-x64.exe` and `EGTRAIN-Portable-<version>-x64.zip` are both there with the version of the candidate in their names. In the manifest of a published release the entry `windows-x64` names the archive and the entry `windows-x64-installer` names the installer, and the `size` of each equals the size of the downloaded file. | Windows |
 | W2 Install | Double-click the Setup. Keep the default folder and leave the desktop shortcut box unticked. When it has finished, start EGTRAIN from the Start Menu and run the steps 1 to 9 of the clean-install rehearsal on this copy. | No prompt asks for an administrator password or for confirmation to run as administrator. Record any warning before Setup starts, with its text. The folder page offers `%LOCALAPPDATA%\Programs\EGTRAIN`. The Start Menu has the entry `EGTRAIN`. The list of installed apps in Windows Settings has `EGTRAIN`: record the version, which must be the one of the candidate, and the publisher. There is no desktop shortcut. Nothing is installed below `Program Files`. | Windows |
-| W3 Uninstall | Note the path of the working copy and of the exported CSV and PNG files, which lie outside the installation folder. Remove `EGTRAIN` from the list of installed apps in Windows Settings. | The entry, the Start Menu entry and any desktop shortcut are gone. The installation folder is gone, or holds only files that you or the program created in it. The working copy, the exported files, the downloaded bundles and the run output below the application data folder are unchanged. | Windows |
+| W3 Uninstall | Note the path of the working copy and of the exported CSV and PNG files, which lie outside the installation folder. Remove `EGTRAIN` from the list of installed apps in Windows Settings. | The entry, the Start Menu entry and any desktop shortcut are gone. The installation folder is gone, or holds only files that you or the program created in it. The working copy, the exported files, the downloaded bundles and the run output below the application data folder are unchanged. A `.egscene` file no longer opens in EGTRAIN. | Windows |
 | W4 Reinstall | Run the same Setup again, and this time tick the desktop shortcut box. Start EGTRAIN from the desktop shortcut. | It installs as in W2, with one entry in the list of installed apps and one Start Menu entry. The shortcut starts EGTRAIN. The question of R7 is not asked again, and the working copy opens: the settings and the files outside the folder survived W3. | Windows |
 | W5 Upgrade | Uninstall as in W3. Install the older Setup, start EGTRAIN and leave it open, then run the Setup of the candidate over it. When it has finished, start EGTRAIN, open **About EGTRAIN**, and uninstall once more as in W3. | The first uninstall removes the desktop shortcut of W4 with the rest. Setup offers to close the running EGTRAIN and finishes when it is closed. Afterwards the list of installed apps has one `EGTRAIN` entry with the version of the candidate, there is one Start Menu entry, the installation folder is the same and no second folder named like it stands beside it, and **About EGTRAIN** shows the version of the candidate. The last uninstall removes everything as in W3. Mark W5 not applicable, with the reason, when no older Setup exists: the Finalize Windows job has installed a second Setup over the first on the runner. | Windows |
 | W6 Portable archive | Unzip `EGTRAIN-Portable-<version>-x64.zip` into a new empty folder, for example with **Extract All** in Explorer. Start `QEGTRAIN.exe` by double-click. Run the steps 1 to 9 of the clean-install rehearsal and the R rows on this copy, except R7, which W2 has seen. | No prompt asks for administrator rights. Record any warning at the first start, with its text. The list of installed apps and the Start Menu show no EGTRAIN, and no shortcut was made. The folder has no `installed-by-setup.ini` and no uninstaller. Deleting the folder after closing EGTRAIN removes the copy. | Windows |
+| W7 Open a case study by double-click | Run it right after W2. Close EGTRAIN and double-click a downloaded `.egscene` file in Explorer. With EGTRAIN open, change a value and double-click a second `.egscene` file. | Explorer shows the type name `EGTRAIN case study` and the EGTRAIN icon for the file. The first file opens in EGTRAIN. The second opens in the window that is already open, after the question about unsaved changes, and no second window appears. If Windows asks which program to use, record the question. | Windows |
 
 ## Not available yet
 
@@ -346,5 +351,5 @@ macOS rehearsal of an older candidate.
 
 The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
-to W6 belong to Windows only. Open one focused defect for each failed root cause
+to W7 belong to Windows only. Open one focused defect for each failed root cause
 instead of adding implementation work to issue #74.
