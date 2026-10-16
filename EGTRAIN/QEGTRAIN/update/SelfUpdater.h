@@ -1,18 +1,16 @@
 #ifndef EGTRAIN_SELF_UPDATER_H
 #define EGTRAIN_SELF_UPDATER_H
 
+#include "update/HttpTransport.h"
 #include "update/ReleaseInfo.h"
 #include "update/UpdatePreparation.h"
 
 #include <QByteArray>
 #include <QFile>
-#include <QNetworkAccessManager>
 #include <QPointer>
 #include <QThread>
 #include <QTimer>
 #include <QObject>
-
-class QNetworkReply;
 
 struct SelfUpdateCapability {
 	bool supported = false;
@@ -50,14 +48,14 @@ private slots:
 private:
 	void requestManifest();
 	void requestPackage(const UpdateManifest& manifest);
-	void handleReply(QNetworkReply* reply, bool manifestReply);
+	void handleReply(HttpReply* reply, bool manifestReply);
 	void fail(const QString& error);
 	void startPreparation();
 	void clearStaging();
 	bool startHelper();
 
-	QNetworkAccessManager m_network;
-	QPointer<QNetworkReply> m_reply;
+	HttpTransport* m_transport;
+	QPointer<HttpReply> m_reply;
 	QTimer m_timeout;
 	QFile m_packageFile;
 	QByteArray m_manifestData;

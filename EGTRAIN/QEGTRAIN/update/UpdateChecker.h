@@ -1,9 +1,9 @@
 #ifndef EGTRAIN_UPDATE_CHECKER_H
 #define EGTRAIN_UPDATE_CHECKER_H
 
+#include "update/HttpTransport.h"
 #include "update/ReleaseInfo.h"
 
-#include <QNetworkAccessManager>
 #include <QPointer>
 #include <QTimer>
 #include <QObject>
@@ -19,6 +19,8 @@ class UpdateChecker : public QObject {
 
 public:
 	explicit UpdateChecker(QObject* parent = nullptr);
+	// For tests: uses a transport that the caller owns and the given timeout.
+	UpdateChecker(HttpTransport* transport, int timeoutMs, QObject* parent = nullptr);
 
 	void check();
 	bool isChecking() const { return !m_reply.isNull(); }
@@ -28,8 +30,11 @@ signals:
 	void finished(const UpdateCheckResult& result);
 
 private:
-	QNetworkAccessManager m_network;
-	QPointer<QNetworkReply> m_reply;
+	void connectTimeout();
+
+	HttpTransport* m_transport;
+	int m_timeoutMs;
+	QPointer<HttpReply> m_reply;
 	QTimer m_timeout;
 };
 
