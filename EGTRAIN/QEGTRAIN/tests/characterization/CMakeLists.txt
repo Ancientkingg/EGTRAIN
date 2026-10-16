@@ -229,10 +229,12 @@ set_tests_properties(${EGTRAIN_CHARACTERIZATION_TESTS} PROPERTIES
 	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 # A sanitizer build runs several times slower, so the leak check of the CMake workflow raises this limit.
 set(EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT 300 CACHE STRING "Time limit in seconds of the characterization tests that run committed scenes")
+# The fresh process of one step in the --repeat-files tests may take five sixths of the limit.
+math(EXPR egtrain_fresh_process_seconds "${EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT} * 5 / 6")
 set_tests_properties(${EGTRAIN_CHARACTERIZATION_SCENE_TESTS} PROPERTIES
 	LABELS "characterization;unit"
 	TIMEOUT ${EGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT}
-	ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+	ENVIRONMENT "QT_QPA_PLATFORM=offscreen;EGTRAIN_FRESH_PROCESS_SECONDS=${egtrain_fresh_process_seconds}")
 set_property(TEST characterization_repeat_netherlands characterization_repeat_files_paimpol characterization_aspects_dutch APPEND PROPERTY LABELS slow)
 # It is the longest of these tests and starts first in a parallel run.
 set_tests_properties(characterization_repeat_netherlands PROPERTIES COST 40)

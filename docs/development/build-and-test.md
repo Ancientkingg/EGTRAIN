@@ -413,7 +413,9 @@ A build with sanitizers runs several times slower than the time limits in `CMake
 `-DEGTRAIN_TEST_TIMEOUT_SCALE=N` multiplies the limit of every test that the top-level
 `CMakeLists.txt` registers by N; the default 1 leaves the limits as they are. The characterization
 tests that run committed scenes have a limit of their own, `-DEGTRAIN_CHARACTERIZATION_SCENE_TIMEOUT=SECONDS`
-(default 300), which the scale does not change. The `Sanitizers` job of `release.yml` passes a scale
+(default 300), which the scale does not change. Waits inside the tests follow the same settings:
+`startup_launch_contract.py` multiplies its 60 second launch wait by the scale, and the fresh process
+of one step in the `--repeat-files` tests may take five sixths of the scene limit. The `Sanitizers` job of `release.yml` passes a scale
 of 10 and a scene limit of 5400 seconds, and runs `ctest --parallel 3` like the macOS leg of the CMake
 workflow. The leak check passes only a scene limit of 1500 seconds.
 
