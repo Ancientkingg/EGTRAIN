@@ -322,6 +322,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/BlockingTimeScope.cpp
     ${SRC_DIR}/diagrams/CapacityAnalysis.cpp
     ${SRC_DIR}/diagrams/CapacityScope.cpp
+    ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteDiagramRuntime.cpp
@@ -954,6 +955,13 @@ if(EGTRAIN_BUILD_TESTS)
 	target_link_libraries(test_operationsbuilder PRIVATE egtrain_diagrams egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_operationsbuilder COMMAND test_operationsbuilder)
 
+	# Runs two committed scenes in this process, like the characterization tests.
+	add_executable(test_completedrun ${SRC_DIR}/tests/test_completedrun.cpp)
+	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+	add_test(NAME test_completedrun
+		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
+	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
+
 	# Behaviour characterization of the simulation core (see tests/characterization).
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/characterization)
 
@@ -1229,7 +1237,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_sceneopenrequest test_scenebuilder
-		test_operationsbuilder test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
+		test_operationsbuilder test_completedrun test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_package_start_smoke test_make_dmg)
