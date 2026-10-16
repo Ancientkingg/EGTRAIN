@@ -137,7 +137,7 @@ public:
 	int SecondConnectedTrackLineID;			  // Second track line connected by diverging switch (when withSwitchDiv=true)
 	Arc arcs_in_signalling_block_section[20]; // Arcs composing the block section
 	Node start_node, end_node;				  // Start and end nodes
-	// Nodes composing the block section, shared by every copy of the section; empty for a default section
+	// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
 	std::shared_ptr<const std::vector<Node>> nodelist_of_nodes_in_signalling_section;
 	int total_nodes;   // Number of nodes in the block section
 	int total_arcs;	   // Number of arcs in the block section

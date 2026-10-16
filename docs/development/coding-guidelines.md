@@ -155,8 +155,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   only the limit that validation and the editor enforce on that number. A `Train` keeps
   the stops of its service in a `std::vector<Node>`, and `regional_train` is created once
   per build and not grown while the trains are live. A `Section` keeps the nodes of its block
-  section in a `std::shared_ptr<const std::vector<Node>>` that the section, its copies and the
-  sections of the routes share, and the last of them frees it. A `Route` holds the sections
+  section in a `std::shared_ptr<const std::vector<Node>>` that the section and its copies,
+  including those in the routes, share, and the last of them frees it. A reversed route
+  section holds no list. A `Route` holds the sections
   of its route in a `std::vector<Section>` with exactly `N_Block_Sections` elements, set when
   the route is built; code that takes a `Section*` and a count gets `data()` and that count.
 
