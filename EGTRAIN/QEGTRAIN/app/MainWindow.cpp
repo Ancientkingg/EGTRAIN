@@ -3564,6 +3564,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_servicePerformancePercentEdit->setRange(1.0, 100.0);
 	m_servicePerformancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_servicePerformancePercentEdit->setValue(100);
+	m_servicePerformancePercentEdit->setKeyboardTracking(false);
 	performanceLayout->addWidget(m_servicePerformancePercentEdit);
 	serviceDetailLayout->addLayout(performanceLayout);
 

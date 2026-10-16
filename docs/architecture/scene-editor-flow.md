@@ -138,6 +138,9 @@ Services show their service code, configured total and count within the
 simulation period separately. Selected-in-period counts exclude unchecked
 generated services. Maximum speed restriction uses six significant display
 digits; focusing or saving an untouched value preserves its stored precision.
+Running performance is applied when editing of the box ends (Enter, Tab or
+leaving the box), not for each digit typed; Save and Run apply a value that is
+still being typed.
 The Category chooser edits only service metadata. It offers six presets and No
 category; an imported unknown value is shown explicitly and retained until
 changed. The Service visualization colour control follows it: a swatch, Choose...
