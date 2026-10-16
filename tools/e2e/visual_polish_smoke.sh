@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
+# Usage: visual_polish_smoke.sh [phase...]
+#
+# Runs the named phases, or all of them in the order below when none is named:
+#   dpr1               the live run of Copenhagen at a device pixel ratio of 1: screenshots, selection cues, Follow
+#   color              a copy of Copenhagen in which the first service has a colour
+#   dpr2               the live run of Copenhagen at a device pixel ratio of 2
+#   completion         the Assignment run to its end: the replay row and the Follow checks of the replay
+#   replay             the whole-run replay of Lebanon, Assignment, Paimpol, Milano_Brescia and Netherlands
+#   replay-copenhagen  the whole-run replay of Copenhagen, which takes as long as the other five scenes together
+#   signals            the signal heads
+#   discard            the preview legend after a discarded run
+#   stations           the station overlays
+#   scripts            scene_render_smoke.sh and legacy_import_smoke.sh, which CTest also runs as tests of their own
+# The phases share no file below TMPDIR, so CTest runs them side by side.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -25,6 +39,18 @@ STATION_SHOT_BASE="${TMPDIR:-/tmp}/qegtrain-station-overlay"
 STATION_DPR2_OUT="${TMPDIR:-/tmp}/qegtrain-station-overlay-e2e-dpr2.log"
 COLOR_OUT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.log"
 COLOR_SHOT="${TMPDIR:-/tmp}/qegtrain-visual-polish-color-e2e.png"
+
+ALL_PHASES=(dpr1 color dpr2 completion replay replay-copenhagen signals discard stations scripts)
+if [[ $# -eq 0 ]]; then
+	set -- "${ALL_PHASES[@]}"
+fi
+for phase in "$@"; do
+	if [[ " ${ALL_PHASES[*]} " != *" $phase "* ]]; then
+		echo "unknown phase: $phase (phases: ${ALL_PHASES[*]})" >&2
+		exit 2
+	fi
+done
+
 SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-settings.XXXXXX")"
 COLOR_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-color-scene.XXXXXX")"
 SIGNAL_SCENE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-visual-signal-scene.XXXXXX")"
@@ -66,59 +92,63 @@ require_markers() {
 	done
 }
 
-cd "$ROOT/EGTRAIN/QEGTRAIN"
-export QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR"
-rm -f "$SHOT" "$MEDIUM_SHOT" "$DENSE_SHOT" "$SELECTED_SHOT" "$FOLLOW_SHOT" "$CONTEXT_SHOT" \
-	"$DPR2_SHOT" "${DPR2_SHOT%.png}-medium.png" "${DPR2_SHOT%.png}-dense.png" \
-	"${DPR2_SHOT%.png}-selected.png" "${DPR2_SHOT%.png}-follow.png"
-QT_QPA_PLATFORM=offscreen \
-QT_SCALE_FACTOR=1 \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_VISUAL_POLISH=1 \
-QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
-QEGTRAIN_E2E_DENSE_SCREENSHOT="$DENSE_SHOT" \
-QEGTRAIN_E2E_MEDIUM_SCREENSHOT="$MEDIUM_SHOT" \
-QEGTRAIN_E2E_SELECTED_SCREENSHOT="$SELECTED_SHOT" \
-QEGTRAIN_E2E_FOLLOW_SCREENSHOT="$FOLLOW_SHOT" \
-QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$CONTEXT_SHOT" \
-QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
-QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$COMMAND_BAR_1200_SHOT" \
-QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
-	"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
+phase_dpr1() {
+	rm -f "$SHOT" "$MEDIUM_SHOT" "$DENSE_SHOT" "$SELECTED_SHOT" "$FOLLOW_SHOT" "$CONTEXT_SHOT"
+	QT_QPA_PLATFORM=offscreen \
+	QT_SCALE_FACTOR=1 \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_VISUAL_POLISH=1 \
+	QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
+	QEGTRAIN_E2E_DENSE_SCREENSHOT="$DENSE_SHOT" \
+	QEGTRAIN_E2E_MEDIUM_SCREENSHOT="$MEDIUM_SHOT" \
+	QEGTRAIN_E2E_SELECTED_SCREENSHOT="$SELECTED_SHOT" \
+	QEGTRAIN_E2E_FOLLOW_SCREENSHOT="$FOLLOW_SHOT" \
+	QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$CONTEXT_SHOT" \
+	QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$COMMAND_BAR_1024_SHOT" \
+	QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$COMMAND_BAR_1200_SHOT" \
+	QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$COMMAND_BAR_1440_SHOT" \
+		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$OUT" 2>&1
 
-grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
-grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$OUT"
-grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
-grep -q "E2E_SELECTION_CUE_FIT_OK" "$OUT"
-grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$OUT"
-grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$OUT"
-grep -q "E2E_STOP_PREVIEW_UNSELECTED_OK" "$OUT"
-grep -q "E2E_STATION_SQUARE_COLOUR_OK" "$OUT"
-require_markers "$OUT" "${FOLLOW_LIVE_MARKERS[@]}"
-test -s "$SHOT"
-test -s "$DENSE_SHOT"
-test -s "$MEDIUM_SHOT"
-test -s "$SELECTED_SHOT"
-test -s "$FOLLOW_SHOT"
-test -s "$CONTEXT_SHOT"
-test -s "$COMMAND_BAR_1024_SHOT"
-test -s "$COMMAND_BAR_1200_SHOT"
-test -s "$COMMAND_BAR_1440_SHOT"
-for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulated departure" "Arrival delay" "Departure delay"; do
-	if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/diagrams/TimetableTableWindow.cpp"; then
-		echo "missing timetable label in TimetableTableWindow.cpp: $label" >&2
+	grep -q "E2E_VISUAL_POLISH_OK" "$OUT"
+	grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$OUT"
+	grep -q "E2E_VISUAL_POLISH_DPR_1.0" "$OUT"
+	grep -q "E2E_SELECTION_CUE_FIT_OK" "$OUT"
+	grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$OUT"
+	grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$OUT"
+	grep -q "E2E_STOP_PREVIEW_UNSELECTED_OK" "$OUT"
+	grep -q "E2E_STATION_SQUARE_COLOUR_OK" "$OUT"
+	require_markers "$OUT" "${FOLLOW_LIVE_MARKERS[@]}"
+	# The committed scene sets no service colour, so its run must not print the marker that the colour phase requires.
+	if grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$OUT"; then
+		echo "the committed scene unexpectedly has service colours" >&2
 		exit 1
 	fi
-done
-if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"; then
-	echo "dead Show Graph action still present in MainWindow.ui" >&2
-	exit 1
-fi
-echo "visual polish e2e passed: $SHOT $MEDIUM_SHOT $DENSE_SHOT $SELECTED_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
+	test -s "$SHOT"
+	test -s "$DENSE_SHOT"
+	test -s "$MEDIUM_SHOT"
+	test -s "$SELECTED_SHOT"
+	test -s "$FOLLOW_SHOT"
+	test -s "$CONTEXT_SHOT"
+	test -s "$COMMAND_BAR_1024_SHOT"
+	test -s "$COMMAND_BAR_1200_SHOT"
+	test -s "$COMMAND_BAR_1440_SHOT"
+	for label in "Planned arrival" "Planned departure" "Simulated arrival" "Simulated departure" "Arrival delay" "Departure delay"; do
+		if ! grep -Fqi "$label" "$ROOT/EGTRAIN/QEGTRAIN/diagrams/TimetableTableWindow.cpp"; then
+			echo "missing timetable label in TimetableTableWindow.cpp: $label" >&2
+			exit 1
+		fi
+	done
+	if grep -Fq 'name="actionShow_Graph"' "$ROOT/EGTRAIN/QEGTRAIN/app/MainWindow.ui"; then
+		echo "dead Show Graph action still present in MainWindow.ui" >&2
+		exit 1
+	fi
+	echo "visual polish e2e passed: $SHOT $MEDIUM_SHOT $DENSE_SHOT $SELECTED_SHOT $FOLLOW_SHOT $CONTEXT_SHOT $COMMAND_BAR_1024_SHOT $COMMAND_BAR_1200_SHOT $COMMAND_BAR_1440_SHOT"
+}
 
-# A copy of the scene in which the first service has a colour: its trains must
-# be drawn in that colour, the trains of the other services in the default one.
-python3 - "$SCENE" "$COLOR_SCENE_DIR/scene" <<'PY'
+phase_color() {
+	# A copy of the scene in which the first service has a colour: its trains must
+	# be drawn in that colour, the trains of the other services in the default one.
+	python3 - "$SCENE" "$COLOR_SCENE_DIR/scene" <<'PY'
 import json, shutil, sys
 shutil.copytree(sys.argv[1], sys.argv[2])
 path = sys.argv[2] + "/services.json"
@@ -128,88 +158,103 @@ data["services"][0]["visualization_color"] = "#3c8dd2"
 with open(path, "w") as handle:
     json.dump(data, handle, indent=2)
 PY
-QT_QPA_PLATFORM=offscreen \
-QT_SCALE_FACTOR=1 \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_VISUAL_POLISH=1 \
-QEGTRAIN_E2E_SCREENSHOT="$COLOR_SHOT" \
-QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$COLOR_SCENE_DIR/context.png" \
-	"$APP" --scene "$COLOR_SCENE_DIR/scene" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$COLOR_OUT" 2>&1
-grep -q "E2E_VISUAL_POLISH_OK" "$COLOR_OUT"
-grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$COLOR_OUT"
-if grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$OUT"; then
-	echo "the committed scene unexpectedly has service colours" >&2
-	exit 1
-fi
-test -s "$COLOR_SHOT"
-echo "service colour e2e passed: $COLOR_SHOT"
-
-if ! QT_QPA_PLATFORM=offscreen \
-	QT_SCALE_FACTOR=2 \
+	QT_QPA_PLATFORM=offscreen \
+	QT_SCALE_FACTOR=1 \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_VISUAL_POLISH=1 \
-	QEGTRAIN_E2E_SCREENSHOT="$DPR2_SHOT" \
-	QEGTRAIN_E2E_DENSE_SCREENSHOT="${DPR2_SHOT%.png}-dense.png" \
-	QEGTRAIN_E2E_MEDIUM_SCREENSHOT="${DPR2_SHOT%.png}-medium.png" \
-	QEGTRAIN_E2E_SELECTED_SCREENSHOT="${DPR2_SHOT%.png}-selected.png" \
-	QEGTRAIN_E2E_FOLLOW_SCREENSHOT="${DPR2_SHOT%.png}-follow.png" \
-	QEGTRAIN_E2E_CONTEXT_SCREENSHOT="${DPR2_SHOT%.png}-context.png" \
-	QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
-	QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$DPR2_COMMAND_BAR_1200_SHOT" \
-	QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$DPR2_COMMAND_BAR_1440_SHOT" \
-	"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1; then
-	cat "$DPR2_OUT" >&2
-	exit 2
-fi
-grep -q "E2E_VISUAL_POLISH_DPR_2.0" "$DPR2_OUT"
-grep -q "E2E_VISUAL_POLISH_OK" "$DPR2_OUT"
-grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$DPR2_OUT"
-grep -q "E2E_SELECTION_CUE_FIT_OK" "$DPR2_OUT"
-grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$DPR2_OUT"
-grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$DPR2_OUT"
-grep -q "E2E_STOP_PREVIEW_UNSELECTED_OK" "$DPR2_OUT"
-grep -q "E2E_STATION_SQUARE_COLOUR_OK" "$DPR2_OUT"
-require_markers "$DPR2_OUT" "${FOLLOW_LIVE_MARKERS[@]}"
-test -s "$DPR2_SHOT"
-test -s "${DPR2_SHOT%.png}-medium.png"
-test -s "${DPR2_SHOT%.png}-dense.png"
-test -s "${DPR2_SHOT%.png}-selected.png"
-test -s "${DPR2_SHOT%.png}-follow.png"
-test -s "$DPR2_COMMAND_BAR_1024_SHOT"
-test -s "$DPR2_COMMAND_BAR_1200_SHOT"
-test -s "$DPR2_COMMAND_BAR_1440_SHOT"
-echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
+	QEGTRAIN_E2E_SCREENSHOT="$COLOR_SHOT" \
+	QEGTRAIN_E2E_CONTEXT_SCREENSHOT="$COLOR_SCENE_DIR/context.png" \
+		"$APP" --scene "$COLOR_SCENE_DIR/scene" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$COLOR_OUT" 2>&1
+	grep -q "E2E_VISUAL_POLISH_OK" "$COLOR_OUT"
+	grep -q "E2E_VISUAL_POLISH_SERVICE_COLOR_OK" "$COLOR_OUT"
+	test -s "$COLOR_SHOT"
+	echo "service colour e2e passed: $COLOR_SHOT"
+}
 
-COMPLETION_OUT="${TMPDIR:-/tmp}/qegtrain-operational-completion-e2e.log"
-QT_QPA_PLATFORM=offscreen \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
-	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$COMPLETION_OUT" 2>&1
-grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$COMPLETION_OUT"
-require_markers "$COMPLETION_OUT" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
-echo "operational completion and rerun e2e passed"
+phase_dpr2() {
+	rm -f "$DPR2_SHOT" "${DPR2_SHOT%.png}-medium.png" "${DPR2_SHOT%.png}-dense.png" \
+		"${DPR2_SHOT%.png}-selected.png" "${DPR2_SHOT%.png}-follow.png"
+	if ! QT_QPA_PLATFORM=offscreen \
+		QT_SCALE_FACTOR=2 \
+		QEGTRAIN_AUTOSTART=1 \
+		QEGTRAIN_E2E_VISUAL_POLISH=1 \
+		QEGTRAIN_E2E_SCREENSHOT="$DPR2_SHOT" \
+		QEGTRAIN_E2E_DENSE_SCREENSHOT="${DPR2_SHOT%.png}-dense.png" \
+		QEGTRAIN_E2E_MEDIUM_SCREENSHOT="${DPR2_SHOT%.png}-medium.png" \
+		QEGTRAIN_E2E_SELECTED_SCREENSHOT="${DPR2_SHOT%.png}-selected.png" \
+		QEGTRAIN_E2E_FOLLOW_SCREENSHOT="${DPR2_SHOT%.png}-follow.png" \
+		QEGTRAIN_E2E_CONTEXT_SCREENSHOT="${DPR2_SHOT%.png}-context.png" \
+		QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT="$DPR2_COMMAND_BAR_1024_SHOT" \
+		QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT="$DPR2_COMMAND_BAR_1200_SHOT" \
+		QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT="$DPR2_COMMAND_BAR_1440_SHOT" \
+		"$APP" --scene "$SCENE" -h 8000 -g 1 -pax 1 -TSM 0 -RC 0 >"$DPR2_OUT" 2>&1; then
+		cat "$DPR2_OUT" >&2
+		exit 2
+	fi
+	grep -q "E2E_VISUAL_POLISH_DPR_2.0" "$DPR2_OUT"
+	grep -q "E2E_VISUAL_POLISH_OK" "$DPR2_OUT"
+	grep -q "E2E_OPERATIONAL_TRACK_LIFECYCLE_OK" "$DPR2_OUT"
+	grep -q "E2E_SELECTION_CUE_FIT_OK" "$DPR2_OUT"
+	grep -q "E2E_SELECTION_CUE_DETAIL_OK" "$DPR2_OUT"
+	grep -q "E2E_SELECTION_CUE_CLEAR_OK" "$DPR2_OUT"
+	grep -q "E2E_STOP_PREVIEW_UNSELECTED_OK" "$DPR2_OUT"
+	grep -q "E2E_STATION_SQUARE_COLOUR_OK" "$DPR2_OUT"
+	require_markers "$DPR2_OUT" "${FOLLOW_LIVE_MARKERS[@]}"
+	test -s "$DPR2_SHOT"
+	test -s "${DPR2_SHOT%.png}-medium.png"
+	test -s "${DPR2_SHOT%.png}-dense.png"
+	test -s "${DPR2_SHOT%.png}-selected.png"
+	test -s "${DPR2_SHOT%.png}-follow.png"
+	test -s "$DPR2_COMMAND_BAR_1024_SHOT"
+	test -s "$DPR2_COMMAND_BAR_1200_SHOT"
+	test -s "$DPR2_COMMAND_BAR_1440_SHOT"
+	echo "visual polish 2x dpr e2e passed: $DPR2_SHOT"
+}
+
+phase_completion() {
+	local completion_out="${TMPDIR:-/tmp}/qegtrain-operational-completion-e2e.log"
+	QT_QPA_PLATFORM=offscreen \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_OPERATIONAL_COMPLETION="$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" \
+		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$completion_out" 2>&1
+	grep -q "E2E_OPERATIONAL_COMPLETION_OK" "$completion_out"
+	require_markers "$completion_out" "${FOLLOW_REPLAY_MARKERS[@]}" "${REPLAY_ROW_MARKERS[@]}"
+	echo "operational completion and rerun e2e passed"
+}
 
 # A committed scene run to its end keeps every frame, however large it is: the replay row covers the
 # whole run. The scenes go from Lebanon, with the smallest frames, to Copenhagen, with the largest.
-for scene in Lebanon Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands Copenhagen; do
-	WHOLE_OUT="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
-	QT_QPA_PLATFORM=offscreen \
-	QEGTRAIN_AUTOSTART=1 \
-	QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
-		"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 -TSM 0 -RC 0 >"$WHOLE_OUT" 2>&1 || {
-		tail -5 "$WHOLE_OUT" >&2
-		exit 1
-	}
-	require_markers "$WHOLE_OUT" E2E_REPLAY_WHOLE_RUN_OK
-done
-echo "whole run replay of the committed scenes passed"
+replay_whole_run() {
+	local scene whole_out
+	for scene in "$@"; do
+		whole_out="${TMPDIR:-/tmp}/qegtrain-replay-whole-run-$scene-e2e.log"
+		QT_QPA_PLATFORM=offscreen \
+		QEGTRAIN_AUTOSTART=1 \
+		QEGTRAIN_E2E_REPLAY_WHOLE_RUN=1 \
+			"$APP" --scene "$SCENE_ROOT/$scene" -g 1 -pax 0 -TSM 0 -RC 0 >"$whole_out" 2>&1 || {
+			tail -5 "$whole_out" >&2
+			exit 1
+		}
+		require_markers "$whole_out" E2E_REPLAY_WHOLE_RUN_OK
+	done
+	echo "whole run replay passed: $*"
+}
 
-# Signal heads on three copies of the line fixture with two services: one with a
-# level 0 signalling area (heads take stop, caution and proceed and return), one
-# in which a signal fails from 400 s to 1000 s, and one without any signalling
-# area (every head unavailable). Each run pauses at three steps, then seeks the
-# replay. Paimpol has sections that several routes share.
-python3 - "$ROOT/EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line" "$SIGNAL_SCENE_DIR" <<'PY'
+phase_replay() {
+	replay_whole_run Lebanon Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands
+}
+
+phase_replay_copenhagen() {
+	replay_whole_run Copenhagen
+}
+
+phase_signals() {
+	# Signal heads on three copies of the line fixture with two services: one with a
+	# level 0 signalling area (heads take stop, caution and proceed and return), one
+	# in which a signal fails from 400 s to 1000 s, and one without any signalling
+	# area (every head unavailable). Each run pauses at three steps, then seeks the
+	# replay. Paimpol has sections that several routes share.
+	python3 - "$ROOT/EGTRAIN/QEGTRAIN/tests/fixtures/scenes/line" "$SIGNAL_SCENE_DIR" <<'PY'
 import json, shutil, sys
 for name, scenario, level in (("levels", "baseline", 0), ("failure", "signal-failure-forward", 0), ("none", "baseline", None)):
     target = sys.argv[2] + "/" + name
@@ -225,105 +270,119 @@ for name, scenario, level in (("levels", "baseline", 0), ("failure", "signal-fai
     if level is not None:
         edit("signalling.json", lambda data: data.update(signalling_areas=[{"id": "area.all", "level": level, "start_km": 0.0, "end_km": 16.0}]))
 PY
-SIGNAL_HEADS_OUT="${TMPDIR:-/tmp}/qegtrain-signal-heads-e2e.log"
-for SIGNAL_MODE in levels failure none; do
-QT_QPA_PLATFORM=offscreen \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_SIGNAL_HEADS="$SIGNAL_MODE" \
-QEGTRAIN_E2E_PAUSE_STEPS=100,500,900 \
-	"$APP" --scene "$SIGNAL_SCENE_DIR/$SIGNAL_MODE" -h 1500 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
-grep -q "E2E_SIGNAL_HEADS_OK mode=$SIGNAL_MODE" "$SIGNAL_HEADS_OUT"
-done
-QT_QPA_PLATFORM=offscreen \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_SIGNAL_HEADS=levels \
-QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
-	"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
-grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$SIGNAL_HEADS_OUT"
-# Assignment and Lebanon have a level 0 area and heads that no route reaches. A
-# scene without any signalling area is the "none" copy of the line fixture above.
-for SIGNAL_CASE in Assignment_Gvc_Gdg_Ut:any Lebanon:any; do
-QT_QPA_PLATFORM=offscreen \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_SIGNAL_HEADS="${SIGNAL_CASE#*:}" \
-QEGTRAIN_E2E_PAUSE_STEPS=100,300 \
-	"$APP" --scene "$SCENE_ROOT/${SIGNAL_CASE%:*}" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$SIGNAL_HEADS_OUT" 2>&1
-grep -q "E2E_SIGNAL_HEADS_OK mode=${SIGNAL_CASE#*:}" "$SIGNAL_HEADS_OUT"
-done
-echo "signal heads e2e passed"
-
-DISCARD_OUT="${TMPDIR:-/tmp}/qegtrain-operational-discard-e2e.log"
-QT_QPA_PLATFORM=offscreen \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_OPERATIONAL_DISCARD=1 \
-	"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$DISCARD_OUT" 2>&1
-grep -q "E2E_OPERATIONAL_DISCARD_OK" "$DISCARD_OUT"
-echo "discarded-run preview legend e2e passed"
-
-SCENE_NAMES=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut Lebanon)
-for case in 1 2 3 4 5 6; do
-	scene_name="${SCENE_NAMES[$((case - 1))]}"
-	scene_path="$SCENE_ROOT/$scene_name"
-	station_out="${STATION_OUT_BASE}-${case}.log"
-	shot_base="${STATION_SHOT_BASE}-${scene_name}-dpr1"
-	rm -f "${shot_base}-fit.png" "${shot_base}-3x.png" "${shot_base}-12x.png"
+	local signal_heads_out="${TMPDIR:-/tmp}/qegtrain-signal-heads-e2e.log" signal_mode signal_case
+	for signal_mode in levels failure none; do
+		QT_QPA_PLATFORM=offscreen \
+		QEGTRAIN_AUTOSTART=1 \
+		QEGTRAIN_E2E_SIGNAL_HEADS="$signal_mode" \
+		QEGTRAIN_E2E_PAUSE_STEPS=100,500,900 \
+			"$APP" --scene "$SIGNAL_SCENE_DIR/$signal_mode" -h 1500 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+		grep -q "E2E_SIGNAL_HEADS_OK mode=$signal_mode" "$signal_heads_out"
+	done
 	QT_QPA_PLATFORM=offscreen \
-	QT_SCALE_FACTOR=1 \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_SIGNAL_HEADS=levels \
+	QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
+		"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+	grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$signal_heads_out"
+	# Assignment and Lebanon have a level 0 area and heads that no route reaches. A
+	# scene without any signalling area is the "none" copy of the line fixture above.
+	for signal_case in Assignment_Gvc_Gdg_Ut:any Lebanon:any; do
+		QT_QPA_PLATFORM=offscreen \
+		QEGTRAIN_AUTOSTART=1 \
+		QEGTRAIN_E2E_SIGNAL_HEADS="${signal_case#*:}" \
+		QEGTRAIN_E2E_PAUSE_STEPS=100,300 \
+			"$APP" --scene "$SCENE_ROOT/${signal_case%:*}" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
+		grep -q "E2E_SIGNAL_HEADS_OK mode=${signal_case#*:}" "$signal_heads_out"
+	done
+	echo "signal heads e2e passed"
+}
+
+phase_discard() {
+	local discard_out="${TMPDIR:-/tmp}/qegtrain-operational-discard-e2e.log"
+	QT_QPA_PLATFORM=offscreen \
+	QEGTRAIN_AUTOSTART=1 \
+	QEGTRAIN_E2E_OPERATIONAL_DISCARD=1 \
+		"$APP" --scene "$SCENE_ROOT/Assignment_Gvc_Gdg_Ut" -h 600 -g 1 -pax 0 -TSM 0 -RC 0 >"$discard_out" 2>&1
+	grep -q "E2E_OPERATIONAL_DISCARD_OK" "$discard_out"
+	echo "discarded-run preview legend e2e passed"
+}
+
+phase_stations() {
+	local scene_names=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut Lebanon)
+	local case scene_name scene_path station_out shot_base
+	for case in 1 2 3 4 5 6; do
+		scene_name="${scene_names[$((case - 1))]}"
+		scene_path="$SCENE_ROOT/$scene_name"
+		station_out="${STATION_OUT_BASE}-${case}.log"
+		shot_base="${STATION_SHOT_BASE}-${scene_name}-dpr1"
+		rm -f "${shot_base}-fit.png" "${shot_base}-3x.png" "${shot_base}-12x.png"
+		QT_QPA_PLATFORM=offscreen \
+		QT_SCALE_FACTOR=1 \
+		QEGTRAIN_AUTOSTART=1 \
+		QEGTRAIN_E2E_STATION_OVERLAYS=1 \
+		QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="$shot_base" \
+		"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
+		grep -q "E2E_STATION_OVERLAY_OK" "$station_out"
+		grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$station_out"
+		grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$station_out"
+		grep -q "E2E_STATION_OVERLAY_.*_12X_OK" "$station_out"
+		grep -q "E2E_STATION_ARTWORK_CLICK_OK" "$station_out"
+		grep -q "E2E_STATION_NO_GHOST_CONTEXT_OK" "$station_out"
+		grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$station_out"
+		grep -q "E2E_STATION_MIN_SIZE_OK" "$station_out"
+		grep -q "E2E_STATION_ANCHOR_STABLE_OK" "$station_out"
+		grep -q "E2E_STATION_NAME_COLLISION_OK" "$station_out"
+		grep -q "E2E_STATION_SCENE_SIZE_OK" "$station_out"
+		grep -q "E2E_STATION_NAMES_TOGGLE_OK" "$station_out"
+		grep -q "E2E_STATION_SELECTED_NAME_OK" "$station_out"
+		test -s "${shot_base}-fit.png"
+		test -s "${shot_base}-3x.png"
+		test -s "${shot_base}-12x.png"
+		if [[ "$case" == "1" ]]; then
+			grep -q "E2E_NETHERLANDS_SIGNALS_INDIVIDUAL_OK" "$station_out"
+		fi
+		if [[ "$case" == "3" ]]; then
+			grep -q "E2E_STATION_OVERLAY_DPR_1.0" "$station_out"
+			grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$station_out"
+			grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$station_out"
+			grep -q "E2E_STATION_SELECTED_NAME_OK was_hidden=1" "$station_out"
+		fi
+	done
+	echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4,5,6}.log"
+
+	rm -f "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
+	QT_QPA_PLATFORM=offscreen \
+	QT_SCALE_FACTOR=2 \
 	QEGTRAIN_AUTOSTART=1 \
 	QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-	QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="$shot_base" \
-	"$APP" --scene "$scene_path" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$station_out" 2>&1
-	grep -q "E2E_STATION_OVERLAY_OK" "$station_out"
-	grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$station_out"
-	grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$station_out"
-	grep -q "E2E_STATION_OVERLAY_.*_12X_OK" "$station_out"
-	grep -q "E2E_STATION_ARTWORK_CLICK_OK" "$station_out"
-	grep -q "E2E_STATION_NO_GHOST_CONTEXT_OK" "$station_out"
-	grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$station_out"
-	grep -q "E2E_STATION_MIN_SIZE_OK" "$station_out"
-	grep -q "E2E_STATION_ANCHOR_STABLE_OK" "$station_out"
-	grep -q "E2E_STATION_NAME_COLLISION_OK" "$station_out"
-	grep -q "E2E_STATION_SCENE_SIZE_OK" "$station_out"
-	grep -q "E2E_STATION_NAMES_TOGGLE_OK" "$station_out"
-	grep -q "E2E_STATION_SELECTED_NAME_OK" "$station_out"
-	test -s "${shot_base}-fit.png"
-	test -s "${shot_base}-3x.png"
-	test -s "${shot_base}-12x.png"
-	if [[ "$case" == "1" ]]; then
-		grep -q "E2E_NETHERLANDS_SIGNALS_INDIVIDUAL_OK" "$station_out"
-	fi
-	if [[ "$case" == "3" ]]; then
-		grep -q "E2E_STATION_OVERLAY_DPR_1.0" "$station_out"
-		grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$station_out"
-		grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$station_out"
-		grep -q "E2E_STATION_SELECTED_NAME_OK was_hidden=1" "$station_out"
-	fi
-	done
-echo "station overlay e2e passed: ${STATION_OUT_BASE}-{1,2,3,4,5,6}.log"
+	QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-Copenhagen-dpr2" \
+	"$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
+	grep -q "E2E_STATION_OVERLAY_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_OVERLAY_.*_12X_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_ARTWORK_CLICK_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_NO_GHOST_CONTEXT_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_OVERLAY_DPR_2.0" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_MIN_SIZE_OK" "$STATION_DPR2_OUT"
+	grep -q "E2E_STATION_NAME_COLLISION_OK" "$STATION_DPR2_OUT"
+	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png"
+	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png"
+	test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
+	echo "station overlay Copenhagen DPR2 passed: ${STATION_DPR2_OUT}"
+}
 
-rm -f "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png" "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
-QT_QPA_PLATFORM=offscreen \
-QT_SCALE_FACTOR=2 \
-QEGTRAIN_AUTOSTART=1 \
-QEGTRAIN_E2E_STATION_OVERLAYS=1 \
-QEGTRAIN_E2E_STATION_SCREENSHOT_BASE="${STATION_SHOT_BASE}-Copenhagen-dpr2" \
-"$APP" --scene "$SCENE_ROOT/Copenhagen" -h 8000 -g 1 -pax 0 -TSM 0 -RC 0 >"$STATION_DPR2_OUT" 2>&1
-grep -q "E2E_STATION_OVERLAY_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_OVERLAY_.*_FIT_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_OVERLAY_.*_3X_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_OVERLAY_.*_12X_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_ARTWORK_CLICK_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_NO_GHOST_CONTEXT_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_MULTI_SOURCE_BINDING_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_OVERLAY_DPR_2.0" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_DISPLAY_KBHALLEN_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_BINDING_KBHALLEN_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_MIN_SIZE_OK" "$STATION_DPR2_OUT"
-grep -q "E2E_STATION_NAME_COLLISION_OK" "$STATION_DPR2_OUT"
-test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-fit.png"
-test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-3x.png"
-test -s "${STATION_SHOT_BASE}-Copenhagen-dpr2-12x.png"
-echo "station overlay Copenhagen DPR2 passed: ${STATION_DPR2_OUT}"
+phase_scripts() {
+	"$ROOT/tools/e2e/scene_render_smoke.sh"
+	"$ROOT/tools/e2e/legacy_import_smoke.sh"
+}
 
-"$ROOT/tools/e2e/scene_render_smoke.sh"
-"$ROOT/tools/e2e/legacy_import_smoke.sh"
+cd "$ROOT/EGTRAIN/QEGTRAIN"
+export QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR"
+for phase in "$@"; do
+	"phase_${phase//-/_}"
+done
