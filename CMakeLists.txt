@@ -168,6 +168,8 @@ add_library(egtrain_scene STATIC
 target_link_libraries(egtrain_scene
     PUBLIC nlohmann_json::nlohmann_json egtrain_miniz)
 
+# RollingStockTrajectory.cpp follows RollingStock.cpp instead of its alphabetical place. In that place the
+# unchanged braking functions were linked at other alignments and Copenhagen ran about 3.6 percent slower.
 add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Infrastructure.cpp
     ${SRC_DIR}/simulation/InitialParameters.cpp
@@ -175,6 +177,7 @@ add_library(egtrain_sim STATIC
     ${SRC_DIR}/simulation/Optimisation.cpp
     ${SRC_DIR}/simulation/Passengers.cpp
     ${SRC_DIR}/simulation/RollingStock.cpp
+    ${SRC_DIR}/simulation/RollingStockTrajectory.cpp
     ${SRC_DIR}/simulation/RollingStockBlockingTimes.cpp
     ${SRC_DIR}/simulation/RollingStockBraking.cpp
     ${SRC_DIR}/simulation/RollingStockOccupation.cpp
