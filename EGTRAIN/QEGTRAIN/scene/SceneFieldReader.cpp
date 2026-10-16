@@ -198,6 +198,37 @@ SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const jso
 	return delay;
 }
 
+SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const json& root) {
+	SceneScenario scenario;
+	const auto allowed = [](const std::string& name) {
+		return name == "id" || name == "name" || name == "description" || name == "incidents" || name == "entrance_delays";
+	};
+	for (const auto& field : root.items()) {
+		if (!allowed(field.key()))
+			reader.report("scene.scenario.field.unknown", "Scenario JSON does not allow field " + field.key(), field.key());
+	}
+	reader.stringField(root, "id", "scenario", scenario.id);
+	reader.stringField(root, "name", "scenario", scenario.name);
+	reader.stringField(root, "description", "scenario", scenario.description, false);
+	if (reader.arraySection(root, "incidents", "", true)) {
+		for (std::size_t index = 0; index < root["incidents"].size(); ++index) {
+			const json& item = root["incidents"][index];
+			const std::string path = "incidents[" + std::to_string(index) + "]";
+			if (reader.objectItem(item, path, "Incident must be an object"))
+				scenario.incidents.push_back(decodeIncident(reader, item, path));
+		}
+	}
+	if (reader.arraySection(root, "entrance_delays", "", false)) {
+		for (std::size_t index = 0; index < root["entrance_delays"].size(); ++index) {
+			const json& item = root["entrance_delays"][index];
+			const std::string path = "entrance_delays[" + std::to_string(index) + "]";
+			if (reader.objectItem(item, path, "Entrance delay must be an object"))
+				scenario.entranceDelays.push_back(decodeEntranceDelay(reader, item, path));
+		}
+	}
+	return scenario;
+}
+
 SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const json& value, const std::string& path) {
 	SceneSignallingArea area;
 	reader.stringField(value, "id", path, area.id);

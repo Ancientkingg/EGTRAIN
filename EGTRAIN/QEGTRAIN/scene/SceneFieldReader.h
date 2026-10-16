@@ -79,6 +79,10 @@ private:
 SceneIncident decodeIncident(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 SceneEntranceDelay decodeEntranceDelay(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 
+// Reads the scenario file: one scenario object. A name that the file does not allow is an error. The reader must belong to
+// that file and use kScenarioFileFieldCodes.
+SceneScenario decodeScenarioFile(const SceneFieldReader& reader, const nlohmann::json& root);
+
 // Reads a signalling area. The reader reports each field that is absent or invalid, in the order of the file schema.
 SceneSignallingArea decodeSignallingArea(const SceneFieldReader& reader, const nlohmann::json& value, const std::string& path);
 

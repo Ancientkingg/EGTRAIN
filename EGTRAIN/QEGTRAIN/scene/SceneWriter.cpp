@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <system_error>
 #include <utility>
 
@@ -409,32 +408,8 @@ ScenarioLoadResult loadScenarioJson(const std::string& filePath) {
 		return result;
 	}
 
-	const std::set<std::string> allowed = {"id", "name", "description", "incidents", "entrance_delays"};
-	for (const auto& field : value.items()) {
-		if (allowed.find(field.key()) == allowed.end())
-			addScenarioDiagnostic(result, SceneSeverity::Error, "scene.scenario.field.unknown",
-				"Scenario JSON does not allow field " + field.key(), field.key());
-	}
 	const SceneFieldReader reader("scenario.json", kScenarioFileFieldCodes, result.diagnostics);
-	reader.stringField(value, "id", "scenario", result.scenario.id);
-	reader.stringField(value, "name", "scenario", result.scenario.name);
-	reader.stringField(value, "description", "scenario", result.scenario.description, false);
-	if (reader.arraySection(value, "incidents", "", true)) {
-		for (std::size_t index = 0; index < value["incidents"].size(); ++index) {
-			const json& item = value["incidents"][index];
-			const std::string path = "incidents[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Incident must be an object"))
-				result.scenario.incidents.push_back(decodeIncident(reader, item, path));
-		}
-	}
-	if (reader.arraySection(value, "entrance_delays", "", false)) {
-		for (std::size_t index = 0; index < value["entrance_delays"].size(); ++index) {
-			const json& item = value["entrance_delays"][index];
-			const std::string path = "entrance_delays[" + std::to_string(index) + "]";
-			if (reader.objectItem(item, path, "Entrance delay must be an object"))
-				result.scenario.entranceDelays.push_back(decodeEntranceDelay(reader, item, path));
-		}
-	}
+	result.scenario = decodeScenarioFile(reader, value);
 	return result;
 }
 
