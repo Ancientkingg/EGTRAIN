@@ -25,7 +25,7 @@ Besides the payload, the compiler reads two files of the repository: `installer/
 ## What the installer does
 
 - It runs without administrator rights and has one install scope, the current user. The script sets no way to choose another.
-- It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default. The folder is a user folder, so the in-app update, which needs a writable parent of the installation folder, can work there. The folder page of the wizard lets the user choose another folder on a first install.
+- It installs the payload as it is into `%LOCALAPPDATA%\Programs\EGTRAIN` by default, a folder of the user. The folder page of the wizard lets the user choose another folder on a first install.
 - It adds the entry `EGTRAIN` to the Start Menu of the user, directly in the Programs folder.
 - It offers a desktop shortcut as the task `desktopicon`, which is unchecked by default.
 - It adds an uninstall entry that Inno Setup writes under the current user, named after the `AppId` of the script. Windows lists it with the installed apps.
@@ -61,7 +61,7 @@ EGTRAIN-Setup-1.2.3-x64.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="des
 
 ## Updating an installed copy
 
-The in-app update of EGTRAIN replaces the whole installation folder with the files of the portable package (`WindowsStaging::buildStage` in `update/WindowsStaging.h`, `transactionalInstall` in `update/UpdateHelper.cpp`). On an installed copy the new folder holds neither the uninstaller nor `installed-by-setup.ini`. The old folder, which still holds them, stays beside the new one with the suffix `.egtrain-old` until the next update removes it (`SelfUpdater::startHelper` in `update/SelfUpdater.cpp`). Windows keeps the uninstall entry, but the uninstaller that it names is no longer in the installation folder.
+EGTRAIN does not replace the files of an installed copy itself. When `installed-by-setup.ini` is next to `QEGTRAIN.exe`, **Check for Updates...** names a newer release but offers only the release page (`selfReplacementBlockedReason` in `update/Distribution.cpp`). The in-app update would replace the whole installation folder with the files of the portable package, which hold neither the uninstaller nor `installed-by-setup.ini`, and Windows would keep an uninstall entry whose uninstaller is gone.
 
 An installed copy is therefore updated by running a newer Setup over it.
 

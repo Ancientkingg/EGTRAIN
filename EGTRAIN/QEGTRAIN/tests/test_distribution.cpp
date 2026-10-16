@@ -3,7 +3,6 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QTemporaryDir>
 
 #include <iostream>
