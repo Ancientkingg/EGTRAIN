@@ -1402,6 +1402,22 @@ if(EGTRAIN_BUILD_TESTS)
 	# Without the timings of an earlier run, ctest orders tests by this cost.
 	set_tests_properties(test_gui_autostart_smoke PROPERTIES COST 80)
 
+	# A build with sanitizers runs several times slower than the limits above allow. The scale multiplies the limit of
+	# every test registered in this file; the characterization tests have limits of their own.
+	set(EGTRAIN_TEST_TIMEOUT_SCALE 1 CACHE STRING "Factor for the time limit of the tests registered in the top-level CMakeLists.txt")
+	if(NOT EGTRAIN_TEST_TIMEOUT_SCALE MATCHES "^[1-9][0-9]*$")
+		message(FATAL_ERROR "EGTRAIN_TEST_TIMEOUT_SCALE must be a positive whole number")
+	endif()
+	if(EGTRAIN_TEST_TIMEOUT_SCALE GREATER 1)
+		foreach(name IN LISTS egtrain_all_tests)
+			get_test_property(${name} TIMEOUT egtrain_test_timeout)
+			if(egtrain_test_timeout)
+				math(EXPR egtrain_test_timeout "${egtrain_test_timeout} * ${EGTRAIN_TEST_TIMEOUT_SCALE}")
+				set_tests_properties(${name} PROPERTIES TIMEOUT ${egtrain_test_timeout})
+			endif()
+		endforeach()
+	endif()
+
 	# The offscreen Qt platform has no fonts of its own on Windows, so GUI tests read the system fonts.
 	if(WIN32)
 		file(TO_CMAKE_PATH "$ENV{WINDIR}/Fonts" egtrain_windows_fonts)
