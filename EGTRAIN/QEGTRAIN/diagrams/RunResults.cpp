@@ -165,6 +165,12 @@ RunResultValue delayValue(const RunResultValue& planned, const RunResultValue& s
 	return availableValue(simulated.value - planned.value);
 }
 
+TimetableValueStatus timetableValueStatus(const RunResultValue& planned, const RunResultValue& simulated) {
+	if (planned.available)
+		return simulated.available ? TimetableValueStatus::Available : TimetableValueStatus::NotReached;
+	return simulated.available ? TimetableValueStatus::NoPlan : TimetableValueStatus::NoPlanAndNotReached;
+}
+
 using OccurrenceKey = std::pair<std::string, int>;
 
 OccurrenceKey occurrenceKey(const std::string& serviceId, int occurrence,
@@ -339,6 +345,8 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 			}
 			row.arrivalDelaySeconds = delayValue(row.plannedArrivalSeconds, row.simulatedArrivalSeconds);
 			row.departureDelaySeconds = delayValue(row.plannedDepartureSeconds, row.simulatedDepartureSeconds);
+			row.arrivalStatus = timetableValueStatus(row.plannedArrivalSeconds, row.simulatedArrivalSeconds);
+			row.departureStatus = timetableValueStatus(row.plannedDepartureSeconds, row.simulatedDepartureSeconds);
 			results.push_back(std::move(row));
 		}
 	}
@@ -374,6 +382,8 @@ RunResults buildRunResults(const std::vector<const Train*>& trains, double times
 		}
 		row.destinationTerminationRequested = train.destinationTerminationRequested;
 		row.destinationTerminated = train.destinationTerminated;
+		row.entranceDelaySeconds = train.EntranceDelay;
+		row.entranceDelayStationId = train.entranceDelayStationId;
 
 		const bool boundsInPositionSeries = train.earliestActiveTrajectoryIndex >= 0
 			&& train.End_Time >= train.earliestActiveTrajectoryIndex
