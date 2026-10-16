@@ -35,7 +35,7 @@ static bool rejected(const QStringList& paths, const QString& rejection, const c
 static bool testClassify(const QString& base) {
 	const QDir dir(base);
 	// The name has two characters outside the Western Windows code page.
-	const QString unicodeName = QString::fromUtf16(u"é東京");
+	const QString unicodeName = QString::fromUtf16(u"\u00e9\u6771\u4eac");
 	const QString plain = dir.filePath("case.egscene");
 	const QString spaces = dir.filePath("my case study.egscene");
 	const QString upper = dir.filePath("CASE.EGSCENE");
