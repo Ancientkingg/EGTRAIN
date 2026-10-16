@@ -1,5 +1,18 @@
 #ifndef Rolling_Stock_hpp
 #define Rolling_Stock_hpp
+
+// The member functions of the classes in this header are defined in the RollingStock*.cpp files in this folder. Only these short
+// bodies stay inline, with the files that call them:
+// - OrderList::Detect_Implemented_Order (Simulation.cpp) and the empty destructors of Train and Regional;
+// - BlockingTimeList (RollingStockBlockingTimes.cpp, RollingStock.cpp, MainWindow.cpp, test_characterization.cpp);
+// - isShortOfBrakingPoint, isPastStopHoldback and their constants (RollingStockStops.cpp, RollingStockTrajectory.cpp,
+//   test_operationsbuilder.cpp);
+// - Train::brakingCurveSpeed (RollingStockBraking.cpp, RollingStockTrajectory.cpp, test_operationsbuilder.cpp);
+// - Train::obeysAuthority (RollingStockBraking.cpp, RollingStockTrajectory.cpp) and Train::authorityRoutePosition
+//   (RollingStockBraking.cpp, RollingStockTrajectory.cpp, test_operationsbuilder.cpp);
+// - the trajectory accessors Train::speedKmhAt, positionKmAt, trajectorySize and recordEarliestActiveTrajectoryIndex
+//   (DispatchController.cpp, MainWindow.cpp, RollingStockStops.cpp, test_operationsbuilder.cpp).
+
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #undef signals
@@ -52,17 +65,6 @@ int trainPassengerCapacity(double numberOfWagons);
 // negative) gives 0, so it never counts as congested.
 double passengerOccupancyRatio(int passengers, int capacity);
 
-// The member functions of these classes are defined in RollingStock.cpp and in the RollingStock*.cpp files
-// beside it, one file for each task. Only these bodies stay inline here:
-// - OrderList::Detect_Implemented_Order and the empty destructors;
-// - BlockingTimeList, which the blocking-time code indexes in its loops;
-// - isShortOfBrakingPoint, isPastStopHoldback and their constants, which the trajectory and stop code and tests share;
-// - brakingCurveSpeed and the movement authority lookups obeysAuthority, isFirstSectionFailed,
-//   authorityRoutePosition and currentFollowingAuthority, which the braking and trajectory code call in their loops;
-// - stationNameForArrivalStats and the trajectory accessors speedKmhAt, positionKmAt, trajectorySize and
-//   recordEarliestActiveTrajectoryIndex, which the application, the result tables and tests call.
-// The vtable of Train is emitted in RollingStockDynamics.cpp, with Train::tractiveEffort, the first virtual
-// function that is defined out of line.
 class OrderList {
 public:
 	string ID;
@@ -404,13 +406,7 @@ public:
 	}
 
 	// True while a signal failure of the first section of the route holds this train at its entry
-	bool isFirstSectionFailed(const Section& firstSection) const {
-		for (const MovementAuthority& authority : ETCS_MA)
-			if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
-				&& abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
-				return true;
-		return false;
-	}
+	bool isFirstSectionFailed(const Section& firstSection) const;
 
 	double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
 		return train_route[indexOfRoute].reversed_direction
@@ -419,38 +415,7 @@ public:
 	}
 
 	// Resolve only the selected, currently published forward Tale within the EVC's existing scope.
-	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const {
-		const Route& route = train_route[indexOfRoute];
-		int current = -1;
-		for (int block = 0; block < route.N_Block_Sections; ++block)
-			if (head >= route.sequence_of_block_sections[block].start_node.X * 1000
-				&& head < route.sequence_of_block_sections[block].end_node.X * 1000) {
-				current = block;
-				break;
-			}
-		if (current < 0)
-			return nullptr;
-		for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
-			const Section& section = route.sequence_of_block_sections[block];
-			if (section.SignallingLevel != 4 || section.ID != Last_Received_MA.BSID)
-				continue;
-			for (const MovementAuthority& authority : ETCS_MA)
-				if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
-					&& authority.ReversedDirection == route.reversed_direction
-					&& authority.TrainInfo.trainDescription != trainDescription
-					&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
-					&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
-					&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
-					&& abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
-					&& (authority.TrainInfo.NextSectionID == "None"
-						|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
-					leaderHead = authorityRoutePosition(authority, section);
-					if (leaderHead > head)
-						return &authority;
-				}
-		}
-		return nullptr;
-	}
+	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
 
 	// Validate before current target selection so an invalid old hold cannot clear new metadata.
 	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section);
@@ -618,13 +583,7 @@ public:
 
 	void recordStationPassagesAtTime(int time_seconds);
 
-	string stationNameForArrivalStats(int stationIndex) const {
-		if (stationIndex < 0 || stationIndex >= numStations)
-			return "None";
-		if (StationArrivalNames[stationIndex] != "None")
-			return StationArrivalNames[stationIndex];
-		return Stations[stationIndex].stationName;
-	}
+	string stationNameForArrivalStats(int stationIndex) const;
 
 	// check train arrival/departure at/from destination/origin
 	void checkTrainArrDep(int trainIdx, int t);

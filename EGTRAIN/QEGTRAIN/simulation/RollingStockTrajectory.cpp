@@ -24,6 +24,14 @@ double Train::train_energy_consumption(int t) {
 	return instant_train_energy_consumption[t];
 }
 
+bool Train::isFirstSectionFailed(const Section& firstSection) const {
+	for (const MovementAuthority& authority : ETCS_MA)
+		if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
+			&& abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
+			return true;
+	return false;
+}
+
 void Train::checkEntrance(int i, Section* BS) {
 	// Where a signalling level applies, one train enters a section per step: a train that entered earlier in
 	// this step has put the section in BlocksOccupied, which the aspect only shows from the next step. The list
@@ -293,6 +301,39 @@ double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 		return cap;
 	}
 	return candidate;
+}
+
+const MovementAuthority* Train::currentFollowingAuthority(double head, double& leaderHead) const {
+	const Route& route = train_route[indexOfRoute];
+	int current = -1;
+	for (int block = 0; block < route.N_Block_Sections; ++block)
+		if (head >= route.sequence_of_block_sections[block].start_node.X * 1000
+			&& head < route.sequence_of_block_sections[block].end_node.X * 1000) {
+			current = block;
+			break;
+		}
+	if (current < 0)
+		return nullptr;
+	for (int block = current; block < route.N_Block_Sections && block <= current + 8; ++block) {
+		const Section& section = route.sequence_of_block_sections[block];
+		if (section.SignallingLevel != 4 || section.ID != Last_Received_MA.BSID)
+			continue;
+		for (const MovementAuthority& authority : ETCS_MA)
+			if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
+				&& authority.ReversedDirection == route.reversed_direction
+				&& authority.TrainInfo.trainDescription != trainDescription
+				&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
+				&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
+				&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
+				&& abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
+				&& (authority.TrainInfo.NextSectionID == "None"
+					|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
+				leaderHead = authorityRoutePosition(authority, section);
+				if (leaderHead > head)
+					return &authority;
+			}
+	}
+	return nullptr;
 }
 
 void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3) {

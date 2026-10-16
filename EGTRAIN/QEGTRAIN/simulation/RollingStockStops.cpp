@@ -86,6 +86,14 @@ double Train::Det_Run_Start_Time() {
 	return RunStartTime * timestep;
 }
 
+string Train::stationNameForArrivalStats(int stationIndex) const {
+	if (stationIndex < 0 || stationIndex >= numStations)
+		return "None";
+	if (StationArrivalNames[stationIndex] != "None")
+		return StationArrivalNames[stationIndex];
+	return Stations[stationIndex].stationName;
+}
+
 const TrainEvent* Train::timetablePointOfStop(int stopIndex) const {
 	const string stationName = stationNameForArrivalStats(stopIndex);
 	int call = 1;
