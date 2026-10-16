@@ -527,6 +527,24 @@ def check_services_end_at_last_stop(case_id: int, out_base: Path = RUN_DIR) -> N
     print(f"PASS case {case_id} trains leave their last stop and the network")
 
 
+def blocking_time_records(blocking_text: str) -> int:
+    """Count the section records in BlockingTimes.txt.
+
+    The file holds six lines per train: the train, then the section ids, the start and end positions and the
+    start and end of the occupation, one entry per section record. A section without a signalling level has no record.
+    """
+    lines = blocking_text.splitlines()
+    return sum(len(lines[index].split()) for index in range(1, len(lines), 6))
+
+
+def check_blocking_times(label: str, blocking_times: Path) -> None:
+    """A run of a scene whose route sections all have a signalling level writes section records."""
+    records = blocking_time_records(blocking_times.read_text(encoding="utf-8", errors="replace"))
+    if records == 0:
+        raise SystemExit(f"{label} has no section records in {blocking_times}")
+    print(f"PASS {label} has {records} blocking-time section records")
+
+
 def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
     expected = ORIGINAL_CASE_PARITY[case_id]
     output_dir = scene_output_dir(case_id, out_base)
@@ -597,6 +615,8 @@ def main() -> None:
             check_amsterdam_hilversum_occurrences(case_id)
         if case_id in ASSERT_SERVICES_END:
             check_services_end_at_last_stop(case_id)
+        if case_id in SIGNALLING_COVERED:
+            check_blocking_times(f"case {case_id}", scene_output_dir(case_id) / "TrainTrajectories/BlockingTimes.txt")
         if case_id in ORIGINAL_CASE_PARITY:
             check_original_case_runtime(case_id)
     for case_id in selected:

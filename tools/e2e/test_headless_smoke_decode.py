@@ -7,7 +7,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from headless_smoke import (
     NO_ARRIVAL,
+    blocking_time_records,
     case_command,
+    check_blocking_times,
     check_no_position_jump,
     check_scene_matches_netherlands,
     check_scene_structure,
@@ -175,6 +177,36 @@ def main() -> None:
         errors = unreached_stops(sample)
         if errors != expected:
             raise SystemExit(f"unreached stops of {sample!r} were {errors}, expected {expected}")
+
+    # BlockingTimes.txt holds six lines per train. One record is one section id.
+    def blocking_sample(*sections: list[str]) -> str:
+        return "".join(
+            f"T-{index}\n{' '.join(ids)} \n{'0 ' * len(ids)}\n{'1 ' * len(ids)}\n{'2 ' * len(ids)}\n{'3 ' * len(ids)}\n"
+            for index, ids in enumerate(sections, 1)
+        )
+
+    for sample, expected_records in (
+        (blocking_sample(["@0-B0@", "@1-B0@"], ["@0-B0@"]), 3),
+        # A train without a signalling level on its sections has an empty line of section ids.
+        (blocking_sample([], ["@0-B0@"], []), 1),
+        (blocking_sample([], []), 0),
+        ("", 0),
+    ):
+        records = blocking_time_records(sample)
+        if records != expected_records:
+            raise SystemExit(f"{records} blocking-time records in {sample!r}, expected {expected_records}")
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "BlockingTimes.txt"
+        path.write_text(blocking_sample(["@0-B0@"]), encoding="utf-8")
+        check_blocking_times("sample", path)
+        path.write_text(blocking_sample([], []), encoding="utf-8")
+        try:
+            check_blocking_times("sample", path)
+        except SystemExit as exc:
+            if "no section records" not in str(exc.code):
+                raise SystemExit(f"a file without section records was reported as {exc.code}")
+        else:
+            raise SystemExit("a file without section records passed the blocking-time check")
 
     proc = run_command(
         [

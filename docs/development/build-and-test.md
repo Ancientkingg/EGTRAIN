@@ -786,6 +786,10 @@ has. They fail when a run in a process writes a file that differs from the file
 of a fresh process, which is what state left behind by an earlier run can cause
 in a file that the entries above never read.
 
+`characterization_aspects_dutch` (labelled `slow`) runs Netherlands and
+Assignment once each with `--aspects` and fails unless at least one route
+section leaves the clear code 270 and returns to it during the run.
+
 `test_crossover_chain` is a separate executable, because the harness above is
 tied to the line fixture (its length, its block size and the station at 8 km).
 It runs the scene `tests/fixtures/scenes/crossovers`: a chain of five tracks
@@ -1016,6 +1020,7 @@ direction comes from the flag in the train's row in
 `--detailed-trajectories`, because those checks read `TEMP/Traj_Train_*.txt`.
 For Lebanon it also requires that its train reaches every stop of the route: a
 stop that is not reached has the arrival `-10000` in `TimetablePoints.txt`.
+Every scene run must also write section records to `BlockingTimes.txt`.
 CTest runs the position checks and the stop check in `test_headless_smoke_decode`
 on trajectory and timetable files that the test writes.
 
@@ -1078,6 +1083,8 @@ to survive through `TrackLines/EGTRAINSignallingAreas.json`. The import report
 must account for every area. The importer warns about historical area files
 without this sidecar and does not convert their rows. Normal runs load the
 canonical source directory directly.
+The reimported Assignment run must report no route section without a
+signalling level and must write section records to `BlockingTimes.txt`.
 
 ## Completed-run replay
 
