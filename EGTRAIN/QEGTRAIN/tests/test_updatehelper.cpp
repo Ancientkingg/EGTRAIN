@@ -11,6 +11,7 @@
 #include <QTemporaryDir>
 #include <QThread>
 
+#include <functional>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -145,7 +146,9 @@ struct HelperRun {
 };
 
 // Runs a copy of the helper that is placed in the staging folder of root, as the application does.
-static HelperRun runHelperProcess(const QString& helper, const QString& root, const QStringList& arguments) {
+// A non-empty whileRunning is called once, delayMs after the helper has started.
+static HelperRun runHelperProcess(const QString& helper, const QString& root, const QStringList& arguments,
+	int delayMs = 0, const std::function<void()>& whileRunning = {}) {
 	const QString helperCopy = QDir(stagingFolder(root)).filePath(QFileInfo(helper).fileName());
 	HelperRun result;
 	if (!QFile::copy(helper, helperCopy))
@@ -156,6 +159,10 @@ static HelperRun runHelperProcess(const QString& helper, const QString& root, co
 	QElapsedTimer timer;
 	timer.start();
 	process.start();
+	if (whileRunning) {
+		QThread::msleep(static_cast<unsigned long>(delayMs));
+		whileRunning();
+	}
 	if (!process.waitForFinished(60000) || process.exitStatus() != QProcess::NormalExit)
 		return result;
 	result.milliseconds = timer.elapsed();
@@ -166,7 +173,7 @@ static HelperRun runHelperProcess(const QString& helper, const QString& root, co
 // One update of root/install by the stage in the staging folder, with root/install.egtrain-old as
 // the backup. The helper runs from a copy in the staging folder. extraArguments follow --observe-ms.
 static HelperRun runHelper(const QString& helper, const QString& root, int observeMs,
-	const QStringList& extraArguments) {
+	const QStringList& extraArguments, int delayMs = 0, const std::function<void()>& whileRunning = {}) {
 	const QDir directory(root);
 	QStringList arguments = {"--parent-pid", "0", "--current", directory.filePath("install"),
 		"--staged", stagePath(root),
@@ -174,7 +181,7 @@ static HelperRun runHelper(const QString& helper, const QString& root, int obser
 		"--launch", directory.filePath("install/app" + kProbeSuffix),
 		"--observe-ms", QString::number(observeMs)};
 	arguments += extraArguments;
-	return runHelperProcess(helper, root, arguments);
+	return runHelperProcess(helper, root, arguments, delayMs, whileRunning);
 }
 
 // The installer of an installer-managed update: a probe called setup in the staging folder.
@@ -272,6 +279,56 @@ static bool testCleanQuickExitIsInstalled(const QString& helper, const QString& 
 	ok &= expect(!QFileInfo::exists(recordPath(root)), "a clean exit leaves no record");
 	ok &= expect(ranIn(log, "new", QDir(root).filePath("install")), "clean exit starts in the installation directory");
 	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a clean exit");
+	return ok;
+}
+
+// A backup in a folder that does not exist: the first rename of the installation fails until the folder is
+// made, as it does on Windows while a file of the installation is locked.
+static QString unavailableBackup(const QString& root) {
+	return QDir(root).filePath("unavailable/install.egtrain-old");
+}
+
+// A first rename that fails for a while is tried again, and the update ends installed.
+static bool testRenameIsRetried(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	const int observeMs = 6000;
+	const int delayMs = 600;
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log, "mode=exit\ncode=0")
+			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=0"),
+		"retry fixtures are writable");
+	const HelperRun run = runHelper(helper, root, observeMs,
+		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root), delayMs,
+		[&root]() { QDir().mkpath(QDir(root).filePath("unavailable")); });
+	ok &= expect(run.exitCode == 0, "helper succeeds when the first rename works after a few attempts");
+	ok &= expect(run.milliseconds >= delayMs - 100, "helper waited for the rename instead of giving up");
+	ok &= expect(installationIs(root, "install", "label=new"), "the new version is installed after the retries");
+	ok &= expect(readFile(unavailableBackup(root) + "/behavior.txt").contains("label=old"),
+		"the previous installation is kept as the backup");
+	ok &= expect(!logLines(log).contains("old started"), "the previous version is not started");
+	ok &= expect(!QFileInfo::exists(recordPath(root)), "an update that is applied leaves no record");
+	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after the retries");
+	return ok;
+}
+
+// A first rename that keeps failing leaves the previous installation as it was and starts it.
+static bool testRenameKeepsFailing(const QString& helper, const QString& program, const QString& root) {
+	const QString log = QDir(root).filePath("log.txt");
+	bool ok = expect(writeInstallation(QDir(root).filePath("install"), program, "old", log,
+						 QStringLiteral("mode=exit\ncode=0\nrecord=") + recordPath(root))
+			&& writeInstallation(stagePath(root), program, "new", log, "mode=exit\ncode=0"),
+		"failing rename fixtures are writable");
+	const HelperRun run = runHelper(helper, root, kFailureObserveMs,
+		QStringList{"--backup", unavailableBackup(root)} + recordArguments(root));
+	ok &= expect(run.exitCode == 1, "helper ends with code 1 when the installation cannot be renamed");
+	ok &= expect(installationIs(root, "install", "label=old"), "the previous installation stays in place");
+	ok &= expect(!QFileInfo::exists(QDir(root).filePath("unavailable")), "no backup is made");
+	ok &= expect(waitForLogLine(log, "old started"), "the previous version is started");
+	ok &= expect(!logLines(log).contains("new started"), "the new version is not started");
+	ok &= expect(ranIn(log, "old", QDir(root).filePath("install")),
+		"the previous version starts in the installation directory");
+#if defined(Q_OS_WIN)
+	QThread::msleep(300);
+#endif
 	return ok;
 }
 
@@ -637,6 +694,8 @@ int main(int argc, char** argv) {
 	ok &= testEarlyFailureRollsBack(helper, probe, scenarioRoot("early-failure"));
 	ok &= testRunningVersionIsInstalled(helper, probe, scenarioRoot("running"));
 	ok &= testCleanQuickExitIsInstalled(helper, probe, scenarioRoot("quick-exit"));
+	ok &= testRenameIsRetried(helper, probe, scenarioRoot("rename-retried"));
+	ok &= testRenameKeepsFailing(helper, probe, scenarioRoot("rename-fails"));
 	ok &= testUnwritableRecordStillRollsBack(helper, probe, scenarioRoot("unwritable-record"));
 	ok &= testNoRecordWithoutValidOptions(helper, probe, temp.path());
 	ok &= testInstallerRunsThenApplicationStarts(helper, probe, scenarioRoot("installer"));

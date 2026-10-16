@@ -413,12 +413,14 @@ bool transactionalInstall(const Arguments& arguments) {
 	if (std::filesystem::exists(arguments.backup, error) || error)
 		return false;
 
-	if (!movePath(arguments.current, arguments.backup)) {
+	// The application has just ended, so on Windows a file of the installation can stay locked for a
+	// short time. The staged files are fresh from the extraction, which a scanner can still hold.
+	if (!movePathWithRetries(arguments.current, arguments.backup)) {
 		launch(arguments.launch, 0);
 		return false;
 	}
-	if (!movePath(arguments.staged, arguments.current)) {
-		movePath(arguments.backup, arguments.current);
+	if (!movePathWithRetries(arguments.staged, arguments.current)) {
+		movePathWithRetries(arguments.backup, arguments.current);
 		launch(arguments.launch, 0);
 		return false;
 	}
