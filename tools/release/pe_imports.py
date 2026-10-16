@@ -118,7 +118,11 @@ def is_system_dll(name):
 def find_missing(directory):
     """Return {lower case DLL name: [relative paths of the files that import it]} for the DLLs missing from the package."""
     root = Path(directory)
-    binaries = sorted(path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in (".exe", ".dll"))
+    # Sort by the text of the relative path: the order of Path objects differs between Windows and POSIX.
+    binaries = sorted(
+        (path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in (".exe", ".dll")),
+        key=lambda path: path.relative_to(root).as_posix(),
+    )
     shipped = {path.name.lower() for path in binaries}
     missing = {}
     for path in binaries:
@@ -142,7 +146,7 @@ def main(argv=None):
         return 2
     try:
         missing = find_missing(args.directory)
-    except (OSError, NotPortableExecutable) as error:
+    except (OSError, NotPortableExecutable, struct.error) as error:
         print(f"cannot read the imports: {error}", file=sys.stderr)
         return 2
     if args.missing:

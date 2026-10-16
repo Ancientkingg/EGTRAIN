@@ -161,11 +161,11 @@ What the jobs prove today:
 
 The Finalize Windows job runs as an administrator on a machine that has the
 Visual C++ runtime. It does not show that a standard user installs without an
-elevation request, that the package starts on a machine without the redistributable
-(the import check shows that the runtime DLLs are in the package, not that a clean
-machine loads them), or how Windows presents the unsigned installer and the entry in the list of
-installed apps. The job reads the registry keys of the `.egscene` file type but
-opens no file, so it does not show that a double-click on a `.egscene` file in
+elevation request, that the package starts on a machine without the
+redistributable (the import check shows that the runtime DLLs are in the
+package, not that a clean machine loads them), or how Windows presents the
+unsigned installer and the entry in the list of installed apps. The job reads
+the registry keys of the `.egscene` file type but opens no file, so it does not show that a double-click on a `.egscene` file in
 Explorer opens EGTRAIN (#416); row W7 does. The rows W1 to W9 below cover the rest
 of what the job cannot.
 

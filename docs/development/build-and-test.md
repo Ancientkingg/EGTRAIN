@@ -495,7 +495,8 @@ profile directory.
 After the tests, the Windows CI leg assembles the files of the release package
 in a temporary directory: `QEGTRAIN.exe`, the vcpkg DLLs, the Qt DLLs and
 plugins that `windeployqt` adds, and the scenes, without the Visual C++ runtime
-DLLs (the runner has the runtime, and the package job checks the imports). It then runs
+DLLs (the runner has the runtime, and the package job checks the imports). It
+then runs
 `tools/release/package_start_smoke.py` on that directory. The script removes
 the Qt, vcpkg and library path variables from the environment and leaves only
 the Windows directories on `PATH`, so a DLL or plugin that is missing from the
@@ -540,10 +541,10 @@ the image format plugins. It holds no `vc_redist.x64.exe`: see
 
 The installer installs for the current user and cannot run the Visual C++
 redistributable, so the Windows package carries the runtime DLLs that its
-program files import (`VCRUNTIME140.dll`, `VCRUNTIME140_1.dll`, `MSVCP140.dll`
-and `MSVCP140_1.dll` for the current build) next to `QEGTRAIN.exe` (app-local
-deployment). Their redistribution follows Microsoft's Visual C++ redistributable
-terms; the package holds no notice file of its own for them. The
+program files import (for example `VCRUNTIME140.dll`, `VCRUNTIME140_1.dll` and
+`MSVCP140.dll`) next to `QEGTRAIN.exe` (app-local deployment). Their
+redistribution follows Microsoft's Visual C++ redistributable terms; the package
+holds no notice file of its own for them. The
 Universal CRT (`api-ms-win-crt-*`, `ucrtbase.dll`) is part of Windows 10 and 11
 and is not copied. The step **Copy the Visual C++ runtime** of the Windows
 package job finds the x64 folder `Microsoft.VC14*.CRT` below `VCToolsRedistDir`
@@ -1389,8 +1390,9 @@ most of its checks, so run it locally to read its logs.
   build, pass the completeness checks of their jobs and are uploaded as
   artifacts of the run. The Windows package job also fails when the software
   OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
-  keyboard files or `vc_redist.x64.exe` are in the package or when a program file
-  imports a DLL that is neither in the package nor part of Windows, starts a copy of the package with
+  keyboard files or `vc_redist.x64.exe` are in the package or when a program
+  file imports a DLL that is neither in the package nor part of Windows, starts
+  a copy of the package with
   `tools/release/package_start_smoke.py`, makes the request of the
   [HTTPS update check](#https-update-check) from that copy, and prints the number of files and
   bytes of the package in its job summary. It also prints the signature state of

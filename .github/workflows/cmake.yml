@@ -237,8 +237,8 @@ jobs:
 
       # The same files as the Windows release package, started with only the operating
       # system directories on PATH: a DLL or plugin missing from the package fails here.
-      # The runner has the Visual C++ runtime installed, so a runtime DLL missing from the package is found by the import check of the
-      # package workflow, not here.
+      # The runner has the Visual C++ runtime installed, so the import check of the package workflow
+      # finds a runtime DLL missing from the package, not this step.
       - name: Start an assembled Windows package
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows'
         shell: pwsh

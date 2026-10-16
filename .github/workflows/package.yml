@@ -545,6 +545,8 @@ jobs:
               "Copied $name from $($crt.FullName)"
             }
           }
+          # The exit code of pe_imports.py is not an error here. The step "Check the DLL imports of the package" fails the job
+          # when a runtime DLL is still missing after three rounds.
           exit 0
 
       - name: Verify the package is complete

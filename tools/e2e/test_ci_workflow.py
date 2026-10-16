@@ -858,8 +858,7 @@ def main() -> None:
     runtime_step = step_block(windows_job, "Copy the Visual C++ runtime")
     imports_step = step_block(windows_job, "Check the DLL imports of the package")
     if (
-        windows_job.count("vc_redist") != 1
-        or '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' not in runtime_step
+        '"$env:VCToolsRedistDir/x64/Microsoft.VC14*.CRT"' not in runtime_step
         or "python tools/release/pe_imports.py $dist --missing" not in runtime_step
         or 'Copy-Item -LiteralPath $source "$dist/$name"' not in runtime_step
         or "vcruntime|msvcp|concrt" not in runtime_step

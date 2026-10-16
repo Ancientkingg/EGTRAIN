@@ -112,6 +112,9 @@ class PeImportsTests(unittest.TestCase):
         # Cut inside the name of the DLL, which follows the 40 and 32 byte tables.
         (self.package / "bad.dll").write_bytes(data[:SECTION_FILE_OFFSET + 72 + 3])
         self.assertEqual(run(self.package)[0], 2)
+        # Cut right after the COFF header, before the optional header.
+        (self.package / "bad.dll").write_bytes(data[:64 + 24])
+        self.assertEqual(run(self.package)[0], 2)
         self.assertEqual(run(self.package / "missing")[0], 2)
 
 
