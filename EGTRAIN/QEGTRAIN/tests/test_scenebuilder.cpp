@@ -1033,7 +1033,7 @@ static void fillSection(Section& s, const NodeList& nodes, TDS* tds) {
 	s.total_arcs = 2;
 	s.nodelist_of_nodes_in_signalling_section = nodes;
 	s.total_nodes = 2;
-	strcpy_s(s.state, "red");
+	s.state = SignalState::Red;
 	s.Occupied = s.Occup_By_Train = s.withSwitchDiv = true;
 	s.IDConnectedBS[0] = "section.a";
 	s.IDConnectedBS[1] = "section.b";
@@ -1069,7 +1069,7 @@ static bool sameSection(const Section& a, const Section& b) {
 		&& a.nodelist_of_nodes_in_signalling_section == b.nodelist_of_nodes_in_signalling_section && a.total_nodes == b.total_nodes
 		&& a.total_arcs == b.total_arcs && a.length == b.length && a.exit_speed == b.exit_speed && a.code == b.code
 		&& a.XStartSwitch == b.XStartSwitch && a.XEndSwitch == b.XEndSwitch && a.GeoXBegNode == b.GeoXBegNode && a.GeoXEndNode == b.GeoXEndNode
-		&& a.SignallingLevel == b.SignallingLevel && !strcmp(a.state, b.state) && a.Occupied == b.Occupied
+		&& a.SignallingLevel == b.SignallingLevel && a.state == b.state && a.Occupied == b.Occupied
 		&& a.Occup_By_Train == b.Occup_By_Train && a.withSwitchDiv == b.withSwitchDiv && a.N_ConnectedBS == b.N_ConnectedBS
 		&& a.N_ETCS3BrakingPoints == b.N_ETCS3BrakingPoints && a.TDS_in_block == b.TDS_in_block;
 	for (int i = 0; same && i < a.total_arcs; i++)
@@ -1210,7 +1210,7 @@ static bool runSectionValueChecks() {
 	auto fill = [&](Section& s) { fillSection(s, nodes, &tds); };
 	ok &= unequalAfter<Section>("sections", "the gradient of the second arc", fill, [](Section& s) { s.arcs_in_signalling_block_section[1].gradient = 0.03; });
 	ok &= unequalAfter<Section>("sections", "ID", fill, [](Section& s) { s.ID = "section.other"; });
-	ok &= unequalAfter<Section>("sections", "state", fill, [](Section& s) { strcpy_s(s.state, "green"); });
+	ok &= unequalAfter<Section>("sections", "state", fill, [](Section& s) { s.state = SignalState::Green; });
 	ok &= unequalAfter<Section>("sections", "the list of nodes", fill, [&](Section& s) { s.nodelist_of_nodes_in_signalling_section = otherNodes; });
 	ok &= unequalAfter<Section>("sections", "total_nodes", fill, [](Section& s) { s.total_nodes = 1; });
 	ok &= unequalAfter<Section>("sections", "total_arcs", fill, [](Section& s) { s.total_arcs = 1; });

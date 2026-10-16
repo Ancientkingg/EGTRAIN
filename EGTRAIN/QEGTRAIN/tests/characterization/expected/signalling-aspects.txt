@@ -1,7 +1,7 @@
 # Aspects of the mixed signalling on routes built by hand, written by test_signalling_aspects.
 # A line is: <group> <parameters> | <one token per section in route order>. A token is code:state:signal:braking:exit.
 #   code     Section::code
-#   state    G green, Y yellow, R red, RR red_red; any other state text as it is
+#   state    G green, Y yellow, R red, RR red_red; ? any other value
 #   signal   signalSpeedLimit of the arcs of the section in arc order, joined by '/'; one value when all arcs have it
 #   braking  speedInBraking of the arcs of the section in arc order, joined by '/'
 #   exit     exit_speed of the section

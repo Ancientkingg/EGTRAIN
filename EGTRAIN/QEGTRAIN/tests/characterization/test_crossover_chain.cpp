@@ -219,11 +219,11 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 									}
 								red = running.total_arcs > 0
 									&& std::fabs(running.arcs_in_signalling_block_section[running.total_arcs - 1].endNode.X - arc.endNode.X) < 1e-9
-									&& strcmp(running.state, "red") == 0;
+									&& running.state == SignalState::Red;
 								const bool mustHold = step - train.stop <= dwell || step <= departure || train.IsTrainStoppedForEoA || red;
 								predicate = hold ? mustHold : release && !mustHold;
 							} else if (train.Eq[step] == 6 && arc.endNode.station != 1 && arc.endNode.respectOrder == 0 && node - oldHead < 4) {
-								red = strcmp(running.state, "red") == 0;
+								red = running.state == SignalState::Red;
 								const bool mustHold = red || train.IsTrainStoppedForEoA;
 								predicate = hold ? mustHold : release && !mustHold;
 							}

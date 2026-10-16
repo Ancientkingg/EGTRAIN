@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <climits>
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -52,7 +51,7 @@ constexpr double kArcSpeedStep = 2.0;
 // What a section holds before a step when no routine has written it. The constructors give code 270, state green,
 // signal speed limit 999 and exit speed 0.
 constexpr double kDirtyCode = 11.0;
-constexpr const char* kDirtyState = "?";
+constexpr SignalState kDirtyState = static_cast<SignalState>(0xFF); // not one of the four states
 constexpr double kDirtySignalSpeed = 7.0;
 constexpr double kDirtyExitSpeed = 5.0;
 // Signal speeds of group V.
@@ -242,7 +241,7 @@ Route makeRoute(const RouteSpec& spec) {
 		section.total_arcs = arcCount(spec.shape, i);
 		if (dirty) {
 			section.code = kDirtyCode;
-			std::snprintf(section.state, sizeof section.state, "%s", kDirtyState);
+			section.state = kDirtyState;
 			section.exit_speed = kDirtyExitSpeed;
 		}
 		for (int a = 0; a < section.total_arcs; ++a) {
@@ -318,17 +317,16 @@ std::string numberText(double value) {
 	return stream.str();
 }
 
-std::string stateText(const char* state) {
-	const std::string text(state);
-	if (text == "green")
+std::string stateText(SignalState state) {
+	if (state == SignalState::Green)
 		return "G";
-	if (text == "yellow")
+	if (state == SignalState::Yellow)
 		return "Y";
-	if (text == "red")
+	if (state == SignalState::Red)
 		return "R";
-	if (text == "red_red")
+	if (state == SignalState::RedRed)
 		return "RR";
-	return text;
+	return "?";
 }
 
 std::string joinedText(const std::vector<double>& values) {
@@ -481,7 +479,7 @@ void checkReleaseOnTwoRoutes(Report& report) {
 	for (Route& route : train_route) {
 		for (Section& section : route.sequence_of_block_sections) {
 			if (section.ID == idOf(3))
-				std::snprintf(section.state, sizeof section.state, "%s", "red");
+				section.state = SignalState::Red;
 		}
 	}
 	report.expect(runRelease(idsOf({3})), "the lists changed in the release of the two routes");
@@ -715,7 +713,7 @@ void writeHeader(Report& report) {
 	report.comment("Aspects of the mixed signalling on routes built by hand, written by test_signalling_aspects.");
 	report.comment("A line is: <group> <parameters> | <one token per section in route order>. A token is code:state:signal:braking:exit.");
 	report.comment("  code     Section::code");
-	report.comment("  state    G green, Y yellow, R red, RR red_red; any other state text as it is");
+	report.comment("  state    G green, Y yellow, R red, RR red_red; ? any other value");
 	report.comment("  signal   signalSpeedLimit of the arcs of the section in arc order, joined by '/'; one value when all arcs have it");
 	report.comment("  braking  speedInBraking of the arcs of the section in arc order, joined by '/'");
 	report.comment("  exit     exit_speed of the section");
@@ -727,7 +725,7 @@ void writeHeader(Report& report) {
 	report.comment("  step counts the steps of a train that moves through the route.");
 	report.comment("The ids of the sections are s0, s1 ... in route order. A second route lists the ids in reverse order; ' || ' separates the routes.");
 	report.comment("Start states. Clean: code 270, state green, signal speed limit 999 on every arc, braking 0, exit 0.");
-	report.comment("  Dirty: code " + numberText(kDirtyCode) + ", state " + kDirtyState + ", signal speed limit " + numberText(kDirtySignalSpeed)
+	report.comment("  Dirty: code " + numberText(kDirtyCode) + ", state " + stateText(kDirtyState) + ", signal speed limit " + numberText(kDirtySignalSpeed)
 		+ " on every arc, braking 0, exit " + numberText(kDirtyExitSpeed) + ".");
 	report.comment("  No routine writes the dirty values, so a section that no routine wrote still shows them.");
 	std::string limits;

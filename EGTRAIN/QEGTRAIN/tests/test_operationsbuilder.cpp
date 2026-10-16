@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
 #include "simulation/Passengers.h"
 #include "simulation/Optimisation.h"
@@ -3200,6 +3201,26 @@ static bool runImplementedOrderFileChecks() {
 	return ok;
 }
 
+// A train that follows no order list stops for the signal of the section when it is double red at level 5 and red at every other level.
+static bool runOrderListSignalChecks() {
+	bool ok = true;
+	Train train;
+	const SignalState states[] = {SignalState::Green, SignalState::Yellow, SignalState::Red, SignalState::RedRed};
+	const bool stopsAtAtb[] = {false, false, true, false};
+	const bool stopsAtBacc[] = {false, false, false, true};
+	for (std::size_t i = 0; i < std::size(states); ++i) {
+		Section section;
+		section.state = states[i];
+		section.SignallingLevel = levelValue(SignallingLevel::Atb);
+		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtAtb[i],
+			"stop for the signal state " + std::to_string(i) + " at level 0");
+		section.SignallingLevel = levelValue(SignallingLevel::Bacc);
+		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtBacc[i],
+			"stop for the signal state " + std::to_string(i) + " at level 5");
+	}
+	return ok;
+}
+
 static bool sameSections(const std::vector<BlockSectionInput>& actual, const std::vector<BlockSectionInput>& expected) {
 	if (actual.size() != expected.size())
 		return false;
@@ -4204,6 +4225,7 @@ int main() {
 	ok &= singleTrackLockTests();
 	ok &= runRollingStockMessageChecks();
 	ok &= runImplementedOrderFileChecks();
+	ok &= runOrderListSignalChecks();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }

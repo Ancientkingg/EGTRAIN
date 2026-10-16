@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <fstream>
 #include <list>
 #include <string>
@@ -654,7 +653,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				}
 
 				// The first coupling step keeps the normal result. Later steps are proposals, not overrides.
-				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < 4 && (As.endNode.station || As.endNode.respectOrder || !strcmp(Bs.state, "red"))));
+				const bool stationaryHold = speed == 0 && (V_lim == 0 || (As.endNode.X * 1000 - head < 4 && (As.endNode.station || As.endNode.respectOrder || Bs.state == SignalState::Red)));
 				if (CounterFollowingMode > 1 && liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
 					&& !mustBrake && !infeasibleCandidate && !IsTrainStoppedForEoA && !StoppedForServiceStop && !stationaryHold
 					&& std::isfinite(liveLeader->TrainInfo.TrainSpeed) && std::isfinite(liveLeader->TrainInfo.Acceleration)) {
@@ -761,7 +760,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 						// A platform at the end of a block section is also the stopping point of that block's signal: the train waits there while the signal is red.
 						const bool signalAtPlatformIsRed = Bs.total_arcs > 0
 							&& std::fabs(Bs.arcs_in_signalling_block_section[Bs.total_arcs - 1].endNode.X - As.endNode.X) < 1e-9
-							&& strcmp(Bs.state, "red") == 0;
+							&& Bs.state == SignalState::Red;
 						if (((time_seconds - stop) <= stoptime) || (time_seconds <= dep_time) || (authorityHold == 1) || signalAtPlatformIsRed) {
 							instant_train_speed[time_seconds] = 0;
 							instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
@@ -808,7 +807,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 					Eq[time_seconds] = 6;
 
 					// also a signal can coincide with an ETCS3 EoA, that is why a train must stop at the signal also if this not red but and ETCS 3 EoA exists
-					if ((!strcmp(Bs.state, "red")) || (authorityHold == 1)) {
+					if ((Bs.state == SignalState::Red) || (authorityHold == 1)) {
 						instant_spatial_position[time_seconds] = authorityHold ? head : As.endNode.X * 1000 - 0.0001;
 						instant_train_speed[time_seconds] = 0;
 					} else {

@@ -315,7 +315,6 @@ Application code outside `simulation/` and `io/third_party/` has no `std::list`,
   function such as `std::count_if`.
 - A bool compared to 0 or 1 (`Name.empty() != 1`): write `!Name.empty()`.
 - `strcpy_s`, `sprintf_s` and `char` buffers: use `std::string` or `QString`.
-  `util/portability.h` maps `strcpy_s` to `strcpy` outside MSVC.
 - C-style casts: use `static_cast<T>`, or `qobject_cast` and `qgraphicsitem_cast` for Qt types.
 - `0` as a null pointer (`QWidget* parent = 0`): use `nullptr`.
 - New owning raw pointers and `new T[n]`: see [Ownership](#ownership).

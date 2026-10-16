@@ -3,7 +3,6 @@
 #include "util/Log.h"
 
 #include <algorithm>
-#include <cstring>
 #include <fstream>
 #include <list>
 #include <string>
@@ -45,8 +44,8 @@ bool Train::Conditions_To_Stop_Train_For_OL_Order(bool respectOrder, int IndexOr
 	// Verifying if the train must stop because the previous train of the list has not passed yet
 	bool TrainMustStop = Train_Must_Stop_For_OL_Order(respectOrder, IndexOrderList);
 	// if the previous train has passed and the signal is different from restrictive aspects(red for signalling levels different than BACC or red_red for BACC) Condition_To_Stop_Train is false
-	if ((TrainMustStop == 1) || ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (strcmp(BS.state, "red_red") == 0))
-		|| ((BS.SignallingLevel != levelValue(SignallingLevel::Bacc)) && (strcmp(BS.state, "red") == 0)))
+	if ((TrainMustStop == 1) || ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::RedRed))
+		|| ((BS.SignallingLevel != levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::Red)))
 		Condition_To_Stop_Train = true;
 	// else stop the train
 	else
