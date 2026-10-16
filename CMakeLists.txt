@@ -240,6 +240,7 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/Distribution.cpp
     ${SRC_DIR}/update/ReleaseInfo.cpp
     ${SRC_DIR}/update/UpdatePreparation.cpp
+    ${SRC_DIR}/update/UpdateRecord.cpp
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core egtrain_util)
 
@@ -338,8 +339,9 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_sim, egtrain_railml     legacy code with 104 and 4 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
-#                                   app/main.cpp, update/SelfUpdater.cpp, update/UpdateChecker.cpp
-#                                   and telemetry/TelemetryConsentDialog.cpp build here too
+#                                   app/main.cpp, update/SelfUpdater.cpp, update/UpdateChecker.cpp,
+#                                   update/UpdateNotices.cpp and telemetry/TelemetryConsentDialog.cpp
+#                                   build here too
 # A test executable that uses the simulation has no flags either.
 
 # --- Sources ---
@@ -349,6 +351,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
     ${SRC_DIR}/update/UpdateChecker.cpp
+    ${SRC_DIR}/update/UpdateNotices.cpp
 )
 
 set(EGTRAIN_HEADERS
@@ -374,6 +377,7 @@ set(EGTRAIN_HEADERS
 	${SRC_DIR}/update/UpdateChecker.h
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.h
 	${SRC_DIR}/update/SelfUpdater.h
+	${SRC_DIR}/update/UpdateNotices.h
     ${SRC_DIR}/scene/SceneDiagnostic.h
 	${SRC_DIR}/scene/SceneModel.h
 	${SRC_DIR}/scene/SectionInventory.h
@@ -565,7 +569,7 @@ if(EGTRAIN_BUILD_TESTS OR EGTRAIN_PACKAGED_BUILD)
         endforeach()
     endif()
     add_executable(test_updatehelper ${SRC_DIR}/tests/test_updatehelper.cpp)
-    target_link_libraries(test_updatehelper PRIVATE Qt5::Core)
+    target_link_libraries(test_updatehelper PRIVATE egtrain_update Qt5::Core)
     add_test(NAME test_updatehelper COMMAND test_updatehelper ${UPDATEHELPER_TEST_ARGS})
     set_tests_properties(test_updatehelper PROPERTIES TIMEOUT 120)
     foreach(egtrain_test test_updatepreparation test_updatehelper)
@@ -637,6 +641,10 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/tests/test_updatestaging.cpp)
     target_link_libraries(test_updatestaging PRIVATE Qt5::Core)
     add_test(NAME test_updatestaging COMMAND test_updatestaging)
+
+    add_executable(test_updaterecord ${SRC_DIR}/tests/test_updaterecord.cpp)
+    target_link_libraries(test_updaterecord PRIVATE egtrain_update Qt5::Core)
+    add_test(NAME test_updaterecord COMMAND test_updaterecord)
 
     add_executable(test_distribution ${SRC_DIR}/tests/test_distribution.cpp)
     target_link_libraries(test_distribution PRIVATE egtrain_update Qt5::Core)
@@ -1115,7 +1123,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_timeformat test_version test_log test_speedformat test_trajectory test_csvwriter
 			test_playbackprofiler
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
-			test_telemetrynetwork test_updatechecker test_updatestaging test_recoverystore
+			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
 			test_recoverycontroller test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle
@@ -1150,7 +1158,7 @@ if(EGTRAIN_BUILD_TESTS)
 	endfunction()
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
-		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_recoverystore
+		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
 		test_guisimulationsnapshot test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_trackpreview test_speedformat test_trajectory test_runresults
 		test_areacapacity test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow

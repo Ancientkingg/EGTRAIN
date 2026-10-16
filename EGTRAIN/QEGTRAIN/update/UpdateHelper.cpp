@@ -1,7 +1,9 @@
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
+#include <ctime>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -33,6 +35,7 @@ constexpr unsigned kDefaultObserveMs = 500;
 constexpr unsigned long kMaxObserveMs = 10 * 60 * 1000;
 // Name prefix of the folder that SelfUpdater stages an update in; it holds the staged installation and this helper.
 constexpr char kStagingPrefix[] = ".qegtrain-update-";
+constexpr std::size_t kMaxVersionLength = 32;
 
 struct Arguments {
 	unsigned long long parentPid = 0;
@@ -41,7 +44,24 @@ struct Arguments {
 	std::filesystem::path staged;
 	std::filesystem::path backup;
 	std::filesystem::path launch;
+	// The version being installed and the absolute path of the rollback record. Empty when the
+	// caller gave none, or gave a value that is not accepted; no record is written then.
+	std::string version;
+	std::filesystem::path record;
 };
+
+// Digits and dots only, so that the text is safe to write as it is. The reader checks that it is a version.
+std::string acceptedVersion(const ArgumentString& value) {
+	if (value.empty() || value.size() > kMaxVersionLength)
+		return {};
+	std::string version;
+	for (const ArgumentChar character : value) {
+		if (character != '.' && (character < '0' || character > '9'))
+			return {};
+		version.push_back(static_cast<char>(character));
+	}
+	return version;
+}
 
 bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 	for (int i = 1; i < argc; ++i) {
@@ -90,6 +110,18 @@ bool parseArguments(int argc, ArgumentChar** argv, Arguments& result) {
 			if (value.empty() || !end || *end != '\0' || milliseconds > kMaxObserveMs)
 				return false;
 			result.observeMs = static_cast<unsigned>(milliseconds);
+#if defined(_WIN32)
+		} else if (name == L"--version") {
+			result.version = acceptedVersion(value);
+		} else if (name == L"--record") {
+#else
+		} else if (name == "--version") {
+			result.version = acceptedVersion(value);
+		} else if (name == "--record") {
+#endif
+			// The helper changes its working directory, so a relative path would not be the one the caller meant.
+			const std::filesystem::path record(value);
+			result.record = record.is_absolute() ? record : std::filesystem::path();
 		} else {
 			return false;
 		}
@@ -226,6 +258,48 @@ void removeStaging(const std::filesystem::path& staging) {
 #endif
 }
 
+// The current UTC time as YYYY-MM-DDTHH:MM:SSZ, or an empty string when it cannot be converted.
+std::string utcTimestamp() {
+	const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::tm parts{};
+#if defined(_WIN32)
+	if (gmtime_s(&parts, &now) != 0)
+		return {};
+#else
+	if (gmtime_r(&now, &parts) == nullptr)
+		return {};
+#endif
+	char text[32];
+	if (std::strftime(text, sizeof(text), "%Y-%m-%dT%H:%M:%SZ", &parts) == 0)
+		return {};
+	return text;
+}
+
+// Leaves the record that the application reads at its next start (see update/UpdateRecord.h, which
+// holds the same format). Three lines, each ended by a line feed:
+//   outcome=rolled-back
+//   version=X.Y.Z
+//   time=YYYY-MM-DDTHH:MM:SSZ
+// The version is the one that failed to start and the time is the UTC time of this write. Best
+// effort: nothing here throws, and a record that cannot be written changes nothing else. The
+// previous version is started after this returns, so it never sees a half-written record.
+void writeRollbackRecord(const Arguments& arguments) {
+	if (arguments.version.empty() || arguments.record.empty())
+		return;
+	const std::string time = utcTimestamp();
+	if (time.empty())
+		return;
+	std::error_code error;
+	std::filesystem::create_directories(arguments.record.parent_path(), error);
+	if (error)
+		return;
+	std::ofstream output(arguments.record, std::ios::binary);
+	output << "outcome=rolled-back\nversion=" << arguments.version << "\ntime=" << time << "\n";
+	output.close();
+	if (!output.good())
+		std::filesystem::remove(arguments.record, error);
+}
+
 // Replaces the installation that failed to start with the backup. The failed one is
 // renamed aside first, so a file that is still locked cannot leave a half-deleted
 // installation. If the backup cannot be renamed back, the failed one is put back.
@@ -237,6 +311,7 @@ void restoreBackup(const Arguments& arguments) {
 		return;
 	if (movePathWithRetries(arguments.backup, arguments.current)) {
 		removePath(failed);
+		writeRollbackRecord(arguments);
 		launch(arguments.launch, 0);
 	} else {
 		movePathWithRetries(failed, arguments.current);
@@ -275,7 +350,8 @@ int EGTRAIN_HELPER_MAIN(int argc, ArgumentChar** argv) {
 	Arguments arguments;
 	if (!parseArguments(argc, argv, arguments)) {
 		std::cerr << "usage: egtrain_update_helper --parent-pid PID --current PATH "
-					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS]\n";
+					 "--staged PATH --backup PATH --launch PATH [--observe-ms MILLISECONDS] "
+					 "[--version X.Y.Z --record PATH]\n";
 		return 2;
 	}
 	std::error_code workingDirectoryError;

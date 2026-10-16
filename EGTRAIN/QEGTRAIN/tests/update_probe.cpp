@@ -2,6 +2,7 @@
 // behavior.txt from its own directory (key=value lines) and acts on it:
 //   label=NAME   name written to the log
 //   log=PATH     file that receives "NAME cwd DIRECTORY" and then "NAME started" when the probe starts
+//   record=PATH  adds "NAME sees record" or "NAME sees no record" between those two lines, by whether PATH exists
 //   mode=exit    exit with code=N (default 0)
 //   mode=sleep   wait ms=N, write "NAME done", exit 0
 //   mode=crash   write through a null pointer (Windows only)
@@ -63,6 +64,12 @@ int main(int, char** argv) {
 	const std::string log = behavior["log"];
 	const std::string mode = behavior["mode"];
 	appendLog(log, label + " cwd " + std::filesystem::current_path().u8string());
+	const std::string record = behavior["record"];
+	if (!record.empty()) {
+		std::error_code error;
+		const bool exists = std::filesystem::exists(std::filesystem::u8path(record), error);
+		appendLog(log, label + (exists ? " sees record" : " sees no record"));
+	}
 	appendLog(log, label + " started");
 	if (mode == "exit")
 		return behavior["code"].empty() ? 0 : std::stoi(behavior["code"]);

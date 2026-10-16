@@ -1,5 +1,6 @@
 #include "update/SelfUpdater.h"
 #include "update/Distribution.h"
+#include "update/UpdateRecord.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -449,11 +450,12 @@ bool SelfUpdater::startHelper() {
 		if (!removed)
 			return false;
 	}
-	const QStringList arguments = {
+	QStringList arguments = {
 		QStringLiteral("--parent-pid"), QString::number(QCoreApplication::applicationPid()),
 		QStringLiteral("--current"), m_currentPath,
 		QStringLiteral("--staged"), m_stagedPath,
 		QStringLiteral("--backup"), backup,
 		QStringLiteral("--launch"), m_launchPath};
+	arguments += updateRecordArguments(m_release.version, updateRecordPath());
 	return QProcess::startDetached(helperCopy, arguments);
 }

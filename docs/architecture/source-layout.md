@@ -36,7 +36,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `CapacityAnalysis`, `AreaCapacity`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
-| `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
+| `update/` | Release check, package download and self-update: `UpdateChecker`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases and the test `fixtures/` |
@@ -68,7 +68,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
-| `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdatePreparation`, `UpdateSettings` | Qt Core, `egtrain_util` |
+| `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings` | Qt Core, `egtrain_util` |
 | `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
@@ -94,7 +94,7 @@ that uses `TrainFilterButton`, `DiagramWindow`, `TimetableTableWindow` or
 Still compiled in more than one target: the telemetry sources of the hook flavours, and
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
 and `test_telemetryconsent` with it. Only the application builds the rest of `app/`,
-`UpdateChecker` and `SelfUpdater`.
+`UpdateChecker`, `SelfUpdater` and `UpdateNotices`.
 
 ## Renames
 
