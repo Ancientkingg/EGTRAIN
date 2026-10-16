@@ -1,6 +1,6 @@
-// A small client of the live stream (docs/architecture/external-sharing.md).
+// A small client of the live stream (docs/architecture/external-sharing.md, docs/guides/live-sharing.md).
 //
-//   live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS]
+//   live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS]
 //
 // ENDPOINT_FILE is the live-endpoint.json that QEGTRAIN writes to its output folder when it starts with
 // --live. The client subscribes to the state endpoint of the file and reads frames until N runs have
@@ -11,6 +11,10 @@
 // command endpoint (QEGTRAIN started with --live-commands), the client sends "describe" until the
 // server publishes the hello again, so it can start at any time.
 //
+// With --set-delay-ms the client also sends one set_delay_ms request, as soon as it has the hello of a
+// run, and reports the reply of the server and the event that the run publishes for it. The file has to
+// name a command endpoint.
+//
 // For every run that it sees the client checks what the contract promises: the version, a constant
 // run id, a seq that increases, steps that increase, the shape of each train, and a time axis that
 // agrees with the hello frame. It writes one JSON line per run to standard output:
@@ -19,10 +23,14 @@
 //   [service_id, occurrence] of each train of the hello), horizon_steps, states, first_step, last_step,
 //   missed (frames missing in seq), positions (train entries with a position), moving (train entries
 //   with a speed above 0), state_bytes, signal_frames (state frames with the signal list),
-//   steps_finished (the step of that event, or null), status (of run_finished, or null)
+//   steps_finished (the step of that event, or null), status (of run_finished, or null),
+//   command (the reply to the request that --set-delay-ms sent in this run: its id, status "accepted"
+//   or "rejected" and, when rejected, the reason; null when none was sent), applied and rejected (the
+//   command events of the run: command_id, cmd, step and, for rejected, reason)
 //
 // Each broken promise is written to standard error as "violation: ...". The exit status is 0 when the
-// runs were read and nothing was broken, 1 after a violation or a timeout, and 2 for a bad call.
+// runs were read and nothing was broken, 1 after a violation or a timeout, and 2 for a bad call. A
+// request that the server rejects is no violation; it is in the line of its run.
 
 #include <nlohmann/json.hpp>
 #include <zmq.hpp>
@@ -90,6 +98,9 @@ struct Run {
 	int signalFrames = 0;
 	std::optional<std::int64_t> stepsFinished;
 	std::optional<std::string> status;
+	json command = nullptr;
+	json applied = json::array();
+	json rejected = json::array();
 };
 
 bool isNumberOrNull(const json& value) {
@@ -104,6 +115,12 @@ public:
 	int finishedRuns() const { return m_finished; }
 	int statesRead() const { return m_statesRead; }
 	bool sawHello() const { return !m_runs.empty() && m_runs.back().sawHello; }
+
+	// Records the reply to the request that was sent in the run that goes on.
+	void setCommandReply(const json& reply) {
+		if (!m_runs.empty())
+			m_runs.back().command = reply;
+	}
 
 	void handle(const std::string& topic, const std::string& text) {
 		const json frame = json::parse(text, nullptr, false);
@@ -254,8 +271,30 @@ private:
 			}
 			run.status = frame.at("status").get<std::string>();
 			++m_finished;
+		} else if (kind == "applied" || kind == "rejected") {
+			handleCommandEvent(run, frame, kind, step);
 		} else {
 			violation(where + "an event of kind " + kind);
+		}
+	}
+
+	void handleCommandEvent(Run& run, const json& frame, const std::string& kind, std::int64_t step) {
+		const std::string where = "run " + run.runId + ": ";
+		if (!frame.contains("command_id") || !frame.at("command_id").is_string() || !frame.contains("cmd") || !frame.at("cmd").is_string()
+			|| (kind == "rejected" && (!frame.contains("reason") || !frame.at("reason").is_string()))) {
+			violation(where + "a " + kind + " event lacks command_id, cmd or reason");
+			return;
+		}
+		if (run.lastStep >= step)
+			violation(where + kind + " says step " + std::to_string(step) + ", after the state of step " + std::to_string(run.lastStep));
+		json entry = {{"command_id", frame.at("command_id")}, {"cmd", frame.at("cmd")}, {"step", step}};
+		if (kind == "rejected") {
+			entry["reason"] = frame.at("reason");
+			run.rejected.push_back(std::move(entry));
+		} else {
+			if (run.stepsFinished)
+				violation(where + "a command is applied after steps_finished");
+			run.applied.push_back(std::move(entry));
 		}
 	}
 
@@ -265,22 +304,30 @@ private:
 	int m_statesRead = 0;
 };
 
-// Asks the server to publish the hello of the run that goes on. Returns the reason when the server
-// refuses and "" when it accepts or does not answer.
-std::string describe(zmq::context_t& context, const Endpoints& endpoints) {
+// Sends one request to the command endpoint and returns the reply, or null when none came.
+json ask(zmq::context_t& context, const Endpoints& endpoints, const std::string& id, const std::string& name, const json& args = nullptr) {
 	zmq::socket_t request(context, zmq::socket_type::req);
 	request.set(zmq::sockopt::linger, 0);
 	request.set(zmq::sockopt::rcvtimeo, 500);
 	request.connect(endpoints.command);
-	const json message = {{"v", kContractVersion}, {"id", "describe"}, {"token", endpoints.token}, {"cmd", "describe"}};
+	json message = {{"v", kContractVersion}, {"id", id}, {"token", endpoints.token}, {"cmd", name}};
+	if (!args.is_null())
+		message["args"] = args;
 	const std::string text = message.dump();
 	if (!request.send(zmq::buffer(text), zmq::send_flags::none))
-		return "";
+		return nullptr;
 	zmq::message_t reply;
 	if (!request.recv(reply, zmq::recv_flags::none))
-		return "";
+		return nullptr;
 	const json answer = json::parse(reply.to_string(), nullptr, false);
-	if (!answer.is_object() || answer.value("status", "") == "accepted")
+	return answer.is_object() ? answer : json(nullptr);
+}
+
+// Asks the server to publish the hello of the run that goes on. Returns the reason when the server
+// refuses and "" when it accepts or does not answer.
+std::string describe(zmq::context_t& context, const Endpoints& endpoints) {
+	const json answer = ask(context, endpoints, "describe", "describe");
+	if (answer.is_null() || answer.value("status", "") == "accepted")
 		return "";
 	return answer.value("reason", "rejected");
 }
@@ -317,6 +364,9 @@ json summary(const Run& run) {
 	line["signal_frames"] = run.signalFrames;
 	line["steps_finished"] = run.stepsFinished ? json(*run.stepsFinished) : json(nullptr);
 	line["status"] = run.status ? json(*run.status) : json(nullptr);
+	line["command"] = run.command;
+	line["applied"] = run.applied;
+	line["rejected"] = run.rejected;
 	return line;
 }
 
@@ -325,6 +375,8 @@ struct Options {
 	int runs = 1;
 	int maxStates = 0;
 	int timeoutSeconds = kDefaultTimeoutSeconds;
+	// The delay of the set_delay_ms request to send, or -1 for none.
+	int delayMs = -1;
 };
 
 bool readNumber(const char* text, int low, int& value) {
@@ -350,6 +402,8 @@ bool readOptions(int argc, char** argv, Options& options) {
 			continue;
 		if (name == "--timeout" && readNumber(argv[i + 1], 1, options.timeoutSeconds))
 			continue;
+		if (name == "--set-delay-ms" && readNumber(argv[i + 1], 0, options.delayMs))
+			continue;
 		return false;
 	}
 	return true;
@@ -359,7 +413,7 @@ bool readOptions(int argc, char** argv, Options& options) {
 int main(int argc, char** argv) {
 	Options options;
 	if (!readOptions(argc, argv, options)) {
-		std::cerr << "usage: live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS]\n";
+		std::cerr << "usage: live_client ENDPOINT_FILE [--runs N] [--max-states N] [--timeout SECONDS] [--set-delay-ms MS]\n";
 		return 2;
 	}
 	const Clock::time_point deadline = Clock::now() + std::chrono::seconds(options.timeoutSeconds);
@@ -385,7 +439,17 @@ int main(int argc, char** argv) {
 	std::vector<std::string> problems;
 	Clock::time_point lastDescribe = Clock::now() - std::chrono::seconds(1);
 	bool timedOut = false;
+	bool commandSent = false;
 	for (;;) {
+		if (options.delayMs >= 0 && !commandSent && reader.sawHello()) {
+			commandSent = true;
+			const json reply = endpoints->command.empty() ? json(nullptr)
+														  : ask(context, *endpoints, "set-delay", "set_delay_ms", {{"delay_ms", options.delayMs}});
+			if (reply.is_null())
+				problems.push_back(endpoints->command.empty() ? "set_delay_ms needs the command endpoint: start the application with --live-commands"
+															  : "no reply to set_delay_ms");
+			reader.setCommandReply(reply);
+		}
 		const bool done = options.runs == 0 ? reader.sawHello() : reader.finishedRuns() >= options.runs;
 		if (done || (options.maxStates > 0 && reader.statesRead() >= options.maxStates))
 			break;

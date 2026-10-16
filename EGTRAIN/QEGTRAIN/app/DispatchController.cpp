@@ -13,6 +13,7 @@
 #include <numeric>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <regex>
 #include <chrono>
 #include <memory>
@@ -344,6 +345,8 @@ struct DispatchLive {
 	LiveServer server;
 	// A state frame for every every-th step.
 	int every = 1;
+	// The server takes commands, which the run fetches at the top of each step.
+	bool commands = false;
 	// True from the hello frame of a run to its last event.
 	bool inRun = false;
 	LiveRunInfo run;
@@ -373,6 +376,17 @@ std::shared_ptr<const std::string> frameText(const nlohmann::json& frame) {
 	return std::make_shared<const std::string>(frame.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace));
 }
 
+// Reports the outcome of a command that a client sent: applied, or turned down for the reason.
+void pushLiveCommandEvent(DispatchLive& live, const LiveCommand& command, const char* rejectedBecause) {
+	live.server.pushEvent(frameText(makeCommandEventFrame(live.run, live.seq++, command, live.steps, rejectedBecause)));
+}
+
+// Turns down the commands that wait for the run, which will not take them.
+void rejectLiveCommands(DispatchLive& live, const char* reason) {
+	while (const std::optional<LiveCommand> command = live.server.tryPopCommand())
+		pushLiveCommandEvent(live, *command, reason);
+}
+
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
 void beginLiveRun(DispatchLive& live, const std::string& sceneName) {
 	live.run.runId = newRunId();
@@ -389,6 +403,7 @@ void beginLiveRun(DispatchLive& live, const std::string& sceneName) {
 	for (int i = 0; i < numRegions; ++i)
 		identities.trains.push_back(trainIdentity(i, regional_train[i]));
 	live.server.pushHello(live.run.runId, frameText(makeHelloFrame(live.run, live.seq++, identities)));
+	rejectLiveCommands(live, "no_active_run");
 }
 
 // The signal list goes into the first state frame of a run and into each frame in which it differs from the last that held it.
@@ -399,10 +414,40 @@ void publishLiveState(DispatchLive& live, const std::shared_ptr<const GuiSimulat
 	live.server.pushState(frameText(makeStateFrame(live.run, live.seq++, *snapshot, withSignals)));
 }
 
-// Ends the run in the stream when the event is its last.
+RunCommand toRunCommand(const LiveCommand& command) {
+	RunCommand result;
+	result.delayMs = command.delayMs;
+	switch (command.kind) {
+		case LiveCommandKind::Pause:
+			result.kind = RunCommandKind::Pause;
+			break;
+		case LiveCommandKind::Resume:
+			result.kind = RunCommandKind::Resume;
+			break;
+		case LiveCommandKind::Stop:
+			result.kind = RunCommandKind::Stop;
+			break;
+		case LiveCommandKind::SetDelayMs:
+			result.kind = RunCommandKind::SetDelayMs;
+			break;
+	}
+	return result;
+}
+
+// Hands the commands that clients have sent to the control of the run, which applies them before the
+// next step, and reports each in the stream. steps is the number of steps that have run.
+void takeLiveCommands(DispatchLive& live, RunControl& control, int steps) {
+	live.steps = steps;
+	while (const std::optional<LiveCommand> command = live.server.tryPopCommand())
+		pushLiveCommandEvent(live, *command, control.submit(toRunCommand(*command)) ? nullptr : "queue_full");
+}
+
+// Reports a change in the life of the run, and ends the run in the stream when the event is its last.
+// Once the steps have ended the run takes no command, so the ones that wait are turned down first.
 void pushLiveEvent(DispatchLive& live, LiveEvent event) {
 	if (!live.inRun)
 		return;
+	rejectLiveCommands(live, "run_ended");
 	live.server.pushEvent(frameText(makeEventFrame(live.run, live.seq++, event, live.steps)));
 	if (event != LiveEvent::StepsFinished) {
 		live.inRun = false;
@@ -425,6 +470,7 @@ bool DispatchController::startLive(int port, int every, bool commands, const std
 	if (!live->server.start(port, commands, endpointDirectory, error))
 		return false;
 	live->every = std::max(every, 1);
+	live->commands = commands;
 	live_ = std::move(live);
 	return true;
 }
@@ -613,9 +659,13 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 	int lastStep = -1;
 
 	RunControl& control = *runControl_;
+	// The commands of live clients are passed to the control at the top of each step and while a pause waits.
+	std::function<void()> fetchCommands;
+	if (live_ && live_->commands)
+		fetchCommands = [this, &control, &lastStep] { takeLiveCommands(*live_, control, lastStep + 1); };
 	for (int t = 0; t < initial_variables.times; t++) {
 		// Queued commands, pause, stop and the step delay take effect here, before the step moves anything.
-		if (!control.beginStep())
+		if (!control.beginStep(fetchCommands))
 			break;
 		lastStep = t;
 		{

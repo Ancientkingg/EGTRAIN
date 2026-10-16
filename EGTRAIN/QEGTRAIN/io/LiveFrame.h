@@ -2,6 +2,7 @@
 #define LIVEFRAME_H
 
 #include "app/GuiSimulationSnapshot.h"
+#include "io/LiveCommand.h"
 
 #include <nlohmann/json.hpp>
 
@@ -50,6 +51,11 @@ nlohmann::json makeStateFrame(const LiveRunInfo& run, std::uint64_t seq, const G
 
 // A change in the life of the run. step is the number of steps that have run.
 nlohmann::json makeEventFrame(const LiveRunInfo& run, std::uint64_t seq, LiveEvent event, int step);
+
+// The outcome of a command that a client sent. The command is applied before the step after the
+// steps that have run, or it is turned down with rejectedBecause as the reason.
+nlohmann::json makeCommandEventFrame(const LiveRunInfo& run, std::uint64_t seq, const LiveCommand& command, int step,
+	const char* rejectedBecause = nullptr);
 
 // True when the signal lists differ in length, order or any value that a frame reports.
 bool liveSignalsChanged(const std::vector<GuiSignalState>& previous, const std::vector<GuiSignalState>& current);

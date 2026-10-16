@@ -108,6 +108,17 @@ json makeEventFrame(const LiveRunInfo& run, std::uint64_t seq, LiveEvent event, 
 	return frame;
 }
 
+json makeCommandEventFrame(const LiveRunInfo& run, std::uint64_t seq, const LiveCommand& command, int step, const char* rejectedBecause) {
+	json frame = frameHead(run, seq);
+	frame["kind"] = rejectedBecause ? "rejected" : "applied";
+	frame["step"] = step;
+	frame["command_id"] = command.id;
+	frame["cmd"] = liveCommandName(command.kind);
+	if (rejectedBecause)
+		frame["reason"] = rejectedBecause;
+	return frame;
+}
+
 bool liveSignalsChanged(const std::vector<GuiSignalState>& previous, const std::vector<GuiSignalState>& current) {
 	return !std::equal(previous.begin(), previous.end(), current.begin(), current.end(), [](const GuiSignalState& a, const GuiSignalState& b) {
 		return a.sectionId == b.sectionId && a.reversedDirection == b.reversedDirection && guiSignalDisplayCode(a) == guiSignalDisplayCode(b)

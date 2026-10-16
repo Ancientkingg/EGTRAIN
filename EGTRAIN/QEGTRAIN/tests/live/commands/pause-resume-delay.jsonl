@@ -1,0 +1,8 @@
+{"step":10,"cmd":"set_delay_ms","args":{"delay_ms":2}}
+{"step":40,"cmd":"pause"}
+{"step":60,"cmd":"resume"}
+{"step":200,"cmd":"set_delay_ms","args":{"delay_ms":0}}
+{"step":300,"cmd":"pause"}
+{"step":300,"cmd":"set_delay_ms","args":{"delay_ms":1}}
+{"step":301,"cmd":"set_delay_ms","args":{"delay_ms":0}}
+{"step":1500,"cmd":"pause"}

@@ -1,6 +1,8 @@
 #ifndef LIVESERVER_H
 #define LIVESERVER_H
 
+#include "io/LiveCommand.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -41,28 +43,6 @@ constexpr std::size_t kLiveStateQueueSize = 8;
 constexpr std::size_t kLiveEventQueueSize = 64;
 // Number of accepted commands that can wait for tryPopCommand.
 constexpr std::size_t kLiveCommandQueueSize = 16;
-// Longest request that is parsed, in bytes, and longest request id.
-constexpr std::size_t kLiveMaxRequestBytes = 4096;
-constexpr std::size_t kLiveMaxRequestIdBytes = 64;
-// Largest delay that set_delay_ms accepts, in milliseconds.
-constexpr int kLiveMaxDelayMs = 1000;
-
-// What a client can ask of a run. The server queues the request and the simulation applies it.
-enum class LiveCommandKind {
-	Pause,
-	Resume,
-	Stop,
-	SetDelayMs
-};
-
-// A request that passed the checks of the server and waits for the simulation to apply it.
-struct LiveCommand {
-	LiveCommandKind kind = LiveCommandKind::Pause;
-	// The id that the client gave the request.
-	std::string id;
-	// For SetDelayMs, in milliseconds, 0 to kLiveMaxDelayMs.
-	int delayMs = 0;
-};
 
 struct LiveServerState;
 

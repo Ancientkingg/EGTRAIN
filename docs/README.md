@@ -9,6 +9,7 @@ Choose the route that matches your task.
 - [Glossary of application terms](guides/glossary.md)
 - [Command-line options and scene_tool](guides/command-line.md)
 - [Run output files](guides/run-output.md)
+- [Sharing a live run](guides/live-sharing.md): how to start a run with the live stream, a small client that reads positions and sends one command, the commands, and what to check when it does not work.
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [Amsterdam to Hilversum student case](guides/amsterdam-hilversum-student-case.md)
 - [How delays are calculated](guides/delay-analysis.md)
@@ -39,7 +40,7 @@ use the canonical model.
 - [Scene model design](architecture/scene-model.md)
 - [Scene editor flow](architecture/scene-editor-flow.md): how the editor creates, opens, validates, runs and saves a case, with the main window layout and the edit panes.
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
-- [External state sharing](architecture/external-sharing.md)
+- [External state sharing](architecture/external-sharing.md): the legacy `-TSM` and `-RC` channels, and the live stream with its contract version 1 (frames, units, ordering, sampling, compatibility, threads, commands and errors).
 - [Usage and diagnostics wire contract](telemetry/README.md)
 - [Custom dialog presentation contract](ui/dialog-presentation.md): the rules for custom dialogs, how to build one with `DialogLayout`, which dialogs use it, and the checks that cover them.
 - [Result-window presentation seam](ui/result-window-presentation.md): the contract for the heading, context and warning of the result windows, their size limits and the layout of the custom result dialogs.

@@ -6,6 +6,8 @@
 Runs the application with a stream and reads it with live_client:
 
   * a headless run that a client follows from start to end, with the same output as a run without a stream;
+  * a client that sends one set_delay_ms request: the server accepts it, the run reports it as applied, and the output is
+    that of a run without a stream; a request that the server rejects changes nothing;
   * a client that leaves in the middle of a run and a run that nobody follows, both with that output too;
   * a headless run of a scene that repeats its services, so that the trains of a service are told apart by their occurrence;
   * a client that joins after the run has ended, and a run that is stopped (window runs);
@@ -31,8 +33,13 @@ ROOT = Path(__file__).resolve().parents[2]
 SCENES = ROOT / "EGTRAIN" / "QEGTRAIN" / "Scenes"
 HORIZON = 1500
 EVERY = 25
-START_TIMEOUT = 120
-RUN_TIMEOUT = 180
+# The run that receives a command is longer, so that the client has the hello and the run is still going on when it sends.
+COMMAND_HORIZON = 3000
+# EGTRAIN_TEST_TIMEOUT_SCALE (set by CTest in a build with -DEGTRAIN_TEST_TIMEOUT_SCALE) stretches every wait, for builds that run slowly.
+SCALE = max(1, int(os.environ.get("EGTRAIN_TEST_TIMEOUT_SCALE", "1") or "1"))
+START_TIMEOUT = 120 * SCALE
+RUN_TIMEOUT = 180 * SCALE
+CLIENT_TIMEOUT = 60 * SCALE
 # Files that differ between two runs of the same input: the timings of the run.
 TIMING_FILES = {"Computing_Times.txt"}
 
@@ -120,7 +127,7 @@ class App:
 
 def run_client(client: Path, endpoint: Path, arguments: List[str]) -> Tuple[int, List[dict], str]:
     """Runs live_client and returns its exit status, the summary of each run it saw and its standard error."""
-    process = subprocess.run([str(client), str(endpoint)] + arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    process = subprocess.run([str(client), str(endpoint), "--timeout", str(CLIENT_TIMEOUT)] + arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              text=True, encoding="utf-8", errors="replace", timeout=RUN_TIMEOUT)
     summaries = [json.loads(line) for line in process.stdout.splitlines() if line.strip()]
     return process.returncode, summaries, process.stderr
@@ -185,8 +192,8 @@ def check_run(summary: dict, what: str, scene: str, horizon: Optional[int], ever
     expect(summary["trains"] > 0 and summary["scene_name"], "%s: the hello frame is missing or empty: %s" % (what, summary))
 
 
-def baseline(app: Path, temp: Path) -> App:
-    run = App(app, temp / "baseline", "Paimpol", ["-h", str(HORIZON)])
+def baseline(app: Path, temp: Path, horizon: int = HORIZON, name: str = "baseline") -> App:
+    run = App(app, temp / name, "Paimpol", ["-h", str(horizon)])
     expect(run.wait() == 0, "the run without a stream failed\n%s" % tail(run.stdout_path))
     return run
 
@@ -204,6 +211,48 @@ def stream_run(app: Path, client: Path, temp: Path, reference: App) -> None:
     finally:
         run.stop()
     print("PASS a client follows a run from start to end, and the results are those of a run without a stream")
+
+
+def command_run(app: Path, client: Path, temp: Path) -> None:
+    """A client sends one set_delay_ms. The run applies it between two steps, which changes no result."""
+    reference = baseline(app, temp, COMMAND_HORIZON, "baseline-command")
+    run = App(app, temp / "command", "Paimpol", ["-h", str(COMMAND_HORIZON), "--live", "0", "--live-commands", "--live-every", str(EVERY)])
+    try:
+        code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1", "--set-delay-ms", "1"])
+        expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
+        summary = summaries[0]
+        check_run(summary, "run with a command", "Paimpol", COMMAND_HORIZON, EVERY, 5)
+        reply = summary["command"]
+        expect(reply and reply["status"] == "accepted" and reply["run_id"] == summary["run_id"],
+               "the server did not accept set_delay_ms for the run: %s" % summary)
+        expect(summary["rejected"] == [], "the run turned the command down: %s" % summary)
+        expect(len(summary["applied"]) == 1, "the run did not report the command as applied once: %s" % summary)
+        applied = summary["applied"][0]
+        expect(applied["command_id"] == reply["id"] and applied["cmd"] == "set_delay_ms" and 0 < applied["step"] < COMMAND_HORIZON,
+               "the applied event does not belong to the request: %s and %s" % (reply, applied))
+        expect(run.wait() == 0, "the run with a command failed\n%s" % tail(run.stdout_path))
+        same_results(reference, run, "run with a command")
+    finally:
+        run.stop()
+    print("PASS a client sends set_delay_ms, the run reports it as applied, and the results are those of a run without a stream")
+
+
+def rejected_command_run(app: Path, client: Path, temp: Path) -> None:
+    """A request with a delay above the limit is answered with a reason, and the run is not changed."""
+    run = App(app, temp / "rejected", "Paimpol", ["-h", str(HORIZON), "--live", "0", "--live-commands", "--live-every", str(EVERY)])
+    try:
+        code, summaries, errors = run_client(client, run.endpoint_file(), ["--runs", "1", "--set-delay-ms", "5000"])
+        expect(code == 0 and len(summaries) == 1, "the client found a problem (exit %d):\n%s" % (code, errors))
+        summary = summaries[0]
+        reply = summary["command"]
+        expect(reply and reply["status"] == "rejected" and reply["reason"] == "bad_argument",
+               "the server did not reject the delay above the limit with bad_argument: %s" % summary)
+        expect(summary["applied"] == [] and summary["rejected"] == [], "the run reports a command that the server rejected: %s" % summary)
+        expect(summary["status"] == "completed", "the run did not complete: %s" % summary)
+        expect(run.wait() == 0, "the run failed\n%s" % tail(run.stdout_path))
+    finally:
+        run.stop()
+    print("PASS a request that the server rejects is answered with a reason and does not reach the run")
 
 
 def disconnect_run(app: Path, client: Path, temp: Path, reference: App) -> None:
@@ -355,6 +404,8 @@ def main() -> None:
     try:
         reference = baseline(app, temp)
         stream_run(app, client, temp, reference)
+        command_run(app, client, temp)
+        rejected_command_run(app, client, temp)
         disconnect_run(app, client, temp, reference)
         unwatched_run(app, temp, reference)
         repeated_services_run(app, client, temp)

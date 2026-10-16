@@ -417,6 +417,28 @@ void testEventFrames() {
 	check(cancelled.at("kind") == "run_finished" && cancelled.at("status") == "cancelled" && cancelled.at("step") == 100, "run_finished cancelled");
 }
 
+void testCommandEventFrames() {
+	const LiveRunInfo run = sampleRun();
+	LiveCommand command;
+	command.kind = LiveCommandKind::SetDelayMs;
+	command.id = "client-1";
+	command.delayMs = 20;
+	const json applied = makeCommandEventFrame(run, 4, command, 90);
+	const json rejected = makeCommandEventFrame(run, 5, command, 600, "run_ended");
+	for (const json* frame : {&applied, &rejected}) checkFrame(*frame, "command event frame");
+	check(applied.at("kind") == "applied" && applied.at("step") == 90 && applied.at("command_id") == "client-1" && applied.at("cmd") == "set_delay_ms"
+			&& !applied.contains("reason"),
+		"applied command");
+	check(rejected.at("kind") == "rejected" && rejected.at("reason") == "run_ended" && rejected.at("seq") == 5 && rejected.at("run_id") == "run-1",
+		"rejected command");
+	for (const LiveCommandKind kind : {LiveCommandKind::Pause, LiveCommandKind::Resume, LiveCommandKind::Stop}) {
+		command.kind = kind;
+		checkFrame(makeCommandEventFrame(run, 6, command, 1), "command event frame of " + std::string(liveCommandName(kind)));
+	}
+	for (const char* reason : {"run_ended", "no_active_run", "queue_full"})
+		checkFrame(makeCommandEventFrame(run, 7, command, 0, reason), std::string("command event frame rejected for ") + reason);
+}
+
 // The checker has to reject what the schema forbids, or the checks above prove nothing.
 void testSchemaRejects() {
 	GuiSimulationSnapshot snapshot;
@@ -449,6 +471,25 @@ void testSchemaRejects() {
 	json steps = makeEventFrame(sampleRun(), 1, LiveEvent::StepsFinished, 3);
 	steps["status"] = "completed";
 	check(!schemaProblem(steps).empty(), "the schema accepts a status on steps_finished");
+
+	LiveCommand command;
+	command.id = "c1";
+	const json applied = makeCommandEventFrame(sampleRun(), 1, command, 3);
+	const struct {
+		const char* name;
+		void (*apply)(json&);
+	} commandFaults[] = {
+		{"a command event without command_id", [](json& f) { f.erase("command_id"); }},
+		{"a command event with a command the contract does not have", [](json& f) { f["cmd"] = "set_speed"; }},
+		{"a command event with an unknown reason", [](json& f) { f["reason"] = "late"; }},
+		{"a command event with an unknown member", [](json& f) { f["accepted_at"] = 1; }},
+		{"a command event with a negative step", [](json& f) { f["step"] = -1; }},
+	};
+	for (const auto& fault : commandFaults) {
+		json broken = applied;
+		fault.apply(broken);
+		check(!schemaProblem(broken).empty(), std::string("the schema accepts ") + fault.name);
+	}
 }
 
 // --- The line fixture ---
@@ -637,6 +678,7 @@ int main(int argc, char** argv) {
 		testSignalsChanged();
 		testHelloFrame();
 		testEventFrames();
+		testCommandEventFrames();
 		testSchemaRejects();
 		testFixtureRun(fixture, expectDir);
 	} catch (const std::exception& error) {
