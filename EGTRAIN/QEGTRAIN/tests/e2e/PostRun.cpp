@@ -659,7 +659,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			bool drawable = false;
 			for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
 				QPolygonF expectedPolygon;
-				w.getTrainPolygon(&expectedPolygon, wagon, state);
+				w.m_presenter->getTrainPolygon(&expectedPolygon, wagon, state);
 				if (wagon >= item->trainPolygonItemList->size()
 					|| item->trainPolygonItemList->at(wagon)->polygon() != expectedPolygon)
 					return false;
@@ -747,7 +747,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			const GuiTrainState* during = stateIn(running, candidate.index);
 			QPolygonF body;
 			if (during)
-				w.getTrainPolygon(&body, 0, *during);
+				w.m_presenter->getTrainPolygon(&body, 0, *during);
 			if (during && guiReplayTrainHasPosition(*during, running->timestep) && !body.isEmpty()) {
 				followedState = &candidate;
 				followedCentre = body.boundingRect().center();
@@ -956,7 +956,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		for (const auto& train : frame->trains) {
 			if (!guiReplayTrainHasPosition(train, frame->timestep)) continue;
 			QPolygonF polygon;
-			w.getTrainPolygon(&polygon, 0, train);
+			w.m_presenter->getTrainPolygon(&polygon, 0, train);
 			if (polygon.isEmpty()) continue;
 			activeFrame = frame;
 			activeIndex = train.index;
