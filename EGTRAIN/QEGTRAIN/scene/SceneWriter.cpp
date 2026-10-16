@@ -466,6 +466,25 @@ json encodeInfrastructure(const SceneModel& scene) {
 	return infrastructure;
 }
 
+json encodeStations(const SceneModel& scene) {
+	json stations = json::array();
+	for (const auto& station : scene.stations) {
+		json value = {{"id", station.id}, {"name", station.name}, {"platforms", json::array()}};
+		if (station.hasPosition)
+			value["position_km"] = station.positionKm;
+		for (const auto& platform : station.platforms) {
+			json platformValue = {{"id", platform.id}, {"nodes", platform.nodeIds}};
+			if (platform.hasLength)
+				platformValue["length_m"] = platform.lengthM;
+			if (platform.hasWidth)
+				platformValue["width_m"] = platform.widthM;
+			value["platforms"].push_back(std::move(platformValue));
+		}
+		stations.push_back(value);
+	}
+	return {{"stations", stations}};
+}
+
 static json writeViews(const SceneModel& scene) {
 	json tracks = json::array();
 	for (const auto& view : scene.trackViews) {
@@ -527,22 +546,6 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 				{"unresolved_references", row.unresolvedReferences},
 			});
 		}
-	}
-
-	json stations = json::array();
-	for (const auto& station : scene.stations) {
-		json value = {{"id", station.id}, {"name", station.name}, {"platforms", json::array()}};
-		if (station.hasPosition)
-			value["position_km"] = station.positionKm;
-		for (const auto& platform : station.platforms) {
-			json platformValue = {{"id", platform.id}, {"nodes", platform.nodeIds}};
-			if (platform.hasLength)
-				platformValue["length_m"] = platform.lengthM;
-			if (platform.hasWidth)
-				platformValue["width_m"] = platform.widthM;
-			value["platforms"].push_back(std::move(platformValue));
-		}
-		stations.push_back(value);
 	}
 
 	json signalling = {
@@ -607,7 +610,7 @@ static SceneSaveResult writeSceneGeneration(const SceneModel& scene, const fs::p
 	bool wroteAll = true;
 	wroteAll = writeCanonical("scene.json", sceneJson) && wroteAll;
 	wroteAll = writeCanonical("infrastructure.json", encodeInfrastructure(scene)) && wroteAll;
-	wroteAll = writeCanonical("stations.json", {{"stations", stations}}) && wroteAll;
+	wroteAll = writeCanonical("stations.json", encodeStations(scene)) && wroteAll;
 	wroteAll = writeCanonical("signalling.json", signalling) && wroteAll;
 	wroteAll = writeCanonical("rolling_stock.json",
 				   {{"train_units", writeTrainUnits(scene)}, {"compositions", writeCompositions(scene)}})

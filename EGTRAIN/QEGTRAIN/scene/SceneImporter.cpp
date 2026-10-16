@@ -951,7 +951,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	report.converted("legacy_root", legacyDir);
 
 	SceneModel scene;
-	json stations = json::array();
 	json routes = json::array();
 	json trainUnits = json::array();
 	json compositions = json::array();
@@ -1284,16 +1283,16 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	std::unordered_map<std::string, std::size_t> stationIndex;
 	auto stationIdFor = [&](const std::string& raw, bool& ambiguous) {
 		ambiguous = false;
-		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (stations[i]["id"] == raw)
+		for (const SceneStation& station : scene.stations)
+			if (station.id == raw)
 				return raw;
 		const std::string normalized = normaliseStationName(raw);
 		std::vector<std::size_t> matches;
-		for (std::size_t i = 0; i < stations.size(); ++i)
-			if (normaliseStationName(stations[i]["id"].get<std::string>()) == normalized)
+		for (std::size_t i = 0; i < scene.stations.size(); ++i)
+			if (normaliseStationName(scene.stations[i].id) == normalized)
 				matches.push_back(i);
 		if (matches.size() == 1)
-			return stations[matches[0]]["id"].get<std::string>();
+			return scene.stations[matches[0]].id;
 		if (matches.size() > 1)
 			ambiguous = true;
 		return raw;
@@ -1336,9 +1335,14 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			std::size_t index = 0;
 			const auto found = stationIndex.find(stationName);
 			if (found == stationIndex.end()) {
-				index = stations.size();
+				index = scene.stations.size();
 				stationIndex[stationName] = index;
-				stations.push_back({{"id", stationName}, {"name", stationName}, {"position_km", position}, {"platforms", json::array()}});
+				SceneStation station;
+				station.id = stationName;
+				station.name = stationName;
+				station.hasPosition = true;
+				station.positionKm = position;
+				scene.stations.push_back(std::move(station));
 			} else {
 				index = found->second;
 			}
@@ -1348,8 +1352,10 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 				if (node.x != position)
 					continue;
 				++matched;
-				const std::string platformId = stationName + ".platform." + std::to_string(stations[index]["platforms"].size() + 1);
-				stations[index]["platforms"].push_back({{"id", platformId}, {"nodes", {node.id}}});
+				ScenePlatform platform;
+				platform.id = stationName + ".platform." + std::to_string(scene.stations[index].platforms.size() + 1);
+				platform.nodeIds = {node.id};
+				scene.stations[index].platforms.push_back(std::move(platform));
 			}
 			if (matched == 0) {
 				addDiag(SceneSeverity::Warning, "scene.import.coordinate",
@@ -1451,9 +1457,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 									const std::vector<std::pair<int, double>>& regions, bool& ambiguous) {
 			ambiguous = false;
 			std::vector<std::string> exact;
-			for (const auto& station : stations)
-				if (station["id"] == raw)
-					exact.push_back(station["id"].get<std::string>());
+			for (const SceneStation& station : scene.stations)
+				if (station.id == raw)
+					exact.push_back(station.id);
 			if (exact.size() == 1)
 				return exact.front();
 			if (exact.size() > 1) {
@@ -1462,9 +1468,9 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			const std::string normalized = normaliseStationName(raw);
 			std::set<std::string> matches;
-			for (const auto& station : stations) {
-				if (normaliseStationName(station["id"].get<std::string>()) == normalized || normaliseStationName(station.value("name", station["id"].get<std::string>())) == normalized)
-					matches.insert(station["id"].get<std::string>());
+			for (const SceneStation& station : scene.stations) {
+				if (normaliseStationName(station.id) == normalized || normaliseStationName(station.name) == normalized)
+					matches.insert(station.id);
 			}
 			if (matches.size() == 1)
 				return *matches.begin();
@@ -1474,16 +1480,13 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			}
 			std::set<std::string> positionMatches;
 			constexpr double positionToleranceKm = 1e-6;
-			for (const auto& station : stations) {
-				if (!station.contains("position_km") || !station["position_km"].is_number())
-					continue;
-				const double stationPosition = station["position_km"].get<double>();
-				if (!std::isfinite(stationPosition))
+			for (const SceneStation& station : scene.stations) {
+				if (!station.hasPosition || !std::isfinite(station.positionKm))
 					continue;
 				for (const auto& region : regions) {
 					if (std::isfinite(region.second)
-						&& std::fabs(stationPosition - region.second) <= positionToleranceKm) {
-						positionMatches.insert(station["id"].get<std::string>());
+						&& std::fabs(station.positionKm - region.second) <= positionToleranceKm) {
+						positionMatches.insert(station.id);
 						break;
 					}
 				}
@@ -2014,7 +2017,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			for (std::size_t i = 1; i + 3 < tokens.size(); ++i) stationName += tokens[i];
 			bool ambiguous = false;
 			const std::string stationId = stationIdFor(stationName, ambiguous);
-			if (ambiguous || std::none_of(stations.begin(), stations.end(), [&](const json& station) { return station["id"] == stationId; })) {
+			if (ambiguous || std::none_of(scene.stations.begin(), scene.stations.end(), [&](const SceneStation& station) { return station.id == stationId; })) {
 				addDiag(SceneSeverity::Warning, "scene.import.ref", "Timetable refers to unresolved station " + stationName,
 					timetablePath.u8string(), "timetable", true);
 			}
@@ -2296,9 +2299,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// used by DispatchController. It keeps deterministic windows, never random
 	// draws or generated runtime results.
 	std::vector<LegacyPassengerStationReference> passengerStations;
-	for (const auto& station : stations)
-		passengerStations.push_back({station["id"].get<std::string>(),
-			station.value("name", station["id"].get<std::string>())});
+	for (const SceneStation& station : scene.stations)
+		passengerStations.push_back({station.id, station.name});
 	std::vector<SceneService> passengerServices;
 	for (const auto& value : services) {
 		SceneService service;
@@ -2337,7 +2339,6 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	if (!areaSidecar.empty()) signalling["signalling_areas"] = signallingAreas;
 	json rollingStock = {{"train_units", trainUnits}, {"compositions", compositions}};
 	json servicesFile = {{"services", services}};
-	json stationsFile = {{"stations", stations}};
 	json scenariosFile = {{"default_scenario_id", baselineScenario.id}, {"scenarios", scenarios}};
 
 	// Preserve atomic staging/publish semantics: no destination is touched while
@@ -2375,7 +2376,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	};
 	writeJson("scene.json", sceneJson);
 	writeJson("infrastructure.json", encodeInfrastructure(scene));
-	writeJson("stations.json", stationsFile);
+	writeJson("stations.json", encodeStations(scene));
 	writeJson("signalling.json", signalling);
 	writeJson("rolling_stock.json", rollingStock);
 	writeJson("services.json", servicesFile);

@@ -32,5 +32,7 @@ nlohmann::json encodePassengers(const std::vector<ScenePassenger>& passengers);
 
 // The content of infrastructure.json.
 nlohmann::json encodeInfrastructure(const SceneModel& scene);
+// The content of stations.json.
+nlohmann::json encodeStations(const SceneModel& scene);
 
 #endif // SCENEWRITER_H
