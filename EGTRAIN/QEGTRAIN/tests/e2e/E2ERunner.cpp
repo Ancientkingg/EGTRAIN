@@ -2,6 +2,7 @@
 
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
+#include "telemetry/TelemetryConsent.h"
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDir>
@@ -101,7 +102,34 @@ void sendOpenRequestWhenChooserOpens(MainWindow& window, const QString& file) {
 	poll->start(kChooserPollMs);
 }
 
+// QEGTRAIN_E2E_PRIVACY_DIALOG is 1 for the first prompt of the privacy dialog and settings for the saved choices. The
+// dialog is then a preview, and the settings are the isolated ones of QEGTRAIN_E2E_SETTINGS_DIR.
+bool privacyPreviewRequested() {
+	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG");
+	return (mode == QLatin1String("1") || mode == QLatin1String("settings"))
+		&& !qEnvironmentVariable("QEGTRAIN_E2E_SETTINGS_DIR").isEmpty();
+}
+
+// The context of a preview is fake: no sender exists and the address is never contacted.
+bool previewPrivacy(TelemetryContext& context, bool& initialPrompt) {
+	context = {true, true, true, QStringLiteral("https://127.0.0.1/consent-preview"), QStringLiteral("1")};
+	if (qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG") == QLatin1String("settings"))
+		initialPrompt = false;
+	return true;
+}
+
+bool startNoTelemetry(MainWindow&) {
+	return false;
+}
+
 void startScenarios(MainWindow& window) {
+	// The scripts of Dialogs.cpp act on the dialogs for which the variables of their scenario are set.
+	mainWindowTestHooks().dialogShown = [&window](QDialog& dialog, const char* kind) {
+		MainWindowTestAccess::dialogShown(window, dialog, kind);
+	};
+	mainWindowTestHooks().dialogClosed = [&window](QDialog& dialog, const char* kind) {
+		MainWindowTestAccess::dialogClosed(window, dialog, kind);
+	};
 	// A window without a scene has no run to start.
 	if (!mainWindowTestHooks().suppressStartupPrompts)
 		MainWindowTestAccess::autostart(window);
@@ -162,6 +190,21 @@ bool configureProcess() {
 	mainWindowTestHooks().runFinished = &MainWindowTestAccess::runFinished;
 	mainWindowTestHooks().runSettled = &MainWindowTestAccess::runSettled;
 	mainWindowTestHooks().routeDiagramBuilt = &MainWindowTestAccess::routeDiagramBuilt;
+	// A script that answers the run review needs it to open although dialogs are suppressed.
+	mainWindowTestHooks().askRunReview = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL");
+	if (privacyPreviewRequested()) {
+		mainWindowTestHooks().privacyPreview = &previewPrivacy;
+		mainWindowTestHooks().telemetryStart = &startNoTelemetry;
+	}
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE")) {
+		if (!mainWindowTestHooks().telemetryStart)
+			mainWindowTestHooks().telemetryStart = &MainWindowTestAccess::startTelemetrySmoke;
+		mainWindowTestHooks().observationStep = &MainWindowTestAccess::telemetryObservationStep;
+		mainWindowTestHooks().runStarting = &MainWindowTestAccess::telemetryRunStarting;
+		mainWindowTestHooks().windowDestroyed = &MainWindowTestAccess::telemetryWindowDestroyed;
+	}
+#endif
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
 	return true;
 }

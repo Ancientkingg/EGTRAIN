@@ -6,6 +6,9 @@
 #include <functional>
 #include <string>
 
+class CaseChooserDialog;
+class QDialog;
+
 // The friend of MainWindow for the scripted GUI runs. Each scenario member starts one scenario and is defined in
 // the source of that scenario in this folder. The hook members are what E2ERunner.cpp installs in MainWindowTestHooks.
 class MainWindowTestAccess {
@@ -33,11 +36,32 @@ public:
 	static void runSettled(MainWindow& w);
 	static void routeDiagramBuilt(const std::function<std::string(const QStringList&)>& csv, bool timetable);
 
+	// The scripts for the dialogs that the window opens, defined in Dialogs.cpp. Each acts on the dialogs for which the
+	// variables of its scenario are set.
+	static void dialogShown(MainWindow& w, QDialog& dialog, const char* kind);
+	static void dialogClosed(MainWindow& w, QDialog& dialog, const char* kind);
+
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	// The telemetry smoke, defined in TelemetrySmoke.cpp: the isolated start of telemetry, the script that follows it, and the
+	// checks that a run and the end of the window report.
+	static bool startTelemetrySmoke(MainWindow& w);
+	static void telemetryObservationStep(int step);
+	static void telemetryRunStarting(MainWindow& w);
+	static void telemetryWindowDestroyed();
+#endif
+
 private:
+	static void chooserShown(MainWindow& w, CaseChooserDialog& dialog);
+	static void chooserClosed(MainWindow& w, CaseChooserDialog& dialog);
+	static void reviewShown(MainWindow& w, QDialog& review);
+	static void reviewClosed(MainWindow& w, QDialog& review);
 	static void runReplaySignals(MainWindow& w);
 	static void checkOperationalCompletion(MainWindow& w);
 	static bool checkReplayWholeRun(MainWindow& w, int middle, QString& failure);
 	static bool checkReplayRow(MainWindow& w, int middle, QString& failure);
 	static bool replaySliderCovers(const MainWindow& w, int from, int to);
 	static QSize replayRowSizeAt(MainWindow& w, int time);
+#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
+	static void runTelemetrySmoke(MainWindow& w, int stage);
+#endif
 };

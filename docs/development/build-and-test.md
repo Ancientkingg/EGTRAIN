@@ -127,6 +127,24 @@ is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the f
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
 (`askCapacityScope`), which the scenario answers.
 
+`Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and
+`showPrivacySettings` call the `dialogShown` hook of `MainWindowTestHooks` with the dialog just before
+it opens, and the first two call `dialogClosed` once they have read the answer. With
+`QEGTRAIN_E2E_STARTUP_CHOOSER` set, the runner records the rows and menus of the case chooser, takes the
+action that `QEGTRAIN_E2E_CHOOSER_INTERACTION` names on the row of `QEGTRAIN_E2E_CHOOSER_PATH`, and prints
+the `E2E_STARTUP_CHOOSER_` lines when the chooser has closed. With `QEGTRAIN_E2E_REVIEW_CANCEL` set, the
+run review opens although dialogs are suppressed (`askRunReview`). The runner inspects it, cancels it with
+the Cancel button or, for the value `escape`, with the Escape key, and prints the `E2E_RUN_REVIEW_`
+lines; `QEGTRAIN_E2E_REVIEW_ENLARGED` enlarges the fonts first. With `QEGTRAIN_E2E_PRIVACY_DIALOG` set
+to `1` or `settings` and `QEGTRAIN_E2E_SETTINGS_DIR` set, the `privacyPreview` hook gives the privacy
+dialog a fake context, no telemetry starts, and `QEGTRAIN_E2E_SCREENSHOT` names the file that receives a
+picture of the dialog. In the isolated telemetry smoke configuration (`EGTRAIN_ISOLATED_TELEMETRY_SMOKE`,
+described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compiled too. Its hooks
+`telemetryStart`, `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
+folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
+stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
+are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.
+
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
 set, the runner starts the run of the case 1.5 s after the first show. The hooks
 `snapshotDelivered`, `snapshotDrawn`, `runResultsRefreshed`, `runFinished`, `runSettled` and

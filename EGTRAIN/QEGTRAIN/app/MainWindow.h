@@ -110,9 +110,6 @@ class SelfUpdater;
 class TelemetryConsent;
 class QSettings;
 namespace telemetry { class TelemetrySender; }
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-namespace telemetry_smoke { struct State; }
-#endif
 class QProgressDialog;
 class AboutDialog;
 class CaseSettingsPanel;
@@ -728,11 +725,6 @@ private:
 	void setupUpdateActions();
 	void showPrivacySettings(bool initialPrompt);
 	void startTelemetryAfterInitialConsent();
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-	std::shared_ptr<telemetry_smoke::State> m_telemetrySmokeState;
-	void runTelemetrySmoke(int stage);
-#endif
-	bool privacyDialogTestHook() const;
 	void maybePromptForUpdateChecks();
 	void startUpdateCheck(bool manual);
 	void handleUpdateCheckFinished(const UpdateCheckResult& result);

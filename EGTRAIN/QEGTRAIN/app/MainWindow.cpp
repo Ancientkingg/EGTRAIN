@@ -1,8 +1,5 @@
 #include "app/MainWindow.h"
 #include "app/SignalItemRoles.h"
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-#include "app/TelemetrySmokeSupport.h"
-#endif
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/OpenRequestRelay.h"
@@ -2965,12 +2962,8 @@ MainWindow::~MainWindow() {
 	if (m_telemetrySender) m_telemetrySender->stop();
 	clearSimulationWorker(true);
 	delete ui;
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE")) {
-		std::fprintf(stdout, "E2E_TELEMETRY_SHUTDOWN\n");
-		std::fflush(stdout);
-	}
-#endif
+	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
+		windowDestroyed();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -4098,302 +4091,22 @@ void MainWindow::setupUpdateActions() {
 	});
 }
 
-bool MainWindow::privacyDialogTestHook() const {
-#if EGTRAIN_BUILD_TESTS
-	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG");
-	return (mode == QStringLiteral("1") || mode == QStringLiteral("settings"))
-		&& !qEnvironmentVariable("QEGTRAIN_E2E_SETTINGS_DIR").isEmpty();
-#else
-	return false;
-#endif
-}
-
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-void MainWindow::runTelemetrySmoke(int stage) {
-	if (!m_telemetrySmokeState || !m_telemetrySender) return;
-	const QString root = QDir(qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE")).canonicalPath();
-	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
-	const auto later = [this](int next, int delay = 500) {
-		QTimer::singleShot(delay, this, [this, next] { runTelemetrySmoke(next); });
-	};
-	if (stage == 0) {
-		if ((mode != "retired_restart" && m_telemetrySmokeState->polls.load() < 1)
-			|| (mode == "retired" && m_telemetrySmokeState->posts.load() < 1)) {
-			later(0, 20);
-			return;
-		}
-		telemetry_smoke::dismissMessages();
-		if (mode == "import_late" || mode == "import_revoke") {
-			if (mode == "import_revoke" && m_telemetrySmokeState->posts.load() < 1) {
-				later(0, 20);
-				return;
-			}
-			const int poll = m_telemetrySmokeState->polls.load();
-			telemetry_smoke::chooseDirectory(root + "/private-legacy", "Select Legacy Case Folder",
-				[this, mode, poll, changed = false]() mutable {
-					if (!changed) {
-						changed = true;
-						if (mode == "import_revoke") m_telemetryConsent->save(false, false);
-						m_telemetryConsent->save(true, true);
-						m_telemetrySender->requestConsentRefresh();
-					}
-					return m_telemetrySmokeState->polls.load() > poll;
-				});
-			telemetry_smoke::chooseDirectory(root + "/imported", "Select Scene Destination");
-			actionLoad_Network();
-			if (m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
-				std::fprintf(stderr, "E2E_TELEMETRY_IMPORT_FAILED\n");
-				QCoreApplication::exit(2);
-				return;
-			}
-			std::fprintf(stdout, "E2E_TELEMETRY_IMPORTED\n");
-		} else if (mode == "late") {
-			// Real actions while disabled must not be reconstructed after enable.
-			openSceneDirectory(m_sceneDir);
-			m_caseSettingsDock->hide();
-			revealEditorDock(m_caseSettingsDock);
-			const int poll = m_telemetrySmokeState->polls.load();
-			saveSceneBundle(m_sceneModel, (root + "/historical.egscene").toStdString());
-			telemetry_smoke::chooseFile(root + "/historical.egscene", [this, poll, changed = false]() mutable {
-				if (!changed) {
-					changed = true;
-					m_telemetryConsent->save(true, true);
-					m_telemetrySender->requestConsentRefresh();
-				}
-				return m_telemetrySmokeState->polls.load() > poll;
-			});
-			openSceneDialog();
-		} else if (mode == "revoke") {
-			if (m_telemetrySmokeState->posts.load() < 1) {
-				later(0, 20);
-				return;
-			}
-			DiagramWindow diagram("Private in-flight chart", this);
-			diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
-			diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n"); }, "stale.csv");
-			attachRunProvenance(&diagram, captureRunProvenance());
-			QDir().mkpath(root + "/stale.csv.provenance.json");
-			const int poll = m_telemetrySmokeState->polls.load();
-			telemetry_smoke::chooseFile(root + "/stale.csv", [this, poll, changed = false]() mutable {
-				if (!changed) {
-					changed = true;
-					m_telemetryConsent->save(false, false);
-					m_telemetryConsent->save(true, true);
-					m_telemetrySender->requestConsentRefresh();
-				}
-				return m_telemetrySmokeState->polls.load() > poll;
-			});
-			QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
-		}
-		later(1);
-		return;
-	}
-	if (stage == 1) {
-		const QString scenePath = root + "/case";
-		openSceneDirectory(scenePath);
-		openSceneDirectory(scenePath); // Successful reload is a separate occurrence.
-		openSceneDirectory(root + "/invalid");
-		openSceneDirectory(root + "/ambiguous");
-		if (mode == "unsupported") openSceneDirectory(root + "/newer");
-		if (mode == "malformed_bundle") {
-			openSceneDirectory(root + "/missing-schema.egscene");
-			openSceneDirectory(root + "/noninteger-schema.egscene");
-		}
-		telemetry_smoke::chooseFile(QString());
-		openSceneDialog();
-		for (auto it = m_editorActions.cbegin(); it != m_editorActions.cend(); ++it) {
-			it.key()->hide();
-			it.value()->trigger();		// Built-in QAction ordering must not hide the prior state.
-			revealEditorDock(it.key()); // Focus/tab activation is not another open.
-		}
-		hide();
-		show(); // Parent visibility never counts editor opens.
-		DiagramWindow diagram("Private chart name", this);
-		diagram.setTelemetryCapture([this] { return captureTelemetryOperation(); });
-		diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n1,2\n"); }, "chart.csv");
-		attachRunProvenance(&diagram, captureRunProvenance());
-		for (int repeat = 0; repeat < 2; ++repeat) {
-			telemetry_smoke::chooseFile(root + "/chart.csv");
-			QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
-		}
-		telemetry_smoke::chooseFile(QString());
-		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
-		QDir().mkpath(root + "/blocked.csv.provenance.json");
-		telemetry_smoke::chooseFile(root + "/blocked.csv");
-		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
-		telemetry_smoke::chooseFile(root + "/chart.png");
-		QMetaObject::invokeMethod(&diagram, "exportPng", Qt::DirectConnection);
-		TimetableTableWindow table({}, m_startOffsetSeconds, [](const QStringList&) { return std::string("private,table\n"); }, this);
-		table.setTelemetryCapture([this] { return captureTelemetryOperation(); });
-		table.setRunProvenance(captureRunProvenance());
-		telemetry_smoke::chooseFile(root + "/table.csv");
-		QMetaObject::invokeMethod(&table, "exportCsv", Qt::DirectConnection);
-		telemetry_smoke::chooseFile(root + "/table.png");
-		QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
-		telemetry_smoke::chooseFile(QString());
-		QMetaObject::invokeMethod(&table, "exportCsv", Qt::DirectConnection);
-		telemetry_smoke::chooseFile(QString());
-		QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
-		if (mode == "table_failure") {
-			QDir().mkpath(root + "/blocked_table.png.provenance.json");
-			telemetry_smoke::chooseFile(root + "/blocked_table.png");
-			QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
-		}
-		saveSceneToCurrentDir(); // Directory save has no usage kind.
-		QDir(root + "/failed.egscene").removeRecursively();
-		telemetry_smoke::chooseFile(root + "/failed.egscene", {}, [root] {
-			QDir().mkpath(root + "/failed.egscene");
-		});
-		saveSceneAsToBundle(); // Failed Save As still requests scene_bundle, not current directory kind.
-		telemetry_smoke::chooseFile(root + "/saved.egscene");
-		saveSceneAsToBundle();
-		telemetry_smoke::chooseFile(QString());
-		saveSceneAsToBundle();
-		++m_sceneModel.schemaVersion;
-		telemetry_smoke::chooseFile(root + "/schema.egscene");
-		saveSceneAsToBundle(); // Unsupported schema before staging: diagnostics only.
-		--m_sceneModel.schemaVersion;
-		if (mode == "bundle") openSceneDirectory(root + "/saved.egscene");
-		openSceneDirectory(scenePath);
-		const auto services = m_sceneModel.services;
-		m_sceneModel.services.clear();
-		runScene(); // Handled preflight failure: no usage run pair.
-		m_sceneModel.services = services;
-		later(2);
-		return;
-	}
-	if (stage == 2) {
-		if (mode == "install_failure") m_telemetrySmokeState->installFailurePoint = 0;
-		if (mode == "run_revoke" || mode == "discard") {
-			m_speedSlider->setValue(kMaxStepDelayMs - 10);
-			auto* timer = new QTimer(this);
-			timer->setInterval(20);
-			connect(timer, &QTimer::timeout, this, [this, timer, mode] {
-				if (!m_telemetrySmokeState->startedPosts.load()) return;
-				timer->stop();
-				timer->deleteLater();
-				if (mode == "discard") {
-					markSceneDirty();
-					return;
-				}
-				m_telemetryConsent->save(false, false);
-				m_telemetryConsent->save(true, true);
-				m_telemetrySender->requestConsentRefresh();
-			});
-			timer->start();
-		}
-		if (mode == "zero") {
-			teardownGUI();
-			simulation.resetState();
-			startSimulation(captureTelemetryOperation());
-		} else runCurrent();
-		if (mode == "teardown" || mode == "replacement") clearSimulationWorker(true);
-		if (mode == "replacement") {
-			openSceneDirectory(root + "/case");
-			runCurrent(); // A queued GUI completion for the joined worker is stale.
-		}
-		later(3, 50);
-		return;
-	}
-	if (stage == 3 || stage == 5) {
-		if (m_worker) {
-			later(stage, 50);
-			return;
-		}
-		if (mode == "install_failure") {
-			extern InitialParameters initial_variables;
-			const int ordinal = m_telemetrySmokeState->completedProbeRuns;
-			if (!m_resultsAvailable
-				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(m_completedRunResults),
-					QString::fromStdString(initial_variables.OutputMainFolder) + "/EnergyConsumptionPerTrain.txt")) {
-				std::fprintf(stderr, "E2E_TELEMETRY_INSTALL_RUN_FAILED\n");
-				QCoreApplication::exit(2);
-				return;
-			}
-			++m_telemetrySmokeState->completedProbeRuns;
-			if (ordinal < 4) {
-				teardownGUI();
-				simulation.resetState();
-				simulation.runSimulation(); // Zero-train guard probes any orphaned rejection observer.
-				m_telemetrySmokeState->installFailurePoint = ordinal < 3 ? ordinal + 1 : -1;
-				runCurrent();
-				later(3, 50);
-				return;
-			}
-			std::fprintf(stdout, "E2E_TELEMETRY_INSTALL_PROBES runs=%d failures=%d\n",
-				m_telemetrySmokeState->completedProbeRuns, m_telemetrySmokeState->installFailures);
-		}
-		if (stage == 3 && mode == "repeat") {
-			runCurrent();
-			later(5, 50);
-			return;
-		}
-		if (m_resultsAvailable && mode != "teardown") {
-			telemetry_smoke::chooseFile(root + "/summary.csv");
-			if (auto* button = findChild<QPushButton*>("resultView_ExportCSV")) button->click();
-			telemetry_smoke::chooseFile(root + "/summary.png");
-			if (auto* button = findChild<QPushButton*>("resultView_ExportPNG")) button->click();
-		}
-		later(4, 2000);
-		return;
-	}
-	std::fprintf(stdout, "E2E_TELEMETRY_ACTIONS_DONE mode=%s posts=%d\n",
-		mode.toUtf8().constData(), m_telemetrySmokeState->posts.load());
-	std::fflush(stdout);
-	QCoreApplication::quit();
-}
-#endif
-
 void MainWindow::startTelemetryAfterInitialConsent() {
 	if (m_telemetrySender) return;
 	try {
-		if (privacyDialogTestHook()) return;
-		TelemetryContext context = applicationTelemetryContext();
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		const QString requestedDir = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE");
-		const QString isolatedDir = QDir(requestedDir).canonicalPath();
-		const QString temporaryRoot = QDir(QDir::tempPath()).canonicalPath();
-		// Compare resolved paths: Python and Qt may use different spellings of macOS /var.
-		const bool isolated = !requestedDir.isEmpty() && QDir(requestedDir).isAbsolute()
-			&& QDir(requestedDir).exists() && !temporaryRoot.isEmpty()
-			&& isolatedDir.startsWith(temporaryRoot + QLatin1Char('/'));
-		if (!requestedDir.isEmpty() && !isolated) {
-			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=invalid_isolation_root\n");
-			return;
-		}
-		if (isolated)
-			context = {true, true, true, QStringLiteral("https://127.0.0.1:19497/collect"), QStringLiteral("1")};
-#endif
-		if (!context.capable()) return;
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		if (isolated) {
-			m_telemetrySettings.reset(new QSettings(QDir(isolatedDir).filePath("consent.ini"), QSettings::IniFormat));
-		} else
-#endif
+		if (const auto telemetryStart = mainWindowTestHooks().telemetryStart) {
+			if (!telemetryStart(*this)) return;
+		} else {
+			const TelemetryContext context = applicationTelemetryContext();
+			if (!context.capable()) return;
 			m_telemetrySettings.reset(new QSettings);
-		m_telemetryConsent.reset(new TelemetryConsent(*m_telemetrySettings, context));
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
-		if (isolated
-			&& !m_telemetryConsent->save(smokeMode != "diagnostics" && smokeMode != "late" && smokeMode != "import_late",
-				smokeMode != "usage" && smokeMode != "late" && smokeMode != "import_late")) {
-			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=consent_storage_failure\n");
-			return;
-		}
-#endif
-		telemetry::Application metadata;
-		metadata.version = QCoreApplication::applicationVersion();
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		if (isolated) {
-			m_telemetrySmokeState = std::make_shared<telemetry_smoke::State>();
-			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
-				QDir(isolatedDir).filePath("queue"), telemetry_smoke::options(isolatedDir, smokeMode, m_telemetrySmokeState)));
-			QTimer::singleShot(0, this, [this] { runTelemetrySmoke(0); });
-		} else
-#endif
+			m_telemetryConsent.reset(new TelemetryConsent(*m_telemetrySettings, context));
+			telemetry::Application metadata;
+			metadata.version = QCoreApplication::applicationVersion();
 			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
 				QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
 					.filePath(QStringLiteral("Telemetry"))));
+		}
 		m_telemetrySender->requestInteractiveSession();
 		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this, [this](bool usage, bool diagnostics) {
 				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics); }, Qt::DirectConnection);
@@ -4401,10 +4114,6 @@ void MainWindow::startTelemetryAfterInitialConsent() {
 			m_telemetryConsent.get(), &TelemetryConsent::receiverChanged, this,
 			[this] { if (m_telemetrySender) m_telemetrySender->invalidateReceiver(); }, Qt::DirectConnection);
 	} catch (...) {
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
-			std::fprintf(stderr, "E2E_TELEMETRY_MOCK_REFUSED reason=initialization_exception\n");
-#endif
 		m_telemetrySender.reset();
 		m_telemetryConsent.reset();
 		m_telemetrySettings.reset();
@@ -4413,12 +4122,9 @@ void MainWindow::startTelemetryAfterInitialConsent() {
 
 void MainWindow::showPrivacySettings(bool initialPrompt) {
 	QSettings previewSettings;
-	const bool preview = privacyDialogTestHook();
 	TelemetryContext context = applicationTelemetryContext();
-	if (preview) {
-		// A visual-test-only fake context: no sender exists and the URL is never contacted.
-		context = {true, true, true, QStringLiteral("https://127.0.0.1/consent-preview"), QStringLiteral("1")};
-	}
+	const auto& privacyPreview = mainWindowTestHooks().privacyPreview;
+	const bool preview = privacyPreview && privacyPreview(context, initialPrompt);
 	TelemetryConsent previewConsent(previewSettings, context);
 	TelemetryConsent& consent = preview || !m_telemetryConsent ? previewConsent : *m_telemetryConsent;
 	if (!consent.available()) {
@@ -4427,16 +4133,10 @@ void MainWindow::showPrivacySettings(bool initialPrompt) {
 				QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
 		return;
 	}
-	if (privacyDialogTestHook()
-		&& qEnvironmentVariable("QEGTRAIN_E2E_PRIVACY_DIALOG") == QStringLiteral("settings"))
-		initialPrompt = false;
 	if (initialPrompt && !consent.promptRequired()) return;
 	TelemetryConsentDialog dialog(consent, context.domain(), initialPrompt, this);
-	if (privacyDialogTestHook() && !qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT").isEmpty()) {
-		QTimer::singleShot(200, &dialog, [&dialog] {
-			dialog.grab().save(qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT"));
-		});
-	}
+	if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
+		dialogShown(dialog, "privacySettings");
 	dialog.exec();
 	if (!preview && m_telemetrySender) m_telemetrySender->requestConsentRefresh();
 }
@@ -12176,8 +11876,6 @@ void MainWindow::showStartupChooser() {
 	const QString currentCaseName = m_sceneLoaded
 		? QString::fromStdString(m_sceneModel.name)
 		: QString();
-	const QString sceneDirBefore = m_sceneDir;
-	const quint64 sceneRevisionBefore = m_sceneRevision;
 
 	// Bundled scenes: below the working directory, next to the executable (Windows
 	// and Linux builds), in the macOS bundle, or in a Linux install prefix.
@@ -12189,92 +11887,9 @@ void MainWindow::showStartupChooser() {
 		applicationDir + "/../share/EGTRAIN/Scenes"};
 	const QStringList recentPaths = QSettings().value(kRecentScenesKey).toStringList();
 	CaseChooserDialog dialog({currentCaseName, sceneRoots, recentPaths}, this);
-	QListWidget* list = dialog.list();
-	QPushButton* openBtn = dialog.openButton();
-	QPushButton* continueBtn = dialog.continueButton();
-
-	const bool startupChooserE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_STARTUP_CHOOSER");
-	QVariantMap chooserContract;
-	if (startupChooserE2E) {
-		const auto rows = [list]() {
-			QVariantList result;
-			for (int row = 0; row < list->count(); ++row) {
-				const auto* item = list->item(row);
-				result.append(QVariantMap{{"title", item->text()}, {"path", item->data(Qt::UserRole)},
-					{"enabled", bool(item->flags() & Qt::ItemIsEnabled)},
-					{"selectable", bool(item->flags() & Qt::ItemIsSelectable)}, {"tooltip", item->toolTip()}});
-			}
-			return result;
-		};
-		chooserContract.insert("rows", rows());
-		chooserContract.insert("initialPath", dialog.selectedPath());
-		chooserContract.insert("loadedBefore", sceneDirBefore);
-		chooserContract.insert("defaultOpen", openBtn->isDefault());
-		QStringList menuTexts;
-		for (const auto* action : dialog.otherMenu()->actions()) menuTexts.append(action->text());
-		chooserContract.insert("otherActions", menuTexts);
-		QVariantList recentActions;
-		if (m_recentScenesMenu) {
-			for (const auto* action : m_recentScenesMenu->actions())
-				recentActions.append(QVariantMap{{"title", action->text()}, {"path", action->data()},
-					{"enabled", action->isEnabled()}, {"tooltip", action->toolTip()}});
-		}
-		chooserContract.insert("recentActions", recentActions);
-		QTimer::singleShot(0, &dialog, [&]() {
-			const QString interaction = qEnvironmentVariable("QEGTRAIN_E2E_CHOOSER_INTERACTION");
-			const QString target = qEnvironmentVariable("QEGTRAIN_E2E_CHOOSER_PATH");
-			const auto key = [](QWidget* widget, int code) {
-				QKeyEvent press(QEvent::KeyPress, code, Qt::NoModifier);
-				QKeyEvent release(QEvent::KeyRelease, code, Qt::NoModifier);
-				QCoreApplication::sendEvent(widget, &press);
-				QCoreApplication::sendEvent(widget, &release);
-			};
-			const auto mouse = [](QWidget* widget, QEvent::Type type, const QPoint& point) {
-				QMouseEvent event(type, QPointF(point), Qt::LeftButton,
-					type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
-				QCoreApplication::sendEvent(widget, &event);
-			};
-			QListWidgetItem* targetItem = nullptr;
-			for (int row = 0; row < list->count(); ++row)
-				if (list->item(row)->data(Qt::UserRole).toString() == target && !target.isEmpty())
-					targetItem = list->item(row);
-			if (targetItem) {
-				list->setFocus();
-				if (interaction == "keyboard") {
-					key(list, Qt::Key_Home);
-					for (int step = 0; step < list->count() && list->currentItem() != targetItem; ++step)
-						key(list, Qt::Key_Down);
-				} else {
-					list->scrollToItem(targetItem);
-					const QPoint point = list->visualItemRect(targetItem).center();
-					mouse(list->viewport(), QEvent::MouseButtonPress, point);
-					mouse(list->viewport(), QEvent::MouseButtonRelease, point);
-				}
-			}
-			chooserContract.insert("selectedPath", dialog.selectedPath());
-			chooserContract.insert("openEnabled", openBtn->isEnabled());
-			chooserContract.insert("interaction", interaction);
-			if (interaction == "keyboard") {
-				key(list, Qt::Key_Return);
-			} else if (interaction == "doubleclick" && targetItem) {
-				const QPoint point = list->visualItemRect(targetItem).center();
-				mouse(list->viewport(), QEvent::MouseButtonDblClick, point);
-				mouse(list->viewport(), QEvent::MouseButtonRelease, point);
-			} else if (interaction == "open") {
-				mouse(openBtn, QEvent::MouseButtonPress, openBtn->rect().center());
-				mouse(openBtn, QEvent::MouseButtonRelease, openBtn->rect().center());
-			} else {
-				continueBtn->click();
-			}
-		});
-		// A failed event dispatch must fail the contract rather than hang the subprocess.
-		chooserContract.insert("timedOut", false);
-		QTimer::singleShot(5000, &dialog, [&]() {
-			chooserContract.insert("timedOut", true);
-			dialog.reject();
-		});
-	}
-	const int dialogResult = dialog.exec();
+	if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
+		dialogShown(dialog, "startupChooser");
+	dialog.exec();
 
 	const CaseChooserDialog::Outcome outcome = dialog.outcome();
 	switch (outcome) {
@@ -12289,34 +11904,8 @@ void MainWindow::showStartupChooser() {
 				statusBar()->showMessage(QString("Ready - %1").arg(currentCaseName));
 			break;
 	}
-	if (startupChooserE2E) {
-		const auto marker = [](const char* name, const QString& value) {
-			std::fprintf(stdout, "%s=%s\n", name, value.toUtf8().constData());
-		};
-		chooserContract.insert("chosenAction", outcome == CaseChooserDialog::Outcome::OpenSelected ? "OpenSelected" : "ContinueCurrent");
-		chooserContract.insert("chosenPath", dialog.chosenPath());
-		chooserContract.insert("accepted", dialogResult == QDialog::Accepted);
-		chooserContract.insert("loadedAfter", m_sceneDir);
-		chooserContract.insert("loaded", m_sceneLoaded);
-		marker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
-		marker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
-		marker("E2E_STARTUP_CHOOSER_ACTION", continueBtn->text());
-		marker("E2E_STARTUP_CHOOSER_GROUP", list->item(0)->text());
-		marker("E2E_STARTUP_CHOOSER_GROUP_SELECTABLE",
-			list->item(0)->flags() & Qt::ItemIsEnabled ? "yes" : "no");
-		marker("E2E_STARTUP_CHOOSER_FIRST", list->currentItem() ? list->currentItem()->text() : QString());
-		marker("E2E_STARTUP_CHOOSER_OPEN_ENABLED", openBtn->isEnabled() ? "yes" : "no");
-		marker("E2E_STARTUP_CHOOSER_MODEL", QString::fromStdString(m_sceneModel.name));
-		marker("E2E_STARTUP_CHOOSER_CASE_LABEL", m_caseNameLabel ? m_caseNameLabel->text() : QString());
-		marker("E2E_STARTUP_CHOOSER_READINESS", m_caseReadinessLabel ? m_caseReadinessLabel->text() : QString());
-		marker("E2E_STARTUP_CHOOSER_STATUS", statusBar()->currentMessage());
-		marker("E2E_STARTUP_CHOOSER_UNCHANGED",
-			m_sceneLoaded && m_sceneDir == sceneDirBefore && m_sceneRevision == sceneRevisionBefore
-				? QStringLiteral("yes")
-				: QStringLiteral("no"));
-		std::fflush(stdout);
-		QCoreApplication::exit(0);
-	}
+	if (const auto& dialogClosed = mainWindowTestHooks().dialogClosed)
+		dialogClosed(dialog, "startupChooser");
 }
 
 // The Run action always prepares the currently loaded canonical scene first.
@@ -12398,16 +11987,14 @@ QString MainWindow::runReviewText() const {
 }
 
 bool MainWindow::showRunReview() {
-	const bool reviewCancelE2E = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL");
-	if (e2eDialogsSuppressed() && !reviewCancelE2E)
+	if (e2eDialogsSuppressed() && !mainWindowTestHooks().askRunReview)
 		return true;
 
-	const quint64 revisionBefore = m_sceneRevision;
-	const SceneRunSelection selectionBefore = selectedSceneOccurrences();
 	QDialog review(this);
 	review.setObjectName("runReviewDialog");
 	review.setWindowTitle("Run simulation");
 	auto* body = new QWidget;
+	body->setObjectName("runReviewBody");
 	auto* layout = new QVBoxLayout(body);
 	layout->setSpacing(8);
 	const bool detailsEnabled = advancedDetailsEnabled();
@@ -12520,6 +12107,7 @@ bool MainWindow::showRunReview() {
 		});
 	}
 	auto* buttons = new QDialogButtonBox(&review);
+	buttons->setObjectName("runReviewButtons");
 	buttons->addButton(QDialogButtonBox::Cancel);
 	auto* runButton = buttons->addButton("Run simulation", QDialogButtonBox::AcceptRole);
 	runButton->setObjectName("runReviewRunButton");
@@ -12532,168 +12120,11 @@ bool MainWindow::showRunReview() {
 	DialogLayout::install(review, "Run simulation",
 		QString("%1 / %2").arg(QString::fromStdString(m_sceneModel.name), scenarioContext()),
 		body, buttons);
-	QJsonObject reviewDiagnostic;
-	if (reviewCancelE2E) {
-		const bool enlarged = qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_ENLARGED");
-		if (enlarged) {
-			QFont font = review.font();
-			font.setPointSizeF(18);
-			review.setFont(font);
-			// Styled widgets have already resolved their fonts before this test seam.
-			for (QWidget* widget : review.findChildren<QWidget*>()) {
-				font = widget->font();
-				font.setPointSizeF(widget->objectName() == "dialogHeading" ? 22.5 : 18);
-				widget->setFont(font);
-			}
-			review.resize(qMin(560, review.maximumWidth()), qMin(420, review.maximumHeight()));
-		}
-		QTimer::singleShot(0, &review, [&]() {
-			// Modal show and disclosure changes post LayoutRequest events in Qt 5.
-			const auto settle = []() {
-				for (int i = 0; i < 3; ++i) {
-					QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
-					QApplication::processEvents();
-				}
-			};
-			settle();
-			auto* scroll = review.findChild<QScrollArea*>("dialogBodyScroll");
-			auto* context = review.findChild<QLabel*>("dialogContext");
-			QScreen* screen = QGuiApplication::screenAt(review.mapToGlobal(QPoint()));
-			if (!screen)
-				screen = QGuiApplication::primaryScreen();
-			const QRect available = screen->availableGeometry();
-			reviewDiagnostic.insert("availableScreen", QJsonArray{available.width(), available.height()});
-			const auto rectangle = [&](QWidget* widget) {
-				const QPoint origin = widget->mapTo(&review, QPoint());
-				return QJsonArray{origin.x(), origin.y(), widget->width(), widget->height()};
-			};
-			const auto geometry = [&]() {
-				settle();
-				return QJsonObject{{"dialog", QJsonArray{0, 0, review.width(), review.height()}},
-					{"maximum", QJsonArray{review.maximumWidth(), review.maximumHeight()}},
-					{"scroll", rectangle(scroll)}, {"footer", rectangle(buttons)},
-					{"run", rectangle(runButton)}, {"cancel", rectangle(buttons->button(QDialogButtonBox::Cancel))},
-					{"scrollMaximum", scroll->verticalScrollBar()->maximum()},
-					{"footerVisible", buttons->isVisible()}, {"fontPoints", review.font().pointSizeF()},
-					{"controlFontPoints",
-						QJsonArray{context->font().pointSizeF(), details->font().pointSizeF(), runButton->font().pointSizeF(),
-							buttons->button(QDialogButtonBox::Cancel)->font().pointSizeF()}}};
-			};
-			reviewDiagnostic.insert("initialFocus", review.focusWidget() == runButton ? "run" : review.focusWidget() ? review.focusWidget()->objectName()
-																													 : "none");
-			reviewDiagnostic.insert("runDefault", runButton->isDefault());
-			reviewDiagnostic.insert("cancelDefault", buttons->button(QDialogButtonBox::Cancel)->isDefault());
-			reviewDiagnostic.insert("context", context->text());
-			reviewDiagnostic.insert("plainContext", context->textFormat() == Qt::PlainText);
-			reviewDiagnostic.insert("plainDetails", details->textFormat() == Qt::PlainText);
-			reviewDiagnostic.insert("collapsedGeometry", geometry());
-			const auto detailState = [&]() {
-				return QJsonObject{{"checked", detailsToggle->isChecked()},
-					{"visible", details->isVisible()},
-					{"arrow", detailsToggle->arrowType() == Qt::DownArrow ? "down" : "right"}};
-			};
-			QJsonObject summary;
-			for (int row = 0; row < facts->rowCount(); ++row)
-				summary.insert(facts->itemAtPosition(row, 0)->widget()->property("text").toString(),
-					facts->itemAtPosition(row, 1)->widget()->property("text").toString());
-			reviewDiagnostic.insert("summary", summary);
-			reviewDiagnostic.insert("status", status->text());
-			reviewDiagnostic.insert("warning", status->property("warning").toBool());
-			reviewDiagnostic.insert("runEnabled", runButton->isEnabled());
-			reviewDiagnostic.insert("collapsed", detailState());
-			detailsToggle->click();
-			reviewDiagnostic.insert("expanded", detailState());
-			reviewDiagnostic.insert("details", details->text());
-			reviewDiagnostic.insert("expandedGeometry", geometry());
-			scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
-			reviewDiagnostic.insert("scrolledGeometry", geometry());
-
-			// Exercise the real focus chain without activating Run or inspection actions.
-			detailsToggle->setFocus();
-			QWidget* lastBody = detailsToggle;
-			QJsonArray bodyFocus;
-			QWidget* firstFooter = nullptr;
-			for (int i = 0; i < 12; ++i) {
-				QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-				QApplication::sendEvent(review.focusWidget(), &tab);
-				settle();
-				QWidget* focused = review.focusWidget();
-				if (focused && buttons->isAncestorOf(focused)) {
-					firstFooter = focused;
-					break;
-				}
-				if (!focused || !body->isAncestorOf(focused) || focused == detailsToggle)
-					break;
-				lastBody = focused;
-				bodyFocus.append(focused->property("text").toString());
-			}
-			scroll->verticalScrollBar()->setValue(0);
-			QJsonArray footerBacktab;
-			if (firstFooter) {
-				for (int i = 0; i <= buttons->buttons().size(); ++i) {
-					QKeyEvent backtab(QEvent::KeyPress, Qt::Key_Backtab, Qt::ShiftModifier);
-					QApplication::sendEvent(review.focusWidget(), &backtab);
-					settle();
-					QWidget* focused = review.focusWidget();
-					if (!focused || !buttons->isAncestorOf(focused))
-						break;
-					footerBacktab.append(focused->property("text").toString());
-				}
-			}
-			const QRect focusedRect(lastBody->mapTo(scroll->viewport(), QPoint()), lastBody->size());
-			reviewDiagnostic.insert("keyboard",
-				QJsonObject{{"bodyFocus", bodyFocus},
-					{"tabReachedFooter", firstFooter != nullptr},
-					{"backtabReturned", firstFooter && review.focusWidget() == lastBody},
-					{"firstFooter", firstFooter == runButton ? "run" : "cancel"},
-					{"footerBacktab", footerBacktab},
-					{"backtabFocus",
-						review.focusWidget()
-							? QString::fromLatin1(review.focusWidget()->metaObject()->className()) + ":"
-								+ review.focusWidget()->objectName() + ":" + review.focusWidget()->property("text").toString()
-							: "none"},
-					{"focusedBodyRect", QJsonArray{focusedRect.x(), focusedRect.y(), focusedRect.width(), focusedRect.height()}},
-					{"viewport", QJsonArray{0, 0, scroll->viewport()->width(), scroll->viewport()->height()}},
-					{"scrollValue", scroll->verticalScrollBar()->value()}});
-			detailsToggle->click();
-			reviewDiagnostic.insert("recollapsed", detailState());
-			reviewDiagnostic.insert("recollapsedGeometry", geometry());
-			const bool escape = qEnvironmentVariable("QEGTRAIN_E2E_REVIEW_CANCEL") == "escape";
-			reviewDiagnostic.insert("cancellation", escape ? "escape" : "button");
-			if (escape) {
-				QKeyEvent key(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
-				QApplication::sendEvent(&review, &key);
-			} else {
-				buttons->button(QDialogButtonBox::Cancel)->click();
-			}
-		});
-	}
+	if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
+		dialogShown(review, "runReview");
 	review.exec();
-	if (reviewCancelE2E) {
-		reviewDiagnostic.insert("rejected", review.result() == QDialog::Rejected);
-		reviewDiagnostic.insert("workerStarted", m_worker != nullptr);
-		std::fprintf(stdout, "E2E_RUN_REVIEW_RENDERED=%s\n",
-			QJsonDocument(reviewDiagnostic).toJson(QJsonDocument::Compact).constData());
-		std::fprintf(stdout, "E2E_RUN_REVIEW_SUMMARY=%s\n", facts->itemAtPosition(0, 1)->widget()->property("text").toString().toUtf8().constData());
-		std::fprintf(stdout, "E2E_RUN_REVIEW_START=%s\n", facts->itemAtPosition(1, 1)->widget()->property("text").toString().toUtf8().constData());
-		std::fprintf(stdout, "E2E_RUN_REVIEW_DURATION=%s\n", facts->itemAtPosition(2, 1)->widget()->property("text").toString().toUtf8().constData());
-		std::fprintf(stdout, "E2E_RUN_REVIEW_DETAILS=%d\n",
-			details->text().contains("Service definitions:")
-					&& details->text().contains("Configured total:")
-					&& details->text().contains("Selected:")
-					&& details->text().contains("Compositions:")
-					&& details->text().contains("Counting rule:")
-				? 1
-				: 0);
-		std::fprintf(stdout, "E2E_RUN_REVIEW_ADVANCED=%d\n", detailsEnabled ? 1 : 0);
-		std::fprintf(stdout, "E2E_RUN_REVIEW_VALIDATION_VISIBLE=%d\n",
-			details->text().contains("Validation:") ? 1 : 0);
-		std::fprintf(stdout, "E2E_RUN_REVIEW_CANCELLED=%d\n", choice == CancelRun ? 1 : 0);
-		std::fprintf(stdout, "E2E_RUN_REVIEW_UNCHANGED=%d\n",
-			m_sceneRevision == revisionBefore && selectedSceneOccurrences() == selectionBefore ? 1 : 0);
-		std::fflush(stdout);
-		QCoreApplication::exit(0);
-	}
+	if (const auto& dialogClosed = mainWindowTestHooks().dialogClosed)
+		dialogClosed(review, "runReview");
 	if (choice == StartRun)
 		return true;
 	if (choice == ShowLoadedData && m_loadedDataDock) {
@@ -12891,6 +12322,7 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
 
 	if (m_telemetrySender) {
+		const auto observationStep = mainWindowTestHooks().observationStep;
 		const auto rollback = [this]() noexcept {
 			for (auto& connection : m_simulationObservations) {
 				QObject::disconnect(connection);
@@ -12899,22 +12331,16 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 		};
 		// Telemetry is optional. Its allocation/connection failures cannot stop Run.
 		try {
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 0);
-#endif
+			if (observationStep) observationStep(0);
 			auto observation = std::make_shared<telemetry::SimulationObservation>(operation);
 			m_simulationObservations[0] = connect(
 				&simulation, &DispatchController::executionRejected, &simulation,
 				[observation] { observation->reject(telemetry::Error::InvalidInput); }, Qt::DirectConnection);
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 1);
-#endif
+			if (observationStep) observationStep(1);
 			m_simulationObservations[1] = connect(
 				&simulation, &DispatchController::executionBegan, &simulation,
 				[observation] { observation->begin(); }, Qt::DirectConnection);
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 2);
-#endif
+			if (observationStep) observationStep(2);
 			m_simulationObservations[2] = connect(
 				&simulation, &DispatchController::executionReturned, &simulation,
 				[observation](qint64 elapsedMs, bool cancelled) {
@@ -12923,33 +12349,15 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 						elapsedMs);
 				},
 				Qt::DirectConnection);
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-			telemetry_smoke::failObservationInstallation(m_telemetrySmokeState.get(), 3);
-#endif
+			if (observationStep) observationStep(3);
 			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2])
 				rollback();
 		} catch (...) {
 			rollback();
 		}
 	}
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-	const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE");
-	if (m_telemetrySmokeState && smokeMode == "stop_before")
-		connect(m_worker, &SimulationWorker::simulationStarted, m_worker,
-			&SimulationWorker::requestStop, Qt::DirectConnection);
-	if (m_telemetrySmokeState && smokeMode == "completion_stop") {
-		auto* worker = m_worker.data();
-		m_simulationObservations[3] = connect(
-			&simulation, &DispatchController::executionReturned, &simulation,
-			[worker](qint64, bool) { worker->requestStop(); }, Qt::DirectConnection);
-	}
-	if (m_telemetrySmokeState && smokeMode == "stop_postprocessing") {
-		auto* worker = m_worker.data();
-		m_simulationObservations[4] = connect(
-			&simulation, &DispatchController::executionPostprocessing, &simulation,
-			[worker] { worker->requestStop(); }, Qt::DirectConnection);
-	}
-#endif
+	if (const auto runStarting = mainWindowTestHooks().runStarting)
+		runStarting(*this);
 	m_workerThread->start();
 	ui->actionSimulationPause->setEnabled(true);
 	ui->actionSimulationStop->setEnabled(true);
