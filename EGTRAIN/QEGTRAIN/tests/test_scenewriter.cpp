@@ -992,6 +992,87 @@ static bool checkStagedDirectory() {
 	return ok;
 }
 
+// The errors of a scenario file as "code path: message", in the order in which the loader reported them.
+static std::vector<std::string> scenarioErrors(const ScenarioLoadResult& loaded) {
+	std::vector<std::string> lines;
+	for (const auto& diagnostic : loaded.diagnostics) {
+		if (diagnostic.file == "scenario.json" && diagnostic.severity == SceneSeverity::Error)
+			lines.push_back(diagnostic.code + " " + diagnostic.path + ": " + diagnostic.message);
+	}
+	return lines;
+}
+
+// One error per key, worded "<what> <key>" and located at <prefix>.<key>.
+static std::vector<std::string> fieldErrors(const std::string& code, const std::string& prefix, const std::string& what,
+	const std::vector<const char*>& keys) {
+	std::vector<std::string> lines;
+	for (const char* key : keys)
+		lines.push_back(code + " " + prefix + "." + key + ": " + what + " " + key);
+	return lines;
+}
+
+static void append(std::vector<std::string>& lines, const std::vector<std::string>& more) {
+	lines.insert(lines.end(), more.begin(), more.end());
+}
+
+// Malformed incidents and entrance delays of a standalone scenario file.
+static bool checkScenarioFileDiagnostics(const TempDir& temp) {
+	bool ok = true;
+	const fs::path file = temp.path / "malformed-scenario.json";
+	const auto load = [&](const json& incidents, const json& entranceDelays) {
+		json scenario = {{"id", "s"}, {"name", "n"}};
+		if (!incidents.is_null())
+			scenario["incidents"] = incidents;
+		if (!entranceDelays.is_null())
+			scenario["entrance_delays"] = entranceDelays;
+		std::ofstream(file, std::ios::trunc) << scenario.dump();
+		return loadScenarioJson(file.string());
+	};
+	const std::string type = "scene.scenario.field.type";
+	const std::string missing = "scene.scenario.field.missing";
+	const json wrongTypes = {{"id", "i"}, {"type", 5}, {"target", ""}, {"start_seconds", "a"}, {"end_seconds", "b"},
+		{"occurrence", 1.5}, {"reduced_speed_kmh", true}, {"terminate_at_destination", "c"}};
+	// The keys of wrongTypes that are reported, in the order of the schema.
+	const std::vector<const char*> wrongTypeKeys = {"type", "target", "start_seconds", "end_seconds", "occurrence",
+		"reduced_speed_kmh", "terminate_at_destination"};
+	const json wrongDelay = {{"service", 3}, {"occurrence", "x"}, {"delay_seconds", "d"}};
+
+	std::vector<std::string> expected;
+	append(expected, fieldErrors(type, "incidents[0]", "Invalid", wrongTypeKeys));
+	append(expected, fieldErrors(missing, "incidents[1]", "Missing", {"id", "type", "target", "start_seconds"}));
+	expected.push_back(type + " entrance_delays[0].service: Invalid service");
+	expected.push_back(type + " entrance_delays[0].occurrence: Invalid occurrence");
+	expected.push_back(missing + " entrance_delays[0].station: Missing station");
+	expected.push_back(type + " entrance_delays[0].delay_seconds: Invalid delay_seconds");
+	append(expected, fieldErrors(missing, "entrance_delays[1]", "Missing", {"service", "station", "delay_seconds"}));
+	ScenarioLoadResult loaded = load(json::array({wrongTypes, json::object()}), json::array({wrongDelay, json::object()}));
+	ok &= expect(scenarioErrors(loaded) == expected, "scenario file reports malformed incident and entrance delay fields in schema order");
+	ok &= expect(loaded.scenario.incidents.size() == 2 && loaded.scenario.incidents[0].id == "i"
+			&& !loaded.scenario.incidents[0].hasEndSeconds && !loaded.scenario.incidents[0].hasOccurrence
+			&& loaded.scenario.incidents[0].occurrence == 1 && !loaded.scenario.incidents[0].hasReducedSpeed
+			&& !loaded.scenario.incidents[0].terminateAtDestination && loaded.scenario.entranceDelays.size() == 2,
+		"scenario file keeps the defaults of malformed fields and still reads the items");
+
+	// An item that is not an object is reported once and is not read.
+	loaded = load(json::array({7}), json::array({7}));
+	ok &= expect(scenarioErrors(loaded)
+				== std::vector<std::string>{"scene.scenario.item.invalid incidents[0]: Incident must be an object",
+					"scene.scenario.item.invalid entrance_delays[0]: Entrance delay must be an object"}
+			&& loaded.scenario.incidents.empty() && loaded.scenario.entranceDelays.empty(),
+		"scenario file reports an incident and an entrance delay that are not objects once each");
+
+	loaded = load("x", "x");
+	ok &= expect(scenarioErrors(loaded)
+			== std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array",
+				"scene.scenario.section.type entrance_delays: entrance_delays must be an array"},
+		"scenario file reports sections that are not arrays");
+	loaded = load(nullptr, nullptr);
+	ok &= expect(scenarioErrors(loaded)
+			== std::vector<std::string>{"scene.scenario.section.type incidents: incidents must be an array"},
+		"scenario file requires the incidents section and not the entrance delay section");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	bool ok = true;
 	TempDir temp;
@@ -1661,6 +1742,10 @@ int main(int argc, char** argv) {
 	ok &= checkSavePublication();
 	ok &= checkUnicodePaths();
 	ok &= checkStagedDirectory();
+	{
+		TempDir scenarioTemp;
+		ok &= checkScenarioFileDiagnostics(scenarioTemp);
+	}
 
 	if (!ok)
 		return 1;
