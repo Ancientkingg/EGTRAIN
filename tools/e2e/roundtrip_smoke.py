@@ -6,6 +6,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from headless_smoke import check_blocking_times
+
 ROOT = Path(__file__).resolve().parents[2]
 SCENE_TOOL = ROOT / "build/scene_tool"
 APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
@@ -156,13 +160,22 @@ def main() -> None:
         print("Running reimported Assignment scene...")
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(tmp_dir / "run")
-        subprocess.run(
-            [str(APP), "--scene", str(reimported_dir), "-h", "2", "-g", "0", "-TSM", "0", "-RC", "0"],
+        proc = subprocess.run(
+            [str(APP), "--scene", str(reimported_dir), "-g", "0", "-TSM", "0", "-RC", "0"],
             cwd=tmp_dir,
             env=env,
-            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             timeout=120,
         )
+        output = proc.stdout.decode("utf-8", errors="replace")
+        sys.stdout.write(output)
+        if proc.returncode != 0:
+            raise RuntimeError(f"the reimported Assignment run exited with {proc.returncode}")
+        if "[scene.signalling.level.missing]" in output:
+            raise RuntimeError("the reimported Assignment run has route sections without a signalling level")
+        name = json.loads((reimported_dir / "scene.json").read_text())["name"]
+        check_blocking_times("reimported Assignment", tmp_dir / "run/Output" / name / "TrainTrajectories/BlockingTimes.txt")
 
     print("ROUNDTRIP PASS")
 
