@@ -237,7 +237,9 @@ to the console directly.
   `owl`; both are used only in `app/DispatchController.cpp` (the definitions and declarations
   of `owl` elsewhere are not uses). Nothing calls `Logger::init`, so neither writes anything.
 - `simulation/` writes through `EG_LOG`, except for one `std::fprintf` to `stderr` before
-  `std::abort()` in `BlockingTimeList::checkIndex`. `MainWindow` installs a Qt message
+  `std::abort()` in `BlockingTimeList::checkIndex`. It stays: the default sink does not flush
+  `std::cout` and a category can be switched off, so a logged message could be lost when the
+  process aborts. `MainWindow` installs a Qt message
   handler that sends `qWarning()` and other Qt messages to `std::cout`, and `ConsoleWidget`
   shows both streams in the Console Log dock. The command-line entry points
   (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`.
