@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDir>
+#include <QFileInfo>
 #include <QFileOpenEvent>
 #include <QSettings>
 #include <QStatusBar>
@@ -24,6 +25,7 @@ struct Scenario {
 };
 
 constexpr const char* kVisualPolish = "QEGTRAIN_E2E_VISUAL_POLISH";
+constexpr const char* kCreatorAcceptance = "QEGTRAIN_E2E_CREATOR_ACCEPTANCE";
 
 const Scenario kScenarios[] = {
 	{kVisualPolish, 2600, &MainWindowTestAccess::runVisualPolish},
@@ -34,6 +36,7 @@ const Scenario kScenarios[] = {
 	{"QEGTRAIN_E2E_TRACK_PREVIEW", 1000, &MainWindowTestAccess::runTrackPreview},
 	{"QEGTRAIN_E2E_LEGACY_IMPORT", 1000, &MainWindowTestAccess::runLegacyImport},
 	{"QEGTRAIN_E2E_SCENE_DROP", 100, &MainWindowTestAccess::runSceneDrop},
+	{kCreatorAcceptance, 0, &MainWindowTestAccess::runCreatorAcceptance},
 };
 
 // QEGTRAIN_E2E_OPEN_REQUEST names a file that the run hands to the application as the system does
@@ -133,11 +136,38 @@ bool configureProcess() {
 		return false;
 	}
 	mainWindowTestHooks().dialogsSuppressed = anyScenarioRequested();
+	// The creator acceptance run starts without a scene and drives the capacity scope dialog itself.
+	if (wantsCreatorAcceptance()) {
+		mainWindowTestHooks().suppressStartupPrompts = true;
+		mainWindowTestHooks().askCapacityScope = true;
+	}
 	// The visual polish scenario also starts from the frames of a run.
 	if (qEnvironmentVariableIsSet(kVisualPolish))
 		mainWindowTestHooks().frameRendered = &MainWindowTestAccess::visualPolishFrame;
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
 	return true;
+}
+
+bool wantsCreatorAcceptance() {
+	return qEnvironmentVariableIsSet(kCreatorAcceptance);
+}
+
+int runCreatorAcceptanceMain() {
+	const QString output = QFileInfo(qEnvironmentVariable("QEGTRAIN_E2E_OUT")).absoluteFilePath();
+	if (output.isEmpty() || output == QFileInfo(QString()).absoluteFilePath()) {
+		std::cerr << "ERROR: QEGTRAIN_E2E_OUT is required for creator acceptance.\n";
+		return 1;
+	}
+	if (!QDir().mkpath(output)) {
+		std::cerr << "ERROR: Could not create QEGTRAIN_E2E_OUT.\n";
+		return 1;
+	}
+	initial_variables.OutputMainFolder = output.toStdString();
+	InputMainFolder.clear();
+	initial_variables.InputMainFolder.clear();
+	MainWindow window;
+	window.openGUI();
+	return QCoreApplication::exec();
 }
 
 } // namespace e2e

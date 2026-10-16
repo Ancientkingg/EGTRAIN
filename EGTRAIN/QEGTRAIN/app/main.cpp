@@ -41,6 +41,15 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 	return 0;
 }
 
+// Whether this is the creator acceptance run of a test build, which starts without a case study.
+static bool creatorAcceptanceRun() {
+#if EGTRAIN_BUILD_TESTS
+	return e2e::wantsCreatorAcceptance();
+#else
+	return false;
+#endif
+}
+
 // The options that take a value. It must name every option that is read with getCmdOption: the
 // value of an option that is missing here would count as a file name.
 static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax", "-TSM", "-RC", "--seed", "--scene"};
@@ -48,7 +57,7 @@ static const QStringList optionsWithValue = {"-n", "-h", "-b", "-c", "-g", "-pax
 void parseCmdOptions(int argc, char* argv[]) {
 	// Keep the legacy questionnaire opt-in so normal launches open the GUI.
 	const bool promptForMissingOptions = cmdOptionEntered(argv, argv + argc, "--interactive") || cmdOptionEntered(argv, argv + argc, "-interactive");
-	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
+	const bool creatorAcceptance = creatorAcceptanceRun();
 
 	// no options entered
 	if (argc < 2) {
@@ -262,7 +271,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	const std::string defaultName = initial_variables.name;
-	const bool creatorAcceptance = qEnvironmentVariableIsSet("QEGTRAIN_E2E_CREATOR_ACCEPTANCE");
+	const bool creatorAcceptance = creatorAcceptanceRun();
 	if (!creatorAcceptance && defaultName.empty()) {
 		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut, 6 Lebanon.\n";
 		return 1;
@@ -286,23 +295,10 @@ int main(int argc, char* argv[]) {
 			SelfUpdater::cleanupStaleStaging();
 			QTimer::singleShot(20000, &application, []() { SelfUpdater::cleanupStaleStaging(); });
 		}
-		if (creatorAcceptance) {
-			const QString output = QFileInfo(qEnvironmentVariable("QEGTRAIN_E2E_OUT")).absoluteFilePath();
-			if (output.isEmpty() || output == QFileInfo(QString()).absoluteFilePath()) {
-				std::cerr << "ERROR: QEGTRAIN_E2E_OUT is required for creator acceptance.\n";
-				return 1;
-			}
-			if (!QDir().mkpath(output)) {
-				std::cerr << "ERROR: Could not create QEGTRAIN_E2E_OUT.\n";
-				return 1;
-			}
-			initial_variables.OutputMainFolder = output.toStdString();
-			InputMainFolder.clear();
-			initial_variables.InputMainFolder.clear();
-			MainWindow window;
-			window.openGUI();
-			return application.exec();
-		}
+#if EGTRAIN_BUILD_TESTS
+		if (creatorAcceptance)
+			return e2e::runCreatorAcceptanceMain();
+#endif
 		const SceneRequest request = readSceneRequest(sceneOption, true);
 		// A launch that only names a file, as the system starts it, hands the file to the instance that
 		// runs, when there is one.

@@ -1,10 +1,13 @@
 #pragma once
 
+#include "graphics/AnnotationPlacement.h"
 #include "graphics/NetworkView.h"
+#include "scene/TrackPreview.h"
 #include <QAbstractItemModel>
 #include <QComboBox>
 #include <QList>
 #include <QMetaObject>
+#include <QPointF>
 #include <QScrollBar>
 #include <QString>
 #include <cstdio>
@@ -76,4 +79,26 @@ inline void panViewAway(NetworkView* view) {
 	QScrollBar* bar = view->horizontalScrollBar();
 	const int distance = view->viewport()->width() / 3;
 	bar->setValue(bar->value() + distance <= bar->maximum() ? bar->value() + distance : bar->value() - distance);
+}
+
+inline bool previewPointAtX(const TrackPreviewLine& line, double x, qreal offset, QPointF& point) {
+	TrackPreviewPoint candidate;
+	if (!trackPreviewPointAtX(line, x, candidate))
+		return false;
+	point = QPointF(candidate.x, candidate.y + offset);
+	return true;
+}
+
+inline QPointF stationDecorationOffset(const std::vector<SceneStationView>& views,
+	const std::string& stationId, const std::string& name) {
+	const auto shift = annotationStationShift(views, stationId);
+	return QPointF(shift.first, shift.second + stationNamedYOffset(name));
+}
+
+inline bool previewSignalNormal(const TrackPreviewLine& line, double rawX, QPointF& normal) {
+	std::pair<double, double> direction;
+	if (!annotationSignalNormal(line, rawX, direction))
+		return false;
+	normal = QPointF(direction.first, direction.second);
+	return true;
 }

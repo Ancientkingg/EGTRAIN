@@ -7,4 +7,12 @@ namespace e2e {
 // or QEGTRAIN_E2E_OPEN_REQUEST_AT names none of launch, startup, chooser and running.
 bool configureProcess();
 
+// Whether the run is the creator acceptance scenario, which starts without a case study.
+bool wantsCreatorAcceptance();
+
+// Opens a window without a scene for the creator acceptance scenario and runs the event loop. It returns the
+// exit code of the loop, or 1, after a message on standard error, when QEGTRAIN_E2E_OUT names no folder that can
+// be made. The application object must exist.
+int runCreatorAcceptanceMain();
+
 } // namespace e2e
