@@ -36,6 +36,11 @@ TestHook& testHook() {
 	static TestHook hook;
 	return hook;
 }
+
+// The tests serve the release over http from the loopback address.
+constexpr bool kAllowLoopbackHttp = true;
+#else
+constexpr bool kAllowLoopbackHttp = false;
 #endif
 
 // True when url is where the release publishes the package with this name.
@@ -73,7 +78,7 @@ UpdatePackage updatePackageFor(Distribution distribution, const QString& platfor
 }
 
 SelfUpdater::SelfUpdater(QObject* parent)
-	: QObject(parent), m_transport(createHttpTransport(this)), m_timeout(this) {
+	: QObject(parent), m_transport(createHttpTransport(this, kAllowLoopbackHttp)), m_timeout(this) {
 	qRegisterMetaType<UpdatePreparationInput>("UpdatePreparationInput");
 	qRegisterMetaType<UpdatePreparationResult>("UpdatePreparationResult");
 	m_timeout.setSingleShot(true);

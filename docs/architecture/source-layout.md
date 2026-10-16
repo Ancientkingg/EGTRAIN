@@ -37,7 +37,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteDiagramRuntime`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats; vendored pugixml in `io/third_party/` |
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
-| `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
+| `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases, the `e2e/` runner of the scripted GUI scenarios and the test `fixtures/` |
@@ -69,7 +69,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
-| `egtrain_update` | `update/Distribution`, `HttpTransport`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings` | Qt Core and Network, `egtrain_util` |
+| `egtrain_update` | `update/Distribution`, `HttpTransport`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings`, and on Windows `WinHttpTransport` | Qt Core and Network, `egtrain_util`, and on Windows WinHTTP |
 | `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core and Network |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
@@ -82,9 +82,11 @@ The application, `scene_tool` and the tests link them.
 `egtrain_recovery` is linked by `test_recoverystore` and `test_recoverycontroller` only.
 
 The update code makes its HTTP requests through `HttpTransport` (`update/HttpTransport.h`). The
-function `createHttpTransport` selects the implementation that the application uses. `UpdateChecker`
-can take any transport, so `test_updatechecker` gives it a fake one, and `test_httptransport` runs
-the transport of the application against a server on the loopback address.
+function `createHttpTransport` selects the implementation that the application uses: Qt's network
+manager, or on Windows `WinHttpTransport`, because Qt 5.15 has no TLS library there. The WinHTTP
+transport fetches https addresses only. A test passes `allowLoopbackHttp` to reach `http://127.0.0.1`
+as well. `UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
+`test_httptransport` runs the transport of the application against a server on the loopback address.
 
 The telemetry sources also build with test hooks, which add members and a constructor
 parameter to `TelemetrySender`, `TelemetryConsent` and `TelemetryQueue`. These flavours
@@ -102,8 +104,9 @@ Still compiled in more than one target: the telemetry sources of the hook flavou
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
 and `test_telemetryconsent` with it, and `SelfUpdater.cpp`, which `test_selfupdater`
 builds with `EGTRAIN_UPDATE_TEST_HOOK`. The hook lets that test replace the
-capability of the running copy and the base of the package URLs, so that it can update
-from a server on the loopback address into a folder of its own. Only the application
+capability of the running copy and the base of the package URLs, and lets its transport
+fetch over http, so that it can update from a server on the loopback address into a folder
+of its own. Only the application
 builds the rest of `app/` and `UpdateNotices`. When tests are built, `QEGTRAIN` also
 compiles `tests/e2e`.
 

@@ -250,6 +250,11 @@ add_library(egtrain_update STATIC
     ${SRC_DIR}/update/UpdateRecord.cpp
     ${SRC_DIR}/update/UpdateSettings.cpp)
 target_link_libraries(egtrain_update PUBLIC Qt5::Core Qt5::Network egtrain_util)
+# Qt 5.15 has no TLS library on Windows, so the update requests go through WinHTTP there.
+if(WIN32)
+    target_sources(egtrain_update PRIVATE ${SRC_DIR}/update/WinHttpTransport.cpp)
+    target_link_libraries(egtrain_update PUBLIC winhttp)
+endif()
 
 # What a command line asks the application to open. Qt Core only; the application and
 # test_sceneopenrequest link it.
