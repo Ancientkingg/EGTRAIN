@@ -402,11 +402,16 @@ jobs:
             $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           }
           if (-not (Test-Path -LiteralPath $iscc)) { throw "ISCC.exe not found" }
-          $found = (Get-Item -LiteralPath $iscc).VersionInfo.ProductVersion
-          # installer/egtrain.iss needs 6.3 or newer.
+          # ISCC.exe may carry no version (0.0.0.0); the IDE next to it, Compil32.exe, carries the release version.
+          $found = @($iscc, (Join-Path (Split-Path -Parent $iscc) "Compil32.exe")) |
+            Where-Object { Test-Path -LiteralPath $_ } |
+            ForEach-Object { (Get-Item -LiteralPath $_).VersionInfo.FileVersion } |
+            Where-Object { $_ -match '^[1-9]\d*\.\d+' } | Select-Object -First 1
+          # installer/egtrain.iss needs 6.3 or newer. Without a readable version the compile step shows any mismatch.
           if ($found -match '^(\d+)\.(\d+)' -and ([int]$Matches[1] -lt 6 -or ([int]$Matches[1] -eq 6 -and [int]$Matches[2] -lt 3))) {
             throw "Inno Setup $found is older than 6.3"
           }
+          if (-not $found) { $found = "unknown" }
           "Inno Setup compiler: $iscc, version $found" | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
           Add-Content -Path $env:GITHUB_ENV -Value "ISCC=$iscc"
 
