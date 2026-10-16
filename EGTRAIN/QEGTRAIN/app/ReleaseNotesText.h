@@ -1,6 +1,8 @@
 #ifndef RELEASENOTESTEXT_H
 #define RELEASENOTESTEXT_H
 
+#include <QLabel>
+#include <QMessageBox>
 #include <QString>
 #include <QStringList>
 
@@ -22,6 +24,14 @@ inline QString releaseNotesMarkdown(QString notes) {
 			lines[i] += QLatin1String("  ");
 	}
 	return lines.join('\n');
+}
+
+// Shows Markdown in the informative text of a message box. QMessageBox::setTextFormat reaches only the main text, so the
+// label of the informative text gets the format itself.
+inline void setMarkdownInformativeText(QMessageBox& box, const QString& markdown) {
+	box.setInformativeText(markdown);
+	if (QLabel* label = box.findChild<QLabel*>(QStringLiteral("qt_msgbox_informativelabel")))
+		label->setTextFormat(Qt::MarkdownText);
 }
 
 #endif

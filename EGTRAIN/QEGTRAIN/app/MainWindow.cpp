@@ -3332,11 +3332,9 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
 		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
-	dialog.setTextFormat(Qt::MarkdownText);
-	dialog.setInformativeText((release.notes.isEmpty()
-									  ? QStringLiteral("No release notes were provided.")
-									  : releaseNotesMarkdown(release.notes))
-		+ availability);
+	setMarkdownInformativeText(dialog,
+		(release.notes.isEmpty() ? QStringLiteral("No release notes were provided.") : releaseNotesMarkdown(release.notes))
+			+ availability);
 	QPushButton* updateButton = nullptr;
 	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
 		updateButton = dialog.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);

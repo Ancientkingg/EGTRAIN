@@ -1126,7 +1126,7 @@ if(EGTRAIN_BUILD_TESTS)
 	add_test(NAME test_cannotopenmessage COMMAND test_cannotopenmessage)
 
 	add_executable(test_releasenotes ${SRC_DIR}/tests/test_releasenotes.cpp)
-	target_link_libraries(test_releasenotes PRIVATE Qt5::Core Qt5::Gui)
+	target_link_libraries(test_releasenotes PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets)
 	add_test(NAME test_releasenotes COMMAND test_releasenotes)
 	set_tests_properties(test_releasenotes PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 

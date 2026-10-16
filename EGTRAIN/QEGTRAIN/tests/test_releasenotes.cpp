@@ -1,6 +1,8 @@
 #include "app/ReleaseNotesText.h"
 
-#include <QGuiApplication>
+#include <QApplication>
+#include <QLabel>
+#include <QMessageBox>
 #include <QTextBlock>
 #include <QTextDocument>
 #include <QTextList>
@@ -24,9 +26,10 @@ QString visible(const QTextDocument& document) {
 }
 
 int main(int argc, char** argv) {
-	QGuiApplication app(argc, argv);
+	QApplication app(argc, argv);
 
-	// Back ticks, lists and line breaks show as formatted text.
+	// Back ticks, lists and line breaks show as formatted text. Only the line break, the code lines and the control
+	// below depend on releaseNotesMarkdown; the rest is what Qt renders for Markdown.
 	const QString notes = QStringLiteral(
 		"## What changed\r\n"
 		"First line\r\n"
@@ -60,5 +63,14 @@ int main(int argc, char** argv) {
 	QTextDocument raw;
 	raw.setMarkdown(notes);
 	require(!visible(raw).contains("First line\nSecond line"), "the lines already break without preparation");
+
+	// The informative text of a message box shows Markdown; setTextFormat of the box does not reach it.
+	QMessageBox box;
+	box.setInformativeText(QStringLiteral("- one\n- two"));
+	const QLabel* label = box.findChild<QLabel*>(QStringLiteral("qt_msgbox_informativelabel"));
+	require(label != nullptr, "the message box has no informative label");
+	require(label->textFormat() != Qt::MarkdownText, "the control label already shows Markdown");
+	setMarkdownInformativeText(box, QStringLiteral("- one\n- two"));
+	require(label->textFormat() == Qt::MarkdownText, "the informative text is not shown as Markdown");
 	return 0;
 }
