@@ -113,12 +113,15 @@ What the jobs prove today:
   current user and none for the machine, a Start Menu shortcut, no desktop
   shortcut, the files of the package with the same bytes, the marker file
   `installed-by-setup.ini` and one uninstaller, and `package_start_smoke.py`
-  starts the installed copy. The uninstall removes the entry, the shortcut and
-  the files and leaves a file beside the folder in place. An install with the desktop
+  starts the installed copy. The install registers the `.egscene` file type for
+  the current user, with the installed `QEGTRAIN.exe` as the program that opens
+  it, and the uninstall removes it together with the entry, the shortcut and the
+  files, and leaves a file beside the folder in place. An install with the desktop
   task creates the desktop shortcut and the uninstall removes it. A second
   installer of the next patch version installed over the first, in the default
   folder, leaves one entry, one folder and the higher version, and replaces the
-  `Scenes` folder. The job then writes the portable archive from the same
+  `Scenes` folder. A copy of the same directory, started as a portable copy is,
+  registers no file type. The job then writes the portable archive from that
   directory, extracts it and starts the extracted program with the same start
   script.
 - The Package Linux job extracts the AppImage and checks the executable,
@@ -144,8 +147,9 @@ The Finalize Windows job runs as an administrator on a machine that has the
 Visual C++ runtime. It does not show that a standard user installs without an
 elevation request, that the package starts on a machine without the runtime, or
 how Windows presents the unsigned installer and the entry in the list of
-installed apps. The installer registers no file type, so a double-click on a
-`.egscene` file does not open EGTRAIN (#416). The rows W1 to W6 below cover what
+installed apps. The job reads the registry keys of the `.egscene` file type but
+opens no file, so it does not show that a double-click on a `.egscene` file in
+Explorer opens EGTRAIN (#416). The rows W1 to W6 below cover the rest of what
 the job cannot.
 
 None of this shows the GUI student workflow.

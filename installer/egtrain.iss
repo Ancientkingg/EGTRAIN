@@ -23,6 +23,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
+ChangesAssociations=yes
 UninstallDisplayIcon={app}\QEGTRAIN.exe
 SetupIconFile=..\EGTRAIN\QEGTRAIN\resources\app\egtrain.ico
 OutputBaseFilename=EGTRAIN-Setup-{#Version}-x64
@@ -43,3 +44,11 @@ Type: filesandordirs; Name: "{app}\Scenes"
 [Icons]
 Name: "{userprograms}\EGTRAIN"; Filename: "{app}\QEGTRAIN.exe"; WorkingDir: "{app}"
 Name: "{userdesktop}\EGTRAIN"; Filename: "{app}\QEGTRAIN.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+
+[Registry]
+; The .egscene file type belongs to the installed copy: it is for the current user, it opens a file with QEGTRAIN.exe of {app},
+; and the uninstaller removes it. The portable archive registers nothing.
+Root: HKCU; Subkey: "Software\Classes\.egscene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN.Scene"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKCU; Subkey: "Software\Classes\EGTRAIN.Scene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN case study"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EGTRAIN.Scene\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\QEGTRAIN.exe,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EGTRAIN.Scene\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\QEGTRAIN.exe"" ""%1"""; Flags: uninsdeletekey

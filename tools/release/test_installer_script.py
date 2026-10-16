@@ -22,6 +22,15 @@ APP_ID = "{{16796959-230D-4A37-879B-D3963171F664}"
 PROGRAM = "{app}\\QEGTRAIN.exe"
 PAYLOAD_SOURCE = "{#Payload}\\*"
 SCENES = "{app}\\Scenes"
+CLASSES = "Software\\Classes\\"
+PROG_ID = "EGTRAIN.Scene"
+# The entries of the file type by Subkey: the ValueData (None for free text) and the Flags, which are compared as a set.
+ASSOCIATION = {
+    CLASSES + ".egscene": (PROG_ID, {"uninsdeletevalue", "uninsdeletekeyifempty"}),
+    CLASSES + PROG_ID: (None, {"uninsdeletekey"}),
+    CLASSES + PROG_ID + "\\DefaultIcon": (PROGRAM + ",0", {"uninsdeletekey"}),
+    CLASSES + PROG_ID + "\\shell\\open\\command": ('"' + PROGRAM + '" "%1"', {"uninsdeletekey"}),
+}
 SECTIONS = ("setup", "tasks", "files", "installdelete", "icons", "registry")
 CONSTANTS = ("app", "userpf", "userprograms", "userdesktop")
 MACROS = ("Version", "Payload")
@@ -34,6 +43,7 @@ SETUP_PINS = (
     ("ArchitecturesAllowed", "x64compatible"),
     ("ArchitecturesInstallIn64BitMode", "x64compatible"),
     ("CloseApplications", "yes"),
+    ("ChangesAssociations", "yes"),
     ("UninstallDisplayIcon", PROGRAM),
     ("OutputBaseFilename", "EGTRAIN-Setup-{#Version}-x64"),
 )
@@ -76,7 +86,9 @@ def split_parameters(line):
 
 
 def parse_entry(line, number, problems):
-    """The "Key: value" parameters of an entry line by lower-case name, without the quotes around a value."""
+    """The "Key: value" parameters of an entry line by lower-case name, without the quotes around a value.
+
+    A doubled quote inside a quoted value is one quote."""
     parts, unmatched = split_parameters(line)
     if unmatched:
         problems.append(f"syntax: line {number} has a double quote that is not closed")
@@ -88,7 +100,7 @@ def parse_entry(line, number, problems):
         name = name.strip().lower()
         value = value.strip()
         if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
-            value = value[1:-1]
+            value = value[1:-1].replace('""', '"')
         if not colon or not name:
             problems.append(f"syntax: line {number} has the parameter {part.strip()!r} without Name: value")
         elif name in params:
@@ -272,11 +284,30 @@ def check_icons(entries, problems):
 
 
 def check_registry(entries, problems):
+    """The entries are the file type of .egscene for the current user, all removed on uninstall, and nothing else."""
+    found = []
     for number, params in entries:
+        subkey = params.get("subkey", "")
         if params.get("root", "").upper() != "HKCU":
             problems.append(f"registry: line {number}: Root must be HKCU")
-        if not flag_set(params) & {"uninsdeletekey", "uninsdeletevalue"}:
-            problems.append(f"registry: line {number}: the entry needs the flag uninsdeletekey or uninsdeletevalue")
+        if params.get("valuetype", "").lower() != "string" or params.get("valuename", "") != "":
+            problems.append(f"registry: line {number}: {subkey} must set its default value as a string")
+        if subkey not in ASSOCIATION:
+            problems.append(f"registry: line {number}: {subkey} is not part of the file type of .egscene")
+            continue
+        if subkey in found:
+            problems.append(f"registry: line {number}: {subkey} is set twice")
+        found.append(subkey)
+        data, flags = ASSOCIATION[subkey]
+        if data is None and not params.get("valuedata"):
+            problems.append(f"registry: line {number}: {subkey} needs a display name")
+        if data is not None and params.get("valuedata") != data:
+            problems.append(f"registry: line {number}: ValueData of {subkey} must be {data}, not {params.get('valuedata')}")
+        if flag_set(params) != flags:
+            problems.append(f"registry: line {number}: Flags of {subkey} must be {' '.join(sorted(flags))}")
+    for subkey in ASSOCIATION:
+        if subkey not in found:
+            problems.append(f"registry: there is no entry for {subkey}")
 
 
 def check_readme(read, problems):
@@ -343,7 +374,22 @@ MARKER_LINE = 'Source: "installed-by-setup.ini"; DestDir: "{app}"; Flags: ignore
 SCENES_LINE = 'Type: filesandordirs; Name: "{app}\\Scenes"\n'
 PROGRAMS_LINE = 'Name: "{userprograms}\\EGTRAIN"; Filename: "{app}\\QEGTRAIN.exe"; WorkingDir: "{app}"\n'
 DESKTOP_LINE = 'Name: "{userdesktop}\\EGTRAIN"; Filename: "{app}\\QEGTRAIN.exe"; WorkingDir: "{app}"; Tasks: desktopicon\n'
-REGISTRY_ENTRY = 'Root: HKCU; Subkey: "Software\\Classes\\.egscene"; ValueType: string; ValueData: "EGTRAIN"'
+EXTENSION_LINE = (
+    'Root: HKCU; Subkey: "Software\\Classes\\.egscene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN.Scene"; '
+    "Flags: uninsdeletevalue uninsdeletekeyifempty\n"
+)
+PROG_ID_LINE = (
+    'Root: HKCU; Subkey: "Software\\Classes\\EGTRAIN.Scene"; ValueType: string; ValueName: ""; ValueData: "EGTRAIN case study"; '
+    "Flags: uninsdeletekey\n"
+)
+ICON_LINE = (
+    'Root: HKCU; Subkey: "Software\\Classes\\EGTRAIN.Scene\\DefaultIcon"; ValueType: string; ValueName: ""; '
+    'ValueData: "{app}\\QEGTRAIN.exe,0"; Flags: uninsdeletekey\n'
+)
+COMMAND_LINE = (
+    'Root: HKCU; Subkey: "Software\\Classes\\EGTRAIN.Scene\\shell\\open\\command"; ValueType: string; ValueName: ""; '
+    'ValueData: """{app}\\QEGTRAIN.exe"" ""%1"""; Flags: uninsdeletekey\n'
+)
 
 
 class InstallerScriptTests(unittest.TestCase):
@@ -404,11 +450,13 @@ class MutationTests(unittest.TestCase):
         self.assertReported("ascii", script_text(read_repository_file(SCRIPT) + b"; \xe2\x80\x94\n"), "FFFD")
 
     def test_nothing_under_the_machine_hive(self):
-        entry = "\n[Registry]\n" + REGISTRY_ENTRY + "; Flags: uninsdeletekey\n"
-        self.assertReported("hklm", self.text + entry.replace("HKCU", "HKLM"))
-        self.assertReported("registry", self.text + entry.replace("HKCU", "HKLM"), "HKCU")
-        self.assertReported("registry", self.text + entry.replace("HKCU", "HKA"), "HKCU")
+        machine = mutate(self.text, EXTENSION_LINE, EXTENSION_LINE.replace("HKCU", "HKLM"))
+        self.assertReported("hklm", machine)
+        self.assertReported("registry", machine, "HKCU")
         self.assertReported("hklm", self.text + "; hkey_local_machine\n")
+        for root in ("HKA", "HKCR"):
+            with self.subTest(root=root):
+                self.assertReported("registry", mutate(self.text, ICON_LINE, ICON_LINE.replace("HKCU", root)), "HKCU")
 
     def test_no_parent_folder(self):
         self.check_cases([
@@ -576,14 +624,44 @@ class MutationTests(unittest.TestCase):
             ("icons", "only entries", PROGRAMS_LINE, PROGRAMS_LINE.replace("userprograms", "userstartmenu")),
         ])
 
-    def test_registry_entries_are_per_user_and_removed_on_uninstall(self):
-        entry = "\n[Registry]\n" + REGISTRY_ENTRY
-        self.assertReported("registry", self.text + entry, "uninsdeletekey")
-        self.assertReported("registry", self.text + entry + "; Flags: createvalueifdoesntexist", "uninsdeletekey")
-        for root in ("HKCR", "HKA"):
-            with self.subTest(root=root):
-                self.assertReported("registry", self.text + entry.replace("HKCU", root) + "; Flags: uninsdeletekey", "HKCU")
-        self.assertReported("registry", self.text + entry.replace("Root: HKCU; ", "") + "; Flags: uninsdeletekey", "HKCU")
+    def test_file_type_is_removed_on_uninstall_and_leaves_other_values_of_the_extension(self):
+        self.check_cases([
+            ("registry", "Flags", EXTENSION_LINE, EXTENSION_LINE.replace("uninsdeletevalue uninsdeletekeyifempty", "uninsdeletekey")),
+            ("registry", "Flags", EXTENSION_LINE, EXTENSION_LINE.replace("; Flags: uninsdeletevalue uninsdeletekeyifempty", "")),
+            ("registry", "Flags", EXTENSION_LINE, EXTENSION_LINE.replace(" uninsdeletekeyifempty", "")),
+            ("registry", "Flags", EXTENSION_LINE, EXTENSION_LINE.replace("uninsdeletevalue", "createvalueifdoesntexist")),
+            ("registry", "Flags", PROG_ID_LINE, PROG_ID_LINE.replace("uninsdeletekey", "uninsdeletevalue")),
+            ("registry", "Flags", ICON_LINE, ICON_LINE.replace("; Flags: uninsdeletekey", "")),
+            ("registry", "Flags", COMMAND_LINE, COMMAND_LINE.replace("; Flags: uninsdeletekey", "; Flags: createvalueifdoesntexist")),
+        ])
+
+    def test_file_type_is_per_user_and_opens_the_program_with_the_file(self):
+        self.check_cases([
+            ("registry", "must be EGTRAIN.Scene", EXTENSION_LINE, EXTENSION_LINE.replace('"EGTRAIN.Scene"', '"EGTRAIN"')),
+            ("registry", "QEGTRAIN.exe,0", ICON_LINE, ICON_LINE.replace("QEGTRAIN.exe,0", "QEGTRAIN.exe,1")),
+            ("registry", "QEGTRAIN.exe,0", ICON_LINE, ICON_LINE.replace("QEGTRAIN.exe", "scene_tool.exe")),
+            ("registry", "QEGTRAIN.exe", COMMAND_LINE, COMMAND_LINE.replace("QEGTRAIN.exe", "scene_tool.exe")),
+            ("registry", "%1", COMMAND_LINE, COMMAND_LINE.replace("%1", "%2")),
+            ("registry", "%1", COMMAND_LINE, COMMAND_LINE.replace(' ""%1"""', '"')),
+            ("registry", "QEGTRAIN.exe", COMMAND_LINE, COMMAND_LINE.replace('"""{app}', '"{app}').replace('exe"" ""', 'exe ""')),
+            ("registry", "display name", PROG_ID_LINE, PROG_ID_LINE.replace('"EGTRAIN case study"', '""')),
+            ("registry", "default value", ICON_LINE, ICON_LINE.replace('ValueName: ""', 'ValueName: "Icon"')),
+            ("registry", "default value", ICON_LINE, ICON_LINE.replace("ValueType: string", "ValueType: dword")),
+        ])
+
+    def test_file_type_is_the_extension_egscene_alone(self):
+        zip_line = EXTENSION_LINE.replace(".egscene", ".zip")
+        self.check_cases([
+            ("registry", ".zip", EXTENSION_LINE, EXTENSION_LINE + zip_line),
+            ("registry", ".zip", EXTENSION_LINE, zip_line),
+            ("registry", "Software\\EGTRAIN", ICON_LINE, ICON_LINE + ICON_LINE.replace("Classes\\EGTRAIN.Scene\\DefaultIcon", "EGTRAIN")),
+            ("registry", "EGTRAIN.Other", PROG_ID_LINE, PROG_ID_LINE + PROG_ID_LINE.replace("EGTRAIN.Scene", "EGTRAIN.Other")),
+            ("registry", "no entry for", EXTENSION_LINE, ""),
+            ("registry", "no entry for", PROG_ID_LINE, ""),
+            ("registry", "no entry for", ICON_LINE, ""),
+            ("registry", "no entry for", COMMAND_LINE, ""),
+            ("registry", "set twice", ICON_LINE, ICON_LINE * 2),
+        ])
 
     def test_readme_names_the_parameters_and_the_marker(self):
         self.assertReported("readme", self.text, "missing", stand_in({README: None}))
@@ -625,10 +703,16 @@ class AcceptedChangeTests(unittest.TestCase):
         text = mutate(self.text, "[Files]", "[files]")
         self.assertFine(mutate(text, "PrivilegesRequired=lowest", "privilegesrequired=lowest"))
 
-    def test_a_registry_entry_for_the_current_user_that_is_removed_on_uninstall(self):
-        for flag in ("uninsdeletekey", "uninsdeletevalue", "createvalueifdoesntexist uninsdeletekey"):
-            with self.subTest(flag=flag):
-                self.assertFine(self.text + "\n[Registry]\n" + REGISTRY_ENTRY + "; Flags: " + flag + "\n")
+    def test_the_display_name_is_free_text(self):
+        self.assertFine(mutate(self.text, PROG_ID_LINE, PROG_ID_LINE.replace("EGTRAIN case study", "EGTRAIN Case Study File")))
+
+    def test_flags_may_come_in_another_order_and_the_root_in_another_case(self):
+        flags = EXTENSION_LINE.replace("uninsdeletevalue uninsdeletekeyifempty", "uninsdeletekeyifempty uninsdeletevalue")
+        self.assertFine(mutate(self.text, EXTENSION_LINE, flags))
+        self.assertFine(mutate(self.text, EXTENSION_LINE, EXTENSION_LINE.replace("HKCU", "hkcu")))
+
+    def test_the_default_value_may_be_named_by_leaving_out_the_value_name(self):
+        self.assertFine(mutate(self.text, ICON_LINE, ICON_LINE.replace('ValueName: ""; ', "")))
 
     def test_another_file_of_the_installer_directory_can_be_installed(self):
         readme = MARKER_LINE.replace("installed-by-setup.ini", "README.md").replace('"{app}"', '"{app}\\docs"')

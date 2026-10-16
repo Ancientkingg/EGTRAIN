@@ -1246,8 +1246,9 @@ most of its checks, so run it locally to read its logs.
   with the Visual C++ runtime, so it does not show that the package starts on a
   machine without it. It does not show how Windows presents the installer (for
   an unsigned download, the SmartScreen screen), the Start Menu entry or the
-  entry in the list of installed apps. The installer registers no file type
-  (#416), so a double-click on a `.egscene` file does not open EGTRAIN. The
+  entry in the list of installed apps. The smoke reads the registry keys of the
+  `.egscene` file type but opens no file, so it does not show that a double-click
+  on a `.egscene` file in Explorer opens EGTRAIN. The
   installer and portable rows of the
   [release testing checklist](release-testing-checklist.md#windows-installer-and-portable-archive)
   cover the rest on a Windows machine. A release still runs only from
@@ -1476,8 +1477,10 @@ parameters, what the installer does and the Setup switches for a silent install.
 The installer is for the current user and needs no administrator rights. It
 installs the package directory as it is into `%LOCALAPPDATA%\Programs\EGTRAIN`
 by default, adds a Start Menu entry and an optional desktop shortcut, and
-registers an uninstall entry under the current user. It replaces the `Scenes`
-folder of the installation folder on every install and runs no program. The
+registers an uninstall entry under the current user. It also associates the
+`.egscene` file type with `{app}\QEGTRAIN.exe` for the current user, which the
+uninstaller removes. It replaces the `Scenes` folder of the installation folder
+on every install and runs no program. The
 Windows finalize job of `package.yml` compiles the script, and
 `tools/release/installer_smoke.ps1` installs the result on the runner.
 
@@ -1495,7 +1498,8 @@ in `update/ReleaseInfo.cpp` as text, looks for the icon file, and checks that:
   parameters, and the only macros are `{#Version}` and `{#Payload}`;
 - the `[Setup]` directives that decide the scope have their pinned values: the
   `AppId`, the per-user privilege level with no override, the per-user folder,
-  the 64-bit architecture and closing a running program. The directives
+  the 64-bit architecture, closing a running program and the refresh of the
+  file associations (`ChangesAssociations`). The directives
   `PrivilegesRequiredOverridesAllowed`, `UninstallFilesDir`,
   `CreateUninstallRegKey` and `Uninstallable` are refused, and the icon file
   exists;
@@ -1506,8 +1510,14 @@ in `update/ReleaseInfo.cpp` as text, looks for the icon file, and checks that:
 - only `{app}\Scenes` is deleted before an install;
 - the desktop shortcut belongs to a task that is unchecked by default, and the
   only shortcuts are the two that run `{app}\QEGTRAIN.exe`;
-- every `[Registry]` entry, should the script have one, is for the current user
-  and is removed on uninstall;
+- the `[Registry]` entries are the four of the `.egscene` file type, all for
+  the current user under `Software\Classes`, and no others, so no other
+  extension such as `.zip` is claimed: the default value of `.egscene` is
+  `EGTRAIN.Scene` and is deleted on uninstall, with the key only when nothing
+  else is left in it, so that a value of another program stays; the key
+  `EGTRAIN.Scene`, its `DefaultIcon` and its `shell\open\command` are deleted
+  on uninstall; the icon is the first icon of `{app}\QEGTRAIN.exe`; the open
+  command is `"{app}\QEGTRAIN.exe" "%1"`;
 - the README names `/DVersion`, `/DPayload` and `installed-by-setup.ini`.
 
 The test also runs the rules on the script with CRLF line ends, as a checkout on
@@ -1528,25 +1538,36 @@ tools/release/installer_smoke.ps1 -Installer EXE -UpgradeInstaller EXE -Payload 
 ```
 
 Run it only on a machine without EGTRAIN. It stops when an uninstall entry, a
-Start Menu or desktop shortcut or `%LOCALAPPDATA%\Programs\EGTRAIN` exists
-already. It changes the registry, the Start Menu and the desktop of the current
-user and removes what it installs. `-Work` must not exist or must be empty; the
-script puts its installation folders, a file outside them and the logs of Setup
+Start Menu or desktop shortcut, `%LOCALAPPDATA%\Programs\EGTRAIN` or a key of
+the `.egscene` file type (`HKCU\Software\Classes\.egscene` or
+`HKCU\Software\Classes\EGTRAIN.Scene`) exists already. It changes the
+registry, the Start Menu and the desktop of the current user and removes what it
+installs. `-Work` must not exist or must be empty; the script puts a copy of
+the package, its installation folders, a file outside them and the logs of Setup
 and the uninstaller below it. It checks:
 
 - both installers request `asInvoker` in their manifest;
+- a copy of the package directory, started with `package_start_smoke.py` as a
+  portable copy is, leaves no key of the `.egscene` file type in the registry;
 - a silent install (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG`) into a folder
   with `/DIR` and without the desktop task leaves one uninstall entry under
   `HKEY_CURRENT_USER` that names the folder and the version, none under
   `HKEY_LOCAL_MACHINE`, a Start Menu shortcut that starts `QEGTRAIN.exe` in the
   folder, no desktop shortcut, and in the folder the files of the package with the
   same bytes, `installed-by-setup.ini` and one uninstaller, and nothing else.
+  The default value of `HKCU\Software\Classes\.egscene` is `EGTRAIN.Scene`,
+  and the key `EGTRAIN.Scene` has a display name, the first icon of the
+  installed `QEGTRAIN.exe` and the open command `"<folder>\QEGTRAIN.exe" "%1"`;
+  it is not under `HKEY_LOCAL_MACHINE`.
   `package_start_smoke.py` then starts the installed copy. The silent uninstall
-  removes the entry, the shortcut and the files, and a file beside the folder
-  survives. A file that the program wrote into the folder during the start check
-  may stay with the folder;
+  removes the entry, the shortcut, the file type and the files, and a file beside
+  the folder survives. A file that the program wrote into the folder during the
+  start check may stay with the folder;
 - an install with `/TASKS=desktopicon` also creates the desktop shortcut, and the
-  uninstall removes it;
+  uninstall removes it. The script first plants a value of another program in
+  `HKCU\Software\Classes\.egscene`. It must survive the install and the
+  uninstall, which removes only the default value of that key. After the other
+  uninstalls the key is gone;
 - an install into the default folder, the second installer over it and an
   uninstall: the upgrade leaves one entry and one folder, the entry shows the
   higher version, a scene folder that the package does not hold is gone and the
