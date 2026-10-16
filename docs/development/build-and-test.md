@@ -945,8 +945,10 @@ that no train steps against the direction of its route by more than 0.1 m. The
 direction comes from the flag in the train's row in
 `TrainTrajectories/TrainServicePathDiagram.txt`. The script starts every run with
 `--detailed-trajectories`, because those checks read `TEMP/Traj_Train_*.txt`.
-CTest runs the position checks in `test_headless_smoke_decode` on trajectory
-files that the test writes.
+For Lebanon it also requires that its train reaches every stop of the route: a
+stop that is not reached has the arrival `-10000` in `TimetablePoints.txt`.
+CTest runs the position checks and the stop check in `test_headless_smoke_decode`
+on trajectory and timetable files that the test writes.
 
 For Amsterdam_Hilversum_Student the script also checks that every occurrence
 of its service reaches Hilversum, one after the other, and that the five files

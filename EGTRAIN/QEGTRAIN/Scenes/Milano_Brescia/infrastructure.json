@@ -1065,7 +1065,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B1.node.25",
-            "gradient_percent": 1.0,
+            "gradient_percent": 0.001,
             "id": "B1.arc.124",
             "speed_limit_ms": 38.88888889,
             "to": "B1.node.26",
@@ -8787,7 +8787,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.2",
-            "gradient_percent": 1.0,
+            "gradient_percent": 0.001,
             "id": "B35.arc.101",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.3",
@@ -8796,7 +8796,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.3",
-            "gradient_percent": 2.0,
+            "gradient_percent": 0.002,
             "id": "B35.arc.102",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.4",
@@ -8805,7 +8805,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.4",
-            "gradient_percent": 3.0,
+            "gradient_percent": 0.003,
             "id": "B35.arc.103",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.5",
@@ -8814,7 +8814,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.5",
-            "gradient_percent": 4.0,
+            "gradient_percent": 0.004,
             "id": "B35.arc.104",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.6",
@@ -8823,7 +8823,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.6",
-            "gradient_percent": 5.0,
+            "gradient_percent": 0.005,
             "id": "B35.arc.105",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.7",
@@ -8832,7 +8832,7 @@
         {
             "curvature_radius_m": 10000.0,
             "from": "B35.node.7",
-            "gradient_percent": 6.0,
+            "gradient_percent": 0.006,
             "id": "B35.arc.106",
             "speed_limit_ms": 8.333333333,
             "to": "B35.node.8",

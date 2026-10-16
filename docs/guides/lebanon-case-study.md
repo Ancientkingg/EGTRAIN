@@ -34,7 +34,7 @@ The editors are docks on the right side of the window. They are hidden when the 
 Present in the scene:
 
 - 34 stations, in `stations.json`.
-- Canonical track geometry for lines B0 through B7, in `infrastructure.json`. The network preview reads these nodes, arcs, connections, and platform anchors directly.
+- Canonical track geometry for lines B0 through B7, in `infrastructure.json`. The network preview reads these nodes, arcs, connections, and platform anchors directly. The arc gradients are stored as rise per length. Their unit was inferred as per mille, and the source of the values is not recorded.
 - A short B0 teaching route between Lebanese University and Haret Hreik.
 - One network-wide signalling area at level 0, in `signalling.json`: placeholder conventional fixed-block signalling, not the national system.
 - One teaching train unit and composition, one `LB-1` service, and a baseline scenario.
