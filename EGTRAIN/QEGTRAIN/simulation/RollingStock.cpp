@@ -1439,8 +1439,7 @@ bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
 			const Section& first = route.sequence_of_block_sections[b];
 			const Section& second = route.sequence_of_block_sections[b + 1];
 			const Section& exit = route.sequence_of_block_sections[b + 2];
-			if (!(first.SignallingLevel == 0 || first.SignallingLevel == 1 || first.SignallingLevel == 2 || first.SignallingLevel == 5)
-				|| !first.end_node.virtualSignal || !second.start_node.virtualSignal)
+			if (!isFixedBlockLevel(first.SignallingLevel) || !first.end_node.virtualSignal || !second.start_node.virtualSignal)
 				continue;
 			if (origin.ID != exit.ID
 				&& std::find(origin.IDConnectedBS, origin.IDConnectedBS + origin.N_ConnectedBS, exit.ID) == origin.IDConnectedBS + origin.N_ConnectedBS)
