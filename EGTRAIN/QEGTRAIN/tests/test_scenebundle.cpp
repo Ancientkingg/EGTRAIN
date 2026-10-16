@@ -2,6 +2,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
+#include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <array>
@@ -147,11 +148,10 @@ struct ScopedTempEnvironment {
 	bool configured = true;
 
 	explicit ScopedTempEnvironment(const fs::path& path) {
-		const std::string value = path.string();
 		for (std::size_t index = 0; index < names.size(); ++index) {
 			if (const char* current = std::getenv(names[index]))
 				previous[index] = current;
-			configured = set(names[index], value.c_str()) && configured;
+			configured = set(names[index], path) && configured;
 		}
 	}
 
@@ -168,6 +168,17 @@ struct ScopedTempEnvironment {
 	ScopedTempEnvironment& operator=(const ScopedTempEnvironment&) = delete;
 
 private:
+	static bool set(const char* name, const fs::path& value) {
+#ifdef _WIN32
+		std::wstring wideName;
+		for (const char* character = name; *character != '\0'; ++character)
+			wideName += static_cast<wchar_t>(*character);
+		return _wputenv_s(wideName.c_str(), value.c_str()) == 0;
+#else
+		return setenv(name, value.c_str(), 1) == 0;
+#endif
+	}
+
 	static bool set(const char* name, const char* value) {
 #ifdef _WIN32
 		return _putenv_s(name, value) == 0;
@@ -241,6 +252,63 @@ static bool testExtractionCleanup(const SceneModel& source) {
 	error.clear();
 	ok &= expect(fs::is_empty(extractionRoot, error) && !error,
 		"failed bundle load removes private extraction state");
+	return ok;
+}
+
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
+
+static fs::path unicodePath(const fs::path& parent, const std::string& prefix = {}, const std::string& suffix = {}) {
+	return parent / fs::u8path(prefix + kUnicodeName + suffix);
+}
+
+// Every path crosses the scene API as UTF-8 text, in the file name, in the folders above it and in the temporary folder.
+static bool testUnicodePaths(const SceneModel& scene, const fs::path& root) {
+	bool ok = true;
+	ok &= expect(pathFromUtf8(kUnicodeName).u8string() == kUnicodeName, "a UTF-8 name keeps its characters in a path");
+	ok &= expect(!pathFromUtf8("caf\xE9").empty(), "a name that is not UTF-8 still gives a path");
+	const fs::path folder = unicodePath(root);
+	const fs::path bundle = unicodePath(folder, "", ".egscene");
+	const std::string bundleText = bundle.u8string();
+	ok &= expect(saveSceneBundle(scene, bundleText).success() && fs::is_regular_file(bundle),
+		"a bundle saves to a path with Unicode names");
+	ok &= expect(probeSceneBundle(bundleText).structurallyValid, "a bundle at a path with Unicode names is probed");
+	const SceneLoadResult loaded = loadScenePath(bundleText);
+	ok &= expect(!hasErrors(loaded.diagnostics) && loaded.inputSnapshot == readBytes(bundle),
+		"a bundle at a path with Unicode names loads");
+
+	const fs::path missing = unicodePath(folder, "missing-", ".egscene");
+	const SceneLoadResult absent = loadScenePath(missing.u8string());
+	ok &= expect(hasDiagnostic(absent.diagnostics, "scene.bundle.file.missing", missing.u8string().c_str()),
+		"a diagnostic gives a path with Unicode names as UTF-8");
+
+	const fs::path unpacked = unicodePath(folder, "unpacked-");
+	ok &= expect(unpackSceneBundle(bundleText, unpacked.u8string()).success()
+			&& fs::is_regular_file(unpacked / "scene.json"),
+		"a bundle unpacks to a directory with a Unicode name");
+	ok &= expect(!hasErrors(loadScene(unpacked.u8string()).diagnostics)
+			&& readSceneDirectorySnapshot(unpacked.u8string()).reason.empty(),
+		"a scene directory with a Unicode name loads and is read as a snapshot");
+
+	const fs::path directory = unicodePath(folder, "directory-");
+	ok &= expect(saveScene(scene, directory.u8string()).success() && fs::is_regular_file(directory / "scene.json"),
+		"a scene directory saves to a path with Unicode names");
+
+	const fs::path temporaryRoot = unicodePath(root, "temporary-");
+	ok &= expect(fs::create_directories(temporaryRoot), "temporary folder with a Unicode name creates");
+	{
+		ScopedTempEnvironment environment(temporaryRoot);
+		std::error_code error;
+		ok &= expect(environment.configured && fs::equivalent(fs::temp_directory_path(error), temporaryRoot, error) && !error,
+			"the temporary folder has a Unicode name");
+		const fs::path viaTemporary = unicodePath(folder, "via-temporary-", ".egscene");
+		ok &= expect(saveSceneBundle(scene, viaTemporary.u8string()).success()
+				&& !hasErrors(loadScenePath(viaTemporary.u8string()).diagnostics),
+			"a bundle saves and loads while the temporary folder has a Unicode name");
+		error.clear();
+		ok &= expect(fs::is_empty(temporaryRoot, error) && !error,
+			"the work in a temporary folder with a Unicode name leaves nothing behind");
+	}
 	return ok;
 }
 
@@ -371,6 +439,8 @@ int main(int argc, char** argv) {
 	TempDir temp;
 	ok &= testNewSceneRoundTrip(temp.path);
 	ok &= testSignallingAreaRoundTrip(temp.path);
+	if (!hasErrors(source.diagnostics))
+		ok &= testUnicodePaths(source.scene, temp.path / "unicode");
 	SceneModel categoryScene = source.scene;
 	if (!categoryScene.services.empty()) {
 		const fs::path categoryFolder = temp.path / "category";

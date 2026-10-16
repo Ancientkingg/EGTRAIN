@@ -781,7 +781,7 @@ static bool checkPopulatedScene(const TempDir& temp) {
 static std::set<std::string> entryNames(const fs::path& directory) {
 	std::set<std::string> names;
 	for (const auto& entry : fs::directory_iterator(directory))
-		names.insert(entry.path().filename().string());
+		names.insert(entry.path().filename().u8string());
 	return names;
 }
 
@@ -826,6 +826,50 @@ static bool checkSavePublication() {
 	}
 	fs::permissions(root, fs::perms::owner_all, fs::perm_options::replace);
 #endif
+	return ok;
+}
+
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
+
+// A scene directory and a scenario file with a Unicode name are written and read under that name, and the staging,
+// backup and temporary siblings made from the name are removed again.
+static bool checkUnicodePaths() {
+	bool ok = true;
+	TempDir temp;
+	const fs::path root = temp.path / fs::u8path(kUnicodeName);
+	const fs::path destination = root / fs::u8path(kUnicodeName);
+	const SceneModel scene = completeScene();
+
+	for (int pass = 0; pass < 2; ++pass) {
+		const SceneSaveResult saved = saveScene(scene, destination.u8string());
+		printErrors(saved.diagnostics, "Unicode save");
+		ok &= expect(saved.success() && fs::is_regular_file(destination / "scene.json"),
+			"a scene saves to a directory with a Unicode name, also over an existing one");
+	}
+	const SceneLoadResult loaded = loadScene(destination.u8string());
+	printErrors(loaded.diagnostics, "Unicode load");
+	ok &= expect(!hasErrors(loaded.diagnostics) && loaded.inputSnapshot == readSceneDirectorySnapshot(destination.u8string()).bytes,
+		"a scene directory with a Unicode name loads");
+
+	const fs::path scenarioFile = root / fs::u8path(kUnicodeName + ".json");
+	for (int pass = 0; pass < 2; ++pass)
+		ok &= expect(saveScenarioJson(scene.scenarios[0], scenarioFile.u8string()).success(),
+			"a scenario saves to a file with a Unicode name, also over an existing one");
+	ok &= expect(loadScenarioJson(scenarioFile.u8string()).scenario.id == scene.scenarios[0].id,
+		"a scenario file with a Unicode name loads");
+	ok &= expect(fs::is_directory(root)
+			&& entryNames(root) == std::set<std::string>{destination.filename().u8string(), scenarioFile.filename().u8string()},
+		"saves under Unicode names leave no staging, backup or temporary sibling");
+
+	const std::string prefix = kUnicodeName + ".staging-";
+	StagedDirectory staged;
+	fs::path sibling;
+	ok &= expect(!createStagedDirectory(root, prefix, false, staged)
+			&& staged.path.filename().u8string().rfind(prefix, 0) == 0 && fs::is_directory(staged.path),
+		"a staged directory is named after a Unicode prefix");
+	ok &= expect(!uniqueSiblingPath(root, prefix, sibling) && sibling.filename().u8string().rfind(prefix, 0) == 0,
+		"a sibling path is named after a Unicode prefix");
 	return ok;
 }
 
@@ -1615,6 +1659,7 @@ int main(int argc, char** argv) {
 		ok &= checkPopulatedScene(populatedTemp);
 	}
 	ok &= checkSavePublication();
+	ok &= checkUnicodePaths();
 	ok &= checkStagedDirectory();
 
 	if (!ok)

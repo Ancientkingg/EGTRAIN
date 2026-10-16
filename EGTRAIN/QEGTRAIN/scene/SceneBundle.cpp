@@ -2,6 +2,7 @@
 
 #include "io/third_party/miniz/miniz.h"
 #include "scene/SceneWriter.h"
+#include "scene/Utf8Path.h"
 
 #include <algorithm>
 #include <array>
@@ -154,7 +155,7 @@ static bool createUniqueDirectory(const fs::path& parent, const std::string& pre
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const fs::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
+		const fs::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
 		if (writeAttempted) *writeAttempted = true;
 		if (fs::create_directory(candidate, ec)) {
@@ -219,29 +220,29 @@ static bool readArchiveFile(const fs::path& path, std::string& contents,
 	const auto status = fs::symlink_status(path, ec);
 	if (ec || status.type() != fs::file_type::regular) {
 		addDiagnostic(diagnostics, "scene.bundle.file.missing", "Bundle file is missing or not a regular file",
-			path.string());
+			path.u8string());
 		return false;
 	}
 	const std::uintmax_t size = fs::file_size(path, ec);
 	if (ec) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot determine bundle size", path.string());
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot determine bundle size", path.u8string());
 		return false;
 	}
 	if (size > kMaxBundleFileSize) {
 		addDiagnostic(diagnostics, "scene.bundle.size", "Bundle file exceeds the 32 MiB compressed limit",
-			path.string());
+			path.u8string());
 		return false;
 	}
 	std::ifstream input(path, std::ios::binary);
 	if (!input) {
-		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open bundle file", path.string());
+		addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot open bundle file", path.u8string());
 		return false;
 	}
 	contents.resize(static_cast<std::size_t>(size));
 	if (size != 0) {
 		input.read(contents.data(), static_cast<std::streamsize>(size));
 		if (!input || static_cast<std::uintmax_t>(input.gcount()) != size) {
-			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read bundle file", path.string());
+			addDiagnostic(diagnostics, "scene.bundle.file.read", "Cannot read bundle file", path.u8string());
 			return false;
 		}
 	}
@@ -256,13 +257,13 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	const mz_uint64 archiveSize = archiveBytes.size();
 	if (!mz_zip_reader_init_mem(&reader.zip, archiveBytes.data(), archiveBytes.size(), 0)) {
 		addDiagnostic(diagnostics, "scene.bundle.archive", "Cannot open ZIP bundle: " + zipError(reader.zip),
-			path.string());
+			path.u8string());
 		return false;
 	}
 	reader.initialized = true;
 	const mz_uint fileCount = mz_zip_reader_get_num_files(&reader.zip);
 	if (fileCount > kMaxEntries) {
-		addDiagnostic(diagnostics, "scene.bundle.entries", "Bundle contains more than 16 entries", path.string());
+		addDiagnostic(diagnostics, "scene.bundle.entries", "Bundle contains more than 16 entries", path.u8string());
 		return false;
 	}
 
@@ -445,7 +446,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 	}
 	if (!mz_zip_validate_archive(&reader.zip, 0)) {
 		addDiagnostic(diagnostics, "scene.bundle.archive", "ZIP validation failed: " + zipError(reader.zip),
-			path.string());
+			path.u8string());
 		return false;
 	}
 	return true;
@@ -454,7 +455,7 @@ static bool inspectBundle(const fs::path& path, const std::string& archiveBytes,
 static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEntry>& entries,
 	const fs::path& destination, std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& entry : entries) {
-		const fs::path output = destination / entry.name;
+		const fs::path output = destination / pathFromUtf8(entry.name);
 		std::error_code ec;
 		if (!fs::create_directories(output.parent_path(), ec) && ec) {
 			addDiagnostic(diagnostics, "scene.bundle.extract",
@@ -462,7 +463,7 @@ static bool extractEntries(const ZipReader& reader, const std::vector<ArchiveEnt
 			return false;
 		}
 		if (!mz_zip_reader_extract_to_file(const_cast<mz_zip_archive*>(&reader.zip), entry.index,
-				output.string().c_str(), 0)) {
+				output.u8string().c_str(), 0)) {
 			addDiagnostic(diagnostics, "scene.bundle.extract", "Cannot extract ZIP entry: " + zipError(reader.zip),
 				entry.name);
 			return false;
@@ -485,19 +486,19 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 	std::error_code ec;
 	if (!fs::exists(parent, ec) || ec) {
 		addDiagnostic(diagnostics, "scene.bundle.publish", "Destination parent does not exist for " + operation,
-			target.string());
+			target.u8string());
 		return false;
 	}
 	const auto targetStatus = fs::symlink_status(target, ec);
 	if (ec && ec != std::errc::no_such_file_or_directory) {
 		addDiagnostic(diagnostics, "scene.bundle.publish", "Cannot inspect destination for " + operation,
-			target.string());
+			target.u8string());
 		return false;
 	}
 	const bool hadTarget = !ec && targetStatus.type() != fs::file_type::not_found;
 	if (hadTarget && (!replaceRegularFile || targetStatus.type() != fs::file_type::regular)) {
 		addDiagnostic(diagnostics, "scene.bundle.publish", "Destination already exists for " + operation,
-			target.string());
+			target.u8string());
 		return false;
 	}
 
@@ -511,7 +512,7 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 #endif
 	if (ec) {
 		addDiagnostic(diagnostics, "scene.bundle.publish", "Cannot publish " + operation + ": " + ec.message(),
-			target.string());
+			target.u8string());
 		return false;
 	}
 	return true;
@@ -522,12 +523,12 @@ static bool publishPath(const fs::path& staging, const fs::path& target,
 SceneBundleProbeResult probeSceneBundle(const std::string& bundlePath) {
 	SceneBundleProbeResult result;
 	std::string archiveBytes;
-	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+	if (!readArchiveFile(pathFromUtf8(bundlePath), archiveBytes, result.diagnostics))
 		return result;
 	ZipReader reader;
 	std::vector<ArchiveEntry> entries;
 	BundleManifest manifest;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest,
+	if (!inspectBundle(pathFromUtf8(bundlePath), archiveBytes, reader, entries, manifest,
 			result.diagnostics))
 		return result;
 	result.schemaVersion = manifest.schemaVersion;
@@ -540,7 +541,7 @@ SceneBundleProbeResult probeSceneBundle(const std::string& bundlePath) {
 SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
 	const std::string& destinationDirectory) {
 	SceneSaveResult result;
-	const fs::path destination(destinationDirectory);
+	const fs::path destination = pathFromUtf8(destinationDirectory);
 	std::error_code ec;
 	if (destination.empty() || !fs::is_directory(destination, ec) || ec
 		|| fs::is_symlink(destination, ec)) {
@@ -550,12 +551,12 @@ SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
 		return result;
 	}
 	std::string archiveBytes;
-	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+	if (!readArchiveFile(pathFromUtf8(bundlePath), archiveBytes, result.diagnostics))
 		return result;
 	ZipReader reader;
 	std::vector<ArchiveEntry> entries;
 	BundleManifest manifest;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest,
+	if (!inspectBundle(pathFromUtf8(bundlePath), archiveBytes, reader, entries, manifest,
 			result.diagnostics))
 		return result;
 	if (manifest.bundleVersion && *manifest.bundleVersion > kCurrentSceneBundleVersion) {
@@ -575,12 +576,12 @@ SceneSaveResult extractSceneBundleForMigration(const std::string& bundlePath,
 SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 	SceneLoadResult result;
 	std::string archiveBytes;
-	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+	if (!readArchiveFile(pathFromUtf8(bundlePath), archiveBytes, result.diagnostics))
 		return result;
 	ZipReader reader;
 	std::vector<ArchiveEntry> entries;
 	BundleManifest manifest;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
+	if (!inspectBundle(pathFromUtf8(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
 		return result;
 	result.bundleVersion = manifest.bundleVersion;
 	if (manifest.bundleVersion != kCurrentSceneBundleVersion) {
@@ -599,19 +600,19 @@ SceneLoadResult loadSceneBundle(const std::string& bundlePath) {
 		return result;
 	if (!extractEntries(reader, entries, temp.path, result.diagnostics))
 		return result;
-	SceneLoadResult loaded = loadScene(temp.path.string());
+	SceneLoadResult loaded = loadScene(temp.path.u8string());
 	loaded.inputSnapshot = std::move(archiveBytes);
 	loaded.bundleVersion = manifest.bundleVersion;
 	return loaded;
 }
 
 SceneLoadResult loadScenePath(const std::string& path) {
-	const fs::path scenePath(path);
+	const fs::path scenePath = pathFromUtf8(path);
 	std::error_code ec;
 	if (fs::is_directory(scenePath, ec))
 		return loadScene(path);
 	ec.clear();
-	if (!fs::exists(scenePath, ec) && lowerAscii(scenePath.extension().string()) != ".egscene")
+	if (!fs::exists(scenePath, ec) && lowerAscii(scenePath.extension().u8string()) != ".egscene")
 		return loadScene(path);
 	return loadSceneBundle(path);
 }
@@ -623,7 +624,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 			"Bundle writer requires the current schema_version", "scene.json");
 		return result;
 	}
-	const fs::path target(bundlePath);
+	const fs::path target = pathFromUtf8(bundlePath);
 	if (target.empty() || target.filename().empty()) {
 		addDiagnostic(result.diagnostics, "scene.bundle.write", "Bundle output path is empty");
 		return result;
@@ -632,7 +633,7 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	TempDirectory temp;
 	if (!makeTempDirectory(temp, result.diagnostics, &result.writeAttempted))
 		return result;
-	SceneSaveResult directoryResult = saveScene(scene, temp.path.string());
+	SceneSaveResult directoryResult = saveScene(scene, temp.path.u8string());
 	result.writeAttempted = result.writeAttempted || directoryResult.writeAttempted;
 	result.diagnostics = directoryResult.diagnostics;
 	if (!directoryResult.success())
@@ -681,12 +682,12 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	fs::create_directories(parent, ec);
 	if (ec) {
 		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create bundle output directory: " + ec.message(),
-			target.string());
+			target.u8string());
 		return result;
 	}
 	const auto targetStatus = fs::symlink_status(target, ec);
 	if (!ec && targetStatus.type() == fs::file_type::directory) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Bundle output path is a directory", target.string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Bundle output path is a directory", target.u8string());
 		return result;
 	}
 
@@ -710,21 +711,21 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 	}
 
 	TempDirectory stagingContainer;
-	if (!createUniqueDirectory(parent, target.filename().string() + ".staging-", stagingContainer.path)) {
+	if (!createUniqueDirectory(parent, target.filename().u8string() + ".staging-", stagingContainer.path)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create a private bundle staging directory",
-			target.string());
+			target.u8string());
 		return result;
 	}
 	const fs::path staging = stagingContainer.path / "bundle.egscene";
 	mz_zip_archive writer{};
-	bool writerInitialized = mz_zip_writer_init_file(&writer, staging.string().c_str(), 0) != 0;
+	bool writerInitialized = mz_zip_writer_init_file(&writer, staging.u8string().c_str(), 0) != 0;
 	if (!writerInitialized) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create ZIP bundle: " + zipError(writer), target.string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot create ZIP bundle: " + zipError(writer), target.u8string());
 		return result;
 	}
 	bool archiveOk = true;
 	for (const auto& name : names) {
-		if (!mz_zip_writer_add_file(&writer, name.c_str(), (temp.path / name).string().c_str(),
+		if (!mz_zip_writer_add_file(&writer, name.c_str(), (temp.path / name).u8string().c_str(),
 				nullptr, 0, MZ_BEST_COMPRESSION)) {
 			addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot add ZIP entry: " + zipError(writer), name);
 			archiveOk = false;
@@ -732,11 +733,11 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 		}
 	}
 	if (archiveOk && !mz_zip_writer_finalize_archive(&writer)) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot finalize ZIP bundle: " + zipError(writer), target.string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot finalize ZIP bundle: " + zipError(writer), target.u8string());
 		archiveOk = false;
 	}
 	if (!mz_zip_writer_end(&writer)) {
-		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot close ZIP bundle", target.string());
+		addDiagnostic(result.diagnostics, "scene.bundle.write", "Cannot close ZIP bundle", target.u8string());
 		archiveOk = false;
 	}
 	if (!archiveOk) {
@@ -763,8 +764,8 @@ SceneSaveResult saveSceneBundle(const SceneModel& scene, const std::string& bund
 
 SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::string& destinationDirectory) {
 	SceneSaveResult result;
-	const fs::path destination(destinationDirectory);
-	const std::string destinationName = destination.filename().string();
+	const fs::path destination = pathFromUtf8(destinationDirectory);
+	const std::string destinationName = destination.filename().u8string();
 	if (destination.empty() || destinationName.empty() || destinationName == "." || destinationName == "..") {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Extraction destination must be a named directory",
 			destinationDirectory);
@@ -772,7 +773,7 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	}
 	std::error_code equivalenceError;
 	if (fs::exists(destination, equivalenceError) && !equivalenceError
-		&& fs::equivalent(fs::path(bundlePath), destination, equivalenceError) && !equivalenceError) {
+		&& fs::equivalent(pathFromUtf8(bundlePath), destination, equivalenceError) && !equivalenceError) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Extraction destination must differ from the input bundle",
 			destinationDirectory);
 		return result;
@@ -780,11 +781,11 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 
 	ZipReader reader;
 	std::string archiveBytes;
-	if (!readArchiveFile(fs::path(bundlePath), archiveBytes, result.diagnostics))
+	if (!readArchiveFile(pathFromUtf8(bundlePath), archiveBytes, result.diagnostics))
 		return result;
 	std::vector<ArchiveEntry> entries;
 	BundleManifest manifest;
-	if (!inspectBundle(fs::path(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
+	if (!inspectBundle(pathFromUtf8(bundlePath), archiveBytes, reader, entries, manifest, result.diagnostics))
 		return result;
 	if (manifest.bundleVersion != kCurrentSceneBundleVersion
 		|| manifest.schemaVersion != kCurrentSceneSchemaVersion) {
@@ -797,19 +798,19 @@ SceneSaveResult unpackSceneBundle(const std::string& bundlePath, const std::stri
 	fs::create_directories(parent, ec);
 	if (ec) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Cannot create extraction parent: " + ec.message(),
-			parent.string());
+			parent.u8string());
 		return result;
 	}
 
 	TempDirectory staging;
-	if (!createUniqueDirectory(parent, destination.filename().string() + ".staging-", staging.path)) {
+	if (!createUniqueDirectory(parent, destination.filename().u8string() + ".staging-", staging.path)) {
 		addDiagnostic(result.diagnostics, "scene.bundle.publish", "Cannot create extraction staging directory",
 			destinationDirectory);
 		return result;
 	}
 	if (!extractEntries(reader, entries, staging.path, result.diagnostics))
 		return result;
-	const SceneLoadResult loaded = loadScene(staging.path.string());
+	const SceneLoadResult loaded = loadScene(staging.path.u8string());
 	result.diagnostics.insert(result.diagnostics.end(), loaded.diagnostics.begin(), loaded.diagnostics.end());
 	if (hasErrors(loaded.diagnostics))
 		return result;

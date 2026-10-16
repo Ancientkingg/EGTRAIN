@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene/Utf8Path.h"
+
 #include <chrono>
 #include <filesystem>
 #include <string>
@@ -26,14 +28,15 @@ struct StagedDirectory {
 	void release() { path.clear(); }
 };
 
-// Finds a name that is free in parent: the prefix, a time stamp and an attempt number. A name that is a dangling symlink
-// is taken. Fails with file_exists when 100 names are taken, and with the error of the filesystem when it cannot tell.
+// Finds a name that is free in parent: the prefix (UTF-8), a time stamp and an attempt number. A name that is a dangling
+// symlink is taken. Fails with file_exists when 100 names are taken, and with the error of the filesystem when it cannot
+// tell.
 inline std::error_code uniqueSiblingPath(const std::filesystem::path& parent, const std::string& prefix,
 	std::filesystem::path& result) {
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const std::filesystem::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
+		const std::filesystem::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
 		const auto status = std::filesystem::symlink_status(candidate, ec);
 		if (!ec && status.type() == std::filesystem::file_type::not_found) {
@@ -58,7 +61,7 @@ inline std::error_code createStagedDirectory(const std::filesystem::path& parent
 	std::error_code ec;
 	for (unsigned int attempt = 0; attempt < 100; ++attempt) {
 		const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-		const std::filesystem::path candidate = parent / (prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
+		const std::filesystem::path candidate = parent / pathFromUtf8(prefix + std::to_string(stamp) + "-" + std::to_string(attempt));
 		ec.clear();
 		if (std::filesystem::create_directory(candidate, ec)) {
 			if (ownerOnly) {

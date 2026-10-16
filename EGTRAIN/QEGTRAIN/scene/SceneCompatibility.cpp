@@ -2,6 +2,7 @@
 
 #include "scene/SceneBundle.h"
 #include "scene/SceneMigration.h"
+#include "scene/Utf8Path.h"
 
 #include <climits>
 #include <cstdint>
@@ -87,7 +88,7 @@ SceneCompatibilityProbeResult probeDirectory(const std::string& path,
 	SceneCompatibilityProbeResult result;
 	result.sourceKind = SceneSourceKind::Directory;
 	std::error_code ec;
-	const fs::path directory(path);
+	const fs::path directory = pathFromUtf8(path);
 	if (!fs::is_directory(directory, ec) || ec) {
 		addDiagnostic(result.diagnostics, "scene.compatibility.directory",
 			"Scene directory is missing or unreadable", path);
@@ -140,7 +141,7 @@ SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path) {
 SceneCompatibilityProbeResult probeSceneCompatibility(const std::string& path,
 	const SceneMigrationRegistry& registry) {
 	std::error_code ec;
-	const fs::path scenePath(path);
+	const fs::path scenePath = pathFromUtf8(path);
 	if (fs::is_directory(scenePath, ec))
 		return probeDirectory(path, registry);
 

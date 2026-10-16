@@ -315,3 +315,6 @@ Application code outside `simulation/` and `io/third_party/` has no `std::list`,
 - New global variables: pass state as arguments and return results, as
   `validateScene(const SceneModel&)` in `scene/SceneValidator.h` does.
 - New `#define` constants: use `constexpr` with a `k` prefix.
+- In `scene/`, a file name read as a path with `std::filesystem::path(text)` and a path turned into text with
+  `path.string()`: MSVC uses the system code page for both. File names cross the scene API as UTF-8, as
+  `QString::toStdString` gives them. Use `pathFromUtf8` from `scene/Utf8Path.h` and `path.u8string()`.

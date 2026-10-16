@@ -51,6 +51,9 @@ struct TempDir {
 	}
 };
 
+// Japanese and Thai characters, as UTF-8. No Windows code page holds both.
+static const std::string kUnicodeName = "scene-\xE6\x97\xA5\xE6\x9C\xAC-\xE0\xB8\x81";
+
 static void writeText(const fs::path& path, const std::string& content) {
 	fs::create_directories(path.parent_path());
 	std::ofstream output(path);
@@ -777,6 +780,46 @@ int main() {
 		writeText(legacy / "EGTRAINSignallingAreas.json", "malformed metadata at an unrecognised root path");
 		imported = importLegacyScene(legacyDir.dir, output.dir, "Areas");
 		ok &= expect(imported.success() && hasDiag(imported.diagnostics, "scene.import.areas.skipped", SceneSeverity::Warning), "Only the reserved TrackLines sidecar path is recognised");
+	}
+
+	// Legacy data with Unicode names: the case folder, the files that the manifest and the train file name, and the scene
+	// destination.
+	{
+		TempDir root;
+		const fs::path legacy = fs::path(root.dir) / fs::u8path(kUnicodeName);
+		const fs::path destination = fs::path(root.dir) / fs::u8path("scene-" + kUnicodeName);
+		writeText(legacy / "TrackLines/B0/NodiCumPari.txt", "0 0 0\n1 2 0\n");
+		writeText(legacy / "TrackLines/Stations.txt", "0\tOrigin\n");
+		writeText(legacy / "Routes/Route0.txt", "@0-B0@\n");
+		writeText(legacy / "trainNames.txt", kUnicodeName + ".txt\n");
+		writeText(legacy / "Trains" / fs::u8path(kUnicodeName + ".txt"),
+			"Service 0 99999999 0 /" + kUnicodeName + ".dat /" + kUnicodeName + "-effort.dat /TimeTable/" + kUnicodeName + ".txt\n");
+		writeText(legacy / fs::u8path(kUnicodeName + ".dat"), "1 2 3 4 5 6 7 8 9\n");
+		writeText(legacy / fs::u8path(kUnicodeName + "-effort.dat"), "0 1 2 3 4\n1 2 3 4 5\n");
+		writeText(legacy / "TimeTable" / fs::u8path(kUnicodeName + ".txt"), "Origin 2 -1 10\n");
+		const auto imported = importLegacyScene(legacy.u8string(), destination.u8string(), "Unicode");
+		for (const auto& diagnostic : imported.diagnostics)
+			if (diagnostic.severity == SceneSeverity::Error)
+				std::cerr << "Unicode import: " << toDisplayText(diagnostic) << "\n";
+		json rolling, scene;
+		ok &= expect(imported.success() && readJson(destination / "rolling_stock.json", rolling) && readJson(destination / "scene.json", scene),
+			"Legacy data with Unicode names imports to a directory with a Unicode name");
+		bool named = false;
+		for (const auto& unit : rolling["train_units"])
+			named = named || (unit.contains("source") && unit["source"]["data_file"] == "/" + kUnicodeName + ".dat");
+		ok &= expect(named, "Train data file with a Unicode name is found and recorded");
+		bool reported = false;
+		for (const auto& row : scene["import_report"])
+			reported = reported || row["source_file"] == (legacy / "trainNames.txt").u8string();
+		ok &= expect(reported, "Import report names a manifest below a Unicode folder as UTF-8");
+		ok &= expect(!hasDiag(imported.diagnostics, "scene.import.missing", SceneSeverity::Error),
+			"No file with a Unicode name is reported missing");
+		const fs::path absent = fs::path(root.dir) / fs::u8path("absent-" + kUnicodeName);
+		const auto refused = importLegacyScene(absent.u8string(), destination.u8string(), "Unicode");
+		bool namedAbsent = false;
+		for (const auto& diagnostic : refused.diagnostics)
+			namedAbsent = namedAbsent || (diagnostic.code == "scene.import.missing" && diagnostic.file == absent.u8string());
+		ok &= expect(namedAbsent, "A missing case folder with a Unicode name is reported as UTF-8");
 	}
 
 	if (!ok)

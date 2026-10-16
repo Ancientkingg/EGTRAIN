@@ -515,11 +515,8 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
 
         assert_headless_bundle_runs(app, [str(spaced)], root / "run-spaces", "headless launch with a bundle in a folder with spaces")
         print("headless launch with a bundle in a folder with spaces ran the scene of the bundle")
-        if os.name == "nt":
-            print("headless launch with a non-ASCII bundle name skipped on Windows: the scene layer builds file paths from narrow strings")
-        else:
-            assert_headless_bundle_runs(app, [str(unicode_bundle)], root / "run-unicode", "headless launch with a non-ASCII bundle name")
-            print(f"headless launch with the bundle name {ascii(NON_ASCII_NAME)} ran the scene of the bundle")
+        assert_headless_bundle_runs(app, [str(unicode_bundle)], root / "run-unicode", "headless launch with a non-ASCII bundle name")
+        print(f"headless launch with the bundle name {ascii(NON_ASCII_NAME)} ran the scene of the bundle")
         assert_unicode_argument_arrives_intact(app, root)
 
         assert_headless_rejection(app, [str(notes)], root / "run-text", "headless launch with a text file", "the file must use the .egscene extension")
