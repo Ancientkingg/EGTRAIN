@@ -441,11 +441,15 @@ jobs:
     # This job runs for a push to production or a v* tag when the repository variable WINDOWS_SIGNING is signpath, and never
     # for a pull request or a manual run. Its token belongs to the environment windows-signing, which only production and v*
     # may use. Only the three program files go to the signing service, so no Qt or other library is signed. The signed files
-    # replace them in the payload artifact that finalize-windows downloads.
+    # replace them in the payload artifact that finalize-windows downloads. The signing action reads the run and downloads the
+    # uploaded files with the token of the job, which the action's documentation says needs actions: read and contents: read.
     needs: package-windows
     if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) && vars.WINDOWS_SIGNING == 'signpath' }}
     runs-on: windows-latest
     environment: windows-signing
+    permissions:
+      actions: read
+      contents: read
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4

@@ -11,8 +11,6 @@ that reads Not recorded.
   reports the signature state of the program files with `tools/release/verify_signatures.ps1` and fails for no file.
   Nothing signs the installer yet. Without the setup, the workflows use no credential other than the token that GitHub
   gives to each run.
-- The release workflow does not pass the signing token to the package workflow yet. A called workflow receives no secret
-  that its caller does not pass, so the signing job fails at its signing step, and does not sign, if it is switched on.
 - The Windows downloads are the installer `EGTRAIN-Setup-<version>-x64.exe` and the portable ZIP
   `EGTRAIN-Portable-<version>-x64.zip`.
 - The macOS app is ad-hoc signed in the release workflow. An ad-hoc signature carries no publisher identity. Developer
@@ -141,10 +139,16 @@ project, and for the SignPath GitHub App to be installed when audit log checks a
 | `SIGNPATH_API_TOKEN` | Secret of the environment `windows-signing` | The API token of a SignPath user who may submit requests for the policy |
 | `windows-signing` | Environment | Deployment branches and tags limited to `production` and `v*` |
 
-A called workflow receives only the secrets that its caller passes, so the caller of `package.yml` passes the token by
-name (`secrets: SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}`).
-The job `sign-windows` sets the environment, so it reads the value stored in the environment `windows-signing`, and the
-token needs no other place.
+A called workflow receives only the secrets that its caller passes, so the release workflow passes the token to
+`package.yml` by name (`secrets: SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}`) and passes no other secret. The
+package check passes none, so it never holds the token. The job `sign-windows` sets the environment, so it reads the value
+stored in the environment `windows-signing`, and the token needs no other place.
+
+The signing action reads the run and downloads the uploaded files with the token of its job, which its documentation says
+needs `actions: read` and `contents: read`. The job `sign-windows` therefore has its own `permissions` block with those two
+read permissions. A called workflow cannot hold more than its caller grants, so the `package` job of the release workflow
+and the `package` job of the package check have the same block. No workflow has a write permission except the release
+job (`contents: write`).
 
 The artifact configuration in SignPath lists exactly the three program files at the top of the artifact, which GitHub
 uploads as a ZIP file:

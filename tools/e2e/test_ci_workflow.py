@@ -424,32 +424,53 @@ def main() -> None:
         or "  pull_request:\n" not in format_workflow
     ):
         missing.append("format check on pull requests with the clang-format version of tools/format.py")
-    # The package jobs live in a reusable workflow that the release workflow and the package check call.
-    version_call = (
+    # The package jobs live in a reusable workflow that the release workflow and the package check call. The signing job of
+    # that workflow asks for two read permissions, and a called workflow cannot hold more than its caller grants, so both
+    # callers grant exactly those two. Only the release workflow passes the signing token, by name.
+    package_call = (
         "    needs: version\n"
         "    uses: ./.github/workflows/package.yml\n"
+        "    permissions:\n"
+        "      actions: read\n"
+        "      contents: read\n"
         "    with:\n"
         "      version: ${{ needs.version.outputs.version }}\n"
     )
+    signing_token_call = "    secrets:\n      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}\n"
     if (
         trigger_events(release_only) != ["push", "pull_request", "workflow_dispatch"]
         or "\nconcurrency:\n"
         "  group: ${{ github.event_name == 'push' && 'egtrain-publish' || github.run_id }}\n"
         "  cancel-in-progress: false\n\njobs:\n" not in release_only
-        or release_only.count("permissions:") != 1
+        or release_only.count("permissions:") != 2
     ):
         missing.append("release triggers, concurrency and permissions")
+    # The only write permission of the release workflow is the one of the job that publishes.
+    if (
+        re.findall(r"^ *([\w-]+): write$", release_only, re.MULTILINE) != ["contents"]
+        or "    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n" not in job_block(release_only, "release")
+    ):
+        missing.append("release workflow whose only write permission is contents: write in the release job")
     if job_ids(release_only) != ["version", "validation", "sanitizer", "package", "release"]:
         missing.append("release jobs: version, validation, sanitizer, package, release")
-    if job_block(release_only, "package") != "  package:\n" + version_call:
-        missing.append("release package job calls the package workflow with the selected version")
+    if job_block(release_only, "package") != "  package:\n" + package_call + signing_token_call:
+        missing.append(
+            "release package job calls the package workflow with the selected version, the two read permissions "
+            "that the signing job asks for and the signing token by name"
+        )
+    if re.findall(r"\bsecrets\.\w+", release_only) != ["secrets.SIGNPATH_API_TOKEN"] or "inherit" in release_only:
+        missing.append("release workflow whose only credential is the signing token that it passes by name to the package workflow")
     if trigger_block(package_only) != (
         "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
         "    secrets:\n      SIGNPATH_API_TOKEN:\n        required: false\n"
     ):
         missing.append("package workflow starts only by call, with the version as its only input and an optional signing token")
-    if "\npermissions:\n  contents: read\n\njobs:\n" not in package_only or package_only.count("permissions:") != 1:
-        missing.append("package workflow with read permission only")
+    if (
+        "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
+        or package_only.count("permissions:") != 2
+        or re.search(r":\s*write", package_only)
+    ):
+        missing.append("package workflow with read permission at the top, one more block, and no write permission")
     # The signing token is named in one step of the signing job. No script of any job can read it.
     if re.findall(r"\bsecrets\.\w+", package_only) != ["secrets.SIGNPATH_API_TOKEN"]:
         missing.append("package workflow whose only credential is the signing token")
@@ -561,6 +582,15 @@ def main() -> None:
         or package_only.count("environment:") != 1
     ):
         missing.append("Windows signing job after the Windows package job, on windows-latest, in the only environment")
+    # The signing action reads the run and downloads the uploaded files with the token of the job (its documentation names
+    # actions: read and contents: read), and the workflow grants contents: read only. The job holds the second block of the
+    # workflow, with nothing else in it.
+    if (
+        sign_job.count("permissions:") != 1
+        or "    environment: windows-signing\n    permissions:\n      actions: read\n      contents: read\n    timeout-minutes: 90\n"
+        not in sign_job
+    ):
+        missing.append("Windows signing job with its own permissions: actions: read and contents: read")
     if re.findall(r"^    if: (.+)$", sign_job, re.MULTILINE) != [
         "${{ github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')) "
         "&& vars.WINDOWS_SIGNING == 'signpath' }}"
@@ -948,10 +978,10 @@ def main() -> None:
         missing.append("package check with one nightly run off the hour and a manual start without inputs")
     if (
         "\npermissions:\n  contents: read\n" not in package_check
-        or package_check.count("permissions:") != 1
+        or package_check.count("permissions:") != 2
         or re.search(r":\s*write", package_check)
     ):
-        missing.append("package check with read permission only")
+        missing.append("package check with read permission only, and the block of its package job")
     if (
         "\nconcurrency:\n"
         "  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}\n"
@@ -965,8 +995,8 @@ def main() -> None:
         or "run: python3 tools/release/version.py\n" not in package_check
     ):
         missing.append("package check selects the version with the script and job of the release workflow")
-    if job_block(package_check, "package") != "  package:\n" + version_call:
-        missing.append("package check calls the package workflow with the selected version")
+    if job_block(package_check, "package") != "  package:\n" + package_call:
+        missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
     # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
     # are those of the release job, so the package check runs what a release runs.
