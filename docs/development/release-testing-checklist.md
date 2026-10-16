@@ -185,8 +185,8 @@ off and are not part of a student launch.
 On Windows there are two downloads, and each one gets this section. Row W2 below
 installs the installer and runs the steps on the installed copy. Row W6 unzips
 the portable archive and runs the steps and the R rows on that copy.
-Rows R9 and R10 replace the installation, and an installed copy has no update
-path of its own yet (#405), so they are not run on the installed copy. Both
+Rows R9 and R10 run on the portable copy, because they replace the installation.
+Row W8 runs the in-app update on the installed copy. Both
 copies keep their settings in the profile of the account, not in their folder,
 so the question of R7 is asked at the first start in W2 and not again in W6.
 
@@ -302,11 +302,9 @@ Notes on the update rows:
   the update path of the installed version and says nothing about the contents
   of a manual candidate.
 - On Windows run R9 and R10 on the portable copy. In an installed copy,
-  **Update and Restart** replaces the installation folder with the portable
-  package. That package has no uninstaller, so the entry in the list of
-  installed apps can no longer remove the copy; update an installed copy with a
-  newer Setup (W5). The older stable release for R9 on Windows is
-  `QEGTRAIN-windows-x64.zip`, a portable archive too.
+  **Update and Restart** runs the Setup of the newer release and does not
+  replace the installation folder; W8 covers that. The older stable release for
+  R9 on Windows is `QEGTRAIN-windows-x64.zip`, a portable archive too.
 - Mark R9 or R10 not applicable, with a reason for this case, when no newer
   stable release is offered, when no older stable release that has the update
   entries can be installed for R9, or when the account cannot be denied write
@@ -317,7 +315,7 @@ Notes on the update rows:
 Run these rows on Windows with the installer and the portable archive of the
 candidate, and mark them not applicable on macOS and Linux. Use an account that
 is not an administrator, on a machine without development tools and without a
-copy of EGTRAIN. W2 to W5 follow each other on that account, and W7 runs between W2 and W3. W5 needs the Setup
+copy of EGTRAIN. W2 to W5 follow each other on that account, and W7 runs between W2 and W3. W5 and W8 need the Setup
 of an older version: it is the one exception to the rule of one source besides
 R9, so record where it came from. Run W6 after the last uninstall, so that the
 list of installed apps shows only what the archive itself adds.
@@ -331,6 +329,7 @@ list of installed apps shows only what the archive itself adds.
 | W5 Upgrade | Uninstall as in W3. Install the older Setup, start EGTRAIN and leave it open, then run the Setup of the candidate over it. When it has finished, start EGTRAIN, open **About EGTRAIN**, and uninstall once more as in W3. | The first uninstall removes the desktop shortcut of W4 with the rest. Setup offers to close the running EGTRAIN and finishes when it is closed. Afterwards the list of installed apps has one `EGTRAIN` entry with the version of the candidate, there is one Start Menu entry, the installation folder is the same and no second folder named like it stands beside it, and **About EGTRAIN** shows the version of the candidate. The last uninstall removes everything as in W3. Mark W5 not applicable, with the reason, when no older Setup exists: the Finalize Windows job has installed a second Setup over the first on the runner. | Windows |
 | W6 Portable archive | Unzip `EGTRAIN-Portable-<version>-x64.zip` into a new empty folder, for example with **Extract All** in Explorer. Start `QEGTRAIN.exe` by double-click. Run the steps 1 to 9 of the clean-install rehearsal and the R rows on this copy, except R7, which W2 has seen. | No prompt asks for administrator rights. Record any warning at the first start, with its text. The list of installed apps and the Start Menu show no EGTRAIN, and no shortcut was made. The folder has no `installed-by-setup.ini` and no uninstaller. Deleting the folder after closing EGTRAIN removes the copy. | Windows |
 | W7 Open a case study by double-click | Run it right after W2. Close EGTRAIN and double-click a downloaded `.egscene` file in Explorer. With EGTRAIN open, change a value and double-click a second `.egscene` file. | Explorer shows the type name `EGTRAIN case study` and the EGTRAIN icon for the file. The first file opens in EGTRAIN. The second opens in the window that is already open, after the question about unsaved changes, and no second window appears. If Windows asks which program to use, record the question. | Windows |
+| W8 In-app update of an installed copy | Meet the precondition of R9 with an installed copy: install the Setup of an older stable release, start EGTRAIN, choose **Help > Check for Updates...** and then **Update and Restart**. Uninstall as in W3 afterwards. | The dialog text says that Update and Restart runs the EGTRAIN installer. No Setup window and no prompt for an administrator password appears. EGTRAIN closes, starts again by itself and shows the box `EGTRAIN was updated to version <version>.` The list of installed apps has one `EGTRAIN` entry with the new version, there is one Start Menu entry, the installation folder is the same, and a `.egscene` file still opens in EGTRAIN. Record whether the desktop shortcut of an earlier install is still there. The hidden folder `.qegtrain-update-*` next to the installation is gone about 20 seconds after the start. Record any other message, with its text. Mark W8 not applicable, with the reason, when no older Setup that updates through the installer and no newer stable release that lists the installer in its manifest exist. | Windows |
 
 ## Not available yet
 
@@ -341,7 +340,6 @@ The release does not build these today, so they have no subject.
 | macOS Developer ID signing and notarization: first open without a system warning | An ad hoc signature only (#404). | No row until the release provides it |
 | Windows binary signature | None (#402). | No row until the release provides it |
 | Open a bundle from the file manager or the command line, with the application closed and with it running | **File > Open Case Study...**, a drop onto the window and the `--scene` option (#416). | No row until the release provides it |
-| Update of an installer-managed copy as against a portable copy | **Update and Restart** replaces an installed copy with the portable package, so R9 and R10 are the only update rows and run on the portable copy (#405). | No row until the release provides it |
 
 These rows are not part of the gate. They are added to the table of the record
 when the release provides the asset.

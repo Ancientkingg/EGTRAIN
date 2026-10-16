@@ -33,17 +33,23 @@ installs it and relaunches the application. If the install location is not
 writable, download the release and install it with the platform's normal
 permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
 disk image or another read-only location; move it to the Applications folder
-first. On Windows, update a copy that the EGTRAIN Setup installed by running the
-newer Setup.
+first.
 
 EGTRAIN counts a Windows copy as managed by an installer when the file
 `installed-by-setup.ini` is in the same folder as `QEGTRAIN.exe`. The EGTRAIN
 installer writes that file and the portable package does not contain it. Such a
-copy does not replace its own files: **Check for Updates...** still names a newer
-release, but offers only **Open Release Page**, **Later** and **Stop Checking**,
-with a text that says the copy was installed with the EGTRAIN installer and to
-use the release page. A portable folder that holds the file, for example one
-zipped from an installed copy, is treated the same way until the file is deleted.
+copy does not replace its own files. **Update and Restart** downloads the Setup
+program of the newer release instead of the portable package, checks it against
+the update manifest, closes EGTRAIN, runs the Setup without windows and starts
+EGTRAIN again. A portable folder that holds the file, for example one zipped from
+an installed copy, is treated the same way until the file is deleted.
+
+EGTRAIN does not take the end of the Setup for a successful update. At the next
+start it compares the version that the update was to install with the version
+that runs. It tells you once that EGTRAIN was updated, that the Setup finished but
+an older version runs, or that the Setup did not finish and the installation may
+be incomplete. In the last case download the Setup from the release page and run
+it again.
 
 An update is prepared in a hidden `.qegtrain-update-*` folder next to the
 installation, and the updated application starts in its own directory. After a

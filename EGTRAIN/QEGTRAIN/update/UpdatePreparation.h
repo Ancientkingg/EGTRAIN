@@ -15,6 +15,9 @@ struct UpdatePreparationInput {
 	QString packagePath;
 	QString stagingRoot;
 	QString currentPath;
+	// True when the package is the installer of an installed Windows copy, which runs from where it
+	// was downloaded. Nothing is extracted and the staged path is the package.
+	bool installer = false;
 	UpdateManifest manifest;
 };
 
@@ -34,6 +37,11 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 
 // Stage a package after download verification has succeeded.
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
+
+// True when a file can be created in directory and removed again. It tries the folder because Qt
+// reads no NTFS access list unless it is told to, so QFileInfo::isWritable can say yes for a folder
+// that the user cannot write, such as one below Program Files.
+bool canCreateFilesIn(const QString& directory);
 
 // True when path is on a volume that is mounted read-only or inside an App Translocation
 // location. An app that runs from a disk image or straight after a download is there.

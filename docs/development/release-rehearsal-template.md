@@ -78,6 +78,7 @@ A result is Pass, Fail, Not applicable with a reason, or Not run.
 | W5 Upgrade |  |  |  |  |
 | W6 Portable archive |  |  |  |  |
 | W7 Open a case study by double-click |  |  |  |  |
+| W8 In-app update of an installed copy |  |  |  |  |
 
 ## Source bundle
 

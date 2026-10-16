@@ -111,6 +111,106 @@ static bool testTake(const QString& directory) {
 	return ok;
 }
 
+static const QByteArray kInstallerSucceeded("outcome=installer-succeeded\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
+static const QByteArray kInstallerFailed("outcome=installer-failed\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\nexit-code=5\n");
+
+static bool testParseInstaller() {
+	bool ok = true;
+	const std::optional<InstallerRecord> succeeded = parseInstallerRecord(kInstallerSucceeded);
+	ok &= expect(succeeded && succeeded->succeeded && succeeded->version == SemanticVersion{9, 8, 7}
+			&& !succeeded->exitCode,
+		"a record of an installer that finished gives its version and no exit code");
+	const std::optional<InstallerRecord> failed = parseInstallerRecord(kInstallerFailed);
+	ok &= expect(failed && !failed->succeeded && failed->version == SemanticVersion{9, 8, 7}
+			&& failed->exitCode == 5,
+		"a record of a failed installer gives its version and exit code");
+	const std::optional<InstallerRecord> notStarted =
+		parseInstallerRecord("outcome=installer-failed\nversion=9.8.7\ntime=2026-10-09T12:00:00Z\n");
+	ok &= expect(notStarted && !notStarted->succeeded && !notStarted->exitCode,
+		"a failed installer without an exit code gives none");
+	const std::optional<InstallerRecord> large =
+		parseInstallerRecord("outcome=installer-failed\r\nversion=9.8.7\r\nexit-code=3221225477\r\n");
+	ok &= expect(large && large->exitCode == 3221225477ULL, "an exit code above the range of int is read, with CRLF line ends");
+	const std::optional<InstallerRecord> unreadable =
+		parseInstallerRecord("outcome=installer-failed\nversion=9.8.7\nexit-code=abc\n");
+	ok &= expect(unreadable && !unreadable->exitCode, "an exit code that is no number is ignored");
+
+	const struct {
+		const char* label;
+		QByteArray contents;
+	} rejected[] = {
+		{"an empty installer record", ""},
+		{"a rolled-back record", kValidRecord},
+		{"another outcome", "outcome=installer-unknown\nversion=9.8.7\n"},
+		{"an installer record without a version", "outcome=installer-succeeded\ntime=2026-10-09T12:00:00Z\n"},
+		{"an installer record with a version of two parts", "outcome=installer-succeeded\nversion=1.2\n"},
+		{"an installer record with a prerelease version", "outcome=installer-failed\nversion=1.2.3-beta\n"}};
+	for (const auto& entry : rejected)
+		ok &= expect(!parseInstallerRecord(entry.contents), entry.label);
+	ok &= expect(!parseUpdateRecord(kInstallerSucceeded) && !parseUpdateRecord(kInstallerFailed),
+		"the reader of a rolled-back update does not take an installer record");
+	return ok;
+}
+
+static bool testCheckInstaller() {
+	bool ok = true;
+	const InstallerRecord succeeded{SemanticVersion{9, 8, 7}, true, std::nullopt};
+	const InstallerRecord failed{SemanticVersion{9, 8, 7}, false, 5};
+	ok &= expect(checkInstallerRecord(succeeded, SemanticVersion{9, 8, 7}) == InstallerCheck::Updated,
+		"the version that the installer was to install runs");
+	ok &= expect(checkInstallerRecord(succeeded, SemanticVersion{9, 8, 6}) == InstallerCheck::NotUpdated,
+		"an older version runs although the installer finished");
+	ok &= expect(checkInstallerRecord(succeeded, SemanticVersion{9, 9, 0}) == InstallerCheck::Stale,
+		"a newer version runs than the record names");
+	ok &= expect(checkInstallerRecord(failed, SemanticVersion{9, 8, 6}) == InstallerCheck::Failed,
+		"an older version runs after a failed installer");
+	ok &= expect(checkInstallerRecord(failed, SemanticVersion{9, 8, 7}) == InstallerCheck::Failed,
+		"a failed installer is reported although the expected version runs");
+	ok &= expect(checkInstallerRecord(failed, SemanticVersion{10, 0, 0}) == InstallerCheck::Stale,
+		"a failed installer of an older version says nothing");
+	return ok;
+}
+
+static bool testTakeInstaller(const QString& directory) {
+	bool ok = true;
+	const QString path = QDir(directory).filePath("installer-record.txt");
+
+	ok &= expect(!takeInstallerRecord(path), "no file gives no installer record");
+
+	ok &= expect(writeFile(path, kInstallerSucceeded), "installer record fixture is writable");
+	const std::optional<InstallerRecord> taken = takeInstallerRecord(path);
+	ok &= expect(taken && taken->succeeded && taken->version == SemanticVersion{9, 8, 7}, "an installer record is returned");
+	ok &= expect(!QFileInfo::exists(path), "a returned installer record is removed");
+
+	// The record of a rolled-back update stays for takeUpdateRecord, which is called after this reader.
+	ok &= expect(writeFile(path, kValidRecord), "rolled-back fixture is writable");
+	ok &= expect(!takeInstallerRecord(path), "a rolled-back record is no installer record");
+	ok &= expect(QFileInfo::exists(path), "a rolled-back record is left for its own reader");
+	const std::optional<UpdateRecord> rolledBack = takeUpdateRecord(path, SemanticVersion{9, 8, 6});
+	ok &= expect(rolledBack && rolledBack->version == SemanticVersion{9, 8, 7}, "the rolled-back reader still gets it");
+
+	// takeUpdateRecord removes any record it finds, so an installer record that it reads first is lost unseen.
+	ok &= expect(writeFile(path, kInstallerSucceeded), "installer fixture is writable again");
+	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 8, 6}) && !QFileInfo::exists(path),
+		"the rolled-back reader removes an installer record without returning it");
+
+	ok &= expect(writeFile(path, "outcome=installer-failed\n"), "malformed fixture is writable");
+	ok &= expect(!takeInstallerRecord(path) && QFileInfo::exists(path), "a malformed record is left for the other reader");
+	ok &= expect(!takeUpdateRecord(path, SemanticVersion{9, 8, 6}) && !QFileInfo::exists(path),
+		"which removes it");
+
+	QByteArray tooLong = kInstallerSucceeded + "padding=";
+	tooLong.append(QByteArray(4097 - tooLong.size(), 'x'));
+	ok &= expect(writeFile(path, tooLong), "fixture of 4097 bytes is writable");
+	ok &= expect(!takeInstallerRecord(path) && QFileInfo::exists(path), "a file of more than 4096 bytes is not an installer record");
+	ok &= expect(QFile::remove(path), "the long fixture is removed");
+
+	const QString folder = QDir(directory).filePath("installer-folder");
+	ok &= expect(QDir().mkpath(folder), "folder fixture is writable");
+	ok &= expect(!takeInstallerRecord(folder) && QFileInfo(folder).isDir(), "a folder at the record path gives no record");
+	return ok;
+}
+
 static bool testPathAndArguments() {
 	bool ok = true;
 	const QString path = updateRecordPath();
@@ -133,6 +233,9 @@ int main(int argc, char** argv) {
 	bool ok = true;
 	ok &= testParse();
 	ok &= testTake(temp.path());
+	ok &= testParseInstaller();
+	ok &= testCheckInstaller();
+	ok &= testTakeInstaller(temp.path());
 	ok &= testPathAndArguments();
 	return ok ? 0 : 1;
 }

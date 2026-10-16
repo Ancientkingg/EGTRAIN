@@ -89,18 +89,5 @@ int main(int argc, char** argv) {
 #endif
 	ok &= expect(currentDistribution() == expectedCurrent, "the current distribution is the one of the platform");
 
-	const QString reason = selfReplacementBlockedReason(Distribution::WindowsInstalled);
-	ok &= expect(!reason.isEmpty() && reason.contains(QStringLiteral("installer"))
-			&& reason.endsWith(QLatin1Char('.')),
-		"an installed copy is blocked with a sentence that names the installer");
-	ok &= expect(selfReplacementBlockedReason(Distribution::WindowsPortable).isEmpty(),
-		"a portable copy is not blocked");
-	ok &= expect(selfReplacementBlockedReason(Distribution::MacApp).isEmpty(),
-		"a macOS app is not blocked");
-	ok &= expect(selfReplacementBlockedReason(Distribution::LinuxAppImage).isEmpty(),
-		"a Linux AppImage is not blocked");
-	ok &= expect(selfReplacementBlockedReason(Distribution::Unsupported).isEmpty(),
-		"an unsupported platform is not blocked");
-
 	return ok ? 0 : 1;
 }

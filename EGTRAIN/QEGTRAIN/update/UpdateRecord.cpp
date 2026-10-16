@@ -24,6 +24,17 @@ QByteArray firstValue(const QList<QByteArray>& lines, const QByteArray& key) {
 	return {};
 }
 
+// The content of the file at path, or nothing when it cannot be read or is longer than a record can be.
+std::optional<QByteArray> readRecordFile(const QString& path) {
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return std::nullopt;
+	const QByteArray contents = file.read(kMaxRecordBytes);
+	if (!file.atEnd())
+		return std::nullopt;
+	return contents;
+}
+
 } // namespace
 
 std::optional<UpdateRecord> parseUpdateRecord(const QByteArray& contents) {
@@ -40,6 +51,30 @@ std::optional<UpdateRecord> parseUpdateRecord(const QByteArray& contents) {
 	return UpdateRecord{*parsedVersion, parsedTime.toUTC()};
 }
 
+std::optional<InstallerRecord> parseInstallerRecord(const QByteArray& contents) {
+	const QList<QByteArray> lines = contents.split('\n');
+	const QByteArray outcome = firstValue(lines, "outcome");
+	const std::optional<SemanticVersion> version = parseStableVersion(firstValue(lines, "version").toStdString());
+	if ((outcome != "installer-succeeded" && outcome != "installer-failed") || !version)
+		return std::nullopt;
+	InstallerRecord record;
+	record.version = *version;
+	record.succeeded = outcome == "installer-succeeded";
+	bool isNumber = false;
+	const qulonglong exitCode = firstValue(lines, "exit-code").toULongLong(&isNumber);
+	if (isNumber)
+		record.exitCode = exitCode;
+	return record;
+}
+
+InstallerCheck checkInstallerRecord(const InstallerRecord& record, const SemanticVersion& installed) {
+	if (record.version < installed)
+		return InstallerCheck::Stale;
+	if (!record.succeeded)
+		return InstallerCheck::Failed;
+	return installed == record.version ? InstallerCheck::Updated : InstallerCheck::NotUpdated;
+}
+
 QString updateRecordPath() {
 	const QString directory = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 	if (directory.isEmpty())
@@ -50,21 +85,23 @@ QString updateRecordPath() {
 std::optional<UpdateRecord> takeUpdateRecord(const QString& path, const SemanticVersion& installed) {
 	if (!QFileInfo(path).isFile())
 		return std::nullopt;
-	QByteArray contents;
-	bool complete = false;
-	{
-		QFile file(path);
-		if (file.open(QIODevice::ReadOnly)) {
-			contents = file.read(kMaxRecordBytes);
-			complete = file.atEnd();
-		}
-	}
+	const std::optional<QByteArray> contents = readRecordFile(path);
 	QFile::remove(path);
-	if (!complete)
+	if (!contents)
 		return std::nullopt;
-	const std::optional<UpdateRecord> record = parseUpdateRecord(contents);
+	const std::optional<UpdateRecord> record = parseUpdateRecord(*contents);
 	if (!record || !(installed < record->version))
 		return std::nullopt;
+	return record;
+}
+
+std::optional<InstallerRecord> takeInstallerRecord(const QString& path) {
+	if (!QFileInfo(path).isFile())
+		return std::nullopt;
+	const std::optional<QByteArray> contents = readRecordFile(path);
+	const std::optional<InstallerRecord> record = contents ? parseInstallerRecord(*contents) : std::nullopt;
+	if (record)
+		QFile::remove(path);
 	return record;
 }
 

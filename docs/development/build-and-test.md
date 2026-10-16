@@ -93,12 +93,14 @@ every test that pulls in Infrastructure, Signalling or RollingStock from
 `RecoveryStore` and `RecoveryController`, and `test_recoverystore` and
 `test_recoverycontroller` are the only targets that link it.
 
-Two things are still compiled more than once. The telemetry sources are built
+Three things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
 `egtrain_telemetry_smoke` for the application in the isolated telemetry smoke
 configuration, because the hooks change the layout of the telemetry classes.
 `TelemetryConsentDialog.cpp` is compiled in `QEGTRAIN` and in
-`test_telemetryconsent` for the same reason. See
+`test_telemetryconsent` for the same reason. `update/SelfUpdater.cpp` is compiled
+in `QEGTRAIN` and in `test_selfupdater` with `EGTRAIN_UPDATE_TEST_HOOK`, which adds
+`SelfUpdater::setTestHook`. See
 [Source layout](../architecture/source-layout.md#libraries).
 
 With `EGTRAIN_BUILD_TESTS=ON`, `QEGTRAIN` also compiles the sources in
@@ -1326,12 +1328,14 @@ most of its checks, so run it locally to read its logs.
   `update-manifest.json` has one entry per distribution key under `assets`, each with
   `name`, `sha256` and `size`. The running copy picks its entry by key and downloads
   the asset that `name` gives. The keys are `windows-x64` (portable package), `windows-x64-installer`,
-  `macos-arm64` and `linux-x86_64`; the running copy uses the portable package key
-  on Windows and no installer key yet. A Windows copy with `installed-by-setup.ini`
+  `macos-arm64` and `linux-x86_64`. A Windows copy with `installed-by-setup.ini`
   next to `QEGTRAIN.exe` is installer-managed (`currentDistribution` in
-  `update/Distribution.cpp`), so it picks no manifest entry and does not update
-  itself by replacing files; the installer is the only intended source of that
-  file, and the package payload and the portable archive must not contain it.
+  `update/Distribution.cpp`) and takes `windows-x64-installer`; every other copy
+  takes the key of its platform, which for a portable Windows copy is `windows-x64`.
+  An installer-managed copy does not update itself by replacing files: it downloads
+  the installer and the update helper runs it. The installer is the only intended
+  source of that file, and the package payload and the portable archive must not
+  contain it.
   The updater accepts a `name` only when it
   fits a pattern of its key, where `<version>` is the version of the manifest,
   which must equal the release tag without its leading `v`. The same patterns
@@ -1350,7 +1354,8 @@ most of its checks, so run it locally to read its logs.
   rejected. The manifest has no field for the kind of package; the key and the
   pattern decide it. The manifest of a published release keeps working because
   its names are in the table. Staging handles the archives, the macOS disk image
-  and the AppImage; the installer is recognised but not staged yet. A package
+  and the AppImage. The installer is checked against the manifest and staged as
+  it is, without extraction. A package
   whose name ends in `.dmg` is mounted read-only below the staging folder with
   `hdiutil attach -readonly -nobrowse -noautoopen`, `QEGTRAIN.app` is copied from
   the root of the volume with `ditto`, and the volume is detached on every path
