@@ -45,9 +45,13 @@ static QByteArray bigBody() {
 }
 
 struct RecordedRequest {
+	QByteArray method;
 	QByteArray path;
 	QByteArray userAgent;
 	QByteArray accept;
+	QByteArray contentType;
+	QByteArray cookie;
+	QByteArray body;
 };
 
 // A small HTTP server on the loopback address that answers by path. It closes the connection after
@@ -100,8 +104,10 @@ private:
 		RecordedRequest request;
 		const QList<QByteArray> lines = buffer.left(end).split('\n');
 		const QList<QByteArray> requestLine = lines.first().trimmed().split(' ');
+		request.method = requestLine.first();
 		if (requestLine.size() >= 2)
 			request.path = requestLine.at(1);
+		int bodyBytes = 0;
 		for (const QByteArray& line : lines) {
 			const int colon = line.indexOf(':');
 			if (colon < 0)
@@ -111,7 +117,16 @@ private:
 				request.userAgent = line.mid(colon + 1).trimmed();
 			else if (name == "accept")
 				request.accept = line.mid(colon + 1).trimmed();
+			else if (name == "content-type")
+				request.contentType = line.mid(colon + 1).trimmed();
+			else if (name == "cookie")
+				request.cookie = line.mid(colon + 1).trimmed();
+			else if (name == "content-length")
+				bodyBytes = line.mid(colon + 1).trimmed().toInt();
 		}
+		if (buffer.size() < end + 4 + bodyBytes)
+			return;
+		request.body = buffer.mid(end + 4, bodyBytes);
 		m_pending.remove(socket);
 		requests.push_back(request);
 		respond(socket, request.path);
@@ -126,6 +141,12 @@ private:
 			send(socket, "302 Found", QByteArray(), "Location: " + url("/redirect-loop").toEncoded() + "\r\n");
 		else if (path == "/redirect-away")
 			send(socket, "302 Found", QByteArray(), "Location: http://localhost:" + QByteArray::number(server.serverPort()) + "/redirect-away-target\r\n");
+		else if (path == "/post-redirect")
+			send(socket, "302 Found", QByteArray(), "Location: " + url("/post-target").toEncoded() + "\r\n");
+		else if (path == "/post-accepted")
+			send(socket, "202 Accepted", QByteArray(), "Retry-After: 120\r\n");
+		else if (path == "/set-cookie")
+			send(socket, "200 OK", smallBody(), "Set-Cookie: session=1; Path=/\r\n");
 		else if (path == "/target")
 			send(socket, "200 OK", targetBody());
 		else if (path == "/missing")
@@ -150,7 +171,7 @@ private:
 
 // One request and everything its reply reports.
 struct Fetch {
-	Fetch(HttpTransport& transport, const HttpRequest& request) : reply(transport.get(request)) {
+	Fetch(HttpTransport& transport, const HttpRequest& request, bool post = false) : reply(post ? transport.post(request) : transport.get(request)) {
 		QObject::connect(reply, &HttpReply::readyRead, &context, [this]() {
 			++readyReads;
 			data += reply->readAll();
@@ -169,6 +190,8 @@ struct Fetch {
 			status = reply->statusCode();
 			error = reply->errorString();
 			contentLength = reply->contentLength();
+			retryAfter = reply->header("retry-after");
+			location = reply->header("Location");
 			if (!failed)
 				data += reply->readAll();
 			if (loop)
@@ -208,6 +231,8 @@ struct Fetch {
 	int status = -1;
 	QString error;
 	qint64 contentLength = -1;
+	QByteArray retryAfter;
+	QByteArray location;
 	bool abortOnData = false;
 	bool abortCalled = false;
 };
@@ -217,6 +242,13 @@ static HttpRequest makeRequest(const QUrl& url, const QByteArray& userAgent = QB
 	request.url = url;
 	request.userAgent = userAgent;
 	request.accept = accept;
+	return request;
+}
+
+static HttpRequest makePost(const QUrl& url, const QByteArray& body) {
+	HttpRequest request = makeRequest(url, "EGTRAIN/9.9.9");
+	request.body = body;
+	request.contentType = QByteArrayLiteral("application/json; charset=utf-8");
 	return request;
 }
 
@@ -249,6 +281,57 @@ static bool testRequestHeaders(HttpTransport& transport, const TestServer& serve
 	ok &= expect(recorded != nullptr, "headers: the server saw the second request");
 	if (recorded)
 		ok &= expect(recorded->accept != accept, "headers: an empty accept does not send the Accept value of an earlier request");
+	return ok;
+}
+
+static bool testPost(HttpTransport& transport, const TestServer& server) {
+	const QByteArray body = bigBody();
+	Fetch fetch(transport, makePost(server.url("/post-accepted"), body), true);
+	bool ok = expect(fetch.reply != nullptr, "post: the transport posts");
+	if (!ok)
+		return false;
+	ok &= expect(fetch.waitFinished(), "post: finished() arrives");
+	ok &= expect(!fetch.failed && fetch.status == 202, "post: the status code is 202");
+	ok &= expect(fetch.retryAfter == "120", "post: header() returns a header of the response, whatever its case");
+	const RecordedRequest* recorded = server.find("/post-accepted");
+	ok &= expect(recorded != nullptr, "post: the server saw the request");
+	if (recorded) {
+		ok &= expect(recorded->method == "POST", "post: the method is POST");
+		ok &= expect(recorded->contentType == "application/json; charset=utf-8", "post: the Content-Type is the one of the request");
+		ok &= expect(recorded->userAgent == "EGTRAIN/9.9.9", "post: the User-Agent is the one of the request");
+		ok &= expect(recorded->body == body, "post: the body arrives whole");
+	}
+	return ok;
+}
+
+// A redirect of a post is a reply like any other: it is not followed.
+static bool testPostRedirectNotFollowed(HttpTransport& transport, const TestServer& server) {
+	Fetch fetch(transport, makePost(server.url("/post-redirect"), smallBody()), true);
+	bool ok = expect(fetch.waitFinished(), "post redirect: finished() arrives");
+	ok &= expect(!fetch.failed && fetch.status == 302, "post redirect: the reply is the redirect, without an error");
+	ok &= expect(fetch.location == server.url("/post-target").toEncoded(), "post redirect: header() returns the Location");
+	spin(50);
+	ok &= expect(server.find("/post-target") == nullptr, "post redirect: the redirect is not followed");
+	return ok;
+}
+
+static bool testPostErrorStatus(HttpTransport& transport, const TestServer& server) {
+	Fetch fetch(transport, makePost(server.url("/missing"), smallBody()), true);
+	bool ok = expect(fetch.waitFinished(), "post 404: finished() arrives");
+	ok &= expect(fetch.failed && fetch.status == 404, "post 404: an HTTP error status is a failure with its status code");
+	return ok;
+}
+
+// A cookie that an earlier response set is not sent with a post.
+static bool testPostSendsNoCookie(HttpTransport& transport, const TestServer& server) {
+	Fetch first(transport, makeRequest(server.url("/set-cookie")));
+	bool ok = expect(first.waitFinished(), "cookie: the request that sets a cookie finishes");
+	Fetch second(transport, makePost(server.url("/cookie-check"), smallBody()), true);
+	ok &= expect(second.waitFinished(), "cookie: the post finishes");
+	const RecordedRequest* recorded = server.find("/cookie-check");
+	ok &= expect(recorded != nullptr, "cookie: the server saw the post");
+	if (recorded)
+		ok &= expect(recorded->cookie.isEmpty(), "cookie: the post sends no cookie");
 	return ok;
 }
 
@@ -438,6 +521,10 @@ int main(int argc, char** argv) {
 	bool ok = true;
 	ok &= testSmallBody(*transport, server);
 	ok &= testRequestHeaders(*transport, server);
+	ok &= testPost(*transport, server);
+	ok &= testPostRedirectNotFollowed(*transport, server);
+	ok &= testPostErrorStatus(*transport, server);
+	ok &= testPostSendsNoCookie(*transport, server);
 	ok &= testLargeBody(*transport, server);
 	ok &= testRedirect(*transport, server);
 	ok &= testRelativeRedirect(*transport, server);

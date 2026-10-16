@@ -43,7 +43,8 @@ int main(int argc, char** argv) {
 	const QSslCertificate certificate(certFile.readAll(), QSsl::Pem);
 	QFile authorityFile(QString::fromLocal8Bit(argv[4]));
 	assert(authorityFile.open(QIODevice::ReadOnly));
-	const QSslCertificate authority(authorityFile.readAll(), QSsl::Pem);
+	const QByteArray authorityPem = authorityFile.readAll();
+	const QSslCertificate authority(authorityPem, QSsl::Pem);
 	assert(!certificate.isNull() && !authority.isNull());
 	const QSslConfiguration defaultTrust = QSslConfiguration::defaultConfiguration();
 	QSslConfiguration trust = defaultTrust;
@@ -114,10 +115,10 @@ int main(int argc, char** argv) {
 	options.afterPoll = [&] { polled.release(); };
 	options.afterReservation = [&] { reserved.release(); };
 	options.afterCompletion = [&] { completed.release(); };
-	if (scenario) options.loopbackTrust = trust;
+	if (scenario) options.loopbackRootPem = authorityPem;
 	options.onWorkerExit = [&] { exited.release(); };
 	telemetry::Application metadata{QStringLiteral("1.0.0"), {}, {}};
-	telemetry::TelemetrySender sender(context, metadata, storage, options); // Real QNAM: post unset.
+	telemetry::TelemetrySender sender(context, metadata, storage, options); // The real transport: post unset.
 	// A published usage permit is not a completed initial category-observation poll.
 	// Wait for startup and durable queueing before making this a transport test.
 	assert(until(app, [&] { return polled.available() > 0; }));

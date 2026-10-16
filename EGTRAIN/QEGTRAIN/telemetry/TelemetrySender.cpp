@@ -1,16 +1,12 @@
 #include "telemetry/TelemetrySender.h"
 #include "telemetry/TelemetryQueue.h"
+#include "update/HttpTransport.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QMutex>
 #include <QMutexLocker>
-#include <QNetworkAccessManager>
-#include <QNetworkCookie>
-#include <QNetworkCookieJar>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QRandomGenerator>
 #include <QSysInfo>
 #include <QThread>
@@ -24,6 +20,9 @@
 #include <mutex>
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 #include <QFileInfo>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <filesystem>
 #endif
 
@@ -76,11 +75,6 @@ qint64 retryAfter(const QByteArray& raw, const QDateTime& now) {
 	const QDateTime date = QDateTime::fromString(QString::fromLatin1(raw), Qt::RFC2822Date);
 	return date.isValid() ? std::max(qint64(0), std::min(kDay, now.msecsTo(date.toUTC()))) : 0;
 }
-class EmptyCookies : public QNetworkCookieJar {
-public:
-	QList<QNetworkCookie> cookiesForUrl(const QUrl&) const override { return {}; }
-	bool setCookiesFromUrl(const QList<QNetworkCookie>&, const QUrl&) override { return false; }
-};
 Application normalized(Application app) {
 #ifdef Q_OS_MACOS
 	app.platform = QStringLiteral("macos");
@@ -144,7 +138,7 @@ TelemetrySender::TelemetrySender(TelemetryContext context, Application applicati
 		application = normalized(std::move(application));
 		if (!context.capable() || !validApplication(application) || directory.isEmpty() || context.endpoint.toUtf8().size() > 2048) return;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
-		if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOperationCaptureLocked || tests.beforeSessionAttempt || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || tests.loopbackTrust || tests.requestTimeoutMs != 10000) {
+		if (tests.settingsFactory || tests.utcNow || tests.monotonicMs || tests.jitterPercent || tests.afterReservation || tests.onWorkerExit || tests.afterCompletion || tests.afterPoll || tests.afterOperationCaptureLocked || tests.beforeSessionAttempt || tests.afterOwnershipAttempt || tests.failConstruction || tests.post || !tests.loopbackRootPem.isEmpty() || tests.requestTimeoutMs != 10000) {
 			const QUrl url(context.endpoint);
 			const QString host = url.host();
 			if (!tests.settingsFactory || (host != QStringLiteral("127.0.0.1") && host != QStringLiteral("::1"))) return;
@@ -282,8 +276,11 @@ public:
 	TelemetryQueue queue;
 	std::unique_ptr<QSettings> settings;
 	std::unique_ptr<TelemetryConsent> consent;
-	QNetworkAccessManager network;
-	QNetworkReply* reply = nullptr;
+	std::unique_ptr<HttpTransport> transport{createHttpTransport(nullptr)};
+#ifdef EGTRAIN_SENDER_TEST_HOOK
+	QNetworkAccessManager network; // Owns the replies that a test scripts.
+#endif
+	HttpReply* reply = nullptr;
 	QTimer tick, timeout;
 	QEventLoop loop;
 	QElapsedTimer elapsed;
@@ -459,12 +456,12 @@ public:
 		auto* finished = reply;
 		reply = nullptr;
 		timeout.stop();
-		int status = finished->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-		const QByteArray retryHeader = finished->rawHeader("Retry-After").left(97);
-		const auto error = finished->error();
+		int status = finished->statusCode();
+		const QByteArray retryHeader = finished->header("Retry-After").left(97);
+		const bool failed = finished->failed();
 		finished->deleteLater();
 		// A partial 202 header followed by a failed transport is not an acknowledgement.
-		if (status == 202 && (timedOut || (error != QNetworkReply::NoError && !oversized))) status = 0;
+		if (status == 202 && (timedOut || (failed && !oversized))) status = 0;
 		if (!owner || !queue.healthy()) return;
 		// A known retirement applies to the original request even after a local revoke.
 		if (status == 410) {
@@ -476,7 +473,7 @@ public:
 		if (!owner) return;
 		const int index = active.token.category == Category::Usage ? 0 : 1;
 		if (active.token.stamp != stamp[index]) return;
-		if ((status == 202 && (error == QNetworkReply::NoError || oversized) && !timedOut) || status == 400 || status == 422) {
+		if ((status == 202 && (!failed || oversized) && !timedOut) || status == 400 || status == 422) {
 			if (!queue.discardBatch(active.token)) {
 				disable();
 				return;
@@ -533,51 +530,48 @@ public:
 			if (s->tests.afterReservation) s->tests.afterReservation();
 #endif
 			if (!authorized(i, selectedStamp, selectedEpoch, permitVersion)) return;
-			QNetworkRequest request(QUrl(s->context.endpoint));
-			request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json; charset=utf-8"));
-			request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
+			HttpRequest request;
+			request.url = QUrl(s->context.endpoint);
+			request.contentType = QByteArrayLiteral("application/json; charset=utf-8");
+			request.body = active.bytes;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
-			if (s->tests.loopbackTrust) {
-				QSslConfiguration configuration = *s->tests.loopbackTrust;
-				configuration.setPeerVerifyMode(QSslSocket::VerifyPeer);
-				request.setSslConfiguration(configuration);
-			}
+			request.extraRootPem = s->tests.loopbackRootPem;
 #endif
-			request.setAttribute(QNetworkRequest::CookieLoadControlAttribute, QNetworkRequest::Manual);
-			request.setAttribute(QNetworkRequest::CookieSaveControlAttribute, QNetworkRequest::Manual);
-			request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
-			request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
-			request.setAttribute(QNetworkRequest::AuthenticationReuseAttribute, QNetworkRequest::Manual);
 			requestEndpoint = s->context.endpoint;
 			responseBytes = 0;
 			timedOut = oversized = false;
 #ifdef EGTRAIN_SENDER_TEST_HOOK
 			if (s->tests.post) {
+				QNetworkReply* scripted = nullptr;
 				try {
-					reply = s->tests.post(network, request, active.bytes);
+					scripted = s->tests.post(network, qtPostRequest(request), active.bytes);
 				} catch (...) {
 					disable();
 					return;
 				}
-				if (!reply || reply->thread() != QThread::currentThread()) {
+				if (!scripted || scripted->thread() != QThread::currentThread()) {
 					disable();
 					return;
 				}
+				reply = wrapQtReply(scripted, &tick);
 			} else
 #endif
-				reply = network.post(request, active.bytes);
-			reply->setReadBufferSize(8193);
-			QObject::connect(reply, &QIODevice::readyRead, &tick, [this] {
+				reply = transport->post(request);
+			if (!reply) {
+				disable();
+				return;
+			}
+			QObject::connect(reply, &HttpReply::readyRead, &tick, [this] {
 				try {
 					if (!reply) return;
-					responseBytes += reply->read(8193).size();
-					if (responseBytes > 8192 || reply->bytesAvailable() > 8192) {
+					responseBytes += reply->readAll().size();
+					if (responseBytes > 8192) {
 						oversized = true;
 						reply->abort();
 					}
 				} catch (...) { failClosed(); }
 			});
-			QObject::connect(reply, &QNetworkReply::finished, &tick, [this] {
+			QObject::connect(reply, &HttpReply::finished, &tick, [this] {
 				try {
 					onFinished();
 				} catch (...) { failClosed(); }
@@ -615,7 +609,7 @@ public:
 					}
 				s->count = 0;
 			}
-			if (reply && reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 410) {
+			if (reply && reply->statusCode() == 410) {
 				const QString retired = requestEndpoint;
 				reply->disconnect();
 				reply->abort();
@@ -734,7 +728,6 @@ public:
 	}
 	void run() {
 		elapsed.start();
-		network.setCookieJar(new EmptyCookies);
 		tick.setInterval(50);
 		timeout.setSingleShot(true);
 		QObject::connect(&tick, &QTimer::timeout, &tick, [this] { try { pump(); } catch (...) { failClosed(); } });

@@ -60,12 +60,27 @@ QString headerText(HINTERNET request, DWORD info) {
 	return QString::fromWCharArray(text.c_str());
 }
 
+// Sends the body of a post whose headers WinHttpSendRequest has sent.
+bool writeBody(HINTERNET request, const QByteArray& body, QString* error) {
+	qint64 sent = 0;
+	while (sent < body.size()) {
+		DWORD written = 0;
+		if (!WinHttpWriteData(request, body.constData() + sent, static_cast<DWORD>(body.size() - sent), &written) || written == 0) {
+			*error = describeError(GetLastError());
+			return false;
+		}
+		sent += written;
+	}
+	return true;
+}
+
 // The reply of one request. A worker thread makes the blocking WinHTTP calls and hands what it gets
 // to the thread of the reply, which emits the signals. abort() and the destructor cancel the calls by
 // closing the handles. The members from m_mutex on are shared with the worker and guarded by it.
 class WinHttpReply : public HttpReply {
 public:
-	WinHttpReply(const HttpRequest& request, bool allowLoopbackHttp, QObject* parent) : HttpReply(parent), m_allowLoopbackHttp(allowLoopbackHttp) {
+	WinHttpReply(const HttpRequest& request, bool isPost, bool allowLoopbackHttp, QObject* parent)
+		: HttpReply(parent), m_isPost(isPost), m_allowLoopbackHttp(allowLoopbackHttp) {
 		m_thread = std::thread([this, request]() { run(request); });
 	}
 
@@ -108,6 +123,16 @@ public:
 	qint64 contentLength() const override {
 		std::lock_guard<std::mutex> lock(m_mutex);
 		return m_total > 0 ? m_total : 0;
+	}
+
+	QByteArray header(const QByteArray& name) const override {
+		std::lock_guard<std::mutex> lock(m_mutex);
+		for (const QByteArray& line : m_headers.split('\n')) {
+			const int colon = line.indexOf(':');
+			if (colon > 0 && line.left(colon).trimmed().toLower() == name.toLower())
+				return line.mid(colon + 1).trimmed();
+		}
+		return QByteArray();
 	}
 
 private:
@@ -180,7 +205,7 @@ private:
 		return m_allowLoopbackHttp && url.scheme() == QLatin1String("http") && address.setAddress(url.host()) && address.isLoopback();
 	}
 
-	// Follows the redirects, then reads the body. Returns false with the error text when the request
+	// Follows the redirects of a get, then reads the body. Returns false with the error text when the request
 	// fails, and false without one when cancelWork() has closed a handle.
 	bool transfer(const HttpRequest& request, QString* error) {
 		const std::wstring userAgent = QString::fromLatin1(request.userAgent).toStdWString();
@@ -209,7 +234,7 @@ private:
 			}
 			if (!sendRequest(session, url, request, &handle, &status, error))
 				return false;
-			if (!isRedirect(status))
+			if (!isRedirect(status) || m_isPost)
 				break;
 			if (redirects == kMaxRedirects) {
 				*error = QStringLiteral("The server redirected the request too many times.");
@@ -231,6 +256,7 @@ private:
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 			m_status = static_cast<int>(status);
+			m_headers = headerText(handle, WINHTTP_QUERY_RAW_HEADERS_CRLF).toLatin1();
 			if (hasLength)
 				m_total = length;
 		}
@@ -291,8 +317,8 @@ private:
 		const std::wstring path = QString::fromLatin1(target).toStdWString();
 		const std::wstring acceptType = QString::fromLatin1(request.accept).toStdWString();
 		const wchar_t* acceptTypes[] = {acceptType.c_str(), nullptr};
-		HINTERNET opened = WinHttpOpenRequest(connection, L"GET", path.c_str(), nullptr, nullptr, acceptType.empty() ? nullptr : acceptTypes,
-			secure ? static_cast<DWORD>(WINHTTP_FLAG_SECURE) : 0);
+		HINTERNET opened = WinHttpOpenRequest(connection, m_isPost ? L"POST" : L"GET", path.c_str(), nullptr, nullptr,
+			acceptType.empty() ? nullptr : acceptTypes, secure ? static_cast<DWORD>(WINHTTP_FLAG_SECURE) : 0);
 		if (!opened) {
 			*error = describeError(GetLastError());
 			return false;
@@ -305,7 +331,26 @@ private:
 		DWORD policy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
 		WinHttpSetOption(opened, WINHTTP_OPTION_REDIRECT_POLICY, &policy, static_cast<DWORD>(sizeof(policy)));
 
-		if (!WinHttpSendRequest(opened, nullptr, 0, nullptr, 0, 0, 0) || !WinHttpReceiveResponse(opened, nullptr)) {
+		if (m_isPost) {
+			// A post carries no cookie and no credentials.
+			DWORD disabled = WINHTTP_DISABLE_COOKIES | WINHTTP_DISABLE_AUTHENTICATION;
+			WinHttpSetOption(opened, WINHTTP_OPTION_DISABLE_FEATURE, &disabled, static_cast<DWORD>(sizeof(disabled)));
+		}
+
+		// The body of a post follows once the headers are sent.
+		const std::wstring contentType = m_isPost && !request.contentType.isEmpty()
+			? L"Content-Type: " + QString::fromLatin1(request.contentType).toStdWString()
+			: std::wstring();
+		const DWORD bodyBytes = m_isPost ? static_cast<DWORD>(request.body.size()) : 0;
+		const wchar_t* headers = contentType.empty() ? nullptr : contentType.c_str();
+		const DWORD headerChars = contentType.empty() ? 0 : static_cast<DWORD>(-1);
+		if (!WinHttpSendRequest(opened, headers, headerChars, nullptr, 0, bodyBytes, 0)) {
+			*error = describeError(GetLastError());
+			return false;
+		}
+		if (bodyBytes > 0 && !writeBody(opened, request.body, error))
+			return false;
+		if (!WinHttpReceiveResponse(opened, nullptr)) {
 			*error = describeError(GetLastError());
 			return false;
 		}
@@ -368,6 +413,7 @@ private:
 		}
 	}
 
+	const bool m_isPost;
 	const bool m_allowLoopbackHttp;
 	std::atomic<bool> m_notifyQueued{false};
 	// Only the thread of the reply uses these two.
@@ -376,6 +422,7 @@ private:
 
 	mutable std::mutex m_mutex;
 	QByteArray m_buffer;
+	QByteArray m_headers;
 	qint64 m_received = 0;
 	qint64 m_total = -1;
 	int m_status = 0;
@@ -394,7 +441,9 @@ class WinHttpTransport : public HttpTransport {
 public:
 	WinHttpTransport(QObject* parent, bool allowLoopbackHttp) : HttpTransport(parent), m_allowLoopbackHttp(allowLoopbackHttp) {}
 
-	HttpReply* get(const HttpRequest& request) override { return new WinHttpReply(request, m_allowLoopbackHttp, this); }
+	HttpReply* get(const HttpRequest& request) override { return new WinHttpReply(request, false, m_allowLoopbackHttp, this); }
+
+	HttpReply* post(const HttpRequest& request) override { return new WinHttpReply(request, true, m_allowLoopbackHttp, this); }
 
 private:
 	const bool m_allowLoopbackHttp;

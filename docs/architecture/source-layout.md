@@ -70,11 +70,12 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_live` | `io/LiveFrame.cpp`, `io/LiveServer.cpp` | nlohmann-json, `egtrain_util`, cppzmq |
 | `egtrain_graphics` | `graphics/` | Qt Core, Gui and Widgets, `egtrain_scene`, `egtrain_util` |
 | `egtrain_widgets` | `widgets/*.cpp` | Qt Core, Gui and Widgets, `egtrain_graphics`, `egtrain_util` |
-| `egtrain_update` | `update/Distribution`, `HttpTransport`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings`, and on Windows `WinHttpTransport` | Qt Core and Network, `egtrain_util`, and on Windows WinHTTP |
+| `egtrain_http` | `update/HttpTransport`, and on Windows `WinHttpTransport` | Qt Core and Network, and on Windows WinHTTP and Crypt32 |
+| `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings` | Qt Core and Network, `egtrain_http`, `egtrain_util` |
 | `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core, Gui and Network |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
-| `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
+| `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets, `egtrain_http` |
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
@@ -82,12 +83,13 @@ The application, `scene_tool` and the tests link them.
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
 `egtrain_recovery` is linked by `test_recoverystore` and `test_recoverycontroller` only.
 
-The update code makes its HTTP requests through `HttpTransport` (`update/HttpTransport.h`). The
+The update code and the telemetry sender make their HTTP requests through `HttpTransport`
+(`update/HttpTransport.h`), a GET for the update code and a POST for the sender. The
 function `createHttpTransport` selects the implementation that the application uses: Qt's network
 manager, or on Windows `WinHttpTransport`, because Qt 5.15 has no TLS library there. The WinHTTP
 transport fetches https addresses only. A test passes `allowLoopbackHttp` to reach `http://127.0.0.1`
 as well. `UpdateChecker` can take any transport, so `test_updatechecker` gives it a fake one, and
-`test_httptransport` runs the transport of the application against a server on the loopback address.
+`test_httptransport` runs the transport of the application, for a GET and a POST, against a server on the loopback address.
 `test_updatetransport_https` sends one real request to the GitHub release list through that transport
 ([HTTPS update check](../development/build-and-test.md#https-update-check)).
 
