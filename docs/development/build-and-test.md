@@ -126,6 +126,16 @@ is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the f
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
 (`askCapacityScope`), which the scenario answers.
 
+`PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
+set, the runner starts the run of the case 1.5 s after the first show. The hooks
+`snapshotDelivered`, `snapshotDrawn`, `runResultsRefreshed`, `runFinished`, `runSettled` and
+`routeDiagramBuilt` of `MainWindowTestHooks` call the checks of `QEGTRAIN_E2E_EXPORT_DIR`,
+`QEGTRAIN_E2E_ROUTE_DIAGRAM`, `QEGTRAIN_E2E_SIGNAL_HEADS`, `QEGTRAIN_E2E_PAUSE_STEPS`,
+`QEGTRAIN_E2E_OPERATIONAL_COMPLETION`, `QEGTRAIN_E2E_OPERATIONAL_DISCARD`,
+`QEGTRAIN_E2E_REPLAY_WHOLE_RUN` and `QEGTRAIN_E2E_CLOSE_DURING_RUN`, and the markers
+`E2E_GUI_AUTOSTART_RUNNING` and `E2E_GUI_RUN_RESULTS`. A build without tests compiles none of it,
+so these variables start no run and run no check there.
+
 ### Warnings
 
 The build passes `-Wall -Wextra` (`/W4` with MSVC) to the strict targets and

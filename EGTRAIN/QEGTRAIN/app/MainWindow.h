@@ -414,7 +414,6 @@ private:
 	bool m_updatingFollowCombo = false;
 	int m_e2eAttempts = 0;
 	bool m_e2eFinished = false;
-	int m_operationalLifecycleE2eCompletions = 0;
 	bool m_editorE2eFinished = false;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, TrainBadgeItem*> m_trainBadges;
@@ -701,7 +700,6 @@ private:
 	bool m_replayActive = false;
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
-	std::shared_ptr<const GuiSimulationSnapshot> m_operationalLifecycleE2eFirstFrame;
 
 	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
@@ -1004,12 +1002,6 @@ private:
 	DelayRunSnapshot completedDelaySnapshot() const;
 	RunProvenance captureRunProvenance() const;
 
-	void checkSignalHeadsE2E();
-	void runReplaySignalsE2E();
-	bool checkReplayWholeRunE2E(int middle, QString& failure);
-	bool replaySliderCovers(int from, int to) const;
-	QSize replayRowSizeAt(int time);
-	bool checkReplayRowE2E(int middle, QString& failure);
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
 		const std::string* inputSnapshot = nullptr) const;
