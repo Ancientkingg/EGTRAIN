@@ -61,9 +61,9 @@ The Speed vs Distance result window of Milano_Brescia (baseline, 47 trains) afte
 | Netherlands | `Netherlands.egscene` | 268 | 41 | 8 | |
 | Paimpol | `Paimpol.egscene` | 6 | 10 | 2 | Paimpol, France. Includes passenger data. |
 | Copenhagen | `Copenhagen.egscene` | 168 | 94 | 24 | Copenhagen, Denmark. |
-| Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. |
+| Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. The gradients are stored as rise per length; their unit was inferred as per mille and their source is not recorded. |
 | Assignment Gvc-Gdg-Ut | `Assignment_Gvc_Gdg_Ut.egscene` | 2 | 3 | 4 | Synthetic two-track fixture, not a distributable TU Delft case. |
-| Lebanon | `Lebanon.egscene` | 8 | 34 | 1 | Teaching baseline; the train parameters are not Lebanon rolling-stock data. |
+| Lebanon | `Lebanon.egscene` | 8 | 34 | 1 | Teaching baseline; the train parameters are not Lebanon rolling-stock data. The gradients are stored as rise per length; their unit was inferred as per mille and their source is not recorded. |
 | Amsterdam_Hilversum_Student | `Amsterdam_Hilversum_Student.egscene` | 268 | 41 | 1 | Fictional teaching timetable on the Netherlands network, added after release v1.0.2. See the [student case guide](docs/guides/amsterdam-hilversum-student-case.md). |
 
 The counts are the numbers of entries in `infrastructure.json` (tracks), `stations.json` (stations) and `services.json` (services), so they can differ from the number of trains in a result window. The scene folders are in `EGTRAIN/QEGTRAIN/Scenes` in the repository and inside the application packages.

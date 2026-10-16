@@ -1,6 +1,6 @@
 {
     "base_time": "06:28:20",
-    "description": "Signalling: one network-wide area, level 0. Placeholder conventional fixed-block signalling, not the national system.",
+    "description": "Signalling: one network-wide area, level 0. Placeholder conventional fixed-block signalling, not the national system. Gradients: the unit of the source values was inferred as per mille, so they are stored divided by 1000 as rise per length. The source of the values is not recorded. The legacy input files this scene was converted from hold the original values.",
     "import_report": [
         {
             "category": "legacy_root",
