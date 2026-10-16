@@ -1,13 +1,13 @@
 #include "io/ExternalState.h"
 #include "io/RttpXml.h"
 #include "simulation/InitialParameters.h"
+#include "util/Log.h"
 
 #include <chrono>
 #include <cstdlib>
 #include <future>
 #include <iostream>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -47,6 +47,20 @@ std::string attributeText(const pugi::xml_node& node, const char* name) {
 bool isTimestamp(const std::string& text) {
 	static const std::regex form(R"(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.000 CEST)");
 	return std::regex_match(text, form);
+}
+
+struct LoggedMessage {
+	eglog::Category category;
+	eglog::Level level;
+	std::string text;
+};
+
+// True when a message of the category and level holds the text.
+bool wasLogged(const std::vector<LoggedMessage>& messages, eglog::Category category, eglog::Level level, const std::string& text) {
+	for (const LoggedMessage& message : messages)
+		if (message.category == category && message.level == level && message.text.find(text) != std::string::npos)
+			return true;
+	return false;
 }
 
 bool isNumber(const char* text, double expected) {
@@ -225,19 +239,18 @@ int main() {
 	const bool trafficStateXml = checkTrafficStateXml();
 	const bool routeChoiceXml = checkRouteChoiceXml();
 	const bool startTimeOfDay = checkStartTimeOfDay();
-	std::ostringstream output;
-	std::ostringstream errors;
-	auto* oldOutput = std::cout.rdbuf(output.rdbuf());
-	auto* oldErrors = std::cerr.rdbuf(errors.rdbuf());
+	std::vector<LoggedMessage> logged;
+	eglog::setSink([&logged](eglog::Category category, eglog::Level level, const std::string& text) {
+		logged.push_back({category, level, text});
+	});
 
 	read_rttp_train_view(
 		"<rTTP><rTTPTrainView><rTTPForSingleTrain trainID=\"T42\">"
 		"<tDSectionOccupation tDSectionID=\"S7\" trainID=\"T42\" occupationStart=\"10\" routeId=\"R1\"/>"
 		"</rTTPForSingleTrain></rTTPTrainView></rTTP>");
-	const bool parsedPayload = output.str().find("Train T42") != std::string::npos && output.str().find("in Section S7") != std::string::npos;
+	const bool parsedPayload = wasLogged(logged, eglog::Category::IoRailml, eglog::Level::Debug, "Train T42")
+		&& wasLogged(logged, eglog::Category::IoRailml, eglog::Level::Debug, "in Section S7");
 
-	errors.str("");
-	errors.clear();
 	read_rttp_train_view("<rTTP><unclosed>");
 	const auto sendStart = std::chrono::steady_clock::now();
 	const bool sentWithoutListener = send_external_state(
@@ -273,11 +286,11 @@ int main() {
 	}
 	clientDone.set_value();
 	replyServer.join();
-	std::cout.rdbuf(oldOutput);
-	std::cerr.rdbuf(oldErrors);
-	const bool parseErrorReported = errors.str().find("RTTP XML parse error") != std::string::npos;
+	eglog::setSink({});
+	const bool parseErrorReported = wasLogged(logged, eglog::Category::IoRailml, eglog::Level::Error, "RTTP XML parse error");
+	const bool replyLogged = wasLogged(logged, eglog::Category::IoZmq, eglog::Level::Debug, "Received from");
 	if (!trafficStateXml || !routeChoiceXml || !startTimeOfDay || !parsedPayload || !parseErrorReported || sentWithoutListener
-		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope) {
+		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope || !replyLogged) {
 		std::cerr << "rttp test failed: traffic_state_xml=" << trafficStateXml
 				  << " route_choice_xml=" << routeChoiceXml
 				  << " start_time_of_day=" << startTimeOfDay
@@ -287,7 +300,8 @@ int main() {
 				  << " absent_peer_ms="
 				  << std::chrono::duration_cast<std::chrono::milliseconds>(sendElapsed).count()
 				  << " listener_sent=" << sentToListener
-				  << " envelope_received=" << receivedEnvelope << "\n";
+				  << " envelope_received=" << receivedEnvelope
+				  << " reply_logged=" << replyLogged << "\n";
 		return 1;
 	}
 

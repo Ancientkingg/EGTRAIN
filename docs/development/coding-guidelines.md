@@ -318,19 +318,23 @@ to the console directly.
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
 - `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
-  `owl`; both are used only in `app/DispatchController.cpp` (the definitions and declarations
-  of `owl` elsewhere are not uses). Nothing calls `Logger::init`, so neither writes anything.
-- `simulation/` writes through `EG_LOG`, except for one `std::fprintf` to `stderr` before
-  `std::abort()` in `BlockingTimeList::checkIndex`. It stays: the default sink does not flush
-  `std::cout` and a category can be switched off, so a logged message could be lost when the
-  process aborts. The command-line entry points (`app/main.cpp`, `scene/SceneTool.cpp`) write
-  to `std::cerr`.
+  `owl`. No statement uses either (the definitions and declarations of `owl` are not uses), and
+  nothing calls `Logger::init`, so neither writes anything.
+- `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for one
+  `std::fprintf` to `stderr` before `std::abort()` in `BlockingTimeList::checkIndex`. It stays:
+  the default sink does not flush `std::cout` and a category can be switched off, so a logged
+  message could be lost when the process aborts. The command-line entry points
+  (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also writes the
+  line `End of Simulation` of a run without a window to `std::cout` itself: scripts read it, so
+  no logging rule may hide it. A run in the window logs the same line as `app.run`.
 - The code in `simulation/` uses `sim.setup` for the set-up of a run (the selected case, the
   route set-up) and for problems found in the scene data or the model while it is built or
   while the blocking times are computed. It uses `sim.events` for virtual coupling and
   following mode, arrivals, departures and the failure to write an arrival message,
   `sim.step` for messages written once per step or per occurrence in the trajectory code, and
-  `sim.pax` for passengers.
+  `sim.pax` for passengers. The application uses `app.run` for the banners and the progress of
+  a run. `io/RttpXml.cpp` uses `io.railml`, and the legacy sender (`io/ExternalState.cpp` and
+  the XML that `app/DispatchController.cpp` sends) uses `io.zmq`.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file

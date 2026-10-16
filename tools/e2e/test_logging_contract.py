@@ -62,7 +62,7 @@ PLAIN_MARKER_FILES = {
 
 # Files whose console writes are deliberate, with the reason. They are not counted.
 EXEMPT_FILES = {
-    "app/main.cpp": "the questions of interactive mode, usage text, startup errors and the banner lines the launch test reads",
+    "app/main.cpp": "the questions of interactive mode, usage text, startup errors, the banner lines the launch test reads and the end line of a run without a window",
     "scene/SceneTool.cpp": "the scene_tool command line",
     "update/UpdateHelper.cpp": "the separate update helper executable",
     "util/Log.cpp": "the default sink, the one place that writes the console for the logging core",
@@ -73,11 +73,7 @@ EXEMPT_FILES = {
 # when a count differs in either direction, so the list can only shrink, and a file with no entry
 # holds none. The kinds owl and eglogger are the two loggers that write nothing.
 ALLOWED = {
-    "app/DispatchController.cpp": {"cout": 9, "cerr": 1, "owl": 2, "eglogger": 2},
-    "app/MainWindow.cpp": {"cout": 1},
     "diagrams/RunResults.cpp": {"cerr": 1},
-    "io/ExternalState.cpp": {"cout": 1, "cerr": 1},
-    "io/RttpXml.cpp": {"cout": 10, "cerr": 1},
     # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
     # right before std::abort(). EG_LOG would write std::cout without a flush and can be
     # switched off, so the message could be lost.
@@ -90,10 +86,11 @@ ALLOWED = {
 # statement. The place is a file or a directory; a directory lets the statement move inside it.
 PRODUCERS = [
     (
-        "app",
+        "app/main.cpp",
         'End of Simulation"',
-        "headless_scene_smoke.py, lebanon_scene_smoke.sh, package_start_smoke.py and the Linux package job of release.yml",
+        "headless_scene_smoke.py, lebanon_scene_smoke.sh, package_start_smoke.py and the package jobs of package.yml",
     ),
+    ("app/DispatchController.cpp", 'End of Simulation"', "the same line in the console of a run in the window"),
     ("app/main.cpp", '"Graphical user interface (GUI): ', "tools/e2e/startup_launch_contract.py"),
     ("simulation", '" is stopping at "', "tools/e2e/station_departure_smoke.py"),
 ]

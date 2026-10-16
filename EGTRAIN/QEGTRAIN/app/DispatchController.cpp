@@ -8,6 +8,7 @@
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
+#include "util/Log.h"
 #include "util/portability.h" // localtime_r shim on MSVC
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
@@ -204,7 +205,6 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 
 //-------
 
-extern Logger owl;
 // simulation object (global variable)
 DispatchController simulation;
 
@@ -518,9 +518,7 @@ void DispatchController::runSimulation() {
 
 	if (numRegions <= 0) {
 		emit executionRejected();
-		const std::string message = "ERROR: Cannot run simulation because zero trains were loaded.";
-		eglogger << message << std::endl;
-		std::cerr << message << std::endl;
+		EG_LOG(AppRun, Error) << "ERROR: Cannot run simulation because zero trains were loaded.\n";
 		return;
 	}
 	const InitialParameters& settings = defaultRun().settings;
@@ -547,7 +545,7 @@ void DispatchController::runSimulation() {
 		return true;
 	};
 
-	cout << "\n\nSimulating Train Runs...\n\n";
+	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
 
 	// Setting departing time of train to the scheduled one
 	for (int i = 0; i < numRegions; i++) {
@@ -575,14 +573,14 @@ void DispatchController::runSimulation() {
 	if (stoppedHere())
 		return;
 
-	cout << "Computing Blocking Times....\n";
+	EG_LOG(AppRun, Info) << "Computing Blocking Times....\n";
 
 	clock_t EndRun = clock();
 
 	double TimeElapsed = 0;
 
 	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC);
-	cout << "TimeElapsed is : " << TimeElapsed;
+	EG_LOG(AppRun, Info) << "TimeElapsed is : " << TimeElapsed;
 
 	// Compute passage times at timetable points
 	Compute_TimetablingPoints_For_All_Trains(regional_train.data(), numRegions);
@@ -598,14 +596,6 @@ void DispatchController::runSimulation() {
 	// Print Out Passenger Delays
 	printPassengerTotalJourneyDelay(AllDailyPassengers, settings.OutputMainFolder + "/PassengerStatus");
 
-	for (int j = 0; j < numRegions; j++) {
-		eglogger << "Station delay: "
-				 << (regional_train[j].numStations > 0
-							? std::to_string(regional_train[j].StationDelay[regional_train[j].numStations - 1])
-							: "unavailable (no stops)")
-				 << std::endl;
-	}
-
 	// Calculating positive and negative Train Delays to debug the program
 	calculatePosAndNegArrivalDelayAllTrains();
 	calculatePosAndNegDelayStatsForAllStations();
@@ -619,7 +609,7 @@ void DispatchController::runSimulation() {
 	if (stoppedHere())
 		return;
 
-	cout << "\n\n Computing Train Blocking Times....\n\n";
+	EG_LOG(AppRun, Info) << "\n\n Computing Train Blocking Times....\n\n";
 
 	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + settings.bufferTime), 0.5, 50, trajectoryFolder, 0, settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
@@ -642,7 +632,10 @@ void DispatchController::runSimulation() {
 			regional_train[i].PrintTrajectory();
 		}
 	}
-	std::cout << "\n End of Simulation";
+	// The window reports the end of the run here. A run without a window leaves it to main.
+	if (worker) {
+		EG_LOG(AppRun, Info) << "\n End of Simulation";
+	}
 	runCompleted_ = true;
 	if (live_)
 		pushLiveEvent(*live_, LiveEvent::RunCompleted);
@@ -675,7 +668,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 		{
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");
 			clock_t startEGTRAIN = clock(); // EGTRAIN start time
-			std::cout << "\r Time of simulation is " << t;
+			EG_LOG(AppRun, Info) << "\r Time of simulation is " << t;
 
 			{
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
@@ -731,12 +724,6 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 					// round to 2 decimals
 					double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
-					for (int j = 0; j < regional_train[n].Bs.total_arcs; j++) {
-						if ((xPosition < regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX * 1000) && (xPosition >= regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX * 1000)) { // Selection of the right Arc of the Block Section
-							owl << "99Train " << regional_train[n].trainDescription << " is in blocksection " << regional_train[n].Bs.ID << " so it is in TDS " << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbId << " and next is " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbId << std::endl;
-							owl << "+++++" << xPosition << regional_train[n].Bs.arcs_in_signalling_block_section[j].startNode.tdsbGeoCoordX << " , " << regional_train[n].Bs.arcs_in_signalling_block_section[j].endNode.tdsbGeoCoordX << std::endl;
-						}
-					}
 
 					// The traffic-state payload is only built when it is shared (-TSM 1)
 					if (settings.TSM) {
@@ -765,16 +752,16 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			if (settings.TSM) {
 				jsmsg["time"] = t;
 				const std::string xml = trafficStateMonitoring_xml(jsmsg);
-				std::cout << "\n\n Sending the following Traffic State XML file" << std::endl
-						  << xml << std::flush;
+				EG_LOG(IoZmq, Debug) << "\n\n Sending the following Traffic State XML file\n"
+									 << xml;
 				send_external_state(jsmsg, xml, "tcp://127.0.0.1:5555");
 			}
 
 			if (settings.RChoice) {
 				const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
 				const std::string xml = routeChoice_xml(route_choice_json);
-				std::cout << "\n\n Sending the following Route Choice XML file" << std::endl;
-				std::cout << xml << std::flush;
+				EG_LOG(IoZmq, Debug) << "\n\n Sending the following Route Choice XML file\n"
+									 << xml;
 				send_external_state(route_choice_json, xml, "tcp://127.0.0.1:5556");
 			}
 

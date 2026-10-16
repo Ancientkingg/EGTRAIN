@@ -978,7 +978,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	}
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
-	cout << "\n...PREPARING GUI...\n\n";
+	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
 
 	// define central widget
 	centralWidget = new QWidget();

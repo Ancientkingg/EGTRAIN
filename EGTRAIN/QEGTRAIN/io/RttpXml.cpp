@@ -1,5 +1,6 @@
 #include "io/RttpXml.h"
 #include "simulation/InitialParameters.h"
+#include "util/Log.h"
 #include "util/portability.h" // localtime_r shim on MSVC
 #include <ctime>
 #include <sstream>
@@ -11,8 +12,8 @@ bool loadRttpDocument(const std::string& payload, pugi::xml_document& document) 
 	const pugi::xml_parse_result result = document.load_buffer(payload.data(), payload.size());
 	if (result)
 		return true;
-	std::cerr << "RTTP XML parse error at byte " << result.offset << ": " << result.description()
-			  << "; payload starts with " << payload.substr(0, 120) << "\n";
+	EG_LOG(IoRailml, Error) << "RTTP XML parse error at byte " << result.offset << ": " << result.description()
+							<< "; payload starts with " << payload.substr(0, 120) << "\n";
 	return false;
 }
 }
@@ -25,12 +26,12 @@ void read_rttp_train_view(const std::string& rttp) {
 	int train_counter = 0;
 
 	for (pugi::xml_node train = trainView.child("rTTPForSingleTrain"); train; train = train.next_sibling("rTTPForSingleTrain")) {
-		std::cout << "Train " << train.attribute("trainID").value() << "\n";
+		EG_LOG(IoRailml, Debug) << "Train " << train.attribute("trainID").value() << "\n";
 		for (pugi::xml_node section = train.child("tDSectionOccupation"); section; section = section.next_sibling("tDSectionOccupation")) {
-			std::cout << " in Section " << section.attribute("tDSectionID").value() << "\n";
-			std::cout << " trainID " << section.attribute("trainID").value() << "\n";
-			std::cout << " occupation starting at " << section.attribute("occupationStart").value() << "\n";
-			std::cout << " routeID " << section.attribute("routeId").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " in Section " << section.attribute("tDSectionID").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " trainID " << section.attribute("trainID").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " occupation starting at " << section.attribute("occupationStart").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " routeID " << section.attribute("routeId").value() << "\n";
 		}
 	}
 }
@@ -42,12 +43,12 @@ void read_rttp_infra_view(const std::string& rttp) {
 	int train_counter = 0;
 
 	for (pugi::xml_node train = trainView.child("rTTPForSingleTDSection"); train; train = train.next_sibling("rTTPForSingleTDSection")) {
-		std::cout << "tDSectionId " << train.attribute("tDSectionId").value() << "\n";
+		EG_LOG(IoRailml, Debug) << "tDSectionId " << train.attribute("tDSectionId").value() << "\n";
 		for (pugi::xml_node section = train.child("tDSectionOccupation"); section; section = section.next_sibling("tDSectionOccupation")) {
-			std::cout << " in Section " << section.attribute("tDSectionID").value() << "\n";
-			std::cout << " trainID " << section.attribute("trainID").value() << "\n";
-			std::cout << " occupation starting at " << section.attribute("occupationStart").value() << "\n";
-			std::cout << " routeID " << section.attribute("routeId").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " in Section " << section.attribute("tDSectionID").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " trainID " << section.attribute("trainID").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " occupation starting at " << section.attribute("occupationStart").value() << "\n";
+			EG_LOG(IoRailml, Debug) << " routeID " << section.attribute("routeId").value() << "\n";
 		}
 	}
 }

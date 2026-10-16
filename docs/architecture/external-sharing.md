@@ -2,7 +2,7 @@
 
 A run shares its state in two ways: over the legacy channels of the options `-TSM` and `-RC`, which this page describes first, and as the supported [live stream](#live-stream) of `--live`, whose promises are in [Live contract version 1](#live-contract-version-1). [Sharing a live run](../guides/live-sharing.md) is the guide for a client.
 
-With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is printed and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
+With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is logged and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
 
 The two legacy channels are not the way to build a consumer. Use the live stream.
 
@@ -27,7 +27,7 @@ This page describes the code as it is. Function names are given so that a mainta
 
 At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a `RunControl` (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the `SimulationWorker`, which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (`MainWindow::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
 
-Before each send, the XML text of the message is printed to standard output, whether or not the send succeeds. It follows the line `Sending the following Traffic State XML file` or `Sending the following Route Choice XML file`. A reply is printed as `Received from <endpoint>:<reply>`. The step loop ignores the result of `send_external_state`.
+Before each send, the XML text of the message is logged in the category `io.zmq` at level `debug`, whether or not the send succeeds. It follows the line `Sending the following Traffic State XML file` or `Sending the following Route Choice XML file`. A reply is logged in the same category and level as `Received from <endpoint>:<reply>`. With the default settings of the logging core these lines go to standard output. The step loop ignores the result of `send_external_state`.
 
 ## Transport
 
@@ -39,8 +39,8 @@ The application connects to the endpoints and does not bind; the module has to b
 | --- | --- | --- |
 | No completed connection to a module: no module is running, or the socket was created in this call and its connection is not complete yet | `immediate` is 1 and the send uses `dontwait`, so the send fails at once. Nothing is waited for, and the socket is kept. | `false` |
 | Connection complete, no reply within 100 ms | The receive wait ends after 100 ms. The socket is destroyed, and the next send creates a new one. | `false` |
-| Reply | The reply is printed and dropped. | `true` |
-| Exception | The message is written to standard error, and the socket is destroyed. | `false` |
+| Reply | The reply is logged and dropped. | `true` |
+| Exception | The message is logged in the category `io.zmq` at level `warning`, and the socket is destroyed. | `false` |
 
 The receive wait can take up to 100 ms per channel and step. `tests/test_rttp.cpp` repeats a send up to 20 times, 10 ms apart, until one returns `true`: a first send on a new socket can return `false` although a module is listening.
 
@@ -112,9 +112,9 @@ routeChoiceRequest            currentTime
 
 ## What is not an interface
 
-- `read_rttp_train_view` and `read_rttp_infra_view` in `io/RttpXml.cpp` read an RTTP XML text and print what they find to standard output. The application does not call them. Only `tests/test_rttp.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
+- `read_rttp_train_view` and `read_rttp_infra_view` in `io/RttpXml.cpp` read an RTTP XML text and log what they find in the category `io.railml` at level `debug`. A text that does not parse is logged at level `error`. The application does not call them. Only `tests/test_rttp.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
 - The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
-- Without `--live` the application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is printed and not used. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
+- Without `--live` the application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is logged and not used. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see [Commands](#commands)).
 
 ## Live stream

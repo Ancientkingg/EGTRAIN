@@ -1,5 +1,5 @@
 #include "io/ExternalState.h"
-#include <iostream>
+#include "util/Log.h"
 #include <map>
 #include <memory>
 #include <zmq.hpp>
@@ -44,11 +44,11 @@ bool send_external_state(nlohmann::json jsmsg, const std::string& xml, const std
 			socket.reset();
 			return false;
 		}
-		std::cout << "Received from " << endpoint << ":" << reply.to_string();
+		EG_LOG(IoZmq, Debug) << "Received from " << endpoint << ":" << reply.to_string();
 		return true;
 	} catch (const std::exception& error) {
 		socket.reset();
-		std::cerr << "External state send failed for " << endpoint << ": " << error.what() << "\n";
+		EG_LOG(IoZmq, Warning) << "External state send failed for " << endpoint << ": " << error.what() << "\n";
 	}
 	return false;
 }

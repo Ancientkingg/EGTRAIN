@@ -473,6 +473,10 @@ int main(int argc, char* argv[]) {
 	simulation.runSimulation();
 	if (numRegions <= 0)
 		return 1;
+	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
+	// so no logging rule hides it.
+	if (simulation.lastRunCompleted())
+		std::cout << "\n End of Simulation";
 	simulation.printLastTrainServicePathDiagram();
 	return 0;
 }
