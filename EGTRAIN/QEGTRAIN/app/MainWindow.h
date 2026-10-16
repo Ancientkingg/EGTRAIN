@@ -92,6 +92,7 @@
 #include <QTabWidget>
 #include <QSet>
 
+#include "editors/SceneDocument.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
 #include "scene/TrackPreview.h"
@@ -114,6 +115,7 @@ namespace telemetry_smoke { struct State; }
 #endif
 class QProgressDialog;
 class AboutDialog;
+class CaseSettingsPanel;
 class ColorChoiceButton;
 class QPlainTextEdit;
 struct UpdateCheckResult;
@@ -452,12 +454,16 @@ private:
 	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
-	SceneModel m_sceneModel;
+	// The scene is owned by the document. The references below let the code that has not moved to the editors read
+	// and write it under its old names.
+	SceneDocument* m_document = new SceneDocument(this);
+	SceneModel& m_sceneModel = m_document->mutableModel();
+	bool& m_sceneLoaded = m_document->m_loaded;
+	bool& m_sceneDirty = m_document->m_dirty;
+	quint64& m_sceneRevision = m_document->m_revision;
 	TrackPreviewResult m_cachedTrackPreview;
-	bool m_sceneLoaded = false;
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
-	bool m_sceneDirty = false;
 	bool m_committingPendingEditorValues = false;
 	struct TrainUnitSourceLink {
 		QString dataPath;
@@ -490,6 +496,8 @@ private:
 	QDockWidget* m_loadedDataDock = nullptr;
 	QTreeWidget* m_loadedDataTree = nullptr;
 	QDockWidget* m_caseSettingsDock = nullptr;
+	CaseSettingsPanel* m_caseSettingsPanel = nullptr;
+	// The fields of m_caseSettingsPanel, for the scripted runs in tests/e2e
 	QLineEdit* m_caseNameEdit = nullptr;
 	QLineEdit* m_caseDescriptionEdit = nullptr;
 	QLineEdit* m_caseBaseTimeEdit = nullptr;
@@ -532,7 +540,6 @@ private:
 	RunProvenance m_completedRunProvenance;
 	std::optional<DelayRunSnapshot> m_delayBaseline;
 	QString m_delayBaselineStatus;
-	quint64 m_sceneRevision = 0;
 	QLabel* m_runResultsSummaryLabel = nullptr;
 	QLabel* m_delayFeedbackLabel = nullptr;
 	int m_lastRunSelectedOccurrences = 0;
@@ -770,7 +777,6 @@ private:
 	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
-	void refreshCaseSettingsPanel();
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
@@ -789,9 +795,6 @@ private:
 	void moveRouteSectionDown();
 	void deleteInfrastructureEntity();
 	void updateInfrastructureSelection();
-	std::string uniqueInfrastructureId(const std::string& baseId, const QString& facet) const;
-	QStringList directDeleteConsumers(const QString& facet, const std::string& id,
-		const std::string& scope = {}) const;
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	void updateScenarioPresentation();
@@ -799,6 +802,7 @@ private:
 	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
+	void sceneDocumentChanged();
 	void invalidateRunResults();
 
 	// passenger editor: canonical passengers, journeys, and ordered legs
@@ -853,9 +857,6 @@ private:
 	ScenePassenger* selectedPassenger();
 	ScenePassengerJourney* selectedPassengerJourney();
 	ScenePassengerLeg* selectedPassengerLeg();
-	std::string uniquePassengerId(const std::string& baseId) const;
-	std::string uniquePassengerJourneyId(const std::string& baseId) const;
-	std::string uniquePassengerLegId(const std::string& baseId) const;
 
 	// composition editor
 	void refreshCompositionPanel();
@@ -871,8 +872,6 @@ private:
 	void moveCompositionUnitDown();
 	void plotSelectedCompositionUnitTraction(); // open the tractive-effort plot for the selected unit
 	void plotTrainUnitTraction(const SceneTrainUnit& unit);
-	const SceneTrainUnit* trainUnitById(const std::string& id) const;
-	std::string uniqueCompositionId(const std::string& baseId) const;
 
 	// train-unit editor
 	void refreshTrainUnitPanel();
@@ -897,7 +896,6 @@ private:
 	void addTrainUnitTractionRow();
 	void removeTrainUnitTractionRow();
 	void commitTrainUnitTractionCell(int row, int column, double value);
-	std::string uniqueTrainUnitId(const std::string& baseId) const;
 
 	// service editor (service-level fields; stops are edited by the stop editor below)
 	void refreshServicePanel();
@@ -935,7 +933,6 @@ private:
 	SceneRunSelection selectedSceneOccurrences() const;
 	void pruneExcludedServiceOccurrences();
 	void migrateExcludedServiceOccurrences(const std::string& oldId, const std::string& newId);
-	std::string uniqueServiceId(const std::string& baseId) const;
 	QString generatedServiceLabel(const SceneService& service, int occurrence) const;
 
 	// stop (timetable) editor: edits copied SceneStop records through one modal
@@ -985,8 +982,6 @@ private:
 	void commitEntranceDelayStation(int index);
 	void commitEntranceDelaySeconds();
 	SceneEntranceDelay* selectedEntranceDelay();
-	std::string uniqueIncidentId(const std::string& baseId) const;
-	std::string uniqueScenarioId(const std::string& baseId) const;
 	SceneScenario* selectedScenario();
 	const SceneScenario* selectedScenario() const;
 	SceneIncident* selectedIncident();
