@@ -146,6 +146,9 @@ static bool testCanCreateFilesIn(const QString& base) {
 	ok &= expect(!canCreateFilesIn(QDir(base).filePath("probe-missing")), "a folder that does not exist is not writable");
 	ok &= expect(writeFile(base + "/probe-file", "f") && !canCreateFilesIn(base + "/probe-file"), "a file is not a writable folder");
 
+// Windows ignores the read-only attribute of a folder when a file is created in it, so only POSIX
+// permissions are covered here.
+#if !defined(Q_OS_WIN)
 	// A process that may write anywhere, such as root, creates the file in a folder without permission too.
 	const QString locked = QDir(base).filePath("probe-locked");
 	ok &= expect(QDir().mkpath(locked) && QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner),
@@ -153,6 +156,7 @@ static bool testCanCreateFilesIn(const QString& base) {
 	if (!QFileInfo(locked).isWritable())
 		ok &= expect(!canCreateFilesIn(locked), "a folder without write permission is not writable");
 	QFile::setPermissions(locked, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+#endif
 	return ok;
 }
 
