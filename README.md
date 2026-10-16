@@ -58,7 +58,7 @@ The Speed vs Distance result window of Milano_Brescia (baseline, 47 trains) afte
 
 | Case study | Release file | Tracks | Stations | Services | Note |
 | --- | --- | ---: | ---: | ---: | --- |
-| Netherlands | `Netherlands.egscene` | 268 | 41 | 8 | Every service ends at its last stop: the train leaves it after its dwell. |
+| Netherlands | `Netherlands.egscene` | 268 | 41 | 8 | Every service ends at its last stop: the train leaves the network after its dwell. |
 | Paimpol | `Paimpol.egscene` | 6 | 10 | 2 | Paimpol, France. Includes passenger data. |
 | Copenhagen | `Copenhagen.egscene` | 168 | 94 | 24 | Copenhagen, Denmark. |
 | Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. The gradients are stored as rise per length; their unit was inferred as per mille and their source is not recorded. |

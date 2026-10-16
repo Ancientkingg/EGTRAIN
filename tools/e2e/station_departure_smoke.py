@@ -39,12 +39,10 @@ STOPS = (
     ("Hvs", 60.0),
     ("Brn", 42.0),
 )
-LAST_PLANNED_DEPARTURE = 90000.0
 
 
 def service_document() -> dict:
     stops = [{"dwell_seconds": dwell, "station": station} for station, dwell in STOPS]
-    stops[-1]["planned_departure_seconds"] = LAST_PLANNED_DEPARTURE
     return {
         "services": [
             {
@@ -131,9 +129,8 @@ def main() -> None:
             raise SystemExit(f"{TRAIN} did not leave Wp")
         print(f"PASS {TRAIN} left Wp at {departures[weesp]:.0f} s")
 
-        # Every stop before the last one is reported with its own arrival and a departure
-        # at least the dwell time later.
-        for index, (station, dwell) in enumerate(STOPS[:-1]):
+        # Every stop is reported with its own arrival and a departure at least the dwell time later.
+        for index, (station, dwell) in enumerate(STOPS):
             if arrivals[index] == NOT_RECORDED or departures[index] == NOT_RECORDED:
                 raise SystemExit(f"{TRAIN} has no recorded stop at {station}:\n" + "\n".join(lines[:6]))
             if departures[index] - arrivals[index] < dwell:
@@ -141,14 +138,27 @@ def main() -> None:
                     f"{TRAIN} at {station}: arrival {arrivals[index]:.0f} s and departure "
                     f"{departures[index]:.0f} s are less than the dwell of {dwell:.0f} s apart"
                 )
-        print(f"PASS {TRAIN} reports arrival and departure at {len(STOPS) - 1} stops")
+        print(f"PASS {TRAIN} reports arrival and departure at {len(STOPS)} stops")
 
         if f"{TRAIN} is stopping at Brn" not in process.stdout:
             raise SystemExit(f"{TRAIN} never arrived at Brn\n{process.stdout[-4000:]}")
-        # The last stop has an arrival and, because the train stays there, no departure.
-        if arrivals[-1] == NOT_RECORDED or departures[-1] != NOT_RECORDED:
-            raise SystemExit(f"{TRAIN} has no arrival without departure at Brn:\n" + "\n".join(lines[:6]))
-        print(f"PASS {TRAIN} arrived at Brn at {arrivals[-1]:.0f} s")
+
+        # The last stop has no planned departure, so the train leaves the network after its dwell:
+        # its trajectory ends before the end of the run.
+        path = output / "Output" / scene_name / "TrainTrajectories" / "TrainServicePathDiagram.txt"
+        if not path.is_file():
+            raise SystemExit(f"missing trajectory file: {path}")
+        samples = []
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            cells = line.split("\t")
+            if cells[0] == TRAIN:
+                samples = [time_seconds for time_seconds, cell in enumerate(cells[4:]) if cell]
+        if not samples:
+            raise SystemExit(f"{TRAIN} has no trajectory")
+        run_end = json.loads((scene / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
+        if samples[-1] >= run_end - 1:
+            raise SystemExit(f"{TRAIN} was still in the network at the end of the run, after leaving Brn at {departures[-1]:.0f} s")
+        print(f"PASS {TRAIN} left Brn at {departures[-1]:.0f} s and the network at {samples[-1]} s")
 
 
 if __name__ == "__main__":

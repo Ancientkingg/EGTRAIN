@@ -11,11 +11,11 @@ from headless_smoke import (
     check_no_position_jump,
     check_scene_matches_netherlands,
     check_scene_structure,
-    held_at_last_stop,
     occurrence_errors,
     route_errors,
     run_command,
     scene_output_dir,
+    services_not_ended,
     unreached_stops,
 )
 
@@ -136,16 +136,34 @@ def main() -> None:
         if len(errors) != 1 or not errors[0].startswith(train) or cause not in errors[0]:
             raise SystemExit(f"{train} ({cause}) was not reported as the only error: {errors}")
 
-    # Only A-2 reached its last stop with time to spare and did not leave it.
+    # A trajectory row is the train, three more cells and the positions from second 0 on.
+    def trajectory_sample(**ends: int) -> str:
+        return "".join(f"{train}\t1\t0\tA\t" + "\t".join("1" for _ in range(end + 1)) + "\n" for train, end in ends.items())
+
+    # A-1 left the network and is judged. A-2 has no departure, A-3 arrived too late to be judged, A-4 never arrived
+    # and A-5 departed but is still in the network at second 7999. A-6 has no trajectory row.
     stopped = [
         ("A-1", stations, [120, 1500], [180, 1560]),
         ("A-2", stations, [1920, 3300], [1980, NO_ARRIVAL]),
         ("A-3", stations, [3720, 7700], [3780, NO_ARRIVAL]),
         ("A-4", stations, [5520, NO_ARRIVAL], [5580, NO_ARRIVAL]),
+        ("A-5", stations, [5640, 5700], [5700, 5760]),
+        ("A-6", stations, [5760, 5800], [5820, 5860]),
     ]
-    held = held_at_last_stop(timetable_sample(*stopped), 8000)
-    if held != ["A-2"]:
-        raise SystemExit(f"trains held at their last stop were reported as {held}, expected ['A-2']")
+    ended = trajectory_sample(**{"A-1": 1600, "A-2": 7999, "A-3": 7999, "A-4": 7999, "A-5": 7999})
+    errors = services_not_ended(timetable_sample(*stopped), ended, 8000)
+    expected_errors = [
+        "A-2 has no departure from its last stop",
+        "A-5 is still in the network at the end of the run",
+        "A-6 has no trajectory",
+    ]
+    if errors != expected_errors:
+        raise SystemExit(f"services that did not end were reported as {errors}, expected {expected_errors}")
+    # Without a judged train nothing proves that the services end.
+    for judged_none in (timetable_sample(*stopped[2:4]), ""):
+        errors = services_not_ended(judged_none, ended, 8000)
+        if errors != ["no train reached its last stop with time to spare"]:
+            raise SystemExit(f"a run without a judged train was reported as {errors}")
 
     stations = ["A", "B"]
     for sample, expected in (
