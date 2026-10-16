@@ -57,6 +57,8 @@ def test_preview_snapshot_comparator() -> None:
 
     source = (ROOT / "EGTRAIN/QEGTRAIN/app/MainWindow.cpp").read_text(encoding="utf-8")
     test_source = (ROOT / "EGTRAIN/QEGTRAIN/tests/test_networklegend.cpp").read_text(encoding="utf-8")
+    e2e_sources = sorted((ROOT / "EGTRAIN/QEGTRAIN/tests/e2e").glob("*.cpp"))
+    e2e_source = "\n".join(path.read_text(encoding="utf-8") for path in e2e_sources)
     for path, text in (
         ("MainWindow.cpp", source),
         ("test_networklegend.cpp", test_source),
@@ -69,7 +71,7 @@ def test_preview_snapshot_comparator() -> None:
         r"currentItems\.size\(\)\s*!=\s*renderedItems\.size\(\)\s*"
         r"\|\|\s*!std::equal\(currentItems\.cbegin\(\),\s*currentItems\.cend\(\),\s*"
         r"renderedItems\.cbegin\(\)\)",
-        source,
+        source + e2e_source,
     ):
         raise SystemExit("scene-drop item comparison must size-check before std::equal")
     if not re.search(

@@ -1022,7 +1022,6 @@ private:
 	bool checkPreviewInfrastructureE2E(QString& failure);
 	bool checkPreviewRuntimeParityE2E(QString& failure, bool measuredPresentation = false);
 	void runTrackPreviewE2E();
-	void runSceneDropE2E();
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
 		const std::string* inputSnapshot = nullptr) const;

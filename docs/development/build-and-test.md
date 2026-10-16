@@ -113,8 +113,9 @@ of it: in such a build the first show of the window starts no scenario and
 `QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. `MainWindowTestAccess` is the
 friend class of `MainWindow` that the runner calls. A scenario is a member of
 `MainWindowTestAccess` defined in its own file in that folder (the legacy import
-smoke is `LegacyImport.cpp`, the scene render smoke `SceneRender.cpp`), or a
-private member of `MainWindow` that `MainWindowTestAccess` forwards to.
+smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the scene
+render smoke `SceneRender.cpp`), or a private member of `MainWindow` that
+`MainWindowTestAccess` forwards to.
 
 ### Warnings
 
