@@ -40,7 +40,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
-| `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. It has nothing to do with the recovery time of a timetable |
+| `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. `RecoveryPrompt`: the dialog that offers the copies that an earlier run left behind. It has nothing to do with the recovery time of a timetable |
 | `tests/` | C++ regression tests (`test_*.cpp`), the `characterization/` cases, the `e2e/` runner of the scripted GUI scenarios and the test `fixtures/` |
 
 ## Includes
@@ -76,14 +76,14 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_update` | `update/Distribution`, `ReleaseInfo`, `UpdateChecker`, `UpdatePreparation`, `UpdateRecord`, `UpdateSettings` | Qt Core and Network, `egtrain_http`, `egtrain_util` |
 | `egtrain_sceneopen` | `app/SceneOpenRequest.cpp` | Qt Core |
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core, Gui and Network |
-| `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
+| `egtrain_recovery` | `recovery/` | Qt Core, Gui and Widgets, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets, `egtrain_http` |
 | `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_rttp`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
 `egtrain_miniz` holds the vendored zip code. The first six libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
-`egtrain_recovery` is linked by `test_recoverystore` and `test_recoverycontroller` only.
+`egtrain_recovery` is linked by `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt` only.
 
 The update code and the telemetry sender make their HTTP requests through `HttpTransport`
 (`update/HttpTransport.h`), a GET for the update code and a POST for the sender. The
