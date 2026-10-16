@@ -547,9 +547,15 @@ def main() -> None:
         or re.search(r":\s*write", package_only)
     ):
         missing.append("package workflow with read permission at the top, one more block in each signing job, and no write permission")
-    # The signing token is named in one step of each signing job. No script of any job can read it.
-    if re.findall(r"\bsecrets\.\w+", package_only) != ["secrets.SIGNPATH_API_TOKEN"] * 2:
-        missing.append("package workflow whose only credential is the signing token")
+    # The signing token is named in one step of each Windows signing job, and the certificate and its password of the macOS
+    # signing are named in the one step that imports them. No script of any job can read them.
+    if re.findall(r"\bsecrets\.\w+", package_only) != [
+        "secrets.MACOS_CERTIFICATE",
+        "secrets.MACOS_CERTIFICATE_PASSWORD",
+        "secrets.SIGNPATH_API_TOKEN",
+        "secrets.SIGNPATH_API_TOKEN",
+    ]:
+        missing.append("package workflow whose only credentials are the macOS certificate with its password and the Windows signing token")
     package_jobs = ["package-macos", "package-windows", "sign-windows", "finalize-windows", "sign-windows-installer", "package-linux"]
     if job_ids(package_only) != package_jobs:
         missing.append("package workflow jobs: " + ", ".join(package_jobs))
@@ -655,8 +661,8 @@ def main() -> None:
     # The signing job runs only for a push to production or a v* tag in a repository that opts in by a variable, so a pull
     # request, a manual run and a repository without the variable skip it. It sends the three program files and no library to
     # the signing service, puts the signed files into the payload, checks them and replaces the payload artifact, which the
-    # finalize job reads. Its token is the input of its signing step; only this job and the installer signing job have an
-    # environment.
+    # finalize job reads. Its token is the input of its signing step; only this job, the installer signing job and the macOS
+    # package job have an environment.
     sign_job = job_block(package_only, "sign-windows")
     sign_steps = [
         "Download the package",
@@ -673,9 +679,9 @@ def main() -> None:
         re.findall(r"^    needs: (.+)$", sign_job, re.MULTILINE) != ["package-windows"]
         or re.findall(r"^    runs-on: (.+)$", sign_job, re.MULTILINE) != ["windows-latest"]
         or re.findall(r"^    environment: (.+)$", sign_job, re.MULTILINE) != ["windows-signing"]
-        or package_only.count("environment:") != 2
+        or package_only.count("environment:") != 3
     ):
-        missing.append("Windows signing job after the Windows package job, on windows-latest, in an environment that only the two signing jobs use")
+        missing.append("Windows signing job after the Windows package job, on windows-latest, in an environment that only the two signing jobs and the macOS package job use")
     # The signing action reads the run and downloads the uploaded files with the token of the job (its documentation names
     # actions: read and contents: read), and the workflow grants contents: read only. The job holds the second block of the
     # workflow, with nothing else in it.
@@ -1009,7 +1015,7 @@ def main() -> None:
         missing.append("installer smoke script with the silent switches, the desktop task, the start check and the checks of scope and manifest")
     # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
     # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
-    # macdeployqt and before the ad hoc signature, fails when one of them is in the app, and starts a copy of the app. The
+    # macdeployqt and before the signature, fails when one of them is in the app, and starts a copy of the app. The
     # app holds scene_tool and the Lebanon guide, and the disk image is built from it after the one signature.
     macos_job = job_block(package_only, "package-macos")
     macos_steps = (
@@ -1017,13 +1023,16 @@ def main() -> None:
         "Add scene_tool and the Lebanon guide to the app",
         "Remove unused Qt modules and plugins",
         "Set the minimum macOS version",
-        "Ad-hoc code sign",
+        "Import the signing certificate",
+        "Sign the app",
         "Verify the app is self-contained",
+        "Verify the signature",
         "Verify the packaged app",
         "Start the package",
         "Build the disk image",
         "Verify the disk image",
         "Upload artifact",
+        "Delete the signing keychain",
     )
     macos_step_names = re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)
     macos_positions = [macos_step_names.index(name) if name in macos_step_names else -1 for name in macos_steps]
@@ -1176,6 +1185,73 @@ def main() -> None:
         "          if-no-files-found: error\n"
     ):
         missing.append("macOS upload of the disk image as the only file of the artifact that the release script reads")
+    # The script signs the app: ad hoc without an identity, and with the Developer ID identity when the environment
+    # macos-signing holds a certificate. Only a push to production or a v* tag runs in that environment, the import step is the
+    # one place that reads the certificate and its password, the identity reaches the later steps only after the import
+    # worked, and the keychain of the import is deleted by the last step on every path.
+    signing_gate = "github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))"
+    if re.findall(r"^    environment: (.+)$", macos_job, re.MULTILINE) != ["${{ " + signing_gate + " && 'macos-signing' || '' }}"]:
+        missing.append("macOS package job that runs in the environment macos-signing for a push to production or a v* tag, and in no environment otherwise")
+    import_step = step_block(macos_job, "Import the signing certificate")
+    import_run = import_step.split("        run: |\n", 1)[-1]
+    if (
+        "        if: ${{ " + signing_gate + " }}\n" not in import_step
+        or "          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}\n" not in import_step
+        or "          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}\n" not in import_step
+        or "          IDENTITY: ${{ vars.MACOS_SIGNING_IDENTITY }}\n" not in import_step
+        or re.search(r"\bset\s+-\w*x", import_step)
+        or not 0 <= import_run.find('if [ -z "$MACOS_CERTIFICATE" ]; then\n') < import_run.find("            exit 0\n") < import_run.find("security create-keychain")
+        or not 0 <= import_run.find("security create-keychain") < import_run.find('echo "MACOS_KEYCHAIN=$keychain" >> "$GITHUB_ENV"\n')
+        or not 0 <= import_run.find("security import") < import_run.find("security find-identity -v -p codesigning")
+        or not import_run.find("security find-identity -v -p codesigning") < import_run.find('echo "MACOS_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"\n')
+        or import_run.count("MACOS_SIGNING_IDENTITY=$IDENTITY") != 1
+        or "trap 'rm -f \"$certificate\"' EXIT\n" not in import_run
+    ):
+        missing.append("macOS signing certificate import that runs for a push to production or a v* tag, does nothing without a certificate, and passes on the identity only after the import")
+    sign_step = step_block(macos_job, "Sign the app")
+    if (
+        not sign_step.endswith("        run: bash tools/release/sign_macos.sh build/QEGTRAIN.app\n")
+        or "env:" in sign_step
+        or "codesign --force" in package_only
+        or "--deep --sign" in package_only
+    ):
+        missing.append("macOS app signed by the script alone, with the identity from the environment of the import step and no codesign call in the workflow")
+    signature_step = step_block(macos_job, "Verify the signature")
+    if any(
+        part not in signature_step
+        for part in (
+            'details="$(codesign -dvv build/QEGTRAIN.app 2>&1)"\n',
+            "expect '^Authority=Developer ID Application: '",
+            "expect '^TeamIdentifier=[A-Z0-9]{10}$'",
+            "expect '^CodeDirectory .*flags=.*runtime'",
+            "expect '^Timestamp='",
+            "expect '^Signature=adhoc$'",
+        )
+    ):
+        missing.append("macOS signature check that prints who signed the app and requires Developer ID, a team, the hardened runtime and a timestamp, or an ad-hoc signature without an identity")
+    if re.findall(r"^      - name: (.+)$", macos_job, re.MULTILINE)[-1] != "Delete the signing keychain" or step_block(
+        macos_job, "Delete the signing keychain"
+    ) != (
+        "name: Delete the signing keychain\n"
+        "        if: ${{ always() && env.MACOS_KEYCHAIN != '' }}\n"
+        '        run: security delete-keychain "$MACOS_KEYCHAIN"\n'
+    ):
+        missing.append("macOS package job whose last step deletes the keychain of the certificate import on every path")
+    # Gatekeeper is never bypassed: no workflow and no release script takes the quarantine flag off a file or turns the check off.
+    bypass = re.compile(r"\bxattr\s+-\w*[cd]|\bspctl\s+--(master|global)-disable")
+    bypassing = [
+        path.name
+        for path in sorted((ROOT / ".github/workflows").glob("*.yml")) + sorted((ROOT / "tools/release").glob("*.*"))
+        if path.suffix in (".yml", ".sh", ".py", ".ps1") and bypass.search(path.read_text(encoding="utf-8"))
+    ]
+    if bypassing:
+        missing.append("no step that removes the quarantine attribute or turns Gatekeeper off, found in " + ", ".join(bypassing))
+    if (
+        "\t\tadd_test(NAME test_sign_macos\n\t\t\tCOMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_sign_macos.sh)\n"
+        not in cmake.split("\tif(APPLE)\n\t\tadd_test(NAME test_package_contents_smoke", 1)[-1].split("\tendif()", 1)[0]
+        or not re.search(r"egtrain_label_tests\(integration\b[^)]*\btest_sign_macos\b", cmake)
+    ):
+        missing.append("signing script test registered in CTest on macOS only, with the integration label")
     package_check_paths = (
         ".github/workflows/package-check.yml",
         ".github/workflows/package.yml",
