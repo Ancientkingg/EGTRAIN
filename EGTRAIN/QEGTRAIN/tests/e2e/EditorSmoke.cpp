@@ -11,6 +11,7 @@
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ServicePanel.h"
+#include "editors/TimetableStopsPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
@@ -240,7 +241,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		timer.start(0);
 		if (opener) opener->click();
 		else if (row < 0) w.m_addStopButton->click();
-		else w.editStop(row);
+		else w.m_timetableStopsPanel->editStop(row);
 		w.activateWindow();
 		QApplication::processEvents();
 		return accepted;
@@ -2953,7 +2954,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						}
 					}
 					w.m_sceneModel.services[serviceRow].stops.clear();
-					w.refreshStopList();
+					w.m_timetableStopsPanel->refresh();
 					const bool accepted = editStopDialog(-1, [](QDialog*) {});
 					if (accepted || !w.m_sceneModel.services[serviceRow].stops.empty())
 						facetFailure(facetOk, "timetable", "ambiguous new stop accepted without a platform");
@@ -2962,7 +2963,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				w.m_sceneModel.stations = savedStations;
 				w.m_sceneModel.services[serviceRow].stops = savedStops;
-				w.refreshStopList();
+				w.m_timetableStopsPanel->refresh();
 			}
 			// Give this repeat-call fixture a second real anchor before the final
 			// station, instead of calling the same consumed node twice.
@@ -3019,16 +3020,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				editedStop = w.m_sceneModel.services[serviceRow].stops.back();
 			if (facetOk) {
 				w.m_stopTableWidget->setCurrentCell(originalStopCount, 0);
-				w.moveStopUp();
+				w.m_timetableStopsPanel->moveStopUp();
 				if (w.m_sceneModel.services[serviceRow].stops[originalStopCount - 1].stationId != editedStop.stationId)
 					facetFailure(facetOk, "timetable", "move up did not apply");
-				w.moveStopDown();
+				w.m_timetableStopsPanel->moveStopDown();
 				if (!sameStop(w.m_sceneModel.services[serviceRow].stops.back(), editedStop))
 					facetFailure(facetOk, "timetable", "move down did not restore edited stop");
 				// The source scene's final stop intentionally omits a planned departure;
 				// leave the edited stop before it so the model remains valid for save/reload.
 				w.m_stopTableWidget->setCurrentCell(originalStopCount, 0);
-				w.moveStopUp();
+				w.m_timetableStopsPanel->moveStopUp();
 			}
 			// Insertion positions. Each prepared timetable leaves out one stop of the full
 			// timetable, so the position where it belongs has a free station.
@@ -3039,7 +3040,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const auto prepare = [&](std::vector<SceneStop> prepared) {
 					stops = std::move(prepared);
 					w.m_sceneDirty = false;
-					w.refreshStopList();
+					w.m_timetableStopsPanel->refresh();
 				};
 				const auto without = [&](std::size_t index) {
 					std::vector<SceneStop> prepared = fullStops;
@@ -3208,18 +3209,18 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				stops = fullStops;
 				w.m_sceneDirty = dirtySaved;
-				w.refreshStopList();
+				w.m_timetableStopsPanel->refresh();
 				w.updateSceneWindowTitle();
 			}
 			// Loaded invalid drafts remain removable; adding through the UI above
 			// must not create one.
 			w.m_sceneModel.services[serviceRow].stops.push_back(editedStop);
-			w.refreshStopList();
+			w.m_timetableStopsPanel->refresh();
 			w.m_stopTableWidget->setCurrentCell(originalStopCount + 1, 0);
 			if (static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 2) {
 				facetFailure(facetOk, "timetable", "temporary stop add did not apply");
 			} else {
-				w.removeStop();
+				w.m_timetableStopsPanel->removeStop();
 				if (static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
 					facetFailure(facetOk, "timetable", "stop delete did not apply");
 			}

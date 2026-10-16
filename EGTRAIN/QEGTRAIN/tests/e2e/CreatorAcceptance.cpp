@@ -8,6 +8,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
+#include "editors/TimetableStopsPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
@@ -154,7 +155,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		timer.start(0);
 		if (row < 0) w.m_addStopButton->click();
-		else w.editStop(row);
+		else w.m_timetableStopsPanel->editStop(row);
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };

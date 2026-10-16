@@ -1,0 +1,79 @@
+#ifndef TIMETABLESTOPSPANEL_H
+#define TIMETABLESTOPSPANEL_H
+
+#include "editors/SceneEditorPanel.h"
+
+#include <QMetaObject>
+#include <QPointer>
+#include <QString>
+
+#include <string>
+
+class QComboBox;
+class QLabel;
+class QPushButton;
+class QTableWidget;
+
+// The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned
+// times, and the buttons that add, remove and move them. A stop is added or edited in a dialog on a copy and enters
+// the service only when the stop still fits the route. The service is the one whose id the panel is given.
+class TimetableStopsPanel : public SceneEditorPanel {
+	Q_OBJECT
+
+public:
+	explicit TimetableStopsPanel(QWidget* parent = nullptr);
+
+	// Refreshes when the document is replaced.
+	void setDocument(SceneDocument* document) override;
+	// Shows the stops of the service with this id, or none when the id is empty or no service has it.
+	void setServiceId(const QString& serviceId);
+	void refresh() override;
+	// The table has no field in which text is being typed.
+	void commitPendingEditors() override {}
+
+	void addStop();
+	void insertStopAfterSelected();
+	void removeStop();
+	void moveStopUp();
+	void moveStopDown();
+	// Opens the dialog of the stop in this row of the table. A negative row adds a stop at `insertIndex`, or at the end
+	// when that is negative.
+	void editStop(int row, int insertIndex = -1);
+
+	QTableWidget* table() const { return m_table; }
+	QPushButton* addButton() const { return m_addButton; }
+	QPushButton* insertAfterButton() const { return m_insertAfterButton; }
+	QPushButton* removeButton() const { return m_removeButton; }
+	QPushButton* moveUpButton() const { return m_moveUpButton; }
+	QPushButton* moveDownButton() const { return m_moveDownButton; }
+	QComboBox* timeModeCombo() const { return m_timeModeCombo; }
+	QLabel* timeBaseLabel() const { return m_timeBaseLabel; }
+
+Q_SIGNALS:
+	// The table shows the stops again, so what depends on the timetable of the services is out of date.
+	void timetableRefreshed();
+
+private:
+	bool hasScene() const;
+	// False while a run uses the scene.
+	bool canEdit() const;
+	// The position of the shown service in the model, or -1.
+	int serviceRow() const;
+	void updateActions();
+
+	QPointer<SceneDocument> m_document;
+	QMetaObject::Connection m_replacedConnection;
+	std::string m_serviceId;
+	// Whether the planned times are shown as clock times rather than as elapsed seconds.
+	bool m_clockMode = false;
+	QComboBox* m_timeModeCombo = nullptr;
+	QLabel* m_timeBaseLabel = nullptr;
+	QTableWidget* m_table = nullptr;
+	QPushButton* m_addButton = nullptr;
+	QPushButton* m_insertAfterButton = nullptr;
+	QPushButton* m_removeButton = nullptr;
+	QPushButton* m_moveUpButton = nullptr;
+	QPushButton* m_moveDownButton = nullptr;
+};
+
+#endif // TIMETABLESTOPSPANEL_H

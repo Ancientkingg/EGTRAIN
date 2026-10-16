@@ -117,6 +117,7 @@ class PassengerPanel;
 class ServicePanel;
 class UserPrompts;
 class QPlainTextEdit;
+class TimetableStopsPanel;
 class TrainUnitPanel;
 class TrainUnitSourceLinker;
 class UserPrompts;
@@ -527,15 +528,15 @@ private:
 	QPushButton* m_selectNoneOccurrencesButton = nullptr;
 
 	// stop (timetable) editor: edits the selected service's ordered stops
+	TimetableStopsPanel* m_timetableStopsPanel = nullptr;
+	// Parts of m_timetableStopsPanel, for the scripted runs in tests/e2e
 	QTableWidget* m_stopTableWidget = nullptr;
 	QPushButton* m_addStopButton = nullptr;
 	QPushButton* m_insertStopAfterButton = nullptr;
-	QPushButton* m_removeStopButton = nullptr;
 	QPushButton* m_moveStopUpButton = nullptr;
 	QPushButton* m_moveStopDownButton = nullptr;
 	QComboBox* m_stopTimeModeCombo = nullptr;
 	QLabel* m_stopTimeBaseLabel = nullptr;
-	bool m_stopClockMode = false;
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
@@ -728,16 +729,6 @@ private:
 	double serviceOccurrenceDuration() const;
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
-
-	// stop (timetable) editor: edits copied SceneStop records through one modal
-	void refreshStopList();
-	void updateStopActions();
-	void addStop();
-	void insertStopAfterSelected();
-	void removeStop();
-	void moveStopUp();
-	void moveStopDown();
-	void editStop(int row, int insertIndex = -1);
 
 	// incident editor
 	void refreshScenarioList();
