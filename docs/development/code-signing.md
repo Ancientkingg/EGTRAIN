@@ -105,14 +105,15 @@ Nobody but the signing owner and the second contact may hold the credentials.
 
 These rules apply to any signing that is set up for this repository.
 
-- Credentials exist only in the GitHub environment `windows-signing`, which only the `production` branch and `v*` tags
-  may use. They are never in the repository, in workflow logs, in workflow artifacts or in release assets. No
-  certificate, private key, password or token is committed.
+- Credentials exist only in the GitHub environments `windows-signing` and `macos-signing`, which only the `production`
+  branch and `v*` tags may use. They are never in the repository, in workflow logs, in workflow artifacts or in release
+  assets. No certificate, private key, password or token is committed.
 - Signing runs only for pushes to `production` and for `v*` tags. Pull requests, including pull requests from forks and
   the pull request from `main` to `production`, and manual runs never sign and never need credentials. Ordinary
   development builds and the checks of pull requests stay unsigned and fully testable.
 - A signing step is skipped, not failed, when nothing is configured, so the portable ZIP and the installer stay usable
-  unsigned.
+  unsigned and the macOS app stays ad hoc. A macOS certificate or notarization group that is only partly configured
+  fails the job instead (see [What the owner adds](#what-the-owner-adds)).
 - When signing is configured, the release fails if a required file is unsigned, invalid or signed by an unexpected
   signer, and the ZIP and the installer are built from the files that were checked.
 
@@ -378,17 +379,18 @@ release of EGTRAIN has been built in this mode, so this has not been observed. R
 ### Release text
 
 The release text that the Prepare release step writes says nothing about signing. After a release is published, the owner
-adds one of these paragraphs to its description on the releases page. The first is for a release whose macOS app is not
-notarized. The second is only for one whose app and image are, which the logs of the steps **Notarize the app** and
-**Notarize the disk image** of the package job show. Each log ends with a line `OK: ... is notarized, stapled and
-accepted by Gatekeeper` for the second text, and a line `Notarization skipped` means the first text.
+adds one of these paragraphs to its description on the releases page. The first is for a release whose app is signed ad
+hoc: the log of the step **Verify the signature** of the package job shows `Signature=adhoc`. The second is only for one
+whose app and image are notarized: the logs of the steps **Notarize the app** and **Notarize the disk image** each end
+with a line `OK: ... is notarized, stapled and accepted by Gatekeeper`. A Developer ID signature with the line
+`Notarization skipped` is neither, and needs a sentence of its own.
 
 ```text
 macOS: the app is signed ad hoc and is not notarized by Apple, so macOS refuses the first start. To allow it, choose Open Anyway for QEGTRAIN in System Settings > Privacy & Security. macOS then asks for an administrator's name and password. See "macOS disk image" in the README: https://github.com/Ancientkingg/EGTRAIN#macos-disk-image
 ```
 
 ```text
-macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS asks only for the usual confirmation for an app that was downloaded.
+macOS: the app and the disk image are signed with a Developer ID and notarized by Apple. macOS is expected to ask only for the usual confirmation for an app that was downloaded.
 ```
 
 ### Checking a macOS download
@@ -402,5 +404,5 @@ xcrun stapler validate /Applications/QEGTRAIN.app
 
 `codesign` shows `Signature=adhoc` for an ad hoc build. For a Developer ID build it shows a line
 `Authority=Developer ID Application:` with the name of the signer, and a `TeamIdentifier`. `stapler validate` succeeds
-only when the app carries a ticket and fails for an ad hoc build. The package job runs the same checks before it uploads
-the image (the steps **Verify the signature** and **Notarize the app**).
+only when the app carries a ticket and fails for an ad hoc build. Before it uploads the image, the package job checks the
+signature in the step **Verify the signature** and, for a notarized build, the ticket in the step **Notarize the app**.

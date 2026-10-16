@@ -1305,7 +1305,7 @@ def main() -> None:
     ):
         missing.append("macOS package job whose last step deletes the keychain of the certificate import on every path")
     # Gatekeeper is never bypassed: no workflow and no release script takes the quarantine flag off a file or turns the check off.
-    bypass = re.compile(r"\bxattr\s+-\w*[cd]|\bspctl\s+--(master|global)-disable")
+    bypass = re.compile(r"\bxattr\b(?:\\\n|[^\n;|&])*(?:[\s'\"]-\w*[cd]|com\.apple\.quarantine)|\bspctl\s+--(master|global)-disable")
     bypassing = [
         path.name
         for path in sorted((ROOT / ".github/workflows").glob("*.yml")) + sorted((ROOT / "tools/release").glob("*.*"))

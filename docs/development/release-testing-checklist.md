@@ -331,13 +331,13 @@ Run these rows on macOS with the disk image of the candidate, and mark them not
 applicable on Windows and Linux. Use the copy of `QEGTRAIN.app` that step 1 of
 the clean-install rehearsal put in the Applications folder, and downloaded
 `.egscene` files. Run M4 or M5 as the first launch of step 1, then M1, M2 and M3
-in this order. The signature of the copy in the Applications folder shows which of
-M4 and M5 applies. Run `codesign -dvv /Applications/QEGTRAIN.app` before the first
-launch; it does not start the app. `Signature=adhoc` means M4, and the line
-`Authority=Developer ID Application:` means M5. Mark the other row not
-applicable, with that reason. macOS may need a moment to learn the file type of a new app. If Finder does not
-know it yet, record that and what you did before it did, and go on with
-**Open With**.
+in this order. The signature of the copy in the Applications folder shows which
+of M4 and M5 applies. Run `codesign -dvv /Applications/QEGTRAIN.app` before the
+first launch; it does not start the app. `Signature=adhoc` means M4, and the
+line `Authority=Developer ID Application:` means M5. Mark the other row not
+applicable, with that reason. macOS may need a moment to learn the file type of
+a new app. If Finder does not know it yet, record that and what you did before
+it did, and go on with **Open With**.
 
 | Row | What to do | What must be seen or recorded | Platforms |
 | --- | --- | --- | --- |
