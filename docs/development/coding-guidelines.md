@@ -316,7 +316,10 @@ own file there (`LegacyImport.cpp`, `SceneDrop.cpp`, `OutputFolder.cpp`, `SceneR
 `CreatorAcceptance.cpp`) is a member of
 it, and the table in `tests/e2e/E2ERunner.cpp` starts a scenario from its `QEGTRAIN_E2E_` variable.
 `PostRun.cpp` holds the autostart and the checks that follow a run, which the window calls through
-the hooks of `MainWindowTestHooks`.
+the hooks of `MainWindowTestHooks`, and `Dialogs.cpp` answers the dialogs that the window opens. A source
+that a build without tests compiles must not name a `QEGTRAIN_E2E_` variable, print an `E2E_` marker or
+assert with `failures <<`: put such code in `tests/e2e` and give the window a hook.
+`tools/e2e/test_no_e2e_in_product.py` fails otherwise.
 
 ## Avoid in new code
 

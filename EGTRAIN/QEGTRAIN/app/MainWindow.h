@@ -110,9 +110,6 @@ class SelfUpdater;
 class TelemetryConsent;
 class QSettings;
 namespace telemetry { class TelemetrySender; }
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-namespace telemetry_smoke { struct State; }
-#endif
 class QProgressDialog;
 class AboutDialog;
 class CaseSettingsPanel;
@@ -415,9 +412,6 @@ private:
 	int m_followTrainIndex = -1;
 	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
-	int m_e2eAttempts = 0;
-	bool m_e2eFinished = false;
-	bool m_editorE2eFinished = false;
 	QMap<int, QPointF> m_prevTrainPositions;
 	QMap<int, TrainBadgeItem*> m_trainBadges;
 	QMap<int, QVariantAnimation*> m_trainAnimations;
@@ -728,11 +722,6 @@ private:
 	void setupUpdateActions();
 	void showPrivacySettings(bool initialPrompt);
 	void startTelemetryAfterInitialConsent();
-#ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
-	std::shared_ptr<telemetry_smoke::State> m_telemetrySmokeState;
-	void runTelemetrySmoke(int stage);
-#endif
-	bool privacyDialogTestHook() const;
 	void maybePromptForUpdateChecks();
 	void startUpdateCheck(bool manual);
 	void handleUpdateCheckFinished(const UpdateCheckResult& result);

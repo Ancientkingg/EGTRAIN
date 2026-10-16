@@ -13,9 +13,9 @@
 // that the open scene is untouched. The folders come from QEGTRAIN_E2E_LEGACY_SOURCE and _DEST for
 // the import that works, and from _BAD_SOURCE and _BAD_DEST for the one that fails.
 void MainWindowTestAccess::runLegacyImport(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 
 	bool ok = true;
 	QStringList failures;

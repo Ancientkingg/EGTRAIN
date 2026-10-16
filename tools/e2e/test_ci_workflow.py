@@ -725,10 +725,10 @@ def main() -> None:
         'Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"',
     )
     if (
-        "tools/release/package_start_smoke.py $dist" not in package_step
+        "tools/release/package_start_smoke.py $dist --exports" not in package_step
         or any(entry not in package_step or entry not in release_workflow for entry in package_assembly)
     ):
-        missing.append("Windows package start check with the assembly commands of the release workflow")
+        missing.append("Windows package start check with the exports and the assembly commands of the release workflow")
     # Qt 5.15 has no TLS library on Windows, so the update requests go through WinHTTP there. The Windows leg sends one real request
     # to the GitHub release list through that transport and fails when no HTTPS response arrives. The test is registered only when
     # the configuration asks for it, so no other test run needs internet access. The program returns one code for a rate limit or

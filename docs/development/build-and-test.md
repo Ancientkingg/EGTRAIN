@@ -125,7 +125,33 @@ to the folder that Import Passengers reads in place of its dialog, and clears it
 The creator acceptance smoke starts without a scene: when `QEGTRAIN_E2E_CREATOR_ACCEPTANCE`
 is set, `main()` opens the window through `e2e::runCreatorAcceptanceMain`, the first show asks
 no startup question (`suppressStartupPrompts`), and capacity analysis shows its scope dialog
-(`askCapacityScope`), which the scenario answers.
+(`askCapacityScope`), which the scenario answers. A scenario keeps its state, such as whether it
+has begun its checks, in `MainWindowTestAccess`, not in the window.
+
+`Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and
+`showPrivacySettings` call the `dialogShown` hook of `MainWindowTestHooks` with the dialog just before
+it opens, and the first two call `dialogClosed` once they have read the answer. With
+`QEGTRAIN_E2E_STARTUP_CHOOSER` set, the runner records the rows and menus of the case chooser, takes the
+action that `QEGTRAIN_E2E_CHOOSER_INTERACTION` names on the row of `QEGTRAIN_E2E_CHOOSER_PATH`, and prints
+the `E2E_STARTUP_CHOOSER_` lines when the chooser has closed. With `QEGTRAIN_E2E_REVIEW_CANCEL` set, the
+run review opens although dialogs are suppressed (`askRunReview`). The runner inspects it, cancels it with
+the Cancel button or, for the value `escape`, with the Escape key, and prints the `E2E_RUN_REVIEW_`
+lines; `QEGTRAIN_E2E_REVIEW_ENLARGED` enlarges the fonts first. With `QEGTRAIN_E2E_PRIVACY_DIALOG` set
+to `1` or `settings` and `QEGTRAIN_E2E_SETTINGS_DIR` set, the `privacyPreview` hook gives the privacy
+dialog a fake context, no telemetry starts, and `QEGTRAIN_E2E_SCREENSHOT` names the file that receives a
+picture of the dialog. In the isolated telemetry smoke configuration (`EGTRAIN_ISOLATED_TELEMETRY_SMOKE`,
+described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compiled too. Its hooks
+`telemetryStart`, `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
+folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
+stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
+are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.
+
+`test_no_e2e_in_product` runs `tools/e2e/test_no_e2e_in_product.py`. It fails when a source, header or
+form that a build without tests compiles holds `QEGTRAIN_E2E_`, `E2E_` or `failures <<`. The files under
+`tests/e2e` and the telemetry smoke support are not scanned. Four files are exempt for the text that
+they hold on purpose: `update/UpdateSettings.cpp` and `telemetry/TelemetryConsent.cpp` test the prefix
+`QEGTRAIN_E2E_`, and `app/OpenRequestRelay.cpp` and `app/OpenRequestRelay.h` test it and name
+`QEGTRAIN_E2E_OPEN_RELAY`.
 
 `PostRun.cpp` holds the autostart and the checks that follow a run. With `QEGTRAIN_AUTOSTART`
 set, the runner starts the run of the case 1.5 s after the first show. The hooks
@@ -548,6 +574,9 @@ with `--exports`, for a package assembled from a build with
 
 3. The CSV export.
 4. The PNG export.
+
+The Windows CI leg passes `--exports`, because it assembles the package from its build with tests. The
+package workflows build release packages and do not.
 
 The two export launches run Paimpol with a window and a horizon of 8000 s,
 with the autostart hook and one export hook of the application each:

@@ -125,9 +125,9 @@ void importPassengersFrom(QPushButton* button, const QString& folder) {
 // QEGTRAIN_E2E_OUT names a folder for the files that it writes. It prints E2E_EDITOR_SMOKE_OK and exits with 0, or prints
 // the failures and exits with 1.
 void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
-	if (w.m_editorE2eFinished)
+	if (editorSmokeStarted)
 		return;
-	w.m_editorE2eFinished = true;
+	editorSmokeStarted = true;
 
 	bool ok = true;
 	QStringList failures;

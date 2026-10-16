@@ -48,16 +48,16 @@
 // QEGTRAIN_AUTOSTART for the first snapshot. QEGTRAIN_E2E_STATION_SCREENSHOT_BASE names the files for pictures
 // of the view. It prints E2E_STATION_OVERLAY_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
 	const bool waitingForAutostart = qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART") && !w.m_snapshot;
 	if ((!w.m_sceneLoaded || !w.networkView || w.m_stationOverlays.isEmpty() || waitingForAutostart)
-		&& w.m_e2eAttempts < 120) {
-		++w.m_e2eAttempts;
+		&& scenarioAttempts < 120) {
+		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runStationOverlay(w); });
 		return;
 	}
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 	QStringList failures;
 	const auto marker = [](const QString& text) {
 		std::fprintf(stdout, "%s\n", text.toStdString().c_str());

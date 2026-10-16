@@ -47,9 +47,9 @@ constexpr int kMaxPolls = 100;
 // Output Folder does and opens a third scene, which must leave that folder in force. QEGTRAIN_OUTPUT_DIR names
 // the base folder. It prints E2E_OUTPUT_FOLDER_OK and exits with 0, or prints the failures and exits with 2.
 void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 
 	auto run = std::make_shared<OutputFolderRun>();
 	const auto fail = [run](const QString& message) { run->failures << message; };

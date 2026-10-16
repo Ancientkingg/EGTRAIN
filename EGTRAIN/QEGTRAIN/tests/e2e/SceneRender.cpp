@@ -17,7 +17,7 @@
 // draws real geometry inside the viewport instead of a collapsed point. It runs again every 500 ms,
 // at most 40 times, until a train is drawn. QEGTRAIN_E2E_SCREENSHOT names a file for a picture of the view.
 void MainWindowTestAccess::runSceneRender(MainWindow& w) {
-	if (w.m_e2eFinished)
+	if (scenarioStarted)
 		return;
 
 	if (!w.m_sceneLoaded) {
@@ -57,12 +57,12 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 	}
 
-	if (w.allTrains.isEmpty() && w.m_e2eAttempts < 40) {
-		++w.m_e2eAttempts;
+	if (w.allTrains.isEmpty() && scenarioAttempts < 40) {
+		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runSceneRender(w); });
 		return;
 	}
-	w.m_e2eFinished = true;
+	scenarioStarted = true;
 
 	bool ok = true;
 	QStringList failures;
