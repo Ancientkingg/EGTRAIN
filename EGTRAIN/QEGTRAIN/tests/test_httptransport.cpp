@@ -295,9 +295,9 @@ static bool testConnectionDropped(HttpTransport& transport, const TestServer& se
 	return ok;
 }
 
-// Nothing listens on the port: the server that had it is closed. A refused connection is reported at once.
-// Qt 5.15.19 on macOS 27 never reports it and leaves the request pending, so the case aborts a request
-// that is still pending after a short wait, as the timeouts of UpdateChecker and SelfUpdater do.
+// Nothing listens on the port: the server that had it is closed. Some Qt builds report the refused
+// connection and some leave the request pending; a request that is still pending after a short wait is
+// aborted, as the timeouts of UpdateChecker and SelfUpdater do. Either way the reply must end as failed.
 static bool testConnectionRefused(HttpTransport& transport) {
 	QUrl url;
 	{
