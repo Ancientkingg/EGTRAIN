@@ -76,6 +76,9 @@ ALLOWED = {
     "app/MainWindow.cpp": {"cout": 2},
     "diagrams/RunResults.cpp": {"cerr": 1},
     "io/RailMLParser.cpp": {"cout": 11, "cerr": 2},
+    # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
+    # right before std::abort(). EG_LOG would write std::cout without a flush and can be
+    # switched off, so the message could be lost.
     "simulation/RollingStock.h": {"fprintf": 1},
     "util/Logger.hpp": {"cout": 2},
 }
