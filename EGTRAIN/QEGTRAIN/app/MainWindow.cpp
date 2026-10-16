@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/SignalItemRoles.h"
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 #include "app/TelemetrySmokeSupport.h"
 #endif
@@ -223,10 +224,6 @@ const int kMaxRecentScenes = 8;
 constexpr qreal kDenseDetailZoom = 3.0;
 constexpr qreal kSignalDetailZoom = 8.0;
 constexpr int kOverlayMargin = 12;
-constexpr int kSignalDecorationRole = 0;
-constexpr int kSignalTrackRole = 1;
-constexpr int kSignalBaseVisibleRole = 2;
-constexpr int kSignalAnchorRole = 3;
 struct PreviewStationMembership {
 	std::string stationId;
 	std::string name;

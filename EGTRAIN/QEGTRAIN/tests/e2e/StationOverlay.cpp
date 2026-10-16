@@ -1,5 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "app/SignalItemRoles.h"
+
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
@@ -39,12 +41,6 @@
 #include <cstdio>
 #include <utility>
 
-namespace {
-
-// The item data role under which a signal head keeps its anchor, as MainWindow.cpp sets it.
-constexpr int kSignalAnchorRole = 3;
-
-} // namespace
 
 // Checks the station artwork and names of the open scene at Fit, 3x and 12x: their size on screen, their
 // anchors, collisions between names, the hit target of the artwork, the name layer toggle and the name of a

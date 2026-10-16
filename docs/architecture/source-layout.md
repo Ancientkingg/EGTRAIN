@@ -27,7 +27,7 @@ docs/                     Guides and architecture, development, product, telemet
 
 | Folder | Holds |
 | --- | --- |
-| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `DispatchController`, `SceneOpenRequest`, `OpenRequestRelay`, `resources.qrc` |
+| `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `SignalItemRoles`, `DispatchController`, `SceneOpenRequest`, `OpenRequestRelay`, `resources.qrc` |
 | `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockDynamics`, `RollingStockOccupation`, `RollingStockStops`, `RollingStockTrajectory`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
 | `simulation/builders/` | The builder that fills the infrastructure and signalling globals from a scene: `InfrastructureBuilder`, and `InfrastructureBuilderInternal.h` for the two declarations it shares with `Signalling.cpp` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `Utf8Path`, `SceneTool` |
