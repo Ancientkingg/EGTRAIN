@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
+#include <memory>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
@@ -232,7 +233,6 @@ int Blocks = 0; /*Number of Block Sections within the whole network*/
 
 Section::Section() {
 
-	nodelist_of_nodes_in_signalling_section = nullptr;
 	start_node.ID = end_node.ID = 0; // Class Constructor
 	length = 0;
 	exit_speed = 0;
@@ -344,12 +344,13 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 
 			// Setting the nodes nodelist_of_nodes_in_signalling_section
 			CutSection.total_nodes = CutSection.total_arcs + 1;
-			CutSection.nodelist_of_nodes_in_signalling_section = new Node[CutSection.total_nodes];
+			std::vector<Node> cutNodes(CutSection.total_nodes);
 			// Setting the first Node
-			CutSection.nodelist_of_nodes_in_signalling_section[0] = CutSection.start_node;
+			cutNodes[0] = CutSection.start_node;
 			for (int i = 0; i < CutSection.total_arcs; i++) { // Every block has at least two nodes
-				CutSection.nodelist_of_nodes_in_signalling_section[i + 1] = CutSection.arcs_in_signalling_block_section[i].endNode;
+				cutNodes[i + 1] = CutSection.arcs_in_signalling_block_section[i].endNode;
 			}
+			CutSection.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(cutNodes));
 
 		}
 
@@ -433,12 +434,13 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 
 			// Setting the nodes nodelist_of_nodes_in_signalling_section
 			CutSection.total_nodes = CutSection.total_arcs + 1;
-			CutSection.nodelist_of_nodes_in_signalling_section = new Node[CutSection.total_nodes];
+			std::vector<Node> cutNodes(CutSection.total_nodes);
 			// Setting the first Node
-			CutSection.nodelist_of_nodes_in_signalling_section[0] = CutSection.start_node;
+			cutNodes[0] = CutSection.start_node;
 			for (int i = 0; i < CutSection.total_arcs; i++) { // Every block has at least two nodes
-				CutSection.nodelist_of_nodes_in_signalling_section[i + 1] = CutSection.arcs_in_signalling_block_section[i].endNode;
+				cutNodes[i + 1] = CutSection.arcs_in_signalling_block_section[i].endNode;
 			}
+			CutSection.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(cutNodes));
 		}
 	}
 	*this = CutSection;
@@ -559,10 +561,10 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 		}
 		// Setting the first part of Block nodes
 		for (int i = 0; i < BS1.total_nodes; i++) {
-			if (BS1.nodelist_of_nodes_in_signalling_section[i].X <= N1.X) {
+			if ((*BS1.nodelist_of_nodes_in_signalling_section)[i].X <= N1.X) {
 				BS3.total_nodes++;
 				// filling in the list of nodes belonging to BS3
-				listnode.push_back(BS1.nodelist_of_nodes_in_signalling_section[i]);
+				listnode.push_back((*BS1.nodelist_of_nodes_in_signalling_section)[i]);
 			}
 		}
 
@@ -616,20 +618,21 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 		}
 		// Setting the second part of nodes of BS3
 		for (int i = 0; i < BS2.total_nodes; i++) {
-			if (BS2.nodelist_of_nodes_in_signalling_section[i].X > N2.X) {
+			if ((*BS2.nodelist_of_nodes_in_signalling_section)[i].X > N2.X) {
 				BS3.total_nodes++;
 				// filling in the list of nodes belonging to BS3
-				listnode.push_back(BS2.nodelist_of_nodes_in_signalling_section[i]);
+				listnode.push_back((*BS2.nodelist_of_nodes_in_signalling_section)[i]);
 			}
 		}
 
 		// Defining BS3 features
-		BS3.nodelist_of_nodes_in_signalling_section = new Node[BS3.total_nodes];
+		std::vector<Node> connectNodes(BS3.total_nodes);
 		list<Node>::iterator itn = listnode.begin();
 		for (int i = 0; i < BS3.total_nodes; i++) {
-			BS3.nodelist_of_nodes_in_signalling_section[i] = *itn;
+			connectNodes[i] = *itn;
 			itn++;
 		}
+		BS3.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(connectNodes));
 
 		it = listarc.begin();
 		for (int i = 0; i < BS3.total_arcs; i++) {
@@ -711,11 +714,11 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 		for (int i = 0; i < Temp_Blocks; i++) { // Search for the connected Node in the Block Section belonging to the indicated connectIdBlockSet
 			if (signalling_block_sections[i].trackLineId == Nb.connectIdBlockSet[n_conn]) {
 				for (int j = 0; j < signalling_block_sections[i].total_nodes; j++) { // Search for the connected Node
-					if (signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X == Nb.connectXNode[n_conn]) {
+					if ((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].X == Nb.connectXNode[n_conn]) {
 						string BSID, OppBSID;
 						const std::string N1ID = formatSceneSectionCoordinate(Nb.X);
 						const std::string N2ID = formatSceneSectionCoordinate(
-							signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].X);
+							(*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].X);
 						BSID = BSID + BS1.ID + "-" + N1ID + "/" + signalling_block_sections[i].ID + "-" + N2ID;
 						OppBSID = OppBSID + signalling_block_sections[i].ID + "-" + N2ID + "/" + BS1.ID + "-" + N1ID;
 
@@ -731,7 +734,8 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 								return;
 							}
 							Blocks++;
-							generateConnectBlock(connections, BS1, signalling_block_sections[i], Nb, signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j], signalling_block_sections[Blocks - 1]);
+							generateConnectBlock(connections, BS1, signalling_block_sections[i], Nb,
+								(*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j], signalling_block_sections[Blocks - 1]);
 						}
 					}
 				}
@@ -746,12 +750,12 @@ void setAllConnections() {
 	int Temp_Blocks = Blocks; // Temporary variable which takes the total number of Block without connections
 	for (int i = 0; i < Temp_Blocks; i++) {
 		for (int j = 0; j < signalling_block_sections[i].total_nodes; j++) {
-			if (signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].numConnections > 0) {
+			if ((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections > 0) {
 				// std::cout << "=============================\n";
 				/*std::cout << signalling_block_sections[i].ID << "-" << signalling_block_sections[i].FirstConnectedTrackLineID <<
 					"+" << signalling_block_sections[i].SecondConnectedTrackLineID << "-" << signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].numConnections <<"="<<j<< std::endl;*/
-				for (int n = 0; n < signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].numConnections; n++) {
-					createBlockConn(signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j], signalling_block_sections[i], Temp_Blocks, n);
+				for (int n = 0; n < (*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections; n++) {
+					createBlockConn((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j], signalling_block_sections[i], Temp_Blocks, n);
 				}
 			}
 		}
@@ -2015,9 +2019,7 @@ void nativeResetRuntime() {
 		blockSets[i] = BlockSet();
 	for (int i = 0; i < kNativeMaxConnections; ++i)
 		connections[i] = Connections();
-	// Routes and station boundaries refer to these sections and are already cleared
-	for (Section& section : signalling_block_sections)
-		delete[] section.nodelist_of_nodes_in_signalling_section;
+	// A node list is freed with the last section that holds it
 	std::vector<Section>().swap(signalling_block_sections);
 	derivedSectionsExceedPlan = false;
 	for (int i = 0; i < kNativeMaxStations; ++i)
@@ -2695,9 +2697,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		section.end_node = nodes.back();
 		section.total_nodes = static_cast<int>(nodes.size());
 		section.total_arcs = static_cast<int>(arcs.size());
-		section.nodelist_of_nodes_in_signalling_section = new Node[nodes.size()];
-		for (std::size_t index = 0; index < nodes.size(); ++index)
-			section.nodelist_of_nodes_in_signalling_section[index] = nodes[index];
+		section.nodelist_of_nodes_in_signalling_section = std::make_shared<const std::vector<Node>>(std::move(nodes));
 		for (std::size_t index = 0; index < arcs.size(); ++index)
 			section.arcs_in_signalling_block_section[index] = arcs[index];
 	}
@@ -2741,7 +2741,7 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const Sce
 		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
 			const Section& section = signalling_block_sections[blockIndex];
 			for (int nodeIndex = 0; nodeIndex < section.total_nodes; ++nodeIndex) {
-				if (section.nodelist_of_nodes_in_signalling_section[nodeIndex].ID == node.ID) {
+				if ((*section.nodelist_of_nodes_in_signalling_section)[nodeIndex].ID == node.ID) {
 					platform.BlockSectionID = section.ID;
 					break;
 				}
