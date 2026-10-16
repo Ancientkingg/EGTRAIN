@@ -74,9 +74,9 @@ the date, and fills the table. Not recorded means that nothing has been recorded
 | Certificate issuer name as shown on a signed file | Not recorded |
 
 The signer name is whatever the service issues. Documents and release text must not say or imply that it identifies an
-individual developer or the project when it does not. The version information of `QEGTRAIN.exe` names TU Delft as
-company (`CompanyName` in `EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in`). That text is not the signer, and the owner
-decides separately whether it changes.
+individual developer or the project when it does not. The version information of `QEGTRAIN.exe` names EGTRAIN as
+company (`CompanyName` in `EGTRAIN/QEGTRAIN/resources/app/egtrain.rc.in`), and the installer names EGTRAIN as publisher
+(`AppPublisher` in `installer/egtrain.iss`). Neither text is a signer.
 
 ### Fallback record
 

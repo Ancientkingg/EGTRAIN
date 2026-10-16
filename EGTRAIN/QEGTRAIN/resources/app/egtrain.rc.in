@@ -13,7 +13,7 @@ BEGIN
  BEGIN
   BLOCK "040904B0"
   BEGIN
-   VALUE "CompanyName", "TU Delft\0"
+   VALUE "CompanyName", "EGTRAIN\0"
    VALUE "FileDescription", "EGTRAIN railway micro-simulation\0"
    VALUE "FileVersion", "@PROJECT_VERSION@\0"
    VALUE "InternalName", "QEGTRAIN\0"
