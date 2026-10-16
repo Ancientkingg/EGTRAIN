@@ -1,4 +1,5 @@
 #include "scene/SceneImporter.h"
+#include "scene/SceneFields.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
 #include "scene/StagedDirectory.h"
@@ -314,13 +315,8 @@ static bool parseDoubleToken(const std::string& token, double& value) {
 }
 
 static bool validLivePhysical(const SceneTrainPhysical& physical) {
-	const double values[] = {
-		physical.mass_of_traction_unit_kg, physical.mass_of_a_wagon_kg,
-		physical.number_of_wagons, physical.max_speed_ms,
-		physical.max_deceleration_ms2, physical.frontal_area_m2,
-		physical.resistance_coefficient, physical.jerk_ms3, physical.length_m};
-	for (double value : values) {
-		if (!std::isfinite(value))
+	for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields) {
+		if (!std::isfinite(physical.*field.member))
 			return false;
 	}
 	return physical.mass_of_traction_unit_kg >= 0.0
@@ -346,19 +342,13 @@ SceneTrainPhysicalSourceResult parseTrainPhysicalSourceFile(const std::string& p
 		return result;
 	}
 	const std::vector<std::string> tokens = readTokens(content);
-	if (tokens.size() != 9) {
+	if (tokens.size() != kSceneTrainPhysicalFields.size()) {
 		result.error = "The physical source must contain exactly nine values";
 		return result;
 	}
-	double* values[] = {
-		&result.physical.mass_of_traction_unit_kg, &result.physical.mass_of_a_wagon_kg,
-		&result.physical.number_of_wagons, &result.physical.max_speed_ms,
-		&result.physical.max_deceleration_ms2, &result.physical.frontal_area_m2,
-		&result.physical.resistance_coefficient, &result.physical.jerk_ms3,
-		&result.physical.length_m};
 	for (std::size_t index = 0; index < tokens.size(); ++index) {
-		if (!parseDoubleToken(tokens[index], *values[index])
-			|| !std::isfinite(*values[index])) {
+		double& value = result.physical.*kSceneTrainPhysicalFields[index].member;
+		if (!parseDoubleToken(tokens[index], value) || !std::isfinite(value)) {
 			result.error = "The physical source contains a non-finite or malformed value";
 			return result;
 		}
@@ -2103,12 +2093,12 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 			addDiag(SceneSeverity::Error, "scene.import.parse", "Malformed train data file", dataPath.string());
 			continue;
 		}
-		json physical = json::array();
+		json physical = json::object();
 		bool physicalValid = true;
-		for (int i = 0; i < 9; ++i) {
+		for (std::size_t i = 0; i < kSceneTrainPhysicalFields.size(); ++i) {
 			double value = 0.0;
-			if (!parseDoubleToken(dataTokens[static_cast<std::size_t>(i)], value)) physicalValid = false;
-			physical.push_back(value);
+			if (!parseDoubleToken(dataTokens[i], value)) physicalValid = false;
+			physical[kSceneTrainPhysicalFields[i].key] = value;
 		}
 		if (!physicalValid) {
 			report.skipped("rolling_stock.data", dataSource);
@@ -2184,12 +2174,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		}
 		trainUnits.push_back(
 			{{"id", relation.id},
-				{"physical",
-					{{"mass_of_traction_unit_kg", physical[0]}, {"mass_of_a_wagon_kg", physical[1]},
-						{"number_of_wagons", physical[2]}, {"max_speed_ms", physical[3]},
-						{"max_deceleration_ms2", physical[4]}, {"frontal_area_m2", physical[5]},
-						{"resistance_coefficient", physical[6]}, {"jerk_ms3", physical[7]},
-						{"length_m", physical[8]}}},
+				{"physical", physical},
 				{"traction_curve", curve},
 				{"source", {{"data_file", relation.dataPath}, {"traction_file", relation.tractionPath}}}});
 		compositions.push_back({{"id", relation.id}, {"units", {relation.id}}});
@@ -2200,7 +2185,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	// Baseline incidents are the only flat legacy scenario input. Rollout files
 	// contain positional delay vectors; map them in manifest order and retain
 	// the same value at the two stations used by the runtime scenario loader.
-	json baseline = {{"id", "baseline"}, {"name", "Baseline"}, {"incidents", json::array()}, {"entrance_delays", json::array()}};
+	const SceneScenario baselineScenario = makeBaselineScenario();
+	json baseline = {{"id", baselineScenario.id}, {"name", baselineScenario.name}, {"incidents", json::array()}, {"entrance_delays", json::array()}};
 	const fs::path incidentsPath = findChild(legacyPath, "Incidents.txt");
 	const std::string incidentsSource = incidentsPath.empty() ? (legacyPath / "Incidents.txt").string() : incidentsPath.string();
 	if (!incidentsPath.empty()) {
@@ -2382,7 +2368,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 	json rollingStock = {{"train_units", trainUnits}, {"compositions", compositions}};
 	json servicesFile = {{"services", services}};
 	json stationsFile = {{"stations", stations}};
-	json scenariosFile = {{"default_scenario_id", "baseline"}, {"scenarios", scenarios}};
+	json scenariosFile = {{"default_scenario_id", baselineScenario.id}, {"scenarios", scenarios}};
 
 	// Preserve atomic staging/publish semantics: no destination is touched while
 	// parsing or validation can still fail.

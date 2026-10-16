@@ -925,10 +925,9 @@ std::vector<SceneDiagnostic> validateCore(const SceneModel& scene, bool runnable
 					"Platform width_m must be positive and finite", "stations.json", "platform",
 					platform.id, platformPath + ".width_m", "",
 					"Use a platform width greater than 0 metres");
-			const double effectiveLength = platform.hasLength ? platform.lengthM : 100.0;
-			const double effectiveWidth = platform.hasWidth ? platform.widthM : 2.5;
-			const double capacity = effectiveLength * effectiveWidth
-				/ (3.14159 * std::pow(0.8, 2)) * 0.8;
+			const double effectiveLength = platform.hasLength ? platform.lengthM : kDefaultPlatformLengthM;
+			const double effectiveWidth = platform.hasWidth ? platform.widthM : kDefaultPlatformWidthM;
+			const double capacity = scenePlatformCapacity(effectiveLength, effectiveWidth);
 			if (std::isfinite(effectiveLength) && effectiveLength > 0.0
 				&& std::isfinite(effectiveWidth) && effectiveWidth > 0.0
 				&& (!std::isfinite(capacity) || capacity < 1.0

@@ -5,6 +5,7 @@
 #include "simulation/RuntimeLimits.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <initializer_list>
 #include <iostream>
@@ -424,6 +425,22 @@ int main(int argc, char** argv) {
 	ok &= expect(hasCodeAndPath(validateScene(invalidPlatformCapacity), "scene.platform.capacity.invalid",
 					 "stations[0].platforms[0]"),
 		"platform geometry must produce a usable integer capacity");
+	ok &= expect(!hasCode(validateScene(clean), "scene.platform.capacity.invalid"),
+		"a platform without a stated size has a usable capacity");
+	SceneModel smallPlatform = clean;
+	smallPlatform.stations[0].platforms[0].hasLength = true;
+	smallPlatform.stations[0].platforms[0].lengthM = 1.0;
+	smallPlatform.stations[0].platforms[0].hasWidth = true;
+	smallPlatform.stations[0].platforms[0].widthM = 2.5;
+	ok &= expect(hasCode(validateScene(smallPlatform), "scene.platform.capacity.invalid"),
+		"a platform that holds less than one passenger is rejected");
+	smallPlatform.stations[0].platforms[0].widthM = 2.6;
+	ok &= expect(!hasCode(validateScene(smallPlatform), "scene.platform.capacity.invalid"),
+		"a platform that holds one passenger is accepted");
+	ok &= expect(std::abs(scenePlatformCapacity(kDefaultPlatformLengthM, kDefaultPlatformWidthM) - 99.47) < 0.01
+			&& ScenePlatform().lengthM == kDefaultPlatformLengthM
+			&& ScenePlatform().widthM == kDefaultPlatformWidthM,
+		"the default platform size holds about 99 passengers");
 	SceneModel nonFinitePassengerWindow = clean;
 	nonFinitePassengerWindow.passengers[0].journeys[0].plannedArrivalEndSeconds =
 		std::numeric_limits<double>::quiet_NaN();

@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SceneFields.h"
 
 #include <algorithm>
 #include <cctype>
@@ -318,6 +319,17 @@ bool resolveScenePassengerLegStops(const SceneService& service, const ScenePasse
 	return false;
 }
 
+SceneScenario makeBaselineScenario() {
+	SceneScenario baseline;
+	baseline.id = "baseline";
+	baseline.name = "Baseline";
+	return baseline;
+}
+
+double scenePlatformCapacity(double lengthM, double widthM) {
+	return lengthM * widthM / (3.14159 * std::pow(0.8, 2)) * 0.8;
+}
+
 SceneModel makeNewSceneModel() {
 	SceneModel scene;
 	scene.schemaVersion = kCurrentSceneSchemaVersion;
@@ -329,8 +341,9 @@ SceneModel makeNewSceneModel() {
 	scene.settings.bufferTimeSeconds = 0.0;
 	scene.settings.hasRecoveryTime = true;
 	scene.settings.recoveryTimePercent = 0.0;
-	scene.defaultScenarioId = "baseline";
-	scene.scenarios.push_back({"baseline", "Baseline", {}, {}, {}});
+	const SceneScenario baseline = makeBaselineScenario();
+	scene.defaultScenarioId = baseline.id;
+	scene.scenarios.push_back(baseline);
 	return scene;
 }
 
@@ -474,12 +487,8 @@ bool buildSceneComposition(const SceneModel& scene, const std::string& compositi
 }
 
 SceneScenario* defaultScenario(SceneModel& scene) {
-	if (scene.scenarios.empty()) {
-		SceneScenario baseline;
-		baseline.id = "baseline";
-		baseline.name = "Baseline";
-		scene.scenarios.push_back(baseline);
-	}
+	if (scene.scenarios.empty())
+		scene.scenarios.push_back(makeBaselineScenario());
 	if (scene.defaultScenarioId.empty())
 		scene.defaultScenarioId = scene.scenarios.front().id;
 	for (auto& scenario : scene.scenarios) {
@@ -1351,24 +1360,9 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 					} else {
 						const json& physical = value["physical"];
 						unit.hasPhysical = true;
-						numberField(physical, "mass_of_traction_unit_kg", "rolling_stock.json",
-							path + ".physical", unit.physical.mass_of_traction_unit_kg);
-						numberField(physical, "mass_of_a_wagon_kg", "rolling_stock.json",
-							path + ".physical", unit.physical.mass_of_a_wagon_kg);
-						numberField(physical, "number_of_wagons", "rolling_stock.json",
-							path + ".physical", unit.physical.number_of_wagons);
-						numberField(physical, "max_speed_ms", "rolling_stock.json",
-							path + ".physical", unit.physical.max_speed_ms);
-						numberField(physical, "max_deceleration_ms2", "rolling_stock.json",
-							path + ".physical", unit.physical.max_deceleration_ms2);
-						numberField(physical, "frontal_area_m2", "rolling_stock.json",
-							path + ".physical", unit.physical.frontal_area_m2);
-						numberField(physical, "resistance_coefficient", "rolling_stock.json",
-							path + ".physical", unit.physical.resistance_coefficient);
-						numberField(physical, "jerk_ms3", "rolling_stock.json",
-							path + ".physical", unit.physical.jerk_ms3);
-						numberField(physical, "length_m", "rolling_stock.json",
-							path + ".physical", unit.physical.length_m);
+						for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields)
+							numberField(physical, field.key, "rolling_stock.json", path + ".physical",
+								unit.physical.*field.member);
 					}
 				}
 				if (value.contains("traction_curve")) {
@@ -1583,9 +1577,7 @@ SceneLoadResult loadScene(const std::string& sceneDir) {
 			}
 		}
 	} else {
-		SceneScenario baseline;
-		baseline.id = "baseline";
-		baseline.name = "Baseline";
+		SceneScenario baseline = makeBaselineScenario();
 		result.scene.defaultScenarioId = baseline.id;
 		if (incidentsPresent && incidentsOk)
 			parseIncidentArray(incidentsJson, "incidents.json", "", baseline.incidents);

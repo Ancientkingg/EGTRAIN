@@ -1,4 +1,5 @@
 #include "scene/SceneWriter.h"
+#include "scene/SceneFields.h"
 #include "scene/StagedDirectory.h"
 
 #include <climits>
@@ -164,17 +165,10 @@ static bool copyExistingSceneContents(const fs::path& source, const fs::path& st
 }
 
 static json writePhysical(const SceneTrainPhysical& physical) {
-	return {
-		{"mass_of_traction_unit_kg", physical.mass_of_traction_unit_kg},
-		{"mass_of_a_wagon_kg", physical.mass_of_a_wagon_kg},
-		{"number_of_wagons", physical.number_of_wagons},
-		{"max_speed_ms", physical.max_speed_ms},
-		{"max_deceleration_ms2", physical.max_deceleration_ms2},
-		{"frontal_area_m2", physical.frontal_area_m2},
-		{"resistance_coefficient", physical.resistance_coefficient},
-		{"jerk_ms3", physical.jerk_ms3},
-		{"length_m", physical.length_m},
-	};
+	json value = json::object();
+	for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields)
+		value[field.key] = physical.*field.member;
+	return value;
 }
 
 static json writeTrainUnits(const SceneModel& scene) {
@@ -305,17 +299,14 @@ static json writeScenarioValue(const SceneScenario& scenario) {
 static json writeScenarios(const SceneModel& scene) {
 	json scenarios = json::array();
 	if (scene.scenarios.empty()) {
-		SceneScenario baseline;
-		baseline.id = "baseline";
-		baseline.name = "Baseline";
-		scenarios.push_back(writeScenarioValue(baseline));
+		scenarios.push_back(writeScenarioValue(makeBaselineScenario()));
 	} else {
 		for (const auto& scenario : scene.scenarios)
 			scenarios.push_back(writeScenarioValue(scenario));
 	}
 	std::string defaultId = scene.defaultScenarioId;
 	if (defaultId.empty())
-		defaultId = scene.scenarios.empty() ? "baseline" : scene.scenarios.front().id;
+		defaultId = scene.scenarios.empty() ? makeBaselineScenario().id : scene.scenarios.front().id;
 	return {{"default_scenario_id", defaultId}, {"scenarios", scenarios}};
 }
 
