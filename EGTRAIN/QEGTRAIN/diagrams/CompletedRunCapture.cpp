@@ -189,6 +189,7 @@ CompletedRunData captureCompletedRun(const SceneModel* scene, long long startOff
 		CompletedRoute captured;
 		captured.id = route.ID;
 		captured.corridor = route.corridor;
+		captured.reversedDirection = route.reversed_direction;
 		captured.blocks = blockSectionInputsForRoute(route);
 		captured.path = routeDiagramPath(route, scene);
 		data.routes.push_back(std::move(captured));

@@ -479,6 +479,7 @@ void compareCapture(const CapturedRun& run) {
 	for (std::size_t r = 0; r < data.routes.size() && r < train_route.size(); ++r) {
 		const CompletedRoute& route = data.routes[r];
 		check(route.id == train_route[r].ID && route.corridor == train_route[r].corridor, scene + ": route identity " + std::to_string(r));
+		check(route.reversedDirection == train_route[r].reversed_direction, scene + ": route direction " + std::to_string(r));
 		const auto inputs = blockSectionInputsForRoute(train_route[r]);
 		bool same = inputs.size() == route.blocks.size();
 		for (std::size_t b = 0; same && b < inputs.size(); ++b)
