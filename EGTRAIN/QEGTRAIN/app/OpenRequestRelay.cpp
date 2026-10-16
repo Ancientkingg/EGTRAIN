@@ -62,15 +62,17 @@ QString OpenRequestRelay::currentApplicationDir() {
 
 bool OpenRequestRelay::listen(const QString& serverName, const QString& applicationDir) {
 	m_applicationDir = applicationDir;
-	if (m_server.listen(serverName))
-		return true;
-	if (m_server.serverError() != QAbstractSocket::AddressInUseError)
-		return false;
-	// The name is held by a running instance, or by the socket file that a killed one left behind.
+	// A running instance answers on the name. Windows lets a second server listen on a pipe name
+	// that is in use, so the check comes before listen on every platform.
 	QLocalSocket probe;
 	probe.connectToServer(serverName);
 	if (probe.waitForConnected(kProbeTimeoutMs))
 		return false;
+	if (m_server.listen(serverName))
+		return true;
+	if (m_server.serverError() != QAbstractSocket::AddressInUseError)
+		return false;
+	// Nobody answers, so the name is held by the socket file that a killed instance left behind.
 	return QLocalServer::removeServer(serverName) && m_server.listen(serverName);
 }
 
