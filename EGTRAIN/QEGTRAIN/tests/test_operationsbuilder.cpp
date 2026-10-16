@@ -2103,6 +2103,174 @@ static bool passengerLookupTests() {
 	return ok;
 }
 
+// A passenger who waits at a platform for the second trip of a journey, which leaves at this time.
+static Passenger passengerWaitingAt(const std::string& id, const std::string& station, const std::string& platform, int departure) {
+	Passenger passenger;
+	passenger.ID = id;
+	passenger.IsIntheNetwork = true;
+	passenger.CurrentStatus = "OnPlatform";
+	passenger.Current_WaitingStationID = station;
+	passenger.Current_WaitingStationPlatformID = platform;
+	passenger.Current_Train_To_Wait = "T1";
+	passenger.current_JourneyID = "J1";
+	passenger.current_TripID = "A2";
+	Journey journey;
+	journey.ID = "J1";
+	Trip firstTrip;
+	firstTrip.TripID = "A1";
+	firstTrip.Actual_Departure_Time = departure + 100;
+	Trip secondTrip;
+	secondTrip.TripID = "A2";
+	secondTrip.Actual_Departure_Time = departure;
+	journey.Trips = {firstTrip, secondTrip};
+	passenger.Journeys.push_back(journey);
+	return passenger;
+}
+
+// The waiting count and list of one platform worked out with a scan of all passengers for that platform.
+static void scanWaitingList(StationPlatform& platform, const std::list<Passenger>& everyone) {
+	platform.Current_N_Passengers = 0;
+	platform.Current_List_Pax_On_Platform.clear();
+	for (const Passenger& passenger : everyone) {
+		if (!passenger.IsIntheNetwork || passenger.CurrentStatus != "OnPlatform" || passenger.Current_WaitingStationID != platform.StationID
+			|| passenger.Current_WaitingStationPlatformID != platform.ID)
+			continue;
+		platform.Current_N_Passengers++;
+		for (const Journey& journey : passenger.Journeys) {
+			if (journey.ID != passenger.current_JourneyID)
+				continue;
+			for (const Trip& trip : journey.Trips) {
+				if (trip.TripID == passenger.current_TripID) {
+					platform.Current_List_Pax_On_Platform.push_back(std::make_pair(passenger.ID, trip.Actual_Departure_Time));
+					break;
+				}
+			}
+		}
+	}
+	platform.Current_List_Pax_On_Platform.sort(orderPassengerListOnPlatform);
+}
+
+static std::string waitingIds(const std::list<std::pair<std::string, double>>& waiting) {
+	std::string ids;
+	for (const auto& entry : waiting)
+		ids += entry.first + " ";
+	return ids;
+}
+
+// The passengers waiting at a platform are counted and listed in the order of their departure times, for one platform and for all
+// platforms in one pass over the passengers. Without the passenger GUI a boarding train works from the list of its own platform.
+static bool passengerWaitingListTests() {
+	bool ok = true;
+	std::list<Passenger> passengers;
+	passengers.push_back(passengerWaitingAt("a1", "S1", "P1", 30));
+	passengers.push_back(passengerWaitingAt("a2", "S1", "P1", 10));
+	passengers.push_back(passengerWaitingAt("a3", "S1", "P1", 10));
+	passengers.push_back(passengerWaitingAt("b1", "S1", "P2", 5));
+	passengers.push_back(passengerWaitingAt("c1", "S2", "P1", 7));
+	passengers.push_back(passengerWaitingAt("x1", "S9", "P1", 1)); // at a platform that is not in the list
+	Passenger outside = passengerWaitingAt("d1", "S1", "P1", 1);
+	outside.IsIntheNetwork = false;
+	passengers.push_back(outside);
+	Passenger onBoard = passengerWaitingAt("d2", "S1", "P1", 1);
+	onBoard.CurrentStatus = "OnBoard";
+	passengers.push_back(onBoard);
+	Passenger withoutJourney = passengerWaitingAt("e1", "S1", "P1", 1);
+	withoutJourney.Journeys.clear();
+	passengers.push_back(withoutJourney);
+	Passenger otherTrip = passengerWaitingAt("e2", "S1", "P1", 1);
+	otherTrip.current_TripID = "A9";
+	passengers.push_back(otherTrip);
+	Passenger twoJourneys = passengerWaitingAt("f1", "S1", "P1", 20);
+	twoJourneys.Journeys.push_back(twoJourneys.Journeys.front());
+	passengers.push_back(twoJourneys);
+
+	const char* const stations[] = {"S1", "S1", "S2", "S3", "S1"};
+	const char* const platformIds[] = {"P1", "P2", "P1", "P1", "P1"};
+	std::list<StationPlatform> platforms(5);
+	{
+		std::size_t index = 0;
+		for (StationPlatform& platform : platforms) {
+			platform.StationID = stations[index];
+			platform.ID = platformIds[index];
+			platform.Current_N_Passengers = 7;
+			platform.Current_List_Pax_On_Platform = {{"old", 1.0}};
+			++index;
+		}
+	}
+
+	const WaitingAtPlatform first = passengersWaitingAtPlatform("S1", "P1", passengers);
+	ok &= expect(first.count == 6 && waitingIds(first.passengers) == "a2 a3 f1 f1 a1 ",
+		"the waiting passengers of a platform are counted and listed by departure time, in list order for equal times");
+	const WaitingAtPlatform nobody = passengersWaitingAtPlatform("S3", "P1", passengers);
+	ok &= expect(nobody.count == 0 && nobody.passengers.empty(), "a platform where nobody waits has no waiting passengers");
+	ok &= expect(std::all_of(platforms.begin(), platforms.end(),
+					 [](const StationPlatform& platform) {
+						 return platform.Current_N_Passengers == 7 && waitingIds(platform.Current_List_Pax_On_Platform) == "old ";
+					 }),
+		"working out the waiting passengers of a platform does not modify a platform");
+
+	Update_List_Passengers_Waiting_At_ALL_Platforms(platforms, passengers);
+	bool sameAsScan = true;
+	for (const StationPlatform& platform : platforms) {
+		StationPlatform scanned = platform;
+		scanWaitingList(scanned, passengers);
+		sameAsScan &= platform.Current_N_Passengers == scanned.Current_N_Passengers
+			&& platform.Current_List_Pax_On_Platform == scanned.Current_List_Pax_On_Platform;
+	}
+	ok &= expect(sameAsScan, "one pass over the passengers gives every platform the count and list of a scan for that platform");
+	const std::vector<StationPlatform> updated(platforms.begin(), platforms.end());
+	ok &= expect(updated[0].Current_N_Passengers == 6 && waitingIds(updated[0].Current_List_Pax_On_Platform) == "a2 a3 f1 f1 a1 "
+			&& updated[1].Current_N_Passengers == 1 && waitingIds(updated[1].Current_List_Pax_On_Platform) == "b1 "
+			&& updated[2].Current_N_Passengers == 1 && waitingIds(updated[2].Current_List_Pax_On_Platform) == "c1 ",
+		"platforms get the waiting passengers of their station and platform");
+	ok &= expect(updated[3].Current_N_Passengers == 0 && updated[3].Current_List_Pax_On_Platform.empty(),
+		"a platform where nobody waits loses its previous list and count");
+	ok &= expect(updated[4].Current_N_Passengers == updated[0].Current_N_Passengers
+			&& updated[4].Current_List_Pax_On_Platform == updated[0].Current_List_Pax_On_Platform,
+		"platforms with the same IDs get the same waiting passengers");
+	std::list<StationPlatform> noPlatforms;
+	Update_List_Passengers_Waiting_At_ALL_Platforms(noPlatforms, passengers);
+	ok &= expect(noPlatforms.empty(), "no platforms are made for the waiting passengers");
+
+	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the list worked out for the platform.
+	std::list<Passenger> savedPassengers;
+	savedPassengers.swap(AllDailyPassengers);
+	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
+	AllDailyPassengerIndex.clear();
+	const bool savedPaxGui = initial_variables.PAX_GUI;
+	initial_variables.PAX_GUI = false;
+	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+
+	AllDailyPassengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
+	StationPlatform stop;
+	stop.StationID = "S1";
+	stop.ID = "P1";
+	stop.Current_N_Passengers = 5;
+	stop.Current_List_Pax_On_Platform = {{"Pa", 0.0}, {"Pb", 0.0}};
+	const std::list<StationPlatform> stopPlatforms = {stop};
+	Train train;
+	train.StoppedForServiceStop = true;
+	train.trainDescription = "T1";
+	train.CurrentServiceStop = "S1";
+	train.CurrentServiceStopPlatform = "P1";
+	train.MAX_OnBoard_Passengers = 1;
+	train.Current_OnBoard_Passengers = 0;
+	Simulate_Train_Passenger_Interactions(10, 0, train, AllDailyPassengers, stopPlatforms);
+	std::string boarded;
+	for (const Passenger& passenger : AllDailyPassengers)
+		if (passenger.CurrentStatus == "OnBoard")
+			boarded += passenger.ID + " ";
+	ok &= expect(boarded == "Pb ", "without the passenger GUI passengers board in the order of departure times");
+	ok &= expect(stopPlatforms.front().Current_N_Passengers == 5 && waitingIds(stopPlatforms.front().Current_List_Pax_On_Platform) == "Pa Pb ",
+		"without the passenger GUI the shared platform is not given the waiting passengers");
+
+	eglog::setSink({});
+	initial_variables.PAX_GUI = savedPaxGui;
+	AllDailyPassengers.swap(savedPassengers);
+	AllDailyPassengerIndex = savedPassengerIndex;
+	return ok;
+}
+
 // Block sections of 2 km on the heap, in an array of exactly n, so that a sanitizer reports an
 // access before the first or after the last section. The speed limit and the train length are
 // the ones of the characterization line scene.
@@ -3950,6 +4118,7 @@ int main() {
 	}
 	ok &= passengerRateTests();
 	ok &= passengerLookupTests();
+	ok &= passengerWaitingListTests();
 	ok &= brakingPointTests();
 	ok &= brakingCurveTests();
 	ok &= forwardBrakingTests();
