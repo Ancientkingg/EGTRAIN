@@ -125,7 +125,8 @@
       "description": "A change in the life of the run.",
       "oneOf": [
         { "$ref": "#/$defs/stepsFinished" },
-        { "$ref": "#/$defs/runFinished" }
+        { "$ref": "#/$defs/runFinished" },
+        { "$ref": "#/$defs/commandEvent" }
       ]
     },
     "stepsFinished": {
@@ -151,6 +152,24 @@
         "kind": { "const": "run_finished" },
         "step": { "type": "integer", "minimum": 0, "description": "Number of steps that have run." },
         "status": { "enum": ["completed", "cancelled"], "description": "cancelled when the run was stopped before its last step." }
+      }
+    },
+    "commandEvent": {
+      "type": "object",
+      "description": "The outcome of a command that a client sent to the command socket and the server accepted. applied: the run takes the command before the next step. rejected: the run did not take it, and reason says why.",
+      "required": ["v", "run_id", "seq", "kind", "step", "command_id", "cmd"],
+      "properties": {
+        "v": { "$ref": "#/$defs/version" },
+        "run_id": { "$ref": "#/$defs/runId" },
+        "seq": { "$ref": "#/$defs/seq" },
+        "kind": { "enum": ["applied", "rejected"] },
+        "step": { "type": "integer", "minimum": 0, "description": "Number of steps that have run when the command took effect, or was turned down." },
+        "command_id": { "type": "string", "description": "The id that the client gave the request." },
+        "cmd": { "enum": ["pause", "resume", "stop", "set_delay_ms"], "description": "The command of the request." },
+        "reason": {
+          "enum": ["run_ended", "no_active_run", "queue_full"],
+          "description": "Only on rejected. run_ended: the run ended before it could take the command. no_active_run: the command arrived while no run was going on. queue_full: the run already held 16 commands that it had not applied."
+        }
       }
     }
   }

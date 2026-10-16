@@ -25,7 +25,7 @@ This page describes the code as it is. Function names are given so that a mainta
 
 `DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and before the signalling clean-up of the same step. The traffic-state message goes first.
 
-At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a `RunControl` (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the `SimulationWorker`, which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. Nothing in the application requests a pause or a stop for that control or submits a command to it. In a window run the step loop runs on the worker thread (`MainWindow::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
+At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a `RunControl` (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the `SimulationWorker`, which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (`MainWindow::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
 
 Before each send, the XML text of the message is printed to standard output, whether or not the send succeeds. It follows the line `Sending the following Traffic State XML file` or `Sending the following Route Choice XML file`. A reply is printed as `Received from <endpoint>:<reply>`. The step loop ignores the result of `send_external_state`.
 
@@ -115,7 +115,7 @@ routeChoiceRequest            currentTime
 - `read_rttp_train_view` and `read_rttp_infra_view` in `io/RttpXml.cpp` read an RTTP XML text and print what they find to standard output. The application does not call them. Only `tests/test_rttp.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
 - The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
 - Without `--live` the application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is printed and not used. The live server below binds sockets, and only a start with `--live` creates it. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
-- The window controls for pause, stop and speed exist only for a run in the window.
+- The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see [Commands](#commands)).
 
 ## Live stream
 
@@ -143,6 +143,7 @@ Each run begins with a new run id, 16 hexadecimal digits from `std::random_devic
 | `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
 | `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
 | `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |
+| `event` `applied`, `rejected` | when the run takes a command, or turns it down; see [Commands](#commands) | `command_id`, `cmd` and, for `rejected`, `reason` |
 
 `run_finished` means that the stages of `runSimulation` have ended. It does not mean that the output folder is complete: `printLastTrainServicePathDiagram` writes `TrainTrajectories/` after `runSimulation` returns (in `main` for a headless run, in the handler of `executionReturned` for a window run), and a window run does more end-of-run work there. A client must not read the output folder on this event.
 
@@ -154,7 +155,7 @@ A state frame is made for a sampled step only. The snapshot of a step comes from
 
 ### Threads and loss
 
-- The thread that runs the steps (the worker thread of a window run, the main thread of a `-g 0` run) makes the text of each frame and passes it to `pushHello`, `pushState` or `pushEvent`. It never calls ZeroMQ and never waits for a socket, a subscriber or a client, so a stream that nobody reads, a client that leaves and a client that is slow do not slow a run beyond the cost of making the frames. `seq` is given by that thread alone.
+- The thread that runs the steps (the worker thread of a window run, the main thread of a `-g 0` run) makes the text of each frame and passes it to `pushHello`, `pushState` or `pushEvent`, and takes the commands with `tryPopCommand`. It never calls ZeroMQ and never waits for a socket, a subscriber or a client, so a stream that nobody reads, a client that leaves and a client that is slow do not slow a run beyond the cost of making the frames. `seq` is given by that thread alone.
 - `startLive` and `stopLive` are called while no run goes on. A new run in the same process (a second run in the window) gets a new run id and a new hello, and the subscribers stay connected.
 - The live server keeps 8 state frames. A run that makes frames faster than the I/O thread sends them (a few thousand frames a second) loses the oldest, and the gap shows in `seq`. `hello` and `event` frames are never dropped to make room for a state frame. The scripted window run of the 600-step Assignment scene is fast enough to lose frames at an interval of 10, and loses none at an interval of 100.
 - A subscriber that joins after the hello has not seen it. With `--live-commands` it sends `describe`, and the server publishes the hello of the latest run again. Without commands it waits for the next run, or reads state frames without a hello.
@@ -183,15 +184,36 @@ The service id and occurrence of a train are part of the layout that the replay 
 
 ### Commands
 
-With `--live-commands` the server also answers `describe`, `pause`, `resume`, `stop` and `set_delay_ms` as described under [Requests](#requests). Only `describe` has an effect on a run in this version. The other requests are checked and queued, and nothing in a run reads the queue, so their replies say `accepted` and the run is not changed. After 16 of them the server answers `queue_full`.
+With `--live-commands` the server also answers `describe`, `pause`, `resume`, `stop` and `set_delay_ms` as described under [Requests](#requests), and the run takes the four commands that control it. None of them changes the railway: they change when the steps run, or end the run. A run that receives only `pause`, `resume` and `set_delay_ms` gives the same result files, the same standard output and the same state at every step as a run that receives nothing.
+
+| Command | Effect |
+| --- | --- |
+| `pause` | The run stops at the top of the step and waits. No step runs and no state frame is made. |
+| `resume` | Ends a pause. The run goes on with the step at which it stopped. Without a pause it changes nothing. |
+| `stop` | Ends the run as the Stop button of the window does: `steps_finished` with the steps that ran, then `run_finished` with the status `cancelled`. The stages after the steps are skipped, so the energy, delay and blocking-time files are not written. A headless run still ends with exit code 0. |
+| `set_delay_ms` | Sets the time that the run waits at the top of each step, in milliseconds from 0 to 1000. A window run does not show it on its speed slider. |
+
+- The effect point is the top of a step. `Train_Simulation_Mixed_Signalling_With_Passengers` calls `RunControl::beginStep` with a function that takes the accepted commands from the server (`tryPopCommand`) and submits them to the control, in the order in which the server accepted them. `beginStep` applies them before any train moves. A paused run calls the function again every 50 ms, so a `resume` or a `stop` reaches it. A command never acts in the middle of a step.
+- Each command is reported as an `event` frame, made by the thread of the run. `applied` means that the run takes the command before the next step; `step` is the number of steps that have run then. `rejected` means that it does not take it, and `reason` says why:
+
+| Reason | The command |
+| --- | --- |
+| `run_ended` | was still waiting when the steps of the run ended. This includes a command that arrives while the result files are written. The frame comes before `steps_finished`, or before `run_finished` for a command that arrived later. |
+| `no_active_run` | was accepted while no run went on, before the first run or between two runs. The frame comes right after the hello of the next run, so the command never reaches that run. |
+| `queue_full` | found 16 commands in the control that it had not applied yet. |
+
+- Both frames carry `command_id`, the id that the client gave the request, and `cmd`, the name of the command. The members are in `docs/live/frame-v1.schema.json`.
+- The accepted reply of the server means only that the command is queued. A client that needs to know that the run took it waits for the event with its `command_id`.
+- A window run has the same control, so a command works there as well. A command does not change the buttons of the window: a run that a client has paused shows the buttons of a running run.
 
 ### A client and its test
 
-`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. The comment at the top of the file lists the options.
+`tests/live_client.cpp` is a small client with cppzmq and nlohmann-json and nothing else. It reads `live-endpoint.json`, subscribes to the state endpoint, sends `describe` until the hello of the run arrives when the file names a command endpoint, and checks each frame it reads against what this page promises: the version, one run id for a run, a `seq` that increases, steps that increase, a time axis that agrees with the hello, and an occurrence of each train that is counted from 1. It writes one JSON line for each run it saw and exits with 1 on the first broken promise. With `--set-delay-ms <ms>` it also sends one `set_delay_ms` request as soon as it has the hello of a run, and the line of that run holds the reply of the server (`command`: the status and, for a rejection, the reason) and the `applied` and `rejected` events of the run. The comment at the top of the file lists the options.
 
 `test_live_stream_smoke` (`tools/e2e/live_stream_smoke.py`, integration) starts the application and the client and runs these cases:
 
 - A headless Paimpol run that the client follows from start to end, and a run without `--live`: the two output folders are equal file by file, except `Computing_Times.txt`, the standard output is equal, and no endpoint file is left.
+- A client that sends `set_delay_ms` with `--set-delay-ms`: the server accepts it, the run reports one `applied` event for it, and the output folder and the standard output are equal to those of a run without `--live`. A delay above the limit is answered with `bad_argument`, and the run reports no event for it.
 - A client that leaves after 3 frames, in the first half of the run, and a run that no client reads: the same equality.
 - A headless run of the whole Assignment scene, which repeats each of its services: the trains of the hello differ in service id and occurrence. The hello of every run that a case reads names the start time of its scene and trains that are services of that scene.
 - A window run (`QEGTRAIN_AUTOSTART`) and a client that connects after the run has ended: it gets the hello of that run and no state frame, and the application goes on.
@@ -260,7 +282,7 @@ The checks run in this order, and the first that fails gives the reason:
 | `queue_full` | is valid, and 16 commands already wait. |
 | `no_active_run` | is `describe`, and no hello was pushed since the server started. |
 
-A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The owner of the server takes the commands with `tryPopCommand`, which never waits, and applies them; `DispatchController` does not call it (see [Commands](#commands)). `describe` is not queued: the hello is published before the reply is sent.
+A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The owner of the server takes the commands with `tryPopCommand`, which never waits, and applies them; `DispatchController` does this at the top of each step (see [Commands](#commands)). `describe` is not queued: the hello is published before the reply is sent.
 
 A message of more than 64 KiB closes the connection of the client that sent it, without a reply. Parts after the first part of a request are ignored.
 
@@ -277,7 +299,9 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 - `test_route_choice_missing_data` (integration) starts the `Assignment_Gvc_Gdg_Ut` scene with `-RC 1` and expects the diagnostic `scene.route_choice.passengers.none`.
 - `test_operationsbuilder` checks `routeChoicePayload`.
 - `test_liveserver` (unit) starts a `LiveServer` in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for `describe` until the hello arrives, not by waiting.
+- `test_livecommand` (unit) checks `parseLiveRequest` (`io/LiveCommand.h`) on every request that the contract names: each accepted command, each reason, the limits of the size, the id and the delay, the order of the checks, and the id that comes back. It also checks the event frame that reports a command. It uses no socket, thread or run.
+- `test_livereplay` (integration) plays the commands of the JSON-lines files in `tests/live/commands` against the line fixture in the test process. A `LiveServer` with commands takes the requests, which the test sends through a REQ socket from the thread of the run just before the step each line names, and a reader on another thread follows the stream. The test compares a run that receives `pause`, `resume` and `set_delay_ms` with a run that receives nothing: the same files, standard output and state at each of the 1500 steps. It checks the events with their step numbers, that no state frame comes while the run is paused, a `stop` before step 100 (`cancelled`, 100 steps), a command that arrives before the run (`no_active_run`), a command that arrives after the last step (`run_ended`) and a full control (`queue_full`). It also checks the `fetchCommands` argument of `RunControl::beginStep`.
 - `test_live_stream_smoke` (integration) runs the application with `--live` and reads the stream with `live_client`; see [A client and its test](#a-client-and-its-test).
 - No test covers the traffic-state JSON that the step loop builds.
 
-The library `egtrain_rttp` is built from two sources. `io/RttpXml.cpp` holds the two XML builders and the two RTTP readers, which `io/RttpXml.h` declares. `io/ExternalState.cpp` holds the sender, which `io/ExternalState.h` declares as `send_external_state`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.
+The library `egtrain_rttp` is built from two sources. `io/RttpXml.cpp` holds the two XML builders and the two RTTP readers, which `io/RttpXml.h` declares. `io/ExternalState.cpp` holds the sender, which `io/ExternalState.h` declares as `send_external_state`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveCommand.cpp`, `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.

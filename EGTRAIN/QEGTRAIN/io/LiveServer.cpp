@@ -75,16 +75,6 @@ std::string makeToken() {
 	return token;
 }
 
-// Compares in a time that depends on the length only.
-bool sameText(const std::string& a, const std::string& b) {
-	if (a.size() != b.size())
-		return false;
-	unsigned char difference = 0;
-	for (std::size_t i = 0; i < a.size(); ++i)
-		difference = static_cast<unsigned char>(difference | (a[i] ^ b[i]));
-	return difference == 0;
-}
-
 // Creates the file before it holds the token and lets only its owner read it.
 bool writeEndpointFile(const fs::path& file, const json& content, std::string& error) {
 	std::ofstream out(file, std::ios::binary | std::ios::trunc);
@@ -253,11 +243,13 @@ private:
 
 	// Checks one request and acts on it. Returns the reply.
 	std::string judge(std::string_view text) {
-		json id = nullptr;
-		const char* reason = check(text, id);
+		const LiveRequest request = parseLiveRequest(text, m_token);
+		const char* reason = request.reason;
+		if (!reason)
+			reason = request.describe ? describe() : enqueue(request.command);
 		json reply = json::object();
 		reply["v"] = kLiveContractVersion;
-		reply["id"] = id;
+		reply["id"] = request.id ? json(*request.id) : json(nullptr);
 		reply["status"] = reason ? "rejected" : "accepted";
 		if (reason)
 			reply["reason"] = reason;
@@ -266,47 +258,6 @@ private:
 			reply["run_id"] = m_state.hello ? json(m_state.helloRunId) : json(nullptr);
 		}
 		return reply.dump(-1, ' ', false, json::error_handler_t::replace);
-	}
-
-	// Returns the reason to reject the request, or null when it is accepted. id is the id of the
-	// request once it is known to be valid.
-	const char* check(std::string_view text, json& id) {
-		if (text.size() > kLiveMaxRequestBytes)
-			return "too_large";
-		const json request = json::parse(text.begin(), text.end(), nullptr, false);
-		if (!request.is_object())
-			return "bad_json";
-		const auto version = request.find("v");
-		if (version == request.end() || !version->is_number_integer() || *version != kLiveContractVersion)
-			return "bad_version";
-		const auto requestId = request.find("id");
-		if (requestId == request.end() || !requestId->is_string() || requestId->get_ref<const std::string&>().size() > kLiveMaxRequestIdBytes)
-			return "bad_argument";
-		id = *requestId;
-		const auto token = request.find("token");
-		if (token == request.end() || !token->is_string() || !sameText(token->get_ref<const std::string&>(), m_token))
-			return "bad_token";
-		const auto command = request.find("cmd");
-		if (command == request.end() || !command->is_string())
-			return "unknown_command";
-		const std::string& name = command->get_ref<const std::string&>();
-		if (name == "describe")
-			return describe();
-		if (name == "pause")
-			return enqueue({LiveCommandKind::Pause, id.get<std::string>(), 0});
-		if (name == "resume")
-			return enqueue({LiveCommandKind::Resume, id.get<std::string>(), 0});
-		if (name == "stop")
-			return enqueue({LiveCommandKind::Stop, id.get<std::string>(), 0});
-		if (name != "set_delay_ms")
-			return "unknown_command";
-		const auto args = request.find("args");
-		if (args == request.end() || !args->is_object())
-			return "bad_argument";
-		const auto delay = args->find("delay_ms");
-		if (delay == args->end() || !delay->is_number_integer() || *delay < 0 || *delay > kLiveMaxDelayMs)
-			return "bad_argument";
-		return enqueue({LiveCommandKind::SetDelayMs, id.get<std::string>(), delay->get<int>()});
 	}
 
 	// Publishes the latest hello again, so that a subscriber that has just connected gets it.

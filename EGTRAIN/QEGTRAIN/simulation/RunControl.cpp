@@ -61,10 +61,14 @@ void RunControl::applyQueuedCommands() {
 	}
 }
 
-bool RunControl::beginStep() {
+bool RunControl::beginStep(const std::function<void()>& fetchCommands) {
+	if (fetchCommands)
+		fetchCommands();
 	applyQueuedCommands();
 	while (m_pause && !m_stop) {
 		std::this_thread::sleep_for(kPauseCheckInterval);
+		if (fetchCommands)
+			fetchCommands();
 		applyQueuedCommands();
 	}
 	if (m_stop)

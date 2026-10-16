@@ -66,9 +66,11 @@ public:
 
 	// Starts the live stream (see io/LiveServer.h): every run that follows publishes a hello frame, a state
 	// frame for every every-th step and the events of its end, and the stream outlives the runs. The endpoint
-	// file goes to endpointDirectory. Call this before prepareScene and while no run is going on. Returns false
-	// with the reason in *error when the server cannot start. A process that never calls it has no server, no
-	// thread and no socket, and its runs build nothing for the stream.
+	// file goes to endpointDirectory. With commands, the commands that clients send (pause, resume, stop and
+	// set_delay_ms) are handed to the control of the run at the top of each step, also while the run is
+	// paused, and each is reported as an applied or rejected event. Call this before prepareScene and while no
+	// run is going on. Returns false with the reason in *error when the server cannot start. A process that
+	// never calls it has no server, no thread and no socket, and its runs build nothing for the stream.
 	bool startLive(int port, int every, bool commands, const std::filesystem::path& endpointDirectory, std::string* error = nullptr);
 	// Sends the frames that are still queued and ends the stream. Call this while no run is going on.
 	void stopLive();

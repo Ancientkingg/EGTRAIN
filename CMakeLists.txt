@@ -213,8 +213,9 @@ target_link_libraries(egtrain_rttp
     PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
     PRIVATE cppzmq)
 
-# No Qt: the frames of the live contract, built from a GuiSimulationSnapshot, and the server that publishes them.
-add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveFrame.cpp ${SRC_DIR}/io/LiveServer.cpp)
+# No Qt: the frames of the live contract, built from a GuiSimulationSnapshot, the checks on the requests of its clients,
+# and the server that publishes the frames and takes the requests.
+add_library(egtrain_live STATIC ${SRC_DIR}/io/LiveCommand.cpp ${SRC_DIR}/io/LiveFrame.cpp ${SRC_DIR}/io/LiveServer.cpp)
 target_link_libraries(egtrain_live
     PUBLIC nlohmann_json::nlohmann_json
     PRIVATE egtrain_util cppzmq Threads::Threads)
@@ -791,6 +792,22 @@ if(EGTRAIN_BUILD_TESTS)
             --expect ${SRC_DIR}/tests/live/expected
             --schema ${CMAKE_CURRENT_SOURCE_DIR}/docs/live/frame-v1.schema.json)
     set_tests_properties(test_liveframe PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
+
+    # Checks the requests of the command socket and the event frame that reports a command. No socket, thread or run.
+    add_executable(test_livecommand ${SRC_DIR}/tests/test_livecommand.cpp)
+    target_link_libraries(test_livecommand PRIVATE egtrain_live nlohmann_json::nlohmann_json)
+    add_test(NAME test_livecommand COMMAND test_livecommand)
+    set_tests_properties(test_livecommand PROPERTIES TIMEOUT 120)
+
+    # Replays the commands of a live client against the line fixture in this process, and compares the results with
+    # those of a run without commands.
+    add_executable(test_livereplay ${SRC_DIR}/tests/test_livereplay.cpp)
+    target_link_libraries(test_livereplay PRIVATE egtrain_live egtrain_dispatch egtrain_rttp egtrain_sim cppzmq Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_livereplay
+        COMMAND test_livereplay
+            --fixture ${SRC_DIR}/tests/fixtures/scenes/line
+            --script ${SRC_DIR}/tests/live/commands)
+    set_tests_properties(test_livereplay PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 180)
 
     # Starts the live server in this process and talks to it through ZeroMQ sockets on the loopback address.
     add_executable(test_liveserver ${SRC_DIR}/tests/test_liveserver.cpp)
@@ -1455,7 +1472,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
 			test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
-			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_liveserver live_client)
+			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_livecommand test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
 
@@ -1482,7 +1499,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_liveframe test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis
+		test_guisimulationsnapshot test_liveframe test_livecommand test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
@@ -1499,7 +1516,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
-		test_route_choice_missing_data test_external_sharing_no_listener test_live_stream_smoke test_scene_tool_diagnostics
+		test_route_choice_missing_data test_external_sharing_no_listener test_livereplay test_live_stream_smoke test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke

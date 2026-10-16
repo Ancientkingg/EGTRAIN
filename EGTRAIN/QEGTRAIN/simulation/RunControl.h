@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -57,7 +58,11 @@ public:
 	// The top of a step. Applies the waiting commands, waits while the run is paused (and applies the
 	// commands that arrive meanwhile), then sleeps for the step delay. Returns false when the run is
 	// to stop; the delay is not waited for then.
-	bool beginStep();
+	//
+	// fetchCommands, when it is given, is called before the waiting commands are applied, also after
+	// each wait of a pause. It lets the owner of the run submit commands that come from another
+	// source, which a paused run could not otherwise take.
+	bool beginStep(const std::function<void()>& fetchCommands = {});
 
 private:
 	std::atomic<bool> m_stop{false};
