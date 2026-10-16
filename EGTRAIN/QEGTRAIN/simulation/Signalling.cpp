@@ -1902,6 +1902,10 @@ void Route::adjustRouteAcrossDiffRegions() {
 		}
 	}
 
+	// The first section does not move, so only the end of the route follows the sections that did.
+	if (N_Block_Sections > 0)
+		x_of_end_node = sequence_of_block_sections[N_Block_Sections - 1].end_node.X;
+
 	// std::cout << "JumpX: " << diffRegionsJumpX.first << " and " << diffRegionsJumpX.second << std::endl;
 }
 

@@ -54,7 +54,7 @@ focused smoke.
 
 | Case | Runtime trains baseline / native | Representative | End baseline → native | Arrivals baseline → native | Allowed end tolerance |
 | --- | ---: | --- | --- | --- | --- |
-| Netherlands | 40 / 40 | `SPR_2-1` | `(7999, 1252.38)` → `(7999, 1249.61)` | `(132, 847)` → `(135, 1179)` | 0 s, 100 m |
+| Netherlands | 40 / 40 | `SPR_2-1` | `(7999, 1252.38)` → `(1278, 1253.65)` | `(132, 847)` → `(135, 1179)` | 0 s, 100 m (around the native end) |
 | Paimpol | 2 / 2 | `Guin-Paim-EXPRESS-1-1` | `(2571, 37081.3)` → `(2789, 37076.9)` | `(43, 2558)` → `(36, 2705)` | 250 s, 10 m |
 | Copenhagen | 196 / 196 | `F-Hellerup-NyEllebjerg-2-1` | `(934, 37943.0)` → `(1877, 37951.9)` | `(367, 927)` → `(364, 1819)` | 950 s, 10 m |
 | Milano-Brescia | 65 / 65 | `201-1` | `(3673, 78768.2)` → `(3999, 59846.0)` | `(1855, 3666)` → `(1855, none)` | 0 s, 0.1 m |
@@ -64,12 +64,12 @@ legacy output recorded arrival and departure at the same instant through
 intermediate stops. The native path honors the canonical planned times and
 dwell values, so it reaches the same ordered stations and route endpoint later.
 The tolerances cover the observed scheduling correction while keeping the
-path endpoint tight. `SPR_2-1` of the Netherlands scene runs on `route1`, which
-crosses a regional coordinate jump (`scene.route.region_jump`). The end node of
-such a route is taken before its sections are moved to one reference, so the
-train never passes it: after its last stop it drives on, stops just past the
-end of its last section and stays there to the horizon. Its final position and
-five-stop sequence are compared instead of inventing a completion time.
+path endpoint tight. The legacy `SPR_2-1` of the Netherlands scene stood at
+its last stop until the horizon, because that stop had a planned departure of
+90,000 s. The native scene has no planned departure there, so the train leaves
+the stop after its dwell and is removed when its head passes the end of its
+route. That is its end at 1278 s, and the smoke compares that position and the
+five-stop sequence.
 
 The Milano-Brescia scene has a network-wide fixed block area. Train
 `48363-48362-48363-1` reaches Rovato at 1988 s and stands there on the through

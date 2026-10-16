@@ -942,6 +942,45 @@ static bool runRouteStorageChecks() {
 	return ok;
 }
 
+// A train leaves the network when its head passes the end of its route, so the end must lie where the last section ends, also when the
+// sections after a jump of the km reference were moved to one reference.
+static bool runRouteEndChecks() {
+	bool ok = true;
+	const auto spansSections = [](const Route& route, double start, double end) {
+		return route.N_Block_Sections > 0
+			&& std::fabs(route.x_of_start_node - start) < 1e-9 && std::fabs(route.x_of_end_node - end) < 1e-9
+			&& route.x_of_start_node == route.sequence_of_block_sections.front().start_node.X
+			&& route.x_of_end_node == route.sequence_of_block_sections.back().end_node.X;
+	};
+
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(tinyScene());
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().diffRegionsJumpX.first == 0
+			&& spansSections(train_route.front(), 0.0, 2.0),
+		"a route without a jump ends where its last section ends");
+
+	SceneModel reversed = tinyScene();
+	reversed.routes.front().blocks = {"block.b", "block.a"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(reversed);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
+			&& train_route.front().diffRegionsJumpX.first == 0 && spansSections(train_route.front(), 0.0, 2.0),
+		"a reversed route without a jump ends where its last section ends");
+
+	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().diffRegionsJumpX.first != 0
+			&& spansSections(train_route.front(), 0.0, 4.0),
+		"a route across a jump ends where its last section ends after the shift");
+
+	SceneModel reversedRegions = multiRegionRouteScene();
+	reversedRegions.routes.front().blocks = {"c.block", "b.block", "a.block"};
+	diagnostics = buildInfrastructureAndSignallingFromScene(reversedRegions);
+	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
+			&& train_route.front().diffRegionsJumpX.first != 0 && spansSections(train_route.front(), 0.0, 4.0),
+		"a reversed route across a jump ends where its last section ends after the shift");
+
+	resetNativeInfrastructureState();
+	return ok;
+}
+
 // The sample objects give every member that the copy operators copy a value of its own, different from the constructor default.
 static void fillNode(Node& n, double id) {
 	double* numbers[] = {&n.X, &n.Y, &n.dwellTime, &n.StopTime, &n.arcSpeedLimit, &n.tdsbGeoCoordX, &n.tdsbGeoCoordY, &n.latitude, &n.longitude, &n.graphX, &n.graphY};
@@ -2056,6 +2095,7 @@ int main() {
 	ok &= runLongTrackChecks();
 	ok &= runManySectionsChecks();
 	ok &= runRouteStorageChecks();
+	ok &= runRouteEndChecks();
 	ok &= runValueSemanticsChecks();
 	ok &= runTrackDetectionBorderNameChecks();
 	ok &= runSignallingMessageChecks();
