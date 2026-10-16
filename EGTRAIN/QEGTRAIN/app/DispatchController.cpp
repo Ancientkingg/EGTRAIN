@@ -23,6 +23,8 @@
 #include <cstdlib>
 #include <cstring>
 
+using namespace std;
+
 namespace {
 void ensureDirectory(const string& path) {
 	if (!path.empty()) {

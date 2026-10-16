@@ -9,6 +9,8 @@
 #include <optional>
 #include <vector>
 
+using namespace std;
+
 extern InitialParameters initial_variables;
 
 namespace {

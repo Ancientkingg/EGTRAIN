@@ -1,5 +1,7 @@
 #include "simulation/Optimisation.h"
 
+using namespace std;
+
 // Defining parameters for defining timetabling: Running time recovery and buffer time
 double recoveryTimePercentage = 0;
 double bufferTime = 0;

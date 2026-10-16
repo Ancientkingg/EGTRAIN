@@ -7,15 +7,14 @@
 #include <unordered_map>
 #include <vector>
 
-using namespace std;
 
 // this is a class to specify a trip with no transfers from a given origin to destination in a given time frame of a passenger or freight item ( e.g. pallet, parcel, container)
 class Trip {
 public:
-	string TripID, Dep_Station_ID, Arr_Station_ID, Trip_Activity_Type; // TripID is the ID of the Trip, DepStationID is the ID of the departing station, Arr_StationID is the ID of the arrival station while Trip_Activity_Type represents the motivation of the trip (e.g. Work, leisure, etc.)
-	string JourneyID;												   // this is the ID of the journey the trip belongs to
-	string Dep_Station_Platform_ID, Arr_Station_Platform_ID;		   // ID of the platforms used respectively at the departure and arrival stations of the trip
-	string TrainServiceDescription;
+	std::string TripID, Dep_Station_ID, Arr_Station_ID, Trip_Activity_Type; // TripID is the ID of the Trip, DepStationID is the ID of the departing station, Arr_StationID is the ID of the arrival station while Trip_Activity_Type represents the motivation of the trip (e.g. Work, leisure, etc.)
+	std::string JourneyID;													// this is the ID of the journey the trip belongs to
+	std::string Dep_Station_Platform_ID, Arr_Station_Platform_ID;			// ID of the platforms used respectively at the departure and arrival stations of the trip
+	std::string TrainServiceDescription;
 	int Planned_Departure_Time, Planned_Arrival_Time, Actual_Departure_Time, Actual_Arrival_Time; // Planned times of departure and arrivals of the trip and Actual times of departure and arrival of the trip
 	int totalArrivalDelay;
 	bool IsTripStarted, IsTripCompleted; // These variables are true if the trip has started or ended respectively.
@@ -32,12 +31,12 @@ public:
 // this class is to specify a Journey which is composed of a collection of trips, hence might include multiple intermediate transfers to move from an origin to a destination
 class Journey {
 public:
-	string ID, Dep_Station_ID, Arr_Station_ID, Journey_Activity_Type;												 // ID is the Identification of the Journey, DepStationID is the ID of the departing station, Arr_StationID is the ID of the arrival station while Journey_Activity_Type represents the motivation of the Journey(e.g. Work, leisure, etc.)
-	string Dep_Station_Platform_ID, Arr_Station_Platform_ID;														 // ID of the platforms used respectively at the departure and arrival stations of the Journey
+	std::string ID, Dep_Station_ID, Arr_Station_ID, Journey_Activity_Type;											 // ID is the Identification of the Journey, DepStationID is the ID of the departing station, Arr_StationID is the ID of the arrival station while Journey_Activity_Type represents the motivation of the Journey(e.g. Work, leisure, etc.)
+	std::string Dep_Station_Platform_ID, Arr_Station_Platform_ID;													 // ID of the platforms used respectively at the departure and arrival stations of the Journey
 	double Planned_Departure_Time, Planned_Arrival_Time, Actual_Planned_Departure_Time, Actual_Planned_Arrival_Time; // Planned times of departure and arrivals of the trip and Actual times of departure and arrival of the journey
 	double Actual_Departure_Time, Actual_Arrival_Time;																 // Actual Arrival Time and Actual Departure time are the simulated arrival and departure times of a journey for a passenger ( these are different from the Actual_Planned_Arrival_Times and the Actual_Planned_Departure_Times which instead randomise the Planned time window given by the DAS)
 	int N_Trips;																									 // total number of Trips (or also called legs) which compose the Journey. The number of transfers is therefore obtained as N_Trips-1
-	list<Trip> Trips;																								 // this is the list of Trips composing teh Journey
+	std::list<Trip> Trips;																							 // this is the list of Trips composing teh Journey
 	bool IsJourneyStarted, IsJourneyCompleted;																		 // Variables are true respectively when the Journey has started or completed.
 	double Walkingtime;																								 // this is the total walking time in the active journey
 	double Waitingtime;																								 // this variables is the total waiting time spent by the passenger at the platform across theentire journey
@@ -57,21 +56,21 @@ public:
 
 class Passenger {
 public:
-	string ID, passenger_category;								   // The ID of the passenger and the category (which can be for instance, elder, minor, adult, or even reduced mobility, normal mobility, minor, or whatever other attribute relevant to the trip)
-	string current_location_ID, current_TripID, current_JourneyID; // ID of the current location and the current train service where the passenger is at current time in simulation for a given Trip (TripID) in a Journey (JourneyID)
-	list<Journey> Journeys;										   // This is the list of Journeys made by the passenger in one day (or other reference period of time)
-	string CurrentStatus;										   // This variable described whether the passenger is onboard of a train or waiting at a platform after that it enterd the simulation.
-																   // Current Status can assume value:
-																   //"None" if it is not initialised and the passenger is out of the simulation (Not entered yet or exited)
-																   //  "Onboard" if the passenger is onboard of a train
-																   //  "OnPlatform" if the passenger is waiting at a station platform to board a train
+	std::string ID, passenger_category;									// The ID of the passenger and the category (which can be for instance, elder, minor, adult, or even reduced mobility, normal mobility, minor, or whatever other attribute relevant to the trip)
+	std::string current_location_ID, current_TripID, current_JourneyID; // ID of the current location and the current train service where the passenger is at current time in simulation for a given Trip (TripID) in a Journey (JourneyID)
+	std::list<Journey> Journeys;										// This is the list of Journeys made by the passenger in one day (or other reference period of time)
+	std::string CurrentStatus;											// This variable described whether the passenger is onboard of a train or waiting at a platform after that it enterd the simulation.
+																		// Current Status can assume value:
+																		//"None" if it is not initialised and the passenger is out of the simulation (Not entered yet or exited)
+																		//  "Onboard" if the passenger is onboard of a train
+																		//  "OnPlatform" if the passenger is waiting at a station platform to board a train
 
-	string Current_Train_To_Wait, Current_Train_Boarded, Current_Arrival_Station, Current_Arrival_Platform; // This is the name of the train that the passenger is boarding (id the CurrentStatus is "Onboard")
-	string Current_WaitingStationPlatformID, Current_WaitingStationID;										// This is the ID of the station platform and the station ID where the passenger is waiting at (when the Currentstatus is "OnPlatform")
-	bool IsIntheNetwork;																					// This variable is true when the passenger enters the simulation (i.e. simulation time >= Journey start time) and when the passenger has exited the simulation as it reached its Journey destination
-	double TimeExitedTheNetwork;																			// Actual time the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
-	string StationExitedTheNetworkID;																		// Station where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
-	string PlatformExitedTheNetworkID;																		// Platform where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
+	std::string Current_Train_To_Wait, Current_Train_Boarded, Current_Arrival_Station, Current_Arrival_Platform; // This is the name of the train that the passenger is boarding (id the CurrentStatus is "Onboard")
+	std::string Current_WaitingStationPlatformID, Current_WaitingStationID;										 // This is the ID of the station platform and the station ID where the passenger is waiting at (when the Currentstatus is "OnPlatform")
+	bool IsIntheNetwork;																						 // This variable is true when the passenger enters the simulation (i.e. simulation time >= Journey start time) and when the passenger has exited the simulation as it reached its Journey destination
+	double TimeExitedTheNetwork;																				 // Actual time the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
+	std::string StationExitedTheNetworkID;																		 // Station where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
+	std::string PlatformExitedTheNetworkID;																		 // Platform where the passenger left the network. Used by the Passenger GUI to display the passenger icon a few seconds after leaving the network
 
 	// Class constructor
 	Passenger() {
@@ -87,39 +86,39 @@ public:
 };
 
 // Define a global list of passengers
-extern list<Passenger>& AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
-extern int& numAllDailyPassengers;			// This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
+extern std::list<Passenger>& AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
+extern int& numAllDailyPassengers;				 // This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
 
 // Passengers by ID, in list order, for one passenger list. The index points into the list, so it describes the list only
 // while the list keeps the same elements: a list that was cleared or replaced needs a new index.
 class PassengerIndex {
 public:
-	void build(list<Passenger>& passengers);
+	void build(std::list<Passenger>& passengers);
 	void clear();
 	// True when the index was built for this list and the list has the size it had then.
-	bool covers(const list<Passenger>& passengers) const;
+	bool covers(const std::list<Passenger>& passengers) const;
 	// The passengers with this ID in list order. There are several only when an ID repeats.
-	const vector<Passenger*>& find(const string& id) const;
+	const std::vector<Passenger*>& find(const std::string& id) const;
 
 private:
-	const list<Passenger>* source_ = nullptr;
+	const std::list<Passenger>* source_ = nullptr;
 	size_t count_ = 0;
-	unordered_map<string, vector<Passenger*>> byId_;
+	std::unordered_map<std::string, std::vector<Passenger*>> byId_;
 };
 
 // Station platforms by station ID and platform ID, for one platform list, with the same rules as PassengerIndex.
 class PlatformIndex {
 public:
-	void build(const list<StationPlatform>& platforms);
+	void build(const std::list<StationPlatform>& platforms);
 	void clear();
-	bool covers(const list<StationPlatform>& platforms) const;
+	bool covers(const std::list<StationPlatform>& platforms) const;
 	// The first platform in list order with these IDs, or null.
-	const StationPlatform* find(const string& stationId, const string& platformId) const;
+	const StationPlatform* find(const std::string& stationId, const std::string& platformId) const;
 
 private:
-	const list<StationPlatform>* source_ = nullptr;
+	const std::list<StationPlatform>* source_ = nullptr;
 	size_t count_ = 0;
-	unordered_map<string, unordered_map<string, const StationPlatform*>> byId_;
+	std::unordered_map<std::string, std::unordered_map<std::string, const StationPlatform*>> byId_;
 };
 
 // The indexes of AllDailyPassengers and AllStationPlatforms. The operations builder builds them and the operations state
@@ -127,10 +126,10 @@ private:
 extern PassengerIndex& AllDailyPassengerIndex;
 extern PlatformIndex& AllStationPlatformIndex;
 
-void printCurrentPassengerStatus(int t, int StartSimulationTime, const list<Passenger>& ALLPAX, string MainFolder);
+void printCurrentPassengerStatus(int t, int StartSimulationTime, const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
-void printPassengerTotalJourneyDelay(const list<Passenger>& ALLPAX, string MainFolder);
+void printPassengerTotalJourneyDelay(const std::list<Passenger>& ALLPAX, std::string MainFolder);
 
-nlohmann::json routeChoicePayload(const list<Passenger>& passengers, int timestep);
+nlohmann::json routeChoicePayload(const std::list<Passenger>& passengers, int timestep);
 
 #endif

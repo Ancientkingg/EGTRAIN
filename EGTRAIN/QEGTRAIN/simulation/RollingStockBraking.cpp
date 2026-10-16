@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 double Train::BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS) {
 	double AverageGradient = 0;
 	double AverageCurvature = 0;

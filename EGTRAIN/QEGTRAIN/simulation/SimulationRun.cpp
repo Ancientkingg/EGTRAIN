@@ -2,6 +2,8 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Simulation.h"
 
+using namespace std;
+
 void SimulationRun::reset() {
 	blocksOccupied.clear();
 	blocksConnected.clear();

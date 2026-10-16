@@ -12,6 +12,8 @@
 #include <limits>
 #include <sstream>
 
+using namespace std;
+
 BlockingTimes::BlockingTimes() {
 	StartOccTime = -1;
 	EndOccTime = -1;
