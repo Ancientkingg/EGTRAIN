@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <windows.h>
+#include <wincrypt.h>
 #include <winhttp.h>
 
 // Older SDKs do not define the flag.
@@ -48,6 +49,11 @@ bool isRedirect(DWORD status) {
 	return status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
 }
 
+bool isLoopback(const QUrl& url) {
+	QHostAddress address;
+	return address.setAddress(url.host()) && address.isLoopback();
+}
+
 // The text of a response header, or an empty string when the response has none.
 QString headerText(HINTERNET request, DWORD info) {
 	DWORD bytes = 0;
@@ -58,6 +64,50 @@ QString headerText(HINTERNET request, DWORD info) {
 	if (!WinHttpQueryHeaders(request, info, nullptr, text.data(), &bytes, nullptr))
 		return QString();
 	return QString::fromWCharArray(text.c_str());
+}
+
+// True when the certificate that the server of an open request presented chains to the root certificate
+// in pem and to no other root. A test uses it for a server whose certificate the system does not trust:
+// WinHTTP then skips the error for an unknown root, and this check takes its place.
+bool chainsToRoot(HINTERNET request, const QByteArray& pem) {
+	DWORD derBytes = 0;
+	if (!CryptStringToBinaryA(pem.constData(), static_cast<DWORD>(pem.size()), CRYPT_STRING_BASE64HEADER, nullptr, &derBytes, nullptr, nullptr))
+		return false;
+	std::vector<BYTE> der(derBytes);
+	if (!CryptStringToBinaryA(pem.constData(), static_cast<DWORD>(pem.size()), CRYPT_STRING_BASE64HEADER, der.data(), &derBytes, nullptr, nullptr))
+		return false;
+	PCCERT_CONTEXT root = CertCreateCertificateContext(X509_ASN_ENCODING, der.data(), derBytes);
+	if (!root)
+		return false;
+
+	bool chains = false;
+	HCERTSTORE roots = CertOpenStore(CERT_STORE_PROV_MEMORY, 0, 0, 0, nullptr);
+	PCCERT_CONTEXT server = nullptr;
+	HCERTCHAINENGINE engine = nullptr;
+	PCCERT_CHAIN_CONTEXT chain = nullptr;
+	DWORD serverBytes = static_cast<DWORD>(sizeof(server));
+	if (roots && CertAddCertificateContextToStore(roots, root, CERT_STORE_ADD_ALWAYS, nullptr)
+		&& WinHttpQueryOption(request, WINHTTP_OPTION_SERVER_CERT_CONTEXT, &server, &serverBytes) && server) {
+		// Only the roots in the store are trusted, so the chain is free of errors only when it ends in the root.
+		CERT_CHAIN_ENGINE_CONFIG configuration = {};
+		configuration.cbSize = static_cast<DWORD>(sizeof(configuration));
+		configuration.hExclusiveRoot = roots;
+		CERT_CHAIN_PARA parameters = {};
+		parameters.cbSize = static_cast<DWORD>(sizeof(parameters));
+		if (CertCreateCertificateChainEngine(&configuration, &engine)
+			&& CertGetCertificateChain(engine, server, nullptr, server->hCertStore, &parameters, 0, nullptr, &chain))
+			chains = chain->TrustStatus.dwErrorStatus == CERT_TRUST_NO_ERROR;
+	}
+	if (chain)
+		CertFreeCertificateChain(chain);
+	if (engine)
+		CertFreeCertificateChainEngine(engine);
+	if (server)
+		CertFreeCertificateContext(server);
+	if (roots)
+		CertCloseStore(roots, 0);
+	CertFreeCertificateContext(root);
+	return chains;
 }
 
 // Sends the body of a post whose headers WinHttpSendRequest has sent.
@@ -201,8 +251,7 @@ private:
 			return false;
 		if (url.scheme() == QLatin1String("https"))
 			return true;
-		QHostAddress address;
-		return m_allowLoopbackHttp && url.scheme() == QLatin1String("http") && address.setAddress(url.host()) && address.isLoopback();
+		return m_allowLoopbackHttp && url.scheme() == QLatin1String("http") && isLoopback(url);
 	}
 
 	// Follows the redirects of a get, then reads the body. Returns false with the error text when the request
@@ -331,13 +380,22 @@ private:
 		DWORD policy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
 		WinHttpSetOption(opened, WINHTTP_OPTION_REDIRECT_POLICY, &policy, static_cast<DWORD>(sizeof(policy)));
 
+		const bool extraRoot = m_isPost && !request.extraRootPem.isEmpty();
 		if (m_isPost) {
 			// A post carries no cookie and no credentials.
 			DWORD disabled = WINHTTP_DISABLE_COOKIES | WINHTTP_DISABLE_AUTHENTICATION;
 			WinHttpSetOption(opened, WINHTTP_OPTION_DISABLE_FEATURE, &disabled, static_cast<DWORD>(sizeof(disabled)));
 		}
+		if (extraRoot) {
+			if (!isLoopback(url)) {
+				*error = QStringLiteral("A root certificate of a request is accepted for a loopback address only.");
+				return false;
+			}
+			DWORD flags = SECURITY_FLAG_IGNORE_UNKNOWN_CA;
+			WinHttpSetOption(opened, WINHTTP_OPTION_SECURITY_FLAGS, &flags, static_cast<DWORD>(sizeof(flags)));
+		}
 
-		// The body of a post follows once the headers are sent.
+		// The body of a post follows once the headers are sent and the certificate of the server is checked.
 		const std::wstring contentType = m_isPost && !request.contentType.isEmpty()
 			? L"Content-Type: " + QString::fromLatin1(request.contentType).toStdWString()
 			: std::wstring();
@@ -346,6 +404,10 @@ private:
 		const DWORD headerChars = contentType.empty() ? 0 : static_cast<DWORD>(-1);
 		if (!WinHttpSendRequest(opened, headers, headerChars, nullptr, 0, bodyBytes, 0)) {
 			*error = describeError(GetLastError());
+			return false;
+		}
+		if (extraRoot && !chainsToRoot(opened, request.extraRootPem)) {
+			*error = QStringLiteral("The certificate of the server does not chain to the root certificate of the request.");
 			return false;
 		}
 		if (bodyBytes > 0 && !writeBody(opened, request.body, error))

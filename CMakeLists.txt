@@ -264,7 +264,7 @@ add_library(egtrain_http STATIC ${SRC_DIR}/update/HttpTransport.cpp)
 target_link_libraries(egtrain_http PUBLIC Qt5::Core Qt5::Network)
 if(WIN32)
     target_sources(egtrain_http PRIVATE ${SRC_DIR}/update/WinHttpTransport.cpp)
-    target_link_libraries(egtrain_http PUBLIC winhttp)
+    target_link_libraries(egtrain_http PUBLIC winhttp crypt32)
 endif()
 
 # The update code that both the application and a test use. SelfUpdater and UpdateNotices belong
@@ -667,22 +667,19 @@ if(EGTRAIN_BUILD_TESTS)
 
     add_executable(test_telemetrynetwork ${SRC_DIR}/tests/test_telemetrynetwork.cpp)
     target_link_libraries(test_telemetrynetwork PRIVATE egtrain_telemetry_hooks Qt5::Core Qt5::Gui Qt5::Network)
-    # Qt 5.15 loads OpenSSL 1.1 at run time. Windows does not provide it, so Qt has no TLS there.
-    if(NOT WIN32)
-        foreach(mode reject trusted)
-            add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
-                $<TARGET_FILE:test_telemetrynetwork>
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
-                ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
-                ${mode})
-            set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
-        endforeach()
-        set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
-    else()
-        message(STATUS "Windows: skipping test_telemetrynetwork_reject and test_telemetrynetwork_trusted (no TLS library for Qt 5.15)")
-    endif()
+    # The sender sends through the HTTP transport, which is WinHTTP on Windows, so the tests need no Qt TLS library there.
+    foreach(mode reject trusted)
+        add_test(NAME test_telemetrynetwork_${mode} COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/telemetry_tls_receiver.py
+            $<TARGET_FILE:test_telemetrynetwork>
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-cert.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-key.pem
+            ${SRC_DIR}/tests/fixtures/telemetry-loopback-ca.pem
+            ${mode})
+        set_tests_properties(test_telemetrynetwork_${mode} PROPERTIES TIMEOUT 75)
+    endforeach()
+    # Qt 5 Secure Transport on macOS does not trust the root certificate of a request, and the program then returns 77.
+    set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
 
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)

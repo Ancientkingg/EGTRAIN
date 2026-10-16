@@ -35,15 +35,22 @@ static bool until(QCoreApplication& app, const std::function<bool()>& predicate,
 
 int main(int argc, char** argv) {
 	QCoreApplication app(argc, argv);
-	assert(argc == 5 && QSslSocket::supportsSsl());
+	assert(argc == 5);
+	// Qt 5.15 has no TLS library on Windows. The sender goes through WinHTTP there, so this program
+	// does not probe the server with Qt's own TLS on Windows.
+#ifndef Q_OS_WIN
+	assert(QSslSocket::supportsSsl());
+#endif
 	const int scenario = QByteArray(argv[3]).toInt(); // 0 untrusted 202; 1 trusted 202; 2 trusted 302.
 	assert(scenario >= 0 && scenario <= 2);
-	QFile certFile(QString::fromLocal8Bit(argv[1]));
-	assert(certFile.open(QIODevice::ReadOnly));
-	const QSslCertificate certificate(certFile.readAll(), QSsl::Pem);
 	QFile authorityFile(QString::fromLocal8Bit(argv[4]));
 	assert(authorityFile.open(QIODevice::ReadOnly));
 	const QByteArray authorityPem = authorityFile.readAll();
+	assert(!authorityPem.isEmpty());
+#ifndef Q_OS_WIN
+	QFile certFile(QString::fromLocal8Bit(argv[1]));
+	assert(certFile.open(QIODevice::ReadOnly));
+	const QSslCertificate certificate(certFile.readAll(), QSsl::Pem);
 	const QSslCertificate authority(authorityPem, QSsl::Pem);
 	assert(!certificate.isNull() && !authority.isNull());
 	const QSslConfiguration defaultTrust = QSslConfiguration::defaultConfiguration();
@@ -55,12 +62,14 @@ int main(int argc, char** argv) {
 		trust.setPeerVerifyMode(QSslSocket::VerifyPeer);
 	}
 	assert(QSslConfiguration::defaultConfiguration() == defaultTrust);
+#endif
 	QTemporaryDir directory;
 	assert(directory.isValid());
 	const QString settingsFile = directory.filePath(QStringLiteral("consent.ini"));
 	const QString storage = directory.filePath(QStringLiteral("queue"));
 	TelemetryContext context{true, true, true,
 		QStringLiteral("https://127.0.0.1:%1/collect").arg(QString::fromLocal8Bit(argv[2])), QStringLiteral("1")};
+#ifndef Q_OS_WIN
 	{
 		QNetworkAccessManager preflight;
 		QEventLoop loop;
@@ -100,6 +109,7 @@ int main(int argc, char** argv) {
 		}
 		probe->deleteLater();
 	}
+#endif
 	QSettings settings(settingsFile, QSettings::IniFormat);
 	TelemetryConsent consent(settings, context);
 	assert(consent.save(true, false));
@@ -143,7 +153,9 @@ int main(int argc, char** argv) {
 	clock = 60001;
 	assert(until(app, [&] { return completed.available() > 0; }, 12000));
 	assert(reserved.available() == 1 && completed.available() == 1);
+#ifndef Q_OS_WIN
 	assert(QSslConfiguration::defaultConfiguration() == defaultTrust);
+#endif
 	sender.stop();
 	assert(until(app, [&] { return exited.available() > 0; }));
 	QFile usage(usagePath);

@@ -372,7 +372,6 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
-| `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. The telemetry sender uses Qt's network manager, which the WinHTTP transport of the update check does not replace, so the tests stay off. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. A Ninja build tree, such as the Windows CI leg, runs it with the default generator, which is Visual Studio on Windows. |
@@ -386,6 +385,14 @@ The update requests do not need Qt's TLS. On Windows `createHttpTransport` retur
 WinHTTP transport, so `test_httptransport` and `test_selfupdater` exercise it there. They reach
 their server on the loopback address over plain http only because the tests ask for it;
 the transport of the application fetches https addresses only.
+
+The telemetry sender posts through the same transport, so `test_telemetrynetwork_reject` and
+`test_telemetrynetwork_trusted` run on Windows too, over https to a server on the loopback address.
+WinHTTP checks that certificate against the system store and refuses it, which is what the reject
+test expects. The trusted test gives the transport the test root certificate, and the transport checks
+the certificate of the server against that root alone, so nothing is added to the certificate store.
+Qt 5 Secure Transport on macOS does not trust that root certificate, so `test_telemetrynetwork_trusted`
+reports itself as skipped there.
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `visual_polish_smoke.sh` passes it on to
