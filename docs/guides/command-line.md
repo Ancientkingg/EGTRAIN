@@ -74,7 +74,7 @@ QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
 ## Exit codes
 
 - 0: a run without a window that finished, or a launch that handed its file to an open window.
-- 1: a bad argument, a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
+- 1: a bad argument, a scene with errors, or, without a window, a run in which no train was loaded. With a window, a scene with errors shows the message box **Cannot Start EGTRAIN** and the program exits with 1. A launch without a window with a file name that is rejected or does not load also exits with 1. A scene that was saved with a newer EGTRAIN, with an older unsupported scene format or in the draft layout of the builds before 2026-08-08 is not loaded: the program prints the reason on standard error and exits with 1. With a window, `--scene` hands such a scene to the window, which shows the matching dialog. A launch with a window and a file name that does not open is not an error exit: the program starts as without a file name.
 
 ## scene_tool
 

@@ -1,5 +1,6 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
+#include "scene/SceneDiagnostic.h"
 #include "scene/SceneMigration.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneValidator.h"
@@ -13,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <string>
 #include <system_error>
 
 namespace fs = std::filesystem;
@@ -139,6 +141,135 @@ struct RestorePermissions {
 	}
 };
 
+// Sets the keys of scene.json; a null value removes the key.
+static bool changeManifest(const fs::path& scene, const json& changes) {
+	json manifest;
+	{
+		std::ifstream input(scene / "scene.json");
+		input >> manifest;
+	}
+	for (const auto& change : changes.items()) {
+		if (change.value().is_null())
+			manifest.erase(change.key());
+		else
+			manifest[change.key()] = change.value();
+	}
+	std::ofstream output(scene / "scene.json", std::ios::binary | std::ios::trunc);
+	output << manifest.dump(4) << "\n";
+	return static_cast<bool>(output);
+}
+
+static bool writeText(const fs::path& path, const std::string& contents) {
+	std::ofstream output(path, std::ios::binary | std::ios::trunc);
+	output << contents;
+	return static_cast<bool>(output);
+}
+
+static bool contains(const std::string& text, const std::string& part) {
+	return text.find(part) != std::string::npos;
+}
+
+// The one diagnostic of a rejected scene as the user reads it, or an empty text when the probe has not exactly one.
+static std::string reasonOf(const SceneCompatibilityProbeResult& probe, const char* code) {
+	if (probe.diagnostics.size() != 1 || probe.diagnostics.front().code != code || probe.diagnostics.front().file != "scene.json")
+		return {};
+	return toDisplayText(probe.diagnostics.front());
+}
+
+// The probe names why it rejects a scene, and says nothing about a scene that it accepts or that a migration can convert.
+static bool checkRejectionReasons(const SceneModel& model, const fs::path& folder) {
+	bool ok = true;
+	const fs::path scene = folder / "reasons";
+	ok &= expect(saveScene(model, scene.string()).success(), "reason fixture saves");
+	const SceneCompatibilityProbeResult current = probeSceneCompatibility(scene.string());
+	ok &= expect(current.classification == SceneCompatibilityClass::Current && current.diagnostics.empty(),
+		"a current scene gets no diagnostic");
+
+	ok &= expect(changeManifest(scene, {{"schema_version", 0}, {"saved_with_app_version", "0.9"}}), "older reason fixture writes");
+	const SceneCompatibilityProbeResult older = probeSceneCompatibility(scene.string());
+	const std::string olderReason = reasonOf(older, "scene.compatibility.older");
+	ok &= expect(older.classification == SceneCompatibilityClass::OlderUnsupported && !olderReason.empty()
+			&& contains(olderReason, "schema 0 (saved with EGTRAIN 0.9)") && contains(olderReason, "reads schema 1 ")
+			&& contains(olderReason, "Load Legacy Case") && !contains(olderReason, "bundle layout"),
+		"an older schema is rejected with its number, the saved-with version and the way out");
+	const fs::path refusedCopy = folder / "refused-copy";
+	const SceneMigrationResult refused = migrateSceneCopy(scene.string(), refusedCopy.string(), productionSceneMigrationRegistry());
+	ok &= expect(!refused.success() && hasDiagnostic(refused.diagnostics, "scene.compatibility.older", SceneSeverity::Error)
+			&& !fs::exists(refusedCopy),
+		"the copy upgrade of an older scene reports the reason and writes nothing");
+
+	ok &= expect(changeManifest(scene, {{"schema_version", kCurrentSceneSchemaVersion + 1}, {"saved_with_app_version", nullptr}}),
+		"newer reason fixture writes");
+	const SceneCompatibilityProbeResult newer = probeSceneCompatibility(scene.string());
+	const std::string newerReason = reasonOf(newer, "scene.compatibility.newer");
+	ok &= expect(newer.classification == SceneCompatibilityClass::Newer && !newerReason.empty()
+			&& contains(newerReason, "schema " + std::to_string(kCurrentSceneSchemaVersion + 1) + " (saved-with version not recorded)")
+			&& contains(newerReason, "does not open newer scenes") && contains(newerReason, "Check for Updates"),
+		"a newer schema is rejected with its number and the way out");
+
+	// A long saved_with_app_version is cut before a character that the cut would split.
+	const std::string longVersion = std::string(63, 'a') + "\xE6\x97\xA5" + std::string(10, 'b');
+	ok &= expect(changeManifest(scene, {{"saved_with_app_version", longVersion}}), "long version fixture writes");
+	const std::string cutReason = reasonOf(probeSceneCompatibility(scene.string()), "scene.compatibility.newer");
+	ok &= expect(contains(cutReason, "saved with EGTRAIN " + std::string(63, 'a') + "...)") && !contains(cutReason, "bbb"),
+		"a long saved-with version is cut at a character boundary");
+
+	// The draft layout: a legacy_source and an infrastructure.json without nodes and arcs.
+	const json emptyInfrastructure = {{"arcs", json::array()}, {"nodes", json::array()}};
+	ok &= expect(changeManifest(scene, {{"schema_version", kCurrentSceneSchemaVersion}, {"saved_with_app_version", nullptr}, {"legacy_source", "Input/Input_EGTRAIN_Paimpol"}}),
+		"draft reason fixture writes");
+	const SceneCompatibilityProbeResult onlyLegacySource = probeSceneCompatibility(scene.string());
+	ok &= expect(onlyLegacySource.classification == SceneCompatibilityClass::Current && onlyLegacySource.diagnostics.empty(),
+		"legacy_source alone does not mark the draft layout");
+	ok &= expect(writeText(scene / "infrastructure.json", emptyInfrastructure.dump()), "empty infrastructure writes");
+	const SceneCompatibilityProbeResult draft = probeSceneCompatibility(scene.string());
+	const std::string draftReason = reasonOf(draft, "scene.compatibility.draft");
+	ok &= expect(draft.classification == SceneCompatibilityClass::OlderUnsupported && !draftReason.empty()
+			&& contains(draftReason, "draft layout that EGTRAIN saved before 2026-08-08 (schema 1, saved-with version not recorded)")
+			&& contains(draftReason, "not supported") && contains(draftReason, "File > Load Legacy Case..."),
+		"legacy_source with an empty infrastructure is the draft layout");
+	ok &= expect(writeText(scene / "infrastructure.json", "{}"), "infrastructure without lists writes");
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::OlderUnsupported,
+		"an infrastructure without the lists has no nodes and no arcs");
+	ok &= expect(writeText(scene / "infrastructure.json", R"({"arcs": [], "nodes": [1]})"), "infrastructure with a node writes");
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::Current,
+		"legacy_source with a node is not the draft layout");
+	ok &= expect(writeText(scene / "infrastructure.json", R"({"arcs": [1], "nodes": []})"), "infrastructure with an arc writes");
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::Current,
+		"legacy_source with an arc is not the draft layout");
+	ok &= expect(writeText(scene / "infrastructure.json", "not json"), "damaged infrastructure writes");
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::Current,
+		"an unreadable infrastructure is left to the loader");
+	std::error_code ec;
+	fs::remove(scene / "infrastructure.json", ec);
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::Current,
+		"a missing infrastructure is left to the loader");
+	ok &= expect(writeText(scene / "infrastructure.json", emptyInfrastructure.dump()), "empty infrastructure writes again");
+	ok &= expect(changeManifest(scene, {{"legacy_source", nullptr}}), "legacy_source is removed");
+	ok &= expect(probeSceneCompatibility(scene.string()).classification == SceneCompatibilityClass::Current,
+		"an empty infrastructure alone does not mark the draft layout");
+
+	// A schema number that is rejected on its own is named by the number. A migration does not convert a draft.
+	ok &= expect(changeManifest(scene, {{"legacy_source", "Input/Input_EGTRAIN_Paimpol"}, {"schema_version", kCurrentSceneSchemaVersion + 1}}),
+		"newer draft fixture writes");
+	const SceneCompatibilityProbeResult newerDraft = probeSceneCompatibility(scene.string());
+	ok &= expect(newerDraft.classification == SceneCompatibilityClass::Newer && !reasonOf(newerDraft, "scene.compatibility.newer").empty(),
+		"a newer draft is rejected for its number");
+	ok &= expect(changeManifest(scene, {{"schema_version", 0}}), "migratable draft fixture writes");
+	SceneMigrationRegistry registry;
+	registry.addSchemaStep(SceneMigrationStep(
+		0, kCurrentSceneSchemaVersion, [](const fs::path&, std::vector<SceneDiagnostic>&) { return true; }, "test-only-step-zero-to-one"));
+	const SceneCompatibilityProbeResult migratableDraft = probeSceneCompatibility(scene.string(), registry);
+	ok &= expect(migratableDraft.classification == SceneCompatibilityClass::OlderUnsupported
+			&& !reasonOf(migratableDraft, "scene.compatibility.draft").empty(),
+		"a draft is not offered a copy upgrade");
+	ok &= expect(changeManifest(scene, {{"legacy_source", nullptr}}), "migratable fixture writes");
+	const SceneCompatibilityProbeResult migratable = probeSceneCompatibility(scene.string(), registry);
+	ok &= expect(migratable.classification == SceneCompatibilityClass::OlderMigratable && migratable.diagnostics.empty(),
+		"a scene that a migration converts gets no diagnostic");
+	return ok;
+}
+
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		std::cerr << "Usage: test_scenecompatibility <scene-directory>\n";
@@ -158,6 +289,7 @@ int main(int argc, char** argv) {
 		"current directory is current");
 	ok &= expect(current.savedWithAppVersion == EGTRAIN_APP_VERSION,
 		"saved-with provenance is reported");
+	ok &= expect(current.diagnostics.empty(), "a current directory gets no diagnostic");
 	json manifest;
 	{
 		std::ifstream input(source / "scene.json");
@@ -176,9 +308,11 @@ int main(int argc, char** argv) {
 	const SceneCompatibilityProbeResult older = probeSceneCompatibility(source.string());
 	ok &= expect(older.classification == SceneCompatibilityClass::OlderUnsupported,
 		"empty production registry rejects older schema");
+	ok &= expect(!reasonOf(older, "scene.compatibility.older").empty(), "older schema is rejected with one reason");
 	ok &= expect(writeManifest(source, kCurrentSceneSchemaVersion + 1), "newer fixture writes");
 	const SceneCompatibilityProbeResult newer = probeSceneCompatibility(source.string());
 	ok &= expect(newer.classification == SceneCompatibilityClass::Newer, "newer schema is reported");
+	ok &= expect(!reasonOf(newer, "scene.compatibility.newer").empty(), "newer schema is rejected with one reason");
 	const long long wrapsToCurrent = (1LL << 32) + kCurrentSceneSchemaVersion;
 	for (const json& badVersion : {json(wrapsToCurrent), json(static_cast<long long>(INT_MAX) + 1),
 			 json(1.5), json("1"), json(18446744073709551615ULL)}) {
@@ -228,7 +362,7 @@ int main(int argc, char** argv) {
 			output << value.dump(4) << "\n";
 			return static_cast<bool>(output); }, "test-only-step-zero-to-one"));
 	const SceneCompatibilityProbeResult migratable = probeSceneCompatibility(migrationSource.string(), registry);
-	ok &= expect(migratable.classification == SceneCompatibilityClass::OlderMigratable,
+	ok &= expect(migratable.classification == SceneCompatibilityClass::OlderMigratable && migratable.diagnostics.empty(),
 		"registered schema chain is migratable");
 	const fs::path destination = temp.path / "upgraded";
 	const SceneMigrationResult migrated = migrateSceneCopy(migrationSource.string(), destination.string(), registry);
@@ -308,6 +442,9 @@ int main(int argc, char** argv) {
 			&& olderBundleProbe.schemaVersion == kCurrentSceneSchemaVersion
 			&& olderBundleProbe.bundleVersion && *olderBundleProbe.bundleVersion == kCurrentSceneBundleVersion - 1,
 		"older bundle is independent from current schema support");
+	const std::string olderBundleReason = reasonOf(olderBundleProbe, "scene.compatibility.older");
+	ok &= expect(contains(olderBundleReason, "schema 1, bundle layout 0 (saved") && contains(olderBundleReason, "reads schema 1, bundle layout 1 "),
+		"older bundle reason names both layout numbers");
 	SceneMigrationRegistry bundleRegistry;
 	bundleRegistry.addBundleStep(SceneMigrationStep(
 		kCurrentSceneBundleVersion - 1, kCurrentSceneBundleVersion,
@@ -316,7 +453,7 @@ int main(int argc, char** argv) {
 		},
 		"test-only-bundle-step"));
 	const SceneCompatibilityProbeResult migratableBundle = probeSceneCompatibility(olderBundle.string(), bundleRegistry);
-	ok &= expect(migratableBundle.classification == SceneCompatibilityClass::OlderMigratable,
+	ok &= expect(migratableBundle.classification == SceneCompatibilityClass::OlderMigratable && migratableBundle.diagnostics.empty(),
 		"registered bundle step makes only the older bundle migratable");
 	const std::string originalOlderBundleBytes = readFileBytes(olderBundle);
 	const fs::path upgradedBundle = temp.path / "older-upgraded.egscene";
@@ -357,6 +494,8 @@ int main(int argc, char** argv) {
 	const SceneCompatibilityProbeResult newerBundleProbe = probeSceneCompatibility(newerBundle.string());
 	ok &= expect(newerBundleProbe.classification == SceneCompatibilityClass::Newer,
 		"newer bundle layout is classified without extraction");
+	ok &= expect(contains(reasonOf(newerBundleProbe, "scene.compatibility.newer"), "schema 1, bundle layout " + std::to_string(kCurrentSceneBundleVersion + 1)),
+		"newer bundle reason names both layout numbers");
 	const fs::path hostileNewerBundle = temp.path / "hostile-newer.egscene";
 	ok &= expect(writeNewerBundle(hostileNewerBundle, "../future.json"), "hostile newer bundle fixture writes");
 	const SceneCompatibilityProbeResult hostileProbe = probeSceneCompatibility(hostileNewerBundle.string());
@@ -495,6 +634,8 @@ int main(int argc, char** argv) {
 		ok &= expect(readFileBytes(olderBundle) == originalOlderBundleBytes,
 			"refused bundle write leaves source bytes unchanged");
 	}
+
+	ok &= checkRejectionReasons(validLoaded.scene, temp.path);
 
 	if (!ok)
 		return 1;

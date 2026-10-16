@@ -86,7 +86,8 @@
     {
       "path": "draft-layout-Paimpol",
       "origin": "EGTRAIN/QEGTRAIN/Scenes/Paimpol at commit 92582d9 (release main-77.1-92582d9) without its legacy directory",
-      "class": "Current",
+      "class": "OlderUnsupported",
+      "reason": "scene.compatibility.draft",
       "schema_version": 1,
       "saved_with_app_version": "",
       "runnable": false

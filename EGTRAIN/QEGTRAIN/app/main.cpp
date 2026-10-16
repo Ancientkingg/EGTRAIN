@@ -4,6 +4,7 @@
 #include "app/OpenRequestRelay.h"
 #include "app/SceneOpenRequest.h"
 #include "scene/SceneBundle.h"
+#include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
 #if EGTRAIN_BUILD_TESTS
 #include "tests/e2e/E2ERunner.h"
@@ -321,7 +322,18 @@ int main(int argc, char* argv[]) {
 			return loaded;
 		};
 		QString scenePath = resolveScenePath(request.path, defaultName);
-		SceneLoadResult loaded = preload(scenePath);
+		const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
+		// --scene hands a scene of another version to the window without loading it. The window explains the
+		// rejection in its dialogs and offers a copy upgrade when a migration is registered.
+		const bool windowReports = !request.positional
+			&& (isRejectedForVersion(compatibility) || compatibility.classification == SceneCompatibilityClass::OlderMigratable);
+		SceneLoadResult loaded;
+		if (windowReports)
+			printSceneDiagnostics(compatibility.diagnostics);
+		else if (isRejectedForVersion(compatibility))
+			loaded.diagnostics = compatibility.diagnostics;
+		else
+			loaded = preload(scenePath);
 		bool openedFromFileName = request.positional;
 		if (openedFromFileName && hasErrors(loaded.diagnostics)) {
 			// A file name that does not load is reported and the usual start follows.
@@ -340,8 +352,10 @@ int main(int argc, char* argv[]) {
 		// An opened file counts as an explicit scene, so the chooser stays closed.
 		if (openedFromFileName)
 			initial_variables.nArgProvided = true;
-		setStartupTimingPreloadIdentity(scenePath, loaded);
-		initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
+		if (!windowReports) {
+			setStartupTimingPreloadIdentity(scenePath, loaded);
+			initial_variables.OutputMainFolder = resolveOutputDirectory(loaded.scene.name).toStdString();
+		}
 		InputMainFolder.clear();
 		initial_variables.InputMainFolder.clear();
 		MainWindow window;
@@ -364,6 +378,11 @@ int main(int argc, char* argv[]) {
 	if (request.rejected)
 		return 1;
 	const QString scenePath = resolveScenePath(request.path, defaultName);
+	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
+	if (isRejectedForVersion(compatibility)) {
+		printSceneDiagnostics(compatibility.diagnostics);
+		return 1;
+	}
 	SceneLoadResult loaded = loadScenePath(scenePath.toStdString());
 	if (!hasErrors(loaded.diagnostics)) {
 		const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},

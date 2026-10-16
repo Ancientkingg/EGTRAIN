@@ -194,10 +194,12 @@ are byte copies of scenes written by older builds, listed with their origin in
 `manifest.json`, and a fixture is never edited or saved again. For each one the
 test checks the class, the version numbers, loading, validation, the sizes of
 the loaded model, and that a copy upgrade is refused and leaves the fixture
-unchanged. The stored draft-layout scene is pinned as not runnable. A rejected
-schema number is checked on a copy that the test makes. A guard fails when a
-version constant is raised without a fixture of the previous number and either
-a migration for it or a manifest entry that lists it as unsupported.
+unchanged. The stored draft-layout scene is pinned as unsupported with the
+diagnostic that names the draft layout, and as not runnable. A rejected schema
+number is checked on a copy that the test makes, with the diagnostic that names
+it. A guard fails when a version constant is raised without a fixture of the
+previous number and either a migration for it or manifest entries that list
+every fixture of that number as unsupported.
 `scene_tool` has no `migrate` command; it offers `import`, `pack`, `unpack`,
 `export` and `validate`. The
 [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)

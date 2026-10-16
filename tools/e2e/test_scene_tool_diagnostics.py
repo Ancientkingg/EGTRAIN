@@ -1,7 +1,64 @@
 #!/usr/bin/env python3
+import json
 import subprocess
 import sys
+import tempfile
+import zipfile
 from pathlib import Path
+
+
+def run_tool(scene_tool: Path, *args: object) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [scene_tool, *args],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+# A scene of another version or layout fails with one line that names the reason, not with the loader's errors.
+def expect_rejection(scene_tool: Path, args: tuple, *details: str) -> None:
+    proc = run_tool(scene_tool, *args)
+    label = " ".join(str(arg) for arg in args)
+    if proc.returncode != 1:
+        raise SystemExit(f"scene_tool {label} exited with {proc.returncode}, expected 1:\n{proc.stdout}")
+    if len(proc.stdout.splitlines()) != 1:
+        raise SystemExit(f"scene_tool {label} printed more than the reason:\n{proc.stdout}")
+    for detail in details:
+        if detail not in proc.stdout:
+            raise SystemExit(f"scene_tool {label} lost {detail!r}:\n{proc.stdout}")
+
+
+def check_version_rejections(scene_tool: Path, root: Path) -> None:
+    draft = root / "EGTRAIN/QEGTRAIN/tests/fixtures/scene-versions/draft-layout-Paimpol"
+    with tempfile.TemporaryDirectory(prefix="scene-tool-versions-") as temp_name:
+        temp = Path(temp_name)
+        for name, schema_version, saved_with in (("newer", 2, "9.9"), ("older", 0, None)):
+            scene = temp / name
+            scene.mkdir()
+            manifest = {"name": name, "schema_version": schema_version}
+            if saved_with:
+                manifest["saved_with_app_version"] = saved_with
+            (scene / "scene.json").write_text(json.dumps(manifest), encoding="utf-8")
+        bundle = temp / "newer.egscene"
+        with zipfile.ZipFile(bundle, "w") as archive:
+            archive.writestr("scene.json", json.dumps({"format": "egscene", "bundle_version": 2, "schema_version": 1}))
+            archive.writestr("future-layout.json", "future")
+        packed = temp / "draft.egscene"
+
+        expect_rejection(scene_tool, ("validate", draft),
+            "scene.compatibility.draft", "draft layout", "2026-08-08", "Load Legacy Case")
+        expect_rejection(scene_tool, ("pack", draft, packed), "scene.compatibility.draft", "Load Legacy Case")
+        if packed.exists():
+            raise SystemExit("scene_tool pack wrote a bundle of a draft scene")
+        expect_rejection(scene_tool, ("validate", temp / "newer"),
+            "scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)", "reads schema 1", "Check for Updates")
+        expect_rejection(scene_tool, ("validate", temp / "older"),
+            "scene.compatibility.older", "schema 0 (saved-with version not recorded)", "reads schema 1")
+        expect_rejection(scene_tool, ("validate", bundle),
+            "scene.compatibility.newer", "schema 1, bundle layout 2", "reads schema 1, bundle layout 1")
 
 
 def main() -> None:
@@ -48,6 +105,8 @@ def main() -> None:
         raise SystemExit(f"validate --runnable lost the run checks: {runnable.stdout}")
     if "scene.native.block.clipped" in proc.stdout:
         raise SystemExit("validate printed a run check")
+
+    check_version_rejections(scene_tool, root)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 from pathlib import Path
 from typing import Optional
 
@@ -88,8 +89,11 @@ def tail(text: str) -> str:
 
 # Runs QEGTRAIN to its end with the output and the settings in folders of its own below temp.
 # The result is the exit code and the standard output and error together.
-def run_app(app: Path, args: list[str], temp: Path, label: str, chooser: bool = False) -> tuple[int, str]:
+def run_app(
+    app: Path, args: list[str], temp: Path, label: str, chooser: bool = False, extra_env: Optional[dict[str, str]] = None
+) -> tuple[int, str]:
     env = os.environ.copy()
+    env.update(extra_env or {})
     env["QT_QPA_PLATFORM"] = "offscreen"
     env["QEGTRAIN_OUTPUT_DIR"] = str(temp / "out")
     env["QEGTRAIN_E2E_SETTINGS_DIR"] = str(temp / "settings")
@@ -348,6 +352,57 @@ def assert_unicode_argument_arrives_intact(app: Path, root: Path) -> None:
     if "the file does not exist" not in output or NON_ASCII_NAME not in output:
         raise SystemExit(f"{label}: the file name was not reported unchanged\n{tail(output)}")
     print(f"non-ASCII file name {ascii(NON_ASCII_NAME)}: found when it exists, reported unchanged when missing")
+
+
+# A scene of another version or layout ends the start with exit code 1 and the reason on standard error, in a launch
+# without a window and in one with a window. The window launch hands --scene to the window without loading the scene.
+# QEGTRAIN_AUTOSTART suppresses the dialogs of the window; a preload would stop at a message box that nobody closes.
+def assert_version_rejections_name_the_reason(app: Path) -> None:
+    draft = RUN_DIR / "tests/fixtures/scene-versions/draft-layout-Paimpol"
+    with tempfile.TemporaryDirectory(prefix="qegtrain-version-rejection-") as root_name:
+        root = Path(root_name)
+        newer = root / "newer"
+        newer.mkdir()
+        (newer / "scene.json").write_text(
+            json.dumps({"name": "newer", "schema_version": 2, "saved_with_app_version": "9.9"}), encoding="utf-8"
+        )
+        newer_bundle = root / "newer.egscene"
+        with zipfile.ZipFile(newer_bundle, "w") as archive:
+            archive.writestr("scene.json", json.dumps({"format": "egscene", "bundle_version": 2, "schema_version": 1}))
+            archive.writestr("future-layout.json", "future")
+        cases = (
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "2026-08-08", "Load Legacy Case"]),
+            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
+            ("a newer bundle", [str(newer_bundle)], ["scene.compatibility.newer", "schema 1, bundle layout 2"]),
+        )
+        for index, (name, args, details) in enumerate(cases):
+            label = f"headless launch with {name}"
+            returncode, output = run_app(app, args + HEADLESS_OPTIONS, root / f"run-headless-{index}", label)
+            if returncode != 1:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1\n{tail(output)}")
+            missing = [detail for detail in details if detail not in output]
+            if missing or "End of Simulation" in output:
+                raise SystemExit(f"{label} did not report {missing!r} or ran the scene\n{tail(output)}")
+        print("headless launches with a draft, a newer and a newer bundle scene exit with 1 and name the reason")
+
+        window_cases = (
+            ("a draft scene", ["--scene", str(draft)], ["scene.compatibility.draft", "Load Legacy Case"]),
+            ("a newer scene", ["--scene", str(newer)], ["scene.compatibility.newer", "schema 2 (saved with EGTRAIN 9.9)"]),
+        )
+        for index, (name, args, details) in enumerate(window_cases):
+            label = f"window launch with {name}"
+            returncode, output = run_app(app, args, root / f"run-window-{index}", label, extra_env={"QEGTRAIN_AUTOSTART": "1"})
+            if returncode != 1:
+                raise SystemExit(f"{label} exited with {returncode}, expected 1\n{tail(output)}")
+            missing = [detail for detail in details if detail not in output]
+            if missing:
+                raise SystemExit(f"{label} did not report {missing!r}\n{tail(output)}")
+        print("window launches with --scene and a draft or a newer scene exit with 1 and name the reason")
+        # A file name that does not open is reported, and the start goes on as without a file name.
+        assert_no_argument_chooser_continuation(
+            app, (str(newer_bundle),), "window launch with a newer bundle", "scene.compatibility.newer"
+        )
+        print("a window launch with a newer bundle named the reason and started as without a file name")
 
 
 def terminate_process_group(proc: subprocess.Popen) -> None:
@@ -611,6 +666,7 @@ def main() -> None:
     assert_startup_timing_contract(app)
     assert_no_argument_chooser_continuation(app)
     assert_open_argument_contract(app, scene_tool)
+    assert_version_rejections_name_the_reason(app)
     if os.name == "nt":
         print("startup launch PTY checks skipped on Windows")
         return

@@ -49,6 +49,7 @@ struct TempDir {
 struct Fixture {
 	std::string path;
 	std::string className;
+	std::string reason; // the diagnostic code of the probe; only for a scene that is rejected
 	int schemaVersion = 0;
 	std::optional<int> bundleVersion;
 	std::string savedWithAppVersion;
@@ -239,6 +240,8 @@ static bool readManifest(const fs::path& manifestPath, std::vector<Fixture>& fix
 		fixture.path = reader.text("path");
 		reader.text("origin");
 		fixture.className = reader.text("class");
+		if (fixture.className == "OlderUnsupported" || fixture.className == "Newer")
+			fixture.reason = reader.text("reason");
 		fixture.schemaVersion = reader.integer("schema_version", true).value_or(0);
 		fixture.bundleVersion = reader.integer("bundle_version", false);
 		fixture.savedWithAppVersion = reader.text("saved_with_app_version");
@@ -268,6 +271,25 @@ static bool checkDirectoryAgrees(const fs::path& fixtureDir, const std::set<std:
 	for (const std::string& name : listed) {
 		ec.clear();
 		ok &= expect(fs::exists(fixtureDir / pathFromUtf8(name), ec), "manifest.json lists " + name + ", which the fixture directory does not have");
+	}
+	return ok;
+}
+
+// A rejected scene gets one diagnostic with the code that the manifest lists, and any other scene gets none.
+static bool checkRejectionReason(const Fixture& fixture, const SceneCompatibilityProbeResult& probe) {
+	const std::string& name = fixture.path;
+	if (fixture.reason.empty())
+		return expect(probe.diagnostics.empty(), name + ": the probe reports " + firstError(probe.diagnostics) + ", expected nothing");
+	if (!expect(probe.diagnostics.size() == 1 && probe.diagnostics.front().code == fixture.reason,
+			name + ": the probe reports " + std::to_string(probe.diagnostics.size()) + " diagnostics, the first one " + firstError(probe.diagnostics)
+				+ ", expected one with the code " + fixture.reason))
+		return false;
+	const std::string text = toDisplayText(probe.diagnostics.front());
+	bool ok = expect(text.find("schema " + std::to_string(fixture.schemaVersion)) != std::string::npos,
+		name + ": the reason \"" + text + "\" does not name the schema number");
+	if (fixture.reason == "scene.compatibility.draft") {
+		ok &= expect(text.find("2026-08-08") != std::string::npos && text.find("Load Legacy Case") != std::string::npos,
+			name + ": the reason \"" + text + "\" does not name the date and the way out");
 	}
 	return ok;
 }
@@ -319,6 +341,7 @@ static bool checkFixture(const Fixture& fixture, const fs::path& fixtureDir, con
 		return expect(false, name + ": a migration is registered for this fixture. Write the check of the migrated copy together with the migration;"
 									" this test accepts the classes Current, OlderUnsupported, Newer and Malformed.");
 
+	ok &= checkRejectionReason(fixture, probe);
 	ok &= checkRunnable(fixture, source, probe.bundleVersion);
 
 	std::error_code ec;
@@ -341,13 +364,18 @@ static bool checkRejectedSchemaNumbers(const std::vector<Fixture>& fixtures, con
 	if (!origin)
 		return expect(false, "manifest.json lists no runnable directory fixture to derive the rejected schema numbers from");
 
-	const std::vector<std::pair<int, SceneCompatibilityClass>> cases = {
-		{0, SceneCompatibilityClass::OlderUnsupported},
-		{kCurrentSceneSchemaVersion + 1, SceneCompatibilityClass::Newer}};
+	struct Rejected {
+		int schema;
+		SceneCompatibilityClass expected;
+		const char* code;
+	};
+	const std::vector<Rejected> cases = {
+		{0, SceneCompatibilityClass::OlderUnsupported, "scene.compatibility.older"},
+		{kCurrentSceneSchemaVersion + 1, SceneCompatibilityClass::Newer, "scene.compatibility.newer"}};
 	bool ok = true;
 	for (const auto& rejected : cases) {
-		const std::string name = origin->path + " with schema_version " + std::to_string(rejected.first);
-		const fs::path copy = tempDir / ("rejected-" + std::to_string(rejected.first));
+		const std::string name = origin->path + " with schema_version " + std::to_string(rejected.schema);
+		const fs::path copy = tempDir / ("rejected-" + std::to_string(rejected.schema));
 		std::error_code ec;
 		fs::copy(fixtureDir / pathFromUtf8(origin->path), copy, fs::copy_options::recursive, ec);
 		ok &= expect(!ec, name + ": the directory cannot be copied: " + ec.message());
@@ -360,22 +388,28 @@ static bool checkRejectedSchemaNumbers(const std::vector<Fixture>& fixtures, con
 			ok &= expect(false, name + ": scene.json cannot be read: " + error.what());
 			continue;
 		}
-		manifest["schema_version"] = rejected.first;
+		manifest["schema_version"] = rejected.schema;
 		ok &= expect(writeFileBytes(copy / "scene.json", manifest.dump(4) + "\n"), name + ": scene.json cannot be written");
 
-		const SceneCompatibilityClass found = probeSceneCompatibility(copy.u8string()).classification;
-		ok &= expect(found == rejected.second, name + ": class is " + classLabel(found) + ", expected " + classLabel(rejected.second));
+		const SceneCompatibilityProbeResult probe = probeSceneCompatibility(copy.u8string());
+		ok &= expect(probe.classification == rejected.expected,
+			name + ": class is " + classLabel(probe.classification) + ", expected " + classLabel(rejected.expected));
+		const std::string reason = probe.diagnostics.empty() ? std::string() : toDisplayText(probe.diagnostics.front());
+		ok &= expect(probe.diagnostics.size() == 1 && reason.find(rejected.code) != std::string::npos
+				&& reason.find("schema " + std::to_string(rejected.schema)) != std::string::npos
+				&& reason.find("schema " + std::to_string(kCurrentSceneSchemaVersion)) != std::string::npos,
+			name + ": the reason is \"" + reason + "\", expected one with " + rejected.code + " that names both schema numbers");
 		const SceneLoadResult loaded = loadScenePath(copy.u8string());
 		ok &= expect(hasErrorCode(loaded.diagnostics, "scene.version.unsupported"),
 			name + ": loadScenePath reports " + firstError(loaded.diagnostics) + ", expected scene.version.unsupported");
-		ok &= expectRefusedWithoutCopy(name, copy, tempDir / ("rejected-" + std::to_string(rejected.first) + "-upgrade"));
+		ok &= expectRefusedWithoutCopy(name, copy, tempDir / ("rejected-" + std::to_string(rejected.schema) + "-upgrade"));
 	}
 	return ok;
 }
 
-// A number below the current one needs a fixture of that number and either a registered migration path or a fixture
-// listed as OlderUnsupported. Each loop covers the numbers below the current one and does not run while the current
-// number is 1.
+// A number below the current one needs a fixture of that number and either a registered migration path or every fixture
+// of that number listed as OlderUnsupported. Each loop covers the numbers below the current one and does not run while
+// the current number is 1.
 static bool checkVersionNumbers(const char* kind, const char* constant, int current, SceneMigrationStepKind stepKind,
 	const std::vector<std::pair<int, std::string>>& fixtureNumbers) {
 	bool ok = true;
@@ -383,20 +417,20 @@ static bool checkVersionNumbers(const char* kind, const char* constant, int curr
 	for (int number = 1; number < current; ++number) {
 		const std::string label = std::string(kind) + " number " + std::to_string(number);
 		bool hasFixture = false;
-		bool listedUnsupported = false;
+		bool allUnsupported = true;
 		for (const auto& fixture : fixtureNumbers) {
 			if (fixture.first != number)
 				continue;
 			hasFixture = true;
-			listedUnsupported = listedUnsupported || fixture.second == "OlderUnsupported";
+			allUnsupported = allUnsupported && fixture.second == "OlderUnsupported";
 		}
 		ok &= expect(hasFixture,
 			label + ", check (i): no fixture in manifest.json has it, and " + constant + " is " + std::to_string(current)
 				+ ". Add a fixture written by a build with that number. " + rule);
 		const bool registered = sceneMigrationPathAvailable(productionSceneMigrationRegistry(), stepKind, number, current);
-		ok &= expect(registered || listedUnsupported,
+		ok &= expect(registered || (hasFixture && allUnsupported),
 			label + ", check (ii): no migration from " + std::to_string(number) + " to " + std::to_string(current)
-				+ " is registered and no fixture with that number has the class OlderUnsupported. Register the migration, or set"
+				+ " is registered and not every fixture with that number has the class OlderUnsupported. Register the migration, or set"
 				+ " that class on the fixtures of that number to drop support on purpose. " + rule);
 	}
 	return ok;
