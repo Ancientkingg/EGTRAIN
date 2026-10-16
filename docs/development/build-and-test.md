@@ -482,6 +482,11 @@ package fails the launch. It starts the packaged program in this order:
 1. Headless on Paimpol to the end of a 120 s run.
 2. With a window in startup timing mode, where the program opens the scene,
    prepares a run, paints it and exits.
+
+A release package has no test hooks, so the script makes two more launches only
+with `--exports`, for a package assembled from a build with
+`EGTRAIN_BUILD_TESTS=ON`:
+
 3. The CSV export.
 4. The PNG export.
 
@@ -523,9 +528,8 @@ library (under `/System/Library/` or `/usr/lib/`) or a file inside the app, and
 every library inside the app is loaded by some file. The search starts at the
 files in `Contents/MacOS` and `Contents/PlugIns`, which no load command names:
 the system starts a program, and Qt finds a plugin by its directory. The script
-then starts the app as for Windows: the headless run, the window start, the CSV
-export and the PNG export. Only the launches with a window load the cocoa
-platform plugin of the bundle.
+then starts the app as for Windows: the headless run and the window start. Only
+the launch with a window loads the cocoa platform plugin of the bundle.
 
 The macOS package keeps `QtDBus` and `QtPrintSupport`, which the cocoa platform
 plugin loads, the print support and bearer plugins, and the image format
@@ -540,8 +544,7 @@ package** it lists the plugin files of the extracted image in its log and runs
 `tools/release/package_start_smoke.py` on the directory with `xvfb-run`, which
 gives the program a virtual X display. The script starts the directory through
 its `AppRun`, as the AppImage runtime does after it has mounted the image, and
-makes the same launches as for Windows: the headless run, the window start, the
-CSV export and the PNG export.
+makes the same launches as for Windows: the headless run and the window start.
 
 Before the launches the script runs `ldd` on every ELF file below `usr/bin` and
 `usr/plugins`. It fails unless each Qt 5 and ZeroMQ library that such a file
@@ -1400,12 +1403,13 @@ most of its checks, so run it locally to read its logs.
   made. The Linux package job extracts its AppImage and starts the extracted
   image with the same script on a virtual display, after the script has checked
   that every Qt 5 and ZeroMQ library of the programs and plugins comes from the
-  image. The start in each of the three package jobs includes the CSV and PNG
-  exports of Paimpol through the test hooks of the application. The check does
-  not show how the SVG icons look, typing into text fields, the native file
-  dialogs, how Finder presents the disk image, whether a double-click on a
-  `.egscene` file in Finder opens EGTRAIN, or a start on a machine without Qt or
-  a display server; the clean-install rehearsal in the
+  image. The start in each of the three package jobs is the headless run and the
+  window start, with no CSV or PNG export, because a release build has no test
+  hooks to ask for one. The check does not show how the SVG icons look, typing
+  into text fields, the native file dialogs, how Finder presents the disk
+  image, whether a double-click on a `.egscene` file in Finder opens EGTRAIN, or
+  a start on a machine without Qt or a display server; the clean-install
+  rehearsal in the
   [release testing checklist](release-testing-checklist.md) covers them. After
   the three packages are built, the job `release-assets` downloads the
   artifacts and runs `tools/release/build_release_assets.py` on them with the

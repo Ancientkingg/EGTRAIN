@@ -607,7 +607,8 @@ class LaunchTests(unittest.TestCase):
 
 class MainTests(unittest.TestCase):
     """main() runs with the launches and the closure and library checks replaced, so no application starts. A launch
-    that stands for an export writes the files that the hook writes, unless a test turns that off."""
+    that stands for an export writes the files that the hook writes, unless a test turns that off. The exports run
+    only with --exports."""
 
     CSV_TEXT = "time,position\n0,1\n"
     PNG_BYTES = package_start_smoke.PNG_SIGNATURE + b"\x00\x00\x00\rIHDR" + bytes(8)
@@ -668,17 +669,25 @@ class MainTests(unittest.TestCase):
 
     def test_app_bundle_is_checked_before_the_launches(self):
         self.add_package("QEGTRAIN.app/Contents/MacOS/QEGTRAIN", "QEGTRAIN.app/Contents/Resources/Scenes")
-        self.run_main()
+        self.run_main("--exports")
         self.assertEqual(self.calls, [self.package / "QEGTRAIN.app", "headless run", "window start", "CSV export", "PNG export"])
 
     def test_package_without_an_app_bundle_is_only_launched(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
-        self.run_main()
+        self.run_main("--exports")
         self.assertEqual(self.calls, ["headless run", "window start", "CSV export", "PNG export"])
+
+    def test_exports_do_not_run_without_the_option(self):
+        self.add_package("QEGTRAIN.exe", "Scenes")
+        self.run_main()
+        self.assertEqual(self.calls, ["headless run", "window start"])
+        for launch in self.launches.values():
+            self.assertEqual(launch["hooks"], [])
+            self.assertFalse("QEGTRAIN_AUTOSTART" in launch["env"])
 
     def test_app_dir_is_checked_before_the_launches_and_started_through_apprun(self):
         self.add_app_dir()
-        self.run_main()
+        self.run_main("--exports")
         self.assertEqual(self.calls, [self.package, "headless run", "window start", "CSV export", "PNG export"])
         for launch in self.launches.values():
             self.assertEqual(launch["command"][0], str(self.package / "AppRun"))
@@ -687,7 +696,7 @@ class MainTests(unittest.TestCase):
 
     def test_export_launches_use_the_autostart_hook_and_one_export_hook(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
-        self.run_main()
+        self.run_main("--exports")
         for what, hook in (("CSV export", "QEGTRAIN_E2E_EXPORT_DIR"), ("PNG export", "QEGTRAIN_E2E_ROUTE_DIAGRAM")):
             with self.subTest(what=what):
                 launch = self.launches[what]
@@ -711,7 +720,7 @@ class MainTests(unittest.TestCase):
 
     def test_headless_run_and_window_start_get_no_hook_and_keep_the_time_limit(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
-        self.run_main()
+        self.run_main("--exports")
         for what in ("headless run", "window start"):
             with self.subTest(what=what):
                 launch = self.launches[what]
@@ -725,7 +734,7 @@ class MainTests(unittest.TestCase):
 
     def test_platform_reaches_the_launches_with_a_window_and_not_the_headless_run(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
-        self.run_main("--platform", "offscreen")
+        self.run_main("--platform", "offscreen", "--exports")
         self.assertFalse("QT_QPA_PLATFORM" in self.launches["headless run"]["env"])
         for what in ("window start", "CSV export", "PNG export"):
             self.assertEqual(self.launches[what]["env"]["QT_QPA_PLATFORM"], "offscreen")
@@ -733,14 +742,14 @@ class MainTests(unittest.TestCase):
     def test_no_platform_is_set_without_the_option(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
         with mock.patch.dict(os.environ, {"QT_QPA_PLATFORM": "offscreen"}):
-            self.run_main()
+            self.run_main("--exports")
         for launch in self.launches.values():
             self.assertFalse("QT_QPA_PLATFORM" in launch["env"])
 
     def assert_export_without_the_marker_fails(self, what):
         self.add_package("QEGTRAIN.exe", "Scenes")
         self.output[what] = "warnings that were printed\nE2E_CSV_EXPORT_FAIL\n"
-        message = self.failure()
+        message = self.failure("--exports")
         self.assertIn(f"{what} printed no", message)
         self.assertIn("warnings that were printed", message)
 
@@ -753,7 +762,7 @@ class MainTests(unittest.TestCase):
     def test_export_that_wrote_no_file_fails(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
         self.write_exports = False
-        message = self.failure()
+        message = self.failure("--exports")
         self.assertIn("CSV export failed", message)
         self.assertIn("trajectory.csv was not written", message)
         self.assertIn("E2E_CSV_EXPORT_OK", message)
@@ -761,12 +770,12 @@ class MainTests(unittest.TestCase):
     def test_export_that_wrote_an_empty_file_fails(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
         self.CSV_TEXT = ""
-        self.assertIn("trajectory.csv is empty", self.failure())
+        self.assertIn("trajectory.csv is empty", self.failure("--exports"))
 
     def test_png_export_does_not_run_when_the_csv_export_failed(self):
         self.add_package("QEGTRAIN.exe", "Scenes")
         self.output["CSV export"] = ""
-        self.failure()
+        self.failure("--exports")
         self.assertEqual(self.calls, ["headless run", "window start", "CSV export"])
 
     def test_exports_do_not_run_when_the_window_start_failed(self):
@@ -780,7 +789,7 @@ class MainTests(unittest.TestCase):
             return text
 
         self.launch = failing
-        self.failure()
+        self.failure("--exports")
         self.assertEqual(self.calls, ["headless run", "window start"])
 
 

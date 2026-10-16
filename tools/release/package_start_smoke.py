@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Start QEGTRAIN from an assembled package directory with nothing else to load from.
 
-usage: package_start_smoke.py PACKAGE_DIR [--platform NAME]
+usage: package_start_smoke.py PACKAGE_DIR [--platform NAME] [--exports]
 
 The package is a Windows directory with QEGTRAIN.exe, a folder with QEGTRAIN.app, or the extracted directory of a
 Linux AppImage, which is started through its AppRun. It must bring every library and plugin that QEGTRAIN needs.
@@ -11,6 +11,10 @@ without a developer setup.
 
 1. Headless (-g 0) on the packaged Paimpol scene for a short horizon, to the end of the run.
 2. With a window, in startup timing mode: the application opens the scene, prepares a run, paints it and exits.
+
+With --exports two more launches follow. They need an application built with EGTRAIN_BUILD_TESTS, which has the test
+hooks that a release package does not have, so a release package is started without the option.
+
 3. CSV export: with a window and the autostart hook, the application runs the scene to a horizon of 8000 s, writes
    the CSV files of the run into a directory (QEGTRAIN_E2E_EXPORT_DIR) and exits. The script requires the marker
    that the application prints and CSV files that are not empty, with a header line and a data line.
@@ -30,8 +34,8 @@ reads the libraries of every ELF file below usr/bin and usr/plugins with ldd and
 ZeroMQ library that such a file loads is a file of the directory, and unless ldd lists at least one: a machine
 that has its own Qt 5 would otherwise start an image that lacks one of its libraries.
 
---platform sets QT_QPA_PLATFORM for the launches with a window: the window start and both exports. The headless run
-does not get it. Without it the platform plugin of the package is used, which is what a user gets.
+--platform sets QT_QPA_PLATFORM for the launches with a window: the window start and, with --exports, both exports. The
+headless run does not get it. Without it the platform plugin of the package is used, which is what a user gets.
 """
 import argparse
 import os
@@ -344,6 +348,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("package", type=Path)
     parser.add_argument("--platform")
+    parser.add_argument("--exports", action="store_true",
+                        help="also run the CSV and PNG exports, which need an application built with EGTRAIN_BUILD_TESTS")
     args = parser.parse_args()
 
     package = args.package.resolve()
@@ -377,6 +383,9 @@ def main() -> None:
         if "first_runtime_paint" not in text:
             raise SystemExit(f"window start did not paint the prepared run\n{text[-4000:]}")
         print(f"PASS window start of {scene.name} from {package}")
+
+        if not args.exports:
+            return
 
         run_export("CSV export", "QEGTRAIN_E2E_EXPORT_DIR", "E2E_CSV_EXPORT_OK", check_csv_export,
                    executable, scene, Path(temp), args.platform)
