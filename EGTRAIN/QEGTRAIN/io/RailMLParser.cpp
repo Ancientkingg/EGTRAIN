@@ -8,9 +8,20 @@
 extern InitialParameters initial_variables;
 
 namespace {
-zmq::context_t ctx;
-std::map<std::string, std::unique_ptr<zmq::socket_t>> externalSockets;
 constexpr int TransportTimeoutMs = 100;
+
+// Made by the first send, so a process that never shares its state holds no ZeroMQ context.
+// Members are destroyed in reverse order: the sockets go before the context, whose destructor
+// waits for every socket to be closed.
+struct ExternalTransport {
+	zmq::context_t context;
+	std::map<std::string, std::unique_ptr<zmq::socket_t>> sockets;
+};
+
+ExternalTransport& externalTransport() {
+	static ExternalTransport transport;
+	return transport;
+}
 
 bool loadRttpDocument(const std::string& payload, pugi::xml_document& document) {
 	const pugi::xml_parse_result result = document.load_buffer(payload.data(), payload.size());
@@ -234,10 +245,11 @@ std::string routeChoice_xml(nlohmann::json jsmsg) {
 
 
 bool send_external_state(nlohmann::json jsmsg, const std::string& xml, const std::string& endpoint) {
-	auto& socket = externalSockets[endpoint];
+	ExternalTransport& transport = externalTransport();
+	auto& socket = transport.sockets[endpoint];
 	try {
 		if (!socket) {
-			socket = std::make_unique<zmq::socket_t>(ctx, zmq::socket_type::req);
+			socket = std::make_unique<zmq::socket_t>(transport.context, zmq::socket_type::req);
 			socket->set(zmq::sockopt::linger, 0);
 			socket->set(zmq::sockopt::immediate, 1);
 			socket->set(zmq::sockopt::sndtimeo, TransportTimeoutMs);

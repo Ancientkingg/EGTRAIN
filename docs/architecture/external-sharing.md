@@ -14,7 +14,7 @@ This page describes the code as it is. Function names are given so that a mainta
 - `parseCmdOptions` (`app/main.cpp`) reads both options with `std::atoi`. Any nonzero value switches the channel on. The default is 0.
 - The options exist on the command line only. `--interactive` asks for both when the command line leaves them out (see [Command-line options](../guides/command-line.md)). The window has no control for them, but a window run sends when the option was given at the start. The provenance file of exported results records both values as `tsm_mode` and `route_choice_mode`.
 - `-RC 1` needs a usable passenger journey in the prepared run. `DispatchController::prepareScene` rejects the run otherwise, with the diagnostic `scene.route_choice.passengers.none` (`test_route_choice_missing_data`).
-- With both options at 0, no socket is created and nothing is bound or sent: `send_external_state` is called only from the two blocks of the step loop that these options guard. The namespace-scope `zmq::context_t` in `io/RailMLParser.cpp` is still constructed when the program starts, because `QEGTRAIN` links the library `egtrain_railml` that holds it.
+- With both options at 0, no socket is created and nothing is bound or sent: `send_external_state` is called only from the two blocks of the step loop that these options guard. The ZeroMQ context is made by the first send, so such a run holds no context either.
 
 ## When it sends
 
@@ -28,7 +28,7 @@ Before each send, the XML text of the message is printed to standard output, whe
 
 The application connects to the endpoints and does not bind; the module has to bind. The two endpoints are fixed strings in `DispatchController.cpp`, and there is no option for a host or a port.
 
-`send_external_state` (`io/RailMLParser.cpp`) keeps one ZeroMQ REQ socket per endpoint in a process-global map. A send creates the socket of its endpoint when there is none, with linger 0, immediate 1, and a send and receive timeout of 100 ms (`TransportTimeoutMs`). The send itself uses `dontwait`, so the send timeout is not used. The wait for a reply uses the receive timeout.
+`send_external_state` (`io/RailMLParser.cpp`) keeps one ZeroMQ REQ socket per endpoint in a map that, like the ZeroMQ context, is a function-local static made by the first send. At exit the sockets are destroyed before the context. A send creates the socket of its endpoint when there is none, with linger 0, immediate 1, and a send and receive timeout of 100 ms (`TransportTimeoutMs`). The send itself uses `dontwait`, so the send timeout is not used. The wait for a reply uses the receive timeout.
 
 | Situation | What happens | Result |
 | --- | --- | --- |
