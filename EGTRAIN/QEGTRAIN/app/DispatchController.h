@@ -4,9 +4,11 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/GuiReplayHistory.h"
 #include "simulation/Optimisation.h"
+#include "simulation/RunControl.h"
 
 #include <QObject>
 #include <atomic>
+#include <memory>
 #include <utility>
 
 #ifdef signals
@@ -48,6 +50,10 @@ public:
 	GuiReplayHistory takeReplayCandidate() { return std::exchange(replayCandidate_, GuiReplayHistory()); }
 	// True when the last run executed every stage, also if a stop arrived after its last check.
 	bool lastRunCompleted() const { return runCompleted_; }
+	// The control of the run that started last, also when it has ended: the control of the window's
+	// SimulationWorker, or the one that a run without a worker made for itself. Call this on the thread
+	// that runs the simulation, or after the run has returned.
+	std::shared_ptr<RunControl> runControl() const { return runControl_; }
 	// Output folder that prepareScene applies to the run it prepares. Call these on the GUI
 	// thread; a run keeps the folder it was prepared with.
 	void setNextRunOutputFolder(const std::string& folder) { nextRunOutputFolder_ = folder; }
@@ -71,6 +77,7 @@ private:
 	GuiReplayHistory replayCandidate_;
 	bool snapshotsEnabled_ = true;
 	std::atomic<bool> runCompleted_{false};
+	std::shared_ptr<RunControl> runControl_ = std::make_shared<RunControl>();
 	std::string nextRunOutputFolder_;
 };
 

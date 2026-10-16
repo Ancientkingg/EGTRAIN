@@ -11,7 +11,6 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
-#include <thread>
 #include <chrono>
 #include <memory>
 #include <map>
@@ -364,14 +363,18 @@ void DispatchController::runSimulation() {
 		return;
 	}
 
+	// The worker of a run in the window made its control before the run, so a stop requested earlier is
+	// kept. A run without a worker, as with -g 0, makes one for itself.
+	const SimulationWorker* worker = SimulationWorker::active();
+	runControl_ = worker ? worker->control() : std::make_shared<RunControl>();
+
 	QElapsedTimer observationTimer;
 	observationTimer.start();
 	emit executionBegan();
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {
-		const auto* worker = SimulationWorker::active();
-		if (!worker || !worker->isStopRequested())
+		if (!runControl_->isStopRequested())
 			return false;
 		emit executionReturned(observationTimer.elapsed(), true);
 		return true;
@@ -491,16 +494,11 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 	std::vector<int> movementOrder;
 	int lastStep = -1;
 
+	RunControl& control = *runControl_;
 	for (int t = 0; t < initial_variables.times; t++) {
-		// pause/stop/speed from GUI
-		if (auto* sw = SimulationWorker::active()) {
-			while (sw->isPauseRequested() && !sw->isStopRequested())
-				std::this_thread::sleep_for(std::chrono::milliseconds(50));
-			if (sw->isStopRequested())
-				break;
-			if (int delay = sw->delayMs())
-				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-		}
+		// Queued commands, pause, stop and the step delay take effect here, before the step moves anything.
+		if (!control.beginStep())
+			break;
 		lastStep = t;
 		{
 			QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute", "worker", "");

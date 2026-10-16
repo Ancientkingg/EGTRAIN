@@ -28,7 +28,7 @@ docs/                     Guides and architecture, development, product, telemet
 | Folder | Holds |
 | --- | --- |
 | `app/` | Entry point and the top-level window: `main.cpp`, `MainWindow`, `SignalItemRoles`, `DispatchController`, `SceneOpenRequest`, `OpenRequestRelay`, `resources.qrc` |
-| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockDynamics`, `RollingStockOccupation`, `RollingStockStops`, `RollingStockTrajectory`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
+| `simulation/` | The simulation engine and domain: `Simulation`, `SimulationWorker`, `RunControl`, `RollingStock`, `RollingStockBlockingTimes`, `RollingStockBraking`, `RollingStockDynamics`, `RollingStockOccupation`, `RollingStockStops`, `RollingStockTrajectory`, `Infrastructure`, `Signalling`, `Optimisation`, `Passengers`, `NumberGenerator`, `InitialParameters`, `RuntimeLimits` |
 | `simulation/builders/` | The builders that fill the runtime globals from a scene: `InfrastructureBuilder` (infrastructure and signalling) and `OperationsBuilder` (trains, platforms and passengers), and `InfrastructureBuilderInternal.h` for the two declarations the first shares with `Signalling.cpp` |
 | `scene/` | The canonical scene model: `SceneModel`, `SceneImporter`, `SceneExporter`, `SceneValidator`, `SceneWriter`, `SceneBundle`, `SceneCompatibility`, `SceneMigration`, `SceneDiagnostic`, `SceneFields`, `SceneFieldReader`, `SectionInventory`, `SignallingLevel`, `SignallingLevelNames`, `StagedDirectory`, `StopInsertion`, `TrackPreview`, `Utf8Path`, `SceneTool` |
 | `graphics/` | The network canvas and view (`NetworkScene`, `NetworkView`), the visual style tables (`VisualPolish`) |
@@ -63,7 +63,7 @@ The application, `scene_tool` and the tests link them.
 | Library | Sources | Depends on |
 | --- | --- | --- |
 | `egtrain_scene` | `scene/` except `SceneTool.cpp` | nlohmann-json, `egtrain_miniz` |
-| `egtrain_sim` | `simulation/` except `SimulationWorker` | `egtrain_scene`, `egtrain_util` |
+| `egtrain_sim` | `simulation/` except `RunControl` and `SimulationWorker` | `egtrain_scene`, `egtrain_util` |
 | `egtrain_util` | `util/*.cpp` | nlohmann-json |
 | `egtrain_railml` | `io/RailMLParser.cpp` | `egtrain_pugixml`, cppzmq |
 | `egtrain_pugixml` | `io/third_party/pugixml.cpp` | |
@@ -75,7 +75,7 @@ The application, `scene_tool` and the tests link them.
 | `egtrain_openrelay` | `app/OpenRequestRelay.cpp` | Qt Core, Gui and Network |
 | `egtrain_recovery` | `recovery/` | Qt Core, `egtrain_scene` |
 | `egtrain_telemetry` | `telemetry/` except `TelemetryConsentDialog` | Qt Core, Gui, Network and Widgets |
-| `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
+| `egtrain_dispatch` | `app/DispatchController.cpp`, `app/GuiReplayHistory.cpp`, `simulation/RunControl.cpp`, `simulation/SimulationWorker.cpp` | Qt Core, Gui and Widgets, `egtrain_railml`, `egtrain_sim` |
 | `egtrain_diagrams` | `diagrams/` | Qt Core, Gui, Network, Widgets and Charts, `egtrain_sim` |
 
 `egtrain_miniz` holds the vendored zip code. The first six libraries and

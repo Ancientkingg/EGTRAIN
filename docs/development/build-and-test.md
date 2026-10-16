@@ -84,8 +84,8 @@ The scene, simulation, utility, RailML and live frame and server code is built o
 libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`,
 `egtrain_live` and the vendored `egtrain_pugixml`. The Qt code that several targets use is
 built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_update`,
-`egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController` and
-`SimulationWorker`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
+`egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController`,
+`SimulationWorker` and `RunControl`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
 tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. The application and
 every test that pulls in Infrastructure, Signalling or RollingStock from

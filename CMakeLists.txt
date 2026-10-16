@@ -320,6 +320,7 @@ endforeach()
 add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/app/GuiReplayHistory.cpp
+    ${SRC_DIR}/simulation/RunControl.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp)
 target_link_libraries(egtrain_dispatch
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
