@@ -143,14 +143,15 @@ What the jobs prove today:
   on the AppImage that the Package Linux job uploaded. It runs on every package
   run, so the release run rehearses the frozen candidate. The runner is a GitHub
   Ubuntu 24.04 machine with a virtual display, a D-Bus session and the AT-SPI
-  accessibility bus, and with no Qt and no build tools. The job extracts the
+  accessibility bus. The job installs no Qt package. It extracts the
   image, packs the Paimpol scene of the image into a `.egscene` bundle with the
   `scene_tool` of the image, and runs `tools/release/linux_rehearsal.py`. The
   bundle comes from the image because the macOS job, which uploads the
   case-study bundles, would end this job after the Windows jobs. The script
   starts the image through its `AppRun` with a new home directory and no
   `QEGTRAIN_` variable, and drives the real menus and dialogs through AT-SPI,
-  with `xdotool` only for typing. The release package has no test hook. Each
+  with `xdotool` only for typing and for giving the keyboard to a field or a
+  table cell. The release package has no test hook. Each
   step prints `STEP n PASS` or `STEP n FAIL` with what it saw, and the job stops
   at the first step that fails. The script also fails when the area of the
   buttons Zoom In and Zoom Out of the toolbar, which show an icon and no text,
