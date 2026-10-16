@@ -12,6 +12,7 @@
 #endif
 #include "update/SelfUpdater.h"
 #include "update/UpdateSettings.h"
+#include "widgets/ConsoleWidget.h"
 #include <algorithm>
 #include <optional>
 #include "util/portability.h"
@@ -234,6 +235,9 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 Logger owl;
 int main(int argc, char* argv[]) {
 	beginStartupTiming();
+	const std::string loggingProblems = installConsoleLogging();
+	if (!loggingProblems.empty())
+		std::cerr << loggingProblems;
 	QCoreApplication::setOrganizationName("EGTRAIN");
 	QCoreApplication::setApplicationName("EGTRAIN");
 	QCoreApplication::setApplicationVersion(QStringLiteral(EGTRAIN_APP_VERSION));

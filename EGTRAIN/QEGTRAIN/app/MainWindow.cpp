@@ -2904,11 +2904,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	statusBar()->addPermanentWidget(m_zoomStatusLabel);
 	updateZoomStatus();
 
-	// route Qt log messages to std::cout so they flow through ConsoleWidget's streambuf
-	qInstallMessageHandler([](QtMsgType, const QMessageLogContext&, const QString& msg) {
-		std::cout << msg.toStdString() << "\n";
-	});
-
 	// Connect zoom actions
 	connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
 	connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
