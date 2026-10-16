@@ -238,7 +238,7 @@ Section::Section() {
 	exit_speed = 0;
 	total_nodes = total_arcs = 0;
 	code = 270;
-	strcpy_s(state, "green");
+	state = SignalState::Green;
 	withSwitchDiv = Occupied = false;
 	Occup_By_Train = false;
 	trackLineId = -1;
@@ -278,7 +278,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 			CutSection.exit_speed = this->exit_speed;
 			CutSection.code = this->code;
 			CutSection.SignallingLevel = this->SignallingLevel;
-			strcpy(CutSection.state, this->state);
+			CutSection.state = this->state;
 			CutSection.Occup_By_Train = this->Occup_By_Train;
 			CutSection.Occupied = this->Occupied;
 			CutSection.N_ConnectedBS = this->N_ConnectedBS;
@@ -363,7 +363,7 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 			CutSection.exit_speed = this->exit_speed;
 			CutSection.code = this->code;
 			CutSection.SignallingLevel = this->SignallingLevel;
-			strcpy(CutSection.state, this->state);
+			CutSection.state = this->state;
 			CutSection.Occup_By_Train = this->Occup_By_Train;
 			CutSection.Occupied = this->Occupied;
 			CutSection.N_ConnectedBS = this->N_ConnectedBS;
@@ -451,7 +451,7 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 
 	code = blockSets.code;
 	exit_speed = blockSets.exit_speed;
-	strcpy(state, blockSets.state);
+	state = blockSets.state;
 	withSwitchDiv = blockSets.withSwitchDiv;
 	if (withSwitchDiv == 1) {
 		XStartSwitch = RouteLength - blockSets.XEndSwitch; // The beginning of the switch becomes the end for A
@@ -2201,7 +2201,7 @@ void unlockDoubleSwitches() {
 			if (train_route[r].sequence_of_block_sections[b].start_node.virtualSignal && train_route[r].sequence_of_block_sections[b].code == 0) {
 				// changes on previous signalling_block_sections
 				if (b > 0) {
-					strcpy_s(train_route[r].sequence_of_block_sections[b - 1].state, "green");
+					train_route[r].sequence_of_block_sections[b - 1].state = SignalState::Green;
 					for (int k = 0; k < train_route[r].sequence_of_block_sections[b - 1].total_arcs; k++) {
 						train_route[r].sequence_of_block_sections[b - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
@@ -2747,10 +2747,10 @@ enum class SpeedSelector {
 };
 
 // The aspect of the section that is k blocks behind an occupied section. Row 0 is the occupied section itself: it gets code 0 and its exit
-// speed, and keeps its state and signal speed limits.
+// speed, and keeps its state and signal speed limits. The state of row 0 is not read.
 struct AspectRow {
 	int code;
-	const char* state;
+	SignalState state;
 	SpeedSelector speed;
 };
 
@@ -2775,21 +2775,22 @@ struct FixedBlockSystem {
 
 // Level 0, ATB: the section behind an occupied one is red with a speed limit, then yellow, then green.
 constexpr FixedBlockSystem kAtb = {levelValue(SignallingLevel::Atb), false, 4,
-	{{0, nullptr, SpeedSelector::Unlimited}, {75, "red", SpeedSelector::V75}, {180, "yellow", SpeedSelector::Unlimited},
-		{270, "green", SpeedSelector::Unlimited}},
+	{{0, SignalState::Green, SpeedSelector::Unlimited}, {75, SignalState::Red, SpeedSelector::V75},
+		{180, SignalState::Yellow, SpeedSelector::Unlimited}, {270, SignalState::Green, SpeedSelector::Unlimited}},
 	AspectGate::Level};
 
 // Level 5, BACC: one more row than ATB. The first row behind an occupied section is double red, with a speed limit that stops the train.
 constexpr FixedBlockSystem kBacc = {levelValue(SignallingLevel::Bacc), true, 5,
-	{{0, nullptr, SpeedSelector::Unlimited}, {751, "red_red", SpeedSelector::V751}, {75, "red", SpeedSelector::V75},
-		{180, "yellow", SpeedSelector::Unlimited}, {270, "green", SpeedSelector::Unlimited}},
+	{{0, SignalState::Green, SpeedSelector::Unlimited}, {751, SignalState::RedRed, SpeedSelector::V751},
+		{75, SignalState::Red, SpeedSelector::V75}, {180, SignalState::Yellow, SpeedSelector::Unlimited},
+		{270, SignalState::Green, SpeedSelector::Unlimited}},
 	AspectGate::Level};
 
 // Levels 1 and 2, ETCS fixed block: the rows of level 0 with no speed limit on the red section. The two levels differ in their number only.
 constexpr FixedBlockSystem etcsFixedBlock(SignallingLevel level) {
 	return {levelValue(level), false, 4,
-		{{0, nullptr, SpeedSelector::Unlimited}, {75, "red", SpeedSelector::Unlimited}, {180, "yellow", SpeedSelector::Unlimited},
-			{270, "green", SpeedSelector::Unlimited}},
+		{{0, SignalState::Green, SpeedSelector::Unlimited}, {75, SignalState::Red, SpeedSelector::Unlimited},
+			{180, SignalState::Yellow, SpeedSelector::Unlimited}, {270, SignalState::Green, SpeedSelector::Unlimited}},
 		AspectGate::LevelOrUnsetBehindOccupied};
 }
 
@@ -2800,7 +2801,7 @@ constexpr FixedBlockSystem kEtcs2 = etcsFixedBlock(SignallingLevel::EtcsLevel2);
 // Gives the section the code, state and signal speed limit of the row.
 void writeAspect(Section& section, const AspectRow& row, double v75, double v751) {
 	section.code = row.code;
-	strcpy_s(section.state, row.state);
+	section.state = row.state;
 	double limit = 999;
 	if (row.speed == SpeedSelector::V75)
 		limit = v75;
@@ -2926,7 +2927,7 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected
 		if (connected[j] == 0 && !isBeforeConnected)
 			continue;
 		BS[j].code = 270;
-		strcpy_s(BS[j].state, "green");
+		BS[j].state = SignalState::Green;
 
 		// clear signalSpeedLimit restrictions
 		for (int k = 0; k < BS[j].total_arcs; k++) {

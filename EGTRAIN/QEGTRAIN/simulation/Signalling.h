@@ -128,6 +128,14 @@ extern std::list<TDS> list_of_TDS;
 
 extern int Blocks; // Total number of block sections in the network
 
+// Main signal aspect of a block section.
+enum class SignalState : unsigned char {
+	Green,
+	Yellow,
+	Red,
+	RedRed
+};
+
 // --- Section: Block Section ---
 class Section {
 public:
@@ -152,7 +160,7 @@ public:
 	double ETCS3BrakingPoints[40];		  // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
 	string ETCS3BrakingPointsTrainID[40]; // Train IDs for each ETCS3 braking point
 	int N_ETCS3BrakingPoints;			  // Number of ETCS3 braking points on this section
-	char state[20];						  // Main signal aspect
+	SignalState state;					  // Main signal aspect
 	bool Occupied;						  // Block section occupied by a train
 	bool Occup_By_Train;				  // Distinguishes train-on-section (true) from switch-occupied (false)
 	bool withSwitchDiv;					  // Block section contains a diverging switch
@@ -183,7 +191,7 @@ public:
 		for (int i = 0; i < total_arcs; i++)
 			arcs_in_signalling_block_section[i] = ob2.arcs_in_signalling_block_section[i];
 
-		strcpy(state, ob2.state);
+		state = ob2.state;
 		trackLineId = ob2.trackLineId;
 		withSwitchDiv = ob2.withSwitchDiv;
 		Occupied = ob2.Occupied;
@@ -228,7 +236,7 @@ public:
 			&& AreArcsEqual
 			&& (exit_speed == ob2.exit_speed)
 			&& (code == ob2.code)
-			&& (!strcmp(state, ob2.state)))
+			&& (state == ob2.state))
 			return true;
 		else
 			return false;

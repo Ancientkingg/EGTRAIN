@@ -29,10 +29,6 @@ static inline struct tm* localtime_r(const time_t* timep, struct tm* result) {
 
 #include <unistd.h> // isatty, STDIN_FILENO
 
-// MSVC _s functions are not standard C/C++. Map them to safe equivalents.
-// strcpy_s(dst, src) -> strcpy(dst, src)
-#define strcpy_s(dst, src) strcpy(dst, src)
-
 // _mkdir(path) -> mkdir(path, 0777) (POSIX needs a mode argument)
 #define _mkdir(path) mkdir(path, 0777)
 

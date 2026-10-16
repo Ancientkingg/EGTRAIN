@@ -1,4 +1,5 @@
 #include "scene/SceneModel.h"
+#include "scene/SignallingLevel.h"
 #include "scene/SignallingLevelNames.h"
 #include "simulation/Passengers.h"
 #include "simulation/Optimisation.h"
@@ -25,6 +26,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -3178,6 +3180,47 @@ static bool runRollingStockMessageChecks() {
 	return ok;
 }
 
+// The order implemented at an order list goes to Implemented_Order_OL<index>.txt in the given folder: the abscissa of the node, then one train per line.
+static bool runImplementedOrderFileChecks() {
+	bool ok = true;
+	QTemporaryDir folder;
+	ok &= expect(folder.isValid(), "temporary folder for the implemented order files");
+	const auto orderList = std::make_unique<OrderList>();
+	orderList->Node_X = 1.5;
+	orderList->Implemented_Order = {"T1", "T2"};
+	const std::vector<int> indices = {0, 7, 12};
+	for (const int index : indices)
+		orderList->Print_Implemented_Order(folder.path().toStdString(), index);
+	ok &= expect(QDir(folder.path()).entryList(QDir::Files).size() == static_cast<int>(indices.size()), "one implemented order file per order list");
+	for (const int index : indices) {
+		std::ifstream file(folder.path().toStdString() + "/Implemented_Order_OL" + std::to_string(index) + ".txt");
+		std::ostringstream content;
+		content << file.rdbuf();
+		ok &= expect(content.str() == "1.5\nT1\nT2\n", "implemented order file of order list " + std::to_string(index));
+	}
+	return ok;
+}
+
+// A train that follows no order list stops for the signal of the section when it is double red at level 5 and red at every other level.
+static bool runOrderListSignalChecks() {
+	bool ok = true;
+	Train train;
+	const SignalState states[] = {SignalState::Green, SignalState::Yellow, SignalState::Red, SignalState::RedRed};
+	const bool stopsAtAtb[] = {false, false, true, false};
+	const bool stopsAtBacc[] = {false, false, false, true};
+	for (std::size_t i = 0; i < std::size(states); ++i) {
+		Section section;
+		section.state = states[i];
+		section.SignallingLevel = levelValue(SignallingLevel::Atb);
+		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtAtb[i],
+			"stop for the signal state " + std::to_string(i) + " at level 0");
+		section.SignallingLevel = levelValue(SignallingLevel::Bacc);
+		ok &= expect(train.Conditions_To_Stop_Train_For_OL_Order(false, 0, section) == stopsAtBacc[i],
+			"stop for the signal state " + std::to_string(i) + " at level 5");
+	}
+	return ok;
+}
+
 static bool sameSections(const std::vector<BlockSectionInput>& actual, const std::vector<BlockSectionInput>& expected) {
 	if (actual.size() != expected.size())
 		return false;
@@ -4181,6 +4224,8 @@ int main() {
 	ok &= regionalTrainStorageTests();
 	ok &= singleTrackLockTests();
 	ok &= runRollingStockMessageChecks();
+	ok &= runImplementedOrderFileChecks();
+	ok &= runOrderListSignalChecks();
 	if (ok) std::cout << "native forward/reverse route diagram coordinates passed\n";
 	return ok ? 0 : 1;
 }
