@@ -409,6 +409,10 @@ void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
 // --- Release Blocks in Mixed Signalling ---
 void releaseBlocksMixedSignalling(Section* BS, int Blocks);
 
+// Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or
+// with a number that is no level, sets no bit.
+unsigned routeLevelMask(const Route& route);
+
 // Activate mixed signalling areas
 void activateMixedSignallingSystem();
 

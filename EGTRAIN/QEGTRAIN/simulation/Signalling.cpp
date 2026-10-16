@@ -4262,7 +4262,22 @@ void setOccupiedFlags(const Route& route, const std::unordered_set<std::string_v
 	for (int h = 0; h < route.N_Block_Sections; h++)
 		flags[h] = ids.count(route.sequence_of_block_sections[h].ID) != 0 ? 1 : 0;
 }
+
+// The bit of routeLevelMask for a level.
+constexpr unsigned levelBit(SignallingLevel level) {
+	return 1u << levelValue(level);
+}
 } // namespace
+
+unsigned routeLevelMask(const Route& route) {
+	unsigned levels = 0;
+	for (int h = 0; h < route.N_Block_Sections; h++) {
+		const int level = route.sequence_of_block_sections[h].SignallingLevel;
+		if (isValidSignallingLevel(level))
+			levels |= 1u << level;
+	}
+	return levels;
+}
 
 // Function to activate mixed signalling areas
 void activateMixedSignallingSystem() {
@@ -4277,43 +4292,58 @@ void activateMixedSignallingSystem() {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
 		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
 		const auto firstAdded = std::prev(BlocksOccupied.end(), static_cast<std::ptrdiff_t>(singleTrackAdded));
-		occupiedIds.insert(firstAdded, BlocksOccupied.end());
-		setOccupiedFlags(train_route[i], occupiedIds, occupied);
-		// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
-		// route-local occupancy does not propagate recursively through adjacent crossover chains.
-		const Route& route = train_route[i];
-		for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
-			const Section& first = route.sequence_of_block_sections[b];
-			const Section& second = route.sequence_of_block_sections[b + 1];
-			if ((first.SignallingLevel == 0 || first.SignallingLevel == 1 || first.SignallingLevel == 2 || first.SignallingLevel == 5)
-				&& first.end_node.virtualSignal && second.start_node.virtualSignal && occupied[b + 2])
-				occupied[b] = 1;
+		// Bit n of levels is set when the route has a section of level n. The routine of a level writes only on sections of that level, or
+		// behind an occupied section of that level, so a route without a section of the level skips it.
+		const unsigned levels = routeLevelMask(train_route[i]);
+		if (levels != 0) {
+			occupiedIds.insert(firstAdded, BlocksOccupied.end());
+			setOccupiedFlags(train_route[i], occupiedIds, occupied);
+			// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
+			// route-local occupancy does not propagate recursively through adjacent crossover chains.
+			const Route& route = train_route[i];
+			for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
+				const Section& first = route.sequence_of_block_sections[b];
+				const Section& second = route.sequence_of_block_sections[b + 1];
+				if ((first.SignallingLevel == 0 || first.SignallingLevel == 1 || first.SignallingLevel == 2 || first.SignallingLevel == 5)
+					&& first.end_node.virtualSignal && second.start_node.virtualSignal && occupied[b + 2])
+					occupied[b] = 1;
+			}
+			for (auto added = firstAdded; added != BlocksOccupied.end(); ++added)
+				occupiedIds.erase(*added);
 		}
-		for (auto added = firstAdded; added != BlocksOccupied.end(); ++added)
-			occupiedIds.erase(*added);
 		// Set all the speed limits coming from the Infrastructure
 		setInfraSpeedLimits(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
 
-		// Set the aspect of signals and Signal Speed Limits for BACC
-		baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections,
-			occupied.data());
-		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
+		if ((levels & levelBit(SignallingLevel::Bacc)) != 0) {
+			// Set the aspect of signals and Signal Speed Limits for BACC
+			baccMixedSignalling(signalCode1, signalCode2, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections,
+				occupied.data());
+			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
+		}
 
-		// Set the aspect of signals and signal speed limits for ATB
-		atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
+		if ((levels & levelBit(SignallingLevel::Atb)) != 0) {
+			// Set the aspect of signals and signal speed limits for ATB
+			atbMixedSignalling(signalCode1, signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
+		}
 
-		// Set the aspect of signals and signal speed limits for ETCS Level 1
-		etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
+		if ((levels & levelBit(SignallingLevel::EtcsLevel1)) != 0) {
+			// Set the aspect of signals and signal speed limits for ETCS Level 1
+			etcsLev1MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
+		}
 
-		// Set the aspect of signals and signal speed limits for ETCS Level 2
-		etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
-		applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
+		if ((levels & levelBit(SignallingLevel::EtcsLevel2)) != 0) {
+			// Set the aspect of signals and signal speed limits for ETCS Level 2
+			etcsLev2MixedSignalling(signalCode3, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data());
+			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
+		}
 
-		// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
-		rbcSendsMasToRouteMixedSignalling(train_route[i], occupied.data());
-		manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		if ((levels & (levelBit(SignallingLevel::EtcsLevel3) | levelBit(SignallingLevel::VirtualCoupling))) != 0) {
+			// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
+			rbcSendsMasToRouteMixedSignalling(train_route[i], occupied.data());
+			manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		}
 
 		for (; singleTrackAdded > 0; --singleTrackAdded)
 			BlocksOccupied.pop_back();

@@ -65,8 +65,8 @@ The order is fixed in `DispatchController`.
 6. `releaseMixedSignallingSystem` resets the sections that trains have left.
 7. `activateMixedSignallingSystem` goes through every route copy. It adds the
    single-track sections that the copy has to treat as occupied, and then runs
-   the routine of each level. A routine writes only on sections of its own
-   level, with the exceptions in
+   the routine of each level that has a section on the copy. A routine writes
+   only on sections of its own level, with the exceptions in
    [Sections of different levels on one route](#sections-of-different-levels-on-one-route).
 8. The simulation hands the codes to the window.
 
