@@ -24053,6 +24053,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	});
 
 	// verification hook: auto-start the simulation when QEGTRAIN_AUTOSTART is set
+		reportInstallerUpdate(this);
 	if (PlaybackProfiler::enabled()) {
 		if (PlaybackProfiler::startupTimingConflict()) {
 			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"startup_timing_enabled\"}\n");
