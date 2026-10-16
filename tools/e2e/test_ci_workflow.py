@@ -563,7 +563,8 @@ def main() -> None:
     # The signing job runs only for a push to production or a v* tag in a repository that opts in by a variable, so a pull
     # request, a manual run and a repository without the variable skip it. It sends the three program files and no library to
     # the signing service, puts the signed files into the payload, checks them and replaces the payload artifact, which the
-    # finalize job reads. Its token is named once, as the input of the signing step, in the only job with an environment.
+    # finalize job reads. Its token is the input of its signing step; only this job and the installer signing job have an
+    # environment.
     sign_job = job_block(package_only, "sign-windows")
     sign_steps = [
         "Download the package",
