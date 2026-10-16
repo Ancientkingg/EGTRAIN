@@ -1550,7 +1550,8 @@ certificate equals `-ExpectedSubject`. `-Name` defaults to `QEGTRAIN.exe`,
 `-ExpectedSubject` and exits with 1 when a file fails; `-Report` prints the
 findings and exits with 0. The Windows package job runs it with `-Report` on the
 unsigned package of every run, and the signing job runs it with `-Require`. The
-other two switches are for tests that sign with a throwaway certificate.
+other two switches are for tests that sign with a throwaway certificate and must
+not be used on a release.
 
 `test_verify_signatures` (`tools/release/test_verify_signatures.ps1`) runs on
 Windows only. It creates a self-signed code-signing certificate in the store of

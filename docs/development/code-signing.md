@@ -122,8 +122,8 @@ The job downloads the payload artifact, uploads the three program files alone as
 artifact, copies the three signed files into the payload, runs `verify_signatures.ps1 -Require` on the payload and
 replaces the artifact `QEGTRAIN-windows-x64-payload` with it. The finalize job and the release job read that artifact.
 When the request is rejected or times out, or a check fails, the job fails and the finalize job does not run, so no
-installer or ZIP is built from unsigned files. SignPath Foundation needs a person to approve each request, and the
-signing step waits up to one hour for it.
+installer or ZIP is built from unsigned files. A re-run of the failed job replaces the artifacts of the first attempt.
+SignPath Foundation needs a person to approve each request, and the signing step waits up to one hour for it.
 
 The names below are the placeholders that the workflow reads. The owner creates them in the repository settings and in
 SignPath. The SignPath documentation (https://docs.signpath.io/trusted-build-systems/github) describes the inputs. It
@@ -136,12 +136,15 @@ project, and for the SignPath GitHub App to be installed when audit log checks a
 | `SIGNPATH_ORGANIZATION_ID` | Repository variable | The organization id that SignPath issues |
 | `SIGNPATH_PROJECT_SLUG` | Repository variable | The project slug that SignPath issues |
 | `SIGNPATH_SIGNING_POLICY_SLUG` | Repository variable | The slug of the release signing policy |
-| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration below. Empty means the default configuration of the project |
+| `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG` | Repository variable | The slug of the artifact configuration below. It must be set |
 | `WINDOWS_SIGNING_SUBJECT` | Repository variable | The subject of the signing certificate as `Get-AuthenticodeSignature` prints it. The check fails for any other signer |
 | `SIGNPATH_API_TOKEN` | Secret of the environment `windows-signing` | The API token of a SignPath user who may submit requests for the policy |
 | `windows-signing` | Environment | Deployment branches and tags limited to `production` and `v*` |
 
-The caller of `package.yml` passes the token by name (`secrets: SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}`).
+A called workflow receives only the secrets that its caller passes, so the caller of `package.yml` passes the token by
+name (`secrets: SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}`).
+The job `sign-windows` sets the environment, so it reads the value stored in the environment `windows-signing`, and the
+token needs no other place.
 
 The artifact configuration in SignPath lists exactly the three program files at the top of the artifact, which GitHub
 uploads as a ZIP file:
@@ -161,18 +164,10 @@ uploads as a ZIP file:
 </artifact-configuration>
 ```
 
-`tools/release/verify_signatures.ps1` checks the signatures:
-
-```powershell
-tools/release/verify_signatures.ps1 -Directory DIR (-Require | -Report) [-ExpectedSubject SUBJECT] [-Name FILE,...]
-```
-
-A file passes when its status is `Valid`, the digest algorithm of its signature is SHA-256, the signature has a
-timestamp and the subject of the signing certificate equals `-ExpectedSubject`. `-Name` defaults to the three program
-files; the installer is checked by naming it in the directory that holds it. `-Require` needs `-ExpectedSubject` and
-exits with 1 when any file fails. `-Report` prints the same findings and exits with 0; every run of the package
-workflow uses it on the unsigned package. `-AllowUntrustedRoot` and `-NoTimestampCheck` exist for the test and must not
-be used on a release.
+`tools/release/verify_signatures.ps1` checks the signatures. Its usage and the rules for a file to pass are in
+[Signature check](build-and-test.md#signature-check). The installer is checked by naming it with `-Name` in the
+directory that holds it. Every run of the package workflow uses `-Report` on the unsigned package, and the signing job
+uses `-Require`.
 
 `test_verify_signatures` runs on Windows only. It creates a self-signed code-signing certificate in the certificate
 store of the current user, signs copies of `scene_tool.exe` with it and expects the check to pass for a SHA-256
