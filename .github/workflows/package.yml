@@ -471,6 +471,7 @@ jobs:
         with:
           name: QEGTRAIN-windows-x64-unsigned
           path: unsigned
+          overwrite: true
           if-no-files-found: error
 
       - name: Sign the files

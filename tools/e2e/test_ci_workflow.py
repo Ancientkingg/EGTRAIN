@@ -583,9 +583,10 @@ def main() -> None:
         "        with:\n"
         "          name: QEGTRAIN-windows-x64-unsigned\n"
         "          path: unsigned\n"
+        "          overwrite: true\n"
         "          if-no-files-found: error\n"
     ):
-        missing.append("Windows signing upload of the collected files as the artifact that the signing request names")
+        missing.append("Windows signing upload of the collected files, replaceable on a re-run, as the artifact that the signing request names")
     sign_request = step_block(sign_job, "Sign the files")
     if any(
         part not in sign_request
