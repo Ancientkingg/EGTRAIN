@@ -2,7 +2,7 @@
 
 With the options `-TSM` and `-RC`, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is printed and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.
 
-This page describes the code as it is. Function names are given so that a maintainer can find them.
+This page describes the code as it is. Function names are given so that a maintainer can find them. The [live server](#live-server), a separate transport that nothing in the application calls yet, is described after the legacy channels.
 
 ## Enablement
 
@@ -112,8 +112,78 @@ routeChoiceRequest            currentTime
 
 - `read_rttp_train_view` and `read_rttp_infra_view` in `io/RailMLParser.cpp` read an RTTP XML text and print what they find to standard output. They are not declared in `io/RailMLParser.h`, and the application does not call them. Only `tests/test_railmlparser.cpp` calls `read_rttp_train_view`. Nothing calls `read_rttp_infra_view`.
 - The files written during a run are results and not a protocol, and no code in `EGTRAIN/QEGTRAIN` reads them. `printCurrentPassengerStatus` writes `PassengerStatus/PassengerStatus.txt` once, after the step loop. `Train::printTrainArrDepMsg`, called from `Train::checkTrainArrDep`, appends one line to `Rescheduling/EGTRAINOutput.txt` when a train has stopped at its last station.
-- The application opens no listening socket, local server or named pipe, and the ZeroMQ code only connects. The reply of a module is printed and not used. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
+- The application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is printed and not used. The live server below binds sockets, and nothing in the application creates one. The only reads from standard input are the `--interactive` questions in `parseCmdOptions`.
 - The window controls for pause, stop and speed exist only for a run in the window.
+
+## Live server
+
+`LiveServer` (`io/LiveServer.h`) is the transport of the live contract. The frames are made by `io/LiveFrame.h` and described in `docs/live/frame-v1.schema.json`; the server carries the text of a frame and neither reads nor changes it. It does not use the legacy channels. A `LiveServer` that is not started holds no thread, no ZeroMQ context and no socket.
+
+### Sockets
+
+| Socket | Created by | Endpoint |
+| --- | --- | --- |
+| PUB | `start` | `tcp://127.0.0.1:<port>`; port 0 takes a free port |
+| REP | `start` with commands enabled | `tcp://127.0.0.1:<port>`, always a free port |
+
+Both sockets listen on the loopback address, and there is no host option. A published frame is two parts: a topic (`state`, `hello` or `event`) and the frame text.
+
+`start` writes `live-endpoint.json` to the output directory it is given, and creates the directory when it is missing:
+
+```json
+{"v": 1, "state": "tcp://127.0.0.1:40123", "command": "tcp://127.0.0.1:40124", "token": "0123456789abcdef0123456789abcdef"}
+```
+
+`command` and `token` are `null` without commands. The token is 128 random bits made at every start, in 32 hexadecimal digits. Where the platform supports it, only the owner of the file can read it. `stop` removes the file. `start` fails, and holds nothing, when the port is not valid or is in use, or when the file cannot be written.
+
+### Threading
+
+- One I/O thread, started by `start`, creates, binds, uses and closes both sockets. A ZeroMQ socket is never shared between threads. The thread creates the ZeroMQ context and ends it after the sockets are closed.
+- Any other thread calls `pushState`, `pushHello`, `pushEvent`, `tryPopCommand`, `droppedStates`, `running` and the endpoint functions. Each takes the mutex of the server for a few instructions, or reads an atomic, and does not call ZeroMQ, wait for the I/O thread, or wait for a subscriber or a client. A step of the simulation therefore cannot stall on the transport. `start` and `stop` are called by one thread at a time.
+- The caller makes the text of a frame before it pushes it, so making the text takes time on the thread of the caller.
+- The I/O thread sends the waiting frames, then answers the requests that have arrived. After a pass that sent nothing it waits up to 10 ms for a request, and after a pass that sent frames it waits up to 1 ms. A pushed frame is therefore sent within about 10 ms, a request is answered within about 10 ms, and neither waits for the simulation.
+- An exception on the I/O thread does not leave it. A problem with a socket is logged once for each kind of text, in the category `io.zmq`, and the thread waits one poll interval before it goes on.
+
+### Queues and the drop policy
+
+| Queue | Size | When it is full |
+| --- | --- | --- |
+| State frames | 8 | The oldest waiting state frame is dropped, and `droppedStates` grows by one. |
+| Hello and event frames | 64 | The push returns `false` and the frame is not queued. |
+| Accepted commands | 16 | The request is rejected with `queue_full`. |
+
+- The frames of the three kinds leave in the order of the pushes, so an event pushed after a state frame never arrives before it.
+- The caller gives each frame its `seq`. A state frame that was dropped shows as a gap in `seq`.
+- The queue is emptied once in each pass of the I/O thread, so a producer that pushes more than a few thousand state frames a second loses the rest.
+- A subscriber that reads too slowly loses frames when 1000 messages, which is 500 frames, wait for it. ZeroMQ drops further frames for that subscriber only, and the I/O thread never waits (`dontwait`).
+- A subscriber that joins late does not get earlier frames. A client that sends `describe` makes the server publish the latest hello again. Any subscriber can get the hello twice.
+
+### Requests
+
+A request is one JSON object of at most 4096 bytes with the members `v` (1), `id` (a string of at most 64 bytes), `token`, `cmd` and, for `set_delay_ms`, `args` with `delay_ms`, a whole number from 0 to 1000. The commands are `pause`, `resume`, `stop`, `set_delay_ms` and `describe`. Every request gets a reply, which has the members `v`, `id` (`null` when the request had none that is valid), `status`, `reason` (only when rejected) and `run_id` (the run of the latest hello, or `null`).
+
+The checks run in this order, and the first that fails gives the reason:
+
+| Reason | The request |
+| --- | --- |
+| `too_large` | has more than 4096 bytes. This is checked before the text is parsed. |
+| `bad_json` | is no JSON text, or is JSON that is not an object. |
+| `bad_version` | has no `v`, or a `v` that is not the integer 1. |
+| `bad_argument` | has no `id`, an `id` that is not a string, or one that is too long; or `set_delay_ms` has no `args.delay_ms` that is a whole number from 0 to 1000. |
+| `bad_token` | has no `token` equal to the token in `live-endpoint.json`. The comparison takes a time that depends on the length only. |
+| `unknown_command` | has no `cmd` that is a string, or a name that is not in the list. |
+| `queue_full` | is valid, and 16 commands already wait. |
+| `no_active_run` | is `describe`, and no hello was pushed since the server started. |
+
+A rejected request is never queued. An accepted request is queued, and the reply says nothing more: the server does not apply a command. The thread that runs the simulation takes the commands with `tryPopCommand`, which never waits, and applies them. `describe` is not queued: the hello is published before the reply is sent.
+
+A message of more than 64 KiB closes the connection of the client that sent it, without a reply. Parts after the first part of a request are ignored.
+
+### Stopping and starting again
+
+`stop` sets a flag, and the I/O thread sends the frames that are still queued, closes both sockets with a linger of 500 ms, and then ends the context. Stopping therefore takes about half a second longer at most when a subscriber does not read. `stop` removes `live-endpoint.json`, and the destructor calls `stop`.
+
+After a stop, `start` begins with empty queues, no hello, no command and a drop count of 0. It makes a new token, and takes new ports unless a port is given. A given port can be used again at once.
 
 ## Tests and code
 
@@ -121,6 +191,7 @@ routeChoiceRequest            currentTime
 - `test_external_sharing_no_listener` (integration) runs the Paimpol scene with `-g 0 -h 1 -TSM 1 -RC 1` and no listener. It runs one step and expects the run to finish.
 - `test_route_choice_missing_data` (integration) starts the `Assignment_Gvc_Gdg_Ut` scene with `-RC 1` and expects the diagnostic `scene.route_choice.passengers.none`.
 - `test_operationsbuilder` checks `routeChoicePayload`.
+- `test_liveserver` (unit) starts a `LiveServer` in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for `describe` until the hello arrives, not by waiting.
 - No test covers the content of either XML builder or the traffic-state JSON that the step loop builds.
 
-The library `egtrain_railml` is built from the one source `io/RailMLParser.cpp`. Its header `io/RailMLParser.h` declares `send_external_state`, `trafficStateMonitoring_xml` and `routeChoice_xml`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries).
+The library `egtrain_railml` is built from the one source `io/RailMLParser.cpp`. Its header `io/RailMLParser.h` declares `send_external_state`, `trafficStateMonitoring_xml` and `routeChoice_xml`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt.
