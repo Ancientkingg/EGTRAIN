@@ -39,7 +39,7 @@ use the canonical model.
 - [Scene model design](architecture/scene-model.md)
 - [Scene editor flow](architecture/scene-editor-flow.md): how the editor creates, opens, validates, runs and saves a case, with the main window layout and the edit panes.
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
-- [External state sharing (legacy)](architecture/external-sharing.md)
+- [External state sharing](architecture/external-sharing.md)
 - [Usage and diagnostics wire contract](telemetry/README.md)
 - [Custom dialog presentation contract](ui/dialog-presentation.md): the rules for custom dialogs, how to build one with `DialogLayout`, which dialogs use it, and the checks that cover them.
 - [Result-window presentation seam](ui/result-window-presentation.md): the contract for the heading, context and warning of the result windows, their size limits and the layout of the custom result dialogs.

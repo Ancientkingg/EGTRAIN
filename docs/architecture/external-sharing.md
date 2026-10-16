@@ -161,13 +161,13 @@ A state frame is made for a sampled step only. The snapshot of a step comes from
 
 ### Cost
 
-The frames are made on the thread of the run, so a run with `--live` takes longer than one without, also when nobody reads. The cost has two parts: building the snapshot of the step, and making the JSON text of the frame. The peak memory of a run does not change.
+The frames are made on the thread of the run, so a run with `--live` takes longer than one without, also when nobody reads. The cost has two parts: building the snapshot of the step, and making the JSON text of the frame.
 
 Measured once on a macOS machine that other jobs were using, a headless run of a committed scene with `--live 0` and no client took 2% (Copenhagen) to 140% (Amsterdam_Hilversum_Student) longer than a run without `--live`, and with `--live-every 10` it took 2% to 29% longer. These numbers show the order of the cost and are not a promise.
 
 A scene with cheap steps and many signal sections pays most per frame, because the snapshot walks all sections of all routes and the signal list is the largest part of a frame. A scene with expensive steps, such as Copenhagen, pays little. `--live-every` is the control: a run that is read once every 10 steps makes a tenth of the frames.
 
-The size of a state frame depends on the number of trains and on the signal list, which is the largest part of a frame that holds it. At an interval of 10 most frames hold it: 711 of the 800 frames of Netherlands, 307 of the 849 frames that a client received of Paimpol.
+The size of a state frame depends on the number of trains and on the signal list, which is the largest part of a frame that holds it. At an interval of 10 most frames of Netherlands hold it (711 of 800); of Paimpol, 307 of the 849 frames that a client received hold it.
 
 | Scene | Trains | Hello | State frame without signals | State frame with signals |
 | --- | ---: | ---: | ---: | ---: |
