@@ -54,6 +54,7 @@ option(EGTRAIN_ENABLE_SANITIZERS "Enable AddressSanitizer/UndefinedBehaviorSanit
 option(EGTRAIN_PACKAGED_BUILD "Enable self-update support for a release package" OFF)
 option(EGTRAIN_ENABLE_TELEMETRY "Enable consent UI for packaged interactive builds" OFF)
 option(EGTRAIN_BUILD_TESTS "Build unit tests" OFF)
+option(EGTRAIN_IPO "Link Release builds with interprocedural optimization (LTO, or LTCG with MSVC) when the toolchain supports it" ON)
 option(EGTRAIN_NETWORK_TESTS "Register the tests that need internet access" OFF)
 option(EGTRAIN_ISOLATED_TELEMETRY_SMOKE "Enable isolated numeric-loopback application smoke hook" OFF)
 if(EGTRAIN_ISOLATED_TELEMETRY_SMOKE AND (NOT EGTRAIN_BUILD_TESTS OR NOT EGTRAIN_PACKAGED_BUILD))
@@ -87,8 +88,14 @@ endif()
 
 # Enable link-time optimisation for Release builds (38 translation units,
 # compute-heavy simulation core - cross-TU inlining gives a real speedup).
-include(CheckIPOSupported)
-check_ipo_supported(RESULT EGTRAIN_IPO_SUPPORTED OUTPUT EGTRAIN_IPO_ERROR)
+# EGTRAIN_IPO=OFF skips it: the link step then needs no code generation, which a compiler cache cannot store.
+if(EGTRAIN_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT EGTRAIN_IPO_SUPPORTED OUTPUT EGTRAIN_IPO_ERROR)
+else()
+    set(EGTRAIN_IPO_SUPPORTED FALSE)
+    set(EGTRAIN_IPO_ERROR "EGTRAIN_IPO is OFF")
+endif()
 
 # Sources are in the QEGTRAIN subdirectory
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/EGTRAIN/QEGTRAIN)
@@ -546,7 +553,7 @@ if(EGTRAIN_IPO_SUPPORTED)
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     message(STATUS "LTO: enabled for Release builds")
 else()
-    message(STATUS "LTO: not supported by this toolchain (${EGTRAIN_IPO_ERROR})")
+    message(STATUS "LTO: not enabled (${EGTRAIN_IPO_ERROR})")
 endif()
 
 if(WIN32)

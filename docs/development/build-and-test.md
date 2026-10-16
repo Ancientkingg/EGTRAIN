@@ -1996,6 +1996,15 @@ cache`) prints the hits and misses of the job. Each entry holds at most 500 MB,
 and GitHub keeps 10 GB for the repository and removes the entries used least
 recently first.
 
+The three legs configure with `-DEGTRAIN_IPO=OFF`. A Release build links with
+interprocedural optimization by default (link-time optimization, or LTCG with
+MSVC) when the toolchain supports it; with the option OFF the build skips it.
+The optimized link generates the code of the whole program again for every test
+executable, which a compiler cache cannot store, so the pull request checks
+build without it. The package and release workflows do not pass the option, so
+the shipped binaries and the package checks are built with it, and so is any
+other build that leaves the option at its default of ON.
+
 A pull request can restore the caches of its own earlier runs and the caches
 written on `main`, not the caches of other branches. A push to `main` starts no
 run, so only the nightly or manual run on `main` writes the caches that the
