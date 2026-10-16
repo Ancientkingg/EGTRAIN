@@ -25,9 +25,10 @@ difference that is not listed here is not intended. The numbers are the pull
 requests that made the change, or the issue where none did.
 
 - Station pictogram and its size on screen (#579). A white station-building SVG
-  replaces the raster `station_pixmap`. At overview zoom the pictogram is at
-  least 24 px high and the name at least 12 px, and names that overlap are
-  hidden by rank. Above those sizes the scene size applies, as in the reference.
+  replaces the raster `station_pixmap`. At every zoom the pictogram is at least
+  24 px high and the name at least 12 px, and names that overlap are hidden by
+  rank. Where the scene size is larger than that, the scene size applies, as in
+  the reference.
 - Canvas (#509). The background `#101a22` with a faint `#182832` grid replaces
   the solid black background.
 - Selection (#606). A ring in the cue colour (61,214,255) marks the selected
@@ -149,14 +150,17 @@ matched-extent application captures and manual interaction checks.
 
 Each pair below shows the same stretch of the network in the reference build
 and in the current build, at the same size in pixels. The windows were 1280x800
-at device pixel ratio 1, and each image shows part of the network canvas. The
-reference builds are `472d0b5` and, for the Netherlands, `f138134`. The current
-build is main `037a2e43`. Both builds zoom by 1.15 per click. The zoom label of
-the current build is the ratio to its own Fit scale. The reference build has no
-zoom label, so its zoom is the number of zoom-in clicks from Fit. The reference
-build fits the scene rectangle and the current build fits the painted track
-with 24 px of padding, yet on Paimpol the whole line fills the same width in
-both Fit frames.
+at device pixel ratio 1. Each image is a crop of the network canvas, resized so
+that the two frames of a pair show the same extent. The zoom given for a pair is
+the zoom of the window before the crop, so a frame can show the network larger
+or smaller than the window did, and the sizes in a Fit frame and in a detail
+frame are not in the ratio of their zooms. The reference builds are `472d0b5`
+and, for the Netherlands, `f138134`. The current build is main `037a2e43`. Both
+builds zoom by 1.15 per click. The zoom label of the current build is the ratio
+to its own Fit scale. The reference build has no zoom label, so its zoom is the
+number of zoom-in clicks from Fit. The reference build fits the scene rectangle
+and the current build fits the painted track with 24 px of padding, so the same
+number of clicks from Fit does not show the same extent in both builds.
 
 Under each pair the first paragraph gives the build, the scene, the zoom and the
 landmarks, and the second says what differs inside the pair: the symbols first,
@@ -193,8 +197,9 @@ Paimpol, 16 zoom-in clicks from Fit (zoom label 9.4x in the current build), then
 same x in both frames, and the signals, node dots and station squares line up.
 
 In the symbols, the current frame adds a pictogram above each name, draws the
-names larger and writes Pontrieaux_Halte without the space after the underscore
-that the reference frame draws. In the geometry, the siding below the line at Pontrieaux, with its
+names larger because the minimum name size applies at this zoom, and writes
+Pontrieaux_Halte without the space after the underscore that the reference frame
+draws. In the geometry, the siding below the line at Pontrieaux, with its
 diagonal connection and its signals, is in the current frame only.
 
 ### Copenhagen junction
@@ -209,9 +214,11 @@ then 10 arrow-key presses in both builds. Carlsberg, Dybbolsbro, Kobenhavn H and
 Vesterport stand at the same x in both frames, within 3 px.
 
 In the symbols, the current frame adds a pictogram above each name and draws the
-names larger, and the signals of both rows stand at the x positions of the
-signals on the reference line. In the geometry, the reference frame draws one line where the current
-frame draws two parallel rows joined by crossovers.
+names larger because the minimum name size applies at this zoom. In the
+geometry, the reference frame draws one line, with signals at more x positions
+than either current row, where the current frame draws two parallel rows joined
+by crossovers. The signals of both current rows stand at x positions where the
+reference line has a signal.
 
 ### Netherlands stretch
 
@@ -222,13 +229,14 @@ frame draws two parallel rows joined by crossovers.
 Reference build `f138134` above, current build main `037a2e43` below. Scene
 Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
 The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
-the corner at Blm, which agree within about 15 px in the 500 px frames. This is
+the corner at Blm, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.
 
 In the symbols, the current frame draws a pictogram and a name at each station,
 and the reference frame has no readable station label. In the geometry, the
 current frame draws doubled tracks, stations beside them and crossovers where the
-reference frame draws a single line.
+reference frame draws a single line, with one short extra segment at the corner
+between Hvsm and Hvsp.
 
 ### Assignment corridor
 
@@ -241,8 +249,9 @@ shown.
 
 Current build main `037a2e43`, scene Assignment_Gvc_Gdg_Ut. The first frame is at
 Fit with the stations Gvc, Gdg and Ut, and the two parallel tracks of the corridor
-read as one band. The second frame is zoomed in around Gdg and shows the two
-tracks apart, with a signal on each track at regular intervals.
+read as one band. The second frame is 10 zoom-in clicks from Fit (zoom label 4x),
+around Gdg, and shows the two tracks apart, with a signal on each track at
+regular intervals.
 
 ### What the captures show and do not show
 
@@ -251,8 +260,8 @@ tracks apart, with a signal on each track at regular intervals.
   the reference frames are too small to read, where the current build keeps the
   pictogram at least 24 px and the name at least 12 px high.
 - The names are larger in the current detail frames than in the reference frames
-  at the same extent. Pontrieaux is 84 px wide against 52 px, and Carlsberg 48 px
-  against 33 px.
+  at the same extent, because the minimum name size applies at those zooms.
+  Pontrieaux is 84 px wide against 52 px, and Carlsberg 48 px against 33 px.
 - The current frames have the `#101a22` background and its grid, the reference
   frames a black background.
 - In both Paimpol detail frames a signal has a white post and base and a green
