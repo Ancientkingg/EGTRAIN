@@ -194,6 +194,9 @@ struct BaselineTotals {
 	bool complete = false;
 };
 
+// The totals over the final arrival of each of the occurrences.
+BaselineTotals baselineTotals(const std::vector<BaselineOccurrence>& occurrences);
+
 enum class DelayDiagnosticKind {
 	// A scenario id is empty.
 	ScenarioIdMissing,

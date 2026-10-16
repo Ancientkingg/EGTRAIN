@@ -366,7 +366,7 @@ target_link_libraries(egtrain_dispatch
 # smoke configuration it is built with the sender hook, as the rest of the application is. The
 # moc object of the library references both windows, so a target that uses TrainFilterButton,
 # DiagramWindow or TimetableTableWindow also links one telemetry library. So does a target that
-# uses AreaCapacityWindow, which calls it as well.
+# uses AreaCapacityWindow or DelayAnalysisWindow, which call it as well.
 add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/AreaCapacity.cpp
     ${SRC_DIR}/diagrams/AreaCapacityWindow.cpp
@@ -376,6 +376,7 @@ add_library(egtrain_diagrams STATIC
     ${SRC_DIR}/diagrams/CapacityScope.cpp
     ${SRC_DIR}/diagrams/CompletedRunCapture.cpp
     ${SRC_DIR}/diagrams/DelayAnalysis.cpp
+    ${SRC_DIR}/diagrams/DelayAnalysisWindow.cpp
     ${SRC_DIR}/diagrams/DiagramWindow.cpp
     ${SRC_DIR}/diagrams/RouteDiagramCoordinates.cpp
     ${SRC_DIR}/diagrams/RouteReferenceChoice.cpp
@@ -848,6 +849,11 @@ if(EGTRAIN_BUILD_TESTS)
     add_executable(test_delayanalysis ${SRC_DIR}/tests/test_delayanalysis.cpp)
     target_link_libraries(test_delayanalysis PRIVATE egtrain_diagrams)
     add_test(NAME test_delayanalysis COMMAND test_delayanalysis)
+
+    add_executable(test_delayanalysiswindow ${SRC_DIR}/tests/test_delayanalysiswindow.cpp)
+    target_link_libraries(test_delayanalysiswindow PRIVATE egtrain_diagrams egtrain_telemetry egtrain_scene egtrain_util Qt5::Network Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_delayanalysiswindow COMMAND test_delayanalysiswindow)
+    set_tests_properties(test_delayanalysiswindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_simulationworker ${SRC_DIR}/tests/test_simulationworker.cpp)
     target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
@@ -1469,7 +1475,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_sceneimporter test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
 			test_sceneversions
-			test_delayanalysis test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
+			test_delayanalysis test_delayanalysiswindow test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
@@ -1501,7 +1507,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
 		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
-		test_guisimulationsnapshot test_liveframe test_livecommand test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis
+		test_guisimulationsnapshot test_liveframe test_livecommand test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis test_delayanalysiswindow
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
@@ -1528,7 +1534,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
 	egtrain_label_tests(gui
-		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow test_areacapacitywindow
+		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder

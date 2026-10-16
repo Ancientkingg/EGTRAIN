@@ -268,6 +268,38 @@ DelaySummary summarizeDelays(const std::vector<DelayEvent>& events, const DelayF
 	return summary;
 }
 
+BaselineTotals baselineTotals(const std::vector<BaselineOccurrence>& occurrences) {
+	BaselineTotals totals;
+	double positive = 0.0;
+	double net = 0.0;
+	for (const BaselineOccurrence& occurrence : occurrences) {
+		++totals.occurrences;
+		const DelayDifference& finalArrival = occurrence.finalArrival;
+		switch (finalArrival.change) {
+			case DelayChange::NotAvailable:
+				++totals.notAvailable;
+				continue;
+			case DelayChange::Earlier:
+				++totals.earlier;
+				break;
+			case DelayChange::Same:
+				++totals.same;
+				break;
+			case DelayChange::Later:
+				++totals.later;
+				positive += finalArrival.additionalSeconds.value;
+				break;
+		}
+		net += finalArrival.additionalSeconds.value;
+	}
+	if (totals.occurrences > totals.notAvailable) {
+		totals.positiveSeconds = {true, positive};
+		totals.netSeconds = {true, net};
+	}
+	totals.complete = totals.occurrences > 0 && totals.notAvailable == 0;
+	return totals;
+}
+
 DelayBaselineComparison compareAgainstBaseline(const DelayRunSnapshot& baseline, const DelayRunSnapshot& scenario) {
 	DelayBaselineComparison result;
 	const auto report = [&result](DelayDiagnosticKind kind, const OccurrenceKey& key = {}) {
@@ -314,34 +346,7 @@ DelayBaselineComparison compareAgainstBaseline(const DelayRunSnapshot& baseline,
 		result.occurrences.push_back(occurrenceOf(train, callsOf(baselineCalls, key), callsOf(scenarioCalls, key), result.calls));
 	}
 
-	BaselineTotals& totals = result.totals;
-	double positive = 0.0;
-	double net = 0.0;
-	for (const BaselineOccurrence& occurrence : result.occurrences) {
-		++totals.occurrences;
-		const DelayDifference& finalArrival = occurrence.finalArrival;
-		switch (finalArrival.change) {
-			case DelayChange::NotAvailable:
-				++totals.notAvailable;
-				continue;
-			case DelayChange::Earlier:
-				++totals.earlier;
-				break;
-			case DelayChange::Same:
-				++totals.same;
-				break;
-			case DelayChange::Later:
-				++totals.later;
-				positive += finalArrival.additionalSeconds.value;
-				break;
-		}
-		net += finalArrival.additionalSeconds.value;
-	}
-	if (totals.occurrences > totals.notAvailable) {
-		totals.positiveSeconds = {true, positive};
-		totals.netSeconds = {true, net};
-	}
-	totals.complete = totals.occurrences > 0 && totals.notAvailable == 0;
+	result.totals = baselineTotals(result.occurrences);
 	return result;
 }
 
