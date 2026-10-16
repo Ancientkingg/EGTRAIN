@@ -196,14 +196,14 @@ def assert_deferred_success_path_resets() -> None:
         if reset not in full_reset:
             raise SystemExit(f"full dispatch reset no longer calls {reset}")
 
-    rolling = (ROOT / "EGTRAIN/QEGTRAIN/simulation/RollingStock.cpp").read_text(encoding="utf-8")
-    lightweight = rolling[
-        rolling.index("void prepareNativeOperationsState()"):
-        rolling.index("void resetNativeOperationsState()")
+    operations = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/OperationsBuilder.cpp").read_text(encoding="utf-8")
+    lightweight = operations[
+        operations.index("void prepareNativeOperationsState()"):
+        operations.index("void resetNativeOperationsState()")
     ]
-    full_operations_reset = rolling[
-        rolling.index("void resetNativeOperationsState()"):
-        rolling.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
+    full_operations_reset = operations[
+        operations.index("void resetNativeOperationsState()"):
+        operations.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
     ]
     if "regional_train" in lightweight or "nativeClearRegionalTrains" in lightweight:
         raise SystemExit("lightweight operation preparation releases the regional_train storage")
