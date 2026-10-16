@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QFileOpenEvent>
 #include <QIODevice>
 #include <QLocalSocket>
 #include <QProcess>
@@ -14,6 +15,7 @@
 #include <QStringList>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QUrl>
 
 #include <cstdlib>
 #include <functional>
@@ -270,12 +272,14 @@ static bool testPostpone() {
 	{
 		OpenRequestRelay relay;
 		Received received(relay);
+		ok &= expect(!relay.hasPendingRequest(), "nothing waits at first");
 		relay.postpone(QStringLiteral("/data/old.egscene"));
 		relay.postpone(QStringLiteral("/data/new.egscene"));
-		ok &= expect(received.paths.isEmpty(), "a postponed path does not come back at once");
+		ok &= expect(received.paths.isEmpty() && relay.hasPendingRequest(), "a postponed path does not come back at once and is pending");
 		ok &= expect(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "a postponed path comes back");
 		settle(500);
 		ok &= expect(received.paths == QStringList{QStringLiteral("/data/new.egscene")}, "only the newest postponed path comes back, once");
+		ok &= expect(!relay.hasPendingRequest(), "and is no longer pending");
 	}
 	{
 		const QString name = serverName("postpone");
@@ -293,6 +297,62 @@ static bool testPostpone() {
 		settle(800);
 		ok &= expect(received.paths == QStringList{QStringLiteral("/data/new.egscene")}, "the new request replaces the one that waited");
 	}
+	return ok;
+}
+
+// The system opens a file with the process itself, as Finder does: the application gets a
+// QFileOpenEvent. The result is true when a relay took the event.
+static bool sendFileOpen(const QUrl& url) {
+	QFileOpenEvent event(url);
+	return QCoreApplication::sendEvent(QCoreApplication::instance(), &event);
+}
+
+// The path that the receiver gets for a file that the event names.
+static QString pathOfEvent(const QString& path) {
+	return QUrl::fromLocalFile(path).toLocalFile();
+}
+
+static bool testFileOpenEvent() {
+	bool ok = true;
+	OpenRequestRelay relay;
+	Received received(relay);
+
+	// A folder name with spaces and a file name with characters outside the Western Windows code page.
+	const QString path = QStringLiteral("/data/folder with spaces/Paimpol ") + QString::fromUtf16(u"é東京")
+		+ QStringLiteral(".egscene");
+	ok &= expect(sendFileOpen(QUrl::fromLocalFile(path)), "the relay takes an open event");
+	ok &= expect(received.paths.isEmpty() && relay.hasPendingRequest(), "the request waits for the event loop, not the delivery of the event");
+	ok &= expect(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "the request is reported");
+	settle(300);
+	ok &= expect(received.paths == QStringList{pathOfEvent(path)}, "once and unchanged");
+	ok &= expect(!relay.hasPendingRequest(), "and nothing waits afterwards");
+
+	// An event for a URL that names no local file is not for the relay.
+	ok &= expect(!sendFileOpen(QUrl(QStringLiteral("https://example.com/case.egscene"))), "an open event for a remote URL is left alone");
+	settle(300);
+	ok &= expect(received.paths.size() == 1 && !relay.hasPendingRequest(), "and is not reported");
+
+	// Events of one turn of the event loop leave the newest.
+	ok &= expect(sendFileOpen(QUrl::fromLocalFile(QStringLiteral("/data/old.egscene"))) && sendFileOpen(QUrl::fromLocalFile(QStringLiteral("/data/new.egscene"))),
+		"two open events are taken");
+	ok &= expect(waitFor([&received] { return received.paths.size() == 2; }, 5000), "a request is reported");
+	settle(300);
+	ok &= expect(received.paths.size() == 2 && received.paths.at(1) == pathOfEvent(QStringLiteral("/data/new.egscene")), "the newest of them");
+	return ok;
+}
+
+static bool testFileOpenEventWithoutReceiver() {
+	bool ok = true;
+	OpenRequestRelay relay;
+	const QString path = QStringLiteral("/data/early.egscene");
+	ok &= expect(sendFileOpen(QUrl::fromLocalFile(path)), "the relay takes an open event that nothing waits for");
+	// Longer than the time between two attempts to hand the request over.
+	settle(700);
+	ok &= expect(relay.hasPendingRequest(), "the request stays while nothing is connected");
+	Received received(relay);
+	ok &= expect(waitFor([&received] { return !received.paths.isEmpty(); }, 5000), "and is reported once something is connected");
+	settle(300);
+	ok &= expect(received.paths == QStringList{pathOfEvent(path)} && !relay.hasPendingRequest(), "once");
 	return ok;
 }
 
@@ -363,6 +423,8 @@ int main(int argc, char** argv) {
 	ok &= testLeftBehindServerIsTakenOver();
 	ok &= testPartialAndMalformedRequests();
 	ok &= testPostpone();
+	ok &= testFileOpenEvent();
+	ok &= testFileOpenEventWithoutReceiver();
 	ok &= testEnvironmentGuard();
 	ok &= testDefaultNames();
 	return ok ? 0 : 1;

@@ -227,15 +227,28 @@ application folder is refused, that a name held by a running instance is not
 taken over while a name left behind by a killed one is, that a request in two
 parts is accepted and bytes that are no request, or more than a request holds,
 are dropped, that only the newest postponed request comes back, and the rule for
-the test variables. On macOS and Linux the socket files lie in a folder directly
-below `/tmp`, because a socket path is limited to about 100 characters.
+the test variables. The relay also takes the `QFileOpenEvent` that macOS sends
+when Finder opens a file with the program. The test sends such events to the
+application: the path of a file with spaces and non-ASCII characters is reported
+once and unchanged from the event loop, an event for a URL that is no local file
+is left alone, of two events in one turn the newest remains, and a request that
+nothing is connected to yet waits for a receiver. On macOS and Linux the socket
+files lie in a folder directly below `/tmp`, because a socket path is limited to
+about 100 characters.
 `test_startup_launch_contract` adds the window: a window started with a file,
 and one with the chooser open, each open a file that a launch without test
 variables hands to them, the window leaves a handed file that does not load out
 of the recent cases, and a scripted launch with a file keeps its own window. A
 run with any `QEGTRAIN_E2E_` variable neither listens nor hands over a file,
 unless `QEGTRAIN_E2E_OPEN_RELAY` is set as well, which the contract sets for the
-window only.
+window only. The test hook `QEGTRAIN_E2E_OPEN_REQUEST` names a file that the run
+hands to the application as a `QFileOpenEvent`, as the first show of the window
+begins (`QEGTRAIN_E2E_OPEN_REQUEST_AT=launch`, the default) or one second later
+(`running`), and prints the status line three seconds after the event. The contract
+uses it to show that a window started without a file opens a file from an open
+event, with spaces or non-ASCII characters in its name, without the chooser, that a
+running window opens one too, and that a malformed file is reported and stays out of
+the recent cases. A real double-click in Finder is not part of it.
 
 ### Test labels
 
@@ -305,14 +318,14 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
 | `test_visual_polish_smoke` | yes | no | no | A Bash script, registered on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
-| `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools. |
+| `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
 | `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
 | `test_telemetrynetwork_reject`, `test_telemetrynetwork_trusted` | yes | yes | no | Qt 5.15 loads OpenSSL 1.1 (`libssl-1_1-x64.dll`, `libcrypto-1_1-x64.dll`) at run time. Windows does not provide it and Qt's installer no longer offers it, so Qt has no TLS there. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. |
 | `test_verify_signatures` | no | no | yes | Signs copies of `scene_tool.exe` with a throwaway self-signed certificate through `New-SelfSignedCertificate` and `Set-AuthenticodeSignature`, and runs `tools/release/verify_signatures.ps1` on them. It is not registered when no PowerShell is found. |
-| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems. |
+| `test_startup_launch_contract` | yes | yes | partly | The two pseudo-terminal launches, the window launch with a bundle argument, the open events and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems. |
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 

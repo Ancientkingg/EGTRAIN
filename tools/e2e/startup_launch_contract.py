@@ -36,6 +36,8 @@ LAUNCH_TIMEOUT_SECONDS = 60
 NON_ASCII_NAME = "Paimpol \u00e9\u6771\u4eac.egscene"
 HEADLESS_OPTIONS = ["-g", "0", "-h", "1", "-pax", "0", "-TSM", "0", "-RC", "0"]
 REJECTION_LINE = "ERROR: Cannot open"
+# The test hook QEGTRAIN_E2E_OPEN_REQUEST prints the status line of the window after the open event.
+STATUS_PREFIX = "E2E_OPEN_REQUEST_STATUS="
 
 
 def assert_startup_timing_contract(app: Path) -> None:
@@ -360,22 +362,36 @@ def terminate_process_group(proc: subprocess.Popen) -> None:
         proc.wait(timeout=5)
 
 
-# The window opens the bundle, adds it to the recent cases and does not open the chooser. The
+# A window launch, with the arguments args and, when request is given, a QFileOpenEvent for that
+# file at the moment "launch" or "running" (the test hook QEGTRAIN_E2E_OPEN_REQUEST). The window
+# opens the files in wanted, adds them to the recent cases and does not open the chooser. A file in
+# refused does not open: the status line says so and the file stays out of the recent cases. The
 # window stays open, so the check stops it.
-def assert_window_opens_bundle_argument(app: Path, bundle: Path, temp: Path) -> None:
-    label = "window launch with a bundle argument"
+def assert_window_opens_files(app: Path, args: list[str], request: Optional[Path], moment: str, wanted: list[Path], refused: list[Path], temp: Path, label: str) -> None:
     env = os.environ.copy()
     env["QT_QPA_PLATFORM"] = "offscreen"
     env["QEGTRAIN_OUTPUT_DIR"] = str(temp / "out")
     env["QEGTRAIN_E2E_SETTINGS_DIR"] = str(temp / "settings")
     env["QEGTRAIN_E2E_STARTUP_CHOOSER"] = "1"
+    for name in ("QEGTRAIN_E2E_OPEN_REQUEST", "QEGTRAIN_E2E_OPEN_REQUEST_AT"):
+        env.pop(name, None)
+    if request is not None:
+        env["QEGTRAIN_E2E_OPEN_REQUEST"] = str(request)
+        env["QEGTRAIN_E2E_OPEN_REQUEST_AT"] = moment
+    if sys.platform.startswith("linux"):
+        # Qt reads the environment with the locale there.
+        env["LC_ALL"] = "C.UTF-8"
     ini = temp / "settings/EGTRAIN/EGTRAIN.ini"
     temp.mkdir()
     log_path = temp / "window.log"
+
+    def log_text() -> str:
+        return log_path.read_text(encoding="utf-8", errors="replace")
+
     problem = ""
     with log_path.open("wb") as log:
         proc = subprocess.Popen(
-            [str(app), str(bundle)],
+            [str(app), *args],
             cwd=RUN_DIR,
             env=env,
             stdout=log,
@@ -383,21 +399,24 @@ def assert_window_opens_bundle_argument(app: Path, bundle: Path, temp: Path) -> 
             start_new_session=True,
         )
         try:
-            deadline = time.monotonic() + 60
-            while proc.poll() is None:
-                if ini.is_file() and str(bundle) in ini.read_text(encoding="utf-8", errors="replace"):
-                    break
-                if time.monotonic() >= deadline:
-                    problem = f"{label} did not add the bundle to the recent cases within 60 s"
-                    break
-                time.sleep(0.25)
+            if wanted and not wait_until(lambda: all(ini_form(path) in read_ini(ini) for path in wanted), 60, proc):
+                problem = f"{label} did not add every file to the recent cases within 60 s"
+            elif request is not None and not wait_until(lambda: STATUS_PREFIX in log_text(), 60, proc):
+                problem = f"{label} did not report the status line after the open event within 60 s"
             if not problem:
                 time.sleep(2)
             if not problem and proc.poll() is not None:
                 problem = f"{label} ended with {proc.poll()} instead of staying open"
+            if not problem and any(ini_form(path) in read_ini(ini) for path in refused):
+                problem = f"{label} added a file that does not open to the recent cases"
         finally:
             terminate_process_group(proc)
-    text = log_path.read_text(encoding="utf-8", errors="replace")
+    text = log_text()
+    if not problem and request is not None and "E2E_OPEN_REQUEST_SENT" not in text:
+        problem = f"{label} did not send the open event"
+    status = next((line for line in text.splitlines() if line.startswith(STATUS_PREFIX)), "")
+    if not problem and request is not None and ("could not be opened" in status) != bool(refused):
+        problem = f"{label} shows the status line {status[len(STATUS_PREFIX):]!r} after the open event"
     if not problem and "E2E_STARTUP_CHOOSER_" in text:
         problem = f"{label} opened the chooser"
     if problem:
@@ -537,8 +556,14 @@ def assert_open_argument_contract(app: Path, scene_tool: Path) -> None:
         if os.name == "nt":
             print("window launch with a bundle argument and file launches while a window runs skipped on Windows: the settings file escapes backslashes")
         else:
-            assert_window_opens_bundle_argument(app, spaced, root / "run-window")
+            assert_window_opens_files(app, [str(spaced)], None, "", [spaced], [], root / "run-window", "window launch with a bundle argument")
             print("window launch with a bundle argument added it to the recent cases and kept the chooser closed")
+            # An open event is what the system sends when it opens a file with the program, on macOS.
+            assert_window_opens_files(app, [], spaced, "launch", [spaced], [], root / "run-event-launch", "window launch with an open event")
+            assert_window_opens_files(app, [], unicode_bundle, "launch", [unicode_bundle], [], root / "run-event-unicode", "window launch with an open event for a non-ASCII file name")
+            assert_window_opens_files(app, [str(spaced)], second, "running", [spaced, second], [], root / "run-event-running", "running window with an open event")
+            assert_window_opens_files(app, [], malformed, "launch", [], [malformed], root / "run-event-malformed", "window launch with an open event for a malformed file")
+            print("open events at launch and in a running window opened the files, with spaces and non-ASCII characters, kept the chooser closed and kept a malformed file out of the recent cases")
             scripted = spaced.parent / "Scripted.egscene"
             shutil.copyfile(second, scripted)
             assert_file_launch_reaches_running_window(app, spaced, [second, unicode_bundle], malformed, scripted, root / "run-relay")

@@ -261,10 +261,11 @@ endif()
 add_library(egtrain_sceneopen STATIC ${SRC_DIR}/app/SceneOpenRequest.cpp)
 target_link_libraries(egtrain_sceneopen PUBLIC Qt5::Core)
 
-# Hands a file that a second process was asked to open to the running instance. Qt Core and Network
+# Hands a file that the system asked the application to open to the code that opens it: from a second
+# process to the running instance, or as an open event. Qt Core, Gui (QFileOpenEvent) and Network
 # only; the application and test_openrequestrelay link it.
 add_library(egtrain_openrelay STATIC ${SRC_DIR}/app/OpenRequestRelay.cpp)
-target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Network)
+target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
 
 # Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, and the
 # controller that writes them in the background. Only the recovery tests link it.

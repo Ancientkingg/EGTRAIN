@@ -23301,10 +23301,12 @@ void MainWindow::showEvent(QShowEvent* e) {
 		QTimer::singleShot(0, this, &MainWindow::runCreatorAcceptanceE2E);
 		return;
 	}
-	// A file that the system opens with a second process arrives from the relay that main created.
-	// It takes the steps of File > Open Case Study. A modal dialog, such as the first-run questions or
-	// the question about unsaved changes, holds it back until the dialog has closed.
-	if (auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly)) {
+	// A file that the system opens arrives from the relay that main created, from a second process or,
+	// on macOS, as an open event. It takes the steps of File > Open Case Study. A modal dialog, such as
+	// the first-run questions or the question about unsaved changes, holds it back until the dialog has
+	// closed.
+	auto* relay = findChild<OpenRequestRelay*>(QString(), Qt::FindDirectChildrenOnly);
+	if (relay) {
 		connect(relay, &OpenRequestRelay::openRequested, this, [this, relay](const QString& request) {
 			// A chooser that is open gives way to the request.
 			QDialog* chooser = findChild<QDialog*>(QStringLiteral("caseChooserDialog"));
@@ -23329,8 +23331,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 	}
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
-	QTimer::singleShot(0, this, [this]() {
-		if (!initial_variables.nArgProvided)
+	QTimer::singleShot(0, this, [this, relay]() {
+		if (!initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		showPrivacySettings(true);
 		startTelemetryAfterInitialConsent();

@@ -2,10 +2,15 @@
 
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
+#include <QCoreApplication>
 #include <QDir>
+#include <QFileOpenEvent>
 #include <QSettings>
+#include <QStatusBar>
 #include <QString>
 #include <QTimer>
+#include <QUrl>
+#include <cstdio>
 #include <iostream>
 
 namespace {
@@ -28,12 +33,34 @@ const Scenario kScenarios[] = {
 	{"QEGTRAIN_E2E_SCENE_DROP", 100, &MainWindowTestAccess::runSceneDrop},
 };
 
+// QEGTRAIN_E2E_OPEN_REQUEST names a file that the run hands to the application as the system does
+// when it opens a document with the program: a QFileOpenEvent. QEGTRAIN_E2E_OPEN_REQUEST_AT says
+// when. At "launch", the default, the event comes as the window first shows, as when the system
+// starts the program for the file. At "running" it comes once the start has settled, as when the
+// program already runs.
+constexpr const char* kOpenRequest = "QEGTRAIN_E2E_OPEN_REQUEST";
+constexpr const char* kOpenRequestAt = "QEGTRAIN_E2E_OPEN_REQUEST_AT";
+constexpr int kRunningOpenRequestDelayMs = 1000;
+constexpr int kOpenRequestStatusDelayMs = 3000;
+
 bool anyScenarioRequested() {
 	for (const Scenario& scenario : kScenarios) {
 		if (qEnvironmentVariableIsSet(scenario.variable))
 			return true;
 	}
-	return false;
+	return qEnvironmentVariableIsSet(kOpenRequest);
+}
+
+void sendOpenRequest(MainWindow& window, const QString& file) {
+	QFileOpenEvent event(QUrl::fromLocalFile(file));
+	QCoreApplication::sendEvent(QCoreApplication::instance(), &event);
+	std::fprintf(stdout, "E2E_OPEN_REQUEST_SENT\n");
+	std::fflush(stdout);
+	// The status line tells whether the file opened.
+	QTimer::singleShot(kOpenRequestStatusDelayMs, &window, [&window] {
+		std::fprintf(stdout, "E2E_OPEN_REQUEST_STATUS=%s\n", window.statusBar()->currentMessage().toUtf8().constData());
+		std::fflush(stdout);
+	});
 }
 
 void startScenarios(MainWindow& window) {
@@ -43,6 +70,13 @@ void startScenarios(MainWindow& window) {
 		const auto run = scenario.run;
 		QTimer::singleShot(scenario.delayMs, &window, [&window, run] { run(window); });
 	}
+	if (!qEnvironmentVariableIsSet(kOpenRequest))
+		return;
+	const QString file = qEnvironmentVariable(kOpenRequest);
+	if (qEnvironmentVariable(kOpenRequestAt) == QLatin1String("running"))
+		QTimer::singleShot(kRunningOpenRequestDelayMs, &window, [&window, file] { sendOpenRequest(window, file); });
+	else
+		sendOpenRequest(window, file);
 }
 
 } // namespace
@@ -60,6 +94,11 @@ bool configureProcess() {
 		const QString absoluteSettingsDir = QDir(settingsDir).absolutePath();
 		QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, absoluteSettingsDir);
 		QSettings::setPath(QSettings::IniFormat, QSettings::SystemScope, absoluteSettingsDir);
+	}
+	const QString openRequestAt = qEnvironmentVariable(kOpenRequestAt);
+	if (!openRequestAt.isEmpty() && openRequestAt != QLatin1String("launch") && openRequestAt != QLatin1String("running")) {
+		std::cerr << "ERROR: QEGTRAIN_E2E_OPEN_REQUEST_AT must be launch or running.\n";
+		return false;
 	}
 	mainWindowTestHooks().dialogsSuppressed = anyScenarioRequested();
 	mainWindowTestHooks().afterFirstShow = &startScenarios;
