@@ -6,6 +6,8 @@
 #include <list>
 #include <string>
 
+using namespace std;
+
 BlockingTimes& BlockingTimes::operator=(const BlockingTimes& obj2) {
 	BlockID = obj2.BlockID;
 	trainDescription = obj2.trainDescription;

@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cfloat>
 
+using namespace std;
+
 extern Logger owl;
 double timestep = 1;
 // double times = 0;

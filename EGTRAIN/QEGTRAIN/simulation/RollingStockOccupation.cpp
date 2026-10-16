@@ -6,6 +6,8 @@
 #include <list>
 #include <string>
 
+using namespace std;
+
 bool Train::isAspectRestrictive(const Section& BS) const {
 	// red-red is the restrictive aspect of level 5 (BACC), red that of the other levels
 	return ((BS.SignallingLevel == levelValue(SignallingLevel::Bacc)) && (BS.state == SignalState::RedRed))

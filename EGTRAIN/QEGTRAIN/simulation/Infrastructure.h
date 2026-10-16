@@ -19,23 +19,22 @@
 #include "simulation/InitialParameters.h"
 #include "util/Logger.hpp"
 
-using namespace std;
 
 extern double timestep;
 extern double signalCode1, signalCode2, signalCode3; // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
 extern int numTrackLines;
 
-extern string InputMainFolder; // Root input folder for EGTRAIN
+extern std::string InputMainFolder; // Root input folder for EGTRAIN
 
 // --- InfraElement: point infrastructure element (signal, switch, station stop board, track detection section border) ---
 
 class InfraElement {
 public:
-	string ID;
-	string SectionID;	   // Block section this element belongs to
-	string stationName;	   // Station name (if this is a station stopping board)
-	string ConnectedPoint; // Connected point on a diverging switch
-	string SwitchName;	   // Switch name on non-diverging block sections. For diverging switch @0.22-2-B0@/@0.23-2-B1@PointStart, the SwitchName is @0.22-2-B0@Point; for the End variant it is @0.23-2-B1@Point.
+	std::string ID;
+	std::string SectionID;		// Block section this element belongs to
+	std::string stationName;	// Station name (if this is a station stopping board)
+	std::string ConnectedPoint; // Connected point on a diverging switch
+	std::string SwitchName;		// Switch name on non-diverging block sections. For diverging switch @0.22-2-B0@/@0.23-2-B1@PointStart, the SwitchName is @0.22-2-B0@Point; for the End variant it is @0.23-2-B1@Point.
 	bool isStation, IsSwitch, IsSignal, IsTrackDetSecBorder;
 	bool withSwitchDiv;						// True if this is a diverging switch
 	bool isEndOfDivSwitchStartOfADivSwitch; // True if the end of one diverging switch coincides with the start of another
@@ -71,7 +70,7 @@ public:
 
 class Node {
 public:
-	string sceneNodeId; // Canonical scene node identity, when built from a SceneModel.
+	std::string sceneNodeId; // Canonical scene node identity, when built from a SceneModel.
 	double ID;
 	double X, Y;
 	bool isSignalled;
@@ -84,11 +83,11 @@ public:
 	int indexOrderList;
 	int connectIdBlockSet[6];
 	double connectXNode[6];
-	int numConnections;				// Number of BlockSets connected at this node
-	list<string> IDConnectedBlocks; // IDs of block sections connected to this node
-	double arcSpeedLimit;			// Speed limit of the arc whose this node is the end node
-	string stationName, stationPlatformId;
-	string tdsbId; // Track Detection Section Border ID (empty if not a TDSB)
+	int numConnections;						  // Number of BlockSets connected at this node
+	std::list<std::string> IDConnectedBlocks; // IDs of block sections connected to this node
+	double arcSpeedLimit;					  // Speed limit of the arc whose this node is the end node
+	std::string stationName, stationPlatformId;
+	std::string tdsbId; // Track Detection Section Border ID (empty if not a TDSB)
 	double tdsbGeoCoordX;
 	double tdsbGeoCoordY; // Geographical coordinates of the TDSB in meters
 	double latitude, longitude;
@@ -129,7 +128,7 @@ public:
 		if (this != &ob2) {
 			this->IDConnectedBlocks.clear();
 			if (ob2.IDConnectedBlocks.size() > 0) {
-				for (list<string>::const_iterator it = ob2.IDConnectedBlocks.begin(); it != ob2.IDConnectedBlocks.end(); it++) {
+				for (std::list<std::string>::const_iterator it = ob2.IDConnectedBlocks.begin(); it != ob2.IDConnectedBlocks.end(); it++) {
 					this->IDConnectedBlocks.push_back(*it);
 				}
 			}
@@ -144,7 +143,7 @@ public:
 			return false;
 	}
 
-	void initialiseIdConnectedBlocks(string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock);
+	void initialiseIdConnectedBlocks(std::string* IDConnectedBSofBlock, int N_IDConnectedBSofBlock);
 };
 
 // --- Arc: directed edge between two nodes ---
@@ -191,7 +190,7 @@ public:
 class BlockSet {
 public:
 	int ID;
-	string sceneTrackId; // Canonical scene track identity, when built from a SceneModel.
+	std::string sceneTrackId; // Canonical scene track identity, when built from a SceneModel.
 	int len;
 	int arcs, numNodes;				  // Number of arcs and nodes in this track line
 	std::vector<Arc> A;				  // Runtime arcs populated from the scene model
@@ -213,8 +212,8 @@ extern int numConnections;
 
 class Connections {
 public:
-	string ID;
-	string sceneFirstNodeId, sceneSecondNodeId;
+	std::string ID;
+	std::string sceneFirstNodeId, sceneSecondNodeId;
 	int idFirstTrackLine, idSecondTrackLine;
 	double xFirstNode, xSecondNode;
 	double speedlimit; // Speed limit in m/s (default 16.67 m/s)
@@ -229,12 +228,12 @@ extern int numConnections;
 
 class StationPlatform {
 public:
-	string ID, StationID, BlockSectionID;
+	std::string ID, StationID, BlockSectionID;
 	double X, Y, length, width;						// Platform coordinates (X,Y) and dimensions in meters
 	int Max_Passenger_Volume, Current_N_Passengers; // Max capacity and current waiting count
 
-	list<pair<string, double>> Current_List_Pax_On_Platform; // Pairs of (passenger ID, planned departure time) for passengers currently waiting
-	list<string> List_Trains_Stopping_At_Platform;			 // Train services with a planned stop at this platform
+	std::list<std::pair<std::string, double>> Current_List_Pax_On_Platform; // Pairs of (passenger ID, planned departure time) for passengers currently waiting
+	std::list<std::string> List_Trains_Stopping_At_Platform;				// Train services with a planned stop at this platform
 
 	StationPlatform() {
 		ID = StationID = BlockSectionID = "None";
@@ -243,9 +242,9 @@ public:
 	}
 };
 
-bool orderPassengerListOnPlatform(pair<string, double>& A, pair<string, double>& blockSets);
+bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
 
-extern list<StationPlatform>& AllStationPlatforms;
+extern std::list<StationPlatform>& AllStationPlatforms;
 extern int& numAllStationPlatforms;
 
 // --- Stations: station node extending Node with delay statistics ---
@@ -253,20 +252,20 @@ extern int& numAllStationPlatforms;
 class Stations : public Node {
 public:
 	int N_StationPlatforms;
-	list<string> StationPlatformIDs; // IDs of platforms at this station
-	double Av_Arrival_Delay;		 // Average arrival delay
-	double Std_Arrival_Delay;		 // Standard deviation of arrival delay
-	double totalArrivalDelay;		 // Sum of arrival delays across all trains
-	double Max_TotalDelay;			 // Maximum total delay
-	double Tot_Consec_Delay;		 // Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
-	double Max_Cons_Delay;			 // Maximum consecutive delay
-	int N_Stopped_Trains;			 // Number of trains that stopped at this station
-	int N_Delayed_Arr;				 // Number of delayed arrivals
-	int N_Delayed_Arr_3min;			 // Number of arrivals delayed >3 minutes
-	int N_Delayed_Arr_5min;			 // Number of arrivals delayed >5 minutes
-	double Perc_Delayed_T;			 // Percentage of trains delayed
-	double Perc_Delayed_T_3min;		 // Percentage delayed >3 minutes
-	double Perc_Delayed_T_5min;		 // Percentage delayed >5 minutes
+	std::list<std::string> StationPlatformIDs; // IDs of platforms at this station
+	double Av_Arrival_Delay;				   // Average arrival delay
+	double Std_Arrival_Delay;				   // Standard deviation of arrival delay
+	double totalArrivalDelay;				   // Sum of arrival delays across all trains
+	double Max_TotalDelay;					   // Maximum total delay
+	double Tot_Consec_Delay;				   // Total consecutive delay (total delay minus entrance delay and previous stochastic delays)
+	double Max_Cons_Delay;					   // Maximum consecutive delay
+	int N_Stopped_Trains;					   // Number of trains that stopped at this station
+	int N_Delayed_Arr;						   // Number of delayed arrivals
+	int N_Delayed_Arr_3min;					   // Number of arrivals delayed >3 minutes
+	int N_Delayed_Arr_5min;					   // Number of arrivals delayed >5 minutes
+	double Perc_Delayed_T;					   // Percentage of trains delayed
+	double Perc_Delayed_T_3min;				   // Percentage delayed >3 minutes
+	double Perc_Delayed_T_5min;				   // Percentage delayed >5 minutes
 	double latitude, longitude;
 	double graphX, graphY;							  // Graphical coordinates
 	std::map<int, double> shiftX, shiftY;			  // Graphical display levels
@@ -285,18 +284,18 @@ extern Stations& DisturbanceInput;
 extern Stations& Final_Station; // Fictitious station to measure delays at trains' final stations
 extern int numStations;
 
-void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay);
+void Print_Station_Delay_Stats(std::string Name_StationDelay, std::string kindofdelay);
 
 // --- Location: can correspond to a block section or a section ---
 
 class Location {
 public:
-	string Name;
+	std::string Name;
 	double MaxHW; // Maximum headway at this location
 	double MinHW; // Minimum headway at this location
 	double Position;
-	string MinimumTrainCouple;
-	string CriticalTrainCouple;
+	std::string MinimumTrainCouple;
+	std::string CriticalTrainCouple;
 };
 
 #endif

@@ -14,6 +14,8 @@
 #include <unordered_set>
 #include <utility>
 
+using namespace std;
+
 namespace {
 
 struct ConnectedSectionIdentity {

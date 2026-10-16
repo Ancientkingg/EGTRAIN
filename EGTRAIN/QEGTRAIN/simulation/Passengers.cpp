@@ -1,6 +1,8 @@
 #include "simulation/Passengers.h"
 #include <algorithm>
 
+using namespace std;
+
 void PassengerIndex::build(list<Passenger>& passengers) {
 	clear();
 	source_ = &passengers;

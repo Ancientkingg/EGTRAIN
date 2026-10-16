@@ -33,9 +33,9 @@
 #include <deque>
 #include <limits>
 #include <vector>
-extern vector<int>& VCmsgTimestep;
-extern vector<string>& VCmsgTrain;
-extern vector<string>& VCmsgText;
+extern std::vector<int>& VCmsgTimestep;
+extern std::vector<std::string>& VCmsgTrain;
+extern std::vector<std::string>& VCmsgText;
 
 // -------------
 
@@ -68,9 +68,9 @@ double passengerOccupancyRatio(int passengers, int capacity);
 
 class BlockingTimes {
 public:
-	string BlockID;
-	string NextBlockID; // This is the ID of the location or block section after this blocking time. By default the location after this one is a VirtualTDSB the location after the VirtualTDSB will be considered. if the location after VirtualTDSB is the last infra element of the route then NextBlockID is None. NextBlockID by default is never a VirtualTDSB
-	string trainDescription;
+	std::string BlockID;
+	std::string NextBlockID; // This is the ID of the location or block section after this blocking time. By default the location after this one is a VirtualTDSB the location after the VirtualTDSB will be considered. if the location after VirtualTDSB is the last infra element of the route then NextBlockID is None. NextBlockID by default is never a VirtualTDSB
+	std::string trainDescription;
 	double StartRunTime;
 	double EndRunTime;
 	double StartApproachTime;
@@ -91,18 +91,18 @@ public:
 	double PosEnd;
 	double GeoPosStart;
 	double GeoPosEnd;
-	string ConnectedBlockingTimeID;				 // This is the ID of another infrastructure element which is connected to the current one. For example if this is the starting edge of a switch its blocking time will be connected to the one of the ending edge of that switch
+	std::string ConnectedBlockingTimeID;		 // This is the ID of another infrastructure element which is connected to the current one. For example if this is the starting edge of a switch its blocking time will be connected to the one of the ending edge of that switch
 	double PosConnectedBlockingTime;			 // This is the Position of the connected Blocking Time along the route of the train
 	double SpeedPreviousTrain;					 // This variable represents the speed of the train which previously crossed the infrastructure element. This variable is needed in the case of Virtual Coupling to compute the approaching time (that in such a case is the time needed by the train to accelerate/decelerate from its current speed to the speed of the previous train)
-	string NamePreviousTrain;					 // This is the name of the previous train that has crossed a given infrastructure element
-	string NextBlockIDPreviousTrain;			 // This is the ID of the next block section or location for the previous train
+	std::string NamePreviousTrain;				 // This is the name of the previous train that has crossed a given infrastructure element
+	std::string NextBlockIDPreviousTrain;		 // This is the ID of the next block section or location for the previous train
 	int SignallingLevel;						 // This is the signalling level of the block section
 	bool IsEndOfDivSwitchBeingStartOfADivSwitch; // Again this is the same variable appearing in the infrastructure elements. This bool variable is true when the infrastructure element we are computing the blocking time for is the ending edge of a diverging switch coninciding with the starting edge of another diverging switch
 	bool InfraElementInPositionForTrain;		 // This is to indicate whether the Switch is in the right position for the train to cross, if it already in the right position then no additional setuptime needs to be added, otherwise additional setup time needs to be added
 	bool LocationWithSwitch;
 	bool IsAlreadyUniformedToConnectedSwitch; // This variable when it is true means that the blocking time has been already uniformed with the Blocking Time of the connected edge of diverging switch
-	string SwitchName;						  // This is to indicate whether the location or block section has a switch or not
-	string stationName;
+	std::string SwitchName;					  // This is to indicate whether the location or block section has a switch or not
+	std::string stationName;
 	bool IsComplete;
 
 	BlockingTimes();
@@ -110,7 +110,7 @@ public:
 	BlockingTimes& operator=(const BlockingTimes& obj2);
 
 	// Check that the last recorded status of the infrastructure element is in line with what the train needs
-	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string TrainName, list<InfraEvent> ListAllInfraEvents);
+	void checkIfLastInfraElementStatusIsInLineWithTrainNeeds(std::string TrainName, std::list<InfraEvent> ListAllInfraEvents);
 };
 
 // Blocking times of one train, indexed like an array. Indexing a non-const list
@@ -196,9 +196,9 @@ public:
 	double scheduled_departure_time = 0.0; // This is the departure time in the initial timetable not the actual scheduled_departure_time
 	int temp, stop, counter;			   // Temporary variables for simulating train movement(temp=instant of time in which train starts braking, stop=time instant in which train starts stopping at a station), counter: number of times in which it enters in braking condition equation
 	double ID = 0.0;					   // Train ID number
-	string type;						   // This specifies if it is an Intercity, a regional or a metro train
-	string operatingCode;
-	string serviceId;
+	std::string type;					   // This specifies if it is an Intercity, a regional or a metro train
+	std::string operatingCode;
+	std::string serviceId;
 	int serviceOccurrence = 1;
 	double servicePerformancePercent = 100.0;
 	bool hasConfiguredMaximumSpeed = false;
@@ -211,46 +211,46 @@ public:
 	double firstDirectIncidentLocation = -1.0;
 	bool destinationTerminationRequested = false;
 	bool destinationTerminated = false;
-	Arc As;					   // Temporary Arc object representing the Arc occupied by the train in a determined time instant
-	Section Bs;				   // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
-	double Start_Node_X = 0.0; // It represents the X of the Node from which the train starts its run
-	string TrainRouteID;	   // This is the ID of the Route that the train has to follow
-	int indexOfRoute;		   // This is the Index (ranging from 0 and N_Routes-1) of the Route with ID=TrainRouteID
-	string trainDescription;   // This is the Description of the train which is the union between the Type and the ID: trainDescription = Type+ID
+	Arc As;						  // Temporary Arc object representing the Arc occupied by the train in a determined time instant
+	Section Bs;					  // Temporary Block Section Object representing the Block Section occupied by the Train in a certain time instant
+	double Start_Node_X = 0.0;	  // It represents the X of the Node from which the train starts its run
+	std::string TrainRouteID;	  // This is the ID of the Route that the train has to follow
+	int indexOfRoute;			  // This is the Index (ranging from 0 and N_Routes-1) of the Route with ID=TrainRouteID
+	std::string trainDescription; // This is the Description of the train which is the union between the Type and the ID: trainDescription = Type+ID
 	bool direction;
 	bool GradientExceptionInBraking; // This variable is true when because of a too steep gradient the braking curve computed by the function DrawBrakingCurve has a point having a speed lower than the final speed V2 (in this case the train will first decrease its speed to this value lower than V2 and then reaccelerate to V2)
 	std::vector<double> BX;
 	std::vector<Node> Stations;														// Stop nodes of the train in service order
 	int numStations;																// Number of stops in use; equals Stations.size() for a train built from a scene
 	static constexpr int kMaxTimetableStations = RuntimeLimits::kMaxTimetableStops; // Capacity of the station-indexed arrays below; stations beyond this cap have no timetable slot
-	static int clampStationCount(int requested, const string& trainId);				// Clamps a served-station count to kMaxTimetableStations, warning once per train
+	static int clampStationCount(int requested, const std::string& trainId);		// Clamps a served-station count to kMaxTimetableStations, warning once per train
 	int stationBlockSection[kMaxTimetableStations] = {};							// Cached block section index for each station (avoids full-route scan every timestep)
 	int stationArc[kMaxTimetableStations] = {};										// Cached Arc index within block section for each station
 	bool StoppedForServiceStop = false;												// This variable is true when the train is stopping at a station to perform a service stop
-	string CurrentServiceStop;														// This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
-	string CurrentServiceStopPlatform;												// Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
+	std::string CurrentServiceStop;													// This variable indicates the name of the Station the train is currently stopping at when StoppedForServiceStop=true
+	std::string CurrentServiceStopPlatform;											// Id of the platform at which the train has stopped when making a service stop at a scheduled station/stop>
 
-	double StationArrivals[kMaxTimetableStations];		  // This variable is the time instant in which the train actually enters a station
-	string StationArrivalNames[kMaxTimetableStations];	  // Preserves served station names for post-run arrival analysis.
-	double StationDelay[kMaxTimetableStations];			  // This variable represent the arrival delay of a train at a certain station
-	double StationConsecDelay[kMaxTimetableStations];	  // This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
-	double StationDisturbance[kMaxTimetableStations];	  //  This variable represents the disturbance to dwell times at stations
-	int N_Station_Stopped;								  // This variable counts the number of stations at which the train has stopped
-	double ScheduledArrivals[kMaxTimetableStations] = {}; // This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
+	double StationArrivals[kMaxTimetableStations];			// This variable is the time instant in which the train actually enters a station
+	std::string StationArrivalNames[kMaxTimetableStations]; // Preserves served station names for post-run arrival analysis.
+	double StationDelay[kMaxTimetableStations];				// This variable represent the arrival delay of a train at a certain station
+	double StationConsecDelay[kMaxTimetableStations];		// This is the Consecutive delay at stations i.e. ArrivalDelay-Entrance Delay-Sum of disturbances at previous stations
+	double StationDisturbance[kMaxTimetableStations];		//  This variable represents the disturbance to dwell times at stations
+	int N_Station_Stopped;									// This variable counts the number of stations at which the train has stopped
+	double ScheduledArrivals[kMaxTimetableStations] = {};	// This Array contains scheduled train arrival time at stations (it is necessary to calculate train deviations from timetable and therefore train delays)
 	double ScheduledDepartures[kMaxTimetableStations] = {};
-	int delayed;						// This is a boolean parameter: if delayed =1 the train will experience a delay at a determined station, else if delayed=0 the train won't experience any delay
-	double TotalInputDelays = 0.0;		// Sum of the Entrance Delays +stochastic disturbances to dwell times
-	double EntranceDelay;				// This is the entrance delay of the train on the network
-	std::string entranceDelayStationId; // Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty when none was applied
-	bool CanEnter;						// This Variable becomes True when time is major than departure_time and if for the first Time signalling_block_sections[0] is free (i.e. its code is 270)
-	bool OutOfSimulation;				// if true it means that the train is out of the simulation, i.e. it has been already simulated
-	int counter2;						// When Counter2 becomes 1, CanEnter variable becomes true and the train can start the simulation
-	bool IsTrainCoupling;				// This int variable counts the number of times that the train receives a MA in Signalling Level 4 where it could Virtually Couple to another train ahead having the same direction of movement and the a shared route ahead
-	bool IsTrainInFollowingMode;		// This boolean is true when the train is following another one in VC mode
-	bool IsInUnintentionalDecoupling;	// This variable is set to true when a train in following mode starts outdistancing from the leader because of conditions due to speed limitations, gradient or curvature radii on the tracks is crossing and not to an intentional decoupling due to a MA where the route diverges from the leader's
-	bool IsTrainDecoupling;				// This boolean is true when the train is Decoupling from the VC mode
-	int CounterFollowingMode;			// This variable counts the seconds the train is in following mode under Virtual Coupling
-	string LeadingTrainInFollowingMode; // This is the trainDescription of the leading train when this train is in following mode
+	int delayed;							 // This is a boolean parameter: if delayed =1 the train will experience a delay at a determined station, else if delayed=0 the train won't experience any delay
+	double TotalInputDelays = 0.0;			 // Sum of the Entrance Delays +stochastic disturbances to dwell times
+	double EntranceDelay;					 // This is the entrance delay of the train on the network
+	std::string entranceDelayStationId;		 // Station ID (runtime station name) of the first stop whose planned departure the entrance delay shifted; empty when none was applied
+	bool CanEnter;							 // This Variable becomes True when time is major than departure_time and if for the first Time signalling_block_sections[0] is free (i.e. its code is 270)
+	bool OutOfSimulation;					 // if true it means that the train is out of the simulation, i.e. it has been already simulated
+	int counter2;							 // When Counter2 becomes 1, CanEnter variable becomes true and the train can start the simulation
+	bool IsTrainCoupling;					 // This int variable counts the number of times that the train receives a MA in Signalling Level 4 where it could Virtually Couple to another train ahead having the same direction of movement and the a shared route ahead
+	bool IsTrainInFollowingMode;			 // This boolean is true when the train is following another one in VC mode
+	bool IsInUnintentionalDecoupling;		 // This variable is set to true when a train in following mode starts outdistancing from the leader because of conditions due to speed limitations, gradient or curvature radii on the tracks is crossing and not to an intentional decoupling due to a MA where the route diverges from the leader's
+	bool IsTrainDecoupling;					 // This boolean is true when the train is Decoupling from the VC mode
+	int CounterFollowingMode;				 // This variable counts the seconds the train is in following mode under Virtual Coupling
+	std::string LeadingTrainInFollowingMode; // This is the trainDescription of the leading train when this train is in following mode
 	double Xobmin, Vobmin;
 	std::vector<double> Xob, Vob;
 	std::vector<double> Sbrak = std::vector<double>(2000, 0.0), Vbrak = std::vector<double>(2000, 0.0); // Vector Sbrak: Vector of curviline abscissas belonging to a braking curve;  Vector Vbrak: Vector of speeds belonging to a braking curve
@@ -267,18 +267,18 @@ public:
 	int N_BlockTimeComplete;
 	int numOverlaps; // This is the number of train overlaps
 	double Final_Delay;
-	int End_Time;							// Time instant in which the train exits simulation
-	int earliestActiveTrajectoryIndex = -1; // First simulation sample in the active run
-	list<Location> LocationNames;			// This LocationNames contain the name of block sections, or stations crossed by the train along its route
-	list<string> ConflictingTrains;			// These are the trains which have common block sections.
-	int N_ConflictingTrains;				// Number Of Conflicting Trains
-	double ETCS3StoppingPoint;				// This is the point in km where the train is stopped because of ETCS 3 Movement Authority
-	bool IsTrainStoppedForEoA;				// This boolean is true when the train is stopped because it reached the ETCS 3 End of Authority
-	list<TrainEvent> TimetablePoints;		// This lists contains the arrival and departure of the train at each interlocking area of the network either those where the train stops and those where they train does not stop at
-	int prevIntendedDepTime;				//  stores the previous intended dep time from dispatching tool
-	int dispLineID = -1;					//  lineID from dispatching tool
-	int arrivalPlatform = -1;				//  arrival platform from dispatching tool
-	int reservedPlatform;					//  variable to book platform at destination
+	int End_Time;							  // Time instant in which the train exits simulation
+	int earliestActiveTrajectoryIndex = -1;	  // First simulation sample in the active run
+	std::list<Location> LocationNames;		  // This LocationNames contain the name of block sections, or stations crossed by the train along its route
+	std::list<std::string> ConflictingTrains; // These are the trains which have common block sections.
+	int N_ConflictingTrains;				  // Number Of Conflicting Trains
+	double ETCS3StoppingPoint;				  // This is the point in km where the train is stopped because of ETCS 3 Movement Authority
+	bool IsTrainStoppedForEoA;				  // This boolean is true when the train is stopped because it reached the ETCS 3 End of Authority
+	std::list<TrainEvent> TimetablePoints;	  // This lists contains the arrival and departure of the train at each interlocking area of the network either those where the train stops and those where they train does not stop at
+	int prevIntendedDepTime;				  //  stores the previous intended dep time from dispatching tool
+	int dispLineID = -1;					  //  lineID from dispatching tool
+	int arrivalPlatform = -1;				  //  arrival platform from dispatching tool
+	int reservedPlatform;					  //  variable to book platform at destination
 	// std::map<char, std::list<std::pair<int, double>>> trainCorrPosTime; // train position over time for each corridor
 
 	float GibsonDwellTimeParameters[8]; // this is a vector of floats to store the Gibson dwell time parameters of the trains
@@ -474,7 +474,7 @@ public:
 	virtual ~Train() {}
 
 	// This function is used to determine the ID of the TDS the train is currently occupying a block section
-	virtual string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
+	virtual std::string DetermineOccupiedTDS(int timeinstant, bool IsRouteReversed);
 
 	void recordDirectIncidentId(const std::string& incidentId, double timeSeconds,
 		double locationMeters);
@@ -503,7 +503,7 @@ public:
 
 	// Function to Compute Blocking Times for a single Block Section. This Function allows us to compute blocking time in area with mixed signalling system
 	/**signalling_block_sections is the Block Section in the route of train, IndexBS is instead the index of that Block Section in the Route*/
-	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
+	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
 
 	double ComputeLastOccupationTime_real_time(int t, std::string CurrentBS, int EntryTime);
 
@@ -541,13 +541,13 @@ public:
 
 	void recordCurrentServiceStopArrival(int time_seconds);
 
-	bool stationIsOnRoute(int stationIndex, const vector<string>& allowedBlockIds = {}) const;
+	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
 
 	double stationRoutePositionMeters(int stationIndex) const;
 
 	void recordStationPassagesAtTime(int time_seconds);
 
-	string stationNameForArrivalStats(int stationIndex) const;
+	std::string stationNameForArrivalStats(int stationIndex) const;
 
 	// check train arrival/departure at/from destination/origin
 	void checkTrainArrDep(int trainIdx, int t);
@@ -622,13 +622,13 @@ void Occupy_Block_Sections_Of_Route(int i);
 void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin);
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(string MainFolder);
+void PrintTrainBlockingTimes(std::string MainFolder);
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(string MainFolder);
+void PrintTimetablePoints(std::string MainFolder);
 
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
+void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 // function to protect all station areas
 void protectStationAreas(int i);

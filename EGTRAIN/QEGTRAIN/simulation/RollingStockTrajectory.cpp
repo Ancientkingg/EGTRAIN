@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 double Train::train_energy_consumption(int t) {
 	double Pot1 = 0;
 	double Pot2 = 0;

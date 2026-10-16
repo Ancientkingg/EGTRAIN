@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 void Train::cacheStationPositions() {
 	for (int s = 0; s < kMaxTimetableStations; s++) {
 		stationBlockSection[s] = -1;
