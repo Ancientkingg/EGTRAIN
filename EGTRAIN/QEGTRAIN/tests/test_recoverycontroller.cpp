@@ -5,6 +5,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QFile>
 #include <QStringList>
@@ -265,7 +266,12 @@ static bool testLaterEditsDoNotMoveTimer() {
 	f.controller->noteEdited(makeScene("first"), makeSource("first"), 1);
 	settle(800);
 	f.controller->noteEdited(makeScene("second"), makeSource("second"), 2);
-	ok &= expect(waitFor([&]() { return !f.written.isEmpty(); }, 1700), "the write comes one interval after the first edit");
+	// A timer that the second edit started again would write 2000 ms after it, a timer that keeps
+	// running about 1200 ms after it, however long the wait above took.
+	QElapsedTimer sinceSecondEdit;
+	sinceSecondEdit.start();
+	ok &= expect(waitFor([&]() { return !f.written.isEmpty(); }, 4000), "the copy is written");
+	ok &= expect(sinceSecondEdit.elapsed() < 1700, "the write comes one interval after the first edit");
 	ok &= expect(f.written == QVector<quint64>{2} && copyName(f.root) == "second", "the write holds the newest scene");
 	return ok;
 }
