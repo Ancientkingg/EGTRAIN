@@ -66,12 +66,12 @@ std::vector<std::tuple<int, double>> arcFields(const std::vector<GuiOccupiedArc>
 }
 
 auto fields(const GuiTrainState& v) {
-	const auto& [index, id, type, description, operatingCode, serviceId, routeIndex, reversedDirection, wagonCount, length, departureTime,
-		outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers, wagonHeadPositions,
-		wagonTailPositions, occupiedArcs] = v;
-	return std::make_tuple(index, id, type, description, operatingCode, serviceId, routeIndex, reversedDirection, wagonCount, length,
+	const auto& [index, id, type, description, operatingCode, serviceId, occurrence, routeIndex, reversedDirection, wagonCount, length,
 		departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers, wagonHeadPositions,
-		wagonTailPositions, arcFields(occupiedArcs));
+		wagonTailPositions, occupiedArcs] = v;
+	return std::make_tuple(index, id, type, description, operatingCode, serviceId, occurrence, routeIndex, reversedDirection, wagonCount,
+		length, departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers,
+		wagonHeadPositions, wagonTailPositions, arcFields(occupiedArcs));
 }
 
 auto fields(const GuiSignalState& v) {
@@ -131,6 +131,7 @@ GuiSimulationSnapshot sampleSnapshot(int t, std::size_t trainCount = 3, int tota
 		train.description = "train " + std::to_string(n);
 		train.operatingCode = "code " + std::to_string(n);
 		train.serviceId = "service " + std::to_string(n);
+		train.occurrence = 2 + n;
 		train.routeIndex = (n + step / 10) % 3;
 		train.reversedDirection = (n + step / 20) % 2 == 1;
 		train.wagonCount = 3 + n % 12;
@@ -497,6 +498,7 @@ int main() {
 			{"train description", [](GuiSimulationSnapshot& s) { s.trains[1].description += "x"; }},
 			{"train operating code", [](GuiSimulationSnapshot& s) { s.trains[1].operatingCode += "x"; }},
 			{"train service", [](GuiSimulationSnapshot& s) { s.trains[1].serviceId += "x"; }},
+			{"train occurrence", [](GuiSimulationSnapshot& s) { s.trains[1].occurrence += 1; }},
 			{"train wagon count", [](GuiSimulationSnapshot& s) { s.trains[1].wagonCount += 1; }},
 			{"train length", [](GuiSimulationSnapshot& s) { s.trains[1].length += 1.0; }},
 			{"train departure time", [](GuiSimulationSnapshot& s) { s.trains[1].departureTime += 1; }},

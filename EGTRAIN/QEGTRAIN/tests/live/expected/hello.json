@@ -1,0 +1,29 @@
+{
+  "base_time_s": 25200.0,
+  "horizon_steps": 1500,
+  "run_id": "line-run",
+  "scene_name": "Characterization Line",
+  "seq": 0,
+  "step_s": 1.0,
+  "trains": [
+    {
+      "occurrence": 1,
+      "operating_code": "F1",
+      "route_index": 0,
+      "service_id": "F1"
+    },
+    {
+      "occurrence": 1,
+      "operating_code": "F2",
+      "route_index": 0,
+      "service_id": "F2"
+    }
+  ],
+  "units": {
+    "distance": "m",
+    "speed": "m/s",
+    "time": "s",
+    "x": "km"
+  },
+  "v": 1
+}

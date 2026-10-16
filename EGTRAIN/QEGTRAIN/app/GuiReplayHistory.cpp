@@ -31,12 +31,12 @@ constexpr std::size_t kHandedOutLimit = 32;
 
 // Compares what stays the same for a train during a run.
 bool sameStatic(const GuiTrainState& a, const GuiTrainState& b) {
-	[[maybe_unused]] const auto& [index, id, type, description, operatingCode, serviceId, routeIndex, reversedDirection, wagonCount,
-		length, departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers,
+	[[maybe_unused]] const auto& [index, id, type, description, operatingCode, serviceId, occurrence, routeIndex, reversedDirection,
+		wagonCount, length, departureTime, outOfSimulation, routeAxisPosition, speedKmh, currentOnboardPassengers, maxOnboardPassengers,
 		wagonHeadPositions, wagonTailPositions, occupiedArcs] = a;
 	return index == b.index && id == b.id && type == b.type && description == b.description && operatingCode == b.operatingCode
-		&& serviceId == b.serviceId && wagonCount == b.wagonCount && length == b.length && departureTime == b.departureTime
-		&& maxOnboardPassengers == b.maxOnboardPassengers;
+		&& serviceId == b.serviceId && occurrence == b.occurrence && wagonCount == b.wagonCount && length == b.length
+		&& departureTime == b.departureTime && maxOnboardPassengers == b.maxOnboardPassengers;
 }
 
 bool sameStatic(const GuiSignalState& a, const GuiSignalState& b) {

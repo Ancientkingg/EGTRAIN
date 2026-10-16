@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "steps_finished",
+    "run_id": "line-run",
+    "seq": 1501,
+    "step": 1500,
+    "v": 1
+  },
+  {
+    "kind": "run_finished",
+    "run_id": "line-run",
+    "seq": 1502,
+    "status": "completed",
+    "step": 1500,
+    "v": 1
+  }
+]

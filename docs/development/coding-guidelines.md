@@ -36,7 +36,7 @@ so that the standard library headers are found. `io/third_party/` has its own
 (`/W4` with MSVC) to the C++ sources of one target. The flags are private to the target, so a
 target that links a library does not get them.
 
-- Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_update`,
+- Strict targets build without a warning: `egtrain_util`, `egtrain_scene`, `egtrain_live`, `egtrain_update`,
   `egtrain_sceneopen`, `egtrain_openrelay`, `egtrain_recovery`, `egtrain_graphics`, `egtrain_widgets`, the `egtrain_telemetry` libraries, `egtrain_diagrams`,
   `scene_tool`, `egtrain_update_helper` and the tests that use only these libraries. When
   `EGTRAIN_WARNINGS_AS_ERRORS` is ON they also get `-Werror` (`/WX` with MSVC), so a new
