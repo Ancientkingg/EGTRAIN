@@ -316,6 +316,11 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_updatepreparation` | partly | partly | partly | The checks that stage a disk image and a zip package run on macOS only and need `hdiutil`, `ditto`, `codesign` and `python3`. The AppImage check runs on Linux only. |
 | `test_make_dmg` | yes | partly | partly | The image, mount and signature checks need `hdiutil`, `ditto` and `codesign`. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command. |
 
+The update requests do not need Qt's TLS. On Windows `createHttpTransport` returns a
+WinHTTP transport, so `test_httptransport` and `test_selfupdater` exercise it there. They reach
+their server on the loopback address over plain http only because the tests ask for it;
+the transport of the application fetches https addresses only.
+
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `test_visual_polish_smoke` passes it on to
 the scripts it runs. `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`

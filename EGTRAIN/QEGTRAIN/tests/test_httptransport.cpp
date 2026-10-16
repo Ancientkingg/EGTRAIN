@@ -120,6 +120,12 @@ private:
 	void respond(QTcpSocket* socket, const QByteArray& path) {
 		if (path == "/redirect")
 			send(socket, "302 Found", QByteArray(), "Location: " + url("/target").toEncoded() + "\r\n");
+		else if (path == "/redirect-relative")
+			send(socket, "302 Found", QByteArray(), "Location: /target\r\n");
+		else if (path == "/redirect-loop")
+			send(socket, "302 Found", QByteArray(), "Location: " + url("/redirect-loop").toEncoded() + "\r\n");
+		else if (path == "/redirect-away")
+			send(socket, "302 Found", QByteArray(), "Location: http://localhost:" + QByteArray::number(server.serverPort()) + "/redirect-away-target\r\n");
 		else if (path == "/target")
 			send(socket, "200 OK", targetBody());
 		else if (path == "/missing")
@@ -265,6 +271,25 @@ static bool testRedirect(HttpTransport& transport, const TestServer& server) {
 	return ok;
 }
 
+static bool testRelativeRedirect(HttpTransport& transport, const TestServer& server) {
+	Fetch fetch(transport, makeRequest(server.url("/redirect-relative")));
+	bool ok = expect(fetch.waitFinished(), "relative redirect: finished() arrives");
+	ok &= expect(!fetch.failed && fetch.status == 200, "relative redirect: the reply is the one of the target");
+	ok &= expect(fetch.data == targetBody(), "relative redirect: the body is the one of the target");
+	return ok;
+}
+
+// A server that redirects to its own address: the transport gives up after a limited number of redirects.
+static bool testRedirectLoop(HttpTransport& transport, const TestServer& server) {
+	Fetch fetch(transport, makeRequest(server.url("/redirect-loop")));
+	bool ok = expect(fetch.waitFinished(), "redirect loop: finished() arrives");
+	spin(50);
+	ok &= expect(fetch.finishedCount == 1, "redirect loop: finished() is emitted once");
+	ok &= expect(fetch.failed, "redirect loop: the reply has failed");
+	ok &= expect(!fetch.error.isEmpty(), "redirect loop: errorString() is not empty");
+	return ok;
+}
+
 static bool testErrorStatus(HttpTransport& transport, const TestServer& server) {
 	Fetch fetch(transport, makeRequest(server.url("/missing")));
 	bool ok = expect(fetch.waitFinished(), "404: finished() arrives");
@@ -342,7 +367,7 @@ static bool testReleaseAfterFinished(HttpTransport& transport, const TestServer&
 
 // Deleting the transport with a request in flight deletes the reply, and no signal arrives afterwards.
 static bool testTeardownDuringRequest(const TestServer& server) {
-	HttpTransport* transport = createHttpTransport(nullptr);
+	HttpTransport* transport = createHttpTransport(nullptr, true);
 	QPointer<HttpReply> reply = transport->get(makeRequest(server.url("/stall"), "EGTRAIN/test"));
 	QObject context;
 	int signalCount = 0;
@@ -371,23 +396,62 @@ static bool testTeardownDuringRequest(const TestServer& server) {
 	return ok;
 }
 
+#ifdef Q_OS_WIN
+// The transport of the application fetches https addresses only, so a request for plain http fails
+// without a connection to the server.
+static bool testPlainHttpRefused(HttpTransport& strict, const TestServer& server) {
+	bool ok = true;
+	{
+		Fetch fetch(strict, makeRequest(server.url("/plain-http")));
+		ok &= expect(fetch.waitFinished(), "plain http: finished() arrives");
+		ok &= expect(fetch.failed, "plain http: the reply has failed");
+		ok &= expect(fetch.status == 0, "plain http: no status code arrives");
+		ok &= expect(!fetch.error.isEmpty(), "plain http: errorString() is not empty");
+	}
+	spin(50);
+	ok &= expect(server.find("/plain-http") == nullptr, "plain http: no request reaches the server");
+	return ok;
+}
+
+// With plain http to the loopback address allowed, a redirect to another plain http address is still
+// refused. The redirect names this server by host name, which is not the loopback address the test
+// allows, so a transport that followed it would send the request to this server.
+static bool testRedirectToPlainHttpRefused(HttpTransport& transport, const TestServer& server) {
+	Fetch fetch(transport, makeRequest(server.url("/redirect-away")));
+	bool ok = expect(fetch.waitFinished(), "redirect to http: finished() arrives");
+	ok &= expect(fetch.failed, "redirect to http: the reply has failed");
+	ok &= expect(!fetch.error.isEmpty(), "redirect to http: errorString() is not empty");
+	spin(50);
+	ok &= expect(server.find("/redirect-away-target") == nullptr, "redirect to http: the redirect is not followed");
+	return ok;
+}
+#endif
+
 int main(int argc, char** argv) {
 	QCoreApplication application(argc, argv);
 	TestServer server;
 	if (!expect(server.listening, "the test server listens on the loopback address"))
 		return 1;
-	HttpTransport* transport = createHttpTransport(&application);
+	// The server speaks plain http, which the transport of the application refuses on Windows unless a test allows it.
+	HttpTransport* transport = createHttpTransport(&application, true);
 
 	bool ok = true;
 	ok &= testSmallBody(*transport, server);
 	ok &= testRequestHeaders(*transport, server);
 	ok &= testLargeBody(*transport, server);
 	ok &= testRedirect(*transport, server);
+	ok &= testRelativeRedirect(*transport, server);
+	ok &= testRedirectLoop(*transport, server);
 	ok &= testErrorStatus(*transport, server);
 	ok &= testAbortDuringResponse(*transport, server);
 	ok &= testConnectionDropped(*transport, server);
 	ok &= testConnectionRefused(*transport);
 	ok &= testReleaseAfterFinished(*transport, server);
 	ok &= testTeardownDuringRequest(server);
+#ifdef Q_OS_WIN
+	HttpTransport* strict = createHttpTransport(&application);
+	ok &= testPlainHttpRefused(*strict, server);
+	ok &= testRedirectToPlainHttpRefused(*transport, server);
+#endif
 	return ok ? 0 : 1;
 }

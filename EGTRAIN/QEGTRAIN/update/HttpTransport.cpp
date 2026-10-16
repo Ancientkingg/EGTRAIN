@@ -5,6 +5,10 @@
 #include <QNetworkRequest>
 #include <QPointer>
 
+#ifdef Q_OS_WIN
+#include "update/WinHttpTransport.h"
+#endif
+
 namespace {
 
 // The QNetworkReply stays a child of the network manager, so a manager that is destroyed deletes
@@ -54,6 +58,10 @@ private:
 
 } // namespace
 
-HttpTransport* createHttpTransport(QObject* parent) {
+HttpTransport* createHttpTransport(QObject* parent, [[maybe_unused]] bool allowLoopbackHttp) {
+#ifdef Q_OS_WIN
+	return createWinHttpTransport(parent, allowLoopbackHttp);
+#else
 	return new QtHttpTransport(parent);
+#endif
 }

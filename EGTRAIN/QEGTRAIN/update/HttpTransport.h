@@ -46,5 +46,7 @@ public:
 	virtual HttpReply* get(const HttpRequest& request) = 0;
 };
 
-// Returns the transport the application uses.
-HttpTransport* createHttpTransport(QObject* parent);
+// Returns the transport the application uses: WinHTTP on Windows, where Qt has no TLS library, and
+// Qt's network manager elsewhere. The Windows transport fetches https addresses only, unless
+// allowLoopbackHttp is true, which only a test sets so that it can use a server on 127.0.0.1.
+HttpTransport* createHttpTransport(QObject* parent, bool allowLoopbackHttp = false);
