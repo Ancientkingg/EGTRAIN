@@ -1204,7 +1204,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				++previewConnections;
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
-			|| !w.allArcs.isEmpty() || !w.allSignals.isEmpty() || !w.allPlatforms.isEmpty()
+			|| !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allSignals.isEmpty() || !w.m_presenter->allPlatforms.isEmpty()
 			|| w.m_worker || w.m_sceneDirty || !w.m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
 					.arg(previewArcs)
@@ -2304,23 +2304,23 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	const qreal expectedScale = 0.45;
 	const auto checkPresentation = [&]() {
 		const auto closeTo = [](qreal a, qreal b) { return qAbs(a - b) < 1e-6; };
-		if (!closeTo(w.m_cachedTrackPreview.presentationScale, expectedScale)) return false;
+		if (!closeTo(w.m_presenter->m_cachedTrackPreview.presentationScale, expectedScale)) return false;
 		int squares = 0, dots = 0, heads = 0, platforms = 0;
 		for (auto* item : w.scene->items()) {
 			if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item)) {
-				if (!closeTo(square->rect().width(), w.station_node_size * expectedScale)) return false;
+				if (!closeTo(square->rect().width(), w.m_presenter->station_node_size * expectedScale)) return false;
 				++squares;
 			} else if (auto* node = qgraphicsitem_cast<NodeItem*>(item)) {
-				if (node->rect().width() != 0 && !closeTo(node->rect().width(), w.node_size * expectedScale)) return false;
+				if (node->rect().width() != 0 && !closeTo(node->rect().width(), w.m_presenter->node_size * expectedScale)) return false;
 				++dots;
 			} else if (auto* head = qgraphicsitem_cast<SignalItem*>(item)) {
-				if (!closeTo(head->rect().width(), w.node_size * expectedScale)) return false;
-				const auto line = std::find_if(w.m_cachedTrackPreview.lines.begin(), w.m_cachedTrackPreview.lines.end(),
+				if (!closeTo(head->rect().width(), w.m_presenter->node_size * expectedScale)) return false;
+				const auto line = std::find_if(w.m_presenter->m_cachedTrackPreview.lines.begin(), w.m_presenter->m_cachedTrackPreview.lines.end(),
 					[&](const auto& candidate) {
 						return w.m_showingTrackPreview ? candidate.id == head->data(PreviewGraphics::TrackId).toString().toStdString()
 													   : &candidate == w.cachedTrackLine(head->trackID);
 					});
-				if (line == w.m_cachedTrackPreview.lines.end()) return false;
+				if (line == w.m_presenter->m_cachedTrackPreview.lines.end()) return false;
 				QPointF center, before, after, normal;
 				if (!previewPointAtX(*line, head->X, line->displayOffset, center)
 					|| !previewPointAtX(*line, head->X - 0.008, line->displayOffset, before)
@@ -2336,8 +2336,8 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 				++heads;
 			}
 			if (auto* platform = qgraphicsitem_cast<PlatformItem*>(item)) {
-				if (!closeTo(platform->rect().width(), 5 * w.station_node_size * expectedScale)
-					|| !closeTo(platform->rect().height(), 0.9 * w.station_node_size * expectedScale)) return false;
+				if (!closeTo(platform->rect().width(), 5 * w.m_presenter->station_node_size * expectedScale)
+					|| !closeTo(platform->rect().height(), 0.9 * w.m_presenter->station_node_size * expectedScale)) return false;
 				if (platform->textIcon && !closeTo(platform->textIcon->scale(), expectedScale)) return false;
 				++platforms;
 			}
@@ -2349,12 +2349,12 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			if (auto* stroke = qgraphicsitem_cast<QGraphicsLineItem*>(item))
 				if (stroke->pen().width() > 0 && !stroke->pen().isCosmetic()) return false;
 		}
-		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || w.m_stationPictures.isEmpty()
-			|| w.m_stationLabels.size() != w.m_stationOverlays.size()) return false;
-		for (int i = 0; i < w.m_stationOverlays.size(); ++i) {
-			const auto* overlay = w.m_stationOverlays[i];
-			const auto* picture = w.m_stationPictures.value(w.m_stationOverlays[i], nullptr);
-			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_stationLabels[i]);
+		if (!squares || !dots || !heads || (initial_variables.PAX_GUI && !platforms) || w.m_presenter->m_stationPictures.isEmpty()
+			|| w.m_presenter->m_stationLabels.size() != w.m_presenter->m_stationOverlays.size()) return false;
+		for (int i = 0; i < w.m_presenter->m_stationOverlays.size(); ++i) {
+			const auto* overlay = w.m_presenter->m_stationOverlays[i];
+			const auto* picture = w.m_presenter->m_stationPictures.value(w.m_presenter->m_stationOverlays[i], nullptr);
+			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_presenter->m_stationLabels[i]);
 			const auto source = std::find_if(w.m_sceneModel.stations.begin(), w.m_sceneModel.stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
 			if (source == w.m_sceneModel.stations.end() || !picture || !label) return false;
@@ -2369,11 +2369,11 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			};
 			const QRectF pictureRect = sceneSizeRect(picture);
 			const QRectF labelRect = sceneSizeRect(label);
-			if (!closeTo(pictureRect.width(), w.station_size * expectedScale)
+			if (!closeTo(pictureRect.width(), w.m_presenter->station_size * expectedScale)
 				|| !closeTo(picture->scale(), expectedScale) || !closeTo(label->scale(), expectedScale)
-				|| label->font().pixelSize() != w.station_size / 5
+				|| label->font().pixelSize() != w.m_presenter->station_size / 5
 				|| QLineF(labelRect.center(), textCenter).length() > 1e-6
-				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.station_size * expectedScale / 2)).length() > 1e-6)
+				|| QLineF(pictureRect.center(), textCenter - QPointF(0, w.m_presenter->station_size * expectedScale / 2)).length() > 1e-6)
 				return false;
 		}
 		return true;
@@ -2561,7 +2561,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const quint64 initialRevision = w.m_sceneRevision;
 	const QString editorSelection = w.m_infrastructureSelectionId;
 	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
-	for (const auto& line : w.m_cachedTrackPreview.lines) {
+	for (const auto& line : w.m_presenter->m_cachedTrackPreview.lines) {
 		for (const auto& point : line.points) {
 			auto* item = find("node", QString::fromStdString(point.nodeId));
 			if (!item) item = find("station-node", QString::fromStdString(point.nodeId));
@@ -2606,8 +2606,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_sceneRevision == initialRevision && w.m_sceneDirty == savedDirty
-				&& w.m_infrastructureSelectionId == editorSelection && !w.m_worker && w.allArcs.isEmpty()
-				&& w.allSignals.isEmpty() && w.allPlatforms.isEmpty(),
+				&& w.m_infrastructureSelectionId == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
 			"inspection mutated Open state")) return false;
 
 	const bool unchangedNodes = w.m_sceneModel.nodes.size() == saved.nodes.size()
@@ -2642,11 +2642,11 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	w.m_sceneModel = fixture;
 	++w.m_sceneRevision;
 	w.renderTrackPreview(w.m_sceneModel);
-	const QRectF topologyBounds = w.m_previewFitBounds;
+	const QRectF topologyBounds = w.m_presenter->m_previewFitBounds;
 	auto* z0 = qgraphicsitem_cast<NodeItem*>(find("node", "z0"));
 	auto* z1 = qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z1"));
 	auto* z3 = qgraphicsitem_cast<NodeItem*>(find("node", "z3"));
-	if (!require(z0 && z0->rect().width() == 0 && z1 && z3 && z3->rect().width() == w.node_size,
+	if (!require(z0 && z0->rect().width() == 0 && z1 && z3 && z3->rect().width() == w.m_presenter->node_size,
 			"first-station/four-node/terminal presentation")) return false;
 	if (!require(z1->data(PreviewGraphics::StationId).toString() == "later"
 				&& z1->data(PreviewGraphics::PlatformId).toString() == "platform-real"
@@ -2664,16 +2664,16 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				.arg(w.nodeStationNameText->text(), w.nodeXText->text(), w.infoDockWidget->windowTitle()))) return false;
 	StationOverlayItem* earlier = nullptr;
 	StationOverlayItem* between = nullptr;
-	for (auto* overlay : w.m_stationOverlays) {
+	for (auto* overlay : w.m_presenter->m_stationOverlays) {
 		if (overlay->data(PreviewGraphics::Id).toString() == "earlier") earlier = overlay;
 		if (overlay->data(PreviewGraphics::Id).toString() == "between") between = overlay;
 	}
-	const auto& line = w.m_cachedTrackPreview.lines.front();
+	const auto& line = w.m_presenter->m_cachedTrackPreview.lines.front();
 	QPointF expectedBetween;
 	previewPointAtX(line, 1.5, line.displayOffset, expectedBetween);
 	if (!require(earlier && between && between->stableAnchor() == expectedBetween,
 			"position-only artwork uses authored Z-before-A track")) return false;
-	auto* picture = w.m_stationPictures.value(earlier, nullptr);
+	auto* picture = w.m_presenter->m_stationPictures.value(earlier, nullptr);
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
 	picture->setPos(picture->pos() + QPointF(150, -150));
 	clickArtwork(picture);
@@ -2681,26 +2681,26 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.m_previewSelectedStationId == "earlier",
 			"displaced artwork owns canonical station identity")) return false;
 	// Position-only artwork has a real station, not an invented node.
-	auto* positionPicture = w.m_stationPictures.value(between, nullptr);
+	auto* positionPicture = w.m_presenter->m_stationPictures.value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
 	if (!require(w.nodeIDText->text() == "No node anchor" && w.nodeXText->text().toDouble() == 1500
 				&& w.nodeStationNameText->text() == "Duplicate [between]",
 			"position-only canonical inspection")) return false;
-	const bool oldLayer = w.m_stationLayerVisible, oldNames = w.m_stationNamesVisible;
-	w.m_stationLayerVisible = false;
-	w.m_stationNamesVisible = false;
-	for (auto* decoration : w.m_stationDecorations) decoration->setVisible(false);
+	const bool oldLayer = w.m_presenter->m_stationLayerVisible, oldNames = w.m_presenter->m_stationNamesVisible;
+	w.m_presenter->m_stationLayerVisible = false;
+	w.m_presenter->m_stationNamesVisible = false;
+	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(false);
 	w.updateViewportOverlays();
-	if (!require(z1->isVisible() && !picture->isVisible() && !w.m_stationLabels.front()->isVisible(),
+	if (!require(z1->isVisible() && !picture->isVisible() && !w.m_presenter->m_stationLabels.front()->isVisible(),
 			"station layers must not hide structural squares")) return false;
-	w.m_stationLayerVisible = true;
+	w.m_presenter->m_stationLayerVisible = true;
 	w.updateViewportOverlays();
-	if (!require(!w.m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
-	w.m_stationLayerVisible = oldLayer;
-	w.m_stationNamesVisible = oldNames;
-	for (auto* decoration : w.m_stationDecorations) decoration->setVisible(oldLayer);
+	if (!require(!w.m_presenter->m_stationLabels.front()->isVisible() && z1->isVisible(), "independent name layer")) return false;
+	w.m_presenter->m_stationLayerVisible = oldLayer;
+	w.m_presenter->m_stationNamesVisible = oldNames;
+	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(oldLayer);
 	w.updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
 	if (!require(w.arcIDText->text() == "No authored arc (fallback)" && w.arcFirstNodeIDText->text().isEmpty()
@@ -2716,8 +2716,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 					&& w.signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}
-	if (!require(w.m_previewFitBounds == topologyBounds && !w.m_worker && w.allArcs.isEmpty()
-				&& w.allPlatforms.isEmpty() && w.allSignals.isEmpty(),
+	if (!require(w.m_presenter->m_previewFitBounds == topologyBounds && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_presenter->allPlatforms.isEmpty() && w.m_presenter->allSignals.isEmpty(),
 			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.
 	const auto held = [&w, fixtureRevision]() {

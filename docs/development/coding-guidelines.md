@@ -144,9 +144,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   without a parent.
 - Graphics items: the scene owns an item after `scene->addItem(item)`, and a child item
   gets its parent item when it is created (`graphics/items/SignalItem.cpp`). Pointers to
-  scene items held elsewhere only observe them: `MainWindow::teardownGUI` calls
+  scene items held elsewhere only observe them: `NetworkPresenter::clear` calls
   `scene->clear()`, which deletes the items, then clears the lists that point at them
-  (`app/MainWindow.cpp`, documented in `app/MainWindow.h`).
+  (`graphics/NetworkPresenter.cpp`, documented in `graphics/NetworkPresenter.h`).
 - Everything else: `std::vector` for collections and arrays, `std::unique_ptr` for one owned
   object that is not a QObject. `SceneModel` holds its entity lists in `std::vector` members,
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and

@@ -29,7 +29,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			return;
 		}
 	}
-	if (!w.m_worker && w.allTrains.isEmpty()) {
+	if (!w.m_worker && w.m_presenter->allTrains.isEmpty()) {
 		// Before the first run Follow is off and its tooltip says why.
 		const bool services = !w.m_sceneModel.services.empty();
 		const QString reason = services ? QStringLiteral("Run the case first, then you can follow a train.")
@@ -57,7 +57,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 	}
 
-	if (w.allTrains.isEmpty() && scenarioAttempts < 40) {
+	if (w.m_presenter->allTrains.isEmpty() && scenarioAttempts < 40) {
 		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runSceneRender(w); });
 		return;
@@ -67,7 +67,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	bool ok = true;
 	QStringList failures;
 
-	if (w.allTrains.isEmpty()) {
+	if (w.m_presenter->allTrains.isEmpty()) {
 		ok = false;
 		failures << "no train items rendered";
 	}

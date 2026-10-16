@@ -417,21 +417,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// simulate a clicked-item highlight; the scene owns the effect, so a
 			// reopen must also reset the cached pointer or the next click reuses
 			// a deleted effect
-			if (w.scene && !w.effect) {
+			if (w.scene && !w.m_presenter->effect) {
 				QGraphicsItem* highlightCarrier = w.scene->addRect(QRectF(0, 0, 1, 1));
-				w.effect = new HighlightEffect(Qt::blue, 1);
-				highlightCarrier->setGraphicsEffect(w.effect);
+				w.m_presenter->effect = new HighlightEffect(Qt::blue, 1);
+				highlightCarrier->setGraphicsEffect(w.m_presenter->effect);
 			}
 			bool reopened = w.openSceneDirectory(scenePath);
 			if (!reopened || !w.m_sceneLoaded || QDir(w.m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene: scene did not reopen";
 			}
-			if (w.effect != nullptr) {
+			if (w.m_presenter->effect != nullptr) {
 				ok = false;
 				failures << "scene: highlight effect not reset on reopen";
 			}
-			if (!w.allTrains.isEmpty() || !w.allArcs.isEmpty()) {
+			if (!w.m_presenter->allTrains.isEmpty() || !w.m_presenter->allArcs.isEmpty()) {
 				ok = false;
 				failures << "scene: legacy scene state not cleared";
 			}
@@ -442,16 +442,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: alternate scene did not open";
 				}
-				if (!w.allTrains.isEmpty() || !w.allArcs.isEmpty()) {
+				if (!w.m_presenter->allTrains.isEmpty() || !w.m_presenter->allArcs.isEmpty()) {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
 				}
 				w.refreshInfrastructurePanel();
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
@@ -459,7 +459,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_infrastructureTable->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = w.m_infrastructureSelectionId;
 				w.refreshInfrastructurePanel();
-				if (explicitlySelectedTrack.isEmpty() || !w.m_previewHasSelectedTrack || w.m_sceneDirty
+				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty
 					|| w.m_infrastructureSelectionId != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
@@ -469,7 +469,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
 				}
-				if (w.m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}
