@@ -64,6 +64,7 @@ required_markers=(
 	E2E_EDITOR_VALIDATION_OK
 	E2E_EDITOR_SAVE_RELOAD_OK
 	E2E_EDITOR_LAYOUT_OK
+	E2E_EDITOR_UNTOUCHED_OK
 )
 missing_markers=()
 for marker in "${required_markers[@]}"; do
