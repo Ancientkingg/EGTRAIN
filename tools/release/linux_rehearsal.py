@@ -509,10 +509,10 @@ class Rehearsal:
         return next((item for item in self.windows() if role_of(item) == "frame" and name_of(item).startswith("EGTRAIN")),
                     None)
 
-    def window(self, name=None, pattern=None, roles=("dialog", "alert", "frame")):
+    def window(self, name=None, pattern=None):
         for item in self.windows():
             label = name_of(item)
-            if role_of(item) in roles and is_showing(item) and (
+            if role_of(item) in ("dialog", "alert", "frame") and is_showing(item) and (
                     (name is not None and label == name) or (pattern is not None and re.search(pattern, label))):
                 return item
         return None
@@ -596,16 +596,14 @@ class Rehearsal:
         wait_until(lambda: has_state(widget, Atspi.StateType.FOCUSED), UI_TIMEOUT_SECONDS,
                    f"the focus on {name_of(widget)!r}")
 
-    def type_keys(self, text: str, commit: bool = True) -> None:
+    def type_keys(self, text: str) -> None:
         subprocess.run(["xdotool", "key", "--clearmodifiers", "ctrl+a"], check=True)
         subprocess.run(["xdotool", "type", "--clearmodifiers", "--delay", "30", "--", text], check=True)
-        if commit:
-            subprocess.run(["xdotool", "key", "--clearmodifiers", "Return"], check=True)
 
     def type_into_field(self, field, text: str) -> None:
         """Types into a line edit with real keys and reads the text back through the accessibility interface."""
         self.focus(field)
-        self.type_keys(text, commit=False)
+        self.type_keys(text)
         wait_until(lambda: text_of(field) == text, UI_TIMEOUT_SECONDS, f"the typed text in {name_of(field)!r}")
         subprocess.run(["xdotool", "key", "--clearmodifiers", "Return"], check=True)
 
@@ -671,11 +669,14 @@ class Rehearsal:
 
         def drawn():
             nonlocal blank
+            blank = []  # a screenshot that fails must not leave the list of an earlier look
             blank = blank_icons(self.screenshot("toolbar", save=False), buttons)
             return not blank
         try:
             wait_until(drawn, 15, "the toolbar icons")
         except StepFailed as exc:
+            if not blank:
+                raise
             raise StepFailed(f"the icon area of {', '.join(blank)} has one colour, so the SVG icons are not drawn") from exc
         return ", ".join(name for name, _ in buttons)
 
@@ -962,6 +963,7 @@ class Rehearsal:
                 self.note(f"step {number}: {title}")
                 try:
                     detail = steps[number]()
+                    self.screenshot(f"step-{number}")
                 except StepFailed as exc:
                     failed = (number, title, str(exc))
                     break
@@ -971,7 +973,6 @@ class Rehearsal:
                     break
                 print(format_step_line(number, True, detail), flush=True)
                 self.note(format_step_line(number, True, detail), echo=False)
-                self.screenshot(f"step-{number}")
         finally:
             if failed:
                 self.write_failure(failed)

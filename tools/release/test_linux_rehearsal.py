@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import contextlib
+import io
 import json
 import sys
 import tempfile
@@ -212,6 +214,51 @@ class TreeSearchTests(unittest.TestCase):
         self.assertIs(linux_rehearsal.find_first(self.tree, pattern="^Dee"), self.deep)
         self.assertEqual(linux_rehearsal.find_all(self.tree, "push button"), [self.hidden, self.shown, self.deep])
         self.assertIsNone(linux_rehearsal.find_first(self.tree, "dialog"))
+
+
+def make_rehearsal(temp):
+    temp = Path(temp)
+    bundle = temp / "Paimpol.egscene"
+    with zipfile.ZipFile(bundle, "w") as archive:
+        archive.writestr("scene.json", json.dumps({"name": "Paimpol", "version": 1}))
+    return linux_rehearsal.Rehearsal(temp / "package", bundle, temp / "work", temp / "evidence", None, 1)
+
+
+def unreadable_screen(label, save=True):
+    raise linux_rehearsal.StepFailed("import could not read the screen")
+
+
+class UnreadableScreenTests(unittest.TestCase):
+    def test_a_screenshot_that_fails_after_a_step_fails_that_step(self):
+        with tempfile.TemporaryDirectory() as temp:
+            rehearsal = make_rehearsal(temp)
+            rehearsal.step1 = lambda: "started"
+            rehearsal.stop_application = lambda: None
+            rehearsal.write_failure = lambda failed: None
+            rehearsal.screenshot = unreadable_screen
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(rehearsal.run(), 1)
+        lines = printed.getvalue().splitlines()
+        self.assertIn("STEP 1 FAIL import could not read the screen", lines)
+        self.assertNotIn("STEP 1 PASS started", lines)
+
+    def test_an_unreadable_screen_is_not_reported_as_a_blank_icon(self):
+        saved = linux_rehearsal.Atspi, linux_rehearsal.GLib, linux_rehearsal.extents_of
+        linux_rehearsal.Atspi = SimpleNamespace(StateType=SimpleNamespace(SHOWING="showing"))
+        linux_rehearsal.GLib = SimpleNamespace(Error=RuntimeError)
+        linux_rehearsal.extents_of = lambda accessible: (10, 10, 30, 30)
+        try:
+            buttons = [FakeAccessible("push button", name, True) for name in linux_rehearsal.TOOLBAR_ICON_BUTTONS]
+            frame = FakeAccessible("frame", "EGTRAIN", True, FakeAccessible("tool bar", "", True, *buttons))
+            with tempfile.TemporaryDirectory() as temp:
+                rehearsal = make_rehearsal(temp)
+                rehearsal.main_frame = lambda: frame
+                rehearsal.screenshot = unreadable_screen
+                with self.assertRaises(linux_rehearsal.StepFailed) as raised:
+                    rehearsal.check_toolbar_icons()
+        finally:
+            linux_rehearsal.Atspi, linux_rehearsal.GLib, linux_rehearsal.extents_of = saved
+        self.assertEqual(str(raised.exception), "import could not read the screen")
 
 
 class WaitTests(unittest.TestCase):
