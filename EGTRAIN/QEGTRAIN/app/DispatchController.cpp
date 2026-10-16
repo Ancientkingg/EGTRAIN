@@ -1,6 +1,7 @@
 #include <QElapsedTimer>
 #include "app/DispatchController.h"
-#include "io/RailMLParser.h"
+#include "io/ExternalState.h"
+#include "io/RttpXml.h"
 #include "scene/SceneValidator.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationWorker.h"

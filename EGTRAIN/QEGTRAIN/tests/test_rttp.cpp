@@ -1,4 +1,5 @@
-#include "io/RailMLParser.h"
+#include "io/ExternalState.h"
+#include "io/RttpXml.h"
 #include "simulation/InitialParameters.h"
 
 #include <chrono>
@@ -13,8 +14,6 @@
 #include <zmq.hpp>
 
 InitialParameters initial_variables(0);
-
-void read_rttp_train_view(std::string rttp);
 
 namespace {
 using Names = std::vector<std::string>;
@@ -279,7 +278,7 @@ int main() {
 	const bool parseErrorReported = errors.str().find("RTTP XML parse error") != std::string::npos;
 	if (!trafficStateXml || !routeChoiceXml || !startTimeOfDay || !parsedPayload || !parseErrorReported || sentWithoutListener
 		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope) {
-		std::cerr << "railmlparser test failed: traffic_state_xml=" << trafficStateXml
+		std::cerr << "rttp test failed: traffic_state_xml=" << trafficStateXml
 				  << " route_choice_xml=" << routeChoiceXml
 				  << " start_time_of_day=" << startTimeOfDay
 				  << " parsed=" << parsedPayload

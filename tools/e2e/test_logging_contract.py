@@ -75,7 +75,8 @@ ALLOWED = {
     "app/DispatchController.cpp": {"cout": 9, "cerr": 1, "owl": 2, "eglogger": 2},
     "app/MainWindow.cpp": {"cout": 2},
     "diagrams/RunResults.cpp": {"cerr": 1},
-    "io/RailMLParser.cpp": {"cout": 11, "cerr": 2},
+    "io/ExternalState.cpp": {"cout": 1, "cerr": 1},
+    "io/RttpXml.cpp": {"cout": 10, "cerr": 1},
     # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
     # right before std::abort(). EG_LOG would write std::cout without a flush and can be
     # switched off, so the message could be lost.

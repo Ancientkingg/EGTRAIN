@@ -80,8 +80,8 @@ With a multi-config generator, add the configuration:
 
 ### Build structure
 
-The scene, simulation, utility, RailML and live frame and server code is built once as static
-libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_railml`,
+The scene, simulation, utility, RTTP XML and live frame and server code is built once as static
+libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_rttp`,
 `egtrain_live` and the vendored `egtrain_pugixml`. The Qt code that several targets use is
 built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_http`, `egtrain_update`,
 `egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController`,

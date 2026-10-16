@@ -202,10 +202,10 @@ add_library(egtrain_sim STATIC
 target_link_libraries(egtrain_sim
     PUBLIC egtrain_scene egtrain_util nlohmann_json::nlohmann_json)
 
-# RailMLParser.cpp uses `initial_variables`, which egtrain_sim or the target itself defines.
-# List egtrain_railml before egtrain_sim.
-add_library(egtrain_railml STATIC ${SRC_DIR}/io/RailMLParser.cpp)
-target_link_libraries(egtrain_railml
+# RttpXml.cpp uses `initial_variables`, which egtrain_sim or the target itself defines.
+# List egtrain_rttp before egtrain_sim.
+add_library(egtrain_rttp STATIC ${SRC_DIR}/io/RttpXml.cpp ${SRC_DIR}/io/ExternalState.cpp)
+target_link_libraries(egtrain_rttp
     PUBLIC egtrain_pugixml nlohmann_json::nlohmann_json
     PRIVATE cppzmq)
 
@@ -215,7 +215,7 @@ target_link_libraries(egtrain_live
     PUBLIC nlohmann_json::nlohmann_json
     PRIVATE egtrain_util cppzmq Threads::Threads)
 
-foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_live)
+foreach(egtrain_lib egtrain_pugixml egtrain_util egtrain_scene egtrain_sim egtrain_rttp egtrain_live)
     target_include_directories(${egtrain_lib} PUBLIC ${SRC_DIR})
     set_target_properties(${egtrain_lib} PROPERTIES
         AUTOMOC OFF AUTOUIC OFF AUTORCC OFF POSITION_INDEPENDENT_CODE ON)
@@ -333,7 +333,7 @@ add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/simulation/RunControl.cpp
     ${SRC_DIR}/simulation/SimulationWorker.cpp)
 target_link_libraries(egtrain_dispatch
-    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_railml egtrain_sim)
+    PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_rttp egtrain_sim)
 
 # DiagramWindow and TimetableTableWindow call telemetry::OperationObservation, whose symbols do
 # not depend on the hooks, so this library links no telemetry flavour. In the isolated telemetry
@@ -381,7 +381,7 @@ endforeach()
 egtrain_target_warnings(egtrain_dispatch)
 # No flags:
 #   egtrain_pugixml, egtrain_miniz  vendored code
-#   egtrain_sim, egtrain_railml     legacy code with 104 and 4 warning lines, see #453, #454 and #482
+#   egtrain_sim, egtrain_rttp       legacy code with 104 and 4 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, update/SelfUpdater.cpp,
@@ -404,7 +404,8 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/EditorLayout.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
-    ${SRC_DIR}/io/RailMLParser.h
+    ${SRC_DIR}/io/ExternalState.h
+    ${SRC_DIR}/io/RttpXml.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/SignalItemRoles.h
@@ -499,7 +500,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_update
     egtrain_sceneopen
     egtrain_openrelay
-    egtrain_railml
+    egtrain_rttp
     egtrain_sim
     egtrain_scene
     egtrain_util
@@ -551,7 +552,7 @@ endif()
 
 # Apply LTO/IPO to Release builds only (keeps Debug builds fast to link/iterate)
 if(EGTRAIN_IPO_SUPPORTED)
-    set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_railml egtrain_pugixml
+    set_target_properties(QEGTRAIN egtrain_util egtrain_scene egtrain_sim egtrain_rttp egtrain_pugixml
         egtrain_graphics egtrain_widgets egtrain_http egtrain_update egtrain_sceneopen egtrain_openrelay egtrain_recovery egtrain_dispatch egtrain_diagrams
         ${EGTRAIN_TELEMETRY_LIBS}
         PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
@@ -745,7 +746,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     # Runs the line fixture in this process and compares the live frames of its snapshots with the golden files.
     add_executable(test_liveframe ${SRC_DIR}/tests/test_liveframe.cpp)
-    target_link_libraries(test_liveframe PRIVATE egtrain_live egtrain_dispatch egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets)
+    target_link_libraries(test_liveframe PRIVATE egtrain_live egtrain_dispatch egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_liveframe
         COMMAND test_liveframe
             --fixture ${SRC_DIR}/tests/fixtures/scenes/line
@@ -786,7 +787,7 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_runresults COMMAND test_runresults)
 
     add_executable(test_simulationworker ${SRC_DIR}/tests/test_simulationworker.cpp)
-    target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+    target_link_libraries(test_simulationworker PRIVATE egtrain_dispatch egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
     add_test(NAME test_simulationworker COMMAND test_simulationworker ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut)
 
     add_executable(test_blockingtimediagram ${SRC_DIR}/tests/test_blockingtimediagram.cpp)
@@ -1019,7 +1020,7 @@ if(EGTRAIN_BUILD_TESTS)
 
 	# Runs two committed scenes in this process, like the characterization tests.
 	add_executable(test_completedrun ${SRC_DIR}/tests/test_completedrun.cpp)
-	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_railml egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
+	target_link_libraries(test_completedrun PRIVATE egtrain_dispatch egtrain_diagrams egtrain_rttp egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts)
 	add_test(NAME test_completedrun
 		COMMAND test_completedrun ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut ${SRC_DIR}/Scenes/Paimpol)
 	set_tests_properties(test_completedrun PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120)
@@ -1030,10 +1031,10 @@ if(EGTRAIN_BUILD_TESTS)
 	# Scripted GUI runs, compiled into QEGTRAIN when tests are built.
 	add_subdirectory(EGTRAIN/QEGTRAIN/tests/e2e)
 
-	add_executable(test_railmlparser ${SRC_DIR}/tests/test_railmlparser.cpp)
+	add_executable(test_rttp ${SRC_DIR}/tests/test_rttp.cpp)
 	# The test defines initial_variables, so egtrain_sim's Infrastructure.cpp member must stay out of the link.
-	target_link_libraries(test_railmlparser PRIVATE egtrain_railml egtrain_sim cppzmq nlohmann_json::nlohmann_json)
-	add_test(NAME test_railmlparser COMMAND test_railmlparser)
+	target_link_libraries(test_rttp PRIVATE egtrain_rttp egtrain_sim cppzmq nlohmann_json::nlohmann_json)
+	add_test(NAME test_rttp COMMAND test_rttp)
 	add_test(NAME test_route_choice_missing_data
 		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Assignment_Gvc_Gdg_Ut
 			-g 0 -h 1 -TSM 0 -RC 1)
@@ -1337,7 +1338,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_sceneimporter
 		test_scenesavepolicy test_scenewriter test_sceneexporter test_scenebundle test_scenecompatibility test_sceneopenrequest test_scenebuilder
 		test_sceneversions
-		test_operationsbuilder test_completedrun test_railmlparser test_headless_smoke_decode test_release_version test_release_assets
+		test_operationsbuilder test_completedrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_make_dmg)
