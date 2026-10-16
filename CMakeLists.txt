@@ -405,6 +405,7 @@ egtrain_target_warnings(egtrain_dispatch)
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/MainWindow.cpp
+    ${SRC_DIR}/app/SceneOutputDirectory.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
     ${SRC_DIR}/update/UpdateNotices.cpp
@@ -421,6 +422,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/io/RttpXml.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
+    ${SRC_DIR}/app/SceneOutputDirectory.h
     ${SRC_DIR}/app/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
@@ -1128,6 +1130,12 @@ if(EGTRAIN_BUILD_TESTS)
 		ENVIRONMENT "QT_QPA_PLATFORM=${egtrain_scene_drop_platform};QEGTRAIN_E2E_SCENE_DROP=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/scene-drop-test"
 		PASS_REGULAR_EXPRESSION "E2E_SCENE_DROP_OK"
 		TIMEOUT 60)
+	add_test(NAME test_output_folder
+		COMMAND $<TARGET_FILE:QEGTRAIN> --scene ${SRC_DIR}/Scenes/Paimpol)
+	set_tests_properties(test_output_folder PROPERTIES
+		ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QEGTRAIN_E2E_OUTPUT_FOLDER=1;QEGTRAIN_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/output-folder-test"
+		PASS_REGULAR_EXPRESSION "E2E_OUTPUT_FOLDER_OK"
+		TIMEOUT 120)
 	add_test(NAME test_native_startup_without_legacy
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/test_case3_startup_errors.py $<TARGET_FILE:QEGTRAIN>)
 	set_tests_properties(test_native_startup_without_legacy PROPERTIES
@@ -1395,7 +1403,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
 		test_route_choice_missing_data test_external_sharing_no_listener test_scene_tool_diagnostics
-		test_startup_launch_contract test_case_chooser_contract test_scene_drop
+		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
@@ -1407,7 +1415,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 		test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_elidedlabel
-		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop
+		test_routereferencechoice test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
@@ -1433,7 +1441,7 @@ if(EGTRAIN_BUILD_TESTS)
 	# These tests start the application with its user settings, which hold the list of recent cases.
 	# Each gets a settings folder of its own, so that tests can run side by side without sharing
 	# or changing the settings of the user.
-	foreach(name IN ITEMS test_startup_launch_contract test_scene_drop test_gui_autostart_smoke
+	foreach(name IN ITEMS test_startup_launch_contract test_scene_drop test_output_folder test_gui_autostart_smoke
 			test_close_during_run_smoke test_csv_export_smoke test_scene_render_smoke test_track_preview_smoke
 			test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes})
 		if(TEST ${name})

@@ -18,6 +18,7 @@ public:
 	static void runTrackPreview(MainWindow& w);
 	static void runLegacyImport(MainWindow& w);
 	static void runSceneDrop(MainWindow& w);
+	static void runOutputFolder(MainWindow& w);
 	static void runCreatorAcceptance(MainWindow& w);
 	// The checks of the preview that the creator acceptance scenario makes, defined with it.
 	static bool checkPreviewInfrastructure(MainWindow& w, QString& failure);
