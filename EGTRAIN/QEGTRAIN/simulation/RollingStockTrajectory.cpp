@@ -27,7 +27,7 @@ double Train::train_energy_consumption(int t) {
 bool Train::isFirstSectionFailed(const Section& firstSection) const {
 	for (const MovementAuthority& authority : ETCS_MA)
 		if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
-			&& abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
+			&& std::abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
 			return true;
 	return false;
 }
@@ -50,7 +50,7 @@ void Train::checkEntrance(int i, Section* BS) {
 		if (ETCS_MA.size() > 0) {
 			for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
 				// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
-				if ((it->BSID == BS[0].ID) && (abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
+				if ((it->BSID == BS[0].ID) && (std::abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
 					IsRouteStartingPointOccupied = true;
 					break;
 				}
@@ -85,7 +85,7 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 			if (authority.BSID == saved.BSID && authority.type == saved.type && authority.typePart == saved.typePart
 				&& authority.ReversedDirection == saved.ReversedDirection && obeysAuthority(authority)
 				&& authority.TrainInfo.trainDescription == saved.TrainInfo.trainDescription
-				&& abs(authority.AbsPosEoA - saved.AbsPosEoA) < 0.001) {
+				&& std::abs(authority.AbsPosEoA - saved.AbsPosEoA) < 0.001) {
 				valid = true;
 				break;
 			}
@@ -283,7 +283,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 				&& authority.TrainInfo.trainDescription == Last_Received_MA.TrainInfo.trainDescription
 				&& Last_Received_MA.type == authority.type && Last_Received_MA.typePart == authority.typePart
 				&& Last_Received_MA.ReversedDirection == authority.ReversedDirection
-				&& abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
+				&& std::abs(authority.AbsPosEoA - Last_Received_MA.AbsPosEoA) < 0.001
 				&& (authority.TrainInfo.NextSectionID == "None"
 					|| (block + 1 < route.N_Block_Sections && authority.TrainInfo.NextSectionID == route.sequence_of_block_sections[block + 1].ID))) {
 				leaderHead = authorityRoutePosition(authority, section);
@@ -542,8 +542,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			if ((IsTrainCoupling == 1) && liveLeader
 				&& liveLeader->TrainInfo.trainDescription == Predicted_MA_To_CoupleAt.TrainInfo.trainDescription
 				&& ((IsTrainInFollowingMode == 0) || (IsInUnintentionalDecoupling == 1))
-				&& (abs(instant_train_speed[time_seconds] - liveLeader->TrainInfo.TrainSpeed) < 0.278)
-				&& (abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= 30)) {
+				&& (std::abs(instant_train_speed[time_seconds] - liveLeader->TrainInfo.TrainSpeed) < 0.278)
+				&& (std::abs(this->Predicted_MA_To_CoupleAt.RelativePosEoA - instant_spatial_position[time_seconds - 1]) <= 30)) {
 				// When the condition above occurs then the train is transitioning towards the following mode
 				IsInUnintentionalDecoupling = false;
 				IsTrainCoupling = false;														   // So we set the ending of the Coupling transition period

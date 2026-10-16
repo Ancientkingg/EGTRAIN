@@ -2494,7 +2494,7 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 					} else {				   // if the list of ETCS MAs is not empty then check is this MA has been already reported
 						bool IsMA_BSID_AlreadyThere = false;
 						for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-							if ((it->BSID == k->BSID) && (abs(it->AbsPosEoA - k->AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == k->TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
+							if ((it->BSID == k->BSID) && (std::abs(it->AbsPosEoA - k->AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == k->TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
 								IsMA_BSID_AlreadyThere = true;
 								break; // break the for loop over the EoAs
 							}
@@ -2563,7 +2563,7 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 	} else {				   // if the list of ETCS MAs is not empty then check is this MA has been already reported
 		bool IsMA_BSID_AlreadyThere = false;
 		for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
-			if ((it->BSID == MA.BSID) && (abs(it->AbsPosEoA - MA.AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == MA.TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
+			if ((it->BSID == MA.BSID) && (std::abs(it->AbsPosEoA - MA.AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == MA.TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
 				IsMA_BSID_AlreadyThere = true;
 				break; // break the for loop over the EoAs
 			}
@@ -3376,7 +3376,7 @@ static void addEndOfAuthorityBeforeSection(const Route& route, int b, const std:
 	MA.TrainInfo.CurrentSectionID = anchor.ID;
 	MA.TrainInfo.NextSectionID = section.ID;
 	for (const auto& existing : ETCS_MA)
-		if (existing.BSID == MA.BSID && abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
+		if (existing.BSID == MA.BSID && std::abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
 			&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription)
 			return;
 	ETCS_MA.push_back(MA);
