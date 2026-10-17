@@ -59,6 +59,8 @@
 #pragma warning(pop)
 #endif
 
+#include <QCoreApplication>
+#include <QEvent>
 #include <QFont>
 #include <QGraphicsItemGroup>
 #include <QGraphicsLineItem>
@@ -633,6 +635,10 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 		if (m_view)
 			m_view->fitToBounds(previewBounds);
 	}
+	// The scene queues every added item for polishing until the event loop runs, and deleting a queued item
+	// leaves an entry that each later deletion searches past. Previews drawn back to back would get slower with
+	// every call, so run the queued work now.
+	QCoreApplication::sendPostedEvents(scene, QEvent::MetaCall);
 	return {true, static_cast<int>(tracks.size()), hasPreviewBounds};
 }
 
