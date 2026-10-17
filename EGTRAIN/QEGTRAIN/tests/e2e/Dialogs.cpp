@@ -286,6 +286,7 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 				{"maximum", QJsonArray{review.maximumWidth(), review.maximumHeight()}},
 				{"scroll", rectangle(scroll)}, {"footer", rectangle(buttons)},
 				{"run", rectangle(runButton)}, {"cancel", rectangle(buttons->button(QDialogButtonBox::Cancel))},
+				{"contextHeight", QJsonArray{context->height(), context->heightForWidth(context->width())}},
 				{"scrollMaximum", scroll->verticalScrollBar()->maximum()},
 				{"footerVisible", buttons->isVisible()}, {"fontPoints", review.font().pointSizeF()},
 				{"controlFontPoints",

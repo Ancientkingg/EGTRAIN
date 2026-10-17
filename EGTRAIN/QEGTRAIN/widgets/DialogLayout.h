@@ -19,6 +19,30 @@
 
 namespace DialogLayout {
 
+namespace detail {
+// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
+// width wide: the heading, the whole content and the footer, with the margins and spacing between them.
+inline int heightForContent(QDialog& dialog, int width) {
+	// The style sheet adds padding and borders to labels when they are polished, which changes their size hints.
+	dialog.ensurePolished();
+	QLayout* layout = dialog.layout();
+	if (!layout || layout->count() != 3)
+		return 0;
+	QWidget* title = layout->itemAt(0)->widget();
+	auto* scroll = qobject_cast<QScrollArea*>(layout->itemAt(1)->widget());
+	QWidget* actions = layout->itemAt(2)->widget();
+	if (!title || !scroll || !actions)
+		return 0;
+	const QMargins margins = layout->contentsMargins();
+	const int innerWidth = width - margins.left() - margins.right();
+	const int frame = 2 * scroll->frameWidth();
+	QWidget* content = scroll->widget();
+	const int contentHeight = content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame) : content->sizeHint().height();
+	return margins.top() + margins.bottom() + 2 * layout->spacing() + title->heightForWidth(innerWidth) + frame + contentHeight
+		+ actions->sizeHint().height();
+}
+} // namespace detail
+
 // Transfers body and actions to dialog. The caller owns button roles, connections,
 // validation, default action and any changes to application state. The combo boxes and spin
 // boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
@@ -72,7 +96,8 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		subtitle->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 		contentLayout->addWidget(subtitle);
 	}
-	contentLayout->addWidget(body);
+	// The body takes the height that the content has left over, so that the context line keeps its own height.
+	contentLayout->addWidget(body, 1);
 	FocusWheel::guardAll(body);
 
 	auto* scroll = new QScrollArea(&dialog);
@@ -99,15 +124,16 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		const int maxWidth = qMax(1, availableGeometry.width() * 9 / 10);
 		const int maxHeight = qMax(1, availableGeometry.height() * 4 / 5);
 		dialog.setMaximumSize(maxWidth, maxHeight);
-		dialog.resize(qMin(maxWidth, qMax(480, lineHeight * 32)),
-			qMin(maxHeight, qMax(layout->sizeHint().height(), lineHeight * 16)));
+		const int width = qMin(maxWidth, qMax(480, lineHeight * 32));
+		dialog.resize(width, qMin(maxHeight, detail::heightForContent(dialog, width)));
 	}
 	return scroll;
 }
 
 // Widens an installed dialog to show its body without clipping, up to the width limit
 // that install set. Call it after the body is filled, and again after a change to the body
-// of a dialog that is shown; it never narrows the dialog.
+// of a dialog that is shown; it never narrows the dialog. It also makes the dialog tall enough for the
+// body at the new width, up to the height limit, and never shortens it.
 inline void fitWidthToContent(QDialog& dialog) {
 	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 	if (!scroll || !dialog.layout())
@@ -121,7 +147,8 @@ inline void fitWidthToContent(QDialog& dialog) {
 	const QMargins margins = dialog.layout()->contentsMargins();
 	const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
-	dialog.resize(qMin(dialog.maximumWidth(), qMax(dialog.width(), needed)), dialog.height());
+	const int width = qMin(dialog.maximumWidth(), qMax(dialog.width(), needed));
+	dialog.resize(width, qMin(dialog.maximumHeight(), qMax(dialog.height(), detail::heightForContent(dialog, width))));
 }
 
 // How serious an inline message is. Each value selects one callout of the stylesheet.

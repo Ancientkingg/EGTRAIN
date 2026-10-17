@@ -146,6 +146,8 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
         screen_width, screen_height = rendered["availableScreen"]
         assert dialog[2] <= screen_width * 9 // 10 and dialog[3] <= screen_height * 4 // 5, geometry
         assert geometry["footerVisible"] and contains(dialog, footer), geometry
+        # The context line is as tall as its text: no unused space above or below it.
+        assert geometry["contextHeight"][0] == geometry["contextHeight"][1], geometry
         assert contains(footer, geometry["run"]) and contains(footer, geometry["cancel"]), geometry
         assert contains(dialog, scroll) and scroll[1] + scroll[3] <= footer[1], geometry
         if enlarged:

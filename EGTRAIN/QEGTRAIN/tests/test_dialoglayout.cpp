@@ -177,6 +177,72 @@ bool exercise(const QRect& screen, qreal scale) {
 	return ok;
 }
 
+// An installed dialog whose body is a plain widget of a given height.
+struct Opened {
+	QDialog dialog;
+	QDialogButtonBox* buttons = nullptr;
+	QScrollArea* scroll = nullptr;
+	int limit = 0;
+};
+
+void openDialog(Opened& opened, const QRect& screen, qreal scale, int bodyHeight, const QString& context) {
+	QFont font = opened.dialog.font();
+	font.setPointSizeF(12 * scale);
+	opened.dialog.setFont(font);
+	auto* body = new QWidget;
+	auto* fields = new QVBoxLayout(body);
+	auto* filler = new QWidget(body);
+	filler->setFixedHeight(bodyHeight);
+	fields->addWidget(filler);
+	opened.buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	opened.scroll = DialogLayout::install(opened.dialog, QStringLiteral("Edit"), context, body, opened.buttons, screen);
+	opened.limit = screen.height() * 4 / 5;
+	opened.dialog.show();
+	QApplication::processEvents();
+}
+
+// A dialog opens at the height its content needs, up to the height limit, and scrolls only beyond it.
+bool exerciseContentHeight(qreal scale) {
+	const QRect screen(0, 0, 1920, 1080);
+	bool ok = true;
+	for (const int bodyHeight : {20, 600}) {
+		Opened fits;
+		openDialog(fits, screen, scale, bodyHeight, QStringLiteral("Context"));
+		ok &= check(fits.scroll->verticalScrollBar()->maximum() == 0 && !fits.scroll->verticalScrollBar()->isVisible(),
+			"a body shorter than the height limit opens with a vertical scroll bar");
+		ok &= check(fits.dialog.height() < fits.limit, "a body shorter than the height limit opens at the height limit");
+		ok &= check(fits.buttons->isVisible() && fits.buttons->geometry().bottom() <= fits.dialog.height(),
+			"the footer of a dialog that fits is not visible");
+	}
+	Opened tall;
+	openDialog(tall, screen, scale, 3000, QStringLiteral("Context"));
+	ok &= check(tall.scroll->verticalScrollBar()->maximum() > 0, "a body taller than the height limit does not scroll");
+	ok &= check(tall.dialog.height() == tall.limit, "a body taller than the height limit does not open at the height limit");
+	ok &= check(tall.buttons->isVisible() && tall.scroll->geometry().bottom() <= tall.buttons->geometry().top()
+			&& tall.buttons->geometry().bottom() <= tall.dialog.height(),
+		"the footer of a dialog that scrolls is not visible below the body");
+	return ok;
+}
+
+// The context line is as tall as its text, also when the dialog is taller than its content.
+bool exerciseContextHeight(qreal scale) {
+	const QString longContext = QStringLiteral("Netherlands / baseline with a long context that wraps onto more than one line. ").repeated(6);
+	bool ok = true;
+	for (const QString& context : {QStringLiteral("Netherlands / baseline"), longContext}) {
+		Opened opened;
+		openDialog(opened, QRect(0, 0, 1920, 1080), scale, 20, context);
+		auto* label = opened.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"));
+		ok &= check(label != nullptr, "the dialog has no context line");
+		if (!label)
+			continue;
+		opened.dialog.resize(opened.dialog.width(), opened.dialog.height() + 200);
+		QApplication::processEvents();
+		ok &= check(label->height() == label->heightForWidth(label->width()),
+			"the context line is taller than its text: the dialog gives it space it does not use");
+	}
+	return ok;
+}
+
 // The background of a widget as the pixel 6 px inside its right edge at half its height. The text
 // of the labels that use it is short and left aligned, so that point is away from text, border and
 // rounded corners. The whole value is returned, alpha included: a transparent background may grab as
@@ -721,6 +787,8 @@ int main(int argc, char** argv) {
 	const bool small = exercise(QRect(0, 0, 1280, 800), 1.0);
 	const bool scaledSmall = exercise(QRect(0, 0, 1280, 800), 1.5);
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
+	const bool contentHeight = exerciseContentHeight(1.0) && exerciseContentHeight(1.5);
+	const bool contextHeight = exerciseContextHeight(1.0) && exerciseContextHeight(1.5);
 	const bool indicators = exerciseItemViewIndicators();
 	const bool messages = exerciseInlineMessages();
 	const bool panelMessages = exercisePanelMessages();
@@ -731,7 +799,7 @@ int main(int argc, char** argv) {
 	const bool runReview = exerciseRunReviewDefault();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
+	return small && scaledSmall && large && contentHeight && contextHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
 			&& scaledDefaultWidth
 		? 0
 		: 1;
