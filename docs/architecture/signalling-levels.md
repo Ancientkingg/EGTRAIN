@@ -55,7 +55,7 @@ The order is fixed in `DispatchController`.
 1. Every train moves. It reads the codes and speed limits that the previous
    step wrote.
 2. `Occupy_Block_Sections_Of_Route` lists the sections that each train covers
-   from its tail to its head (`BlocksOccupied`). It also decides which
+   from its tail to its head (`blocksOccupied`). It also decides which
    direction holds each single-track section.
 3. `Apply_Signal_Failures_Mixed_Signalling` adds the failed sections to the
    occupied sections and makes their ends of authority.
@@ -71,7 +71,7 @@ The order is fixed in `DispatchController`.
    [Sections of different levels on one route](#sections-of-different-levels-on-one-route).
 8. The simulation hands the codes to the window.
 
-The signalling delay `S_delay` is 0 and nothing else sets it, so the signalling
+The signalling delay `signallingDelay` is 0 and nothing else sets it, so the signalling
 uses the train positions of the current step.
 
 ## Codes and what they do to a following train
@@ -183,7 +183,7 @@ A train that is stopped for an end of authority also waits.
 rule of its level holds (code 270 or 180 at levels none, 0, 1, 2 and 5; no
 foreign end of authority at the start of the first section at levels 3 and 4).
 Where the first section has a level, only one train enters a route per step: the
-train that enters puts the first section in `BlocksOccupied` at once, and the
+train that enters puts the first section in `blocksOccupied` at once, and the
 trains that wait are visited in the order in which they are due. A train waits
 while the first section is failed, at every level (`checkEntrance`). Cases:
 `same-entry-level-*`, `entry-order-level-0`, `-1` and `-2`, and
@@ -194,7 +194,7 @@ its start second to its end second. A scene has to give the end second:
 validation rejects a signal failure without one (`scene.incident.window`). In
 each step:
 
-- The failed section is added to `BlocksOccupied`. The routines of levels 0, 1,
+- The failed section is added to `blocksOccupied`. The routines of levels 0, 1,
   2 and 5 then write the same aspects behind it as behind a train, and levels 3
   and 4 give it code 0.
 - For every route that contains the section, an end of authority is made
@@ -246,7 +246,7 @@ over a stub track; `running-tie-level-0` to `-5` for two moving approaches.
 **Double switches.** A double switch is two route sections: a first half with a
 virtual signal at its end and a second half with one at its start. A train that
 covers a half puts both halves, the plain blocks named in their ids and the
-sections whose ids contain those block ids in `BlocksOccupied`.
+sections whose ids contain those block ids in `blocksOccupied`.
 `unlockDoubleSwitches` then gives every second half of a route copy that has
 code 0 the code 270 and exit speed 0, and the section before it state `green`.
 The section after the double switch is not held by that lock: when it shares a
@@ -602,7 +602,7 @@ independent. Changing one does not change the others.
 | --- | --- | --- | --- |
 | What it is | A range of chainage that gives sections a signalling level | A part of one track that a train occupies; the unit of the aspects | A route and a block range that the user chooses for one analysis |
 | Where it is stored | `signalling.json`, `signalling_areas[]` | `infrastructure.json`, `blocks[]`: `id`, `track` and `length_km`; blocks follow each other along the track. Connections derive switch sections | Not stored in the scene. There is no such object |
-| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `signalling_block_sections` and the route copies | The capacity analysis dialog: route, first and last block, trains and period, from the blocking times of the run (`diagrams/CapacityAnalysis`) |
+| Where it is computed | Builder, `buildInfrastructureAndSignallingFromScene` | `buildSceneSectionInventory`; the runtime sections are `infra.sections` of the run and the route copies | The capacity analysis dialog: route, first and last block, trains and period, from the blocking times of the run (`diagrams/CapacityAnalysis`) |
 | What it decides | The level of every section that it contains | What a train occupies, and where an aspect is written | Which blocking times enter the analysis |
 | Depends on | The sections | The tracks and blocks | The blocking times, which are computed only at levels 0, 2, 3 and 4 |
 

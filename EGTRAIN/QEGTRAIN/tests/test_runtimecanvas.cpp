@@ -34,7 +34,7 @@ static bool expect(bool condition, const char* message) {
 }
 
 // One track line from 0 to 10 km with a station at each end, a platform at the station B, two block sections and a route
-// over both. The numbers of the simulation globals stay 0, so the presenter can only draw what this source gives it. A test
+// over both. The counts of the run of the simulation stay 0, so the presenter can only draw what this source gives it. A test
 // can give the middle of the line a second platform of the station B by naming it on the node there.
 class FakeGeometry final : public RuntimeGeometrySource {
 public:

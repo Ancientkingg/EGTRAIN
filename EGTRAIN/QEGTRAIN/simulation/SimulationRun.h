@@ -41,6 +41,9 @@ struct RunInfrastructure {
 
 	// The single-track limits (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at
 	// the last end), the direction in which a train holds each of them and the pending reservations.
+	// While a train is in the section of limit l, the section is closed to trains of the opposite direction: singleTrackHeld[l] is +1
+	// when a train on a non-reversed route holds it, -1 for a reversed route, 0 when it is free. Pending entries reserve before their
+	// last braking opportunity; forward wins simultaneous requests on a free zone. Routes against the holder see it as occupied.
 	std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 	std::vector<int> singleTrackHeld;
 	std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
@@ -66,10 +69,9 @@ struct RunInfrastructure {
 // member functions of a train reach it through Train::run_, which the operations builder sets.
 //
 // The process has one run, defaultRun(). It has a fixed address, so reset() clears every member in
-// place and the references that the headers declare under the old global names stay valid
-// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The tests use those names,
-// and they all refer to defaultRun(); the window reads the run through DispatchController::run(). DispatchController::prepareScene builds a
-// run apart from it and puts the finished run in its place with adopt(). A member that is added
+// place. The window reads the run through DispatchController::run(), which gives the same run; a test
+// that calls the builders itself passes it defaultRun() or a run of its own. DispatchController::prepareScene
+// builds a run apart from it and puts the finished run in its place with adopt(). A member that is added
 // here must be cleared in reset(), or in resetInfrastructure() when it belongs to the
 // infrastructure, and a member that points at another member needs a line in adopt().
 struct SimulationRun {
@@ -82,7 +84,7 @@ struct SimulationRun {
 	// the lists during a step and the step clears them.
 	std::list<std::string> blocksOccupied;
 	std::list<std::string> blocksConnected;
-	// Movement authorities of the current step.
+	// Movement authorities of the current step: those of levels 3 and 4, and the failed signals at every level.
 	std::list<MovementAuthority> etcsMa;
 
 	// Incidents of the selected scenario.
@@ -118,7 +120,7 @@ struct SimulationRun {
 	// The draws of the passenger sampling. The operations builder seeds it from the settings of the run.
 	NumberGenerator numberGenerator{kDefaultRandomSeed};
 
-	// Signalling system delay in seconds.
+	// Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep).
 	double signallingDelay = 0;
 	// Computing time of the steps, summed over the run.
 	double compTimeEgtrain = 0;

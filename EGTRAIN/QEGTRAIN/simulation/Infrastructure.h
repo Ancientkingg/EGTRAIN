@@ -25,7 +25,6 @@ struct SimulationRun;
 inline constexpr double timestep = 1;
 // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
 inline constexpr double signalCode1 = 11.111, signalCode2 = 0, signalCode3 = 0;
-extern int& numTrackLines;
 
 // --- InfraElement: point infrastructure element (signal, switch, station stop board, track detection section border) ---
 
@@ -210,8 +209,6 @@ inline constexpr int kMaxTrackLines = 268;
 inline constexpr int kMaxConnections = 708;
 inline constexpr int kMaxStations = 95;
 
-extern std::vector<BlockSet>& blockSets; // kMaxTrackLines elements
-
 // --- Connections: links between track lines (switches, joints, etc.) ---
 
 class Connections {
@@ -224,9 +221,6 @@ public:
 	double graphXFirstNode, graphYFirstNode, graphXSecondNode, graphYSecondNode;
 	Connections();
 };
-
-extern std::vector<Connections>& connections; // kMaxConnections elements
-extern int& numConnections;
 
 // --- StationPlatform: platform details (length, capacity, waiting passengers) ---
 
@@ -247,9 +241,6 @@ public:
 };
 
 bool orderPassengerListOnPlatform(std::pair<std::string, double>& A, std::pair<std::string, double>& blockSets);
-
-extern std::list<StationPlatform>& AllStationPlatforms;
-extern int& numAllStationPlatforms;
 
 // --- Stations: station node extending Node with delay statistics ---
 
@@ -280,13 +271,6 @@ public:
 
 	Stations();
 };
-
-extern std::vector<Stations>& StationArray; // All stations in the network, kMaxStations elements
-extern Stations& TotalInputDelays;			// Aggregated entrance delays and disturbances
-extern Stations& EntranceInputDelays;
-extern Stations& DisturbanceInput;
-extern Stations& Final_Station; // Fictitious station to measure delays at trains' final stations
-extern int& numStations;
 
 void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
 

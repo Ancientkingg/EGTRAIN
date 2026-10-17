@@ -1,8 +1,8 @@
 // Tests of the completed-run data of diagrams/CompletedRunData.h.
 //
-// Two committed scenes run in this process, one after the other. The data captured from the simulation globals must
-// agree with them, the exports and diagram inputs must follow from it, and none of it may change when the next scene
-// replaces the globals. A result window opened for a scene must keep exporting that scene. Hand-made data then pins
+// Two committed scenes run in this process, one after the other. The data captured from the run of the simulation must
+// agree with it, the exports and diagram inputs must follow from it, and none of it may change when the next scene
+// replaces the run. A result window opened for a scene must keep exporting that scene. Hand-made data then pins
 // the adapters on cases that the scenes do not hold: missing times, repeated stops, reversed routes, the order of the
 // capacity trains and shared resources.
 //
@@ -229,13 +229,14 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 	}
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (numRegions <= 0) {
+	if (simulation.run().numTrains <= 0) {
 		std::cerr << sceneDir << " ran no train\n";
 		return false;
 	}
 	// No committed scene has a reversed route. Marking every other route shows the capture both ways.
-	for (std::size_t r = 0; r < train_route.size(); ++r)
-		train_route[r].reversed_direction = r % 2 == 0;
+	std::vector<Route>& routes = simulation.mutableRun().infra.routes;
+	for (std::size_t r = 0; r < routes.size(); ++r)
+		routes[r].reversed_direction = r % 2 == 0;
 	RunProvenance provenance;
 	provenance.caseName = run.loaded.scene.name;
 	run.data = captureCompletedRun(simulation.run(), &run.loaded.scene, initial_variables.startingSimulationTime, provenance);
@@ -252,8 +253,8 @@ void compareCapture(const CapturedRun& run) {
 	check(data.settings.horizonSeconds() == initial_variables.times * timestep, scene + ": horizon in seconds");
 	check(data.settings.startOffsetSeconds == initial_variables.startingSimulationTime, scene + ": start offset");
 	check(data.settings.caseName == run.loaded.scene.name && data.provenance.caseName == run.loaded.scene.name, scene + ": case name");
-	check(static_cast<int>(data.trains.size()) == numRegions, scene + ": train count");
-	check(static_cast<int>(data.results.trains.size()) == numRegions, scene + ": result rows");
+	check(static_cast<int>(data.trains.size()) == simulation.run().numTrains, scene + ": train count");
+	check(static_cast<int>(data.results.trains.size()) == simulation.run().numTrains, scene + ": result rows");
 	// The capture reads the run that it is given, whatever the run of the process holds.
 	const auto emptyRun = std::make_unique<SimulationRun>();
 	const CompletedRunData fromEmptyRun = captureCompletedRun(*emptyRun, &run.loaded.scene, 0, RunProvenance());
@@ -261,21 +262,24 @@ void compareCapture(const CapturedRun& run) {
 		scene + ": capture of an empty run");
 	check(!data.timetable.empty(), scene + ": timetable rows");
 
-	check(data.routes.size() == train_route.size(), scene + ": route count");
-	for (std::size_t r = 0; r < data.routes.size() && r < train_route.size(); ++r) {
+	check(data.routes.size() == simulation.run().infra.routes.size(), scene + ": route count");
+	for (std::size_t r = 0; r < data.routes.size() && r < simulation.run().infra.routes.size(); ++r) {
 		const CompletedRoute& route = data.routes[r];
-		check(route.id == train_route[r].ID && route.corridor == train_route[r].corridor, scene + ": route identity " + std::to_string(r));
+		check(route.id == simulation.run().infra.routes[r].ID
+				&& route.corridor == simulation.run().infra.routes[r].corridor,
+			scene + ": route identity " + std::to_string(r));
 		check(route.reversedDirection == (r % 2 == 0), scene + ": route direction " + std::to_string(r));
-		const auto inputs = blockSectionInputsForRoute(train_route[r]);
+		const auto inputs = blockSectionInputsForRoute(simulation.run().infra.routes[r]);
 		bool same = inputs.size() == route.blocks.size();
 		for (std::size_t b = 0; same && b < inputs.size(); ++b)
 			same = inputs[b].id == route.blocks[b].id && inputs[b].startKm == route.blocks[b].startKm && inputs[b].endKm == route.blocks[b].endKm;
 		check(same, scene + ": route blocks " + std::to_string(r));
-		checkSame(scene + ": route path " + std::to_string(r), describe(routeDiagramPath(train_route[r], &run.loaded.scene)), describe(route.path));
+		checkSame(scene + ": route path " + std::to_string(r), describe(routeDiagramPath(simulation.run().infra.routes[r], &run.loaded.scene)),
+			describe(route.path));
 	}
 
-	for (int i = 0; i < numRegions && i < static_cast<int>(data.trains.size()); ++i) {
-		const Train& train = regional_train[i];
+	for (int i = 0; i < simulation.run().numTrains && i < static_cast<int>(data.trains.size()); ++i) {
+		const Train& train = simulation.run().trains[i];
 		const CompletedTrain& captured = data.trains[i];
 		const std::string who = scene + ": " + train.trainDescription;
 		check(captured.trainId == train.trainDescription && captured.operatingCode == train.operatingCode
@@ -310,8 +314,8 @@ void compareCapture(const CapturedRun& run) {
 		const int stopCount = std::min(train.numStations, static_cast<int>(Train::kMaxTimetableStations));
 		check(static_cast<int>(captured.stops.size()) == stopCount, who + ": stop count");
 		std::vector<std::vector<std::string>> allowedSets = {{}, {"no such block"}};
-		if (captured.routeIndex >= 0 && captured.routeIndex < static_cast<int>(train_route.size())) {
-			const Route& route = train_route[captured.routeIndex];
+		if (captured.routeIndex >= 0 && captured.routeIndex < static_cast<int>(simulation.run().infra.routes.size())) {
+			const Route& route = simulation.run().infra.routes[captured.routeIndex];
 			for (int b = 0; b < route.N_Block_Sections; ++b)
 				allowedSets.push_back({route.sequence_of_block_sections[b].ID});
 		}
@@ -375,8 +379,8 @@ bool rowsOnlyOf(const std::string& text, const QStringList& trainIds) {
 // The samples that the trajectory export lists for the trains of the list: those in the valid ranges of the simulation.
 std::size_t trajectorySamples(const QStringList& trainIds) {
 	std::size_t count = 0;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		const Train& train = simulation.run().trains[i];
 		if (!trainIds.contains(QString::fromStdString(train.trainDescription)) || train.earliestActiveTrajectoryIndex < 0)
 			continue;
 		for (const auto& segment : validTrajectorySegments(train.instant_spatial_position, train.earliestActiveTrajectoryIndex, train.End_Time))
@@ -389,9 +393,9 @@ void checkExports(const CapturedRun& run) {
 	const std::string scene = run.scene;
 	const CompletedRunData& data = run.data;
 	const QStringList ids = trainIdsFrom(data);
-	bool sameIds = static_cast<int>(ids.size()) == numRegions;
-	for (int i = 0; sameIds && i < numRegions; ++i)
-		sameIds = ids[i].toStdString() == regional_train[i].trainDescription;
+	bool sameIds = static_cast<int>(ids.size()) == simulation.run().numTrains;
+	for (int i = 0; sameIds && i < simulation.run().numTrains; ++i)
+		sameIds = ids[i].toStdString() == simulation.run().trains[i].trainDescription;
 	check(sameIds, scene + ": train ids");
 
 	std::vector<QStringList> selections = {ids, QStringList(), QStringList{"no such train"}};
@@ -429,19 +433,20 @@ void compareScopeChoices(const CapturedRun& run) {
 	const std::string scene = run.scene;
 	const BlockingTimeScopeChoices choices = blockingTimeScopeChoicesFrom(run.data);
 	check(choices.caseEndSeconds == initial_variables.times * timestep && choices.stepSeconds == timestep, scene + ": scope choices extent");
-	check(choices.routes.size() == train_route.size(), scene + ": scope choice routes");
-	for (std::size_t r = 0; r < choices.routes.size() && r < train_route.size(); ++r) {
-		const Route& route = train_route[r];
+	check(choices.routes.size() == simulation.run().infra.routes.size(), scene + ": scope choice routes");
+	for (std::size_t r = 0; r < choices.routes.size() && r < simulation.run().infra.routes.size(); ++r) {
+		const Route& route = simulation.run().infra.routes[r];
 		std::vector<std::string> blockIds;
 		for (int b = 0; b < route.N_Block_Sections; ++b)
 			blockIds.push_back(route.sequence_of_block_sections[b].ID);
 		check(choices.routes[r].id == route.ID && choices.routes[r].corridor == route.corridor && choices.routes[r].blockIds == blockIds,
 			scene + ": scope choice route " + std::to_string(r));
 	}
-	check(static_cast<int>(choices.trains.size()) == numRegions, scene + ": scope choice trains");
-	for (int i = 0; i < numRegions && i < static_cast<int>(choices.trains.size()); ++i)
-		check(choices.trains[i].id == regional_train[i].trainDescription && choices.trains[i].routeIndex == regional_train[i].indexOfRoute
-				&& choices.trains[i].routeId == regional_train[i].TrainRouteID,
+	check(static_cast<int>(choices.trains.size()) == simulation.run().numTrains, scene + ": scope choice trains");
+	for (int i = 0; i < simulation.run().numTrains && i < static_cast<int>(choices.trains.size()); ++i)
+		check(choices.trains[i].id == simulation.run().trains[i].trainDescription
+				&& choices.trains[i].routeIndex == simulation.run().trains[i].indexOfRoute
+				&& choices.trains[i].routeId == simulation.run().trains[i].TrainRouteID,
 			scene + ": scope choice train " + std::to_string(i));
 }
 
@@ -450,7 +455,7 @@ std::vector<BlockingTimeScope> blockingScopes(const CompletedRunData& data) {
 	const BlockingTimeScope whole = defaultBlockingTimeScope(initial_variables.times * timestep);
 	scopes.push_back(whole);
 	BlockingTimeScope window = whole;
-	window.trainIds = {regional_train[0].trainDescription};
+	window.trainIds = {simulation.run().trains[0].trainDescription};
 	window.startTime = whole.endTime * 0.25;
 	window.endTime = whole.endTime * 0.75;
 	scopes.push_back(window);
@@ -458,12 +463,12 @@ std::vector<BlockingTimeScope> blockingScopes(const CompletedRunData& data) {
 	late.startTime = whole.endTime * 0.5;
 	scopes.push_back(late);
 	for (const auto& used : usedRouteReferencesFrom(data)) {
-		const Route& route = train_route[used.first];
+		const Route& route = simulation.run().infra.routes[used.first];
 		BlockingTimeScope scope = whole;
 		scope.routeIndex = used.first;
-		for (int i = 0; i < numRegions; ++i)
-			if (regional_train[i].indexOfRoute == used.first || regional_train[i].TrainRouteID == route.ID)
-				scope.trainIds.push_back(regional_train[i].trainDescription);
+		for (int i = 0; i < simulation.run().numTrains; ++i)
+			if (simulation.run().trains[i].indexOfRoute == used.first || simulation.run().trains[i].TrainRouteID == route.ID)
+				scope.trainIds.push_back(simulation.run().trains[i].trainDescription);
 		const int count = route.N_Block_Sections;
 		for (const auto& range : std::vector<std::pair<int, int>>{{0, count - 1}, {0, std::min(2, count - 1)}, {count / 2, count - 1}, {count - 1, 0}}) {
 			scope.sectionIndices = blockSectionRangeIndices(range.first, range.second, count);
@@ -586,11 +591,11 @@ void checkCapacity(const CapturedRun& run) {
 // The routes that the trains of the simulation run on, in order of first use.
 std::vector<std::pair<int, std::string>> routesOfTrains() {
 	std::vector<std::pair<int, std::string>> used;
-	for (int i = 0; i < numRegions; ++i) {
-		const int index = regional_train[i].indexOfRoute;
-		if (index >= 0 && index < static_cast<int>(train_route.size())
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		const int index = simulation.run().trains[i].indexOfRoute;
+		if (index >= 0 && index < static_cast<int>(simulation.run().infra.routes.size())
 			&& std::none_of(used.begin(), used.end(), [index](const auto& route) { return route.first == index; }))
-			used.emplace_back(index, train_route[index].ID);
+			used.emplace_back(index, simulation.run().infra.routes[index].ID);
 	}
 	return used;
 }
@@ -602,9 +607,9 @@ void checkRouteDiagrams(const CapturedRun& run) {
 	check(!expectedUsed.empty(), scene + ": routes are used");
 	// Every sample and every timetable event of a train on a known route is a row of the export, whether it projects or not.
 	std::size_t samples = 0, timetableRows = 0;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
-		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size()))
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		const Train& train = simulation.run().trains[i];
+		if (train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(simulation.run().infra.routes.size()))
 			continue;
 		if (train.earliestActiveTrajectoryIndex >= 0)
 			for (const auto& segment : validTrajectorySegments(train.instant_spatial_position, train.earliestActiveTrajectoryIndex, train.End_Time))

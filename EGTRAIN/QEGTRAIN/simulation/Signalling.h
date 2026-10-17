@@ -37,7 +37,6 @@ struct SimulationIncident {
 	bool hasEndSeconds = false;
 };
 
-extern std::vector<SimulationIncident>& simulationIncidents;
 bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
 const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex);
@@ -99,8 +98,6 @@ public:
 	}
 };
 
-extern std::list<InfraEvent>& InfraElementsList;
-
 // Update status of an infrastructure element along a train route given the list of infrastructure elements,
 // current time t, train positions at t and t-1, train speed at t-1, and train description
 void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
@@ -124,10 +121,6 @@ public:
 
 	TDS();
 };
-
-extern std::list<TDS>& list_of_TDS;
-
-extern int& Blocks; // Total number of block sections in the network
 
 // Main signal aspect of a block section.
 enum class SignalState : unsigned char {
@@ -254,8 +247,6 @@ public:
 	friend void SetBlockSpeed();
 };
 
-extern std::vector<Section>& signalling_block_sections; // Global block sections, sized by the scene builder
-
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
 void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
 
@@ -285,7 +276,6 @@ void setGeoCoordinates(Section* BS, int N_BS);
 
 
 // --- Route: train route as sequence of block sections ---
-extern int& N_Routes; // Total number of routes (from input files in Routes folder)
 
 class Route {
 public:
@@ -315,8 +305,6 @@ public:
 	// Adjust route across different regions (different km references)
 	void adjustRouteAcrossDiffRegions();
 };
-
-extern std::vector<Route>& train_route;
 
 // Set up all routes from canonical scene model.
 void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections = {});
@@ -354,11 +342,6 @@ public:
 };
 
 // --- Signalling System Functions ---
-extern double& S_delay; // Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep)
-
-extern std::list<std::string>& BlocksOccupied;	// All blocks occupied by trains (directly occupied + connected)
-extern std::list<std::string>& BlocksConnected; // Blocks connected to occupied blocks (released when train leaves)
-extern std::list<MovementAuthority>& ETCS_MA;	// Movement authorities: levels 3 and 4, and failed signals at every level
 
 // Occupy a block section and all connected blocks
 void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
@@ -430,16 +413,6 @@ void setVirtualSignals(SimulationRun& run);
 // Set virtual signals on routes from original block sections (info lost during route creation)
 void setRouteVirtualSignals(SimulationRun& run);
 
-// Single track limits: (first plain block ID, last plain block ID, protected block ID at the first end,
-// protected block ID at the last end).
-extern std::vector<std::tuple<std::string, std::string, std::string, std::string>>& singleTrackLimits;
-
-// Single-track sections. While a train is in the section of limit l, the section is closed to trains of the
-// opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed
-// route, 0 when it is free. Pending entries reserve before their last braking opportunity; forward wins
-// simultaneous requests on a free zone. Routes against the holder see it as occupied.
-extern std::vector<int>& singleTrackHeld;
-
 // Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted
 // train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears.
 struct SingleTrackReservation {
@@ -448,7 +421,6 @@ struct SingleTrackReservation {
 	double departureTime, origin, destination;
 	std::pair<double, double> interval;
 };
-extern std::vector<std::vector<SingleTrackReservation>>& singleTrackReservations;
 
 // Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
 // neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
@@ -480,7 +452,5 @@ public:
 	bool direction;	   // Direction to observe
 	Section* exit;	   // Exit section (unused at end of lines)
 };
-
-extern std::vector<StationBoundarySection>& stationBoundarySections;
 
 #endif

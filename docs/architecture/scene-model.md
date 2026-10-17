@@ -15,8 +15,8 @@ the loaded model through the infrastructure/signalling and operations builders
 and prepares runtime output directories. Neither builder opens provenance files
 or consults an `Input/` tree.
 
-The infrastructure builder checks the whole scene before it writes a runtime
-global. If it still finds an error while it builds the runtime, it puts the
+The infrastructure builder checks the whole scene before it writes to the
+run. If it still finds an error while it builds the runtime, it puts the
 previous infrastructure back, so a build that returns an error leaves it in
 place. Only the single-track locks of a run are cleared, as at the start of
 every build.
@@ -362,7 +362,7 @@ temporary directory and reuses `loadScene`.
 ## Native runtime path
 
 The infrastructure/signalling builder accepts an already loaded and validated
-`SceneModel` and populates the existing runtime globals. The operations builder
+`SceneModel` and populates the run that it is given. The operations builder
 then creates services, train occurrences, the selected scenario, entrance
 delays, and passengers in memory. Each native `Train` carries operating code,
 service ID, occurrence, performance, configured cap, composition maximum, and

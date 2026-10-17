@@ -8,7 +8,7 @@
 #include "app/OpenRequestRelay.h"
 #include "app/ReleaseNotesText.h"
 #include "app/ReplayCoverage.h"
-#include "app/RuntimeGeometryFromGlobals.h"
+#include "app/RuntimeGeometryFromRun.h"
 #include "app/SceneOpenRequest.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/SceneSavePolicy.h"

@@ -211,7 +211,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int t
 // simulation object (global variable)
 DispatchController simulation;
 
-// The controller holds the run of the process until the legacy names of its state are gone (see SimulationRun.h).
+// The controller hands out the run of the process, defaultRun(), which the window, the canvas and the tests share.
 SimulationRun& DispatchController::mutableRun() {
 	return defaultRun();
 }

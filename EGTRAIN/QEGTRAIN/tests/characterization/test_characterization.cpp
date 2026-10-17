@@ -55,6 +55,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "simulation/SimulationRun.h"
 #ifdef signals
 #undef signals
 #endif
@@ -445,9 +446,9 @@ public:
 			int level = kGuiSignalNoLevel;
 		};
 		std::map<std::pair<std::string, bool>, Expected> expected;
-		const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
+		const int routeCount = std::min(simulation.run().infra.numRoutes, static_cast<int>(simulation.run().infra.routes.size()));
 		for (int r = 0; r < routeCount; ++r) {
-			const Route& route = train_route[r];
+			const Route& route = simulation.run().infra.routes[r];
 			for (int b = 0; b < route.N_Block_Sections; ++b) {
 				const Section& section = route.sequence_of_block_sections[b];
 				const int code = static_cast<int>(section.code);
@@ -471,7 +472,7 @@ public:
 			}
 		}
 		std::set<std::string> failedIds;
-		for (const SimulationIncident& incident : simulationIncidents) {
+		for (const SimulationIncident& incident : simulation.run().incidents) {
 			const bool hasEnd = incident.hasEndSeconds || incident.endSeconds != 0.0;
 			if (incident.type == "signal_failure" && snapshot.timestep >= incident.startSeconds
 				&& (!hasEnd || snapshot.timestep <= incident.endSeconds))
@@ -561,7 +562,7 @@ public:
 			}
 			previous_[line.key] = std::move(line);
 		};
-		for (const Passenger& p : AllDailyPassengers)
+		for (const Passenger& p : simulation.run().passengers)
 			observe({"pax " + p.ID + " state",
 				{integerField("in", p.IsIntheNetwork), textField("status", p.CurrentStatus),
 					textField("journey", p.current_JourneyID), textField("trip", p.current_TripID),
@@ -620,7 +621,7 @@ public:
 		for (int routeIndex : routes) {
 			RouteCodes route;
 			route.routeIndex = routeIndex;
-			const Route& source = train_route[routeIndex];
+			const Route& source = simulation.run().infra.routes[routeIndex];
 			route.sectionIds.reserve(source.N_Block_Sections);
 			for (int b = 0; b < source.N_Block_Sections; ++b)
 				route.sectionIds.push_back(source.sequence_of_block_sections[b].ID);
@@ -639,7 +640,7 @@ public:
 		if (passengers_)
 			passengers_->record(*snapshot);
 		for (RouteCodes& route : routes_) {
-			const Route& source = train_route[route.routeIndex];
+			const Route& source = simulation.run().infra.routes[route.routeIndex];
 			for (int b = 0; b < source.N_Block_Sections; ++b) {
 				auto& changes = route.changes[b];
 				const double code = source.sequence_of_block_sections[b].code;
@@ -650,7 +651,7 @@ public:
 		if (boundarySteps_.count(step)) {
 			Boundary boundary;
 			boundary.step = step;
-			for (const MovementAuthority& authority : ETCS_MA) {
+			for (const MovementAuthority& authority : simulation.run().etcsMa) {
 				if (authority.type != "SignalFailure")
 					continue;
 				boundary.authorities.push_back(
@@ -820,8 +821,8 @@ std::string joinSet(const std::vector<std::string>& values) {
 
 std::vector<TrainTrack> collectTracks() {
 	std::vector<TrainTrack> tracks;
-	for (int i = 0; i < numRegions; ++i) {
-		const Train& train = regional_train[i];
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		const Train& train = simulation.run().trains[i];
 		TrainTrack track;
 		track.name = train.trainDescription;
 		track.routeIndex = train.indexOfRoute;
@@ -978,7 +979,8 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 				if (other.routeIndex != track.routeIndex) {
 					// On the through line there is no passing loop. A winner can stop 50 m before the opposing head
 					// outside the zone; this is a stop behind a real train, not an arbitrary mid-block stop.
-					if (spec.runningThrough && train_route[other.routeIndex].reversed_direction != train_route[track.routeIndex].reversed_direction) {
+					const std::vector<Route>& routes = simulation.run().infra.routes;
+					if (spec.runningThrough && routes[other.routeIndex].reversed_direction != routes[track.routeIndex].reversed_direction) {
 						const double opposingHead = kFixtureLengthKm * 1000 - (*other.position)[stop.first];
 						behindTrain = behindTrain || (opposingHead >= stop.position && opposingHead - stop.position <= kFollowMargin);
 					}
@@ -1034,7 +1036,7 @@ std::vector<std::string> findInvariantViolations(const CaseSpec& spec, const std
 			for (size_t j = i + 1; j < tracks.size(); ++j) {
 				const TrainTrack& a = tracks[i];
 				const TrainTrack& b = tracks[j];
-				if (train_route[a.routeIndex].reversed_direction == train_route[b.routeIndex].reversed_direction)
+				if (simulation.run().infra.routes[a.routeIndex].reversed_direction == simulation.run().infra.routes[b.routeIndex].reversed_direction)
 					continue;
 				for (int t = std::max(a.first, b.first); t <= std::min(a.last, b.last); ++t) {
 					const double ah = (*a.position)[t], bh = (*b.position)[t];
@@ -1190,9 +1192,9 @@ Observation capacityObservation(const std::vector<const Train*>& trains) {
 		|| trains[0]->indexOfRoute != trains[1]->indexOfRoute)
 		return lines;
 	const int routeIndex = trains[0]->indexOfRoute;
-	if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
+	if (routeIndex < 0 || routeIndex >= static_cast<int>(simulation.run().infra.routes.size()))
 		return lines;
-	const Route& route = train_route[routeIndex];
+	const Route& route = simulation.run().infra.routes[routeIndex];
 	std::vector<std::string> sectionIds;
 	for (int b = 0; b < route.N_Block_Sections; ++b)
 		sectionIds.push_back(route.sequence_of_block_sections[b].ID);
@@ -1322,7 +1324,7 @@ Observation delayCompareLines(const DelayBaselineComparison& comparison) {
 	return lines;
 }
 
-// Driver for one run. Everything read from the simulation globals happens
+// Driver for one run. Everything read from the run happens
 // here, so the next run starts from whatever prepareScene resets. The files of
 // the run go to a temporary folder that is removed when the run ends, or, with
 // keptOutputDir, into that folder, which is kept and gets the file that the
@@ -1464,20 +1466,20 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		return outcome;
 	}
 	if (spec.capacity > 0)
-		for (int i = 0; i < numRegions; ++i)
-			regional_train[i].MAX_OnBoard_Passengers = spec.capacity;
+		for (int i = 0; i < simulation.run().numTrains; ++i)
+			simulation.mutableRun().trains[i].MAX_OnBoard_Passengers = spec.capacity;
 
 	std::vector<int> routesInUse;
-	for (int i = 0; i < numRegions; ++i) {
-		const int routeIndex = regional_train[i].indexOfRoute;
-		if (routeIndex >= 0 && routeIndex < N_Routes
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		const int routeIndex = simulation.run().trains[i].indexOfRoute;
+		if (routeIndex >= 0 && routeIndex < simulation.run().infra.numRoutes
 			&& std::find(routesInUse.begin(), routesInUse.end(), routeIndex) == routesInUse.end())
 			routesInUse.push_back(routeIndex);
 	}
 	std::sort(routesInUse.begin(), routesInUse.end());
 
 	std::set<int> boundarySteps;
-	for (const SimulationIncident& incident : simulationIncidents) {
+	for (const SimulationIncident& incident : simulation.run().incidents) {
 		boundarySteps.insert(static_cast<int>(incident.startSeconds) - 1);
 		boundarySteps.insert(static_cast<int>(incident.startSeconds));
 		if (incident.hasEndSeconds) {
@@ -1494,15 +1496,16 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	std::vector<double> approachSpeeds;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &recorder, [&]() {
 		recorder.onSnapshotAvailable();
-		if (!spec.runningConflict || reservationStep >= 0 || singleTrackHeld.empty() || singleTrackHeld[0] == 0)
+		if (!spec.runningConflict || reservationStep >= 0 || simulation.run().infra.singleTrackHeld.empty()
+			|| simulation.run().infra.singleTrackHeld[0] == 0)
 			return;
 		reservationStep = recorder.callbacks() - 1;
-		reservationDirection = singleTrackHeld[0];
+		reservationDirection = simulation.run().infra.singleTrackHeld[0];
 		int movingRequests = 0;
-		for (Train& train : regional_train) {
+		for (Train& train : simulation.mutableRun().trains) {
 			if (train.trainDescription != (spec.runningThrough ? "F1-1" : "S1-1") && train.trainDescription != "R1-1")
 				continue;
-			Route& route = train_route[train.indexOfRoute];
+			Route& route = simulation.mutableRun().infra.routes[train.indexOfRoute];
 			const double head = train.instant_spatial_position[reservationStep];
 			const double speed = train.instant_train_speed[reservationStep];
 			if (train.CanEnter && speed > 0 && head < 4000.0) {
@@ -1536,7 +1539,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		obs.push_back({key, std::move(fields)});
 	};
 
-	add("run", {integerField("steps", horizon), integerField("trains", numRegions)});
+	add("run", {integerField("steps", horizon), integerField("trains", simulation.run().numTrains)});
 	if (spec.runningConflict) {
 		add("reservation", {integerField("first_step", reservationStep), integerField("moving_tie", movingTie), integerField("direction", reservationDirection)});
 		if (checkInvariants && (spec.name.find("running-forward-first-") == 0 || spec.name.find("running-reverse-first-") == 0)
@@ -1552,8 +1555,8 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	}
 
 	std::vector<const Train*> trains;
-	for (int i = 0; i < numRegions; ++i)
-		trains.push_back(&regional_train[i]);
+	for (int i = 0; i < simulation.run().numTrains; ++i)
+		trains.push_back(&simulation.run().trains[i]);
 	const std::vector<TrainTrack> tracks = collectTracks();
 
 	for (const TrainTrack& track : tracks) {
@@ -1596,7 +1599,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 	for (const StepRecorder::RouteCodes& route : recorder.routes()) {
 		for (size_t b = 0; b < route.sectionIds.size(); ++b) {
 			Line line;
-			line.key = "aspect " + train_route[route.routeIndex].ID + " " + route.sectionIds[b];
+			line.key = "aspect " + simulation.run().infra.routes[route.routeIndex].ID + " " + route.sectionIds[b];
 			for (const auto& change : route.changes[b]) {
 				Field field;
 				field.kind = Field::Kind::Text;
@@ -1656,7 +1659,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 		obs.insert(obs.end(), delays.begin(), delays.end());
 	}
 
-	for (const SimulationIncident& incident : simulationIncidents)
+	for (const SimulationIncident& incident : simulation.run().incidents)
 		add("incident " + incident.id,
 			{textField("type", incident.type), textField("target", incident.target),
 				realField("start", incident.startSeconds), integerField("has_end", incident.hasEndSeconds ? 1 : 0),
@@ -1682,7 +1685,7 @@ RunOutcome runCase(const std::string& sceneDir, const CaseSpec& spec, bool check
 
 	if (!spec.passengers.empty()) {
 		obs.insert(obs.end(), passengers.lines().begin(), passengers.lines().end());
-		for (const Passenger& p : AllDailyPassengers) {
+		for (const Passenger& p : simulation.run().passengers) {
 			for (const Journey& j : p.Journeys) {
 				add("journey " + p.ID + " " + j.ID,
 					{integerField("started", j.IsJourneyStarted), integerField("completed", j.IsJourneyCompleted),

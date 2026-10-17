@@ -429,7 +429,7 @@ egtrain_target_warnings(egtrain_dispatch)
 set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/MainWindow.cpp
-    ${SRC_DIR}/app/RuntimeGeometryFromGlobals.cpp
+    ${SRC_DIR}/app/RuntimeGeometryFromRun.cpp
     ${SRC_DIR}/app/SceneOutputDirectory.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
@@ -447,7 +447,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/io/RttpXml.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
-    ${SRC_DIR}/app/RuntimeGeometryFromGlobals.h
+    ${SRC_DIR}/app/RuntimeGeometryFromRun.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
     ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h

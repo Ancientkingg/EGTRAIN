@@ -2,7 +2,7 @@
 //
 //   test_signalling_aspects --expect FILE
 //
-// The test puts a route of up to seven sections in the global route list, without a scene, and runs the release and
+// The test puts a route of up to seven sections in the route list of the run, without a scene, and runs the release and
 // the activation of the mixed signalling on it in the order of a step of the simulation. After a step it writes the
 // code, state, signal speed limit, speed in braking and exit speed of every section as one line of text. The lines
 // are compared with the golden file FILE. The speed limits of the sections are numbers of this test, not railway data.
@@ -104,44 +104,44 @@ struct Report {
 };
 
 // ---------------------------------------------------------------------------
-// The globals of the simulation. Nothing else in this file names them.
+// The state of the run. Nothing else in this file names it.
 // ---------------------------------------------------------------------------
 
-// Takes the globals that the test sets and puts them back at the end.
-class SavedGlobals {
+// Takes the state of the run that the test sets and puts it back at the end.
+class SavedRunState {
 public:
-	SavedGlobals() {
-		train_route.clear();
+	SavedRunState() {
+		defaultRun().infra.routes.clear();
 	}
-	~SavedGlobals() {
-		train_route = std::move(m_routes);
-		N_Routes = m_routeCount;
-		BlocksOccupied = m_occupied;
-		BlocksConnected = m_connected;
-		singleTrackLimits = m_limits;
+	~SavedRunState() {
+		defaultRun().infra.routes = std::move(m_routes);
+		defaultRun().infra.numRoutes = m_routeCount;
+		defaultRun().blocksOccupied = m_occupied;
+		defaultRun().blocksConnected = m_connected;
+		defaultRun().infra.singleTrackLimits = m_limits;
 		resetSingleTrackLocks(defaultRun());
-		singleTrackHeld = m_held;
+		defaultRun().infra.singleTrackHeld = m_held;
 	}
-	SavedGlobals(const SavedGlobals&) = delete;
-	SavedGlobals& operator=(const SavedGlobals&) = delete;
+	SavedRunState(const SavedRunState&) = delete;
+	SavedRunState& operator=(const SavedRunState&) = delete;
 
 private:
 	// The members take the values when the object is made; the route list is emptied for the test.
-	std::vector<Route> m_routes = std::move(train_route);
-	int m_routeCount = N_Routes;
-	Ids m_occupied = BlocksOccupied;
-	Ids m_connected = BlocksConnected;
-	std::vector<std::tuple<std::string, std::string, std::string, std::string>> m_limits = singleTrackLimits;
-	std::vector<int> m_held = singleTrackHeld;
+	std::vector<Route> m_routes = std::move(defaultRun().infra.routes);
+	int m_routeCount = defaultRun().infra.numRoutes;
+	Ids m_occupied = defaultRun().blocksOccupied;
+	Ids m_connected = defaultRun().blocksConnected;
+	std::vector<std::tuple<std::string, std::string, std::string, std::string>> m_limits = defaultRun().infra.singleTrackLimits;
+	std::vector<int> m_held = defaultRun().infra.singleTrackHeld;
 };
 
 void setRoutes(std::vector<Route>&& routes) {
-	train_route = std::move(routes);
-	N_Routes = static_cast<int>(train_route.size());
+	defaultRun().infra.routes = std::move(routes);
+	defaultRun().infra.numRoutes = static_cast<int>(defaultRun().infra.routes.size());
 }
 
 const std::vector<Section>& sectionsOf(std::size_t route) {
-	return train_route[route].sequence_of_block_sections;
+	return defaultRun().infra.routes[route].sequence_of_block_sections;
 }
 
 // The red speeds that runStep gives the activation: the ones of the simulation, or the other ones of group V.
@@ -157,48 +157,48 @@ void setSignalSpeeds(const std::pair<double, double>& speeds) {
 
 // Single-track limit between s1 and s4, protected by s2 and s3, held in the direction held (1, -1 or 0).
 void holdSingleTrack(int held) {
-	singleTrackLimits.clear();
-	singleTrackLimits.emplace_back("s2", "s3", "s1", "s4");
+	defaultRun().infra.singleTrackLimits.clear();
+	defaultRun().infra.singleTrackLimits.emplace_back("s2", "s3", "s1", "s4");
 	resetSingleTrackLocks(defaultRun());
-	singleTrackHeld = {held};
+	defaultRun().infra.singleTrackHeld = {held};
 }
 
 void freeSingleTrack() {
-	singleTrackLimits.clear();
+	defaultRun().infra.singleTrackLimits.clear();
 	resetSingleTrackLocks(defaultRun());
 }
 
 // A step as the simulation makes it once the trains have been placed: release, then activation. Returns whether both
 // lists are as they were set after each of the two calls.
 bool runStep(const Ids& occupied, const Ids& connected) {
-	BlocksOccupied = occupied;
-	BlocksConnected = connected;
+	defaultRun().blocksOccupied = occupied;
+	defaultRun().blocksConnected = connected;
 	releaseMixedSignallingSystem(defaultRun());
-	const bool unchangedByRelease = BlocksOccupied == occupied && BlocksConnected == connected;
+	const bool unchangedByRelease = defaultRun().blocksOccupied == occupied && defaultRun().blocksConnected == connected;
 	activateMixedSignallingSystem(defaultRun(), redSpeeds.first, redSpeeds.second);
-	const bool unchangedByActivation = BlocksOccupied == occupied && BlocksConnected == connected;
-	BlocksOccupied.clear();
-	BlocksConnected.clear();
+	const bool unchangedByActivation = defaultRun().blocksOccupied == occupied && defaultRun().blocksConnected == connected;
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
 	return unchangedByRelease && unchangedByActivation;
 }
 
 // Only the release. Returns whether both lists are as they were set.
 bool runRelease(const Ids& connected) {
-	BlocksOccupied.clear();
-	BlocksConnected = connected;
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected = connected;
 	releaseMixedSignallingSystem(defaultRun());
-	const bool unchanged = BlocksOccupied.empty() && BlocksConnected == connected;
-	BlocksConnected.clear();
+	const bool unchanged = defaultRun().blocksOccupied.empty() && defaultRun().blocksConnected == connected;
+	defaultRun().blocksConnected.clear();
 	return unchanged;
 }
 
-// The last train leaves the route at section id. Returns what the call puts in BlocksConnected.
+// The last train leaves the route at section id. Returns what the call puts in blocksConnected.
 Ids runLastSection(const std::string& id) {
-	BlocksOccupied.clear();
-	BlocksConnected.clear();
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
 	relLastSectionMixedSignalling(defaultRun(), id);
-	Ids connected = BlocksConnected;
-	BlocksConnected.clear();
+	Ids connected = defaultRun().blocksConnected;
+	defaultRun().blocksConnected.clear();
 	return connected;
 }
 
@@ -473,7 +473,7 @@ void checkReleaseOnTwoRoutes(Report& report) {
 	back.reversedIds = true;
 	installRoutes({routeSpec(uniform(kNoLevel, kLongRoute)), back});
 	// s3 is red on both routes before the release.
-	for (Route& route : train_route) {
+	for (Route& route : defaultRun().infra.routes) {
 		for (Section& section : route.sequence_of_block_sections) {
 			if (section.ID == idOf(3))
 				section.state = SignalState::Red;
@@ -493,7 +493,7 @@ void checkReleaseOnTwoRoutes(Report& report) {
 // Groups
 // ---------------------------------------------------------------------------
 
-// A step on one route with the sections in occupied in BlocksOccupied.
+// A step on one route with the sections in occupied in blocksOccupied.
 void stepLine(Report& report, const char* group, const RouteSpec& spec, const Indices& occupied, const std::string& extra = "") {
 	const std::string label = labelOf(group, {spec}) + " occ=" + indicesText(occupied) + extra;
 	installRoutes({spec});
@@ -568,7 +568,7 @@ void groupMixed(Report& report) {
 	stepLine(report, "R", routeSpec({kBacc, kBacc, kAtb, kAtb, kEtcsL1, kEtcsL2}), {1, 3, 5});
 }
 
-// The ids in BlocksConnected for a train that covers the sections in covered. Train::Det_Section_Occupied_By_Train
+// The ids in blocksConnected for a train that covers the sections in covered. Train::Det_Section_Occupied_By_Train
 // calls occupyBlockAndConnected for each covered section from the tail to the head, and that hands the section before
 // it (section 0 for section 0) to releaseLastBlockAndConnected, which appends the id once. So the list holds the
 // index max(h - 1, 0) for each covered h, each id once, in the order of first appearance.
@@ -781,7 +781,7 @@ void checkLevelMask(Report& report) {
 
 Report buildReport() {
 	Report report;
-	const SavedGlobals saved;
+	const SavedRunState saved;
 	checkAnchors(report);
 	checkReleaseOnTwoRoutes(report);
 	checkLevelMask(report);

@@ -94,12 +94,12 @@ int main(int argc, char** argv) {
 	}
 	const auto loaded = loadScene(argv[1]);
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1) {
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1) {
 		std::cerr << "failed: the scene does not prepare a run\n";
 		return 1;
 	}
 	defaultRun().settings.PAX_GUI = true;
-	const Train& native = regional_train[0];
+	const Train& native = defaultRun().trains[0];
 	bool ok = true;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 
