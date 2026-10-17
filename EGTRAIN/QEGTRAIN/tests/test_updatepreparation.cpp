@@ -137,6 +137,20 @@ static bool testStaleStagingSweep(const QString& base) {
 	return ok;
 }
 
+// The failure text of the unpacking step says what failed, that nothing changed and how to try again,
+// and keeps the technical detail apart from that.
+static bool testUnpackFailureMessage() {
+	const QString timedOut = unpackFailureMessage(QStringLiteral("powershell.exe timed out."));
+	bool ok = expect(timedOut.startsWith(QStringLiteral("EGTRAIN could not unpack the downloaded update.")),
+		"the unpack failure says what failed");
+	ok &= expect(timedOut.contains(QStringLiteral("Nothing was changed.")), "the unpack failure says that nothing changed");
+	ok &= expect(timedOut.contains(QStringLiteral("Check for Updates")), "the unpack failure says how to try again");
+	ok &= expect(timedOut.endsWith(QStringLiteral("\n\nDetails: powershell.exe timed out.")),
+		"the technical detail follows the sentence");
+	ok &= expect(!unpackFailureMessage(QString()).contains(QStringLiteral("Details")), "no detail adds no details line");
+	return ok;
+}
+
 static bool testCanCreateFilesIn(const QString& base) {
 	const QString writable = QDir(base).filePath("probe-writable");
 	bool ok = expect(QDir().mkpath(writable), "probe fixture is writable");
@@ -410,6 +424,7 @@ int main(int argc, char** argv) {
 		"the event loop keeps processing events while preparation runs");
 
 	ok &= testStaleStagingSweep(temp.path());
+	ok &= testUnpackFailureMessage();
 	ok &= testReadOnlyLocation(temp.path());
 	ok &= testCanCreateFilesIn(temp.path());
 	ok &= testInstallerStaging(temp.path());

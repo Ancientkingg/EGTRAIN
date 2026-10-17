@@ -21,6 +21,9 @@ constexpr int kDownloadTimeoutMs = 30000;
 constexpr qint64 kMaxManifestBytes = 128 * 1024;
 // A staging folder newer than this may belong to a download that another instance is running.
 constexpr std::chrono::minutes kStaleStagingAge{60};
+// When an update starts, the folders of earlier attempts are removed once nothing in them changed for
+// this long. A download or an unpacking that is running changes its folder all the time.
+constexpr std::chrono::minutes kEarlierAttemptAge{5};
 // The manifest entry of the installer that an installed Windows copy runs.
 constexpr char kInstallerKey[] = "windows-x64-installer";
 // Runs the installer without a window or a message box and without restarting the computer.
@@ -202,6 +205,7 @@ void SelfUpdater::start(const StableRelease& release) {
 		emit finished(false, QStringLiteral("This release does not provide a verified update package."));
 		return;
 	}
+	removeStaleUpdateStaging(QFileInfo(current.currentPath).absolutePath(), kEarlierAttemptAge);
 	m_busy = true;
 	m_ready = false;
 	m_cancelRequested = false;

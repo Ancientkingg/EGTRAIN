@@ -225,6 +225,7 @@ static bool testEarlyFailureRollsBack(const QString& helper, const QString& prog
 	ok &= expect(waitForLogLine(log, "old started"), "early failure starts the previous version again");
 	ok &= recordIsWritten(recordPath(root));
 	ok &= expect(logLines(log).contains("old sees record"), "the record exists before the previous version starts");
+	ok &= expect(stagingIsCleared(root, helper), "the staging folder is removed after a rollback");
 	const QString install = QDir(root).filePath("install");
 	ok &= expect(ranIn(log, "new", install), "the new version starts in the installation directory");
 	ok &= expect(ranIn(log, "old", install), "the restored version starts in the installation directory");
