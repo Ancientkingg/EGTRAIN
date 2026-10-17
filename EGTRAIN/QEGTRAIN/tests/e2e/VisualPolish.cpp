@@ -4,6 +4,8 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "editors/InfrastructurePanel.h"
+#include "graphics/items/PlatformItem.h"
+#include "graphics/NetworkScene.h"
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
@@ -23,14 +25,18 @@
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneModel.h"
 #include "simulation/SimulationRun.h"
+#include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAbstractAnimation>
 #include <QAction>
 #include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
+#include <QClipboard>
 #include <QColor>
 #include <QCoreApplication>
 #include <QDockWidget>
@@ -76,6 +82,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <QWindow>
 #include <string>
 #include <utility>
 

@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <QCoreApplication>
 #include "app/CannotOpenMessage.h"
 #include "app/DispatchController.h"

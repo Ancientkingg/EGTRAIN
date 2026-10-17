@@ -2,8 +2,10 @@
 
 #include "app/DispatchController.h"
 #include "scene/SceneBundle.h"
+#include "simulation/SimulationWorker.h"
 #include <QCoreApplication>
 #include <QDir>
+#include <QLineEdit>
 #include <QString>
 #include <QStringList>
 #include <QTemporaryDir>

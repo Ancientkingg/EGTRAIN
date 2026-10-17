@@ -12,6 +12,9 @@
 #include <QTimer>
 #include <QToolButton>
 #include <cstdio>
+#include "graphics/NetworkScene.h"
+#include "simulation/SimulationWorker.h"
+#include "widgets/ElidedLabel.h"
 
 // Opens the scene named by QEGTRAIN_E2E_SCENE if none is open, runs it, and checks that the network view
 // draws real geometry inside the viewport instead of a collapsed point. It runs again every 500 ms,

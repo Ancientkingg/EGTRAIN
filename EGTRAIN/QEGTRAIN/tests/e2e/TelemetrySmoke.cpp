@@ -1,5 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "app/DispatchController.h"
 #include "app/MainWindowSupport.h"
 #include "app/UpdateTelemetryController.h"
 #include "app/TelemetrySmokeSupport.h"
@@ -7,12 +8,14 @@
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
 #include "scene/SceneBundle.h"
+#include "simulation/RollingStock.h"
 #include "simulation/SimulationWorker.h"
 #include "telemetry/TelemetryConsent.h"
 #include "telemetry/TelemetrySender.h"
 #include <QAction>
 #include <QCoreApplication>
 #include <QDir>
+#include <QDockWidget>
 #include <QFileInfo>
 #include <QMetaObject>
 #include <QPushButton>

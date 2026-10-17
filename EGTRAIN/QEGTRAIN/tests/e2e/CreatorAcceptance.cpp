@@ -25,6 +25,11 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/RollingStock.h"
+#include "simulation/SimulationWorker.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
+#include "widgets/TimeProgressBar.h"
 #include <QAbstractButton>
 #include <QAbstractGraphicsShapeItem>
 #include <QAccessible>
@@ -37,6 +42,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QElapsedTimer>
 #include <QEvent>

@@ -1,5 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "graphics/NetworkScene.h"
 #include "scene/SceneBundle.h"
 #include <QAbstractButton>
 #include <QApplication>

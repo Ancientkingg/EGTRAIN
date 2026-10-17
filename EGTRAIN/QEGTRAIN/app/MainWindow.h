@@ -1,8 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "telemetry/TelemetryOperation.h"
-
 #ifdef signals
 #define EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #undef signals
@@ -13,162 +11,111 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-#include <iostream>
+#include <QHash>
 #include <QMainWindow>
-#include <QPainter>
-#include <QColor>
-#include <QBrush>
-#include <QPixmap>
-#include <QtGui>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QPen>
-#include <array>
-#include <optional>
-#include <QGraphicsEllipseItem>
-#include <QPoint>
-#include <QSizePolicy>
-#include <QLineF>
-#include <QMessageBox>
-#include <QWheelEvent>
-#include <QScrollBar>
-#include <QScrollArea>
-#include <QMouseEvent>
-#include <QObject>
-#include <qmath.h>
-#include <QApplication>
-#include <QImage>
-#include <string>
-#include <QGraphicsTextItem>
-#include <QLabel>
-#include <QTextOption>
-#include <QGraphicsSceneMouseEvent>
-#include <QMenu>
-#include <QTransform>
-#include <cmath>
-#include <QDockWidget>
-#include <Qt>
-#include <QLineEdit>
-#include <QTreeWidget>
-#include <sstream>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsItemGroup>
-#include <QList>
-#include <QFont>
-#include <QFormLayout>
-#include <QGraphicsEffect>
-#include <QTimer>
-#include <QTime>
-#include <algorithm>
-#include <functional>
-#include <limits>
-#include <QVBoxLayout>
-#include <list>
-#include <vector>
-#include "diagrams/BlockingTimeDiagram.h"
-#include <map>
-#include <set>
-#include <utility>
-#include <unordered_map>
-#include <tuple>
-#include <memory>
-#include <QStatusBar>
-#include <QSlider>
-#include <QHBoxLayout>
-#include <QFileDialog>
-#include <QComboBox>
-#include <QVariantAnimation>
 #include <QPointer>
-#include <QTableWidget>
-#include <QListWidget>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QIntValidator>
-#include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QTabWidget>
-#include <QSet>
+#include <QString>
+#include <QVector>
+#include <array>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "app/FollowAvailability.h"
+#include "app/GuiReplayHistory.h"
 #include "app/RunController.h"
 #include "app/RunSelection.h"
 #include "app/SceneSession.h"
+#include "diagrams/RunResults.h"
+#include "graphics/NetworkPresenter.h"
 #include "recovery/RecoveryStore.h"
 #include "scene/SceneDiagnostic.h"
-#include "scene/SceneValidator.h"
-#include "scene/TrackPreview.h"
+#include "widgets/InspectorPanel.h"
 
-// charts
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
-#include <QtCharts/QCategoryAxis>
-QT_CHARTS_USE_NAMESPACE
-
-class ConsoleWidget; // forward declaration for m_logPane
 class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
+class ConsoleWidget;
+class ElidedLabel;
 class EntranceDelayPanel;
+class FollowCamera;
 class IncidentPanel;
 class InfrastructurePanel;
+class NetworkLegendWidget;
+class NetworkScene;
+class NetworkView;
+class PassengerItem;
 class PassengerPanel;
-class ScenarioPanel;
-class ServicePanel;
+class QAction;
+class QCheckBox;
+class QCloseEvent;
+class QComboBox;
+class QDockWidget;
+class QDoubleSpinBox;
+class QDragEnterEvent;
+class QDropEvent;
+class QGraphicsItem;
+class QLabel;
+class QLineEdit;
+class QListWidget;
+class QMenu;
+class QMovie;
+class QPoint;
+class QPointF;
+class QProgressDialog;
+class QPushButton;
+class QSettings;
+class QShowEvent;
+class QSlider;
+class QSpinBox;
+class QTabWidget;
+class QTableWidget;
+class QThread;
+class QTimer;
+class QToolBar;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QVBoxLayout;
+class QWidget;
 class RecoveryController;
 class SceneDocument;
 class SceneEditorPanel;
 class SceneHistory;
-struct SceneHistoryEntry;
-class UserPrompts;
-class QPlainTextEdit;
+class ScenarioPanel;
+class SelfUpdater;
+class ServicePanel;
+class SignalItem;
+class SimulationWorker;
+class StationNodeItem;
+class TelemetryConsent;
+class TimeProgressBar;
 class TimetableStopsPanel;
+class TrackLineItem;
+class TrainBodyItem;
+class TrainItemGroup;
 class TrainUnitPanel;
 class TrainUnitSourceLinker;
+class UpdateChecker;
 class UpdateTelemetryController;
 class UserPrompts;
 class ValidationPanel;
-
-// custom GUI files
-#include "graphics/NetworkView.h"
-#include "graphics/FollowCamera.h"
-#include "graphics/NetworkPresenter.h"
-#include "graphics/NetworkScene.h"
-#include "graphics/items/TrackLineItem.h"
-#include "graphics/items/VirtualArcItem.h"
-#include "graphics/items/NodeItem.h"
-#include "graphics/items/StationNodeItem.h"
-#include "graphics/items/StationOverlayItem.h"
-#include "graphics/items/PlatformItem.h"
-#include "graphics/items/IconItem.h"
-#include "graphics/items/PassengerItem.h"
-#include "graphics/items/ConnectionItem.h"
-#include "graphics/items/SignalItem.h"
-#include "graphics/items/TrainBodyItem.h"
-#include "graphics/items/TrainItemGroup.h"
-#include "graphics/items/TrainBadgeItem.h"
-#include "widgets/NetworkLegendWidget.h"
-#include "widgets/InfoDockWidget.h"
-#include "widgets/InspectorPanel.h"
-#include "graphics/items/HighlightEffect.h"
-#include "widgets/TimeProgressBar.h"
-#include "widgets/ElidedLabel.h"
-
-// EGTRAIN files
-#include "simulation/Infrastructure.h"
-#include "simulation/Signalling.h"
-
-#include "app/DispatchController.h"
-#include "app/GuiSimulationSnapshot.h"
-#include "app/GuiReplayHistory.h"
-#include "app/FollowAvailability.h"
-
-#include <QThread>
-#include <QToolBar>
-
-#include "simulation/SimulationWorker.h"
-#include "diagrams/CapacityAnalysis.h"
-#include "diagrams/CompletedRunData.h"
-#include "diagrams/RunResults.h"
+namespace telemetry {
+class OperationObservation;
+} // namespace telemetry
+struct BlockingTimeDiagramSegment;
+struct BlockSectionExtent;
+struct CapacityAnalysisResult;
+struct CompletedRunData;
+struct GuiPassengerState;
+struct GuiSimulationSnapshot;
+struct SceneHistoryEntry;
+struct StableRelease;
+struct UpdateCheckResult;
 
 using namespace std;
 
@@ -184,8 +131,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host,
-	private InspectorPanel::Host {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host {
 	Q_OBJECT
 
 public:

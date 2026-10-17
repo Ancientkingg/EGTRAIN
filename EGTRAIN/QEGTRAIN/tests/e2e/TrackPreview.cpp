@@ -13,6 +13,9 @@
 #include "scene/SceneModel.h"
 #include "scene/SceneWriter.h"
 #include "scene/TrackPreview.h"
+#include "simulation/SimulationWorker.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAction>
 #include <QApplication>

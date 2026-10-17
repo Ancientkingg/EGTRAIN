@@ -19,6 +19,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
 #include "scene/SceneBundle.h"
@@ -38,6 +39,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/SimulationRun.h"
+#include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include <QAbstractButton>

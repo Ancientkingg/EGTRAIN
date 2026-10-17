@@ -26,9 +26,12 @@
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneModel.h"
 #include "ui_MainWindow.h"
+#include "simulation/SimulationWorker.h"
 #include "util/PlaybackProfiler.h"
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAction>
 #include <QApplication>
