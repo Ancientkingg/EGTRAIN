@@ -6,6 +6,7 @@
 #include <QFontMetrics>
 #include <QGuiApplication>
 #include <QLabel>
+#include <QLayout>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -94,11 +95,18 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 }
 
 // Widens an installed dialog to show its body without clipping, up to the width limit
-// that install set. Call it after the body is filled; it never narrows the dialog.
+// that install set. Call it after the body is filled, and again after a change to the body
+// of a dialog that is shown; it never narrows the dialog.
 inline void fitWidthToContent(QDialog& dialog) {
 	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 	if (!scroll || !dialog.layout())
 		return;
+	// A change to the body of a shown dialog leaves layout requests queued, and the size hint
+	// of the body is out of date until they have run.
+	if (dialog.isVisible()) {
+		for (QLayout* layout : scroll->widget()->findChildren<QLayout*>())
+			layout->activate();
+	}
 	const QMargins margins = dialog.layout()->contentsMargins();
 	const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();

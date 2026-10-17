@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 CapacityAnalysisTrain capacityInputFrom(const CompletedTrain& train, const CapacityAnalysisScope& scope) {
 	CapacityAnalysisTrain result;
@@ -202,7 +203,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		"Where the order of trains changes along the route, analyze each part as a separate section. Select the occurrence of the "
 		"first service in the next period that closes the capacity cycle; EGTRAIN does not infer it from the last row.");
 	layout->addWidget(note);
-	auto* occurrencesCaption = new QLabel("Occurrences with complete occupations on the selected section:", &dialog);
+	auto* occurrencesCaption = new QLabel("Occurrences with complete occupations on the selected section:", body);
 	occurrencesCaption->setWordWrap(true);
 	layout->addWidget(occurrencesCaption);
 	layout->addWidget(occurrences);

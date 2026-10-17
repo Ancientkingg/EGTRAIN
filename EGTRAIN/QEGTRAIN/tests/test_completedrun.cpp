@@ -1319,6 +1319,10 @@ void testCapacityDialog() {
 		if (combos.size() != 4 || !list || !status)
 			return;
 		check(status->isHidden(), "the dialog opens without a message");
+		bool noteIsHelp = false;
+		for (const QLabel* label : dialog.findChildren<QLabel*>())
+			noteIsHelp |= label->text().startsWith("Checked occurrences are analyzed") && label->property("dialogHelp").toBool();
+		check(noteIsHelp, "the note of the dialog is a help note");
 		combos[2]->setCurrentIndex(0);
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
@@ -1337,6 +1341,13 @@ void testCapacityDialog() {
 			"a closing occurrence that is the first row is refused in the dialog");
 		combos[3]->setCurrentIndex(2);
 		check(status->isHidden(), "choosing another closing occurrence takes the message away");
+		list->item(1)->setCheckState(Qt::Unchecked);
+		list->item(2)->setCheckState(Qt::Unchecked);
+		forbidMessageBox();
+		ok->click();
+		check(status->isVisible(), "fewer than two occurrences are refused again");
+		dialog.findChild<QDoubleSpinBox*>()->setValue(1800.0);
+		check(status->isHidden(), "changing the period takes the message away");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 	});
 	check(!accepted && kept.routeIndex == -1 && kept.blockIds.empty() && kept.occurrenceIds.empty() && kept.cycleEndOccurrenceId.empty(),
@@ -1378,6 +1389,19 @@ std::vector<std::string> longBlockIds() {
 	return ids;
 }
 
+// The route combo of a scope dialog lists only short ids, so the dialog opens narrower than the long block ids need where
+// the font allows it. Choosing the route with those blocks widens it again.
+void checkWidensForLongBlocks(QDialog& dialog, int longRoute, bool opensNarrow, const std::string& what) {
+	const auto combos = dialog.findChildren<QComboBox*>();
+	check(!combos.isEmpty(), what + ": the dialog has its route combo");
+	if (combos.isEmpty())
+		return;
+	if (opensNarrow)
+		check(dialog.width() < dialog.maximumWidth(), what + ": opens narrower than the long block ids need");
+	combos[0]->setCurrentIndex(longRoute);
+	checkScopeDialogFits(dialog, what + " after choosing the route with the long block ids");
+}
+
 // The scope dialogs of a run whose route has a 300-character id and 2000 blocks, at 10 pt and at 18 pt. Each fits the
 // screen, with the route chosen or not, and its body does not scroll sideways.
 void testScopeDialogsWithLongIds() {
@@ -1400,6 +1424,13 @@ void testScopeDialogsWithLongIds() {
 		train.blockTimes = {occupation(blockIds.front(), 0.0, 10.0, 0.0, 100.0, 0.0)};
 		run.trains.push_back(train);
 	}
+
+	// Short route ids and a second route with the long block ids.
+	BlockingTimeScopeChoices shortChoices;
+	shortChoices.caseEndSeconds = 600.0;
+	shortChoices.routes = {{"R1", "", {"a", "b"}}, {"R2", "", blockIds}};
+	CompletedRunData shortRun;
+	shortRun.routes = {routeOf("R1", {{"n", 0.0}}, {{"a", 0.0, 1.0}, {"b", 1.0, 2.0}}), routeOf("R2", {{"n", 0.0}}, blocks)};
 
 	for (const double points : {10.0, 18.0}) {
 		QFont font = original;
@@ -1426,6 +1457,19 @@ void testScopeDialogsWithLongIds() {
 			dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 		});
 		check(!accepted, "the capacity dialog with long ids is cancelled");
+
+		// At 18 pt the dialog is as wide as the screen allows from the start.
+		const bool opensNarrow = points == 10.0;
+		accepted = askScope(shortChoices, scope, [&what, opensNarrow](QDialog& dialog) {
+			checkWidensForLongBlocks(dialog, 2, opensNarrow, "blocking-time scope at " + what);
+			press(dialog, QDialogButtonBox::Cancel);
+		});
+		check(!accepted, "the scope dialog with short route ids is cancelled");
+		accepted = askCapacityScope(shortRun, capacity, [&what, opensNarrow](QDialog& dialog) {
+			checkWidensForLongBlocks(dialog, 1, opensNarrow, "capacity options at " + what);
+			dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
+		});
+		check(!accepted, "the capacity dialog with short route ids is cancelled");
 	}
 	QApplication::setFont(original);
 }

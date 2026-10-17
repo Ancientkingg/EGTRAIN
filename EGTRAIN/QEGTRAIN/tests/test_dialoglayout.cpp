@@ -8,6 +8,7 @@
 #include <QToolButton>
 #include <QFile>
 #include <QFileInfo>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QImage>
 #include <QKeyEvent>
@@ -347,6 +348,33 @@ bool exerciseNarrowBody() {
 	ok &= check(manyWords->height() >= manyWords->heightForWidth(manyWords->width()), "a label with a long text is not as tall as its wrapped text");
 	return ok;
 }
+// A shown dialog whose body gets a wider choice: fitWidthToContent widens the dialog for it at once, not only after the
+// queued layout requests have run.
+bool exerciseFitAfterChange() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* form = new QFormLayout(body);
+	auto* choice = new QComboBox(&dialog);
+	choice->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+	choice->addItem(QStringLiteral("short"));
+	form->addRow(QStringLiteral("Choice:"), choice);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);
+	DialogLayout::install(dialog, QStringLiteral("Fit"), QString(), body, buttons, QRect(0, 0, 1280, 800));
+	DialogLayout::fitWidthToContent(dialog);
+	dialog.show();
+	QApplication::processEvents();
+
+	const int before = dialog.width();
+	const QString wide(60, QLatin1Char('W'));
+	const int needed = choice->fontMetrics().horizontalAdvance(wide);
+	bool ok = check(needed > before && needed < dialog.maximumWidth(), "the wide choice does not need a wider dialog within its limit, so the test proves nothing");
+	choice->addItem(wide);
+	choice->setCurrentIndex(1);
+	DialogLayout::fitWidthToContent(dialog);
+	ok &= check(dialog.width() >= needed, "a choice added to a shown dialog widens it");
+	return ok;
+}
+
 struct ControlLook {
 	QRgb face;
 	QRgb ink;
@@ -576,7 +604,8 @@ int main(int argc, char** argv) {
 	const bool messages = exerciseInlineMessages();
 	const bool panelMessages = exercisePanelMessages();
 	const bool narrow = exerciseNarrowBody();
+	const bool fit = exerciseFitAfterChange();
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
-	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && disabled && messageBox ? 0 : 1;
+	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox ? 0 : 1;
 }
