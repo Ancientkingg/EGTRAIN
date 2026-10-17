@@ -3621,9 +3621,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (scenarioTabs) {
 			QTreeWidgetItem incidentTarget;
 			incidentTarget.setText(0, QString::fromStdString(editedIncidentId));
-			incidentTarget.setData(0, kLoadedDataTargetTypeRole, "incident");
 			scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
-			w.activateLoadedDataItem(&incidentTarget);
+			w.openLoadedDataTarget(QStringLiteral("incident"), &incidentTarget);
 			const SceneIncident* opened = w.m_incidentPanel->selectedIncident();
 			if (scenarioTabs->currentWidget() != w.m_incidentPanel || !opened || opened->id != editedIncidentId)
 				facetFailure(facetOk, "incident", "opening an incident from Loaded Data did not show it on the Incidents tab");
