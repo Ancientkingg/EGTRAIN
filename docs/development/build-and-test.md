@@ -289,8 +289,9 @@ the scene.
 Each panel of `editors/` has a test, `test_editor_<panel>`, such as `test_editor_casesettings` and
 `test_editor_service` (labels `unit` and `gui`, run with the `offscreen` platform). It puts the panel over a
 `SceneDocument` and over a `UserPrompts` that records its questions, so that no dialog opens, and works the widgets of
-the panel. It checks that a refresh lists the model, that an edit, an addition and a deletion change the model and mark
-the document once, that a refused or cancelled edit changes nothing, and that a rename keeps what refers to the entity.
+the panel. It checks that a refresh lists the model and, as far as the panel has them, that an edit, an addition and a
+deletion change the model and mark the document once, that a refused or cancelled edit changes nothing, and that a rename
+keeps what refers to the entity.
 The infrastructure facets have one test for each file of facets: `test_editor_infrastructure_topology`,
 `test_editor_infrastructure_blocks`, `test_editor_infrastructure_stations` and `test_editor_infrastructure_signals`.
 `test_editor_infrastructure` checks the panel itself with facets of its own.
