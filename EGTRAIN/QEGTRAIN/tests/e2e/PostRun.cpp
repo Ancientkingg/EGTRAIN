@@ -7,6 +7,7 @@
 #include "diagrams/AreaCapacityWindow.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
+#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RouteReferenceChoice.h"
 #include "diagrams/RunExports.h"
@@ -462,6 +463,14 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			ok &= exportWindow(delay, dir, "delay_diagram", dump);
 			if (delay)
 				delay->close();
+			// The Calls tab of the delay analysis. A run with no timetable row has nothing to export.
+			DelayAnalysisWindow* analysis = w.openDelayAnalysis();
+			ok &= analysis != nullptr;
+			if (analysis) {
+				if (!w.m_completedRun->timetable.empty())
+					ok &= analysis->exportCsvTo(dir + "/delay_analysis.csv");
+				analysis->close();
+			}
 			// The four per-train diagrams share one export, so the CSV of the first stands for all.
 			const char* const perTrainNames[] = {"speed_distance", "speed_time", "time_distance", "effort_distance"};
 			for (int mode = 0; mode < 4; ++mode) {

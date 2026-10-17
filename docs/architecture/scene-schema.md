@@ -414,25 +414,28 @@ An occurrence-specific reduced-speed breakdown can instead be authored as:
 ### Delay comparison provenance
 
 The results UI can freeze a completed incident-free, no-entrance-delay run as
-the delay baseline. A comparison run must contain incidents, no entrance
-delays, and the same scene revision, base time, duration, timestep, and full
-selected `(service_id, occurrence)` identity set; its scenario ID must differ
-from the baseline. Baseline and scenario results are value snapshots, not
-runtime train pointers.
+the delay baseline. The delay analysis window compares a later run with it when
+the two runs have different scenario IDs, the same scene revision, base time,
+duration, timestep, and full selected `(service_id, occurrence)` identity set,
+and the same calls for each occurrence. The compared run may have incidents,
+entrance delays, or both. Baseline and scenario results are value snapshots,
+not runtime train pointers. When the runs cannot be compared, the window lists
+every reason.
 
-For each occurrence, final arrival is the simulated arrival at its last
-authored timetable station and call. Baseline and scenario must use the same
-endpoint and both arrivals must be available; otherwise comparison is rejected.
-Only positive `scenario - baseline` values are rows, and their exact sum is
-the total arrival delay. A positive row is `primary` only when the scenario
-occurrence has direct runtime evidence (incident ID plus first direct time and
-location); otherwise it is `secondary`. No attribution is inferred from a
-timetable difference alone. A comparison is rejected when the incident run
-has no direct evidence anywhere. Signal-failure evidence is direct only when
-the train stops at an active `SignalFailure` EoA, or stands at a red aspect
-before the failed section that is next on its route; a breakdown hold or
-applied speed cap is direct evidence. Destination request and termination
-outcome are reported with each row.
+For each call, the window reports `scenario - baseline` of the simulated arrival
+and of the simulated departure. A difference that cannot be computed is not
+available, never 0. For each occurrence, final arrival is the simulated arrival
+at its last authored timetable station and call. The totals add the final
+arrival differences, as a sum of the positive ones and as a net sum, and say
+when an occurrence has no difference. The entrance delay of the scenario is
+shown as the input delay of the occurrence. An occurrence has direct runtime
+evidence when the scenario run recorded an incident ID for it (with a first
+direct time and location); the window shows that evidence, or that none was
+recorded, and infers no attribution from a timetable difference alone. Signal-failure
+evidence is direct only when the train stops at an active `SignalFailure` EoA,
+or stands at a red aspect before the failed section that is next on its route;
+a breakdown hold or applied speed cap is direct evidence. The destination
+request and termination outcome of each train are in `run_summary.csv`.
 
 ## `passengers.json`
 

@@ -228,17 +228,16 @@ If no scenario file is supplied, the loader creates a baseline; the historical
 flat incident file is read into that baseline.
 
 The current results UI can freeze an incident-free, no-entrance-delay run with
-**Set delay baseline**. An incident comparison must have incidents and no
-entrance delays, different scenario IDs, and matching scene revision, base
+**Set delay baseline**. A comparison run may have incidents, entrance delays,
+or both. It needs different scenario IDs, and matching scene revision, base
 time, duration, timestep, and selected `(service_id, occurrence)` identities.
 Final arrival is the simulated arrival at the last authored timetable station
-and call. The endpoint must match and be available in both runs. Only positive
-scenario-minus-baseline contributions are included, and their exact sum is the
-total delay. A positive row is `primary` only when that occurrence has direct
-runtime incident evidence; otherwise it is `secondary`. Timetable differences
-alone never establish causality, and comparison is rejected if the incident
-run has no direct evidence anywhere. The table/CSV includes incident IDs,
-first direct time/location, and destination termination outcome.
+and call. The delay analysis window shows the scenario-minus-baseline
+difference of every call and the sum of the final arrival differences. An
+entrance delay is shown as the input delay of its occurrence. The window shows
+whether the run recorded direct runtime incident evidence for an occurrence.
+Timetable differences alone never establish causality. The CSV includes the
+incident IDs of each occurrence.
 
 ## Passengers
 

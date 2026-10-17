@@ -691,6 +691,14 @@ std::string DelayAnalysisWindow::currentCsv() const {
 	return std::string();
 }
 
+void DelayAnalysisWindow::showBaselineTab() {
+	m_tabs->setCurrentIndex(kBaselineTab);
+}
+
+QString DelayAnalysisWindow::suggestedFileName() const {
+	return m_tabs->currentIndex() == kBaselineTab ? QStringLiteral("delay_comparison.csv") : QStringLiteral("delay_analysis.csv");
+}
+
 bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
 	const std::string content = currentCsv();
 	if (content.empty())
@@ -702,7 +710,7 @@ bool DelayAnalysisWindow::exportCsvTo(const QString& path) const {
 
 void DelayAnalysisWindow::exportCsv() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("delay_analysis.csv"), "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath(suggestedFileName()), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)

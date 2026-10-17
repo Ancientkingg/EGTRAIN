@@ -78,7 +78,7 @@ A scenario is a named set of incidents and entrance delays; a case study can hol
 
 ### Baseline
 
-The word baseline has two meanings. The baseline scenario has the ID `baseline` and the name "Baseline"; a new case study starts with it, with no incidents and no entrance delays, and loading a scene without `scenarios.json` creates a scenario with that ID and name. The delay baseline is a completed run without incidents and entrance delays that you freeze with **Set delay baseline** in the dock **Run Results**, so that **Compare delays** can compare a later run with incidents against it. An edit of the case, creating a case study and opening another one clear the delay baseline, and selecting another scenario does not ([delay comparison against a baseline](delay-analysis.md#delay-comparison-against-a-baseline)).
+The word baseline has two meanings. The baseline scenario has the ID `baseline` and the name "Baseline"; a new case study starts with it, with no incidents and no entrance delays, and loading a scene without `scenarios.json` creates a scenario with that ID and name. The delay baseline is a completed run without incidents and entrance delays that you freeze with **Set delay baseline** in the dock **Run Results**, so that **Compare delays** can compare a later run with incidents or entrance delays against it. An edit of the case, creating a case study and opening another one clear the delay baseline, and selecting another scenario does not ([delay comparison against a baseline](delay-analysis.md#delay-comparison-against-a-baseline)).
 
 ### Incident
 
@@ -86,7 +86,7 @@ An incident is a disturbance in a scenario. In the dock **Incidents** the tab **
 
 ### Entrance delay
 
-An entrance delay is a number of seconds that a scenario adds to the planned departure of the named stop of one occurrence of a service. Planned arrivals stay as authored. It is an input of a scenario, not a result, and **Compare delays** refuses a scenario that has one. You meet it on the tab **Entrance Delays** of the dock **Incidents**, with the fields **Service**, **Occurrence**, **Station** and **Delay (s)** ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
+An entrance delay is a number of seconds that a scenario adds to the planned departure of the named stop of one occurrence of a service. Planned arrivals stay as authored. It is an input of a scenario, not a result, and **Compare delays** shows it as the input delay of the occurrence. You meet it on the tab **Entrance Delays** of the dock **Incidents**, with the fields **Service**, **Occurrence**, **Station** and **Delay (s)** ([units and the reference timetable](delay-analysis.md#units-and-the-reference-timetable)).
 
 ## Services, timetables and rolling stock
 
@@ -188,7 +188,7 @@ Blocking time is the time that the program calculates for a train on a block: an
 
 ### Delay
 
-A delay is, in the timetable results, the simulated time minus the planned time, in seconds and signed, so that early is negative. The program has no delay analysis window: delay figures appear in the timetable results (**Diagrams > Timetable table (planned vs simulated)...**, **Diagrams > Train delays...**), in the station statistics files, in the comparison against a delay baseline and in the passenger journey delay, and they are different quantities. An entrance delay is an input, not a delay result. See [what this guide covers](delay-analysis.md#what-this-guide-covers) and [where delays are calculated](delay-analysis.md#where-delays-are-calculated).
+A delay is, in the timetable results, the simulated time minus the planned time, in seconds and signed, so that early is negative. The Delay analysis window (**Diagrams > Delay analysis...**) shows the delay of each call, a summary and the comparison against a delay baseline. Delay figures also appear in the timetable results (**Diagrams > Timetable table (planned vs simulated)...**, **Diagrams > Train delays...**), in the station statistics files, in the comparison against a delay baseline and in the passenger journey delay, and they are different quantities. An entrance delay is an input, not a delay result. See [what this guide covers](delay-analysis.md#what-this-guide-covers) and [where delays are calculated](delay-analysis.md#where-delays-are-calculated).
 
 ### Capacity analysis
 

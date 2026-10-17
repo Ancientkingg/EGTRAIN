@@ -557,6 +557,20 @@ bool exerciseNoBaseline() {
 	return ok;
 }
 
+bool exerciseOpeningTab() {
+	DelayAnalysisWindow window = levelZeroWindow();
+	window.show();
+	QApplication::processEvents();
+	bool ok = expect(tabs(window)->currentIndex() == 0 && window.suggestedFileName() == "delay_analysis.csv",
+		"the window opens on the Calls tab and offers delay_analysis.csv");
+	window.showBaselineTab();
+	ok &= expect(tabs(window)->currentIndex() == 2 && window.suggestedFileName() == "delay_comparison.csv",
+		"showBaselineTab selects Against baseline, which offers delay_comparison.csv");
+	showTab(window, 1);
+	ok &= expect(window.suggestedFileName() == "delay_analysis.csv", "the Summary tab offers delay_analysis.csv");
+	return ok;
+}
+
 bool exerciseWords() {
 	const DelayDiagnosticKind kinds[] = {DelayDiagnosticKind::ScenarioIdMissing, DelayDiagnosticKind::ScenarioIdsEqual,
 		DelayDiagnosticKind::SceneRevisionDiffers, DelayDiagnosticKind::BaseTimeDiffers, DelayDiagnosticKind::DurationDiffers,
@@ -749,6 +763,7 @@ int main(int argc, char** argv) {
 	ok &= exerciseMissingCall();
 	ok &= exerciseIncompatible();
 	ok &= exerciseNoBaseline();
+	ok &= exerciseOpeningTab();
 	ok &= exerciseWords();
 	ok &= exerciseExport();
 	if (ok)

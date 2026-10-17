@@ -43,6 +43,7 @@
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
+#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
@@ -636,32 +637,6 @@ QStringList blockingTimeTrainIds(const std::vector<BlockingTimeDiagramSegment>& 
 		if (!row.empty()) add(row.front());
 	for (const auto& segment : unmapped) add(segment.trainName);
 	return ids;
-}
-
-std::string delayComparisonCsv(const DelayRunSnapshot& baseline,
-	const DelayRunSnapshot& scenario, const DelayComparisonResult& comparison) {
-	std::vector<std::vector<std::string>> rows;
-	for (const DelayComparisonRow& row : comparison.rows) {
-		rows.push_back({baseline.scenarioId,
-			scenario.scenarioId,
-			baseline.caseRevision,
-			row.serviceId,
-			std::to_string(row.occurrence),
-			row.operatingCode,
-			csvValue(row.baselineFinalArrival),
-			csvValue(row.scenarioFinalArrival),
-			csvValue(row.positiveContribution),
-			row.attribution,
-			joinIncidentIds(row.incidentIds),
-			csvValue(row.firstDirectTime),
-			csvValue(row.firstDirectLocation),
-			terminationOutcome(row.destinationTerminationRequested, row.destinationTerminated)});
-	}
-	return csv::makeDocument(
-		{"Baseline scenario", "Scenario", "Case revision", "Service", "Occurrence", "Operating code",
-			"Baseline final arrival[s]", "Scenario final arrival[s]", "Positive contribution[s]",
-			"Attribution", "Incident IDs", "First direct time[s]", "First direct location[m]", "Termination outcome"},
-		rows);
 }
 
 // Prompt for a path and write CSV text atomically. A cancelled dialog or a write
@@ -2195,6 +2170,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_diagramsMenu->addAction("Capacity by area...", this, &MainWindow::showAreaCapacity);
 	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", this, &MainWindow::showTimetableTable);
 	m_diagramsMenu->addAction("Train delays...", this, &MainWindow::showDelayDiagram);
+	m_diagramsMenu->addAction("Delay analysis...", this, &MainWindow::showDelayAnalysis);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
 	ui->displayTrainPathDiagrams->setText("Train paths (simulated movement)...");
@@ -6950,7 +6926,7 @@ void MainWindow::updateDiagramActions() {
 	const bool canSetBaseline = available && !current.scenarioId.empty()
 		&& !current.hasIncidents && !current.hasEntranceDelays;
 	const bool canCompare = available && m_delayBaseline.has_value()
-		&& current.hasIncidents && !current.hasEntranceDelays;
+		&& (current.hasIncidents || current.hasEntranceDelays);
 	if (m_setDelayBaselineButton) {
 		m_setDelayBaselineButton->setEnabled(canSetBaseline);
 		m_setDelayBaselineButton->setToolTip(canSetBaseline
@@ -6960,8 +6936,8 @@ void MainWindow::updateDiagramActions() {
 	if (m_compareDelayButton) {
 		m_compareDelayButton->setEnabled(canCompare);
 		m_compareDelayButton->setToolTip(canCompare
-				? QStringLiteral("Compare the completed incident run with the frozen delay baseline")
-				: QStringLiteral("Run a completed incident scenario without entrance delays after setting a baseline"));
+				? QStringLiteral("Compare the completed run with the frozen delay baseline")
+				: QStringLiteral("Run a completed scenario with incidents or entrance delays after setting a baseline"));
 	}
 
 	QString feedback;
@@ -6986,13 +6962,10 @@ void MainWindow::updateDiagramActions() {
 						   .arg(completedRunContext(current.provenance));
 		}
 	} else if (canCompare) {
-		feedback = QStringLiteral("Baseline: %1. Compare the completed incident scenario; the metric is positive additional final-arrival delay.")
+		feedback = QStringLiteral("Baseline: %1. Compare delays shows the additional delay of each call against it.")
 					   .arg(completedRunContext(m_delayBaseline->provenance));
-	} else if (current.hasEntranceDelays) {
-		feedback = QStringLiteral("Baseline: %1. Comparison requires a completed incident scenario with no entrance delays.")
-					   .arg(completedRunContext(m_delayBaseline->provenance));
-	} else if (!current.hasIncidents) {
-		feedback = QStringLiteral("Baseline: %1. Run an incident scenario without entrance delays, then compare.")
+	} else {
+		feedback = QStringLiteral("Baseline: %1. Run a scenario with incidents or entrance delays, then compare.")
 					   .arg(completedRunContext(m_delayBaseline->provenance));
 	}
 	if (!current.scenarioId.empty() && !m_runSelection.scenarioId().empty()
@@ -7344,93 +7317,32 @@ void MainWindow::setDelayBaseline() {
 		return;
 	}
 	m_delayBaseline = snapshot;
-	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed incident scenario without entrance delays.")
+	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed scenario that has incidents or entrance delays.")
 								.arg(completedRunContext(snapshot.provenance));
 	statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
 	refreshRunResults();
 	updateDiagramActions();
 }
 
-void MainWindow::showDelayComparison() {
-	if (!m_delayBaseline) {
-		QMessageBox::warning(this, "Delay comparison unavailable",
-			"Set a delay baseline from a run with no incidents or entrance delays first.");
-		return;
+DelayAnalysisWindow* MainWindow::openDelayAnalysis() {
+	if (!hasRunResults()) {
+		statusBar()->showMessage("Run a simulation to open the delay analysis", 5000);
+		return nullptr;
 	}
-	const DelayRunSnapshot scenario = completedDelaySnapshot();
-	const DelayComparisonResult comparison = compareDelayRuns(*m_delayBaseline, scenario);
-	if (!comparison.valid) {
-		QMessageBox::warning(this, "Delay comparison rejected", QString::fromStdString(comparison.diagnostic));
-		return;
-	}
+	auto* window = new DelayAnalysisWindow(completedDelaySnapshot(), m_delayBaseline, this);
+	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
+	window->setAttribute(Qt::WA_DeleteOnClose);
+	window->show();
+	return window;
+}
 
-	QDialog dialog(this);
-	dialog.setWindowTitle("Incident delay comparison");
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-	const QString resultSummary = comparison.rows.empty()
-		? QStringLiteral("Success: zero positive additional final-arrival delay.")
-		: QString("Positive additional final-arrival delay: %1 s")
-			  .arg(comparison.totalArrivalDelay.available
-					  ? QString::number(comparison.totalArrivalDelay.value, 'g', 12)
-					  : QStringLiteral("-"));
-	QTableWidget* table = new QTableWidget(body);
-	table->setObjectName("delayComparisonTable");
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	table->setSelectionBehavior(QAbstractItemView::SelectRows);
-	table->setColumnCount(13);
-	table->setHorizontalHeaderLabels({"Service", "Occurrence", "Operating code", "Baseline final arrival", "Scenario final arrival",
-		"Positive delay", "Attribution", "Incident IDs", "First direct time", "First direct location",
-		"Termination requested", "Terminated", "Baseline / scenario"});
-	table->setRowCount(static_cast<int>(comparison.rows.size()));
-	const auto valueText = [](const RunResultValue& value) {
-		return value.available ? QString::number(value.value, 'g', 12) : QStringLiteral("-");
-	};
-	for (int index = 0; index < static_cast<int>(comparison.rows.size()); ++index) {
-		const DelayComparisonRow& row = comparison.rows[static_cast<std::size_t>(index)];
-		table->setItem(index, 0, new QTableWidgetItem(QString::fromStdString(row.serviceId)));
-		table->setItem(index, 1, new QTableWidgetItem(QString::number(row.occurrence)));
-		table->setItem(index, 2, new QTableWidgetItem(QString::fromStdString(row.operatingCode)));
-		table->setItem(index, 3, new QTableWidgetItem(valueText(row.baselineFinalArrival)));
-		table->setItem(index, 4, new QTableWidgetItem(valueText(row.scenarioFinalArrival)));
-		table->setItem(index, 5, new QTableWidgetItem(valueText(row.positiveContribution)));
-		table->setItem(index, 6, new QTableWidgetItem(QString::fromStdString(row.attribution)));
-		table->setItem(index, 7, new QTableWidgetItem(QString::fromStdString(joinIncidentIds(row.incidentIds))));
-		table->setItem(index, 8, new QTableWidgetItem(valueText(row.firstDirectTime)));
-		table->setItem(index, 9, new QTableWidgetItem(valueText(row.firstDirectLocation)));
-		table->setItem(index, 10, new QTableWidgetItem(row.destinationTerminationRequested ? "yes" : "no"));
-		table->setItem(index, 11, new QTableWidgetItem(row.destinationTerminated ? "yes" : "no"));
-		table->setItem(index, 12,
-			new QTableWidgetItem(
-				QString("%1 / %2")
-					.arg(QString::fromStdString(m_delayBaseline->scenarioId), QString::fromStdString(scenario.scenarioId))));
-	}
-	table->resizeColumnsToContents();
-	layout->addWidget(table, 1);
-	QHBoxLayout* actions = new QHBoxLayout();
-	QPushButton* exportButton = new QPushButton("Export CSV...", body);
-	exportButton->setObjectName("delayComparisonExportCsvButton");
-	const RunProvenance baselineProvenance = m_delayBaseline->provenance;
-	const RunProvenance scenarioProvenance = scenario.provenance;
-	connect(exportButton, &QPushButton::clicked, &dialog, [this, scenario, comparison, baselineProvenance, scenarioProvenance]() {
-		const auto operation = captureTelemetryOperation();
-		saveCsvInteractive(
-			this, "delay_comparison.csv", operation,
-			[this, scenario, comparison] { return delayComparisonCsv(*m_delayBaseline, scenario, comparison); },
-			[baselineProvenance, scenarioProvenance](const QString& path, const std::string& bytes) {
-				return writeDelayArtifactWithProvenance(path.toStdString(), "csv", bytes,
-					baselineProvenance, scenarioProvenance);
-			});
-	});
-	actions->addWidget(exportButton);
-	layout->addLayout(actions);
-	QDialogButtonBox* closeButtons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
-	connect(closeButtons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	DialogLayout::install(dialog, resultSummary,
-		QString("Baseline: %1\nIncident run: %2")
-			.arg(completedRunContext(m_delayBaseline->provenance), completedRunContext(scenario.provenance)),
-		body, closeButtons);
-	dialog.exec();
+void MainWindow::showDelayAnalysis() {
+	openDelayAnalysis();
+}
+
+void MainWindow::showDelayComparison() {
+	if (DelayAnalysisWindow* window = openDelayAnalysis())
+		window->showBaselineTab();
 }
 
 // starts EGTRAIN simulation on a worker thread
@@ -7948,6 +7860,7 @@ void MainWindow::setupRunResultsDock() {
 	addResultViewAction("Timetable", &MainWindow::showTimetableTable);
 	addResultViewAction("Timetable graph (planned vs simulated stops)", &MainWindow::showTimetableGraph);
 	addResultViewAction("Delays", &MainWindow::showDelayDiagram);
+	addResultViewAction("Delay analysis", &MainWindow::showDelayAnalysis);
 	resultMenu->addSeparator();
 	addResultViewAction("Speed / distance", &MainWindow::showSpeedDistanceDiagram);
 	addResultViewAction("Speed / time", &MainWindow::showSpeedTimeDiagram);
@@ -8013,7 +7926,7 @@ void MainWindow::setupRunResultsDock() {
 	delayRow->addWidget(m_setDelayBaselineButton);
 	m_compareDelayButton = new QPushButton("Compare delays", container);
 	m_compareDelayButton->setObjectName("compareDelayButton");
-	m_compareDelayButton->setToolTip("Compare the completed incident run with the frozen delay baseline");
+	m_compareDelayButton->setToolTip("Compare the completed run with the frozen delay baseline");
 	connect(m_compareDelayButton, &QPushButton::clicked, this, &MainWindow::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
@@ -8104,11 +8017,8 @@ void MainWindow::refreshRunResults() {
 void MainWindow::refreshRunResultsSummary() {
 	if (!m_runResultsSummaryLabel || !m_completedRun || m_completedRun->results.trains.empty())
 		return;
-	int directEvidenceCount = 0;
 	int destinationTerminationCount = 0;
 	for (const TrainRunResult& result : m_completedRun->results.trains) {
-		if (!result.directIncidentIds.empty())
-			++directEvidenceCount;
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
@@ -8117,8 +8027,8 @@ void MainWindow::refreshRunResultsSummary() {
 						  .arg(m_lastRunSelectedOccurrences)
 						  .arg(m_lastRunTotalOccurrences);
 	if (advancedDetailsEnabled()) {
-		summary += QString(" | Direct incident evidence: %1 | Destination terminations: %2")
-					   .arg(directEvidenceCount)
+		summary += QString(" | %1 | Destination terminations: %2")
+					   .arg(QString::fromStdString(directIncidentEvidenceText(m_completedRun->results)))
 					   .arg(destinationTerminationCount);
 	}
 	if (m_delayBaseline)

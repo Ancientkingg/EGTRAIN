@@ -49,6 +49,11 @@ public:
 	// `baseline` is the baseline run when one is set. The Against baseline tab compares it with `scenario`.
 	DelayAnalysisWindow(DelayRunSnapshot scenario, std::optional<DelayRunSnapshot> baseline, QWidget* parent = nullptr);
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
+	// Shows the Against baseline tab. The window opens on the Calls tab.
+	void showBaselineTab();
+	// The file name that the export offers for the visible tab: delay_comparison.csv for Against baseline,
+	// else delay_analysis.csv.
+	QString suggestedFileName() const;
 	// Writes the visible tab, for the occurrences, stations and events that are selected, and the provenance sidecar.
 	// The Against baseline tab writes the provenance of both runs. False when the tab has no row or a write fails.
 	bool exportCsvTo(const QString& path) const;

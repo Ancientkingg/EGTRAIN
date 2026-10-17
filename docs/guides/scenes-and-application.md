@@ -268,18 +268,17 @@ places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline but reports that the newly
 selected scenario has not been run; a canonical scene edit, **New**, or
 **Open** clears the baseline and explains that a new run without incidents or entrance delays is
-needed. **Compare delays** requires an incident run with no entrance delays and
+needed. **Compare delays** requires a run with incidents or entrance delays and
 matching scene revision, base time, duration, timestep, and full selected
-`(service_id, occurrence)` identity set. The compact table and CSV show
-baseline/scenario identities, matching final authored timetable arrivals,
-positive contribution, primary/secondary attribution, incident IDs, first
-direct time/location, and destination-termination outcome. Primary means direct
-runtime evidence exists for that occurrence; secondary means it does not.
-Timetable differences alone are never treated as causal, and a comparison with
-no direct evidence anywhere is rejected with a diagnostic. A valid comparison
-with zero positive rows is still a success and is labelled **zero positive
-additional final-arrival delay**; positive contribution rows otherwise sum
-exactly to total arrival delay.
+`(service_id, occurrence)` identity set. It opens the delay analysis window on
+its tab Against baseline. The tab shows, for each call, the baseline and
+scenario arrival and departure and their difference, and for each occurrence the
+input delay, whether direct runtime evidence was recorded, and the difference at
+the final arrival. The totals add the final arrival differences and count the
+occurrences that are later, the same or earlier. A difference that cannot be
+computed is not available, never 0. Timetable differences alone are never
+treated as causal, and a run without direct evidence is still compared. When the
+runs do not match, the tab lists each reason.
 
 ### Timetable graphs and train paths
 
