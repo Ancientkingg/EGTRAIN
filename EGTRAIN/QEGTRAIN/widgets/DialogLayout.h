@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QAbstractButton>
 #include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -21,7 +22,8 @@ namespace DialogLayout {
 // Transfers body and actions to dialog. The caller owns button roles, connections,
 // validation, default action and any changes to application state. The combo boxes and spin
 // boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
-// the body.
+// the body. The footer buttons are styled again, because the caller named them and made one
+// the default after they were built, and a style cached by then misses the rules that name it.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
 	QDialogButtonBox* actions,
@@ -86,6 +88,10 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		});
 	layout->addWidget(scroll, 1);
 	layout->addWidget(actions);
+	for (QAbstractButton* button : actions->buttons()) {
+		button->style()->unpolish(button);
+		button->style()->polish(button);
+	}
 
 	// The scroll viewport, not its content, determines the dialog's minimum size.
 	// Reserve room for window decorations and keep the footer outside the viewport.
