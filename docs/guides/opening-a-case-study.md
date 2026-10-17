@@ -9,18 +9,11 @@ run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 ## Open and run
 
-1. Download the case-study `.egscene` file from the
-   [EGTRAIN releases page](https://github.com/Ancientkingg/EGTRAIN/releases).
-2. In EGTRAIN, choose **File > Open Case Study...** and select the file. On
-   Windows and macOS you can instead
-   [double-click the file](#open-by-double-click).
+The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file, or [double-click it](#open-by-double-click) on Windows and macOS.
 
-   ![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
+![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
 
-3. The loaded network appears in the main window before the simulation
-   starts.
-
-   ![The Paimpol network loaded and ready to run](../images/opening-a-case-study-loaded-network.png)
+![The Paimpol network loaded and ready to run](../images/opening-a-case-study-loaded-network.png)
 
 Opening a bundle does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use

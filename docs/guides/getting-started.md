@@ -4,6 +4,8 @@ This page takes you from a download to a finished run of the Paimpol case study,
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key.
 
+This walk was done on macOS. The Windows and Linux windows use the same labels but were not walked. Their install steps and folder paths come from the README and from the code, and were not tried.
+
 ## Three things to keep apart
 
 - **The case** is the input: the network, the rolling stock, the services and the scenario. Opening a case does not change it, and a run does not change it. Only your edits do, and only a save writes them.

@@ -5,6 +5,7 @@ Short recipes for the common tasks. Each says what you need, what to do and what
 - [Open a case](#open-a-case)
 - [Copy and save a case](#copy-and-save-a-case)
 - [Fix validation errors](#fix-validation-errors)
+- [Run a case](#run-a-case)
 - [Answer the unsaved changes question](#answer-the-unsaved-changes-question)
 - [Edit a timetable stop](#edit-a-timetable-stop)
 - [Edit rolling stock](#edit-rolling-stock)
@@ -25,7 +26,7 @@ Use one of these:
 - Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu reads `No Recent Scenes` while it is empty.
+- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
@@ -53,6 +54,17 @@ Other ways to save:
 - A destination inside the installation is refused with **Cannot Save Scene**: `Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
 To check a saved case, open it again from **File > Recent Scenes**. The three save commands are enabled whenever a case is open, also during a run.
+
+## Run a case
+
+You need an open case with no validation error. [Getting started](getting-started.md#4-run-the-simulation) walks through a first run.
+
+1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R).
+2. Read the dialog **Run simulation** and click **Run simulation**. **Cancel** returns to the window without a run.
+
+The trains move on the network view, and the status bar reads `Running scene: <case name>`. **Pause** and **Stop** are in the toolbar.
+
+The command **Simulation > Start Time** opens a dialog for the start clock, but a run takes its start clock from the base time of the case, so the command does not change the run.
 
 ## Fix validation errors
 
@@ -91,6 +103,8 @@ You need an open case that you have copied ([Copy and save a case](#copy-and-sav
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
 
 The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up** and **Move Down** change the list of stops. After an edit the validation runs again, and the results, the replay and the delay baseline are discarded. Run again to see the effect. **Edit > Undo** reverts the edit. The rules for the times, the platforms and the insert positions are in [Edit and validate](scenes-and-application.md#edit-and-validate).
+
+For the whole exercise of changing a copy, saving it, opening it again, validating it and running it while the original stays as it was, follow the [tutorial](tutorial-modify-a-case.md).
 
 ## Edit rolling stock
 
@@ -170,8 +184,8 @@ Delay figures are explained in [How delays are calculated](delay-analysis.md), c
 
 A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new scene folder and leaves the source unchanged.
 
-1. Choose **File > Load Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. The chooser first asks `Choose the original text-input folder, then a folder for the converted scene. Continue?`
-2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Scene Destination**. The destination must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. EGTRAIN asks about unsaved edits first.
+1. Choose **File > Load Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. The chooser in **Open a Case** first asks `Choose the original text-input folder, then a folder for the converted scene. Continue?` The menu entry goes straight to the folder dialogs.
+2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Scene Destination**. The destination must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
 3. Read **Legacy Import Diagnostics**, which counts errors and warnings and shows the first findings. The converted scene then opens. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
 
 From a terminal:
