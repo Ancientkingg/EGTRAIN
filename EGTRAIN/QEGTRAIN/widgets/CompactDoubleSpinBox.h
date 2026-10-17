@@ -5,11 +5,17 @@
 #include <QLineEdit>
 #include <limits>
 
+#include "widgets/FocusWheel.h"
+
 // Compact when browsing, full precision when editing. Merely visiting a field
-// must not commit its rounded display representation to the canonical model.
+// must not commit its rounded display representation to the canonical model. The wheel changes the value
+// only while the field has keyboard focus.
 class CompactDoubleSpinBox : public QDoubleSpinBox {
 public:
-	using QDoubleSpinBox::QDoubleSpinBox;
+	explicit CompactDoubleSpinBox(QWidget* parent = nullptr)
+		: QDoubleSpinBox(parent) {
+		FocusWheel::guard(this);
+	}
 
 	QString textFromValue(double value) const override {
 		return QString::number(value, 'g', hasFocus() ? std::numeric_limits<double>::max_digits10 : 6);

@@ -14,10 +14,14 @@
 #include <QVBoxLayout>
 #include <QtGlobal>
 
+#include "widgets/FocusWheel.h"
+
 namespace DialogLayout {
 
 // Transfers body and actions to dialog. The caller owns button roles, connections,
-// validation, default action and any changes to application state.
+// validation, default action and any changes to application state. The combo boxes and spin
+// boxes in body change with the mouse wheel only while they have focus, so the wheel scrolls
+// the body.
 inline QScrollArea* install(QDialog& dialog, const QString& heading,
 	const QString& context, QWidget* body,
 	QDialogButtonBox* actions,
@@ -67,6 +71,7 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		contentLayout->addWidget(subtitle);
 	}
 	contentLayout->addWidget(body);
+	FocusWheel::guardAll(body);
 
 	auto* scroll = new QScrollArea(&dialog);
 	scroll->setObjectName(QStringLiteral("dialogBodyScroll"));

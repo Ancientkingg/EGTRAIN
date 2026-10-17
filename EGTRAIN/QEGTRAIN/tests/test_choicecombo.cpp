@@ -1,10 +1,13 @@
 #include "widgets/ChoiceComboBox.h"
+#include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
 
 #include <QAbstractItemView>
+#include <QAbstractSpinBox>
 #include <QApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDoubleSpinBox>
 #include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -14,6 +17,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QWheelEvent>
 #include <QToolTip>
 
 #include <algorithm>
@@ -228,6 +232,92 @@ bool exerciseInvalidChoice() {
 	}
 	return ok;
 }
+// Turns the wheel one step down over target. A widget that ignores a wheel event passes it on to its parent, so the
+// event goes up the parents until one accepts it.
+void wheelDown(QWidget* target) {
+	const QPoint center = target->rect().center();
+	for (QWidget* receiver = target; receiver; receiver = receiver->parentWidget()) {
+		const QPoint local = target->mapTo(receiver, center);
+		QWheelEvent wheel(QPointF(local), QPointF(target->mapToGlobal(center)), QPoint(), QPoint(0, -120), Qt::NoButton, Qt::NoModifier,
+			Qt::NoScrollPhase, false);
+		QApplication::sendEvent(receiver, &wheel);
+		if (wheel.isAccepted())
+			break;
+	}
+	QApplication::processEvents();
+}
+
+// A tall form whose scroll area has room to scroll, with one field of each kind that offers a value to the wheel.
+struct WheelForm {
+	QDialog dialog;
+	ChoiceComboBox* choice = nullptr;
+	QComboBox* plain = nullptr;
+	CompactDoubleSpinBox* compact = nullptr;
+	QDoubleSpinBox* spin = nullptr;
+	QScrollArea* scroll = nullptr;
+
+	WheelForm() {
+		auto* body = new QWidget;
+		auto* form = new QFormLayout(body);
+		choice = new ChoiceComboBox(body);
+		plain = new QComboBox(body);
+		for (const QString& entry : {QStringLiteral("first"), QStringLiteral("second"), QStringLiteral("third")}) {
+			choice->addItem(entry);
+			plain->addItem(entry);
+		}
+		compact = new CompactDoubleSpinBox(body);
+		compact->setRange(0, 100);
+		compact->setValue(50);
+		spin = new QDoubleSpinBox(body);
+		spin->setRange(0, 100);
+		spin->setValue(50);
+		form->addRow(QStringLiteral("Choice"), choice);
+		form->addRow(QStringLiteral("Plain choice"), plain);
+		form->addRow(QStringLiteral("Compact number"), compact);
+		form->addRow(QStringLiteral("Number"), spin);
+		for (int row = 0; row < 40; ++row)
+			form->addRow(QStringLiteral("Line %1").arg(row), new QLineEdit(body));
+		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		scroll = DialogLayout::install(dialog, QStringLiteral("Wheel"), QString(), body, buttons, QRect(0, 0, 1280, 600));
+		dialog.show();
+		QApplication::setActiveWindow(&dialog);
+		QApplication::processEvents();
+	}
+
+	// The fields with the values that a wheel step would change.
+	QList<QWidget*> fields() const { return {choice, plain, compact, spin}; }
+	QString value(QWidget* field) const {
+		if (auto* combo = qobject_cast<QComboBox*>(field))
+			return combo->currentText();
+		return qobject_cast<QAbstractSpinBox*>(field)->text();
+	}
+};
+
+// The wheel scrolls a form over a combo box or a spin box without changing it, until the field has keyboard focus.
+bool exerciseWheel() {
+	WheelForm f;
+	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, "the wheel form does not scroll, so the test proves nothing");
+	for (QWidget* field : f.fields()) {
+		const QString name = field->metaObject()->className();
+		const QString before = f.value(field);
+		f.scroll->verticalScrollBar()->setValue(0);
+		wheelDown(field);
+		ok &= check(f.value(field) == before, qPrintable(name + ": the wheel changed a field without focus"));
+		ok &= check(f.scroll->verticalScrollBar()->value() > 0, qPrintable(name + ": the wheel over a field without focus did not scroll the form"));
+	}
+	for (QWidget* field : f.fields()) {
+		const QString name = field->metaObject()->className();
+		const QString before = f.value(field);
+		field->setFocus();
+		QApplication::processEvents();
+		ok &= check(field->hasFocus(), qPrintable(name + ": the field did not take focus, so the test proves nothing"));
+		f.scroll->verticalScrollBar()->setValue(0);
+		wheelDown(field);
+		ok &= check(f.value(field) != before, qPrintable(name + ": the wheel did not change a field with focus"));
+		ok &= check(f.scroll->verticalScrollBar()->value() == 0, qPrintable(name + ": the wheel over a field with focus scrolled the form"));
+	}
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -248,5 +338,6 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
-	return small && scaledSmall && large && selection && elision && invalid ? 0 : 1;
+	const bool wheel = exerciseWheel();
+	return small && scaledSmall && large && selection && elision && invalid && wheel ? 0 : 1;
 }
