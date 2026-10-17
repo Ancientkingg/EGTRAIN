@@ -34,9 +34,11 @@ report a scene that does not open:
   current case study from the releases page.
 - **Newer Scene**: the scene was saved with a newer EGTRAIN. Choose
   **Check for Updates...** to look for the newer release.
-- **Cannot Open Scene**: the version cannot be read, the file is not a valid
-  scene or bundle, or loading the scene reports errors. The message names the
-  first problem; keep it.
+- **Cannot Open Case Study**: the version cannot be read, the file is not a
+  valid scene or bundle, or loading the scene reports errors. The message gives
+  the file name and says that the file is damaged or is not an EGTRAIN case
+  study, and the first problem follows it; keep it. The same message appears
+  when EGTRAIN starts with that file.
 
 Scenes written by builds before 2026-08-08 use an older layout under the same
 version number. EGTRAIN recognises that draft layout, reports it in the

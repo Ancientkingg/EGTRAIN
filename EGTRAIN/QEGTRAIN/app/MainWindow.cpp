@@ -1,9 +1,12 @@
 #include "app/MainWindow.h"
+#include "app/CannotOpenMessage.h"
+#include "app/DialogFolders.h"
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/RunSelection.h"
 #include "app/OpenRequestRelay.h"
+#include "app/ReleaseNotesText.h"
 #include "app/ReplayCoverage.h"
 #include "app/RuntimeGeometryFromGlobals.h"
 #include "app/SceneOpenRequest.h"
@@ -682,7 +685,7 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 		QMessageBox::information(parent, "Nothing to export", "There is no data to export.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(parent, "Export Data", suggestedName, "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(parent, "Export Data", dialog_folders::suggestedPath(suggestedName), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
@@ -2785,7 +2788,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	if (compatibility.classification == SceneCompatibilityClass::Malformed) {
 		operation.failure(telemetry::Operation::SceneOpen, telemetryDiagnosticError(compatibility.diagnostics));
 		if (!noCompatibilityDialogs)
-			showBlockingError(this, "Cannot Open Scene", compatibilityMessage());
+			showBlockingError(this, cannot_open::title(), cannot_open::text(scenePath, compatibilityMessage()));
 		return false;
 	}
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
@@ -2808,7 +2811,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		if (message.isEmpty())
 			message = "Scene could not be opened.";
 		message += QString("\n\nError count: %1").arg(errorCount);
-		showBlockingError(this, "Cannot Open Scene", message);
+		showBlockingError(this, cannot_open::title(), cannot_open::text(scenePath, message));
 		return false;
 	}
 
@@ -2976,8 +2979,7 @@ bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& oper
 		return false;
 	commitPendingEditorValues();
 
-	const QString startPath = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
-																																 : (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absoluteFilePath());
+	const QString startPath = dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
 	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
 		"EGTRAIN Case Study (*.egscene)");
 	if (targetPath.isEmpty())
@@ -3008,8 +3010,7 @@ bool MainWindow::saveSceneAsToDirectory() {
 		return false;
 	commitPendingEditorValues();
 
-	const QString startDir = (m_sceneDir.isEmpty() || isInstalledScenePath(m_sceneDir, QCoreApplication::applicationDirPath())) ? QDir::homePath()
-																																: (QFileInfo(m_sceneDir).isDir() ? m_sceneDir : QFileInfo(m_sceneDir).absolutePath());
+	const QString startDir = dialog_folders::startFolder(m_sceneDir);
 	QString dir = QFileDialog::getExistingDirectory(this, "Save Scene As Folder", startDir);
 	if (dir.isEmpty())
 		return false;
@@ -3329,10 +3330,9 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
 		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
-	dialog.setInformativeText((release.notes.isEmpty()
-									  ? QStringLiteral("No release notes were provided.")
-									  : release.notes)
-		+ availability);
+	setMarkdownInformativeText(dialog,
+		(release.notes.isEmpty() ? QStringLiteral("No release notes were provided.") : releaseNotesMarkdown(release.notes))
+			+ availability);
 	QPushButton* updateButton = nullptr;
 	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
 		updateButton = dialog.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
@@ -7073,7 +7073,7 @@ void MainWindow::exportScenario() {
 	const SceneScenario* scenario = selectedScenario();
 	if (!scenario)
 		return;
-	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", scenarioContext() + ".json",
+	QString path = QFileDialog::getSaveFileName(this, "Export Scenario", dialog_folders::suggestedPath(scenarioContext() + ".json"),
 		"Scenario JSON (*.json)");
 	if (path.isEmpty())
 		return;
@@ -9596,7 +9596,7 @@ void MainWindow::setupRunResultsDock() {
 	exportPngBtn->setToolTip("Save the table as an image");
 	connect(exportPngBtn, &QPushButton::clicked, this, [this]() {
 		const auto operation = captureTelemetryOperation();
-		QString path = QFileDialog::getSaveFileName(this, "Export Table", "run_summary.png", "PNG Image (*.png)");
+		QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("run_summary.png"), "PNG Image (*.png)");
 		if (path.isEmpty())
 			return;
 		if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)

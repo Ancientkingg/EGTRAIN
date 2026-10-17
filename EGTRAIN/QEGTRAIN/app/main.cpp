@@ -1,4 +1,5 @@
 #include <QCoreApplication>
+#include "app/CannotOpenMessage.h"
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
@@ -251,12 +252,17 @@ void printSceneDiagnostics(const std::vector<SceneDiagnostic>& diagnostics) {
 }
 
 // A scene that cannot be opened is reported on standard error and, in a window launch that no
-// script started, in a message box.
-static void reportCannotOpen(const QString& what, const QString& reason, bool showBox) {
+// script started, in a message box. A scene that could not be read gets the message that the window shows for it;
+// a scene of another version or one that cannot run keeps the plain error.
+static void reportCannotOpen(const QString& what, const QString& reason, bool showBox, bool damaged = false) {
 	const QString message = QStringLiteral("Cannot open %1: %2").arg(what, reason);
 	std::cerr << "ERROR: " << message.toStdString() << '\n';
-	if (showBox && !updatesSuppressedByEnvironment())
-		QMessageBox::warning(nullptr, "Cannot Open Case Study", message);
+	if (!showBox || updatesSuppressedByEnvironment())
+		return;
+	if (damaged)
+		QMessageBox::critical(nullptr, cannot_open::title(), cannot_open::text(what, reason));
+	else
+		QMessageBox::warning(nullptr, cannot_open::title(), message);
 }
 
 // The scene that the command line names. The arguments come from the application object, not
@@ -363,14 +369,16 @@ int main(int argc, char* argv[]) {
 		if (relayAllowed && request.positional && QCoreApplication::arguments().size() == 2
 			&& OpenRequestRelay::forward(OpenRequestRelay::defaultServerName(), OpenRequestRelay::currentApplicationDir(), request.path))
 			return 0;
-		const auto preload = [&effectiveDurationOverride](const QString& path) {
+		bool loadFailed = false; // the last preload could not read the scene
+		const auto preload = [&effectiveDurationOverride, &loadFailed](const QString& path) {
 			const qint64 preloadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 			SceneLoadResult loaded = loadScenePath(path.toStdString());
 			if (startupTimingEnabled())
 				recordStartupTiming(QStringLiteral("canonical_load"), 0, -1,
 					startupTimingNowNanoseconds() - preloadStarted, QStringLiteral("startup_preload"),
 					QStringLiteral("main"), true);
-			if (!hasErrors(loaded.diagnostics)) {
+			loadFailed = hasErrors(loaded.diagnostics);
+			if (!loadFailed) {
 				const std::vector<SceneDiagnostic> runnable = validateRunnableScene(loaded.scene, {},
 					effectiveDurationOverride);
 				loaded.diagnostics.insert(loaded.diagnostics.end(), runnable.begin(), runnable.end());
@@ -394,7 +402,7 @@ int main(int argc, char* argv[]) {
 		if (openedFromFileName && hasErrors(loaded.diagnostics)) {
 			// A file name that does not load is reported and the usual start follows.
 			printSceneDiagnostics(loaded.diagnostics);
-			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true);
+			reportCannotOpen(scenePath, QString::fromStdString(toDisplayText(loaded.diagnostics.front())), true, loadFailed);
 			openedFromFileName = false;
 			scenePath = resolveScenePath(QString(), defaultName);
 			loaded = preload(scenePath);

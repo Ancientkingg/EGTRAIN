@@ -1,4 +1,5 @@
 #include "diagrams/TimetableTableWindow.h"
+#include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
 
@@ -243,7 +244,7 @@ void TimetableTableWindow::exportCsv() {
 			"There is no data to export for the visible trains.");
 		return;
 	}
-	QString path = QFileDialog::getSaveFileName(this, "Export Data", "timetable.csv", "CSV File (*.csv)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Data", dialog_folders::suggestedPath("timetable.csv"), "CSV File (*.csv)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("csv", Qt::CaseInsensitive) != 0)
@@ -259,7 +260,7 @@ void TimetableTableWindow::exportCsv() {
 
 void TimetableTableWindow::exportPng() {
 	const auto operation = m_telemetryCapture ? m_telemetryCapture() : telemetry::OperationObservation();
-	QString path = QFileDialog::getSaveFileName(this, "Export Table", "timetable.png", "PNG Image (*.png)");
+	QString path = QFileDialog::getSaveFileName(this, "Export Table", dialog_folders::suggestedPath("timetable.png"), "PNG Image (*.png)");
 	if (path.isEmpty())
 		return;
 	if (QFileInfo(path).suffix().compare("png", Qt::CaseInsensitive) != 0)
