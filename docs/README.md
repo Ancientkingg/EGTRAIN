@@ -34,6 +34,7 @@ Choose the route that matches your task.
 - [Signalling levels and signalling areas](architecture/signalling-levels.md)
 - [Assignment corridor](product/assignment-corridor.md)
 - [Assignment workflow](product/assignment-workflow.md)
+- [Feature status 2026-10-17](product/feature-status.md): a dated snapshot of what works, what is only partly done and what is untested, with the evidence for each row and the gaps found.
 
 A scene folder is the editable source of truth. An `.egscene` bundle packages
 its files for transport. Legacy import and export remain explicit
