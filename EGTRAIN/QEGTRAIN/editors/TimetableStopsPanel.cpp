@@ -119,7 +119,7 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_moveDownButton = new QPushButton("Move Down", this);
 	m_moveDownButton->setObjectName("moveTimetableStopDownButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
-	buttonLayout->addWidget(m_insertAfterButton, 0, 1);
+	buttonLayout->addWidget(m_insertAfterButton, 0, 1, 1, 2);
 	buttonLayout->addWidget(m_removeButton, 1, 0);
 	buttonLayout->addWidget(m_moveUpButton, 1, 1);
 	buttonLayout->addWidget(m_moveDownButton, 1, 2);

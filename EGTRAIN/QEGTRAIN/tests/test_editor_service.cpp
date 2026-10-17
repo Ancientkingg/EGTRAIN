@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -519,6 +520,29 @@ int main(int argc, char** argv) {
 		document.replace(serviceScene(), false);
 		ok &= expect(panel.listWidget()->count() == 0 && document.revision() == revisionDetached + 1,
 			"a detached panel neither edits nor follows the document");
+	}
+
+	{
+		// the running performance row can be narrower than its label, which wraps
+		ServicePanel panel;
+		QLabel* label = nullptr;
+		for (QLabel* candidate : panel.findChildren<QLabel*>())
+			if (candidate->text() == "Running performance (parameter) %")
+				label = candidate;
+		QLayout* row = nullptr;
+		if (label)
+			for (int i = 0; i < label->parentWidget()->layout()->count(); ++i) {
+				QLayout* candidate = label->parentWidget()->layout()->itemAt(i)->layout();
+				if (candidate && candidate->indexOf(label) >= 0)
+					row = candidate;
+			}
+		ok &= expect(label && row, "the running performance label is in a row of the fields");
+		if (label && row) {
+			const int textWidth = label->fontMetrics().horizontalAdvance(label->text());
+			ok &= expect(label->wordWrap() && row->minimumSize().width() < textWidth
+					&& label->heightForWidth(textWidth / 2) >= 2 * label->fontMetrics().lineSpacing(),
+				"the running performance label wraps, so its row does not need the width of the whole text");
+		}
 	}
 
 	{

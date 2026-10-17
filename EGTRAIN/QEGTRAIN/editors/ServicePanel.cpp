@@ -163,7 +163,10 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_detailLayout->addLayout(repeatCountLayout);
 
 	QHBoxLayout* performanceLayout = new QHBoxLayout();
-	performanceLayout->addWidget(new QLabel("Running performance (parameter) %", detailPane));
+	// The label wraps when the pane is narrow, so that its row does not set the width of the pane.
+	auto* performanceLabel = new QLabel("Running performance (parameter) %", detailPane);
+	performanceLabel->setWordWrap(true);
+	performanceLayout->addWidget(performanceLabel);
 	m_performancePercentEdit = new CompactDoubleSpinBox(detailPane);
 	m_performancePercentEdit->setObjectName("servicePerformancePercentEdit");
 	m_performancePercentEdit->setRange(1.0, 100.0);

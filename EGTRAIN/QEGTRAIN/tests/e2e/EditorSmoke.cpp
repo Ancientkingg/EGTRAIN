@@ -4069,6 +4069,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_caseLayersDock->hide();
 			w.m_sceneModel.name = caseName;
 			w.updateCaseLayersPanel();
+
+			// The fields of a service at the same size: the running performance field is not cut at the right.
+			w.m_serviceDock->show();
+			w.m_serviceDock->raise();
+			QApplication::processEvents();
+			auto* serviceFields = w.m_servicePanel->pages() ? qobject_cast<QScrollArea*>(w.m_servicePanel->pages()->widget(0)) : nullptr;
+			QDoubleSpinBox* performanceEdit = w.m_servicePanel->performancePercentEdit();
+			if (!serviceFields || !performanceEdit->isVisible())
+				facetFailure(ok, "presentation", "the fields of a service are not shown at 1280 by 698 pixels");
+			else {
+				const QPoint editRight = performanceEdit->mapTo(serviceFields->viewport(), QPoint(performanceEdit->width(), 0));
+				if (serviceFields->horizontalScrollBar()->isVisible() || editRight.x() > serviceFields->viewport()->width())
+					facetFailure(ok, "presentation", "the fields of a service are cut at the right at 1280 by 698 pixels");
+			}
+			w.m_serviceDock->hide();
 			w.resize(1280, 800);
 			QApplication::processEvents();
 		}
