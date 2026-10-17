@@ -6545,10 +6545,13 @@ void MainWindow::setupRunResultsDock() {
 	QWidget* container = new QWidget(m_runResultsDock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
 	containerLayout->setContentsMargins(0, 0, 0, 0);
-	m_runResultsSummaryLabel = new QLabel(container);
+	m_runResultsSummaryLabel = EditorLayout::wrappedLabel(QString(), container);
 	m_runResultsSummaryLabel->setObjectName("runResultsContextLabel");
-	m_runResultsSummaryLabel->setWordWrap(true);
 	containerLayout->addWidget(m_runResultsSummaryLabel);
+	auto* resultsCaption = new QLabel(container);
+	resultsCaption->setObjectName("runResultsViewsCaption");
+	DialogLayout::setHelp(resultsCaption, "Results");
+	containerLayout->addWidget(resultsCaption);
 	QHBoxLayout* resultViews = new QHBoxLayout();
 	auto* diagramsButton = new QToolButton(container);
 	diagramsButton->setText("Open result view...");
@@ -6619,9 +6622,12 @@ void MainWindow::setupRunResultsDock() {
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
 	QHBoxLayout* delayRow = new QHBoxLayout();
-	m_delayFeedbackLabel = new QLabel(container);
+	auto* delayCaption = new QLabel(container);
+	delayCaption->setObjectName("delayComparisonCaption");
+	DialogLayout::setHelp(delayCaption, "Delay comparison");
+	containerLayout->addWidget(delayCaption);
+	m_delayFeedbackLabel = EditorLayout::wrappedLabel(QString(), container);
 	m_delayFeedbackLabel->setObjectName("delayFeedbackLabel");
-	m_delayFeedbackLabel->setWordWrap(true);
 	containerLayout->addWidget(m_delayFeedbackLabel);
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
@@ -6736,7 +6742,7 @@ void MainWindow::refreshRunResultsSummary() {
 					   .arg(destinationTerminationCount);
 	}
 	if (m_delayBaseline)
-		summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
+		summary += QString("\nDelay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
 	m_runResultsSummaryLabel->setText(summary);
 }
 

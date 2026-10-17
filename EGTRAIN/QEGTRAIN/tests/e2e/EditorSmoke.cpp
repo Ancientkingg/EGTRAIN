@@ -4087,6 +4087,59 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.resize(1280, 800);
 			QApplication::processEvents();
 		}
+		if (ok) {
+			// Run Results over Loaded Data in a window of 1280 by 800 pixels, after a run whose case name and baseline have
+			// 300 characters without a space: the labels wrap or clip, so the dock needs no more width than its buttons.
+			w.showNormal();
+			w.resize(1280, 800);
+			w.m_loadedDataDock->show();
+			w.m_runResultsDock->show();
+			w.m_runResultsDock->raise();
+			QApplication::processEvents();
+			const int shortMinimumWidth = w.m_runResultsDock->minimumSizeHint().width();
+
+			RunProvenance provenance;
+			provenance.caseName = std::string(300, 'W');
+			provenance.appliedScenario = "baseline";
+			CompletedRunData completed;
+			completed.provenance = provenance;
+			completed.results.trains.emplace_back();
+			completed.results.trains.back().trainId = "train-1";
+			w.m_completedRun = std::make_shared<const CompletedRunData>(completed);
+			DelayRunSnapshot baseline;
+			baseline.provenance = provenance;
+			baseline.scenarioId = "baseline";
+			w.m_delayBaseline = baseline;
+			w.refreshRunResults();
+			w.updateDiagramActions();
+			QApplication::processEvents();
+
+			const QDockWidget* results = w.m_runResultsDock;
+			const QStringList summaryLines = w.m_runResultsSummaryLabel->text().split('\n');
+			QStringList captions;
+			for (const QLabel* label : results->findChildren<QLabel*>(QRegularExpression("Caption$")))
+				captions << label->text();
+			if (!w.tabifiedDockWidgets(w.m_loadedDataDock).contains(w.m_runResultsDock) || !results->isVisible())
+				facetFailure(ok, "presentation", "Run Results is not shown over Loaded Data, so the check proves nothing");
+			else if (w.width() > 1280 || w.height() > 800)
+				facetFailure(ok, "presentation", "Run Results enlarged the main window");
+			else if (results->minimumSizeHint().width() > shortMinimumWidth || results->minimumSizeHint().width() > w.width() / 2
+				|| results->minimumSizeHint().height() > w.height() / 2)
+				facetFailure(ok, "presentation", "a long run identity raises the minimum size of Run Results");
+			else if (summaryLines.size() != 2 || !summaryLines[0].startsWith("Run: ") || !summaryLines[1].startsWith("Delay baseline: "))
+				facetFailure(ok, "presentation", "the run and the delay baseline are not on lines of their own in Run Results");
+			else if (captions != QStringList({"Results", "Delay comparison"}))
+				facetFailure(ok, "presentation", "the button rows of Run Results have no captions");
+			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
+				facetFailure(ok, "presentation", "a long run identity widens the labels of Run Results");
+
+			w.m_completedRun.reset();
+			w.m_delayBaseline.reset();
+			w.m_runResultsTable->setRowCount(0);
+			w.m_runResultsDock->hide();
+			w.m_loadedDataDock->hide();
+			w.updateDiagramActions();
+		}
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
 	}
 	if (ok && w.m_sceneLoaded) {
