@@ -1459,7 +1459,7 @@ void testScopeDialogsWithLongIds() {
 		});
 		check(!accepted, "the capacity dialog with long ids is cancelled");
 
-		// At 18 pt the dialog is as wide as the screen allows from the start.
+		// At 18 pt and 22.5 pt the dialog is as wide as the screen allows from the start.
 		const bool opensNarrow = points == 10.0;
 		accepted = askScope(shortChoices, scope, [&what, opensNarrow](QDialog& dialog) {
 			checkWidensForLongBlocks(dialog, 2, opensNarrow, "blocking-time scope at " + what);
