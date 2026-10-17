@@ -47,6 +47,8 @@
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
 #include "editors/PassengerPanel.h"
+#include "editors/ServicePanel.h"
+#include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "graphics/SignalGeometry.h"
@@ -234,19 +236,6 @@ const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 constexpr int kOverlayMargin = 12;
 constexpr const char kPlatformGeometryEditedProperty[] = "platformGeometryEdited";
-
-class ServiceSpeedSpinBox : public CompactDoubleSpinBox {
-public:
-	using CompactDoubleSpinBox::CompactDoubleSpinBox;
-	QString textFromValue(double value) const override {
-		return QString::number(value, 'g', 6);
-	}
-	double valueFromText(const QString& text) const override {
-		if (!lineEdit()->isModified() && text == textFromValue(value()))
-			return value();
-		return CompactDoubleSpinBox::valueFromText(text);
-	}
-};
 
 bool inputTractionHasNegativeEffort(const SceneTrainUnit& unit) {
 	return std::any_of(unit.tractionCurve.begin(), unit.tractionCurve.end(), [](const auto& row) {
@@ -813,56 +802,6 @@ int countTrackLineDirs(const QString& inputDir) {
 		return 0;
 	QFileInfoList entries = trackLinesDir.entryInfoList(QStringList("B*"), QDir::Dirs | QDir::NoDotAndDotDot | QDir::CaseSensitive);
 	return entries.size();
-}
-
-QString stationDisplayName(const SceneModel& model, const std::string& stationId) {
-	for (const auto& station : model.stations) {
-		if (station.id == stationId)
-			return station.name.empty()
-				? QString::fromStdString(station.id)
-				: QString::fromStdString(station.name);
-	}
-	return stationId.empty() ? QStringLiteral("(missing station)") : QString::fromStdString(stationId);
-}
-
-QString stopResolutionText(SceneStopResolutionStatus status) {
-	switch (status) {
-		case SceneStopResolutionStatus::Resolved: return "Reachable ordered route visit";
-		case SceneStopResolutionStatus::AmbiguousPlatform: return "Choose an explicit reachable platform";
-		case SceneStopResolutionStatus::OffRouteContext: return "Off-route schedule context; no simulated stop";
-		case SceneStopResolutionStatus::OutOfOrder: return "Invalid: stop is before or at an already used route visit";
-		case SceneStopResolutionStatus::InvalidPlatform: return "Invalid: platform is not reachable on this route";
-		case SceneStopResolutionStatus::UnknownStation: return "Invalid: station is missing";
-		case SceneStopResolutionStatus::UnresolvedRoute: return "Invalid: route traversal is unresolved";
-	}
-	return {};
-}
-
-void addServiceRouteChoice(QComboBox* combo, const SceneModel& model, const SceneRoute& route,
-	const SceneSectionInventory& inventory) {
-	const SceneRouteStations traversal = sceneRouteStations(model, route, inventory);
-	QStringList stations;
-	for (const std::string& stationId : traversal.stationIds) {
-		QString name = QString::fromStdString(stationId);
-		for (const auto& station : model.stations)
-			if (station.id == stationId && !station.name.empty()) {
-				name = QString::fromStdString(station.name);
-				break;
-			}
-		stations << name;
-	}
-	const QString description = !traversal.resolved ? QStringLiteral("Unresolved route")
-		: stations.isEmpty()						? QStringLiteral("Route without station anchors")
-													: QString("%1 → %2").arg(stations.first(), stations.last());
-	const QString direction = traversal.direction > 0 ? QStringLiteral("forward")
-		: traversal.direction < 0					  ? QStringLiteral("reverse")
-													  : QStringLiteral("unknown direction");
-	combo->addItem(QString("%1 · %2 [%3]").arg(description, direction, QString::fromStdString(route.id)), QString::fromStdString(route.id));
-	combo->setItemData(combo->count() - 1,
-		traversal.resolved ? QString("Traversed stations (not scheduled calls): %1")
-								 .arg(stations.isEmpty() ? QStringLiteral("none") : stations.join(" → "))
-						   : QStringLiteral("Station order unavailable: fix the route topology."),
-		Qt::ToolTipRole);
 }
 
 std::vector<std::string> splitCommaList(const QString& text) {
@@ -1657,8 +1596,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		[this](const QString& baseTime) { setStartOffset(baseTimeToSeconds(baseTime.toStdString())); });
 	connect(m_caseSettingsPanel, &CaseSettingsPanel::changed, this, [this] {
 		refreshValidationPanel();
-		refreshServiceOccurrencePreview();
-		refreshStopList();
+		m_servicePanel->refreshOccurrencePreview();
+		m_timetableStopsPanel->refresh();
 	});
 
 	// Infrastructure editor: one small facet selector and a table keep all
@@ -1885,269 +1824,54 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	registerEditorDock(m_compositionDock);
 	m_compositionPanel->setPrompts(m_userPrompts.get());
 	m_compositionPanel->setDocument(m_document);
-	connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, this, &MainWindow::updateServiceDetailPanel);
+	connect(m_compositionPanel, &CompositionPanel::compositionIdsChanged, this, [this] { m_servicePanel->updateDetail(); });
 	connect(m_compositionPanel, &CompositionPanel::changed, this, &MainWindow::refreshValidationPanel);
 	connect(m_compositionPanel, &CompositionPanel::tractionPlotRequested, this, plotUnitTraction);
 	connect(m_trainUnitPanel, &TrainUnitPanel::trainUnitsChanged, m_compositionPanel, &CompositionPanel::refresh);
 	connect(m_trainUnitPanel, &TrainUnitPanel::sourceReferencesChanged, m_compositionPanel, &CompositionPanel::refreshUnitDetails);
 
-	// service editor: dockable panel for service-level fields plus the selected
-	// service's timetable (stops). tabbed alongside Compositions, same list +
-	// details shape; the stop list is a second, nested list + details editor
-	// inside the service detail pane, since a stop only makes sense in the
-	// context of the currently selected service.
+	// service editor: dockable panel for the service-level fields, with the timetable (stops)
+	// of the selected service below them. Tabbed alongside Compositions.
 	m_serviceDock = new QDockWidget("Services", this);
 	m_serviceDock->setObjectName("serviceDock");
-	QWidget* serviceWidget = new QWidget(m_serviceDock);
-	QHBoxLayout* serviceLayout = new QHBoxLayout(serviceWidget);
+	m_servicePanel = new ServicePanel(m_serviceDock);
+	m_serviceListWidget = m_servicePanel->listWidget();
+	m_serviceIdEdit = m_servicePanel->idEdit();
+	m_serviceOperatingCodeEdit = m_servicePanel->operatingCodeEdit();
+	m_serviceCategoryCombo = m_servicePanel->categoryCombo();
+	m_serviceColorButton = m_servicePanel->colorButton();
+	m_serviceCompositionCombo = m_servicePanel->compositionCombo();
+	m_serviceRouteCombo = m_servicePanel->routeCombo();
+	m_serviceHasEntryTimeCheck = m_servicePanel->hasEntryTimeCheck();
+	m_serviceEntryTimeSecondsEdit = m_servicePanel->entryTimeSecondsEdit();
+	m_serviceHasRepeatCheck = m_servicePanel->hasRepeatCheck();
+	m_serviceHeadwaySecondsEdit = m_servicePanel->headwaySecondsEdit();
+	m_serviceHasRepeatCountCheck = m_servicePanel->hasRepeatCountCheck();
+	m_serviceRepeatCountEdit = m_servicePanel->repeatCountEdit();
+	m_servicePerformancePercentEdit = m_servicePanel->performancePercentEdit();
+	m_serviceHasMaximumSpeedCheck = m_servicePanel->hasMaximumSpeedCheck();
+	m_serviceMaximumSpeedKmhEdit = m_servicePanel->maximumSpeedKmhEdit();
+	m_serviceHasOperatingCodeStepCheck = m_servicePanel->hasOperatingCodeStepCheck();
+	m_serviceOperatingCodeStepEdit = m_servicePanel->operatingCodeStepEdit();
+	m_addServiceButton = m_servicePanel->addButton();
+	m_serviceOccurrenceTable = m_servicePanel->occurrenceTable();
+	m_selectNoneOccurrencesButton = m_servicePanel->selectNoneButton();
 
-	// left: the list of services and the buttons that manage it
-	QWidget* serviceListPane = new QWidget(serviceWidget);
-	QVBoxLayout* serviceListLayout = new QVBoxLayout(serviceListPane);
-	serviceListLayout->addWidget(new QLabel("Services", serviceListPane));
-	m_serviceListWidget = new QListWidget(serviceListPane);
-	serviceListLayout->addWidget(m_serviceListWidget);
-	QGridLayout* serviceButtonLayout = new QGridLayout();
-	m_addServiceButton = new QPushButton("Add Service", serviceListPane);
-	m_duplicateServiceButton = new QPushButton("Duplicate", serviceListPane);
-	m_deleteServiceButton = new QPushButton("Delete", serviceListPane);
-	serviceButtonLayout->addWidget(m_addServiceButton, 0, 0);
-	serviceButtonLayout->addWidget(m_duplicateServiceButton, 0, 1);
-	serviceButtonLayout->addWidget(m_deleteServiceButton, 1, 0);
-	serviceListLayout->addLayout(serviceButtonLayout);
-	serviceListPane->setMaximumWidth(serviceListPane->fontMetrics().averageCharWidth() * 32);
-	serviceLayout->addWidget(serviceListPane);
+	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
+	m_stopTableWidget = m_timetableStopsPanel->table();
+	m_addStopButton = m_timetableStopsPanel->addButton();
+	m_insertStopAfterButton = m_timetableStopsPanel->insertAfterButton();
+	m_moveStopUpButton = m_timetableStopsPanel->moveUpButton();
+	m_moveStopDownButton = m_timetableStopsPanel->moveDownButton();
+	m_stopTimeModeCombo = m_timetableStopsPanel->timeModeCombo();
+	m_stopTimeBaseLabel = m_timetableStopsPanel->timeBaseLabel();
+	m_servicePanel->setTimetableWidget(m_timetableStopsPanel);
 
-	// right: the selected service's service-level fields
-	QWidget* serviceDetailPane = new QWidget(serviceWidget);
-	QVBoxLayout* serviceDetailLayout = new QVBoxLayout(serviceDetailPane);
-	serviceDetailLayout->addWidget(new QLabel("Service Id", serviceDetailPane));
-	m_serviceIdEdit = new QLineEdit(serviceDetailPane);
-	m_serviceIdEdit->setObjectName("serviceIdEdit");
-	serviceDetailLayout->addWidget(m_serviceIdEdit);
-	serviceDetailLayout->addWidget(new QLabel("Service code (number)", serviceDetailPane));
-	m_serviceOperatingCodeEdit = new QLineEdit(serviceDetailPane);
-	m_serviceOperatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
-	serviceDetailLayout->addWidget(m_serviceOperatingCodeEdit);
-	serviceDetailLayout->addWidget(new QLabel("Category", serviceDetailPane));
-	m_serviceCategoryCombo = new QComboBox(serviceDetailPane);
-	m_serviceCategoryCombo->setObjectName("serviceCategoryCombo");
-	serviceDetailLayout->addWidget(m_serviceCategoryCombo);
-	serviceDetailLayout->addWidget(new QLabel("Service visualization colour", serviceDetailPane));
-	m_serviceColorButton = new ColorChoiceButton(serviceDetailPane);
-	serviceDetailLayout->addWidget(m_serviceColorButton);
-	serviceDetailLayout->addWidget(new QLabel("Composition", serviceDetailPane));
-	m_serviceCompositionCombo = new QComboBox(serviceDetailPane);
-	serviceDetailLayout->addWidget(m_serviceCompositionCombo);
-	serviceDetailLayout->addWidget(new QLabel("Route", serviceDetailPane));
-	m_serviceRouteCombo = new QComboBox(serviceDetailPane);
-	serviceDetailLayout->addWidget(m_serviceRouteCombo);
-
-	QHBoxLayout* entryTimeLayout = new QHBoxLayout();
-	m_serviceHasEntryTimeCheck = new QCheckBox("Entry Time (s)", serviceDetailPane);
-	m_serviceEntryTimeSecondsEdit = new QLineEdit(serviceDetailPane);
-	m_serviceEntryTimeSecondsEdit->setValidator(
-		new QIntValidator(0, std::numeric_limits<int>::max(), m_serviceEntryTimeSecondsEdit));
-	entryTimeLayout->addWidget(m_serviceHasEntryTimeCheck);
-	entryTimeLayout->addWidget(m_serviceEntryTimeSecondsEdit);
-	serviceDetailLayout->addLayout(entryTimeLayout);
-
-	QHBoxLayout* repeatLayout = new QHBoxLayout();
-	m_serviceHasRepeatCheck = new QCheckBox("Repeat Headway (s)", serviceDetailPane);
-	m_serviceHeadwaySecondsEdit = new QLineEdit(serviceDetailPane);
-	m_serviceHeadwaySecondsEdit->setValidator(
-		new QIntValidator(0, std::numeric_limits<int>::max(), m_serviceHeadwaySecondsEdit));
-	repeatLayout->addWidget(m_serviceHasRepeatCheck);
-	repeatLayout->addWidget(m_serviceHeadwaySecondsEdit);
-	serviceDetailLayout->addLayout(repeatLayout);
-
-	QHBoxLayout* repeatCountLayout = new QHBoxLayout();
-	m_serviceHasRepeatCountCheck = new QCheckBox("Configured total", serviceDetailPane);
-	m_serviceHasRepeatCountCheck->setObjectName("serviceHasRepeatCountCheck");
-	m_serviceRepeatCountEdit = new QLineEdit(serviceDetailPane);
-	m_serviceRepeatCountEdit->setObjectName("serviceRepeatCountEdit");
-	m_serviceRepeatCountEdit->setValidator(
-		new QIntValidator(1, std::numeric_limits<int>::max(), m_serviceRepeatCountEdit));
-	repeatCountLayout->addWidget(m_serviceHasRepeatCountCheck);
-	repeatCountLayout->addWidget(m_serviceRepeatCountEdit);
-	serviceDetailLayout->addLayout(repeatCountLayout);
-
-	QHBoxLayout* performanceLayout = new QHBoxLayout();
-	performanceLayout->addWidget(new QLabel("Running performance (parameter) %", serviceDetailPane));
-	m_servicePerformancePercentEdit = new CompactDoubleSpinBox(serviceDetailPane);
-	m_servicePerformancePercentEdit->setObjectName("servicePerformancePercentEdit");
-	m_servicePerformancePercentEdit->setRange(1.0, 100.0);
-	m_servicePerformancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
-	m_servicePerformancePercentEdit->setValue(100);
-	m_servicePerformancePercentEdit->setKeyboardTracking(false);
-	performanceLayout->addWidget(m_servicePerformancePercentEdit);
-	serviceDetailLayout->addLayout(performanceLayout);
-
-	QHBoxLayout* maximumSpeedLayout = new QHBoxLayout();
-	m_serviceHasMaximumSpeedCheck = new QCheckBox("Maximum speed restriction km/h", serviceDetailPane);
-	m_serviceHasMaximumSpeedCheck->setObjectName("serviceHasMaximumSpeedCheck");
-	m_serviceMaximumSpeedKmhEdit = new ServiceSpeedSpinBox(serviceDetailPane);
-	m_serviceMaximumSpeedKmhEdit->setObjectName("serviceMaximumSpeedKmhEdit");
-	m_serviceMaximumSpeedKmhEdit->setRange(0.1, 1000.0);
-	m_serviceMaximumSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
-	m_serviceMaximumSpeedKmhEdit->setValue(100.0);
-	maximumSpeedLayout->addWidget(m_serviceHasMaximumSpeedCheck);
-	maximumSpeedLayout->addWidget(m_serviceMaximumSpeedKmhEdit);
-	serviceDetailLayout->addLayout(maximumSpeedLayout);
-
-	QHBoxLayout* operatingCodeStepLayout = new QHBoxLayout();
-	m_serviceHasOperatingCodeStepCheck = new QCheckBox("Service code (number) step", serviceDetailPane);
-	m_serviceHasOperatingCodeStepCheck->setObjectName("serviceHasOperatingCodeStepCheck");
-	m_serviceOperatingCodeStepEdit = new QLineEdit(serviceDetailPane);
-	m_serviceOperatingCodeStepEdit->setObjectName("serviceOperatingCodeStepEdit");
-	m_serviceOperatingCodeStepEdit->setValidator(
-		new QIntValidator(-std::numeric_limits<int>::max(), std::numeric_limits<int>::max(),
-			m_serviceOperatingCodeStepEdit));
-	operatingCodeStepLayout->addWidget(m_serviceHasOperatingCodeStepCheck);
-	operatingCodeStepLayout->addWidget(m_serviceOperatingCodeStepEdit);
-	serviceDetailLayout->addLayout(operatingCodeStepLayout);
-
-	serviceDetailLayout->addWidget(new QLabel("Timetable stops", serviceDetailPane));
-	QHBoxLayout* stopTimeLayout = new QHBoxLayout();
-	stopTimeLayout->addWidget(new QLabel("Planned time display", serviceDetailPane));
-	m_stopTimeModeCombo = new QComboBox(serviceDetailPane);
-	m_stopTimeModeCombo->setObjectName("timetableTimeModeCombo");
-	m_stopTimeModeCombo->addItem("Elapsed offsets (s)", false);
-	m_stopTimeModeCombo->addItem("Clock time", true);
-	stopTimeLayout->addWidget(m_stopTimeModeCombo);
-	m_stopTimeBaseLabel = new QLabel(serviceDetailPane);
-	m_stopTimeBaseLabel->setObjectName("timetableTimeBaseLabel");
-	m_stopTimeBaseLabel->setWordWrap(true);
-	serviceDetailLayout->addLayout(stopTimeLayout);
-	serviceDetailLayout->addWidget(m_stopTimeBaseLabel);
-	m_stopTableWidget = new QTableWidget(serviceDetailPane);
-	m_stopTableWidget->setObjectName("timetableStopTable");
-	m_stopTableWidget->setColumnCount(5);
-	m_stopTableWidget->setHorizontalHeaderLabels({"Timetable stops (station)", "Stop platform", "Minimum dwell (s)",
-		"Planned arrival", "Planned departure"});
-	m_stopTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_stopTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_stopTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-	m_stopTableWidget->setAlternatingRowColors(true);
-	m_stopTableWidget->setTabKeyNavigation(true);
-	m_stopTableWidget->verticalHeader()->setVisible(false);
-	m_stopTableWidget->horizontalHeader()->setStretchLastSection(true);
-	serviceDetailLayout->addWidget(m_stopTableWidget);
-	QGridLayout* stopButtonLayout = new QGridLayout();
-	m_addStopButton = new QPushButton("Add Stop", serviceDetailPane);
-	m_addStopButton->setObjectName("addTimetableStopButton");
-	m_insertStopAfterButton = new QPushButton("Insert After Selected", serviceDetailPane);
-	m_insertStopAfterButton->setObjectName("insertTimetableStopAfterButton");
-	m_removeStopButton = new QPushButton("Remove Stop", serviceDetailPane);
-	m_removeStopButton->setObjectName("removeTimetableStopButton");
-	m_moveStopUpButton = new QPushButton("Move Up", serviceDetailPane);
-	m_moveStopUpButton->setObjectName("moveTimetableStopUpButton");
-	m_moveStopDownButton = new QPushButton("Move Down", serviceDetailPane);
-	m_moveStopDownButton->setObjectName("moveTimetableStopDownButton");
-	stopButtonLayout->addWidget(m_addStopButton, 0, 0);
-	stopButtonLayout->addWidget(m_insertStopAfterButton, 0, 1);
-	stopButtonLayout->addWidget(m_removeStopButton, 1, 0);
-	stopButtonLayout->addWidget(m_moveStopUpButton, 1, 1);
-	stopButtonLayout->addWidget(m_moveStopDownButton, 1, 2);
-	serviceDetailLayout->addLayout(stopButtonLayout);
-
-	serviceDetailLayout->addStretch();
-
-	// the service detail pane plus the timetable editor is tall, so let it scroll
-	// instead of overflowing the dock and overlapping the tab bar
-	QScrollArea* serviceDetailScroll = new QScrollArea(serviceWidget);
-	serviceDetailScroll->setWidgetResizable(true);
-	serviceDetailScroll->setFrameShape(QFrame::NoFrame);
-	serviceDetailScroll->setWidget(serviceDetailPane);
-	auto* servicePages = new QTabWidget(serviceWidget);
-	servicePages->setObjectName("serviceEditorPages");
-	servicePages->setMinimumSize(0, 0);
-	servicePages->addTab(serviceDetailScroll, "Service and timetable");
-
-	QWidget* occurrencePane = new QWidget(serviceWidget);
-	QVBoxLayout* occurrenceLayout = new QVBoxLayout(occurrencePane);
-	occurrenceLayout->addWidget(new QLabel("Run occurrences", occurrencePane));
-	m_serviceOccurrenceSelectionLabel = new QLabel(occurrencePane);
-	m_serviceOccurrenceSelectionLabel->setObjectName("serviceOccurrenceSelectionLabel");
-	occurrenceLayout->addWidget(m_serviceOccurrenceSelectionLabel);
-	m_serviceOccurrenceTable = new QTableWidget(occurrencePane);
-	m_serviceOccurrenceTable->setObjectName("serviceOccurrenceTable");
-	m_serviceOccurrenceTable->setColumnCount(6);
-	m_serviceOccurrenceTable->setHorizontalHeaderLabels(
-		{"Include", "Service code (number)", "Generated service", "Scheduled entry",
-			"Running performance (parameter) %", "Maximum speed restriction (km/h)"});
-	m_serviceOccurrenceTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_serviceOccurrenceTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_serviceOccurrenceTable->setAlternatingRowColors(true);
-	m_serviceOccurrenceTable->horizontalHeader()->setStretchLastSection(true);
-	occurrenceLayout->addWidget(m_serviceOccurrenceTable, 1);
-	QHBoxLayout* occurrenceButtonLayout = new QHBoxLayout();
-	m_selectAllOccurrencesButton = new QPushButton("Select all", occurrencePane);
-	m_selectAllOccurrencesButton->setObjectName("selectAllOccurrencesButton");
-	m_selectNoneOccurrencesButton = new QPushButton("Select none", occurrencePane);
-	m_selectNoneOccurrencesButton->setObjectName("selectNoneOccurrencesButton");
-	occurrenceButtonLayout->addWidget(m_selectAllOccurrencesButton);
-	occurrenceButtonLayout->addWidget(m_selectNoneOccurrencesButton);
-	occurrenceLayout->addLayout(occurrenceButtonLayout);
-	servicePages->addTab(occurrencePane, "Run occurrences");
-	serviceLayout->addWidget(servicePages, 1);
-
-	m_serviceDock->setWidget(serviceWidget);
+	m_serviceDock->setWidget(m_servicePanel);
 	addDockWidget(Qt::RightDockWidgetArea, m_serviceDock);
 	m_serviceDock->hide();
 	tabifyDockWidget(m_compositionDock, m_serviceDock);
 	registerEditorDock(m_serviceDock);
-
-	connect(m_serviceListWidget, &QListWidget::currentRowChanged, this, [this](int) {
-		updateServiceDetailPanel();
-	});
-	connect(m_serviceIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceIdEdit);
-	connect(m_serviceOperatingCodeEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCode);
-	connect(m_serviceCategoryCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
-		&MainWindow::commitServiceCategory);
-	connect(m_serviceColorButton, &ColorChoiceButton::colorChanged, this,
-		&MainWindow::commitServiceVisualizationColor);
-	connect(m_serviceCompositionCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitServiceComposition);
-	connect(m_serviceRouteCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::commitServiceRoute);
-	connect(m_serviceHasEntryTimeCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasEntryTime);
-	connect(m_serviceEntryTimeSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceEntryTimeSeconds);
-	connect(m_serviceHasRepeatCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasRepeat);
-	connect(m_serviceHeadwaySecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceHeadwaySeconds);
-	connect(m_serviceHasRepeatCountCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasRepeatCount);
-	connect(m_serviceRepeatCountEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceRepeatCount);
-	connect(m_servicePerformancePercentEdit, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &MainWindow::commitServicePerformancePercent);
-	connect(m_serviceHasMaximumSpeedCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasMaximumSpeed);
-	connect(m_serviceMaximumSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &MainWindow::commitServiceMaximumSpeed);
-	connect(m_serviceHasOperatingCodeStepCheck, &QCheckBox::toggled, this, &MainWindow::commitServiceHasOperatingCodeStep);
-	connect(m_serviceOperatingCodeStepEdit, &QLineEdit::editingFinished, this, &MainWindow::commitServiceOperatingCodeStep);
-	connect(m_addServiceButton, &QPushButton::clicked, this, &MainWindow::addService);
-	connect(m_duplicateServiceButton, &QPushButton::clicked, this, &MainWindow::duplicateService);
-	connect(m_deleteServiceButton, &QPushButton::clicked, this, &MainWindow::deleteService);
-	connect(m_serviceOccurrenceTable, &QTableWidget::itemChanged, this, &MainWindow::updateServiceOccurrenceSelection);
-	connect(m_selectAllOccurrencesButton, &QPushButton::clicked, this, &MainWindow::selectAllServiceOccurrences);
-	connect(m_selectNoneOccurrencesButton, &QPushButton::clicked, this, &MainWindow::selectNoneServiceOccurrences);
-
-	connect(m_stopTableWidget, &QTableWidget::cellClicked, this,
-		[this](int row, int) { editStop(row); });
-	for (const auto key : {Qt::Key_Return, Qt::Key_Enter}) {
-		auto* shortcut = new QShortcut(QKeySequence(key), m_stopTableWidget);
-		shortcut->setContext(Qt::WidgetShortcut);
-		connect(shortcut, &QShortcut::activated, this, [this]() {
-			if (m_stopTableWidget->currentRow() >= 0) editStop(m_stopTableWidget->currentRow());
-		});
-	}
-	connect(m_stopTableWidget, &QTableWidget::currentCellChanged, this, &MainWindow::updateStopActions);
-	connect(m_addStopButton, &QPushButton::clicked, this, &MainWindow::addStop);
-	connect(m_insertStopAfterButton, &QPushButton::clicked, this, &MainWindow::insertStopAfterSelected);
-	connect(m_removeStopButton, &QPushButton::clicked, this, &MainWindow::removeStop);
-	connect(m_moveStopUpButton, &QPushButton::clicked, this, &MainWindow::moveStopUp);
-	connect(m_moveStopDownButton, &QPushButton::clicked, this, &MainWindow::moveStopDown);
-	connect(m_stopTimeModeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-		if (index < 0)
-			return;
-		m_stopClockMode = m_stopTimeModeCombo->itemData(index).toBool();
-		refreshStopList();
-	});
 
 	// scenario library and incident editor. each
 	// incident has a type (signal_failure or train_breakdown) and a target whose
@@ -2423,6 +2147,22 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
 	connect(m_passengerPanel, &PassengerPanel::changed, this, &MainWindow::refreshValidationPanel);
 
+	m_servicePanel->setPrompts(m_userPrompts.get());
+	m_servicePanel->setRunSelection(&m_runSelection);
+	m_servicePanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
+	connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel, &TimetableStopsPanel::setServiceId);
+	connect(m_timetableStopsPanel, &TimetableStopsPanel::timetableRefreshed, this, &MainWindow::refreshEntranceDelayPanel);
+	connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, this, &MainWindow::refreshValidationPanel);
+	connect(m_servicePanel, &ServicePanel::occurrencesChanged, this, [this] {
+		refreshEntranceDelayPanel();
+		refreshIncidentTargetCombo();
+	});
+	connect(m_servicePanel, &ServicePanel::serviceRenamed, this, [this] { updateIncidentDetailPanel(); });
+	connect(m_servicePanel, &ServicePanel::changed, this, &MainWindow::refreshValidationPanel);
+	m_servicePanel->setDocument(m_document);
+	m_timetableStopsPanel->setDocument(m_document);
+	m_serviceDock->setEnabled(false);
+
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
 	m_validationStatusLabel = new QLabel(this);
@@ -2469,7 +2209,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			.arg(initial_variables.numTrackLines)
 			.arg(initial_variables.N_Routes));
 
-	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	// Dock/editor construction above can rebuild the top-level focus chain;
@@ -2588,7 +2327,6 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	updateCaseLayersPanel();
 	updateSceneActions();
 	statusBar()->showMessage("New case study created; save it to choose a location");
-	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	refreshValidationPanel();
@@ -2847,7 +2585,6 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	updateCaseLayersPanel();
 	updateSceneActions();
 	addRecentScene(scenePath);
-	refreshServicePanel();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel(!reloadingSameScene);
 	refreshValidationPanel();
@@ -2945,7 +2682,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	refreshValidationPanel();
 	m_compositionPanel->refresh();
 	m_trainUnitPanel->refresh();
-	refreshServicePanel();
+	m_servicePanel->refresh();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	m_passengerPanel->refresh();
@@ -3780,7 +3517,7 @@ void MainWindow::commitPendingEditorValues() {
 	}
 	m_passengerPanel->commitPendingEditors();
 	m_compositionPanel->commitPendingEditors();
-	commitPendingServiceSettings();
+	m_servicePanel->commitPendingEditors();
 	// Scenario and incident controls are disabled and cleared during a run.
 	// Their placeholder values are not pending edits.
 	if (m_worker) {
@@ -4758,7 +4495,7 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 	markSceneDirty();
 	refreshValidationPanel();
 	if (facet == "stations" || facet == "platforms" || facet == "routes")
-		refreshServicePanel();
+		m_servicePanel->refresh();
 	if (facet == "signals" || facet == "blocks")
 		refreshIncidentPanel();
 	refreshInfrastructureTable();
@@ -4898,7 +4635,7 @@ void MainWindow::addInfrastructureEntity() {
 	markSceneDirty();
 	refreshValidationPanel();
 	if (facet == "stations" || facet == "platforms" || facet == "routes")
-		refreshServicePanel();
+		m_servicePanel->refresh();
 	if (facet == "signals" || facet == "blocks")
 		refreshIncidentPanel();
 	refreshInfrastructureTable();
@@ -5143,7 +4880,7 @@ void MainWindow::deleteInfrastructureEntity() {
 	markSceneDirty();
 	refreshValidationPanel();
 	if (facet == "stations" || facet == "platforms" || facet == "routes")
-		refreshServicePanel();
+		m_servicePanel->refresh();
 	if (facet == "signals" || facet == "blocks")
 		refreshIncidentPanel();
 	refreshInfrastructureTable();
@@ -5184,210 +4921,6 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 	win->show();
 }
 
-void MainWindow::refreshServicePanel() {
-	bool hasScene = m_sceneLoaded;
-	if (m_serviceDock)
-		m_serviceDock->setEnabled(hasScene && !m_worker);
-
-	if (m_serviceListWidget) {
-		int previousRow = m_serviceListWidget->currentRow();
-		const QSignalBlocker blocker(m_serviceListWidget);
-		m_serviceListWidget->clear();
-		if (hasScene) {
-			for (const auto& service : m_sceneModel.services)
-				m_serviceListWidget->addItem(QString::fromStdString(service.id));
-		}
-		int rowCount = m_serviceListWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		m_serviceListWidget->setCurrentRow(rowToSelect);
-		m_serviceListWidget->setEnabled(hasScene && !m_worker);
-	}
-
-	if (m_addServiceButton)
-		m_addServiceButton->setEnabled(hasScene && !m_worker);
-
-	updateServiceDetailPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::updateServiceDetailPanel() {
-	int row = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && row >= 0 && row < static_cast<int>(m_sceneModel.services.size());
-	const bool editorAvailable = hasSelection && !m_worker;
-
-	if (m_serviceIdEdit) {
-		const QSignalBlocker blocker(m_serviceIdEdit);
-		m_serviceIdEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.services[row].id) : QString());
-		m_serviceIdEdit->setEnabled(editorAvailable);
-	}
-
-	if (m_serviceOperatingCodeEdit) {
-		const QSignalBlocker blocker(m_serviceOperatingCodeEdit);
-		m_serviceOperatingCodeEdit->setText(hasSelection ? QString::fromStdString(m_sceneModel.services[row].operatingCode) : QString());
-		m_serviceOperatingCodeEdit->setEnabled(editorAvailable);
-	}
-
-	if (m_serviceCategoryCombo) {
-		const QSignalBlocker blocker(m_serviceCategoryCombo);
-		m_serviceCategoryCombo->clear();
-		m_serviceCategoryCombo->addItem("No category", QString());
-		for (const QString& category : {QStringLiteral("Intercity"), QStringLiteral("Regional"),
-				 QStringLiteral("High speed/international"), QStringLiteral("Freight"),
-				 QStringLiteral("Metro/urban"), QStringLiteral("Suburban")})
-			m_serviceCategoryCombo->addItem(category, category);
-		int categoryIndex = 0;
-		if (hasSelection) {
-			const QString currentCategory = QString::fromStdString(m_sceneModel.services[row].category);
-			categoryIndex = m_serviceCategoryCombo->findData(currentCategory);
-			if (categoryIndex < 0 && !currentCategory.isEmpty()) {
-				m_serviceCategoryCombo->addItem(QString("Unknown: %1").arg(currentCategory), currentCategory);
-				categoryIndex = m_serviceCategoryCombo->count() - 1;
-			}
-			if (categoryIndex < 0)
-				categoryIndex = 0;
-		}
-		m_serviceCategoryCombo->setCurrentIndex(categoryIndex);
-		m_serviceCategoryCombo->setEnabled(editorAvailable);
-	}
-
-	if (m_serviceColorButton) {
-		m_serviceColorButton->setColor(hasSelection ? m_sceneModel.services[row].visualizationColor : std::string());
-		m_serviceColorButton->setEnabled(editorAvailable);
-	}
-
-	if (m_serviceCompositionCombo) {
-		const QSignalBlocker blocker(m_serviceCompositionCombo);
-		m_serviceCompositionCombo->clear();
-		for (const auto& composition : m_sceneModel.compositions)
-			m_serviceCompositionCombo->addItem(QString::fromStdString(composition.id));
-		if (hasSelection) {
-			QString currentComposition = QString::fromStdString(m_sceneModel.services[row].composition);
-			if (m_serviceCompositionCombo->findText(currentComposition) < 0)
-				m_serviceCompositionCombo->addItem(currentComposition); // dangling reference, still shown/selectable
-			m_serviceCompositionCombo->setCurrentText(currentComposition);
-		}
-		m_serviceCompositionCombo->setEnabled(editorAvailable);
-	}
-
-	if (m_serviceRouteCombo) {
-		const QSignalBlocker blocker(m_serviceRouteCombo);
-		m_serviceRouteCombo->clear();
-		const auto inventory = buildSceneSectionInventory(m_sceneModel);
-		for (const auto& route : m_sceneModel.routes)
-			addServiceRouteChoice(m_serviceRouteCombo, m_sceneModel, route, inventory);
-		if (hasSelection) {
-			QString currentRoute = QString::fromStdString(m_sceneModel.services[row].route);
-			if (m_serviceRouteCombo->findData(currentRoute) < 0)
-				m_serviceRouteCombo->addItem(QString("Missing route [%1]").arg(currentRoute), currentRoute);
-			m_serviceRouteCombo->setCurrentIndex(m_serviceRouteCombo->findData(currentRoute));
-		}
-		m_serviceRouteCombo->setToolTip(m_serviceRouteCombo->currentData(Qt::ToolTipRole).toString());
-		m_serviceRouteCombo->setEnabled(editorAvailable);
-	}
-
-	bool hasEntryTime = hasSelection && m_sceneModel.services[row].hasEntryTime;
-	if (m_serviceHasEntryTimeCheck) {
-		const QSignalBlocker blocker(m_serviceHasEntryTimeCheck);
-		m_serviceHasEntryTimeCheck->setChecked(hasEntryTime);
-		m_serviceHasEntryTimeCheck->setEnabled(editorAvailable);
-	}
-	if (m_serviceEntryTimeSecondsEdit) {
-		const QSignalBlocker blocker(m_serviceEntryTimeSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].entryTimeSeconds) : 0;
-		m_serviceEntryTimeSecondsEdit->setText(QString::number(seconds));
-		m_serviceEntryTimeSecondsEdit->setEnabled(editorAvailable && hasEntryTime);
-	}
-
-	bool hasRepeat = hasSelection && m_sceneModel.services[row].hasRepeat;
-	if (m_serviceHasRepeatCheck) {
-		const QSignalBlocker blocker(m_serviceHasRepeatCheck);
-		m_serviceHasRepeatCheck->setChecked(hasRepeat);
-		m_serviceHasRepeatCheck->setEnabled(editorAvailable);
-	}
-	if (m_serviceHeadwaySecondsEdit) {
-		const QSignalBlocker blocker(m_serviceHeadwaySecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(m_sceneModel.services[row].headwaySeconds) : 0;
-		m_serviceHeadwaySecondsEdit->setText(QString::number(seconds));
-		m_serviceHeadwaySecondsEdit->setEnabled(editorAvailable && hasRepeat);
-	}
-
-	bool hasRepeatCount = hasSelection && m_sceneModel.services[row].hasRepeatCount;
-	if (m_serviceHasRepeatCountCheck) {
-		const QSignalBlocker blocker(m_serviceHasRepeatCountCheck);
-		m_serviceHasRepeatCountCheck->setChecked(hasRepeatCount);
-		m_serviceHasRepeatCountCheck->setEnabled(editorAvailable && hasRepeat);
-	}
-	if (m_serviceRepeatCountEdit) {
-		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
-		int count = hasSelection ? m_sceneModel.services[row].repeatCount : 1;
-		m_serviceRepeatCountEdit->setText(QString::number(std::max(1, count)));
-		m_serviceRepeatCountEdit->setEnabled(editorAvailable && hasRepeat && hasRepeatCount);
-	}
-
-	if (m_servicePerformancePercentEdit) {
-		const QSignalBlocker blocker(m_servicePerformancePercentEdit);
-		m_servicePerformancePercentEdit->setValue(hasSelection
-				? std::clamp(m_sceneModel.services[row].performancePercent, 1.0, 100.0)
-				: 100.0);
-		m_servicePerformancePercentEdit->setEnabled(editorAvailable);
-	}
-
-	const bool hasMaximumSpeed = hasSelection && m_sceneModel.services[row].hasMaximumSpeed;
-	if (m_serviceHasMaximumSpeedCheck) {
-		const QSignalBlocker blocker(m_serviceHasMaximumSpeedCheck);
-		m_serviceHasMaximumSpeedCheck->setChecked(hasMaximumSpeed);
-		m_serviceHasMaximumSpeedCheck->setEnabled(editorAvailable);
-	}
-	if (m_serviceMaximumSpeedKmhEdit) {
-		const QSignalBlocker blocker(m_serviceMaximumSpeedKmhEdit);
-		m_serviceMaximumSpeedKmhEdit->setValue(hasSelection
-				? std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh)
-				: 100.0);
-		m_serviceMaximumSpeedKmhEdit->setEnabled(editorAvailable && hasMaximumSpeed);
-	}
-
-	const bool hasOperatingCodeStep = hasSelection && m_sceneModel.services[row].hasOperatingCodeStep;
-	if (m_serviceHasOperatingCodeStepCheck) {
-		const QSignalBlocker blocker(m_serviceHasOperatingCodeStepCheck);
-		m_serviceHasOperatingCodeStepCheck->setChecked(hasOperatingCodeStep);
-		m_serviceHasOperatingCodeStepCheck->setEnabled(editorAvailable && hasRepeat);
-	}
-	if (m_serviceOperatingCodeStepEdit) {
-		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
-		int step = hasSelection ? m_sceneModel.services[row].operatingCodeStep : 1;
-		m_serviceOperatingCodeStepEdit->setText(QString::number(step == 0 ? 1 : step));
-		m_serviceOperatingCodeStepEdit->setEnabled(editorAvailable && hasRepeat && hasOperatingCodeStep);
-	}
-
-	// the stop list is part of the service detail, so it refreshes whenever the
-	// selected service changes
-	refreshStopList();
-
-	if (m_duplicateServiceButton)
-		m_duplicateServiceButton->setEnabled(editorAvailable);
-	if (m_deleteServiceButton)
-		m_deleteServiceButton->setEnabled(editorAvailable);
-}
-
-QString MainWindow::generatedServiceLabel(const SceneService& service, int occurrence) const {
-	const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
-	const double entry = sceneServiceScheduledEntry(service, occurrence);
-	const QString entryText = std::isfinite(entry)
-		? QString("+%1 s").arg(QString::number(entry, 'g', 12))
-		: QStringLiteral("(invalid scheduled entry)");
-	return QString("%1 | route %2 | entry %3")
-		.arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code),
-			QString::fromStdString(service.route), entryText);
-}
-
 double MainWindow::serviceOccurrenceDuration() const {
 	if (initial_variables.durationOverride)
 		return initial_variables.times;
@@ -5402,1158 +4935,6 @@ int MainWindow::totalServiceOccurrences() const {
 
 int MainWindow::inPeriodServiceOccurrences() const {
 	return m_sceneLoaded ? sceneInPeriodOccurrences(m_sceneModel, serviceOccurrenceDuration()) : 0;
-}
-
-void MainWindow::refreshServiceOccurrencePreview() {
-	if (!m_serviceOccurrenceTable)
-		return;
-	if (m_sceneLoaded)
-		m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
-	m_updatingServiceOccurrencePreview = true;
-	m_serviceOccurrenceTable->clearContents();
-	if (!m_sceneLoaded) {
-		m_serviceOccurrenceTable->setRowCount(0);
-		m_updatingServiceOccurrencePreview = false;
-		if (m_serviceOccurrenceSelectionLabel)
-			m_serviceOccurrenceSelectionLabel->setText(QStringLiteral("No scene loaded"));
-		if (m_selectAllOccurrencesButton)
-			m_selectAllOccurrencesButton->setEnabled(false);
-		if (m_selectNoneOccurrencesButton)
-			m_selectNoneOccurrencesButton->setEnabled(false);
-		return;
-	}
-
-	const double durationSeconds = serviceOccurrenceDuration();
-	const int totalOccurrences = totalServiceOccurrences();
-	const int displayedOccurrences = std::min(totalOccurrences, Max_N_Reg);
-	if (totalOccurrences > Max_N_Reg)
-		m_runSelection.includeAll();
-	m_serviceOccurrenceTable->setRowCount(displayedOccurrences);
-	int row = 0;
-	for (const SceneService& service : m_sceneModel.services) {
-		const int count = std::min(std::max(0, sceneServiceOccurrenceCount(service, durationSeconds)),
-			displayedOccurrences - row);
-		for (int occurrence = 1; occurrence <= count; ++occurrence, ++row) {
-			SceneServiceOccurrence value;
-			value.serviceId = service.id;
-			value.occurrence = occurrence;
-			const bool checked = !m_runSelection.isExcluded(value);
-			auto* include = new QTableWidgetItem();
-			include->setFlags(include->flags() | Qt::ItemIsUserCheckable);
-			include->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-			include->setData(Qt::UserRole, QString::fromStdString(service.id));
-			include->setData(Qt::UserRole + 1, occurrence);
-			m_serviceOccurrenceTable->setItem(row, 0, include);
-			const std::string code = sceneServiceOccurrenceOperatingCode(service, occurrence);
-			m_serviceOccurrenceTable->setItem(row, 1,
-				new QTableWidgetItem(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code)));
-			m_serviceOccurrenceTable->setItem(row, 2,
-				new QTableWidgetItem(QString("route %1").arg(QString::fromStdString(service.route))));
-			const double entry = sceneServiceScheduledEntry(service, occurrence);
-			m_serviceOccurrenceTable->setItem(row, 3,
-				new QTableWidgetItem(
-					std::isfinite(entry)
-						? QString("+%1 s").arg(QString::number(entry, 'g', 12))
-						: QStringLiteral("(invalid scheduled entry)")));
-			m_serviceOccurrenceTable->setItem(row, 4,
-				new QTableWidgetItem(QString::number(static_cast<double>(service.performancePercent), 'g', 6)));
-			m_serviceOccurrenceTable->setItem(row, 5,
-				new QTableWidgetItem(service.hasMaximumSpeed ? QString::number(service.maximumSpeedKmh, 'g', 6) : QStringLiteral("-")));
-			for (int column = 0; column < m_serviceOccurrenceTable->columnCount(); ++column)
-				m_serviceOccurrenceTable->item(row, column)
-					->setToolTip(generatedServiceLabel(service, occurrence)
-						+ QString(" [%1, #%2]").arg(QString::fromStdString(service.id)).arg(occurrence));
-		}
-		if (row >= displayedOccurrences)
-			break;
-	}
-	m_serviceOccurrenceTable->resizeColumnsToContents();
-	m_updatingServiceOccurrencePreview = false;
-	if (m_serviceOccurrenceSelectionLabel) {
-		QString text = QString("Configured total: %1; Number of services in sim.: %2; Selected: %3; Selected in period: %4.\n"
-							   "Counting rule: scheduled entry ≥ 0 and < %5 s; these are configured identities, not observed trains.")
-						   .arg(totalOccurrences)
-						   .arg(inPeriodServiceOccurrences())
-						   .arg(m_runSelection.selectedCount(m_sceneModel, durationSeconds))
-						   .arg(m_runSelection.selectedInPeriodCount(m_sceneModel, durationSeconds))
-						   .arg(QString::number(durationSeconds, 'g', 12));
-		if (totalOccurrences > displayedOccurrences)
-			text += QString("\nPreview limited to %1 rows; generation is not truncated. Reduce the configured pattern before Run.")
-						.arg(displayedOccurrences);
-		m_serviceOccurrenceSelectionLabel->setText(text);
-		m_serviceOccurrenceSelectionLabel->setWordWrap(true);
-	}
-	const bool controlsEnabled = m_sceneLoaded && !m_worker && totalOccurrences <= Max_N_Reg;
-	if (m_serviceOccurrenceTable)
-		m_serviceOccurrenceTable->setEnabled(controlsEnabled);
-	if (m_selectAllOccurrencesButton)
-		m_selectAllOccurrencesButton->setEnabled(controlsEnabled);
-	if (m_selectNoneOccurrencesButton)
-		m_selectNoneOccurrencesButton->setEnabled(controlsEnabled);
-	refreshEntranceDelayPanel();
-	refreshIncidentTargetCombo();
-}
-
-void MainWindow::updateServiceOccurrenceSelection(QTableWidgetItem* item) {
-	if (m_updatingServiceOccurrencePreview || !item || item->column() != 0)
-		return;
-	SceneServiceOccurrence value;
-	value.serviceId = item->data(Qt::UserRole).toString().toStdString();
-	value.occurrence = item->data(Qt::UserRole + 1).toInt();
-	m_runSelection.setExcluded(value, item->checkState() != Qt::Checked);
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::selectAllServiceOccurrences() {
-	if (m_worker)
-		return;
-	m_runSelection.includeAll();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::selectNoneServiceOccurrences() {
-	if (m_worker || totalServiceOccurrences() > Max_N_Reg)
-		return;
-	m_runSelection.excludeAll(m_sceneModel, serviceOccurrenceDuration());
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::addService() {
-	if (!m_sceneLoaded)
-		return;
-
-	SceneService service;
-	service.id = sceneUniqueServiceId(m_sceneModel, "new_service");
-	m_sceneModel.services.push_back(service);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshServicePanel();
-	refreshIncidentTargetCombo();
-	refreshValidationPanel();
-
-	if (m_serviceListWidget)
-		m_serviceListWidget->setCurrentRow(static_cast<int>(m_sceneModel.services.size()) - 1);
-}
-
-void MainWindow::duplicateService() {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	SceneService duplicate = m_sceneModel.services[row];
-	duplicate.id = sceneUniqueServiceId(m_sceneModel, duplicate.id + "_copy");
-	m_sceneModel.services.insert(m_sceneModel.services.begin() + row + 1, duplicate);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshServicePanel();
-	refreshIncidentTargetCombo();
-	refreshValidationPanel();
-
-	if (m_serviceListWidget)
-		m_serviceListWidget->setCurrentRow(row + 1);
-}
-
-void MainWindow::deleteService() {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	const std::string id = m_sceneModel.services[row].id;
-	const QStringList consumers = directDeleteConsumers(m_sceneModel, QStringLiteral("service"), id);
-	if (!consumers.isEmpty()) {
-		showBlockingError(this, "Cannot Delete Service",
-			QString("Cannot delete service '%1' because it is still referenced by:\n• %2\nRemove those operation references first.")
-				.arg(QString::fromStdString(id), consumers.join("\n• ")),
-			true);
-		return;
-	}
-	auto response = QMessageBox::question(this,
-		"Delete Service",
-		QString("Delete service '%1'?").arg(QString::fromStdString(id)),
-		QMessageBox::Yes | QMessageBox::No,
-		QMessageBox::No);
-	if (response != QMessageBox::Yes)
-		return;
-
-	m_sceneModel.services.erase(m_sceneModel.services.begin() + row);
-	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshServicePanel();
-	refreshIncidentTargetCombo();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitServiceIdEdit() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceIdEdit)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	const std::string oldId = m_sceneModel.services[row].id;
-	const std::string newId = m_serviceIdEdit->text().trimmed().toStdString();
-	if (newId.empty()) {
-		const QSignalBlocker blocker(m_serviceIdEdit);
-		m_serviceIdEdit->setText(QString::fromStdString(oldId));
-		showBlockingError(this, "Invalid Service ID", "Service IDs must not be empty.", true);
-		return;
-	}
-	if (newId == oldId)
-		return;
-	if (sceneUniqueServiceId(m_sceneModel, newId) != newId) {
-		const QSignalBlocker blocker(m_serviceIdEdit);
-		m_serviceIdEdit->setText(QString::fromStdString(oldId));
-		showBlockingError(this, "Service ID already exists", "Choose a unique service ID.", true);
-		return;
-	}
-	sceneRewriteServiceReferences(m_sceneModel, oldId, newId);
-	m_runSelection.serviceRenamed(oldId, newId);
-	m_sceneModel.services[row].id = newId;
-
-	// update the list row label in place instead of rebuilding the panel, so a
-	// focus-out that lands on another control keeps that pending click intact
-	if (QListWidgetItem* item = m_serviceListWidget->item(row)) {
-		const QSignalBlocker blocker(m_serviceListWidget);
-		item->setText(QString::fromStdString(newId));
-	}
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-	updateIncidentDetailPanel();
-}
-
-void MainWindow::commitServiceOperatingCode() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceOperatingCodeEdit)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	const std::string value = m_serviceOperatingCodeEdit->text().trimmed().toStdString();
-	if (value == m_sceneModel.services[row].operatingCode)
-		return;
-	m_sceneModel.services[row].operatingCode = value;
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceCategory(int index) {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_serviceCategoryCombo || index < 0)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	const std::string value = m_serviceCategoryCombo->itemData(index).toString().toStdString();
-	if (value == m_sceneModel.services[row].category)
-		return;
-	m_sceneModel.services[row].category = value;
-	markSceneDirty();
-}
-
-void MainWindow::commitServiceVisualizationColor(const QString& text) {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	const std::string value = text.toStdString();
-	if (value == m_sceneModel.services[row].visualizationColor)
-		return;
-	m_sceneModel.services[row].visualizationColor = value;
-	markSceneDirty();
-}
-
-void MainWindow::commitServiceComposition(const QString& text) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	std::string newComposition = text.toStdString();
-	if (newComposition == m_sceneModel.services[row].composition)
-		return;
-
-	m_sceneModel.services[row].composition = newComposition;
-
-	// the combo already shows the chosen value and the service list labels are
-	// unchanged, so do not rebuild the panel here (that would close the popup)
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitServiceRoute(int index) {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_serviceRouteCombo || index < 0)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	std::string newRoute = m_serviceRouteCombo->itemData(index).toString().toStdString();
-	if (newRoute == m_sceneModel.services[row].route)
-		return;
-
-	m_sceneModel.services[row].route = newRoute;
-	m_serviceRouteCombo->setToolTip(m_serviceRouteCombo->itemData(index, Qt::ToolTipRole).toString());
-
-	// the combo already shows the chosen value and the service list labels are
-	// unchanged, so do not rebuild the panel here (that would close the popup)
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-	refreshStopList();
-}
-
-void MainWindow::commitServiceHasEntryTime(bool checked) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	if (checked == m_sceneModel.services[row].hasEntryTime)
-		return;
-
-	m_sceneModel.services[row].hasEntryTime = checked;
-	if (m_serviceEntryTimeSecondsEdit)
-		m_serviceEntryTimeSecondsEdit->setEnabled(checked);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceEntryTimeSeconds() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceEntryTimeSecondsEdit)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	bool ok = false;
-	int seconds = m_serviceEntryTimeSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_serviceEntryTimeSecondsEdit);
-		m_serviceEntryTimeSecondsEdit->setText(QString::number(seconds));
-	}
-
-	double newValue = static_cast<double>(seconds);
-	if (newValue == m_sceneModel.services[row].entryTimeSeconds)
-		return;
-
-	m_sceneModel.services[row].entryTimeSeconds = newValue;
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceHasRepeat(bool checked) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	if (checked == m_sceneModel.services[row].hasRepeat)
-		return;
-
-	SceneService& service = m_sceneModel.services[row];
-	service.hasRepeat = checked;
-	if (!checked) {
-		service.hasRepeatCount = false;
-		service.hasOperatingCodeStep = false;
-	}
-	if (m_serviceHeadwaySecondsEdit)
-		m_serviceHeadwaySecondsEdit->setEnabled(checked);
-	if (m_serviceHasRepeatCountCheck) {
-		const QSignalBlocker blocker(m_serviceHasRepeatCountCheck);
-		m_serviceHasRepeatCountCheck->setChecked(checked && service.hasRepeatCount);
-		m_serviceHasRepeatCountCheck->setEnabled(checked && !m_worker);
-	}
-	if (m_serviceRepeatCountEdit)
-		m_serviceRepeatCountEdit->setEnabled(checked && service.hasRepeatCount && !m_worker);
-	if (m_serviceHasOperatingCodeStepCheck) {
-		const QSignalBlocker blocker(m_serviceHasOperatingCodeStepCheck);
-		m_serviceHasOperatingCodeStepCheck->setChecked(checked && service.hasOperatingCodeStep);
-		m_serviceHasOperatingCodeStepCheck->setEnabled(checked && !m_worker);
-	}
-	if (m_serviceOperatingCodeStepEdit)
-		m_serviceOperatingCodeStepEdit->setEnabled(checked && service.hasOperatingCodeStep && !m_worker);
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceHeadwaySeconds() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceHeadwaySecondsEdit)
-		return;
-	int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-
-	bool ok = false;
-	int seconds = m_serviceHeadwaySecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_serviceHeadwaySecondsEdit);
-		m_serviceHeadwaySecondsEdit->setText(QString::number(seconds));
-	}
-
-	double newValue = static_cast<double>(seconds);
-	if (newValue == m_sceneModel.services[row].headwaySeconds)
-		return;
-
-	m_sceneModel.services[row].headwaySeconds = newValue;
-
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceHasRepeatCount(bool checked) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	if (checked == m_sceneModel.services[row].hasRepeatCount)
-		return;
-	m_sceneModel.services[row].hasRepeatCount = checked;
-	if (checked && m_sceneModel.services[row].repeatCount < 1)
-		m_sceneModel.services[row].repeatCount = 1;
-	if (m_serviceRepeatCountEdit) {
-		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
-		m_serviceRepeatCountEdit->setText(QString::number(std::max(1, m_sceneModel.services[row].repeatCount)));
-		m_serviceRepeatCountEdit->setEnabled(checked && !m_worker);
-	}
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceRepeatCount() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceRepeatCountEdit)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	bool ok = false;
-	int count = m_serviceRepeatCountEdit->text().toInt(&ok);
-	if (!ok || count < 1)
-		count = 1;
-	{
-		const QSignalBlocker blocker(m_serviceRepeatCountEdit);
-		m_serviceRepeatCountEdit->setText(QString::number(count));
-	}
-	if (count == m_sceneModel.services[row].repeatCount)
-		return;
-	m_sceneModel.services[row].repeatCount = count;
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServicePerformancePercent(double value) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	value = std::clamp(value, 1.0, 100.0);
-	if (value == m_sceneModel.services[row].performancePercent)
-		return;
-	m_sceneModel.services[row].performancePercent = value;
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceHasMaximumSpeed(bool checked) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	if (checked == m_sceneModel.services[row].hasMaximumSpeed)
-		return;
-	m_sceneModel.services[row].hasMaximumSpeed = checked;
-	if (checked && m_sceneModel.services[row].maximumSpeedKmh <= 0.0)
-		m_sceneModel.services[row].maximumSpeedKmh = 100.0;
-	if (m_serviceMaximumSpeedKmhEdit) {
-		const QSignalBlocker blocker(m_serviceMaximumSpeedKmhEdit);
-		m_serviceMaximumSpeedKmhEdit->setValue(std::max(0.1, m_sceneModel.services[row].maximumSpeedKmh));
-		m_serviceMaximumSpeedKmhEdit->setEnabled(checked && !m_worker);
-	}
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceMaximumSpeed() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceMaximumSpeedKmhEdit)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	const double value = m_serviceMaximumSpeedKmhEdit->value();
-	if (value == m_sceneModel.services[row].maximumSpeedKmh)
-		return;
-	m_sceneModel.services[row].maximumSpeedKmh = value;
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceHasOperatingCodeStep(bool checked) {
-	if (!m_sceneLoaded || !m_serviceListWidget)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	if (checked == m_sceneModel.services[row].hasOperatingCodeStep)
-		return;
-	m_sceneModel.services[row].hasOperatingCodeStep = checked;
-	if (checked && m_sceneModel.services[row].operatingCodeStep == 0)
-		m_sceneModel.services[row].operatingCodeStep = 1;
-	if (m_serviceOperatingCodeStepEdit) {
-		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
-		m_serviceOperatingCodeStepEdit->setText(QString::number(
-			m_sceneModel.services[row].operatingCodeStep == 0 ? 1 : m_sceneModel.services[row].operatingCodeStep));
-		m_serviceOperatingCodeStepEdit->setEnabled(checked && !m_worker);
-	}
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitServiceOperatingCodeStep() {
-	if (!m_sceneLoaded || !m_serviceListWidget || !m_serviceOperatingCodeStepEdit)
-		return;
-	const int row = m_serviceListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	bool ok = false;
-	int value = m_serviceOperatingCodeStepEdit->text().toInt(&ok);
-	if (!ok || value == 0)
-		value = 1;
-	{
-		const QSignalBlocker blocker(m_serviceOperatingCodeStepEdit);
-		m_serviceOperatingCodeStepEdit->setText(QString::number(value));
-	}
-	if (value == m_sceneModel.services[row].operatingCodeStep)
-		return;
-	m_sceneModel.services[row].operatingCodeStep = value;
-	m_sceneModel.services[row].hasOperatingCodeStep = true;
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshServiceOccurrencePreview();
-}
-
-void MainWindow::commitPendingServiceSettings() {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	commitServiceIdEdit();
-	commitServiceOperatingCode();
-	if (m_serviceHasEntryTimeCheck && m_serviceHasEntryTimeCheck->isChecked())
-		commitServiceEntryTimeSeconds();
-	if (m_serviceHasRepeatCheck && m_serviceHasRepeatCheck->isChecked()) {
-		commitServiceHeadwaySeconds();
-		if (m_serviceHasRepeatCountCheck && m_serviceHasRepeatCountCheck->isChecked())
-			commitServiceRepeatCount();
-		if (m_serviceHasOperatingCodeStepCheck && m_serviceHasOperatingCodeStepCheck->isChecked())
-			commitServiceOperatingCodeStep();
-	}
-	if (m_servicePerformancePercentEdit) {
-		m_servicePerformancePercentEdit->interpretText();
-		commitServicePerformancePercent(m_servicePerformancePercentEdit->value());
-	}
-	if (m_serviceHasMaximumSpeedCheck && m_serviceHasMaximumSpeedCheck->isChecked()
-		&& m_serviceMaximumSpeedKmhEdit) {
-		m_serviceMaximumSpeedKmhEdit->interpretText();
-		commitServiceMaximumSpeed();
-	}
-}
-
-void MainWindow::refreshStopList() {
-	const int serviceRow = m_serviceListWidget ? m_serviceListWidget->currentRow() : -1;
-	const bool hasService = m_sceneLoaded && serviceRow >= 0
-		&& serviceRow < static_cast<int>(m_sceneModel.services.size());
-	const bool editorAvailable = hasService && !m_worker;
-	const int previousRow = m_stopTableWidget ? m_stopTableWidget->currentRow() : -1;
-	const long long baseOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
-	if (m_stopTimeBaseLabel) {
-		m_stopTimeBaseLabel->setText(hasService
-				? QString("Case base %1; %2")
-					  .arg(QString::fromStdString(m_sceneModel.baseTime.empty()
-							  ? std::string("00:00:00")
-							  : m_sceneModel.baseTime))
-					  .arg(m_stopClockMode ? QStringLiteral("clock times include explicit day offsets")
-										   : QStringLiteral("planned times are elapsed seconds from this base"))
-				: QString());
-	}
-	if (m_stopTimeModeCombo)
-		m_stopTimeModeCombo->setEnabled(editorAvailable);
-	if (m_stopTableWidget) {
-		const QSignalBlocker blocker(m_stopTableWidget);
-		m_stopTableWidget->clearContents();
-		m_stopTableWidget->setRowCount(hasService
-				? static_cast<int>(m_sceneModel.services[serviceRow].stops.size())
-				: 0);
-		std::vector<SceneStopResolution> resolutions;
-		if (hasService)
-			resolutions = resolveSceneServiceStops(m_sceneModel, m_sceneModel.services[serviceRow],
-				sceneServiceTraversal(m_sceneModel, m_sceneModel.services[serviceRow]));
-		if (hasService) {
-			const auto& stops = m_sceneModel.services[serviceRow].stops;
-			for (int row = 0; row < static_cast<int>(stops.size()); ++row) {
-				const SceneStop& stop = stops[static_cast<std::size_t>(row)];
-				const QString station = stationDisplayName(m_sceneModel, stop.stationId);
-				const QString platform = stop.platformId.empty()
-					? QStringLiteral("—")
-					: QString::fromStdString(stop.platformId);
-				const QString arrival = stop.hasPlannedArrival
-					? QString::fromStdString(formatPlannedTime(stop.plannedArrivalSeconds,
-						  m_stopClockMode, baseOffsetSeconds))
-					: QStringLiteral("—");
-				const QString departure = stop.hasPlannedDeparture
-					? QString::fromStdString(formatPlannedTime(stop.plannedDepartureSeconds,
-						  m_stopClockMode, baseOffsetSeconds))
-					: QStringLiteral("—");
-				const std::array<QString, 5> values = {station, platform,
-					QString::fromStdString(csv::formatDouble(stop.dwellSeconds)), arrival, departure};
-				const QString reason = row < static_cast<int>(resolutions.size())
-					? stopResolutionText(resolutions[static_cast<std::size_t>(row)].status)
-					: QString();
-				for (int column = 0; column < 5; ++column) {
-					auto* item = new QTableWidgetItem(values[static_cast<std::size_t>(column)]);
-					item->setData(Qt::UserRole, QString::fromStdString(stop.stationId));
-					item->setData(Qt::UserRole + 1, QString::fromStdString(stop.platformId));
-					item->setData(Qt::UserRole + 2, row);
-					item->setToolTip(reason.isEmpty() ? QString("Station %1 [%2]")
-															.arg(station, QString::fromStdString(stop.stationId))
-													  : reason);
-					m_stopTableWidget->setItem(row, column, item);
-				}
-			}
-		}
-		m_stopTableWidget->resizeColumnsToContents();
-		m_stopTableWidget->setEnabled(editorAvailable);
-		if (m_stopTableWidget->rowCount() > 0)
-			m_stopTableWidget->setCurrentCell(std::clamp(previousRow < 0 ? 0 : previousRow,
-												  0, m_stopTableWidget->rowCount() - 1),
-				0);
-		else
-			m_stopTableWidget->clearSelection();
-	}
-	updateStopActions();
-	refreshEntranceDelayPanel();
-}
-
-void MainWindow::updateStopActions() {
-	const bool editorAvailable = m_sceneLoaded && !m_worker && m_serviceListWidget
-		&& m_serviceListWidget->currentRow() >= 0;
-	const int selectedRow = m_stopTableWidget ? m_stopTableWidget->currentRow() : -1;
-	const bool hasSelection = editorAvailable && selectedRow >= 0 && m_stopTableWidget
-		&& selectedRow < m_stopTableWidget->rowCount();
-	if (m_addStopButton)
-		m_addStopButton->setEnabled(editorAvailable);
-	if (m_insertStopAfterButton)
-		m_insertStopAfterButton->setEnabled(hasSelection);
-	if (m_removeStopButton)
-		m_removeStopButton->setEnabled(hasSelection);
-	if (m_moveStopUpButton)
-		m_moveStopUpButton->setEnabled(hasSelection && selectedRow > 0);
-	if (m_moveStopDownButton)
-		m_moveStopDownButton->setEnabled(hasSelection
-			&& selectedRow + 1 < m_stopTableWidget->rowCount());
-}
-
-void MainWindow::editStop(int row, int insertIndex) {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
-		return;
-	const int serviceRow = m_serviceListWidget->currentRow();
-	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	SceneService& service = m_sceneModel.services[static_cast<std::size_t>(serviceRow)];
-	const bool append = row < 0;
-	if (!append && row >= static_cast<int>(service.stops.size()))
-		return;
-	// The position of a new stop in the timetable, or the row of the stop being edited.
-	std::size_t stopIndex = !append ? static_cast<std::size_t>(row)
-		: insertIndex < 0			? service.stops.size()
-									: std::min(static_cast<std::size_t>(insertIndex), service.stops.size());
-	// The route visits offered for the stop at `stopIndex`. A new stop is offered only
-	// the visits between its neighbours; `windowProblem` says why there are none.
-	SceneRouteTraversal traversal;
-	std::string windowProblem;
-	const auto updateWindow = [&]() {
-		const auto window = sceneStopInsertionWindow(m_sceneModel, service, stopIndex);
-		traversal = window.ok ? window.visits : SceneRouteTraversal();
-		windowProblem = window.ok ? std::string() : window.problem;
-		if (window.ok && traversal.visits.empty())
-			windowProblem = "No station visit is available at this position between the neighbouring stops.";
-	};
-	if (append)
-		updateWindow();
-	else
-		traversal = sceneRemainingStopTraversal(m_sceneModel, service, stopIndex);
-
-	SceneStop draft = append ? SceneStop() : service.stops[stopIndex];
-	if (append && !traversal.visits.empty()) {
-		draft.stationId = traversal.visits.front().stationId;
-		std::vector<std::string> candidatePlatforms;
-		for (const auto& visit : traversal.visits)
-			if (visit.stationId == draft.stationId && !visit.platformId.empty()
-				&& std::find(candidatePlatforms.begin(), candidatePlatforms.end(), visit.platformId)
-					== candidatePlatforms.end())
-				candidatePlatforms.push_back(visit.platformId);
-		if (candidatePlatforms.size() == 1)
-			draft.platformId = candidatePlatforms.front();
-	}
-
-	QDialog dialog(this);
-	dialog.setObjectName("stopEditorDialog");
-	dialog.setWindowTitle(append ? "Add timetable stop" : "Edit timetable stop");
-	auto* body = new QWidget;
-	auto* layout = new QVBoxLayout(body);
-	auto* form = new QFormLayout();
-	ChoiceComboBox* positionCombo = nullptr;
-	if (append) {
-		positionCombo = new ChoiceComboBox(&dialog);
-		positionCombo->setObjectName("stopEditorPositionCombo");
-		positionCombo->setAccessibleName("Timetable stop position");
-		positionCombo->addItem("At the start of the timetable", 0);
-		for (std::size_t index = 0; index < service.stops.size(); ++index) {
-			const SceneStop& stop = service.stops[index];
-			QString label = QString("After stop %1: %2").arg(index + 1).arg(stationDisplayName(m_sceneModel, stop.stationId));
-			if (!stop.platformId.empty())
-				label += QString(" [%1]").arg(QString::fromStdString(stop.platformId));
-			positionCombo->addItem(label, static_cast<int>(index + 1));
-		}
-		positionCombo->setCurrentIndex(static_cast<int>(stopIndex));
-		form->addRow("Insert position", positionCombo);
-	}
-	auto* stationCombo = new ChoiceComboBox(&dialog);
-	stationCombo->setObjectName("stopEditorStationCombo");
-	stationCombo->setAccessibleName("Timetable stop station");
-	const auto fillStationChoices = [&]() {
-		const QSignalBlocker blocker(stationCombo);
-		stationCombo->clear();
-		const auto addStationChoice = [&](const std::string& stationId) {
-			if (stationId.empty() || stationCombo->findData(QString::fromStdString(stationId)) >= 0)
-				return;
-			stationCombo->addItem(stationDisplayName(m_sceneModel, stationId), QString::fromStdString(stationId));
-		};
-		for (const auto& visit : traversal.visits)
-			addStationChoice(visit.stationId);
-		if (!append)
-			addStationChoice(draft.stationId);
-		if (stationCombo->count() == 0)
-			stationCombo->addItem(append ? "(no reachable station here)" : "(missing station)", QString());
-		stationCombo->setEnabled(!append || !traversal.visits.empty());
-	};
-	fillStationChoices();
-	form->addRow("Station", stationCombo);
-	auto* platformCombo = new ChoiceComboBox(&dialog);
-	platformCombo->setObjectName("stopEditorPlatformCombo");
-	platformCombo->setAccessibleName("Timetable stop platform");
-	form->addRow("Compatible platform", platformCombo);
-	auto* eligibilityLabel = new QLabel(&dialog);
-	eligibilityLabel->setObjectName("stopEditorEligibilityLabel");
-	eligibilityLabel->setWordWrap(true);
-	form->addRow(QString(), eligibilityLabel);
-
-	auto* modeCombo = new ChoiceComboBox(&dialog);
-	modeCombo->setObjectName("stopEditorTimeModeCombo");
-	modeCombo->addItem("Elapsed offsets (s)", false);
-	modeCombo->addItem("Clock time", true);
-	modeCombo->setCurrentIndex(m_stopClockMode ? 1 : 0);
-	form->addRow("Planned time display", modeCombo);
-	auto* baseLabel = new QLabel(QString("Case base time: %1")
-									 .arg(QString::fromStdString(m_sceneModel.baseTime.empty() ? std::string("00:00:00") : m_sceneModel.baseTime)),
-		&dialog);
-	baseLabel->setObjectName("stopEditorBaseTimeLabel");
-	baseLabel->setWordWrap(true);
-	form->addRow(QString(), baseLabel);
-
-	auto* arrivalPresent = new QCheckBox("Planned arrival", &dialog);
-	arrivalPresent->setObjectName("stopEditorArrivalPresent");
-	auto* arrivalEdit = new QLineEdit(&dialog);
-	arrivalEdit->setObjectName("stopEditorArrivalEdit");
-	arrivalEdit->setPlaceholderText("blank = absent");
-	arrivalEdit->setAccessibleName("Planned arrival time");
-	auto* arrivalLayout = new QHBoxLayout();
-	arrivalLayout->addWidget(arrivalPresent);
-	arrivalLayout->addWidget(arrivalEdit, 1);
-	form->addRow("Arrival", arrivalLayout);
-	auto* departurePresent = new QCheckBox("Planned departure", &dialog);
-	departurePresent->setObjectName("stopEditorDeparturePresent");
-	auto* departureEdit = new QLineEdit(&dialog);
-	departureEdit->setObjectName("stopEditorDepartureEdit");
-	departureEdit->setPlaceholderText("blank = absent");
-	departureEdit->setAccessibleName("Planned departure time");
-	auto* departureLayout = new QHBoxLayout();
-	departureLayout->addWidget(departurePresent);
-	departureLayout->addWidget(departureEdit, 1);
-	form->addRow("Departure", departureLayout);
-	auto* dwellEdit = new QLineEdit(&dialog);
-	dwellEdit->setObjectName("stopEditorDwellEdit");
-	dwellEdit->setAccessibleName("Minimum dwell seconds");
-	form->addRow("Minimum dwell (s)", dwellEdit);
-	layout->addLayout(form);
-	auto* errorLabel = new QLabel(&dialog);
-	errorLabel->setObjectName("stopEditorErrorLabel");
-	errorLabel->setStyleSheet("color: #b00020;");
-	errorLabel->setWordWrap(true);
-	layout->addWidget(errorLabel);
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-	buttons->setObjectName("stopEditorButtons");
-	buttons->button(QDialogButtonBox::Ok)->setObjectName("stopEditorAcceptButton");
-	buttons->button(QDialogButtonBox::Cancel)->setObjectName("stopEditorCancelButton");
-	DialogLayout::install(dialog, append ? "Add timetable stop" : "Edit timetable stop",
-		"Set the station, compatible platform and planned times.", body, buttons);
-
-	const long long baseOffsetSeconds = baseTimeToSeconds(m_sceneModel.baseTime);
-	bool dialogClockMode = m_stopClockMode;
-	const auto optionalArrival = [&]() -> std::optional<double> {
-		return draft.hasPlannedArrival ? std::optional<double>(draft.plannedArrivalSeconds) : std::nullopt;
-	};
-	const auto optionalDeparture = [&]() -> std::optional<double> {
-		return draft.hasPlannedDeparture ? std::optional<double>(draft.plannedDepartureSeconds) : std::nullopt;
-	};
-	const auto setTimeField = [&](QCheckBox* present, QLineEdit* edit, const std::optional<double>& value) {
-		const QSignalBlocker checkBlocker(present);
-		present->setChecked(value.has_value());
-		const QSignalBlocker editBlocker(edit);
-		edit->setText(QString::fromStdString(formatPlannedTime(value, dialogClockMode, baseOffsetSeconds)));
-		edit->setEnabled(value.has_value());
-	};
-	setTimeField(arrivalPresent, arrivalEdit, optionalArrival());
-	setTimeField(departurePresent, departureEdit, optionalDeparture());
-	dwellEdit->setText(QString::fromStdString(csv::formatDouble(draft.dwellSeconds)));
-
-	int invalidPlatformIndex = -1;
-	const auto stationOnRoute = [&](const std::string& stationId) {
-		return std::any_of(traversal.visits.begin(), traversal.visits.end(),
-			[&](const auto& visit) { return visit.stationId == stationId; });
-	};
-	const auto updateEligibility = [&]() {
-		if (!windowProblem.empty()) {
-			eligibilityLabel->setText(QString::fromStdString(windowProblem));
-			return SceneStopResolutionStatus::UnresolvedRoute;
-		}
-		SceneService candidate = service;
-		if (append)
-			candidate.stops.insert(candidate.stops.begin() + stopIndex, draft);
-		else
-			candidate.stops[stopIndex] = draft;
-		const auto resolutions = resolveSceneServiceStops(m_sceneModel, candidate,
-			sceneServiceTraversal(m_sceneModel, candidate));
-		const auto status = stopIndex < resolutions.size() ? resolutions[stopIndex].status
-														   : SceneStopResolutionStatus::UnresolvedRoute;
-		eligibilityLabel->setText(stopResolutionText(status));
-		if (stationCombo->currentIndex() >= 0 && !stationOnRoute(draft.stationId))
-			stationCombo->setItemData(stationCombo->currentIndex(), eligibilityLabel->text(), Qt::ToolTipRole);
-		if (invalidPlatformIndex >= 0 && platformCombo->currentIndex() == invalidPlatformIndex)
-			platformCombo->setItemData(invalidPlatformIndex, eligibilityLabel->text(), Qt::ToolTipRole);
-		return status;
-	};
-	const auto refreshPlatforms = [&]() {
-		const std::string stationId = stationCombo->currentData().toString().toStdString();
-		const QSignalBlocker blocker(platformCombo);
-		platformCombo->clear();
-		invalidPlatformIndex = -1;
-		platformCombo->addItem(QStringLiteral("(no platform)"), QString());
-		std::vector<std::string> choices;
-		for (const auto& visit : traversal.visits)
-			if (visit.stationId == stationId && !visit.platformId.empty()
-				&& std::find(choices.begin(), choices.end(), visit.platformId) == choices.end())
-				choices.push_back(visit.platformId);
-		for (const auto& platform : choices)
-			platformCombo->addItem(QString::fromStdString(platform), QString::fromStdString(platform));
-		if (!draft.platformId.empty() && platformCombo->findData(QString::fromStdString(draft.platformId)) < 0) {
-			invalidPlatformIndex = platformCombo->count();
-			platformCombo->addItem(QString("Invalid: %1").arg(QString::fromStdString(draft.platformId)),
-				QString::fromStdString(draft.platformId));
-		}
-		int index = platformCombo->findData(QString::fromStdString(draft.platformId));
-		platformCombo->setCurrentIndex(index < 0 ? 0 : index);
-		platformCombo->setEnabled(!stationId.empty());
-	};
-	{
-		const QSignalBlocker blocker(stationCombo);
-		const int index = stationCombo->findData(QString::fromStdString(draft.stationId));
-		if (index >= 0)
-			stationCombo->setCurrentIndex(index);
-	}
-	refreshPlatforms();
-	updateEligibility();
-	DialogLayout::fitWidthToContent(dialog);
-	if (positionCombo) {
-		connect(positionCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
-			if (index < 0)
-				return;
-			stopIndex = static_cast<std::size_t>(positionCombo->itemData(index).toInt());
-			updateWindow();
-			fillStationChoices();
-			int stationIndex = stationCombo->findData(QString::fromStdString(draft.stationId));
-			if (stationIndex < 0)
-				stationIndex = 0;
-			const std::string stationId = stationCombo->itemData(stationIndex).toString().toStdString();
-			const bool platformOffered = std::any_of(traversal.visits.begin(), traversal.visits.end(),
-				[&](const auto& visit) { return visit.stationId == stationId && visit.platformId == draft.platformId; });
-			if (stationId != draft.stationId || !platformOffered)
-				draft.platformId.clear();
-			draft.stationId = stationId;
-			{
-				const QSignalBlocker blocker(stationCombo);
-				stationCombo->setCurrentIndex(stationIndex);
-			}
-			refreshPlatforms();
-			updateEligibility();
-			errorLabel->clear();
-		});
-	}
-	connect(stationCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
-		if (index < 0)
-			return;
-		const std::string stationId = stationCombo->itemData(index).toString().toStdString();
-		if (stationId != draft.stationId)
-			draft.platformId.clear();
-		draft.stationId = stationId;
-		refreshPlatforms();
-		updateEligibility();
-	});
-	connect(platformCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
-		if (index >= 0)
-			draft.platformId = platformCombo->itemData(index).toString().toStdString();
-		updateEligibility();
-	});
-	connect(arrivalPresent, &QCheckBox::toggled, &dialog, [&](bool checked) {
-		arrivalEdit->setEnabled(checked);
-		if (!checked)
-			arrivalEdit->clear();
-	});
-	connect(departurePresent, &QCheckBox::toggled, &dialog, [&](bool checked) {
-		departureEdit->setEnabled(checked);
-		if (!checked)
-			departureEdit->clear();
-	});
-	const auto parseField = [&](QCheckBox* present, QLineEdit* edit, bool clock,
-								std::optional<double>& value) {
-		if (!present->isChecked() || edit->text().trimmed().isEmpty()) {
-			value.reset();
-			return true;
-		}
-		return parsePlannedTime(edit->text().toStdString(), clock, baseOffsetSeconds, value);
-	};
-	const auto showParseError = [&](QLineEdit* edit, const QString& field) {
-		errorLabel->setText(QString("%1 is invalid. Enter a non-negative elapsed value or HH:MM:SS[.fraction] with an explicit +Nd day prefix.").arg(field));
-		edit->setFocus();
-	};
-	connect(modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
-		if (index < 0)
-			return;
-		const bool nextClockMode = modeCombo->itemData(index).toBool();
-		if (nextClockMode == dialogClockMode)
-			return;
-		std::optional<double> arrival = optionalArrival();
-		std::optional<double> departure = optionalDeparture();
-		if (!parseField(arrivalPresent, arrivalEdit, dialogClockMode, arrival)
-			|| !parseField(departurePresent, departureEdit, dialogClockMode, departure)) {
-			const QSignalBlocker blocker(modeCombo);
-			modeCombo->setCurrentIndex(dialogClockMode ? 1 : 0);
-			errorLabel->setText("Finish the invalid planned time before changing its display mode.");
-			return;
-		}
-		draft.hasPlannedArrival = arrival.has_value();
-		if (draft.hasPlannedArrival)
-			draft.plannedArrivalSeconds = *arrival;
-		draft.hasPlannedDeparture = departure.has_value();
-		if (draft.hasPlannedDeparture)
-			draft.plannedDepartureSeconds = *departure;
-		dialogClockMode = nextClockMode;
-		setTimeField(arrivalPresent, arrivalEdit, arrival);
-		setTimeField(departurePresent, departureEdit, departure);
-		errorLabel->clear();
-	});
-	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
-		if (!windowProblem.empty()) {
-			errorLabel->setText(QString::fromStdString(windowProblem));
-			if (positionCombo)
-				positionCombo->setFocus();
-			return;
-		}
-		std::optional<double> arrival = optionalArrival();
-		std::optional<double> departure = optionalDeparture();
-		if (!parseField(arrivalPresent, arrivalEdit, dialogClockMode, arrival)) {
-			showParseError(arrivalEdit, "Planned arrival");
-			return;
-		}
-		if (!parseField(departurePresent, departureEdit, dialogClockMode, departure)) {
-			showParseError(departureEdit, "Planned departure");
-			return;
-		}
-		bool dwellOk = false;
-		const double dwell = dwellEdit->text().trimmed().toDouble(&dwellOk);
-		if (!dwellOk || !std::isfinite(dwell) || dwell < 0.0) {
-			errorLabel->setText("Minimum dwell must be a finite non-negative number of seconds.");
-			dwellEdit->setFocus();
-			return;
-		}
-		if (draft.stationId.empty()) {
-			errorLabel->setText("Choose a station for this timetable stop.");
-			stationCombo->setFocus();
-			return;
-		}
-		const bool changedAssignment = append || draft.stationId != service.stops[stopIndex].stationId
-			|| draft.platformId != service.stops[stopIndex].platformId;
-		if (changedAssignment && updateEligibility() == SceneStopResolutionStatus::AmbiguousPlatform) {
-			errorLabel->setText("Choose a compatible platform: more than one is reachable at this station.");
-			platformCombo->setFocus();
-			return;
-		}
-		draft.hasPlannedArrival = arrival.has_value();
-		if (draft.hasPlannedArrival)
-			draft.plannedArrivalSeconds = *arrival;
-		draft.hasPlannedDeparture = departure.has_value();
-		if (draft.hasPlannedDeparture)
-			draft.plannedDepartureSeconds = *departure;
-		draft.dwellSeconds = dwell;
-		if (append) {
-			const auto result = insertSceneStop(m_sceneModel, service, stopIndex, draft);
-			if (!result.inserted) {
-				errorLabel->setText(QString::fromStdString(result.error));
-				return;
-			}
-		}
-		dialog.accept();
-	});
-
-	if (dialog.exec() != QDialog::Accepted)
-		return;
-	if (!append)
-		service.stops[stopIndex] = draft;
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshStopList();
-	if (m_stopTableWidget)
-		m_stopTableWidget->setCurrentCell(static_cast<int>(stopIndex), 0);
-	refreshValidationPanel();
-}
-
-void MainWindow::addStop() {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget)
-		return;
-	const int serviceRow = m_serviceListWidget->currentRow();
-	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()))
-		return;
-	const SceneService& service = m_sceneModel.services[static_cast<std::size_t>(serviceRow)];
-	for (std::size_t position = service.stops.size() + 1; position-- > 0;) {
-		const auto window = sceneStopInsertionWindow(m_sceneModel, service, position);
-		if (window.ok && !window.visits.visits.empty()) {
-			editStop(-1, static_cast<int>(position));
-			return;
-		}
-	}
-	QMessageBox::information(this, "No reachable stop",
-		"No station visit is available between any of the current stops. Check the route and stop order before adding a stop.");
-}
-
-void MainWindow::insertStopAfterSelected() {
-	const int row = m_stopTableWidget ? m_stopTableWidget->currentRow() : -1;
-	if (row >= 0 && row < m_stopTableWidget->rowCount())
-		editStop(-1, row + 1);
-}
-
-void MainWindow::removeStop() {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_stopTableWidget)
-		return;
-	const int serviceRow = m_serviceListWidget->currentRow();
-	const int stopRow = m_stopTableWidget->currentRow();
-	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size())
-		|| stopRow < 0 || stopRow >= static_cast<int>(m_sceneModel.services[serviceRow].stops.size()))
-		return;
-	auto& stops = m_sceneModel.services[serviceRow].stops;
-	stops.erase(stops.begin() + stopRow);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshStopList();
-	if (m_stopTableWidget && m_stopTableWidget->rowCount() > 0)
-		m_stopTableWidget->setCurrentCell(std::min(stopRow, m_stopTableWidget->rowCount() - 1), 0);
-	refreshValidationPanel();
-}
-
-void MainWindow::moveStopUp() {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_stopTableWidget)
-		return;
-	const int serviceRow = m_serviceListWidget->currentRow();
-	const int stopRow = m_stopTableWidget->currentRow();
-	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()) || stopRow <= 0
-		|| stopRow >= static_cast<int>(m_sceneModel.services[serviceRow].stops.size()))
-		return;
-	auto& stops = m_sceneModel.services[serviceRow].stops;
-	std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow - 1)]);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshStopList();
-	m_stopTableWidget->setCurrentCell(stopRow - 1, 0);
-	refreshValidationPanel();
-}
-
-void MainWindow::moveStopDown() {
-	if (!m_sceneLoaded || m_worker || !m_serviceListWidget || !m_stopTableWidget)
-		return;
-	const int serviceRow = m_serviceListWidget->currentRow();
-	const int stopRow = m_stopTableWidget->currentRow();
-	if (serviceRow < 0 || serviceRow >= static_cast<int>(m_sceneModel.services.size()) || stopRow < 0
-		|| stopRow + 1 >= static_cast<int>(m_sceneModel.services[serviceRow].stops.size()))
-		return;
-	auto& stops = m_sceneModel.services[serviceRow].stops;
-	std::swap(stops[static_cast<std::size_t>(stopRow)], stops[static_cast<std::size_t>(stopRow + 1)]);
-	markSceneDirty();
-	updateSceneWindowTitle();
-	updateSceneActions();
-	refreshStopList();
-	m_stopTableWidget->setCurrentCell(stopRow + 1, 0);
-	refreshValidationPanel();
 }
 
 SceneScenario* MainWindow::selectedScenario() {
@@ -6789,7 +5170,7 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 		const QSignalBlocker blocker(m_entranceDelayServiceCombo);
 		m_entranceDelayServiceCombo->clear();
 		for (const SceneService& candidate : m_sceneModel.services)
-			m_entranceDelayServiceCombo->addItem(generatedServiceLabel(candidate, 1),
+			m_entranceDelayServiceCombo->addItem(ServicePanel::generatedServiceLabel(candidate, 1),
 				QString::fromStdString(candidate.id));
 		if (delay) {
 			int index = m_entranceDelayServiceCombo->findData(QString::fromStdString(delay->serviceId));
@@ -6822,7 +5203,7 @@ void MainWindow::updateEntranceDelayDetailPanel() {
 		} else {
 			QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
 			if (service) {
-				context += QStringLiteral(" | ") + generatedServiceLabel(*service, delay->occurrence);
+				context += QStringLiteral(" | ") + ServicePanel::generatedServiceLabel(*service, delay->occurrence);
 			} else {
 				context += QStringLiteral(" | Generated operating code: (unavailable)");
 			}
@@ -7312,7 +5693,7 @@ void MainWindow::refreshIncidentTargetCombo() {
 				const int count = std::max(0,
 					sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
 				for (int occurrence = 1; occurrence <= count && shown < Max_N_Reg; ++occurrence, ++shown) {
-					m_incidentTargetCombo->addItem(generatedServiceLabel(service, occurrence),
+					m_incidentTargetCombo->addItem(ServicePanel::generatedServiceLabel(service, occurrence),
 						QString::fromStdString(service.id));
 					const int index = m_incidentTargetCombo->count() - 1;
 					m_incidentTargetCombo->setItemData(index, occurrence, Qt::UserRole + 1);
@@ -7332,7 +5713,7 @@ void MainWindow::refreshIncidentTargetCombo() {
 						sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
 					if (incident->occurrence < 1 || incident->occurrence > count)
 						break;
-					m_incidentTargetCombo->addItem(generatedServiceLabel(service, incident->occurrence),
+					m_incidentTargetCombo->addItem(ServicePanel::generatedServiceLabel(service, incident->occurrence),
 						QString::fromStdString(service.id));
 					current = m_incidentTargetCombo->count() - 1;
 					m_incidentTargetCombo->setItemData(current, incident->occurrence, Qt::UserRole + 1);

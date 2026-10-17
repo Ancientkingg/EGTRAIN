@@ -1,0 +1,546 @@
+#include "editors/TimetableStopsPanel.h"
+
+#include "widgets/ChoiceComboBox.h"
+
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QScreen>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QString>
+#include <QStringList>
+#include <QTableWidget>
+#include <QTimer>
+
+#include <functional>
+#include <iostream>
+#include <string>
+#include <vector>
+
+static bool expect(bool condition, const char* message) {
+	if (!condition)
+		std::cerr << "failed: " << message << "\n";
+	return condition;
+}
+
+static SceneStop stop(const std::string& stationId, const std::string& platformId, double arrival, double departure) {
+	SceneStop result;
+	result.stationId = stationId;
+	result.platformId = platformId;
+	result.hasPlannedArrival = true;
+	result.plannedArrivalSeconds = arrival;
+	result.hasPlannedDeparture = true;
+	result.plannedDepartureSeconds = departure;
+	result.dwellSeconds = departure - arrival;
+	return result;
+}
+
+// Four platform stations on one track, visited in the order A, B, C and D by one route, and two services on it.
+static SceneModel lineScene() {
+	SceneModel scene;
+	scene.schemaVersion = 1;
+	scene.name = "Timetable stops";
+	scene.baseTime = "08:00:00";
+	scene.tracks.push_back({"track-1"});
+	for (int index = 0; index < 4; ++index)
+		scene.nodes.push_back({"node-" + std::to_string(index + 1), "track-1", static_cast<double>(index), 0.0});
+	for (int index = 1; index < 4; ++index) {
+		scene.arcs.push_back({"arc-" + std::to_string(index), "track-1", "node-" + std::to_string(index), "node-" + std::to_string(index + 1), 0.0, 0.0, 40.0});
+		scene.blocks.push_back({"block-" + std::to_string(index), "track-1", 1.0});
+	}
+	const char letters[] = {'a', 'b', 'c', 'd'};
+	for (int index = 0; index < 4; ++index) {
+		SceneStation station;
+		station.id = std::string("station-") + letters[index];
+		station.name = std::string(1, static_cast<char>(letters[index] - 'a' + 'A'));
+		station.platforms = {{std::string("platform-") + letters[index], {"node-" + std::to_string(index + 1)}}};
+		scene.stations.push_back(station);
+	}
+	SceneRoute route;
+	route.id = "route-1";
+	route.blocks = {"block-1", "block-2", "block-3"};
+	scene.routes.push_back(route);
+	SceneService first;
+	first.id = "service-1";
+	first.route = "route-1";
+	first.stops = {stop("station-a", "platform-a", 0.0, 30.0), stop("station-b", "platform-b", 60.0, 90.0), stop("station-c", "platform-c", 120.0, 150.0)};
+	SceneService second;
+	second.id = "service-2";
+	second.route = "route-1";
+	second.stops = {stop("station-a", "platform-a", 0.0, 30.0), stop("station-d", "platform-d", 200.0, 230.0)};
+	scene.services = {first, second};
+	return scene;
+}
+
+static QString longName(int length) {
+	return QStringLiteral("Stop_abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz_0123456789_abcdefghijklmnopqrstuvwxyz").left(length);
+}
+
+using Log = std::vector<std::string>;
+
+// The order in which a panel and its document report an edit.
+struct Events {
+	Log log;
+	SceneDocument::ChangeKinds kinds;
+
+	Events(TimetableStopsPanel& panel, SceneDocument& document) {
+		QObject::connect(&document, &SceneDocument::changed, &panel, [this](SceneDocument::ChangeKinds changedKinds) {
+			log.push_back("documentChanged");
+			kinds = changedKinds;
+		});
+		QObject::connect(&panel, &TimetableStopsPanel::timetableRefreshed, &panel, [this] { log.push_back("refreshed"); });
+		QObject::connect(&panel, &TimetableStopsPanel::changed, &panel, [this] { log.push_back("panelChanged"); });
+	}
+};
+
+static std::vector<std::string> stationsOf(const SceneService& service) {
+	std::vector<std::string> result;
+	for (const SceneStop& entry : service.stops)
+		result.push_back(entry.stationId);
+	return result;
+}
+
+static QStringList column(const QTableWidget* table, int index) {
+	QStringList result;
+	for (int row = 0; row < table->rowCount(); ++row)
+		result << table->item(row, index)->text();
+	return result;
+}
+
+static QStringList itemTexts(const QComboBox* combo) {
+	QStringList result;
+	for (int index = 0; index < combo->count(); ++index)
+		result << combo->itemText(index);
+	return result;
+}
+
+// What the test did to the stop dialog.
+struct DialogRun {
+	bool opened = false;
+	bool accepted = false;
+};
+
+// Opens the stop dialog with `opener`, runs `driver` on it as soon as it is shown, and closes it with Cancel when `driver`
+// has not accepted it. A watchdog closes a dialog that `driver` never reaches, so a failed test cannot hang.
+static DialogRun runDialog(TimetableStopsPanel& panel, const std::function<void(QDialog&)>& driver, const std::function<void()>& opener) {
+	DialogRun run;
+	QTimer shown;
+	shown.setSingleShot(true);
+	QObject::connect(&shown, &QTimer::timeout, &panel, [&] {
+		auto* dialog = panel.findChild<QDialog*>("stopEditorDialog");
+		if (!dialog)
+			return;
+		run.opened = true;
+		QApplication::processEvents();
+		driver(*dialog);
+		run.accepted = dialog->result() == QDialog::Accepted;
+		if (dialog->isVisible())
+			dialog->reject();
+	});
+	QTimer watchdog;
+	watchdog.setSingleShot(true);
+	QObject::connect(&watchdog, &QTimer::timeout, &panel, [&panel] {
+		if (auto* dialog = panel.findChild<QDialog*>("stopEditorDialog"))
+			dialog->reject();
+	});
+	shown.start(0);
+	watchdog.start(5000);
+	opener();
+	return run;
+}
+
+static void click(QDialog& dialog, const char* name) {
+	dialog.findChild<QPushButton*>(name)->click();
+}
+
+static QComboBox* combo(QDialog& dialog, const char* name) {
+	return dialog.findChild<QComboBox*>(name);
+}
+
+static QLineEdit* edit(QDialog& dialog, const char* name) {
+	return dialog.findChild<QLineEdit*>(name);
+}
+
+static QLabel* label(QDialog& dialog, const char* name) {
+	return dialog.findChild<QLabel*>(name);
+}
+
+int main(int argc, char** argv) {
+	QApplication app(argc, argv);
+	bool ok = true;
+	const Log editLog({"documentChanged", "refreshed", "panelChanged"});
+
+	{
+		TimetableStopsPanel panel;
+		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
+				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
+			"a panel without a document shows nothing and offers nothing");
+		SceneDocument document;
+		panel.setDocument(&document);
+		panel.setServiceId("service-1");
+		panel.addStop();
+		panel.removeStop();
+		panel.moveStopUp();
+		panel.editStop(0);
+		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty(),
+			"a panel stays disabled while its document holds no scene, and its actions change nothing");
+	}
+
+	{
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		Events events(panel, document);
+
+		// refresh
+		document.replace(lineScene(), false);
+		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled(),
+			"a scene shows no stops until a service is given");
+		panel.setServiceId("service-1");
+		ok &= expect(panel.table()->rowCount() == 3 && column(panel.table(), 0) == QStringList({"A", "B", "C"})
+				&& column(panel.table(), 1) == QStringList({"platform-a", "platform-b", "platform-c"})
+				&& column(panel.table(), 2) == QStringList({"30", "30", "30"}) && column(panel.table(), 3) == QStringList({"0", "60", "120"})
+				&& column(panel.table(), 4) == QStringList({"30", "90", "150"}),
+			"the stops of the service are shown in order with their station, platform, dwell and planned times");
+		ok &= expect(panel.table()->isEnabled() && panel.timeModeCombo()->isEnabled() && panel.table()->currentRow() == 0
+				&& panel.addButton()->isEnabled() && panel.insertAfterButton()->isEnabled() && panel.removeButton()->isEnabled()
+				&& !panel.moveUpButton()->isEnabled() && panel.moveDownButton()->isEnabled(),
+			"the first stop is selected and the buttons follow the selection");
+		ok &= expect(panel.timeBaseLabel()->text() == "Case base 08:00:00; planned times are elapsed seconds from this base"
+				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit"
+				&& panel.table()->item(1, 2)->data(Qt::UserRole).toString() == "station-b"
+				&& panel.table()->item(1, 2)->data(Qt::UserRole + 1).toString() == "platform-b"
+				&& panel.table()->item(1, 2)->data(Qt::UserRole + 2).toInt() == 1,
+			"the table says how a stop resolves on the route and keeps the ids of its stop");
+		ok &= expect(events.log == Log({"refreshed", "refreshed"}), "showing a service only shows it");
+		ok &= expect(!document.isDirty() && document.revision() == 1, "showing a service does not change the document");
+		panel.table()->setCurrentCell(2, 0);
+		ok &= expect(!panel.moveDownButton()->isEnabled() && panel.moveUpButton()->isEnabled(), "the last stop cannot move down");
+
+		// the time display
+		panel.timeModeCombo()->setCurrentIndex(1);
+		ok &= expect(column(panel.table(), 3) == QStringList({"08:00:00", "08:01:00", "08:02:00"}) && column(panel.table(), 4).front() == "08:00:30"
+				&& panel.timeBaseLabel()->text().contains("clock times include explicit day offsets") && panel.table()->currentRow() == 2,
+			"the planned times can be shown as clock times and the selection stays");
+		panel.timeModeCombo()->setCurrentIndex(0);
+		ok &= expect(column(panel.table(), 3) == QStringList({"0", "60", "120"}), "the planned times can be shown as elapsed seconds again");
+
+		// stop order
+		events.log.clear();
+		panel.table()->setCurrentCell(1, 0);
+		panel.moveStopUp();
+		ok &= expect(stationsOf(document.model().services[0]) == std::vector<std::string>({"station-b", "station-a", "station-c"})
+				&& panel.table()->currentRow() == 0 && events.log == editLog && events.kinds == SceneDocument::Services
+				&& document.lastChangeLabel() == "Move timetable stop up" && document.isDirty(),
+			"a stop moves up and stays selected");
+		ok &= expect(panel.table()->item(1, 0)->toolTip() == "Invalid: stop is before or at an already used route visit",
+			"a stop that no longer fits the route order says so");
+		events.log.clear();
+		panel.moveStopUp();
+		ok &= expect(events.log.empty() && panel.table()->currentRow() == 0, "the first stop cannot move up");
+		panel.moveStopDown();
+		ok &= expect(stationsOf(document.model().services[0]) == std::vector<std::string>({"station-a", "station-b", "station-c"})
+				&& panel.table()->currentRow() == 1 && events.log == editLog && document.lastChangeLabel() == "Move timetable stop down",
+			"a stop moves down and stays selected");
+		panel.table()->setCurrentCell(2, 0);
+		events.log.clear();
+		panel.moveStopDown();
+		ok &= expect(events.log.empty() && panel.table()->currentRow() == 2, "the last stop cannot move down");
+
+		// remove
+		panel.table()->setCurrentCell(1, 0);
+		panel.removeStop();
+		ok &= expect(stationsOf(document.model().services[0]) == std::vector<std::string>({"station-a", "station-c"})
+				&& panel.table()->currentRow() == 1 && events.log == editLog && document.lastChangeLabel() == "Remove timetable stop",
+			"a removed stop leaves the next stop selected");
+		events.log.clear();
+		panel.removeStop();
+		ok &= expect(stationsOf(document.model().services[0]) == std::vector<std::string>({"station-a"}) && panel.table()->currentRow() == 0
+				&& events.log == editLog,
+			"removing the last stop selects the new last stop");
+		panel.removeStop();
+		ok &= expect(document.model().services[0].stops.empty() && panel.table()->rowCount() == 0 && !panel.removeButton()->isEnabled()
+				&& panel.addButton()->isEnabled(),
+			"removing the only stop leaves an empty timetable that stops can be added to");
+		events.log.clear();
+		panel.removeStop();
+		ok &= expect(events.log.empty(), "removing without a selected stop changes nothing");
+
+		// the service follows the id
+		panel.setServiceId("service-2");
+		ok &= expect(column(panel.table(), 0) == QStringList({"A", "D"}) && stationsOf(document.model().services[0]).empty(),
+			"another service shows its own stops");
+		panel.setServiceId("missing");
+		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
+				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
+			"an unknown service shows nothing");
+		panel.setServiceId("");
+		ok &= expect(panel.table()->rowCount() == 0 && !panel.addButton()->isEnabled(), "an empty id shows nothing");
+		panel.setServiceId("service-2");
+
+		// the scene is replaced
+		document.replace(lineScene(), false);
+		ok &= expect(column(panel.table(), 0) == QStringList({"A", "D"}) && !document.isDirty(),
+			"a new scene shows the stops of the service that is given, without an edit");
+
+		// a run closes the timetable
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(!panel.table()->isEnabled() && !panel.addButton()->isEnabled() && !panel.insertAfterButton()->isEnabled()
+				&& !panel.timeModeCombo()->isEnabled(),
+			"the timetable is closed while a run uses the scene");
+		events.log.clear();
+		panel.table()->setCurrentCell(0, 0);
+		panel.removeStop();
+		panel.moveStopDown();
+		panel.moveStopUp();
+		panel.addStop();
+		panel.editStop(0);
+		ok &= expect(events.log.empty() && document.model().services[1].stops.size() == 2 && !panel.findChild<QDialog*>("stopEditorDialog"),
+			"no stop can be edited while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
+
+		// detach
+		panel.setDocument(nullptr);
+		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled(), "a detached panel shows nothing");
+		const quint64 revisionDetached = document.revision();
+		document.replace(lineScene(), false);
+		ok &= expect(panel.table()->rowCount() == 0 && document.revision() == revisionDetached + 1,
+			"a detached panel does not follow the document");
+	}
+
+	{
+		// the stop dialog
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		Events events(panel, document);
+		document.replace(lineScene(), false);
+		panel.setServiceId("service-1");
+
+		// edit
+		events.log.clear();
+		DialogRun run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				ok &= expect(dialog.windowTitle() == "Edit timetable stop" && !combo(dialog, "stopEditorPositionCombo"),
+					"editing a stop has no position to choose");
+				ok &= expect(combo(dialog, "stopEditorStationCombo")->currentData().toString() == "station-b"
+						&& combo(dialog, "stopEditorPlatformCombo")->currentData().toString() == "platform-b"
+						&& edit(dialog, "stopEditorDwellEdit")->text() == "30" && edit(dialog, "stopEditorArrivalEdit")->text() == "60"
+						&& edit(dialog, "stopEditorDepartureEdit")->text() == "90"
+						&& label(dialog, "stopEditorEligibilityLabel")->text() == "Reachable ordered route visit",
+					"the dialog shows the stop that is edited");
+				edit(dialog, "stopEditorDwellEdit")->setText("-1");
+				click(dialog, "stopEditorAcceptButton");
+				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("Minimum dwell must be"),
+					"a negative dwell is refused with a message and the dialog stays open");
+				edit(dialog, "stopEditorDwellEdit")->setText("45");
+				edit(dialog, "stopEditorArrivalEdit")->setText("no time");
+				click(dialog, "stopEditorAcceptButton");
+				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("Planned arrival is invalid"),
+					"a planned time that does not parse is refused with a message and the dialog stays open");
+				edit(dialog, "stopEditorArrivalEdit")->setText("70");
+				click(dialog, "stopEditorAcceptButton");
+			},
+			[&] { panel.editStop(1); });
+		const SceneStop& changedStop = document.model().services[0].stops[1];
+		ok &= expect(run.opened && run.accepted && changedStop.dwellSeconds == 45.0 && changedStop.plannedArrivalSeconds == 70.0
+				&& changedStop.plannedDepartureSeconds == 90.0 && changedStop.stationId == "station-b"
+				&& document.model().services[0].stops.size() == 3,
+			"an accepted dialog writes the stop to the document");
+		ok &= expect(events.log == editLog && document.lastChangeLabel() == "Edit timetable stop" && panel.table()->currentRow() == 1
+				&& panel.table()->item(1, 3)->text() == "70" && panel.table()->item(1, 2)->text() == "45",
+			"an edited stop is shown again and selected, and the document is marked changed once");
+
+		// the planned times in the dialog follow the time display
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				combo(dialog, "stopEditorTimeModeCombo")->setCurrentIndex(1);
+				ok &= expect(edit(dialog, "stopEditorArrivalEdit")->text() == "08:01:10" && edit(dialog, "stopEditorDepartureEdit")->text() == "08:01:30",
+					"the dialog converts the planned times when it shows clock times");
+				edit(dialog, "stopEditorArrivalEdit")->setText("08:01:20");
+				click(dialog, "stopEditorAcceptButton");
+			},
+			[&] { panel.editStop(1); });
+		ok &= expect(run.accepted && document.model().services[0].stops[1].plannedArrivalSeconds == 80.0
+				&& document.model().services[0].stops[1].plannedDepartureSeconds == 90.0,
+			"a planned time typed as a clock time is stored as seconds from the case base");
+
+		// cancel
+		events.log.clear();
+		const SceneStop beforeCancel = document.model().services[0].stops[1];
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				edit(dialog, "stopEditorDwellEdit")->setText("99");
+				click(dialog, "stopEditorCancelButton");
+			},
+			[&] { panel.editStop(1); });
+		ok &= expect(run.opened && !run.accepted && document.model().services[0].stops[1].dwellSeconds == beforeCancel.dwellSeconds
+				&& events.log.empty(),
+			"cancelling the dialog changes nothing");
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				ok &= expect(combo(dialog, "stopEditorStationCombo")->currentData().toString() == "station-c", "clicking a row edits that stop");
+				click(dialog, "stopEditorCancelButton");
+			},
+			[&] { emit panel.table()->cellClicked(2, 0); });
+		ok &= expect(run.opened && !run.accepted, "clicking a row of the table opens the dialog of the stop");
+
+		// add: the position defaults to the last place that offers a station
+		events.log.clear();
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				ok &= expect(dialog.windowTitle() == "Add timetable stop"
+						&& itemTexts(combo(dialog, "stopEditorPositionCombo"))
+							== QStringList({"At the start of the timetable", "After stop 1: A [platform-a]", "After stop 2: B [platform-b]",
+								"After stop 3: C [platform-c]"})
+						&& combo(dialog, "stopEditorPositionCombo")->currentIndex() == 3,
+					"adding a stop offers every position and starts at the last one that has a station");
+				ok &= expect(itemTexts(combo(dialog, "stopEditorStationCombo")) == QStringList({"D"})
+						&& combo(dialog, "stopEditorPlatformCombo")->currentData().toString() == "platform-d"
+						&& label(dialog, "stopEditorEligibilityLabel")->text() == "Reachable ordered route visit",
+					"only the stations that the route reaches after the neighbouring stop are offered, and a single platform is chosen");
+				combo(dialog, "stopEditorPositionCombo")->setCurrentIndex(1);
+				ok &= expect(!combo(dialog, "stopEditorStationCombo")->isEnabled()
+						&& combo(dialog, "stopEditorStationCombo")->currentText() == "(no reachable station here)"
+						&& label(dialog, "stopEditorEligibilityLabel")->text().startsWith("No station visit is available"),
+					"a position between stops with no station between them offers none and says why");
+				click(dialog, "stopEditorAcceptButton");
+				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("No station visit is available"),
+					"a position with no station cannot be accepted");
+				combo(dialog, "stopEditorPositionCombo")->setCurrentIndex(3);
+				ok &= expect(label(dialog, "stopEditorErrorLabel")->text().isEmpty() && combo(dialog, "stopEditorStationCombo")->currentText() == "D",
+					"choosing a position again offers its stations and clears the message");
+				ok &= expect(combo(dialog, "stopEditorPlatformCombo")->currentData().toString().isEmpty(),
+					"a platform that was chosen before the position changed is not kept");
+				QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
+				platform->setCurrentIndex(platform->findData("platform-d"));
+				edit(dialog, "stopEditorDwellEdit")->setText("20");
+				click(dialog, "stopEditorAcceptButton");
+			},
+			[&] { panel.addStop(); });
+		ok &= expect(run.accepted && stationsOf(document.model().services[0]) == std::vector<std::string>({"station-a", "station-b", "station-c", "station-d"})
+				&& document.model().services[0].stops[3].platformId == "platform-d" && document.model().services[0].stops[3].dwellSeconds == 20.0
+				&& !document.model().services[0].stops[3].hasPlannedArrival && panel.table()->currentRow() == 3 && events.log == editLog
+				&& document.lastChangeLabel() == "Add timetable stop",
+			"an added stop enters the timetable at the chosen position and is selected");
+
+		// insert after the selected stop of another service
+		panel.setServiceId("service-2");
+		panel.table()->setCurrentCell(0, 0);
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				ok &= expect(combo(dialog, "stopEditorPositionCombo")->currentIndex() == 1
+						&& itemTexts(combo(dialog, "stopEditorStationCombo")) == QStringList({"B", "C"}),
+					"inserting after a stop starts after it and offers the stations between it and the next stop");
+				combo(dialog, "stopEditorStationCombo")->setCurrentIndex(1);
+				ok &= expect(combo(dialog, "stopEditorPlatformCombo")->currentData().toString().isEmpty()
+						&& itemTexts(combo(dialog, "stopEditorPlatformCombo")) == QStringList({"(no platform)", "platform-c"}),
+					"choosing another station offers its platforms and drops the platform of the first");
+				combo(dialog, "stopEditorPlatformCombo")->setCurrentIndex(1);
+				click(dialog, "stopEditorAcceptButton");
+			},
+			[&] { panel.insertStopAfterSelected(); });
+		ok &= expect(run.accepted && stationsOf(document.model().services[1]) == std::vector<std::string>({"station-a", "station-c", "station-d"})
+				&& document.model().services[1].stops[1].platformId == "platform-c" && panel.table()->currentRow() == 1,
+			"a stop inserted after the selected one lands right behind it");
+		panel.table()->setCurrentCell(0, 0);
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				ok &= expect(itemTexts(combo(dialog, "stopEditorStationCombo")) == QStringList({"B"}),
+					"the stations between the new neighbours are offered");
+				click(dialog, "stopEditorAcceptButton");
+			},
+			[&] { panel.insertStopAfterSelected(); });
+		ok &= expect(run.accepted && stationsOf(document.model().services[1]) == std::vector<std::string>({"station-a", "station-b", "station-c", "station-d"})
+				&& panel.table()->currentRow() == 1,
+			"stops inserted one after the other keep the order of the route");
+	}
+
+	{
+		// a stop without a platform or planned times
+		SceneModel scene = lineScene();
+		scene.services[0].stops[0].platformId.clear();
+		scene.services[0].stops[0].hasPlannedArrival = false;
+		scene.services[0].stops[0].hasPlannedDeparture = false;
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		const QString emDash(QChar(0x2014));
+		ok &= expect(panel.table()->item(0, 1)->text() == emDash && panel.table()->item(0, 3)->text() == emDash
+				&& panel.table()->item(0, 4)->text() == emDash && panel.table()->item(1, 3)->text() == "60",
+			"a platform or a planned time that a stop does not have is shown as a dash");
+	}
+
+	{
+		// long names of stations and platforms
+		SceneModel scene = lineScene();
+		scene.stations[0].name = longName(95).toStdString();
+		scene.stations[1].name = longName(31).toStdString();
+		scene.stations[1].platforms[0].id = longName(95).toStdString();
+		scene.services[0].stops[1].platformId = scene.stations[1].platforms[0].id;
+		scene.services[0].stops.pop_back();
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		ok &= expect(panel.table()->item(0, 0)->text() == longName(95) && panel.table()->item(1, 1)->text() == longName(95),
+			"the table holds the whole name of a long station and platform");
+
+		DialogRun run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				QApplication::processEvents();
+				auto* station = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorStationCombo"));
+				auto* platform = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorPlatformCombo"));
+				const QRect screen = dialog.screen()->availableGeometry();
+				ok &= expect(station->currentText() == longName(31) && platform->currentText() == longName(95),
+					"the dialog selects the station and the platform of the stop");
+				ok &= expect(platform->displayText() != platform->currentText() && platform->minimumSizeHint().width() < platform->sizeHint().width(),
+					"a platform name wider than its field is drawn elided and the field can shrink");
+				ok &= expect(dialog.width() <= screen.width() * 9 / 10, "the dialog stays within the width of the screen");
+				bool scrolls = false;
+				for (QScrollArea* area : dialog.findChildren<QScrollArea*>())
+					scrolls = scrolls || area->horizontalScrollBar()->isVisible();
+				ok &= expect(!scrolls, "the form of the dialog needs no horizontal scroll bar");
+				click(dialog, "stopEditorCancelButton");
+			},
+			[&] { panel.editStop(1); });
+		ok &= expect(run.opened, "the dialog opens for a stop with long names");
+
+		run = runDialog(
+			panel,
+			[&](QDialog& dialog) {
+				QApplication::processEvents();
+				auto* position = static_cast<ChoiceComboBox*>(combo(dialog, "stopEditorPositionCombo"));
+				ok &= expect(position->itemText(1).startsWith("After stop 1: ") && position->itemText(1).endsWith(" [platform-a]")
+						&& position->itemText(1).contains(longName(95)),
+					"the positions name the stops with their whole station name");
+				ok &= expect(dialog.width() <= dialog.screen()->availableGeometry().width() * 9 / 10, "the dialog of an added stop stays within the width of the screen");
+				click(dialog, "stopEditorCancelButton");
+			},
+			[&] { panel.addStop(); });
+		ok &= expect(run.opened, "the dialog opens to add a stop after long names");
+	}
+
+	if (!ok)
+		return 1;
+	std::cout << "all timetable stops panel tests passed\n";
+	return 0;
+}
