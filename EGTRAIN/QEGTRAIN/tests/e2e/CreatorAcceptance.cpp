@@ -1230,7 +1230,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
 			|| !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allSignals.isEmpty() || !w.m_presenter->allPlatforms.isEmpty()
-			|| w.m_worker || w.m_document->isDirty() || !w.m_showingTrackPreview) {
+			|| w.m_runController->m_worker || w.m_document->isDirty() || !w.m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
 					.arg(previewArcs)
 					.arg(previewNodes)
@@ -1493,7 +1493,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 9) {
-		if (!w.m_worker) {
+		if (!w.m_runController->m_worker) {
 			fail(QStringLiteral("replacement check did not retain a running worker"));
 			return;
 		}
@@ -1548,7 +1548,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("clearing Follow left the toolbar control checked"));
 			return;
 		}
-		w.clearSimulationWorker(true);
+		w.m_runController->clearSimulationWorker(true);
 		const int completionTarget = w.m_followTrainCombo->currentData().toInt();
 		w.setFollowTrain(completionTarget);
 		if (completionTarget < 0 || w.m_followTrainIndex != completionTarget) {
@@ -1557,14 +1557,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		w.setFollowTrain(-1);
 		accessibleActions->doAction(QAccessibleActionInterface::toggleAction());
-		w.onSimulationFinished();
+		w.m_runController->onSimulationFinished();
 		process();
 		if (followButton->isChecked() || w.m_followAction->isChecked() || w.m_followTrainIndex != -1) {
 			fail(QStringLiteral("queued accessible Follow toggle survived simulation completion"));
 			return;
 		}
 		w.m_runSceneAction->trigger();
-		if (!w.m_worker) {
+		if (!w.m_runController->m_worker) {
 			fail(QStringLiteral("completion ordering check could not restart the replacement run"));
 			return;
 		}
@@ -1577,17 +1577,17 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 		}
 		// The reload waits for the paused run to stop. Until then the run and the scene are kept.
-		if (!w.m_worker || !w.m_afterRunAction || w.ui->actionSimulationStop->isEnabled()
+		if (!w.m_runController->m_worker || !w.m_runController->m_afterRunAction || w.ui->actionSimulationStop->isEnabled()
 			|| w.statusBar()->currentMessage() != QStringLiteral("Stopping simulation...")) {
 			fail(QStringLiteral("reloading during a run did not wait for the run to stop"));
 			return;
 		}
 		QElapsedTimer reloadWait;
 		reloadWait.start();
-		while ((w.m_worker || w.m_afterRunAction) && reloadWait.elapsed() < 15000)
+		while ((w.m_runController->m_worker || w.m_runController->m_afterRunAction) && reloadWait.elapsed() < 15000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
 		process();
-		if (w.m_worker || w.m_resultsAvailable || w.m_runtimeStatus != "Not built"
+		if (w.m_runController->m_worker || w.m_runController->m_resultsAvailable || w.m_runController->m_runtimeStatus != "Not built"
 			|| w.m_followAction->isChecked() || followButton->isChecked() || w.m_followTrainIndex != -1
 			|| w.progressBar->isVisible()
 			|| w.ui->actionSimulationPause->text() != "Pause"
@@ -1631,7 +1631,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const quint64 runningRevision = w.m_document->revision();
 		const bool runningDirty = w.m_document->isDirty();
 		w.commitPendingEditorValues();
-		if (!w.m_worker || w.m_document->revision() != runningRevision || w.m_document->isDirty() != runningDirty) {
+		if (!w.m_runController->m_worker || w.m_document->revision() != runningRevision || w.m_document->isDirty() != runningDirty) {
 			fail(QStringLiteral("resolving pending edits during a run changed disabled scenario inputs"));
 			return;
 		}
@@ -1641,7 +1641,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 10) {
-		if (w.m_worker || !w.m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("baseline simulation did not complete"));
 				return;
@@ -1650,8 +1650,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		creatorAcceptance.polls = 0;
-		if (w.m_completedRun->provenance.appliedScenario != "baseline"
-			|| w.m_completedRun->provenance.selectedOccurrences.size() != 2) {
+		if (w.m_runController->m_completedRun->provenance.appliedScenario != "baseline"
+			|| w.m_runController->m_completedRun->provenance.selectedOccurrences.size() != 2) {
 			fail(QStringLiteral("baseline provenance did not retain scenario and selected occurrences 1+2"));
 			return;
 		}
@@ -1676,7 +1676,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		// The title names the chart. The context line names the run.
-		creatorAcceptance.baselineContext = chartContextLine(w.m_completedRun->provenance);
+		creatorAcceptance.baselineContext = chartContextLine(w.m_runController->m_completedRun->provenance);
 		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
 		if (!baselineContext || !baselineContext->isVisible() || baselineContext->text() != creatorAcceptance.baselineContext) {
 			fail(QStringLiteral("baseline result diagram does not name its run in the context line: ")
@@ -1689,7 +1689,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		w.m_setDelayBaselineButton->click();
-		if (!w.m_delayBaseline || !w.m_runResultsSummaryLabel || !w.m_delayFeedbackLabel
+		if (!w.m_runController->m_delayBaseline || !w.m_runResultsSummaryLabel || !w.m_delayFeedbackLabel
 			|| !w.m_runResultsSummaryLabel->text().contains(QStringLiteral("Delay baseline:"))
 			|| !w.m_delayFeedbackLabel->text().startsWith(QStringLiteral("Baseline:"))) {
 			fail(QStringLiteral("public delay baseline control did not freeze baseline"));
@@ -1718,7 +1718,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 12) {
-		if (w.m_worker || !w.m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("entrance-delay simulation did not complete"));
 				return;
@@ -1727,7 +1727,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		creatorAcceptance.polls = 0;
-		if (w.m_completedRun->provenance.appliedScenario != "entrance") {
+		if (w.m_runController->m_completedRun->provenance.appliedScenario != "entrance") {
 			fail(QStringLiteral("entrance run did not stage the entrance scenario"));
 			return;
 		}
@@ -1739,10 +1739,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					return &row;
 			return nullptr;
 		};
-		const TimetableResultRow* baselineDeparture = w.m_delayBaseline
-			? stationADeparture(w.m_delayBaseline->timetable)
+		const TimetableResultRow* baselineDeparture = w.m_runController->m_delayBaseline
+			? stationADeparture(w.m_runController->m_delayBaseline->timetable)
 			: nullptr;
-		const TimetableResultRow* delayedDeparture = stationADeparture(w.m_completedRun->timetable);
+		const TimetableResultRow* delayedDeparture = stationADeparture(w.m_runController->m_completedRun->timetable);
 		if (!baselineDeparture || !delayedDeparture
 			|| !baselineDeparture->plannedDepartureSeconds.available
 			|| !delayedDeparture->plannedDepartureSeconds.available
@@ -1767,12 +1767,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(delayedDeparture && delayedDeparture->departureDelaySeconds.available
 							? delayedDeparture->departureDelaySeconds.value
 							: -1.0)
-					.arg(w.m_delayBaseline ? static_cast<int>(w.m_delayBaseline->timetable.size()) : -1)
-					.arg(static_cast<int>(w.m_completedRun->timetable.size())));
+					.arg(w.m_runController->m_delayBaseline ? static_cast<int>(w.m_runController->m_delayBaseline->timetable.size()) : -1)
+					.arg(static_cast<int>(w.m_runController->m_completedRun->timetable.size())));
 			return;
 		}
 		// The values that the delay analysis reads carry the entrance delay and say which time of each call exists.
-		const DelayRunSnapshot entranceSnapshot = w.completedDelaySnapshot();
+		const DelayRunSnapshot entranceSnapshot = w.m_runController->completedDelaySnapshot();
 		const TrainRunResult* delayedTrain = nullptr;
 		for (const TrainRunResult& train : entranceSnapshot.run.trains)
 			if (train.serviceId == "creator-service" && train.occurrence == 2)
@@ -1828,7 +1828,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 13) {
-		if (w.m_worker || !w.m_resultsAvailable) {
+		if (w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) {
 			if (++creatorAcceptance.polls > 600) {
 				fail(QStringLiteral("incident simulation did not complete"));
 				return;
@@ -1838,10 +1838,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		creatorAcceptance.polls = 0;
 		bool directEvidence = false;
-		for (const auto& train : w.m_completedRun->results.trains)
+		for (const auto& train : w.m_runController->m_completedRun->results.trains)
 			if (!train.directIncidentIds.empty())
 				directEvidence = true;
-		if (w.m_completedRun->provenance.appliedScenario != "incident" || !directEvidence) {
+		if (w.m_runController->m_completedRun->provenance.appliedScenario != "incident" || !directEvidence) {
 			fail(QStringLiteral("final incident run lacked direct incident evidence"));
 			return;
 		}
@@ -1852,14 +1852,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		// With the advanced details on, the summary says for how many of the trains the run recorded direct incident evidence.
 		int trainsWithEvidence = 0;
-		for (const auto& train : w.m_completedRun->results.trains)
+		for (const auto& train : w.m_runController->m_completedRun->results.trains)
 			trainsWithEvidence += train.directIncidentIds.empty() ? 0 : 1;
 		w.m_advancedDetailsAction->setChecked(true);
 		const QString evidenceSummary = w.m_runResultsSummaryLabel->text();
 		w.m_advancedDetailsAction->setChecked(false);
 		if (!evidenceSummary.contains(QString("Direct incident evidence recorded for %1 of %2 train")
 					.arg(trainsWithEvidence)
-					.arg(static_cast<int>(w.m_completedRun->results.trains.size())))) {
+					.arg(static_cast<int>(w.m_runController->m_completedRun->results.trains.size())))) {
 			fail(QStringLiteral("the run summary does not say for how many trains direct incident evidence was recorded: ") + evidenceSummary);
 			return;
 		}
@@ -1870,7 +1870,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 14) {
 		const QString exportDir = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_EXPORT_DIR"));
-		if (!w.m_resultsAvailable || exportDir.isEmpty() || !w.m_runResultsDock) {
+		if (!w.m_runController->m_resultsAvailable || exportDir.isEmpty() || !w.m_runResultsDock) {
 			fail(QStringLiteral("public result controls or export target are unavailable"));
 			return;
 		}
@@ -1914,12 +1914,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		// The baseline run is two runs behind. Its diagram still exports it, not the run the application holds now.
 		if (creatorAcceptance.baselineDiagram->csvContent() != creatorAcceptance.baselineCsv
-			|| creatorAcceptance.baselineCsv == trajectoryCsvFrom(*w.m_completedRun, trainIdsFrom(*w.m_completedRun))) {
+			|| creatorAcceptance.baselineCsv == trajectoryCsvFrom(*w.m_runController->m_completedRun, trainIdsFrom(*w.m_runController->m_completedRun))) {
 			fail(QStringLiteral("the baseline diagram did not keep exporting the baseline run after later runs"));
 			return;
 		}
 		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
-		const QString currentContext = chartContextLine(w.m_completedRun->provenance);
+		const QString currentContext = chartContextLine(w.m_runController->m_completedRun->provenance);
 		if (!baselineContext || baselineContext->text() != creatorAcceptance.baselineContext
 			|| currentContext == creatorAcceptance.baselineContext) {
 			fail(QStringLiteral("the baseline diagram did not keep naming the baseline run after later runs: ")
@@ -1969,11 +1969,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		// A run with 300-character names: the title stays the name of the chart, the context line holds the run and stays
 		// within three lines, and the chart title that a PNG shows still has the run in brackets.
 		{
-			const std::shared_ptr<const CompletedRunData> kept = w.m_completedRun;
+			const std::shared_ptr<const CompletedRunData> kept = w.m_runController->m_completedRun;
 			auto longRun = std::make_shared<CompletedRunData>(*kept);
 			longRun->provenance.caseName = std::string(300, 'c');
 			longRun->provenance.appliedScenario = std::string(300, 's');
-			w.m_completedRun = longRun;
+			w.m_runController->m_completedRun = longRun;
 			const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
 			const char* const chartTitles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance",
 				"Simulated Tractive Effort vs Distance", "Arrival delay along journey (minutes)"};
@@ -2004,7 +2004,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				if (window)
 					window->close();
 			}
-			w.m_completedRun = kept;
+			w.m_runController->m_completedRun = kept;
 			process();
 			if (!problem.isEmpty()) {
 				fail(QStringLiteral("result chart with a long run identity: ") + problem);
@@ -2286,18 +2286,18 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 
 		// The comparison reads the completed run, so each case below swaps in an altered copy of it and restores it after.
-		const std::shared_ptr<const CompletedRunData> incidentRun = w.m_completedRun;
+		const std::shared_ptr<const CompletedRunData> incidentRun = w.m_runController->m_completedRun;
 		const auto alterRun = [&w, incidentRun](const std::function<void(CompletedRunData&)>& change) {
 			auto altered = std::make_shared<CompletedRunData>(*incidentRun);
 			change(*altered);
-			w.m_completedRun = altered;
+			w.m_runController->m_completedRun = altered;
 		};
 		const auto restoreRun = [&w, incidentRun]() {
-			w.m_completedRun = incidentRun;
+			w.m_runController->m_completedRun = incidentRun;
 			w.refreshRunResults();
 		};
-		const std::vector<TimetableResultRow> baselineTimetable = w.m_delayBaseline
-			? w.m_delayBaseline->timetable
+		const std::vector<TimetableResultRow> baselineTimetable = w.m_runController->m_delayBaseline
+			? w.m_runController->m_delayBaseline->timetable
 			: std::vector<TimetableResultRow>();
 		bool injectedPositiveDelay = false;
 		alterRun([&baselineTimetable, &injectedPositiveDelay](CompletedRunData& run) {
@@ -2410,14 +2410,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		for (QAction* action : w.m_runResultsDock->findChildren<QAction*>())
 			if (action->objectName().startsWith("resultView_"))
 				resultButtonsDisabled = resultButtonsDisabled && !action->isEnabled();
-		if (w.m_resultsAvailable || w.m_delayBaseline || w.m_runResultsDock->isVisible() || !resultButtonsDisabled
+		if (w.m_runController->m_resultsAvailable || w.m_runController->m_delayBaseline || w.m_runResultsDock->isVisible() || !resultButtonsDisabled
 			|| !w.m_delayFeedbackLabel || !w.m_delayFeedbackLabel->text().contains(QStringLiteral("cleared"))) {
 			fail(QStringLiteral("editing case description did not invalidate stale result views"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
 		if (!w.m_session->requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
-			|| !w.m_delayBaselineStatus.isEmpty()
+			|| !w.m_runController->m_delayBaselineStatus.isEmpty()
 			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
 			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));
 			return;
@@ -2608,18 +2608,18 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	w.showSceneContextMenu(held(), QPointF(), QPoint(), false);
 	w.m_speedSlider->setValue(0);
 	w.m_runSceneAction->trigger();
-	if (!w.m_worker || w.m_showingTrackPreview || held() || w.m_sceneContextMenu
+	if (!w.m_runController->m_worker || w.m_showingTrackPreview || held() || w.m_sceneContextMenu
 		|| !w.m_previewSelectedStationId.isEmpty() || !w.nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
 		return false;
 	}
 	if (!checkInfrastructurePaint("prepared run")) {
-		w.clearSimulationWorker(true);
+		w.m_runController->clearSimulationWorker(true);
 		return false;
 	}
 	if (measuredPresentation && !checkPresentation()) {
 		failure = "prepared-runtime measured presentation mismatch";
-		w.clearSimulationWorker(true);
+		w.m_runController->clearSimulationWorker(true);
 		return false;
 	}
 	if (measuredPresentation) {
@@ -2637,7 +2637,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			|| qAbs(polygon.boundingRect().height() - 30 * expectedScale) > 1e-6
 			|| wagon.length != 100 || wagon.wagonHeadPositions[0] != 0.8 || wagon.wagonTailPositions[0] != 0.7) {
 			failure = "train presentation thickness changed physical wagon length/head/tail";
-			w.clearSimulationWorker(true);
+			w.m_runController->clearSimulationWorker(true);
 			return false;
 		}
 	}
@@ -2667,17 +2667,17 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 						  .arg(expected.rect.center().x())
 						  .arg(expected.rect.center().y())
 						  .arg(expected.rect.width());
-			w.clearSimulationWorker(true);
+			w.m_runController->clearSimulationWorker(true);
 			return false;
 		}
 	}
 	for (auto* item : w.scene->items())
 		if (item->data(PreviewGraphics::Kind).isValid()) {
 			failure = "canonical preview role leaked into prepared runtime";
-			w.clearSimulationWorker(true);
+			w.m_runController->clearSimulationWorker(true);
 			return false;
 		}
-	w.clearSimulationWorker(true);
+	w.m_runController->clearSimulationWorker(true);
 	w.m_document->mutableModel() = originalFixture;
 	if (measuredPresentation)
 		std::fprintf(stdout, "\nE2E_MEASURED_PRESENTATION_PARITY_OK\n");
@@ -2769,7 +2769,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_document->revision() == initialRevision && w.m_document->isDirty() == savedDirty
-				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
 				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
 			"inspection mutated Open state")) return false;
 
@@ -2879,7 +2879,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 					&& w.signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}
-	if (!require(w.m_presenter->m_previewFitBounds == topologyBounds && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+	if (!require(w.m_presenter->m_previewFitBounds == topologyBounds && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
 				&& w.m_presenter->allPlatforms.isEmpty() && w.m_presenter->allSignals.isEmpty(),
 			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.

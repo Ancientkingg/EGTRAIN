@@ -1191,8 +1191,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "no non-free track intersects default viewport";
 		}
 	}
-	if (w.m_worker)
-		w.m_worker->requestPause();
+	if (w.m_runController->m_worker)
+		w.m_runController->m_worker->requestPause();
 
 	// Capture the readable default view before changing follow or zoom state.
 	if (w.networkView) {
@@ -1815,8 +1815,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "no active train is available for paused follow activation";
 		} else {
-			if (w.m_worker)
-				w.m_worker->requestPause();
+			if (w.m_runController->m_worker)
+				w.m_runController->m_worker->requestPause();
 			QObject::disconnect(&simulation, &DispatchController::snapshotAvailable,
 				&w, &MainWindow::waitForUpdates);
 			w.networkView->fitToTopology();
@@ -1877,7 +1877,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				const auto waitingState = std::find_if(w.m_snapshot->trains.cbegin(), w.m_snapshot->trains.cend(),
 					[futureFollowIndex](const GuiTrainState& state) { return state.index == futureFollowIndex; });
 				const int futureDeparture = waitingState->departureTime;
-				const QString scheduled = QString::fromStdString(formatSimTime(futureDeparture, w.m_startOffsetSeconds));
+				const QString scheduled = QString::fromStdString(formatSimTime(futureDeparture, w.m_runController->m_startOffsetSeconds));
 				const QString notEntered = futureName + " is scheduled to enter at " + scheduled + ". ";
 				const QToolButton* followButton = w.findChild<QToolButton*>("actionFollowButton");
 				// Choosing the train with Follow off says that Follow can be switched on now. The
@@ -1951,9 +1951,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					std::fflush(stdout);
 				}
 				// A change of the start time changes the clock times in the list as well as in the sentence.
-				const long long offsetBefore = w.m_startOffsetSeconds;
+				const long long offsetBefore = w.m_runController->m_startOffsetSeconds;
 				w.setStartOffset(offsetBefore + 3600);
-				const QString later = QString::fromStdString(formatSimTime(futureDeparture, w.m_startOffsetSeconds));
+				const QString later = QString::fromStdString(formatSimTime(futureDeparture, w.m_runController->m_startOffsetSeconds));
 				const bool laterShown = later != scheduled && w.m_followTrainCombo->itemText(futureComboIndex) == futureName + " (scheduled " + later + ")"
 					&& w.m_followStatusLabel->text() == futureName + " is scheduled to enter at " + later + ". Follow starts when it enters.";
 				w.setStartOffset(offsetBefore);
@@ -2065,7 +2065,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 						updateTrainPosition(w, futureEntryTime);
 						updateTrainPosition(w, futureEntryTime);
 					});
-					w.setStartOffset(w.m_startOffsetSeconds); // writes every row again
+					w.setStartOffset(w.m_runController->m_startOffsetSeconds); // writes every row again
 					if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept) {
 						ok = false;
 						failures << QString("a frame without a change of state wrote the list (%1 changes, rows kept: %2)")
@@ -2637,11 +2637,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	if (w.scene && w.networkView && selectedTrain && selectedTrainBody) {
 		QObject::disconnect(&simulation, &DispatchController::snapshotAvailable,
 			&w, &MainWindow::waitForUpdates);
-		if (w.m_worker)
-			w.m_worker->requestPause();
+		if (w.m_runController->m_worker)
+			w.m_runController->m_worker->requestPause();
 		QApplication::processEvents();
 		w.m_presenter->stopTrainAnimation(selectedTrain->index);
-		if (w.m_worker && !w.m_worker->isPauseRequested()) {
+		if (w.m_runController->m_worker && !w.m_runController->m_worker->isPauseRequested()) {
 			ok = false;
 			failures << "train movement was not paused before reselection";
 		}
@@ -2830,7 +2830,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	// Keep a selected operational track so clearing transient states cannot
 	// accidentally clear independent graphics selection. Re-enable delivery
 	// with a unique connection to cover a late queued snapshot as well.
-	if (!w.m_worker || w.m_presenter->allArcs.isEmpty()) {
+	if (!w.m_runController->m_worker || w.m_presenter->allArcs.isEmpty()) {
 		ok = false;
 		failures << "operational track lifecycle fixture lost its running scene";
 	} else {
@@ -2883,9 +2883,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			QMetaObject::invokeMethod(&w, "waitForUpdates", Qt::QueuedConnection);
 			QElapsedTimer stopWait;
 			stopWait.start();
-			while (w.m_worker && stopWait.elapsed() < 15000)
+			while (w.m_runController->m_worker && stopWait.elapsed() < 15000)
 				QApplication::processEvents(QEventLoop::AllEvents, 20);
-			if (w.m_worker) {
+			if (w.m_runController->m_worker) {
 				ok = false;
 				failures << "Stop did not complete through the worker lifecycle";
 			} else if (!w.m_outputFolderAction || !w.m_outputFolderAction->isEnabled()
@@ -2897,7 +2897,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << "Stop retained completed replay";
 			}
-			if (w.m_runtimeStatus != QStringLiteral("Stopped") || w.m_resultsAvailable
+			if (w.m_runController->m_runtimeStatus != QStringLiteral("Stopped") || w.m_runController->m_resultsAvailable
 				|| w.statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
 				failures << "Stop did not leave a stopped run without results";
 				ok = false;
@@ -2932,11 +2932,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		std::fprintf(stdout, "E2E_VISUAL_POLISH_DPR_%0.1f\n", devicePixelRatio);
 		std::fprintf(stdout, "E2E_VISUAL_POLISH_OK\n");
 		std::fflush(stdout);
-		if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-			QObject::connect(w.m_workerThread, &QThread::finished, qApp, []() {
+		if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+			QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, []() {
 				QCoreApplication::exit(0);
 			});
-			w.m_worker->requestStop();
+			w.m_runController->m_worker->requestStop();
 			return;
 		}
 		QCoreApplication::exit(0);
@@ -2945,11 +2945,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 
 	std::fprintf(stderr, "E2E_VISUAL_POLISH_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 	std::fflush(stderr);
-	if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-		QObject::connect(w.m_workerThread, &QThread::finished, qApp, []() {
+	if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+		QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, []() {
 			QCoreApplication::exit(2);
 		});
-		w.m_worker->requestStop();
+		w.m_runController->m_worker->requestStop();
 		return;
 	}
 	QCoreApplication::exit(2);

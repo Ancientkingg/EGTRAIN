@@ -10,7 +10,6 @@
 #include "app/ReplayCoverage.h"
 #include "app/RuntimeGeometryFromRun.h"
 #include "app/SceneOpenRequest.h"
-#include "app/SceneOutputDirectory.h"
 #include "app/SceneSavePolicy.h"
 #include "app/UpdateTelemetryController.h"
 #include "ui_MainWindow.h"
@@ -45,7 +44,6 @@
 #include "diagrams/BlockingTimeScope.h"
 #include "diagrams/CapacityAnalysis.h"
 #include "diagrams/CapacityScope.h"
-#include "diagrams/DelayAnalysisWindow.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
@@ -102,17 +100,13 @@
 #include <QFormLayout>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
-#include <QGridLayout>
 #include <QLabel>
 #include <QRadioButton>
 #include <QButtonGroup>
-#include <QDialogButtonBox>
-#include <QInputDialog>
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QStandardPaths>
-#include <QSysInfo>
 #include <QSignalBlocker>
 #include <QShortcut>
 #include <QScopedValueRollback>
@@ -270,16 +264,6 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 	if (inputTractionHasNegativeEffort(unit))
 		chart->setTitle(chart->title() + "<br>Curve contains negative effort below the default 0 kN view");
 	return chart;
-}
-
-QString completedRunContext(const RunProvenance& provenance) {
-	QString caseName = QString::fromStdString(provenance.caseName);
-	const QString scenario = QString::fromStdString(provenance.appliedScenario);
-	if (caseName.isEmpty())
-		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
-	if (scenario.isEmpty())
-		return caseName;
-	return QStringLiteral("%1 / %2").arg(caseName, scenario);
 }
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
@@ -541,9 +525,7 @@ void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult&
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
-										  ui(std::make_unique<Ui::MainWindow>()),
-										  m_worker(nullptr),
-										  m_workerThread(nullptr) {
+										  ui(std::make_unique<Ui::MainWindow>()) {
 	QFile themeFile(":/styles/egtrain.qss");
 	if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text))
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
@@ -553,6 +535,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_history = std::make_unique<SceneHistory>();
 	m_document = new SceneDocument(this);
 	m_session = new SceneSession(this, m_document, *this);
+	m_runController = new RunController(this, m_document, m_session, m_runSelection, *this);
 	startRecovery();
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	setupEditMenu();
@@ -569,7 +552,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		privacy->setShortcut(QKeySequence::Preferences);
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
-	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
 	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
 
@@ -691,18 +673,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(networkView, &NetworkView::playbackProfileBegan, this, [this]() {
 		QTimer::singleShot(PlaybackProfiler::instance().durationMs(), this, [this]() {
 			const int currentTimestep = m_snapshot ? m_snapshot->timestep : -1;
-			if (PlaybackProfiler::instance().freeze(currentTimestep) && m_worker)
-				m_worker->requestStop();
+			if (PlaybackProfiler::instance().freeze(currentTimestep))
+				m_runController->requestStop();
 		});
 	});
 	networkView->setMouseTracking(true);
 
 	// connect elements from UI
 	connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::handleHelpAbout);
-	connect(ui->actionSimulationStart, &QAction::triggered, this, &MainWindow::runCurrent);
+	connect(ui->actionSimulationStart, &QAction::triggered, m_runController, &RunController::runCurrent);
 	connect(ui->actionSimulationStop, &QAction::triggered, this, [this]() {
-		if (m_worker) {
-			m_worker->requestStop();
+		if (m_runController->requestStop()) {
 			// Stop is a lifecycle boundary for transient playback overlays. The
 			// worker may still publish one queued snapshot while it exits; the
 			// delivery guard below drops it instead of repainting these states.
@@ -741,7 +722,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_saveSceneAction, &QAction::triggered, m_session, &SceneSession::saveScene);
 	connect(m_saveSceneAsAction, &QAction::triggered, m_session, &SceneSession::saveSceneAs);
 	connect(m_saveSceneAsFolderAction, &QAction::triggered, this, [this]() { m_session->saveSceneAsToDirectory(); });
-	connect(m_runSceneAction, &QAction::triggered, this, &MainWindow::runScene);
+	connect(m_runSceneAction, &QAction::triggered, m_runController, &RunController::runScene);
 	if (ui->menuFile) {
 		QAction* beforeAction = ui->actionLoad_Network;
 		ui->menuFile->insertAction(beforeAction, m_newSceneAction);
@@ -775,23 +756,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// simulation control connections
 	connect(ui->actionSimulationPause, &QAction::triggered, this, [this]() {
-		if (!m_worker) {
+		if (!m_runController->running()) {
 			ui->actionSimulationPause->setChecked(false);
 			return;
 		}
-		if (m_worker->isPauseRequested()) {
-			m_worker->requestResume();
-			ui->actionSimulationPause->setText("Pause");
-		} else {
-			m_worker->requestPause();
-			ui->actionSimulationPause->setText("Resume");
-		}
+		ui->actionSimulationPause->setText(m_runController->togglePause() ? "Resume" : "Pause");
 	});
 	connect(m_speedSlider, &QSlider::valueChanged, this, [this](int value) {
 		const int delayMs = stepDelayForSlider(value);
 		updateSpeedModeDisplay(delayMs);
-		if (m_worker)
-			m_worker->setDelayMs(delayMs);
+		m_runController->setDelayMs(delayMs);
 	});
 
 	// set application item
@@ -1020,7 +994,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_openCaseAction->setToolTip("Choose a bundled, recent, scene-folder, or legacy case");
 	connect(m_openCaseAction, &QAction::triggered, this, &MainWindow::showStartupChooser);
 
-	connect(ui->actionStartTime, &QAction::triggered, this, &MainWindow::setStartTime);
+	connect(ui->actionStartTime, &QAction::triggered, m_runController, &RunController::setStartTime);
 	ui->actionStartTime->setToolTip("Set the clock time the simulation starts at (HH:MM)");
 
 	ui->actionZoomIn->setObjectName("actionZoomIn");
@@ -1145,7 +1119,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// file menu: output folder chooser
 	if (ui->menuFile) {
 		m_outputFolderAction = new QAction("Set Output Folder...", this);
-		connect(m_outputFolderAction, &QAction::triggered, this, &MainWindow::chooseOutputFolder);
+		connect(m_outputFolderAction, &QAction::triggered, m_runController, &RunController::chooseOutputFolder);
 		ui->menuFile->addAction(m_outputFolderAction);
 	}
 
@@ -1162,18 +1136,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_validation->setDocument(m_document);
 	m_validation->setDiagnostics(m_session->mutableDiagnostics());
 	m_validation->setAdvancedDetails([this] { return advancedDetailsEnabled(); });
-	m_validation->setDurationOverride([] {
-		return initial_variables.durationOverride ? std::optional<double>(initial_variables.times) : std::nullopt;
+	m_validation->setDurationOverride([this] {
+		return m_runController->durationOverride();
 	});
 	m_validation->setLoadedDataContext([this] {
 		ValidationPanel::LoadedDataContext context;
 		context.sceneDir = m_session->sceneDir();
 		context.sceneIsBundle = m_session->sceneIsBundle();
 		context.bundleVersion = m_session->sceneBundleVersion();
-		context.runtimeStatus = m_runtimeStatus;
-		context.runtimeDiagnostics = m_runtimeDiagnostics;
+		context.runtimeStatus = m_runController->runtimeStatus();
+		context.runtimeDiagnostics = m_runController->runtimeDiagnostics();
 		context.appliedScenarioId = m_runSelection.appliedScenarioId();
-		context.resultsAvailable = m_resultsAvailable;
+		context.resultsAvailable = m_runController->resultsAvailable();
 		return context;
 	});
 	connect(m_validation, &ValidationPanel::statusChanged, this, &MainWindow::updateCaseLayersPanel);
@@ -1289,7 +1263,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_infrastructurePanel->setFacet(std::move(facet));
 	m_infrastructurePanel->setDocument(m_document);
 	connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, this, [this]() {
-		if (m_document->isLoaded() && !m_worker && !m_resultsAvailable)
+		if (m_document->isLoaded() && !m_runController->running() && !m_runController->resultsAvailable())
 			renderTrackPreview(m_document->model());
 	});
 	connect(m_infrastructurePanel, &InfrastructurePanel::changed, this, &MainWindow::refreshValidationPanel);
@@ -1646,10 +1620,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	updateDiagramActions();
 
 	// --- Status bar ---
-	statusBar()->showMessage(QString("Ready - %1 (%2 tracks, %3 routes)")
-			.arg(QString::fromStdString(initial_variables.name))
-			.arg(initial_variables.numTrackLines)
-			.arg(initial_variables.N_Routes));
+	statusBar()->showMessage(m_runController->readyMessage());
 
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
@@ -1666,7 +1637,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow() {
 	m_updateTelemetry->stopTelemetry();
-	clearSimulationWorker(true);
+	m_runController->clearSimulationWorker(true);
 	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
 		windowDestroyed();
 }
@@ -1679,11 +1650,11 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 		return;
 	}
 	// A running simulation is stopped first. The window closes when its worker has finished.
-	if (deferUntilRunStopped([this] { m_closeConfirmed = true; close(); })) {
+	if (m_runController->deferUntilRunStopped([this] { m_closeConfirmed = true; close(); })) {
 		event->ignore();
 		return;
 	}
-	clearSimulationWorker(true);
+	m_runController->clearSimulationWorker(true);
 	// The window closes now, so nothing is left to recover: the user saved the scene or discarded it.
 	if (m_recovery)
 		m_recovery->shutdown();
@@ -1696,15 +1667,6 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
 void MainWindow::dropEvent(QDropEvent* event) {
 	m_session->drop(event);
 }
-namespace {
-// The next run writes to the folder of the scene that the window holds. A folder from Choose
-// Output Folder stays in force: the controller applies it to every run it prepares.
-void selectSceneOutputFolder(const std::string& sceneName) {
-	if (simulation.nextRunOutputFolder().empty())
-		initial_variables.OutputMainFolder = sceneOutputDirectory(sceneName).toStdString();
-}
-} // namespace
-
 telemetry::OperationObservation MainWindow::captureTelemetryOperation() const noexcept {
 	return m_updateTelemetry->captureOperation();
 }
@@ -1756,7 +1718,7 @@ void MainWindow::commitPendingEdits() {
 }
 
 bool MainWindow::afterRunStopped(std::function<void()> action) {
-	return deferUntilRunStopped(std::move(action));
+	return m_runController->deferUntilRunStopped(std::move(action));
 }
 
 void MainWindow::offerUpdateCheck() {
@@ -1788,24 +1750,19 @@ void MainWindow::sceneWillBeReplaced() {
 	teardownGUI();
 	simulation.resetState();
 	m_runSelection.includeAll();
-	m_lastRunSelectedOccurrences = 0;
-	m_lastRunTotalOccurrences = 0;
+	m_runController->sceneWillBeReplaced();
 }
 
 void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) {
 	m_history->reset(m_document->model());
 	recoverySceneReplaced(RecoverySource());
-	selectSceneOutputFolder(m_document->model().name);
-	if (m_delayBaseline)
-		m_delayBaselineStatus = QStringLiteral(
-			"Delay baseline cleared: a new case study was created. Complete a run with no incidents or entrance delays to set a new baseline.");
-	else
-		m_delayBaselineStatus.clear();
-	m_delayBaseline.reset();
+	m_runController->selectSceneOutputFolder(m_document->model().name);
+	m_runController->clearDelayBaseline(QStringLiteral(
+		"Delay baseline cleared: a new case study was created. Complete a run with no incidents or entrance delays to set a new baseline."));
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
 	m_runSelection.clearModifiedScenarios();
 	m_passengerPanel->clearImportResult();
-	m_startOffsetSeconds = baseTimeToSeconds(m_document->model().baseTime);
+	m_runController->setStartOffsetSeconds(baseTimeToSeconds(m_document->model().baseTime));
 	invalidateRunResults();
 	m_session->updateSceneWindowTitle();
 	updateCaseLayersPanel();
@@ -1820,13 +1777,9 @@ void MainWindow::sceneCreated(const telemetry::OperationObservation& operation) 
 }
 
 bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
-	selectSceneOutputFolder(m_document->model().name);
-	if (m_delayBaseline)
-		m_delayBaselineStatus = QStringLiteral(
-			"Delay baseline cleared: another case study was opened. Complete a run with no incidents or entrance delays to set a new baseline.");
-	else
-		m_delayBaselineStatus.clear();
-	m_delayBaseline.reset();
+	m_runController->selectSceneOutputFolder(m_document->model().name);
+	m_runController->clearDelayBaseline(QStringLiteral(
+		"Delay baseline cleared: another case study was opened. Complete a run with no incidents or entrance delays to set a new baseline."));
 	m_runSelection.selectScenario(m_document->model().defaultScenarioId);
 	if (m_runSelection.scenarioId().empty() && !m_document->model().scenarios.empty()) {
 		m_runSelection.selectScenario(m_document->model().scenarios.front().id);
@@ -1837,7 +1790,7 @@ bool MainWindow::sceneOpened(const SceneSession::OpenedScene& opened) {
 	m_runSelection.clearModifiedScenarios();
 	m_passengerPanel->clearImportResult();
 	invalidateRunResults();
-	m_startOffsetSeconds = baseTimeToSeconds(m_document->model().baseTime);
+	m_runController->setStartOffsetSeconds(baseTimeToSeconds(m_document->model().baseTime));
 	m_session->updateSceneWindowTitle();
 	updateCaseLayersPanel();
 	updateSceneActions();
@@ -1885,6 +1838,199 @@ void MainWindow::sceneSaved() {
 	m_passengerPanel->refresh();
 }
 
+bool MainWindow::telemetryActive() const {
+	return m_updateTelemetry->sender() != nullptr;
+}
+
+int MainWindow::stepDelayMs() const {
+	return stepDelayForSlider(m_speedSlider->value());
+}
+
+void MainWindow::validateScene() {
+	refreshValidationPanel();
+}
+
+void MainWindow::showLoadedData() {
+	if (m_loadedDataDock) {
+		m_loadedDataDock->show();
+		m_loadedDataDock->raise();
+	}
+}
+
+void MainWindow::showValidation() {
+	if (m_validationDock) {
+		m_validationDock->show();
+		m_validationDock->raise();
+	}
+}
+
+void MainWindow::runPreparing() {
+	statusBar()->showMessage("Preparing scene simulation...");
+	if (!startupTimingEnabled())
+		QApplication::processEvents();
+}
+
+void MainWindow::teardownForRun() {
+	const QRectF previewFitBounds = m_presenter->m_previewFitBounds;
+	const QPointF previewZoomFocus = m_presenter->m_previewZoomFocus;
+	teardownGUI();
+	m_presenter->m_previewFitBounds = previewFitBounds;
+	m_presenter->m_previewZoomFocus = previewZoomFocus;
+}
+
+std::vector<SceneDiagnostic> MainWindow::timedPreparation(
+	const std::function<std::vector<SceneDiagnostic>()>& prepare, bool& identityOk) {
+	const bool identityBeforePrepare = !startupTimingEnabled()
+		|| startupTimingIdentityMatches(m_session->sceneDir(), m_document->model());
+	const qint64 prepareStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
+	std::vector<SceneDiagnostic> diagnostics = prepare();
+	identityOk = identityBeforePrepare
+		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_session->sceneDir(), m_document->model()));
+	if (startupTimingEnabled())
+		recordStartupTiming(QStringLiteral("native_runtime_construction"), m_startupTimingIteration,
+			-1, startupTimingNowNanoseconds() - prepareStarted,
+			QStringLiteral("simulation.prepareScene"), QStringLiteral("MainWindow::runScene"),
+			identityOk);
+	return diagnostics;
+}
+
+void MainWindow::loadedDataChanged() {
+	m_validation->refreshLoadedData();
+}
+
+void MainWindow::caseLayersChanged() {
+	updateCaseLayersPanel();
+}
+
+void MainWindow::buildRunCanvas() {
+	setupGUI();
+	fitView();
+	if (PlaybackProfiler::enabled())
+		m_playbackProfileViewApplied = false;
+}
+
+bool MainWindow::startupTimingHoldsRun(bool identityOk) {
+	if (!startupTimingEnabled())
+		return false;
+	if (!identityOk) {
+		failStartupTiming(QStringLiteral("scene identity or counts changed during native preparation"));
+		return true;
+	}
+	networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
+	statusBar()->showMessage(QString("Prepared scene: %1").arg(QString::fromStdString(m_document->model().name)));
+	return true;
+}
+
+void MainWindow::runStarting() {
+	clearReplay();
+	progressBar->show();
+	statusBar()->showMessage("Simulation running...");
+}
+
+void MainWindow::workerReady() {
+	if (const auto runStarting = mainWindowTestHooks().runStarting)
+		runStarting(*this);
+}
+
+void MainWindow::runPhaseChanged(RunController::RunPhase phase) {
+	switch (phase) {
+		case RunController::RunPhase::Idle:
+			// Pause and Stop only mean something while a worker exists.
+			if (ui->actionSimulationPause) {
+				ui->actionSimulationPause->setEnabled(false);
+				ui->actionSimulationPause->setText("Pause");
+				ui->actionSimulationPause->setChecked(false);
+			}
+			if (ui->actionSimulationStop)
+				ui->actionSimulationStop->setEnabled(false);
+			if (m_outputFolderAction)
+				m_outputFolderAction->setEnabled(true);
+			if (ui->actionStartTime)
+				ui->actionStartTime->setEnabled(true);
+			break;
+		case RunController::RunPhase::Running:
+			ui->actionSimulationPause->setEnabled(true);
+			ui->actionSimulationStop->setEnabled(true);
+			// A run keeps the output folder and the start time it was prepared with.
+			if (m_outputFolderAction)
+				m_outputFolderAction->setEnabled(false);
+			ui->actionStartTime->setEnabled(false);
+			break;
+		case RunController::RunPhase::Stopping:
+			ui->actionSimulationPause->setEnabled(false);
+			ui->actionSimulationStop->setEnabled(false);
+			break;
+	}
+}
+
+void MainWindow::runPanelsChanged() {
+	refreshInfrastructurePanel();
+	refreshIncidentPanel();
+	updateSceneActions();
+}
+
+void MainWindow::playbackEnded() {
+	m_presenter->clearOperationalTrackStates();
+}
+
+bool MainWindow::endFollowing() {
+	const bool hadFollowTarget = m_followTrainIndex >= 0
+		|| (m_followAction && m_followAction->isChecked());
+	setFollowTrain(-1);
+	return hadFollowTarget;
+}
+
+void MainWindow::resultsKept() {
+	refreshRunResults();
+}
+
+void MainWindow::resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) {
+	if (m_runResultsTable)
+		m_runResultsTable->setRowCount(0);
+	if (m_runResultsSummaryLabel)
+		m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
+				.arg(QString::fromStdString(m_document->model().name), scenarioContext(), m_runController->runtimeStatus(),
+					sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
+	if (m_runResultsDock) {
+		m_runResultsDock->setWindowTitle(
+			QStringLiteral("Run Results \u2014 %1 (%2)")
+				.arg(scenarioContext(), stoppedByUser ? QStringLiteral("stopped") : QStringLiteral("failed")));
+		m_runResultsDock->hide();
+	}
+}
+
+bool MainWindow::runFinished() {
+	const auto runFinished = mainWindowTestHooks().runFinished;
+	return runFinished && runFinished(*this);
+}
+
+void MainWindow::runProgressEnded() {
+	progressBar->hide();
+}
+
+void MainWindow::replayReady(GuiReplayHistory history) {
+	m_completedReplay = std::move(history);
+	if (!m_completedReplay.empty() || m_completedReplay.oversize())
+		showReplayBar();
+}
+
+void MainWindow::runEnded() {
+	// A completed run can be replayed, so a train that has left can be followed in it.
+	updateFollowAvailability();
+	runPanelsChanged();
+	m_trainUnitSourceLinker->processChanges();
+}
+
+void MainWindow::runSettled() {
+	if (const auto runSettled = mainWindowTestHooks().runSettled)
+		runSettled(*this);
+}
+
+void MainWindow::delayBaselineChanged() {
+	refreshRunResults();
+	updateDiagramActions();
+}
+
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	clearPreviewInspection();
 	m_presenter->resetPreviewFit();
@@ -1912,7 +2058,7 @@ void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
 	options.selectedFacet = m_infrastructurePanel->facetKey().toStdString();
 	options.selectedId = m_infrastructurePanel->selectionId().toStdString();
 	options.markSelection = m_infrastructureDock && m_infrastructureDock->isVisible();
-	options.platformBars = initial_variables.PAX_GUI;
+	options.platformBars = m_runController->passengerGui();
 	const NetworkPresenter::PreviewOutcome outcome = m_presenter->showPreview(sceneModel, options);
 	if (!outcome.available) {
 		statusBar()->showMessage("Scene loaded - no track preview available; simulation not running");
@@ -2022,16 +2168,16 @@ void MainWindow::updateSceneActions() {
 	if (m_saveSceneAsFolderAction)
 		m_saveSceneAsFolderAction->setEnabled(m_document->isLoaded());
 	if (m_runSceneAction)
-		m_runSceneAction->setEnabled(m_document->isLoaded() && !m_worker && !hasErrors(m_session->diagnostics()));
+		m_runSceneAction->setEnabled(m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics()));
 	if (ui->actionSimulationStart) {
-		const bool sceneRunnable = m_document->isLoaded() && !m_worker && !hasErrors(m_session->diagnostics());
+		const bool sceneRunnable = m_document->isLoaded() && !m_runController->running() && !hasErrors(m_session->diagnostics());
 		ui->actionSimulationStart->setEnabled(sceneRunnable);
 		ui->actionSimulationStart->setToolTip(QString("Run simulation (Ctrl+R)"));
 	}
 	if (m_serviceDock)
-		m_serviceDock->setEnabled(m_document->isLoaded() && !m_worker);
+		m_serviceDock->setEnabled(m_document->isLoaded() && !m_runController->running());
 	if (m_passengerDock)
-		m_passengerDock->setEnabled(m_document->isLoaded() && !m_worker);
+		m_passengerDock->setEnabled(m_document->isLoaded() && !m_runController->running());
 	updateUndoRedoActions();
 	updateDiagramActions();
 	if (QMenu* recentScenesMenu = m_session->recentScenesMenu())
@@ -2119,13 +2265,7 @@ void MainWindow::sceneDocumentChanged() {
 }
 
 void MainWindow::invalidateAfterSceneChange() {
-	if (m_delayBaseline)
-		m_delayBaselineStatus = QStringLiteral(
-			"Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline.");
-	m_delayBaseline.reset();
-	if (m_worker) {
-		m_sceneChangedDuringRun = true;
-		m_resultsAvailable = false;
+	if (m_runController->sceneChanged()) {
 		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
@@ -2161,7 +2301,7 @@ void MainWindow::setupEditMenu() {
 }
 
 void MainWindow::updateUndoRedoActions() {
-	const bool editable = m_document->isLoaded() && !m_worker;
+	const bool editable = m_document->isLoaded() && !m_runController->running();
 	const bool canUndo = editable && m_history->canUndo();
 	const bool canRedo = editable && m_history->canRedo();
 	m_undoAction->setEnabled(canUndo);
@@ -2188,7 +2328,7 @@ void MainWindow::redoScene() {
 }
 
 void MainWindow::stepSceneHistory(bool redo) {
-	if (!m_document->isLoaded() || m_worker)
+	if (!m_document->isLoaded() || m_runController->running())
 		return;
 	// A value that is still being typed becomes the edit that Undo reverts.
 	commitPendingEditorValues();
@@ -2244,7 +2384,7 @@ void MainWindow::refreshAllEditorPanels() {
 }
 
 void MainWindow::invalidateRunResults() {
-	if (!m_worker) {
+	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
 			handleCloseInfoDockWidget();
@@ -2252,13 +2392,7 @@ void MainWindow::invalidateRunResults() {
 		}
 		clearReplay();
 	}
-	m_runtimeStatus = QStringLiteral("Not built");
-	m_runtimeDiagnostics.clear();
-	m_resultsAvailable = false;
-	m_sceneChangedDuringRun = false;
-	m_runSelection.clearAppliedScenario();
-	m_completedRun.reset();
-	m_pendingRunProvenance = RunProvenance();
+	m_runController->discardResults();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)
@@ -2293,7 +2427,7 @@ void MainWindow::commitCaseSettings() {
 }
 
 void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
-	m_infrastructureDock->setEnabled(m_document->isLoaded() && !m_worker);
+	m_infrastructureDock->setEnabled(m_document->isLoaded() && !m_runController->running());
 	m_infrastructurePanel->refresh(resetSelection);
 }
 
@@ -2333,8 +2467,8 @@ void MainWindow::plotTrainUnitTraction(const SceneTrainUnit& unit) {
 }
 
 double MainWindow::serviceOccurrenceDuration() const {
-	if (initial_variables.durationOverride)
-		return initial_variables.times;
+	if (const std::optional<double> durationOverride = m_runController->durationOverride())
+		return *durationOverride;
 	return m_document->model().settings.hasDuration
 		? m_document->model().settings.durationSeconds
 		: computeHorizon(m_document->model());
@@ -2386,7 +2520,7 @@ void MainWindow::updateCaseLayersPanel() {
 		return;
 
 	QString caseName = m_document->isLoaded() ? QString::fromStdString(m_document->model().name)
-											  : QString::fromStdString(initial_variables.name);
+											  : m_runController->settingsCaseName();
 	if (caseName.trimmed().isEmpty())
 		caseName = QStringLiteral("Canonical scene");
 	if (caseName.trimmed().isEmpty())
@@ -2475,7 +2609,7 @@ FollowAvailabilityInput MainWindow::followInput(int row) const {
 	if (!m_completedReplay.empty())
 		in.replayEndTime = m_completedReplay.lastTime();
 	in.trainsLayerVisible = m_presenter->m_trainLayerVisible;
-	in.clockOffsetSeconds = m_startOffsetSeconds;
+	in.clockOffsetSeconds = m_runController->startOffsetSeconds();
 	if (m_snapshot)
 		in.timestep = m_snapshot->timestep;
 	const int train = m_followTrainCombo && row >= 0 ? m_followTrainCombo->itemData(row).toInt() : -1;
@@ -2500,7 +2634,7 @@ FollowAvailability MainWindow::followAvailabilityOf(int trainIndex) const {
 }
 
 void MainWindow::setStartOffset(long long seconds) {
-	m_startOffsetSeconds = seconds;
+	m_runController->setStartOffsetSeconds(seconds);
 	// The entries of the trains that have not entered show clock times.
 	m_followRowShown.clear();
 	updateFollowAvailability();
@@ -2969,7 +3103,7 @@ void MainWindow::clearReplay() {
 // Writes the texts of the replay row and the tooltip of Start for the history of the run, with the
 // time of the displayed frame when there is one. It returns whether the slider and Play can be used.
 bool MainWindow::writeReplayText(std::optional<int> shownTime) {
-	const ReplayBarText bar = replayBarText(replayCoverageOf(m_completedReplay, m_startOffsetSeconds), shownTime);
+	const ReplayBarText bar = replayBarText(replayCoverageOf(m_completedReplay, m_runController->startOffsetSeconds()), shownTime);
 	m_replayLabel->setText(QString::fromStdString(bar.selected));
 	m_replayCoverageLabel->setText(QString::fromStdString(bar.coverage));
 	m_replayStartButton->setToolTip(QString::fromStdString(bar.startTip));
@@ -2990,40 +3124,6 @@ void MainWindow::showReplayBar() {
 	m_replaySlider->setEnabled(usable);
 	m_replayPlayButton->setEnabled(usable);
 	m_replayBar->show();
-}
-
-void MainWindow::clearSimulationWorker(bool requestStop) {
-	if (m_worker && requestStop)
-		m_worker->requestStop();
-	if (m_workerThread && m_workerThread->isRunning()) {
-		m_workerThread->quit();
-		m_workerThread->wait();
-	}
-	for (auto& observation : m_simulationObservations) {
-		QObject::disconnect(observation);
-		observation = QMetaObject::Connection();
-	}
-	// The mailbox can still contain the last worker publication after the
-	// thread has stopped. Drop it with the other transient playback state so a
-	// queued snapshotAvailable callback cannot repaint an old run.
-	simulation.takeSimulationSnapshot();
-	m_presenter->clearOperationalTrackStates();
-	// Retain the final frame for passenger inspection until scene teardown.
-	m_worker = nullptr;
-	m_workerThread = nullptr;
-	m_document->setEditable(true);
-	// Pause and Stop only mean something while a worker exists.
-	if (ui->actionSimulationPause) {
-		ui->actionSimulationPause->setEnabled(false);
-		ui->actionSimulationPause->setText("Pause");
-		ui->actionSimulationPause->setChecked(false);
-	}
-	if (ui->actionSimulationStop)
-		ui->actionSimulationStop->setEnabled(false);
-	if (m_outputFolderAction)
-		m_outputFolderAction->setEnabled(true);
-	if (ui->actionStartTime)
-		ui->actionStartTime->setEnabled(true);
 }
 
 // setup GUI
@@ -3070,7 +3170,7 @@ void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 		return;
 	}
 	if (kind == QLatin1String("preview")) {
-		QTimer::singleShot(0, this, &MainWindow::runScene);
+		QTimer::singleShot(0, m_runController, &RunController::runScene);
 		return;
 	}
 	if (kind != QLatin1String("runtime")) {
@@ -3131,7 +3231,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 				return;
 			}
 			// The request names the case, so a startup chooser that has not opened yet stays closed.
-			initial_variables.nArgProvided = true;
+			m_runController->markCaseNamed();
 			m_session->requestOpenScene(choice.path);
 		});
 	}
@@ -3139,7 +3239,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// chooser, so the same queued callback runs after the initial window shows.
 	const auto startup = [this, relay]() {
 		const bool recovered = offerRecovery();
-		if (!recovered && !initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
+		if (!recovered && !m_runController->caseNamedAtStartup() && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		m_updateTelemetry->showPrivacySettings(true);
 		m_updateTelemetry->startTelemetryAfterInitialConsent();
@@ -3153,7 +3253,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// until the user closes it, so the chooser waits for the event loop to deliver the event first.
 	QTimer::singleShot(0, this, [this, relay, startup]() {
 		constexpr int kOpenEventWaitMs = 300;
-		if (relay && !initial_variables.nArgProvided && !relay->hasPendingRequest())
+		if (relay && !m_runController->caseNamedAtStartup() && !relay->hasPendingRequest())
 			QTimer::singleShot(kOpenEventWaitMs, this, startup);
 		else
 			startup();
@@ -3171,23 +3271,16 @@ void MainWindow::showEvent(QShowEvent* e) {
 		}
 		m_speedSlider->setValue(kMaxStepDelayMs
 			- qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS"));
-		QTimer::singleShot(1500, this, &MainWindow::runCurrent);
+		QTimer::singleShot(1500, m_runController, &RunController::runCurrent);
 	}
 	if (const auto& afterFirstShow = mainWindowTestHooks().afterFirstShow)
 		afterFirstShow(*this);
 }
 
-bool MainWindow::hasRawRunResults() const {
-	for (int i = 0; i < simulation.run().numTrains; ++i)
-		if (simulation.run().trains[i].trajectorySize() > 0)
-			return true;
-	return false;
-}
-
 // Raw trajectories can survive a scene edit; the explicit availability flag is
 // the ownership boundary for result actions.
 bool MainWindow::hasRunResults() const {
-	return m_resultsAvailable && m_completedRun && hasRawRunResults();
+	return m_runController->hasRunResults();
 }
 
 // Enable the diagram entries only while run results exist; a disabled entry
@@ -3217,59 +3310,21 @@ void MainWindow::updateDiagramActions() {
 			if (action->objectName().startsWith("resultView_"))
 				action->setEnabled(available);
 	}
-	const DelayRunSnapshot current = completedDelaySnapshot();
-	const bool canSetBaseline = available && !current.scenarioId.empty()
-		&& !current.hasIncidents && !current.hasEntranceDelays;
-	const bool canCompare = available && m_delayBaseline.has_value()
-		&& (current.hasIncidents || current.hasEntranceDelays);
+	const RunController::DelayBaselineState delay = m_runController->delayBaselineState(available);
 	if (m_setDelayBaselineButton) {
-		m_setDelayBaselineButton->setEnabled(canSetBaseline);
-		m_setDelayBaselineButton->setToolTip(canSetBaseline
+		m_setDelayBaselineButton->setEnabled(delay.canSet);
+		m_setDelayBaselineButton->setToolTip(delay.canSet
 				? QStringLiteral("Freeze this completed run with no incidents or entrance delays as the delay baseline")
 				: QStringLiteral("Complete a run with no incidents or entrance delays before setting a delay baseline"));
 	}
 	if (m_compareDelayButton) {
-		m_compareDelayButton->setEnabled(canCompare);
-		m_compareDelayButton->setToolTip(canCompare
+		m_compareDelayButton->setEnabled(delay.canCompare);
+		m_compareDelayButton->setToolTip(delay.canCompare
 				? QStringLiteral("Compare the completed run with the frozen delay baseline")
 				: QStringLiteral("Run a completed scenario with incidents or entrance delays after setting a baseline"));
 	}
-
-	QString feedback;
-	if (!available) {
-		if (m_delayBaseline) {
-			feedback = QStringLiteral("Baseline: %1. Run the selected scenario to create completed results for comparison.")
-						   .arg(completedRunContext(m_delayBaseline->provenance));
-		} else if (!m_delayBaselineStatus.isEmpty()) {
-			feedback = m_delayBaselineStatus;
-		} else {
-			feedback = QStringLiteral("No completed run. Run the selected scenario; a run with no incidents or entrance delays can become the baseline.");
-		}
-	} else if (!m_delayBaseline) {
-		if (canSetBaseline) {
-			feedback = QStringLiteral("Completed run: %1. Set this run with no incidents or entrance delays as the delay baseline.")
-						   .arg(completedRunContext(current.provenance));
-		} else if (current.hasEntranceDelays) {
-			feedback = QStringLiteral("Completed run: %1. This run has entrance delays; run a scenario with no incidents or entrance delays to set the baseline.")
-						   .arg(completedRunContext(current.provenance));
-		} else {
-			feedback = QStringLiteral("Completed run: %1. This run has incidents; run a scenario with no incidents or entrance delays to set the baseline.")
-						   .arg(completedRunContext(current.provenance));
-		}
-	} else if (canCompare) {
-		feedback = QStringLiteral("Baseline: %1. Compare delays shows the additional delay of each call against it.")
-					   .arg(completedRunContext(m_delayBaseline->provenance));
-	} else {
-		feedback = QStringLiteral("Baseline: %1. Run a scenario with incidents or entrance delays, then compare.")
-					   .arg(completedRunContext(m_delayBaseline->provenance));
-	}
-	if (!current.scenarioId.empty() && !m_runSelection.scenarioId().empty()
-		&& current.scenarioId != m_runSelection.scenarioId()) {
-		feedback += QStringLiteral(" Selected next scenario: %1; it has not been run yet.")
-						.arg(QString::fromStdString(m_runSelection.scenarioId()));
-	}
 	if (m_delayFeedbackLabel)
-		m_delayFeedbackLabel->setText(feedback);
+		m_delayFeedbackLabel->setText(delay.feedback);
 }
 
 // Lazily created so the menu only appears once an editor dock registers.
@@ -3320,514 +3375,15 @@ void MainWindow::showStartupChooser() {
 		dialogClosed(dialog, "startupChooser");
 }
 
-// The Run action always prepares the currently loaded canonical scene first.
-void MainWindow::runCurrent() {
-	if (m_worker)
-		return;
-	if (m_document->isLoaded())
-		runScene();
-	else
-		statusBar()->showMessage("Open a canonical scene before running.", 5000);
-}
-
-QString MainWindow::runReviewText() const {
-	const SceneDiagnosticCounts counts = countDiagnostics(m_session->diagnostics());
-	QString incidentDetails;
-	for (const SceneIncident& incident : selectedScenarioIncidents()) {
-		const QString occurrence = incident.hasOccurrence || incident.occurrence != 1
-			? QString::number(incident.occurrence)
-			: QStringLiteral("all");
-		const QString window = incident.hasEndSeconds || incident.endSeconds != 0.0
-			? QString::number(incident.endSeconds, 'g', 12)
-			: QStringLiteral("until-destination");
-		QStringList options;
-		options << (incident.hasReducedSpeed
-				? QString("reduced-speed=%1 km/h").arg(QString::number(incident.reducedSpeedKmh, 'g', 12))
-				: QStringLiteral("reduced-speed=none"));
-		options << (incident.hasEndSeconds ? QStringLiteral("recovery-end=yes")
-										   : QStringLiteral("recovery-end=no"));
-		options << (incident.terminateAtDestination
-				? QStringLiteral("terminate-at-destination=yes")
-				: QStringLiteral("terminate-at-destination=no"));
-		QString detail = QString("id=%1 type=%2 target=%3 start=%4 window=%5 occurrence=%6 options=%7")
-							 .arg(QString::fromStdString(incident.id), QString::fromStdString(incident.type),
-								 incident.target.empty() ? QStringLiteral("(empty)") : QString::fromStdString(incident.target))
-							 .arg(QString::number(incident.startSeconds, 'g', 12), window, occurrence, options.join(","));
-		if (!incidentDetails.isEmpty())
-			incidentDetails += "; ";
-		incidentDetails += detail;
-	}
-	QString entranceDelayDetails;
-	const SceneScenario* scenario = selectedScenario();
-	if (scenario) {
-		for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
-			const auto service = std::find_if(m_document->model().services.begin(), m_document->model().services.end(),
-				[&delay](const SceneService& candidate) { return candidate.id == delay.serviceId; });
-			const QString operatingCode = service == m_document->model().services.end()
-				? QStringLiteral("(unavailable)")
-				: QString::fromStdString(sceneServiceOccurrenceOperatingCode(*service, delay.occurrence));
-			QString detail = QString("service=%1 occurrence=%2 operating_code=%3 station=%4 seconds=%5")
-								 .arg(delay.serviceId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.serviceId))
-								 .arg(delay.occurrence)
-								 .arg(operatingCode.isEmpty() ? QStringLiteral("(unavailable)") : operatingCode)
-								 .arg(delay.stationId.empty() ? QStringLiteral("(empty)") : QString::fromStdString(delay.stationId))
-								 .arg(QString::number(delay.delaySeconds, 'g', 12));
-			if (!entranceDelayDetails.isEmpty())
-				entranceDelayDetails += "; ";
-			entranceDelayDetails += detail;
-		}
-	}
-	QString summary = QString("Case study: %1\nScenario: %2\nService definitions: %3\nConfigured total: %4\nNumber of services in sim.: %5\nSelected: %6\nSelected in period: %7\nCompositions: %8\nIncidents: %9\nValidation: %10 error(s), %11 warning(s)")
-						  .arg(QString::fromStdString(m_document->model().name))
-						  .arg(scenarioContext())
-						  .arg(static_cast<int>(m_document->model().services.size()))
-						  .arg(totalServiceOccurrences())
-						  .arg(inPeriodServiceOccurrences())
-						  .arg(m_runSelection.selectedCount(m_document->model(), serviceOccurrenceDuration()))
-						  .arg(m_runSelection.selectedInPeriodCount(m_document->model(), serviceOccurrenceDuration()))
-						  .arg(static_cast<int>(m_document->model().compositions.size()))
-						  .arg(static_cast<int>(selectedScenarioIncidents().size()))
-						  .arg(counts.errors)
-						  .arg(counts.warnings);
-	summary += QString("\nCounting rule: scheduled entry ≥ 0 and < %1 s; these are configured identities, not observed trains.")
-				   .arg(QString::number(serviceOccurrenceDuration(), 'g', 12));
-	if (!incidentDetails.isEmpty())
-		summary += "\nIncident configuration: " + incidentDetails;
-	if (!entranceDelayDetails.isEmpty())
-		summary += "\nEntrance delay configuration: " + entranceDelayDetails;
-	return summary;
-}
-
-bool MainWindow::showRunReview() {
-	if (e2eDialogsSuppressed() && !mainWindowTestHooks().askRunReview)
-		return true;
-
-	QDialog review(this);
-	review.setObjectName("runReviewDialog");
-	review.setWindowTitle("Run simulation");
-	auto* body = new QWidget;
-	body->setObjectName("runReviewBody");
-	auto* layout = new QVBoxLayout(body);
-	layout->setSpacing(8);
-	const bool detailsEnabled = advancedDetailsEnabled();
-	const SceneDiagnosticCounts counts = countDiagnostics(m_session->diagnostics());
-	const double duration = serviceOccurrenceDuration();
-	const int selectedInPeriod = m_runSelection.selectedInPeriodCount(m_document->model(), duration);
-	const long long baseSeconds = baseTimeToSeconds(m_document->model().baseTime);
-	auto* facts = new QGridLayout();
-	facts->setHorizontalSpacing(20);
-	facts->setVerticalSpacing(8);
-	const auto addFact = [&](int row, const QString& label, const QString& value) {
-		auto* name = new QLabel(label, body);
-		name->setObjectName("runReviewFactLabel");
-		auto* fact = new QLabel(value, body);
-		fact->setTextFormat(Qt::PlainText);
-		fact->setWordWrap(true);
-		fact->setObjectName("runReviewFactValue");
-		facts->addWidget(name, row, 0);
-		facts->addWidget(fact, row, 1);
-	};
-	addFact(0, "Selected in period", QString::number(selectedInPeriod));
-	addFact(1, "Start clock", QString::fromStdString(formatSimTime(0, baseSeconds)));
-	addFact(2, "Duration",
-		QString("%1 s elapsed (ends near %2)")
-			.arg(QString::number(duration, 'g', 12),
-				QString::fromStdString(formatSimTime(static_cast<long long>(duration), baseSeconds))));
-	addFact(3, "Active incidents", QString::number(static_cast<int>(selectedScenarioIncidents().size())));
-	layout->addLayout(facts);
-
-	auto* status = new QLabel(body);
-	status->setObjectName("runReviewStatus");
-	const bool noServicesInPeriod = selectedInPeriod == 0;
-	// The validator message names the route sections and tracks without a signalling level.
-	QString unsignalledSections;
-	for (const SceneDiagnostic& diagnostic : m_session->diagnostics()) {
-		if (diagnostic.code == "scene.signalling.level.missing") {
-			unsignalledSections = QString::fromStdString(diagnostic.message);
-			unsignalledSections[0] = unsignalledSections[0].toLower();
-			break;
-		}
-	}
-	status->setText(noServicesInPeriod
-			? QStringLiteral("Ready to run, but no selected services enter during this period.")
-			: !unsignalledSections.isEmpty()
-			? QString("Ready to run, but %1.").arg(unsignalledSections)
-			: detailsEnabled && counts.warnings > 0
-			? QString("Ready to run. Review %1 validation %2 if needed.")
-				  .arg(counts.warnings)
-				  .arg(counts.warnings == 1 ? "warning" : "warnings")
-			: QStringLiteral("Ready to run."));
-	status->setProperty("warning", noServicesInPeriod || !unsignalledSections.isEmpty() || (detailsEnabled && counts.warnings > 0));
-	status->setWordWrap(true);
-	layout->addWidget(status);
-
-	auto* detailsToggle = new QToolButton(body);
-	detailsToggle->setText("Run details");
-	detailsToggle->setObjectName("runReviewDetailsToggle");
-	detailsToggle->setCheckable(true);
-	detailsToggle->setArrowType(Qt::RightArrow);
-	detailsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	auto* details = new QLabel(body);
-	details->setObjectName("runReviewDetails");
-	details->setTextFormat(Qt::PlainText);
-	details->setWordWrap(true);
-	details->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	const QString fullDetails = runReviewText();
-	const int incidentStart = fullDetails.indexOf("\nIncident configuration:");
-	const int delayStart = fullDetails.indexOf("\nEntrance delay configuration:");
-	const int firstConfiguration = incidentStart < 0 ? delayStart
-		: delayStart < 0							 ? incidentStart
-													 : std::min(incidentStart, delayStart);
-	QString displayedDetails = detailsEnabled || firstConfiguration < 0
-		? fullDetails
-		: fullDetails.left(firstConfiguration);
-	if (!detailsEnabled) {
-		const int validationStart = displayedDetails.indexOf("\nValidation:");
-		const int countingStart = displayedDetails.indexOf("\nCounting rule:");
-		if (validationStart >= 0 && countingStart > validationStart)
-			displayedDetails.remove(validationStart, countingStart - validationStart);
-	}
-	details->setText(displayedDetails);
-	details->hide();
-	connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
-		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
-		details->setVisible(shown);
-	});
-	layout->addWidget(detailsToggle);
-	layout->addWidget(details);
-
-	enum ReviewChoice { CancelRun,
-		StartRun,
-		ShowLoadedData,
-		ShowValidation };
-	ReviewChoice choice = CancelRun;
-	if (detailsEnabled) {
-		auto* inspection = new QHBoxLayout;
-		auto* loadedButton = new QPushButton("Loaded Data", body);
-		auto* validationButton = new QPushButton("Validation", body);
-		inspection->addWidget(loadedButton);
-		inspection->addWidget(validationButton);
-		inspection->addStretch();
-		layout->addLayout(inspection);
-		connect(loadedButton, &QPushButton::clicked, &review, [&]() {
-			choice = ShowLoadedData;
-			review.accept();
-		});
-		connect(validationButton, &QPushButton::clicked, &review, [&]() {
-			choice = ShowValidation;
-			review.accept();
-		});
-	}
-	auto* buttons = new QDialogButtonBox(&review);
-	buttons->setObjectName("runReviewButtons");
-	buttons->addButton(QDialogButtonBox::Cancel);
-	auto* runButton = buttons->addButton("Run simulation", QDialogButtonBox::AcceptRole);
-	runButton->setObjectName("runReviewRunButton");
-	runButton->setDefault(true);
-	connect(buttons, &QDialogButtonBox::accepted, &review, [&]() {
-		choice = StartRun;
-		review.accept();
-	});
-	connect(buttons, &QDialogButtonBox::rejected, &review, &QDialog::reject);
-	DialogLayout::install(review, "Run simulation",
-		QString("%1 / %2").arg(QString::fromStdString(m_document->model().name), scenarioContext()),
-		body, buttons);
-	if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
-		dialogShown(review, "runReview");
-	review.exec();
-	if (const auto& dialogClosed = mainWindowTestHooks().dialogClosed)
-		dialogClosed(review, "runReview");
-	if (choice == StartRun)
-		return true;
-	if (choice == ShowLoadedData && m_loadedDataDock) {
-		m_loadedDataDock->show();
-		m_loadedDataDock->raise();
-	} else if (choice == ShowValidation && m_validationDock) {
-		m_validationDock->show();
-		m_validationDock->raise();
-	}
-	return false;
-}
-
-RunProvenance MainWindow::captureRunProvenance() const {
-	RunProvenance provenance;
-	provenance.caseName = m_document->model().name;
-	provenance.sceneSchemaVersion = m_document->model().schemaVersion;
-	provenance.input = captureSavedInput(m_session->sceneDir().toStdString(),
-		m_session->sceneIsBundle() ? "bundle" : "directory", m_document->isDirty(), m_session->savedSceneSha256());
-	provenance.appliedScenario = m_runSelection.appliedScenarioId();
-	provenance.baseTimeSeconds = static_cast<double>(initial_variables.startingSimulationTime);
-	provenance.durationSeconds = initial_variables.times;
-	provenance.timestepSeconds = timestep;
-	provenance.bufferSeconds = initial_variables.bufferTime;
-	provenance.recoveryPercent = initial_variables.recoveryTimePercentage;
-	provenance.paxMode = initial_variables.PAX_GUI ? 1 : 0;
-	provenance.tsmMode = initial_variables.TSM;
-	provenance.routeChoiceMode = initial_variables.RChoice;
-	provenance.randomSeed = initial_variables.randomSeed;
-	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, simulation.run().numTrains)));
-	for (int index = 0; index < simulation.run().numTrains; ++index) {
-		const Train& train = simulation.run().trains[index];
-		provenance.selectedOccurrences.push_back({train.serviceId, train.serviceOccurrence,
-			train.operatingCode});
-	}
-	return provenance;
-}
-
-DelayRunSnapshot MainWindow::completedDelaySnapshot() const {
-	DelayRunSnapshot snapshot;
-	if (!m_resultsAvailable || !m_completedRun || m_completedRun->results.trains.empty())
-		return snapshot;
-	const CompletedRunData& run = *m_completedRun;
-	snapshot.caseRevision = std::to_string(m_document->revision());
-	snapshot.scenarioId = m_runSelection.appliedScenarioId();
-	snapshot.baseTimeSeconds = static_cast<double>(baseTimeToSeconds(m_document->model().baseTime));
-	snapshot.durationSeconds = std::isfinite(run.settings.horizonSteps)
-		? run.settings.horizonSteps
-		: 0.0;
-	snapshot.timestep = run.settings.timestepSeconds;
-	for (const SceneScenario& scenario : m_document->model().scenarios) {
-		if (scenario.id != snapshot.scenarioId)
-			continue;
-		snapshot.hasIncidents = !scenario.incidents.empty();
-		snapshot.hasEntranceDelays = !scenario.entranceDelays.empty();
-		break;
-	}
-	snapshot.provenance = run.provenance;
-	snapshot.run = run.results;
-	snapshot.timetable = run.timetable;
-	return snapshot;
-}
-
-void MainWindow::setDelayBaseline() {
-	const DelayRunSnapshot snapshot = completedDelaySnapshot();
-	if (snapshot.scenarioId.empty() || snapshot.run.trains.empty()) {
-		QMessageBox::warning(this, "Delay baseline unavailable",
-			"Complete a run with no incidents or entrance delays first.");
-		return;
-	}
-	if (snapshot.hasIncidents || snapshot.hasEntranceDelays) {
-		QMessageBox::warning(this, "Delay baseline rejected",
-			"The delay baseline must have no incidents and no entrance delays.");
-		return;
-	}
-	m_delayBaseline = snapshot;
-	m_delayBaselineStatus = QString("Delay baseline set: %1. Compare it with a completed scenario that has incidents or entrance delays.")
-								.arg(completedRunContext(snapshot.provenance));
-	statusBar()->showMessage(QString("Delay baseline set to scenario %1").arg(QString::fromStdString(snapshot.scenarioId)), 5000);
-	refreshRunResults();
-	updateDiagramActions();
-}
-
-DelayAnalysisWindow* MainWindow::openDelayAnalysis() {
-	if (!hasRunResults()) {
-		statusBar()->showMessage("Run a simulation to open the delay analysis", 5000);
-		return nullptr;
-	}
-	auto* window = new DelayAnalysisWindow(completedDelaySnapshot(), m_delayBaseline, this);
-	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
-	window->setAttribute(Qt::WA_DeleteOnClose);
-	window->show();
-	return window;
-}
-
 void MainWindow::showDelayAnalysis() {
-	openDelayAnalysis();
-}
-
-void MainWindow::showDelayComparison() {
-	if (DelayAnalysisWindow* window = openDelayAnalysis())
-		window->showBaselineTab();
-}
-
-// starts EGTRAIN simulation on a worker thread
-void MainWindow::startSimulation(const telemetry::OperationObservation& operation) {
-	if (m_worker)
-		return; // already running
-
-	clearReplay();
-	// show progress bar
-	progressBar->show();
-	statusBar()->showMessage("Simulation running...");
-
-	// create worker and thread; sync slider before run() starts
-	m_worker = new SimulationWorker();
-	m_document->setEditable(false);
-	refreshInfrastructurePanel();
-	m_worker->setDelayMs(stepDelayForSlider(m_speedSlider->value()));
-	refreshIncidentPanel();
-	updateSceneActions();
-	m_workerThread = new QThread(this);
-	m_worker->moveToThread(m_workerThread);
-
-	// when the thread starts, begin the simulation
-	connect(m_workerThread, &QThread::started, m_worker, &SimulationWorker::run);
-	// when simulation finishes on the worker, handle results on main thread
-	connect(m_worker, &SimulationWorker::simulationFinished, this, [this, worker = m_worker]() {
-		// A stopped run can leave a queued completion after another case opens.
-		if (worker && worker == m_worker)
-			onSimulationFinished();
-		runDeferredAction();
-	});
-	// clean up when thread finishes
-	connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
-	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
-
-	if (m_updateTelemetry->sender()) {
-		const auto observationStep = mainWindowTestHooks().observationStep;
-		const auto rollback = [this]() noexcept {
-			for (auto& connection : m_simulationObservations) {
-				QObject::disconnect(connection);
-				connection = QMetaObject::Connection();
-			}
-		};
-		// Telemetry is optional. Its allocation/connection failures cannot stop Run.
-		try {
-			if (observationStep) observationStep(0);
-			auto observation = std::make_shared<telemetry::SimulationObservation>(operation);
-			m_simulationObservations[0] = connect(
-				&simulation, &DispatchController::executionRejected, &simulation,
-				[observation] { observation->reject(telemetry::Error::InvalidInput); }, Qt::DirectConnection);
-			if (observationStep) observationStep(1);
-			m_simulationObservations[1] = connect(
-				&simulation, &DispatchController::executionBegan, &simulation,
-				[observation] { observation->begin(); }, Qt::DirectConnection);
-			if (observationStep) observationStep(2);
-			m_simulationObservations[2] = connect(
-				&simulation, &DispatchController::executionReturned, &simulation,
-				[observation](qint64 elapsedMs, bool cancelled) {
-					observation->finish(
-						cancelled ? telemetry::SimulationObservation::Outcome::Cancelled : telemetry::SimulationObservation::Outcome::Completed,
-						elapsedMs);
-				},
-				Qt::DirectConnection);
-			if (observationStep) observationStep(3);
-			if (!m_simulationObservations[0] || !m_simulationObservations[1] || !m_simulationObservations[2])
-				rollback();
-		} catch (...) {
-			rollback();
-		}
-	}
-	if (const auto runStarting = mainWindowTestHooks().runStarting)
-		runStarting(*this);
-	m_workerThread->start();
-	ui->actionSimulationPause->setEnabled(true);
-	ui->actionSimulationStop->setEnabled(true);
-	// A run keeps the output folder and the start time it was prepared with.
-	if (m_outputFolderAction)
-		m_outputFolderAction->setEnabled(false);
-	ui->actionStartTime->setEnabled(false);
-}
-
-// With a run active: asks it to stop, shows the stopping state and keeps the action for the
-// moment its worker has finished. The last request replaces an earlier one. Returns false
-// without a run; the caller then acts at once.
-bool MainWindow::deferUntilRunStopped(std::function<void()> action) {
-	if (!m_worker)
-		return false;
-	m_afterRunAction = std::move(action);
-	m_worker->requestStop();
-	ui->actionSimulationPause->setEnabled(false);
-	ui->actionSimulationStop->setEnabled(false);
-	statusBar()->showMessage(QStringLiteral("Stopping simulation..."));
-	return true;
-}
-
-void MainWindow::runDeferredAction() {
-	if (m_worker || !m_afterRunAction)
-		return;
-	const std::function<void()> action = std::move(m_afterRunAction);
-	m_afterRunAction = nullptr;
-	action();
-}
-
-// handle simulation completion on the main thread
-void MainWindow::onSimulationFinished() {
-	const bool hadFollowTarget = m_followTrainIndex >= 0
-		|| (m_followAction && m_followAction->isChecked());
-	setFollowTrain(-1);
-	if (PlaybackProfiler::enabled() && PlaybackProfiler::instance().frozen()) {
-		PlaybackProfiler::instance().emitRecords(true);
-		clearSimulationWorker(false);
-		QCoreApplication::exit(0);
-		return;
-	}
-	const bool sceneChangedDuringRun = m_sceneChangedDuringRun;
-	m_sceneChangedDuringRun = false;
-	// A stop that arrives after the last stage leaves a completed run.
-	const bool stopped = m_worker && m_worker->isStopRequested() && !simulation.lastRunCompleted();
-	const bool stoppedByUser = stopped && !sceneChangedDuringRun;
-	m_resultsAvailable = !sceneChangedDuringRun && !stopped && hasRawRunResults();
-	m_runtimeStatus = m_resultsAvailable ? QStringLiteral("Completed")
-		: stoppedByUser					 ? QStringLiteral("Stopped")
-										 : QStringLiteral("Failed");
-	if (m_resultsAvailable) {
-		// Freeze result values before a subsequent run replaces the runtime trains.
-		m_completedRun = std::make_shared<const CompletedRunData>(
-			captureCompletedRun(simulation.run(), &m_document->model(), m_startOffsetSeconds, m_pendingRunProvenance));
-		refreshRunResults();
-	} else {
-		m_pendingRunProvenance = RunProvenance();
-		m_completedRun.reset();
-		if (m_runResultsTable)
-			m_runResultsTable->setRowCount(0);
-		if (m_runResultsSummaryLabel)
-			m_runResultsSummaryLabel->setText(QString("No results | Case: %1 | Scenario: %2 | Status: %3%4")
-					.arg(QString::fromStdString(m_document->model().name), scenarioContext(), m_runtimeStatus,
-						sceneChangedDuringRun ? QStringLiteral(" (scene changed during run)") : QString()));
-		if (m_runResultsDock) {
-			m_runResultsDock->setWindowTitle(
-				QString("Run Results — %1 (%2)")
-					.arg(scenarioContext(), stoppedByUser ? QStringLiteral("stopped") : QStringLiteral("failed")));
-			m_runResultsDock->hide();
-		}
-	}
-	m_pendingRunProvenance = RunProvenance();
-	m_validation->refreshLoadedData();
-
-	if (const auto runFinished = mainWindowTestHooks().runFinished; runFinished && runFinished(*this))
-		return;
-
-	// print last services
-	if (!stopped)
-		simulation.printLastTrainServicePathDiagram();
-
-	// hide progress bar
-	progressBar->hide();
-	statusBar()->showMessage(sceneChangedDuringRun
-			? QStringLiteral("Simulation finished; results discarded because the scene changed during the run")
-			: stopped ? QStringLiteral("Simulation stopped")
-			: hadFollowTarget
-			? QStringLiteral("Simulation complete - Follow disabled")
-			: QStringLiteral("Simulation complete - open the Diagrams menu for results"));
-	// The Run Results dock raised by refreshRunResults is the completion notice;
-	// diagram entries switch on here instead of a modal prompt chain.
-	// cleanup thread
-	clearSimulationWorker(false);
-	if (m_resultsAvailable && !stopped) {
-		m_completedReplay = simulation.takeReplayCandidate();
-		if (!m_completedReplay.empty() || m_completedReplay.oversize())
-			showReplayBar();
-	} else simulation.resetReplayCandidate();
-	// A completed run can be replayed, so a train that has left can be followed in it.
-	updateFollowAvailability();
-	refreshInfrastructurePanel();
-	refreshIncidentPanel();
-	updateSceneActions();
-	m_trainUnitSourceLinker->processChanges();
-	// The track preview that replaces a stopped run wrote its own status message.
-	if (stoppedByUser)
-		statusBar()->showMessage(QStringLiteral("Simulation stopped"));
-
-	if (const auto runSettled = mainWindowTestHooks().runSettled)
-		runSettled(*this);
+	m_runController->openDelayAnalysis();
 }
 
 void MainWindow::teardownGUI() {
 	clearPreviewInspection();
 	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
-	clearSimulationWorker(true);
+	m_runController->clearSimulationWorker(true);
 	clearReplay();
 	progressBar->hide();
 
@@ -3854,185 +3410,6 @@ void MainWindow::teardownGUI() {
 	scene->setSceneRect(QRectF());
 	if (networkView)
 		networkView->fitToTopology();
-}
-
-// The choice is stored in the controller and applied when the next run is prepared, so the
-// folder of a run that is already active never changes.
-void MainWindow::chooseOutputFolder() {
-	const std::string& chosen = simulation.nextRunOutputFolder();
-	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
-		QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
-	if (dir.isEmpty())
-		return;
-	QDir().mkpath(dir);
-	simulation.setNextRunOutputFolder(dir.toStdString());
-	statusBar()->showMessage(QString("Output folder: %1").arg(dir), 4000);
-}
-
-void MainWindow::setStartTime() {
-	bool ok = false;
-	QString current = QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)).left(5);
-	QString text = QInputDialog::getText(this, "Start Time",
-		"Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
-	if (!ok)
-		return;
-	long long secs = parseClockToSeconds(text.toStdString());
-	if (secs < 0) {
-		QMessageBox::warning(this, "Invalid Time", "Please enter the time as HH:MM, for example 08:30.");
-		return;
-	}
-	setStartOffset(secs);
-	updateCaseLayersPanel();
-	statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
-}
-
-void MainWindow::runScene() {
-	const auto operation = captureTelemetryOperation();
-	if (!m_document->isLoaded())
-		return;
-
-	if (PlaybackProfiler::enabled()) {
-		const std::string requested = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-										  .toStdString();
-		const SceneScenario* configured = requested == "default"
-			? defaultScenario(m_document->model())
-			: nullptr;
-		if (requested != "default") {
-			const auto match = std::find_if(m_document->model().scenarios.cbegin(), m_document->model().scenarios.cend(),
-				[&requested](const SceneScenario& scenario) { return scenario.id == requested; });
-			if (match != m_document->model().scenarios.cend())
-				configured = &*match;
-		}
-		if (!configured) {
-			std::fprintf(stderr, "QEGTRAIN_PLAYBACK_PROFILE {\"type\":\"error\",\"reason\":\"scenario_unavailable\"}\n");
-			QCoreApplication::exit(2);
-			return;
-		}
-		m_runSelection.selectScenario(configured->id);
-	}
-
-	refreshValidationPanel();
-	if (hasErrors(m_session->diagnostics())) {
-		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(m_session->diagnostics()));
-		int errorCount = countDiagnostics(m_session->diagnostics()).errors;
-		showBlockingError(this, "Cannot Run Scene",
-			QString("The scene has %1 validation error(s) that must be fixed before running.").arg(errorCount), true);
-		return;
-	}
-	m_runSelection.pruneExcluded(m_document->model(), serviceOccurrenceDuration());
-	m_lastRunTotalOccurrences = totalServiceOccurrences();
-	m_lastRunSelectedOccurrences = m_runSelection.selectedCount(m_document->model(), serviceOccurrenceDuration());
-	if (m_lastRunSelectedOccurrences <= 0) {
-		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
-		showBlockingError(this, "Cannot Run Scene", "Select at least one generated service occurrence before running.", true);
-		return;
-	}
-	if (!showRunReview())
-		return;
-
-	statusBar()->showMessage("Preparing scene simulation...");
-	if (!startupTimingEnabled())
-		QApplication::processEvents();
-
-	const QRectF previewFitBounds = m_presenter->m_previewFitBounds;
-	const QPointF previewZoomFocus = m_presenter->m_previewZoomFocus;
-	teardownGUI();
-	m_presenter->m_previewFitBounds = previewFitBounds;
-	m_presenter->m_previewZoomFocus = previewZoomFocus;
-	// A case that was renamed after it was opened or created runs in the folder of its present name.
-	selectSceneOutputFolder(m_document->model().name);
-	QString outputPath = QString::fromStdString(initial_variables.OutputMainFolder);
-	if (outputPath.isEmpty() || QDir(outputPath).isRelative()) {
-		QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-		if (base.isEmpty())
-			base = QDir::homePath() + "/EGTRAIN";
-		outputPath = QDir(base).absoluteFilePath(outputPath.isEmpty() ? "Output" : outputPath);
-		QDir().mkpath(outputPath);
-		initial_variables.OutputMainFolder = outputPath.toStdString();
-	}
-	initial_variables.GUI = 1;
-	invalidateRunResults();
-	m_runSelection.applySelectedScenario();
-	const SceneRunSelection selection = m_runSelection.selectedOccurrences(m_document->model(), serviceOccurrenceDuration());
-	const bool identityBeforePrepare = !startupTimingEnabled()
-		|| startupTimingIdentityMatches(m_session->sceneDir(), m_document->model());
-	const qint64 prepareStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
-	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(m_document->model(), m_runSelection.scenarioId(), selection);
-	const bool timingIdentityOk = identityBeforePrepare
-		&& (!startupTimingEnabled() || startupTimingIdentityMatches(m_session->sceneDir(), m_document->model()));
-	if (startupTimingEnabled())
-		recordStartupTiming(QStringLiteral("native_runtime_construction"), m_startupTimingIteration,
-			-1, startupTimingNowNanoseconds() - prepareStarted,
-			QStringLiteral("simulation.prepareScene"), QStringLiteral("MainWindow::runScene"),
-			timingIdentityOk);
-	m_runtimeDiagnostics = diagnostics;
-	if (hasErrors(diagnostics)) {
-		operation.failure(telemetry::Operation::Simulation, telemetryDiagnosticError(diagnostics));
-		m_runtimeStatus = QStringLiteral("Failed");
-		updateSceneActions();
-		refreshValidationPanel();
-		showBlockingError(this, "Cannot Run Scene", firstDiagnosticMessage(diagnostics), true);
-		return;
-	}
-	m_runtimeStatus = QStringLiteral("Ready");
-	m_validation->refreshLoadedData();
-	initial_variables.startingSimulationTime = baseTimeToSeconds(m_document->model().baseTime);
-	m_startOffsetSeconds = initial_variables.startingSimulationTime;
-	m_pendingRunProvenance = captureRunProvenance();
-
-	setupGUI();
-	fitView();
-	if (PlaybackProfiler::enabled()) {
-		PlaybackProfiler::RunConfig config;
-		config.trial = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_TRIAL");
-		config.view = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_VIEW").toStdString();
-#if defined(Q_OS_MACOS)
-		config.platform = "macOS";
-#elif defined(Q_OS_WIN)
-		config.platform = "Windows";
-#else
-		config.platform = "Linux";
-#endif
-		config.architecture = QSysInfo::currentCpuArchitecture().toStdString();
-		config.qtPlatform = QGuiApplication::platformName().toStdString();
-		config.buildType = EGTRAIN_BUILD_TYPE;
-		config.caseName = m_document->model().name;
-		config.requestedScenario = qEnvironmentVariable(
-			"QEGTRAIN_PLAYBACK_PROFILE_SCENARIO")
-									   .toStdString();
-		config.scenario = m_runSelection.appliedScenarioId();
-		config.defaultScenario = m_document->model().defaultScenarioId;
-		config.targetZoom = config.view == "dense" ? 3.0 : 1.0;
-		config.durationMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DURATION_MS");
-		config.delayMs = qEnvironmentVariableIntValue("QEGTRAIN_PLAYBACK_PROFILE_DELAY_MS");
-		config.passengerGui = initial_variables.PAX_GUI;
-		config.tsm = initial_variables.TSM != 0;
-		config.routeChoice = initial_variables.RChoice != 0;
-		config.horizon = static_cast<int>(initial_variables.times);
-		config.structural = qEnvironmentVariable("QEGTRAIN_PLAYBACK_PROFILE_STRUCTURAL") == QLatin1String("1");
-		PlaybackProfiler::instance().configure(config);
-		m_playbackProfileViewApplied = false;
-	}
-	if (startupTimingEnabled()) {
-		if (!timingIdentityOk) {
-			failStartupTiming(QStringLiteral("scene identity or counts changed during native preparation"));
-			return;
-		}
-		networkView->armTimingPaint(QStringLiteral("runtime"), m_startupTimingIteration);
-		statusBar()->showMessage(QString("Prepared scene: %1").arg(QString::fromStdString(m_document->model().name)));
-		return;
-	}
-
-	// scene stays loaded; only the case-study load path clears it
-	m_session->updateSceneWindowTitle();
-	updateCaseLayersPanel();
-	updateSceneActions();
-
-	m_runtimeStatus = QStringLiteral("Running");
-	m_validation->refreshLoadedData();
-	startSimulation(operation);
-	statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_document->model().name)));
 }
 
 // setup qdockwidget showing info when clicking items
@@ -4093,7 +3470,7 @@ void MainWindow::setupRunResultsDock() {
 	exportCsvBtn->setToolTip("Write travel time and energy per train to a CSV file");
 	connect(exportCsvBtn, &QPushButton::clicked, this, [this]() {
 		const auto operation = captureTelemetryOperation();
-		const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+		const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 		saveCsvInteractive(
 			this, "run_summary.csv", operation,
 			[run] { return run ? buildRunSummaryCsv(run->results) : std::string(); },
@@ -4120,7 +3497,7 @@ void MainWindow::setupRunResultsDock() {
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
 		const bool written = writeRunArtifactWithProvenance(path.toStdString(), "png", bytes,
-			m_completedRun ? m_completedRun->provenance : RunProvenance());
+			m_runController->completedRun() ? m_runController->completedRun()->provenance : RunProvenance());
 		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 		if (!written)
 			QMessageBox::warning(this, "Export failed",
@@ -4141,12 +3518,12 @@ void MainWindow::setupRunResultsDock() {
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
 	m_setDelayBaselineButton->setToolTip("Freeze this completed run with no incidents or entrance delays as the delay baseline");
-	connect(m_setDelayBaselineButton, &QPushButton::clicked, this, &MainWindow::setDelayBaseline);
+	connect(m_setDelayBaselineButton, &QPushButton::clicked, m_runController, &RunController::setDelayBaseline);
 	delayRow->addWidget(m_setDelayBaselineButton);
 	m_compareDelayButton = new QPushButton("Compare delays", container);
 	m_compareDelayButton->setObjectName("compareDelayButton");
 	m_compareDelayButton->setToolTip("Compare the completed run with the frozen delay baseline");
-	connect(m_compareDelayButton, &QPushButton::clicked, this, &MainWindow::showDelayComparison);
+	connect(m_compareDelayButton, &QPushButton::clicked, m_runController, &RunController::showDelayComparison);
 	delayRow->addWidget(m_compareDelayButton);
 	delayRow->addStretch();
 	containerLayout->addLayout(delayRow);
@@ -4158,9 +3535,9 @@ void MainWindow::setupRunResultsDock() {
 }
 
 void MainWindow::refreshRunResults() {
-	if (!m_runResultsDock || !m_runResultsTable || !m_completedRun || m_completedRun->results.trains.empty())
+	if (!m_runResultsDock || !m_runResultsTable || !m_runController->completedRun() || m_runController->completedRun()->results.trains.empty())
 		return;
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	refreshRunResultsSummary();
 	m_runResultsDock->setWindowTitle(QStringLiteral("Run Results \u2014 %1").arg(completedRunContext(run->provenance)));
 
@@ -4234,24 +3611,24 @@ void MainWindow::refreshRunResults() {
 }
 
 void MainWindow::refreshRunResultsSummary() {
-	if (!m_runResultsSummaryLabel || !m_completedRun || m_completedRun->results.trains.empty())
+	if (!m_runResultsSummaryLabel || !m_runController->completedRun() || m_runController->completedRun()->results.trains.empty())
 		return;
 	int destinationTerminationCount = 0;
-	for (const TrainRunResult& result : m_completedRun->results.trains) {
+	for (const TrainRunResult& result : m_runController->completedRun()->results.trains) {
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
 	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
-						  .arg(completedRunContext(m_completedRun->provenance))
-						  .arg(m_lastRunSelectedOccurrences)
-						  .arg(m_lastRunTotalOccurrences);
+						  .arg(completedRunContext(m_runController->completedRun()->provenance))
+						  .arg(m_runController->lastRunSelectedOccurrences())
+						  .arg(m_runController->lastRunTotalOccurrences());
 	if (advancedDetailsEnabled()) {
 		summary += QString(" | %1 | Destination terminations: %2")
-					   .arg(QString::fromStdString(directIncidentEvidenceText(m_completedRun->results)))
+					   .arg(QString::fromStdString(directIncidentEvidenceText(m_runController->completedRun()->results)))
 					   .arg(destinationTerminationCount);
 	}
-	if (m_delayBaseline)
-		summary += QString("\nDelay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
+	if (const auto& baseline = m_runController->delayBaseline())
+		summary += QString("\nDelay baseline: %1").arg(completedRunContext(baseline->provenance));
 	m_runResultsSummaryLabel->setText(summary);
 }
 
@@ -4916,7 +4293,7 @@ void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollow
 	m_presenter->removePaxInfoIcon();
 
 	// show pax info only while its layer is enabled
-	if (initial_variables.PAX_GUI && m_presenter->m_passengerLayerVisible)
+	if (m_runController->passengerGui() && m_presenter->m_passengerLayerVisible)
 		m_presenter->paintTrainPassengerInfo(groupItem);
 
 	// show widget
@@ -5006,15 +4383,15 @@ void MainWindow::fitView() {
 void MainWindow::updateTimeline(int timestep, int totalTimesteps) {
 	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery/timeline", "gui", "gui/snapshot_delivery");
 	if (progressBar)
-		progressBar->setProgress(timestep, totalTimesteps, m_startOffsetSeconds);
+		progressBar->setProgress(timestep, totalTimesteps, m_runController->startOffsetSeconds());
 }
 
 void MainWindow::waitForUpdates() {
 	QEGTRAIN_PROFILE_SCOPE("gui/snapshot_delivery", "gui", "");
 	// A queued notification can outlive its worker or arrive after Stop. Drain
 	// the mailbox, but never apply that late publication to the current scene.
-	if (!m_worker || m_runtimeStatus != QStringLiteral("Running")
-		|| m_worker->isStopRequested()) {
+	if (!m_runController->running() || m_runController->runtimeStatus() != QStringLiteral("Running")
+		|| m_runController->stopRequested()) {
 		simulation.takeSimulationSnapshot();
 		return;
 	}
@@ -5046,9 +4423,9 @@ void MainWindow::waitForUpdates() {
 			m_trailingRenderTimer = new QTimer(this);
 			m_trailingRenderTimer->setSingleShot(true);
 			connect(m_trailingRenderTimer, &QTimer::timeout, this, [this]() {
-				if (!m_snapshot || m_snapshot == m_lastRenderedSnapshot || m_replayActive || !m_worker
-					|| m_worker != m_trailingRenderWorker || m_worker->isStopRequested()
-					|| m_runtimeStatus != QStringLiteral("Running"))
+				if (!m_snapshot || m_snapshot == m_lastRenderedSnapshot || m_replayActive || !m_runController->running()
+					|| m_runController->worker() != m_trailingRenderWorker || m_runController->stopRequested()
+					|| m_runController->runtimeStatus() != QStringLiteral("Running"))
 					return;
 				renderSnapshot(false);
 				m_lastRenderedSnapshot = m_snapshot;
@@ -5057,7 +4434,7 @@ void MainWindow::waitForUpdates() {
 					snapshotDrawn(*this);
 			});
 		}
-		m_trailingRenderWorker = m_worker;
+		m_trailingRenderWorker = m_runController->worker();
 		if (!m_trailingRenderTimer->isActive())
 			m_trailingRenderTimer->start(static_cast<int>(33 - (now - m_lastRenderMs)));
 	}
@@ -5084,7 +4461,7 @@ void MainWindow::waitForUpdates() {
 }
 
 void MainWindow::seekReplay(int requestedTime) {
-	if (m_completedReplay.empty() || m_worker) return;
+	if (m_completedReplay.empty() || m_runController->running()) return;
 	m_replayRequestedTime = qBound(m_completedReplay.firstTime(), requestedTime, m_completedReplay.lastTime());
 	const auto frame = m_completedReplay.atOrBefore(m_replayRequestedTime);
 	if (!frame) return;
@@ -5104,7 +4481,7 @@ void MainWindow::seekReplay(int requestedTime) {
 	renderSnapshot(true);
 	if (m_presenter->trainPaxItem && !replayTrainHasPosition(m_presenter->trainPaxItem->index))
 		m_presenter->removeTrainPaxInfoIcon();
-	else if (m_presenter->trainPaxItem && !m_presenter->trainPaxInfoItem && initial_variables.PAX_GUI
+	else if (m_presenter->trainPaxItem && !m_presenter->trainPaxInfoItem && m_runController->passengerGui()
 		&& m_presenter->m_passengerLayerVisible)
 		m_presenter->paintTrainPassengerInfo(m_presenter->trainPaxItem);
 	updateViewportOverlays();
@@ -5180,7 +4557,7 @@ int chooseRouteDiagramReference(QWidget* parent, const SceneModel& model, const 
 
 void MainWindow::displayTrainPathDiagrams() {
 	if (!hasRunResults()) return;
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	const int reference = chooseRouteDiagramReference(this, m_document->model(), *run, "train paths");
 	if (reference >= 0) buildRouteDiagram(run, false, reference);
 }
@@ -5229,7 +4606,7 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
 	const QString heading = titles[mode];
 	QChart* chart = new QChart();
@@ -5299,7 +4676,7 @@ void MainWindow::showTimetableTable() {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	auto* window = new TimetableTableWindow(run->timetable, run->settings.startOffsetSeconds,
 		csvProviderFrom(run, &timetableCsvFrom), this);
 	window->setTelemetryCapture([this] { return captureTelemetryOperation(); });
@@ -5316,7 +4693,7 @@ void MainWindow::showDelayDiagram() {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	QChart* chart = new QChart();
 	const QString heading = QStringLiteral("Arrival delay along journey (minutes)");
 	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
@@ -5365,7 +4742,7 @@ void MainWindow::showDelayDiagram() {
 
 void MainWindow::showTimetableGraph() {
 	if (!hasRunResults()) return;
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	const int reference = chooseRouteDiagramReference(this, m_document->model(), *run, "timetable");
 	if (reference >= 0) buildRouteDiagram(run, true, reference);
 }
@@ -5478,7 +4855,7 @@ void MainWindow::showBlockingTimeDiagram() {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	BlockingTimeScope scope = defaultBlockingTimeScopeFrom(*run);
 	if (!e2eDialogsSuppressed() && !chooseBlockingTimeScope(this, blockingTimeScopeChoicesFrom(*run), scope))
 		return;
@@ -5606,7 +4983,7 @@ void MainWindow::showCapacityAnalysis() {
 		return;
 	}
 
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	CapacityAnalysisScope scope = firstCapacityScopeWithPairFrom(*run);
 	if (scope.routeIndex < 0) {
 		QMessageBox::information(this, "Capacity analysis",
@@ -5810,7 +5187,7 @@ void MainWindow::showAreaCapacity() {
 		return;
 	}
 	// The options dialog reads the run until it closes, so this call holds it.
-	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
+	const std::shared_ptr<const CompletedRunData> run = m_runController->completedRun();
 	openAreaCapacityWindow(this, *run, [this] { return captureTelemetryOperation(); });
 }
 
@@ -5890,7 +5267,7 @@ void MainWindow::updateNetworkLegend() {
 	content.hasSignals = !preview && !m_presenter->allSignals.isEmpty();
 	if (preview)
 		content.hasSignals = m_presenter->m_previewHasSignals;
-	content.hasPassengers = !preview && initial_variables.PAX_GUI;
+	content.hasPassengers = !preview && m_runController->passengerGui();
 	m_networkLegendWidget->setCaseContent(content);
 }
 

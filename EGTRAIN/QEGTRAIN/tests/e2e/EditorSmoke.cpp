@@ -695,7 +695,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				bufferEdit->setValue(30.0);
 				recoveryEdit->setValue(7.5);
 				w.commitPendingCaseSettings();
-				if (w.m_document->mutableModel().name != "E2E New Case" || w.m_document->mutableModel().description != "new case editor smoke" || w.m_document->mutableModel().baseTime != "09:15:30" || !w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.durationSeconds != 7200.0 || !w.m_document->mutableModel().settings.hasBufferTime || w.m_document->mutableModel().settings.bufferTimeSeconds != 30.0 || !w.m_document->mutableModel().settings.hasRecoveryTime || w.m_document->mutableModel().settings.recoveryTimePercent != 7.5 || w.m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
+				if (w.m_document->mutableModel().name != "E2E New Case" || w.m_document->mutableModel().description != "new case editor smoke" || w.m_document->mutableModel().baseTime != "09:15:30" || !w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.durationSeconds != 7200.0 || !w.m_document->mutableModel().settings.hasBufferTime || w.m_document->mutableModel().settings.bufferTimeSeconds != 30.0 || !w.m_document->mutableModel().settings.hasRecoveryTime || w.m_document->mutableModel().settings.recoveryTimePercent != 7.5 || w.m_runController->m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
 					facetFailure(facetOk, "new case", "case settings edits did not commit all six values");
 			}
 
@@ -3555,7 +3555,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| w.m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) >= 0)
 				facetFailure(facetOk, "incident", "service delete did not refresh breakdown targets");
 		}
-		const QString review = w.runReviewText();
+		const QString review = w.m_runController->runReviewText();
 		if (editedRow >= 0) {
 			w.m_incidentListWidget->setCurrentRow(editedRow);
 			SceneIncident* incident = w.m_incidentPanel->selectedIncident();
@@ -4017,7 +4017,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								w.m_document->mutableModel().routes.front().blocks.clear();
 								w.m_runSceneAction->trigger();
 								QApplication::processEvents();
-								if (w.m_worker || !w.m_incidentPanel->selectedIncident()
+								if (w.m_runController->m_worker || !w.m_incidentPanel->selectedIncident()
 									|| !w.m_incidentPanel->selectedIncident()->hasEndSeconds
 									|| w.m_incidentPanel->selectedIncident()->endSeconds != pendingIncidentEnd)
 									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
@@ -4298,11 +4298,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			completed.provenance = provenance;
 			completed.results.trains.emplace_back();
 			completed.results.trains.back().trainId = "train-1";
-			w.m_completedRun = std::make_shared<const CompletedRunData>(completed);
+			w.m_runController->m_completedRun = std::make_shared<const CompletedRunData>(completed);
 			DelayRunSnapshot baseline;
 			baseline.provenance = provenance;
 			baseline.scenarioId = "baseline";
-			w.m_delayBaseline = baseline;
+			w.m_runController->m_delayBaseline = baseline;
 			w.refreshRunResults();
 			w.updateDiagramActions();
 			QApplication::processEvents();
@@ -4326,8 +4326,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
 				facetFailure(ok, "presentation", "a long run identity widens the labels of Run Results");
 
-			w.m_completedRun.reset();
-			w.m_delayBaseline.reset();
+			w.m_runController->m_completedRun.reset();
+			w.m_runController->m_delayBaseline.reset();
 			w.m_runResultsTable->setRowCount(0);
 			w.m_runResultsDock->hide();
 			w.m_loadedDataDock->hide();
@@ -4587,12 +4587,12 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			where + " moved the history to another place");
 		expect(w.m_document->isDirty() == dirty && w.isWindowModified() == dirty && w.m_history->isAtSavedPoint() == !dirty,
 			where + " left a wrong unsaved mark");
-		expect(!w.m_resultsAvailable && !w.m_completedRun, where + " kept results of a run");
+		expect(!w.m_runController->m_resultsAvailable && !w.m_runController->m_completedRun, where + " kept results of a run");
 		const QString mismatch = editorMismatch();
 		expect(mismatch.isEmpty(), where + " left the " + mismatch + " editor with another scene");
 		expect(validationCurrent(), where + " left the validation of another scene");
 		expect(w.modifiedScenarioIds() == modifiedStates[at], where + " left other scenarios marked as edited");
-		expect(w.m_startOffsetSeconds == baseTimeToSeconds(w.m_document->mutableModel().baseTime), where + " left the start time of another scene");
+		expect(w.m_runController->m_startOffsetSeconds == baseTimeToSeconds(w.m_document->mutableModel().baseTime), where + " left the start time of another scene");
 		expect(std::any_of(w.m_document->mutableModel().scenarios.begin(), w.m_document->mutableModel().scenarios.end(),
 				   [&w](const SceneScenario& scenario) { return scenario.id == w.m_runSelection.scenarioId(); }),
 			where + " left a scenario selected that the scene does not have");
@@ -4711,7 +4711,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	{
 		simulation.setNextRunOutputFolder(QDir(outFolder).filePath("undo_run_output").toStdString());
 		w.m_runSceneAction->trigger();
-		if (!expect(w.m_worker != nullptr, "the run did not start"))
+		if (!expect(w.m_runController->m_worker != nullptr, "the run did not start"))
 			return finish();
 		const quint64 revision = w.m_document->revision();
 		w.undoScene();
@@ -4720,9 +4720,9 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			"Undo or Redo worked while a run used the scene");
 		QElapsedTimer waited;
 		waited.start();
-		while ((w.m_worker || !w.m_resultsAvailable) && waited.elapsed() < 60000)
+		while ((w.m_runController->m_worker || !w.m_runController->m_resultsAvailable) && waited.elapsed() < 60000)
 			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
-		if (!expect(!w.m_worker && w.m_resultsAvailable, "the run did not complete"))
+		if (!expect(!w.m_runController->m_worker && w.m_runController->m_resultsAvailable, "the run did not complete"))
 			return finish();
 		expect(w.m_undoAction->isEnabled() && w.m_history->undoCount() == position
 				&& authoredSceneBytes(*w.m_history->head()) == states[position],

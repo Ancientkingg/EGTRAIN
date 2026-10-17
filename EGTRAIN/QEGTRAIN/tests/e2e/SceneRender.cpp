@@ -29,7 +29,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 			return;
 		}
 	}
-	if (!w.m_worker && w.m_presenter->allTrains.isEmpty()) {
+	if (!w.m_runController->m_worker && w.m_presenter->allTrains.isEmpty()) {
 		// Before the first run Follow is off and its tooltip says why.
 		const bool services = !w.m_document->mutableModel().services.empty();
 		const QString reason = services ? QStringLiteral("Run the case first, then you can follow a train.")
@@ -48,8 +48,8 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 		}
 		std::fprintf(stdout, services ? "E2E_FOLLOW_NO_RUN_OK\n" : "E2E_FOLLOW_NO_SERVICES_OK\n");
 		std::fflush(stdout);
-		w.runScene();
-		if (!w.m_worker) {
+		w.m_runController->runScene();
+		if (!w.m_runController->m_worker) {
 			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene run did not start\n");
 			std::fflush(stderr);
 			QCoreApplication::exit(2);
@@ -102,11 +102,11 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (ok) {
 		std::fprintf(stdout, "E2E_SCENE_RENDER_OK\n");
 		std::fflush(stdout);
-		if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-			QObject::connect(w.m_workerThread, &QThread::finished, qApp, []() {
+		if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+			QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, []() {
 				QCoreApplication::exit(0);
 			});
-			w.m_worker->requestStop();
+			w.m_runController->m_worker->requestStop();
 			return;
 		}
 		QCoreApplication::exit(0);
@@ -115,11 +115,11 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 
 	std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 	std::fflush(stderr);
-	if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-		QObject::connect(w.m_workerThread, &QThread::finished, qApp, []() {
+	if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+		QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, []() {
 			QCoreApplication::exit(2);
 		});
-		w.m_worker->requestStop();
+		w.m_runController->m_worker->requestStop();
 		return;
 	}
 	QCoreApplication::exit(2);

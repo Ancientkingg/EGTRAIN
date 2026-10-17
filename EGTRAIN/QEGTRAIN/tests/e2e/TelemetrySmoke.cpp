@@ -98,17 +98,17 @@ void MainWindowTestAccess::telemetryObservationStep(int step) {
 void MainWindowTestAccess::telemetryRunStarting(MainWindow& w) {
 	const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE");
 	if (smoke && smokeMode == "stop_before")
-		QObject::connect(w.m_worker, &SimulationWorker::simulationStarted, w.m_worker,
+		QObject::connect(w.m_runController->m_worker, &SimulationWorker::simulationStarted, w.m_runController->m_worker,
 			&SimulationWorker::requestStop, Qt::DirectConnection);
 	if (smoke && smokeMode == "completion_stop") {
-		auto* worker = w.m_worker.data();
-		w.m_simulationObservations[3] = QObject::connect(
+		auto* worker = w.m_runController->m_worker.data();
+		w.m_runController->m_simulationObservations[3] = QObject::connect(
 			&simulation, &DispatchController::executionReturned, &simulation,
 			[worker](qint64, bool) { worker->requestStop(); }, Qt::DirectConnection);
 	}
 	if (smoke && smokeMode == "stop_postprocessing") {
-		auto* worker = w.m_worker.data();
-		w.m_simulationObservations[4] = QObject::connect(
+		auto* worker = w.m_runController->m_worker.data();
+		w.m_runController->m_simulationObservations[4] = QObject::connect(
 			&simulation, &DispatchController::executionPostprocessing, &simulation,
 			[worker] { worker->requestStop(); }, Qt::DirectConnection);
 	}
@@ -184,7 +184,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			DiagramWindow diagram("Private in-flight chart", &w);
 			diagram.setTelemetryCapture([&w] { return w.captureTelemetryOperation(); });
 			diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n"); }, "stale.csv");
-			attachRunProvenance(&diagram, w.captureRunProvenance());
+			attachRunProvenance(&diagram, w.m_runController->captureRunProvenance());
 			QDir().mkpath(root + "/stale.csv.provenance.json");
 			const int poll = smoke->polls.load();
 			telemetry_smoke::chooseFile(root + "/stale.csv", [&w, poll, changed = false]() mutable {
@@ -224,7 +224,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		DiagramWindow diagram("Private chart name", &w);
 		diagram.setTelemetryCapture([&w] { return w.captureTelemetryOperation(); });
 		diagram.setCsvProvider([](const QStringList&) { return std::string("private,content\n1,2\n"); }, "chart.csv");
-		attachRunProvenance(&diagram, w.captureRunProvenance());
+		attachRunProvenance(&diagram, w.m_runController->captureRunProvenance());
 		for (int repeat = 0; repeat < 2; ++repeat) {
 			telemetry_smoke::chooseFile(root + "/chart.csv");
 			QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
@@ -236,9 +236,9 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		QMetaObject::invokeMethod(&diagram, "exportCsv", Qt::DirectConnection);
 		telemetry_smoke::chooseFile(root + "/chart.png");
 		QMetaObject::invokeMethod(&diagram, "exportPng", Qt::DirectConnection);
-		TimetableTableWindow table({}, w.m_startOffsetSeconds, [](const QStringList&) { return std::string("private,table\n"); }, &w);
+		TimetableTableWindow table({}, w.m_runController->m_startOffsetSeconds, [](const QStringList&) { return std::string("private,table\n"); }, &w);
 		table.setTelemetryCapture([&w] { return w.captureTelemetryOperation(); });
-		table.setRunProvenance(w.captureRunProvenance());
+		table.setRunProvenance(w.m_runController->captureRunProvenance());
 		telemetry_smoke::chooseFile(root + "/table.csv");
 		QMetaObject::invokeMethod(&table, "exportCsv", Qt::DirectConnection);
 		telemetry_smoke::chooseFile(root + "/table.png");
@@ -270,7 +270,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		w.openSceneDirectory(scenePath);
 		const auto services = w.m_document->mutableModel().services;
 		w.m_document->mutableModel().services.clear();
-		w.runScene(); // Handled preflight failure: no usage run pair.
+		w.m_runController->runScene(); // Handled preflight failure: no usage run pair.
 		w.m_document->mutableModel().services = services;
 		later(2);
 		return;
@@ -298,25 +298,25 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		if (mode == "zero") {
 			w.teardownGUI();
 			simulation.resetState();
-			w.startSimulation(w.captureTelemetryOperation());
-		} else w.runCurrent();
-		if (mode == "teardown" || mode == "replacement") w.clearSimulationWorker(true);
+			w.m_runController->startSimulation(w.captureTelemetryOperation());
+		} else w.m_runController->runCurrent();
+		if (mode == "teardown" || mode == "replacement") w.m_runController->clearSimulationWorker(true);
 		if (mode == "replacement") {
 			w.openSceneDirectory(root + "/case");
-			w.runCurrent(); // A queued GUI completion for the joined worker is stale.
+			w.m_runController->runCurrent(); // A queued GUI completion for the joined worker is stale.
 		}
 		later(3, 50);
 		return;
 	}
 	if (stage == 3 || stage == 5) {
-		if (w.m_worker) {
+		if (w.m_runController->m_worker) {
 			later(stage, 50);
 			return;
 		}
 		if (mode == "install_failure") {
 			const int ordinal = smoke->completedProbeRuns;
-			if (!w.m_resultsAvailable || !w.m_completedRun
-				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(w.m_completedRun->results),
+			if (!w.m_runController->m_resultsAvailable || !w.m_runController->m_completedRun
+				|| !telemetry_smoke::recordRun(root, ordinal, buildRunSummaryCsv(w.m_runController->m_completedRun->results),
 					QString::fromStdString(initial_variables.OutputMainFolder) + "/EnergyConsumptionPerTrain.txt")) {
 				std::fprintf(stderr, "E2E_TELEMETRY_INSTALL_RUN_FAILED\n");
 				QCoreApplication::exit(2);
@@ -328,7 +328,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 				simulation.resetState();
 				simulation.runSimulation(); // Zero-train guard probes any orphaned rejection observer.
 				smoke->installFailurePoint = ordinal < 3 ? ordinal + 1 : -1;
-				w.runCurrent();
+				w.m_runController->runCurrent();
 				later(3, 50);
 				return;
 			}
@@ -336,11 +336,11 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 				smoke->completedProbeRuns, smoke->installFailures);
 		}
 		if (stage == 3 && mode == "repeat") {
-			w.runCurrent();
+			w.m_runController->runCurrent();
 			later(5, 50);
 			return;
 		}
-		if (w.m_resultsAvailable && mode != "teardown") {
+		if (w.m_runController->m_resultsAvailable && mode != "teardown") {
 			telemetry_smoke::chooseFile(root + "/summary.csv");
 			if (auto* button = w.findChild<QPushButton*>("resultView_ExportCSV")) button->click();
 			telemetry_smoke::chooseFile(root + "/summary.png");

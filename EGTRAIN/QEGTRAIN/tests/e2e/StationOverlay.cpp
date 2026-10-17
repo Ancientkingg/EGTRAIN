@@ -64,9 +64,9 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 		std::fflush(stdout);
 	};
 	const auto finish = [&w](int code) {
-		if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-			QObject::connect(w.m_workerThread, &QThread::finished, qApp, [code]() { QCoreApplication::exit(code); });
-			w.m_worker->requestStop();
+		if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+			QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, [code]() { QCoreApplication::exit(code); });
+			w.m_runController->m_worker->requestStop();
 		} else {
 			QCoreApplication::exit(code);
 		}

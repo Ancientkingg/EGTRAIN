@@ -8,6 +8,9 @@ a run global (regional_train, train_route, numRegions, initial_variables). The i
 diagrams/SimulationHeaders.h counts as an include of simulation/, because it wraps two of those
 headers.
 
+The window, app/MainWindow.cpp and app/MainWindow.h, may include the simulation, but it may not name
+a run global either. It reads the settings of the process and the run through RunController.
+
 The files in ALLOWED are the exceptions. CompletedRunCapture.cpp copies the run out of the
 simulation, RunResults.cpp builds the result rows from the runtime trains, and RunResults.h takes a
 constant from simulation/InitialParameters.h. SimulationHeaders.h is the gateway that the two
@@ -32,6 +35,8 @@ from ownership_inventory import clean_cpp_code  # noqa: E402
 
 CHECKED_FOLDER = "diagrams"
 CHECKED_FILES = ["app/MainWindowSupport.h"]
+# Files that may include the simulation but may not name a run global.
+GLOBAL_NAMES_ONLY_FILES = ["app/MainWindow.cpp", "app/MainWindow.h"]
 ALLOWED = {
     "diagrams/CompletedRunCapture.cpp": "copies the run out of the simulation",
     "diagrams/RunResults.cpp": "builds the result rows from the runtime trains",
@@ -45,11 +50,13 @@ INCLUDE_PATH = re.compile(r'^\s*#\s*include\s*[<"]([^">]+)[">]')
 RUN_GLOBALS = re.compile(r"\b(regional_train|train_route|numRegions|initial_variables)\b")
 
 
-def violations(relative, text):
-    """Returns (line, message) for each include of the simulation and each run global in the text."""
+def violations(relative, text, check_includes=True):
+    """Returns (line, message) for each include of the simulation and each run global in the text.
+
+    Without check_includes the text may include the simulation."""
     found = []
     for number, (raw, code) in enumerate(zip(text.splitlines(), clean_cpp_code(text).splitlines()), start=1):
-        if INCLUDE_LINE.match(code):
+        if check_includes and INCLUDE_LINE.match(code):
             included = INCLUDE_PATH.match(raw)
             if included and (included.group(1).startswith("simulation/")
                              or included.group(1) == "diagrams/SimulationHeaders.h"):
@@ -72,6 +79,16 @@ def self_test():
         got = len(violations("sample.cpp", text))
         if got != expected:
             sys.exit(f"the detector found {got} violations, not {expected}, in {text!r}")
+    names_only = [
+        ('#include "simulation/Signalling.h"\n', 0),
+        ("settings.reset(initial_variables);\n", 1),
+        ("for (const Train& t : regional_train) use(t);\n", 1),
+        ("// initial_variables in a comment\n", 0),
+    ]
+    for text, expected in names_only:
+        got = len(violations("sample.cpp", text, check_includes=False))
+        if got != expected:
+            sys.exit(f"the names-only detector found {got} violations, not {expected}, in {text!r}")
 
 
 def checked_files():
@@ -99,13 +116,20 @@ def main():
             continue
         for number, message in violations(relative, path.read_text(encoding="utf-8")):
             problems.append(f"{relative}:{number}: {message}")
+    for relative in GLOBAL_NAMES_ONLY_FILES:
+        path = SOURCE_ROOT / relative
+        if not path.is_file():
+            problems.append(f"{relative}: not found")
+            continue
+        for number, message in violations(relative, path.read_text(encoding="utf-8"), check_includes=False):
+            problems.append(f"{relative}:{number}: {message}")
     if problems:
-        print("The diagrams and exports must read the completed run, not the simulation:")
+        print("The diagrams, the exports and the window must read the completed run or RunController, not the run globals:")
         for problem in problems:
             print("  " + problem)
-        print("Read the run through CompletedRunData. Only the files in ALLOWED of this test may read the simulation.")
+        print("Read the run through CompletedRunData and the settings through RunController. Only the files in ALLOWED of this test may read the simulation.")
         return 1
-    print(f"diagrams and exports read no simulation globals ({len(files) - len(ALLOWED)} files checked)")
+    print(f"diagrams, exports and the window read no run globals ({len(files) - len(ALLOWED) + len(GLOBAL_NAMES_ONLY_FILES)} files checked)")
     return 0
 
 

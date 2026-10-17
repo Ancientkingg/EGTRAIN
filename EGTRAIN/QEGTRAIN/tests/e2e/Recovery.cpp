@@ -194,10 +194,10 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 			return QStringLiteral("the window reported the failed autosave %1 times").arg(unavailable);
 		if (!w.m_document->isDirty() || w.m_document->mutableModel().name != "Recovery smoke case again")
 			return QStringLiteral("the failed autosave stopped the editing");
-		w.runScene();
-		if (!w.m_worker)
+		w.m_runController->runScene();
+		if (!w.m_runController->m_worker)
 			return QStringLiteral("the run did not start");
-		if (!waitFor([&w] { return !w.m_worker && w.m_resultsAvailable; }, kRunWaitMs))
+		if (!waitFor([&w] { return !w.m_runController->m_worker && w.m_runController->m_resultsAvailable; }, kRunWaitMs))
 			return QStringLiteral("the run did not complete");
 		return {};
 	};
