@@ -574,7 +574,7 @@ class GitTests(TreeTestCase):
     def test_main_escapes_characters_that_standard_output_cannot_encode(self):
         self.write({LANDING: doc("# Docs", "", "[a](caf\u00e9.md)")})
         raw = io.BytesIO()
-        out = io.TextIOWrapper(raw, encoding="ascii")
+        out = io.TextIOWrapper(raw, encoding="ascii", newline="\n")
         with contextlib.redirect_stdout(out):
             code = run_main(["--root", str(self.root)])
         out.flush()
