@@ -22,25 +22,33 @@ namespace DialogLayout {
 
 namespace detail {
 // The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
-// width wide: the heading, the whole content and the footer, with the margins and spacing between them.
+// width wide: the whole content and every other visible item of the layout (the heading, the footer and any
+// widget a caller added), with the margins and spacing between them.
 inline int heightForContent(QDialog& dialog, int width) {
 	// The style sheet adds padding and borders to labels when they are polished, which changes their size hints.
 	dialog.ensurePolished();
 	QLayout* layout = dialog.layout();
-	if (!layout || layout->count() != 3)
-		return 0;
-	QWidget* title = layout->itemAt(0)->widget();
-	auto* scroll = qobject_cast<QScrollArea*>(layout->itemAt(1)->widget());
-	QWidget* actions = layout->itemAt(2)->widget();
-	if (!title || !scroll || !actions)
+	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	if (!layout || !scroll)
 		return 0;
 	const QMargins margins = layout->contentsMargins();
 	const int innerWidth = width - margins.left() - margins.right();
 	const int frame = 2 * scroll->frameWidth();
-	QWidget* content = scroll->widget();
-	const int contentHeight = content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame) : content->sizeHint().height();
-	return margins.top() + margins.bottom() + 2 * layout->spacing() + title->heightForWidth(innerWidth) + frame + contentHeight
-		+ actions->sizeHint().height();
+	int height = margins.top() + margins.bottom();
+	int shown = 0;
+	for (int i = 0; i < layout->count(); ++i) {
+		QLayoutItem* item = layout->itemAt(i);
+		if (item->isEmpty())
+			continue;
+		++shown;
+		if (item->widget() == scroll) {
+			QWidget* content = scroll->widget();
+			height += frame + (content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame) : content->sizeHint().height());
+		} else {
+			height += item->hasHeightForWidth() ? item->heightForWidth(innerWidth) : item->sizeHint().height();
+		}
+	}
+	return height + qMax(0, shown - 1) * layout->spacing();
 }
 } // namespace detail
 

@@ -504,6 +504,8 @@ int main(int argc, char** argv) {
 					"a negative dwell is refused with a message and the dialog stays open");
 				ok &= expect(error->isVisible() && role(error) == "error" && dialog.width() == openSize.width() && dialog.height() >= openSize.height() && inView(dialog, error),
 					"the message is an error callout in view, and the dialog does not get narrower or shorter when it appears");
+				auto* bodyScroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
+				ok &= expect(bodyScroll && bodyScroll->verticalScrollBar()->value() == 0, "the first rows stay in view when the message appears");
 				edit(dialog, "stopEditorDwellEdit")->setText("45");
 				edit(dialog, "stopEditorArrivalEdit")->setText("no time");
 				click(dialog, "stopEditorAcceptButton");

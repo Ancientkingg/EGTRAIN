@@ -365,6 +365,27 @@ bool exerciseGeometry(const QRect& screen, qreal scale) {
 	return ok;
 }
 
+// The dialog opens at the height its content needs, so the confirmation that Discard shows has to make the dialog taller
+// instead of taking height from the list.
+bool exerciseConfirmationHeight() {
+	RecoveryScan scan;
+	scan.candidates.append(makeCandidate(QStringLiteral("Line 7"), RecoverySourceKind::Bundle, QStringLiteral("/home/test/cases/Line 7.egscene"),
+		RecoverySourceStatus::Changed));
+	RecoveryPrompt dialog(scan, nullptr, QRect(0, 0, 1920, 1080));
+	dialog.show();
+	QApplication::processEvents();
+	const Parts parts = partsOf(dialog);
+	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	const int before = dialog.height();
+	bool ok = check(scroll && scroll->verticalScrollBar()->maximum() == 0, "one recovery copy opens without a scroll bar");
+	parts.discard->click();
+	QApplication::processEvents();
+	QApplication::processEvents();
+	ok &= check(parts.confirmation->isVisible() && dialog.height() > before, "the confirmation makes the dialog taller");
+	ok &= check(scroll && scroll->verticalScrollBar()->maximum() == 0, "the confirmation does not make the list scroll");
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -377,5 +398,6 @@ int main(int argc, char** argv) {
 	ok &= exerciseText();
 	ok &= exerciseGeometry(QRect(0, 0, 1280, 800), 1.0);
 	ok &= exerciseGeometry(QRect(0, 0, 800, 600), 1.5);
+	ok &= exerciseConfirmationHeight();
 	return ok ? 0 : 1;
 }

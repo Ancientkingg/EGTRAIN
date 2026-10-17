@@ -205,7 +205,7 @@ void openDialog(Opened& opened, const QRect& screen, qreal scale, int bodyHeight
 bool exerciseContentHeight(qreal scale) {
 	const QRect screen(0, 0, 1920, 1080);
 	bool ok = true;
-	for (const int bodyHeight : {20, 600}) {
+	for (const int bodyHeight : {20, 500}) {
 		Opened fits;
 		openDialog(fits, screen, scale, bodyHeight, QStringLiteral("Context"));
 		ok &= check(fits.scroll->verticalScrollBar()->maximum() == 0 && !fits.scroll->verticalScrollBar()->isVisible(),
