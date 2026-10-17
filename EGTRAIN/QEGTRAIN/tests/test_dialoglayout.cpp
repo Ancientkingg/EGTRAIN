@@ -683,17 +683,20 @@ bool exerciseDisabledMenuItems() {
 	QAction* live = menu.addAction(QStringLiteral("MMMM MMMM"));
 	QAction* gone = menu.addAction(QStringLiteral("MMMM MMMM"));
 	gone->setEnabled(false);
-	menu.setFont(qApp->font());
 	menu.show();
 	QApplication::processEvents();
 	const ControlLook enabled = menuRowLook(menu, live);
 	const ControlLook disabled = menuRowLook(menu, gone);
+	menu.setActiveAction(live);
+	QApplication::processEvents();
+	const ControlLook liveHovered = menuRowLook(menu, live);
 	menu.setActiveAction(gone);
 	QApplication::processEvents();
 	const ControlLook hovered = menuRowLook(menu, gone);
 	menu.hide();
 	bool ok = checkLooks(colorDifference(enabled.face, enabled.ink) >= 90, "an enabled menu entry draws text distinct from its face", enabled, disabled);
 	ok &= checkLooks(qGray(disabled.ink) >= qGray(enabled.ink) + 30, "a disabled menu entry has lighter text", enabled, disabled);
+	ok &= checkLooks(liveHovered.face != enabled.face, "an enabled menu entry under the pointer is drawn selected", enabled, liveHovered);
 	ok &= checkLooks(sameLook(hovered, disabled), "a disabled menu entry under the pointer does not look selectable", disabled, hovered);
 	return ok;
 }
