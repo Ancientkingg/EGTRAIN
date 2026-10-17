@@ -6,6 +6,7 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "graphics/RuntimeGeometrySource.h"
 #include "graphics/VisualPolish.h"
+#include "graphics/items/HighlightEffect.h"
 #include "graphics/items/PassengerItem.h"
 #include "graphics/items/PlatformItem.h"
 #include "graphics/items/SignalItem.h"
@@ -260,6 +261,18 @@ static bool iconAt(const PlatformItem& platform, int i, int n, qreal iconSize) {
 }
 
 using Ids = std::vector<std::string>;
+
+// Whether the presenter holds no item and points to none, the way a new presenter does.
+static bool presenterEmpty(const NetworkPresenter& presenter) {
+	return presenter.allTrains.isEmpty() && presenter.m_trainBadges.isEmpty() && presenter.m_prevTrainPositions.isEmpty()
+		&& presenter.m_trainAnimations.isEmpty() && presenter.allSignals.isEmpty() && presenter.m_signalsByAheadId.empty()
+		&& presenter.m_signalDecorations.isEmpty() && presenter.allArcs.isEmpty() && presenter.m_tracksBySectionId.empty()
+		&& presenter.m_tracksByOccupiedArc.empty() && presenter.m_activeTrackItems.empty() && presenter.allPlatforms.isEmpty()
+		&& presenter.m_stationOverlays.isEmpty() && presenter.m_stationDecorations.isEmpty() && presenter.m_stationLabels.isEmpty()
+		&& presenter.m_stationPictures.isEmpty() && presenter.m_vcMessageItems.isEmpty() && !presenter.m_inspectedSignal
+		&& !presenter.trainPaxItem && !presenter.trainPaxInfoItem && !presenter.paxIconItem && !presenter.paxIconInfoItem
+		&& !presenter.effect;
+}
 
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -544,6 +557,79 @@ int main(int argc, char* argv[]) {
 		ok &= expect(presenter.allTrains.size() == 3 && near(headOf(3), 3500.0) && near(headOf(1), 6500.0) && near(headOf(2), 8500.0),
 			"each train of the snapshot is moved and none is added twice");
 		presenter.clear();
+	}
+
+	// The canvas is built, filled with the steps of a run and of its replay, with a selection on it, and cleared again and
+	// again. Nothing of an earlier round is left, and the next round draws what the first one drew.
+	{
+		presenter.pax_pixmap_scaled = QPixmap(10, 10);
+		ok &= expect(presenterEmpty(presenter) && scene.items().isEmpty(), "the canvas is empty before the first round");
+		int itemsAtEnd[2] = {0, 0};
+		for (int round = 0; round < 20; ++round) {
+			source->passengers = round % 2 == 1;
+			presenter.showRuntime(model);
+			SignalItem* const head = presenter.m_signalsByAheadId["s0"].front();
+
+			GuiSimulationSnapshot snapshot;
+			snapshot.timestep = 10;
+			snapshot.trains = {trainAt(7.5)};
+			snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
+			snapshot.signalStates = {GuiSignalState{"s0", 75, head->reversedDirection, 3, false}};
+			snapshot.sectionStates = {GuiSectionState{"s1", true, true}};
+			if (source->passengers) {
+				snapshot.platforms = {GuiPlatformState{"B", "P1", 40, {"p1", "p2", "p3"}}};
+				snapshot.passengers = {GuiPassengerState{"p1", "waiting", "P1", "T1", "A"}};
+			}
+			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+
+			// a selection of a train, a signal and a passenger
+			TrainItemGroup* const train = presenter.allTrains.value(0);
+			presenter.paintTrainPassengerInfo(train);
+			presenter.m_inspectedSignal = head;
+			presenter.effect = new HighlightEffect(Qt::blue, 1);
+			train->setGraphicsEffect(presenter.effect);
+			if (source->passengers) {
+				PassengerItem* const icon = presenter.allPlatforms.value(0)->passengerIcons.value(0);
+				presenter.paintPassengerInfoIcon(icon, passengerStateIn(&snapshot, icon->passengerId), false);
+			}
+
+			// the train runs on, passengers board and arrive, and a message of a virtual coupling comes and goes
+			for (int step = 0; step < 4; ++step) {
+				snapshot.timestep = 11 + step;
+				snapshot.trains = {trainAt(8.0 + step * 0.5)};
+				snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
+				snapshot.virtualCouplingMessages = step == 1 ? std::vector<GuiVirtualCouplingState>{{12, "T1", "message"}}
+															 : std::vector<GuiVirtualCouplingState>{};
+				if (source->passengers)
+					snapshot.platforms[0].passengerIds = step % 2 == 0 ? Ids({"p1", "p3", "p4"}) : Ids({"p1", "p5"});
+				presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+			}
+			snapshot.trains[0].outOfSimulation = true;
+			presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+
+			// the replay of the run, forward and back
+			presenter.stopTrainAnimations();
+			presenter.m_prevTrainPositions.clear();
+			for (const int time : {20, 15, 25, 10}) {
+				snapshot.timestep = time;
+				snapshot.trains = {trainAt(7.5 + (time - 10) * 0.1)};
+				snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}};
+				if (source->passengers)
+					snapshot.platforms[0].passengerIds = time % 2 == 0 ? Ids({"p1", "p2"}) : Ids({"p2", "p1", "p6"});
+				presenter.apply(snapshot, NetworkPresenter::Playback::Replay);
+			}
+			ok &= expect(presenter.allTrains.size() == 1 && presenter.m_trainBadges.size() == 1,
+				"a round holds one train and one badge, whatever the earlier rounds drew");
+			ok &= expect(presenter.trainPaxInfoItem && presenter.m_inspectedSignal && presenter.effect
+					&& (!source->passengers || presenter.paxIconInfoItem),
+				"the selection is on the canvas before it is cleared");
+			itemsAtEnd[round % 2] = round < 2 ? scene.items().size() : itemsAtEnd[round % 2];
+			ok &= expect(scene.items().size() == itemsAtEnd[round % 2], "a round draws as many items as the first round of its kind");
+
+			presenter.clear();
+			QApplication::processEvents();
+			ok &= expect(presenterEmpty(presenter) && scene.items().isEmpty(), "clear leaves no item, entry or pointer of the round");
+		}
 	}
 
 	if (!ok)

@@ -352,6 +352,18 @@ def main() -> None:
         f"add_test(NAME {name}\n" not in characterization_cmake for name in reload_names
     ):
         missing.append("leak check reload runs of registered characterization tests")
+    # The presenter tests draw and clear the canvas many times in one process, which is the canvas rebuild.
+    canvas_step = step_block(leak_job, "Rebuild the canvas in one process")
+    canvas_tests = re.search(r"-R '\^\(([a-z_|]+)\)\$'", canvas_step)
+    canvas_names = canvas_tests.group(1).split("|") if canvas_tests else []
+    sanitizer_targets = re.search(r"run: cmake --build build --target ([\w ]+)\n", step_block(leak_job, "Build with sanitizers"))
+    built_targets = sanitizer_targets.group(1).split() if sanitizer_targets else []
+    if (
+        not {"test_networkpresenter", "test_runtimecanvas"} <= set(canvas_names)
+        or any(f"add_test(NAME {name} COMMAND {name})" not in cmake or name not in built_targets for name in canvas_names)
+        or "--output-log \"$RUNNER_TEMP/leak-check/" not in canvas_step
+    ):
+        missing.append("leak check canvas runs of registered presenter tests built with the sanitizers")
     if (
         '--output-log "$RUNNER_TEMP/leak-check/' not in leak_job
         or "actions/upload-artifact@v4" not in leak_upload

@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
 		NetworkPresenter presenter(&scene, &view);
 		const SceneModel model = previewModel();
 		int drawnItems = 0;
-		for (int cycle = 0; cycle < 3; ++cycle) {
+		for (int cycle = 0; cycle < 25; ++cycle) {
 			const NetworkPresenter::PreviewOutcome outcome = presenter.showPreview(model);
 			ok &= expect(outcome.available && outcome.trackLines == 2 && outcome.fitted,
 				"the preview draws both track lines and fits the view");
@@ -253,6 +253,19 @@ int main(int argc, char* argv[]) {
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
 		presenter.clear();
+
+		options.markSelection = true;
+		int drawnWithOptions = 0;
+		for (int cycle = 0; cycle < 25; ++cycle) {
+			presenter.showPreview(model, options);
+			if (cycle == 0)
+				drawnWithOptions = scene.items().size();
+			ok &= expect(drawnWithOptions > 0 && scene.items().size() == drawnWithOptions,
+				"every cycle with a selection and platform bars draws the same items");
+			presenter.clear();
+			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
+				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
+		}
 
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
