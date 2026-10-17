@@ -8,6 +8,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -38,6 +39,17 @@ QString choiceName(int length) {
 }
 
 const QString kExplanation = QStringLiteral("Invalid: platform is not reachable on this route");
+
+// A combo box that adjusts to its contents resizes itself 20 ms after its items change, which
+// undoes the size the layout gave it, and the layout restores that size in the next turn of the
+// event loop. Wait out the timer, then let the layout requests it queued run.
+void settleLayout() {
+	QElapsedTimer waited;
+	waited.start();
+	while (waited.elapsed() < 100)
+		QApplication::processEvents(QEventLoop::AllEvents, 20);
+	QApplication::processEvents();
+}
 
 struct StopForm {
 	QDialog dialog;
@@ -89,7 +101,7 @@ struct StopForm {
 			body, buttons, screen);
 		DialogLayout::fitWidthToContent(dialog);
 		dialog.show();
-		QApplication::processEvents();
+		settleLayout();
 	}
 
 	QList<ChoiceComboBox*> combos() const { return {station, platform, mode}; }
