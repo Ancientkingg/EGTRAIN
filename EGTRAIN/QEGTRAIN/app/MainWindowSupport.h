@@ -29,8 +29,6 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 // Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
 // characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 640;
-// The kind of scene item that a row of the loaded data tree stands for.
-constexpr int kLoadedDataTargetTypeRole = Qt::UserRole;
 // The key of the setting behind the Advanced Details switch.
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";
 

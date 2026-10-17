@@ -7,6 +7,7 @@
 
 class MainWindow;
 class QDialog;
+class UpdateTelemetryController;
 struct TelemetryContext;
 
 // The entry points that the scripted runs in tests/e2e use. They are empty in a normal run.
@@ -46,8 +47,8 @@ struct MainWindowTestHooks {
 	// It returns true when the dialog is only a preview, which has no sender and sends nothing.
 	std::function<bool(TelemetryContext& context, bool& initialPrompt)> privacyPreview;
 	// Called in place of the telemetry start of the window. It returns true when it has set the settings, the consent and
-	// the sender of the window, and false when telemetry does not start.
-	bool (*telemetryStart)(MainWindow& window) = nullptr;
+	// the sender of the controller, and false when telemetry does not start.
+	bool (*telemetryStart)(UpdateTelemetryController& controller) = nullptr;
 	// Called before each of the four steps that install the telemetry observation of a run, with the number of the step.
 	// A hook that throws makes the step fail.
 	void (*observationStep)(int step) = nullptr;

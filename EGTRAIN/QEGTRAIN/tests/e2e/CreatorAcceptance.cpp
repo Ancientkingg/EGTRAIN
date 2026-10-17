@@ -11,6 +11,7 @@
 #include "diagrams/TimetableTableWindow.h"
 #include "editors/InfrastructurePanel.h"
 #include "editors/TimetableStopsPanel.h"
+#include "editors/ValidationPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/ConnectionItem.h"
@@ -1459,7 +1460,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		if (QAction* detailsAction = w.findChild<QAction*>("actionAdvancedDetails"))
 			detailsAction->setChecked(true);
-		if (!w.m_loadedDataDock || !w.m_loadedDataTree) {
+		if (!w.m_loadedDataDock || !w.m_validation->tree()) {
 			fail(QStringLiteral("Loaded Data review is unavailable after bundle reopen"));
 			return;
 		}
@@ -1467,15 +1468,15 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			w.m_loadedDataDock->toggleViewAction()->trigger();
 		w.m_loadedDataDock->raise();
 		process();
-		QTreeWidgetItem* caseRoot = w.m_loadedDataTree->topLevelItemCount() > 0
-			? w.m_loadedDataTree->topLevelItem(0)
+		QTreeWidgetItem* caseRoot = w.m_validation->tree()->topLevelItemCount() > 0
+			? w.m_validation->tree()->topLevelItem(0)
 			: nullptr;
 		bool loadedDataOk = caseRoot && caseRoot->text(0) == "Case Study"
 			&& QFileInfo(caseRoot->text(1)).absoluteFilePath() == bundle;
 		for (const QString& label : {QStringLiteral("Infrastructure"), QStringLiteral("Scenarios"),
 				 QStringLiteral("Passengers"), QStringLiteral("Canonical schema version"),
 				 QStringLiteral("Bundle format version")}) {
-			const QList<QTreeWidgetItem*> rows = w.m_loadedDataTree->findItems(
+			const QList<QTreeWidgetItem*> rows = w.m_validation->tree()->findItems(
 				label, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			loadedDataOk = loadedDataOk && !rows.isEmpty()
 				&& rows.front()->text(3) != "Invalid" && rows.front()->text(3) != "Failed";

@@ -103,12 +103,6 @@
 QT_CHARTS_USE_NAMESPACE
 
 class ConsoleWidget; // forward declaration for m_logPane
-class UpdateChecker;
-class SelfUpdater;
-class TelemetryConsent;
-class QSettings;
-namespace telemetry { class TelemetrySender; }
-class QProgressDialog;
 class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
@@ -130,9 +124,9 @@ class QPlainTextEdit;
 class TimetableStopsPanel;
 class TrainUnitPanel;
 class TrainUnitSourceLinker;
+class UpdateTelemetryController;
 class UserPrompts;
-struct UpdateCheckResult;
-struct StableRelease;
+class ValidationPanel;
 
 // custom GUI files
 #include "graphics/NetworkView.h"
@@ -383,17 +377,10 @@ private:
 	QToolBar* m_toolBar;
 	QAction* m_openCaseAction = nullptr;
 	QAction* m_newSceneAction = nullptr;
-	QAction* m_checkForUpdatesAction = nullptr;
-	QAction* m_automaticUpdateChecksAction = nullptr;
 	// The messages and questions of the editors that have moved out of the window
 	std::unique_ptr<UserPrompts> m_userPrompts;
-	std::unique_ptr<QSettings> m_telemetrySettings;
-	std::unique_ptr<TelemetryConsent> m_telemetryConsent;
-	std::unique_ptr<telemetry::TelemetrySender> m_telemetrySender;
-	UpdateChecker* m_updateChecker = nullptr;
-	SelfUpdater* m_selfUpdater = nullptr;
-	QProgressDialog* m_updateProgress = nullptr;
-	bool m_manualUpdateCheck = false;
+	// The update checks, the self update, the privacy dialogs and the telemetry sender
+	std::unique_ptr<UpdateTelemetryController> m_updateTelemetry;
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
@@ -429,11 +416,10 @@ private:
 	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
 	QAction* m_outputFolderAction = nullptr;
+	// The validation table, the loaded data tree and the validation status of the status bar belong to m_validation.
+	ValidationPanel* m_validation = nullptr;
 	QDockWidget* m_validationDock = nullptr;
-	QTableWidget* m_validationTable = nullptr;
-	QLabel* m_validationStatusLabel = nullptr;
 	QDockWidget* m_loadedDataDock = nullptr;
-	QTreeWidget* m_loadedDataTree = nullptr;
 	QDockWidget* m_caseSettingsDock = nullptr;
 	CaseSettingsPanel* m_caseSettingsPanel = nullptr;
 	// The fields of m_caseSettingsPanel, for the scripted runs in tests/e2e
@@ -626,14 +612,6 @@ private:
 	bool trainHasGeometry(int trainIndex) const;
 	void updateSpeedModeDisplay(int value);
 	void updateSceneActions();
-	void setupUpdateActions();
-	void showPrivacySettings(bool initialPrompt);
-	void startTelemetryAfterInitialConsent();
-	void maybePromptForUpdateChecks();
-	void startUpdateCheck(bool manual);
-	void handleUpdateCheckFinished(const UpdateCheckResult& result);
-	void startSelfUpdate(const StableRelease& release);
-	void handleSelfUpdateFinished(bool success, const QString& error);
 	void showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard);
 	void centerSceneItem(QGraphicsItem* item);
 	// Moves the view to the followed train at once, or stops the camera when the view does not follow it.
@@ -676,10 +654,9 @@ private:
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
 	void refreshValidationPanel();
-	void refreshLoadedDataTree();
 	bool advancedDetailsEnabled() const;
-	void updateDiagnosticPresentation();
-	void activateLoadedDataItem(QTreeWidgetItem* item);
+	// Opens the editor or the view that a row of the loaded data tree stands for.
+	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
 	void sceneDocumentChanged();
 	void invalidateAfterSceneChange();
 	void setupEditMenu();

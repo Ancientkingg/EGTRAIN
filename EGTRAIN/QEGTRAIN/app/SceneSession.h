@@ -23,10 +23,6 @@ class SceneDocument;
 struct SceneLoadResult;
 struct SceneSaveResult;
 
-// The error that telemetry reports for the diagnostics of a scene that could not be read, migrated or written. None
-// when no error among them has a code that telemetry names.
-std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<SceneDiagnostic>& diagnostics);
-
 // The message of the first error among the diagnostics, else of the first diagnostic, else an empty string.
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics);
 
@@ -105,6 +101,8 @@ public:
 	// The messages of the last validation of the scene.
 	const std::vector<SceneDiagnostic>& diagnostics() const { return m_sceneDiagnostics; }
 	void setDiagnostics(std::vector<SceneDiagnostic> diagnostics) { m_sceneDiagnostics = std::move(diagnostics); }
+	// The vector itself, which the validation panel writes to when it validates.
+	std::vector<SceneDiagnostic>* mutableDiagnostics() { return &m_sceneDiagnostics; }
 
 	// The Recent Scenes menu, which the window puts in its File menu.
 	QMenu* recentScenesMenu() const { return m_recentScenesMenu; }

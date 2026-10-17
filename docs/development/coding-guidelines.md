@@ -102,9 +102,10 @@ target that links a library does not get them.
 - These have no flags: the vendored `egtrain_pugixml` and `egtrain_miniz`, the legacy
   `egtrain_sim` and `egtrain_rttp`, `QEGTRAIN`, and the test executables that use the
   simulation. A comment next to the calls gives the number of warnings.
-- `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp` and
+- `update/SelfUpdater.cpp`, `update/UpdateNotices.cpp`, `app/main.cpp`, `app/UpdateTelemetryController.cpp` and
   `telemetry/TelemetryConsentDialog.cpp` build inside `QEGTRAIN`, so they get no flags yet.
-  `update/SelfUpdater.cpp` is the exception in the strict `test_selfupdater`, which compiles it with the flags.
+  `update/SelfUpdater.cpp` is the exception in the strict `test_selfupdater`, and `app/UpdateTelemetryController.cpp` in the strict
+  `test_updatetelemetrycontroller`, which compile them with the flags.
 
 To give a new target the flags, call `egtrain_target_warnings(<target> STRICT)` after its
 `add_library` or `add_executable`, or add a test to the list of strict tests in the test block,

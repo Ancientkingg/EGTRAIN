@@ -3,6 +3,7 @@
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
+#include "editors/ValidationPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/NetworkView.h"
 #include "graphics/items/HighlightEffect.h"
@@ -161,10 +162,10 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			});
 	};
 	auto validationTableHasCode = [&](const char* code) {
-		if (!w.m_validationTable)
+		if (!w.m_validation->table())
 			return false;
-		for (int row = 0; row < w.m_validationTable->rowCount(); ++row) {
-			QTableWidgetItem* item = w.m_validationTable->item(row, 1);
+		for (int row = 0; row < w.m_validation->table()->rowCount(); ++row) {
+			QTableWidgetItem* item = w.m_validation->table()->item(row, 1);
 			if (item && item->text() == code)
 				return true;
 		}

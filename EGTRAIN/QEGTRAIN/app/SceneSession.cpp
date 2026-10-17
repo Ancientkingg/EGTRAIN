@@ -4,6 +4,7 @@
 #include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
 #include "app/SceneSavePolicy.h"
+#include "app/UpdateTelemetryController.h"
 #include "diagrams/RunResults.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
@@ -78,135 +79,6 @@ int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 }
 
 } // namespace
-
-std::optional<telemetry::Error> telemetryDiagnosticError(const std::vector<SceneDiagnostic>& diagnostics) {
-	std::optional<telemetry::Error> selected;
-	const auto priority = [](telemetry::Error error) {
-		switch (error) {
-			case telemetry::Error::UnsupportedFormat: return 0;
-			case telemetry::Error::InvalidInput: return 1;
-			case telemetry::Error::IoFailure: return 2;
-			case telemetry::Error::InternalFailure: return 3;
-		}
-		return 4;
-	};
-	static const char* invalidCodes[] = {
-		"scene.arc.curvature.invalid",
-		"scene.arc.gradient.invalid",
-		"scene.arc.speed.invalid",
-		"scene.basetime.invalid",
-		"scene.basetime.missing",
-		"scene.block.length.invalid",
-		"scene.buffer.invalid",
-		"scene.capacity.runtime",
-		"scene.compatibility.schema",
-		"scene.composition.empty",
-		"scene.connection.speed.invalid",
-		"scene.delay.invalid",
-		"scene.duration.invalid",
-		"scene.duration.missing",
-		"scene.dwell.exceeds_window",
-		"scene.dwell.invalid",
-		"scene.entrance.conflict",
-		"scene.entrance.occurrence.out_of_horizon",
-		"scene.entrance.station",
-		"scene.entrance.timetable",
-		"scene.field.missing",
-		"scene.id.duplicate",
-		"scene.id.empty",
-		"scene.id.reserved",
-		"scene.incident.fields",
-		"scene.incident.speed",
-		"scene.incident.type",
-		"scene.incident.window",
-		"scene.item.invalid",
-		"scene.json.parse",
-		"scene.name.path",
-		"scene.native.block.clipped",
-		"scene.node.coordinate.invalid",
-		"scene.occurrence.invalid",
-		"scene.passenger.continuity",
-		"scene.passenger.leg.order",
-		"scene.passenger.leg.stop",
-		"scene.passenger.legs.empty",
-		"scene.passenger.occurrence.out_of_horizon",
-		"scene.passenger.window",
-		"scene.performance.invalid",
-		"scene.platform.capacity.invalid",
-		"scene.platform.length.invalid",
-		"scene.platform.node.conflict",
-		"scene.platform.nodes.none",
-		"scene.platform.width.invalid",
-		"scene.platforms.none",
-		"scene.recovery.invalid",
-		"scene.ref.ambiguous",
-		"scene.ref.platform",
-		"scene.ref.platform.route",
-		"scene.ref.stop.order",
-		"scene.ref.stop.route",
-		"scene.ref.unresolved",
-		"scene.repeat.count.invalid",
-		"scene.repeat.invalid",
-		"scene.repeat.step.invalid",
-		"scene.route.direction",
-		"scene.route.disconnected",
-		"scene.route.empty",
-		"scene.route.region_jump",
-		"scene.route_choice.passengers.none",
-		"scene.routes.none",
-		"scene.scenario.default.missing",
-		"scene.scenarios.none",
-		"scene.section.missing",
-		"scene.services.none",
-		"scene.signal.binding.missing",
-		"scene.signal.binding.unresolved",
-		"scene.signalling_area.conflict",
-		"scene.signalling_area.level",
-		"scene.signalling_area.range",
-		"scene.speed.invalid",
-		"scene.station.anchor.missing",
-		"scene.station.position.invalid",
-		"scene.stations.none",
-		"scene.stop.off_route.context",
-		"scene.time.departure.missing",
-		"scene.time.entry.invalid",
-		"scene.time.invalid",
-		"scene.time.order",
-		"scene.topology.ambiguous",
-		"scene.topology.arcs.missing",
-		"scene.topology.arcs.none",
-		"scene.topology.blocks.missing",
-		"scene.topology.blocks.none",
-		"scene.topology.disconnected",
-		"scene.topology.loop",
-		"scene.topology.nodes.missing",
-		"scene.topology.nodes.none",
-		"scene.topology.order",
-		"scene.topology.track",
-		"scene.topology.tracks.none",
-		"scene.train.physical.missing",
-		"scene.train.traction.empty",
-		"scene.train.traction.interval",
-		"scene.train.traction.order",
-		"scene.train.traction.overlap",
-		"scene.trains.none",
-		"scene.version.missing",
-	};
-	for (const auto& diagnostic : diagnostics) {
-		if (diagnostic.severity != SceneSeverity::Error) continue;
-		std::optional<telemetry::Error> error;
-		if (diagnostic.code == "scene.version.unsupported" || diagnostic.code == "scene.units.unsupported")
-			error = telemetry::Error::UnsupportedFormat;
-		else if (std::any_of(std::begin(invalidCodes), std::end(invalidCodes),
-					 [&](const char* code) { return diagnostic.code == code; }))
-			error = telemetry::Error::InvalidInput;
-		else if (diagnostic.code == "scene.bundle.file.read" || diagnostic.code == "scene.bundle.temp")
-			error = telemetry::Error::IoFailure;
-		// Ambiguous compatibility.manifest/bundle.schema/save.write/bundle.write codes are omitted.
-		if (error && (!selected || priority(*error) < priority(*selected))) selected = error;
-	}
-	return selected;
-}
 
 QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) {
 	for (const auto& d : diagnostics) {
