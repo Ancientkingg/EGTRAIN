@@ -469,7 +469,7 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 	// The tooltip shows the path with the separators of Windows, and the stored path stays as it is.
 	{
 		const QString scenario = QStringLiteral("native separators");
-		const QChar system = display_path::separator();
+		const QChar savedSeparator = display_path::separator();
 		display_path::separator() = QLatin1Char('\\');
 		Scenarios own;
 		const QString path = own.bundled(QStringLiteral("native_case"), QStringLiteral("Native case"));
@@ -490,7 +490,7 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 				goneTip = shownTip(list->viewport(), rect.center());
 			}
 		}
-		display_path::separator() = system;
+		display_path::separator() = savedSeparator;
 		const auto backslashes = [](QString text) { return text.replace(QLatin1Char('/'), QLatin1Char('\\')); };
 		const auto lines = [](QString tip) {
 			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));

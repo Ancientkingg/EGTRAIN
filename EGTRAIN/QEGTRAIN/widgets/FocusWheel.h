@@ -4,7 +4,6 @@
 #include <QComboBox>
 #include <QEvent>
 #include <QObject>
-#include <QWheelEvent>
 #include <QWidget>
 
 // Lets the mouse wheel change a combo box or spin box only while it has keyboard focus. Otherwise the wheel
@@ -28,7 +27,7 @@ protected:
 
 inline void guard(QWidget* box) {
 	box->setFocusPolicy(Qt::StrongFocus);
-	// The filter has no meta object of its own, so a child search cannot tell whether the box has one.
+	// A box that guards itself is visited again by guardAll; the property keeps it from getting a second filter.
 	if (box->property("focusWheelGuard").toBool())
 		return;
 	box->setProperty("focusWheelGuard", true);

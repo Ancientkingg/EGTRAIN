@@ -19,6 +19,7 @@
 #include <QSignalBlocker>
 #include <QWheelEvent>
 #include <QToolTip>
+#include <QVBoxLayout>
 
 #include <algorithm>
 #include <iostream>
@@ -232,13 +233,15 @@ bool exerciseInvalidChoice() {
 	}
 	return ok;
 }
-// Turns the wheel one step down over target. A widget that ignores a wheel event passes it on to its parent, so the
-// event goes up the parents until one accepts it.
+// Turns the wheel one step down over target. The event goes to the widget under the pointer, which is the line edit
+// of a spin box. A widget that ignores a wheel event passes it on to its parent, so the event goes up the parents
+// until one accepts it.
 void wheelDown(QWidget* target) {
 	const QPoint center = target->rect().center();
-	for (QWidget* receiver = target; receiver; receiver = receiver->parentWidget()) {
-		const QPoint local = target->mapTo(receiver, center);
-		QWheelEvent wheel(QPointF(local), QPointF(target->mapToGlobal(center)), QPoint(), QPoint(0, -120), Qt::NoButton, Qt::NoModifier,
+	const QPoint global = target->mapToGlobal(center);
+	QWidget* under = target->childAt(center);
+	for (QWidget* receiver = under ? under : target; receiver; receiver = receiver->parentWidget()) {
+		QWheelEvent wheel(QPointF(receiver->mapFromGlobal(global)), QPointF(global), QPoint(), QPoint(0, -120), Qt::NoButton, Qt::NoModifier,
 			Qt::NoScrollPhase, false);
 		QApplication::sendEvent(receiver, &wheel);
 		if (wheel.isAccepted())
@@ -248,6 +251,8 @@ void wheelDown(QWidget* target) {
 }
 
 // A tall form whose scroll area has room to scroll, with one field of each kind that offers a value to the wheel.
+// A form that goes through DialogLayout::install has every field guarded by that call. A form in a plain scroll area
+// guards only the fields that guard themselves, ChoiceComboBox and CompactDoubleSpinBox.
 struct WheelForm {
 	QDialog dialog;
 	ChoiceComboBox* choice = nullptr;
@@ -255,8 +260,9 @@ struct WheelForm {
 	CompactDoubleSpinBox* compact = nullptr;
 	QDoubleSpinBox* spin = nullptr;
 	QScrollArea* scroll = nullptr;
+	bool installed;
 
-	WheelForm() {
+	explicit WheelForm(bool throughDialogLayout) : installed(throughDialogLayout) {
 		auto* body = new QWidget;
 		auto* form = new QFormLayout(body);
 		choice = new ChoiceComboBox(body);
@@ -277,15 +283,28 @@ struct WheelForm {
 		form->addRow(QStringLiteral("Number"), spin);
 		for (int row = 0; row < 40; ++row)
 			form->addRow(QStringLiteral("Line %1").arg(row), new QLineEdit(body));
-		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-		scroll = DialogLayout::install(dialog, QStringLiteral("Wheel"), QString(), body, buttons, QRect(0, 0, 1280, 600));
+		if (throughDialogLayout) {
+			auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+			scroll = DialogLayout::install(dialog, QStringLiteral("Wheel"), QString(), body, buttons, QRect(0, 0, 1280, 600));
+		} else {
+			scroll = new QScrollArea;
+			scroll->setWidgetResizable(true);
+			scroll->setWidget(body);
+			auto* layout = new QVBoxLayout(&dialog);
+			layout->addWidget(scroll);
+			dialog.resize(600, 400);
+		}
 		dialog.show();
 		QApplication::setActiveWindow(&dialog);
 		QApplication::processEvents();
 	}
 
-	// The fields with the values that a wheel step would change.
-	QList<QWidget*> fields() const { return {choice, plain, compact, spin}; }
+	// The fields with the values that a wheel step would change and that the form guards.
+	QList<QWidget*> fields() const {
+		if (installed)
+			return {choice, plain, compact, spin};
+		return {choice, compact};
+	}
 	QString value(QWidget* field) const {
 		if (auto* combo = qobject_cast<QComboBox*>(field))
 			return combo->currentText();
@@ -294,11 +313,12 @@ struct WheelForm {
 };
 
 // The wheel scrolls a form over a combo box or a spin box without changing it, until the field has keyboard focus.
-bool exerciseWheel() {
-	WheelForm f;
-	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, "the wheel form does not scroll, so the test proves nothing");
+bool exerciseWheel(bool throughDialogLayout) {
+	WheelForm f(throughDialogLayout);
+	const QString form = throughDialogLayout ? QStringLiteral("installed form: ") : QStringLiteral("plain scroll area: ");
+	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, qPrintable(form + "the wheel form does not scroll, so the test proves nothing"));
 	for (QWidget* field : f.fields()) {
-		const QString name = field->metaObject()->className();
+		const QString name = form + field->metaObject()->className();
 		const QString before = f.value(field);
 		f.scroll->verticalScrollBar()->setValue(0);
 		wheelDown(field);
@@ -306,7 +326,7 @@ bool exerciseWheel() {
 		ok &= check(f.scroll->verticalScrollBar()->value() > 0, qPrintable(name + ": the wheel over a field without focus did not scroll the form"));
 	}
 	for (QWidget* field : f.fields()) {
-		const QString name = field->metaObject()->className();
+		const QString name = form + field->metaObject()->className();
 		const QString before = f.value(field);
 		field->setFocus();
 		QApplication::processEvents();
@@ -338,6 +358,7 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
-	const bool wheel = exerciseWheel();
-	return small && scaledSmall && large && selection && elision && invalid && wheel ? 0 : 1;
+	const bool wheelInstalled = exerciseWheel(true);
+	const bool wheelPlain = exerciseWheel(false);
+	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain ? 0 : 1;
 }

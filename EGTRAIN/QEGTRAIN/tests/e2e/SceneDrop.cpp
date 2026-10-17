@@ -188,10 +188,10 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 				fail(QStringLiteral("a deleted recent scene is not marked unavailable when the menu opens"));
 
 			// The tip and the status tip show the path with the separators of Windows; the action keeps the stored path.
-			const QChar system = display_path::separator();
+			const QChar savedSeparator = display_path::separator();
 			display_path::separator() = QLatin1Char('\\');
 			w.m_session->rebuildRecentScenesMenu();
-			display_path::separator() = system;
+			display_path::separator() = savedSeparator;
 			QString shownPath = recentPath;
 			shownPath.replace(QLatin1Char('/'), QLatin1Char('\\'));
 			bool listed = false;
