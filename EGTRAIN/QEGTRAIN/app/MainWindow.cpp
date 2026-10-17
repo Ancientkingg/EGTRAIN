@@ -56,6 +56,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
+#include "editors/infrastructure/TopologyFacets.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
@@ -802,17 +803,8 @@ std::string platformSelectionKey(const std::string& stationId, const std::string
 
 // The headers of the infrastructure table of a facet.
 QStringList infrastructureColumns(const QString& facet) {
-	if (facet == "tracks")
-		return {"ID"};
-	if (facet == "nodes")
-		return {"ID", "Track ID", "X (km)", "Y (km)"};
-	if (facet == "arcs")
-		return {"ID", "Track ID", "From node", "To node", "Curvature radius (m)", "Gradient (rise/length)",
-			"Speed limit (m/s)"};
 	if (facet == "blocks")
 		return {"ID", "Track ID", "Length (km)", "Order", "Start km", "End km", "Coverage"};
-	if (facet == "connections")
-		return {"ID", "From node", "To node", "Has speed limit", "Speed limit (m/s)"};
 	if (facet == "stations")
 		return {"ID", "Name", "Has position", "Position km"};
 	if (facet == "platforms")
@@ -1637,8 +1629,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructureDock->hide();
 	registerEditorDock(m_infrastructureDock);
 	m_infrastructurePanel->setPrompts(m_userPrompts.get());
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
+		m_infrastructurePanel->setFacet(std::move(facet));
 	for (const QString& key : InfrastructurePanel::facetKeys())
-		m_infrastructurePanel->setFacet(std::make_unique<UnmovedInfrastructureFacet>(*this, key));
+		if (!m_infrastructurePanel->facet(key))
+			m_infrastructurePanel->setFacet(std::make_unique<UnmovedInfrastructureFacet>(*this, key));
 	m_infrastructurePanel->setDocument(m_document);
 	connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, this, [this]() {
 		if (m_sceneLoaded && !m_worker && !m_resultsAvailable)
@@ -3301,32 +3296,7 @@ void MainWindow::fillInfrastructureRows(const QString& facet) {
 		populateSceneSectionCombo(combo, sectionInventory, current, allowNone, noneLabel);
 		return combo;
 	};
-	if (facet == "tracks") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.tracks.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row)
-			setCell(row, 0, QString::fromStdString(m_sceneModel.tracks[static_cast<std::size_t>(row)].id));
-	} else if (facet == "nodes") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.nodes.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneNode& node = m_sceneModel.nodes[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(node.id));
-			setCell(row, 1, QString::fromStdString(node.trackId));
-			setCell(row, 2, QString::number(node.xKm, 'g', precision));
-			setCell(row, 3, QString::number(node.yKm, 'g', precision));
-		}
-	} else if (facet == "arcs") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.arcs.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneArc& arc = m_sceneModel.arcs[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(arc.id));
-			setCell(row, 1, QString::fromStdString(arc.trackId));
-			setCell(row, 2, QString::fromStdString(arc.fromNodeId));
-			setCell(row, 3, QString::fromStdString(arc.toNodeId));
-			setCell(row, 4, QString::number(arc.curvatureRadiusM, 'g', precision));
-			setCell(row, 5, QString::number(arc.gradientPercent, 'g', precision));
-			setCell(row, 6, QString::number(arc.speedLimitMs, 'g', precision));
-		}
-	} else if (facet == "blocks") {
+	if (facet == "blocks") {
 		const QString selectedTrack = m_blockTrackFilterCombo
 			? m_blockTrackFilterCombo->currentData().toString()
 			: QString();
@@ -3367,16 +3337,6 @@ void MainWindow::fillInfrastructureRows(const QString& facet) {
 					coverage << QStringLiteral("complete");
 				setCell(row, 6, coverage.join(QStringLiteral(", ")), false);
 			}
-		}
-	} else if (facet == "connections") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.connections.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneConnection& connection = m_sceneModel.connections[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(connection.id));
-			setCell(row, 1, QString::fromStdString(connection.fromNodeId));
-			setCell(row, 2, QString::fromStdString(connection.toNodeId));
-			setCell(row, 3, connection.hasSpeedLimit ? QStringLiteral("true") : QStringLiteral("false"));
-			setCell(row, 4, QString::number(connection.speedLimitMs, 'g', precision));
 		}
 	} else if (facet == "stations") {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.stations.size()));
@@ -3721,70 +3681,7 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 		}
 		return false;
 	};
-	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()) && column == 0) {
-		SceneTrack& track = m_sceneModel.tracks[static_cast<std::size_t>(row)];
-		const std::string oldId = track.id;
-		const std::string newId = value.toStdString();
-		if (oldId != newId) {
-			if (!idCanReplaceRow(row, m_sceneModel.tracks, newId)) {
-				rejectUnsafeId();
-				return;
-			}
-			track.id = newId;
-			sceneRewriteTrackReferences(m_sceneModel, oldId, newId);
-			m_infrastructurePanel->setSelectionId(value);
-			changed = true;
-		}
-	} else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size())) {
-		SceneNode& node = m_sceneModel.nodes[static_cast<std::size_t>(row)];
-		if (column == 0) {
-			const std::string oldId = node.id;
-			const std::string newId = value.toStdString();
-			if (oldId != newId) {
-				if (!idCanReplaceRow(row, m_sceneModel.nodes, newId)) {
-					rejectUnsafeId();
-					return;
-				}
-				node.id = newId;
-				sceneRewriteNodeReferences(m_sceneModel, oldId, newId);
-				m_infrastructurePanel->setSelectionId(value);
-				changed = true;
-			}
-		} else if (column == 1 && node.trackId != value.toStdString()) {
-			node.trackId = value.toStdString();
-			changed = true;
-		} else if (column == 2) {
-			parseNumber(node.xKm);
-		} else if (column == 3) {
-			parseNumber(node.yKm);
-		}
-	} else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size())) {
-		SceneArc& arc = m_sceneModel.arcs[static_cast<std::size_t>(row)];
-		if (column == 0 && arc.id != value.toStdString()) {
-			if (!idCanReplaceRow(row, m_sceneModel.arcs, value.toStdString())) {
-				rejectUnsafeId();
-				return;
-			}
-			arc.id = value.toStdString();
-			m_infrastructurePanel->setSelectionId(value);
-			changed = true;
-		} else if (column == 1 && arc.trackId != value.toStdString()) {
-			arc.trackId = value.toStdString();
-			changed = true;
-		} else if (column == 2 && arc.fromNodeId != value.toStdString()) {
-			arc.fromNodeId = value.toStdString();
-			changed = true;
-		} else if (column == 3 && arc.toNodeId != value.toStdString()) {
-			arc.toNodeId = value.toStdString();
-			changed = true;
-		} else if (column == 4) {
-			parseNumber(arc.curvatureRadiusM);
-		} else if (column == 5) {
-			parseNumber(arc.gradientPercent);
-		} else if (column == 6) {
-			parseNumber(arc.speedLimitMs);
-		}
-	} else if (facet == "blocks" && row < static_cast<int>(m_sceneModel.blocks.size())) {
+	if (facet == "blocks" && row < static_cast<int>(m_sceneModel.blocks.size())) {
 		const std::vector<int>& blockRows = m_infrastructurePanel->blockRowModelIndices();
 		if (row < 0 || row >= static_cast<int>(blockRows.size()))
 			return;
@@ -3815,27 +3712,6 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 			changed = true;
 		} else if (column == 2) {
 			parseNumber(block.lengthKm);
-		}
-	} else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size())) {
-		SceneConnection& connection = m_sceneModel.connections[static_cast<std::size_t>(row)];
-		if (column == 0 && connection.id != value.toStdString()) {
-			if (!idCanReplaceRow(row, m_sceneModel.connections, value.toStdString())) {
-				rejectUnsafeId();
-				return;
-			}
-			connection.id = value.toStdString();
-			m_infrastructurePanel->setSelectionId(value);
-			changed = true;
-		} else if (column == 1 && connection.fromNodeId != value.toStdString()) {
-			connection.fromNodeId = value.toStdString();
-			changed = true;
-		} else if (column == 2 && connection.toNodeId != value.toStdString()) {
-			connection.toNodeId = value.toStdString();
-			changed = true;
-		} else if (column == 3) {
-			parseBool(connection.hasSpeedLimit);
-		} else if (column == 4) {
-			parseNumber(connection.speedLimitMs);
 		}
 	} else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
 		SceneStation& station = m_sceneModel.stations[static_cast<std::size_t>(row)];
@@ -4028,39 +3904,7 @@ void MainWindow::addInfrastructureEntity() {
 	const QString facet = m_infrastructureFacetCombo->currentData().toString();
 	std::string id;
 	int newRow = -1;
-	if (facet == "tracks") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "track", facet.toStdString());
-		m_sceneModel.tracks.push_back({id});
-		newRow = static_cast<int>(m_sceneModel.tracks.size()) - 1;
-	} else if (facet == "nodes") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "node", facet.toStdString());
-		const std::string trackId = m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id;
-		double x = 0.0;
-		for (const auto& node : m_sceneModel.nodes)
-			if (node.trackId == trackId && std::isfinite(node.xKm))
-				x = std::max(x, node.xKm + 1.0);
-		m_sceneModel.nodes.push_back({id, trackId, x, 0.0});
-		newRow = static_cast<int>(m_sceneModel.nodes.size()) - 1;
-	} else if (facet == "arcs") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "arc", facet.toStdString());
-		const std::string trackId = m_sceneModel.tracks.empty() ? std::string() : m_sceneModel.tracks.front().id;
-		std::vector<std::string> nodeIds;
-		for (const auto& node : m_sceneModel.nodes)
-			if (node.trackId == trackId)
-				nodeIds.push_back(node.id);
-		std::string from;
-		std::string to;
-		if (nodeIds.size() >= 2) {
-			std::size_t index = 0;
-			for (const auto& arc : m_sceneModel.arcs)
-				if (arc.trackId == trackId && index + 1 < nodeIds.size())
-					++index;
-			from = nodeIds[index];
-			to = nodeIds[std::min(index + 1, nodeIds.size() - 1)];
-		}
-		m_sceneModel.arcs.push_back({id, trackId, from, to, 0.0, 0.0, 20.0});
-		newRow = static_cast<int>(m_sceneModel.arcs.size()) - 1;
-	} else if (facet == "blocks") {
+	if (facet == "blocks") {
 		id = sceneUniqueInfrastructureId(m_sceneModel, "block", facet.toStdString());
 		const std::string selectedTrack = m_blockTrackFilterCombo
 			? m_blockTrackFilterCombo->currentData().toString().toStdString()
@@ -4073,16 +3917,6 @@ void MainWindow::addInfrastructureEntity() {
 		}
 		m_sceneModel.blocks.push_back({id, track->id, 1.0});
 		newRow = static_cast<int>(m_sceneModel.blocks.size()) - 1;
-	} else if (facet == "connections") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "connection", facet.toStdString());
-		std::string from;
-		std::string to;
-		if (m_sceneModel.nodes.size() >= 2) {
-			from = m_sceneModel.nodes[0].id;
-			to = m_sceneModel.nodes[1].id;
-		}
-		m_sceneModel.connections.push_back({id, from, to, false, 0.0});
-		newRow = static_cast<int>(m_sceneModel.connections.size()) - 1;
 	} else if (facet == "stations") {
 		id = sceneUniqueInfrastructureId(m_sceneModel, "station", facet.toStdString());
 		SceneStation station;
@@ -4302,16 +4136,8 @@ void MainWindow::deleteInfrastructureEntity() {
 			flattened += static_cast<int>(platforms.size());
 		}
 	}
-	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()))
-		id = QString::fromStdString(m_sceneModel.tracks[static_cast<std::size_t>(row)].id);
-	else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size()))
-		id = QString::fromStdString(m_sceneModel.nodes[static_cast<std::size_t>(row)].id);
-	else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size()))
-		id = QString::fromStdString(m_sceneModel.arcs[static_cast<std::size_t>(row)].id);
-	else if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
+	if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
 		id = QString::fromStdString(m_sceneModel.blocks[static_cast<std::size_t>(modelRow)].id);
-	else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size()))
-		id = QString::fromStdString(m_sceneModel.connections[static_cast<std::size_t>(row)].id);
 	else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
 		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(row)].id);
 	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
@@ -4342,16 +4168,8 @@ void MainWindow::deleteInfrastructureEntity() {
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 	if (answer != QMessageBox::Yes)
 		return;
-	if (facet == "tracks" && row < static_cast<int>(m_sceneModel.tracks.size()))
-		m_sceneModel.tracks.erase(m_sceneModel.tracks.begin() + row);
-	else if (facet == "nodes" && row < static_cast<int>(m_sceneModel.nodes.size()))
-		m_sceneModel.nodes.erase(m_sceneModel.nodes.begin() + row);
-	else if (facet == "arcs" && row < static_cast<int>(m_sceneModel.arcs.size()))
-		m_sceneModel.arcs.erase(m_sceneModel.arcs.begin() + row);
-	else if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
+	if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
 		m_sceneModel.blocks.erase(m_sceneModel.blocks.begin() + modelRow);
-	else if (facet == "connections" && row < static_cast<int>(m_sceneModel.connections.size()))
-		m_sceneModel.connections.erase(m_sceneModel.connections.begin() + row);
 	else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
 		m_sceneModel.stations.erase(m_sceneModel.stations.begin() + row);
 	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
