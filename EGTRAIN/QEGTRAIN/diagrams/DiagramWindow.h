@@ -16,9 +16,11 @@
 #include <QtCharts/QAbstractSeries>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QValueAxis>
 
 #include <functional>
+#include <vector>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -26,6 +28,13 @@ class QGraphicsObject;
 class QLabel;
 class QPushButton;
 class TrainFilterButton;
+
+// A station along the distance axis of a route chart: its position on that axis and the plain-text labels it can
+// have, from the longest to the shortest.
+struct StationTick {
+	double position = 0.0;
+	QStringList spellings;
+};
 
 // Reusable non-modal window that shows a chart with a train visibility
 // dropdown, hover and click identification, rubber-band zoom with reset,
@@ -78,6 +87,11 @@ public:
 		const QString& suggestedFileName, const QStringList& trainIds = {});
 	// Set after setChart. A chart-owned physical layer, not train series. Chart replacement clears it.
 	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId);
+	// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
+	// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
+	// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
+	// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped.
+	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
 	// The same provider/filter snapshot that Export CSV writes, without opening a file dialog.
 	std::string csvContent() const;
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
@@ -109,6 +123,9 @@ private:
 
 	void applyChartStyle(QChart* chart);
 	void applyTimeAxis();
+	void scheduleStationLayout();
+	void layoutStationAxis();
+	QString elidedAxisTextAt(const QPointF& chartPosition) const;
 	QAbstractSeries* inspectAt(const QPoint& viewportPosition);
 	void clearTooltip();
 	void showTooltip(const QPoint& viewportPosition);
@@ -143,6 +160,9 @@ private:
 	QHash<QString, QColor> m_trainColors;
 	bool m_paintTrainSeries = true;
 	QPoint m_pressPosition;
+	QPointer<QCategoryAxis> m_stationAxis;
+	std::vector<StationTick> m_stations;
+	bool m_stationLayoutPending = false;
 	QPointer<QAbstractAxis> m_clockAxis;
 	QPointer<QValueAxis> m_numericAxis; // detached while its clock axis is displayed
 	QString m_pinnedTrainId;

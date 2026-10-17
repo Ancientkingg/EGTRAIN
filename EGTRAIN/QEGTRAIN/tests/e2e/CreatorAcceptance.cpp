@@ -2008,7 +2008,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				else if (window->windowTitle() != title)
 					problem = title + QStringLiteral(" has the window title ") + window->windowTitle();
 				else if (!context->isVisible() || context->text() != QStringLiteral("Run: ") + run
-					|| !context->toolTip().contains(run))
+					|| !QString(context->toolTip()).remove(QChar(0x200B)).contains(run))
 					problem = title + QStringLiteral(" does not show the run in its context line");
 				else if (context->height() > context->fontMetrics().height() * 3
 					|| window->width() > window->screen()->availableGeometry().width() * 9 / 10)

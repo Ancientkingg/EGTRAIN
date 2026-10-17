@@ -2,6 +2,7 @@
 
 #include "scene/SectionInventory.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QDialogButtonBox>
 #include <QFontMetrics>
@@ -76,7 +77,7 @@ RouteReferenceDialog::RouteReferenceDialog(const QVector<RouteReferenceChoice>& 
 	for (const RouteReferenceChoice& choice : choices) {
 		auto* item = new QListWidgetItem(choice.label, m_list);
 		item->setData(Qt::UserRole, choice.runtimeIndex);
-		item->setToolTip(choice.toolTip);
+		item->setToolTip(plainToolTip(choice.toolTip));
 		widest = std::max(widest, metrics.horizontalAdvance(choice.label));
 	}
 	if (m_list->count() > 0)

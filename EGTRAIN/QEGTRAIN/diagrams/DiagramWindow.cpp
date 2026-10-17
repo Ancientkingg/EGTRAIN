@@ -6,6 +6,9 @@
 
 #include <QApplication>
 #include <QGraphicsObject>
+#include <QGraphicsScene>
+#include <QGraphicsTextItem>
+#include <QTextDocument>
 #include <QSet>
 #include <QFontMetricsF>
 #include <QBuffer>
@@ -297,6 +300,64 @@ BlockSectionOverlay* sectionOverlayOf(const QPointer<QGraphicsObject>& overlay) 
 	return static_cast<BlockSectionOverlay*>(overlay.data());
 }
 
+// The label each station gets above the plot, as (position, plain text). Every label is centred on its station, must lie
+// within the chart and may not touch its neighbour. The chart shortens a label that is wider than the share of the plot
+// width that it gives each of the labels, so a label is only used when it is narrower than that share. Of the stations
+// in the range, every first, second, third and so on is tried until the labels fit. A station gets the longest
+// spelling that fits.
+std::vector<std::pair<double, QString>> labelledStations(const std::vector<StationTick>& stations, const QValueAxis& axis,
+	const QRectF& plot, double chartWidth, const QFontMetricsF& metrics) {
+	constexpr double edge = 4.0, gap = 8.0, slack = 16.0;
+	struct Candidate {
+		double x;
+		const StationTick* station;
+	};
+	const double span = axis.max() - axis.min();
+	if (!(span > 0.0) || plot.width() <= 0.0) return {};
+	std::vector<Candidate> inRange;
+	for (const StationTick& station : stations) {
+		if (station.spellings.isEmpty() || station.position < axis.min() || station.position > axis.max()) continue;
+		const double fraction = (station.position - axis.min()) / span;
+		inRange.push_back({plot.left() + (axis.isReverse() ? 1.0 - fraction : fraction) * plot.width(), &station});
+	}
+	std::sort(inRange.begin(), inRange.end(), [](const Candidate& a, const Candidate& b) { return a.x < b.x; });
+	struct Placed {
+		double x;
+		double width;
+		std::pair<double, QString> label;
+	};
+	for (std::size_t stride = 1; stride <= inRange.size(); ++stride) {
+		const std::size_t named = (inRange.size() + stride - 1) / stride;
+		const double share = plot.width() / static_cast<double>(named + 1) - slack;
+		std::vector<Placed> placed;
+		bool fits = true;
+		for (std::size_t i = 0; i < inRange.size() && fits; i += stride) {
+			const double x = inRange[i].x;
+			const double room = std::min(share, 2.0 * std::min(x - edge, chartWidth - edge - x));
+			const QStringList& spellings = inRange[i].station->spellings;
+			const auto spelling = std::find_if(spellings.begin(), spellings.end(),
+				[&](const QString& text) { return metrics.horizontalAdvance(text) <= room; });
+			if (spelling != spellings.end()) {
+				placed.push_back({x, metrics.horizontalAdvance(*spelling), {inRange[i].station->position, *spelling}});
+				continue;
+			}
+			// A station near the edge of the chart may stay unlabelled, one that is too wide for its share may not.
+			fits = metrics.horizontalAdvance(spellings.last()) <= share;
+		}
+		bool apart = fits && !placed.empty();
+		for (std::size_t i = 1; i < placed.size(); ++i)
+			apart = apart && placed[i].x - placed[i - 1].x - (placed[i].width + placed[i - 1].width) / 2.0 >= gap;
+		if (!apart) continue;
+		std::vector<std::pair<double, QString>> labels;
+		for (const Placed& one : placed) labels.push_back(one.label);
+		return labels;
+	}
+	// No label fits whole: the middle station keeps the start of its shortest spelling.
+	if (inRange.empty()) return {};
+	const StationTick& middle = *inRange[inRange.size() / 2].station;
+	return {{middle.position, metrics.elidedText(middle.spellings.last(), Qt::ElideRight, plot.width() / 2.0 - slack)}};
+}
+
 } // namespace
 
 DiagramWindow::DiagramWindow(const QString& title, QWidget* parent)
@@ -485,6 +546,8 @@ void DiagramWindow::setChart(QChart* chart) {
 	m_numericAxis = nullptr;
 	m_fullBounds.clear();
 	m_clockAxis = nullptr;
+	m_stationAxis = nullptr;
+	m_stations.clear();
 	if (chart)
 		applyChartStyle(chart);
 	QChart* previous = m_view->chart();
@@ -536,6 +599,56 @@ void DiagramWindow::setCsvProvider(std::function<std::string(const QStringList&)
 	m_csvSuggestedName = suggestedFileName;
 	if (m_csvButton)
 		m_csvButton->setVisible(static_cast<bool>(m_csvProvider));
+}
+
+void DiagramWindow::setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations) {
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!axis || !chart) return;
+	m_stationAxis = axis;
+	m_stations = std::move(stations);
+	connect(axis, &QValueAxis::rangeChanged, this, [this] { scheduleStationLayout(); });
+	connect(chart, &QChart::plotAreaChanged, this, [this] { scheduleStationLayout(); });
+	layoutStationAxis();
+}
+
+// The chart is laid out when it is shown and whenever its plot area changes, and an axis must not change in the
+// middle of that, so the labels are chosen once the layout is done.
+void DiagramWindow::scheduleStationLayout() {
+	if (m_stationLayoutPending) return;
+	m_stationLayoutPending = true;
+	QMetaObject::invokeMethod(this, [this] { layoutStationAxis(); }, Qt::QueuedConnection);
+}
+
+void DiagramWindow::layoutStationAxis() {
+	m_stationLayoutPending = false;
+	QChart* chart = m_view ? m_view->chart() : nullptr;
+	if (!m_stationAxis || !chart) return;
+	QCategoryAxis* axis = m_stationAxis;
+	const auto shown = labelledStations(m_stations, *axis, chart->plotArea(), chart->size().width(), QFontMetricsF(axis->labelsFont()));
+	QStringList labels;
+	for (const auto& station : shown) labels << station.second.toHtmlEscaped();
+	if (labels == axis->categoriesLabels()) return;
+	const QStringList old = axis->categoriesLabels();
+	for (const QString& label : old) axis->remove(label);
+	axis->setStartValue(axis->min() - 1);
+	for (const auto& station : shown) axis->append(station.second.toHtmlEscaped(), station.first);
+}
+
+// When the pointer is on an axis text that the chart has shortened, the whole axis title; empty otherwise.
+QString DiagramWindow::elidedAxisTextAt(const QPointF& chartPosition) const {
+	QChart* chart = m_view->chart();
+	const QPointF scenePosition = chart->mapToScene(chartPosition);
+	for (QGraphicsItem* item : m_view->scene()->items(scenePosition)) {
+		const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item);
+		if (!text || !text->toPlainText().endsWith(QLatin1String("..."))) continue;
+		const QString shown = text->toPlainText().chopped(3);
+		for (QAbstractAxis* axis : chart->axes()) {
+			QTextDocument title;
+			title.setHtml(axis->titleText());
+			if (title.toPlainText().size() > shown.size() && title.toPlainText().startsWith(shown)) return title.toPlainText();
+		}
+	}
+	return {};
 }
 
 void DiagramWindow::setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId) {
@@ -929,7 +1042,14 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 			return nullptr;
 		}
 	}
-	if (!chart->plotArea().contains(cursor)) return nullptr;
+	if (!chart->plotArea().contains(cursor)) {
+		const QString title = elidedAxisTextAt(cursor);
+		if (!title.isEmpty()) {
+			m_tooltip->setText(title);
+			showTooltip(position);
+		}
+		return nullptr;
+	}
 	QXYSeries* selected = nullptr;
 	QPointF sample;
 	int sampleIndex = -1;

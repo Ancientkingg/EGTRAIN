@@ -10,6 +10,8 @@
 #include <QScreen>
 #include <QCategoryAxis>
 #include <QLabel>
+#include <QGraphicsScene>
+#include <QGraphicsTextItem>
 #include <QKeyEvent>
 #include <QImage>
 #include <QLineEdit>
@@ -33,6 +35,7 @@
 #include <QPointer>
 #include <QValueAxis>
 #include <QWheelEvent>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -653,7 +656,8 @@ static bool exerciseRunContext() {
 	const auto* warning = window.findChild<QLabel*>("diagramWarning");
 	const QRect screenArea = window.screen()->availableGeometry();
 	bool ok = expect(window.windowTitle() == chartName, "the window title is the name of the chart");
-	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run && context->toolTip().contains(run)
+	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run
+			&& QString(context->toolTip()).remove(QChar(0x200B)).contains(run)
 			&& context->height() <= context->fontMetrics().height() * 3 && warning->isHidden(),
 		"the context line holds the whole run within three lines and no warning strip opens");
 	ok &= expect(window.width() <= screenArea.width() * 9 / 10 && window.height() <= screenArea.height() * 4 / 5,
@@ -723,8 +727,8 @@ static bool exerciseBlockSections() {
 	};
 	const QPoint header = hover(headerPoint(2, 5));
 	ok &= expect(tooltip->isVisible() && tooltip->textFormat() == Qt::PlainText
-			&& tooltip->text().contains(QString::fromStdString(authored)) && tooltip->text().contains("1:")
-			&& tooltip->text().contains("2:") && tooltip->text().contains("reference<&>"),
+			&& tooltip->text().contains(QString::fromStdString(authored))
+			&& tooltip->text().contains("1:") && tooltip->text().contains("2:") && tooltip->text().contains("reference<&>"),
 		"section hover retains full escaped/plain text and both coincident occurrence identities");
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
@@ -973,6 +977,197 @@ static bool exercisePlainToolTips() {
 		ok &= expect(shownTip(&field) == text, "a read-only field tooltip shows its text as typed");
 	}
 	ok &= expect(plainToolTip(QString()).isEmpty(), "an empty text gives no tooltip");
+	return ok;
+}
+
+// The widest tooltip that Qt shows at the moment.
+static int shownTipWidth(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	QApplication::processEvents();
+	int widest = 0;
+	for (QWidget* top : QApplication::topLevelWidgets())
+		if (top->isVisible() && top->inherits("QTipLabel")) widest = std::max(widest, top->width());
+	QToolTip::hideText();
+	return widest;
+}
+
+// A 300-character identifier has no space to wrap at; the tooltip must still fit the screen.
+static bool exerciseLongToolTips() {
+	const QString id = QString(300, QLatin1Char('Q'));
+	DiagramWindow window("Long tooltip");
+	window.show();
+	QApplication::processEvents();
+	window.setPresentation("Long tooltip", QStringLiteral("Reference: ") + id, QString());
+	QApplication::processEvents();
+	auto* context = window.findChild<QLabel*>("diagramContext");
+	const int screenWidth = window.screen()->availableGeometry().width();
+	bool ok = true;
+	const int contextWidth = shownTipWidth(context);
+	ok &= expect(contextWidth > 0 && contextWidth <= screenWidth,
+		"the context tooltip of a 300-character id is no wider than the screen");
+	ok &= expect(shownTip(context).remove(QChar(0x200B)) == context->text(),
+		"the break opportunities are the only change to the context tooltip");
+	QLineEdit field;
+	field.setToolTip(plainToolTip(id));
+	field.show();
+	QApplication::processEvents();
+	const int fieldWidth = shownTipWidth(&field);
+	ok &= expect(fieldWidth > 0 && fieldWidth <= screenWidth,
+		"the tooltip of a read-only field with a 300-character id is no wider than the screen");
+	const QString path = QStringLiteral("/Users/someone/a folder/without-any-space-in-its-long-name/case file");
+	const QString shortWords = QStringLiteral("Case A & B | Scenario C");
+	ok &= expect(plainToolTip(shortWords) == Qt::convertFromPlainText(shortWords, Qt::WhiteSpaceNormal),
+		"a text with short words gets no break opportunity");
+	ok &= expect(plainToolTip(path).contains(QChar(0x200B))
+			&& QString(plainToolTip(path)).remove(QChar(0x200B)) == Qt::convertFromPlainText(path, Qt::WhiteSpaceNormal),
+		"a long word in a text with spaces gets a break opportunity and nothing else changes");
+	const QString pairs = QString(31, QLatin1Char('a')) + QString::fromUcs4(U"\U0001F682") + QString(40, QLatin1Char('b'));
+	const QString broken = withBreakOpportunities(pairs);
+	bool splitsPair = false;
+	for (int i = 1; i < broken.size(); ++i)
+		splitsPair = splitsPair || (broken.at(i - 1).isHighSurrogate() && broken.at(i) == QChar(0x200B));
+	ok &= expect(!splitsPair && QString(broken).remove(QChar(0x200B)) == pairs && broken.contains(QChar(0x200B)),
+		"a break opportunity never separates the halves of a character");
+	return ok;
+}
+
+// The texts that the chart of `window` draws once its layout has settled and the items of removed axes are gone.
+static QStringList drawnChartTexts(DiagramWindow& window) {
+	for (int round = 0; round < 4; ++round) {
+		QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		QApplication::processEvents();
+	}
+	QStringList texts;
+	for (QGraphicsItem* item : window.findChild<QChartView*>()->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->isVisible()) texts << text->toPlainText();
+	return texts;
+}
+
+static QStringList elidedTexts(const QStringList& texts) {
+	QStringList elided;
+	for (const QString& text : texts)
+		if (text.endsWith(QLatin1String("..."))) elided << text;
+	return elided;
+}
+
+// A chart built like the timetable graph: distance along the bottom, the clock downward, the stations on top. A station
+// can be labelled with its name and position or with its name alone.
+static QChart* routeChartWithStations(const QStringList& names, QCategoryAxis** stationAxis, std::vector<StationTick>* ticks) {
+	auto* chart = new QChart;
+	auto* series = new QLineSeries;
+	series->setProperty("trainId", "A");
+	series->setName("A (arrival)");
+	series->append(0.0, 10);
+	series->append(9.5 * names.size(), 3000);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	auto* y = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	x->setRange(-0.01, 9.5 * (names.size() - 1) + 0.01);
+	x->setTitleText("Route X (km); origin 0.000, travel right");
+	y->setReverse(true);
+	y->setRange(0, 3600);
+	y->setTitleText("Elapsed simulation time (s), downward");
+	*stationAxis = new QCategoryAxis;
+	(*stationAxis)->setTitleText("Reference stations");
+	(*stationAxis)->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+	(*stationAxis)->setStartValue(x->min() - 1);
+	(*stationAxis)->setRange(x->min(), x->max());
+	chart->addAxis(*stationAxis, Qt::AlignTop);
+	series->attachAxis(*stationAxis);
+	for (int i = 0; i < names.size(); ++i)
+		ticks->push_back({9.5 * i, {QStringLiteral("%1 (%2 km)").arg(names[i]).arg(9.5 * i, 0, 'f', 2), names[i]}});
+	return chart;
+}
+
+// The tick labels of the timetable graph stay whole at the normal font and at one and a half times its size.
+static bool exerciseStationAxis() {
+	const QFont original = QApplication::font();
+	const QStringList names = {"Amsterdam Centraal", "Utrecht Centraal", "Den Bosch", "Eindhoven Centraal", "Venlo", "Roermond",
+		"Maastricht", "Sittard", "Heerlen", "G&d<g"};
+	struct Case {
+		double fontScale;
+		int width;
+		int height;
+		const char* name;
+	};
+	bool ok = true;
+	// A window on a 1280 by 800 screen is at most 1152 by 640; at a scale factor of 1.5 that screen is 853 by 533.
+	for (const Case& scene : {Case{1.0, 1152, 640, "normal font"}, Case{1.5, 1152, 640, "font 1.5 times larger"},
+			 Case{1.0, 768, 426, "scale factor 1.5"}}) {
+		QFont font = original;
+		font.setPointSizeF(original.pointSizeF() * scene.fontScale);
+		QApplication::setFont(font);
+		{
+			DiagramWindow window("Timetable graph");
+			QCategoryAxis* stations = nullptr;
+			std::vector<StationTick> ticks;
+			window.setChart(routeChartWithStations(names, &stations, &ticks));
+			window.setStationAxis(stations, ticks);
+			window.setTimeAxisY(true, 8 * 3600);
+			window.setMaximumSize(scene.width, scene.height);
+			window.resize(scene.width, scene.height);
+			window.show();
+			QStringList texts = drawnChartTexts(window);
+			const QString what = QString::fromLatin1(scene.name);
+			ok &= expect(elidedTexts(texts).isEmpty(), qPrintable(what + ": no tick label is shortened to dots"));
+			ok &= expect(texts.contains("08:00:00") && texts.contains("09:00:00"), qPrintable(what + ": the clock labels are whole"));
+			const QStringList labelled = stations->categoriesLabels();
+			int drawn = 0;
+			for (const QString& label : labelled) {
+				QTextDocument plain;
+				plain.setHtml(label);
+				drawn += texts.contains(plain.toPlainText());
+			}
+			ok &= expect(!labelled.isEmpty() && drawn == labelled.size(), qPrintable(what + ": the station labels are drawn whole"));
+			// Zoomed in, the stations of the new range are named and the labels are still whole.
+			auto* view = window.findChild<QChartView*>();
+			for (int step = 0; step < 6; ++step)
+				wheel(view, {}, {0, 120}, Qt::ControlModifier, view->chart()->plotArea().topLeft() + QPointF(20, 20));
+			texts = drawnChartTexts(window);
+			const auto denBosch = std::find_if(texts.begin(), texts.end(), [](const QString& text) { return text.startsWith("Den Bosch"); });
+			ok &= expect(stations->categoriesLabels().size() >= 2 && elidedTexts(texts).isEmpty() && denBosch != texts.end(),
+				qPrintable(what + ": zoomed in, the station labels stay whole"));
+		}
+	}
+	QApplication::setFont(original);
+	return ok;
+}
+
+// A route id of 300 characters is cut short in the title of an axis; the pointer on the title shows all of it.
+static bool exerciseLongAxisTitle() {
+	DiagramWindow window("Blocking time");
+	const QString id = QStringLiteral("r&0<x>") + QString(294, QLatin1Char('Q'));
+	auto* chart = new QChart;
+	auto* series = new QLineSeries;
+	series->setName("A");
+	series->append(0, 0);
+	series->append(10, 100);
+	chart->addSeries(series);
+	chart->createDefaultAxes();
+	auto* x = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	x->setTitleText(QStringLiteral("Reference %1 X (km); origin 0.000, travel right").arg(id.toHtmlEscaped()));
+	window.setChart(chart);
+	window.show();
+	const QStringList texts = drawnChartTexts(window);
+	QString shown;
+	for (const QString& text : texts)
+		if (text.startsWith("Reference r&0<x>")) shown = text;
+	bool ok = expect(shown.endsWith("...") && shown.size() > 20, "a title wider than the chart is shortened, with the id as typed");
+	auto* view = window.findChild<QChartView*>();
+	QPointF centre;
+	for (QGraphicsItem* item : view->scene()->items())
+		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->toPlainText() == shown)
+			centre = text->mapToScene(text->boundingRect().center());
+	const QPoint position = view->mapFromScene(centre);
+	QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	QApplication::sendEvent(view->viewport(), &move);
+	const auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
+	ok &= expect(tooltip->isVisible() && tooltip->text().contains(id), "the tooltip of a shortened title holds the whole id");
+	ok &= expect(tooltip->geometry().right() <= window.rect().right() && tooltip->height() > tooltip->fontMetrics().height() * 3,
+		"the tooltip of a title wraps the id within the window");
 	return ok;
 }
 
@@ -1472,6 +1667,9 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();
 	ok &= exercisePlainToolTips();
+	ok &= exerciseLongToolTips();
+	ok &= exerciseStationAxis();
+	ok &= exerciseLongAxisTitle();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;
