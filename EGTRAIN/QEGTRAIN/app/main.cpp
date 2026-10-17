@@ -40,7 +40,7 @@ char* getCmdOption(char** begin, char** end, const std::string& option) {
 	if (it != end && std::next(it) != end) {
 		return *std::next(it); // NOLINT(clang-analyzer-security.ArrayBound): the option is followed by its value
 	}
-	return 0;
+	return nullptr;
 }
 
 // Whether this is the creator acceptance run of a test build, which starts without a case study.

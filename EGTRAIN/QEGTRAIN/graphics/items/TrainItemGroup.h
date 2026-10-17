@@ -11,8 +11,8 @@ class TrainItemGroup : public QGraphicsItemGroup {
 	// Q_OBJECT
 
 public:
-	TrainItemGroup(QGraphicsItem* parent = 0);
-	~TrainItemGroup();
+	TrainItemGroup(QGraphicsItem* parent = nullptr);
+	~TrainItemGroup() override;
 
 	// train index on list of trains (train ID is not unique, index is)
 	int index;

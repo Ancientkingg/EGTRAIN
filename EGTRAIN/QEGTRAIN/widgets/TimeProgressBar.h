@@ -8,7 +8,7 @@ class TimeProgressBar : public QProgressBar {
 
 public:
 	TimeProgressBar(QWidget* parent = nullptr);
-	~TimeProgressBar();
+	~TimeProgressBar() override;
 
 	// updates bar and time
 	void setProgress(int timestep, int totalSteps, long long startOffsetSeconds);

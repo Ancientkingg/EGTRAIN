@@ -15,11 +15,11 @@ class PlatformItem : public QGraphicsRectItem {
 	// Q_OBJECT
 
 public:
-	PlatformItem(const QRectF& rect, QGraphicsItem* parent = 0);
-	~PlatformItem();
+	PlatformItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
+	~PlatformItem() override;
 
 	// reimplemented functions
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	std::string stationId;
 	std::string platformId;
@@ -33,7 +33,7 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 9 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

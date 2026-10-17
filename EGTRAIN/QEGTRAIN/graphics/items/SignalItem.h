@@ -15,8 +15,8 @@ class SignalItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
 
 public:
-	SignalItem(const QRectF& rect, QGraphicsItem* parent = 0);
-	~SignalItem();
+	SignalItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
+	~SignalItem() override;
 
 	void setAspectCode(int code);
 	int aspectCode() const;

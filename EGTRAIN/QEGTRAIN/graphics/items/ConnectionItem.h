@@ -19,20 +19,20 @@ class ConnectionItem : public QGraphicsLineItem {
 	// Q_OBJECT
 
 public:
-	ConnectionItem(const QLineF& line, QGraphicsItem* parent = 0);
-	~ConnectionItem();
+	ConnectionItem(const QLineF& line, QGraphicsItem* parent = nullptr);
+	~ConnectionItem() override;
 
 	// reimplemented functions
-	QPainterPath shape() const;
-	QRectF boundingRect() const;
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	QPainterPath shape() const override;
+	QRectF boundingRect() const override;
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// connection pointer
 	Connections* connection;
 
 	// to allow cast
 	enum { Type = UserType + 4 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

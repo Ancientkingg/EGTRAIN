@@ -2,8 +2,8 @@
 #
 # The selection favours checks that find real bugs (bugprone-*,
 # clang-analyzer-*, performance-*) over checks that would demand a style
-# rewrite of the legacy simulation code (most of modernize-* and
-# cppcoreguidelines-*).
+# rewrite of the legacy simulation code (modernize-* beyond use-nullptr and
+# use-override, and cppcoreguidelines-*).
 #
 # Run `python3 tools/tidy.py`. It configures a build, runs clang-tidy 23.1 on the
 # sources of the modules listed in MODULES in that script, and fails on any finding.
@@ -47,6 +47,8 @@ Checks: >
   readability-duplicate-include,
   misc-redundant-expression,
   misc-unused-parameters,
+  modernize-use-nullptr,
+  modernize-use-override,
 
 WarningsAsErrors: ''
 

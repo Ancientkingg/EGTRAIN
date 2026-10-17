@@ -8,10 +8,10 @@ class InfoDockWidget : public QDockWidget {
 
 public:
 	InfoDockWidget(const QString& title, QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-	~InfoDockWidget();
+	~InfoDockWidget() override;
 
 	// reimplemented function
-	void closeEvent(QCloseEvent* event);
+	void closeEvent(QCloseEvent* event) override;
 
 signals:
 	void closed();

@@ -10,7 +10,7 @@ inline std::string simulationTime(int t, int startingSimulationTime) {
 	/// Creates the time of the simulation from t(s) to human readable 01:01:20 CEST
 	/// </summary>
 	/// <param name="tm"></param>
-	time_t time0 = time(0);
+	time_t time0 = time(nullptr);
 
 	struct tm ltm, stime;
 	time_t now;
@@ -111,7 +111,7 @@ inline std::string formatDateTimeFilename(const tm& tm) {
 
 // returns the current date and time: // Mon 01.01.1900 12:00:00
 inline std::string getDateTimeStr() {
-	time_t t = time(NULL);
+	time_t t = time(nullptr);
 	tm now;
 	localtime_r(&t, &now);
 	return formatDateTime(now);
@@ -119,7 +119,7 @@ inline std::string getDateTimeStr() {
 
 // returns the current date and time in a filename safe format: 1900_01_01_12_00_00
 inline std::string getDateTimeFilenameStr() {
-	time_t t = time(NULL);
+	time_t t = time(nullptr);
 	tm now;
 	localtime_r(&t, &now);
 	return formatDateTimeFilename(now);

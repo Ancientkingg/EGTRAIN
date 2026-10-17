@@ -15,8 +15,8 @@ class HighlightEffect : public QGraphicsEffect {
 	Q_OBJECT
 
 public:
-	HighlightEffect(const QColor& color, qreal strength, QObject* parent = 0);
-	~HighlightEffect();
+	HighlightEffect(const QColor& color, qreal strength, QObject* parent = nullptr);
+	~HighlightEffect() override;
 
 	// Device pixels per scene unit of the view; the cue keeps its size on screen.
 	void setViewScale(qreal scale);

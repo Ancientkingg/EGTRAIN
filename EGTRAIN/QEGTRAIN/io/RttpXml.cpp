@@ -61,7 +61,7 @@ std::string trafficStateMonitoring_xml(nlohmann::json jsmsg) {
 
 	std::stringstream ss;
 
-	time_t now = time(0);
+	time_t now = time(nullptr);
 	time_t production_time = now;
 
 	struct tm ltm, prtm, stime;
@@ -160,7 +160,7 @@ std::string routeChoice_xml(nlohmann::json jsmsg) {
 
 	std::stringstream ss;
 
-	time_t now = time(0);
+	time_t now = time(nullptr);
 	time_t production_time = now;
 
 	struct tm ltm, prtm, stime;

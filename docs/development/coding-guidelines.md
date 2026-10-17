@@ -180,7 +180,7 @@ convention. Use this table to decide where a new file goes. Paths are relative t
   namespace in `update/UpdateChecker.cpp`, `kCurrentSceneSchemaVersion` as `inline constexpr`
   in `scene/SceneModel.h`. Helpers used by one `.cpp` file also go in an anonymous namespace.
 - Mark overriding virtual functions `override`, as `graphics/items/StationOverlayItem.h`
-  does; several older item classes in `graphics/items/` omit it.
+  does. `modernize-use-override` checks it.
 - `simulation/` mixes snake_case, Mixed_Case and camelCase (`signalling_block_sections`,
   `Signalling_Level`, `numTrackLines`). Do not copy those forms.
 
@@ -412,7 +412,7 @@ Application code outside `simulation/` and `io/third_party/` has no `std::list`,
 - A bool compared to 0 or 1 (`Name.empty() != 1`): write `!Name.empty()`.
 - `strcpy_s`, `sprintf_s` and `char` buffers: use `std::string` or `QString`.
 - C-style casts: use `static_cast<T>`, or `qobject_cast` and `qgraphicsitem_cast` for Qt types.
-- `0` as a null pointer (`QWidget* parent = 0`): use `nullptr`.
+- `0` or `NULL` as a null pointer (`QWidget* parent = 0`): use `nullptr`. `modernize-use-nullptr` checks it.
 - New owning raw pointers and `new T[n]`: see [Ownership](#ownership).
 - New global variables: pass state as arguments and return results, as
   `validateScene(const SceneModel&)` in `scene/SceneValidator.h` does.
