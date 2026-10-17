@@ -7,10 +7,15 @@
 #include <QThread>
 #include <memory>
 
+class DispatchController;
+
 class SimulationWorker : public QObject {
 	Q_OBJECT
 public:
+	// A worker without a controller runs the controller of the process.
 	explicit SimulationWorker(QObject* parent = nullptr);
+	// The controller has to outlive the worker.
+	explicit SimulationWorker(DispatchController& controller, QObject* parent = nullptr);
 	~SimulationWorker() override;
 
 	// Static accessor so the simulation engine can find the control of the run in the window
@@ -42,6 +47,7 @@ signals:
 
 private:
 	static SimulationWorker* s_active;
+	DispatchController& m_controller;
 	const std::shared_ptr<RunControl> m_control = std::make_shared<RunControl>();
 };
 

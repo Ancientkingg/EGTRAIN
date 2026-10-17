@@ -4,7 +4,8 @@
 // members have to refer to them. Runs in this process then show that nothing of one run reaches the next. A run that was
 // stopped part way is followed by another scene, a failed preparation by a good one, and a scene with passengers runs twice.
 // Every run after such a gap has to write the files that the first run of its scene wrote. prepareScene copies the settings
-// of the application into the run, and the run goes on with the copy.
+// of the application into the run, and the run goes on with the copy. The scene is built into a run of its own that replaces the
+// run of the controller, and the snapshot of a step is made from the run that it is given.
 //
 //   test_simulationrun LINE_SCENE_DIR PASSENGER_SCENE_DIR
 
@@ -304,6 +305,10 @@ struct Outcome {
 	// Nothing of an earlier run is left when the run starts.
 	bool startedClean = false;
 	bool completed = false;
+	// The trains belong to the run of the process and the indexes describe its lists.
+	bool adopted = false;
+	// The snapshot of the last step that the controller published.
+	std::shared_ptr<const GuiSimulationSnapshot> lastSnapshot;
 	Files files;
 };
 
@@ -336,6 +341,13 @@ struct RunSetup {
 	bool changeSettingsAfterPreparation = false;
 };
 
+// True when every train of the run belongs to it and the indexes describe the lists of the run.
+bool runIsWhole(SimulationRun& run) {
+	return !run.trains.empty()
+		&& std::all_of(run.trains.begin(), run.trains.end(), [&run](const Regional& train) { return train.run_ == &run; })
+		&& run.platformIndex.covers(run.platforms) && run.passengerIndex.covers(run.passengers);
+}
+
 // Prepares the scene and runs it, as a run without a window does.
 Outcome runScene(const RunSetup& setup) {
 	Outcome outcome;
@@ -355,6 +367,7 @@ Outcome runScene(const RunSetup& setup) {
 	if (!outcome.prepared)
 		return outcome;
 	outcome.startedClean = carriesNothingOver(defaultRun());
+	outcome.adopted = runIsWhole(defaultRun()) && &simulation.run() == &defaultRun();
 	if (setup.changeSettingsAfterPreparation) {
 		initial_variables.OutputMainFolder = (std::filesystem::path(output.path().toStdString()) / "elsewhere").string();
 		initial_variables.times = 1;
@@ -363,7 +376,8 @@ Outcome runScene(const RunSetup& setup) {
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
 		// The mailbox only emits again once the snapshot has been taken.
-		simulation.takeSimulationSnapshot();
+		if (const auto snapshot = simulation.takeSimulationSnapshot())
+			outcome.lastSnapshot = snapshot;
 		if (++snapshots == setup.stopAtSnapshot)
 			simulation.runControl()->requestStop(); }, Qt::DirectConnection);
 	simulation.runSimulation();
@@ -375,6 +389,7 @@ Outcome runScene(const RunSetup& setup) {
 bool sameFiles(const std::string& label, const Outcome& expected, const Outcome& actual) {
 	bool ok = expect(actual.prepared && actual.completed, label + ": the run completes");
 	ok &= expect(actual.startedClean, label + ": nothing of an earlier run is left when the run starts");
+	ok &= expect(actual.adopted, label + ": the prepared run is whole in the place of the earlier one");
 	ok &= expect(!expected.files.empty() && actual.files.size() == expected.files.size(), label + ": the run writes the same files");
 	for (const auto& [name, content] : expected.files) {
 		const auto found = actual.files.find(name);
@@ -508,6 +523,28 @@ void stepRun(SimulationRun& run, int t) {
 	run.blocksConnected.clear();
 }
 
+// The parts of two snapshots that the window draws, compared field by field.
+bool sameSnapshot(const GuiSimulationSnapshot& a, const GuiSimulationSnapshot& b) {
+	const auto sameTrain = [](const GuiTrainState& x, const GuiTrainState& y) {
+		return x.index == y.index && x.id == y.id && x.description == y.description && x.routeIndex == y.routeIndex
+			&& x.reversedDirection == y.reversedDirection && x.wagonCount == y.wagonCount && x.departureTime == y.departureTime
+			&& x.routeAxisPosition == y.routeAxisPosition && x.speedKmh == y.speedKmh && x.wagonHeadPositions == y.wagonHeadPositions
+			&& x.wagonTailPositions == y.wagonTailPositions && x.occupiedArcs.size() == y.occupiedArcs.size();
+	};
+	const auto sameSignal = [](const GuiSignalState& x, const GuiSignalState& y) {
+		return x.sectionId == y.sectionId && x.code == y.code && x.reversedDirection == y.reversedDirection && x.level == y.level
+			&& x.failed == y.failed;
+	};
+	const auto sameSection = [](const GuiSectionState& x, const GuiSectionState& y) {
+		return x.sectionId == y.sectionId && x.prepared == y.prepared && x.blocked == y.blocked;
+	};
+	return a.timestep == b.timestep && a.totalTimesteps == b.totalTimesteps
+		&& std::equal(a.trains.begin(), a.trains.end(), b.trains.begin(), b.trains.end(), sameTrain)
+		&& std::equal(a.signalStates.begin(), a.signalStates.end(), b.signalStates.begin(), b.signalStates.end(), sameSignal)
+		&& std::equal(a.sectionStates.begin(), a.sectionStates.end(), b.sectionStates.begin(), b.sectionStates.end(), sameSection)
+		&& a.platforms.size() == b.platforms.size() && a.passengers.size() == b.passengers.size();
+}
+
 // The builders and the routines of a step work on the run that they are given. A second run, built from the scene and stepped while
 // the run of the process is a new run, follows the trajectory that the controller gives the same scene in the run of the process, and
 // leaves the run of the process as it was.
@@ -543,6 +580,21 @@ bool explicitRunTests(const SceneModel& line) {
 			&& other->trains[0].instant_train_speed == speeds,
 		"the second run follows the trajectory of the same scene in the run of the process");
 	ok &= expect(isNewRun(defaultRun()), "building and stepping another run leaves the run of the process as it was");
+
+	// The snapshot is made from the run that is given: the second run shows its trains and signals, the new run of the process
+	// shows none, and the snapshot equals the one that the controller published for the last step of the same scene.
+	const int lastStep = setup.horizonSeconds - 1;
+	const GuiSimulationSnapshot fromOther = buildGuiSimulationSnapshot(*other, lastStep);
+	const GuiSimulationSnapshot fromProcess = buildGuiSimulationSnapshot(defaultRun(), lastStep);
+	ok &= expect(fromOther.trains.size() == 1 && fromOther.trains[0].description == description
+			&& fromOther.trains[0].routeAxisPosition == positions[lastStep] && fromOther.totalTimesteps == setup.horizonSeconds
+			&& !fromOther.signalStates.empty() && !fromOther.sectionStates.empty(),
+		"the snapshot shows the run that it is made from");
+	ok &= expect(fromProcess.trains.empty() && fromProcess.signalStates.empty() && fromProcess.sectionStates.empty()
+			&& fromProcess.totalTimesteps == 0,
+		"the snapshot of the new run of the process shows nothing of the second run");
+	ok &= expect(reference.lastSnapshot && reference.lastSnapshot->timestep == lastStep && sameSnapshot(*reference.lastSnapshot, fromOther),
+		"the snapshot of the second run equals the one that the controller published for the same scene");
 	return ok;
 }
 

@@ -3,12 +3,13 @@
 #include <thread>
 #include <chrono>
 
-extern DispatchController simulation;
-
 SimulationWorker* SimulationWorker::s_active = nullptr;
 
 SimulationWorker::SimulationWorker(QObject* parent)
-	: QObject(parent) {
+	: SimulationWorker(simulation, parent) {}
+
+SimulationWorker::SimulationWorker(DispatchController& controller, QObject* parent)
+	: QObject(parent), m_controller(controller) {
 	s_active = this;
 }
 
@@ -22,7 +23,7 @@ void SimulationWorker::run() {
 	// Each run uses a new worker, so a stop or pause requested before or during
 	// simulationStarted is kept. The delay keeps the slider value set before
 	// clicking Start (see MainWindow::startSimulation).
-	simulation.runSimulation();
+	m_controller.runSimulation();
 	emit simulationFinished();
 }
 

@@ -24,6 +24,7 @@
 #endif
 
 struct DispatchLive;
+struct SimulationRun;
 
 class DispatchController : public QObject {
 	Q_OBJECT
@@ -32,11 +33,19 @@ public:
 	explicit DispatchController(QObject* parent = nullptr);
 	~DispatchController() override;
 
+	// Builds the run of the scene apart from the run of the controller and puts it in its place when the scene is
+	// ready. A scene that is not ready ends the run that was there: the controller then holds a new run.
 	std::vector<SceneDiagnostic> prepareScene(const SceneModel& scene,
 		const std::string& selectedScenarioId = {},
 		const SceneRunSelection& selectedOccurrences = {});
 
+	// Returns the controller to a new run.
 	void resetState();
+
+	// The run that prepareScene made, with the results after it has been run. The thread that steps the run
+	// owns it: while a SimulationWorker is running, the window sees the run only through the snapshots. Call this
+	// on the GUI thread before the worker starts or after it has joined.
+	const SimulationRun& run() const;
 
 	void runSimulation();
 
@@ -88,6 +97,7 @@ signals:
 	void executionPostprocessing();
 
 private:
+	SimulationRun& mutableRun();
 	void beginScenePreparation();
 	void publishSimulationSnapshot(int timestep);
 

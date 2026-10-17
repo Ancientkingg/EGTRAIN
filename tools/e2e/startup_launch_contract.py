@@ -181,15 +181,25 @@ def assert_deferred_success_path_resets() -> None:
         raise SystemExit("scene preparation does not clear lightweight state before validation")
     if prepare.count("resetState();") != 4:
         raise SystemExit("scene preparation failure paths do not all perform a full reset")
-    # The run keeps a copy of the settings, taken once the scene is built, and the reset of the run returns it to the default.
-    if "defaultRun().settings = initial_variables;" not in prepare or prepare.index("defaultRun().settings = initial_variables;") < prepare.index("buildOperationsFromScene("):
+    # The scene is built into a run of its own, which replaces the run of the controller once it is complete: after the last failure
+    # path, with the copy of the settings, which the reset of the run returns to the default.
+    if "make_unique<SimulationRun>()" not in prepare:
+        raise SystemExit("scene preparation does not stage the run")
+    for builder in ("buildInfrastructureAndSignallingFromScene(*staged,", "buildOperationsFromScene(*staged,"):
+        if builder not in prepare:
+            raise SystemExit(f"scene preparation does not call {builder} on the staged run")
+    if "mutableRun().adopt(std::move(*staged));" not in prepare:
+        raise SystemExit("scene preparation does not put the staged run in place of the run of the controller")
+    if "staged->settings = initial_variables;" not in prepare or prepare.index("staged->settings = initial_variables;") < prepare.index("buildOperationsFromScene("):
         raise SystemExit("scene preparation does not copy the settings into the run after the scene is built")
+    if prepare.index("mutableRun().adopt(") < prepare.rindex("resetState();") or prepare.index("mutableRun().adopt(") < prepare.index("staged->settings = initial_variables;"):
+        raise SystemExit("scene preparation replaces the run of the controller before the run is complete")
 
     begin_preparation = dispatch[
         dispatch.index("void DispatchController::beginScenePreparation()"):
         dispatch.index("void DispatchController::resetState()")
     ]
-    if "prepareNativeOperationsState(defaultRun());" not in begin_preparation:
+    if "prepareNativeOperationsState(mutableRun());" not in begin_preparation:
         raise SystemExit("lightweight scene preparation no longer prepares operation state")
     for reset in ("resetNativeOperationsState(", "resetNativeInfrastructureState("):
         if reset in begin_preparation:
@@ -199,7 +209,7 @@ def assert_deferred_success_path_resets() -> None:
         dispatch.index("void DispatchController::resetState()"):
         dispatch.index("std::shared_ptr<const GuiSimulationSnapshot>")
     ]
-    for reset in ("resetNativeInfrastructureState(defaultRun());", "resetNativeOperationsState(defaultRun());"):
+    for reset in ("resetNativeInfrastructureState(mutableRun());", "resetNativeOperationsState(mutableRun());"):
         if reset not in full_reset:
             raise SystemExit(f"full dispatch reset no longer calls {reset}")
     # The lists of the run are cleared by SimulationRun::reset(), which the operation state calls.

@@ -211,13 +211,19 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
   The routines of `simulation/` take the run they work on as a `SimulationRun&` parameter, and the
   member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
-  sets. They do not use the old names, which the application and the tests still use.
+  sets. They do not use the old names, which the window and the tests still use.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the
   buffer time, the recovery time, the output folder and the other settings of a run from the copy,
   so a change to `initial_variables` afterwards does not reach the run. The builders and `prepareScene`
   read `initial_variables` because they make the copy. `timestep` and `signalCode1` to
   `signalCode3` are `constexpr` values in `simulation/Infrastructure.h`.
+  `DispatchController::prepareScene` builds the scene into a staged `SimulationRun` and puts it in the
+  place of the run of the controller with `SimulationRun::adopt()`, which points the trains at the
+  run and builds the indexes again; a member that points at another member of the run needs a line
+  there. A scene that fails leaves the controller with a new run. While the worker thread steps a run
+  the window sees it only through the snapshots, which `buildGuiSimulationSnapshot(const SimulationRun&, int)`
+  makes. After the worker has joined, `DispatchController::run()` gives the results as a `const SimulationRun&`.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
   tracks, connections and stations (`blockSets`, `connections` and `StationArray`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,

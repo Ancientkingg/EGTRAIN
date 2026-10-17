@@ -67,18 +67,19 @@ GuiTrainState trainIdentity(int index, const Train& train) {
 	state.routeIndex = train.indexOfRoute;
 	return state;
 }
+} // namespace
 
-GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep) {
 	GuiSimulationSnapshot snapshot;
 	snapshot.timestep = timestep;
-	snapshot.totalTimesteps = defaultRun().settings.times;
+	snapshot.totalTimesteps = run.settings.times;
 
-	snapshot.trains.reserve(static_cast<std::size_t>(numRegions));
-	for (int i = 0; i < numRegions; ++i) {
-		Train& train = regional_train[i];
+	snapshot.trains.reserve(static_cast<std::size_t>(run.numTrains));
+	for (int i = 0; i < run.numTrains; ++i) {
+		const Train& train = run.trains[i];
 		GuiTrainState state = trainIdentity(i, train);
-		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
-		state.reversedDirection = validRoute ? train_route[train.indexOfRoute].reversed_direction : false;
+		const bool validRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(run.infra.routes.size());
+		state.reversedDirection = validRoute ? run.infra.routes[train.indexOfRoute].reversed_direction : false;
 		state.wagonCount = static_cast<int>(train.number_of_wagons);
 		state.length = train.train_length;
 		state.departureTime = static_cast<int>(train.departure_time);
@@ -92,8 +93,8 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			state.wagonHeadPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
 			state.wagonTailPositions.reserve(static_cast<std::size_t>(state.wagonCount + 1));
 			for (int wagon = 0; wagon <= state.wagonCount; ++wagon) {
-				state.wagonHeadPositions.push_back(train.trainXPosition(timestep, wagon));
-				state.wagonTailPositions.push_back(train.trainXPosition(timestep, wagon + 1));
+				state.wagonHeadPositions.push_back(trainXPositionOf(train, timestep, wagon));
+				state.wagonTailPositions.push_back(trainXPositionOf(train, timestep, wagon + 1));
 			}
 		}
 
@@ -117,9 +118,9 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 			signalStates.merge(id, reversed, static_cast<int>(section.code), section.SignallingLevel);
 	};
 	std::map<std::string, GuiSectionState> sectionStates;
-	const int routeCount = std::min(N_Routes, static_cast<int>(train_route.size()));
+	const int routeCount = std::min(run.infra.numRoutes, static_cast<int>(run.infra.routes.size()));
 	for (int routeIndex = 0; routeIndex < routeCount; ++routeIndex) {
-		const Route& route = train_route[routeIndex];
+		const Route& route = run.infra.routes[routeIndex];
 		for (int sectionIndex = 0; sectionIndex < route.N_Block_Sections; ++sectionIndex) {
 			const Section& section = route.sequence_of_block_sections[sectionIndex];
 			const std::string& id = section.ID;
@@ -146,7 +147,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		}
 	}
 	// A failed section is blocked and its signals fail in both directions, for as long as the failure is active.
-	for (const SimulationIncident& incident : simulationIncidents) {
+	for (const SimulationIncident& incident : run.incidents) {
 		if (!signalFailureActive(incident, timestep))
 			continue;
 		for (const std::string& id : incident.resolvedSectionIDs) {
@@ -163,14 +164,14 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 	for (auto& entry : sectionStates)
 		snapshot.sectionStates.push_back(std::move(entry.second));
 
-	for (const StationPlatform& platform : AllStationPlatforms) {
+	for (const StationPlatform& platform : run.platforms) {
 		GuiPlatformState state;
 		state.stationId = platform.StationID;
 		state.platformId = platform.ID;
 		state.maxVolume = platform.Max_Passenger_Volume;
 		for (const auto& passenger : platform.Current_List_Pax_On_Platform)
 			state.passengerIds.push_back(passenger.first);
-		for (const Passenger& passenger : AllDailyPassengers) {
+		for (const Passenger& passenger : run.passengers) {
 			if (!passenger.IsIntheNetwork && passenger.TimeExitedTheNetwork > 0
 				&& timestep >= passenger.TimeExitedTheNetwork && timestep <= passenger.TimeExitedTheNetwork + 5
 				&& platform.StationID == passenger.StationExitedTheNetworkID
@@ -180,7 +181,7 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		snapshot.platforms.push_back(std::move(state));
 	}
 
-	for (const Passenger& passenger : AllDailyPassengers) {
+	for (const Passenger& passenger : run.passengers) {
 		GuiPassengerState state;
 		state.id = passenger.ID;
 		state.status = passenger.CurrentStatus;
@@ -197,19 +198,27 @@ GuiSimulationSnapshot buildGuiSimulationSnapshot(int timestep) {
 		snapshot.passengers.push_back(std::move(state));
 	}
 
-	const std::size_t messageCount = std::min({VCmsgTimestep.size(), VCmsgTrain.size(), VCmsgText.size()});
+	const std::size_t messageCount = std::min({run.vcMsgTimestep.size(), run.vcMsgTrain.size(), run.vcMsgText.size()});
 	for (std::size_t i = 0; i < messageCount; ++i) {
-		if (timestep >= VCmsgTimestep[i] && timestep <= VCmsgTimestep[i] + 40)
-			snapshot.virtualCouplingMessages.push_back({VCmsgTimestep[i], VCmsgTrain[i], VCmsgText[i]});
+		if (timestep >= run.vcMsgTimestep[i] && timestep <= run.vcMsgTimestep[i] + 40)
+			snapshot.virtualCouplingMessages.push_back({run.vcMsgTimestep[i], run.vcMsgTrain[i], run.vcMsgText[i]});
 	}
 	return snapshot;
-}
 }
 
 //-------
 
 // simulation object (global variable)
 DispatchController simulation;
+
+// The controller holds the run of the process until the legacy names of its state are gone (see SimulationRun.h).
+SimulationRun& DispatchController::mutableRun() {
+	return defaultRun();
+}
+
+const SimulationRun& DispatchController::run() const {
+	return defaultRun();
+}
 
 std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& scene,
 	const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
@@ -264,8 +273,10 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		return diagnostics;
 	}
 
+	// The run is built apart from the run of the controller, which a failed scene must not leave half built.
+	const auto staged = std::make_unique<SimulationRun>();
 	const std::vector<SceneDiagnostic> infrastructure =
-		buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
+		buildInfrastructureAndSignallingFromScene(*staged, scene);
 	diagnostics.insert(diagnostics.end(), infrastructure.begin(), infrastructure.end());
 	const bool infrastructureFailed = hasErrors(diagnostics);
 	if (infrastructureFailed)
@@ -279,7 +290,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 
 	const std::vector<SceneDiagnostic> operations =
-		buildOperationsFromScene(defaultRun(), scene, selectedScenarioId, selectedOccurrences);
+		buildOperationsFromScene(*staged, scene, selectedScenarioId, selectedOccurrences);
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();
@@ -289,7 +300,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		return diagnostics;
 	}
 	if (initial_variables.RChoice) {
-		const bool hasUsablePassengerJourney = std::any_of(AllDailyPassengers.begin(), AllDailyPassengers.end(),
+		const bool hasUsablePassengerJourney = std::any_of(staged->passengers.begin(), staged->passengers.end(),
 			[](const Passenger& passenger) { return !passenger.Journeys.empty(); });
 		if (!hasUsablePassengerJourney) {
 			diagnostics.push_back({SceneSeverity::Error, "scene.route_choice.passengers.none",
@@ -320,22 +331,24 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	removeRunOutput(initial_variables.OutputMainFolder + "/TrainTrajectories/TrainServicePathDiagram.txt");
 	removeRunOutput(initial_variables.OutputMainFolder + "/Rescheduling/EGTRAINOutput.txt");
 	// The run reads its settings from this copy.
-	defaultRun().settings = initial_variables;
+	staged->settings = initial_variables;
+	mutableRun().adopt(std::move(*staged));
 	outputTime = elapsed(checkpoint, now());
 	reportDetail("success");
 	return diagnostics;
 }
 
+// The trains and passengers of the run that the scene replaces are released before the new ones are built.
 void DispatchController::beginScenePreparation() {
 	snapshotMailbox_.take();
-	prepareNativeOperationsState(defaultRun());
+	prepareNativeOperationsState(mutableRun());
 }
 
 // Reset all native runtime state before loading another canonical scene.
 void DispatchController::resetState() {
 	snapshotMailbox_.take();
-	resetNativeInfrastructureState(defaultRun());
-	resetNativeOperationsState(defaultRun());
+	resetNativeInfrastructureState(mutableRun());
+	resetNativeOperationsState(mutableRun());
 }
 
 std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationSnapshot() {
@@ -391,10 +404,10 @@ void rejectLiveCommands(DispatchLive& live, const char* reason) {
 }
 
 // Opens the run in the stream: new run id, the time axis of the run and the hello frame with its trains.
-void beginLiveRun(DispatchLive& live, const std::string& sceneName) {
+void beginLiveRun(DispatchLive& live, const std::string& sceneName, const SimulationRun& run) {
 	live.run.runId = newRunId();
 	live.run.sceneName = sceneName;
-	const InitialParameters& settings = defaultRun().settings;
+	const InitialParameters& settings = run.settings;
 	live.run.baseTimeSeconds = settings.startingSimulationTime;
 	live.run.horizonSteps = static_cast<int>(settings.times);
 	live.run.stepSeconds = timestep;
@@ -403,9 +416,9 @@ void beginLiveRun(DispatchLive& live, const std::string& sceneName) {
 	live.signalsFrom.reset();
 	live.inRun = true;
 	GuiSimulationSnapshot identities;
-	identities.trains.reserve(static_cast<std::size_t>(numRegions));
-	for (int i = 0; i < numRegions; ++i)
-		identities.trains.push_back(trainIdentity(i, regional_train[i]));
+	identities.trains.reserve(static_cast<std::size_t>(run.numTrains));
+	for (int i = 0; i < run.numTrains; ++i)
+		identities.trains.push_back(trainIdentity(i, run.trains[i]));
 	live.server.pushHello(live.run.runId, frameText(makeHelloFrame(live.run, live.seq++, identities)));
 	rejectLiveCommands(live, "no_active_run");
 }
@@ -499,7 +512,7 @@ void DispatchController::publishSimulationSnapshot(int timestep) {
 	{
 		QEGTRAIN_PROFILE_SCOPE("worker/playback_step/snapshot_build_publish/build_gui_snapshot", "worker",
 			"worker/playback_step/snapshot_build_publish");
-		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(timestep));
+		snapshot = std::make_shared<const GuiSimulationSnapshot>(buildGuiSimulationSnapshot(run(), timestep));
 	}
 	if (liveDue)
 		publishLiveState(*live_, snapshot);
@@ -519,12 +532,12 @@ void DispatchController::runSimulation() {
 
 	runCompleted_ = false;
 
-	if (numRegions <= 0) {
+	SimulationRun& run = mutableRun();
+	if (run.numTrains <= 0) {
 		emit executionRejected();
 		EG_LOG(AppRun, Error) << "ERROR: Cannot run simulation because zero trains were loaded.\n";
 		return;
 	}
-	SimulationRun& run = defaultRun();
 	const InitialParameters& settings = run.settings;
 	const std::string trajectoryFolder = settings.OutputMainFolder + "/TrainTrajectories";
 
@@ -537,7 +550,7 @@ void DispatchController::runSimulation() {
 	observationTimer.start();
 	emit executionBegan();
 	if (live_)
-		beginLiveRun(*live_, liveSceneName_);
+		beginLiveRun(*live_, liveSceneName_, run);
 
 	// A stopped run reports its cancellation here and skips the remaining stages.
 	const auto stoppedHere = [&] {
@@ -552,9 +565,9 @@ void DispatchController::runSimulation() {
 	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
 
 	// Setting departing time of train to the scheduled one
-	for (int i = 0; i < numRegions; i++) {
+	for (int i = 0; i < run.numTrains; i++) {
 
-		regional_train[i].departure_time = regional_train[i].scheduled_departure_time;
+		run.trains[i].departure_time = run.trains[i].scheduled_departure_time;
 	}
 
 	Train_Simulation_Mixed_Signalling_With_Passengers(signalCode1, signalCode2, signalCode3); // Function to Launch EGTRAIN considering passenger flow simulation
@@ -563,8 +576,8 @@ void DispatchController::runSimulation() {
 		return;
 
 	emit executionPostprocessing();
-	ComputeEnergyConsumptionForAllTrains(regional_train.data(), numRegions);
-	ComputeTimetableEnergyConsumption(regional_train.data(), numRegions, settings.OutputMainFolder);
+	ComputeEnergyConsumptionForAllTrains(run.trains.data(), run.numTrains);
+	ComputeTimetableEnergyConsumption(run.trains.data(), run.numTrains, settings.OutputMainFolder);
 
 	if (stoppedHere())
 		return;
@@ -572,7 +585,7 @@ void DispatchController::runSimulation() {
 	clock_t StartRun = clock();
 
 	// sorting recorded events of all infrastructure elements in chronological order
-	SortRecordedEventsForAllInfrastructureElements(InfraElementsList);
+	SortRecordedEventsForAllInfrastructureElements(run.infra.infraEvents);
 
 	if (stoppedHere())
 		return;
@@ -587,7 +600,7 @@ void DispatchController::runSimulation() {
 	EG_LOG(AppRun, Info) << "TimeElapsed is : " << TimeElapsed;
 
 	// Compute passage times at timetable points
-	Compute_TimetablingPoints_For_All_Trains(regional_train.data(), numRegions);
+	Compute_TimetablingPoints_For_All_Trains(run.trains.data(), run.numTrains);
 
 	// Calculate Train Delays
 	calculateArrivalDelayAllTrains(run);
@@ -598,7 +611,7 @@ void DispatchController::runSimulation() {
 	Print_Station_Delay_Stats(run, trajectoryFolder, "pos");
 
 	// Print Out Passenger Delays
-	printPassengerTotalJourneyDelay(AllDailyPassengers, settings.OutputMainFolder + "/PassengerStatus");
+	printPassengerTotalJourneyDelay(run.passengers, settings.OutputMainFolder + "/PassengerStatus");
 
 	// Calculating positive and negative Train Delays to debug the program
 	calculatePosAndNegArrivalDelayAllTrains(run);
@@ -619,7 +632,7 @@ void DispatchController::runSimulation() {
 
 	// The dense path diagram is part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories)
-		PrintTrainPathDiagram(run, regional_train.data(), numRegions, trajectoryFolder);
+		PrintTrainPathDiagram(run, run.trains.data(), run.numTrains, trajectoryFolder);
 
 	PrintTimetablePoints(run, trajectoryFolder);
 
@@ -630,10 +643,10 @@ void DispatchController::runSimulation() {
 	// The per-train files and their folder are part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories) {
 		ensureDirectory(settings.OutputMainFolder + "/TEMP");
-		for (int i = 0; i < numRegions; i++) {
+		for (int i = 0; i < run.numTrains; i++) {
 			if (stoppedHere())
 				return;
-			regional_train[i].PrintTrajectory();
+			run.trains[i].PrintTrajectory();
 		}
 	}
 	// The window reports the end of the run here. A run without a window leaves it to main.
@@ -647,15 +660,15 @@ void DispatchController::runSimulation() {
 }
 
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
-	SimulationRun& run = defaultRun();
+	SimulationRun& run = mutableRun();
 	const InitialParameters& settings = run.settings;
 	nlohmann::json jsmsg;
 
-	// The trains by departure time; trains due at the same time stay in the order of regional_train.
-	std::vector<int> dueOrder(numRegions);
+	// The trains by departure time; trains due at the same time stay in the order of the trains of the run.
+	std::vector<int> dueOrder(run.numTrains);
 	std::iota(dueOrder.begin(), dueOrder.end(), 0);
 	std::stable_sort(dueOrder.begin(), dueOrder.end(), [&](int a, int b) {
-		return regional_train[a].departure_time < regional_train[b].departure_time;
+		return run.trains[a].departure_time < run.trains[b].departure_time;
 	});
 	std::vector<int> movementOrder;
 	int lastStep = -1;
@@ -681,13 +694,13 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/passenger_entry_platform_refresh", "worker",
 					"worker/playback_step/compute");
 				// Simulate entrance process of passengers on the railway network according to route choice
-				checkJourneyStartForAllPassengers(t, settings.startingSimulationTime, AllDailyPassengers);
+				checkJourneyStartForAllPassengers(t, settings.startingSimulationTime, run.passengers);
 
 				// This function will update the list of all waiting passengers at all platforms in the network at every instant
 				// To reduce the computation time it is instead recommended that the function to update the list of waiting passengers at platform is only used in the functional "Simulate_Train_Passenger_Interaction"
 				// In that case  please comment the line below and uncomment the corresponding function Update_List_Passengers_Waiting_At_Platform in that function
 				if (settings.PAX_GUI) {
-					Update_List_Passengers_Waiting_At_ALL_Platforms(AllStationPlatforms, AllDailyPassengers);
+					Update_List_Passengers_Waiting_At_ALL_Platforms(run.platforms, run.passengers);
 				}
 			}
 
@@ -695,12 +708,12 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_movement", "worker",
 					"worker/playback_step/compute");
 				// Simulate train movement at each simulation step
-				// Every train keeps its place in the order of regional_train, except that the trains that are due and still
+				// Every train keeps its place in the order of the trains of the run, except that the trains that are due and still
 				// waiting to enter take the places of those trains in the order in which they are due. Of several trains
 				// waiting at the entry of a route the one due first then enters first.
-				movementOrder.resize(numRegions);
+				movementOrder.resize(run.numTrains);
 				std::iota(movementOrder.begin(), movementOrder.end(), 0);
-				const auto dueAndWaiting = [&](int j) { return !regional_train[j].CanEnter && t >= regional_train[j].departure_time; };
+				const auto dueAndWaiting = [&](int j) { return !run.trains[j].CanEnter && t >= run.trains[j].departure_time; };
 				auto nextDue = dueOrder.begin();
 				for (int& place : movementOrder) {
 					if (!dueAndWaiting(place))
@@ -710,12 +723,12 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 					place = *nextDue++;
 				}
 				for (const int j : movementOrder) {
-					regional_train[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
-					regional_train[j].recordEarliestActiveTrajectoryIndex(t);
-					regional_train[j].recordStationPassagesAtTime(t);
+					run.trains[j].trajectoryComputationIncludingMovingBlock(t, v1, v2, v3);
+					run.trains[j].recordEarliestActiveTrajectoryIndex(t);
+					run.trains[j].recordStationPassagesAtTime(t);
 
 					// check if train arrived at destination or departed from origin
-					regional_train[j].checkTrainArrDep(j, t);
+					run.trains[j].checkTrainArrDep(j, t);
 				}
 			}
 
@@ -723,34 +736,34 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/train_passenger_state_payload", "worker",
 					"worker/playback_step/compute");
 				// Here we prepare the Traffic State data
-				for (int n = 0; n < numRegions; n++) {
+				for (int n = 0; n < run.numTrains; n++) {
 
 					// The interaction Trains and passengers and corresponding dwell time dependency at platform is simulated here in a non multi-thread fashion
 					// Simulating interaction with the passengers and changing dwell times according to the chosen passenger-dependent dwell time function
-					Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, regional_train[n], AllDailyPassengers, AllStationPlatforms);
+					Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, run.trains[n], run.passengers, run.platforms);
 
 					// round to 2 decimals
-					double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
+					double xPosition = std::ceil(run.trains[n].trainXPosition(t) * 100.0) / 100.0;
 
 					// The traffic-state payload is only built when it is shared (-TSM 1)
 					if (settings.TSM) {
-						double trainSpeed = std::ceil((regional_train[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
-						jsmsg["trains"][regional_train[n].trainDescription]["km-point"] = xPosition;
-						jsmsg["trains"][regional_train[n].trainDescription]["speed"] = trainSpeed;
+						double trainSpeed = std::ceil((run.trains[n].instant_train_speed[t] * 3.6) * 100.0) / 100.0;
+						jsmsg["trains"][run.trains[n].trainDescription]["km-point"] = xPosition;
+						jsmsg["trains"][run.trains[n].trainDescription]["speed"] = trainSpeed;
 
-						jsmsg["trains"][regional_train[n].trainDescription]["BlockOccupied"] = regional_train[n].Bs.ID;
-						jsmsg["trains"][regional_train[n].trainDescription]["lastOccTime"] = regional_train[n].ComputeLastOccupationTime_real_time(t, regional_train[n].Bs.ID, 10);
-						jsmsg["trains"][regional_train[n].trainDescription]["direction"] = train_route[regional_train[n].indexOfRoute].reversed_direction;
+						jsmsg["trains"][run.trains[n].trainDescription]["BlockOccupied"] = run.trains[n].Bs.ID;
+						jsmsg["trains"][run.trains[n].trainDescription]["lastOccTime"] = run.trains[n].ComputeLastOccupationTime_real_time(t, run.trains[n].Bs.ID, 10);
+						jsmsg["trains"][run.trains[n].trainDescription]["direction"] = run.infra.routes[run.trains[n].indexOfRoute].reversed_direction;
 
-						jsmsg["trains"][regional_train[n].trainDescription]["depTime"] = regional_train[n].departure_time;
-						if (regional_train[n].departure_time <= t) {
+						jsmsg["trains"][run.trains[n].trainDescription]["depTime"] = run.trains[n].departure_time;
+						if (run.trains[n].departure_time <= t) {
 							char c = '-';
-							int index = regional_train[n].Bs.ID.find(c);
+							int index = run.trains[n].Bs.ID.find(c);
 
-							jsmsg["trains"][regional_train[n].trainDescription]["trackID"] = regional_train[n].Bs.ID.substr(index + 1, regional_train[n].Bs.ID.length() - index - 2);
-							jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 1;
+							jsmsg["trains"][run.trains[n].trainDescription]["trackID"] = run.trains[n].Bs.ID.substr(index + 1, run.trains[n].Bs.ID.length() - index - 2);
+							jsmsg["trains"][run.trains[n].trainDescription]["inArea"] = 1;
 						} else
-							jsmsg["trains"][regional_train[n].trainDescription]["inArea"] = 0;
+							jsmsg["trains"][run.trains[n].trainDescription]["inArea"] = 0;
 					}
 				}
 			}
@@ -765,7 +778,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			}
 
 			if (settings.RChoice) {
-				const nlohmann::json route_choice_json = routeChoicePayload(AllDailyPassengers, t);
+				const nlohmann::json route_choice_json = routeChoicePayload(run.passengers, t);
 				const std::string xml = routeChoice_xml(route_choice_json);
 				EG_LOG(IoZmq, Debug) << "\n\n Sending the following Route Choice XML file\n"
 									 << xml;
@@ -775,7 +788,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 			{
 				QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup", "worker",
 					"worker/playback_step/compute");
-				ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
+				run.etcsMa.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
 				Occupy_Block_Sections_Of_Route(run, t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
@@ -798,12 +811,12 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 				unlockDoubleSwitches(run); // unlock double switches (otherwise trains stop in the middle of double switches)
 
-				BlocksOccupied.clear();	 // Clear the list BlocksOccupied
-				BlocksConnected.clear(); // Clear the list BlocksConnected
+				run.blocksOccupied.clear();	 // Clear the list of the occupied blocks
+				run.blocksConnected.clear(); // Clear the list of the connected blocks
 			}
 
-			clock_t endEGTRAIN = clock();																// variable that sets the time in which EGTRAIN ends
-			Comp_Time_EGTRAIN = Comp_Time_EGTRAIN + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
+			clock_t endEGTRAIN = clock();																	// variable that sets the time in which EGTRAIN ends
+			run.compTimeEgtrain = run.compTimeEgtrain + double(endEGTRAIN - startEGTRAIN) / CLOCKS_PER_SEC; // computing the cumulated computation time of EGTRAIN
 		}
 
 		publishSimulationSnapshot(t);
@@ -815,28 +828,30 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 	// The file holds passengers in the network at the last step that ran, including a stopped run.
 	// Write it once because each write replaces the file.
 	if (lastStep >= 0)
-		printCurrentPassengerStatus(lastStep, settings.startingSimulationTime, AllDailyPassengers, settings.OutputMainFolder + "/PassengerStatus");
+		printCurrentPassengerStatus(lastStep, settings.startingSimulationTime, run.passengers, settings.OutputMainFolder + "/PassengerStatus");
 }
 
 void DispatchController::printLastTrainServicePathDiagram() {
-	const InitialParameters& settings = defaultRun().settings;
+	SimulationRun& run = mutableRun();
+	const InitialParameters& settings = run.settings;
 	// print last services
-	for (int i = 0; i < numRegions; i++) {
+	for (int i = 0; i < run.numTrains; i++) {
 		// print only trains running during simulation (departure_time >= settings.times indicate that trains were not used, e.g. if only sprinters were used, IC are not printed)
-		if (regional_train[i].departure_time < settings.times) {
-			if (!regional_train[i].OutOfSimulation) {
-				TrajectoryEndTimeOverride temporaryEnd(regional_train[i].End_Time, settings.times - 1);
-				regional_train[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1); // -1 indicates no next service
+		if (run.trains[i].departure_time < settings.times) {
+			if (!run.trains[i].OutOfSimulation) {
+				TrajectoryEndTimeOverride temporaryEnd(run.trains[i].End_Time, settings.times - 1);
+				run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1); // -1 indicates no next service
 			} else {
-				regional_train[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1);
+				run.trains[i].printTrainServicePathDiagram(settings.OutputMainFolder + "/TrainTrajectories", -1);
 			}
 		}
 	}
 }
 
 void DispatchController::setVectorSizesFromInput(int vec_size) {
-	for (int i = 0; i < numRegions; i++) {
+	SimulationRun& run = mutableRun();
+	for (int i = 0; i < run.numTrains; i++) {
 		// define vector sizes with length of simulation from user input
-		regional_train[i].setTrainVectorSizesFromInput(vec_size);
+		run.trains[i].setTrainVectorSizesFromInput(vec_size);
 	}
 }
