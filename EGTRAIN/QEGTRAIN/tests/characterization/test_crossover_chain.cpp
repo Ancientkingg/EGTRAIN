@@ -16,6 +16,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "simulation/SimulationRun.h"
 #ifdef signals
 #undef signals
 #endif
@@ -161,7 +162,7 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 	const std::vector<SceneDiagnostic> diagnostics = simulation.prepareScene(loaded.scene, "baseline", selection);
 	// Read each completed step before the next movement can rewrite a stored speed while capping to
 	// an arc limit. Physical checks must use the speed actually reported at the previous step.
-	std::vector<Trajectory> observed(numRegions);
+	std::vector<Trajectory> observed(simulation.run().numTrains);
 	for (Trajectory& trajectory : observed) {
 		trajectory.position.resize(initial_variables.times);
 		trajectory.speed.resize(initial_variables.times);
@@ -175,14 +176,14 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 		if (!snapshot)
 			return;
 		const int step = snapshot->timestep;
-		for (int k = 0; k < numRegions; ++k) {
-			Train& train = regional_train[k];
+		for (int k = 0; k < simulation.run().numTrains; ++k) {
+			Train& train = simulation.mutableRun().trains[k];
 			Trajectory& trajectory = observed[k];
 			trajectory.position[step] = train.instant_spatial_position[step];
 			trajectory.speed[step] = train.instant_train_speed[step];
 			if (step == 0)
 				continue;
-			const Route& route = train_route[train.indexOfRoute];
+			const Route& route = simulation.run().infra.routes[train.indexOfRoute];
 			for (const Section& section : route.sequence_of_block_sections)
 				for (int j = 0; j < section.total_arcs; ++j)
 					if (const Arc& arc = section.arcs_in_signalling_block_section[j]; trajectory.position[step - 1] >= arc.startNode.X * 1000 && trajectory.position[step - 1] < arc.endNode.X * 1000) {
@@ -242,13 +243,13 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 		outcome.problems.push_back("the test indexes trajectories by whole seconds; timestep is " + std::to_string(timestep));
 		return outcome;
 	}
-	if (numRegions != static_cast<int>(services.size())) {
-		outcome.problems.push_back("expected " + std::to_string(services.size()) + " trains, got " + std::to_string(numRegions));
+	if (simulation.run().numTrains != static_cast<int>(services.size())) {
+		outcome.problems.push_back("expected " + std::to_string(services.size()) + " trains, got " + std::to_string(simulation.run().numTrains));
 		return outcome;
 	}
 
-	for (int i = 0; i < numRegions; ++i) {
-		Train& train = regional_train[i];
+	for (int i = 0; i < simulation.run().numTrains; ++i) {
+		Train& train = simulation.mutableRun().trains[i];
 		Trajectory trajectory = std::move(observed[i]);
 		trajectory.name = train.trainDescription;
 		trajectory.length = train.train_length;
@@ -263,12 +264,13 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 			if (rewrites)
 				outcome.measurementProblems.push_back(train.trainDescription + ": published prior samples were rewritten");
 			bool hasB = false;
+			const Route& trainRoute = simulation.run().infra.routes[train.indexOfRoute];
 			for (int station = 0; station < train.numStations; ++station) {
 				if (train.Stations[station].stationName != "B")
 					continue;
 				hasB = true;
 				const double platform = train.stationBlockSection[station] >= 0 && train.stationArc[station] >= 0
-					? train_route[train.indexOfRoute].sequence_of_block_sections[train.stationBlockSection[station]].arcs_in_signalling_block_section[train.stationArc[station]].endNode.X * 1000
+					? trainRoute.sequence_of_block_sections[train.stationBlockSection[station]].arcs_in_signalling_block_section[train.stationArc[station]].endNode.X * 1000
 					: -1;
 				int firstStop = -1, lastStop = -1, departure = -1;
 				for (int t = trajectory.first; t <= trajectory.last; ++t) {
@@ -291,7 +293,7 @@ Outcome runServices(const std::string& fixture, int level, const std::vector<std
 	}
 
 	// All trains of a run use the first route of the first train.
-	const Route& route = train_route[regional_train[0].indexOfRoute];
+	const Route& route = simulation.run().infra.routes[simulation.run().trains[0].indexOfRoute];
 	checkChain(route, outcome);
 	outcome.routeEnd = route.x_of_end_node * 1000.0;
 	outcome.platforms.push_back(route.x_of_start_node * 1000.0);
@@ -449,14 +451,14 @@ void checkLateAdmission(const std::string& fixture, int level, std::vector<std::
 	initial_variables.OutputMainFolder = outputDir.path().toStdString();
 	initial_variables.InputMainFolder.clear();
 	const auto diagnostics = simulation.prepareScene(loaded.scene, "baseline", {{"F1", 1}, {"R1", 1}});
-	if (!outputDir.isValid() || hasErrors(diagnostics) || numRegions != 2) {
+	if (!outputDir.isValid() || hasErrors(diagnostics) || simulation.run().numTrains != 2) {
 		failures.push_back("late admission: cannot prepare trains");
 		return;
 	}
 	for (int direction = 0; direction < 2; ++direction) {
-		Train& arrival = regional_train[direction];
-		Train& departure = regional_train[1 - direction];
-		Route& route = train_route[arrival.indexOfRoute];
+		Train& arrival = simulation.mutableRun().trains[direction];
+		Train& departure = simulation.mutableRun().trains[1 - direction];
+		Route& route = simulation.mutableRun().infra.routes[arrival.indexOfRoute];
 		int first = -1;
 		for (int b = 0; b + 2 < route.N_Block_Sections; ++b)
 			if (route.sequence_of_block_sections[b].end_node.virtualSignal && route.sequence_of_block_sections[b + 1].start_node.virtualSignal)
@@ -481,14 +483,14 @@ void checkLateAdmission(const std::string& fixture, int level, std::vector<std::
 			arrival.instant_train_speed[1] = speed;
 			departure.CanEnter = false;
 			departure.counter2 = 0;
-			BlocksOccupied.clear();
+			simulation.mutableRun().blocksOccupied.clear();
 			departure.checkEntrance(1, &origin);
 			return departure.CanEnter;
 		};
 		const std::string assertion = "late admission, direction " + std::to_string(direction);
 		if (admitted(entry - 30, 20))
 			failures.push_back(assertion + ": departure enters after the arrival has passed its braking point");
-		if (departure.counter2 != 0 || !BlocksOccupied.empty())
+		if (departure.counter2 != 0 || !simulation.run().blocksOccupied.empty())
 			failures.push_back(assertion + ": a refused departure changes admission state or occupancy");
 		if (!admitted(entry - 1000, 20) || !admitted(entry - 150, 0))
 			failures.push_back(assertion + ": a distant or safely stopped arrival unnecessarily holds the exit");
@@ -514,7 +516,7 @@ void checkLateAdmission(const std::string& fixture, int level, std::vector<std::
 		arrival.OutOfSimulation = true;
 		if (!admitted(entry - 30, 20))
 			failures.push_back(assertion + ": an exited arrival still holds admission");
-		BlocksOccupied.clear();
+		simulation.mutableRun().blocksOccupied.clear();
 	}
 }
 

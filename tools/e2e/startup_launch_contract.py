@@ -264,6 +264,14 @@ def assert_deferred_success_path_resets() -> None:
         if name in native_reset:
             raise SystemExit(f"the native runtime reset handles {name} itself instead of resetting the run")
 
+    # The state of a run is reached through the run: no header of simulation/ declares a global for it, and the run defines none.
+    for header in sorted((ROOT / "EGTRAIN/QEGTRAIN/simulation").glob("*.h")):
+        for line in header.read_text(encoding="utf-8").splitlines():
+            if line.startswith("extern ") and line != "extern InitialParameters initial_variables;":
+                raise SystemExit(f"{header.name} declares a global: {line}")
+    if "= theRun." in run:
+        raise SystemExit("SimulationRun.cpp defines a global name for a member of the run")
+
 
 def assert_launch_reaches_defaults(app: Path, args: list[str], label: str) -> None:
     master, slave = pty.openpty()

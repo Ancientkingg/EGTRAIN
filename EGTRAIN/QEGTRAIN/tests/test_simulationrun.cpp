@@ -1,8 +1,8 @@
 // Tests of the run state of simulation/SimulationRun.h.
 //
-// reset() and resetInfrastructure() have to return every member to the state of a new run, and the global names of the
-// members have to refer to them. Runs in this process then show that nothing of one run reaches the next. A run that was
-// stopped part way is followed by another scene, a failed preparation by a good one, and a scene with passengers runs twice.
+// reset() and resetInfrastructure() have to return every member to the state of a new run. Runs in this process then show
+// that nothing of one run reaches the next. A run that was stopped part way is followed by another scene, a failed preparation
+// by a good one, and a scene with passengers runs twice.
 // Every run after such a gap has to write the files that the first run of its scene wrote. prepareScene copies the settings
 // of the application into the run, and the run goes on with the copy. The scene is built into a run of its own that replaces the
 // run of the controller, and the snapshot of a step is made from the run that it is given.
@@ -241,51 +241,36 @@ bool resetTests() {
 
 	fill(run);
 	ok &= expect(membersOfNewRun(run).empty(), "the test fills every member");
-	ok &= expect(&BlocksOccupied == &run.blocksOccupied && &BlocksConnected == &run.blocksConnected && &ETCS_MA == &run.etcsMa
-			&& &simulationIncidents == &run.incidents && &VCmsgTimestep == &run.vcMsgTimestep && &VCmsgTrain == &run.vcMsgTrain
-			&& &VCmsgText == &run.vcMsgText && &AllStationPlatforms == &run.platforms && &numAllStationPlatforms == &run.numPlatforms
-			&& &AllDailyPassengers == &run.passengers && &numAllDailyPassengers == &run.numPassengers
-			&& &AllDailyPassengerIndex == &run.passengerIndex && &AllStationPlatformIndex == &run.platformIndex
-			&& &TotalInputDelays == &run.totalInputDelays && &EntranceInputDelays == &run.entranceInputDelays
-			&& &DisturbanceInput == &run.disturbanceInput && &Final_Station == &run.finalStation
-			&& &regional_train == &run.trains && &numRegions == &run.numTrains
-			&& &S_delay == &run.signallingDelay && &Comp_Time_EGTRAIN == &run.compTimeEgtrain && &Comp_Time_ROMA == &run.compTimeRoma,
-		"the global names refer to the members of the run");
 	RunInfrastructure& infra = run.infra;
-	ok &= expect(&numTrackLines == &infra.numTrackLines && &blockSets == &infra.blockSets && &numConnections == &infra.numConnections
-			&& &connections == &infra.connections && &numStations == &infra.numStations && &StationArray == &infra.stations
-			&& &Blocks == &infra.numBlocks && &signalling_block_sections == &infra.sections && &list_of_TDS == &infra.detectionSections
-			&& &InfraElementsList == &infra.infraEvents
-			&& &singleTrackLimits == &infra.singleTrackLimits && &singleTrackHeld == &infra.singleTrackHeld
-			&& &singleTrackReservations == &infra.singleTrackReservations && &stationBoundarySections == &infra.stationBoundaries
-			&& &N_Routes == &infra.numRoutes && &train_route == &infra.routes,
-		"the global names refer to the members of the infrastructure");
-	ok &= expect(blockSets.size() == static_cast<std::size_t>(kMaxTrackLines) && connections.size() == static_cast<std::size_t>(kMaxConnections)
-			&& StationArray.size() == static_cast<std::size_t>(kMaxStations),
+	ok &= expect(infra.blockSets.size() == static_cast<std::size_t>(kMaxTrackLines)
+			&& infra.connections.size() == static_cast<std::size_t>(kMaxConnections)
+			&& infra.stations.size() == static_cast<std::size_t>(kMaxStations),
 		"the arrays of the network have their full number of elements");
-	ok &= expect(blockSets[0].sceneTrackId == "line" && connections[0].ID == "switch" && StationArray[0].stationName == "Station"
-			&& Blocks == 2 && signalling_block_sections.size() == 2 && list_of_TDS.size() == 1 && train_route.size() == 1 && N_Routes == 1,
-		"the infrastructure shows the values through the global names");
-	ok &= expect(BlocksOccupied.size() == 1 && ETCS_MA.size() == 1 && simulationIncidents.size() == 1 && VCmsgText.size() == 1
-			&& AllDailyPassengers.size() == 1 && numAllStationPlatforms == 1 && Final_Station.N_Stopped_Trains == 4 && numRegions == 2
-			&& regional_train.size() == 2 && S_delay == 2,
-		"the members show the values through the global names");
+	ok &= expect(infra.blockSets[0].sceneTrackId == "line" && infra.connections[0].ID == "switch"
+			&& infra.stations[0].stationName == "Station" && infra.numBlocks == 2 && infra.sections.size() == 2
+			&& infra.detectionSections.size() == 1 && infra.routes.size() == 1 && infra.numRoutes == 1,
+		"the infrastructure shows the values that the test set");
+	ok &= expect(run.blocksOccupied.size() == 1 && run.etcsMa.size() == 1 && run.incidents.size() == 1 && run.vcMsgText.size() == 1
+			&& run.passengers.size() == 1 && run.numPlatforms == 1 && run.finalStation.N_Stopped_Trains == 4 && run.numTrains == 2
+			&& run.trains.size() == 2 && run.signallingDelay == 2,
+		"the members show the values that the test set");
 
 	// The elements of the arrays of the network stay where they are when the infrastructure is reset.
-	const BlockSet* const firstTrack = &blockSets[0];
-	const Connections* const firstConnection = &connections[0];
-	const Stations* const firstStation = &StationArray[0];
+	const BlockSet* const firstTrack = &infra.blockSets[0];
+	const Connections* const firstConnection = &infra.connections[0];
+	const Stations* const firstStation = &infra.stations[0];
 
 	run.reset();
-	ok &= expect(infrastructureIs(run, false) && Blocks == 2 && train_route.size() == 1,
+	ok &= expect(infrastructureIs(run, false) && infra.numBlocks == 2 && infra.routes.size() == 1,
 		"reset leaves the infrastructure in place, because the scene builder replaces it");
 
 	run.resetInfrastructure();
 	ok &= expect(isNewRun(run), "reset and resetInfrastructure return every member to the state of a new run");
-	ok &= expect(&defaultRun() == address && BlocksOccupied.empty() && ETCS_MA.empty() && AllDailyPassengers.empty() && regional_train.empty() && numRegions == 0
-			&& S_delay == 0 && Blocks == 0 && train_route.empty() && N_Routes == 0 && list_of_TDS.empty(),
-		"a reset keeps the run at its address, so the global names stay valid");
-	ok &= expect(firstTrack == &blockSets[0] && firstConnection == &connections[0] && firstStation == &StationArray[0],
+	ok &= expect(&defaultRun() == address && run.blocksOccupied.empty() && run.etcsMa.empty() && run.passengers.empty() && run.trains.empty()
+			&& run.numTrains == 0 && run.signallingDelay == 0 && infra.numBlocks == 0 && infra.routes.empty() && infra.numRoutes == 0
+			&& infra.detectionSections.empty(),
+		"a reset keeps the run at its address");
+	ok &= expect(firstTrack == &infra.blockSets[0] && firstConnection == &infra.connections[0] && firstStation == &infra.stations[0],
 		"the arrays of the network keep their address when the infrastructure is reset");
 
 	// The generator of a seeded run starts again from the default seed.
@@ -361,7 +346,7 @@ Outcome runScene(const RunSetup& setup) {
 	initial_variables.InputMainFolder.clear();
 
 	CoutSilencer silencer;
-	outcome.prepared = !hasErrors(simulation.prepareScene(*setup.scene, "baseline", setup.selection)) && numRegions > 0;
+	outcome.prepared = !hasErrors(simulation.prepareScene(*setup.scene, "baseline", setup.selection)) && simulation.run().numTrains > 0;
 	if (!outcome.prepared)
 		return outcome;
 	outcome.startedClean = carriesNothingOver(defaultRun());
@@ -428,7 +413,7 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	const Outcome firstLine = runScene(lineRun);
 	ok &= expect(firstLine.prepared && firstLine.completed && !firstLine.files.empty(), "the line scene runs");
 	const Outcome firstPassengers = runScene(passengerRun);
-	ok &= expect(firstPassengers.prepared && firstPassengers.completed && !AllDailyPassengers.empty(), "the passenger scene runs");
+	ok &= expect(firstPassengers.prepared && firstPassengers.completed && !simulation.run().passengers.empty(), "the passenger scene runs");
 
 	ok &= sameFiles("passengers, second run", firstPassengers, runScene(passengerRun));
 
@@ -441,7 +426,7 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	stoppedRun.stopAtSnapshot = 300;
 	const Outcome stopped = runScene(stoppedRun);
 	ok &= expect(stopped.prepared && !stopped.completed, "the line run stops part way");
-	ok &= expect(!ETCS_MA.empty(), "the stopped run leaves movement authorities behind");
+	ok &= expect(!simulation.run().etcsMa.empty(), "the stopped run leaves movement authorities behind");
 	ok &= sameFiles("a scene after a stopped run", firstPassengers, runScene(passengerRun));
 
 	// A preparation that fails after the run state was used. The state has to be gone when the next scene prepares.
@@ -473,7 +458,7 @@ bool settingsTests(const SceneModel& line) {
 	initial_variables.OutputMainFolder = prepared.path().toStdString();
 
 	CoutSilencer silencer;
-	ok &= expect(!hasErrors(simulation.prepareScene(line, "baseline", {{"T1", 1}})) && numRegions > 0, "the scene is prepared");
+	ok &= expect(!hasErrors(simulation.prepareScene(line, "baseline", {{"T1", 1}})) && simulation.run().numTrains > 0, "the scene is prepared");
 	const InitialParameters& settings = defaultRun().settings;
 	ok &= expect(settings.times == 600 && settings.bufferTime == 2.5 && settings.recoveryTimePercentage == 3.5
 			&& settings.OutputMainFolder == prepared.path().toStdString() && settings.name == line.name,

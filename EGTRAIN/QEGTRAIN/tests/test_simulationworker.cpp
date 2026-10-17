@@ -6,6 +6,7 @@
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/RunControl.h"
+#include "simulation/SimulationRun.h"
 #include "simulation/SimulationWorker.h"
 #include "util/Log.h"
 #ifdef signals
@@ -90,7 +91,7 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	initial_variables.OutputMainFolder = outputDir.toStdString();
 	initial_variables.InputMainFolder.clear();
 
-	observed.prepared = !hasErrors(simulation.prepareScene(scene)) && numRegions > 0;
+	observed.prepared = !hasErrors(simulation.prepareScene(scene)) && simulation.run().numTrains > 0;
 	if (!observed.prepared)
 		return;
 
@@ -98,7 +99,7 @@ void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, 
 	Passenger probe;
 	probe.ID = "status-probe";
 	probe.IsIntheNetwork = true;
-	AllDailyPassengers.push_back(probe);
+	simulation.mutableRun().passengers.push_back(probe);
 
 	SimulationWorker* worker = nullptr;
 	QThread thread;

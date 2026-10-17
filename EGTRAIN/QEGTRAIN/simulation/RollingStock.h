@@ -28,19 +28,11 @@
 #include "util/Log.h"
 #include "util/TrajectoryUtil.h"
 
-// GUI - Virtual Coupling notifications
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
 #include <limits>
 #include <vector>
-extern std::vector<int>& VCmsgTimestep;
-extern std::vector<std::string>& VCmsgTrain;
-extern std::vector<std::string>& VCmsgText;
-
-// -------------
-
-
 #include <cmath> // std::fabs
 
 extern InitialParameters initial_variables;
@@ -153,10 +145,9 @@ private:
 Declaration of Train class
 *
 ****************************************************************************************************************************/
-extern int& numRegions; /*Number of Trains loaded for the simulation*/
 
 // Largest number of trains a scene may expand to. It is a validation and editor
-// limit, not a storage size: regional_train holds exactly the trains of the scene.
+// limit, not a storage size: SimulationRun::trains holds exactly the trains of the scene.
 inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 
 // A train that has braked into a stop is parked kStopHoldbackM short of the stopping point; the
@@ -604,13 +595,9 @@ public:
 	Regional& operator=(const Regional& ob2);
 };
 
-// ComputeEnergyConsumptionForAllTrains takes Train* and is called with regional_train.data(),
+// ComputeEnergyConsumptionForAllTrains takes Train* and is called with SimulationRun::trains.data(),
 // so both types must have the same size.
 static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
-
-// One element per train of the loaded scene. The storage is created once per build and does not
-// grow while the trains are live.
-extern std::vector<Regional>& regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
 void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);

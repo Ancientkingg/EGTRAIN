@@ -2,7 +2,7 @@
 
 This guide records the conventions that new code follows. The newer modules (`scene/`,
 `update/`, `diagrams/`, `graphics/`, `widgets/`, `telemetry/`) set the style.
-`simulation/` is legacy code with different naming, fixed-size global arrays and
+`simulation/` is legacy code with different naming, fixed-size arrays and
 `std::list` containers; new code follows the newer modules, including when it is added to
 `simulation/`. These rules do not ask for a rename of legacy code.
 
@@ -207,16 +207,17 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   object that is not a QObject. `SceneModel` holds its entity lists in `std::vector` members,
   `widgets/ConsoleWidget.h` owns a `std::unique_ptr<ConsoleStreambuf>`, and
   `telemetry/TelemetryQueue.h` owns a `std::unique_ptr<QLockFile>`.
-- `simulation/` uses `extern` globals. Do not add more.
+- `simulation/` keeps the state of a run in `SimulationRun` and not in `extern` globals. Do not add
+  any. `initial_variables`, the settings that the window edits, is the one that is left.
   State that a run builds up and the next run must not see is a member of `SimulationRun`
   (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member except the
-  infrastructure in place. The old global names of the members that moved there, such as
-  `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
+  infrastructure in place. A new member needs a line in `reset()`.
   The routines of `simulation/` take the run they work on as a `SimulationRun&` parameter, and the
   member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
-  sets. They do not use the old names, which only the tests still use. The window and `main.cpp` read the run
+  sets. The window and `main.cpp` read the run
   through `DispatchController::run()`, and `captureCompletedRun` takes it as a parameter. The canvas takes
-  `mutableRun()` because it writes its layout into the tracks, stations and connections.
+  `mutableRun()` because it writes its layout into the tracks, stations and connections. A test that
+  calls the builders itself passes them `defaultRun()` or a `SimulationRun` of its own.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the
   buffer time, the recovery time, the output folder and the other settings of a run from the copy,
@@ -230,18 +231,18 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   the window sees it only through the snapshots, which `buildGuiSimulationSnapshot(const SimulationRun&, int)`
   makes. After the worker has joined, `DispatchController::run()` gives the results as a `const SimulationRun&`.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
-  tracks, connections and stations (`blockSets`, `connections` and `StationArray`, vectors with
+  tracks, connections and stations (`blockSets`, `connections` and `stations`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,
-  the single-track data, with the zones that `singleTrackZone` derives from it, and `train_route`.
+  the single-track data, with the zones that `singleTrackZone` derives from it, and the routes.
   The scene builder replaces them and the previous ones
   stay until then, so `resetInfrastructure()` is a separate call, and a build that fails puts the
   earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
   the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
   infrastructure needs a line in `RunInfrastructure::reset()`.
-  `regional_train` is a reference to the `std::vector<Regional>` of the run, created with the
-  number of trains of the scene (declared in `simulation/RollingStock.h`); `Max_N_Reg` is
+  `SimulationRun::trains` is the `std::vector<Regional>` of the run, created with the
+  number of trains of the scene; `Max_N_Reg` is
   only the limit that validation and the editor enforce on that number. A `Train` keeps
-  the stops of its service in a `std::vector<Node>`, and `regional_train` is created once
+  the stops of its service in a `std::vector<Node>`, and `trains` is created once
   per build and not grown while the trains are live. A `Section` keeps the nodes of its block
   section in a `std::shared_ptr<const std::vector<Node>>` that the section and its copies,
   including those in the routes, share, and the last of them frees it. A reversed route

@@ -270,7 +270,7 @@ static std::vector<double> sampledWindows(const SceneModel& scene, unsigned long
 	if (hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene))
 		|| hasErrors(buildOperationsFromScene(defaultRun(), scene, "scenario.base")))
 		return windows;
-	for (const Passenger& passenger : AllDailyPassengers)
+	for (const Passenger& passenger : defaultRun().passengers)
 		for (const Journey& journey : passenger.Journeys) {
 			windows.push_back(journey.Actual_Planned_Departure_Time);
 			windows.push_back(journey.Actual_Planned_Arrival_Time);
@@ -1009,10 +1009,10 @@ static bool brakingPhaseTests() {
 			band[2] = 10000; // Same native stock as the existing performance movement test.
 	const auto infrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	const auto operations = buildOperationsFromScene(defaultRun(), scene, "scenario.base");
-	if (hasErrors(infrastructure) || hasErrors(operations) || numRegions != 1)
+	if (hasErrors(infrastructure) || hasErrors(operations) || defaultRun().numTrains != 1)
 		return expect(false, "phase fixture prepares native train");
-	Train& train = regional_train[0];
-	Route& route = train_route[train.indexOfRoute];
+	Train& train = defaultRun().trains[0];
+	Route& route = defaultRun().infra.routes[train.indexOfRoute];
 	route.sequence_of_block_sections[0].arcs_in_signalling_block_section[0].speedInBraking = 10;
 	train.CanEnter = true;
 	train.departure_time = 0;
@@ -1040,17 +1040,17 @@ static bool brakingPhaseTests() {
 	// Retain the original native stock for the executed steep-descent probe below.
 	SceneModel targetScene = scene;
 	targetScene.trainUnits = completeScene().trainUnits;
-	if (hasErrors(buildOperationsFromScene(defaultRun(), targetScene, "scenario.base")) || numRegions != 1)
+	if (hasErrors(buildOperationsFromScene(defaultRun(), targetScene, "scenario.base")) || defaultRun().numTrains != 1)
 		return expect(false, "target-selection fixture prepares original native stock");
-	const Train targetStock = regional_train[0];
+	const Train targetStock = defaultRun().trains[0];
 	// Measure the real native stock's candidate, not an invented acceleration.
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
 		return expect(false, "native crossover stock prepares for crossing detection");
-	Train& native = regional_train[0];
-	Route& nativeRoute = train_route[native.indexOfRoute];
+	Train& native = defaultRun().trains[0];
+	Route& nativeRoute = defaultRun().infra.routes[native.indexOfRoute];
 	// Target-selection cases use real native stock, not the high-traction acceleration fixture.
 	{
 		Route& route = nativeRoute;
@@ -1286,9 +1286,11 @@ static bool brakingPhaseTests() {
 				"materially unreachable, empty-interval and nonfinite terminal controls fail closed");
 		}
 
-		ok &= expect(train_route.size() == 2 && train_route[1].reversed_direction, "positive comparison has the actual reverse crossover route");
+		ok &= expect(defaultRun().infra.routes.size() == 2
+				&& defaultRun().infra.routes[1].reversed_direction,
+			"positive comparison has the actual reverse crossover route");
 		for (double target : {2000.0, 2500.0, std::nextafter(2000.0, 0.0), std::nextafter(2000.0, 3000.0)}) {
-			Route& targetRoute = target == 2500 ? train_route[1] : nativeRoute;
+			Route& targetRoute = target == 2500 ? defaultRun().infra.routes[1] : nativeRoute;
 			const double point = native.BrakDist_Block(speed, ceiling, target, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections);
 			Train live = native;
 			ok &= expect(point >= 0 && live.DrawBrakingCurve(speed, ceiling, target, targetRoute.sequence_of_block_sections.data(), targetRoute.N_Block_Sections),
@@ -1575,10 +1577,11 @@ static bool brakingPhaseTests() {
 		const QString path = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("../Scenes/Copenhagen");
 		const auto copenhagen = loadScene(path.toStdString());
 		if (hasErrors(copenhagen.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), copenhagen.scene))
-			|| hasErrors(buildOperationsFromScene(defaultRun(), copenhagen.scene, "baseline", {{"A-Hillerod-Hundige", 1}})) || numRegions != 1)
+			|| hasErrors(buildOperationsFromScene(defaultRun(), copenhagen.scene, "baseline", {{"A-Hillerod-Hundige", 1}}))
+			|| defaultRun().numTrains != 1)
 			return expect(false, "Copenhagen arbitration fixture prepares committed native stock and route");
-		Train live = regional_train[0];
-		Route& route = train_route[live.indexOfRoute];
+		Train live = defaultRun().trains[0];
+		Route& route = defaultRun().infra.routes[live.indexOfRoute];
 		const double head = 30462.886999999988, speed = 10.616039654442153;
 		const double boundary = 30473.999999999989, ceiling = 11.111000000000001, stopTarget = 30544.999999999996;
 		// Native builders precede the aspect speed pass; initialize clear runtime targets before imposing this witness.
@@ -1648,12 +1651,12 @@ static bool signalFailureEvidenceTests() {
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
 		return expect(false, "signal failure evidence fixture prepares native crossover stock");
-	const Train stock = regional_train[0];
-	Route& route = train_route[stock.indexOfRoute];
+	const Train stock = defaultRun().trains[0];
+	Route& route = defaultRun().infra.routes[stock.indexOfRoute];
 	const Route savedRoute = route;
-	const auto savedAuthorities = ETCS_MA;
+	const auto savedAuthorities = defaultRun().etcsMa;
 	for (bool reversed : {false, true}) {
 		route.sequence_of_block_sections = {brakingRoute(0, 1, 0)[0], brakingRoute(1, 2, 0)[0], brakingRoute(2, 3, 0)[0]};
 		route.N_Block_Sections = 3;
@@ -1700,13 +1703,13 @@ static bool signalFailureEvidenceTests() {
 			return live;
 		};
 		const auto runStep = [](Train& train) { train.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3); };
-		ETCS_MA = {failure("signal_failure:incident.test")};
+		defaultRun().etcsMa = {failure("signal_failure:incident.test")};
 		Train leader = standing(1999.9999);
 		Train follower = standing(999.9999);
 		runStep(leader);
 		runStep(follower);
 		ok &= expect(leader.directIncidentIds == std::vector<std::string>{"incident.test"}
-				&& leader.firstDirectIncidentTime == 2 * timestep && leader.firstDirectIncidentLocation == ETCS_MA.front().AbsPosEoA
+				&& leader.firstDirectIncidentTime == 2 * timestep && leader.firstDirectIncidentLocation == defaultRun().etcsMa.front().AbsPosEoA
 				&& leader.instant_train_speed[2] == 0,
 			"a train held at the red aspect before a failed section records the failure on the first step");
 		ok &= expect(follower.directIncidentIds.empty() && follower.instant_train_speed[2] == 0,
@@ -1721,23 +1724,23 @@ static bool signalFailureEvidenceTests() {
 		route.sequence_of_block_sections[1].state = SignalState::Red;
 		MovementAuthority elsewhere = failure("signal_failure:incident.test");
 		elsewhere.TrainInfo.NextSectionID = "evidence.9";
-		ETCS_MA = {elsewhere};
+		defaultRun().etcsMa = {elsewhere};
 		Train otherRoute = standing(1999.9999);
 		runStep(otherRoute);
 		ok &= expect(otherRoute.directIncidentIds.empty(), "a failed section that does not follow on the route of the train is not recorded");
 		MovementAuthority opposing = failure("signal_failure:incident.test");
 		opposing.ReversedDirection = !reversed;
-		ETCS_MA = {opposing};
+		defaultRun().etcsMa = {opposing};
 		Train otherDirection = standing(1999.9999);
 		runStep(otherDirection);
 		ok &= expect(otherDirection.directIncidentIds.empty(), "a failure authority of the opposite direction is not recorded");
-		ETCS_MA = {failure("single_track:lock.1")};
+		defaultRun().etcsMa = {failure("single_track:lock.1")};
 		Train singleTrack = standing(1999.9999);
 		runStep(singleTrack);
 		ok &= expect(singleTrack.directIncidentIds.empty(), "a held single-track section is not recorded as a signal failure");
 	}
 	route = savedRoute;
-	ETCS_MA = savedAuthorities;
+	defaultRun().etcsMa = savedAuthorities;
 	return ok;
 }
 
@@ -1747,12 +1750,12 @@ static bool level4TransitionTests() {
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
 	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
-		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || defaultRun().numTrains != 1)
 		return expect(false, "level-4 transition fixture prepares native crossover stock");
-	const Train stock = regional_train[0];
-	Route& route = train_route[stock.indexOfRoute];
+	const Train stock = defaultRun().trains[0];
+	Route& route = defaultRun().infra.routes[stock.indexOfRoute];
 	const Route savedRoute = route;
-	const auto savedAuthorities = ETCS_MA;
+	const auto savedAuthorities = defaultRun().etcsMa;
 	for (bool reversed : {false, true}) {
 		route.sequence_of_block_sections = brakingRoute(0, 10, 0);
 		route.N_Block_Sections = 1;
@@ -1800,7 +1803,7 @@ static bool level4TransitionTests() {
 			auto behind = authority(990, "BEHIND");
 			behind.TrainInfo.TrainSpeed = 35;
 			behind.TrainInfo.Acceleration = -0.5;
-			ETCS_MA = {behind};
+			defaultRun().etcsMa = {behind};
 			arc.speedInBraking = 0;
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(live.Xob[2] == 10000 && !live.BrakingForEoA,
@@ -1812,14 +1815,14 @@ static bool level4TransitionTests() {
 			auto front = authority(1020, "FRONT");
 			front.typePart = "Front";
 			front.TrainInfo.TrainSpeed = 10.01;
-			ETCS_MA = {front};
+			defaultRun().etcsMa = {front};
 			live.IsTrainCoupling = true;
 			live.Predicted_MA_To_CoupleAt = front;
 			arc.signalSpeedLimit = 10;
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(!live.IsTrainInFollowingMode, "same-direction Front cannot activate stale coupling");
 			front.ReversedDirection = !reversed;
-			ETCS_MA = {front};
+			defaultRun().etcsMa = {front};
 			live = actual(1000, 10);
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(near(live.Xob[2], 1020) && live.Vob[2] == 0 && live.BrakingForEoA,
@@ -1831,7 +1834,7 @@ static bool level4TransitionTests() {
 			auto leader = authority(1200, "STOPPING");
 			leader.TrainInfo.TrainSpeed = leaderSpeed;
 			leader.TrainInfo.Acceleration = -0.5;
-			ETCS_MA = {leader};
+			defaultRun().etcsMa = {leader};
 			const double raw = live.authorityRoutePosition(leader, section);
 			double end = 0;
 			ok &= expect(live.predictBraking(raw, leaderSpeed, 0, &section, 1, end) && end == raw,
@@ -1860,13 +1863,13 @@ static bool level4TransitionTests() {
 				live.StoppedForServiceStop = true;
 				live.Last_MA_StoppedAt = live.Last_Received_MA = authority(1000.002, "OLD");
 				live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
-				ETCS_MA = {authority(1000.005, "NEW")};
+				defaultRun().etcsMa = {authority(1000.005, "NEW")};
 				live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 				const bool held = live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0
 					&& live.StoppedForServiceStop && live.stop == 1 && near(live.Xob[2], 1000.005);
 				ok &= expect(held, "station hold and departure cannot cross a replacement authority within the station window");
 				if (held && dwellComplete) {
-					ETCS_MA.clear();
+					defaultRun().etcsMa.clear();
 					live.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
 					ok &= expect(!live.StoppedForServiceStop && live.instant_train_speed[3] > 0,
 						"completed station service can depart once the replacement authority clears");
@@ -1883,7 +1886,7 @@ static bool level4TransitionTests() {
 			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 			auto failure = authority(1000.001, "signal_failure:test");
 			failure.type = "SignalFailure"; // A synthetic competing snapshot, not a canonical incident position.
-			ETCS_MA = {saved, failure};
+			defaultRun().etcsMa = {saved, failure};
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(live.IsTrainStoppedForEoA && live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0
 					&& live.Last_Received_MA.type == "SignalFailure",
@@ -1894,9 +1897,9 @@ static bool level4TransitionTests() {
 			live.Last_MA_StoppedAt = live.Last_Received_MA = saved;
 			live.IsTrainStoppedForEoA = live.BrakingForEoA = true;
 			live.stop = 1;
-			ETCS_MA.clear();
+			defaultRun().etcsMa.clear();
 			if (replacement)
-				ETCS_MA.push_back(authority(1000.003, "NEW"));
+				defaultRun().etcsMa.push_back(authority(1000.003, "NEW"));
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(!live.IsTrainStoppedForEoA && (replacement ? live.Eq[2] == 54 && live.instant_spatial_position[2] == 1000 && live.instant_train_speed[2] == 0 && near(live.Xob[2], 1000.003) && live.BrakingForEoA && live.stop == 1 : live.Eq[2] == 1 && live.instant_spatial_position[2] > 1000 && live.instant_train_speed[2] > 0),
 				"removed saved Tale releases to the actual-state successor, retaining new near Tale or open acceleration");
@@ -1912,7 +1915,7 @@ static bool level4TransitionTests() {
 			if (mismatch == 3) changed.AbsPosEoA += 1;
 			if (mismatch == 4) live.Last_MA_StoppedAt.RelativePosEoA = 999;
 			if (mismatch == 5) live.Last_MA_StoppedAt.RelativePosEoA = 1005;
-			ETCS_MA = {changed};
+			defaultRun().etcsMa = {changed};
 			live.checkIfMovementAuthorityStillValid(0, 1000, section);
 			ok &= expect(!live.IsTrainStoppedForEoA && !live.BrakingForEoA,
 				"saved hold rejects changed identity, moved authority, behind or out-of-range distance");
@@ -1922,7 +1925,7 @@ static bool level4TransitionTests() {
 			auto behind = authority(999, "BEHIND");
 			live.Last_Received_MA = behind;
 			live.BrakingForEoA = true;
-			ETCS_MA = {behind};
+			defaultRun().etcsMa = {behind};
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(!live.IsTrainStoppedForEoA && live.instant_spatial_position[2] > 1000,
 				"a behind authority cannot be captured as a stationary hold");
@@ -1941,7 +1944,7 @@ static bool level4TransitionTests() {
 			live.Vbrak[1] = 0;
 			live.Xob[1] = target;
 			live.Vob[1] = 0;
-			ETCS_MA = {saved};
+			defaultRun().etcsMa = {saved};
 			live.trajectoryComputationIncludingMovingBlock(2, signalCode1, signalCode2, signalCode3);
 			ok &= expect(live.Eq[2] == 52 && live.instant_spatial_position[2] == terminal && live.instant_train_speed[2] == 0,
 				"active following cannot replace a native anchored zero-speed terminal");
@@ -1951,7 +1954,7 @@ static bool level4TransitionTests() {
 			auto front = authority(1020, "FRONT_ONLY");
 			front.typePart = "Front";
 			front.TrainInfo.TrainSpeed = 10;
-			ETCS_MA = {front};
+			defaultRun().etcsMa = {front};
 			arc.signalSpeedLimit = 10;
 			Train live = control;
 			live.IsTrainInFollowingMode = true;
@@ -1973,7 +1976,7 @@ static bool level4TransitionTests() {
 																		 : 9.9;
 			leader.TrainInfo.Acceleration = intent == 0 ? 0 : intent == 1 ? -0.5
 																		  : -0.9;
-			ETCS_MA = {leader};
+			defaultRun().etcsMa = {leader};
 			live.IsTrainInFollowingMode = true;
 			live.LeadingTrainInFollowingMode = "LIVE";
 			live.CounterFollowingMode = 1;
@@ -1993,7 +1996,7 @@ static bool level4TransitionTests() {
 			arc.signalSpeedLimit = stock.max_train_speed;
 		}
 	}
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	route = savedRoute;
 	{
 		Train service = stock;
@@ -2017,7 +2020,7 @@ static bool level4TransitionTests() {
 				"real-path stationary braking completes dwell and scheduled departure without resetting the clock");
 		}
 	}
-	ETCS_MA = savedAuthorities;
+	defaultRun().etcsMa = savedAuthorities;
 	return ok;
 }
 
@@ -2115,13 +2118,13 @@ static bool passengerLookupTests() {
 	ok &= expect(!platformIndex.covers(platforms) && platformIndex.find("S1", "P1") == nullptr,
 		"a cleared platform index describes no list");
 
-	// Boarding at platform S1 P1 of the global lists, where the waiting list names Pb before Pa.
+	// Boarding at platform S1 P1 of the lists of the run, where the waiting list names Pb before Pa.
 	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(AllDailyPassengers);
+	savedPassengers.swap(defaultRun().passengers);
 	std::list<StationPlatform> savedPlatforms;
-	savedPlatforms.swap(AllStationPlatforms);
-	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
-	const PlatformIndex savedPlatformIndex = AllStationPlatformIndex;
+	savedPlatforms.swap(defaultRun().platforms);
+	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
+	const PlatformIndex savedPlatformIndex = defaultRun().platformIndex;
 	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
 	defaultRun().settings.PAX_GUI = true;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
@@ -2156,34 +2159,34 @@ static bool passengerLookupTests() {
 	stop.StationID = "S1";
 	stop.ID = "P1";
 	stop.Current_List_Pax_On_Platform = {{"Pb", 0.0}, {"Pa", 0.0}};
-	AllStationPlatforms.push_back(stop);
-	AllStationPlatformIndex.build(AllStationPlatforms);
+	defaultRun().platforms.push_back(stop);
+	defaultRun().platformIndex.build(defaultRun().platforms);
 
-	AllDailyPassengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	AllDailyPassengerIndex.build(AllDailyPassengers);
-	board(1, AllDailyPassengers, AllStationPlatforms);
-	ok &= expect(boardedIds(AllDailyPassengers) == "Pb ", "passengers board in the order of the waiting list");
-	AllDailyPassengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
-	AllDailyPassengerIndex.build(AllDailyPassengers);
-	board(2, AllDailyPassengers, AllStationPlatforms);
-	ok &= expect(boardedIds(AllDailyPassengers) == "Pa Pb ", "of two passengers with one ID the first in the list boards");
+	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
+	defaultRun().passengerIndex.build(defaultRun().passengers);
+	board(1, defaultRun().passengers, defaultRun().platforms);
+	ok &= expect(boardedIds(defaultRun().passengers) == "Pb ", "passengers board in the order of the waiting list");
+	defaultRun().passengers = {waiting("Pa"), waiting("Pb"), waiting("Pa")};
+	defaultRun().passengerIndex.build(defaultRun().passengers);
+	board(2, defaultRun().passengers, defaultRun().platforms);
+	ok &= expect(boardedIds(defaultRun().passengers) == "Pa Pb ", "of two passengers with one ID the first in the list boards");
 
 	// A passenger added after the index was built still boards: the shared index no longer describes the list.
-	AllDailyPassengers = {waiting("Pa"), waiting("Pb")};
-	AllDailyPassengerIndex.build(AllDailyPassengers);
-	AllDailyPassengers.push_back(waiting("Pc"));
-	AllStationPlatforms.front().Current_List_Pax_On_Platform = {{"Pc", 0.0}};
-	board(2, AllDailyPassengers, AllStationPlatforms);
-	ok &= expect(boardedIds(AllDailyPassengers) == "Pc ", "a passenger added after the index was built boards");
+	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
+	defaultRun().passengerIndex.build(defaultRun().passengers);
+	defaultRun().passengers.push_back(waiting("Pc"));
+	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pc", 0.0}};
+	board(2, defaultRun().passengers, defaultRun().platforms);
+	ok &= expect(boardedIds(defaultRun().passengers) == "Pc ", "a passenger added after the index was built boards");
 
-	// Another list of the same size as the global one is not looked up in the global index.
-	AllDailyPassengers = {waiting("Pa"), waiting("Pb")};
-	AllDailyPassengerIndex.build(AllDailyPassengers);
-	AllStationPlatforms.front().Current_List_Pax_On_Platform = {{"Pb", 0.0}};
+	// Another list of the same size as the one of the run is not looked up in the index of the run.
+	defaultRun().passengers = {waiting("Pa"), waiting("Pb")};
+	defaultRun().passengerIndex.build(defaultRun().passengers);
+	defaultRun().platforms.front().Current_List_Pax_On_Platform = {{"Pb", 0.0}};
 	std::list<Passenger> others = {waiting("Pb"), waiting("Pa")};
-	board(2, others, AllStationPlatforms);
-	ok &= expect(boardedIds(others) == "Pb " && boardedIds(AllDailyPassengers).empty(),
-		"a passenger list that is not the global one is looked up in its own index");
+	board(2, others, defaultRun().platforms);
+	ok &= expect(boardedIds(others) == "Pb " && boardedIds(defaultRun().passengers).empty(),
+		"a passenger list that is not the one of the run is looked up in its own index");
 
 	// The same holds for a platform list.
 	StationPlatform otherStop = stop;
@@ -2191,21 +2194,21 @@ static bool passengerLookupTests() {
 	const std::list<StationPlatform> otherPlatforms = {otherStop};
 	others = {waiting("Pb"), waiting("Pa")};
 	board(2, others, otherPlatforms);
-	ok &= expect(boardedIds(others) == "Pa ", "a platform list that is not the global one is looked up in its own index");
+	ok &= expect(boardedIds(others) == "Pa ", "a platform list that is not the one of the run is looked up in its own index");
 
 	// A train at a platform that does not exist boards nobody.
 	others = {waiting("Pb"), waiting("Pa")};
 	train.CurrentServiceStopPlatform = "P9";
-	board(2, others, AllStationPlatforms);
+	board(2, others, defaultRun().platforms);
 	ok &= expect(boardedIds(others).empty() && train.Current_OnBoard_Passengers == 0,
 		"a train at an unknown platform boards nobody");
 
 	eglog::setSink({});
 	defaultRun().settings.PAX_GUI = savedPaxGui;
-	AllDailyPassengers.swap(savedPassengers);
-	AllStationPlatforms.swap(savedPlatforms);
-	AllDailyPassengerIndex = savedPassengerIndex;
-	AllStationPlatformIndex = savedPlatformIndex;
+	defaultRun().passengers.swap(savedPassengers);
+	defaultRun().platforms.swap(savedPlatforms);
+	defaultRun().passengerIndex = savedPassengerIndex;
+	defaultRun().platformIndex = savedPlatformIndex;
 	return ok;
 }
 
@@ -2340,14 +2343,14 @@ static bool passengerWaitingListTests() {
 
 	// Without the passenger GUI the shared platform keeps the list it had: the train boards from the list worked out for the platform.
 	std::list<Passenger> savedPassengers;
-	savedPassengers.swap(AllDailyPassengers);
-	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
-	AllDailyPassengerIndex.clear();
+	savedPassengers.swap(defaultRun().passengers);
+	const PassengerIndex savedPassengerIndex = defaultRun().passengerIndex;
+	defaultRun().passengerIndex.clear();
 	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
 	defaultRun().settings.PAX_GUI = false;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 
-	AllDailyPassengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
+	defaultRun().passengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
 	StationPlatform stop;
 	stop.StationID = "S1";
 	stop.ID = "P1";
@@ -2362,9 +2365,9 @@ static bool passengerWaitingListTests() {
 	train.CurrentServiceStopPlatform = "P1";
 	train.MAX_OnBoard_Passengers = 1;
 	train.Current_OnBoard_Passengers = 0;
-	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, AllDailyPassengers, stopPlatforms);
+	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, defaultRun().passengers, stopPlatforms);
 	std::string boarded;
-	for (const Passenger& passenger : AllDailyPassengers)
+	for (const Passenger& passenger : defaultRun().passengers)
 		if (passenger.CurrentStatus == "OnBoard")
 			boarded += passenger.ID + " ";
 	ok &= expect(boarded == "Pb ", "without the passenger GUI passengers board in the order of departure times");
@@ -2373,8 +2376,8 @@ static bool passengerWaitingListTests() {
 
 	eglog::setSink({});
 	defaultRun().settings.PAX_GUI = savedPaxGui;
-	AllDailyPassengers.swap(savedPassengers);
-	AllDailyPassengerIndex = savedPassengerIndex;
+	defaultRun().passengers.swap(savedPassengers);
+	defaultRun().passengerIndex = savedPassengerIndex;
 	return ok;
 }
 
@@ -2404,19 +2407,20 @@ static std::vector<Section> borderAspects(int west, int east, int tail) {
 		sections[i].arcs_in_signalling_block_section[0].signalSpeedLimit = 999;
 	}
 	std::vector<Route> savedRoutes;
-	savedRoutes.swap(train_route);
-	const int savedRouteCount = N_Routes;
-	const auto savedOccupied = BlocksOccupied;
-	train_route.resize(1);
-	train_route[0].N_Block_Sections = 8;
-	train_route[0].sequence_of_block_sections = std::move(sections);
-	N_Routes = 1;
-	BlocksOccupied = {train_route[0].sequence_of_block_sections[tail].ID, train_route[0].sequence_of_block_sections[tail + 1].ID};
+	savedRoutes.swap(defaultRun().infra.routes);
+	const int savedRouteCount = defaultRun().infra.numRoutes;
+	const auto savedOccupied = defaultRun().blocksOccupied;
+	defaultRun().infra.routes.resize(1);
+	defaultRun().infra.routes[0].N_Block_Sections = 8;
+	defaultRun().infra.routes[0].sequence_of_block_sections = std::move(sections);
+	defaultRun().infra.numRoutes = 1;
+	defaultRun().blocksOccupied = {defaultRun().infra.routes[0].sequence_of_block_sections[tail].ID,
+		defaultRun().infra.routes[0].sequence_of_block_sections[tail + 1].ID};
 	activateMixedSignallingSystem(defaultRun());
-	sections = std::move(train_route[0].sequence_of_block_sections);
-	BlocksOccupied = savedOccupied;
-	N_Routes = savedRouteCount;
-	train_route.swap(savedRoutes);
+	sections = std::move(defaultRun().infra.routes[0].sequence_of_block_sections);
+	defaultRun().blocksOccupied = savedOccupied;
+	defaultRun().infra.numRoutes = savedRouteCount;
+	defaultRun().infra.routes.swap(savedRoutes);
 	return sections;
 }
 
@@ -2479,25 +2483,25 @@ static void placeBoundaryTrain(Train& train, double headPosition) {
 static bool routeBoundaryTests() {
 	bool ok = true;
 	std::vector<Route> savedRoutes;
-	savedRoutes.swap(train_route);
-	train_route.resize(1);
-	train_route[0].x_of_end_node = 100.0;
-	const double savedDelay = S_delay;
-	const auto savedOccupied = BlocksOccupied;
-	const auto savedConnected = BlocksConnected;
-	S_delay = 0.0;
+	savedRoutes.swap(defaultRun().infra.routes);
+	defaultRun().infra.routes.resize(1);
+	defaultRun().infra.routes[0].x_of_end_node = 100.0;
+	const double savedDelay = defaultRun().signallingDelay;
+	const auto savedOccupied = defaultRun().blocksOccupied;
+	const auto savedConnected = defaultRun().blocksConnected;
+	defaultRun().signallingDelay = 0.0;
 
 	{
 		// The tail is in the second section of the route, which follows a first section that starts with a
-		// virtual signal. The first section is the second half of a double switch over two global sections.
+		// virtual signal. The first section is the second half of a double switch over two sections of the infrastructure.
 		// The section before the route is a double switch too and is poisoned for a sanitizer, so that
 		// reading it is reported, and it releases visibly when it is read in a plain build.
-		const int savedBlocks = Blocks;
+		const int savedBlocks = defaultRun().infra.numBlocks;
 		std::vector<Section> savedSections(2);
-		savedSections.swap(signalling_block_sections);
-		Blocks = 2;
-		signalling_block_sections[0].ID = "@boundary.a@";
-		signalling_block_sections[1].ID = "@boundary.b@";
+		savedSections.swap(defaultRun().infra.sections);
+		defaultRun().infra.numBlocks = 2;
+		defaultRun().infra.sections[0].ID = "@boundary.a@";
+		defaultRun().infra.sections[1].ID = "@boundary.b@";
 		std::vector<Section> storage = boundarySections(3);
 		Section* sections = storage.data() + 1;
 		storage[0].ID = "@boundary.a@-2.0/@boundary.b@-2.0";
@@ -2506,8 +2510,8 @@ static bool routeBoundaryTests() {
 		Train train;
 		train.run_ = &defaultRun();
 		placeBoundaryTrain(train, 5000.0);
-		BlocksOccupied.clear();
-		BlocksConnected.clear();
+		defaultRun().blocksOccupied.clear();
+		defaultRun().blocksConnected.clear();
 #ifdef TEST_ADDRESS_SANITIZER
 		ASAN_POISON_MEMORY_REGION(&storage[0], sizeof(Section));
 #endif
@@ -2515,21 +2519,23 @@ static bool routeBoundaryTests() {
 #ifdef TEST_ADDRESS_SANITIZER
 		ASAN_UNPOISON_MEMORY_REGION(&storage[0], sizeof(Section));
 #endif
-		const bool beforeRouteUntouched = std::find(BlocksConnected.begin(), BlocksConnected.end(), storage[0].ID) == BlocksConnected.end();
-		savedSections.swap(signalling_block_sections);
-		Blocks = savedBlocks;
-		ok &= expect(BlocksOccupied.size() == 1 && BlocksOccupied.front() == sections[1].ID && beforeRouteUntouched,
+		const bool beforeRouteUntouched = std::find(defaultRun().blocksConnected.begin(), defaultRun().blocksConnected.end(),
+											  storage[0].ID)
+			== defaultRun().blocksConnected.end();
+		savedSections.swap(defaultRun().infra.sections);
+		defaultRun().infra.numBlocks = savedBlocks;
+		ok &= expect(defaultRun().blocksOccupied.size() == 1 && defaultRun().blocksOccupied.front() == sections[1].ID && beforeRouteUntouched,
 			"a first section that starts with a virtual signal has no double switch before it to release");
 	}
 
-	S_delay = savedDelay;
-	BlocksOccupied = savedOccupied;
-	BlocksConnected = savedConnected;
-	train_route.swap(savedRoutes);
+	defaultRun().signallingDelay = savedDelay;
+	defaultRun().blocksOccupied = savedOccupied;
+	defaultRun().blocksConnected = savedConnected;
+	defaultRun().infra.routes.swap(savedRoutes);
 	return ok;
 }
 
-// regional_train holds exactly the trains of the last build and is released by a reset.
+// The trains of the run are exactly those of the last build, and a reset releases them.
 static bool regionalTrainStorageTests() {
 	bool ok = true;
 	const auto buildTrains = [](int count) {
@@ -2541,38 +2547,39 @@ static bool regionalTrainStorageTests() {
 	};
 	for (const int count : {3, 5, 2}) {
 		ok &= expect(!hasErrors(buildTrains(count)), "train storage fixture builds");
-		ok &= expect(numRegions == count && regional_train.size() == static_cast<std::size_t>(count)
-				&& regional_train.capacity() == static_cast<std::size_t>(count),
+		ok &= expect(defaultRun().numTrains == count && defaultRun().trains.size() == static_cast<std::size_t>(count)
+				&& defaultRun().trains.capacity() == static_cast<std::size_t>(count),
 			"the train storage holds exactly the trains of the build");
 	}
 
 	// A platform list that an infrastructure build fills again to the same size is not described by the old index.
-	const auto platformCountBefore = AllStationPlatforms.size();
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), completeScene())) && AllStationPlatforms.size() == platformCountBefore
-			&& !AllStationPlatformIndex.covers(AllStationPlatforms),
+	const auto platformCountBefore = defaultRun().platforms.size();
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), completeScene()))
+			&& defaultRun().platforms.size() == platformCountBefore
+			&& !defaultRun().platformIndex.covers(defaultRun().platforms),
 		"an infrastructure build clears the platform index");
 	ok &= expect(!hasErrors(buildTrains(2)), "train storage fixture builds again");
 
-	const Regional* const keptStorage = regional_train.data();
+	const Regional* const keptStorage = defaultRun().trains.data();
 	SceneModel rejected = completeScene();
 	ok &= expect(hasErrors(buildOperationsFromScene(defaultRun(), rejected, "scenario.missing"))
-			&& regional_train.data() == keptStorage && regional_train.size() == 2
-			&& !regional_train[0].Stations.empty(),
+			&& defaultRun().trains.data() == keptStorage && defaultRun().trains.size() == 2
+			&& !defaultRun().trains[0].Stations.empty(),
 		"a rejected build leaves the train storage untouched");
 
-	ok &= expect(AllDailyPassengerIndex.covers(AllDailyPassengers) && AllStationPlatformIndex.covers(AllStationPlatforms),
+	ok &= expect(defaultRun().passengerIndex.covers(defaultRun().passengers) && defaultRun().platformIndex.covers(defaultRun().platforms),
 		"a build indexes the passengers and the platforms");
-	const std::size_t passengerCount = AllDailyPassengers.size();
-	const std::size_t platformCount = AllStationPlatforms.size();
+	const std::size_t passengerCount = defaultRun().passengers.size();
+	const std::size_t platformCount = defaultRun().platforms.size();
 	resetNativeOperationsState(defaultRun());
-	ok &= expect(numRegions == 0 && regional_train.empty() && regional_train.capacity() == 0,
+	ok &= expect(defaultRun().numTrains == 0 && defaultRun().trains.empty() && defaultRun().trains.capacity() == 0,
 		"a reset releases the train storage");
-	AllDailyPassengers.resize(passengerCount);
-	AllStationPlatforms.resize(platformCount);
-	ok &= expect(!AllDailyPassengerIndex.covers(AllDailyPassengers) && !AllStationPlatformIndex.covers(AllStationPlatforms),
+	defaultRun().passengers.resize(passengerCount);
+	defaultRun().platforms.resize(platformCount);
+	ok &= expect(!defaultRun().passengerIndex.covers(defaultRun().passengers) && !defaultRun().platformIndex.covers(defaultRun().platforms),
 		"a reset clears the indexes of lists that are filled again to the same size");
-	AllDailyPassengers.clear();
-	AllStationPlatforms.clear();
+	defaultRun().passengers.clear();
+	defaultRun().platforms.clear();
 	return ok;
 }
 
@@ -2582,22 +2589,22 @@ static bool regionalTrainStorageTests() {
 static bool singleTrackLockTests() {
 	bool ok = true;
 	std::vector<Route> savedRoutes;
-	savedRoutes.swap(train_route);
-	const auto savedLimits = singleTrackLimits;
-	const auto savedOccupied = BlocksOccupied;
-	const auto savedConnected = BlocksConnected;
-	const auto savedHeld = singleTrackHeld;
-	const int savedRegions = numRegions;
+	savedRoutes.swap(defaultRun().infra.routes);
+	const auto savedLimits = defaultRun().infra.singleTrackLimits;
+	const auto savedOccupied = defaultRun().blocksOccupied;
+	const auto savedConnected = defaultRun().blocksConnected;
+	const auto savedHeld = defaultRun().infra.singleTrackHeld;
+	const int savedRegions = defaultRun().numTrains;
 	// Two trains of its own, whatever the last build left in the storage.
 	std::vector<Regional> savedTrains(2);
-	savedTrains.swap(regional_train);
-	const double savedDelay = S_delay;
-	S_delay = 0.0;
+	savedTrains.swap(defaultRun().trains);
+	const double savedDelay = defaultRun().signallingDelay;
+	defaultRun().signallingDelay = 0.0;
 
 	// Two routes over sections lock.0 to lock.5 of 2 km: route 0 forward, route 1 the same sections reversed.
-	train_route.resize(2);
+	defaultRun().infra.routes.resize(2);
 	for (int r = 0; r < 2; ++r) {
-		Route& route = train_route[r];
+		Route& route = defaultRun().infra.routes[r];
 		route.N_Block_Sections = 6;
 		route.sequence_of_block_sections.resize(6);
 		route.reversed_direction = (r == 1);
@@ -2611,8 +2618,8 @@ static bool singleTrackLockTests() {
 			arc.gradient = arc.curvature = 0.0;
 		}
 	}
-	singleTrackLimits.clear();
-	singleTrackLimits.emplace_back("lock.1", "lock.4", "lock.0", "lock.5");
+	defaultRun().infra.singleTrackLimits.clear();
+	defaultRun().infra.singleTrackLimits.emplace_back("lock.1", "lock.4", "lock.0", "lock.5");
 	resetSingleTrackLocks(defaultRun());
 
 	// The zone of a route is derived once: neighbouring sections form one interval of route position.
@@ -2625,7 +2632,7 @@ static bool singleTrackLockTests() {
 		"a limit or a route that does not exist has no zone");
 
 	auto place = [](int k, int route, double head, bool active) {
-		Regional& train = regional_train[k];
+		Regional& train = defaultRun().trains[k];
 		train.run_ = &defaultRun();
 		train.indexOfRoute = route;
 		train.departure_time = 0.0;
@@ -2655,197 +2662,210 @@ static bool singleTrackLockTests() {
 	auto has = [](const std::list<std::string>& list, const std::string& id) {
 		return std::find(list.begin(), list.end(), id) != list.end();
 	};
-	numRegions = 2;
+	defaultRun().numTrains = 2;
 	place(0, 0, 3000.0, true);	// forward, in lock.1
 	place(1, 1, 3000.0, false); // reversed, not in the network
-	BlocksOccupied.clear();
-	BlocksConnected.clear();
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksConnected.clear();
 
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 1, "a forward train in the section holds it forward");
-	ok &= expect(has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.3") && has(BlocksConnected, "lock.5"),
+	ok &= expect(defaultRun().infra.singleTrackHeld.size() == 1
+			&& defaultRun().infra.singleTrackHeld[0] == 1,
+		"a forward train in the section holds it forward");
+	ok &= expect(has(defaultRun().blocksConnected, "lock.0") && has(defaultRun().blocksConnected, "lock.3")
+			&& has(defaultRun().blocksConnected, "lock.5"),
 		"the sections are released when the holder changes, so that stale aspects are reset");
-	ok &= expect(occupySingleTrackForRoute(defaultRun(), 0) == 0 && BlocksOccupied.empty(),
+	ok &= expect(occupySingleTrackForRoute(defaultRun(), 0) == 0 && defaultRun().blocksOccupied.empty(),
 		"a route in the direction of the holder is not affected");
-	ok &= expect(occupySingleTrackForRoute(defaultRun(), 1) == 6 && BlocksOccupied.size() == 6 && has(BlocksOccupied, "lock.5")
-			&& has(BlocksOccupied, "lock.0"),
+	ok &= expect(occupySingleTrackForRoute(defaultRun(), 1) == 6 && defaultRun().blocksOccupied.size() == 6
+			&& has(defaultRun().blocksOccupied, "lock.5")
+			&& has(defaultRun().blocksOccupied, "lock.0"),
 		"a route against the holder sees the protected and plain sections as occupied");
-	BlocksOccupied.clear();
-	BlocksOccupied.push_back("lock.2");
-	ok &= expect(occupySingleTrackForRoute(defaultRun(), 1) == 5 && BlocksOccupied.size() == 6,
+	defaultRun().blocksOccupied.clear();
+	defaultRun().blocksOccupied.push_back("lock.2");
+	ok &= expect(occupySingleTrackForRoute(defaultRun(), 1) == 5 && defaultRun().blocksOccupied.size() == 6,
 		"a section that is occupied already is not added twice");
-	BlocksOccupied.clear();
+	defaultRun().blocksOccupied.clear();
 
 	// A second forward train follows: still held forward, nothing new is released, the follower is not affected.
 	place(1, 0, 1000.0, true); // forward, in lock.0 (the protected section before the first plain section)
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(), "a following train in the same direction keeps the holder");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1
+			&& defaultRun().blocksConnected.empty(),
+		"a following train in the same direction keeps the holder");
 
 	// A train against the holder enters while the first one is still inside: it does not take the section.
 	place(1, 1, 3000.0, true); // reversed, in lock.4
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a train of the other direction that enters later does not take the section");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a train of the other direction that enters later does not take the section");
 
 	// The forward train leaves: the section passes to the reversed train, and is released on the change.
 	place(0, 0, 3000.0, false);
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == -1 && has(BlocksConnected, "lock.2"), "the section passes to the remaining direction and is released");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == -1
+			&& has(defaultRun().blocksConnected, "lock.2"),
+		"the section passes to the remaining direction and is released");
 	ok &= expect(occupySingleTrackForRoute(defaultRun(), 0) == 6 && occupySingleTrackForRoute(defaultRun(), 1) == 0,
 		"now the forward route is held back and the reversed route is not");
-	BlocksOccupied.clear();
+	defaultRun().blocksOccupied.clear();
 
 	// A forward train enters while the reversed holder is still inside: the holder keeps the section.
 	place(0, 0, 3000.0, true); // forward, in lock.1
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == -1 && BlocksConnected.empty(),
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == -1 && defaultRun().blocksConnected.empty(),
 		"the reversed holder keeps the section when a forward train is inside as well");
 	place(0, 0, 3000.0, false);
 
 	// Nobody is left: the section is free and is released once.
 	place(1, 1, 3000.0, false);
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0 && has(BlocksConnected, "lock.1"), "a section without trains is free and released");
-	BlocksConnected.clear();
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0
+			&& has(defaultRun().blocksConnected, "lock.1"),
+		"a section without trains is free and released");
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(BlocksConnected.empty() && occupySingleTrackForRoute(defaultRun(), 0) == 0
+	ok &= expect(defaultRun().blocksConnected.empty() && occupySingleTrackForRoute(defaultRun(), 0) == 0
 			&& occupySingleTrackForRoute(defaultRun(), 1) == 0,
 		"a free section is not released again and holds nobody back");
 
 	// A train in the protected section before the first plain section already holds the section.
 	place(0, 0, 100.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a train in the protected section before the section already holds it");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a train in the protected section before the section already holds it");
 	place(0, 0, 100.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
 
 	// Reserve before the last braking opportunity; retain the owner through a temporary stop.
 	place(0, 0, -50.0, true);
 	place(1, 1, -50.0, true);
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1 && has(BlocksConnected, "lock.0") && has(BlocksConnected, "lock.5"),
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1 && has(defaultRun().blocksConnected, "lock.0")
+			&& has(defaultRun().blocksConnected, "lock.5"),
 		"two running trains about to enter reserve forward and release the zone sections");
 	place(0, 0, -200.0, true);
-	BlocksConnected.clear();
+	defaultRun().blocksConnected.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1 && BlocksConnected.empty(),
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1 && defaultRun().blocksConnected.empty(),
 		"a reservation survives its owner slowing or stopping before entry");
 	place(0, 0, 50.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "the forward train keeps the reservation once inside");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "the forward train keeps the reservation once inside");
 
 	for (int runningRoute : {0, 1}) {
 		resetSingleTrackLocks(defaultRun());
 		place(0, runningRoute, -50.0, true);
 		place(1, 1 - runningRoute, 0.0, true);
-		regional_train[1].CanEnter = false;
-		regional_train[1].departure_time = 2.0;
-		regional_train[1].Start_Node_X = 0.0;
-		regional_train[1].train_length = 70.0;
+		defaultRun().trains[1].CanEnter = false;
+		defaultRun().trains[1].departure_time = 2.0;
+		defaultRun().trains[1].Start_Node_X = 0.0;
+		defaultRun().trains[1].train_length = 70.0;
 		updateSingleTrackLocks(defaultRun(), 1);
-		BlocksOccupied.clear();
-		ok &= expect(singleTrackHeld[0] == 1 && occupySingleTrackForRoute(defaultRun(), 1) == 6,
+		defaultRun().blocksOccupied.clear();
+		ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1 && occupySingleTrackForRoute(defaultRun(), 1) == 6,
 			"a running train and an opposing entry due next step reserve forward and hold the reversed route");
-		BlocksOccupied.clear();
-		regional_train[1].departure_time = 3.0;
+		defaultRun().blocksOccupied.clear();
+		defaultRun().trains[1].departure_time = 3.0;
 		updateSingleTrackLocks(defaultRun(), 1);
-		ok &= expect(singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1), "retargeting a waiting entry cancels it but does not cancel the running request");
+		ok &= expect(defaultRun().infra.singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1),
+			"retargeting a waiting entry cancels it but does not cancel the running request");
 		place(1, 1 - runningRoute, -50.0, false);
 		resetSingleTrackLocks(defaultRun());
 		updateSingleTrackLocks(defaultRun(), 1);
-		ok &= expect(singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1), "one approaching direction reserves before its braking opportunity");
+		ok &= expect(defaultRun().infra.singleTrackHeld[0] == (runningRoute == 0 ? 1 : -1),
+			"one approaching direction reserves before its braking opportunity");
 	}
 
 	// Waiting entries need no previous trajectory sample, even at the first step.
 	for (int k = 0; k < 2; ++k) {
 		place(k, k, 0.0, true);
-		regional_train[k].CanEnter = false;
-		regional_train[k].departure_time = 1.0;
-		regional_train[k].Start_Node_X = 0.0;
-		regional_train[k].instant_spatial_position.clear();
+		defaultRun().trains[k].CanEnter = false;
+		defaultRun().trains[k].departure_time = 1.0;
+		defaultRun().trains[k].Start_Node_X = 0.0;
+		defaultRun().trains[k].instant_spatial_position.clear();
 	}
 	updateSingleTrackLocks(defaultRun(), 0);
-	ok &= expect(singleTrackHeld[0] == 1, "opposing entries due at the first step reserve without trajectory samples");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "opposing entries due at the first step reserve without trajectory samples");
 
 	// An existing reversed holder is not displaced by two opposing requests.
-	const int savedApproachRegions = numRegions;
-	regional_train.resize(3);
-	numRegions = 3;
+	const int savedApproachRegions = defaultRun().numTrains;
+	defaultRun().trains.resize(3);
+	defaultRun().numTrains = 3;
 	place(0, 1, 50.0, true);
 	place(1, 0, -50.0, true);
 	place(2, 1, -50.0, true);
-	singleTrackHeld[0] = -1;
+	defaultRun().infra.singleTrackHeld[0] = -1;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == -1, "a reversed holder inside keeps the zone while both directions approach");
-	regional_train.resize(2);
-	numRegions = savedApproachRegions;
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == -1, "a reversed holder inside keeps the zone while both directions approach");
+	defaultRun().trains.resize(2);
+	defaultRun().numTrains = savedApproachRegions;
 	place(0, 0, -50.0, false);
 	place(1, 1, -50.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
 
 	// A held section gives the routes against the holder an End of Authority in front of the zone at level 3 and 4,
 	// once per step, and none for the holder's direction.
-	singleTrackLimits.clear();
-	singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.1", "lock.4");
+	defaultRun().infra.singleTrackLimits.clear();
+	defaultRun().infra.singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.1", "lock.4");
 	resetSingleTrackLocks(defaultRun());
 	place(0, 0, 1950.0, true);
 	place(1, 1, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "opposing running trains reserve at an interior zone boundary");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "opposing running trains reserve at an interior zone boundary");
 	for (double previous : {1950.0, 2000.0}) {
-		regional_train[0].instant_spatial_position[0] = previous;
+		defaultRun().trains[0].instant_spatial_position[0] = previous;
 		updateSingleTrackLocks(defaultRun(), 1);
-		ok &= expect(singleTrackHeld[0] == 1, "an existing reservation does not depend on the last displacement");
+		ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "an existing reservation does not depend on the last displacement");
 	}
 	// A follower already committed to this direction must survive the leader's clearance while it waits outside.
 	resetSingleTrackLocks(defaultRun());
-	regional_train.resize(3);
-	numRegions = 3;
+	defaultRun().trains.resize(3);
+	defaultRun().numTrains = 3;
 	place(0, 0, 3500.0, true);
 	place(1, 0, 1950.0, true);
 	place(2, 1, 1000.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
 	place(0, 0, 3500.0, false);
-	regional_train[1].instant_train_speed = {0.0, 0.0};
+	defaultRun().trains[1].instant_train_speed = {0.0, 0.0};
 	place(2, 1, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a committed follower keeps the direction after its leader clears, even while stopped");
-	regional_train[1].OutOfSimulation = true;
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a committed follower keeps the direction after its leader clears, even while stopped");
+	defaultRun().trains[1].OutOfSimulation = true;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == -1, "termination cancels the last pending owner and gives the opponent its turn");
-	regional_train[2].departure_time = 10.0;
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == -1, "termination cancels the last pending owner and gives the opponent its turn");
+	defaultRun().trains[2].departure_time = 10.0;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0, "changing the owner's entry identity cancels its reservation");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "changing the owner's entry identity cancels its reservation");
 	place(2, 1, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	regional_train[2].indexOfRoute = -1;
+	defaultRun().trains[2].indexOfRoute = -1;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0, "a removed route cancels its pending owner");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "a removed route cancels its pending owner");
 	place(2, 1, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	regional_train.resize(2);
-	numRegions = 2;
+	defaultRun().trains.resize(2);
+	defaultRun().numTrains = 2;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0, "removing a pending train releases the zone");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "removing a pending train releases the zone");
 	place(0, 0, 1950.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	train_route[0].x_of_end_node += 1.0;
-	regional_train[0].instant_spatial_position[1] = 1000.0;
-	regional_train[0].instant_train_speed[1] = 0.0;
+	defaultRun().infra.routes[0].x_of_end_node += 1.0;
+	defaultRun().trains[0].instant_spatial_position[1] = 1000.0;
+	defaultRun().trains[0].instant_train_speed[1] = 0.0;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0, "a changed destination cancels a pending reservation");
-	train_route[0].x_of_end_node -= 1.0;
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "a changed destination cancels a pending reservation");
+	defaultRun().infra.routes[0].x_of_end_node -= 1.0;
 	place(0, 0, 1999.5, true);
-	regional_train[0].instant_train_speed = {0.0, 0.0};
+	defaultRun().trains[0].instant_train_speed = {0.0, 0.0};
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a stationary train can consume its braking opportunity by accelerating next step");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a stationary train can consume its braking opportunity by accelerating next step");
 	place(0, 0, 10100.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 0, "passage of the reserved interval releases its owner");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0, "passage of the reserved interval releases its owner");
 	struct FailedBrakingLookup : Regional {
 		double result = -1, requestedSpeed = 0;
 		double BrakDist_Block(double speed, double, double, Section*, int) override {
@@ -2853,94 +2873,96 @@ static bool singleTrackLockTests() {
 			return result;
 		}
 	} probe;
-	static_cast<Train&>(probe) = regional_train[0];
+	static_cast<Train&>(probe) = defaultRun().trains[0];
 	for (double result : {-1.0, std::numeric_limits<double>::quiet_NaN(), -10.0}) {
 		probe.result = result;
 		ok &= expect(probe.needsSingleTrackReservation(1000.0, 0.0, 2000.0,
-						 train_route[0].sequence_of_block_sections.data(), 6),
+						 defaultRun().infra.routes[0].sequence_of_block_sections.data(), 6),
 			"failed, non-finite or before-origin braking points request conservatively");
 		ok &= expect(probe.requestedSpeed > 0, "reservation braking lookup includes possible next-step acceleration from rest");
 	}
-	const auto savedAuthorities = ETCS_MA;
+	const auto savedAuthorities = defaultRun().etcsMa;
 	std::vector<std::vector<int>> savedLevels;
-	for (const Route& route : train_route) {
+	for (const Route& route : defaultRun().infra.routes) {
 		savedLevels.emplace_back();
 		for (const Section& section : route.sequence_of_block_sections)
 			savedLevels.back().push_back(section.SignallingLevel);
 	}
 	auto setLevel = [](int level) {
-		for (Route& route : train_route)
+		for (Route& route : defaultRun().infra.routes)
 			for (Section& section : route.sequence_of_block_sections)
 				section.SignallingLevel = level;
 	};
 	setLevel(3);
 	place(0, 0, 3500.0, true); // forward, in lock.1
 	place(1, 1, 3000.0, false);
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	updateSingleTrackLocks(defaultRun(), 1);
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
-	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().BSID == "lock.5" && ETCS_MA.front().ReversedDirection
-			&& ETCS_MA.front().type == "SignalFailure" && ETCS_MA.front().TrainInfo.trainDescription == "single_track:lock.2",
+	ok &= expect(defaultRun().etcsMa.size() == 1 && defaultRun().etcsMa.front().BSID == "lock.5" && defaultRun().etcsMa.front().ReversedDirection
+			&& defaultRun().etcsMa.front().type == "SignalFailure" && defaultRun().etcsMa.front().TrainInfo.trainDescription == "single_track:lock.2",
 		"a forward holder gives the reversed route one authority in front of the zone");
 	setLevel(2);
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
-	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().ReversedDirection,
+	ok &= expect(defaultRun().etcsMa.size() == 1 && defaultRun().etcsMa.front().ReversedDirection,
 		"fixed-block trains also get a direction-filtered entry authority");
 	setLevel(kSignallingLevelUnset);
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
-	ok &= expect(ETCS_MA.empty(), "a section without signalling gets no single-track authority");
+	ok &= expect(defaultRun().etcsMa.empty(), "a section without signalling gets no single-track authority");
 	setLevel(4);
 	place(0, 0, 3500.0, false);
 	place(1, 1, 3500.0, true); // reversed, in lock.4
 	updateSingleTrackLocks(defaultRun(), 1);
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
-	ok &= expect(ETCS_MA.size() == 1 && ETCS_MA.front().BSID == "lock.0" && !ETCS_MA.front().ReversedDirection,
+	ok &= expect(defaultRun().etcsMa.size() == 1 && defaultRun().etcsMa.front().BSID == "lock.0" && !defaultRun().etcsMa.front().ReversedDirection,
 		"a reversed holder gives the forward route an authority in front of the zone");
 	place(1, 1, 3500.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ETCS_MA.clear();
+	defaultRun().etcsMa.clear();
 	Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
-	ok &= expect(singleTrackHeld[0] == 0 && ETCS_MA.empty(), "a free section gives no authority");
-	ETCS_MA = savedAuthorities;
-	for (std::size_t r = 0; r < train_route.size(); ++r)
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 0 && defaultRun().etcsMa.empty(), "a free section gives no authority");
+	defaultRun().etcsMa = savedAuthorities;
+	for (std::size_t r = 0; r < defaultRun().infra.routes.size(); ++r)
 		for (std::size_t b = 0; b < savedLevels[r].size(); ++b)
-			train_route[r].sequence_of_block_sections[b].SignallingLevel = savedLevels[r][b];
+			defaultRun().infra.routes[r].sequence_of_block_sections[b].SignallingLevel = savedLevels[r][b];
 
 	// A zone with gaps keeps one interval per run of neighbouring sections, and a train in a gap is not inside.
-	singleTrackLimits.clear();
-	singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.0", "lock.5");
+	defaultRun().infra.singleTrackLimits.clear();
+	defaultRun().infra.singleTrackLimits.emplace_back("lock.2", "lock.3", "lock.0", "lock.5");
 	resetSingleTrackLocks(defaultRun());
 	ok &= expect(singleTrackZone(defaultRun(), 0, 0).intervals.size() == 3 && singleTrackZone(defaultRun(), 0, 0).sectionIDs.size() == 4,
 		"separate zone sections give separate intervals");
 	place(0, 0, 3000.0, true); // forward, in lock.1, between the protected and the plain sections
-	regional_train[0].instant_train_speed = {0.0, 0.0};
+	defaultRun().trains[0].instant_train_speed = {0.0, 0.0};
 	place(1, 1, 3000.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld.size() == 1 && singleTrackHeld[0] == 0, "a train between zone sections does not hold the zone");
+	ok &= expect(defaultRun().infra.singleTrackHeld.size() == 1
+			&& defaultRun().infra.singleTrackHeld[0] == 0,
+		"a train between zone sections does not hold the zone");
 	place(0, 0, 5000.0, true); // forward, in lock.2
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a train in a zone section holds the zone");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a train in a zone section holds the zone");
 	place(0, 0, 50.0, true); // forward, in lock.0 with the rear before the start of the route
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1, "a train whose rear is before the start of the route is inside the first section");
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1, "a train whose rear is before the start of the route is inside the first section");
 	place(0, 0, 5000.0, false);
 	updateSingleTrackLocks(defaultRun(), 1);
 
 	// At level 5 the next disconnected interval's approach must already be committed when the tail clears
 	// the first interval. Drive the real movement and signalling routines across that clearance and the gap.
 	setLevel(5);
-	for (Route& route : train_route)
+	for (Route& route : defaultRun().infra.routes)
 		route.x_of_end_node = route.sequence_of_block_sections.back().end_node.X;
 	resetSingleTrackLocks(defaultRun());
 	place(0, 1, 2000.0, true);
 	place(1, 0, 0.0, true);
-	regional_train[1].CanEnter = false;
+	defaultRun().trains[1].CanEnter = false;
 	constexpr int steps = 65;
-	for (Regional& train : regional_train) {
+	for (Regional& train : defaultRun().trains) {
 		const double head = train.instant_spatial_position[1];
 		const double speed = train.CanEnter ? train.instant_train_speed[1] : 0.0;
 		train.setTrainVectorSizesFromInput(steps);
@@ -2948,24 +2970,24 @@ static bool singleTrackLockTests() {
 		train.instant_spatial_position[1] = head;
 		train.instant_train_speed[0] = train.instant_train_speed[1] = speed;
 	}
-	const int savedRouteCount = N_Routes;
-	N_Routes = static_cast<int>(train_route.size());
-	ETCS_MA.clear();
+	const int savedRouteCount = defaultRun().infra.numRoutes;
+	defaultRun().infra.numRoutes = static_cast<int>(defaultRun().infra.routes.size());
+	defaultRun().etcsMa.clear();
 	auto signalStep = [](int step) {
-		BlocksOccupied.clear();
+		defaultRun().blocksOccupied.clear();
 		Occupy_Block_Sections_Of_Route(defaultRun(), step);
-		ETCS_MA.clear();
+		defaultRun().etcsMa.clear();
 		Apply_Single_Track_Authorities_Mixed_Signalling(defaultRun());
 		releaseMixedSignallingSystem(defaultRun());
 		activateMixedSignallingSystem(defaultRun());
 	};
 	signalStep(1);
-	ok &= expect(singleTrackReservations[0].size() == 2
-			&& singleTrackReservations[0][1].interval == std::make_pair(4000.0, 8000.0),
+	ok &= expect(defaultRun().infra.singleTrackReservations[0].size() == 2
+			&& defaultRun().infra.singleTrackReservations[0][1].interval == std::make_pair(4000.0, 8000.0),
 		"the moving holder commits the next interval before clearing the first, but not the distant third interval");
 	bool retainedAcrossGap = true, safeApproach = true, waiterHeld = true, crossedGap = false;
 	double largestSpeedDrop = 0.0;
-	Regional& holder = regional_train[0];
+	Regional& holder = defaultRun().trains[0];
 	for (int step = 2; step < steps; ++step) {
 		const double previousHead = holder.instant_spatial_position[step - 1];
 		const double previousSpeed = holder.instant_train_speed[step - 1];
@@ -2976,14 +2998,15 @@ static bool singleTrackLockTests() {
 		safeApproach &= holder.instant_train_speed[step - 1] == previousSpeed
 			&& previousSpeed - holder.instant_train_speed[step] <= deceleration * timestep + 1e-9
 			&& holder.instant_spatial_position[step] >= previousHead;
-		regional_train[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
-		waiterHeld &= !regional_train[1].CanEnter;
+		defaultRun().trains[1].trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
+		waiterHeld &= !defaultRun().trains[1].CanEnter;
 		signalStep(step);
 		const double head = holder.instant_spatial_position[step];
 		if (head - holder.train_length >= 2000.0 && head < 4000.0) {
 			crossedGap = true;
-			retainedAcrossGap &= singleTrackHeld[0] == -1
-				&& train_route[1].sequence_of_block_sections[1].arcs_in_signalling_block_section[0].signalSpeedLimit >= holder.instant_train_speed[step];
+			retainedAcrossGap &= defaultRun().infra.singleTrackHeld[0] == -1
+				&& defaultRun().infra.routes[1].sequence_of_block_sections[1].arcs_in_signalling_block_section[0].signalSpeedLimit
+					>= holder.instant_train_speed[step];
 		}
 	}
 	ok &= expect(crossedGap && retainedAcrossGap && waiterHeld,
@@ -2991,38 +3014,38 @@ static bool singleTrackLockTests() {
 	ok &= expect(safeApproach, "gap handover neither rewrites the previous speed nor exceeds physical deceleration; largest speed drop=" + std::to_string(largestSpeedDrop));
 	ok &= expect(holder.instant_spatial_position.back() - holder.train_length >= 4000.0,
 		"the moving holder reaches the next disconnected interval without an instantaneous stop");
-	N_Routes = savedRouteCount;
-	ETCS_MA = savedAuthorities;
+	defaultRun().infra.numRoutes = savedRouteCount;
+	defaultRun().etcsMa = savedAuthorities;
 
 	// At level 2 the same next interval is still beyond braking lookahead, so clearing the first releases it.
 	setLevel(2);
 	resetSingleTrackLocks(defaultRun());
 	place(0, 1, 2000.0, true);
 	place(1, 0, 0.0, true);
-	regional_train[1].CanEnter = false;
+	defaultRun().trains[1].CanEnter = false;
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == -1 && singleTrackReservations[0].size() == 1,
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == -1 && defaultRun().infra.singleTrackReservations[0].size() == 1,
 		"a distant next stretch outside braking lookahead is not committed");
 	place(0, 1, 2070.0, true);
 	updateSingleTrackLocks(defaultRun(), 1);
-	ok &= expect(singleTrackHeld[0] == 1,
+	ok &= expect(defaultRun().infra.singleTrackHeld[0] == 1,
 		"tail clearance releases the direction to a waiting opponent when the distant next stretch is uncommitted");
 
 	// New routes are not read through the zones of the old ones.
-	train_route.resize(1);
+	defaultRun().infra.routes.resize(1);
 	ok &= expect(singleTrackZone(defaultRun(), 0, 1).intervals.empty() && singleTrackZone(defaultRun(), 0, 0).intervals.size() == 3,
 		"the zones follow the current routes");
 	resetSingleTrackLocks(defaultRun());
 
-	S_delay = savedDelay;
-	numRegions = savedRegions;
-	regional_train.swap(savedTrains);
-	singleTrackLimits = savedLimits;
-	singleTrackHeld = savedHeld;
-	BlocksOccupied = savedOccupied;
-	BlocksConnected = savedConnected;
+	defaultRun().signallingDelay = savedDelay;
+	defaultRun().numTrains = savedRegions;
+	defaultRun().trains.swap(savedTrains);
+	defaultRun().infra.singleTrackLimits = savedLimits;
+	defaultRun().infra.singleTrackHeld = savedHeld;
+	defaultRun().blocksOccupied = savedOccupied;
+	defaultRun().blocksConnected = savedConnected;
 	resetSingleTrackLocks(defaultRun());
-	train_route.swap(savedRoutes);
+	defaultRun().infra.routes.swap(savedRoutes);
 	return ok;
 }
 
@@ -3132,11 +3155,11 @@ static bool runRollingStockMessageChecks() {
 	shows(capture.take(), {{Category::SimSetup, Level::Error, "Error: Element B1 Not Found\n"}}, "a blocking time of an element with no events");
 
 	// A train whose leader reports no movement authority any more leaves following mode, whether the message is on or off.
-	const auto savedAuthorities = ETCS_MA;
-	const auto savedMessageTimes = VCmsgTimestep;
-	const auto savedMessageTrains = VCmsgTrain;
-	const auto savedMessageTexts = VCmsgText;
-	ETCS_MA.clear();
+	const auto savedAuthorities = defaultRun().etcsMa;
+	const auto savedMessageTimes = defaultRun().vcMsgTimestep;
+	const auto savedMessageTrains = defaultRun().vcMsgTrain;
+	const auto savedMessageTexts = defaultRun().vcMsgText;
+	defaultRun().etcsMa.clear();
 	const auto follow = [&train] {
 		train.IsTrainInFollowingMode = true;
 		train.LeadingTrainInFollowingMode = "L1";
@@ -3155,10 +3178,10 @@ static bool runRollingStockMessageChecks() {
 	eglog::configure("");
 	train.leaveFollowingModeWhenLeaderIsGone(7);
 	shows(capture.take(), {}, "a train that is not in following mode");
-	ETCS_MA = savedAuthorities;
-	VCmsgTimestep = savedMessageTimes;
-	VCmsgTrain = savedMessageTrains;
-	VCmsgText = savedMessageTexts;
+	defaultRun().etcsMa = savedAuthorities;
+	defaultRun().vcMsgTimestep = savedMessageTimes;
+	defaultRun().vcMsgTrain = savedMessageTrains;
+	defaultRun().vcMsgText = savedMessageTexts;
 
 	// A target speed under the starting speed is an error, and the train then cannot accelerate on the section.
 	ok &= expect(train.AccelerationTimeFollowingMode(10, 5, 0, 100, nullptr, 0) == -99999, "no acceleration time for a target speed under the starting speed");
@@ -3222,12 +3245,12 @@ static bool runRollingStockMessageChecks() {
 
 	// A route of one section from 0 to 10 km.
 	std::vector<Route> savedRoutes;
-	savedRoutes.swap(train_route);
-	train_route.resize(1);
-	train_route[0].N_Block_Sections = 1;
-	train_route[0].reversed_direction = false;
-	train_route[0].sequence_of_block_sections.resize(1);
-	Section& routeSection = train_route[0].sequence_of_block_sections[0];
+	savedRoutes.swap(defaultRun().infra.routes);
+	defaultRun().infra.routes.resize(1);
+	defaultRun().infra.routes[0].N_Block_Sections = 1;
+	defaultRun().infra.routes[0].reversed_direction = false;
+	defaultRun().infra.routes[0].sequence_of_block_sections.resize(1);
+	Section& routeSection = defaultRun().infra.routes[0].sequence_of_block_sections[0];
 	routeSection.start_node.X = 0.0;
 	routeSection.end_node.X = 10.0;
 	routeSection.GeoXBegNode = 0.0;
@@ -3259,7 +3282,7 @@ static bool runRollingStockMessageChecks() {
 		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, defaultRun().settings.startingSimulationTime) + "\n"}},
 		"a train that arrives at its last station");
 	defaultRun().settings.OutputMainFolder = savedOutputFolder;
-	train_route.swap(savedRoutes);
+	defaultRun().infra.routes.swap(savedRoutes);
 	return ok;
 }
 
@@ -3319,12 +3342,12 @@ int main() {
 													: buildOperationsFromScene(defaultRun(), diagramScene, "scenario.base");
 	ok &= expect(!hasErrors(diagramInfra) && !hasErrors(diagramOps),
 		"forward and reverse diagram fixture builds through native paths");
-	if (!hasErrors(diagramInfra) && !hasErrors(diagramOps) && numRegions > 1) {
-		const RouteDiagramPath reference = routeDiagramPath(train_route[regional_train[0].indexOfRoute], &diagramScene);
+	if (!hasErrors(diagramInfra) && !hasErrors(diagramOps) && defaultRun().numTrains > 1) {
+		const RouteDiagramPath reference = routeDiagramPath(defaultRun().infra.routes[defaultRun().trains[0].indexOfRoute], &diagramScene);
 		const auto identity = buildRouteDiagramProjection(reference, reference);
-		const Train& forward = regional_train[0];
-		const Train& reverse = regional_train[numRegions - 1];
-		const RouteDiagramPath reversePath = routeDiagramPath(train_route[reverse.indexOfRoute], &diagramScene);
+		const Train& forward = defaultRun().trains[0];
+		const Train& reverse = defaultRun().trains[defaultRun().numTrains - 1];
+		const RouteDiagramPath reversePath = routeDiagramPath(defaultRun().infra.routes[reverse.indexOfRoute], &diagramScene);
 		const auto reverseProjection = buildRouteDiagramProjection(reversePath, reference);
 		const auto stopOf = [](const Train& train, int index) {
 			CompletedStop stop;
@@ -3351,9 +3374,9 @@ int main() {
 			{"@block.2@", 44.0, 45.0}};
 		const std::vector<BlockSectionInput> reverseSections = {{"@block.2@", 0.0, 1.0}, {"@block.1@", 1.0, 2.0},
 			{"@block.0@", 2.0, 3.0}};
-		ok &= expect(sameSections(blockSectionInputsForRoute(train_route[forward.indexOfRoute]), forwardSections),
+		ok &= expect(sameSections(blockSectionInputsForRoute(defaultRun().infra.routes[forward.indexOfRoute]), forwardSections),
 			"forward route sections keep the block ends in route order");
-		ok &= expect(sameSections(blockSectionInputsForRoute(train_route[reverse.indexOfRoute]), reverseSections),
+		ok &= expect(sameSections(blockSectionInputsForRoute(defaultRun().infra.routes[reverse.indexOfRoute]), reverseSections),
 			"reversed route sections increase along the travel direction");
 	}
 	scene.services[0].through = true; // Nonempty stops take precedence over this historical flag.
@@ -3365,7 +3388,7 @@ int main() {
 
 	const auto diagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.selected");
 	ok &= expect(!hasErrors(diagnostics), "M3 operations builder accepts the complete fixture");
-	ok &= expect(regional_train[0].numStations == 3, "historical through flag does not discard scheduled stops");
+	ok &= expect(defaultRun().trains[0].numStations == 3, "historical through flag does not discard scheduled stops");
 	SceneModel tooManyStops = completeScene();
 	while (tooManyStops.services[0].stops.size() <= static_cast<std::size_t>(Train::kMaxTimetableStations))
 		tooManyStops.services[0].stops.push_back(tooManyStops.services[0].stops.back());
@@ -3380,37 +3403,37 @@ int main() {
 		"native operations rejects one expanded train above the limit");
 	ok &= expect(initial_variables.InputMainFolder == "/__egtrain_nonexistent_native_input__",
 		"native builders do not access or rewrite the legacy input folder");
-	ok &= expect(numRegions == 3, "repeat expansion populates train counts");
-	ok &= expect(regional_train[0].trainDescription == "service.native-1"
-			&& regional_train[1].trainDescription == "service.native-2"
-			&& regional_train[2].trainDescription == "service.native-3",
+	ok &= expect(defaultRun().numTrains == 3, "repeat expansion populates train counts");
+	ok &= expect(defaultRun().trains[0].trainDescription == "service.native-1"
+			&& defaultRun().trains[1].trainDescription == "service.native-2"
+			&& defaultRun().trains[2].trainDescription == "service.native-3",
 		"occurrence IDs are canonical and stable");
-	ok &= expect(regional_train[0].type == "service.native", "occurrences share the canonical service type");
-	ok &= expect(regional_train[0].operatingCode == "9707-1"
-			&& regional_train[1].operatingCode == "9707-2"
-			&& regional_train[2].operatingCode == "9707-3",
+	ok &= expect(defaultRun().trains[0].type == "service.native", "occurrences share the canonical service type");
+	ok &= expect(defaultRun().trains[0].operatingCode == "9707-1"
+			&& defaultRun().trains[1].operatingCode == "9707-2"
+			&& defaultRun().trains[2].operatingCode == "9707-3",
 		"repeated services without a step expose readable operating codes");
-	ok &= expect(regional_train[0].number_of_wagons == 3.0
-			&& regional_train[0].total_train_mass == 290.0
-			&& regional_train[0].velocityIntervals == 2,
+	ok &= expect(defaultRun().trains[0].number_of_wagons == 3.0
+			&& defaultRun().trains[0].total_train_mass == 290.0
+			&& defaultRun().trains[0].velocityIntervals == 2,
 		"ordered multi-unit physical and traction data is aggregated (wagons="
-			+ std::to_string(regional_train[0].number_of_wagons) + ", mass="
-			+ std::to_string(regional_train[0].total_train_mass) + ", bands="
-			+ std::to_string(regional_train[0].velocityIntervals) + ")");
-	ok &= expect(regional_train[0].MAX_OnBoard_Passengers == 1200
-			&& regional_train[0].Current_OnBoard_Passengers == 0,
+			+ std::to_string(defaultRun().trains[0].number_of_wagons) + ", mass="
+			+ std::to_string(defaultRun().trains[0].total_train_mass) + ", bands="
+			+ std::to_string(defaultRun().trains[0].velocityIntervals) + ")");
+	ok &= expect(defaultRun().trains[0].MAX_OnBoard_Passengers == 1200
+			&& defaultRun().trains[0].Current_OnBoard_Passengers == 0,
 		"built train capacity follows the aggregated wagon count (capacity="
-			+ std::to_string(regional_train[0].MAX_OnBoard_Passengers) + ")");
-	ok &= expect(regional_train[0].scheduled_departure_time == 100.0
-			&& regional_train[1].scheduled_departure_time == 130.0
-			&& regional_train[2].scheduled_departure_time == 160.0,
+			+ std::to_string(defaultRun().trains[0].MAX_OnBoard_Passengers) + ")");
+	ok &= expect(defaultRun().trains[0].scheduled_departure_time == 100.0
+			&& defaultRun().trains[1].scheduled_departure_time == 130.0
+			&& defaultRun().trains[2].scheduled_departure_time == 160.0,
 		"canonical entry times remain scheduled times");
-	ok &= expect(regional_train[0].ScheduledArrivals[0] == -1.0
-			&& regional_train[0].ScheduledArrivals[1] == 120.0
-			&& regional_train[0].ScheduledDepartures[2] == -1.0,
+	ok &= expect(defaultRun().trains[0].ScheduledArrivals[0] == -1.0
+			&& defaultRun().trains[0].ScheduledArrivals[1] == 120.0
+			&& defaultRun().trains[0].ScheduledDepartures[2] == -1.0,
 		"optional timetable fields retain runtime -1 sentinels");
-	ok &= expect(regional_train[0].stationIsOnRoute(0)
-			&& regional_train[0].stationRoutePositionMeters(0) == 0.0,
+	ok &= expect(defaultRun().trains[0].stationIsOnRoute(0)
+			&& defaultRun().trains[0].stationRoutePositionMeters(0) == 0.0,
 		"planned references retain a valid route-origin station at kilometre zero");
 	Node offRouteStation;
 	offRouteStation.station = true;
@@ -3419,34 +3442,34 @@ int main() {
 	routeMembershipProbe.run_ = &defaultRun();
 	routeMembershipProbe.Stations.push_back(offRouteStation);
 	routeMembershipProbe.numStations = 1;
-	routeMembershipProbe.indexOfRoute = regional_train[0].indexOfRoute;
+	routeMembershipProbe.indexOfRoute = defaultRun().trains[0].indexOfRoute;
 	ok &= expect(!routeMembershipProbe.stationIsOnRoute(0)
 			&& routeMembershipProbe.stationRoutePositionMeters(0) < 0.0,
 		"route-external static timetable stops remain inert in planned route results");
-	ok &= expect(regional_train[0].instant_train_tractive_effort.size()
-			== regional_train[0].instant_spatial_position.size(),
+	ok &= expect(defaultRun().trains[0].instant_train_tractive_effort.size()
+			== defaultRun().trains[0].instant_spatial_position.size(),
 		"tractive-effort samples are allocated with the trajectory");
-	ok &= expect(regional_train[1].ScheduledDepartures[0] == 145.0
-			&& regional_train[1].ScheduledDepartures[1] == 160.0
-			&& regional_train[1].EntranceDelay == 5.0,
+	ok &= expect(defaultRun().trains[1].ScheduledDepartures[0] == 145.0
+			&& defaultRun().trains[1].ScheduledDepartures[1] == 160.0
+			&& defaultRun().trains[1].EntranceDelay == 5.0,
 		"selected entrance delays apply to the requested occurrence and stops");
-	ok &= expect(regional_train[0].entranceDelayStationId.empty() && regional_train[1].entranceDelayStationId == "Zero"
-			&& regional_train[2].entranceDelayStationId.empty(),
+	ok &= expect(defaultRun().trains[0].entranceDelayStationId.empty() && defaultRun().trains[1].entranceDelayStationId == "Zero"
+			&& defaultRun().trains[2].entranceDelayStationId.empty(),
 		"the first delayed stop of the delayed occurrence names the entrance delay station");
-	ok &= expect(regional_train[0].departure_time == 1.0 && regional_train[1].departure_time == 1201.0
-			&& regional_train[2].departure_time == 2401.0,
+	ok &= expect(defaultRun().trains[0].departure_time == 1.0 && defaultRun().trains[1].departure_time == 1201.0
+			&& defaultRun().trains[2].departure_time == 2401.0,
 		"hourly departure retiming preserves the legacy algorithm");
-	ok &= expect(simulationIncidents.size() == 2
-			&& simulationIncidents[0].target == "signal.0"
-			&& simulationIncidents[1].target == "service.native",
+	ok &= expect(defaultRun().incidents.size() == 2
+			&& defaultRun().incidents[0].target == "signal.0"
+			&& defaultRun().incidents[1].target == "service.native",
 		"only the selected scenario reaches runtime incidents");
-	ok &= expect(simulationIncidents[1].id == "incident.breakdown"
-			&& simulationIncidents[1].hasEndSeconds
-			&& !simulationIncidents[1].hasOccurrence
-			&& !simulationIncidents[1].hasReducedSpeed,
+	ok &= expect(defaultRun().incidents[1].id == "incident.breakdown"
+			&& defaultRun().incidents[1].hasEndSeconds
+			&& !defaultRun().incidents[1].hasOccurrence
+			&& !defaultRun().incidents[1].hasReducedSpeed,
 		"legacy breakdown incidents retain full-hold runtime defaults");
-	if (!simulationIncidents.empty())
-		ok &= expect(simulationIncidents.front().resolvedSectionIDs
+	if (!defaultRun().incidents.empty())
+		ok &= expect(defaultRun().incidents.front().resolvedSectionIDs
 				== std::vector<std::string>{"@block.1@"},
 			"signal failure resolves its protected section to the exact runtime ID");
 	SceneModel directBlockIncident = completeScene();
@@ -3455,8 +3478,8 @@ int main() {
 	const auto directInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), directBlockIncident);
 	const auto directOperations = buildOperationsFromScene(defaultRun(), directBlockIncident, "scenario.selected");
 	ok &= expect(!hasErrors(directInfrastructure) && !hasErrors(directOperations)
-			&& !simulationIncidents.empty()
-			&& simulationIncidents.front().resolvedSectionIDs == std::vector<std::string>{"@block.1@"},
+			&& !defaultRun().incidents.empty()
+			&& defaultRun().incidents.front().resolvedSectionIDs == std::vector<std::string>{"@block.1@"},
 		"direct base-block signal failures remain compatible without signal binding");
 	SceneModel unboundSignal = completeScene();
 	unboundSignal.signals.front().protectedSection.clear();
@@ -3483,45 +3506,45 @@ int main() {
 	const auto occurrenceInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), occurrenceSpecific);
 	const auto occurrenceOperations = buildOperationsFromScene(defaultRun(), occurrenceSpecific, "scenario.selected");
 	ok &= expect(!hasErrors(occurrenceInfrastructure) && !hasErrors(occurrenceOperations)
-			&& simulationIncidents.size() == 2
-			&& simulationIncidents[1].hasOccurrence && simulationIncidents[1].occurrence == 2
-			&& simulationIncidents[1].hasReducedSpeed
-			&& std::fabs(simulationIncidents[1].reducedSpeedKmh - 40.0) < 1e-9
+			&& defaultRun().incidents.size() == 2
+			&& defaultRun().incidents[1].hasOccurrence && defaultRun().incidents[1].occurrence == 2
+			&& defaultRun().incidents[1].hasReducedSpeed
+			&& std::fabs(defaultRun().incidents[1].reducedSpeedKmh - 40.0) < 1e-9
 			&& Incident_Holds_Train(defaultRun(), "service.native-2", 50) == false
-			&& regional_train[1].destinationTerminationRequested
-			&& !regional_train[0].destinationTerminationRequested
-			&& !regional_train[2].destinationTerminationRequested,
+			&& defaultRun().trains[1].destinationTerminationRequested
+			&& !defaultRun().trains[0].destinationTerminationRequested
+			&& !defaultRun().trains[2].destinationTerminationRequested,
 		"reduced breakdown staging targets one occurrence and continues without recovery");
-	regional_train[1].directIncidentIds.clear();
-	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(10.0, 50) - 10.0) < 1e-9
-			&& regional_train[1].directIncidentIds.empty(),
+	defaultRun().trains[1].directIncidentIds.clear();
+	ok &= expect(std::fabs(defaultRun().trains[1].effectiveIncidentSpeedLimit(10.0, 50) - 10.0) < 1e-9
+			&& defaultRun().trains[1].directIncidentIds.empty(),
 		"a nonbinding breakdown cap is not recorded as direct evidence");
-	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 50) - 40.0 / 3.6) < 1e-9
-			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.breakdown"}
-			&& std::fabs(regional_train[0].effectiveIncidentSpeedLimit(25.0, 50) - 25.0) < 1e-9,
+	ok &= expect(std::fabs(defaultRun().trains[1].effectiveIncidentSpeedLimit(25.0, 50) - 40.0 / 3.6) < 1e-9
+			&& defaultRun().trains[1].directIncidentIds == std::vector<std::string>{"incident.breakdown"}
+			&& std::fabs(defaultRun().trains[0].effectiveIncidentSpeedLimit(25.0, 50) - 25.0) < 1e-9,
 		"a binding cap records direct evidence only on the targeted occurrence");
-	SimulationIncident overlappingHold = simulationIncidents[1];
+	SimulationIncident overlappingHold = defaultRun().incidents[1];
 	overlappingHold.id = "incident.hold";
 	overlappingHold.hasReducedSpeed = false;
 	overlappingHold.reducedSpeedKmh = 0.0;
 	overlappingHold.hasEndSeconds = true;
 	overlappingHold.startSeconds = 45.0;
 	overlappingHold.endSeconds = 55.0;
-	simulationIncidents.push_back(overlappingHold);
+	defaultRun().incidents.push_back(overlappingHold);
 	ok &= expect(Incident_Holds_Train(defaultRun(), "service.native-2", 50)
 			&& Active_Train_Breakdown(defaultRun(), "service.native-2", 50)->id == "incident.hold",
 		"an overlapping full hold dominates an earlier reduced-speed incident");
-	SimulationIncident strictCap = simulationIncidents[1];
+	SimulationIncident strictCap = defaultRun().incidents[1];
 	strictCap.id = "incident.strict-cap";
 	strictCap.reducedSpeedKmh = 30.0;
-	simulationIncidents.push_back(strictCap);
-	regional_train[1].directIncidentIds.clear();
-	ok &= expect(std::fabs(regional_train[1].effectiveIncidentSpeedLimit(25.0, 60) - 30.0 / 3.6) < 1e-9
-			&& regional_train[1].directIncidentIds == std::vector<std::string>{"incident.strict-cap"},
+	defaultRun().incidents.push_back(strictCap);
+	defaultRun().trains[1].directIncidentIds.clear();
+	ok &= expect(std::fabs(defaultRun().trains[1].effectiveIncidentSpeedLimit(25.0, 60) - 30.0 / 3.6) < 1e-9
+			&& defaultRun().trains[1].directIncidentIds == std::vector<std::string>{"incident.strict-cap"},
 		"the strictest concurrent cap supplies the governing direct evidence");
-	ok &= expect(AllStationPlatforms.size() == 3, "native operations reuses the M2 platform list");
-	if (!AllStationPlatforms.empty())
-		ok &= expect(AllStationPlatforms.front().List_Trains_Stopping_At_Platform.front() == "service.native-1",
+	ok &= expect(defaultRun().platforms.size() == 3, "native operations reuses the M2 platform list");
+	if (!defaultRun().platforms.empty())
+		ok &= expect(defaultRun().platforms.front().List_Trains_Stopping_At_Platform.front() == "service.native-1",
 			"platform stopping lists use stable occurrence descriptions");
 	SceneModel geometry = completeScene();
 	geometry.stations[0].platforms[0].hasLength = true;
@@ -3531,41 +3554,43 @@ int main() {
 	const auto geometryInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), geometry);
 	const auto geometryOperations = buildOperationsFromScene(defaultRun(), geometry, "scenario.selected");
 	ok &= expect(!hasErrors(geometryInfrastructure) && !hasErrors(geometryOperations)
-			&& AllStationPlatforms.size() == 3,
+			&& defaultRun().platforms.size() == 3,
 		"explicit platform geometry reaches native operations");
-	if (AllStationPlatforms.size() == 3) {
-		auto platform = AllStationPlatforms.begin();
+	if (defaultRun().platforms.size() == 3) {
+		auto platform = defaultRun().platforms.begin();
 		ok &= expect(platform->length == 140.0 && platform->width == 3.0
 				&& platform->Max_Passenger_Volume == static_cast<int>((140.0 * 3.0) / (3.14159 * std::pow(0.8, 2)) * 0.8),
 			"native platform capacity keeps the existing area formula");
 		++platform;
-		ok &= expect(platform != AllStationPlatforms.end() && platform->length == 100.0
+		ok &= expect(platform != defaultRun().platforms.end() && platform->length == 100.0
 				&& platform->width == 2.5,
 			"absent platform geometry keeps effective defaults");
 	}
 	const std::string geometryPreviousName = initial_variables.name;
-	const int geometryPreviousRegions = numRegions;
-	const double previousPlatformLength = AllStationPlatforms.empty()
+	const int geometryPreviousRegions = defaultRun().numTrains;
+	const double previousPlatformLength = defaultRun().platforms.empty()
 		? -1.0
-		: AllStationPlatforms.front().length;
+		: defaultRun().platforms.front().length;
 	SceneModel invalidGeometry = completeScene();
 	invalidGeometry.stations[0].platforms[0].hasLength = true;
 	invalidGeometry.stations[0].platforms[0].lengthM = std::numeric_limits<double>::max();
 	const auto invalidGeometryDiagnostics = buildOperationsFromScene(defaultRun(), invalidGeometry, "scenario.selected");
 	ok &= expect(hasErrors(invalidGeometryDiagnostics)
 			&& hasCode(invalidGeometryDiagnostics, "scene.native.platform.capacity")
-			&& numRegions == geometryPreviousRegions
+			&& defaultRun().numTrains == geometryPreviousRegions
 			&& initial_variables.name == geometryPreviousName
-			&& (!AllStationPlatforms.empty() && AllStationPlatforms.front().length == previousPlatformLength),
+			&& (!defaultRun().platforms.empty() && defaultRun().platforms.front().length == previousPlatformLength),
 		"unsafe platform capacity is rejected before native state publication");
-	ok &= expect(AllDailyPassengers.size() == 1, "passenger journeys are built without filesystem input");
-	ok &= expect(!AllDailyPassengers.empty() && AllDailyPassengerIndex.covers(AllDailyPassengers)
-			&& AllDailyPassengerIndex.find(AllDailyPassengers.front().ID) == std::vector<Passenger*>({&AllDailyPassengers.front()})
-			&& !AllStationPlatforms.empty() && AllStationPlatformIndex.covers(AllStationPlatforms)
-			&& AllStationPlatformIndex.find(AllStationPlatforms.front().StationID, AllStationPlatforms.front().ID) == &AllStationPlatforms.front(),
+	ok &= expect(defaultRun().passengers.size() == 1, "passenger journeys are built without filesystem input");
+	ok &= expect(!defaultRun().passengers.empty() && defaultRun().passengerIndex.covers(defaultRun().passengers)
+			&& defaultRun().passengerIndex.find(defaultRun().passengers.front().ID) == std::vector<Passenger*>({&defaultRun().passengers.front()})
+			&& !defaultRun().platforms.empty() && defaultRun().platformIndex.covers(defaultRun().platforms)
+			&& defaultRun().platformIndex.find(defaultRun().platforms.front().StationID,
+				   defaultRun().platforms.front().ID)
+				== &defaultRun().platforms.front(),
 		"the last accepted build is indexed, also after a rejected one");
-	if (!AllDailyPassengers.empty() && !AllDailyPassengers.front().Journeys.empty()) {
-		const Journey& journey = AllDailyPassengers.front().Journeys.front();
+	if (!defaultRun().passengers.empty() && !defaultRun().passengers.front().Journeys.empty()) {
+		const Journey& journey = defaultRun().passengers.front().Journeys.front();
 		ok &= expect(journey.N_Trips == 2 && std::isfinite(journey.Actual_Planned_Departure_Time)
 				&& journey.Actual_Planned_Departure_Time >= 100.0
 				&& journey.Actual_Planned_Departure_Time <= 110.0,
@@ -3581,12 +3606,12 @@ int main() {
 					&& last.Planned_Departure_Time == -9999 && last.Planned_Arrival_Time >= 130,
 				"multi-leg planned times retain the existing endpoint-only semantics");
 		}
-		auto unrouted = AllDailyPassengers.front().Journeys.begin();
+		auto unrouted = defaultRun().passengers.front().Journeys.begin();
 		++unrouted;
-		ok &= expect(unrouted != AllDailyPassengers.front().Journeys.end() && unrouted->N_Trips == 0,
+		ok &= expect(unrouted != defaultRun().passengers.front().Journeys.end() && unrouted->N_Trips == 0,
 			"legless canonical journeys remain present");
 	}
-	auto routeChoicePassengers = AllDailyPassengers;
+	auto routeChoicePassengers = defaultRun().passengers;
 	Passenger& active = routeChoicePassengers.front();
 	active.IsIntheNetwork = true;
 	active.current_JourneyID = active.Journeys.front().ID;
@@ -3638,10 +3663,10 @@ int main() {
 	const auto steppedInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), stepped);
 	const auto steppedOperations = buildOperationsFromScene(defaultRun(), stepped, "scenario.selected");
 	ok &= expect(!hasErrors(steppedInfrastructure) && !hasErrors(steppedOperations)
-			&& numRegions == 4
-			&& regional_train[0].operatingCode == "1723"
-			&& regional_train[1].operatingCode == "1725"
-			&& regional_train[3].operatingCode == "1729",
+			&& defaultRun().numTrains == 4
+			&& defaultRun().trains[0].operatingCode == "1723"
+			&& defaultRun().trains[1].operatingCode == "1725"
+			&& defaultRun().trains[3].operatingCode == "1729",
 		"explicit repeat count and stepped operating codes reach each occurrence");
 
 	SceneModel tuned = completeScene();
@@ -3662,22 +3687,22 @@ int main() {
 	const auto tunedInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), tuned);
 	const auto tunedOperations = buildOperationsFromScene(defaultRun(), tuned, "scenario.selected");
 	ok &= expect(!hasErrors(tunedInfrastructure) && !hasErrors(tunedOperations)
-			&& numRegions == 4
-			&& std::fabs(regional_train[0].compositionMaximumSpeedMs - 25.0) < 1e-9
-			&& std::fabs(regional_train[0].max_train_speed - (20.0 / 3.6 * 0.5)) < 1e-9
-			&& std::fabs(regional_train[3].max_train_speed - 25.0) < 1e-9,
+			&& defaultRun().numTrains == 4
+			&& std::fabs(defaultRun().trains[0].compositionMaximumSpeedMs - 25.0) < 1e-9
+			&& std::fabs(defaultRun().trains[0].max_train_speed - (20.0 / 3.6 * 0.5)) < 1e-9
+			&& std::fabs(defaultRun().trains[3].max_train_speed - 25.0) < 1e-9,
 		"service cap and performance apply in precedence order per train");
 	ok &= expect(tuned.trainUnits[0].physical.max_speed_ms == 30.0
 			&& tuned.trainUnits[1].physical.max_speed_ms == 25.0
 			&& tuned.compositions[0].units == std::vector<std::string>{"unit.1", "unit.2"},
 		"services sharing a composition do not mutate source rolling-stock data");
 	{
-		const double previousPerformance = regional_train[0].servicePerformancePercent;
-		regional_train[0].servicePerformancePercent = 100.0;
-		const double fullForce = regional_train[0].tractiveEffort(5.0);
-		regional_train[0].servicePerformancePercent = 50.0;
-		const double reducedForce = regional_train[0].tractiveEffort(5.0);
-		regional_train[0].servicePerformancePercent = previousPerformance;
+		const double previousPerformance = defaultRun().trains[0].servicePerformancePercent;
+		defaultRun().trains[0].servicePerformancePercent = 100.0;
+		const double fullForce = defaultRun().trains[0].tractiveEffort(5.0);
+		defaultRun().trains[0].servicePerformancePercent = 50.0;
+		const double reducedForce = defaultRun().trains[0].tractiveEffort(5.0);
+		defaultRun().trains[0].servicePerformancePercent = previousPerformance;
 		ok &= expect(fullForce > 0.0 && std::fabs(reducedForce - fullForce * 0.5) < 1e-9,
 			"performance scales tractive effort exactly once");
 	}
@@ -3705,8 +3730,8 @@ int main() {
 	bool selectedJourneyHasTrips = false;
 	bool excludedJourneyOmitted = true;
 	bool mixedJourneyOmitted = true;
-	if (!AllDailyPassengers.empty()) {
-		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
+	if (!defaultRun().passengers.empty()) {
+		for (const Journey& journey : defaultRun().passengers.front().Journeys) {
 			if (journey.ID == "journey.1")
 				selectedJourneyHasTrips = journey.N_Trips == 2;
 			if (journey.ID == "journey.excluded")
@@ -3716,8 +3741,8 @@ int main() {
 		}
 	}
 	ok &= expect(!hasErrors(selectedInfrastructure) && !hasErrors(selectedOperations)
-			&& numRegions == 1 && regional_train[0].trainDescription == "service.native-2"
-			&& regional_train[0].EntranceDelay == 5.0
+			&& defaultRun().numTrains == 1 && defaultRun().trains[0].trainDescription == "service.native-2"
+			&& defaultRun().trains[0].EntranceDelay == 5.0
 			&& selectedJourneyHasTrips && excludedJourneyOmitted && mixedJourneyOmitted,
 		"occurrence selection omits journeys with excluded passenger legs");
 	SceneModel reversePassengerLeg = completeScene();
@@ -3725,25 +3750,25 @@ int main() {
 	reversePassengerLeg.passengers[0].journeys[0].destinationStationId = "station.1";
 	reversePassengerLeg.passengers[0].journeys[0].legs = {
 		{"leg.reverse", "station.2", "station.1", "service.native", 2}};
-	const int previousReverseRegions = numRegions;
+	const int previousReverseRegions = defaultRun().numTrains;
 	const std::string previousReverseName = initial_variables.name;
-	const std::size_t previousReversePassengerCount = AllDailyPassengers.size();
+	const std::size_t previousReversePassengerCount = defaultRun().passengers.size();
 	const auto reversePassengerInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), reversePassengerLeg);
 	const auto reversePassengerDiagnostics = buildOperationsFromScene(defaultRun(), reversePassengerLeg, "scenario.base", onlySecond);
 	ok &= expect(!hasErrors(reversePassengerInfrastructure)
 			&& hasCode(reversePassengerDiagnostics, "scene.native.passenger.order")
-			&& numRegions == previousReverseRegions
+			&& defaultRun().numTrains == previousReverseRegions
 			&& initial_variables.name == previousReverseName
-			&& AllDailyPassengers.size() == previousReversePassengerCount,
+			&& defaultRun().passengers.size() == previousReversePassengerCount,
 		"native preflight rejects reverse passenger legs before state publication");
 	SceneModel legacyReversePassengerLeg = reversePassengerLeg;
 	legacyReversePassengerLeg.importReport.push_back({"legacy_root"});
 	const auto legacyReverseInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), legacyReversePassengerLeg);
 	const auto legacyReverseDiagnostics = buildOperationsFromScene(defaultRun(),
 		legacyReversePassengerLeg, "scenario.base", onlySecond);
-	bool legacyReverseJourneyOmitted = !AllDailyPassengers.empty();
-	if (!AllDailyPassengers.empty()) {
-		for (const Journey& journey : AllDailyPassengers.front().Journeys)
+	bool legacyReverseJourneyOmitted = !defaultRun().passengers.empty();
+	if (!defaultRun().passengers.empty()) {
+		for (const Journey& journey : defaultRun().passengers.front().Journeys)
 			legacyReverseJourneyOmitted = legacyReverseJourneyOmitted && journey.ID != "journey.1";
 	}
 	ok &= expect(!hasErrors(legacyReverseInfrastructure) && !hasErrors(legacyReverseDiagnostics)
@@ -3770,8 +3795,8 @@ int main() {
 	const auto repeatedInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), repeatedPassengerStops);
 	const auto repeatedOperations = buildOperationsFromScene(defaultRun(), repeatedPassengerStops, "scenario.base", onlySecond);
 	bool repeatedJourneyStaged = false;
-	if (!AllDailyPassengers.empty()) {
-		for (const Journey& journey : AllDailyPassengers.front().Journeys) {
+	if (!defaultRun().passengers.empty()) {
+		for (const Journey& journey : defaultRun().passengers.front().Journeys) {
 			if (journey.ID == "journey.1")
 				repeatedJourneyStaged = journey.N_Trips == 1 && !journey.Trips.empty()
 					&& journey.Trips.front().Dep_Station_Platform_ID == "platform.1"
@@ -3781,24 +3806,24 @@ int main() {
 	ok &= expect(!hasErrors(repeatedInfrastructure) && !hasErrors(repeatedOperations)
 			&& resolveScenePassengerLegStops(repeatedPassengerStops.services[0], repeatedJourney.legs[0], repeatedPair)
 			&& repeatedPair.originIndex == 1 && repeatedPair.destinationIndex == 2
-			&& regional_train[0].Stations[0].X == 0.0 && regional_train[0].Stations[2].X == 2.0
+			&& defaultRun().trains[0].Stations[0].X == 0.0 && defaultRun().trains[0].Stations[2].X == 2.0
 			&& repeatedJourneyStaged,
 		"native passenger staging follows the repeated-stop ordered pair");
 	SceneModel invalidUnselectedPassenger = completeScene();
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].serviceId = "service.missing";
 	invalidUnselectedPassenger.passengers[0].journeys[0].legs[0].occurrence = 1;
-	const int previousRegions = numRegions;
-	const std::string previousTrainDescription = regional_train[0].trainDescription;
+	const int previousRegions = defaultRun().numTrains;
+	const std::string previousTrainDescription = defaultRun().trains[0].trainDescription;
 	const std::string previousOperationsName = initial_variables.name;
-	const std::size_t previousPassengerCount = AllDailyPassengers.size();
+	const std::size_t previousPassengerCount = defaultRun().passengers.size();
 	const auto invalidUnselectedPassengerDiagnostics = buildOperationsFromScene(defaultRun(),
 		invalidUnselectedPassenger, "scenario.selected", onlySecond);
 	ok &= expect(hasErrors(invalidUnselectedPassengerDiagnostics)
 			&& hasCode(invalidUnselectedPassengerDiagnostics, "scene.native.passenger.service")
-			&& numRegions == previousRegions
-			&& regional_train[0].trainDescription == previousTrainDescription
+			&& defaultRun().numTrains == previousRegions
+			&& defaultRun().trains[0].trainDescription == previousTrainDescription
 			&& initial_variables.name == previousOperationsName
-			&& AllDailyPassengers.size() == previousPassengerCount,
+			&& defaultRun().passengers.size() == previousPassengerCount,
 		"invalid unselected passenger legs are rejected before native state publication");
 
 	SceneModel sparsePattern = completeScene();
@@ -3809,8 +3834,8 @@ int main() {
 	const auto sparseOperations = buildOperationsFromScene(defaultRun(),
 		sparsePattern, "scenario.selected", lateOccurrence);
 	ok &= expect(!hasErrors(sparseInfrastructure) && !hasErrors(sparseOperations)
-			&& numRegions == 1
-			&& regional_train[0].trainDescription == "service.native-999999999",
+			&& defaultRun().numTrains == 1
+			&& defaultRun().trains[0].trainDescription == "service.native-999999999",
 		"a sparse selection does not expand every occurrence in a large pattern");
 	const SceneRunSelection invalidSelections{{"service.native", 1000000001}, {"service.missing", 1}};
 	const auto invalidSelectionOperations = buildOperationsFromScene(defaultRun(),
@@ -3882,13 +3907,13 @@ int main() {
 			&& std::next(eventIt, 3)->trainDescription == "nan-last",
 		"train event sorting terminates and places non-finite times last");
 
-	const std::string previousDescription = regional_train[0].trainDescription;
-	const std::size_t previousIncidentCount = simulationIncidents.size();
+	const std::string previousDescription = defaultRun().trains[0].trainDescription;
+	const std::size_t previousIncidentCount = defaultRun().incidents.size();
 	const std::string previousName = initial_variables.name;
 	const auto invalidDiagnostics = buildOperationsFromScene(defaultRun(), scene, "scenario.missing");
 	ok &= expect(hasErrors(invalidDiagnostics), "an invalid selected scenario is rejected");
-	ok &= expect(regional_train[0].trainDescription == previousDescription
-			&& simulationIncidents.size() == previousIncidentCount
+	ok &= expect(defaultRun().trains[0].trainDescription == previousDescription
+			&& defaultRun().incidents.size() == previousIncidentCount
 			&& initial_variables.name == previousName,
 		"invalid operations build preserves prior runtime state");
 
@@ -3905,7 +3930,7 @@ int main() {
 	ordered.services[0].stops[1].platformId.clear();
 	buildInfrastructureAndSignallingFromScene(defaultRun(), ordered);
 	ok &= expect(!hasErrors(buildOperationsFromScene(defaultRun(), ordered, "scenario.base"))
-			&& regional_train[0].Stations[1].stationPlatformId == "platform.1",
+			&& defaultRun().trains[0].Stations[1].stationPlatformId == "platform.1",
 		"a unique reachable platform resolves without an explicit selection");
 	ordered.stations[1].platforms.push_back({"platform.other", {"node.3"}});
 	buildInfrastructureAndSignallingFromScene(defaultRun(), ordered);
@@ -3927,10 +3952,10 @@ int main() {
 	const auto routeExternalOperations = buildOperationsFromScene(defaultRun(), routeExternal, "scenario.base");
 	ok &= expect(!hasErrors(routeExternalInfrastructure) && !hasErrors(routeExternalOperations),
 		"pre-entry and post-exit timetable rows remain valid without an invented platform");
-	ok &= expect(regional_train[0].numStations == 4
-			&& regional_train[0].Stations[3].stationPlatformId == ""
-			&& regional_train[0].ScheduledArrivals[3] == -120.0
-			&& regional_train[0].ScheduledDepartures[3] == -60.0,
+	ok &= expect(defaultRun().trains[0].numStations == 4
+			&& defaultRun().trains[0].Stations[3].stationPlatformId == ""
+			&& defaultRun().trains[0].ScheduledArrivals[3] == -120.0
+			&& defaultRun().trains[0].ScheduledDepartures[3] == -60.0,
 		"route-external timetable rows preserve negative relative planned times");
 
 	SceneModel shortHorizon = completeScene();
@@ -3938,10 +3963,10 @@ int main() {
 	const auto shortInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), shortHorizon);
 	const auto shortOperations = buildOperationsFromScene(defaultRun(), shortHorizon, "scenario.base");
 	ok &= expect(!hasErrors(shortInfrastructure) && !hasErrors(shortOperations)
-			&& numRegions == 1 && AllDailyPassengers.size() == 1
-			&& AllDailyPassengers.front().Journeys.size() == 1
-			&& AllDailyPassengers.front().Journeys.front().ID == "journey.unrouted"
-			&& AllDailyPassengers.front().Journeys.front().N_Trips == 0,
+			&& defaultRun().numTrains == 1 && defaultRun().passengers.size() == 1
+			&& defaultRun().passengers.front().Journeys.size() == 1
+			&& defaultRun().passengers.front().Journeys.front().ID == "journey.unrouted"
+			&& defaultRun().passengers.front().Journeys.front().N_Trips == 0,
 		"passenger journeys beyond a shortened run horizon are omitted whole");
 
 	initial_variables.times = 120.0;
@@ -3950,8 +3975,8 @@ int main() {
 	const auto extendedInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), extendedHorizon);
 	const auto extendedOperations = buildOperationsFromScene(defaultRun(), extendedHorizon, "scenario.selected");
 	ok &= expect(!hasErrors(extendedInfrastructure) && !hasErrors(extendedOperations)
-			&& initial_variables.times == 120.0 && numRegions == 4
-			&& regional_train[0].instant_train_speed.size() == 120,
+			&& initial_variables.times == 120.0 && defaultRun().numTrains == 4
+			&& defaultRun().trains[0].instant_train_speed.size() == 120,
 		"duration override sizes repeated services and runtime vectors to the effective horizon");
 	initial_variables.durationOverride = false;
 
@@ -3973,32 +3998,32 @@ int main() {
 	// Runs the first train through the live movement step that the dispatch loop uses.
 	const auto simulateFirstTrainMovement = [&]() {
 		for (int t = 0; t < initial_variables.times; t++) {
-			regional_train[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
-			regional_train[0].recordEarliestActiveTrajectoryIndex(t);
+			defaultRun().trains[0].trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+			defaultRun().trains[0].recordEarliestActiveTrajectoryIndex(t);
 		}
 	};
 	int fullPerformanceEnd = -1;
-	if (!hasErrors(trajectoryFullInfrastructure) && !hasErrors(trajectoryFullOperations) && numRegions == 1) {
+	if (!hasErrors(trajectoryFullInfrastructure) && !hasErrors(trajectoryFullOperations) && defaultRun().numTrains == 1) {
 		simulateFirstTrainMovement();
-		fullPerformanceEnd = regional_train[0].End_Time;
+		fullPerformanceEnd = defaultRun().trains[0].End_Time;
 	}
 	trajectoryPerformance.services[0].performancePercent = 50.0;
 	const auto trajectoryReducedInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), trajectoryPerformance);
 	const auto trajectoryReducedOperations = buildOperationsFromScene(defaultRun(), trajectoryPerformance, "scenario.base");
 	int reducedPerformanceEnd = -1;
-	if (!hasErrors(trajectoryReducedInfrastructure) && !hasErrors(trajectoryReducedOperations) && numRegions == 1) {
+	if (!hasErrors(trajectoryReducedInfrastructure) && !hasErrors(trajectoryReducedOperations) && defaultRun().numTrains == 1) {
 		simulateFirstTrainMovement();
-		reducedPerformanceEnd = regional_train[0].End_Time;
+		reducedPerformanceEnd = defaultRun().trains[0].End_Time;
 	}
 	ok &= expect(fullPerformanceEnd >= 0 && reducedPerformanceEnd > fullPerformanceEnd,
 		"reduced performance delays native route completion");
 
 	const auto safetyInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), trajectoryPerformance);
 	const auto safetyOperations = buildOperationsFromScene(defaultRun(), trajectoryPerformance, "scenario.base");
-	ok &= expect(!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1,
+	ok &= expect(!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && defaultRun().numTrains == 1,
 		"runtime safety fixture builds one zero-stop through service");
-	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && numRegions == 1) {
-		Train& through = regional_train[0];
+	if (!hasErrors(safetyInfrastructure) && !hasErrors(safetyOperations) && defaultRun().numTrains == 1) {
+		Train& through = defaultRun().trains[0];
 		through.departure_time = 0.0;
 		through.checkTrainArrDep(0, 0);
 		Stations finalProbe;
@@ -4022,23 +4047,23 @@ int main() {
 				&& through.instant_spatial_position[0] == through.Start_Node_X * 1000,
 			"time zero initializes the live trajectory without entering or advancing");
 
-		Route& route = train_route[through.indexOfRoute];
-		S_delay = 0.0;
+		Route& route = defaultRun().infra.routes[through.indexOfRoute];
+		defaultRun().signallingDelay = 0.0;
 		through.CanEnter = true;
 		through.OutOfSimulation = false;
 		const int nextHead = route.N_Block_Sections - 2;
 		const Section& nextSection = route.sequence_of_block_sections[nextHead];
 		through.instant_spatial_position[1] =
 			(nextSection.start_node.X + nextSection.end_node.X) * 500.0;
-		stationBoundarySections.clear();
-		stationBoundarySections.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
+		defaultRun().infra.stationBoundaries.clear();
+		defaultRun().infra.stationBoundaries.emplace_back(&route.sequence_of_block_sections[nextHead + 1],
 			route.reversed_direction, nullptr);
-		BlocksOccupied.clear();
-		BlocksConnected.clear();
+		defaultRun().blocksOccupied.clear();
+		defaultRun().blocksConnected.clear();
 		protectStationAreas(defaultRun(), 1);
-		ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(),
+		ok &= expect(std::find(defaultRun().blocksConnected.begin(), defaultRun().blocksConnected.end(),
 						 route.sequence_of_block_sections[nextHead + 1].ID)
-				!= BlocksConnected.end(),
+				!= defaultRun().blocksConnected.end(),
 			"zero-stop train keeps station-boundary route protection without stop indexing");
 
 		// One section stored past N_Block_Sections: the lookahead must not read it.
@@ -4048,15 +4073,15 @@ int main() {
 			outOfRoute.ID = "out.of.route";
 			const Section& tail = route.sequence_of_block_sections[route.N_Block_Sections - 1];
 			through.instant_spatial_position[1] = (tail.start_node.X + tail.end_node.X) * 500.0;
-			stationBoundarySections.clear();
-			stationBoundarySections.emplace_back(&outOfRoute, route.reversed_direction, nullptr);
-			BlocksOccupied.clear();
-			BlocksConnected.clear();
+			defaultRun().infra.stationBoundaries.clear();
+			defaultRun().infra.stationBoundaries.emplace_back(&outOfRoute, route.reversed_direction, nullptr);
+			defaultRun().blocksOccupied.clear();
+			defaultRun().blocksConnected.clear();
 			protectStationAreas(defaultRun(), 1);
-			ok &= expect(std::find(BlocksConnected.begin(), BlocksConnected.end(), outOfRoute.ID)
-					== BlocksConnected.end(),
+			ok &= expect(std::find(defaultRun().blocksConnected.begin(), defaultRun().blocksConnected.end(), outOfRoute.ID)
+					== defaultRun().blocksConnected.end(),
 				"station lookahead ignores sections beyond the actual route tail");
-			stationBoundarySections.clear();
+			defaultRun().infra.stationBoundaries.clear();
 		}
 		route.sequence_of_block_sections.pop_back();
 	}
@@ -4067,49 +4092,49 @@ int main() {
 	const auto statisticsInfrastructure = buildInfrastructureAndSignallingFromScene(defaultRun(), statisticsScene);
 	const auto statisticsOperations = buildOperationsFromScene(defaultRun(), statisticsScene, "scenario.base");
 	ok &= expect(!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations)
-			&& numRegions == 3,
+			&& defaultRun().numTrains == 3,
 		"station statistics fixture builds three trains");
-	ok &= expect(Final_Station.stationName == "Final_Station",
+	ok &= expect(defaultRun().finalStation.stationName == "Final_Station",
 		"building a scene names the fictitious station of the final-station statistics");
-	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && numRegions == 3) {
+	if (!hasErrors(statisticsInfrastructure) && !hasErrors(statisticsOperations) && defaultRun().numTrains == 3) {
 		Stations statistics;
 		statistics.stationName = "Final_Station";
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
-			regional_train[trainIndex].numStations = 1;
-			regional_train[trainIndex].StationArrivals[0] = -1;
-			regional_train[trainIndex].ScheduledArrivals[0] = 0;
-			regional_train[trainIndex].StationDelay[0] = -1;
-			regional_train[trainIndex].StationConsecDelay[0] = -1;
+			defaultRun().trains[trainIndex].numStations = 1;
+			defaultRun().trains[trainIndex].StationArrivals[0] = -1;
+			defaultRun().trains[trainIndex].ScheduledArrivals[0] = 0;
+			defaultRun().trains[trainIndex].StationDelay[0] = -1;
+			defaultRun().trains[trainIndex].StationConsecDelay[0] = -1;
 		}
 
-		numRegions = 0;
+		defaultRun().numTrains = 0;
 		calculateDelayStatsAtStation(defaultRun(), statistics);
 		Compute_Input_Delays(defaultRun());
 		ok &= expect(statistics.N_Stopped_Trains == 0 && statistics.Av_Arrival_Delay == -1
 				&& statistics.Std_Arrival_Delay == -1 && statistics.totalArrivalDelay == 0
-				&& TotalInputDelays.Av_Arrival_Delay == -1
-				&& EntranceInputDelays.Std_Arrival_Delay == -1
-				&& DisturbanceInput.Perc_Delayed_T == -1,
+				&& defaultRun().totalInputDelays.Av_Arrival_Delay == -1
+				&& defaultRun().entranceInputDelays.Std_Arrival_Delay == -1
+				&& defaultRun().disturbanceInput.Perc_Delayed_T == -1,
 			"empty delay populations keep the unavailable representation");
 
-		numRegions = 1;
-		regional_train[0].StationArrivals[0] = 100;
-		regional_train[0].StationDelay[0] = 12;
-		regional_train[0].StationConsecDelay[0] = 3;
+		defaultRun().numTrains = 1;
+		defaultRun().trains[0].StationArrivals[0] = 100;
+		defaultRun().trains[0].StationDelay[0] = 12;
+		defaultRun().trains[0].StationConsecDelay[0] = 3;
 		calculateDelayStatsAtStation(defaultRun(), statistics);
 		ok &= expect(statistics.Av_Arrival_Delay == 12 && statistics.Std_Arrival_Delay == 0
 				&& statistics.totalArrivalDelay == 12 && statistics.Max_TotalDelay == 12
 				&& std::isfinite(statistics.Perc_Delayed_T),
 			"one positive station-delay sample has zero deviation");
 
-		regional_train[0].StationDelay[0] = -1;
+		defaultRun().trains[0].StationDelay[0] = -1;
 		calculatePosAndNegDelayStatsAtStation(defaultRun(), statistics);
 		ok &= expect(statistics.N_Stopped_Trains == 1 && statistics.Av_Arrival_Delay == -1
 				&& statistics.Std_Arrival_Delay == 0 && statistics.totalArrivalDelay == -1,
 			"a one-second early arrival is not confused with the delay sentinel");
 
-		regional_train[0].StationDelay[0] = -12;
-		regional_train[0].StationConsecDelay[0] = -3;
+		defaultRun().trains[0].StationDelay[0] = -12;
+		defaultRun().trains[0].StationConsecDelay[0] = -3;
 		calculatePosAndNegDelayStatsAtStation(defaultRun(), statistics);
 		ok &= expect(statistics.Av_Arrival_Delay == -12 && statistics.Std_Arrival_Delay == 0
 				&& statistics.Max_TotalDelay == -12 && statistics.Max_Cons_Delay == -3,
@@ -4118,11 +4143,11 @@ int main() {
 		const double positiveDelays[] = {10, 20, 0};
 		const double mixedDelays[] = {-10, 0, 20};
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
-			regional_train[trainIndex].StationArrivals[0] = 100;
-			regional_train[trainIndex].StationDelay[0] = positiveDelays[trainIndex];
-			regional_train[trainIndex].StationConsecDelay[0] = trainIndex;
+			defaultRun().trains[trainIndex].StationArrivals[0] = 100;
+			defaultRun().trains[trainIndex].StationDelay[0] = positiveDelays[trainIndex];
+			defaultRun().trains[trainIndex].StationConsecDelay[0] = trainIndex;
 		}
-		numRegions = 3;
+		defaultRun().numTrains = 3;
 		calculateDelayStatsAtStation(defaultRun(), statistics);
 		ok &= expect(std::abs(statistics.Av_Arrival_Delay - 15) < 1e-9
 				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
@@ -4131,7 +4156,7 @@ int main() {
 			"multiple positive delays retain the delayed-train sample denominator");
 
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex)
-			regional_train[trainIndex].StationDelay[0] = mixedDelays[trainIndex];
+			defaultRun().trains[trainIndex].StationDelay[0] = mixedDelays[trainIndex];
 		calculatePosAndNegDelayStatsAtStation(defaultRun(), statistics);
 		ok &= expect(std::abs(statistics.Av_Arrival_Delay - (10.0 / 3.0)) < 1e-9
 				&& std::abs(statistics.Std_Arrival_Delay - std::sqrt(700.0 / 3.0)) < 1e-9
@@ -4141,31 +4166,31 @@ int main() {
 		const double totalInputs[] = {0, 10, 20};
 		const double entranceInputs[] = {0, 4, 8};
 		for (int trainIndex = 0; trainIndex < 3; ++trainIndex) {
-			regional_train[trainIndex].TotalInputDelays = totalInputs[trainIndex];
-			regional_train[trainIndex].EntranceDelay = entranceInputs[trainIndex];
+			defaultRun().trains[trainIndex].TotalInputDelays = totalInputs[trainIndex];
+			defaultRun().trains[trainIndex].EntranceDelay = entranceInputs[trainIndex];
 		}
 		Compute_Input_Delays(defaultRun());
-		ok &= expect(std::abs(TotalInputDelays.Av_Arrival_Delay - 15) < 1e-9
-				&& std::abs(TotalInputDelays.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
-				&& std::abs(EntranceInputDelays.Av_Arrival_Delay - 6) < 1e-9
-				&& std::abs(DisturbanceInput.Av_Arrival_Delay - 9) < 1e-9
-				&& std::isfinite(EntranceInputDelays.Std_Arrival_Delay)
-				&& std::isfinite(DisturbanceInput.Std_Arrival_Delay),
+		ok &= expect(std::abs(defaultRun().totalInputDelays.Av_Arrival_Delay - 15) < 1e-9
+				&& std::abs(defaultRun().totalInputDelays.Std_Arrival_Delay - std::sqrt(50.0)) < 1e-9
+				&& std::abs(defaultRun().entranceInputDelays.Av_Arrival_Delay - 6) < 1e-9
+				&& std::abs(defaultRun().disturbanceInput.Av_Arrival_Delay - 9) < 1e-9
+				&& std::isfinite(defaultRun().entranceInputDelays.Std_Arrival_Delay)
+				&& std::isfinite(defaultRun().disturbanceInput.Std_Arrival_Delay),
 			"multiple input-delay populations remain finite");
 
-		numRegions = 1;
-		regional_train[0].TotalInputDelays = 0;
-		regional_train[0].EntranceDelay = 0;
+		defaultRun().numTrains = 1;
+		defaultRun().trains[0].TotalInputDelays = 0;
+		defaultRun().trains[0].EntranceDelay = 0;
 		Compute_Input_Delays(defaultRun());
-		ok &= expect(TotalInputDelays.Av_Arrival_Delay == 0
-				&& TotalInputDelays.Std_Arrival_Delay == 0
-				&& EntranceInputDelays.Std_Arrival_Delay == 0
-				&& DisturbanceInput.Std_Arrival_Delay == 0,
+		ok &= expect(defaultRun().totalInputDelays.Av_Arrival_Delay == 0
+				&& defaultRun().totalInputDelays.Std_Arrival_Delay == 0
+				&& defaultRun().entranceInputDelays.Std_Arrival_Delay == 0
+				&& defaultRun().disturbanceInput.Std_Arrival_Delay == 0,
 			"one all-punctual input population reports finite zeros");
 
 		QTemporaryDir statisticsOutput;
-		numStations = 1;
-		Final_Station = statistics;
+		defaultRun().infra.numStations = 1;
+		defaultRun().finalStation = statistics;
 		Print_Station_Delay_Stats(defaultRun(), statisticsOutput.path().toStdString(), "pos");
 		std::ifstream exported(statisticsOutput.filePath("Stats_Stations.txt").toStdString());
 		bool finiteExport = exported.good();
@@ -4178,7 +4203,7 @@ int main() {
 		ok &= expect(finiteExport, "one-station statistics export contains no non-finite values");
 
 		// The statistics take the arrival of the timetable point, the one the timetable results report.
-		Train& train = regional_train[0];
+		Train& train = defaultRun().trains[0];
 		TrainEvent point;
 		point.SuccessorID = train.stationNameForArrivalStats(0);
 		point.Time = 94;
@@ -4265,7 +4290,7 @@ int main() {
 				 std::nextafter(exact, std::numeric_limits<double>::infinity())}) {
 			Train stopping;
 			stopping.run_ = &defaultRun();
-			stopping.indexOfRoute = regional_train[0].indexOfRoute;
+			stopping.indexOfRoute = defaultRun().trains[0].indexOfRoute;
 			stopping.departure_time = 1.0;
 			stopping.instant_spatial_position.assign(60, stoppingPoint + 500.0);
 			for (int second = 0; second < 10; ++second)
@@ -4285,7 +4310,7 @@ int main() {
 			// A last stop: the train arrives and stays until the end of the run.
 			Train terminating;
 			terminating.run_ = &defaultRun();
-			terminating.indexOfRoute = regional_train[0].indexOfRoute;
+			terminating.indexOfRoute = defaultRun().trains[0].indexOfRoute;
 			terminating.departure_time = 1.0;
 			terminating.instant_spatial_position.assign(60, exact);
 			for (int second = 0; second < 10; ++second)

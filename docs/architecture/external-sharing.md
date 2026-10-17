@@ -139,7 +139,7 @@ Each run begins with a new run id, 16 hexadecimal digits from `std::random_devic
 
 | Frame | Sent | Holds |
 | --- | --- | --- |
-| `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the `SceneModel` that `prepareScene` was given, `base_time_s` (`startingSimulationTime` of the settings of the run), `horizon_steps` (`times` of the settings of the run), `step_s` (`timestep`), and one entry for each train of the run, in the order of `regional_train`, with its service id, occurrence, operating code and route index |
+| `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the `SceneModel` that `prepareScene` was given, `base_time_s` (`startingSimulationTime` of the settings of the run), `horizon_steps` (`times` of the settings of the run), `step_s` (`timestep`), and one entry for each train of the run, in the order of `SimulationRun::trains`, with its service id, occurrence, operating code and route index |
 | `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
 | `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
 | `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |

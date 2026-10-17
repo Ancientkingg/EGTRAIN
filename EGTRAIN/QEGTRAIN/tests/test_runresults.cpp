@@ -122,10 +122,10 @@ int main() {
 			"zero-speed total-resistance power remains finite");
 	}
 	{
-		const int savedBlocks = Blocks;
-		const double savedDelay = S_delay;
-		const auto savedRoutes = train_route;
-		const auto savedAuthorities = ETCS_MA;
+		const int savedBlocks = defaultRun().infra.numBlocks;
+		const double savedDelay = defaultRun().signallingDelay;
+		const auto savedRoutes = defaultRun().infra.routes;
+		const auto savedAuthorities = defaultRun().etcsMa;
 
 		Section sections[2];
 		for (int index = 0; index < 2; ++index) {
@@ -151,11 +151,11 @@ int main() {
 		route->sequence_of_block_sections[0] = sections[0];
 		route->x_of_start_node = sections[0].start_node.X;
 		route->x_of_end_node = sections[0].end_node.X;
-		train_route.clear();
-		train_route.push_back(*route);
-		Blocks = 2;
-		S_delay = 0;
-		ETCS_MA.clear();
+		defaultRun().infra.routes.clear();
+		defaultRun().infra.routes.push_back(*route);
+		defaultRun().infra.numBlocks = 2;
+		defaultRun().signallingDelay = 0;
+		defaultRun().etcsMa.clear();
 
 		Train train;
 		train.run_ = &defaultRun();
@@ -168,13 +168,13 @@ int main() {
 		train.instant_train_speed = {10, 10};
 		train.ReportPositionToRBC(1, sections, 1, 50);
 		bool outOfRouteAuthority = false;
-		for (const auto& authority : ETCS_MA)
+		for (const auto& authority : defaultRun().etcsMa)
 			outOfRouteAuthority |= authority.BSID == sections[1].ID;
 		ok &= expect(!outOfRouteAuthority,
 			"reporting uses the supplied route section bound");
 		bool foundEntranceAuthority = false;
 		double entrancePosition = std::numeric_limits<double>::quiet_NaN();
-		for (const auto& authority : ETCS_MA) {
+		for (const auto& authority : defaultRun().etcsMa) {
 			if (authority.BSID == sections[0].ID && authority.type == "TrainEnd" && authority.typePart == "Tale") {
 				foundEntranceAuthority = true;
 				entrancePosition = authority.AbsPosEoA;
@@ -186,16 +186,16 @@ int main() {
 		ok &= expect(foundEntranceAuthority && std::fabs(entrancePosition - sections[0].GeoXBegNode) < 0.001,
 			"first-section entrance authority uses the geographic start coordinate");
 
-		ETCS_MA.clear();
-		S_delay = 2;
+		defaultRun().etcsMa.clear();
+		defaultRun().signallingDelay = 2;
 		train.ReportPositionToRBC(1, sections, 1, 50);
-		ok &= expect(ETCS_MA.empty(),
+		ok &= expect(defaultRun().etcsMa.empty(),
 			"reporting skips delayed samples before the trajectory");
 
-		Blocks = savedBlocks;
-		S_delay = savedDelay;
-		train_route = savedRoutes;
-		ETCS_MA = savedAuthorities;
+		defaultRun().infra.numBlocks = savedBlocks;
+		defaultRun().signallingDelay = savedDelay;
+		defaultRun().infra.routes = savedRoutes;
+		defaultRun().etcsMa = savedAuthorities;
 	}
 	{
 		auto train = makeTimetableTrain("timetable", {"Central"});
@@ -800,7 +800,7 @@ int main() {
 	}
 
 	{
-		const auto savedRoutes = train_route;
+		const auto savedRoutes = defaultRun().infra.routes;
 		const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
 		QTemporaryDir temp;
 		ok &= expect(temp.isValid() && QDir().mkpath(temp.filePath("TEMP")),
@@ -808,10 +808,10 @@ int main() {
 		if (!temp.isValid())
 			return 1;
 		defaultRun().settings.OutputMainFolder = temp.path().toStdString();
-		train_route.clear();
-		train_route.resize(2);
-		train_route[1].reversed_direction = true;
-		train_route[1].OriginalRefReversedRoute = 1000.0;
+		defaultRun().infra.routes.clear();
+		defaultRun().infra.routes.resize(2);
+		defaultRun().infra.routes[1].reversed_direction = true;
+		defaultRun().infra.routes[1].OriginalRefReversedRoute = 1000.0;
 		const double positions[2][4] = {{100, 110, 130, 160}, {900, 890, 870, 840}};
 		const double tails[2][4] = {{16, 26, 46, 76}, {984, 974, 954, 924}};
 		for (int direction = 0; direction < 2; ++direction) {
@@ -856,7 +856,7 @@ int main() {
 				previousPosition = position;
 			}
 		}
-		train_route = savedRoutes;
+		defaultRun().infra.routes = savedRoutes;
 		defaultRun().settings.OutputMainFolder = savedOutputFolder;
 	}
 

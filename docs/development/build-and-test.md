@@ -828,7 +828,7 @@ Three more entries run committed scenes this way: `characterization_repeat_paimp
 `characterization_repeat_lebanon_milano` (Lebanon and Milano-Brescia, alternating)
 and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, labelled
 `slow`). They fail when a run leaves state behind that changes a later run of the
-same scene, which is what a change to the global runtime arrays can cause.
+same scene, which is what a change to the arrays of the run can cause.
 
 These entries compare the observation of each run: what the test reads from
 memory, and the two station statistics files. The other files of a run are not
@@ -893,8 +893,8 @@ a route marked `reversed` with its sections in forward order with
 `scene.route.direction`.
 
 `test_signalling_aspects` is a third executable, because it needs no scene and
-no Qt. It builds routes of up to seven sections by hand in the global route
-list and calls the release and the activation of the mixed signalling
+no Qt. It builds routes of up to seven sections by hand in the route list of
+the run and calls the release and the activation of the mixed signalling
 (`releaseMixedSignallingSystem` and `activateMixedSignallingSystem`, in the
 order of a step) and the release of the last section
 (`relLastSectionMixedSignalling`). After a step it writes the code, state, signal

@@ -85,10 +85,6 @@ public:
 	void checkJourneyStart(int t);
 };
 
-// Define a global list of passengers
-extern std::list<Passenger>& AllDailyPassengers; // This list ocntains all the passengers which appear in the network throughout the whole day
-extern int& numAllDailyPassengers;				 // This the overall number of passengers who will use the rail service across the whole day ( size of list AllDailyPassengers)
-
 // Passengers by ID, in list order, for one passenger list. The index points into the list, so it describes the list only
 // while the list keeps the same elements: a list that was cleared or replaced needs a new index.
 class PassengerIndex {
@@ -120,11 +116,6 @@ private:
 	size_t count_ = 0;
 	std::unordered_map<std::string, std::unordered_map<std::string, const StationPlatform*>> byId_;
 };
-
-// The indexes of AllDailyPassengers and AllStationPlatforms. The operations builder builds them and the operations state
-// reset clears them.
-extern PassengerIndex& AllDailyPassengerIndex;
-extern PlatformIndex& AllStationPlatformIndex;
 
 void printCurrentPassengerStatus(int t, int StartSimulationTime, const std::list<Passenger>& ALLPAX, std::string MainFolder);
 

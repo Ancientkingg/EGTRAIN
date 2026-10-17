@@ -29,10 +29,6 @@ void calculateDelayStatsForAllStations(SimulationRun& run);
 // Function to calculate positive and negative train delay statistics for all stations
 void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 
-// Computation times of EGTRAIN and ROMA
-extern double& Comp_Time_EGTRAIN;
-extern double& Comp_Time_ROMA;
-
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
 void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
 
