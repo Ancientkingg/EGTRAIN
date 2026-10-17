@@ -89,7 +89,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	connect(m_occurrenceEdit, &QAbstractSpinBox::editingFinished, this, &EntranceDelayPanel::commitOccurrence);
 	connect(m_stationCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &EntranceDelayPanel::commitStation);
 	connect(m_secondsEdit, &QAbstractSpinBox::editingFinished, this, &EntranceDelayPanel::commitSeconds);
-	refresh();
+	EntranceDelayPanel::refresh();
 }
 
 void EntranceDelayPanel::setDocument(SceneDocument* document) {

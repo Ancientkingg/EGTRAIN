@@ -83,7 +83,7 @@ ScenarioPanel::ScenarioPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_deleteButton, &QPushButton::clicked, this, &ScenarioPanel::deleteScenario);
 	connect(m_importButton, &QPushButton::clicked, this, &ScenarioPanel::importScenario);
 	connect(m_exportButton, &QPushButton::clicked, this, &ScenarioPanel::exportScenario);
-	refresh();
+	ScenarioPanel::refresh();
 }
 
 void ScenarioPanel::setDocument(SceneDocument* document) {

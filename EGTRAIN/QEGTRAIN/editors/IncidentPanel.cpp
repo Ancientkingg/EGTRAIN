@@ -141,7 +141,7 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	connect(m_addButton, &QPushButton::clicked, this, &IncidentPanel::addIncident);
 	connect(m_duplicateButton, &QPushButton::clicked, this, &IncidentPanel::duplicateIncident);
 	connect(m_deleteButton, &QPushButton::clicked, this, &IncidentPanel::deleteIncident);
-	refresh();
+	IncidentPanel::refresh();
 }
 
 void IncidentPanel::setDocument(SceneDocument* document) {
