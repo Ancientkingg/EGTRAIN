@@ -41,11 +41,14 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 On Ubuntu:
 
 ```bash
-sudo apt-get install -y build-essential cmake \
+sudo apt-get update
+sudo apt-get install -y build-essential cmake git python3 \
   qtbase5-dev qttools5-dev qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5network5 \
   libzmq3-dev cppzmq-dev nlohmann-json3-dev
 cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 ```
+
+In a root shell, such as a plain `ubuntu:24.04` container, `sudo` is not installed: leave it out.
 
 On Windows, from a Visual Studio developer PowerShell, with the vcpkg
 packages installed and the Qt 5.15 `msvc2019_64` directory as
@@ -474,7 +477,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
 | `test_package_contents_smoke` | yes | no | no | Checks the `.app` bundle layout with macOS tools, and the `.egscene` document type that its `Info.plist` declares. |
-| `test_measure_peak_rss` | yes | yes | no | Tests the macOS `/usr/bin/time -l` collector. |
+| `test_measure_peak_rss` | yes | yes | no | Tests the parser, the commands and the process handling of the macOS `/usr/bin/time -l` collector. It does not need that tool. |
 | `test_windows_image_size` | no | no | yes | Reads the PE header of `QEGTRAIN.exe`. |
 | `test_windows_default_stack` | no | no | yes | Reads the PE header of `scene_tool.exe`. |
 | `test_win32_configure_rejected` | no | no | yes | Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. A Ninja build tree, such as the Windows CI leg, runs it with the default generator, which is Visual Studio on Windows. |
@@ -1159,6 +1162,11 @@ Every scene run must also write section records to `BlockingTimes.txt`.
 CTest runs the position checks and the stop check in `test_headless_smoke_decode`
 on trajectory and timetable files that the test writes.
 
+The script runs the application that `QEGTRAIN_APP` names. Without that variable it uses
+the build folder of the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS,
+`build/QEGTRAIN` on Linux, and `build/QEGTRAIN.exe` or `build/Release/QEGTRAIN.exe` on Windows.
+If none exists it stops and names the paths it tried.
+
 For Amsterdam_Hilversum_Student the script also checks that every occurrence
 of its service reaches Hilversum, one after the other, and that the five files
 `infrastructure.json`, `rolling_stock.json`, `scenarios.json`, `stations.json`
@@ -1226,6 +1234,8 @@ without this sidecar and does not convert their rows. Normal runs load the
 canonical source directory directly.
 The reimported Assignment run must report no route section without a
 signalling level and must write section records to `BlockingTimes.txt`.
+The script finds the application and `scene_tool` as the headless smoke finds the application, with
+`QEGTRAIN_APP` and `QEGTRAIN_SCENE_TOOL` as the variables.
 
 ## Live stream tests
 
