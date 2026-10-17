@@ -9,6 +9,7 @@
 #include <QDialogButtonBox>
 #include <QEvent>
 #include <QFont>
+#include <QFrame>
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -68,8 +69,9 @@ void printMarker(const char* name, const QString& value) {
 
 } // namespace
 
-// The scripts of the chooser and of the run review run for QEGTRAIN_E2E_STARTUP_CHOOSER and QEGTRAIN_E2E_REVIEW_CANCEL, and
-// the privacy dialog saves a picture of itself to QEGTRAIN_E2E_SCREENSHOT when its preview is on.
+// The scripts of the chooser and of the run review run for QEGTRAIN_E2E_STARTUP_CHOOSER and QEGTRAIN_E2E_REVIEW_CANCEL, the
+// recovery prompt is answered for QEGTRAIN_E2E_RECOVERY_ANSWER, and the privacy dialog saves a picture of itself to
+// QEGTRAIN_E2E_SCREENSHOT when its preview is on.
 void MainWindowTestAccess::dialogShown(MainWindow& w, QDialog& dialog, const char* kind) {
 	if (std::strcmp(kind, "startupChooser") == 0) {
 		auto* chooser = dynamic_cast<CaseChooserDialog*>(&dialog);
@@ -78,6 +80,9 @@ void MainWindowTestAccess::dialogShown(MainWindow& w, QDialog& dialog, const cha
 	} else if (std::strcmp(kind, "runReview") == 0) {
 		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL"))
 			reviewShown(w, dialog);
+	} else if (std::strcmp(kind, "recoveryPrompt") == 0) {
+		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_RECOVERY_ANSWER"))
+			recoveryPromptShown(dialog);
 	} else if (std::strcmp(kind, "privacySettings") == 0) {
 		const QString screenshot = qEnvironmentVariable("QEGTRAIN_E2E_SCREENSHOT");
 		if (mainWindowTestHooks().privacyPreview && !screenshot.isEmpty())
@@ -94,6 +99,34 @@ void MainWindowTestAccess::dialogClosed(MainWindow& w, QDialog& dialog, const ch
 		if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_REVIEW_CANCEL"))
 			reviewClosed(w, dialog);
 	}
+}
+
+// Prints what the first row of the recovery prompt says and which button is the default, and then clicks the button that
+// QEGTRAIN_E2E_RECOVERY_ANSWER names: recover, discard (which asks to be confirmed) or later.
+void MainWindowTestAccess::recoveryPromptShown(QDialog& prompt) {
+	recoveryPromptSeen = true;
+	const QList<QFrame*> rows = prompt.findChildren<QFrame*>("recoveryRow");
+	const auto labelText = [&rows](const char* name) {
+		const auto* label = rows.isEmpty() ? nullptr : rows.first()->findChild<QLabel*>(name);
+		return label ? label->text() : QString();
+	};
+	const auto* recover = prompt.findChild<QPushButton*>("recoveryRecoverButton");
+	printMarker("E2E_RECOVERY_PROMPT",
+		QStringLiteral("rows=%1|source=%2|note=%3|default=%4")
+			.arg(rows.size())
+			.arg(labelText("recoverySource"), labelText("recoveryNote"), recover && recover->isDefault() ? "recover" : "later"));
+	QTimer::singleShot(0, &prompt, [&prompt]() {
+		const QString answer = qEnvironmentVariable("QEGTRAIN_E2E_RECOVERY_ANSWER");
+		const char* button = answer == QLatin1String("recover") ? "recoveryRecoverButton"
+			: answer == QLatin1String("discard")				? "recoveryDiscardButton"
+																: "recoveryLaterButton";
+		if (auto* clicked = prompt.findChild<QPushButton*>(button))
+			clicked->click();
+		// Discard asks for a second click that confirms it.
+		if (answer == QLatin1String("discard") && prompt.isVisible())
+			if (auto* confirm = prompt.findChild<QPushButton*>(button))
+				confirm->click();
+	});
 }
 
 // Records what the chooser holds and then takes the action that QEGTRAIN_E2E_CHOOSER_INTERACTION names on the row of
