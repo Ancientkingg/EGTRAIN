@@ -96,7 +96,7 @@ The application, `scene_tool` and the tests link them.
 
 `egtrain_miniz` holds the vendored zip code. The first six libraries and
 `scene_tool` use no Qt. The dependencies point one way; no library depends on `MainWindow`.
-`egtrain_recovery` is linked by `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt` only.
+`egtrain_recovery` is linked by `QEGTRAIN`, `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt`.
 
 The update code and the telemetry sender make their HTTP requests through `HttpTransport`
 (`update/HttpTransport.h`), a GET for the update code and a POST for the sender. The
