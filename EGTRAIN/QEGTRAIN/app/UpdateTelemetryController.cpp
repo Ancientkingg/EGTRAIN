@@ -381,6 +381,8 @@ void UpdateTelemetryController::handleUpdateCheckFinished(const UpdateCheckResul
 	dialog.addButton(QStringLiteral("Later"), QMessageBox::RejectRole);
 	QPushButton* stopButton = dialog.addButton(QStringLiteral("Stop Checking"),
 		QMessageBox::DestructiveRole);
+	// Without a default, macOS makes the destructive button the one that Enter presses.
+	dialog.setDefaultButton(updateButton ? updateButton : openButton);
 	dialog.exec();
 	QAbstractButton* clickedButton = dialog.clickedButton();
 	if (updateButton && clickedButton == updateButton) {

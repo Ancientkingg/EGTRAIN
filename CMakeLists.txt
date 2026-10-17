@@ -744,6 +744,7 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/app/UpdateTelemetryController.cpp
         ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
         ${SRC_DIR}/update/SelfUpdater.cpp)
+    target_compile_definitions(test_updatetelemetrycontroller PRIVATE EGTRAIN_UPDATE_TEST_HOOK=1)
     target_link_libraries(test_updatetelemetrycontroller PRIVATE egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt5::Widgets Qt5::Network)
     add_test(NAME test_updatetelemetrycontroller COMMAND test_updatetelemetrycontroller)
     # The test answers real message boxes, which crash Qt 5.15 on the offscreen platform on Windows.
