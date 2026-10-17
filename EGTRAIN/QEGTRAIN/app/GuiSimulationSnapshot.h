@@ -200,6 +200,12 @@ struct GuiSimulationSnapshot {
 	std::vector<GuiVirtualCouplingState> virtualCouplingMessages;
 };
 
+struct SimulationRun;
+
+// The snapshot of a run at a step. It reads the run and changes nothing, and it is defined in app/DispatchController.cpp. The
+// thread that steps the run builds it, and the window and the live stream see the run through it.
+GuiSimulationSnapshot buildGuiSimulationSnapshot(const SimulationRun& run, int timestep);
+
 class GuiSimulationSnapshotMailbox {
 public:
 	bool publish(std::shared_ptr<const GuiSimulationSnapshot> snapshot) {

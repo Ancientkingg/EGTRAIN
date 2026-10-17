@@ -1479,10 +1479,10 @@ static bool brakingPhaseTests() {
 		platform.ID = service.Stations[station].stationPlatformId;
 		platform.Current_List_Pax_On_Platform = {{boarding.ID, 0.0}};
 		std::list<StationPlatform> platforms{platform};
-		const bool savedPaxGui = initial_variables.PAX_GUI;
-		initial_variables.PAX_GUI = true;
+		const bool savedPaxGui = defaultRun().settings.PAX_GUI;
+		defaultRun().settings.PAX_GUI = true;
 		Simulate_Train_Passenger_Interactions(defaultRun(), 2, initial_variables.startingSimulationTime, service, passengers, platforms);
-		initial_variables.PAX_GUI = savedPaxGui;
+		defaultRun().settings.PAX_GUI = savedPaxGui;
 		ok &= expect(service.Stations[station].StopTime > 0, "existing passenger formula initializes dwell on the first active service step");
 		service.trajectoryComputationIncludingMovingBlock(3, signalCode1, signalCode2, signalCode3);
 		ok &= expect(service.StoppedForServiceStop && service.instant_train_speed[3] == 0 && service.stop == 2,
@@ -2124,8 +2124,8 @@ static bool passengerLookupTests() {
 	savedPlatforms.swap(AllStationPlatforms);
 	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
 	const PlatformIndex savedPlatformIndex = AllStationPlatformIndex;
-	const bool savedPaxGui = initial_variables.PAX_GUI;
-	initial_variables.PAX_GUI = true;
+	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
+	defaultRun().settings.PAX_GUI = true;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 
 	const auto waiting = [](const std::string& id) {
@@ -2203,7 +2203,7 @@ static bool passengerLookupTests() {
 		"a train at an unknown platform boards nobody");
 
 	eglog::setSink({});
-	initial_variables.PAX_GUI = savedPaxGui;
+	defaultRun().settings.PAX_GUI = savedPaxGui;
 	AllDailyPassengers.swap(savedPassengers);
 	AllStationPlatforms.swap(savedPlatforms);
 	AllDailyPassengerIndex = savedPassengerIndex;
@@ -2345,8 +2345,8 @@ static bool passengerWaitingListTests() {
 	savedPassengers.swap(AllDailyPassengers);
 	const PassengerIndex savedPassengerIndex = AllDailyPassengerIndex;
 	AllDailyPassengerIndex.clear();
-	const bool savedPaxGui = initial_variables.PAX_GUI;
-	initial_variables.PAX_GUI = false;
+	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
+	defaultRun().settings.PAX_GUI = false;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
 
 	AllDailyPassengers = {passengerWaitingAt("Pa", "S1", "P1", 30), passengerWaitingAt("Pb", "S1", "P1", 20)};
@@ -2374,7 +2374,7 @@ static bool passengerWaitingListTests() {
 		"without the passenger GUI the shared platform is not given the waiting passengers");
 
 	eglog::setSink({});
-	initial_variables.PAX_GUI = savedPaxGui;
+	defaultRun().settings.PAX_GUI = savedPaxGui;
 	AllDailyPassengers.swap(savedPassengers);
 	AllDailyPassengerIndex = savedPassengerIndex;
 	return ok;
@@ -3202,8 +3202,8 @@ static bool runRollingStockMessageChecks() {
 		"a passenger who alights where the next trip does not start");
 
 	// A passenger who waits for a train that is full. The waiting list of the platform is the one given when PAX_GUI is set.
-	const bool savedPaxGui = initial_variables.PAX_GUI;
-	initial_variables.PAX_GUI = true;
+	const bool savedPaxGui = defaultRun().settings.PAX_GUI;
+	defaultRun().settings.PAX_GUI = true;
 	StationPlatform platform;
 	platform.ID = "P1";
 	platform.StationID = "S1";
@@ -3217,7 +3217,7 @@ static bool runRollingStockMessageChecks() {
 	train.MAX_OnBoard_Passengers = 0;
 	train.Current_OnBoard_Passengers = 0;
 	Simulate_Train_Passenger_Interactions(defaultRun(), 10, 0, train, passengers, {platform});
-	initial_variables.PAX_GUI = savedPaxGui;
+	defaultRun().settings.PAX_GUI = savedPaxGui;
 	shows(capture.take(),
 		{{Category::SimPax, Level::Info, "Call RouteChoice model as passenger ID: Pax2 could not board train T1 as it was full\n"}},
 		"a passenger who waits for a train that is full");
@@ -3238,8 +3238,8 @@ static bool runRollingStockMessageChecks() {
 	// Arrival at the last station and departure from the first: the position of the train is read from the route.
 	QTemporaryDir output;
 	ok &= expect(output.isValid() && QDir(output.path()).mkdir("Rescheduling"), "temporary output folder");
-	const std::string savedOutputFolder = initial_variables.OutputMainFolder;
-	initial_variables.OutputMainFolder = output.path().toStdString();
+	const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
+	defaultRun().settings.OutputMainFolder = output.path().toStdString();
 	train.Stations.resize(2);
 	train.Stations[0].stationName = "A";
 	train.Stations[0].X = 1.0;
@@ -3255,12 +3255,12 @@ static bool runRollingStockMessageChecks() {
 	shows(checkAt(0), {}, "a train at the start of the route");
 	shows(checkAt(2), {}, "a train between the stations");
 	shows(checkAt(1),
-		{{Category::SimEvents, Level::Info, "\n>>> T1 DEPARTED from A at t = 1 - " + simulationTime(1, initial_variables.startingSimulationTime) + "\n"}},
+		{{Category::SimEvents, Level::Info, "\n>>> T1 DEPARTED from A at t = 1 - " + simulationTime(1, defaultRun().settings.startingSimulationTime) + "\n"}},
 		"a train that departs from its first station");
 	shows(checkAt(4),
-		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, initial_variables.startingSimulationTime) + "\n"}},
+		{{Category::SimEvents, Level::Info, "\n<<< T1 ARRIVED at B at t = 4 - " + simulationTime(4, defaultRun().settings.startingSimulationTime) + "\n"}},
 		"a train that arrives at its last station");
-	initial_variables.OutputMainFolder = savedOutputFolder;
+	defaultRun().settings.OutputMainFolder = savedOutputFolder;
 	train_route.swap(savedRoutes);
 	return ok;
 }
@@ -4261,8 +4261,8 @@ int main() {
 		// low or one high: the timetable point reports the same arrival and departure each time.
 		const double stoppingPoint = 46181.0;
 		const double exact = stoppingPoint - kStopHoldbackM;
-		const int savedTimes = initial_variables.times;
-		initial_variables.times = 60;
+		const int savedTimes = defaultRun().settings.times;
+		defaultRun().settings.times = 60;
 		for (const double parked : {exact, std::nextafter(exact, 0.0),
 				 std::nextafter(exact, std::numeric_limits<double>::infinity())}) {
 			Train stopping;
@@ -4297,7 +4297,7 @@ int main() {
 			ok &= expect(point.Time == 9.0 * timestep && point.Time2 == TrainEvent().Time2,
 				"a timetable point reports the arrival at a last stop and no departure");
 		}
-		initial_variables.times = savedTimes;
+		defaultRun().settings.times = savedTimes;
 	}
 	ok &= brakingPhaseTests();
 	ok &= level4TransitionTests();

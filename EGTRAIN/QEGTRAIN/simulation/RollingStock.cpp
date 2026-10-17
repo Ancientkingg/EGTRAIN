@@ -549,13 +549,13 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	//}
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.OutputMainFolder + "/Rescheduling");
-		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
+		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
+		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
 	else if (((std::fabs(X - Stations[0].X) < 0.001) || (std::fabs(std::fabs(X - Stations[0].X) - train_length / 1000) < 0.001)) && (t >= 1) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] != 0)) { // position tolerance of 1m
 		// printTrainArrDepMsg(Stations[0].stationName, "dep", trainIdx, t, "Input_EGTRAIN/Rescheduling");
-		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
+		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 }
 
@@ -577,7 +577,7 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 		? -1
 		: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
 	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
-	for (int t = 0; t < initial_variables.times; t++) {
+	for (int t = 0; t < run_->settings.times; t++) {
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 		if (position != -9999) {
 			// non-reversed route (same with/without jump)
@@ -624,22 +624,23 @@ void Train::printTrainArrDepMsg(std::string stationName, std::string msgType, in
 // computes train X position (works with routes crossing different regions)
 // used to get real X position (in routes with 2 regions, there are jumps when getting X from the position in the route directly)
 // wagon = 0 by default to return head position
-double Train::trainXPosition(int t, int wagon /*= 0*/) {
+double trainXPositionOf(const Train& train, int t, int wagon) {
 	double X;
 	double portion = 0; // relative position from start_node (in meters)
 
-	double total_nW = number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
+	double total_nW = train.number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
 
 	// find occupied block section
-	for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
-		if (((instant_spatial_position[t] - wagon * (train_length / total_nW)) >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000) && (instant_spatial_position[t] - wagon * (train_length / total_nW)) < (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].end_node.X * 1000)) {
-			portion = (instant_spatial_position[t] - wagon * (train_length / total_nW)) - run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000;
+	const Route& route = train.run_->infra.routes[train.indexOfRoute];
+	for (int i = 0; i < route.N_Block_Sections; i++) {
+		if (((train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) >= route.sequence_of_block_sections[i].start_node.X * 1000) && (train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) < (route.sequence_of_block_sections[i].end_node.X * 1000)) {
+			portion = (train.instant_spatial_position[t] - wagon * (train.train_length / total_nW)) - route.sequence_of_block_sections[i].start_node.X * 1000;
 
 			// calculate X position
-			if (run_->infra.routes[indexOfRoute].reversed_direction) {
-				X = (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
+			if (route.reversed_direction) {
+				X = (route.sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
 			} else {
-				X = (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
+				X = (route.sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
 			}
 			return X;
 		}
@@ -647,6 +648,10 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 
 	// did not find position correctly
 	return -1;
+}
+
+double Train::trainXPosition(int t, int wagon /*= 0*/) {
+	return trainXPositionOf(*this, t, wagon);
 }
 
 // function to protect all station areas

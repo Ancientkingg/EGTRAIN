@@ -64,6 +64,15 @@ void SimulationRun::resetInfrastructure() {
 	infra.reset();
 }
 
+void SimulationRun::adopt(SimulationRun&& staged) {
+	*this = std::move(staged);
+	for (Regional& train : trains)
+		train.run_ = this;
+	// An index remembers the list it was built for, and the lists are now those of this run.
+	platformIndex.build(platforms);
+	passengerIndex.build(passengers);
+}
+
 namespace {
 // It has static storage, so the references below are bound before any code runs.
 SimulationRun theRun;

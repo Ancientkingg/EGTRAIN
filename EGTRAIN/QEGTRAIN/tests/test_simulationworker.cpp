@@ -7,6 +7,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/RunControl.h"
 #include "simulation/SimulationWorker.h"
+#include "util/Log.h"
 #ifdef signals
 #undef signals
 #endif
@@ -365,6 +366,25 @@ int main(int argc, char** argv) {
 	QObject parent;
 	DispatchController child(&parent);
 	ok &= expect(child.parent() == &parent, "DispatchController keeps its parent");
+
+	{
+		// A worker runs the controller that it is given, and the controller of the process when it is given none. The process
+		// has prepared no scene yet, so each run is turned down for want of trains, and the controller that was run says so.
+		int turnedDownByChild = 0;
+		int turnedDownByProcess = 0;
+		const auto childConnection = QObject::connect(&child, &DispatchController::executionRejected, [&] { ++turnedDownByChild; });
+		const auto processConnection = QObject::connect(&simulation, &DispatchController::executionRejected, [&] { ++turnedDownByProcess; });
+		eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
+		SimulationWorker workerOfChild(child);
+		workerOfChild.run();
+		ok &= expect(turnedDownByChild == 1 && turnedDownByProcess == 0, "a worker runs the controller that it is given");
+		SimulationWorker workerOfProcess;
+		workerOfProcess.run();
+		ok &= expect(turnedDownByChild == 1 && turnedDownByProcess == 1, "a worker without a controller runs the controller of the process");
+		eglog::setSink({});
+		QObject::disconnect(childConnection);
+		QObject::disconnect(processConnection);
+	}
 
 	SceneLoadResult loaded = loadScene(argv[1]);
 	if (!expect(!hasErrors(loaded.diagnostics), "scene loads"))

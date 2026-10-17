@@ -67,9 +67,11 @@ struct RunInfrastructure {
 //
 // The process has one run, defaultRun(). It has a fixed address, so reset() clears every member in
 // place and the references that the headers declare under the old global names stay valid
-// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The application and the tests
-// use those names, and they all refer to defaultRun(). A member that is added here must be cleared
-// in reset(), or in resetInfrastructure() when it belongs to the infrastructure.
+// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The window and the tests
+// use those names, and they all refer to defaultRun(). DispatchController::prepareScene builds a
+// run apart from it and puts the finished run in its place with adopt(). A member that is added
+// here must be cleared in reset(), or in resetInfrastructure() when it belongs to the
+// infrastructure, and a member that points at another member needs a line in adopt().
 struct SimulationRun {
 	// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
 	// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
@@ -129,10 +131,19 @@ struct SimulationRun {
 	void reset();
 	// Returns the infrastructure to the state of a new run.
 	void resetInfrastructure();
+	// Replaces every member by that of a run that the builders have filled. The lists and vectors move, so
+	// their elements stay where they are and the pointers between the elements stay valid. The trains are
+	// pointed at this run and the indexes are built again for the lists of this run. The staged run is left
+	// without contents and is not used again.
+	void adopt(SimulationRun&& staged);
 };
 
 // The run of the process.
 SimulationRun& defaultRun();
+
+// The X position of a wagon of the train at a step, as Train::trainXPosition gives it, for a train that is read and not changed.
+// Wagon 0 is the head.
+double trainXPositionOf(const Train& train, int t, int wagon = 0);
 
 // These two read the route of the train, so they are defined here and not in RollingStock.h.
 inline bool Train::obeysAuthority(const MovementAuthority& authority) const {
