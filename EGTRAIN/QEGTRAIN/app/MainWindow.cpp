@@ -4250,25 +4250,27 @@ void MainWindow::buildRouteDiagram(const std::shared_ptr<const CompletedRunData>
 	}
 	// Station names come from platform-bound canonical IDs, not from map X.
 	const auto stationLabels = routeDiagramStationLabels(referencePath);
+	QCategoryAxis* stationAxis = nullptr;
+	std::vector<StationTick> stationTicks;
 	if (!stationLabels.empty()) {
-		auto* stations = new QCategoryAxis();
-		stations->setTitleText("Reference stations");
-		stations->setLabelsAngle(-90);
-		stations->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+		stationAxis = new QCategoryAxis();
+		stationAxis->setTitleText("Reference stations");
+		stationAxis->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
 		auto* distanceAxis = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
-		stations->setStartValue(distanceAxis->min() - 1);
-		for (const auto& station : stationLabels)
-			stations->append(QString::fromStdString(station.second)
-					+ QString(" (%1 km)").arg(station.first, 0, 'f', 2),
-				station.first);
-		stations->setRange(distanceAxis->min(), distanceAxis->max());
-		chart->addAxis(stations, Qt::AlignTop);
-		for (auto* series : chart->series()) series->attachAxis(stations);
+		stationAxis->setStartValue(distanceAxis->min() - 1);
+		stationAxis->setRange(distanceAxis->min(), distanceAxis->max());
+		chart->addAxis(stationAxis, Qt::AlignTop);
+		for (auto* series : chart->series()) series->attachAxis(stationAxis);
+		for (const auto& station : stationLabels) {
+			const QString name = QString::fromStdString(station.second);
+			stationTicks.push_back({station.first, {name + QString(" (%1 km)").arg(station.first, 0, 'f', 2), name}});
+		}
 	}
 	// Include elapsed zero explicitly, even when clock labels start at a nonzero offset.
 	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	if (stationAxis) win->setStationAxis(stationAxis, std::move(stationTicks));
 	win->setTrainColors(trainColorsForRun(run->results, m_document->model()));
 	win->setPresentation(heading,
 		QString("Reference: %1 | %2 | 0 s = run start; time downward")
@@ -4374,8 +4376,9 @@ void MainWindow::showBlockingTimeDiagram() {
 	const double origin = referencePath.nodes.empty() ? 0.0 : referencePath.nodes.front().positionKm;
 	const double end = referencePath.nodes.empty() ? origin : referencePath.nodes.back().positionKm;
 
+	// The chart reads axis titles as rich text, so the route id is escaped.
 	axisX->setTitleText(QString("Reference %1 X (km); origin %2, travel %3")
-			.arg(QString::fromStdString(referencePath.id))
+			.arg(QString::fromStdString(referencePath.id).toHtmlEscaped())
 			.arg(origin, 0, 'f', 3)
 			.arg(end >= origin ? "right" : "left"));
 	const auto axisRange = blockSectionAxisRange(extents, referencePath);
@@ -4652,7 +4655,7 @@ void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult&
 		series->attachAxis(axisX);
 		series->attachAxis(axisY);
 	}
-	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId));
+	axisX->setTitleText(QString("Reference %1 X (km)").arg(referenceId.toHtmlEscaped()));
 	axisX->setRange(axisMinKm, axisMaxKm);
 
 	axisY->setTitleText("Compressed envelope time (s), downward");
