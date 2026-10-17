@@ -316,7 +316,21 @@ static bool testFailedWrite() {
 	other.schemaVersion = kCurrentSceneSchemaVersion + 1;
 	const RecoveryResult refused = store.write(other, source);
 	ok &= expect(cleanError(refused, root) && refused.bundlePath.isEmpty(), "failed write: a scene of another version gives an error without a path");
-	ok &= expect(refused.error.endsWith("(scene.bundle.schema)"), "failed write: the error names the diagnostic code");
+	ok &= expect(!refused.error.contains("scene."), "failed write: the error holds no diagnostic code");
+
+	// An incomplete incident cannot be written: the error says which entry, in words and without the code.
+	SceneModel incomplete = makeScene("incomplete");
+	SceneIncident incident;
+	incident.id = "first";
+	incident.type = "signal_failure";
+	incident.target = "sig.a";
+	defaultScenarioIncidents(incomplete).push_back(incident);
+	incident.id = "second";
+	incident.target.clear();
+	defaultScenarioIncidents(incomplete).push_back(incident);
+	const RecoveryResult unfinished = store.write(incomplete, source);
+	ok &= expect(cleanError(unfinished, root) && unfinished.error == "Cannot write the recovery copy because incident 2 is incomplete",
+		"failed write: an incomplete incident is named in the error");
 	ok &= expect(snapshot(folder) == before, "failed write: the folder and the record are unchanged");
 	ok &= expect(bundleLoadsAs(at(folder, "gen-1.egscene"), "first"), "failed write: the previous bundle still loads");
 

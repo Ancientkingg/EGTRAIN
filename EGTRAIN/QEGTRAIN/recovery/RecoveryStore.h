@@ -55,8 +55,8 @@ struct RecoveryCandidate {
 
 struct RecoveryResult {
 	bool ok = false;
-	// Empty when ok. One fixed sentence, optionally followed by a diagnostic code in brackets.
-	// It holds no path and no scene content.
+	// Empty when ok. One sentence for the user, without a path, a diagnostic code or scene content.
+	// A copy that cannot be written because an entry of the case is incomplete says which entry.
 	QString error;
 	QString bundlePath; // write and adopt: the bundle that now holds the copy.
 };

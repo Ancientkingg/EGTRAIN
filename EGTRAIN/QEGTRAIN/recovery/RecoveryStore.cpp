@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QLockFile>
+#include <QMap>
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QUuid>
@@ -40,25 +41,45 @@ RecoveryResult okResult(const QString& bundlePath = QString()) {
 	return result;
 }
 
-// The error text is a fixed sentence. A diagnostic code is a stable id such as
-// scene.bundle.schema and is added only when it has that form.
-RecoveryResult failure(const char* sentence, const std::string& code = std::string()) {
+// The error text is a fixed sentence.
+RecoveryResult failure(const char* sentence) {
 	RecoveryResult result;
 	result.error = QString::fromLatin1(sentence);
-	const bool plainCode = !code.empty() && code.size() <= 64 && std::all_of(code.begin(), code.end(), [](char character) {
-		return (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') || character == '.' || character == '-' || character == '_';
-	});
-	if (plainCode)
-		result.error += QStringLiteral(" (") + QString::fromStdString(code) + QLatin1Char(')');
 	return result;
 }
 
-std::string firstErrorCode(const std::vector<SceneDiagnostic>& diagnostics) {
-	for (const SceneDiagnostic& diagnostic : diagnostics) {
-		if (diagnostic.severity == SceneSeverity::Error)
-			return diagnostic.code;
+// The entry that a diagnostic path ends in, such as incident 1 for scenarios[0].incidents[0].target_id. The number is the
+// position in its list, counted from 1. An entry of a list that has no name here is called an entry.
+QString entryOfPath(const std::string& path) {
+	static const QRegularExpression indexed(QStringLiteral("(\\w+)\\[(\\d+)\\]"));
+	static const QMap<QString, QString> names = {{QStringLiteral("incidents"), QStringLiteral("incident")},
+		{QStringLiteral("entrance_delays"), QStringLiteral("entrance delay")}, {QStringLiteral("scenarios"), QStringLiteral("scenario")},
+		{QStringLiteral("passengers"), QStringLiteral("passenger")}, {QStringLiteral("journeys"), QStringLiteral("journey")},
+		{QStringLiteral("legs"), QStringLiteral("leg")}};
+	QString entry;
+	QRegularExpressionMatchIterator matches = indexed.globalMatch(QString::fromStdString(path));
+	while (matches.hasNext()) {
+		const QRegularExpressionMatch match = matches.next();
+		entry = names.value(match.captured(1), QStringLiteral("entry")) + QLatin1Char(' ') + QString::number(match.captured(2).toInt() + 1);
 	}
-	return std::string();
+	return entry;
+}
+
+// A scene that the writer cannot save as a complete bundle fails with an error diagnostic. Its code is an internal id and is
+// not part of the text. A missing or invalid field says which entry is incomplete when the diagnostic names it.
+RecoveryResult writeFailure(const std::vector<SceneDiagnostic>& diagnostics) {
+	RecoveryResult result = failure("Cannot write the recovery copy");
+	for (const SceneDiagnostic& diagnostic : diagnostics) {
+		if (diagnostic.severity != SceneSeverity::Error)
+			continue;
+		if (diagnostic.code == "scene.field.missing") {
+			const QString entry = entryOfPath(diagnostic.path);
+			result.error += entry.isEmpty() ? QStringLiteral(" because the case has an incomplete entry")
+											: QStringLiteral(" because ") + entry + QStringLiteral(" is incomplete");
+		}
+		break;
+	}
+	return result;
 }
 
 // Runs one operation of the store. No exception leaves the store.
@@ -470,7 +491,7 @@ RecoveryResult RecoveryStore::write(const SceneModel& scene, const RecoverySourc
 		const SceneSaveResult saved = saveSceneBundle(scene, bundlePath.toStdString());
 		if (!saved.success()) {
 			QFile::remove(bundlePath);
-			return failure("Cannot write the recovery copy", firstErrorCode(saved.diagnostics));
+			return writeFailure(saved.diagnostics);
 		}
 		// The previous copy stays until the record points at the new one.
 		if (!writeRecord(folder, m_id, generation, source, QDateTime::currentDateTimeUtc())) {

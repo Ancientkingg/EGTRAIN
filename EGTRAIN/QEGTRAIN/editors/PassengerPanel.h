@@ -64,7 +64,9 @@ public:
 	QPushButton* importButton() const { return m_importButton; }
 	QLabel* importResultHeading() const { return m_importResultHeading; }
 	QTableWidget* importResultTable() const { return m_importResultTable; }
+	// The errors for the selection (or the help text when there is nothing to report), and below it the warnings and notes.
 	QLabel* diagnosticLabel() const { return m_diagnosticLabel; }
+	QLabel* warningLabel() const { return m_warningLabel; }
 	QTabWidget* tabs() const { return m_tabs; }
 	QListWidget* journeyList() const { return m_journeyList; }
 	QPushButton* addJourneyButton() const { return m_addJourneyButton; }
@@ -130,6 +132,7 @@ private:
 	QPushButton* m_importButton = nullptr;
 	QLineEdit* m_passengerIdEdit = nullptr;
 	QLabel* m_diagnosticLabel = nullptr;
+	QLabel* m_warningLabel = nullptr;
 	QTabWidget* m_tabs = nullptr;
 	QListWidget* m_journeyList = nullptr;
 	QPushButton* m_addJourneyButton = nullptr;
