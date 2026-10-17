@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QFormLayout>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
@@ -48,16 +48,16 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_listWidget->setObjectName("entranceDelayListWidget");
 	m_listWidget->setAccessibleName("Entrance delay library");
 	layout->addWidget(m_listWidget, 1);
-	QHBoxLayout* buttonLayout = new QHBoxLayout();
+	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add", this);
 	m_addButton->setObjectName("entranceDelayAddButton");
 	m_duplicateButton = new QPushButton("Duplicate", this);
 	m_duplicateButton->setObjectName("entranceDelayDuplicateButton");
 	m_deleteButton = new QPushButton("Delete", this);
 	m_deleteButton->setObjectName("entranceDelayDeleteButton");
-	buttonLayout->addWidget(m_addButton);
-	buttonLayout->addWidget(m_duplicateButton);
-	buttonLayout->addWidget(m_deleteButton);
+	buttonLayout->addWidget(m_addButton, 0, 0);
+	buttonLayout->addWidget(m_duplicateButton, 0, 1);
+	buttonLayout->addWidget(m_deleteButton, 1, 0);
 	layout->addLayout(buttonLayout);
 	m_emptyStateLabel = EditorLayout::emptyStateLabel(this);
 	m_emptyStateLabel->setObjectName("entranceDelayEmptyStateLabel");

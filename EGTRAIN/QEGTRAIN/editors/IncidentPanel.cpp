@@ -10,8 +10,8 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QFrame>
-#include <QHBoxLayout>
 #include <QHash>
 #include <QIntValidator>
 #include <QLabel>
@@ -64,16 +64,16 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("incidentListWidget");
 	listLayout->addWidget(m_listWidget);
-	QHBoxLayout* buttonLayout = new QHBoxLayout();
+	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Incident", listPane);
 	m_addButton->setObjectName("addIncidentButton");
 	m_duplicateButton = new QPushButton("Duplicate", listPane);
 	m_duplicateButton->setObjectName("duplicateIncidentButton");
 	m_deleteButton = new QPushButton("Delete", listPane);
 	m_deleteButton->setObjectName("deleteIncidentButton");
-	buttonLayout->addWidget(m_addButton);
-	buttonLayout->addWidget(m_duplicateButton);
-	buttonLayout->addWidget(m_deleteButton);
+	buttonLayout->addWidget(m_addButton, 0, 0);
+	buttonLayout->addWidget(m_duplicateButton, 0, 1);
+	buttonLayout->addWidget(m_deleteButton, 1, 0);
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane, 1);
 
