@@ -2909,6 +2909,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!dialog->isVisible() || mode->currentIndex() != 0 || arrival->text() != "invalid"
 						|| dialog->findChild<QLabel*>("stopEditorErrorLabel")->text().isEmpty())
 						facetFailure(facetOk, "timetable", "invalid time was accepted or discarded");
+					else if (const auto* error = dialog->findChild<QLabel*>("stopEditorErrorLabel");
+						!error->isVisible() || error->property("dialogStatus").toString() != "error" || !error->styleSheet().isEmpty())
+						facetFailure(facetOk, "timetable", "the stop dialog error is not an error callout of the stylesheet");
 					dialog->findChild<QPushButton*>("stopEditorCancelButton")->click();
 				});
 				timer.start(0);
