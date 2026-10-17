@@ -9,6 +9,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
 #include "diagrams/TimetableTableWindow.h"
+#include "editors/InfrastructurePanel.h"
 #include "editors/TimetableStopsPanel.h"
 #include "graphics/NetworkScene.h"
 #include "graphics/VisualPolish.h"
@@ -2634,7 +2635,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	const SceneModel saved = w.m_sceneModel;
 	const bool savedDirty = w.m_sceneDirty;
 	const quint64 initialRevision = w.m_sceneRevision;
-	const QString editorSelection = w.m_infrastructureSelectionId;
+	const QString editorSelection = w.m_infrastructurePanel->selectionId();
 	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
 	for (const auto& line : w.m_presenter->m_cachedTrackPreview.lines) {
 		for (const auto& point : line.points) {
@@ -2681,7 +2682,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_sceneRevision == initialRevision && w.m_sceneDirty == savedDirty
-				&& w.m_infrastructureSelectionId == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
+				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
 				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
 			"inspection mutated Open state")) return false;
 
