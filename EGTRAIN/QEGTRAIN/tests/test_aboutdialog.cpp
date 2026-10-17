@@ -96,6 +96,19 @@ int main(int argc, char** argv) {
 		footer->button(QDialogButtonBox::Close)->click();
 		ok &= check(!dialog.isVisible(), "Close button must dismiss About");
 	}
+	{
+		AboutDialog dialog;
+		dialog.show();
+		app.processEvents();
+		auto* close = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
+		ok &= check(close && dialog.focusWidget() == close && close->isDefault(), "Close must be the default and focused button");
+		if (QWidget* focus = dialog.focusWidget()) {
+			QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+			app.sendEvent(focus, &enter);
+		}
+		ok &= check(!dialog.isVisible() && dialog.result() == QDialog::Rejected && receiver.opened.isEmpty(),
+			"Enter must close About without opening a link");
+	}
 	QDesktopServices::unsetUrlHandler(QStringLiteral("https"));
 	// The offscreen platform has no browser launcher. Never exercise the real
 	// desktop handler when this test is run with a native platform plugin.

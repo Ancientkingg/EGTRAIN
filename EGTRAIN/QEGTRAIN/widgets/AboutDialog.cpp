@@ -79,7 +79,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 	};
 
 	addSection(tr("Prof. Egidio Quaglietta"), tr("Original EGTRAIN model and research."));
-	auto* firstLink = addLink(tr("Research profile (ORCID)"),
+	addLink(tr("Research profile (ORCID)"),
 		"https://orcid.org/0000-0002-7936-5832", "aboutResearchProfile");
 	addLink(tr("Original research (doctoral thesis)"),
 		"https://doi.org/10.6092/unina/fedoa/8599", "aboutOriginalResearch");
@@ -95,12 +95,14 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);
 	connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-	buttons->button(QDialogButtonBox::Close)->setDefault(true);
+	QPushButton* close = buttons->button(QDialogButtonBox::Close);
+	close->setDefault(true);
 	DialogLayout::install(*this, tr("EGTRAIN"),
 		tr("Version %1\nMicroscopic railway simulation for students and researchers.")
 			.arg(QCoreApplication::applicationVersion()),
 		body, buttons);
 	if (auto* context = findChild<QLabel*>(QStringLiteral("dialogContext")))
 		context->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
-	firstLink->setFocus();
+	// Enter closes the dialog until Tab moves the focus to a link.
+	close->setFocus();
 }
