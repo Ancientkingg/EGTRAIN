@@ -2122,6 +2122,8 @@ void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem
 		for (int row = 0; row < static_cast<int>(incidents.size()); ++row) {
 			if (QString::fromStdString(incidents[static_cast<std::size_t>(row)].id) == targetId) {
 				m_incidentListWidget->setCurrentRow(row);
+				if (auto* tabs = m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs"))
+					tabs->setCurrentWidget(m_incidentPanel);
 				raiseDock(m_incidentDock);
 				return;
 			}

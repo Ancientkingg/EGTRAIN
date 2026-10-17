@@ -582,8 +582,20 @@ int main(int argc, char** argv) {
 		ok &= expect(precedes(panel.hasEndSecondsCheck(), panel.endSecondsEdit())
 				&& precedes(panel.hasReducedSpeedCheck(), panel.reducedSpeedKmhEdit()),
 			"each check box is drawn above the field it switches on");
-		ok &= expect(panel.rect().contains(topLeft(panel.addButton())) && panel.rect().contains(topLeft(panel.idEdit())),
-			"the Add button and the first field are inside the panel");
+		const auto inside = [&panel, &topLeft](const QWidget* widget) { return panel.rect().contains(QRect(topLeft(widget), widget->size())); };
+		ok &= expect(inside(panel.addButton()) && inside(panel.idEdit()), "the Add button and the first field are inside the panel");
+		ok &= expect(panel.hasEndSecondsCheck()->text() == "Use recovery end (s)", "the check box of the recovery end names its unit");
+	}
+
+	{
+		// a scene without a scenario has no Add button that works, so the empty state does not point to it
+		SceneModel scene = incidentScene();
+		scene.scenarios.clear();
+		SceneDocument document;
+		IncidentPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "without a scenario the empty state does not point to Add Incident");
 	}
 
 	if (!ok)

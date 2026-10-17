@@ -350,6 +350,10 @@ int main(int argc, char** argv) {
 		events.log.clear();
 		document.setEditable(false);
 		panel.refresh();
+		const int shownRow = panel.listWidget()->currentRow();
+		panel.listWidget()->setCurrentRow(-1);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a scene that a run uses does not point to the disabled Add button");
+		panel.listWidget()->setCurrentRow(shownRow);
 		ok &= expect(!panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled() && !panel.duplicateButton()->isEnabled()
 				&& !panel.deleteButton()->isEnabled() && !panel.serviceCombo()->isEnabled() && !panel.occurrenceEdit()->isEnabled()
 				&& !panel.stationCombo()->isEnabled() && !panel.secondsEdit()->isEnabled(),

@@ -3617,6 +3617,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "incident", "the recovery end and reduced speed fields do not follow their check boxes");
 		if (!w.m_incidentPanel->emptyStateLabel()->isHidden() || !w.m_entranceDelayPanel->emptyStateLabel()->isHidden())
 			facetFailure(facetOk, "incident", "an empty-state message shows although an incident and an entrance delay are selected");
+		// Opening an incident from Loaded Data shows the Incidents tab, whichever tab was current.
+		if (scenarioTabs) {
+			QTreeWidgetItem incidentTarget;
+			incidentTarget.setText(0, QString::fromStdString(editedIncidentId));
+			incidentTarget.setData(0, kLoadedDataTargetTypeRole, "incident");
+			scenarioTabs->setCurrentWidget(w.m_scenarioPanel);
+			w.activateLoadedDataItem(&incidentTarget);
+			const SceneIncident* opened = w.m_incidentPanel->selectedIncident();
+			if (scenarioTabs->currentWidget() != w.m_incidentPanel || !opened || opened->id != editedIncidentId)
+				facetFailure(facetOk, "incident", "opening an incident from Loaded Data did not show it on the Incidents tab");
+		}
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
@@ -4356,6 +4367,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(ok, "presentation", "the recovery end check box does not come before its field");
 				if (incidentScroll->horizontalScrollBar()->isVisible())
 					facetFailure(ok, "presentation", "the Incidents dock scrolls sideways at 1280 by 698 pixels");
+				incidentTabs->setCurrentWidget(w.m_entranceDelayPanel);
+				QApplication::processEvents();
+				incidentScroll->verticalScrollBar()->setValue(0);
+				if (!inViewport(w.m_addEntranceDelayButton) || !inViewport(w.m_entranceDelayServiceCombo))
+					facetFailure(ok, "presentation", "the entrance delay list or its first field is outside the dock viewport at 1280 by 698 pixels");
+				// At 1.5 times the font a vertical bar leaves a viewport that is narrower than the widest page, the Incidents
+				// list with its three buttons, so the sideways bar is checked at the normal font only.
+				if (scale < 1.25 && incidentScroll->horizontalScrollBar()->isVisible())
+					facetFailure(ok, "presentation", "the Entrance delays tab scrolls the dock sideways at 1280 by 698 pixels");
 				incidentTabs->setCurrentWidget(w.m_scenarioPanel);
 			}
 			w.m_incidentDock->hide();

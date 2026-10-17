@@ -100,7 +100,7 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_startSecondsEdit->setObjectName("incidentStartSecondsEdit");
 	m_startSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_startSecondsEdit));
 	detailLayout->addRow("Start (s)", m_startSecondsEdit);
-	m_hasEndSecondsCheck = new QCheckBox("Use recovery end", detailPane);
+	m_hasEndSecondsCheck = new QCheckBox("Use recovery end (s)", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_hasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
 	m_endSecondsEdit = new QLineEdit(detailPane);
@@ -255,7 +255,7 @@ void IncidentPanel::updateDetail() {
 	const bool hasSelection = incident != nullptr;
 	const bool isBreakdown = hasSelection && incident->type == "train_breakdown";
 	QString emptyState;
-	if (canEdit() && !hasSelection) {
+	if (canEdit() && m_runSelection->selectedScenario(m_document->model()) && !hasSelection) {
 		emptyState = scenarioIncidents().empty() ? QStringLiteral("This scenario has no incidents. Use Add Incident.")
 												 : QStringLiteral("Select an incident or use Add Incident.");
 	}

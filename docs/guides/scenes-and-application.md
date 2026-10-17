@@ -167,11 +167,11 @@ from midnight. The complete key contract and historical aliases are in the
 Open the **Incidents** dock to choose the canonical default or another named
 scenario. The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**,
 and a line above them names the selected scenario. The library on the **Scenario**
-tab shows each scenario's ID, name, incident and entrance-delay counts, default marker, and an in-memory modified marker. The authored
-description remains available; Advanced mode adds the full validation status.
-Normal mode still marks an actionable invalid scenario as `Invalid` but does
-not surface non-blocking warning detail. **Blank** and
-**Duplicate** create isolated scenarios; editing incidents, names, or
+tab shows each scenario's ID, name, incident and entrance-delay counts, default
+marker, and an in-memory modified marker. The authored description remains
+available; Advanced mode adds the full validation status. Normal mode still marks
+an actionable invalid scenario as `Invalid` but does not surface non-blocking
+warning detail. **Blank** and **Duplicate** create isolated scenarios; editing incidents, names, or
 descriptions changes only the selected scenario. **Import JSON...** and
 **Export JSON...** use the standalone scenario object documented in the schema
 reference. Imports retain entrance delays, validate references against the
