@@ -14,7 +14,7 @@ The loaded network of Milano_Brescia in the main window before a run.
 2. Start the application.
    - macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications` in its window, and open EGTRAIN from there. macOS refuses the first start of an ad hoc signed app; the [first start](#macos-disk-image) below says what to do.
    - Windows: run the installer and open **EGTRAIN** from the Start Menu, or unzip the portable archive into a new, empty folder and run `QEGTRAIN.exe` from it. Keep that folder intact. The Windows files are not code signed, so Windows warns before the installer starts; the [first start](#windows-installer-and-portable-archive) below says what to do, and [Code signing](docs/development/code-signing.md#windows-releases) explains the state and how to check a download.
-   - Linux: make the AppImage executable and run it.
+   - Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first.
 3. The application first shows the **Open a Case** window over the case that is already loaded; choose a case in it or continue with the loaded case, and answer any first-start question. Then open the case study with **File > Open Case Study...** and select the downloaded file.
 4. Run it with **Simulation > Run** (or **Run** on the toolbar) and confirm the **Run simulation** window.
 5. When the run ends, open the **Diagrams** menu for the results, for example **Speed / Distance (per train)...**. The result windows have **Export CSV...** and **Export PNG...**.

@@ -18,9 +18,9 @@ The [glossary](glossary.md) defines the other words of the program.
 
 Download the package for your system from the [releases page](https://github.com/Ancientkingg/EGTRAIN/releases). The [README](../../README.md#quick-start) has the steps for each system, including what to do when macOS or Windows warns before the first start.
 
-- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there.
+- macOS: open the disk image, drag `QEGTRAIN.app` onto `Applications`, and start it from there. A copy kept in a folder inside your home folder can make macOS ask for access to Desktop, Documents and Downloads at the first **File > Open Case Study...**: in column view the file dialog then lists your home folder.
 - Windows: run `EGTRAIN-Setup-<version>-x64.exe` and start **EGTRAIN** from the Start Menu, or unzip `EGTRAIN-Portable-<version>-x64.zip` into a new, empty folder and run `QEGTRAIN.exe`.
-- Linux: make the AppImage executable and run it.
+- Linux: make the AppImage executable and run it. On a minimal system that reports a missing library such as `libGL.so.1`, install `libgl1`, `libharfbuzz0b` and `libfontconfig1` first.
 
 The packages contain the example cases, so you need no separate case file. If you prefer a file, download `Paimpol.egscene` from the same page.
 
@@ -70,7 +70,7 @@ While the run is active:
   ![The main window during a run of Paimpol, zoomed in on the express train with Follow on. The progress bar reads 07:51:30, step 2,451 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/guide-run-in-progress.png)
 - Move the speed slider towards **Faster** or **Slower**. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
-- The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers** and **Infrastructure** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units**, **Compositions** and **Incidents** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
+- The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers**, **Infrastructure** and **Incidents** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
 
 At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network. If a train was still followed at the end, the text reads `Simulation complete - Follow disabled` instead. Follow also switches off when the followed train leaves the network, so in Paimpol it is usually off before the end.
 

@@ -9,7 +9,7 @@ For the executable paths of a local build see [Run a local build](../development
 | Option | Value | Default | Effect |
 | --- | --- | --- | --- |
 | `-n` | 1 to 6 | 1 | Selects the case study; see [Case study numbers](#case-study-numbers). Any other value stops the start with exit code 1 and the message `ERROR: Unknown case study id`, followed by the valid ids, also when `--scene` is given. |
-| `--scene` | a scene folder or an `.egscene` file | the folder that `-n` selects | Decides which scene loads. A missing value, or a value that starts with `-`, stops the start with exit code 1. |
+| `--scene` | a scene folder or an `.egscene` file | the folder that `-n` selects | Decides which scene loads. A relative path is read from the folder the program is started in, not from the folder of the program; `-n` finds the example cases of the package. A missing value, or a value that starts with `-`, stops the start with exit code 1. |
 | `-h` | seconds | `simulation_settings.duration_seconds` of the scene | The simulation horizon. It is not help. A value below 1 makes the scene fail the runnable check, so the start stops. |
 | `-b` | seconds | `simulation_settings.buffer_time_seconds` of the scene, rounded to a whole number; 0 if the scene has none | Overrides the buffer time of the scene. |
 | `-c` | percent | `simulation_settings.recovery_time_percent` of the scene, rounded to a whole number; 0 if the scene has none | Overrides the recovery time of the scene. |

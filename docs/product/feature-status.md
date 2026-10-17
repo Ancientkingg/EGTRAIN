@@ -169,20 +169,37 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 
 ## Limitations and deferred
 
-- The Windows evidence comes from an Arm64 virtual machine that emulates x64. The update from version 1.0.2 failed there and the cause is not settled. A physical x64 PC would settle it.
-- The Linux evidence for the packaged application is the automated rehearsal under a virtual display; the manual Linux runs used a build from source in a container. Nobody has used the AppImage on a Linux desktop yet.
+- The Windows evidence comes from an Arm64 virtual machine that emulates x64. The update to version 1.0.2 failed there on the candidates of this page; a later candidate installed it (see [Checks after this snapshot](#checks-after-this-snapshot)). Timings and drawing speed on that machine do not stand for a physical PC.
+- The Linux evidence for the packaged application is the automated rehearsal under a virtual display and a start of the AppImage by hand in a container (see [Checks after this snapshot](#checks-after-this-snapshot)); the manual Linux runs of the editors and results used a build from source in a container. Nobody has used the AppImage on a Linux desktop with a graphics card.
 - No scene has signals. Every committed case has one network-wide signalling area at level 0, so signal-based separation is not exercised by any of them.
 - A case saved by this version cannot be upgraded from an older schema, because there is no older schema. The upgrade flow is code that the shipped application cannot reach.
-- The replay keeps every frame of a run (#460). The scrolling of the canvas, the trackpad and the wheel cannot be proved from tool output; a person has to check them.
+- The replay keeps every frame of a run (#460). The scrolling of the canvas, the trackpad and the wheel cannot be proved from tool output, also not on a physical Mac, where the test tool reaches only the accessible controls and the canvas has none; a person has to check them. `test_networkview` and the visual polish smoke cover them in code.
 - `-TSM` and `-RC` are deprecated and have no supported consumer. The live stream replaces them.
 - The macOS and Windows packages of the release candidates were not signed in the runs that were rehearsed. A signed and notarized build has not been rehearsed (#402 and #404 are closed; the rehearsals used runs that skip signing).
 - Applying a downloaded update on a Windows installed copy is not supported; the release page is the way (#405).
 - The source-backed Assignment case is deferred until the OpenTrack data are available (#181, #182, #228).
-- Undo and recovery have limits that the audit did not exhaust: the 20-copy limit and a recovery copy whose original changed were not run.
+- Undo and recovery have limits: the application keeps the newest 20 recovery copies and warns about a copy whose original changed, is newer or is missing (see [Checks after this snapshot](#checks-after-this-snapshot)).
+
+## Checks after this snapshot
+
+These checks ran later on 2026-10-17, on newer builds of `main` and on release candidate run 39049264770 (`2c8f41c9`), which passed every job of the Release workflow.
+
+| Check | Machine | Result |
+| --- | --- | --- |
+| Row R9, the in-app update of the portable copy to 1.0.2 | Windows virtual machine, candidate 39049264770 | Installed 1.0.2 at the first attempt and kept the backup `EGTRAIN.egtrain-old`. A hidden staging folder with only the update helper stayed, because 1.0.2 predates the cleanup that removes it. |
+| Row M6, folder access questions at the first File > Open Case Study | A fresh macOS virtual machine, candidate 39032467694 | No question with the app in Applications. A copy inside the home folder asks for Desktop, Documents and Downloads at once, because the column view of the file dialog lists the home folder; the getting-started guide says so. |
+| A live run of Netherlands | A physical Mac with 16 GB | At the default speed the run ends within about a second and the window answers throughout; at the slowest speed the window answered every check within half a second. The hang of more than ten minutes on the 4 GB virtual machine is a limit of that machine. |
+| The Copenhagen Infrastructure table | A macOS virtual machine | Settled within 0.6 s of a scroll with the same rows in two captures; the slow painting seen on Linux comes from software rendering. |
+| The AppImage of the candidate | An x86_64 Ubuntu 24.04 container | Headless runs of Paimpol and Copenhagen ended normally, and a window start under a virtual display ran 20 s without errors. A minimal system needed `libgl1`, `libharfbuzz0b` and `libfontconfig1`; the README now says so. |
+| The developer setup on Linux | A fresh Ubuntu 24.04 container | The steps of the developer guide ran as written and all 314 tests passed, `test_measure_peak_rss` included. |
+| The editors at 1280 by 800 and 1920 by 1080 | Linux desktop container | The fixes of #902 and #904 seen working; the remaining sizing faults were fixed in #913. |
+| The guides and tutorials followed in the application | Linux desktop container, macOS virtual machines | Every step was followed; the differences found were corrected in #900, and the guides got screenshots in #908. |
+| Recovery limits | Linux desktop container | With 22 recovery copies the prompt listed the newest 20 and said that an older copy was removed. A copy whose original changed, is newer or is missing shows that note, and Recover opens it as an unsaved case; saving over the original asks first. |
+| The remaining how-to recipes | Linux desktop container | Rolling stock, the baseline buttons and their reasons, Capacity and Blocking time, opening another case during a run (Stopping simulation...) and Save Scene As Folder into a non-empty folder behave as the guide says; during a run the Incidents editor is disabled too, which the guides now say. |
 
 ## Gaps
 
-Each gap links one issue.
+Each gap links one issue. Issues that were closed later the same day are marked as closed.
 
 | Gap | Issue |
 | --- | --- |
@@ -195,17 +212,17 @@ Each gap links one issue.
 | Result views have different names in the Diagrams menu and in Run Results | [#787](https://github.com/Ancientkingg/EGTRAIN/issues/787) |
 | Toolbar separators and window size on Windows, and toolbar commands cut at 1.5 times the text | [#883](https://github.com/Ancientkingg/EGTRAIN/issues/883) |
 | Trains are hard to see at the full view | [#822](https://github.com/Ancientkingg/EGTRAIN/issues/822) |
-| Timetable graph axis labels collapse at 1.5 times the font, and long identifiers in tooltips | [#889](https://github.com/Ancientkingg/EGTRAIN/issues/889) |
+| Timetable graph axis labels collapse at 1.5 times the font, and long identifiers in tooltips | [#889](https://github.com/Ancientkingg/EGTRAIN/issues/889) (closed on 2026-10-17) |
 | Legacy import loses the layout | [#884](https://github.com/Ancientkingg/EGTRAIN/issues/884) |
 | Rolling stock spin boxes accept any value up to the largest double | [#885](https://github.com/Ancientkingg/EGTRAIN/issues/885) |
-| The Open a Case window has no Cancel button and does not match the dialog style | [#391](https://github.com/Ancientkingg/EGTRAIN/issues/391) |
-| Dialog presentation across the application | [#389](https://github.com/Ancientkingg/EGTRAIN/issues/389) |
-| Editor sizing, dense layouts and empty states | [#392](https://github.com/Ancientkingg/EGTRAIN/issues/392) |
-| Result windows and inspectors do not match the desktop UI | [#393](https://github.com/Ancientkingg/EGTRAIN/issues/393) |
+| The Open a Case window has no Cancel button and does not match the dialog style | [#391](https://github.com/Ancientkingg/EGTRAIN/issues/391) (closed on 2026-10-17) |
+| Dialog presentation across the application | [#389](https://github.com/Ancientkingg/EGTRAIN/issues/389) (closed on 2026-10-17) |
+| Editor sizing, dense layouts and empty states | [#392](https://github.com/Ancientkingg/EGTRAIN/issues/392) (closed on 2026-10-17) |
+| Result windows and inspectors do not match the desktop UI | [#393](https://github.com/Ancientkingg/EGTRAIN/issues/393) (closed on 2026-10-17) |
 | Self-update for installed and portable copies, and its failure on Windows | [#405](https://github.com/Ancientkingg/EGTRAIN/issues/405) |
 | Windows installer and portable archive as release assets; macOS disk image | [#401](https://github.com/Ancientkingg/EGTRAIN/issues/401), [#403](https://github.com/Ancientkingg/EGTRAIN/issues/403) |
-| File associations as an install step | [#416](https://github.com/Ancientkingg/EGTRAIN/issues/416) |
-| Unused Qt modules in packages | [#488](https://github.com/Ancientkingg/EGTRAIN/issues/488) |
+| File associations as an install step | [#416](https://github.com/Ancientkingg/EGTRAIN/issues/416) (closed on 2026-10-17) |
+| Unused Qt modules in packages | [#488](https://github.com/Ancientkingg/EGTRAIN/issues/488) (closed on 2026-10-17) |
 | The release rehearsal on Windows and Linux is not complete | [#74](https://github.com/Ancientkingg/EGTRAIN/issues/74) |
 | Source-backed assignment infrastructure and rolling stock | [#181](https://github.com/Ancientkingg/EGTRAIN/issues/181), [#182](https://github.com/Ancientkingg/EGTRAIN/issues/182), [#228](https://github.com/Ancientkingg/EGTRAIN/issues/228) |
 | Guides and onboarding | [#408](https://github.com/Ancientkingg/EGTRAIN/issues/408) |
@@ -213,6 +230,18 @@ Each gap links one issue.
 ### Gaps without an issue yet
 
 None. Every gap that the sessions found has an issue in the table above or a fix in the table below.
+
+### Observations not filed
+
+These were seen in the sessions and are not faults, or are too small for an issue on their own:
+
+- Passenger icons are about 6 pixels high even when zoomed in, and the platform bar label "Pax on platform: N" counts passengers rather than naming the platform.
+- The Connection form shows only the X positions of its two nodes.
+- With route ids of 300 characters the Blocking-time scope and Capacity options dialogs widen to 90 percent of a 1920 pixel screen; their fields hold the ids.
+- Cancelling the question about a newer or older scene that `--scene` named ends the program with exit code 1, as the command-line guide says for a scene that does not load; a file opened by name instead falls back to the default case.
+- The Open a Case window closes after a file dialog opened from it is cancelled; the open case and its unsaved edits are kept.
+- Two rows of the passenger import results can have the same detail text; the Source and Row columns tell them apart.
+- Redo after an Undo did not bring back a typed recovery end of an incident in one session.
 
 ### Fixed after the sessions that found them
 
