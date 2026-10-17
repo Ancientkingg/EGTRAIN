@@ -204,8 +204,8 @@ int main(int argc, char** argv) {
 			"the Traction page has the source reference, the curve and the Plot button");
 		const QWidget* physical = tabs->widget(1);
 		bool physicalFieldsOnPage = true;
-		for (const QDoubleSpinBox* edit : panel.physicalEdits())
-			physicalFieldsOnPage = physicalFieldsOnPage && physical->isAncestorOf(edit);
+		for (const QDoubleSpinBox* physicalEdit : panel.physicalEdits())
+			physicalFieldsOnPage = physicalFieldsOnPage && physical->isAncestorOf(physicalEdit);
 		ok &= expect(physicalFieldsOnPage && physical->isAncestorOf(panel.sourceDataEdit()) && physical->isAncestorOf(panel.linkButton(false))
 				&& physical->isAncestorOf(panel.sourceStatusLabel(false)),
 			"the Physical page has the nine fields and the parameter source");
