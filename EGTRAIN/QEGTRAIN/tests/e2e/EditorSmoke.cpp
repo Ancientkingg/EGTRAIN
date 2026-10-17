@@ -4359,7 +4359,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QApplication::processEvents();
 				if (w.width() > 1280 || w.height() > 800)
 					facetFailure(ok, "presentation", dock->objectName() + " enlarged the main window");
-				// A dock opens at the width of its size hint. That leaves the network canvas at least a third of the width
+				// A dock opens at the width of its size hint. That leaves the network canvas at least 35 percent of the width
 				// beside the Case and Layers rail, however large the text is, and the Rolling stock dock holds its buttons.
 				w.m_caseLayersDock->show();
 				// The size hint of the dock is kept until its layout is told that the window changed.
@@ -4368,7 +4368,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal);
 				QApplication::processEvents();
 				const int besideRail = w.width() - w.m_caseLayersDock->width();
-				if (w.centralWidget->width() * 3 < besideRail)
+				if (w.centralWidget->width() * 100 < besideRail * 35)
 					facetFailure(ok, "presentation",
 						QString("%1 leaves the network %2 of %3 pixels at %4 times the font at 1280 by 800 pixels")
 							.arg(dock->objectName())

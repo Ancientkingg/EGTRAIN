@@ -92,10 +92,10 @@ public:
 
 // Scroll area for the panel of an editor dock. QScrollArea keeps the size hint of the panel from the first time it was
 // asked, which can be before the panel shows its tabs and tables, so the hint of this area is at least the width that the
-// panel needs now, with the vertical scroll bar. As in QScrollArea the hint is at most 36 line heights wide. While the dock
-// is docked in a main window, it is also at most five eighths of the width that the docks on the left of the window leave
-// (but not under 12 line heights), so that a dock opens narrower than its panel when the text is large, its panel scrolls inside it, and the network canvas
-// keeps the rest.
+// panel needs now, with the vertical scroll bar. As in QScrollArea the hint is at most 36 line heights wide.
+// While the dock is docked in a main window, the hint is also at most five eighths of the width that the docks on the left
+// of the window leave, but not under 12 line heights. A dock with large text then opens narrower than its panel, which
+// scrolls inside it, and the network canvas keeps the rest.
 class DockScrollArea : public QScrollArea {
 public:
 	explicit DockScrollArea(QWidget* parent = nullptr)
