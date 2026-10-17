@@ -3,10 +3,11 @@
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QFileInfo>
-#include <QFont>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -15,9 +16,9 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
-#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QStringList>
+#include <QTabWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
@@ -60,53 +61,56 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	listPane->setMaximumWidth(listPane->fontMetrics().averageCharWidth() * 32);
 	layout->addWidget(listPane);
 
-	// right: the selected unit
+	// right: the id of the selected unit above its traction and physical values
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
-	auto addHeading = [detailPane, detailLayout](const QString& title) {
-		auto* heading = new QLabel(title, detailPane);
+	const auto addHeading = [](QWidget* page, QVBoxLayout* pageLayout, const QString& title) {
+		QLabel* heading = EditorLayout::sectionHeading(title, page);
 		heading->setObjectName("rollingStockSectionHeading");
-		QFont font = heading->font();
-		font.setBold(true);
-		font.setPointSizeF(font.pointSizeF() + 2.0);
-		heading->setFont(font);
-		heading->setWordWrap(true);
-		detailLayout->addWidget(heading);
+		pageLayout->addWidget(heading);
 	};
-	// Adds the buttons and the status of one source link. `name` is part of the object names.
-	auto addSourceLink = [detailPane, detailLayout](const QString& linkText, const QString& name, QPushButton*& link,
-							 QPushButton*& unlink, QPushButton*& retry, QLabel*& status) {
+	// Adds the buttons and the status of one source link to a page. `name` is part of the object names.
+	const auto addSourceLink = [](QWidget* page, QVBoxLayout* pageLayout, const QString& linkText, const QString& name,
+								   QPushButton*& link, QPushButton*& unlink, QPushButton*& retry, QLabel*& status) {
 		QHBoxLayout* actions = new QHBoxLayout();
-		link = new QPushButton(linkText, detailPane);
+		link = new QPushButton(linkText, page);
 		link->setObjectName("linkTrainUnit" + name + "Button");
-		unlink = new QPushButton("Unlink", detailPane);
+		unlink = new QPushButton("Unlink", page);
 		unlink->setObjectName("unlinkTrainUnit" + name + "Button");
-		retry = new QPushButton("Retry", detailPane);
+		retry = new QPushButton("Retry", page);
 		retry->setObjectName("retryTrainUnit" + name + "Button");
 		actions->addWidget(link);
 		actions->addWidget(unlink);
 		actions->addWidget(retry);
-		detailLayout->addLayout(actions);
-		status = new QLabel("Unlinked", detailPane);
+		pageLayout->addLayout(actions);
+		status = EditorLayout::wrappedLabel("Unlinked", page);
 		status->setObjectName("trainUnit" + name + "StatusLabel");
-		status->setWordWrap(true);
-		detailLayout->addWidget(status);
+		pageLayout->addWidget(status);
 	};
-	addHeading("Rolling stock unit ID");
+	addHeading(detailPane, detailLayout, "Rolling stock unit ID");
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("trainUnitIdEdit");
 	detailLayout->addWidget(m_idEdit);
-	addHeading("Rolling stock engine");
-	detailLayout->addWidget(new QLabel("Tractive-effort source reference", detailPane));
-	m_sourceTractionEdit = new QLineEdit(detailPane);
+	m_emptyStateLabel = EditorLayout::emptyStateLabel(detailPane);
+	m_emptyStateLabel->setObjectName("trainUnitEmptyStateLabel");
+	detailLayout->addWidget(m_emptyStateLabel);
+
+	m_tabs = new QTabWidget(detailPane);
+	m_tabs->setObjectName("trainUnitTabs");
+
+	QWidget* tractionPage = new QWidget(m_tabs);
+	QVBoxLayout* tractionLayout = new QVBoxLayout(tractionPage);
+	addHeading(tractionPage, tractionLayout, "Rolling stock engine");
+	tractionLayout->addWidget(new QLabel("Tractive-effort source reference", tractionPage));
+	m_sourceTractionEdit = new QLineEdit(tractionPage);
 	m_sourceTractionEdit->setObjectName("trainUnitSourceTractionEdit");
 	m_sourceTractionEdit->setPlaceholderText("Optional");
-	detailLayout->addWidget(m_sourceTractionEdit);
-	addSourceLink("Link traction file...", "SourceTraction", m_linkTractionButton, m_unlinkTractionButton,
-		m_retryTractionButton, m_sourceTractionStatusLabel);
+	tractionLayout->addWidget(m_sourceTractionEdit);
+	addSourceLink(tractionPage, tractionLayout, "Link traction file...", "SourceTraction", m_linkTractionButton,
+		m_unlinkTractionButton, m_retryTractionButton, m_sourceTractionStatusLabel);
 
-	detailLayout->addWidget(new QLabel("Traction curve", detailPane));
-	m_tractionTable = new QTableWidget(0, 5, detailPane);
+	tractionLayout->addWidget(new QLabel("Traction curve", tractionPage));
+	m_tractionTable = new QTableWidget(0, 5, tractionPage);
 	m_tractionTable->setObjectName("trainUnitTractionTable");
 	m_tractionTable->setHorizontalHeaderLabels(QStringList()
 		<< "Lower speed (m/s)" << "Upper speed (m/s)" << "C0" << "C1" << "C2");
@@ -116,49 +120,51 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
 	m_tractionTable->setMinimumHeight(m_tractionTable->fontMetrics().lineSpacing() * 8);
-	detailLayout->addWidget(m_tractionTable, 1);
+	tractionLayout->addWidget(m_tractionTable, 1);
 	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
-	m_addTractionRowButton = new QPushButton("Add Traction Row", detailPane);
+	m_addTractionRowButton = new QPushButton("Add Traction Row", tractionPage);
 	m_addTractionRowButton->setObjectName("addTrainUnitTractionRowButton");
-	m_removeTractionRowButton = new QPushButton("Delete Traction Row", detailPane);
+	m_removeTractionRowButton = new QPushButton("Delete Traction Row", tractionPage);
 	m_removeTractionRowButton->setObjectName("removeTrainUnitTractionRowButton");
 	tractionButtonLayout->addWidget(m_addTractionRowButton);
 	tractionButtonLayout->addWidget(m_removeTractionRowButton);
-	detailLayout->addLayout(tractionButtonLayout);
-	m_plotButton = new QPushButton("Plot input traction characteristic", detailPane);
+	tractionLayout->addLayout(tractionButtonLayout);
+	m_plotButton = new QPushButton("Plot input traction characteristic", tractionPage);
 	m_plotButton->setObjectName("plotTrainUnitTractionButton");
-	detailLayout->addWidget(m_plotButton);
+	tractionLayout->addWidget(m_plotButton);
+	m_tabs->addTab(tractionPage, "Traction");
 
-	addHeading("Rolling stock unit characteristics");
+	QWidget* physicalPage = new QWidget(m_tabs);
+	QVBoxLayout* physicalPageLayout = new QVBoxLayout(physicalPage);
+	addHeading(physicalPage, physicalPageLayout, "Rolling stock unit characteristics");
 	QFormLayout* physicalLayout = new QFormLayout();
 	const char* physicalLabels[PhysicalFieldCount] = {
 		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
 		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
 		"Resistance coefficient", "Jerk (m/s³)", "Length (m)"};
 	for (int i = 0; i < PhysicalFieldCount; ++i) {
-		auto* edit = new CompactDoubleSpinBox(detailPane);
+		auto* edit = new CompactDoubleSpinBox(physicalPage);
 		edit->setObjectName(QString("trainUnitPhysicalEdit%1").arg(i));
 		edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 		edit->setDecimals(std::numeric_limits<double>::max_digits10);
 		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
 		edit->setKeyboardTracking(false);
 		m_physicalEdits[static_cast<std::size_t>(i)] = edit;
-		physicalLayout->addRow(new QLabel(physicalLabels[i], detailPane), edit);
+		physicalLayout->addRow(new QLabel(physicalLabels[i], physicalPage), edit);
 	}
-	detailLayout->addLayout(physicalLayout);
-	detailLayout->addWidget(new QLabel("Parameter source reference", detailPane));
-	m_sourceDataEdit = new QLineEdit(detailPane);
+	physicalPageLayout->addLayout(physicalLayout);
+	physicalPageLayout->addWidget(new QLabel("Parameter source reference", physicalPage));
+	m_sourceDataEdit = new QLineEdit(physicalPage);
 	m_sourceDataEdit->setObjectName("trainUnitSourceDataEdit");
 	m_sourceDataEdit->setPlaceholderText("Optional");
-	detailLayout->addWidget(m_sourceDataEdit);
-	addSourceLink("Link parameter file...", "SourceData", m_linkDataButton, m_unlinkDataButton,
-		m_retryDataButton, m_sourceDataStatusLabel);
+	physicalPageLayout->addWidget(m_sourceDataEdit);
+	addSourceLink(physicalPage, physicalPageLayout, "Link parameter file...", "SourceData", m_linkDataButton,
+		m_unlinkDataButton, m_retryDataButton, m_sourceDataStatusLabel);
+	physicalPageLayout->addStretch(1);
+	m_tabs->addTab(physicalPage, "Physical");
 
-	QScrollArea* detailScroll = new QScrollArea(this);
-	detailScroll->setWidgetResizable(true);
-	detailScroll->setFrameShape(QFrame::NoFrame);
-	detailScroll->setWidget(detailPane);
-	layout->addWidget(detailScroll, 1);
+	detailLayout->addWidget(m_tabs, 1);
+	layout->addWidget(detailPane, 1);
 
 	connect(m_listWidget, &QListWidget::currentRowChanged, this, [this](int) { updateDetail(); });
 	connect(m_idEdit, &QLineEdit::editingFinished, this, &TrainUnitPanel::commitIdEdit);
@@ -240,6 +246,9 @@ void TrainUnitPanel::refresh() {
 void TrainUnitPanel::updateDetail() {
 	const SceneTrainUnit* unit = selectedUnit();
 	const bool hasSelection = unit != nullptr;
+	m_tabs->setVisible(hasSelection);
+	DialogLayout::setHelp(m_emptyStateLabel,
+		hasScene() && !hasSelection ? QStringLiteral("Select a rolling stock unit or use Add Unit.") : QString());
 	{
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(unit ? QString::fromStdString(unit->id) : QString());

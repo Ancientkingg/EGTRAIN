@@ -7,8 +7,10 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QString>
 #include <QStringList>
+#include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
 
@@ -156,6 +158,60 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty()
 				&& document.model().trainUnits.empty(),
 			"a panel stays disabled while its document holds no scene, and its actions change nothing");
+		ok &= expect(panel.emptyStateLabel()->isHidden() && panel.tabs()->isHidden(),
+			"a panel without a scene shows no message and no values");
+	}
+
+	{
+		// the empty state follows the selection
+		SceneDocument document;
+		TrainUnitPanel panel;
+		FakePrompts prompts;
+		prompts.confirmAnswer = true;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		document.replace(SceneModel(), false);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a rolling stock unit or use Add Unit."
+				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
+				&& !panel.emptyStateLabel()->property("dialogStatus").isValid() && panel.tabs()->isHidden()
+				&& panel.addButton()->isEnabled() && !panel.idEdit()->isEnabled(),
+			"a scene without units says what to select, and the Add button it points to is enabled");
+		panel.addUnit();
+		ok &= expect(panel.emptyStateLabel()->isHidden() && !panel.tabs()->isHidden() && panel.idEdit()->isEnabled(),
+			"adding a unit removes the message and shows its values");
+		panel.deleteUnit();
+		ok &= expect(!panel.emptyStateLabel()->isHidden() && panel.tabs()->isHidden(),
+			"deleting the only unit brings the message back and hides the values");
+		panel.setDocument(nullptr);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a detached panel does not point to the disabled Add button");
+	}
+
+	{
+		// the detail area has a page for the traction and a page for the physical values, and no scroll area of its own
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(unitScene(), false);
+		QTabWidget* tabs = panel.tabs();
+		ok &= expect(!tabs->isHidden() && panel.emptyStateLabel()->isHidden() && tabs->count() == 2
+				&& tabs->tabText(0) == "Traction" && tabs->tabText(1) == "Physical" && tabs->currentIndex() == 0,
+			"a selected unit shows the Traction and the Physical page, starting with the Traction page");
+		const QWidget* traction = tabs->widget(0);
+		ok &= expect(traction->isAncestorOf(panel.sourceTractionEdit()) && traction->isAncestorOf(panel.linkButton(true))
+				&& traction->isAncestorOf(panel.sourceStatusLabel(true)) && traction->isAncestorOf(panel.tractionTable())
+				&& traction->isAncestorOf(panel.addTractionRowButton()) && traction->isAncestorOf(panel.removeTractionRowButton())
+				&& traction->isAncestorOf(panel.plotButton()),
+			"the Traction page has the source reference, the curve and the Plot button");
+		const QWidget* physical = tabs->widget(1);
+		bool physicalFieldsOnPage = true;
+		for (const QDoubleSpinBox* physicalEdit : panel.physicalEdits())
+			physicalFieldsOnPage = physicalFieldsOnPage && physical->isAncestorOf(physicalEdit);
+		ok &= expect(physicalFieldsOnPage && physical->isAncestorOf(panel.sourceDataEdit()) && physical->isAncestorOf(panel.linkButton(false))
+				&& physical->isAncestorOf(panel.sourceStatusLabel(false)),
+			"the Physical page has the nine fields and the parameter source");
+		ok &= expect(panel.findChildren<QScrollArea*>().isEmpty(), "the curve and the fields do not scroll inside a scroll area of the panel");
+		panel.physicalEdits()[8]->setValue(123.0);
+		ok &= expect(document.model().trainUnits[0].physical.length_m == 123.0, "a field on a page that is not shown can be set");
 	}
 
 	{
@@ -439,6 +495,7 @@ int main(int argc, char** argv) {
 		panel.activateWindow();
 		QApplication::processEvents();
 		QDoubleSpinBox* length = panel.physicalEdits()[8];
+		panel.tabs()->setCurrentIndex(1);
 		length->setFocus();
 		QApplication::processEvents();
 		if (!length->hasFocus()) {
@@ -455,6 +512,7 @@ int main(int argc, char** argv) {
 			panel.commitPendingEditors();
 			ok &= expect(document.model().trainUnits[0].physical.length_m == 77.0 && document.revision() == revision + 1,
 				"committing the pending editors does not take text that is not a number");
+			panel.tabs()->setCurrentIndex(0);
 			QDoubleSpinBox* curveCell = cell(panel, 0, 2);
 			curveCell->setFocus();
 			QApplication::processEvents();
@@ -462,6 +520,19 @@ int main(int argc, char** argv) {
 			panel.commitPendingEditors();
 			ok &= expect(document.model().trainUnits[0].tractionCurve[0][2] == 1234.0,
 				"committing the pending editors takes the number of a table cell that has focus");
+			panel.tabs()->setCurrentIndex(1);
+			length->setFocus();
+			QApplication::processEvents();
+			if (!length->hasFocus()) {
+				std::cerr << "failed: the length field could not be given focus on the Physical page\n";
+				ok = false;
+			} else {
+				spinText(length)->setText("88");
+				panel.tabs()->setCurrentIndex(0);
+				QApplication::processEvents();
+				ok &= expect(document.model().trainUnits[0].physical.length_m == 88.0,
+					"leaving the Physical page takes the number that was typed in a field");
+			}
 		}
 	}
 

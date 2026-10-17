@@ -1,6 +1,7 @@
 #include "editors/PassengerPanel.h"
 
 #include "scene/SceneDiagnostic.h"
+#include "widgets/ChoiceComboBox.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -158,6 +159,16 @@ static std::vector<std::string> comboData(const QComboBox* combo) {
 	return values;
 }
 
+// The role of a message label: "help", the status ("error" or "warning"), or "" when it has none. A role that comes from the
+// stylesheet rules leaves the label without a style sheet of its own.
+static std::string role(const QLabel* label) {
+	if (!label->styleSheet().isEmpty())
+		return "inline style";
+	if (label->property("dialogHelp").toBool())
+		return label->property("dialogStatus").isValid() ? "help and status" : "help";
+	return label->property("dialogStatus").toString().toStdString();
+}
+
 static std::vector<std::string> legIds(const ScenePassengerJourney& journey) {
 	std::vector<std::string> ids;
 	for (const auto& value : journey.legs)
@@ -192,10 +203,17 @@ int main(int argc, char** argv) {
 				&& !panel.addPassengerButton()->isEnabled() && !panel.importButton()->isEnabled()
 				&& panel.tabs()->isHidden(),
 			"a panel without a document shows no passengers and offers no action");
-		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger or use Add to create one."
+		ok &= expect(panel.diagnosticLabel()->text()
+					== "Select a passenger, or use Add to create one or Import to read a legacy passenger folder."
+				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden()
 				&& panel.journeyOriginCombo()->itemText(0) == "Select a journey or leg"
 				&& panel.legServiceCombo()->itemText(0) == "Select a leg",
 			"a panel without a selection says what to select");
+		ok &= expect(panel.importResultHeading()->isHidden() && panel.importResultTable()->isHidden(),
+			"a panel without an import result shows neither its heading nor its table");
+		for (const QComboBox* combo : {panel.journeyOriginCombo(), panel.journeyDestinationCombo(), panel.legOriginCombo(),
+				 panel.legDestinationCombo(), panel.legServiceCombo()})
+			ok &= expect(dynamic_cast<const ChoiceComboBox*>(combo) != nullptr, "the station and service choices are choice combo boxes");
 		SceneDocument document;
 		panel.setDocument(&document);
 		panel.addPassengerButton()->click();
@@ -402,6 +420,9 @@ int main(int argc, char** argv) {
 		ok &= expect(added.serviceId == "S2" && panel.legDestinationCombo()->currentData().toString() == "B"
 				&& panel.legDestinationCombo()->currentText() == "Invalid: B" && comboData(panel.legDestinationCombo()).back() == "B",
 			"a station that the new service does not stop at stays selected and is marked invalid");
+		ok &= expect(panel.legDestinationCombo()->itemData(panel.legDestinationCombo()->currentIndex(), Qt::ToolTipRole).toString()
+				== "Station B is not a stop of the service of this leg.",
+			"the invalid station says why in its tooltip");
 		choose(panel.legDestinationCombo(), "C");
 		choose(panel.legOriginCombo(), "A");
 		panel.legOccurrenceEdit()->setValue(3);
@@ -440,20 +461,20 @@ int main(int argc, char** argv) {
 		panel.setDiagnostics(&diagnostics);
 		panel.refresh();
 		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown\nWARNING: Journey is odd"
-				&& panel.diagnosticLabel()->styleSheet().contains("#81352d"),
-			"the messages for the selected passenger are shown, in the colour of an error when there is one");
+				&& role(panel.diagnosticLabel()) == "error",
+			"the messages for the selected passenger are shown as an error when there is one");
 		diagnostics = {journeyWarning, otherPassenger};
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "WARNING: Journey is odd"
-				&& panel.diagnosticLabel()->styleSheet().contains("#965c22"),
-			"a warning alone is shown in the colour of a warning");
+		ok &= expect(panel.diagnosticLabel()->text() == "WARNING: Journey is odd" && role(panel.diagnosticLabel()) == "warning",
+			"a warning alone is shown as a warning");
 		panel.passengerList()->setCurrentRow(1);
 		ok &= expect(panel.diagnosticLabel()->text() == "INFO: Elsewhere", "another passenger shows its own messages");
 		panel.passengerList()->setCurrentRow(0);
 		panel.setDiagnostics(nullptr);
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection.",
-			"a panel without diagnostics shows none");
+		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection."
+				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden(),
+			"a panel without diagnostics shows none, as help");
 
 		// a run closes the document
 		const quint64 revisionBeforeRun = document.revision();
@@ -560,7 +581,9 @@ int main(int argc, char** argv) {
 				&& rows[0].find(" (batch) | - | Rejected | Passenger, journey, or leg ID collides") != std::string::npos
 				&& std::vector<std::string>(rows.begin() + 1, rows.end()) == fileRows,
 			"the result table lists the rows of both files with their accepted, rejected and unresolved status, after the passenger that collides");
-		ok &= expect(!panel.importResultTable()->isHidden(), "the result table appears with the first row");
+		ok &= expect(!panel.importResultTable()->isHidden() && !panel.importResultHeading()->isHidden()
+				&& panel.importResultHeading()->text() == "Import results",
+			"the result table appears with the first row, under its heading");
 		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "imp1", "imp_unresolved"}),
 			"the accepted and the unresolved passengers are appended, and the one that collides is not");
 		ok &= expect(document.model().importReport.size() > reportsBefore && document.isDirty()
@@ -597,13 +620,15 @@ int main(int argc, char** argv) {
 
 		// the table is cleared with the scene
 		panel.clearImportResult();
-		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden(),
-			"clearing the import result empties and hides the table");
+		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden()
+				&& panel.importResultHeading()->isHidden(),
+			"clearing the import result empties and hides the table and its heading");
 		chosenFolder = fixture.path();
 		panel.importButton()->click();
 		ok &= expect(panel.importResultTable()->rowCount() > 0, "the table fills again with the next import");
 		panel.setDocument(nullptr);
-		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden(),
+		ok &= expect(panel.importResultTable()->rowCount() == 0 && panel.importResultTable()->isHidden()
+				&& panel.importResultHeading()->isHidden(),
 			"a panel without a scene shows no import result");
 
 		// an import needs a document open for edits
@@ -612,6 +637,43 @@ int main(int argc, char** argv) {
 		document.setEditable(false);
 		panel.importButton()->click();
 		ok &= expect(asked == askedBefore, "Import does not ask for a folder while the document is closed for edits");
+	}
+
+	{
+		// values that the scene does not allow stay selected as invalid entries, say why, and are not written back
+		SceneDocument document;
+		PassengerPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = passengerScene();
+		ScenePassengerJourney& journey = scene.passengers[0].journeys[0];
+		journey.originStationId = "ZZ";
+		journey.destinationStationId = "";
+		journey.legs[0].serviceId = "S9";
+		journey.legs[0].originStationId = "C";
+		journey.legs[0].destinationStationId = "";
+		document.replace(scene, false);
+		const auto tip = [](const QComboBox* combo) {
+			return combo->itemData(combo->currentIndex(), Qt::ToolTipRole).toString().toStdString();
+		};
+		ok &= expect(panel.journeyOriginCombo()->currentText() == "Invalid: ZZ"
+				&& tip(panel.journeyOriginCombo()) == "Station ZZ is not in this scene."
+				&& panel.journeyDestinationCombo()->currentText() == "Invalid: (empty)"
+				&& tip(panel.journeyDestinationCombo()) == "No station is set.",
+			"a journey station that is unknown or empty is shown as invalid with its reason");
+		ok &= expect(panel.legServiceCombo()->currentText() == "Invalid: S9"
+				&& tip(panel.legServiceCombo()) == "Service S9 is not in this scene."
+				&& panel.legOriginCombo()->currentText() == "Invalid: C"
+				&& tip(panel.legOriginCombo()) == "Station C is not a stop of the service of this leg."
+				&& panel.legDestinationCombo()->currentText() == "Invalid: (empty)"
+				&& tip(panel.legDestinationCombo()) == "No station is set.",
+			"a leg service or station that is unknown, not served or empty is shown as invalid with its reason");
+		ok &= expect(panel.journeyOriginCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty()
+				&& panel.legServiceCombo()->itemData(0, Qt::ToolTipRole).toString().isEmpty(),
+			"the choices that are valid have no tooltip");
+		ok &= expect(document.model().passengers[0].journeys[0].originStationId == "ZZ"
+				&& document.model().passengers[0].journeys[0].legs[0].serviceId == "S9" && document.revision() == 1
+				&& !document.isDirty(),
+			"showing invalid values does not write them back");
 	}
 
 	if (!ok)

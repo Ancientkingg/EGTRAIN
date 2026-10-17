@@ -670,6 +670,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!nameEdit || !descriptionEdit || !baseTimeEdit || !durationEdit || !bufferEdit || !recoveryEdit || !w.m_caseSettingsDock || !w.m_caseSettingsDock->isVisible()) {
 				facetFailure(facetOk, "new case", "case settings controls or dock are unavailable");
 			} else {
+				const auto* caseNote = w.findChild<QLabel*>("caseSettingsNote");
+				if (!caseNote || caseNote->text() != "Changes apply when editing finishes." || !caseNote->wordWrap()
+					|| baseTimeEdit->placeholderText() != "HH:MM:SS")
+					facetFailure(facetOk, "new case", "case settings lost the note about when changes apply or the base time format");
 				nameEdit->setText("E2E New Case");
 				descriptionEdit->setText("new case editor smoke");
 				baseTimeEdit->setText("09:15:30");
@@ -1680,6 +1684,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}
 							if (!sawAccepted || !sawRejected || !sawUnresolved || rejectedCollisionRows < 2)
 								facetFailure(facetOk, "passenger import", "result table did not expose accepted, rejected, and unresolved rows");
+							if (importResults->isHidden() || w.m_passengerPanel->importResultHeading()->isHidden())
+								facetFailure(facetOk, "passenger import", "result table or its heading was hidden after an import");
 							const auto findPassengerRow = [&](const std::string& id) {
 								const auto matches = passengerList->findItems(QString::fromStdString(id), Qt::MatchExactly);
 								return matches.isEmpty() ? -1 : passengerList->row(matches.front());
@@ -1695,9 +1701,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								const ScenePassengerLeg* unresolvedLeg = w.m_passengerPanel->selectedPassengerLeg();
 								const bool invalidOriginVisible = unresolvedJourney
 									&& unresolvedJourney->originStationId == "missing-origin"
-									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin");
+									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin")
+									&& w.m_passengerJourneyOriginCombo
+										   ->itemData(w.m_passengerJourneyOriginCombo->currentIndex(), Qt::ToolTipRole)
+										   .toString()
+										   .startsWith("Station missing-origin");
 								const bool legStateAccurate = unresolvedLeg
 									? legService->currentText().startsWith("Invalid: missing-service")
+										&& legService->itemData(legService->currentIndex(), Qt::ToolTipRole).toString().startsWith("Service missing-service")
 										&& legOrigin->currentText().startsWith("Invalid:")
 									: legService->currentText() == "Select a leg"
 										&& legOrigin->currentText() == "Select a journey or leg";
@@ -1988,15 +1999,29 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const int originalCount = w.m_trainUnitListWidget->count();
 		const auto headings = w.m_trainUnitDock->findChildren<QLabel*>("rollingStockSectionHeading");
 		const QStringList sectionTitles{"Rolling stock unit ID", "Rolling stock engine", "Rolling stock unit characteristics"};
-		bool layoutOk = headings.size() == sectionTitles.size();
+		const QTabWidget* unitTabs = w.m_trainUnitPanel->tabs();
+		// Showing a page raises it, which changes the order of the children, so each heading is found by its title.
+		const auto headingTitled = [&headings](const QString& title) -> const QLabel* {
+			const auto found = std::find_if(headings.begin(), headings.end(), [&title](const QLabel* heading) { return heading->text() == title; });
+			return found == headings.end() ? nullptr : *found;
+		};
+		const QLabel* idHeading = headingTitled(sectionTitles[0]);
+		const QLabel* engineHeading = headingTitled(sectionTitles[1]);
+		const QLabel* characteristicsHeading = headingTitled(sectionTitles[2]);
+		bool layoutOk = headings.size() == sectionTitles.size() && idHeading && engineHeading && characteristicsHeading;
 		for (int i = 0; layoutOk && i < headings.size(); ++i) {
-			layoutOk = headings[i]->text() == sectionTitles[i] && headings[i]->font().bold()
-				&& headings[i]->font().pointSizeF() > w.m_trainUnitIdEdit->font().pointSizeF()
-				&& (i == 0 || headings[i - 1]->y() < headings[i]->y());
+			layoutOk = headings[i]->font().bold() && headings[i]->font().pointSizeF() > w.m_trainUnitIdEdit->font().pointSizeF();
 		}
-		layoutOk = layoutOk && headings.size() == 3
-			&& w.m_trainUnitTractionTable->y() > headings[1]->y()
-			&& w.m_plotTrainUnitTractionButton->y() < headings[2]->y();
+		// The unit id is above the tabs. The engine, its table and the Plot button are on the Traction page, in that
+		// order, and the characteristics are on the Physical page.
+		layoutOk = layoutOk && unitTabs->count() == 2 && unitTabs->tabText(0) == "Traction" && unitTabs->tabText(1) == "Physical"
+			&& idHeading->y() < unitTabs->y() && unitTabs->widget(0)->isAncestorOf(engineHeading)
+			&& unitTabs->widget(0)->isAncestorOf(w.m_trainUnitTractionTable)
+			&& unitTabs->widget(0)->isAncestorOf(w.m_plotTrainUnitTractionButton)
+			&& unitTabs->widget(1)->isAncestorOf(characteristicsHeading)
+			&& unitTabs->widget(1)->isAncestorOf(w.m_trainUnitPhysicalEdits[0])
+			&& w.m_trainUnitTractionTable->y() > engineHeading->y()
+			&& w.m_plotTrainUnitTractionButton->y() > w.m_trainUnitTractionTable->y();
 		const bool wasDirty = w.m_document->isDirty();
 		w.m_document->setDirty(false);
 		const QSize oldSize = w.m_trainUnitDock->size();
@@ -2015,7 +2040,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_document->setDirty(wasDirty);
 		w.m_trainUnitListWidget->setCurrentRow(-1);
 		layoutOk = layoutOk && !w.m_trainUnitIdEdit->isEnabled() && !w.m_trainUnitSourceDataEdit->isEnabled()
-			&& !w.m_trainUnitSourceTractionEdit->isEnabled() && !w.m_trainUnitTractionTable->isEnabled();
+			&& !w.m_trainUnitSourceTractionEdit->isEnabled() && !w.m_trainUnitTractionTable->isEnabled()
+			&& w.m_trainUnitPanel->emptyStateLabel()->text() == "Select a rolling stock unit or use Add Unit."
+			&& unitTabs->isHidden();
 		for (auto* edit : w.m_trainUnitPhysicalEdits)
 			layoutOk = layoutOk && edit && !edit->isEnabled();
 		if (!layoutOk)
@@ -2272,6 +2299,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_trainUnitDock->show();
 		w.m_trainUnitDock->raise();
 		w.activateWindow();
+		w.m_trainUnitPanel->tabs()->setCurrentIndex(1);
 		w.m_trainUnitPhysicalEdits[8]->setFocus();
 		QApplication::processEvents();
 		if (!w.m_trainUnitPhysicalEdits[8]->hasFocus())
@@ -2347,7 +2375,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (assignedCompositionRow < 0) {
 			facetFailure(facetOk, "composition", "no service-assigned composition available for rename coverage");
 		} else {
+			w.m_compositionListWidget->setCurrentRow(-1);
+			if (w.m_compositionPanel->emptyStateLabel()->text() != "Select a composition or use Add Composition.")
+				facetFailure(facetOk, "composition", "no composition selected did not say what to select");
 			w.m_compositionListWidget->setCurrentRow(assignedCompositionRow);
+			if (!w.m_compositionPanel->emptyStateLabel()->text().isEmpty())
+				facetFailure(facetOk, "composition", "a selected composition still shows the empty-state message");
 			// the selected unit surfaces its source files and a plottable traction curve
 			if (w.m_compositionUnitsListWidget && w.m_compositionUnitsListWidget->count() > 0 && w.m_compositionUnitsListWidget->item(0)) {
 				w.m_compositionUnitsListWidget->setCurrentRow(0);

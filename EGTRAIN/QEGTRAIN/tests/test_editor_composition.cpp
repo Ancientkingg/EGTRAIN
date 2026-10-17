@@ -111,6 +111,13 @@ static QStringList items(const QListWidget* list) {
 	return result;
 }
 
+// The role that the stylesheet rules give a message label, "" when it has none; "inline style" when the label colours itself.
+static std::string role(const QLabel* label) {
+	if (!label->styleSheet().isEmpty())
+		return "inline style";
+	return label->property("dialogStatus").toString().toStdString();
+}
+
 static std::vector<std::string> serviceCompositions(const SceneDocument& document) {
 	std::vector<std::string> result;
 	for (const SceneService& item : document.model().services)
@@ -129,6 +136,10 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.idEdit()->isEnabled() && !panel.addUnitButton()->isEnabled(),
 			"a panel without a document shows nothing and offers nothing");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a panel without a scene does not point to Add Composition, which is disabled");
+		ok &= expect(panel.unitSourceDataLabel()->wordWrap() && panel.unitSourceDataLabel()->textFormat() == Qt::PlainText
+				&& panel.unitSourceTractionLabel()->wordWrap() && panel.unitSourceTractionLabel()->textFormat() == Qt::PlainText,
+			"the source labels show their paths as wrapped plain text");
 		SceneDocument document;
 		panel.setDocument(&document);
 		panel.addComposition();
@@ -157,6 +168,8 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.idEdit()->text() == "c1" && panel.idEdit()->isEnabled()
 				&& items(panel.unitsListWidget()) == QStringList({"u1", "u2"}) && panel.unitsListWidget()->currentRow() == -1,
 			"the selected composition shows its id and its units, with no unit selected");
+		ok &= expect(panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->text().isEmpty(),
+			"a selected composition has no empty-state message");
 		ok &= expect(panel.duplicateButton()->isEnabled() && panel.deleteButton()->isEnabled() && panel.addUnitButton()->isEnabled()
 				&& !panel.removeUnitButton()->isEnabled() && !panel.moveUnitUpButton()->isEnabled()
 				&& !panel.moveUnitDownButton()->isEnabled() && !panel.plotTractionButton()->isEnabled(),
@@ -167,12 +180,14 @@ int main(int argc, char** argv) {
 		panel.unitsListWidget()->setCurrentRow(0);
 		ok &= expect(panel.unitSourceDataLabel()->text() == "u1.xml" && panel.unitSourceTractionLabel()->text() == "(none)"
 				&& panel.plotTractionButton()->isEnabled() && panel.unitWarningLabel()->text().isEmpty()
+				&& panel.unitWarningLabel()->isHidden()
 				&& !panel.moveUnitUpButton()->isEnabled() && panel.moveUnitDownButton()->isEnabled()
 				&& panel.removeUnitButton()->isEnabled(),
 			"a unit with a traction curve shows its sources and can be plotted");
 		panel.unitsListWidget()->setCurrentRow(1);
 		ok &= expect(panel.unitSourceDataLabel()->text() == "(none)" && !panel.plotTractionButton()->isEnabled()
 				&& panel.unitWarningLabel()->text() == QString::fromStdString(tractionAssociationWarning(true, false))
+				&& !panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) == "warning"
 				&& panel.moveUnitUpButton()->isEnabled() && !panel.moveUnitDownButton()->isEnabled(),
 			"a unit without a traction curve cannot be plotted and says why");
 		document.mutableModel().trainUnits[1].sourceDataFile = "u2.xml";
@@ -368,6 +383,48 @@ int main(int argc, char** argv) {
 		panel.refresh();
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.addButton()->isEnabled(),
 			"a panel whose document is gone shows nothing and edits nothing");
+	}
+
+	{
+		// the empty state follows the selection
+		SceneDocument document;
+		CompositionPanel panel;
+		FakePrompts prompts;
+		prompts.confirmAnswer = true;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		document.replace(SceneModel(), false);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a composition or use Add Composition."
+				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
+				&& panel.addButton()->isEnabled() && !panel.idEdit()->isEnabled(),
+			"a scene without compositions says what to select, and the Add button it points to is enabled");
+		panel.addComposition();
+		ok &= expect(panel.emptyStateLabel()->isHidden() && panel.idEdit()->isEnabled(),
+			"adding a composition removes the message");
+		panel.deleteComposition();
+		ok &= expect(!panel.emptyStateLabel()->isHidden() && !panel.idEdit()->isEnabled(),
+			"deleting the only composition brings the message back");
+		panel.setDocument(nullptr);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a detached panel does not point to the disabled Add button");
+	}
+
+	{
+		// a unit that the scene does not define is an error, not a note
+		SceneDocument document;
+		CompositionPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = compositionScene();
+		scene.compositions[0].units.push_back("missing");
+		document.replace(scene, false);
+		ok &= expect(panel.unitWarningLabel()->isHidden() && panel.unitWarningLabel()->text().isEmpty(),
+			"a composition without a selected unit shows no warning");
+		panel.unitsListWidget()->setCurrentRow(2);
+		ok &= expect(panel.unitWarningLabel()->text() == QString::fromStdString(tractionAssociationWarning(false, false))
+				&& !panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) == "error",
+			"a unit that the scene does not define is reported as an error");
+		panel.unitsListWidget()->setCurrentRow(0);
+		ok &= expect(panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) != "inline style",
+			"selecting a unit with a curve hides the warning again");
 	}
 
 	if (!ok)

@@ -53,9 +53,9 @@ Open the Rolling stock units dock.
 
 1. Select Add Unit. A new unit appears in the list.
 2. Give the unit an id in the field Rolling stock unit ID.
-3. Fill the physical fields under Rolling stock unit characteristics: mass, length, and the other values for the stock you are modelling.
-4. Select Add Traction Row for each row of the traction curve and fill in the new row. Each row is a speed interval with a lower speed, an upper speed, and the three coefficients C0, C1, and C2. Tractive effort at a speed follows C0 plus C1 times speed plus C2 times speed squared, in newtons, with speed in metres per second.
-5. **Parameter source reference** and **Tractive-effort source reference** retain imported filenames and accept references for newly authored units. Provenance is optional and is not reopened by the runtime.
+3. Open the Physical tab and fill the physical fields under Rolling stock unit characteristics: mass, length, and the other values for the stock you are modelling.
+4. Open the Traction tab and select Add Traction Row for each row of the traction curve and fill in the new row. Each row is a speed interval with a lower speed, an upper speed, and the three coefficients C0, C1, and C2. Tractive effort at a speed follows C0 plus C1 times speed plus C2 times speed squared, in newtons, with speed in metres per second.
+5. **Parameter source reference** (Physical tab) and **Tractive-effort source reference** (Traction tab) retain imported filenames and accept references for newly authored units. Provenance is optional and is not reopened by the runtime.
 
 Repeat for every unit the presentation needs, then delete the teaching unit with Delete if no composition uses it.
 

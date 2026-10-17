@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QDoubleSpinBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QString>
 
@@ -54,6 +55,12 @@ int main(int argc, char** argv) {
 
 	{
 		CaseSettingsPanel panel;
+		const QLabel* note = panel.findChild<QLabel*>("caseSettingsNote");
+		ok &= expect(note && note->text() == "Changes apply when editing finishes." && note->wordWrap()
+				&& note->property("dialogHelp").toBool() && !note->property("dialogStatus").isValid()
+				&& !note->isHidden(),
+			"the note about when changes apply is wrapped help text");
+		ok &= expect(panel.baseTimeEdit()->placeholderText() == "HH:MM:SS", "the base time field shows the format it expects");
 		ok &= expect(panel.nameEdit()->text().isEmpty() && !panel.nameEdit()->isEnabled()
 				&& !panel.baseTimeEdit()->isEnabled() && !panel.durationSecondsEdit()->isEnabled(),
 			"a panel without a document shows empty, disabled fields");

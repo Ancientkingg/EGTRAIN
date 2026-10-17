@@ -3,6 +3,8 @@
 #include "diagrams/TractionCurve.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
+#include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -47,6 +49,9 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	// right: the selected composition's id and its ordered unit membership
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
+	m_emptyStateLabel = EditorLayout::emptyStateLabel(detailPane);
+	m_emptyStateLabel->setObjectName("compositionEmptyStateLabel");
+	detailLayout->addWidget(m_emptyStateLabel);
 	detailLayout->addWidget(new QLabel("Composition Id", detailPane));
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("compositionIdEdit");
@@ -72,24 +77,20 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 
 	// selected unit: its original sources and the tractive-effort plot
 	detailLayout->addWidget(new QLabel("Original parameter source", detailPane));
-	m_unitSourceDataLabel = new QLabel(detailPane);
+	m_unitSourceDataLabel = EditorLayout::wrappedLabel(QString(), detailPane);
 	m_unitSourceDataLabel->setObjectName("compositionUnitSourceDataLabel");
 	m_unitSourceDataLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	m_unitSourceDataLabel->setWordWrap(true);
 	detailLayout->addWidget(m_unitSourceDataLabel);
 	detailLayout->addWidget(new QLabel("Original tractive-effort source", detailPane));
-	m_unitSourceTractionLabel = new QLabel(detailPane);
+	m_unitSourceTractionLabel = EditorLayout::wrappedLabel(QString(), detailPane);
 	m_unitSourceTractionLabel->setObjectName("compositionUnitSourceTractionLabel");
 	m_unitSourceTractionLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	m_unitSourceTractionLabel->setWordWrap(true);
 	detailLayout->addWidget(m_unitSourceTractionLabel);
 	m_plotTractionButton = new QPushButton("Plot input traction characteristic", detailPane);
 	m_plotTractionButton->setObjectName("plotCompositionUnitTractionButton");
 	detailLayout->addWidget(m_plotTractionButton);
 	m_unitWarningLabel = new QLabel(detailPane);
 	m_unitWarningLabel->setObjectName("compositionUnitWarningLabel");
-	m_unitWarningLabel->setWordWrap(true);
-	m_unitWarningLabel->setStyleSheet("color: #b00020;");
 	detailLayout->addWidget(m_unitWarningLabel);
 	layout->addWidget(detailPane);
 
@@ -160,6 +161,8 @@ void CompositionPanel::refresh() {
 void CompositionPanel::updateDetail() {
 	const int row = selectedRow();
 	const bool hasSelection = row >= 0;
+	DialogLayout::setHelp(m_emptyStateLabel,
+		hasScene() && !hasSelection ? QStringLiteral("Select a composition or use Add Composition.") : QString());
 	{
 		const QSignalBlocker blocker(m_idEdit);
 		m_idEdit->setText(hasSelection ? QString::fromStdString(m_document->model().compositions[static_cast<std::size_t>(row)].id)
@@ -206,7 +209,7 @@ void CompositionPanel::refreshUnitDetails() {
 	QString warning;
 	if (hasUnitSelection)
 		warning = QString::fromStdString(tractionAssociationWarning(unit != nullptr, unit && !unit->tractionCurve.empty()));
-	m_unitWarningLabel->setText(warning);
+	DialogLayout::setStatus(m_unitWarningLabel, unit ? DialogLayout::Severity::Warning : DialogLayout::Severity::Error, warning);
 }
 
 void CompositionPanel::plotSelectedUnitTraction() {
