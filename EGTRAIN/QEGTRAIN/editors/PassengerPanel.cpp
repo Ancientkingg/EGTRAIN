@@ -421,6 +421,7 @@ void PassengerPanel::refresh() {
 	{
 		const int previousRow = m_passengerList->currentRow();
 		const QString previousId = m_passengerList->currentItem() ? m_passengerList->currentItem()->text() : QString();
+		const bool selectionCleared = m_passengerList->currentItem() && !m_passengerList->currentItem()->isSelected();
 		const QSignalBlocker blocker(m_passengerList);
 		m_passengerList->clear();
 		if (loaded) {
@@ -429,6 +430,8 @@ void PassengerPanel::refresh() {
 		}
 		const int samePassenger = rowOfEntry(m_passengerList, previousId, previousRow);
 		m_passengerList->setCurrentRow(samePassenger >= 0 ? samePassenger : rowAfterRebuild(previousRow, m_passengerList->count()));
+		if (selectionCleared)
+			m_passengerList->clearSelection();
 		m_passengerList->setEnabled(editable);
 	}
 	if (!loaded)

@@ -291,6 +291,9 @@ int main(int argc, char** argv) {
 		ok &= expect(prompts.errors.empty() && panel.passengerIdEdit()->text().isEmpty(),
 			"committing pending edits without a selected passenger shows no error and keeps the form empty");
 		ok &= expect(events.log.empty() && document.revision() == 1 && !document.isDirty(), "clearing the selection edits nothing");
+		panel.refresh();
+		ok &= expect(panel.passengerList()->selectedItems().isEmpty() && panel.tabs()->isHidden() && panel.passengerIdEdit()->text().isEmpty(),
+			"refreshing keeps the passenger list without a selection");
 		panel.passengerList()->setCurrentRow(0);
 		panel.journeyList()->setCurrentRow(1);
 		ok &= expect(panel.legList()->count() == 0 && !panel.legIdEdit()->isEnabled() && panel.addLegButton()->isEnabled()

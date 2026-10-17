@@ -53,7 +53,6 @@ public:
 	// Empties the table with the result of the latest import.
 	void clearImportResult();
 
-	int selectedPassengerRow() const;
 	ScenePassenger* selectedPassenger();
 	ScenePassengerJourney* selectedPassengerJourney();
 	ScenePassengerLeg* selectedPassengerLeg();
@@ -95,6 +94,8 @@ Q_SIGNALS:
 private:
 	bool canEdit() const;
 	double occurrenceDuration() const;
+	// The row of the selected passenger, or -1 when the list has no selection.
+	int selectedPassengerRow() const;
 
 	void updatePassengerDetail();
 	void updateJourneyDetail();
