@@ -298,22 +298,36 @@ void TimetableStopsPanel::fitColumns() {
 	const int minimumStation = std::max(minimum, metrics.horizontalAdvance(QString(kMinimumStationChars, QLatin1Char('0'))) + margin);
 	std::array<int, 5> widths{};
 	int wanted = 0;
+	// A clock time is hard to read when it is elided, so its column is as wide as the longest time, with any day prefix,
+	// and the other columns give up room first.
+	const auto isClockTime = [this](int column) { return m_clockMode && column >= 3; };
+	int kept = 0;
 	for (int column = 1; column < 5; ++column) {
+		const bool clockTime = isClockTime(column);
 		int widest = 0;
 		for (int row = 0; row < m_table->rowCount(); ++row) {
 			if (const QTableWidgetItem* item = m_table->item(row, column))
 				widest = std::max(widest, metrics.horizontalAdvance(item->text()) + margin);
 		}
-		widths[static_cast<std::size_t>(column)] = std::max(header->sectionSizeHint(column), std::min(widest, typicalValue));
-		wanted += widths[static_cast<std::size_t>(column)];
+		int& width = widths[static_cast<std::size_t>(column)];
+		width = std::max(header->sectionSizeHint(column), clockTime ? widest : std::min(widest, typicalValue));
+		wanted += width;
+		if (clockTime)
+			kept += width;
 	}
 	const int available = m_table->viewport()->width();
 	const int room = std::max(available - minimumStation, 0);
+	// While the kept columns fit, only the others are shortened.
+	const bool keepClockTimes = wanted > room && kept < room;
 	int used = 0;
 	for (int column = 1; column < 5; ++column) {
 		int& width = widths[static_cast<std::size_t>(column)];
-		if (wanted > room)
+		if (keepClockTimes) {
+			if (!isClockTime(column))
+				width = std::max(width * (room - kept) / (wanted - kept), minimum);
+		} else if (wanted > room) {
 			width = std::max(width * room / wanted, minimum);
+		}
 		used += width;
 	}
 	widths[0] = std::max(available - used, minimumStation);

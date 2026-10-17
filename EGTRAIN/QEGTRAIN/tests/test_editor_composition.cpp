@@ -3,10 +3,14 @@
 #include "diagrams/TractionCurve.h"
 
 #include <QApplication>
+#include <QFont>
 #include <QLabel>
 #include <QLineEdit>
+#include <QList>
 #include <QListWidget>
+#include <QPoint>
 #include <QPushButton>
+#include <QRect>
 #include <QString>
 #include <QStringList>
 
@@ -406,6 +410,61 @@ int main(int argc, char** argv) {
 			"deleting the only composition brings the message back");
 		panel.setDocument(nullptr);
 		ok &= expect(panel.emptyStateLabel()->isHidden(), "a detached panel does not point to the disabled Add button");
+	}
+
+	{
+		// the list of units says when it is empty
+		SceneDocument document;
+		CompositionPanel panel;
+		FakePrompts prompts;
+		panel.setPrompts(&prompts);
+		panel.setDocument(&document);
+		ok &= expect(panel.unitsEmptyStateLabel()->isHidden(), "a panel without a scene has no message about units");
+		document.replace(compositionScene(), false);
+		ok &= expect(panel.unitsEmptyStateLabel()->isHidden() && panel.unitsEmptyStateLabel()->text().isEmpty(),
+			"a composition with units has no message about units");
+		panel.addComposition();
+		ok &= expect(panel.unitsListWidget()->count() == 0 && panel.unitsEmptyStateLabel()->text() == "This composition has no units. Use Add Unit."
+				&& !panel.unitsEmptyStateLabel()->isHidden() && panel.unitsEmptyStateLabel()->property("dialogHelp").toBool(),
+			"a composition without units points to Add Unit");
+		prompts.chosenUnit = "u1";
+		panel.addUnit();
+		ok &= expect(panel.unitsEmptyStateLabel()->isHidden(), "adding a unit removes the message about units");
+		panel.removeUnit();
+		ok &= expect(!panel.unitsEmptyStateLabel()->isHidden(), "removing the last unit brings the message back");
+		SceneModel bare;
+		bare.compositions = {composition("c1", {})};
+		document.replace(bare, false);
+		ok &= expect(panel.unitsEmptyStateLabel()->text() == "This composition has no units. Add a rolling stock unit first."
+				&& !panel.addUnitButton()->isEnabled(),
+			"a scene without rolling stock units says to add one first");
+		document.replace(SceneModel(), false);
+		ok &= expect(panel.unitsEmptyStateLabel()->isHidden(), "a scene without compositions has no message about units");
+	}
+
+	for (const double scale : {1.0, 1.5}) {
+		// the buttons of the unit list are in two rows and fit a narrow panel
+		SceneDocument document;
+		CompositionPanel panel;
+		QFont font = panel.font();
+		font.setPointSizeF(font.pointSizeF() * scale);
+		panel.setFont(font);
+		panel.setDocument(&document);
+		document.replace(compositionScene(), false);
+		panel.resize(panel.minimumSizeHint());
+		panel.show();
+		QApplication::processEvents();
+		const QList<QPushButton*> buttons = {panel.addUnitButton(), panel.removeUnitButton(), panel.moveUnitUpButton(), panel.moveUnitDownButton()};
+		bool inside = true;
+		for (const QPushButton* button : buttons) {
+			const QRect placed(button->mapTo(&panel, QPoint(0, 0)), button->size());
+			inside = inside && panel.rect().contains(placed) && button->width() >= button->minimumSizeHint().width();
+		}
+		const QString label = QString(" at %1 times the font").arg(scale);
+		ok &= expect(inside, qPrintable("the unit buttons are whole inside the panel at its minimum width" + label));
+		ok &= expect(buttons[0]->y() == buttons[1]->y() && buttons[2]->y() == buttons[3]->y() && buttons[2]->y() > buttons[0]->y()
+				&& buttons[0]->x() == buttons[2]->x() && buttons[1]->x() == buttons[3]->x(),
+			qPrintable("the unit buttons are in two rows" + label));
 	}
 
 	{

@@ -20,6 +20,7 @@
 #include <QScrollBar>
 #include <QString>
 #include <QStringList>
+#include <QStyle>
 #include <QTableWidget>
 #include <QTimer>
 
@@ -302,6 +303,41 @@ int main(int argc, char** argv) {
 		QApplication::processEvents();
 		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
 			qPrintable("a narrow table shortens its columns instead of scrolling" + label));
+	}
+
+	for (const double scale : {1.0, 1.5}) {
+		// clock times, also with a day prefix, are not elided at the width of a docked editor, whatever the platform or the station is
+		SceneModel scene = lineScene();
+		scene.stations[0].name = longName(95).toStdString();
+		scene.services[0].stops[0].platformId = longName(60).toStdString();
+		scene.services[0].stops[2] = stop("station-c", "platform-c", 100000.0, 100030.0);
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		QFont font = panel.font();
+		font.setPointSizeF(font.pointSizeF() * scale);
+		panel.setFont(font);
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		panel.timeModeCombo()->setCurrentIndex(1);
+		panel.table()->setFixedWidth(static_cast<int>(400 * scale));
+		panel.show();
+		QApplication::processEvents();
+		const QTableWidget* table = panel.table();
+		const QFontMetrics body(table->font());
+		const int margin = 2 * (table->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, table) + 1);
+		const QString label = QString(" at %1 times the font").arg(scale);
+		bool whole = true;
+		for (int row = 0; row < table->rowCount(); ++row) {
+			for (int index = 3; index < 5; ++index)
+				whole = whole && body.horizontalAdvance(table->item(row, index)->text()) + margin <= table->columnWidth(index);
+		}
+		ok &= expect(column(table, 3).back().startsWith("+1d ") && whole,
+			qPrintable("the clock times with and without a day prefix are whole in the planned columns" + label));
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && table->horizontalHeader()->length() == table->viewport()->width(),
+			qPrintable("the columns still fill the table without a scroll bar when the clock times keep their width" + label));
+		ok &= expect(table->columnWidth(0) >= table->horizontalHeader()->minimumSectionSize(),
+			qPrintable("the station column keeps a width" + label));
 	}
 
 	{
