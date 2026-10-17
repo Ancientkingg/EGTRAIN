@@ -1420,6 +1420,8 @@ if(EGTRAIN_BUILD_TESTS)
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_release_assets.py)
 	add_test(NAME test_make_dmg
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_make_dmg.py)
+	add_test(NAME test_macos_build_paths
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_macos_build_paths.py)
 	add_test(NAME test_installer_script
 		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/release/test_installer_script.py)
 	add_test(NAME test_ci_workflow
@@ -1584,7 +1586,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
 		test_ci_workflow test_signalling_bounds test_logging_contract test_diagrams_no_sim_globals test_no_e2e_in_product test_scene_codec_contract test_windows_subsystem_config test_raii_contract
 		test_installer_script
-		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg)
+		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg test_macos_build_paths)
 	egtrain_label_tests(integration
 		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases

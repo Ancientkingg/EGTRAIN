@@ -79,9 +79,13 @@ What the jobs prove today:
 - The Full validation job builds the project with tests on macOS and runs
   CTest and the end-to-end smoke tests. The Sanitizers job runs CTest again in
   a debug build with sanitizers.
-- In the Package macOS job, the app has no Homebrew dependency and a valid
-  signature, which is ad hoc unless the environment `macos-signing` holds a
-  Developer ID certificate (see [macOS releases](code-signing.md#macos-releases)).
+- In the Package macOS job, no Mach-O file of the app names a path under
+  `/opt/homebrew` or `/usr/local` in `otool -L`, `otool -D` or `otool -l`, and
+  the app has a valid signature, which is ad hoc unless the environment
+  `macos-signing` holds a Developer ID certificate (see [macOS releases](code-signing.md#macos-releases)).
+  `tools/release/macos_build_paths.py` deletes such run paths and install names
+  before the signature (step **Remove build machine paths**) and fails the
+  job when one is left (step **Verify the app is self-contained**).
   The job removes the virtual keyboard input plugin with the Quick
   and QML frameworks, and the WebP and TIFF plugins with their libraries, from
   the app before the signature, and fails when one of them is in the app or when

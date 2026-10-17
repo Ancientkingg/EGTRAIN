@@ -655,7 +655,12 @@ hand on an extracted package with
 The macOS package job removes the virtual keyboard input plugin with the Quick
 and QML frameworks that it links, and the WebP and TIFF image plugins with
 their libraries, from the app after `macdeployqt` and before the signature.
-The CMake workflow assembles no macOS package. The package job runs
+In the same place `tools/release/macos_build_paths.py fix` deletes the run
+paths under `/opt/homebrew` and `/usr/local` and gives a file whose install
+name is under one of them the name `@loader_path/NAME`; `macos_build_paths.py
+check` then fails on any such path in the `otool -L`, `-D` or `-l` output of a
+Mach-O file of the app (`test_macos_build_paths`). The CMake workflow assembles
+no macOS package. The package job runs
 `tools/release/package_start_smoke.py` on a copy of the app (step **Start the
 package**).
 
