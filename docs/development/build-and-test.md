@@ -216,6 +216,29 @@ Runtime output defaults to
 repository `Output/` directory. Set `QEGTRAIN_OUTPUT_DIR` to override the base
 directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
+## Common setup failures
+
+Configure and build problems that have come up, with the text CMake or the tool prints. The wording
+of CMake and CTest messages varies with the CMake version. The Qt5 message, the wrong-source-directory
+message, `No tests were found!!!` and the missing-target error were reproduced on macOS. The other
+rows were checked against `CMakeLists.txt` and the scripts but not run, and the Windows rows were not
+run on Windows.
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Could not find a package configuration file provided by "Qt5"`, or on macOS `The imported target "Qt5::Core" references the file ... but this file does not exist` | CMake does not look in the folder of Qt 5. Homebrew `qt@5` is not on the default search path | Add `-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5` (the Qt 5.15 `msvc2019_64` folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
+| `Could not find a package configuration file provided by "Qt5Charts"` (or `Qt5Svg`) | The module is not installed | `libqt5charts5-dev libqt5svg5-dev` on Ubuntu; the `qtcharts` module of the Qt installer on Windows |
+| `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
+| `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
+| `The source ".../CMakeLists.txt" does not match the source ".../CMakeLists.txt" used to generate cache` | The `build` folder was configured for another checkout, for example a copied folder or another Git worktree | Use one build folder per checkout, for example `-B build-feature`, or delete the old one |
+| `EGTRAIN supports 64-bit Windows (x64) only` | A 32-bit generator or toolset | Configure for x64: `-A x64` with a Visual Studio generator, or an x64 configuration in Visual Studio |
+| `No tests were found!!!` from `ctest`, or `No rule to make target 'test_timeformat'` | The build folder was configured without `-DEGTRAIN_BUILD_TESTS=ON`, which is off by default | Run the configure command again with the option, in the same folder |
+| `Test not available without configuration.  (Missing "-C <config>"?)` from `ctest` | A multi-config generator such as Visual Studio | Add `-C Release` to `ctest`, and `--config Release` to `cmake --build` |
+| The build takes very long | `cmake --build build` runs one job with the Makefile generator, and a Release link uses link-time optimization | Add `--parallel 4` (or set `CMAKE_BUILD_PARALLEL_LEVEL`), and configure with `-DEGTRAIN_IPO=OFF` for faster links |
+| `clang-format ... is not installed`, or `... is clang-format X, but the sources are formatted with 23.1.3` from `tools/format.py` | The script accepts one release only | `python3 -m pip install clang-format==23.1.3`, or name the executable in `CLANG_FORMAT` |
+| Python scripts fail on Windows with a decoding error | The console code page is not UTF-8 | Set `PYTHONUTF8=1` |
+| The application starts but a relative `--scene` path or `Scenes/...` is not found | The working directory is not `EGTRAIN/QEGTRAIN` | Start it from that folder, or give an absolute path |
+
 ## Unit Tests
 
 ```bash
@@ -1597,10 +1620,28 @@ GUI autostart log, so the output of a failed smoke is what its script prints int
 `ctest.log`. `visual_polish_smoke.sh` prints a missing-marker line or nothing for
 most of its checks, so run it locally to read its logs.
 
+## Where test and run output goes
+
+| Output | Where | Set by |
+| --- | --- | --- |
+| Result of a CTest run | `build/Testing/Temporary/LastTest.log`; the names of the failed tests are in `LastTestsFailed.log` in the same folder. `ctest --rerun-failed --output-on-failure` runs those again, and `--output-log FILE` writes the log to a file | CTest |
+| Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
+| Messages of a run | Standard output and error, the **Console Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
+| User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
+| Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_external_sharing_no_listener`, `test_scene_drop` and `test_output_folder` write to `build/external-sharing-test`, `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
+| Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
+| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all seven, and Copenhagen alone takes minutes |
+| Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
+| Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
+
+Point `TMPDIR` at a folder outside the checkout when several people test on one machine, so that
+no run reads another run's files. Do the same with `QEGTRAIN_OUTPUT_DIR` for manual runs of the
+application; CTest and the smoke scripts set it themselves.
+
 ## CI and release branches
 
 - `main` is the validation branch. Pull requests build the project and run
-  the whole CTest suite, in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
+  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
   documentation rule below. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
