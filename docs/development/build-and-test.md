@@ -281,6 +281,12 @@ that the estimate leaves out fails the test. For each committed scene it records
 101 edits with the default limits and checks that the step count and the estimate
 stay within them.
 
+`test_scenedocument` checks `SceneDocument` without a window: the signals, the
+revision and the unsaved state of `replace`, `markChanged`, `markSaved` and
+`restore`, and that `assignAuthoredScene` takes every authored part of a
+snapshot and keeps the loaded data, the source files and the version that saved
+the scene.
+
 `test_recoverystore` checks `RecoveryStore` in one process: the layout of an
 instance folder, writing and replacing a copy, a failed write that keeps the
 previous copy, the copies that an ended instance left behind, the choice of the
@@ -1321,11 +1327,18 @@ The script starts the application with the editor smoke hook and a settings
 folder of its own. The first argument is an optional scene directory; the
 default is `Assignment_Gvc_Gdg_Ut`, and `QEGTRAIN_E2E_SCENE_ALT` names the
 second scene, `Copenhagen` by default. The application creates, edits,
-validates, saves and reloads cases through the editors. It then checks their
-layout: the main window does not grow beyond 1280 by 800 pixels when an editor
-dock is shown at the normal and at 1.5 times the font size, a floated dock stays
-within 750 by 600 and keeps its scroll area, and the Add button of the
-Passengers editor is in view. Last, it opens each editor dock, moves the focus
+validates, saves and reloads cases through the editors. It then edits a copy of
+the first scene in each editor and checks that every edit is one step of the
+history, that Undo and Redo return the scene to the state before and after each
+step (the bytes that Save writes, the editors, the validation, the unsaved mark
+and the run results), that a stop dialog that is accepted is one step and one
+that is cancelled is none, that Save keeps the history, and that a new edit after
+Undo, a failed open, an open and a new scene change the history as
+[Window flow](../architecture/scene-editor-flow.md#window-flow) describes. Next
+it checks the layout of the editors: the main window does not grow beyond 1280
+by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
+font size, a floated dock stays within 750 by 600 and keeps its scroll area, and
+the Add button of the Passengers editor is in view. Last, it opens each editor dock, moves the focus
 through its fields with Tab, scrolls, floats and resizes the dock, resizes the
 main window and closes and reopens the dock, and requires that the modified
 flag and the revision of the scene stay as they were.
