@@ -247,11 +247,11 @@ int main(int argc, char** argv) {
 		SceneModel scene = lineScene();
 		scene.services.clear();
 		document.replace(scene, false);
-		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable.",
-			"a scene without services asks for a service while it can be edited");
+		ok &= expect(panel.emptyStateLabel()->text() == "No services. Use Add Service." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a scene without services points to Add Service while it can be edited");
 		document.setEditable(false);
 		panel.refresh();
-		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not ask for a service while a run uses it");
+		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not point to Add Service while a run uses it");
 	}
 
 	{

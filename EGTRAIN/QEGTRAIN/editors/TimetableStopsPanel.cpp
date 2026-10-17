@@ -220,8 +220,10 @@ void TimetableStopsPanel::refresh() {
 	QString emptyText;
 	if (!hasScene())
 		emptyText = QStringLiteral("Open a case to edit services.");
+	else if (!model.services.empty() && !hasService)
+		emptyText = QStringLiteral("Select a service to edit its timetable.");
 	else if (!hasService)
-		emptyText = model.services.empty() && !canEdit() ? QStringLiteral("No services.") : QStringLiteral("Select a service to edit its timetable.");
+		emptyText = canEdit() ? QStringLiteral("No services. Use Add Service.") : QStringLiteral("No services.");
 	else if (stopCount == 0)
 		emptyText = editorAvailable ? QStringLiteral("No stops. Use Add Stop.") : QStringLiteral("No stops.");
 	DialogLayout::setHelp(m_emptyLabel, emptyText);
