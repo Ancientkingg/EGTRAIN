@@ -1125,9 +1125,10 @@ Milano-Brescia Release runs. The protocol and generated record contract are in
 ## Leak check
 
 LeakSanitizer does not run on macOS with Apple silicon, so the leak check is a Linux job
-of the CMake workflow, `leak check (Linux)`. It builds the application and
-`test_characterization` in a Debug configuration with `-DEGTRAIN_ENABLE_SANITIZERS=ON`, starts
-them with `ASAN_OPTIONS=detect_leaks=1`, and fails on any leak or double free. It has two parts:
+of the CMake workflow, `leak check (Linux)`. It builds the application,
+`test_characterization`, `test_networkpresenter` and `test_runtimecanvas` in a Debug configuration with
+`-DEGTRAIN_ENABLE_SANITIZERS=ON`, starts them with `ASAN_OPTIONS=detect_leaks=1`, and fails on any leak
+or double free. It has three parts:
 
 - `tools/e2e/leak_check_smoke.py` runs every scene directory below `EGTRAIN/QEGTRAIN/Scenes`
   headless, once, with `-h 600 --detailed-trajectories`. A scene fails when its log holds a
@@ -1140,12 +1141,17 @@ them with `ASAN_OPTIONS=detect_leaks=1`, and fails on any leak or double free. I
   which is the scene reload. They cover the line fixture, Paimpol, Assignment, Lebanon,
   Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
   not reloaded.
+- CTest runs `test_networkpresenter` and `test_runtimecanvas` on the offscreen platform. They draw the
+  track preview and the items of a run on a canvas, apply the steps of a run and of its replay with a
+  selection on it, and clear the canvas again, twenty times or more in one process. After each clear
+  every registry, every pointer and the scene must be empty, and an item or container that the clear
+  does not release is a leak.
 
 The job runs only in the nightly and the manual run, because the sanitizer build and the
 instrumented runs take longer than the pull request checks. To check a branch before a merge,
 start the workflow by hand from the Actions tab, or with `gh workflow run cmake.yml --ref BRANCH`;
 the other legs start with it. The artifact `leak-check-logs` holds one `SCENE.log` per scene and
-`ctest-reload.log`, also when the job fails.
+`ctest-reload.log` and `ctest-canvas.log`, also when the job fails.
 
 `tools/e2e/lsan_suppressions.txt` lists the known leaks. Add one rule for each, with a comment that
 names the cause and the change that removes the leak, or the library that owns it. A leak of the

@@ -3,6 +3,7 @@
 
 #include "graphics/NetworkPresenter.h"
 
+#include "app/GuiSimulationSnapshot.h"
 #include "graphics/NetworkView.h"
 #include "graphics/VisualPolish.h"
 #include "graphics/items/HighlightEffect.h"
@@ -15,20 +16,55 @@
 #include "graphics/items/TrainItemGroup.h"
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QGraphicsItemGroup>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
+#include <QGraphicsView>
 #include <QLoggingCategory>
 #include <QPixmap>
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";
 	return condition;
+}
+
+// A track line that counts how often it is painted.
+class CountingTrack final : public TrackLineItem {
+public:
+	using TrackLineItem::TrackLineItem;
+	int paints = 0;
+
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {
+		++paints;
+		TrackLineItem::paint(painter, option, widget);
+	}
+};
+
+// Runs the event loop for the given time.
+static void pump(int milliseconds) {
+	QElapsedTimer timer;
+	timer.start();
+	while (timer.elapsed() < milliseconds)
+		QApplication::processEvents(QEventLoop::AllEvents, 20);
+}
+
+// Runs the event loop until the condition holds, for at most two seconds, and then a little longer so that the
+// painting that is still waiting gets its turn.
+template <class Condition>
+static void waitFor(Condition condition) {
+	QElapsedTimer timer;
+	timer.start();
+	while (!condition() && timer.elapsed() < 2000)
+		QApplication::processEvents(QEventLoop::AllEvents, 20);
+	pump(100);
 }
 
 // Adds one item to every registry and sets every pointer, the way a run and a selection do.
@@ -190,7 +226,7 @@ int main(int argc, char* argv[]) {
 		NetworkPresenter presenter(&scene, &view);
 		const SceneModel model = previewModel();
 		int drawnItems = 0;
-		for (int cycle = 0; cycle < 3; ++cycle) {
+		for (int cycle = 0; cycle < 25; ++cycle) {
 			const NetworkPresenter::PreviewOutcome outcome = presenter.showPreview(model);
 			ok &= expect(outcome.available && outcome.trackLines == 2 && outcome.fitted,
 				"the preview draws both track lines and fits the view");
@@ -218,9 +254,98 @@ int main(int argc, char* argv[]) {
 		ok &= expect(presenter.m_stationDecorations.size() > stationDecorations, "platform bars are added to the station decorations");
 		presenter.clear();
 
+		options.markSelection = true;
+		int drawnWithOptions = 0;
+		for (int cycle = 0; cycle < 25; ++cycle) {
+			presenter.showPreview(model, options);
+			if (cycle == 0)
+				drawnWithOptions = scene.items().size();
+			ok &= expect(drawnWithOptions > 0 && scene.items().size() == drawnWithOptions,
+				"every cycle with a selection and platform bars draws the same items");
+			presenter.clear();
+			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
+				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
+		}
+
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
 			"a model without track lines draws nothing");
+	}
+
+	// Only the track lines whose state changes are painted again.
+	{
+		QGraphicsScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		// Track lines far apart, so that the painting of one does not reach another.
+		auto* prepared = new CountingTrack(QLineF(0, 0, 100, 0));
+		auto* occupied = new CountingTrack(QLineF(0, 200, 100, 200));
+		auto* blocked = new CountingTrack(QLineF(0, 400, 100, 400));
+		auto* bothStates = new CountingTrack(QLineF(0, 600, 100, 600));
+		const std::vector<CountingTrack*> tracks{prepared, occupied, blocked, bothStates};
+		for (CountingTrack* track : tracks) {
+			scene.addItem(track);
+			presenter.allArcs.push_back(track);
+		}
+		presenter.m_tracksBySectionId["prepared"] = {prepared, bothStates};
+		presenter.m_tracksBySectionId["blocked"] = {blocked};
+		presenter.m_tracksByOccupiedArc[{0, 0.0}] = occupied;
+		presenter.m_tracksByOccupiedArc[{1, 0.0}] = blocked;
+		presenter.m_tracksByOccupiedArc[{2, 0.0}] = bothStates;
+
+		QGraphicsView view(&scene);
+		view.resize(300, 400);
+		view.show();
+		pump(200);
+		view.fitInView(scene.itemsBoundingRect(), Qt::KeepAspectRatio);
+		const auto resetPaints = [&tracks]() {
+			for (CountingTrack* track : tracks)
+				track->paints = 0;
+		};
+		const auto paintedCount = [&tracks](auto paintedWhen) {
+			return std::count_if(tracks.cbegin(), tracks.cend(), [paintedWhen](const CountingTrack* track) { return paintedWhen(track->paints); });
+		};
+
+		GuiSimulationSnapshot snapshot;
+		snapshot.sectionStates = {GuiSectionState{"prepared", true, false}, GuiSectionState{"blocked", false, true}};
+		snapshot.trains.resize(1);
+		snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{0, 0.0}, GuiOccupiedArc{2, 0.0}};
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(prepared->operationalState() == TrackOperationalState::Prepared
+				&& occupied->operationalState() == TrackOperationalState::Occupied
+				&& blocked->operationalState() == TrackOperationalState::Blocked
+				&& bothStates->operationalState() == TrackOperationalState::Occupied,
+			"a track line shows the state of its section or of the arc that a train occupies, whichever ranks highest");
+		ok &= expect(presenter.m_activeTrackItems.size() == 4, "the track lines that show a state are the active ones");
+		waitFor([&]() { return paintedCount([](int paints) { return paints > 0; }) == 4; });
+		ok &= expect(paintedCount([](int paints) { return paints > 0; }) == 4, "the view paints the track lines that changed state");
+
+		resetPaints();
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		pump(300);
+		ok &= expect(paintedCount([](int paints) { return paints > 0; }) == 0, "a step that changes no state paints no track line");
+
+		// the train leaves the occupied arc and the section is blocked as well: only these two track lines change
+		snapshot.trains[0].occupiedArcs = {GuiOccupiedArc{2, 0.0}};
+		snapshot.sectionStates[1].prepared = true;
+		snapshot.sectionStates[0].blocked = true;
+		presenter.apply(snapshot, NetworkPresenter::Playback::Live);
+		ok &= expect(occupied->operationalState() == TrackOperationalState::Free
+				&& bothStates->operationalState() == TrackOperationalState::Blocked
+				&& prepared->operationalState() == TrackOperationalState::Blocked
+				&& blocked->operationalState() == TrackOperationalState::Blocked,
+			"a blocked section outranks the other states");
+		ok &= expect(presenter.m_activeTrackItems.size() == 3 && !presenter.m_activeTrackItems.count(occupied),
+			"a track line that is free again is no longer active");
+		waitFor([occupied]() { return occupied->paints > 0; });
+		ok &= expect(occupied->paints > 0 && prepared->paints > 0 && bothStates->paints > 0 && blocked->paints == 0,
+			"only the track lines that changed state are painted");
+
+		presenter.clearOperationalTrackStates();
+		ok &= expect(presenter.m_activeTrackItems.empty() && prepared->operationalState() == TrackOperationalState::Free
+				&& bothStates->operationalState() == TrackOperationalState::Free,
+			"every track line is free after they are cleared");
+		view.hide();
+		presenter.clear();
 	}
 
 	if (!ok)

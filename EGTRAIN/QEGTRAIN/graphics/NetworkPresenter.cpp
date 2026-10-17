@@ -77,7 +77,10 @@
 #include <cstdlib>
 #include <limits>
 #include <sstream>
+#include <string_view>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -167,6 +170,9 @@ void NetworkPresenter::clear() {
 	m_tracksByOccupiedArc.clear();
 	m_activeTrackItems.clear();
 	m_regionStations.clear();
+	m_trainsByIndex.clear();
+	m_platformsById.clear();
+	m_platformsStale = false;
 	trainPaxInfoItem = nullptr;
 	trainPaxItem = nullptr;
 	paxIconInfoItem = nullptr;
@@ -1017,6 +1023,7 @@ void NetworkPresenter::paintStationPlatform(QPointF coord, int size, Node* node)
 
 	// add item to allPlatforms list
 	allPlatforms.push_back(platformItem);
+	m_platformsById[{platformItem->stationId, platformItem->platformId}].push_back(platformItem);
 }
 
 // paint train passenger info on top of train
@@ -1403,6 +1410,7 @@ void NetworkPresenter::paintTrain(const GuiTrainState& train, const SceneModel& 
 
 	// add train to allTrains list
 	allTrains.push_back(trainPolygonGroup);
+	m_trainsByIndex.emplace(train.index, trainPolygonGroup);
 
 	TrainBadgeItem* badge = new TrainBadgeItem();
 	badge->setIdentifier(QString::fromStdString(guiTrainDisplayIdentifier(train)));
@@ -1702,6 +1710,20 @@ void NetworkPresenter::egtrainPoint2Screen(Connections* connection, int track1, 
 bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolygonItemList, const GuiTrainState& train) {
 	if (!trainPolygonItemList)
 		return false;
+	// get the polygon of each wagon
+	const int wagons = std::min(train.wagonCount + 1, trainPolygonItemList->size());
+	std::vector<QPolygonF> polygons(static_cast<std::size_t>(std::max(wagons, 0)));
+	bool changed = false;
+	bool hasVisibleGeometry = false;
+	for (int wagon = 0; wagon < wagons; wagon++) {
+		QPolygonF& trainPolygon = polygons[static_cast<std::size_t>(wagon)];
+		getTrainPolygon(&trainPolygon, wagon, train);
+		changed = changed || trainPolygon != trainPolygonItemList->at(wagon)->polygon();
+		hasVisibleGeometry = hasVisibleGeometry || !trainPolygon.isEmpty();
+	}
+	// A train that stands still keeps its shape, and so does not invalidate the scene.
+	if (!changed)
+		return hasVisibleGeometry;
 	for (TrainBodyItem* body : *trainPolygonItemList) {
 		if (!body)
 			continue;
@@ -1709,16 +1731,8 @@ bool NetworkPresenter::getTrainPolygonItemList(QList<TrainBodyItem*>* trainPolyg
 			group->prepareForChildGeometryChange();
 		break;
 	}
-	bool hasVisibleGeometry = false;
-	// get the polygon of each wagon
-	for (int wagon = 0; wagon <= train.wagonCount; wagon++) {
-		if (wagon >= trainPolygonItemList->size())
-			return hasVisibleGeometry;
-		QPolygonF trainPolygon;
-		getTrainPolygon(&trainPolygon, wagon, train);
-		trainPolygonItemList->at(wagon)->setPolygon(trainPolygon);
-		hasVisibleGeometry = hasVisibleGeometry || !trainPolygon.isEmpty();
-	}
+	for (int wagon = 0; wagon < wagons; wagon++)
+		trainPolygonItemList->at(wagon)->setPolygon(polygons[static_cast<std::size_t>(wagon)]);
 	return hasVisibleGeometry;
 }
 
@@ -2236,80 +2250,121 @@ void NetworkPresenter::updatePlatforms(const GuiSimulationSnapshot& snapshot) {
 		}
 	}
 
-	for (auto* platformIcon : allPlatforms) {
-		auto platformState = std::find_if(snapshot.platforms.begin(), snapshot.platforms.end(),
-			[platformIcon](const GuiPlatformState& value) {
-				return value.stationId == platformIcon->stationId && value.platformId == platformIcon->platformId;
-			});
-		if (platformState == snapshot.platforms.end())
+	// A hidden layer shows none of this. The platforms are brought up to date when the layer is shown.
+	m_platformsStale = !m_passengerLayerVisible;
+	if (m_platformsStale)
+		return;
+
+	std::vector<PassengerItem*> restack;
+	for (const GuiPlatformState& state : snapshot.platforms) {
+		const auto platforms = m_platformsById.find({state.stationId, state.platformId});
+		if (platforms == m_platformsById.end())
 			continue;
+		for (PlatformItem* platform : platforms->second)
+			updatePlatform(platform, state, restack);
+	}
+	stackPassengerIcons(restack);
+}
 
-		// remove existing pax icons
-		std::string currentlyHighlightedPaxID;
-		bool selectionCueLost = false;
-		for (auto* icon : platformIcon->passengerIcons) {
-			// if icon had a message, store its pax ID
-			if (icon == paxIconItem) {
-				currentlyHighlightedPaxID = icon->passengerId;
-				paxIconItem = nullptr;
-			}
-			// the icon deletes its highlight effect
-			if (effect && icon->graphicsEffect() == effect)
-				selectionCueLost = true;
+// The counter of a platform, and one icon for each passenger on it. An icon stays for as long as its passenger is on the
+// platform and moves when the passengers share the width of the platform differently. The icons that this adds, or that
+// swap places, are listed in restack.
+void NetworkPresenter::updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack) {
+	const auto& passengerIds = state.passengerIds;
+	const int nPaxIcons = static_cast<int>(passengerIds.size());
 
-			m_scene->removeItem(icon);
-		}
-		qDeleteAll(platformIcon->passengerIcons.begin(), platformIcon->passengerIcons.end());
-		platformIcon->passengerIcons.clear();
+	// string with pax counter
+	std::stringstream ss;
+	ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << state.maxVolume;
 
-		const auto& passengerIds = platformState->passengerIds;
-		int nPaxIcons = static_cast<int>(passengerIds.size());
+	// convert string
+	QString text = QString::fromStdString(ss.str());
 
-		// string with pax counter
-		std::stringstream ss;
-		ss << "Pax on platform: " << nPaxIcons << "\nMax pax volume: " << platformState->maxVolume;
-
-		// convert string
-		QString text = QString::fromStdString(ss.str());
-
-		// update text item
-		auto originalCenter = platformIcon->textIcon->boundingRect().center();
-		platformIcon->textIcon->setPlainText(text);
-		platformIcon->textIcon->setVisible(paxTextVisible());
-		auto newCenter = platformIcon->textIcon->boundingRect().center();
+	// update text item
+	if (platform->textIcon->toPlainText() != text) {
+		auto originalCenter = platform->textIcon->boundingRect().center();
+		platform->textIcon->setPlainText(text);
+		auto newCenter = platform->textIcon->boundingRect().center();
 		auto delta = (originalCenter - newCenter) * presentationScale();
-		platformIcon->textIcon->moveBy(delta.x(), delta.y());
+		platform->textIcon->moveBy(delta.x(), delta.y());
+	}
+	platform->textIcon->setVisible(paxTextVisible());
 
-		// add icons
-		if (nPaxIcons > 0) {
-			qreal iconSpacing = platformIcon->sceneBoundingRect().width() / nPaxIcons;
-			qreal iconX = platformIcon->sceneBoundingRect().left() + iconSpacing / 2;
+	// the icons stay when they belong to the same passengers in the same order
+	QList<PassengerItem*>& icons = platform->passengerIcons;
+	bool sameIcons = icons.size() == nPaxIcons;
+	for (int i = 0; sameIcons && i < nPaxIcons; ++i)
+		sameIcons = icons[i]->passengerId == passengerIds[static_cast<std::size_t>(i)];
 
-			for (const std::string& paxID : passengerIds) {
-				const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
-				auto* item = new PassengerItem(pax_pixmap_scaled);
-				item->setScale(presentationScale());
-				item->setPos(QPointF(iconX - iconSize / 2, platformIcon->sceneBoundingRect().center().y() - iconSize / 2));
-				item->setTransformationMode(Qt::SmoothTransformation);
+	// the icons of the passengers that are on the platform, with their place in the list
+	std::unordered_multimap<std::string_view, std::pair<PassengerItem*, int>> staying;
+	if (!sameIcons)
+		for (int i = 0; i < icons.size(); ++i)
+			staying.emplace(icons[i]->passengerId, std::make_pair(icons[i], i));
 
-				item->passengerId = paxID;
+	const QRectF platformRect = platform->sceneBoundingRect();
+	const qreal iconSize = pax_pixmap_scaled.width() * presentationScale();
+	const qreal iconSpacing = nPaxIcons > 0 ? platformRect.width() / nPaxIcons : 0.0;
+	qreal iconX = platformRect.left() + iconSpacing / 2;
+	QList<PassengerItem*> shown;
+	shown.reserve(nPaxIcons);
+	int previousPlace = -1;
+	bool swapped = false;
+	for (int i = 0; i < nPaxIcons; ++i, iconX += iconSpacing) {
+		const std::string& paxID = passengerIds[static_cast<std::size_t>(i)];
+		const QPointF position(iconX - iconSize / 2, platformRect.center().y() - iconSize / 2);
+		if (sameIcons) {
+			icons[i]->setPos(position);
+			continue;
+		}
 
-				// update current highlighted pax icon
-				if (!currentlyHighlightedPaxID.empty() && item->passengerId == currentlyHighlightedPaxID) {
-					paxIconItem = item;
-				}
+		const auto stays = staying.find(paxID);
+		if (stays != staying.end()) {
+			PassengerItem* icon = stays->second.first;
+			swapped = swapped || stays->second.second < previousPlace;
+			previousPlace = stays->second.second;
+			staying.erase(stays);
+			icon->setPos(position);
+			shown.push_back(icon);
+			continue;
+		}
 
-				m_scene->addItem(item);
-				if (selectionCueLost && item->passengerId == currentlyHighlightedPaxID) {
-					effect = new HighlightEffect(Qt::blue, 1);
-					item->setGraphicsEffect(effect);
-					selectionCueLost = false;
-				}
-				item->setVisible(m_passengerLayerVisible);
-				platformIcon->passengerIcons.push_back(item);
+		auto* item = new PassengerItem(pax_pixmap_scaled);
+		item->setScale(presentationScale());
+		item->setPos(position);
+		item->setTransformationMode(Qt::SmoothTransformation);
+		item->passengerId = paxID;
+		m_scene->addItem(item);
+		shown.push_back(item);
+		restack.push_back(item);
+	}
+	if (sameIcons)
+		return;
 
-				iconX += iconSpacing;
-			}
+	// the passengers that left take their icons with them, and with them the selection of the icon
+	for (const auto& departed : staying) {
+		if (departed.second.first == paxIconItem)
+			paxIconItem = nullptr;
+		delete departed.second.first;
+	}
+	if (swapped)
+		restack.insert(restack.end(), shown.cbegin(), shown.cend());
+	icons = std::move(shown);
+}
+
+// New icons are on top of the scene. The icons of the platforms are stacked in the order of the platforms and then of
+// the passengers, the way a rebuild of all of them would stack them, so that icons that overlap look the same.
+void NetworkPresenter::stackPassengerIcons(const std::vector<PassengerItem*>& restack) {
+	if (restack.empty())
+		return;
+	const std::unordered_set<const PassengerItem*> moved(restack.cbegin(), restack.cend());
+	PassengerItem* above = nullptr;
+	for (int platform = allPlatforms.size() - 1; platform >= 0; --platform) {
+		const QList<PassengerItem*>& icons = allPlatforms[platform]->passengerIcons;
+		for (int i = icons.size() - 1; i >= 0; --i) {
+			if (above && moved.count(icons[i]))
+				icons[i]->stackBefore(above);
+			above = icons[i];
 		}
 	}
 }
@@ -2336,6 +2391,8 @@ void NetworkPresenter::updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, 
 			paxIconInfoItem->setVisible(false);
 		return;
 	}
+	if (m_platformsStale && snapshot)
+		updatePlatforms(*snapshot);
 	if (paxIconInfoItem) {
 		// remove existing item
 		removePaxInfoIcon();
@@ -2361,16 +2418,53 @@ void NetworkPresenter::removePaxInfoIcon() {
 	}
 }
 
-void NetworkPresenter::updateBlockOccupationStatus(const GuiTrainState& train) {
-	for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
-		auto it = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
-		if (it == m_tracksByOccupiedArc.end() || !it->second)
+// Shows the prepared and blocked sections and the occupied arcs on the track lines. A track line that shows what it is to
+// show is not touched, so a step that changes nothing repaints none.
+void NetworkPresenter::showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay) {
+	// The state that each track line is to show, apart from free. The state with the highest priority wins.
+	std::map<TrackLineItem*, TrackOperationalState> states;
+	const auto requireState = [&states](TrackLineItem* track, TrackOperationalState state) {
+		if (!track)
+			return;
+		const auto entry = states.emplace(track, state);
+		if (!entry.second && trackStatePriority(state) > trackStatePriority(entry.first->second))
+			entry.first->second = state;
+	};
+	const auto requireSectionState = [this, &requireState](const GuiSectionState& section, TrackOperationalState state) {
+		const auto tracks = m_tracksBySectionId.find(section.sectionId);
+		if (tracks == m_tracksBySectionId.end())
+			return;
+		for (TrackLineItem* track : tracks->second)
+			requireState(track, state);
+	};
+	for (const GuiSectionState& section : snapshot.sectionStates) {
+		if (section.prepared)
+			requireSectionState(section, TrackOperationalState::Prepared);
+		if (section.blocked)
+			requireSectionState(section, TrackOperationalState::Blocked);
+	}
+	for (const GuiTrainState& train : snapshot.trains) {
+		if (replay && !guiReplayTrainHasPosition(train, t))
 			continue;
-		TrackLineItem* track = it->second;
-		if (trackStatePriority(TrackOperationalState::Occupied) >= trackStatePriority(track->operationalState())) {
-			track->setOperationalState(TrackOperationalState::Occupied);
-			m_activeTrackItems.insert(track);
+		for (const GuiOccupiedArc& occupiedArc : train.occupiedArcs) {
+			const auto track = m_tracksByOccupiedArc.find({occupiedArc.trackId, occupiedArc.startX});
+			if (track != m_tracksByOccupiedArc.end())
+				requireState(track->second, TrackOperationalState::Occupied);
 		}
+	}
+
+	for (auto active = m_activeTrackItems.begin(); active != m_activeTrackItems.end();) {
+		if (*active && states.count(*active)) {
+			++active;
+			continue;
+		}
+		if (*active)
+			(*active)->setOperationalState(TrackOperationalState::Free);
+		active = m_activeTrackItems.erase(active);
+	}
+	for (const auto& [track, state] : states) {
+		track->setOperationalState(state);
+		m_activeTrackItems.insert(track);
 	}
 }
 
@@ -2410,39 +2504,13 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 		if (group)
 			group->setVisible(false);
 	// update every train
-	clearOperationalTrackStates();
-	const auto applySectionState = [this](const GuiSectionState& state, TrackOperationalState visualState) {
-		if (!state.prepared && visualState == TrackOperationalState::Prepared)
-			return;
-		if (!state.blocked && visualState == TrackOperationalState::Blocked)
-			return;
-		auto tracks = m_tracksBySectionId.find(state.sectionId);
-		if (tracks == m_tracksBySectionId.end())
-			return;
-		for (auto* track : tracks->second) {
-			if (!track || trackStatePriority(visualState) < trackStatePriority(track->operationalState()))
-				continue;
-			track->setOperationalState(visualState);
-			m_activeTrackItems.insert(track);
-		}
-	};
-	for (const GuiSectionState& state : snapshot.sectionStates)
-		if (state.prepared)
-			applySectionState(state, TrackOperationalState::Prepared);
-	for (const GuiTrainState& state : snapshot.trains)
-		if (!replay || guiReplayTrainHasPosition(state, t))
-			updateBlockOccupationStatus(state);
+	showTrackStates(snapshot, t, replay);
 	for (const GuiTrainState& state : snapshot.trains) {
 		const int train = state.index;
 		m_host->trainWillUpdate(train);
 		// check if train item exists
-		TrainItemGroup* trainItem = nullptr;
-		for (auto it = allTrains.begin(); it != allTrains.end(); ++it) {
-			if ((*it)->index == train) {
-				trainItem = *it;
-				break;
-			}
-		}
+		const auto existing = m_trainsByIndex.find(train);
+		TrainItemGroup* trainItem = existing == m_trainsByIndex.end() ? nullptr : existing->second;
 
 		// trainItem found
 		if (trainItem) {
@@ -2546,9 +2614,6 @@ void NetworkPresenter::updateTrainPosition(const GuiSimulationSnapshot& snapshot
 				followedTrainMoved = true;
 		}
 	}
-	for (const GuiSectionState& state : snapshot.sectionStates)
-		if (state.blocked)
-			applySectionState(state, TrackOperationalState::Blocked);
 	m_host->trainsApplied(legendNeedsUpdate, followedTrainMoved);
 }
 

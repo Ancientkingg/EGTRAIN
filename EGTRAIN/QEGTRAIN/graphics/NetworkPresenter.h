@@ -40,6 +40,7 @@ class TrainBadgeItem;
 class TrainBodyItem;
 class TrainItemGroup;
 struct GuiPassengerState;
+struct GuiPlatformState;
 struct GuiSignalState;
 struct GuiSimulationSnapshot;
 struct GuiTrainState;
@@ -134,7 +135,8 @@ public:
 	void updateTrainPosition(const GuiSimulationSnapshot& snapshot, int t, Playback playback);
 
 	// Draws the passenger information of the selected train and of the selected passenger icon again, or removes it.
-	// The snapshot gives the details of the passenger and can be null.
+	// The snapshot gives the details of the passenger and can be null. When the passenger layer is shown after steps
+	// were applied while it was hidden, the snapshot also brings the platforms up to date.
 	void updateTrainPaxInfo();
 	void updatePaxIconInfo(const GuiSimulationSnapshot* snapshot, Playback playback);
 	void removeTrainPaxInfoIcon();
@@ -277,6 +279,14 @@ private:
 	std::unique_ptr<RuntimeGeometrySource> m_source;
 	std::vector<std::vector<int>> m_regionStations;
 
+	// The train groups by train index, and the platforms by station id and platform id. paintTrain and
+	// paintStationPlatform fill them and clear() empties them.
+	std::unordered_map<int, TrainItemGroup*> m_trainsByIndex;
+	std::map<std::pair<std::string, std::string>, std::vector<PlatformItem*>> m_platformsById;
+	// The icons and the counters of the platforms show an earlier step, because steps were applied while the
+	// passenger layer was hidden.
+	bool m_platformsStale = false;
+
 	// The scene of the run, which gives the colour of each service for the trains that apply() adds. It is the
 	// model that showRuntime drew, and the caller keeps it until the next clear().
 	const SceneModel* m_runModel = nullptr;
@@ -302,7 +312,9 @@ private:
 	void updateSignalling(const GuiSimulationSnapshot& snapshot);
 	void updateSignalAspect(const GuiSignalState& state, std::set<const SignalItem*>& updated);
 	void updatePlatforms(const GuiSimulationSnapshot& snapshot);
-	void updateBlockOccupationStatus(const GuiTrainState& train);
+	void updatePlatform(PlatformItem* platform, const GuiPlatformState& state, std::vector<PassengerItem*>& restack);
+	void stackPassengerIcons(const std::vector<PassengerItem*>& restack);
+	void showTrackStates(const GuiSimulationSnapshot& snapshot, int t, bool replay);
 	void checkVCouplingMsg(TrainItemGroup* trainItem, const GuiTrainState& train, const GuiSimulationSnapshot& snapshot, int t);
 };
 

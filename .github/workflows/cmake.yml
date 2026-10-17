@@ -300,7 +300,7 @@ jobs:
 
       - name: Build with sanitizers
         id: build
-        run: cmake --build build --target QEGTRAIN test_characterization
+        run: cmake --build build --target QEGTRAIN test_characterization test_networkpresenter test_runtimecanvas
 
       # Every scene runs once and the script reports all failing scenes together. The log of each run is kept.
       - name: Run the committed scenes headless
@@ -315,6 +315,15 @@ jobs:
           ctest --test-dir build --parallel 2 --no-tests=error --output-on-failure \
             --output-log "$RUNNER_TEMP/leak-check/ctest-reload.log" \
             -R '^(characterization_repeatable|characterization_repeat_paimpol|characterization_repeat_lebanon_milano|characterization_repeat_netherlands)$'
+
+      # The canvas is drawn, filled with the steps of a run and of its replay, and cleared again and again in one process.
+      - name: Rebuild the canvas in one process
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/leak-check"
+          ctest --test-dir build --no-tests=error --output-on-failure \
+            --output-log "$RUNNER_TEMP/leak-check/ctest-canvas.log" \
+            -R '^(test_networkpresenter|test_runtimecanvas)$'
 
       - name: Upload leak check logs
         if: ${{ !cancelled() }}
