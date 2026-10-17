@@ -27,6 +27,11 @@
 
 using namespace std;
 
+// The console output of this file is deliberate and does not go through the logging core, so no
+// logging rule can hide it: the questions of --interactive, the errors of the options, the
+// diagnostics of a scene and the lines that scripts read. tools/e2e/test_logging_contract.py
+// counts it.
+
 // check if command line option was entered
 bool cmdOptionEntered(char** begin, char** end, const std::string& option) {
 	return std::find(begin, end, option) != end;
