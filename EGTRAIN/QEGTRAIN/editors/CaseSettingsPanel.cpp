@@ -1,6 +1,7 @@
 #include "editors/CaseSettingsPanel.h"
 
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/DialogLayout.h"
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -20,6 +21,7 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	m_descriptionEdit->setObjectName("caseDescriptionEdit");
 	m_baseTimeEdit = new QLineEdit(this);
 	m_baseTimeEdit->setObjectName("caseBaseTimeEdit");
+	m_baseTimeEdit->setPlaceholderText("HH:MM:SS");
 	layout->addRow("Name", m_nameEdit);
 	layout->addRow("Description", m_descriptionEdit);
 	layout->addRow("Base time", m_baseTimeEdit);
@@ -38,7 +40,10 @@ CaseSettingsPanel::CaseSettingsPanel(QWidget* parent) : SceneEditorPanel(parent)
 	layout->addRow("Duration / horizon (s)", m_durationSecondsEdit);
 	layout->addRow("Buffer (s)", m_bufferSecondsEdit);
 	layout->addRow("Recovery (%)", m_recoveryPercentEdit);
-	layout->addRow(new QLabel("Changes apply when editing finishes.", this));
+	auto* note = new QLabel(this);
+	note->setObjectName("caseSettingsNote");
+	DialogLayout::setHelp(note, "Changes apply when editing finishes.");
+	layout->addRow(note);
 
 	connect(m_nameEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);
 	connect(m_descriptionEdit, &QLineEdit::editingFinished, this, &CaseSettingsPanel::commit);

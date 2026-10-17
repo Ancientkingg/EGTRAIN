@@ -15,6 +15,7 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QTabWidget;
 class QTableWidget;
 
 // The rolling stock units of the scene: a list to pick one, its id, its traction curve, its nine physical values and
@@ -58,6 +59,9 @@ public:
 
 	QListWidget* listWidget() const { return m_listWidget; }
 	QLineEdit* idEdit() const { return m_idEdit; }
+	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }
+	// The "Traction" and "Physical" pages of the shown unit.
+	QTabWidget* tabs() const { return m_tabs; }
 	const std::array<QDoubleSpinBox*, PhysicalFieldCount>& physicalEdits() const { return m_physicalEdits; }
 	QLineEdit* sourceDataEdit() const { return m_sourceDataEdit; }
 	QLineEdit* sourceTractionEdit() const { return m_sourceTractionEdit; }
@@ -105,6 +109,8 @@ private:
 	UserPrompts* m_prompts = &m_ownPrompts;
 	QListWidget* m_listWidget = nullptr;
 	QLineEdit* m_idEdit = nullptr;
+	QLabel* m_emptyStateLabel = nullptr;
+	QTabWidget* m_tabs = nullptr;
 	std::array<QDoubleSpinBox*, PhysicalFieldCount> m_physicalEdits{};
 	QLineEdit* m_sourceDataEdit = nullptr;
 	QLineEdit* m_sourceTractionEdit = nullptr;

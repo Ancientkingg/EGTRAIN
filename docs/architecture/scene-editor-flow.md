@@ -124,7 +124,7 @@ surface.
 |---|---|---|
 | Case settings | Name, description, base time, duration, buffer, recovery | Schema version, units, scene path, validation summary |
 | Infrastructure | Tracks, nodes, arcs, blocks, connections, stations, platforms and platform geometry, signals, signalling areas, routes, dependencies, single-track restrictions, station boundaries | Network geometry preview and runtime diagnostics |
-| Rolling stock units | ID; engine section with traction source, rows and plot; characteristics section with nine native physical fields and parameter source; session-only Link/Unlink/Retry controls for physical and traction files | Static traction plot; composition usage; live link status |
+| Rolling stock units | ID; Traction tab with the engine section (traction source, rows and plot); Physical tab with the characteristics section (nine native physical fields and parameter source); session-only Link/Unlink/Retry controls for physical and traction files | Static traction plot; composition usage; live link status |
 | Compositions | ID and ordered rolling-stock-unit membership | Selected-unit source references and traction plot |
 | Services and timetable | ID, operating code, composition, route, entry time, performance, optional speed cap, repeat count/headway/code step, run selection, ordered stop matrix and stop dialog | Generated occurrence identities and offsets |
 | Incidents | Scenario metadata; signal failures, train breakdowns, and entrance delays; targets, windows, occurrence, reduced speed, recovery, destination termination | Target choices derived from signals, blocks, routes, services, and timetable stops |
