@@ -54,7 +54,13 @@ charts do not change.
 
 ## Edit and validate
 
+### Infrastructure
+
+The dock **Infrastructure** has a list **Entity** that chooses the table: tracks, nodes, arcs, blocks, connections, stations, platforms, signals, signalling areas, routes and the other records. **Add** and **Delete** are under the table. In the table of blocks, a track filter above the table chooses the track that **Add** appends to, and **Insert**, **Move Up** and **Move Down** are next to **Add**. A line above the table says what the table lists. While the table is empty, the line says what to add first, and **Add** stays off in Blocks until the scene has a track. While a run uses the case, the line says that the scene cannot be edited. **Delete** asks for confirmation. A row that other rows refer to is refused with **Cannot Delete Infrastructure Entity**, which lists them. The tables are built in dependency order in the [tutorial for the smallest useful scene](tutorial-minimal-scene.md).
+
 ### Services
+
+The dock **Services** has a list of services and three tabs: **Service** for the fields of the selected service, **Timetable** for its stops and the display of planned times, and **Run occurrences** for the occurrences a run includes.
 
 In Services, Category offers Intercity, Regional, High speed/international,
 Freight, Metro/urban, Suburban and No category. Unknown imported values remain

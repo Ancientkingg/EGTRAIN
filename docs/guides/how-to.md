@@ -23,13 +23,15 @@ You need a case: an example case of the package, an `.egscene` file or a scene f
 
 Use one of these:
 
-- Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
+- Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
 - Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
+
+The dialogs of **Open Case Study...** and **Open Scene Folder...** start in the folder above the open case. With no case open, they start in the `Scenes` folder of the app on macOS, and in your home folder on other systems.
 
 You should see the window title `EGTRAIN - <case name>`, the network in the view and the status bar `Scene loaded: <case name> (<n> services, <m> routes)`. Opening a case does not run it and does not change the file.
 
@@ -78,7 +80,7 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 You can save a case that has errors. Warnings do not stop a run, but read them: the dialog **Run simulation** repeats the one about route sections that have no signalling level. Examples of errors and their usual fixes:
 
 - A service names a composition or a route that does not exist. Choose an existing one in **Services**, or add the missing record.
-- A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop in **Timetable stops**.
+- A stop names a platform that the route does not reach, or the stops are out of route order. Correct the stop on the tab **Timetable** of **Services**.
 - A rolling stock unit has no traction rows, or its rows overlap, are out of order or have a lower speed that is not below the upper speed. Correct them in **Rolling stock units**.
 
 **Run** stays disabled while any error remains. From a terminal, `scene_tool validate --runnable path/to/scene` prints the same findings ([scene_tool](command-line.md#scene_tool)). [Scene editor flow](../architecture/scene-editor-flow.md#window-flow) describes the validation layers.
@@ -97,8 +99,8 @@ If EGTRAIN closes without an answer, for example after a crash, it offers the ed
 
 You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The dock **Services** is disabled during a run.
 
-1. Choose **Editors > Services**, select the service in the list **Services**, and open the tab **Service and timetable**.
-2. In the table **Timetable stops**, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
+1. Choose **Editors > Services** and select the service in the list **Services**. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
+2. In the table of stops, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
 3. Change the field. **Planned time display** switches the dialog between **Elapsed offsets (s)** (seconds from the base time of the case) and **Clock time**. Blank means the time is absent, and `0` is the start of the simulation.
 4. Click **OK** to apply the fields together, or **Cancel** to leave the stop as it was.
 
@@ -121,7 +123,7 @@ You need an open case that you have copied and no active run. The editors **Roll
 A scenario is a named set of incidents and entrance delays. **Set delay baseline** freezes a completed run without them, and **Compare delays** shows how much later or earlier each call of a run with them is. Any edit of the case clears the baseline, so build the scenario before you run the baseline.
 
 1. Choose **Editors > Incidents**. The list **Scenarios** holds each scenario. Click **Blank**, or select a scenario and click **Duplicate**, to create the scenario to test.
-2. On the tab **Incidents** click **Add Incident** and fill its fields, or on the tab **Entrance Delays** choose a **Service**, an **Occurrence** and a **Station**, enter **Delay (s)** and click **Add**.
+2. In the incident editor of the dock, click **Add Incident** and fill its fields. For an entrance delay, use the entrance delay editor of the dock: choose a **Service**, an **Occurrence** and a **Station**, enter **Delay (s)** and click **Add**.
 3. Select the scenario without incidents and entrance delays (the example cases have one, `baseline`). Click **Run**, and **Run simulation**. When the run has ended, click **Set delay baseline** in the dock **Run Results**. The line under **Delay comparison** names the baseline.
 4. Select the scenario with the incident in the list **Scenarios**. This keeps the baseline and discards the results. Run it.
 5. Click **Compare delays**. The window **Delay analysis** opens on the tab **Against baseline**.

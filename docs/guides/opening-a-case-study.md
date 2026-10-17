@@ -9,7 +9,7 @@ run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 ## Open and run
 
-The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file, or [double-click it](#open-by-double-click) on Windows and macOS.
+The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file (the dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app), or [double-click it](#open-by-double-click) on Windows and macOS.
 
 ![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
 
