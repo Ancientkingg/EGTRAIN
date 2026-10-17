@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QHelpEvent>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
@@ -17,6 +18,7 @@
 #include <QStringList>
 #include <QTableWidget>
 #include <QTabWidget>
+#include <QToolTip>
 
 #include <iostream>
 #include <string>
@@ -139,6 +141,15 @@ static QStringList items(const QListWidget* list) {
 	for (int row = 0; row < list->count(); ++row)
 		result << list->item(row)->text();
 	return result;
+}
+
+// The text of the tip that the combo shows when the pointer rests on it.
+static QString shownTip(QComboBox* combo) {
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), combo->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(combo, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	return text;
 }
 
 static bool checked(const QTableWidget* table, int row) {
@@ -578,6 +589,20 @@ int main(int argc, char** argv) {
 		auto* form = panel.pages()->widget(0)->findChild<QFormLayout*>();
 		ok &= expect(form && form->hasHeightForWidth() && form->heightForWidth(form->minimumSize().width()) > form->heightForWidth(4000),
 			"the fields are taller in a narrow panel, because their rows wrap");
+	}
+
+	{
+		// over the closed route field the tip follows the text of the field with the stations of the route
+		SceneDocument document;
+		ServicePanel panel;
+		panel.setDocument(&document);
+		document.replace(serviceScene(), false);
+		panel.show();
+		QComboBox* route = panel.routeCombo();
+		const QString stations = route->currentData(Qt::ToolTipRole).toString();
+		ok &= expect(!stations.isEmpty() && shownTip(route) == route->currentText() + "\n" + stations,
+			"the tip of the route field gives its text and the stations of the route");
+		ok &= expect(route->toolTip() == stations, "the route field keeps the stations as its tooltip");
 	}
 
 	{

@@ -62,6 +62,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QGraphicsItem>
+#include <QHelpEvent>
 #include <QIODevice>
 #include <QInputDialog>
 #include <QJsonDocument>
@@ -98,6 +99,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QToolButton>
+#include <QToolTip>
 #include <QTreeWidget>
 #include <QTreeWidgetItemIterator>
 #include <QVariant>
@@ -132,6 +134,15 @@ bool writeCsvFile(const QString& path, const std::string& content) {
 		return false;
 	const QByteArray bytes = QByteArray::fromStdString(content);
 	return file.write(bytes) == bytes.size() && file.commit();
+}
+
+// The text of the tip that a widget shows when the pointer rests on it.
+QString shownToolTip(QWidget* widget) {
+	QHelpEvent help(QEvent::ToolTip, QPoint(4, 4), widget->mapToGlobal(QPoint(4, 4)));
+	QApplication::sendEvent(widget, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	return text;
 }
 
 // Clicks Import Passengers with a folder given in place of the dialog that asks for one.
@@ -2517,7 +2528,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_servicePanel->updateDetail();
 			w.m_serviceRouteCombo->setCurrentIndex(w.m_serviceRouteCombo->findData(QString::fromStdString(duplicateRoute.id)));
 			if (w.m_document->mutableModel().services[0].route != duplicateRoute.id
-				|| !w.m_serviceRouteCombo->toolTip().contains("not scheduled calls"))
+				|| !shownToolTip(w.m_serviceRouteCombo).contains("not scheduled calls"))
 				facetFailure(facetOk, "service routes", "descriptive route selection lost canonical identity or context");
 			w.m_document->mutableModel().services[0].route = "missing-route";
 			w.m_servicePanel->updateDetail();
