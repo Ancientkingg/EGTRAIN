@@ -38,6 +38,7 @@ const Scenario kScenarios[] = {
 	{"QEGTRAIN_E2E_LEGACY_IMPORT", 1000, &MainWindowTestAccess::runLegacyImport},
 	{"QEGTRAIN_E2E_SCENE_DROP", 100, &MainWindowTestAccess::runSceneDrop},
 	{"QEGTRAIN_E2E_OUTPUT_FOLDER", 1000, &MainWindowTestAccess::runOutputFolder},
+	{"QEGTRAIN_E2E_RECOVERY", 1000, &MainWindowTestAccess::runRecovery},
 	{kCreatorAcceptance, 0, &MainWindowTestAccess::runCreatorAcceptance},
 };
 

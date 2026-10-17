@@ -321,8 +321,8 @@ add_library(egtrain_openrelay STATIC ${SRC_DIR}/app/OpenRequestRelay.cpp)
 target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
 
 # Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, the
-# controller that writes them in the background, and the dialog that offers them. Only the recovery
-# tests link it.
+# controller that writes them in the background, and the dialog that offers them. The application and
+# the recovery tests link it.
 add_library(egtrain_recovery STATIC
     ${SRC_DIR}/recovery/RecoveryController.cpp
     ${SRC_DIR}/recovery/RecoveryPrompt.cpp
@@ -542,6 +542,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_update
     egtrain_sceneopen
     egtrain_openrelay
+    egtrain_recovery
     egtrain_rttp
     egtrain_sim
     egtrain_runselection
@@ -1370,6 +1371,10 @@ if(EGTRAIN_BUILD_TESTS)
 		add_test(NAME test_editor_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/editor_smoke.sh)
 		set_tests_properties(test_editor_smoke PROPERTIES TIMEOUT 300)
+		# A window that ends without closing, started again. The lock files of the copies are not checked after a crash on Windows.
+		add_test(NAME test_recovery_smoke
+			COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/recovery_smoke.py $<TARGET_FILE:QEGTRAIN> $<TARGET_FILE:scene_tool>)
+		set_tests_properties(test_recovery_smoke PROPERTIES TIMEOUT 600)
 		add_test(NAME test_dialog_presentation_contract
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh --dialog-contract)
 		set_tests_properties(test_dialog_presentation_contract PROPERTIES TIMEOUT 600)
@@ -1613,7 +1618,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
 		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
-		test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
+		test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes}
 		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
@@ -1624,7 +1629,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
-		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
+		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract
 		test_package_contents_smoke test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke
 		${egtrain_visual_polish_smokes})
 	egtrain_label_tests(slow test_gui_autostart_smoke test_dialog_presentation_contract ${egtrain_visual_polish_smokes})

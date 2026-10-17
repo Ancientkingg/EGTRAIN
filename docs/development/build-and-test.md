@@ -88,8 +88,8 @@ built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_http`, `egtr
 `SimulationWorker` and `RunControl`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
 tests link them instead of listing their sources, so each file is compiled
 once. A test gets only the library members it references. `egtrain_recovery` holds
-`RecoveryStore`, `RecoveryController` and `RecoveryPrompt`, and `test_recoverystore`,
-`test_recoverycontroller` and `test_recoveryprompt` are the only targets that link it.
+`RecoveryStore`, `RecoveryController` and `RecoveryPrompt`. `QEGTRAIN` links it, and so do
+`test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt`.
 
 Three things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
@@ -115,7 +115,7 @@ smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the output fo
 smoke `OutputFolder.cpp`, the scene render smoke `SceneRender.cpp`, the station
 overlay smoke `StationOverlay.cpp`, the track preview smoke `TrackPreview.cpp`, the
 visual polish smoke `VisualPolish.cpp`, the editor smoke `EditorSmoke.cpp`, the creator
-acceptance smoke `CreatorAcceptance.cpp`). The
+acceptance smoke `CreatorAcceptance.cpp`, the crash and recovery runs `Recovery.cpp`). The
 visual polish smoke also starts from the frames of a run: `renderSnapshot` calls the
 `frameRendered` hook of `MainWindowTestHooks` after every frame, and the hook is set only
 when `QEGTRAIN_E2E_VISUAL_POLISH` is set. The editor smoke sets the `passengerSource` hook
@@ -432,6 +432,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 | --- | --- | --- | --- | --- |
 | `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
 | `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
+| `test_recovery_smoke` | yes | yes | no | A Python script that ends the application with `_Exit` and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under `if(UNIX)` until they are. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
 | `test_visual_polish_smoke_live`, `test_visual_polish_smoke_replay`, `test_visual_polish_smoke_replay_copenhagen`, `test_visual_polish_smoke_signals`, `test_visual_polish_smoke_stations` | yes | no | no | Phases of a Bash script, registered on macOS only. |
 | `test_case_chooser_contract` | yes | yes | no | Compares backslash paths with the forward-slash paths the application reports, writes them into a `QSettings` INI file where backslash is an escape, and creates a directory symlink. |
@@ -1337,7 +1338,17 @@ step (the bytes that Save writes, the editors, the validation, the unsaved mark
 and the run results), that a stop dialog that is accepted is one step and one
 that is cancelled is none, that Save keeps the history, and that a new edit after
 Undo, a failed open, an open and a new scene change the history as
-[Window flow](../architecture/scene-editor-flow.md#window-flow) describes. Next
+[Window flow](../architecture/scene-editor-flow.md#window-flow) describes. It
+then names a folder for recovery copies of its own and checks autosave on a
+bundle copy of the scene (`E2E_EDITOR_RECOVERY_OK`): that a run with no folder
+named keeps no copies; that an edit leads to one copy that names the scene and its
+source and holds the edits, while the file of the scene stays as it was; that Undo
+to the saved state, Save, an open of the same scene and a new scene each remove or
+replace the copy; that Discard followed by an open that fails and Cancel keep it; that
+closing the window leaves no copy; that Decide Later keeps a copy that an ended
+window left and Discard removes it; that Recover opens the copy as an unsaved scene
+without a file, with Save As starting at the original; and that a folder that cannot
+be made is reported once while the editing goes on. Next
 it checks the layout of the editors: the main window does not grow beyond 1280
 by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
 font size, a floated dock stays within 750 by 600 and keeps its scroll area, and
@@ -1358,6 +1369,50 @@ CTest runs the script as `test_editor_smoke` on macOS and Linux with
 `ctest --test-dir build -R test_editor_smoke --output-on-failure`. The script
 takes the application from `QEGTRAIN_APP`. The release workflow also runs it as
 a step of its own.
+
+## Recovery Smoke Test
+
+```bash
+python3 tools/e2e/recovery_smoke.py build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN build/scene_tool
+```
+
+The script ends a window with unsaved edits without closing it and starts the
+application again. Every run of the application gets a recovery folder and a
+settings folder of its own (`QEGTRAIN_RECOVERY_DIR` and `QEGTRAIN_E2E_SETTINGS_DIR`),
+so no run meets the copies of a user, and an interval of 100 ms
+(`QEGTRAIN_RECOVERY_INTERVAL_MS`). `QEGTRAIN_E2E_RECOVERY` names the script that the
+application runs in the window, and `QEGTRAIN_E2E_RECOVERY_ANSWER` and
+`QEGTRAIN_E2E_RECOVERY_SAVE_AS` say how the next run answers the recovery prompt and
+where it saves the recovered case. A run that ends in a crash makes three edits to a
+bundle copy of `Assignment_Gvc_Gdg_Ut`, waits until the autosave has written its
+copy and ends with `_Exit(137)`, so no destructor runs and no close event reaches the
+window. The script checks:
+
+- Bundle: the next start offers the copy with the path of the bundle and no note,
+  with Recover as the default button. Recover opens an unsaved scene without a
+  file that holds the three edits, Save As starts in the folder of the bundle with its
+  file name, and the bundle keeps its bytes and its modification time. The window
+  closes after Save As, no recovery folder is left and the next start has no prompt.
+- New case: a case that was never saved is offered as `New case study, not saved` and
+  recovered in the same way.
+- Changed original: an original that changed, is newer than the copy or is missing is
+  named in the prompt, and Decide Later is the default button for the first two.
+  Decide Later keeps the copy, Recover opens it, Discard removes it, and the original is
+  not touched.
+- Discard at close: Discard in the question about unsaved changes leaves no copy, and
+  the next start has no prompt.
+- Unwritable folder: when the folder for the copies cannot be made, the window reports
+  it once, the edits go on and a run completes.
+
+CTest runs the script as `test_recovery_smoke` on macOS and Linux, with the
+application and `scene_tool` from the build, and it takes about 25 seconds. A
+failure prints the end of the output of the run that failed. The scripts of the
+application are in `EGTRAIN/QEGTRAIN/tests/e2e/Recovery.cpp` and the answer to the
+prompt in `Dialogs.cpp`. The editor smoke covers the same paths in one process.
+
+The recovery folder is below the local application data folder of the user. An
+operating system backup or a sync tool that includes that folder can copy recovery
+files, which hold the case data of the scenes in them.
 
 ## GUI Smoke Test
 

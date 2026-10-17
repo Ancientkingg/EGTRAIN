@@ -26,7 +26,7 @@ struct MainWindowTestHooks {
 	void (*frameRendered)(MainWindow& window, bool historical) = nullptr;
 	// The folder that Import Passengers reads in place of asking for one. An empty path asks as usual.
 	std::function<QString()> passengerSource;
-	// Called with a dialog just before it opens. kind names the dialog: startupChooser, runReview or privacySettings.
+	// Called with a dialog just before it opens. kind names the dialog: startupChooser, runReview, privacySettings or recoveryPrompt.
 	std::function<void(QDialog& dialog, const char* kind)> dialogShown;
 	// Called with a startupChooser or runReview dialog once it has closed and the window has read its answer. The chooser
 	// has by then opened the case that it chose. The dialog is still alive.

@@ -21,12 +21,16 @@ public:
 	static void runEditorSmoke(MainWindow& w);
 	// The checks of Undo and Redo that the editor smoke makes, defined with it.
 	static QStringList checkUndoRedo(MainWindow& w, const QString& scenePath, const QString& outFolder);
+	// The checks of autosave and recovery that the editor smoke makes, defined with it.
+	static QStringList checkRecovery(MainWindow& w, const QString& scenePath, const QString& outFolder);
 	static void runSceneRender(MainWindow& w);
 	static void runTrackPreview(MainWindow& w);
 	static void runLegacyImport(MainWindow& w);
 	static void runSceneDrop(MainWindow& w);
 	static void runOutputFolder(MainWindow& w);
 	static void runCreatorAcceptance(MainWindow& w);
+	// The crash and recovery runs, defined in Recovery.cpp. QEGTRAIN_E2E_RECOVERY names the script.
+	static void runRecovery(MainWindow& w);
 	// The checks of the preview that the creator acceptance scenario makes, defined with it.
 	static bool checkPreviewInfrastructure(MainWindow& w, QString& failure);
 	static bool checkPreviewRuntimeParity(MainWindow& w, QString& failure, bool measuredPresentation = false);
@@ -61,12 +65,15 @@ public:
 	static inline int scenarioAttempts = 0;
 	// Whether the editor smoke has begun its checks.
 	static inline bool editorSmokeStarted = false;
+	// Whether the recovery prompt has opened in this run.
+	static inline bool recoveryPromptSeen = false;
 
 private:
 	static void chooserShown(MainWindow& w, CaseChooserDialog& dialog);
 	static void chooserClosed(MainWindow& w, CaseChooserDialog& dialog);
 	static void reviewShown(MainWindow& w, QDialog& review);
 	static void reviewClosed(MainWindow& w, QDialog& review);
+	static void recoveryPromptShown(QDialog& prompt);
 	static void runReplaySignals(MainWindow& w);
 	static void checkOperationalCompletion(MainWindow& w);
 	static bool checkReplayWholeRun(MainWindow& w, int middle, QString& failure);

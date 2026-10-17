@@ -92,6 +92,7 @@
 
 #include "editors/SceneDocument.h"
 #include "app/RunSelection.h"
+#include "recovery/RecoveryStore.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
 #include "scene/TrackPreview.h"
@@ -120,6 +121,7 @@ class InfrastructurePanel;
 class PassengerPanel;
 class ScenarioPanel;
 class ServicePanel;
+class RecoveryController;
 class SceneHistory;
 struct SceneHistoryEntry;
 class UserPrompts;
@@ -421,6 +423,13 @@ private:
 	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
 	// hold is not committed.
 	bool m_restoringHistory = false;
+	// Recovery copies of the scene while it has unsaved edits. Null when this run keeps none.
+	std::unique_ptr<RecoveryController> m_recovery;
+	// The file or folder that the scene came from, and its size and time when the window last read or wrote it.
+	RecoverySource m_recoverySource;
+	// The file that a recovered scene is a copy of. Save As starts there.
+	QString m_recoveredSourceHint;
+	bool m_recoveryFailureShown = false;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
 	bool m_sceneIsBundle = false;
@@ -657,7 +666,13 @@ private:
 	bool requestOpenScene(const QString& path, const telemetry::OperationObservation& operation);
 	bool openRequestedScene(const QString& path, const telemetry::OperationObservation& operation);
 	void createNewScene(const telemetry::OperationObservation& operation);
-	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation);
+	// A recovered scene is the copy of another scene: it opens untitled and unsaved, and counts as no opened scene.
+	enum class OpenOrigin {
+		User,
+		Recovered,
+	};
+	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation,
+		OpenOrigin origin = OpenOrigin::User);
 	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept;
@@ -675,6 +690,7 @@ private:
 	bool saveSceneToCurrentDir();
 	bool saveSceneAsToBundle();
 	bool saveSceneAsToBundle(const telemetry::OperationObservation& operation);
+	QString saveSceneAsStartPath() const;
 	bool saveSceneAsToDirectory();
 	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
 	void updateSceneWindowTitle();
@@ -705,6 +721,14 @@ private:
 	void restoreSceneFromHistory(const SceneHistoryEntry& entry);
 	void refreshAllEditorPanels();
 	void updateUndoRedoActions();
+	// Autosave and recovery. The scene changed, was saved, or was replaced by another scene.
+	void startRecovery();
+	void recoverySceneChanged();
+	void recoverySceneSaved();
+	void recoverySceneReplaced(const RecoverySource& source);
+	// Offers the copies that an earlier run left behind. Returns whether the user opened one.
+	bool offerRecovery();
+	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
 	void invalidateRunResults();
 
