@@ -217,6 +217,9 @@ int main(int argc, char* argv[]) {
 	trainGroup.trainDescription = "None";
 	panel.displayTrainDetails(&trainBody, false);
 	ok &= expect(text(panel, "Train") == "Train 4", "a train without a description is named by its place in the list");
+	trainGroup.trainDescription.clear();
+	panel.displayTrainDetails(&trainBody, false);
+	ok &= expect(text(panel, "Train") == "Train 4", "a train with an empty description is named by its place in the list");
 	ok &= expect(host.followed.size() == 1, "showing a train without the follow mode does not follow it");
 	panel.clearSelectedTrain();
 	ok &= expect(panel.selectedTrainIndex() == -1, "the window can forget the selected train");
@@ -240,13 +243,12 @@ int main(int argc, char* argv[]) {
 	// form wraps at one width and not at another, so the widths around 300 are tried.
 	QWidget* signalForm = signallingBox->parentWidget();
 	const QMargins margins = signalForm->layout()->contentsMargins();
-	bool boxUsesForm = true;
 	for (int width : {300, 340, 380}) {
 		panel.dock()->setFixedWidth(width);
 		QCoreApplication::processEvents();
-		boxUsesForm &= signallingBox->width() >= signalForm->width() - margins.left() - margins.right();
+		ok &= expect(signalForm->width() > 150 && signallingBox->width() >= signalForm->width() - margins.left() - margins.right(),
+			QString("in a dock %1 px wide the signals at location use the width of the form").arg(width).toStdString().c_str());
 	}
-	ok &= expect(boxUsesForm, "in a narrow dock the signals at location use the width of the form");
 	panel.handleCloseInfoDockWidget();
 	presenter.m_signalDecorations.clear();
 
