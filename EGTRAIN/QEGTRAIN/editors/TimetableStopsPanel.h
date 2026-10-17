@@ -18,8 +18,9 @@ class QTableWidget;
 // The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned
 // times, and the buttons that add, remove and move them. A stop is added or edited in a dialog on a copy and enters
 // the service only when the stop still fits the route. The service is the one whose id the panel is given. The five
-// columns always fill the width of the table: the platform and the times take what their header and a typical value need
-// and the station takes the rest. A table narrower than that shortens the columns, and long text is elided.
+// columns fill the width of the table down to their minimum widths: the platform and the times take what their
+// header and a typical value need and the station takes the rest. A table narrower than that shortens the columns,
+// and long text is elided.
 class TimetableStopsPanel : public SceneEditorPanel {
 	Q_OBJECT
 
