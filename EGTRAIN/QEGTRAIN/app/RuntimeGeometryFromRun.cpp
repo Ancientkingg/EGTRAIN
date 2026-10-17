@@ -1,4 +1,4 @@
-#include "app/RuntimeGeometryFromGlobals.h"
+#include "app/RuntimeGeometryFromRun.h"
 
 #include "app/DispatchController.h"
 #include "simulation/SimulationRun.h"
