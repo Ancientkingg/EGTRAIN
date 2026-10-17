@@ -38,6 +38,10 @@ bool verifyDownloadedPackageHash(const QString& packagePath,
 // Stage a package after download verification has succeeded.
 QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error = nullptr);
 
+// The text shown when the downloaded package could not be unpacked: what failed, that the
+// installation is unchanged and how to try again, followed by the technical detail when there is one.
+QString unpackFailureMessage(const QString& detail);
+
 // True when a file can be created in directory and removed again. It tries the folder because Qt
 // reads no NTFS access list unless it is told to, so QFileInfo::isWritable can say yes for a folder
 // that the user cannot write, such as one below Program Files.

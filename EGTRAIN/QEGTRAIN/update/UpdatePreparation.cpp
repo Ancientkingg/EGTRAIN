@@ -23,6 +23,9 @@ namespace {
 
 constexpr qint64 kHashChunkBytes = 1024 * 1024;
 constexpr int kDetachAttempts = 4;
+// Expand-Archive unpacks a package of tens of megabytes. An emulated or heavily loaded machine
+// needs well over a minute for it.
+constexpr int kUnpackTimeoutMs = 10 * 60 * 1000;
 
 bool runProcess(const QString& program, const QStringList& arguments, int timeoutMs,
 	QString* error = nullptr, const QProcessEnvironment* environment = nullptr) {
@@ -199,10 +202,14 @@ bool copyMacAppFromDiskImage(const UpdatePreparationInput& input, const QString&
 	const QString script = QStringLiteral(
 		"$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:EGTRAIN_UPDATE_ZIP "
 		"-DestinationPath $env:EGTRAIN_UPDATE_DEST -Force");
+	QString detail;
 	if (!runProcess(QStringLiteral("powershell.exe"),
 			{QStringLiteral("-NoProfile"), QStringLiteral("-NonInteractive"), QStringLiteral("-Command"), script},
-			60000, error, &environment))
+			kUnpackTimeoutMs, &detail, &environment)) {
+		if (error)
+			*error = unpackFailureMessage(detail);
 		return {};
+	}
 	QString stagedPath = QDir(root).filePath(QStringLiteral("QEGTRAIN"));
 	if (!WindowsStaging::buildStage(extract, stagedPath, input.manifest.files, error))
 		return {};
@@ -243,6 +250,15 @@ QString stageUpdatePackage(const UpdatePreparationInput& input, QString* error) 
 		*error = QStringLiteral("Self-update is not supported on this platform.");
 	return {};
 #endif
+}
+
+QString unpackFailureMessage(const QString& detail) {
+	QString message = QStringLiteral(
+		"EGTRAIN could not unpack the downloaded update. Nothing was changed. "
+		"Choose Check for Updates in the Help menu to try again.");
+	if (!detail.isEmpty())
+		message += QStringLiteral("\n\nDetails: %1").arg(detail);
+	return message;
 }
 
 bool canCreateFilesIn(const QString& directory) {

@@ -3,6 +3,7 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QDateTime>
 #include <QDir>
 #include <QDirIterator>
 #include <QEventLoop>
@@ -343,6 +344,39 @@ static bool testDownload(const QString& base, const QString& helper) {
 	return ok;
 }
 
+static bool setModificationTime(const QString& path, const QDateTime& time) {
+	QFile file(path);
+	return file.open(QIODevice::ReadWrite | QIODevice::ExistingOnly) && file.setFileTime(time, QFileDevice::FileModificationTime);
+}
+
+// The folders that earlier attempts left are removed when a new update starts, unless something in
+// them changed lately. The folder of the new update is not touched.
+static bool testEarlierAttemptsRemoved(const QString& base, const QString& helper) {
+	Scenario scenario(base, QStringLiteral("earlier"), helper);
+	scenario.serveGoodRelease();
+	const QString stale = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-stale"));
+	const QString recent = QDir(scenario.root).filePath(QStringLiteral(".qegtrain-update-recent"));
+	const QString zip = stale + QStringLiteral("/") + kInstallerName;
+	bool ok = expect(scenario.prepared && QDir().mkpath(stale) && writeFile(zip, "zip") && QDir().mkpath(recent) && writeFile(recent + QStringLiteral("/") + kInstallerName, "zip"),
+		"the folders of earlier attempts are written");
+	const QDateTime twoHoursAgo = QDateTime::currentDateTime().addSecs(-2 * 3600);
+	ok &= expect(setModificationTime(zip, twoHoursAgo),
+		"the folder of the earlier attempt is dated");
+
+	SelfUpdater updater;
+	const Outcome outcome = runUpdate(updater, scenario.release());
+	ok &= expect(outcome.success, "the update is ready");
+	ok &= expect(!QFileInfo::exists(stale), "the folder of an earlier attempt is removed when an update starts");
+	ok &= expect(QFileInfo::exists(recent), "a folder that changed lately is kept");
+	const QStringList folders = stagingFolders(scenario.root);
+	ok &= expect(folders.size() == 2 && folders.contains(QStringLiteral(".qegtrain-update-recent")),
+		"the folder of the new update is next to the one that was kept");
+	const QString current = folders.size() == 2 ? QDir(scenario.root).filePath(folders.first() == QStringLiteral(".qegtrain-update-recent") ? folders.last() : folders.first()) : QString();
+	ok &= expect(readFile(current + QStringLiteral("/") + kInstallerName) == scenario.package,
+		"the folder of the new update holds its download");
+	return ok;
+}
+
 // restart() starts the helper in installer mode with the installer, the silent options, the
 // application to start and the record. The helper here is the update probe.
 static bool testRestartStartsInstallerMode(const QString& base, const QString& helper) {
@@ -647,6 +681,7 @@ int main(int argc, char** argv) {
 
 	bool ok = expect(QFileInfo(probe).isFile(), "the update probe exists");
 	ok &= testDownload(temp.path(), probe);
+	ok &= testEarlierAttemptsRemoved(temp.path(), probe);
 	ok &= testRestartStartsInstallerMode(temp.path(), probe);
 	ok &= testRestartWithoutHelper(temp.path(), probe);
 	ok &= testManifestRejected(temp.path(), probe);

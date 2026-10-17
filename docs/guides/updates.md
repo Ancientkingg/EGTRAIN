@@ -47,10 +47,11 @@ successful update the folder is removed. On Windows the update helper cannot
 delete itself, so the application removes the rest about 20 seconds after it
 started, or at its next start when it was closed before that. Folders left by an
 interrupted update are removed at a start of the application once they are older
-than an hour.
+than an hour, and when the next update starts once nothing in them changed for five
+minutes.
 
 When the new version cannot be started, the update helper puts the previous
-version back and starts it again. That version then tells you once which version
+version back, removes the staging folder and starts it again. That version then tells you once which version
 could not be started. Automatic checks do not offer that version again, a newer
 version is offered as usual, and **Help > Check for Updates...** still offers it.
 

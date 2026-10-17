@@ -389,7 +389,8 @@ void writeRecord(const Arguments& arguments, const char* outcome, const std::str
 
 // Replaces the installation that failed to start with the backup. The failed one is
 // renamed aside first, so a file that is still locked cannot leave a half-deleted
-// installation. If the backup cannot be renamed back, the failed one is put back.
+// installation. If the backup cannot be renamed back, the failed one is put back. The staging
+// folder is removed once the backup is in place, as after any other end of the update.
 void restoreBackup(const Arguments& arguments) {
 	std::filesystem::path failed = arguments.backup;
 	failed += ".failed";
@@ -399,6 +400,7 @@ void restoreBackup(const Arguments& arguments) {
 	if (movePathWithRetries(arguments.backup, arguments.current)) {
 		removePath(failed);
 		writeRecord(arguments, "rolled-back");
+		removeStaging(arguments.staged.parent_path());
 		launch(arguments.launch, 0);
 	} else {
 		movePathWithRetries(failed, arguments.current);
