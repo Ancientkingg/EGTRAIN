@@ -308,6 +308,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				}
 				cycleEnd->setCurrentIndex(2);
 				buttons->button(QDialogButtonBox::Ok)->click();
+				// A refusal keeps the dialog open and says why in its status label.
+				if (dialog->isVisible()) {
+					const auto* status = dialog->findChild<QLabel*>("capacityScopeStatus");
+					const QString detail = status ? status->text() : QString();
+					dialog->reject();
+					fail(QStringLiteral("capacity analysis rejected the creator run: ") + detail);
+				}
 				return;
 			}
 			QTimer::singleShot(25, &w, [poll]() { (*poll)(); });

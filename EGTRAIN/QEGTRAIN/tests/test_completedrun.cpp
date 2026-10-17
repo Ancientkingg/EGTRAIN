@@ -21,6 +21,7 @@
 #include "simulation/SimulationRun.h"
 #include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
+#include "widgets/ChoiceComboBox.h"
 #ifdef signals
 #undef signals
 #endif
@@ -30,10 +31,14 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QFont>
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QtCharts/QChart>
@@ -1138,8 +1143,12 @@ bool askScope(const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope,
 	QTimer::singleShot(0, [&answer]() {
 		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
 		check(dialog && dialog->windowTitle() == "Blocking-time scope", "the scope dialog opens");
-		if (dialog)
-			answer(*dialog);
+		if (!dialog)
+			return;
+		answer(*dialog);
+		// A dialog that the answer leaves open would never return.
+		if (dialog->isVisible())
+			dialog->reject();
 	});
 	return chooseBlockingTimeScope(nullptr, choices, scope);
 }
@@ -1180,6 +1189,8 @@ void testScopeDialog() {
 		check(combos.size() == 3 && combos[0]->count() == 3, "the dialog lists the routes and all routes");
 		if (combos.size() != 3)
 			return;
+		for (const QComboBox* combo : combos)
+			check(dynamic_cast<const ChoiceComboBox*>(combo), "the scope dialog shows its choices in choice combos");
 		combos[0]->setCurrentIndex(1);
 		check(combos[0]->itemText(1) == "r0  (north)" && combos[0]->itemText(2) == "r1  (no corridor)", "the routes show their corridor");
 		check(combos[1]->count() == 3 && combos[1]->itemText(2) == "3:c" && combos[2]->currentIndex() == 2, "the blocks of the route are listed");
@@ -1236,19 +1247,23 @@ bool askCapacityScope(const CompletedRunData& run, CapacityAnalysisScope& scope,
 	QTimer::singleShot(0, [&answer]() {
 		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
 		check(dialog && dialog->windowTitle() == "Capacity analysis", "the capacity dialog opens");
-		if (dialog)
-			answer(*dialog);
+		if (!dialog)
+			return;
+		answer(*dialog);
+		if (dialog->isVisible())
+			dialog->reject();
 	});
 	return chooseCapacityAnalysisScope(nullptr, run, scope);
 }
 
-// Closes the message box that the next click on OK opens.
-void expectMessage(const std::string& what) {
-	QTimer::singleShot(0, [what]() {
+// A refusal is shown in the dialog. A message box that opens over it is closed and counted as a failure.
+void forbidMessageBox() {
+	QTimer::singleShot(0, []() {
 		auto* box = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
-		check(box, what);
-		if (box)
-			box->accept();
+		if (!box)
+			return;
+		check(false, "a refusal opens no message box");
+		box->accept();
 	});
 }
 
@@ -1292,27 +1307,127 @@ void testCapacityDialog() {
 			&& scope.occurrenceIds == std::vector<std::string>({"a", "c"}) && scope.cycleEndOccurrenceId == "c" && scope.periodSeconds == 7200.0,
 		"the dialog accepts the checked occurrences and the closing one");
 
-	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open.
+	// Fewer than two occurrences, or a closing occurrence that is not after the first one, keeps the dialog open and
+	// says why in the dialog. An edit takes the message away, and the caller's scope stays as it was.
 	CapacityAnalysisScope kept;
 	accepted = askCapacityScope(run, kept, [](QDialog& dialog) {
 		const auto combos = dialog.findChildren<QComboBox*>();
 		const auto list = dialog.findChild<QListWidget*>();
+		const auto* status = dialog.findChild<QLabel*>("capacityScopeStatus");
 		auto* ok = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok);
-		if (combos.size() != 4 || !list)
+		check(status, "the dialog has a label for its refusals");
+		if (combos.size() != 4 || !list || !status)
 			return;
+		check(status->isHidden(), "the dialog opens without a message");
 		combos[2]->setCurrentIndex(0);
 		list->item(1)->setCheckState(Qt::Unchecked);
 		list->item(2)->setCheckState(Qt::Unchecked);
-		expectMessage("fewer than two occurrences are refused");
+		forbidMessageBox();
 		ok->click();
+		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
+				&& status->text() == "Select at least two ordered occurrences with a common entry block.",
+			"fewer than two occurrences are refused in the dialog");
 		list->item(1)->setCheckState(Qt::Checked);
+		check(status->isHidden(), "an edit takes the message away");
 		combos[3]->setCurrentIndex(1);
-		expectMessage("a closing occurrence that is the first row is refused");
+		forbidMessageBox();
 		ok->click();
-		check(dialog.isVisible(), "the dialog stays open after a refusal");
+		check(dialog.isVisible() && status->isVisible() && status->property("dialogStatus").toString() == "error"
+				&& status->text().startsWith("Choose a checked cycle-closing occurrence"),
+			"a closing occurrence that is the first row is refused in the dialog");
+		combos[3]->setCurrentIndex(2);
+		check(status->isHidden(), "choosing another closing occurrence takes the message away");
 		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
 	});
-	check(!accepted, "cancel gives no scope");
+	check(!accepted && kept.routeIndex == -1 && kept.blockIds.empty() && kept.occurrenceIds.empty() && kept.cycleEndOccurrenceId.empty(),
+		"cancel after a refusal gives no scope");
+}
+
+// --- Long identifiers ---
+
+// What a scope dialog with long ids has to show: it is as wide as the screen allows and no wider, the body scrolls only
+// vertically, the buttons stay below it and inside the dialog, and no choice reaches out of the visible body.
+void checkScopeDialogFits(QDialog& dialog, const std::string& what) {
+	// Nested layout requests can stay queued in a callback of the modal loop. Settle them before measuring.
+	QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+	QApplication::processEvents();
+	QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+	const QRect available = dialog.screen()->availableGeometry();
+	check(dialog.width() <= available.width() * 9 / 10 && dialog.height() <= available.height() * 4 / 5, what + ": within the screen");
+	check(dialog.width() == dialog.maximumWidth(), what + ": widened to show its choices");
+	auto* scroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
+	auto* buttons = dialog.findChild<QDialogButtonBox*>();
+	check(scroll && buttons, what + ": body and buttons");
+	if (!scroll || !buttons)
+		return;
+	check(scroll->horizontalScrollBar()->maximum() == 0, what + ": no horizontal scrolling");
+	check(buttons->isVisible() && buttons->geometry().bottom() <= dialog.height() && scroll->geometry().bottom() <= buttons->geometry().top(),
+		what + ": the buttons stay below the body");
+	for (const QComboBox* combo : dialog.findChildren<QComboBox*>())
+		check(combo->mapTo(scroll->viewport(), QPoint(combo->width(), 0)).x() <= scroll->viewport()->width(), what + ": a choice stays inside the body");
+}
+
+// 2000 blocks, the last with a 300-character id.
+std::vector<std::string> longBlockIds() {
+	std::vector<std::string> ids;
+	for (int index = 0; index < 2000; ++index) {
+		std::string id = "block-" + std::to_string(index) + "-";
+		id.append(index == 1999 ? 300 - id.size() : 30, 'b');
+		ids.push_back(std::move(id));
+	}
+	return ids;
+}
+
+// The scope dialogs of a run whose route has a 300-character id and 2000 blocks, at 10 pt and at 18 pt. Each fits the
+// screen, with the route chosen or not, and its body does not scroll sideways.
+void testScopeDialogsWithLongIds() {
+	const QFont original = QApplication::font();
+	const std::string routeId(300, 'R');
+	const std::vector<std::string> blockIds = longBlockIds();
+
+	BlockingTimeScopeChoices choices;
+	choices.caseEndSeconds = 600.0;
+	choices.routes.push_back({routeId, std::string(300, 'C'), blockIds});
+	choices.trains = {{"T0", 0, routeId}};
+
+	CompletedRunData run;
+	std::vector<BlockSectionInput> blocks;
+	for (std::size_t index = 0; index < blockIds.size(); ++index)
+		blocks.push_back({blockIds[index], static_cast<double>(index), static_cast<double>(index + 1)});
+	run.routes = {routeOf(routeId, {{"n", 0.0}}, blocks)};
+	for (const char* id : {"a", "b", "c"}) {
+		CompletedTrain train = trainOn(id, 0);
+		train.blockTimes = {occupation(blockIds.front(), 0.0, 10.0, 0.0, 100.0, 0.0)};
+		run.trains.push_back(train);
+	}
+
+	for (const double points : {10.0, 18.0}) {
+		QFont font = original;
+		font.setPointSizeF(points);
+		QApplication::setFont(font);
+		const std::string what = std::to_string(static_cast<int>(points)) + " pt";
+
+		BlockingTimeScope scope = defaultBlockingTimeScope(choices.caseEndSeconds);
+		bool accepted = askScope(choices, scope, [&what](QDialog& dialog) {
+			checkScopeDialogFits(dialog, "blocking-time scope with long ids at " + what);
+			const auto combos = dialog.findChildren<QComboBox*>();
+			if (combos.size() == 3) {
+				combos[0]->setCurrentIndex(1);
+				QApplication::processEvents();
+				checkScopeDialogFits(dialog, "blocking-time scope with 2000 blocks at " + what);
+			}
+			press(dialog, QDialogButtonBox::Cancel);
+		});
+		check(!accepted, "the scope dialog with long ids is cancelled");
+
+		CapacityAnalysisScope capacity;
+		accepted = askCapacityScope(run, capacity, [&what](QDialog& dialog) {
+			checkScopeDialogFits(dialog, "capacity options with 2000 blocks at " + what);
+			dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Cancel)->click();
+		});
+		check(!accepted, "the capacity dialog with long ids is cancelled");
+	}
+	QApplication::setFont(original);
 }
 
 } // namespace
@@ -1366,6 +1481,7 @@ int main(int argc, char** argv) {
 	testUsedRoutes();
 	testScopeDialog();
 	testCapacityDialog();
+	testScopeDialogsWithLongIds();
 
 	if (failures)
 		std::cerr << failures << " checks failed\n";

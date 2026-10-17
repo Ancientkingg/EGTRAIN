@@ -1,5 +1,6 @@
 #include "diagrams/CapacityScope.h"
 
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
 
 #include <QComboBox>
@@ -9,8 +10,9 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QObject>
+#include <QScrollArea>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -164,7 +166,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
-	auto* routeCombo = new QComboBox(&dialog);
+	auto* routeCombo = new ChoiceComboBox(&dialog);
 	for (std::size_t routeIndex = 0; routeIndex < run.routes.size(); ++routeIndex) {
 		const CompletedRoute& route = run.routes[routeIndex];
 		const QString corridor = route.corridor.empty()
@@ -173,15 +175,15 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
 			static_cast<int>(routeIndex));
 	}
-	auto* firstBlock = new QComboBox(&dialog);
-	auto* lastBlock = new QComboBox(&dialog);
+	auto* firstBlock = new ChoiceComboBox(&dialog);
+	auto* lastBlock = new ChoiceComboBox(&dialog);
 	auto* period = new QDoubleSpinBox(&dialog);
 	period->setRange(0.001, std::numeric_limits<double>::max());
 	period->setDecimals(3);
 	period->setSingleStep(60.0);
 	period->setSuffix(" s");
 	period->setValue(3600.0);
-	auto* cycleEnd = new QComboBox(&dialog);
+	auto* cycleEnd = new ChoiceComboBox(&dialog);
 	cycleEnd->addItem("Select the first train in the next period...");
 	auto* occurrences = new QListWidget(&dialog);
 	occurrences->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -194,15 +196,33 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	form->addRow("Analysis period:", period);
 	form->addRow("Cycle-closing occurrence:", cycleEnd);
 	layout->addLayout(form);
-	auto* note = new QLabel(
+	auto* note = new QLabel(body);
+	DialogLayout::setHelp(note,
 		"Checked occurrences are analyzed in the displayed order (A → B); selecting exactly two enables the pair workflow. "
 		"Where the order of trains changes along the route, analyze each part as a separate section. Select the occurrence of the "
-		"first service in the next period that closes the capacity cycle; EGTRAIN does not infer it from the last row.",
-		&dialog);
-	note->setWordWrap(true);
+		"first service in the next period that closes the capacity cycle; EGTRAIN does not infer it from the last row.");
 	layout->addWidget(note);
-	layout->addWidget(new QLabel("Occurrences with complete occupations on the selected section:", &dialog));
+	auto* occurrencesCaption = new QLabel("Occurrences with complete occupations on the selected section:", &dialog);
+	occurrencesCaption->setWordWrap(true);
+	layout->addWidget(occurrencesCaption);
 	layout->addWidget(occurrences);
+	auto* status = new QLabel(body);
+	status->setObjectName("capacityScopeStatus");
+	layout->addWidget(status);
+
+	// An empty text hides the label. A text is scrolled into view once the layout has made room for it, because the body
+	// of the dialog scrolls and the label is at its end.
+	QScrollArea* bodyScroll = nullptr;
+	const auto showError = [status, &bodyScroll](const QString& text) {
+		DialogLayout::setStatus(status, DialogLayout::Severity::Error, text);
+		if (!text.isEmpty() && bodyScroll)
+			QTimer::singleShot(0, status, [status, bodyScroll] { bodyScroll->ensureWidgetVisible(status); });
+	};
+	const auto clearError = [showError, status]() {
+		if (!status->text().isEmpty())
+			showError(QString());
+	};
+	showError(QString());
 
 	const auto refillBlocks = [&run, routeCombo, firstBlock, lastBlock]() {
 		firstBlock->clear();
@@ -231,7 +251,8 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			candidate.blockIds.push_back(route.blocks[static_cast<std::size_t>(blockIndex)].id);
 		return candidate;
 	};
-	const auto refillOccurrences = [&run, occurrences, cycleEnd, currentScope]() {
+	const auto refillOccurrences = [&run, occurrences, cycleEnd, currentScope, clearError]() {
+		clearError();
 		occurrences->clear();
 		cycleEnd->clear();
 		cycleEnd->addItem("Select the first train in the next period...");
@@ -247,45 +268,56 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
 		}
 	};
+	// A route has its own blocks, so the dialog widens to show them.
 	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillBlocks, refillOccurrences](int) { refillBlocks(); refillOccurrences(); });
+		[refillBlocks, refillOccurrences, &dialog](int) {
+			refillBlocks();
+			refillOccurrences();
+			DialogLayout::fitWidthToContent(dialog);
+		});
 	QObject::connect(firstBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
 		[refillOccurrences](int) { refillOccurrences(); });
 	QObject::connect(lastBlock, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
 		[refillOccurrences](int) { refillOccurrences(); });
+	QObject::connect(period, qOverload<double>(&QDoubleSpinBox::valueChanged), &dialog,
+		[clearError](double) { clearError(); });
+	QObject::connect(cycleEnd, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
+		[clearError](int) { clearError(); });
+	QObject::connect(occurrences, &QListWidget::itemChanged, &dialog,
+		[clearError](QListWidgetItem*) { clearError(); });
+	QObject::connect(occurrences->model(), &QAbstractItemModel::rowsMoved, &dialog,
+		[clearError]() { clearError(); });
 	if (routeCombo->count() > 0)
 		routeCombo->setCurrentIndex(0);
 	refillBlocks();
 	refillOccurrences();
 
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+	// The caller's scope changes only when the dialog is accepted.
 	QObject::connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
-		int selected = 0;
-		for (int row = 0; row < occurrences->count(); ++row)
-			selected += occurrences->item(row)->checkState() == Qt::Checked ? 1 : 0;
-		if (selected < 2) {
-			QMessageBox::information(&dialog, "Capacity analysis", "Select at least two ordered occurrences with a common entry block.");
-			return;
-		}
-		scope = currentScope();
-		scope.occurrenceIds.clear();
+		CapacityAnalysisScope chosen = currentScope();
 		for (int row = 0; row < occurrences->count(); ++row) {
 			const QListWidgetItem* item = occurrences->item(row);
 			if (item->checkState() == Qt::Checked)
-				scope.occurrenceIds.push_back(item->data(Qt::UserRole).toString().toStdString());
+				chosen.occurrenceIds.push_back(item->data(Qt::UserRole).toString().toStdString());
 		}
-		scope.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();
-		const auto selectedCycleEnd = std::find(scope.occurrenceIds.begin(), scope.occurrenceIds.end(),
-			scope.cycleEndOccurrenceId);
-		if (selectedCycleEnd == scope.occurrenceIds.end() || selectedCycleEnd == scope.occurrenceIds.begin()) {
-			QMessageBox::information(&dialog, "Capacity analysis",
-				"Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.");
+		if (chosen.occurrenceIds.size() < 2) {
+			showError("Select at least two ordered occurrences with a common entry block.");
 			return;
 		}
+		chosen.cycleEndOccurrenceId = cycleEnd->currentData().toString().toStdString();
+		const auto selectedCycleEnd = std::find(chosen.occurrenceIds.begin(), chosen.occurrenceIds.end(),
+			chosen.cycleEndOccurrenceId);
+		if (selectedCycleEnd == chosen.occurrenceIds.end() || selectedCycleEnd == chosen.occurrenceIds.begin()) {
+			showError("Choose a checked cycle-closing occurrence after the first row, normally the first train in the next period.");
+			return;
+		}
+		scope = std::move(chosen);
 		dialog.accept();
 	});
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	DialogLayout::install(dialog, "Capacity analysis",
+	bodyScroll = DialogLayout::install(dialog, "Capacity analysis",
 		"Choose a route section and ordered service occurrences.", body, buttons);
+	DialogLayout::fitWidthToContent(dialog);
 	return dialog.exec() == QDialog::Accepted;
 }
