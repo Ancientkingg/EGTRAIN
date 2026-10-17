@@ -30,6 +30,8 @@ EGTRAIN asks its questions in this order. Some appear only once.
 
 1. **Recover Unsaved Work** appears only when an earlier session ended with unsaved edits. A first start has nothing to recover. After **Recover**, the list of the next step does not appear; open Paimpol with **Open Case** in the toolbar. See [If something goes wrong](#if-something-goes-wrong).
 2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the example cases of the package, and the group **Recent cases**, which lists other cases you opened or saved before. Select **Paimpol** and click **Open**, or double-click it. A long name is shortened in the middle of its row; hold the pointer over the row to see the whole name and the path. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
+
+   ![The Open a Case window with Paimpol selected in the list of Bundled cases. The text above the list reads Current case: Netherlands, and the buttons are Continue and Open.](../images/guide-open-a-case.png)
 3. When the earlier steps are done, and **Open a Case** has closed if it appeared, the first start only may also ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Updating EGTRAIN](updates.md).
 
 The toolbar button **Open Case** shows **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, use **File > Open Case Study...** and select `Paimpol.egscene` instead. The file dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app. [Opening an `.egscene` case study](opening-a-case-study.md) describes that.
@@ -43,6 +45,8 @@ When Paimpol has loaded:
 - The dock **Case and Layers** on the left names the case under **Current case study** and says **Ready to run**. When validation finds an error, the line shows the first error instead and **Run** is disabled. The check boxes under **Layers** switch parts of the picture on and off: **Stations and platforms**, **Station names**, **Trains**, **Train speed labels**, **Signals** and **Passengers**. **View > Map key** explains the symbols. The layer **Passengers** has nothing to draw unless EGTRAIN was started with `-pax 1` ([the option](command-line.md#options)).
 - The toolbar holds **Open Case**, **Run**, **Pause**, **Stop**, a speed slider between **Slower** and **Faster**, **Follow** with the list of trains, the zoom buttons and **Fit**.
 
+![The main window with Paimpol loaded and not yet run, at the full view. The toolbar, the dock Case and Layers with the map key, the line of stations and the status bar are visible. The Follow list is cut off and reads Run the case to follow tra.](../images/guide-main-window.png)
+
 The editors, **Scene Validation**, **Loaded Data** and **Console Log** are hidden when the window opens. The menu **Editors** opens the editors, and the menu **View** opens the other docks.
 
 ### Validation
@@ -55,11 +59,15 @@ To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The tabl
 
 1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run Scene**. The three do the same.
 2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Selected in period** (2: both services enter during the run), **Start clock** (07:10:40), **Duration** (9000 s elapsed, ending near 09:40:40) and **Active incidents** (0). It says `Ready to run.` when nothing needs your attention. **Run details** shows more.
+
+   ![The Run simulation dialog for Paimpol / baseline: 2 selected in period, start clock 07:10:40, duration 9000 s, 0 active incidents and the message Ready to run, with Cancel and Run simulation buttons.](../images/guide-run-simulation.png)
 3. Click **Run simulation**. **Cancel** returns to the window without a run.
 
 While the run is active:
 
 - The progress bar under the network shows the clock time, the step (`Step n of m`) and the end time. The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one.
+
+  ![The main window during a run of Paimpol, zoomed in on the express train with Follow on. The progress bar reads 07:51:30, step 2,451 of 9,000, and Run is dimmed while Pause and Stop are enabled.](../images/guide-run-in-progress.png)
 - Move the speed slider towards **Faster** or **Slower**. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
 - The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers** and **Infrastructure** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units**, **Compositions** and **Incidents** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
@@ -80,6 +88,8 @@ To open a result window, click **Open result view...** in the dock and choose an
 - **Timetable** (**Diagrams > Timetable table (planned vs simulated)...**) lists each stop of each train with its planned and simulated arrival and departure and the delays.
 
 The other entries are listed in [How-to](how-to.md#results-and-exports). The two menus name some views differently: **Open result view...** says **Delays**, **Blocking time** and **Timetable**, where **Diagrams** says **Train delays...**, **Blocking-time overlay...** and **Timetable table (planned vs simulated)...**. The entries stay disabled until a run has ended.
+
+![Run Results dock after a completed run, with the Open result view menu open. It lists twelve views in three groups of four: timetable, speed and distance, and train paths and capacity. Below it are the Export CSV and Export PNG buttons and the results table with both trains and the Network total.](../images/guide-run-results.png)
 
 ## 7. Export one CSV and one PNG
 

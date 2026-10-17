@@ -74,6 +74,8 @@ You need an open case. EGTRAIN checks it when it opens, after every edit and bef
 
 1. Read the line under **Current case study** in the dock **Case and Layers**. It says **Ready to run**, or it shows the first error.
 2. Choose **View > Scene Validation** (Ctrl+Shift+V). The table lists the findings, errors first, with **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**.
+
+   ![The Scene Validation dock with one warning, scene.dwell.exceeds_window, above the passenger warnings. The columns are Severity, Code, Message, File and Path; Suggested Fix is out of view.](../images/guide-scene-validation.png)
 3. Fix the first error in the editor that matches its **File** and **Path** (menu **Editors**), and read the table again. It updates after each edit.
 4. Repeat until no error is left. **Run** is then enabled.
 
@@ -148,6 +150,8 @@ You need a run that reached its end. A stopped or failed run has no replay, and 
 1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, or move the slider. The arrow keys and the mouse wheel move the slider too.
 2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider reads, for example, `Replay at 1230 s`. **Play** advances one simulated second for each second of real time, and the button then reads **Pause**.
 3. The text under the controls says which part of the run the replay holds, and that a frame is recorded every 5 simulated seconds, for example `Whole run, 0 to 7999 s, a frame every 5 s.`
+
+   ![The Replay row under the network after a run, with Start, Play, End and the slider at 3500 s, and the context menu of a train open: Show details, Center in view, Follow train and Copy train index.](../images/guide-replay-menu.png)
 
 The replay has 128 MiB of memory. A run that is larger loses its oldest frames. The text then says from which time the replay starts, for example `Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every 5 s. The earlier part was not kept because the run is larger than the replay memory (128 MiB).` The slider covers only the kept part, and **Start** goes to its first time. The tooltip of **Start** says so. If not even one moment fits, the row says `No replay` with the reason, and the slider and **Play** are disabled.
 

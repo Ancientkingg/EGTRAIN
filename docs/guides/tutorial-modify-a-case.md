@@ -35,6 +35,8 @@ Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Gu
 
 1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
 2. Open the tab **Timetable** and click the row **Pontrieaux** in the table of stops. The dialog **Edit timetable stop** opens.
+
+   ![The Edit timetable stop dialog for the stop Pontrieaux, with the compatible platform, planned arrival 1567, planned departure 1627 and Minimum dwell (s) 60, and the Cancel and OK buttons.](../images/guide-edit-timetable-stop.png)
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
 5. Open the tab **Service**, set **Running performance (parameter) %** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
@@ -46,6 +48,8 @@ A dwell longer than the window between the planned arrival and departure is allo
 Choose **View > Scene Validation** (Ctrl+Shift+V). The columns are **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
 
 - Code `scene.dwell.exceeds_window`, message "Dwell time exceeds departure - arrival window", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
+
+![The Scene Validation dock after the dwell edit. The first row is a warning with the code scene.dwell.exceeds_window and the message Dwell time exceeds departure - arrival window, in services.json. Rows below it are scene.passenger.legs.empty warnings.](../images/guide-scene-validation.png)
 
 A warning does not block a run. An error does: **Run** is disabled and the dock **Case and Layers** shows the first error instead of "Ready to run". **Edit > Undo** takes an edit back. Normal mode hides the warning counts in the status bar; **View > Advanced / Developer details** shows them.
 
@@ -91,6 +95,8 @@ A comparison needs two runs of the same case: a baseline without incidents or en
 4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** says **Active incidents** 0 and the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line next to it names the baseline.
 5. Choose `baseline_copy` in the list. The results are cleared and the baseline stays. Choose **Run**; the dialog now says **Active incidents** 1. After "Simulation complete", choose **Compare delays**.
 6. The window **Delay analysis** opens on the tab **Against baseline**. `Guin-Paim-EXPRESS-1` has a positive additional delay at Paimpol. The run without a window, with `baseline_copy` as the default scenario, gave 343 s: the arrival at Paimpol moves from 2866 s to 3209 s. `Guin-Paim-ALL-STOPS-1` is Same. How to read the window, and what it does not claim, is in [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
+
+   ![The Incidents dock with the scenarios baseline and new_scenario (Express breakdown, 1 incident) listed, above the Run Results dock for the new scenario. The dock says No completed run, and Set delay baseline and Compare delays are both dimmed.](../images/guide-incident-baseline.png)
 
 After any edit, **Compare delays** is disabled and the line above the buttons in **Run Results** reads "Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline." until a run completes. Repeat step 4 and step 5. If the tab **Against baseline** lists reasons instead of a difference, the two runs do not match in another way. For example, the selection on the tab **Run occurrences** of **Services** differs between the runs, and the tab says that an occurrence is in one run only. Keep every occurrence selected, because the two runs must hold the same trains.
 
