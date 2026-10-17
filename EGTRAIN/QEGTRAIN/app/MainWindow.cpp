@@ -3587,7 +3587,7 @@ void MainWindow::setupRunResultsDock() {
 			path += ".png";
 		QByteArray data;
 		QBuffer buffer(&data);
-		if (!buffer.open(QIODevice::WriteOnly) || !m_runResultsTable->grab().save(&buffer, "PNG")) {
+		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_runResultsTable).save(&buffer, "PNG")) {
 			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
 			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
 			return;
@@ -4365,7 +4365,7 @@ void MainWindow::showBlockingTimeDiagram() {
 
 	axisY->setTitleText("Elapsed simulation time (s), downward");
 	axisY->setReverse(true);
-	axisY->setRange(0, std::max(1.0, run->settings.horizonSeconds()));
+	axisY->setRange(diagram->timeRange.first, diagram->timeRange.second);
 
 	DiagramWindow* win = new DiagramWindow("Blocking time: envelopes and trajectories", this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });

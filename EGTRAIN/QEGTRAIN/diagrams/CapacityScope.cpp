@@ -12,7 +12,9 @@
 #include <QListWidget>
 #include <QObject>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QTimer>
+#include <QVariant>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -253,12 +255,28 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			candidate.blockIds.push_back(route.blocks[static_cast<std::size_t>(blockIndex)].id);
 		return candidate;
 	};
-	const auto refillOccurrences = [&run, occurrences, cycleEnd, currentScope, clearError]() {
+	// With exactly two checked occurrences only the second one can close the cycle, so it is chosen.
+	const auto chooseOnlyCycleEnd = [occurrences, cycleEnd]() {
+		QVariant second;
+		int checked = 0;
+		for (int row = 0; row < occurrences->count(); ++row) {
+			const QListWidgetItem* item = occurrences->item(row);
+			if (item->checkState() != Qt::Checked)
+				continue;
+			if (++checked == 2)
+				second = item->data(Qt::UserRole);
+		}
+		const int index = checked == 2 ? cycleEnd->findData(second) : -1;
+		if (index >= 0)
+			cycleEnd->setCurrentIndex(index);
+	};
+	const auto refillOccurrences = [&run, occurrences, cycleEnd, currentScope, clearError, chooseOnlyCycleEnd]() {
 		clearError();
 		occurrences->clear();
 		cycleEnd->clear();
 		cycleEnd->addItem("Select the first train in the next period...");
 		const auto trains = capacityInputsFrom(run, currentScope());
+		const QSignalBlocker blocker(occurrences);
 		for (const CapacityAnalysisTrain& train : trains) {
 			const QString identity = QString::fromStdString(train.runtimeId);
 			const QString code = QString::fromStdString(train.operatingCode);
@@ -269,6 +287,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 			item->setCheckState(Qt::Checked);
 			cycleEnd->addItem(QString("%1 | %2").arg(identity, code), identity);
 		}
+		chooseOnlyCycleEnd();
 	};
 	// A route has its own blocks, so the dialog widens to show them.
 	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
@@ -286,9 +305,15 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	QObject::connect(cycleEnd, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
 		[clearError](int) { clearError(); });
 	QObject::connect(occurrences, &QListWidget::itemChanged, &dialog,
-		[clearError](QListWidgetItem*) { clearError(); });
+		[clearError, chooseOnlyCycleEnd](QListWidgetItem*) {
+			clearError();
+			chooseOnlyCycleEnd();
+		});
 	QObject::connect(occurrences->model(), &QAbstractItemModel::rowsMoved, &dialog,
-		[clearError]() { clearError(); });
+		[clearError, chooseOnlyCycleEnd]() {
+			clearError();
+			chooseOnlyCycleEnd();
+		});
 	if (routeCombo->count() > 0)
 		routeCombo->setCurrentIndex(0);
 	refillBlocks();
