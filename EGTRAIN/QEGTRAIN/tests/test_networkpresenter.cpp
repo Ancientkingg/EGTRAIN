@@ -16,7 +16,9 @@
 #include "graphics/items/TrainItemGroup.h"
 
 #include <QApplication>
+#include <QCoreApplication>
 #include <QElapsedTimer>
+#include <QEvent>
 #include <QGraphicsItemGroup>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
@@ -45,6 +47,19 @@ public:
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {
 		++paints;
 		TrackLineItem::paint(painter, option, widget);
+	}
+};
+
+// A scene that counts the queued calls it receives.
+class QueueCountingScene final : public QGraphicsScene {
+public:
+	int queuedCalls = 0;
+
+protected:
+	bool event(QEvent* event) override {
+		if (event->type() == QEvent::MetaCall)
+			++queuedCalls;
+		return QGraphicsScene::event(event);
 	}
 };
 
@@ -270,6 +285,22 @@ int main(int argc, char* argv[]) {
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),
 			"a model without track lines draws nothing");
+	}
+
+	// A preview leaves no work queued on the scene, so previews that follow each other without the event loop in
+	// between do not pile it up.
+	{
+		QueueCountingScene scene;
+		NetworkPresenter presenter(&scene, nullptr);
+		const SceneModel model = previewModel();
+		QCoreApplication::sendPostedEvents(&scene, QEvent::MetaCall);
+		for (int cycle = 0; cycle < 5; ++cycle) {
+			presenter.showPreview(model);
+			scene.queuedCalls = 0;
+			QCoreApplication::sendPostedEvents(&scene, QEvent::MetaCall);
+			ok &= expect(scene.queuedCalls == 0, "a preview leaves no queued call on the scene");
+			presenter.clear();
+		}
 	}
 
 	// Only the track lines whose state changes are painted again.
