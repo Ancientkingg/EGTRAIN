@@ -6,6 +6,12 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
+#include <cmath>
+#include <cstddef>
+#include <limits>
+#include <string>
+#include <vector>
+
 class InfrastructurePanel;
 
 // One kind of entity that the infrastructure panel lists, such as the tracks. The panel owns the facet combo, the
@@ -40,14 +46,82 @@ public:
 	virtual void remove(InfrastructurePanel& panel) = 0;
 	// Takes the values of the cells that are being edited into the model, as if the user had left them.
 	virtual void commitPendingEdits(InfrastructurePanel&) {}
+	// The next five belong to buttons that only some facets have, and do nothing for the others. Inserts an entity
+	// before the selected one.
+	virtual void insert(InfrastructurePanel&) {}
+	// Moves the selected entity down by `offset` rows, up when it is negative.
+	virtual void move(InfrastructurePanel&, int /*offset*/) {}
+	// The sections of the selected route: adds the section that the catalog shows, removes the selected section, and
+	// moves it down by `offset` places, up when it is negative.
+	virtual void addSection(InfrastructurePanel&) {}
+	virtual void removeSection(InfrastructurePanel&) {}
+	virtual void moveSection(InfrastructurePanel&, int /*offset*/) {}
 
 protected:
+	// What came of the text of an edited cell.
+	enum class Edit {
+		Unchanged,
+		Changed,
+		// The text is no value of the field. The table shows the model again.
+		Refused,
+		// The text is no id that the entity can have, because it is empty or another entity has it.
+		UnsafeId,
+	};
+
 	// Puts a text cell in the table. A cell that is not editable shows a value that follows from the others.
 	static void setCell(QTableWidget& table, int row, int column, const QString& text, bool editable = true) {
 		auto* item = new QTableWidgetItem(text);
 		if (!editable)
 			item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 		table.setItem(row, column, item);
+	}
+
+	// The text of a number with enough digits to give the number back.
+	static QString numberText(double value) {
+		return QString::number(value, 'g', std::numeric_limits<double>::max_digits10);
+	}
+
+	static QString flagText(bool value) { return value ? QStringLiteral("true") : QStringLiteral("false"); }
+
+	static Edit setText(const QString& text, std::string& target) {
+		const std::string value = text.toStdString();
+		if (target == value)
+			return Edit::Unchanged;
+		target = value;
+		return Edit::Changed;
+	}
+
+	static Edit setNumber(const QString& text, double& target) {
+		bool parsed = false;
+		const double number = text.toDouble(&parsed);
+		if (!parsed || !std::isfinite(number))
+			return Edit::Refused;
+		if (target == number)
+			return Edit::Unchanged;
+		target = number;
+		return Edit::Changed;
+	}
+
+	static Edit setFlag(const QString& text, bool& target) {
+		const QString lower = text.toLower();
+		if (lower != QStringLiteral("true") && lower != QStringLiteral("false"))
+			return Edit::Refused;
+		const bool flag = lower == QStringLiteral("true");
+		if (target == flag)
+			return Edit::Unchanged;
+		target = flag;
+		return Edit::Changed;
+	}
+
+	// Whether the item in `row` can take `id`: it is not empty, and no other item has it.
+	template <typename Item>
+	static bool idCanReplaceRow(const std::vector<Item>& items, int row, const std::string& id) {
+		if (id.empty())
+			return false;
+		for (int index = 0; index < static_cast<int>(items.size()); ++index)
+			if (index != row && items[static_cast<std::size_t>(index)].id == id)
+				return false;
+		return true;
 	}
 };
 

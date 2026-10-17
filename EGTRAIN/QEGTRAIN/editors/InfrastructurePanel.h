@@ -19,13 +19,14 @@ class QLabel;
 class QListWidget;
 class QPushButton;
 struct SceneSectionDescriptor;
+struct SceneSectionInventory;
 
 // The infrastructure of the scene: a combo to pick the kind of entity, a table with one row for each entity of that
 // kind, and the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections,
 // stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station
 // boundaries. What a kind lists and how it is edited is up to its InfrastructureFacet; a kind without one lists
 // nothing. Blocks come with a filter on the track and buttons that insert and move a block, and routes with the list of
-// their sections.
+// their sections and the buttons that change it. The buttons call the facet that is chosen.
 class InfrastructurePanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -62,6 +63,15 @@ public:
 	void commitCell(int row, int column);
 	void addEntity();
 	void deleteEntity();
+	// Inserts an entity before the selected one, and moves the selected one down by `offset` rows, up when it is
+	// negative.
+	void insertEntity();
+	void moveEntity(int offset);
+	// Adds the section of the catalog that is chosen to the selected route, removes the selected section of the route,
+	// and moves it down by `offset` places, up when it is negative.
+	void addSection();
+	void removeSection();
+	void moveSection(int offset);
 
 	// The key of the chosen facet and the name that the combo shows for it.
 	QString facetKey() const;
@@ -84,9 +94,13 @@ public:
 	bool canEdit() const;
 	// Shows a message in the status line of the window.
 	void showStatus(const QString& text, int timeoutMs = 4000);
-	// A facet has changed the model: marks the document changed under `label`, tells changed(), and lists the entities
-	// again.
+	// A facet has changed the model: marks the document changed under `label`, tells changed() and entitiesChanged(), and
+	// lists the entities again.
 	void entityChanged(const QString& label);
+	// A facet has changed the model through a widget in the table, which lists the entities again only by being
+	// replaced: marks the document changed under `label` and tells changed(). The facet lists the entities again when
+	// it needs to.
+	void entityEdited(const QString& label);
 	// A facet has refused an edit and left the model as it was. Shows `message` when there is one, and lists the
 	// entities again so that the table shows the model.
 	void refuseEdit(const QString& message = {});
@@ -97,6 +111,11 @@ public:
 
 	// The text that names a section in a list of sections.
 	static QString sectionLabel(const SceneSectionDescriptor& section);
+	// Fills `combo` with the sections of the inventory, each with the id of the section as its data, and chooses
+	// `current`. A section that is not in the inventory gets an item of its own, and `allowNone` adds an item with
+	// `noneLabel` and no data on top.
+	static void populateSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory, const std::string& current,
+		bool allowNone, const QString& noneLabel);
 
 	QComboBox* facetCombo() const { return m_facetCombo; }
 	QPushButton* addButton() const { return m_addButton; }
@@ -119,6 +138,8 @@ Q_SIGNALS:
 	// been filled again. `facet` is the key of the chosen facet and `id` the id of the selected entity, empty when no
 	// row is selected.
 	void selectionChanged(const QString& facet, const QString& id);
+	// A facet has changed the entities of its kind and listed them again. `facet` is its key.
+	void entitiesChanged(const QString& facet);
 	void statusMessage(const QString& text, int timeoutMs);
 
 private:

@@ -1,7 +1,6 @@
 #include "editors/infrastructure/TopologyFacets.h"
 
-#include "editors/InfrastructurePanel.h"
-#include "scene/SceneIds.h"
+#include "editors/infrastructure/ListFacet.h"
 #include "scene/SceneReferences.h"
 
 #include <QString>
@@ -10,164 +9,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <limits>
 #include <string>
-#include <utility>
+#include <vector>
 
 namespace {
-
-// Enough digits for the text of a number to give the number back.
-constexpr int kNumberDigits = std::numeric_limits<double>::max_digits10;
-
-QString numberText(double value) {
-	return QString::number(value, 'g', kNumberDigits);
-}
-
-QString flagText(bool value) {
-	return value ? QStringLiteral("true") : QStringLiteral("false");
-}
-
-// What came of the text of an edited cell.
-enum class Edit {
-	Unchanged,
-	Changed,
-	// The text is no value of the field. The table shows the model again.
-	Refused,
-	// The text is no id that the entity can have, because it is empty or another entity has it.
-	UnsafeId,
-};
-
-Edit setText(const QString& text, std::string& target) {
-	const std::string value = text.toStdString();
-	if (target == value)
-		return Edit::Unchanged;
-	target = value;
-	return Edit::Changed;
-}
-
-Edit setNumber(const QString& text, double& target) {
-	bool parsed = false;
-	const double number = text.toDouble(&parsed);
-	if (!parsed || !std::isfinite(number))
-		return Edit::Refused;
-	if (target == number)
-		return Edit::Unchanged;
-	target = number;
-	return Edit::Changed;
-}
-
-Edit setFlag(const QString& text, bool& target) {
-	const QString lower = text.toLower();
-	if (lower != QStringLiteral("true") && lower != QStringLiteral("false"))
-		return Edit::Refused;
-	const bool flag = lower == QStringLiteral("true");
-	if (target == flag)
-		return Edit::Unchanged;
-	target = flag;
-	return Edit::Changed;
-}
-
-// Whether the item in `row` can take `id`: it is not empty, and no other item has it.
-template <typename Item>
-bool idCanReplaceRow(const std::vector<Item>& items, int row, const std::string& id) {
-	if (id.empty())
-		return false;
-	for (int index = 0; index < static_cast<int>(items.size()); ++index)
-		if (index != row && items[static_cast<std::size_t>(index)].id == id)
-			return false;
-	return true;
-}
-
-// A facet over one list of the model, whose items have an id and are listed in the order of the list. The column
-// of the id is the first.
-template <typename Item>
-class ListFacet : public InfrastructureFacet {
-public:
-	QString key() const override { return m_key; }
-	QStringList columns() const override { return m_columns; }
-
-	void fillRows(InfrastructurePanel& panel) override {
-		const std::vector<Item>& items = panel.model().*m_list;
-		QTableWidget& table = *panel.table();
-		table.setRowCount(static_cast<int>(items.size()));
-		for (int row = 0; row < table.rowCount(); ++row)
-			fillRow(table, row, items[static_cast<std::size_t>(row)]);
-	}
-
-	void commitCell(InfrastructurePanel& panel, int row, int column) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
-		if (row >= static_cast<int>(items.size()))
-			return;
-		const QString value = panel.table()->item(row, column)->text().trimmed();
-		Item& item = items[static_cast<std::size_t>(row)];
-		Edit edit = Edit::Unchanged;
-		if (column == 0) {
-			const std::string newId = value.toStdString();
-			if (item.id != newId) {
-				if (idCanReplaceRow(items, row, newId)) {
-					const std::string oldId = item.id;
-					item.id = newId;
-					rewriteReferences(panel.mutableModel(), oldId, newId);
-					panel.setSelectionId(value);
-					edit = Edit::Changed;
-				} else {
-					edit = Edit::UnsafeId;
-				}
-			}
-		} else {
-			edit = editField(item, column, value);
-		}
-		if (edit == Edit::Changed)
-			panel.entityChanged((column == 0 ? QStringLiteral("Rename %1") : QStringLiteral("Edit %1")).arg(m_noun));
-		else if (edit == Edit::UnsafeId)
-			panel.refuseEdit(QStringLiteral("Infrastructure IDs must be non-empty and unique"));
-		else if (edit == Edit::Refused)
-			panel.refuseEdit();
-	}
-
-	void add(InfrastructurePanel& panel) override {
-		SceneModel& model = panel.mutableModel();
-		const std::string id = sceneUniqueInfrastructureId(model, m_noun.toStdString(), m_key.toStdString());
-		(model.*m_list).push_back(newItem(model, id));
-		panel.setSelectionId(QString::fromStdString(id));
-		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
-	}
-
-	void remove(InfrastructurePanel& panel) override {
-		std::vector<Item>& items = panel.mutableModel().*m_list;
-		const int row = panel.table()->currentRow();
-		if (row < 0 || row >= static_cast<int>(items.size()))
-			return;
-		const std::string id = items[static_cast<std::size_t>(row)].id;
-		if (id.empty())
-			return;
-		if (!panel.confirmDelete(QString::fromStdString(id), sceneDirectDeleteConsumers(panel.model(), m_key.toStdString(), id)))
-			return;
-		items.erase(items.begin() + row);
-		panel.setSelectionId(QString());
-		panel.entityChanged(QStringLiteral("Delete %1").arg(m_noun));
-	}
-
-protected:
-	// `comboKey` is the value of the combo, `noun` names one entity and is the base of the ids of new ones.
-	ListFacet(const char* comboKey, const char* noun, std::vector<Item> SceneModel::* list, QStringList headers)
-		: m_key(QString::fromLatin1(comboKey)), m_noun(QString::fromLatin1(noun)), m_list(list), m_columns(std::move(headers)) {}
-
-	// Puts the cells of the entity in `row`.
-	virtual void fillRow(QTableWidget& table, int row, const Item& item) const = 0;
-	// Takes the text of a cell other than the id into the item.
-	virtual Edit editField(Item& item, int column, const QString& value) const = 0;
-	// A new item with this id, as the model is now.
-	virtual Item newItem(const SceneModel& model, const std::string& id) const = 0;
-	// What refers to the item that was renamed.
-	virtual void rewriteReferences(SceneModel&, const std::string&, const std::string&) const {}
-
-private:
-	QString m_key;
-	QString m_noun;
-	std::vector<Item> SceneModel::* m_list;
-	QStringList m_columns;
-};
 
 class TracksFacet final : public ListFacet<SceneTrack> {
 public:
