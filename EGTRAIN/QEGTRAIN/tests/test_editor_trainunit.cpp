@@ -547,8 +547,8 @@ int main(int argc, char** argv) {
 				&& panel.unlinkButton(false)->y() == panel.retryButton(false)->y(),
 			qPrintable("Link is above Unlink and Retry on the Physical tab" + label));
 		bool fieldsInside = true;
-		for (const QDoubleSpinBox* edit : panel.physicalEdits())
-			fieldsInside = fieldsInside && panel.rect().contains(QRect(edit->mapTo(&panel, QPoint(0, 0)), edit->size()));
+		for (const QDoubleSpinBox* field : panel.physicalEdits())
+			fieldsInside = fieldsInside && panel.rect().contains(QRect(field->mapTo(&panel, QPoint(0, 0)), field->size()));
 		ok &= expect(fieldsInside, qPrintable("the physical fields are whole inside the panel at its minimum width" + label));
 	}
 
