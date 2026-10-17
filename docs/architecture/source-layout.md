@@ -131,7 +131,7 @@ Still compiled in more than one target: the telemetry sources of the hook flavou
 `TelemetryConsentDialog.cpp`, which the application builds without the consent hook
 and `test_telemetryconsent` with it, `SelfUpdater.cpp`, which `test_selfupdater`
 builds with `EGTRAIN_UPDATE_TEST_HOOK`, and `app/UpdateTelemetryController.cpp`, which
-`test_updatetelemetrycontroller` builds with both of them. The hook lets that test replace the
+`test_updatetelemetrycontroller` builds again without the hooks. The update hook lets `test_selfupdater` replace the
 capability of the running copy and the base of the package URLs, and lets its transport
 fetch over http, so that it can update from a server on the loopback address into a folder
 of its own. Only the application
