@@ -114,7 +114,10 @@ class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
 class DelayAnalysisWindow;
+class EntranceDelayPanel;
+class IncidentPanel;
 class PassengerPanel;
+class ScenarioPanel;
 class ServicePanel;
 class UserPrompts;
 class QPlainTextEdit;
@@ -541,6 +544,8 @@ private:
 
 	// scenario library and selected scenario's incident editor
 	QDockWidget* m_incidentDock = nullptr;
+	ScenarioPanel* m_scenarioPanel = nullptr;
+	// Parts of m_scenarioPanel, for the scripted runs in tests/e2e
 	QListWidget* m_scenarioListWidget = nullptr;
 	QLineEdit* m_scenarioIdEdit = nullptr;
 	QLineEdit* m_scenarioNameEdit = nullptr;
@@ -548,22 +553,22 @@ private:
 	QPushButton* m_blankScenarioButton = nullptr;
 	QPushButton* m_duplicateScenarioButton = nullptr;
 	QPushButton* m_deleteScenarioButton = nullptr;
-	QPushButton* m_importScenarioButton = nullptr;
-	QPushButton* m_exportScenarioButton = nullptr;
-	QListWidget* m_incidentListWidget = nullptr;	 // one row per SceneIncident
-	QLineEdit* m_incidentIdEdit = nullptr;			 // id of the selected incident
-	QComboBox* m_incidentTypeCombo = nullptr;		 // "signal_failure" | "train_breakdown"
-	QComboBox* m_incidentTargetCombo = nullptr;		 // signal id or service id depending on type
-	QLineEdit* m_incidentStartSecondsEdit = nullptr; // whole seconds
-	QLineEdit* m_incidentEndSecondsEdit = nullptr;	 // whole seconds
+	IncidentPanel* m_incidentPanel = nullptr;
+	// Parts of m_incidentPanel, for the scripted runs in tests/e2e
+	QListWidget* m_incidentListWidget = nullptr;
+	QLineEdit* m_incidentIdEdit = nullptr;
+	QComboBox* m_incidentTypeCombo = nullptr;
+	QComboBox* m_incidentTargetCombo = nullptr;
+	QLineEdit* m_incidentStartSecondsEdit = nullptr;
+	QLineEdit* m_incidentEndSecondsEdit = nullptr;
 	QCheckBox* m_incidentHasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_incidentReducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_incidentHasEndSecondsCheck = nullptr;
 	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
-	QPushButton* m_duplicateIncidentButton = nullptr;
-	QPushButton* m_deleteIncidentButton = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
+	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
+	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
 	QListWidget* m_entranceDelayListWidget = nullptr;
 	QComboBox* m_entranceDelayServiceCombo = nullptr;
 	QSpinBox* m_entranceDelayOccurrenceEdit = nullptr;
@@ -688,7 +693,6 @@ private:
 	void updateInfrastructureSelection();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
-	void updateScenarioPresentation();
 	bool advancedDetailsEnabled() const;
 	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
@@ -731,49 +735,12 @@ private:
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
 
-	// incident editor
-	void refreshScenarioList();
+	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
-	void updateScenarioDetailPanel();
-	void selectScenario(int row);
-	void addBlankScenario();
-	void duplicateScenario();
-	void deleteScenario();
-	void importScenario();
-	void exportScenario();
-	void commitScenarioIdEdit();
-	void commitScenarioNameEdit();
-	void commitScenarioDescriptionEdit();
-	void updateIncidentDetailPanel();
-	void refreshIncidentTargetCombo();
-	void addIncident();
-	void duplicateIncident();
-	void deleteIncident();
-	void commitIncidentIdEdit();
-	void commitIncidentType(const QString& text);
-	void commitIncidentTarget(const QString& text);
-	void commitIncidentStartSeconds();
-	void commitIncidentEndSeconds();
-	void commitIncidentReducedSpeed();
-	void commitIncidentHasReducedSpeed(bool checked);
-	void commitIncidentHasEndSeconds(bool checked);
-	void commitIncidentTerminateAtDestination(bool checked);
-	void refreshEntranceDelayPanel();
-	void updateEntranceDelayDetailPanel();
-	void addEntranceDelay();
-	void duplicateEntranceDelay();
-	void deleteEntranceDelay();
-	void commitEntranceDelayService(int index);
-	void commitEntranceDelayOccurrence();
-	void commitEntranceDelayStation(int index);
-	void commitEntranceDelaySeconds();
-	SceneEntranceDelay* selectedEntranceDelay();
 	SceneScenario* selectedScenario();
 	const SceneScenario* selectedScenario() const;
-	SceneIncident* selectedIncident();
 	std::vector<SceneIncident>& selectedScenarioIncidents();
 	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
-	void markScenarioModified();
 	QString scenarioContext() const;
 	QString runReviewText() const;
 	bool showRunReview();

@@ -32,6 +32,13 @@ public:
 			QMessageBox::critical(parent, title, message);
 	}
 
+	// A message that the user acknowledges. A scripted run has no user to do that, so nothing is shown then.
+	virtual void showInfo(QWidget* parent, const QString& title, const QString& message) {
+		if (m_suppressed && m_suppressed())
+			return;
+		QMessageBox::information(parent, title, message);
+	}
+
 	// A Yes or No question whose default answer is No.
 	virtual bool confirm(QWidget* parent, const QString& title, const QString& question) {
 		return QMessageBox::question(parent, title, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)

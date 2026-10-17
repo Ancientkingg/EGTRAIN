@@ -38,6 +38,22 @@ int sceneInPeriodOccurrences(const SceneModel& model, double durationSeconds) {
 	return static_cast<int>(total);
 }
 
+SceneScenario* RunSelection::selectedScenario(SceneModel& model) const {
+	for (SceneScenario& scenario : model.scenarios) {
+		if (scenario.id == m_scenarioId)
+			return &scenario;
+	}
+	return defaultScenario(model);
+}
+
+const SceneScenario* RunSelection::selectedScenario(const SceneModel& model) const {
+	for (const SceneScenario& scenario : model.scenarios) {
+		if (scenario.id == m_scenarioId)
+			return &scenario;
+	}
+	return defaultScenario(model);
+}
+
 void RunSelection::scenarioRenamed(const std::string& oldId, const std::string& newId) {
 	m_scenarioId = newId;
 	m_modifiedScenarioIds.erase(oldId);
