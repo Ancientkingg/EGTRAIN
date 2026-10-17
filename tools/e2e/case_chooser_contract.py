@@ -17,7 +17,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def tooltip(name, path):
-    return f"<p>{html.escape(name, quote=False)}<br>{html.escape(str(path), quote=False)}</p>"
+    """The tooltip of a row: Qt::convertFromPlainText of the name, a line break and the path."""
+    return f"<p>{html.escape(name, quote=False)}<br>\n{html.escape(str(path), quote=False)}</p>"
+
+
+def shown_lines(tip):
+    """The lines a tooltip shows once the rich text is read: the name and the path as typed."""
+    assert tip.startswith("<p>") and tip.endswith("</p>"), tip
+    return [html.unescape(line) for line in tip[3:-4].split("<br>\n")]
 
 
 def launch(app: Path, settings: Path, recents=(), interaction="", target=None):
@@ -92,11 +99,13 @@ def main():
             assert fixture_rows[0] == {"title": title.strip(), "path": str(fixture),
                                        "enabled": True, "selectable": True,
                                        "tooltip": tooltip(title.strip(), fixture)}, fixture_rows
+            assert shown_lines(fixture_rows[0]["tooltip"]) == [title.strip(), str(fixture)], fixture_rows
             assert not any(row["path"] == str(alias) for row in rows), rows
             assert sum(row["path"] == first["path"] for row in rows) == 1, rows
             assert sum(row["title"] == "Recent cases" for row in rows) == 1, rows
             assert not any(row["title"] == "No other recent cases to show" for row in rows), rows
             unavailable = next(row for row in rows if row["tooltip"] == tooltip("missing case", missing))
+            assert shown_lines(unavailable["tooltip"]) == ["missing case", str(missing)], unavailable
             assert unavailable["title"] == "Unavailable: missing case", unavailable
             assert not unavailable["enabled"] and not unavailable["selectable"], unavailable
             assert str(missing) in settings_text, settings_text

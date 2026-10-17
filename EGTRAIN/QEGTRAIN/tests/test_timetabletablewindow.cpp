@@ -8,12 +8,15 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QFile>
+#include <QHelpEvent>
 #include <QScreen>
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QTextDocument>
+#include <QToolTip>
 
 #include <iostream>
 
@@ -116,6 +119,20 @@ static bool exerciseButtonDefaults() {
 	return ok;
 }
 
+// The text that the tooltip of `widget` shows once the pointer rests on it.
+static QString shownTip(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	if (!Qt::mightBeRichText(text))
+		return text;
+	QTextDocument document;
+	document.setHtml(text);
+	return document.toPlainText();
+}
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
 	QFile stylesheet(QStringLiteral(EGTRAIN_DIALOG_QSS));
@@ -135,7 +152,7 @@ int main(int argc, char** argv) {
 	window.show();
 	app.processEvents();
 	const auto* table = window.findChild<QTableWidget*>();
-	const auto* context = window.findChild<QLabel*>("timetableContext");
+	auto* context = window.findChild<QLabel*>("timetableContext");
 	const QRect screen = window.screen()->availableGeometry();
 	bool ok = window.width() <= screen.width() * 9 / 10
 		&& window.height() <= screen.height() * 4 / 5
@@ -158,5 +175,12 @@ int main(int argc, char** argv) {
 		"a train of a coloured service has its swatch and another train has none");
 	ok &= exerciseTrainColorsForRun();
 	ok &= exerciseButtonDefaults();
+	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
+			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
+		window.setPresentation("Timetable", text);
+		app.processEvents();
+		ok &= expect(context->isVisible() && shownTip(context) == text,
+			"the context tooltip shows the context as typed");
+	}
 	return ok ? 0 : 1;
 }

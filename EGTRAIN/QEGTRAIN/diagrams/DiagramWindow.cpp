@@ -2,6 +2,7 @@
 #include "app/DialogFolders.h"
 #include "diagrams/TrainFilterButton.h"
 #include "util/TimeFormat.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QApplication>
 #include <QGraphicsObject>
@@ -421,7 +422,7 @@ void DiagramWindow::setPresentation(const QString& heading, const QString& conte
 	m_warningLabel->setVisible(!warning.isEmpty());
 	m_contextLabel->setMaximumHeight(m_contextLabel->fontMetrics().height() * 3);
 	m_contextLabel->setText(context);
-	m_contextLabel->setToolTip(context.toHtmlEscaped());
+	m_contextLabel->setToolTip(plainToolTip(context));
 	m_contextLabel->setVisible(!context.isEmpty());
 }
 
