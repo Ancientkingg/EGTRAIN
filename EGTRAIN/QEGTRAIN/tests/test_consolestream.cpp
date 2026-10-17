@@ -319,6 +319,28 @@ static bool testDock() {
 	return ok;
 }
 
+// The messages of a run: progress lines that start with a carriage return, and the end line that starts with a line break.
+// The dock shows each on a line of its own, with level and category in front.
+static bool testDockRunMessages() {
+	LoggingReset reset;
+	StreamCapture streams;
+	ConsoleWidget dock;
+	QPlainTextEdit* edit = dock.findChild<QPlainTextEdit*>();
+	if (!expect(edit != nullptr, "the dock holds a text edit"))
+		return false;
+	installConsoleLogging();
+
+	EG_LOG(AppRun, Info) << "\r Time of simulation is 0";
+	EG_LOG(AppRun, Info) << "\r Time of simulation is 100";
+	EG_LOG(AppRun, Info) << "\n End of Simulation";
+	QStringList lines;
+	for (const QString& line : edit->toPlainText().split(QLatin1Char('\n')))
+		if (!line.isEmpty())
+			lines << line;
+	const QStringList expected{"info app.run:  Time of simulation is 0", "info app.run:  Time of simulation is 100", "info app.run:  End of Simulation"};
+	return expect(lines == expected, "each progress line and the end line are on a line of their own");
+}
+
 int main(int argc, char** argv) {
 	// Qt reads these once, at its first message.
 	qunsetenv("QT_MESSAGE_PATTERN");
@@ -407,5 +429,6 @@ int main(int argc, char** argv) {
 	ok &= testLogFile();
 	ok &= testQtMessageInsideSink();
 	ok &= testDock();
+	ok &= testDockRunMessages();
 	return ok ? 0 : 1;
 }

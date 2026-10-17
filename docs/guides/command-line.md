@@ -77,13 +77,15 @@ QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-run ../../build/QEGTRAIN --scene path/to/scene
 
 ## Log output
 
-The warnings and events of the simulation and every Qt message go through the logging core, and each has a category and a level. The categories are `sim.setup`, `sim.step`, `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`; the levels are `debug`, `info`, `warning` and `error`. A Qt message is an `app.ui` message at the level of its kind (`qDebug`, `qInfo`, `qWarning`, `qCritical`). Every category and level is on by default, except `sim.step` at `debug`. Output that does not go through the core is not changed by the variables below.
+The warnings and events of the simulation and every Qt message go through the logging core, and each has a category and a level. The categories are `sim.setup`, `sim.step`, `sim.events`, `sim.pax`, `io.railml`, `io.zmq`, `app.run`, `app.ui` and `update`; the levels are `debug`, `info`, `warning` and `error`. A Qt message is an `app.ui` message at the level of its kind (`qDebug`, `qInfo`, `qWarning`, `qCritical`). Every category and level is on by default, except `sim.step` at `debug`. That is the line `At time <t> Train<name> is stopping at <station> at <platform>`, which a stopped train writes in every step. The progress of a run (`Time of simulation is <t>`, once in 100 steps) and the XML of the legacy `-TSM` and `-RC` channels go through the core too. Output that does not go through the core is not changed by the variables below: the line `Graphical user interface (GUI): 0` or `1`, the line `End of Simulation` that a run without a window prints when it completes, and the diagnostics of the scene.
 
 `EGTRAIN_LOG` switches categories and levels on and off. It holds rules separated by `;` or a newline, each `pattern=true` or `pattern=false`. A pattern is a category name, a name with a `*` at the start, at the end or at both ends (`sim.*`, `*.run`, `*step*`), or `*`, with an optional level suffix (`app.ui.warning`); a later rule wins. `QT_LOGGING_RULES` still decides which Qt messages exist.
 
 ```bash
 EGTRAIN_LOG='app.ui.debug=false' QEGTRAIN -n 2
 ```
+
+To get the line of every stopped train back, set `EGTRAIN_LOG=sim.step=true`.
 
 A malformed rule is skipped and the other rules apply. The program prints one `WARNING: EGTRAIN_LOG has a malformed rule` line on standard error and starts as usual; the exit code does not change.
 

@@ -706,7 +706,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 							this->CurrentServiceStopPlatform = Stations[s].stationPlatformId;
 							recordCurrentServiceStopArrival(time_seconds);
 
-							EG_LOG(SimStep, Info) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
+							EG_LOG(SimStep, Debug) << "At time " << time_seconds << " Train" << this->trainDescription << " is stopping at " << this->CurrentServiceStop << " at " << this->CurrentServiceStopPlatform << "\n";
 
 							stoptime = Stations[s].StopTime;
 							dep_time = ScheduledDepartures[s];
