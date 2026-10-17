@@ -118,7 +118,8 @@ def build_executable_paths(name: str) -> list[Path]:
 def find_executable(name: str, env_var: str) -> Path:
     """The program from the environment variable `env_var`, else the one in the build folder of this platform."""
     override = os.environ.get(env_var)
-    candidates = [Path(override)] if override else build_executable_paths(name)
+    # An override relative to the current folder is made absolute: the smokes start the program in another folder.
+    candidates = [Path(override).absolute()] if override else build_executable_paths(name)
     for candidate in candidates:
         if candidate.is_file():
             return candidate

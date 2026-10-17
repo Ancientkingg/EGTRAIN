@@ -97,6 +97,14 @@ def check_executable_lookup() -> None:
         with mock.patch.dict(os.environ, {"QEGTRAIN_APP": str(program)}):
             if find_executable("QEGTRAIN", "QEGTRAIN_APP") != program:
                 raise SystemExit("QEGTRAIN_APP is not used for the application")
+        before = os.getcwd()
+        os.chdir(tmp)
+        try:
+            with mock.patch.dict(os.environ, {"QEGTRAIN_APP": "program"}):
+                if find_executable("QEGTRAIN", "QEGTRAIN_APP") != Path(os.getcwd()) / "program":
+                    raise SystemExit("a relative QEGTRAIN_APP is not made absolute")
+        finally:
+            os.chdir(before)
 
         expected = {
             "darwin": {"QEGTRAIN": ["build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"], "scene_tool": ["build/scene_tool"]},
