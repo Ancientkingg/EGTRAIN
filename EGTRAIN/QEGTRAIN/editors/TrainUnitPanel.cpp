@@ -226,6 +226,7 @@ void TrainUnitPanel::refresh() {
 	const bool loaded = hasScene();
 	{
 		const int previousRow = m_listWidget->currentRow();
+		const QString previousId = m_listWidget->currentItem() ? m_listWidget->currentItem()->text() : QString();
 		const QSignalBlocker blocker(m_listWidget);
 		m_listWidget->clear();
 		if (loaded) {
@@ -236,6 +237,8 @@ void TrainUnitPanel::refresh() {
 		int rowToSelect = -1;
 		if (rowCount > 0)
 			rowToSelect = previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1);
+		if (const int sameUnit = rowOfEntry(m_listWidget, previousId, previousRow); sameUnit >= 0)
+			rowToSelect = sameUnit;
 		m_listWidget->setCurrentRow(rowToSelect);
 		m_listWidget->setEnabled(loaded);
 	}

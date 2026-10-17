@@ -138,6 +138,7 @@ void CompositionPanel::refresh() {
 	const bool loaded = hasScene();
 	{
 		const int previousRow = m_listWidget->currentRow();
+		const QString previousId = m_listWidget->currentItem() ? m_listWidget->currentItem()->text() : QString();
 		const QSignalBlocker blocker(m_listWidget);
 		m_listWidget->clear();
 		if (loaded) {
@@ -154,6 +155,8 @@ void CompositionPanel::refresh() {
 			else
 				rowToSelect = previousRow;
 		}
+		if (const int sameComposition = rowOfEntry(m_listWidget, previousId, previousRow); sameComposition >= 0)
+			rowToSelect = sameComposition;
 		m_listWidget->setCurrentRow(rowToSelect);
 		m_listWidget->setEnabled(loaded);
 	}

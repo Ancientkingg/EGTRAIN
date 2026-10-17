@@ -15,6 +15,7 @@
 #include <QTemporaryDir>
 
 #include <array>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -534,6 +535,21 @@ int main(int argc, char** argv) {
 					"leaving the Physical page takes the number that was typed in a field");
 			}
 		}
+	}
+
+	{
+		// opening a scene that lists the selected rolling stock unit at another row keeps it selected
+		SceneDocument document;
+		TrainUnitPanel panel;
+		panel.setDocument(&document);
+		document.replace(unitScene(), false);
+		panel.listWidget()->setCurrentRow(1);
+		SceneModel reordered = unitScene();
+		std::reverse(reordered.trainUnits.begin(), reordered.trainUnits.end());
+		document.replace(reordered, false);
+		ok &= expect(items(panel.listWidget()) == QStringList({"u2", "u1"}) && panel.listWidget()->currentRow() == 0
+				&& panel.idEdit()->text() == "u2",
+			"opening a scene that lists the selected unit at another row keeps it selected");
 	}
 
 	{

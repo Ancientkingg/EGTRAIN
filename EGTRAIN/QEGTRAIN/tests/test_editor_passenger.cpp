@@ -17,6 +17,7 @@
 #include <QTableWidget>
 #include <QTemporaryDir>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -523,6 +524,21 @@ int main(int argc, char** argv) {
 		document.replace(passengerScene(), false);
 		ok &= expect(panel.passengerList()->count() == 0 && document.revision() == detachedRevision + 1,
 			"a detached panel neither edits nor follows the document");
+	}
+
+	{
+		// opening a scene that lists the selected passenger at another row keeps it selected
+		SceneDocument document;
+		PassengerPanel panel;
+		panel.setDocument(&document);
+		document.replace(passengerScene(), false);
+		panel.passengerList()->setCurrentRow(1);
+		SceneModel reordered = passengerScene();
+		std::reverse(reordered.passengers.begin(), reordered.passengers.end());
+		document.replace(reordered, false);
+		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P2", "P1"}) && panel.passengerList()->currentRow() == 0
+				&& panel.passengerIdEdit()->text() == "P2",
+			"opening a scene that lists the selected passenger at another row keeps it selected");
 	}
 
 	{
