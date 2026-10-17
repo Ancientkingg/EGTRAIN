@@ -209,6 +209,10 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   (`simulation/SimulationRun.h`). `SimulationRun::reset()` clears every member except the
   infrastructure in place. The old global names of the members that moved there, such as
   `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
+  The routines of `simulation/` take the run they work on as a `SimulationRun&` parameter, and the
+  member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
+  sets. They do not use the old names, which the application and the tests still use. They still
+  read the settings of a run from `initial_variables`, not from `SimulationRun::settings`.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` reads the buffer time, the recovery time, the
   output folder and the other settings of a run from the copy, so a change to `initial_variables`
@@ -217,7 +221,8 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   The infrastructure and the routes are `SimulationRun::infra`, a `RunInfrastructure`: the
   tracks, connections and stations (`blockSets`, `connections` and `StationArray`, vectors with
   a fixed number of elements that nothing resizes), the block sections, the detection sections,
-  the single-track data and `train_route`. The scene builder replaces them and the previous ones
+  the single-track data, with the zones that `singleTrackZone` derives from it, and `train_route`.
+  The scene builder replaces them and the previous ones
   stay until then, so `resetInfrastructure()` is a separate call, and a build that fails puts the
   earlier infrastructure back as it was. The canvas keeps `Node*`, `Arc*` and `Connections*` into
   the arrays, so `MainWindow` removes its items before a reset or a build. A new member of the
