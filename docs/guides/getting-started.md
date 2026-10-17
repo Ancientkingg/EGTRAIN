@@ -4,7 +4,7 @@ This page takes you from a download to a finished run of the Paimpol case study,
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key.
 
-This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with a build of the program: opening Paimpol, the dialog **Run simulation**, the run, the results table and the output folder `~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol` matched this page, with Ctrl as the shortcut key. The AppImage and its install step were not tried there. The Windows window uses the same labels but was not walked, and its install steps and folder path come from the README and from the code.
+This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with the program built from source: opening Paimpol, the dialog **Run simulation**, the run, the results table and the output folder `~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol` matched this page, with Ctrl as the shortcut key. The AppImage is started and walked through these steps by the Linux rehearsal job of each release run; its install step was not walked by hand. The Windows window uses the same labels but was not walked, and its install steps and folder path come from the README and from the code.
 
 ## Three things to keep apart
 
