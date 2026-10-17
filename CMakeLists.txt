@@ -742,7 +742,12 @@ if(EGTRAIN_BUILD_TESTS)
         ${SRC_DIR}/update/SelfUpdater.cpp)
     target_link_libraries(test_updatetelemetrycontroller PRIVATE egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt5::Widgets Qt5::Network)
     add_test(NAME test_updatetelemetrycontroller COMMAND test_updatetelemetrycontroller)
-    set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    # The test answers real message boxes, which crash Qt 5.15 on the offscreen platform on Windows.
+    if(WIN32)
+        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
+    else()
+        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endif()
 
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)
