@@ -26,7 +26,7 @@ Use one of these:
 - Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
+- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved, each under the name that **Open a Case** shows (a saved `.egscene` file without its extension). The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).

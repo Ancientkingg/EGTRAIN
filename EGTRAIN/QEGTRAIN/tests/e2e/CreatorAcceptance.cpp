@@ -1279,6 +1279,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
 			return;
 		}
+		// Later work of the window must not replace the message either.
+		process();
+		process();
+		if (w.statusBar()->currentMessage() != QLatin1String("Scene saved")) {
+			fail(QStringLiteral("the status bar does not read Scene saved after Save Case Study As: ") + w.statusBar()->currentMessage());
+			return;
+		}
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
 		const std::string originalName = w.m_document->mutableModel().name;
 		auto openRecent = [&w](const QString& path) {

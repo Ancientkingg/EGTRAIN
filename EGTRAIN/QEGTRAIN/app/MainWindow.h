@@ -485,6 +485,7 @@ private:
 	bool dialogsSuppressed() const override;
 	void commitPendingEdits() override;
 	bool afterRunStopped(std::function<void()> action) override;
+	void bringToFront() override;
 	void offerUpdateCheck() override;
 	void sceneActionsChanged() override;
 	QString recoveredSceneSource() const override;

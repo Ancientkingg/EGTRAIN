@@ -145,6 +145,8 @@ void SceneSession::drop(QDropEvent* event) {
 		return;
 	}
 
+	// The question about unsaved changes, or any other that the open asks, must not open behind the file manager.
+	m_host.bringToFront();
 	if (!requestOpenScene(path)) {
 		event->ignore();
 		return;
@@ -392,6 +394,8 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	refreshSavedSceneMetadata(m_document->mutableModel());
 	m_document->mutableModel().savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	// A saved folder case may carry a new name, which Recent Scenes shows.
+	rebuildRecentScenesMenu();
 	m_host.sceneSaved();
 	return true;
 }
@@ -597,21 +601,37 @@ void SceneSession::rebuildRecentScenesMenu() {
 
 	m_recentScenesMenu->clear();
 	const QStringList recent = recentScenes();
-	// Label entries by scene name; the full path stays in the status tip. When
-	// two checkouts share a scene name, a shortened parent path tells them apart.
+	// Label entries as the chooser does; the full path stays in the status tip. When two entries
+	// share a label, a shortened parent path tells them apart, and the file name when the parent is
+	// the same too.
 	QHash<QString, int> nameCount;
-	for (const QString& path : recent)
-		++nameCount[QFileInfo(path).fileName()];
+	QStringList names;
 	for (const QString& path : recent) {
-		const QFileInfo info(path);
-		const QString name = info.fileName();
-		QString label = name;
-		if (nameCount.value(name) > 1) {
-			QString parent = display_path::format(info.dir().path());
+		names << sceneDisplayName(path);
+		++nameCount[names.last()];
+	}
+	QStringList labels;
+	QHash<QString, int> labelCount;
+	for (int i = 0; i < recent.size(); ++i) {
+		QString label = names.at(i);
+		if (nameCount.value(label) > 1) {
+			QString parent = display_path::format(QFileInfo(recent.at(i)).dir().path());
 			if (parent.length() > 44)
 				parent = parent.left(20) + "..." + parent.right(20);
-			label = QString("%1 (%2)").arg(name, parent);
+			label = QString("%1 (%2)").arg(label, parent);
 		}
+		labels << label;
+		++labelCount[label];
+	}
+	for (int i = 0; i < recent.size(); ++i) {
+		const QString& path = recent.at(i);
+		QString label = labels.at(i);
+		if (labelCount.value(label) > 1) {
+			label.chop(1);
+			label += display_path::format("/" + QFileInfo(path).fileName()) + ")";
+		}
+		// A scene name may hold '&', which a menu would read as a mnemonic.
+		label.replace('&', "&&");
 		const bool exists = recentSceneExists(path);
 		QAction* action = m_recentScenesMenu->addAction(exists ? label : unavailableLabel(label));
 		action->setEnabled(exists);

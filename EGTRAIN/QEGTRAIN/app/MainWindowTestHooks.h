@@ -54,6 +54,8 @@ struct MainWindowTestHooks {
 	void (*observationStep)(int step) = nullptr;
 	// Called when the worker of a run is set up and before its thread starts.
 	void (*runStarting)(MainWindow& window) = nullptr;
+	// Called each time the window has been raised and activated so that a question in front of it is seen.
+	std::function<void(MainWindow& window)> windowBroughtToFront;
 	// Called at the end of the destructor of the window.
 	void (*windowDestroyed)() = nullptr;
 	// Called once the window of a route diagram is built, with the function that gives its CSV for the trains shown and

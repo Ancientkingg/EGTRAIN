@@ -53,7 +53,7 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 
 1. Choose **File > Save Scene**. This writes `paimpol-practice.egscene`.
 2. Open the original: choose **Open Case** in the toolbar, then **Paimpol** under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
-3. Choose **File > Recent Scenes > paimpol-practice.egscene**, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
+3. Choose **File > Recent Scenes > paimpol-practice**, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
 The supplied case is a scene folder, not a file. In a source checkout, this prints nothing:
 
