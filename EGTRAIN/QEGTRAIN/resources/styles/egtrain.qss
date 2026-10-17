@@ -259,6 +259,11 @@ QDialog#caseChooserDialog QListWidget::item:disabled {
     background: transparent;
 }
 
+QDialog#caseChooserDialog QListWidget::item:selected {
+    background: #d8e1e5;
+    color: #24313a;
+}
+
 QLabel#runReviewDetails {
     background: #eef2f5;
     border: 1px solid #c9d3db;
