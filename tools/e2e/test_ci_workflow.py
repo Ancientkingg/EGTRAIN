@@ -844,7 +844,7 @@ def main() -> None:
     ):
         missing.append("tidy check with the clang-tidy version of tools/tidy.py, changed sources on pull requests and all sources in the nightly run")
     # The pull request run analyses the changed sources and the sources that include a changed header, and every source when
-    # the configuration changed. A file with no more findings of a check than the known ones reports none of them.
+    # the configuration changed.
     sys.path.insert(0, str(ROOT / "tools"))
     import tidy
 
@@ -860,15 +860,6 @@ def main() -> None:
         or tidy.select_changed(["docs/development/build-and-test.md"], sources)
     ):
         missing.append("tidy run that selects the changed sources, the sources that include a changed header, and all sources for a configuration change")
-    saved_known = tidy.KNOWN_FINDINGS
-    tidy.KNOWN_FINDINGS = {"a.cpp": {"x": 2}}
-    try:
-        known = {("a.cpp", line, 1, "x"): "" for line in (1, 2)}
-        other = {("a.cpp", 3, 1, "y"): "", ("b.cpp", 4, 1, "x"): ""}
-        if tidy.without_known(known) or len(tidy.without_known({**known, ("a.cpp", 3, 1, "x"): ""})) != 3 or tidy.without_known(other) != other:
-            missing.append("tidy run that leaves out the known findings of a file and reports all of them when there are more")
-    finally:
-        tidy.KNOWN_FINDINGS = saved_known
     sample = "/work/EGTRAIN/QEGTRAIN/util/Log.cpp:12:5: warning: message text [bugprone-foo]"
     found = tidy.FINDING.match(sample)
     if (

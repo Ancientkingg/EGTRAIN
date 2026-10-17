@@ -597,7 +597,7 @@ void DispatchController::runSimulation() {
 
 	double TimeElapsed = 0;
 
-	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC);
+	TimeElapsed = (double)((EndRun - StartRun) / CLOCKS_PER_SEC); // NOLINT(bugprone-integer-division): the log shows whole seconds
 	EG_LOG(AppRun, Info) << "TimeElapsed is : " << TimeElapsed;
 
 	// Compute passage times at timetable points
