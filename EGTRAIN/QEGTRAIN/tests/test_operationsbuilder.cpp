@@ -1649,8 +1649,8 @@ static bool signalFailureEvidenceTests() {
 	bool ok = true;
 	const QString fixture = QDir(QStringLiteral(EGTRAIN_TEST_SOURCE_DIR)).filePath("fixtures/scenes/crossovers");
 	const auto loaded = loadScene(fixture.toStdString());
-	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
-		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1)
 		return expect(false, "signal failure evidence fixture prepares native crossover stock");
 	const Train stock = regional_train[0];
 	Route& route = train_route[stock.indexOfRoute];
