@@ -320,7 +320,7 @@ static bool testDock() {
 }
 
 // The messages of a run: progress lines that start with a carriage return, and the end line that starts with a line break.
-// The dock shows each on a line of its own, with level and category in front.
+// The dock shows each on a line of its own, with level and category in front, and no empty line before a progress line.
 static bool testDockRunMessages() {
 	LoggingReset reset;
 	StreamCapture streams;
@@ -330,15 +330,18 @@ static bool testDockRunMessages() {
 		return false;
 	installConsoleLogging();
 
+	EG_LOG(AppRun, Info) << "\n\nSimulating Train Runs...\n\n";
 	EG_LOG(AppRun, Info) << "\r Time of simulation is 0";
 	EG_LOG(AppRun, Info) << "\r Time of simulation is 100";
+	EG_LOG(AppRun, Info) << "\r Time of simulation is 200";
 	EG_LOG(AppRun, Info) << "\n End of Simulation";
-	QStringList lines;
-	for (const QString& line : edit->toPlainText().split(QLatin1Char('\n')))
-		if (!line.isEmpty())
-			lines << line;
-	const QStringList expected{"info app.run:  Time of simulation is 0", "info app.run:  Time of simulation is 100", "info app.run:  End of Simulation"};
-	return expect(lines == expected, "each progress line and the end line are on a line of their own");
+	const QString expected = QStringLiteral(
+		"\n\ninfo app.run: Simulating Train Runs...\n\n"
+		"info app.run:  Time of simulation is 0\n"
+		"info app.run:  Time of simulation is 100\n"
+		"info app.run:  Time of simulation is 200\n"
+		"info app.run:  End of Simulation");
+	return expect(edit->toPlainText() == expected, "each progress line and the end line are on a line of their own, with no empty line before a progress line");
 }
 
 int main(int argc, char** argv) {
