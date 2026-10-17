@@ -443,7 +443,8 @@ Copy [the template](release-rehearsal-template.md) to
 `docs/development/release-rehearsal-<date>.md`, with the date of the rehearsal,
 and fill it. Link every failed row to one focused defect issue. The record of
 [2026-08-23](release-rehearsal-2026-08-23.md) is an earlier filled record of a
-macOS rehearsal of an older candidate.
+macOS rehearsal of an older candidate. The record of
+[2026-10-17](release-rehearsal-2026-10-17.md) covers all three platforms.
 
 The release gate passes only after every required row passes on all three
 platforms or is marked not applicable with a case-specific reason. The rows W1
