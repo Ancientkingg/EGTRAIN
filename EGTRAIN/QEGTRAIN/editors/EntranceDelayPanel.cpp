@@ -98,8 +98,7 @@ void EntranceDelayPanel::setDocument(SceneDocument* document) {
 	m_document = document;
 	if (m_document) {
 		m_replacedConnection = connect(m_document, &SceneDocument::replaced, this, &EntranceDelayPanel::refresh);
-		// The occurrences of a service depend on the duration of the case, and the stations at which a train can be held on the
-		// timetable.
+		// The case duration sets the occurrences of a service, and the timetable sets the stations where a train can be held.
 		m_changedConnection = connect(m_document, &SceneDocument::changed, this, [this](SceneDocument::ChangeKinds kinds) {
 			if (kinds & (SceneDocument::CaseSettings | SceneDocument::Infrastructure | SceneDocument::Services))
 				refresh();
