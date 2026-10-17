@@ -1,5 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "app/MainWindowTestHooks.h"
 #include "graphics/NetworkScene.h"
 #include "scene/SceneBundle.h"
 #include "widgets/DisplayPath.h"
@@ -123,6 +124,9 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		};
 
 		bool canceledUnsavedPrompt = false;
+		bool activatedBeforePrompt = false;
+		int activations = 0;
+		mainWindowTestHooks().windowBroughtToFront = [&activations](MainWindow&) { ++activations; };
 		w.m_document->setDirty(true);
 		QTimer cancelTimer(&w);
 		cancelTimer.setInterval(0);
@@ -132,6 +136,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 			if (!cancel)
 				return;
 			canceledUnsavedPrompt = true;
+			activatedBeforePrompt = activations > 0;
 			cancelTimer.stop();
 			cancel->click();
 		});
@@ -140,8 +145,17 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		cancelTimer.stop();
 		if (!canceledUnsavedPrompt)
 			fail(QStringLiteral("dirty-scene drop did not show the unsaved-scene prompt"));
+		if (!activatedBeforePrompt)
+			fail(QStringLiteral("the window was not raised and activated before the unsaved-scene prompt of a drop"));
 		unchanged(QStringLiteral("canceled dirty-scene drop"));
 		w.m_document->setDirty(false);
+
+		// A drop that is refused asks nothing, so it leaves the window as it is.
+		activations = 0;
+		deliver({QUrl::fromLocalFile(directoryPath)}, true, false, false, QStringLiteral("directory"));
+		if (activations != 0)
+			fail(QStringLiteral("a refused drop raised the window"));
+		mainWindowTestHooks().windowBroughtToFront = nullptr;
 
 		deliver({QUrl::fromLocalFile(validPath)}, true, false, false,
 			QStringLiteral("copying"), Qt::MoveAction);
@@ -167,7 +181,10 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		unchanged(QStringLiteral("malformed-scene drop"));
 
 		// A recent scene that is deleted must show as unavailable when the menu opens, without another open.
-		const QString recentPath = QFileInfo(temp.filePath(QStringLiteral("recent.egscene"))).absoluteFilePath();
+		// The name is unique to this run, because the list of recent scenes outlives the process and a second entry with the
+		// same label would be told apart by its folder.
+		const QString recentName = QStringLiteral("recent-") + QFileInfo(temp.path()).fileName();
+		const QString recentPath = QFileInfo(temp.filePath(recentName + QStringLiteral(".egscene"))).absoluteFilePath();
 		QAction* recentAction = nullptr;
 		if (!QFile::copy(validPath, recentPath)) {
 			fail(QStringLiteral("the recent scene fixture could not be created"));
@@ -181,11 +198,15 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		if (recentAction) {
 			if (!recentAction->isEnabled() || recentAction->text().startsWith(QStringLiteral("Unavailable: ")))
 				fail(QStringLiteral("a recent scene that exists is marked unavailable"));
+			if (recentAction->text() != recentName)
+				fail(QStringLiteral("a recent bundle is not labeled by its name without the extension: ") + recentAction->text());
 			if (!QFile::remove(recentPath))
 				fail(QStringLiteral("the recent scene fixture could not be deleted"));
 			emit w.m_session->recentScenesMenu()->aboutToShow();
 			if (recentAction->isEnabled() || !recentAction->text().startsWith(QStringLiteral("Unavailable: ")))
 				fail(QStringLiteral("a deleted recent scene is not marked unavailable when the menu opens"));
+			else if (recentAction->text() != QStringLiteral("Unavailable: ") + recentName)
+				fail(QStringLiteral("an unavailable recent bundle is not labeled by its name without the extension: ") + recentAction->text());
 
 			// The tip and the status tip show the path with the separators of Windows; the action keeps the stored path.
 			const QChar savedSeparator = display_path::separator();

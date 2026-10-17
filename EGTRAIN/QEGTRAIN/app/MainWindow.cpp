@@ -1830,6 +1830,14 @@ bool MainWindow::afterRunStopped(std::function<void()> action) {
 	return m_runController->deferUntilRunStopped(std::move(action));
 }
 
+void MainWindow::bringToFront() {
+	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+	raise();
+	activateWindow();
+	if (const auto& hook = mainWindowTestHooks().windowBroughtToFront)
+		hook(*this);
+}
+
 void MainWindow::offerUpdateCheck() {
 	m_updateTelemetry->startUpdateCheck(true);
 }
@@ -1937,7 +1945,6 @@ void MainWindow::sceneSaved() {
 	m_runSelection.clearModifiedScenarios();
 	m_session->updateSceneWindowTitle();
 	updateSceneActions();
-	statusBar()->showMessage("Scene saved");
 	refreshValidationPanel();
 	m_compositionPanel->refresh();
 	m_trainUnitPanel->refresh();
@@ -1945,6 +1952,8 @@ void MainWindow::sceneSaved() {
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	m_passengerPanel->refresh();
+	// Last, because refreshing the panels redraws the track preview, which writes its own status message.
+	statusBar()->showMessage("Scene saved");
 }
 
 bool MainWindow::telemetryActive() const {
@@ -3335,9 +3344,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 				relay->postpone(request);
 				return;
 			}
-			setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-			raise();
-			activateWindow();
+			bringToFront();
 			const SceneOpenChoice choice = classifyOpenPaths({request});
 			if (!choice.rejection.isEmpty()) {
 				statusBar()->showMessage(QStringLiteral("Open request rejected: %1. Scene unchanged.").arg(choice.rejection), 8000);

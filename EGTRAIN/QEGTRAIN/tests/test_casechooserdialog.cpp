@@ -557,6 +557,31 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 	}
 }
 
+// A bundle is named without its extension, in the chooser and in the label that sceneDisplayName gives the Recent Scenes
+// menu; a folder is named by its manifest.
+void exerciseBundleLabels(Scenarios& s, const QRect& screen) {
+	const QString scenario = QStringLiteral("bundle labels");
+	const QString bundle = s.temporary.filePath(QStringLiteral("elsewhere/Saved_case.EGSCENE"));
+	QFile file(bundle);
+	if (!file.open(QIODevice::WriteOnly)) {
+		std::cerr << "cannot write a bundle file\n";
+		std::exit(1);
+	}
+	file.close();
+	const QString goneBundle = s.temporary.filePath(QStringLiteral("moved/Gone_bundle.egscene"));
+	check(sceneDisplayName(bundle) == QLatin1String("Saved case"), scenario, "a bundle is not named without its extension");
+	check(sceneDisplayName(goneBundle) == QLatin1String("Gone bundle"), scenario, "a missing bundle is not named without its extension");
+	check(sceneDisplayName(s.outside) == QLatin1String("Recent One"), scenario, "a folder is not named by its manifest");
+	CaseChooserDialog::Options options;
+	options.recentPaths = QStringList{bundle, goneBundle, s.outside};
+	options.availableGeometry = screen;
+	Shown shown(scenario, options, screen);
+	check(rowTexts(shown.dialog.list())
+			== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Saved case"), QStringLiteral("Unavailable: Gone bundle"),
+				QStringLiteral("Recent One")}),
+		scenario, "the recent rows are not named without the extension");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -584,5 +609,6 @@ int main(int argc, char** argv) {
 	}
 	QApplication::setFont(original);
 	exerciseInteraction(scenarios, screen);
+	exerciseBundleLabels(scenarios, screen);
 	return ok ? 0 : 1;
 }

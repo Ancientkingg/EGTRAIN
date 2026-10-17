@@ -14,6 +14,10 @@ class QPushButton;
 // else the cleaned absolute path, and case-folded on Windows.
 QString sceneListKey(const QString& path);
 
+// The label of a scene in a list of cases: the name in the manifest of a scene folder, else the file name without
+// .egscene, with underscores as spaces.
+QString sceneDisplayName(const QString& path);
+
 // The "Open a Case" dialog: bundled and recent cases in one list, and a menu with
 // the other ways to open. It records what the person chose and changes nothing
 // else; the caller acts on outcome() after exec() returns.

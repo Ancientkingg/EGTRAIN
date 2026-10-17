@@ -145,6 +145,8 @@ void SceneSession::drop(QDropEvent* event) {
 		return;
 	}
 
+	// The question about unsaved changes, or any other that the open asks, must not open behind the file manager.
+	m_host.bringToFront();
 	if (!requestOpenScene(path)) {
 		event->ignore();
 		return;
@@ -597,17 +599,20 @@ void SceneSession::rebuildRecentScenesMenu() {
 
 	m_recentScenesMenu->clear();
 	const QStringList recent = recentScenes();
-	// Label entries by scene name; the full path stays in the status tip. When
-	// two checkouts share a scene name, a shortened parent path tells them apart.
+	// Label entries as the chooser does; the full path stays in the status tip. When two entries
+	// share a label, a shortened parent path tells them apart.
 	QHash<QString, int> nameCount;
-	for (const QString& path : recent)
-		++nameCount[QFileInfo(path).fileName()];
+	QStringList names;
 	for (const QString& path : recent) {
-		const QFileInfo info(path);
-		const QString name = info.fileName();
+		names << sceneDisplayName(path);
+		++nameCount[names.last()];
+	}
+	for (int i = 0; i < recent.size(); ++i) {
+		const QString& path = recent.at(i);
+		const QString& name = names.at(i);
 		QString label = name;
 		if (nameCount.value(name) > 1) {
-			QString parent = display_path::format(info.dir().path());
+			QString parent = display_path::format(QFileInfo(path).dir().path());
 			if (parent.length() > 44)
 				parent = parent.left(20) + "..." + parent.right(20);
 			label = QString("%1 (%2)").arg(name, parent);

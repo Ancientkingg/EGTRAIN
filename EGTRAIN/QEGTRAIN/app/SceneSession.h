@@ -68,6 +68,9 @@ public:
 		// With a simulation running: asks it to stop, keeps `action` for the moment it has stopped and returns true. The
 		// last action replaces an earlier one. Without a simulation it returns false and the caller acts at once.
 		virtual bool afterRunStopped(std::function<void()> action) = 0;
+		// Raises and activates the window, so that a question that the session asks next is not hidden behind the window
+		// of another program, such as the file manager that a scene was dropped from.
+		virtual void bringToFront() = 0;
 		// Starts a check for a newer version at the request of the user.
 		virtual void offerUpdateCheck() = 0;
 		// What the actions of the window enable depends on the scene or on the recent scenes, and one of them changed.

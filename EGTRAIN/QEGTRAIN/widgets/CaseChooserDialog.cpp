@@ -30,13 +30,7 @@ QString sceneListKey(const QString& path) {
 	return key;
 }
 
-namespace {
-
-// Holds the reason that a row cannot be opened; the row has no scene path.
-constexpr int kReasonRole = Qt::UserRole + 1;
-
-// The manifest name of a scene folder, else the file name with underscores as spaces.
-QString displayName(const QString& rawPath) {
+QString sceneDisplayName(const QString& rawPath) {
 	const QString path = QDir::cleanPath(rawPath);
 	const QFileInfo info(path);
 	if (info.isDir()) {
@@ -46,9 +40,15 @@ QString displayName(const QString& rawPath) {
 			if (!name.isEmpty()) return name;
 		}
 	}
-	QString fallback = info.isFile() ? info.completeBaseName() : info.fileName();
+	const bool bundle = info.suffix().compare(QLatin1String("egscene"), Qt::CaseInsensitive) == 0;
+	QString fallback = bundle ? info.completeBaseName() : info.fileName();
 	return fallback.replace(QLatin1Char('_'), QLatin1Char(' '));
 }
+
+namespace {
+
+// Holds the reason that a row cannot be opened; the row has no scene path.
+constexpr int kReasonRole = Qt::UserRole + 1;
 
 // A row that is only a label: it cannot be selected, reached with the arrow keys or opened. A heading is bold and
 // any other label is italic. The font sets that one attribute and takes the rest from the list, so a larger system
@@ -91,7 +91,7 @@ bool addSceneItem(QListWidget* list, QSet<QString>& seen, const QString& path) {
 	if (seen.contains(key))
 		return false;
 	seen.insert(key);
-	const QString name = displayName(path);
+	const QString name = sceneDisplayName(path);
 	auto* item = new QListWidgetItem(name, list);
 	item->setData(Qt::UserRole, path);
 	item->setToolTip(rowToolTip(name, path));
@@ -137,7 +137,7 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 			addSceneItem(list, seen, path);
 		} else {
 			seen.insert(sceneListKey(path));
-			const QString name = displayName(path);
+			const QString name = sceneDisplayName(path);
 			QListWidgetItem* item = addLabelRow(list, QString("Unavailable: %1").arg(name), false);
 			// The row can be selected, so that its reason shows, but it has no path to open.
 			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
