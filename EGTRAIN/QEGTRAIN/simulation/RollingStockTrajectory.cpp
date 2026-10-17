@@ -258,8 +258,8 @@ namespace {
 void recordSignalFailuresAtRedAspect(Train& train, double head, double timeSeconds) {
 	if (train.Bs.state != SignalState::Red)
 		return;
-	const Route& route = train_route[train.indexOfRoute];
-	for (const MovementAuthority& authority : ETCS_MA) {
+	const Route& route = train.run_->infra.routes[train.indexOfRoute];
+	for (const MovementAuthority& authority : train.run_->etcsMa) {
 		if (authority.type != "SignalFailure" || authority.BSID != train.Bs.ID || !train.obeysAuthority(authority))
 			continue;
 		const double distance = train.authorityRoutePosition(authority, train.Bs) - head;
