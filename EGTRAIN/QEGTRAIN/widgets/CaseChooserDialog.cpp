@@ -1,5 +1,6 @@
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/DisplayPath.h"
 #include "widgets/PlainToolTip.h"
 
 #include <QAction>
@@ -74,9 +75,10 @@ public:
 	}
 };
 
-// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided. Both show as typed.
+// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided. The path shows
+// with the separators of this system.
 QString rowToolTip(const QString& name, const QString& path) {
-	return plainToolTip(name + QLatin1Char('\n') + path);
+	return plainToolTip(name + QLatin1Char('\n') + display_path::format(path));
 }
 
 void addGroup(QListWidget* list, const QString& title) {
