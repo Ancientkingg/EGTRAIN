@@ -229,15 +229,10 @@ flat incident file is read into that baseline.
 
 The current results UI can freeze an incident-free, no-entrance-delay run with
 **Set delay baseline**. A comparison run may have incidents, entrance delays,
-or both. It needs different scenario IDs, and matching scene revision, base
-time, duration, timestep, and selected `(service_id, occurrence)` identities.
-Final arrival is the simulated arrival at the last authored timetable station
-and call. The delay analysis window shows the scenario-minus-baseline
-difference of every call and the sum of the final arrival differences. An
-entrance delay is shown as the input delay of its occurrence. The window shows
-whether the run recorded direct runtime incident evidence for an occurrence.
-Timetable differences alone never establish causality. The CSV includes the
-incident IDs of each occurrence.
+or both. The delay analysis window reports the difference from the baseline and
+the recorded direct incident evidence, and never states a cause. The matching
+rules and the figures are in
+[How delays are calculated](delay-analysis.md#delay-comparison-against-a-baseline).
 
 ## Passengers
 

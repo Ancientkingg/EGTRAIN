@@ -76,8 +76,8 @@ with an implicit conventional or ETCS setting.
 | 19 | Generate a multi-hour timetable | Increase repeat count while retaining the interval and code step. | Check occurrence identities and planned offsets. |
 | 20 | Simulate signal failure | Map S451 to the corresponding canonical signal or block, set the 08:30 to 09:00 window, and run the same occurrence set as the baseline. | Inspect the affected traffic and blocking-time change. |
 | 21 | Simulate rolling-stock breakdown | Target IC 1727 at 08:25, set the 40 km/h cap, and request destination termination at Utrecht. | Check that sibling repeats are unchanged and the target continues under signalling. |
-| 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. |
-| 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit propagated delay. |
+| 22 | Distinguish delay effects | Freeze an incident-free baseline, run the incident scenario, and choose **Compare delays**. | Read the recorded direct evidence and the additional delay of each occurrence, and the sum of the additional delays at the final arrival. A delay without recorded evidence is not shown to be propagated. |
+| 23 | Add the extra train | Create a normal through service with the instructor-supplied 3xPlanV composition and a 100 km/h service cap. | Experiment with departure time to limit the delay of the other trains. |
 | 24 | Export results | Use CSV from result tables and PNG from diagrams. | Keep the input settings and selected occurrences with submitted evidence. |
 | 25 | Save and distribute | Save the canonical folder, use **Save As** for `.egscene`, reopen it, and rerun representative exercises. | Work from a copy of the distributed bundle. |
 
@@ -107,7 +107,8 @@ Parity with the legacy tool is not established. See
 [How capacity is analysed](../guides/capacity-analysis.md#capacity-by-area).
 
 Delay comparison requires equivalent run settings and the same selected
-occurrences. The window shows for each occurrence whether the runtime recorded
-direct incident evidence; a delay without it is not shown to be propagated.
+occurrences. The window reports the difference and the recorded direct incident
+evidence, and never states a cause; the matching rules and the figures are in
+[How delays are calculated](../guides/delay-analysis.md#delay-comparison-against-a-baseline).
 EGTRAIN leaves the causal interpretation and railway explanation to the
 student.

@@ -414,28 +414,15 @@ An occurrence-specific reduced-speed breakdown can instead be authored as:
 ### Delay comparison provenance
 
 The results UI can freeze a completed incident-free, no-entrance-delay run as
-the delay baseline. The delay analysis window compares a later run with it when
-the two runs have different scenario IDs, the same scene revision, base time,
-duration, timestep, and full selected `(service_id, occurrence)` identity set,
-and the same calls for each occurrence. The compared run may have incidents,
-entrance delays, or both. Baseline and scenario results are value snapshots,
-not runtime train pointers. When the runs cannot be compared, the window lists
-every reason.
-
-For each call, the window reports `scenario - baseline` of the simulated arrival
-and of the simulated departure. A difference that cannot be computed is not
-available, never 0. For each occurrence, final arrival is the simulated arrival
-at its last authored timetable station and call. The totals add the final
-arrival differences, as a sum of the positive ones and as a net sum, and say
-when an occurrence has no difference. The entrance delay of the scenario is
-shown as the input delay of the occurrence. An occurrence has direct runtime
-evidence when the scenario run recorded an incident ID for it (with a first
-direct time and location); the window shows that evidence, or that none was
-recorded, and infers no attribution from a timetable difference alone. Signal-failure
-evidence is direct only when the train stops at an active `SignalFailure` EoA,
-or stands at a red aspect before the failed section that is next on its route;
-a breakdown hold or applied speed cap is direct evidence. The destination
-request and termination outcome of each train are in `run_summary.csv`.
+the delay baseline, and the delay analysis window compares a later run with it.
+Baseline and scenario results are value snapshots, not runtime train pointers.
+The two runs must agree on scene revision, base time, duration, timestep and
+the selected `(service_id, occurrence)` identities. The window reports the
+difference and the recorded direct incident evidence, and never states a cause.
+The checks, formulas and limits are in
+[How delays are calculated](../guides/delay-analysis.md#delay-comparison-against-a-baseline).
+The incident IDs, first direct time and location, and termination outcome of
+each train are in `run_summary.csv`.
 
 ## `passengers.json`
 
