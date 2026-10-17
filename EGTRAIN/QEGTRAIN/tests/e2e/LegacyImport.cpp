@@ -31,26 +31,26 @@ void MainWindowTestAccess::runLegacyImport(MainWindow& w) {
 	const QString destinationInput = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_DEST");
 	const QString destinationCanonical = QFileInfo(destinationInput).canonicalFilePath();
 	const QString destination = destinationCanonical.isEmpty() ? QDir(destinationInput).absolutePath() : destinationCanonical;
-	w.importLegacyCase(qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_SOURCE"), destinationInput, w.captureTelemetryOperation());
-	if (w.m_document->isLoaded() && QDir(w.m_sceneDir).absolutePath() == destination && !w.m_document->mutableModel().stations.empty()
+	w.m_session->importLegacyCase(qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_SOURCE"), destinationInput, w.captureTelemetryOperation());
+	if (w.m_document->isLoaded() && QDir(w.m_session->m_sceneDir).absolutePath() == destination && !w.m_document->mutableModel().stations.empty()
 		&& w.scene && !w.scene->items().isEmpty())
 		marker("E2E_LEGACY_IMPORT_SUCCESS");
 	else
 		fail("successful import did not open the destination scene");
 
-	const QString previousDir = w.m_sceneDir;
+	const QString previousDir = w.m_session->m_sceneDir;
 	const std::string previousName = w.m_document->mutableModel().name;
 	const int previousItemCount = w.scene ? w.scene->items().size() : -1;
 	const QString badSource = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_SOURCE");
 	const QString badDestination = qEnvironmentVariable("QEGTRAIN_E2E_LEGACY_BAD_DEST");
-	w.importLegacyCase(badSource, badDestination, w.captureTelemetryOperation());
+	w.m_session->importLegacyCase(badSource, badDestination, w.captureTelemetryOperation());
 
 	const bool failedImport = !QFileInfo(QDir(badDestination).filePath("scene.json")).exists();
 	if (failedImport)
 		marker("E2E_LEGACY_IMPORT_FAILURE");
 	else
 		fail("malformed import unexpectedly wrote a scene");
-	const bool preserved = w.m_sceneDir == previousDir && w.m_document->mutableModel().name == previousName
+	const bool preserved = w.m_session->m_sceneDir == previousDir && w.m_document->mutableModel().name == previousName
 		&& (!w.scene || w.scene->items().size() == previousItemCount);
 	if (preserved)
 		marker("E2E_LEGACY_IMPORT_STATE_PRESERVED");

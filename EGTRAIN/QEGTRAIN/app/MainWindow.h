@@ -90,6 +90,7 @@
 #include <QSet>
 
 #include "app/RunSelection.h"
+#include "app/SceneSession.h"
 #include "recovery/RecoveryStore.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneValidator.h"
@@ -176,8 +177,6 @@ struct StableRelease;
 
 using namespace std;
 
-struct SceneSaveResult;
-
 bool startupTimingEnabled();
 void beginStartupTiming();
 qint64 startupTimingNowNanoseconds();
@@ -190,7 +189,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host {
 	Q_OBJECT
 
 public:
@@ -258,13 +257,7 @@ public slots:
 	void startSimulation(const telemetry::OperationObservation& operation);
 	void runCurrent();
 	void onSimulationFinished();
-	void newScene();
-	void openSceneDialog();
-	void openSceneFolderDialog();
-	void saveScene();
-	void saveSceneAs();
 	void runScene();
-	void actionLoad_Network();
 	// display train path diagrams
 	void displayTrainPathDiagrams();
 	void zoomIn();
@@ -409,10 +402,10 @@ private:
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
 	QHash<QDockWidget*, QAction*> m_editorActions;
 	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
-	QString m_sceneDir;
-	std::string m_savedSceneSha256;
 	// The scene, its unsaved state and its revision. The editors work on it through their panels.
 	SceneDocument* m_document = nullptr;
+	// Opens, creates and saves scenes. Holds where the scene came from and the diagnostics of its last validation.
+	SceneSession* m_session = nullptr;
 	// Undo and Redo. The history holds the scene as it was after each edit, and sceneDocumentChanged adds to it.
 	std::unique_ptr<SceneHistory> m_history;
 	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
@@ -427,8 +420,6 @@ private:
 	bool m_recoveryFailureShown = false;
 	QAction* m_undoAction = nullptr;
 	QAction* m_redoAction = nullptr;
-	bool m_sceneIsBundle = false;
-	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
 	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
 	std::vector<SceneEditorPanel*> m_editorPanels;
@@ -438,7 +429,6 @@ private:
 	QAction* m_advancedDetailsAction = nullptr;
 	QAction* m_runSceneAction = nullptr;
 	QAction* m_outputFolderAction = nullptr;
-	QMenu* m_recentScenesMenu = nullptr;
 	QDockWidget* m_validationDock = nullptr;
 	QTableWidget* m_validationTable = nullptr;
 	QLabel* m_validationStatusLabel = nullptr;
@@ -470,7 +460,6 @@ private:
 	QPushButton* m_removeRouteSectionButton = nullptr;
 	QPushButton* m_moveRouteSectionUpButton = nullptr;
 	QPushButton* m_moveRouteSectionDownButton = nullptr;
-	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
 	bool m_resultsAvailable = false;
@@ -657,40 +646,29 @@ private:
 	TrackLineItem* resolveArcItem(double arcId, int track) const;
 	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
-	void addRecentScene(const QString& path);
-	void rebuildRecentScenesMenu();
-	bool requestOpenScene(const QString& path);
-	bool requestOpenScene(const QString& path, const telemetry::OperationObservation& operation);
-	bool openRequestedScene(const QString& path, const telemetry::OperationObservation& operation);
-	void createNewScene(const telemetry::OperationObservation& operation);
-	// A recovered scene is the copy of another scene: it opens untitled and unsaved, and counts as no opened scene.
-	enum class OpenOrigin {
-		User,
-		Recovered,
-	};
-	bool openSceneDirectory(const QString& path, const telemetry::OperationObservation& operation,
-		OpenOrigin origin = OpenOrigin::User);
-	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
-		const telemetry::OperationObservation& operation);
-	telemetry::OperationObservation captureTelemetryOperation() const noexcept;
+	// SceneSession::Host: what the session asks of the window, and the points at which it tells the window that the scene
+	// changed.
+	telemetry::OperationObservation captureTelemetryOperation() const noexcept override;
+	bool dialogsSuppressed() const override;
+	void commitPendingEdits() override;
+	bool afterRunStopped(std::function<void()> action) override;
+	void offerUpdateCheck() override;
+	void sceneActionsChanged() override;
+	QString recoveredSceneSource() const override;
+	SceneLoadResult readScene(const QString& path, bool& identityOk) override;
+	void sceneWillBeReplaced() override;
+	void sceneCreated(const telemetry::OperationObservation& operation) override;
+	bool sceneOpened(const SceneSession::OpenedScene& opened) override;
+	void sceneSaved() override;
+
 	void registerEditorDock(QDockWidget* dock);
 	QMenu* createPopupMenu() override;
 	void revealEditorDock(QDockWidget* dock);
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
-	bool maybeSaveScene();
 	void renderTrackPreview(const SceneModel& sceneModel);
 	void clearPreviewInspection();
 	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
 		const QString& track, bool reversed, quint64 revision) const;
-	bool finishSceneSave(const SceneSaveResult& result, const telemetry::OperationObservation& operation,
-		std::optional<telemetry::ExportKind> kind);
-	bool saveSceneToCurrentDir();
-	bool saveSceneAsToBundle();
-	bool saveSceneAsToBundle(const telemetry::OperationObservation& operation);
-	QString saveSceneAsStartPath() const;
-	bool saveSceneAsToDirectory();
-	bool copyScenePassthroughFiles(const QString& targetDir, const telemetry::OperationObservation& operation);
-	void updateSceneWindowTitle();
 	void updateCaseLayersPanel();
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();

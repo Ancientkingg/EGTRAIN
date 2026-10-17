@@ -472,7 +472,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				highlightCarrier->setGraphicsEffect(w.m_presenter->effect);
 			}
 			bool reopened = w.openSceneDirectory(scenePath);
-			if (!reopened || !w.m_document->isLoaded() || QDir(w.m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+			if (!reopened || !w.m_document->isLoaded() || QDir(w.m_session->m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene: scene did not reopen";
 			}
@@ -487,7 +487,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QString alternateScenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE_ALT");
 			if (!alternateScenePath.isEmpty() && QDir(alternateScenePath).absolutePath() != QDir(scenePath).absolutePath()) {
 				bool switched = w.openSceneDirectory(alternateScenePath);
-				if (!switched || !w.m_document->isLoaded() || QDir(w.m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
+				if (!switched || !w.m_document->isLoaded() || QDir(w.m_session->m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
 					ok = false;
 					failures << "scene: alternate scene did not open";
 				}
@@ -523,7 +523,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					failures << "scene: explicit selection leaked into another case";
 				}
 			}
-			if (QDir(w.m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+			if (QDir(w.m_session->m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene: primary scene not restored";
 			}
@@ -554,7 +554,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			ok = false;
 			failures << "presentation: scenario list is unavailable for diagnostic checks";
 		} else {
-			const std::vector<SceneDiagnostic> originalDiagnostics = w.m_sceneDiagnostics;
+			const std::vector<SceneDiagnostic> originalDiagnostics = w.m_session->m_sceneDiagnostics;
 			const std::string originalName = w.m_document->mutableModel().name;
 			const bool originalDirty = w.m_document->isDirty();
 			const quint64 originalRevision = w.m_document->revision();
@@ -600,7 +600,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			detailsAction->setChecked(false);
 			if (w.m_loadedDataDock->isVisible() || w.m_validationDock->isVisible())
 				failures << "presentation: normal mode did not close diagnostic docks";
-			w.m_sceneDiagnostics.clear();
+			w.m_session->m_sceneDiagnostics.clear();
 			applyPresentation();
 			if (!w.m_validationStatusLabel->text().isEmpty()
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
@@ -608,7 +608,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| firstScenarioText().contains("Invalid"))
 				failures << "presentation: clean normal mode exposed diagnostic warnings";
 
-			w.m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
+			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
 			if (!w.m_validationStatusLabel->text().isEmpty()
@@ -616,7 +616,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| firstScenarioText().contains("Warning"))
 				failures << "presentation: normal mode exposed a non-blocking warning";
 
-			w.m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
+			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
 				"E2E invalid scenario")};
 			applyPresentation();
 			if (!w.m_validationStatusLabel->text().contains("Not ready")
@@ -625,7 +625,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				failures << "presentation: normal mode hid an actionable invalid scenario";
 
 			detailsAction->setChecked(true);
-			w.m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
+			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
 			if (!w.m_validationStatusLabel->text().contains("Validation:")
@@ -633,7 +633,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				|| !firstScenarioText().contains("Warning"))
 				failures << "presentation: advanced mode hid full warning details";
 
-			w.m_sceneDiagnostics = originalDiagnostics;
+			w.m_session->m_sceneDiagnostics = originalDiagnostics;
 			applyPresentation();
 			if (w.m_document->mutableModel().name != originalName || w.m_document->isDirty() != originalDirty
 				|| w.m_document->revision() != originalRevision)
@@ -654,9 +654,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "new case", "the original scene was not available to restore");
 		} else {
 			discardConfirmation();
-			w.newScene();
+			w.m_session->newScene();
 			QApplication::processEvents();
-			if (!w.m_document->isLoaded() || !w.m_document->isDirty() || !w.m_sceneDir.isEmpty() || w.m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled() || !w.m_saveSceneAsFolderAction || !w.m_saveSceneAsFolderAction->isEnabled())
+			if (!w.m_document->isLoaded() || !w.m_document->isDirty() || !w.m_session->m_sceneDir.isEmpty() || w.m_session->m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled() || !w.m_saveSceneAsFolderAction || !w.m_saveSceneAsFolderAction->isEnabled())
 				facetFailure(facetOk, "new case", "new case did not start unsaved and dirty with save actions enabled");
 			if (!w.m_runSceneAction || w.m_runSceneAction->isEnabled() || !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
 				facetFailure(facetOk, "new case", "Run actions were enabled for an empty case");
@@ -860,7 +860,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const auto areaSystemCombo = [&]() { return qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 3)); };
 				const auto areaTrackCombo = [&]() { return qobject_cast<QComboBox*>(infrastructureTable->cellWidget(0, 4)); };
 				const auto areaLevelError = [&w]() {
-					for (const SceneDiagnostic& diagnostic : w.m_sceneDiagnostics)
+					for (const SceneDiagnostic& diagnostic : w.m_session->m_sceneDiagnostics)
 						if (diagnostic.severity == SceneSeverity::Error && diagnostic.code == "scene.signalling_area.level")
 							return QString::fromStdString(diagnostic.message);
 					return QString();
@@ -912,7 +912,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!signallingAreaStartsUnchosen)
 					facetFailure(facetOk, "stations/signalling", "Add did not create a signalling area with the network extent and no chosen system");
 				QString firstSceneError;
-				for (const SceneDiagnostic& diagnostic : w.m_sceneDiagnostics)
+				for (const SceneDiagnostic& diagnostic : w.m_session->m_sceneDiagnostics)
 					if (diagnostic.severity == SceneSeverity::Error) {
 						firstSceneError = QString::fromStdString(diagnostic.message);
 						break;
@@ -1403,7 +1403,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					cancelConfirmation();
 					w.m_newSceneAction->trigger();
 					QApplication::processEvents();
-					if (w.m_sceneDir != QFileInfo(newCaseFolder).absoluteFilePath()
+					if (w.m_session->m_sceneDir != QFileInfo(newCaseFolder).absoluteFilePath()
 						|| !w.m_document->isDirty() || w.m_document->mutableModel().name != pendingNewName.toStdString()
 						|| nameEdit->text() != pendingNewName)
 						facetFailure(facetOk, "new case", "Cancel did not preserve the dirty scene after pending New action text");
@@ -1782,7 +1782,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			ok = false;
 			failures << "validation: loaded data tree lacks drilldown rows";
 		}
-		if (hasErrors(w.m_sceneDiagnostics)) {
+		if (hasErrors(w.m_session->m_sceneDiagnostics)) {
 			ok = false;
 			failures << "validation: errors on open";
 		}
@@ -1866,7 +1866,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!row || row->text(3).isEmpty())
 				explorerOk = false;
 		}
-		if (w.m_sceneIsBundle) {
+		if (w.m_session->m_sceneIsBundle) {
 			const QList<QTreeWidgetItem*> bundleRows = w.m_loadedDataTree->findItems(
 				"Bundle format version", Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* bundleRow = bundleRows.isEmpty() ? nullptr : bundleRows.front();
@@ -3269,7 +3269,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				stops = fullStops;
 				w.m_document->setDirty(dirtySaved);
 				w.m_timetableStopsPanel->refresh();
-				w.updateSceneWindowTitle();
+				w.m_session->updateSceneWindowTitle();
 			}
 			// Loaded invalid drafts remain removable; adding through the UI above
 			// must not create one.
@@ -3545,9 +3545,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		bool facetOk = true;
 		w.refreshValidationPanel();
 		QApplication::processEvents();
-		SceneDiagnosticCounts counts = countDiagnostics(w.m_sceneDiagnostics);
+		SceneDiagnosticCounts counts = countDiagnostics(w.m_session->m_sceneDiagnostics);
 		if (!w.m_validationTable || !w.m_validationStatusLabel || counts.errors != 0
-			|| w.m_validationTable->rowCount() != static_cast<int>(w.m_sceneDiagnostics.size())
+			|| w.m_validationTable->rowCount() != static_cast<int>(w.m_session->m_sceneDiagnostics.size())
 			|| !w.m_validationStatusLabel->text().startsWith("Validation:"))
 			facetFailure(facetOk, "validation", "refresh did not report a clean, complete result");
 		if (facetOk)
@@ -3608,7 +3608,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else if (!w.selectedScenario()
 				|| !sameEntranceDelays(expectedEntranceDelays, w.selectedScenario()->entranceDelays)) {
 				facetFailure(facetOk, "save/reload", "entrance-delay facet changed after reload");
-			} else if (w.m_document->isDirty() || hasErrors(w.m_sceneDiagnostics)) {
+			} else if (w.m_document->isDirty() || hasErrors(w.m_session->m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
 			} else {
 				const auto triggerPendingSave = [&]() {
@@ -3986,7 +3986,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (w.m_document->mutableModel().trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
 						== pendingSource) {
 						facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
-					} else if (!w.saveSceneToCurrentDir()) {
+					} else if (!w.m_session->saveSceneToCurrentDir()) {
 						facetFailure(facetOk, "save/reload", "pending editor values were not saved");
 					} else {
 						expectedTrainUnits = w.m_document->mutableModel().trainUnits;
@@ -4335,7 +4335,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return condition;
 	};
 	const auto process = []() { QApplication::processEvents(); };
-	const QString previousScenePath = w.m_sceneDir;
+	const QString previousScenePath = w.m_session->m_sceneDir;
 	const auto finish = [&]() {
 		simulation.setNextRunOutputFolder({});
 		if (!previousScenePath.isEmpty() && !w.openSceneDirectory(previousScenePath))
@@ -4427,10 +4427,10 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	};
 	// The validation that the window shows is the validation of the scene it holds.
 	const auto validationCurrent = [&w]() {
-		const std::vector<SceneDiagnostic> shown = w.m_sceneDiagnostics;
+		const std::vector<SceneDiagnostic> shown = w.m_session->m_sceneDiagnostics;
 		w.refreshValidationPanel();
-		return shown.size() == w.m_sceneDiagnostics.size() && w.m_validationTable->rowCount() == static_cast<int>(shown.size())
-			&& std::equal(shown.begin(), shown.end(), w.m_sceneDiagnostics.begin(),
+		return shown.size() == w.m_session->m_sceneDiagnostics.size() && w.m_validationTable->rowCount() == static_cast<int>(shown.size())
+			&& std::equal(shown.begin(), shown.end(), w.m_session->m_sceneDiagnostics.begin(),
 				[](const SceneDiagnostic& a, const SceneDiagnostic& b) {
 					return a.code == b.code && a.path == b.path && a.message == b.message;
 				});
@@ -4622,7 +4622,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	// Save keeps the history, and the scene is clean at the state that was saved.
 	{
 		const std::size_t steps = w.m_history->undoCount();
-		if (!expect(w.saveSceneToCurrentDir(), "the copy of the scene was not saved"))
+		if (!expect(w.m_session->saveSceneToCurrentDir(), "the copy of the scene was not saved"))
 			return finish();
 		savedState = position;
 		modifiedStates[position].clear();
@@ -4754,7 +4754,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	{
 		const std::size_t steps = w.m_history->undoCount();
-		if (!expect(w.saveSceneToCurrentDir(), "the copy of the scene was not saved again"))
+		if (!expect(w.m_session->saveSceneToCurrentDir(), "the copy of the scene was not saved again"))
 			return finish();
 		savedState = position;
 		modifiedStates[position].clear();
@@ -4777,7 +4777,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
 			"opening a scene kept the history of the one before");
 		answerMessageBox(&w, QMessageBox::Discard);
-		w.newScene();
+		w.m_session->newScene();
 		process();
 		expect(w.m_document->isDirty() && !w.m_history->canUndo() && !w.m_history->canRedo() && !w.m_history->isAtSavedPoint()
 				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
@@ -4819,7 +4819,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		return condition;
 	};
 	const auto process = []() { QApplication::processEvents(); };
-	const QString previousScenePath = w.m_sceneDir;
+	const QString previousScenePath = w.m_session->m_sceneDir;
 	const auto previousDialogShown = mainWindowTestHooks().dialogShown;
 	const QString root = QDir(outFolder).filePath("recovery_root");
 	const QString bundle = QFileInfo(QDir(outFolder).filePath("recovery_source.egscene")).absoluteFilePath();
@@ -4963,7 +4963,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	expect(w.m_document->isDirty() && ownRecord().value("display_name").toString() == "E2E recovery three", "Redo from the saved state left no copy");
 
 	// Save takes the copy away and reads the file that it wrote as the new source.
-	if (!expect(w.saveSceneToCurrentDir(), "the bundle was not saved"))
+	if (!expect(w.m_session->saveSceneToCurrentDir(), "the bundle was not saved"))
 		return finish();
 	if (!settle())
 		return finish();
@@ -4985,22 +4985,22 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	expect(!w.m_document->isDirty() && ownRecord().isEmpty(), "opening the scene again left the copy of the edits that it dropped");
 
 	// A new scene is recoverable. Discard followed by an open that fails, and Cancel, keep its copy. An open that succeeds takes it.
-	w.newScene();
+	w.m_session->newScene();
 	process();
 	if (!settle())
 		return finish();
-	expect(w.m_document->isDirty() && w.m_sceneDir.isEmpty()
+	expect(w.m_document->isDirty() && w.m_session->m_sceneDir.isEmpty()
 			&& ownRecord().value("source").toObject().value("kind").toString() == "untitled",
 		"a new scene has no copy");
 	answerMessageBox(&w, QMessageBox::Discard);
-	expect(!w.requestOpenScene(QDir(outFolder).filePath("no_such_recovery_scene")), "a scene that is not there opened");
+	expect(!w.m_session->requestOpenScene(QDir(outFolder).filePath("no_such_recovery_scene")), "a scene that is not there opened");
 	if (!settle())
 		return finish();
 	expect(w.m_document->isDirty() && !ownRecord().isEmpty(), "Discard followed by an open that failed removed the copy");
 	answerMessageBox(&w, QMessageBox::Cancel);
-	expect(!w.requestOpenScene(bundle) && w.m_document->isDirty() && !ownRecord().isEmpty(), "Cancel removed the copy");
+	expect(!w.m_session->requestOpenScene(bundle) && w.m_document->isDirty() && !ownRecord().isEmpty(), "Cancel removed the copy");
 	answerMessageBox(&w, QMessageBox::Discard);
-	expect(w.requestOpenScene(bundle), "the bundle did not open after Discard");
+	expect(w.m_session->requestOpenScene(bundle), "the bundle did not open after Discard");
 	if (!settle())
 		return finish();
 	expect(!w.m_document->isDirty() && ownRecord().isEmpty(), "opening a scene after Discard left the copy of the one that it dropped");
@@ -5034,9 +5034,9 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	leftFolders << laterId;
 	answerPrompt({"recoveryLaterButton"});
 	expect(!laterId.isEmpty() && !w.offerRecovery(), "Decide Later opened a copy");
-	expect(QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_document->isDirty(), "Decide Later changed the scene or removed the copy");
+	expect(QDir(root).exists(laterId) && w.m_session->m_sceneDir == bundle && !w.m_document->isDirty(), "Decide Later changed the scene or removed the copy");
 	answerPrompt({"recoveryDiscardButton", "recoveryDiscardButton"});
-	expect(!w.offerRecovery() && !QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_document->isDirty(),
+	expect(!w.offerRecovery() && !QDir(root).exists(laterId) && w.m_session->m_sceneDir == bundle && !w.m_document->isDirty(),
 		"Discard did not remove the copy or changed the scene");
 
 	// Recover opens the copy as an unsaved scene without a file, and the original stays as it was until Save As.
@@ -5046,10 +5046,10 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	const bool offered = w.offerRecovery();
 	if (!settle())
 		return finish();
-	expect(offered && w.m_sceneDir.isEmpty() && !w.m_sceneIsBundle && w.m_document->isDirty() && w.m_document->mutableModel().name == "E2E recovered case",
+	expect(offered && w.m_session->m_sceneDir.isEmpty() && !w.m_session->m_sceneIsBundle && w.m_document->isDirty() && w.m_document->mutableModel().name == "E2E recovered case",
 		"the recovered copy is not an unsaved scene without a file");
 	expect(!w.m_history->isAtSavedPoint() && !w.m_history->canUndo(), "the recovered copy has a saved state or a history");
-	expect(w.m_recoveredSourceHint == bundle && QFileInfo(w.saveSceneAsStartPath()).fileName() == QFileInfo(bundle).fileName(),
+	expect(w.m_recoveredSourceHint == bundle && QFileInfo(w.m_session->saveSceneAsStartPath()).fileName() == QFileInfo(bundle).fileName(),
 		"Save As does not start at the file that the copy came from");
 	expect(QSettings().value("recentScenes").toStringList() == recentBefore, "the recovered copy is a recent scene");
 	expect(w.statusBar()->currentMessage().startsWith("Recovered"), "the window does not say that it opened a recovered copy");
@@ -5067,14 +5067,14 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	// Save As, from the step after the file dialog: the recovered scene becomes a scene with a file, and its copy goes.
 	{
 		const SceneSaveResult saved = saveSceneBundle(w.m_document->mutableModel(), savedBundle.toStdString());
-		w.m_sceneDir = QFileInfo(savedBundle).absoluteFilePath();
-		w.m_sceneIsBundle = true;
-		w.m_sceneBundleVersion = kCurrentSceneBundleVersion;
-		expect(w.finishSceneSave(saved, telemetry::OperationObservation(), telemetry::ExportKind::SceneBundle), "Save As failed");
+		w.m_session->m_sceneDir = QFileInfo(savedBundle).absoluteFilePath();
+		w.m_session->m_sceneIsBundle = true;
+		w.m_session->m_sceneBundleVersion = kCurrentSceneBundleVersion;
+		expect(w.m_session->finishSceneSave(saved, telemetry::OperationObservation(), telemetry::ExportKind::SceneBundle), "Save As failed");
 		if (!settle())
 			return finish();
 		expect(!w.m_document->isDirty() && ownRecord().isEmpty() && w.m_recoveredSourceHint.isEmpty()
-				&& w.m_recoverySource.path == w.m_sceneDir,
+				&& w.m_recoverySource.path == w.m_session->m_sceneDir,
 			"Save As left the copy or the hint of a recovered scene");
 		expect(fileBytes(bundle) == originalBytes && QFileInfo(bundle).lastModified() == originalTime, "Save As changed the original");
 	}

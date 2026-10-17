@@ -121,8 +121,8 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	// The window ends with edits that its autosave has written, as a crash would leave it.
 	const auto crashAfterEdits = [&](bool newCase) -> QString {
 		if (newCase) {
-			w.newScene();
-			if (!w.m_document->isDirty() || !w.m_sceneDir.isEmpty())
+			w.m_session->newScene();
+			if (!w.m_document->isDirty() || !w.m_session->m_sceneDir.isEmpty())
 				return QStringLiteral("the new case was not created");
 		} else if (w.m_document->isDirty()) {
 			return QStringLiteral("the scene had edits before the script made its own");
@@ -151,7 +151,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	const auto startAgain = [&]() -> QString {
 		// A prompt that opened has been answered before the script runs.
 		waitFor([] { return QApplication::activeModalWidget() == nullptr; });
-		const bool opened = w.m_sceneDir.isEmpty() && w.m_document->isDirty() && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();
+		const bool opened = w.m_session->m_sceneDir.isEmpty() && w.m_document->isDirty() && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();
 		printLine(QStringLiteral("E2E_RECOVERY_STATE prompted=%1|opened=%2|name=%3|description=%4|base_time=%5|hint=%6")
 				.arg(recoveryPromptSeen ? 1 : 0)
 				.arg(opened ? 1 : 0)
@@ -164,10 +164,10 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 			const QString target = QFileInfo(saveAs).absoluteFilePath();
 			const auto start = std::make_shared<QString>();
 			acceptFileDialog(&w, target, start);
-			const bool saved = w.saveSceneToCurrentDir();
+			const bool saved = w.m_session->saveSceneToCurrentDir();
 			printLine(QStringLiteral("E2E_RECOVERY_SAVE_AS_START %1").arg(*start));
 			const SceneLoadResult reloaded = loadScenePath(target.toStdString());
-			if (!saved || w.m_document->isDirty() || QFileInfo(w.m_sceneDir).absoluteFilePath() != target || !w.m_sceneIsBundle
+			if (!saved || w.m_document->isDirty() || QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != target || !w.m_session->m_sceneIsBundle
 				|| !w.m_recoveredSourceHint.isEmpty() || reloaded.scene.name != w.m_document->mutableModel().name)
 				return QStringLiteral("Save As did not leave a saved scene at the file that was chosen");
 			printLine(QStringLiteral("E2E_RECOVERY_SAVED name=%1").arg(QString::fromStdString(reloaded.scene.name)));

@@ -972,9 +972,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(service && !service->stops.empty() ? service->stops.front().dwellSeconds : -1.0));
 			return;
 		}
-		if (w.m_serviceOccurrenceTable->rowCount() != 3 || hasErrors(w.m_sceneDiagnostics)) {
+		if (w.m_serviceOccurrenceTable->rowCount() != 3 || hasErrors(w.m_session->m_sceneDiagnostics)) {
 			QString detail;
-			for (const SceneDiagnostic& diagnostic : w.m_sceneDiagnostics)
+			for (const SceneDiagnostic& diagnostic : w.m_session->m_sceneDiagnostics)
 				if (diagnostic.severity == SceneSeverity::Error) {
 					detail = QString::fromStdString(toDisplayText(diagnostic));
 					break;
@@ -1059,9 +1059,9 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| w.m_document->mutableModel().scenarios[2].entranceDelays.size() != 1
 			|| w.m_document->mutableModel().scenarios[2].entranceDelays.front().occurrence != 2
 			|| w.m_document->mutableModel().scenarios[2].entranceDelays.front().delaySeconds <= 0.0
-			|| hasErrors(w.m_sceneDiagnostics)) {
+			|| hasErrors(w.m_session->m_sceneDiagnostics)) {
 			QString detail;
-			for (const SceneDiagnostic& diagnostic : w.m_sceneDiagnostics)
+			for (const SceneDiagnostic& diagnostic : w.m_session->m_sceneDiagnostics)
 				if (diagnostic.severity == SceneSeverity::Error) {
 					detail = QString::fromStdString(toDisplayText(diagnostic));
 					break;
@@ -1127,7 +1127,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| w.m_document->mutableModel().passengers.front().journeys.size() != 1
 			|| w.m_document->mutableModel().passengers.front().journeys.front().legs.size() != 1
 			|| w.m_document->mutableModel().passengers.front().journeys.front().legs.front().occurrence != 1
-			|| hasErrors(w.m_sceneDiagnostics)) {
+			|| hasErrors(w.m_session->m_sceneDiagnostics)) {
 			fail(QStringLiteral("passenger journey/leg or validation did not retain authored values"));
 			return;
 		}
@@ -1166,7 +1166,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptFileDialog(folder, true);
 		w.m_saveSceneAsFolderAction->trigger();
 		process();
-		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != folder || w.m_sceneIsBundle
+		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != folder || w.m_session->m_sceneIsBundle
 			|| w.m_document->isDirty() || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
 			fail(QStringLiteral("public Save Scene As Folder did not persist the focused physical value"));
 			return;
@@ -1182,7 +1182,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptMessageBox(QMessageBox::Discard);
 		openFolder->trigger();
 		process();
-		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != folder || w.m_sceneIsBundle
+		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != folder || w.m_session->m_sceneIsBundle
 			|| w.m_document->mutableModel().name != "creator_acceptance_case"
 			|| w.m_document->mutableModel().tracks.size() != 2 || w.m_document->mutableModel().nodes.size() != 6
 			|| w.m_document->mutableModel().arcs.size() != 4 || w.m_document->mutableModel().blocks.size() != 6
@@ -1194,7 +1194,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| w.m_document->mutableModel().passengers.front().id != "creator-passenger"
 			|| w.m_document->mutableModel().passengers.front().journeys.size() != 1
 			|| w.m_document->mutableModel().passengers.front().journeys.front().id != "creator-journey"
-			|| hasErrors(w.m_sceneDiagnostics)) {
+			|| hasErrors(w.m_session->m_sceneDiagnostics)) {
 			fail(QStringLiteral("folder reopen did not retain complete creator rows"));
 			return;
 		}
@@ -1253,7 +1253,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptFileDialog(bundle, false);
 		w.m_saveSceneAsAction->trigger();
 		process();
-		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != bundle || !w.m_sceneIsBundle
+		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != bundle || !w.m_session->m_sceneIsBundle
 			|| w.m_document->isDirty() || !QFileInfo(bundle).exists()) {
 			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
 			return;
@@ -1261,7 +1261,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
 		const std::string originalName = w.m_document->mutableModel().name;
 		auto openRecent = [&w](const QString& path) {
-			for (QAction* action : w.m_recentScenesMenu->actions()) {
+			for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
 				if (action->data().toString() == path) {
 					action->trigger();
 					return true;
@@ -1280,13 +1280,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 			process();
 			if (decision == QMessageBox::Cancel) {
-				if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+				if (w.m_session->m_sceneDir != bundle || !w.m_document->isDirty()
 					|| w.m_document->mutableModel().name != "pending case name") {
 					fail(QStringLiteral("Cancel did not retain focused edits and current bundle"));
 					return;
 				}
 			} else {
-				if (w.m_sceneDir != folder || w.m_sceneIsBundle || w.m_document->isDirty()
+				if (w.m_session->m_sceneDir != folder || w.m_session->m_sceneIsBundle || w.m_document->isDirty()
 					|| w.m_document->mutableModel().name != originalName) {
 					fail(QStringLiteral("Save or Discard did not continue the pending folder open"));
 					return;
@@ -1322,7 +1322,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		acceptMessageBox(QMessageBox::Cancel);
 		w.m_openCaseAction->trigger();
-		if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+		if (w.m_session->m_sceneDir != bundle || !w.m_document->isDirty()
 			|| w.m_document->mutableModel().name != "chooser pending edit") {
 			fail(QStringLiteral("chooser bypassed the pending-open cancellation boundary"));
 			return;
@@ -1341,20 +1341,20 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				return;
 			}
 			file.close();
-			w.addRecentScene(invalidBundle);
+			w.m_session->addRecentScene(invalidBundle);
 			w.m_caseNameEdit->setText(QStringLiteral("retained after failed open"));
 			acceptMessageBox(QMessageBox::Discard);
 			if (!openRecent(invalidBundle)) {
 				fail(QStringLiteral("invalid incoming bundle was not offered as a recent scene"));
 				return;
 			}
-			if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+			if (w.m_session->m_sceneDir != bundle || !w.m_document->isDirty()
 				|| w.m_document->mutableModel().name != "retained after failed open") {
 				fail(QStringLiteral("failed incoming load erased current dirty case"));
 				return;
 			}
 		}
-		w.rebuildRecentScenesMenu();
+		w.m_session->rebuildRecentScenesMenu();
 		if (!editLine(w.m_caseNameEdit, QString::fromStdString(originalName))) {
 			fail(QStringLiteral("could not restore case name after failed-load check"));
 			return;
@@ -1369,23 +1369,23 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("could not create failed-save fixture"));
 			return;
 		}
-		w.m_sceneDir = failedSave;
-		w.m_sceneIsBundle = true;
+		w.m_session->m_sceneDir = failedSave;
+		w.m_session->m_sceneIsBundle = true;
 		w.m_caseNameEdit->setText(QStringLiteral("retained after failed save"));
 		acceptMessageBox(QMessageBox::Save);
 		if (!openRecent(bundle)) {
 			fail(QStringLiteral("failed-save replacement was not offered as a recent scene"));
 			return;
 		}
-		if (!w.m_document->isLoaded() || w.m_sceneDir != failedSave || !w.m_document->isDirty()
+		if (!w.m_document->isLoaded() || w.m_session->m_sceneDir != failedSave || !w.m_document->isDirty()
 			|| w.m_document->mutableModel().name != "retained after failed save") {
 			fail(QStringLiteral("failed save replaced the unsaved current case"));
 			return;
 		}
-		w.m_sceneDir.clear();
-		w.m_sceneIsBundle = false;
-		w.m_sceneBundleVersion.reset();
-		w.updateSceneWindowTitle();
+		w.m_session->m_sceneDir.clear();
+		w.m_session->m_sceneIsBundle = false;
+		w.m_session->m_sceneBundleVersion.reset();
+		w.m_session->updateSceneWindowTitle();
 		w.updateSceneActions();
 		QTimer rejectSaveAs;
 		rejectSaveAs.setInterval(10);
@@ -1400,13 +1400,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptMessageBox(QMessageBox::Save);
 		openRecent(bundle);
 		rejectSaveAs.stop();
-		if (!w.m_document->isLoaded() || !w.m_sceneDir.isEmpty() || !w.m_document->isDirty()
+		if (!w.m_document->isLoaded() || !w.m_session->m_sceneDir.isEmpty() || !w.m_document->isDirty()
 			|| w.m_document->mutableModel().name != "retained after failed save") {
 			fail(QStringLiteral("cancelled Save As replaced the unsaved current case"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
-		if (!openRecent(bundle) || w.m_sceneDir != bundle || w.m_document->isDirty()) {
+		if (!openRecent(bundle) || w.m_session->m_sceneDir != bundle || w.m_document->isDirty()) {
 			fail(QStringLiteral("Discard did not continue opening from an unsaved new case"));
 			return;
 		}
@@ -1422,16 +1422,16 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptMessageBox(QMessageBox::Discard);
 		openBundle->trigger();
 		process();
-		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != bundle || !w.m_sceneIsBundle
+		if (QFileInfo(w.m_session->m_sceneDir).absoluteFilePath() != bundle || !w.m_session->m_sceneIsBundle
 			|| w.m_document->mutableModel().name != "creator_acceptance_case"
 			|| w.m_document->mutableModel().blocks.size() != 6 || w.m_document->mutableModel().trainUnits.size() != 2
 			|| w.m_document->mutableModel().compositions.size() != 1 || w.m_document->mutableModel().services.size() != 1
 			|| w.m_document->mutableModel().scenarios.size() != 3 || w.m_document->mutableModel().passengers.size() != 1
 			|| w.m_document->mutableModel().services.front().repeatCount != 3
-			|| w.m_document->mutableModel().services.front().stops.size() != 2 || hasErrors(w.m_sceneDiagnostics)) {
+			|| w.m_document->mutableModel().services.front().stops.size() != 2 || hasErrors(w.m_session->m_sceneDiagnostics)) {
 			fail(QStringLiteral("bundle reopen did not retain complete creator IDs and values: path=%1 bundle=%2 name=%3 blocks=%4 units=%5 compositions=%6 services=%7 scenarios=%8 passengers=%9 repeat=%10 stops=%11 errors=%12")
-					.arg(w.m_sceneDir)
-					.arg(w.m_sceneIsBundle)
+					.arg(w.m_session->m_sceneDir)
+					.arg(w.m_session->m_sceneIsBundle)
 					.arg(QString::fromStdString(w.m_document->mutableModel().name))
 					.arg(static_cast<int>(w.m_document->mutableModel().blocks.size()))
 					.arg(static_cast<int>(w.m_document->mutableModel().trainUnits.size()))
@@ -1441,7 +1441,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					.arg(static_cast<int>(w.m_document->mutableModel().passengers.size()))
 					.arg(w.m_document->mutableModel().services.empty() ? -1 : w.m_document->mutableModel().services.front().repeatCount)
 					.arg(w.m_document->mutableModel().services.empty() ? -1 : static_cast<int>(w.m_document->mutableModel().services.front().stops.size()))
-					.arg(hasErrors(w.m_sceneDiagnostics)));
+					.arg(hasErrors(w.m_session->m_sceneDiagnostics)));
 			return;
 		}
 		if (QAction* detailsAction = w.findChild<QAction*>("actionAdvancedDetails"))
@@ -1556,8 +1556,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		followButton->click();
 		w.ui->actionSimulationPause->trigger();
-		for (QAction* action : w.m_recentScenesMenu->actions()) {
-			if (action->data().toString() == w.m_sceneDir) {
+		for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
+			if (action->data().toString() == w.m_session->m_sceneDir) {
 				action->trigger();
 				break;
 			}
@@ -2329,7 +2329,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
-		if (!w.requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
+		if (!w.m_session->requestOpenScene(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"))
 			|| !w.m_delayBaselineStatus.isEmpty()
 			|| !w.m_delayFeedbackLabel->text().contains(QStringLiteral("No completed run"))) {
 			fail(QStringLiteral("opening a case retained the previous case's baseline-clear message"));

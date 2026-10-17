@@ -431,6 +431,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/app/RuntimeGeometryFromRun.cpp
     ${SRC_DIR}/app/SceneOutputDirectory.cpp
+    ${SRC_DIR}/app/SceneSession.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
     ${SRC_DIR}/update/UpdateNotices.cpp
@@ -449,6 +450,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/RuntimeGeometryFromRun.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
+    ${SRC_DIR}/app/SceneSession.h
     ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
