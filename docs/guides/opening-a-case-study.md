@@ -11,9 +11,13 @@ run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file (the dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app), or [double-click it](#open-by-double-click) on Windows and macOS.
 
-![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
+The toolbar button **Open Case** shows the window **Open a Case**, where you select a bundled case:
 
-![The Paimpol network loaded and ready to run](../images/opening-a-case-study-loaded-network.png)
+![The Open a Case window with Paimpol selected in the list of Bundled cases](../images/guide-open-a-case.png)
+
+After **Open**, the case is loaded and ready to run:
+
+![The main window with the Paimpol network loaded and ready to run](../images/guide-main-window.png)
 
 Opening a bundle does not run it or modify the downloaded file. To run it,
 follow [Getting started](getting-started.md#4-run-the-simulation). Use
