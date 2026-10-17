@@ -1,5 +1,6 @@
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QAction>
 #include <QDialogButtonBox>
@@ -57,9 +58,9 @@ public:
 	}
 };
 
-// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided.
+// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided. Both show as typed.
 QString rowToolTip(const QString& name, const QString& path) {
-	return QStringLiteral("<p>%1<br>%2</p>").arg(name.toHtmlEscaped(), path.toHtmlEscaped());
+	return plainToolTip(name + QLatin1Char('\n') + path);
 }
 
 void addGroup(QListWidget* list, const QString& title) {

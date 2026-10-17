@@ -23,6 +23,7 @@
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
+#include "widgets/PlainToolTip.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
@@ -3760,7 +3761,7 @@ void MainWindow::setupInfoDockWidget() {
 	for (auto* edit : infoWidget->findChildren<QLineEdit*>()) {
 		edit->setReadOnly(true);
 		connect(edit, &QLineEdit::textChanged, edit, [edit](const QString& text) {
-			edit->setToolTip(text.toHtmlEscaped());
+			edit->setToolTip(plainToolTip(text));
 			edit->setCursorPosition(0);
 		});
 	}

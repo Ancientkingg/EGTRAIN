@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFont>
+#include <QHelpEvent>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeyEvent>
@@ -20,6 +21,8 @@
 #include <QStyleOptionViewItem>
 #include <QStyledItemDelegate>
 #include <QTemporaryDir>
+#include <QTextDocument>
+#include <QToolTip>
 
 #include <cstdlib>
 #include <iostream>
@@ -68,6 +71,19 @@ void doubleClick(QListWidget* list, QListWidgetItem* item) {
 	sendMouse(list->viewport(), QEvent::MouseButtonDblClick, point);
 	sendMouse(list->viewport(), QEvent::MouseButtonRelease, point);
 	QApplication::processEvents();
+}
+
+// The text that a tooltip shows once the pointer rests on `point` of `widget`.
+QString shownTip(QWidget* widget, const QPoint& point) {
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	if (!Qt::mightBeRichText(text))
+		return text;
+	QTextDocument document;
+	document.setHtml(text);
+	return document.toPlainText();
 }
 
 QStringList rowTexts(const QListWidget* list) {
@@ -159,8 +175,8 @@ void checkLongRow(const QString& scenario, const CaseChooserDialog& dialog, cons
 	check(drawn != name && drawn.contains(QChar(0x2026)) && drawn.startsWith(name.left(5)) && drawn.endsWith(name.right(4)), scenario,
 		"the visible text is not the name elided in the middle");
 	check(list->fontMetrics().horizontalAdvance(drawn) <= list->viewport()->width(), scenario, "the visible text is wider than the list");
-	check(item->toolTip().contains(name.toHtmlEscaped()) && item->toolTip().contains(path.toHtmlEscaped()), scenario,
-		"the tooltip does not hold the whole name and path");
+	const QString tip = shownTip(list->viewport(), list->visualItemRect(item).center());
+	check(tip.contains(name) && tip.contains(path), scenario, "the tooltip does not hold the whole name and path as typed");
 	check(item->data(Qt::UserRole).toString() == path, scenario, "the item data is not the full path");
 }
 
@@ -353,6 +369,37 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 		check(!shown.dialog.isVisible() && shown.dialog.result() == QDialog::Accepted
 				&& shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected && shown.dialog.chosenPath() == betaPath,
 			scenario, "Down then Enter did not open the case");
+	}
+
+	// A name or path with "&", "<", ">" or an entity shows as typed in the tooltip of a case row and of an unavailable row.
+	{
+		const QString scenario = QStringLiteral("tooltip");
+		const QString odd = QStringLiteral("A & B &lt;x&gt;");
+		Scenarios own;
+		const QString oddTitle = QStringLiteral("Odd <b>name</b> & &amp; <x>");
+		const QString path = own.bundled(odd, oddTitle);
+		const QString gone = own.temporary.filePath(QStringLiteral("moved/gone & &lt;case&gt;"));
+		CaseChooserDialog::Options marked = options;
+		marked.sceneRoots = QStringList{own.scenes.path()};
+		marked.recentPaths = QStringList{gone};
+		Shown shown(scenario, marked, screen);
+		const QListWidget* list = shown.dialog.list();
+		QString caseTip, goneTip;
+		for (int row = 0; row < list->count(); ++row) {
+			const QRect rect = list->visualItemRect(list->item(row));
+			if (list->item(row)->text() == oddTitle)
+				caseTip = shownTip(list->viewport(), rect.center());
+			else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: ")))
+				goneTip = shownTip(list->viewport(), rect.center());
+		}
+		// The rich text breaks the line and may add a space after the break, so the lines are compared on their own.
+		// The rich text breaks the line, so the name and the path are compared as the two lines of the tooltip.
+		const auto lines = [](QString tip) {
+			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
+		};
+		check(lines(caseTip) == QStringList({oddTitle, path}), scenario, "the tooltip of a case row is not its name and path as typed");
+		check(lines(goneTip) == QStringList({QFileInfo(gone).fileName(), gone}), scenario,
+			"the tooltip of an unavailable row is not its name and path as typed");
 	}
 
 	// A double click opens the row; Open opens the selected row.

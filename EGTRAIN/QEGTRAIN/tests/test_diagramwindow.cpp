@@ -1,5 +1,6 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TrainFilterButton.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QApplication>
 #include <QGraphicsObject>
@@ -17,8 +18,11 @@
 #include <QProxyStyle>
 #include <QStyleOptionViewItem>
 #include <QGestureEvent>
+#include <QHelpEvent>
 #include <QPinchGesture>
 #include <QShortcut>
+#include <QTextDocument>
+#include <QToolTip>
 #include <QScatterSeries>
 #include <QLineSeries>
 #include <QAreaSeries>
@@ -936,6 +940,42 @@ static bool exerciseBlockSections() {
 	return ok;
 }
 
+// The text that the tooltip of `widget` shows once the pointer rests on it.
+static QString shownTip(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	const QString text = QToolTip::text();
+	QToolTip::hideText();
+	if (!Qt::mightBeRichText(text))
+		return text;
+	QTextDocument document;
+	document.setHtml(text);
+	return document.toPlainText();
+}
+
+// The context label and the read-only inspector fields show their text as typed in the tooltip.
+static bool exercisePlainToolTips() {
+	bool ok = true;
+	DiagramWindow window("Tooltips");
+	window.show();
+	QApplication::processEvents();
+	auto* context = window.findChild<QLabel*>("diagramContext");
+	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
+			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
+		window.setPresentation("Tooltips", text);
+		QApplication::processEvents();
+		ok &= expect(context->isVisible() && shownTip(context) == text, "the context tooltip shows the context as typed");
+		QLineEdit field;
+		field.setToolTip(plainToolTip(text));
+		field.show();
+		QApplication::processEvents();
+		ok &= expect(shownTip(&field) == text, "a read-only field tooltip shows its text as typed");
+	}
+	ok &= expect(plainToolTip(QString()).isEmpty(), "an empty text gives no tooltip");
+	return ok;
+}
+
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
@@ -1431,6 +1471,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseButtonDefaults();
 	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();
+	ok &= exercisePlainToolTips();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;
