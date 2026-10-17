@@ -379,13 +379,15 @@ void PassengerPanel::refresh() {
 	const bool editable = canEdit();
 	{
 		const int previousRow = m_passengerList->currentRow();
+		const QString previousId = m_passengerList->currentItem() ? m_passengerList->currentItem()->text() : QString();
 		const QSignalBlocker blocker(m_passengerList);
 		m_passengerList->clear();
 		if (loaded) {
 			for (const auto& passenger : m_document->model().passengers)
 				m_passengerList->addItem(QString::fromStdString(passenger.id));
 		}
-		m_passengerList->setCurrentRow(rowAfterRebuild(previousRow, m_passengerList->count()));
+		const int samePassenger = rowOfEntry(m_passengerList, previousId, previousRow);
+		m_passengerList->setCurrentRow(samePassenger >= 0 ? samePassenger : rowAfterRebuild(previousRow, m_passengerList->count()));
 		m_passengerList->setEnabled(editable);
 	}
 	if (!loaded)

@@ -319,6 +319,7 @@ void ServicePanel::refresh() {
 	const bool editable = canEdit();
 	{
 		const int previousRow = m_listWidget->currentRow();
+		const QString previousId = m_listWidget->currentItem() ? m_listWidget->currentItem()->text() : QString();
 		const QSignalBlocker blocker(m_listWidget);
 		m_listWidget->clear();
 		if (hasScene()) {
@@ -335,6 +336,8 @@ void ServicePanel::refresh() {
 			else
 				rowToSelect = previousRow;
 		}
+		if (const int sameService = rowOfEntry(m_listWidget, previousId, previousRow); sameService >= 0)
+			rowToSelect = sameService;
 		m_listWidget->setCurrentRow(rowToSelect);
 		m_listWidget->setEnabled(editable);
 	}

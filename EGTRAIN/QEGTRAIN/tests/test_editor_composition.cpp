@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -373,6 +374,21 @@ int main(int argc, char** argv) {
 		document.replace(compositionScene(), false);
 		ok &= expect(panel.listWidget()->count() == 0 && document.revision() == revisionDetached + 1,
 			"a detached panel neither edits nor follows the document");
+	}
+
+	{
+		// opening a scene that lists the selected composition at another row keeps it selected
+		SceneDocument document;
+		CompositionPanel panel;
+		panel.setDocument(&document);
+		document.replace(compositionScene(), false);
+		panel.listWidget()->setCurrentRow(1);
+		SceneModel reordered = compositionScene();
+		std::reverse(reordered.compositions.begin(), reordered.compositions.end());
+		document.replace(reordered, false);
+		ok &= expect(items(panel.listWidget()) == QStringList({"c2", "c1"}) && panel.listWidget()->currentRow() == 0
+				&& panel.idEdit()->text() == "c2",
+			"opening a scene that lists the selected composition at another row keeps it selected");
 	}
 
 	{

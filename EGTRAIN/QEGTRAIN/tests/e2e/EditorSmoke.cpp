@@ -4602,6 +4602,81 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_UNTOUCHED_OK\n");
 	}
+	// Opening another case shows its data in the docks, also when it lists the selected service at another row.
+	if (ok && w.m_document->isLoaded()) {
+		QTemporaryDir caseChangeTempDir;
+		QString caseChangeOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		if (caseChangeOut.isEmpty())
+			caseChangeOut = caseChangeTempDir.path();
+		const QString changedPath = QDir(caseChangeOut).filePath("editor_smoke_changed_case");
+		QDir(changedPath).removeRecursively();
+		const auto caseChangeFailure = [&](const char* message) {
+			ok = false;
+			failures << QString("case change: ") + message;
+		};
+		if (!w.openSceneDirectory(scenePath) || !w.m_document->isLoaded()) {
+			caseChangeFailure("the scene did not open");
+		} else {
+			const SceneModel original = w.m_document->model();
+			const auto withStops = std::find_if(original.services.begin(), original.services.end(),
+				[](const SceneService& service) { return !service.stops.empty(); });
+			if (withStops == original.services.end()) {
+				caseChangeFailure("the scene has no service with a stop");
+			} else {
+				const std::string serviceId = withStops->id;
+				SceneModel changed = original;
+				changed.name += " changed";
+				for (SceneService& service : changed.services) {
+					if (service.id == serviceId)
+						service.stops.front().dwellSeconds += 7.0;
+				}
+				std::reverse(changed.services.begin(), changed.services.end());
+				const auto dwellText = [](const SceneModel& model, const std::string& id) {
+					for (const SceneService& service : model.services) {
+						if (service.id == id)
+							return QString::fromStdString(csv::formatDouble(service.stops.front().dwellSeconds));
+					}
+					return QString();
+				};
+				const auto serviceShown = [&w](const std::string& id) {
+					const QListWidgetItem* item = w.m_serviceListWidget->currentItem();
+					return item && item->text() == QString::fromStdString(id);
+				};
+				const auto shownDwell = [&w] {
+					const QTableWidgetItem* item = w.m_timetableStopsPanel->table()->item(0, 2);
+					return item ? item->text() : QString();
+				};
+				if (!::saveScene(changed, changedPath.toStdString()).success()) {
+					caseChangeFailure("the changed copy did not save");
+				} else {
+					w.m_serviceListWidget->setCurrentRow(static_cast<int>(withStops - original.services.begin()));
+					if (!serviceShown(serviceId) || shownDwell() != dwellText(original, serviceId)
+						|| w.m_caseNameEdit->text() != QString::fromStdString(original.name))
+						caseChangeFailure("the case did not show its own data");
+					if (!w.openSceneDirectory(changedPath)) {
+						caseChangeFailure("the changed copy did not open");
+					} else {
+						if (!serviceShown(serviceId))
+							caseChangeFailure("the selected service was not kept");
+						if (shownDwell() != dwellText(changed, serviceId))
+							caseChangeFailure("the Timetable tab kept the dwell of the previous case");
+						if (w.m_caseNameEdit->text() != QString::fromStdString(changed.name))
+							caseChangeFailure("Case Settings kept the name of the previous case");
+					}
+					if (!w.openSceneDirectory(scenePath)) {
+						caseChangeFailure("the original did not open again");
+					} else {
+						if (!serviceShown(serviceId) || shownDwell() != dwellText(original, serviceId))
+							caseChangeFailure("the Timetable tab kept the dwell of the changed case");
+						if (w.m_caseNameEdit->text() != QString::fromStdString(original.name))
+							caseChangeFailure("Case Settings kept the name of the changed case");
+					}
+				}
+			}
+		}
+		if (ok)
+			std::fprintf(stdout, "E2E_EDITOR_CASE_CHANGE_OK\n");
+	}
 	// Last, because it opens copies of the scene and leaves another scene and selection behind.
 	if (ok && w.m_document->isLoaded()) {
 		QTemporaryDir undoTempDir;

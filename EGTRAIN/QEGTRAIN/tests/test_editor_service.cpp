@@ -1,4 +1,6 @@
+#include "editors/CaseSettingsPanel.h"
 #include "editors/ServicePanel.h"
+#include "editors/TimetableStopsPanel.h"
 
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
@@ -20,6 +22,7 @@
 #include <QTabWidget>
 #include <QToolTip>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -615,6 +618,52 @@ int main(int argc, char** argv) {
 		panel.setTimetableWidget(timetable);
 		ok &= expect(panel.pages()->widget(1)->isAncestorOf(timetable) && panel.pages()->count() == 3,
 			"the timetable is on its own page between the fields and the occurrences");
+	}
+
+	{
+		// opening another case shows its data in every dock of the services, also when it has the selected service
+		SceneDocument document;
+		ServicePanel panel;
+		TimetableStopsPanel timetable;
+		CaseSettingsPanel caseSettings;
+		QObject::connect(&panel, &ServicePanel::selectedServiceChanged, &timetable, &TimetableStopsPanel::setServiceId);
+		panel.setDocument(&document);
+		timetable.setDocument(&document);
+		caseSettings.setDocument(&document);
+		const auto dwell = [&timetable]() {
+			const QTableWidgetItem* item = timetable.table()->item(0, 2);
+			return item ? item->text() : QString();
+		};
+		SceneModel first = serviceScene();
+		first.services[0].stops.push_back(SceneStop());
+		first.services[0].stops[0].stationId = "st1";
+		first.services[0].stops[0].dwellSeconds = 60.0;
+		document.replace(first, false);
+		ok &= expect(panel.idEdit()->text() == "s1" && dwell() == "60" && caseSettings.nameEdit()->text() == "Services"
+				&& panel.occurrenceTable()->rowCount() == 5,
+			"a case shows its first service, its dwell, its name and its occurrences");
+
+		SceneModel second = first;
+		second.name = "Services changed";
+		second.services[0].stops[0].dwellSeconds = 180.0;
+		second.services[0].hasRepeat = true;
+		second.services[0].headwaySeconds = 1200.0;
+		document.replace(second, false);
+		ok &= expect(panel.idEdit()->text() == "s1" && dwell() == "180" && caseSettings.nameEdit()->text() == "Services changed"
+				&& panel.occurrenceTable()->rowCount() == 7,
+			"another case with the selected service shows its dwell, its name and its occurrences");
+
+		// the selected service is listed at another row
+		panel.listWidget()->setCurrentRow(2);
+		SceneModel reordered = first;
+		reordered.services[2].stops.push_back(SceneStop());
+		reordered.services[2].stops[0].stationId = "st1";
+		reordered.services[2].stops[0].dwellSeconds = 90.0;
+		std::reverse(reordered.services.begin(), reordered.services.end());
+		document.replace(reordered, false);
+		ok &= expect(items(panel.listWidget()) == QStringList({"s3", "s2", "s1"}) && panel.listWidget()->currentRow() == 0
+				&& panel.idEdit()->text() == "s3" && dwell() == "90",
+			"opening a scene that lists the selected service at another row keeps it selected and shows its stops");
 	}
 
 	{
