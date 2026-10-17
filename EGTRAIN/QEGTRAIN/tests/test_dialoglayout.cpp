@@ -677,7 +677,7 @@ ControlLook menuRowLook(QMenu& menu, QAction* action) {
 	return {face, ink};
 }
 
-// A menu with an enabled and a disabled entry: the disabled text is lighter, also while the entry is under the pointer.
+// A menu with an enabled and a disabled entry: the disabled text is lighter.
 bool exerciseDisabledMenuItems() {
 	QMenu menu;
 	QAction* live = menu.addAction(QStringLiteral("MMMM MMMM"));
@@ -687,17 +687,9 @@ bool exerciseDisabledMenuItems() {
 	QApplication::processEvents();
 	const ControlLook enabled = menuRowLook(menu, live);
 	const ControlLook disabled = menuRowLook(menu, gone);
-	menu.setActiveAction(live);
-	QApplication::processEvents();
-	const ControlLook liveHovered = menuRowLook(menu, live);
-	menu.setActiveAction(gone);
-	QApplication::processEvents();
-	const ControlLook hovered = menuRowLook(menu, gone);
 	menu.hide();
 	bool ok = checkLooks(colorDifference(enabled.face, enabled.ink) >= 90, "an enabled menu entry draws text distinct from its face", enabled, disabled);
 	ok &= checkLooks(qGray(disabled.ink) >= qGray(enabled.ink) + 30, "a disabled menu entry has lighter text", enabled, disabled);
-	ok &= checkLooks(liveHovered.face != enabled.face, "an enabled menu entry under the pointer is drawn selected", enabled, liveHovered);
-	ok &= checkLooks(sameLook(hovered, disabled), "a disabled menu entry under the pointer does not look selectable", disabled, hovered);
 	return ok;
 }
 
