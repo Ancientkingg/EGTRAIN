@@ -214,7 +214,7 @@ private:
 	QLabel* loadingLabel;
 	QMovie* loadingMovie;
 
-	// The Simulation Info dock: the form of the selected item
+	// The inspector dock: the form of the selected item
 	InspectorPanel* m_inspector = nullptr;
 	QDockWidget* m_runResultsDock = nullptr;
 	QTableWidget* m_runResultsTable = nullptr;
@@ -616,7 +616,7 @@ private:
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
 
-	// InspectorPanel::Host: what the Simulation Info dock asks of the window.
+	// InspectorPanel::Host: what the inspector dock asks of the window.
 	bool showingTrackPreview() const override;
 	const SceneModel* loadedScene() const override;
 	quint64 loadedSceneRevision() const override;

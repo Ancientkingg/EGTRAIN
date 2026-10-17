@@ -1,6 +1,9 @@
 #include "app/UpdateTelemetryController.h"
 
 #include "app/MainWindowTestHooks.h"
+#include "update/ReleaseInfo.h"
+#include "update/SelfUpdater.h"
+#include "update/UpdateChecker.h"
 #include "update/UpdateSettings.h"
 
 #include <QAbstractButton>
@@ -11,6 +14,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProcessEnvironment>
+#include <QPushButton>
 #include <QSettings>
 #include <QStringList>
 #include <QTemporaryDir>
@@ -63,6 +67,36 @@ static void pressInMessageBox(int& shown, const QString& buttonText) {
 			break;
 		}
 	});
+}
+
+// Reads the default button of the first message box that shows and closes the box with Later.
+static void readDefaultButton(QString& defaultText) {
+	defaultText.clear();
+	QTimer::singleShot(50, qApp, [&defaultText] {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* box = qobject_cast<QMessageBox*>(widget);
+			if (!box || !box->isVisible())
+				continue;
+			if (QAbstractButton* button = box->defaultButton())
+				defaultText = button->text();
+			for (QAbstractButton* button : box->buttons()) {
+				if (button->text() == "Later")
+					button->click();
+			}
+			break;
+		}
+	});
+}
+
+// The default button of the prompt that offers this release, or an empty text when no prompt opened.
+static QString defaultButtonOfAvailablePrompt(UpdateChecker& checker, const StableRelease& release) {
+	QString defaultText;
+	readDefaultButton(defaultText);
+	UpdateCheckResult result;
+	result.success = true;
+	result.release = release;
+	emit checker.finished(result);
+	return defaultText;
 }
 
 static UpdateTelemetryController* startedController = nullptr;
@@ -167,6 +201,42 @@ int main(int argc, char** argv) {
 		mainWindowTestHooks().telemetryStart = nullptr;
 		ok &= expect(startedController == &controller && !controller.sender(),
 			"a start that the scripted run refuses leaves telemetry off");
+	}
+
+	{
+		// Enter must never turn off the update checks, so the prompt names its default.
+		QCoreApplication::setApplicationVersion("1.0.0");
+		QWidget window;
+		UpdateTelemetryController controller(&window, [] { return true; }, [] {});
+		QMenu help;
+		controller.setupUpdateActions(&help);
+		auto* checker = controller.findChild<UpdateChecker*>();
+		ok &= expect(checker, "the update entries make a checker");
+		if (checker) {
+			const QString key = "windows-x64-installer";
+			const QString package = "EGTRAIN-Setup-1.2.3-x64.exe";
+			StableRelease release;
+			release.version = SemanticVersion{1, 2, 3};
+			release.tag = "v1.2.3";
+			release.releasePage = QUrl("https://github.com/Ancientkingg/EGTRAIN/releases/tag/v1.2.3");
+			release.notes = "Notes";
+
+			SelfUpdateCapability unsupported;
+			unsupported.reason = "Not packaged.";
+			SelfUpdater::setTestHook(unsupported, "http://127.0.0.1");
+			ok &= expect(defaultButtonOfAvailablePrompt(*checker, release) == "Open Release Page",
+				"the prompt without an update package makes Open Release Page the default");
+
+			SelfUpdateCapability supported;
+			supported.supported = true;
+			supported.manifestKey = key;
+			SelfUpdater::setTestHook(supported, "http://127.0.0.1");
+			release.assets.append({"update-manifest.json", QUrl("http://127.0.0.1/v1.2.3/update-manifest.json")});
+			release.assets.append({package, QUrl("http://127.0.0.1/v1.2.3/" + package)});
+			ok &= expect(defaultButtonOfAvailablePrompt(*checker, release) == "Update and Restart",
+				"the prompt with an update package makes Update and Restart the default");
+			SelfUpdater::setTestHook(SelfUpdateCapability(), QString());
+		}
 	}
 
 	return ok ? 0 : 1;

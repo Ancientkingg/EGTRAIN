@@ -2094,6 +2094,8 @@ void MainWindow::resultsKept() {
 }
 
 void MainWindow::resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) {
+	// The inspector shows values of the run that is gone.
+	m_inspector->handleDisableHighlight();
 	if (m_runResultsTable)
 		m_runResultsTable->setRowCount(0);
 	if (m_runResultsSummaryLabel)

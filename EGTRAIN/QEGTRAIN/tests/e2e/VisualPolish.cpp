@@ -2924,6 +2924,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				w.m_followCamera->follow(w.networkView->mapToScene(w.networkView->viewport()->rect().center() + QPoint(100, 0)), false);
 				glidingAtStop = w.m_followCamera->running();
 			}
+			// The inspector shows the track of the run that Stop ends.
+			w.m_inspector->displayArcInfo(lifecycleTrack);
+			const bool inspectorShownBeforeStop = !w.m_inspector->dock()->isHidden();
 			if (w.ui->actionSimulationStop)
 				w.ui->actionSimulationStop->trigger();
 			const bool stopEndedGlide = glidingAtStop && !w.m_followCamera->running() && !w.m_followCamera->hasTarget();
@@ -2958,6 +2961,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			if (!w.m_completedReplay.empty() || w.m_replayTimer->isActive()) {
 				ok = false;
 				failures << "Stop retained completed replay";
+			}
+			if (!inspectorShownBeforeStop || !w.m_inspector->dock()->isHidden()) {
+				ok = false;
+				failures << QString("Stop left the inspector open (shown before=%1)").arg(inspectorShownBeforeStop);
 			}
 			if (w.m_runController->m_runtimeStatus != QStringLiteral("Stopped") || w.m_runController->m_resultsAvailable
 				|| w.statusBar()->currentMessage() != QStringLiteral("Simulation stopped")) {
