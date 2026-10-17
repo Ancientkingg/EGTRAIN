@@ -81,22 +81,30 @@ ALLOWED = {
     "util/Logger.hpp": {"cout": 2},
 }
 
-# Stdout lines that other programs read: (place under EGTRAIN/QEGTRAIN, text, who reads it).
-# Some source file under the place holds the text on a line that has a live cout or EG_LOG
-# statement. The place is a file or a directory; a directory lets the statement move inside it.
+# A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
+PRODUCER_STATEMENT = re.compile(r"\b(?:cout|EG_LOG\s*\(\s*\w+\s*,\s*\w+\s*\))\s*<<")
+# A statement that writes std::cout itself, which no logging rule can switch off.
+COUT_STATEMENT = re.compile(r"\bcout\s*<<")
+
+# Stdout lines that other programs read: (place under EGTRAIN/QEGTRAIN, text, who reads it, statement).
+# Some source file under the place holds the text on a line that has a live statement of the kind
+# given. The place is a file or a directory; a directory lets the statement move inside it.
 PRODUCERS = [
     (
         "app/main.cpp",
         'End of Simulation"',
         "headless_scene_smoke.py, lebanon_scene_smoke.sh, package_start_smoke.py and the package jobs of package.yml",
+        COUT_STATEMENT,
     ),
-    ("app/DispatchController.cpp", 'End of Simulation"', "the same line in the console of a run in the window"),
-    ("app/main.cpp", '"Graphical user interface (GUI): ', "tools/e2e/startup_launch_contract.py"),
-    ("simulation", '" is stopping at "', "tools/e2e/station_departure_smoke.py, which runs with EGTRAIN_LOG=sim.step=true"),
+    ("app/DispatchController.cpp", 'End of Simulation"', "the same line in the console of a run in the window", PRODUCER_STATEMENT),
+    ("app/main.cpp", '"Graphical user interface (GUI): ', "tools/e2e/startup_launch_contract.py", PRODUCER_STATEMENT),
+    (
+        "simulation",
+        '" is stopping at "',
+        "tools/e2e/station_departure_smoke.py, which runs with EGTRAIN_LOG=sim.step=true",
+        PRODUCER_STATEMENT,
+    ),
 ]
-
-# A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
-PRODUCER_STATEMENT = re.compile(r"\b(?:cout|EG_LOG\s*\(\s*\w+\s*,\s*\w+\s*\))\s*<<")
 
 
 def count_statements(text, plain_markers=False):
@@ -120,12 +128,12 @@ def count_statements(text, plain_markers=False):
     return counts
 
 
-def has_producer(text, needle):
-    """Tell whether a line of the original text holds needle and a live cout or EG_LOG statement."""
+def has_producer(text, needle, statement=PRODUCER_STATEMENT):
+    """Tell whether a line of the original text holds needle and a live statement that matches."""
     original_lines = text.split("\n")
     cleaned_lines = clean_cpp_code(text).split("\n")
     return any(
-        needle in original and PRODUCER_STATEMENT.search(cleaned)
+        needle in original and statement.search(cleaned)
         for original, cleaned in zip(original_lines, cleaned_lines)
     )
 
@@ -181,6 +189,10 @@ def check_patterns():
     ):
         if has_producer(text, 'End of Simulation"'):
             failures.append(f"self-check: {what} satisfies the producer check")
+    if has_producer('EG_LOG(AppRun, Info) << "\\n End of Simulation";\n', 'End of Simulation"', COUT_STATEMENT):
+        failures.append("self-check: an EG_LOG line satisfies the cout producer check")
+    if not has_producer(live, 'End of Simulation"', COUT_STATEMENT):
+        failures.append("self-check: a live cout producer is not found")
     logged = 'EG_LOG(SimStep, Debug) << "At time " << t << " is stopping at " << name << "\\n";\n'
     if not has_producer(logged, '" is stopping at "'):
         failures.append("self-check: a live EG_LOG producer is not found")
@@ -242,10 +254,11 @@ def check_counts(sources):
 
 def check_producers(sources):
     problems = []
-    for place, needle, readers in PRODUCERS:
+    for place, needle, readers, statement in PRODUCERS:
         files = [text for name, text in sources.items() if name == place or name.startswith(place + "/")]
-        if not any(has_producer(text, needle) for text in files):
-            problems.append(f"{place}: no cout or EG_LOG statement with the text {needle} (read by {readers})")
+        if not any(has_producer(text, needle, statement) for text in files):
+            kind = "cout" if statement is COUT_STATEMENT else "cout or EG_LOG"
+            problems.append(f"{place}: no {kind} statement with the text {needle} (read by {readers})")
     return problems
 
 

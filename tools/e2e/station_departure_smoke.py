@@ -10,8 +10,8 @@ fused multiply and add, which arm64 compilers use; it happens at Weesp on
 route30. On other targets this script passes without exercising it, and the
 cases in test_operationsbuilder cover the comparisons there.
 
-The run prints no per-step line by default. A second run with EGTRAIN_LOG=sim.step=true
-prints the line "<train> is stopping at <station>" for the last stop.
+The run prints no per-step line by default and one progress line in 100 steps. A second run with
+EGTRAIN_LOG=sim.step=true prints the line "<train> is stopping at <station>" for the last stop.
 """
 import json
 import os
@@ -115,7 +115,9 @@ def main() -> None:
         (scene / "services.json").write_text(
             json.dumps(service_document(), indent=4), encoding="utf-8"
         )
-        scene_name = json.loads((scene / "scene.json").read_text(encoding="utf-8"))["name"]
+        scene_document = json.loads((scene / "scene.json").read_text(encoding="utf-8"))
+        scene_name = scene_document["name"]
+        run_end = scene_document["simulation_settings"]["duration_seconds"]
 
         output, stdout = run_service(app, scene, temp_root / "run")
 
@@ -153,6 +155,10 @@ def main() -> None:
 
         if "is stopping at" in stdout:
             raise SystemExit(f"the run prints a per-step line by default\n{stdout[-4000:]}")
+        # The progress line is printed once in 100 steps, not once per step.
+        progress_lines = stdout.count("Time of simulation is")
+        if not 0 < progress_lines <= run_end // 50:
+            raise SystemExit(f"{progress_lines} progress lines in a run of {run_end} s, expected about one in 100 s\n{stdout[-4000:]}")
         _, verbose_stdout = run_service(app, scene, temp_root / "run-verbose", "sim.step=true")
         if f"{TRAIN} is stopping at Brn" not in verbose_stdout:
             raise SystemExit(f"{TRAIN} never arrived at Brn\n{verbose_stdout[-4000:]}")
@@ -170,7 +176,6 @@ def main() -> None:
                 samples = [time_seconds for time_seconds, cell in enumerate(cells[4:]) if cell]
         if not samples:
             raise SystemExit(f"{TRAIN} has no trajectory")
-        run_end = json.loads((scene / "scene.json").read_text(encoding="utf-8"))["simulation_settings"]["duration_seconds"]
         if samples[-1] >= run_end - 1:
             raise SystemExit(f"{TRAIN} was still in the network at the end of the run, after leaving Brn at {departures[-1]:.0f} s")
         print(f"PASS {TRAIN} left Brn at {departures[-1]:.0f} s and the network at {samples[-1]} s")

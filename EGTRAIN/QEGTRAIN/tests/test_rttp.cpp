@@ -256,6 +256,7 @@ int main() {
 	const bool sentWithoutListener = send_external_state(
 		{{"time", 0}}, "<trafficState/>", "inproc://egtrain-no-listener");
 	const auto sendElapsed = std::chrono::steady_clock::now() - sendStart;
+	const bool sentToInvalidEndpoint = send_external_state({{"time", 0}}, "<trafficState/>", "not-an-endpoint");
 
 	zmq::context_t replyContext;
 	std::promise<std::string> endpointPromise;
@@ -289,8 +290,10 @@ int main() {
 	eglog::setSink({});
 	const bool parseErrorReported = wasLogged(logged, eglog::Category::IoRailml, eglog::Level::Error, "RTTP XML parse error");
 	const bool replyLogged = wasLogged(logged, eglog::Category::IoZmq, eglog::Level::Debug, "Received from");
+	const bool failureLogged = wasLogged(logged, eglog::Category::IoZmq, eglog::Level::Warning, "External state send failed for not-an-endpoint");
 	if (!trafficStateXml || !routeChoiceXml || !startTimeOfDay || !parsedPayload || !parseErrorReported || sentWithoutListener
-		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope || !replyLogged) {
+		|| sendElapsed >= std::chrono::seconds(1) || !sentToListener || !receivedEnvelope || !replyLogged
+		|| sentToInvalidEndpoint || !failureLogged) {
 		std::cerr << "rttp test failed: traffic_state_xml=" << trafficStateXml
 				  << " route_choice_xml=" << routeChoiceXml
 				  << " start_time_of_day=" << startTimeOfDay
@@ -301,7 +304,9 @@ int main() {
 				  << std::chrono::duration_cast<std::chrono::milliseconds>(sendElapsed).count()
 				  << " listener_sent=" << sentToListener
 				  << " envelope_received=" << receivedEnvelope
-				  << " reply_logged=" << replyLogged << "\n";
+				  << " reply_logged=" << replyLogged
+				  << " invalid_endpoint_sent=" << sentToInvalidEndpoint
+				  << " failure_logged=" << failureLogged << "\n";
 		return 1;
 	}
 
