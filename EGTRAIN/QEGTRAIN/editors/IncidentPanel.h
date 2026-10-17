@@ -16,6 +16,7 @@
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
@@ -79,6 +80,8 @@ public:
 	QCheckBox* hasReducedSpeedCheck() const { return m_hasReducedSpeedCheck; }
 	QDoubleSpinBox* reducedSpeedKmhEdit() const { return m_reducedSpeedKmhEdit; }
 	QCheckBox* terminateAtDestinationCheck() const { return m_terminateAtDestinationCheck; }
+	// The message above the fields while no incident is selected; hidden otherwise.
+	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }
 	QPushButton* addButton() const { return m_addButton; }
 	QPushButton* duplicateButton() const { return m_duplicateButton; }
 	QPushButton* deleteButton() const { return m_deleteButton; }
@@ -119,6 +122,7 @@ private:
 	QCheckBox* m_hasReducedSpeedCheck = nullptr;
 	QDoubleSpinBox* m_reducedSpeedKmhEdit = nullptr;
 	QCheckBox* m_terminateAtDestinationCheck = nullptr;
+	QLabel* m_emptyStateLabel = nullptr;
 };
 
 #endif // INCIDENTPANEL_H

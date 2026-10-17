@@ -1,12 +1,14 @@
 #include "editors/EntranceDelayPanel.h"
 
 #include "editors/ServicePanel.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
 #include <QFormLayout>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
@@ -41,24 +43,27 @@ const SceneStop* firstDepartureStop(const SceneService& service) {
 EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("entranceDelayPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->addWidget(new QLabel("Entrance Delays", this));
+	layout->addWidget(new QLabel("Entrance delays", this));
 	m_listWidget = new QListWidget(this);
 	m_listWidget->setObjectName("entranceDelayListWidget");
 	m_listWidget->setAccessibleName("Entrance delay library");
 	layout->addWidget(m_listWidget, 1);
-	QHBoxLayout* buttonLayout = new QHBoxLayout();
+	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add", this);
 	m_addButton->setObjectName("entranceDelayAddButton");
 	m_duplicateButton = new QPushButton("Duplicate", this);
 	m_duplicateButton->setObjectName("entranceDelayDuplicateButton");
 	m_deleteButton = new QPushButton("Delete", this);
 	m_deleteButton->setObjectName("entranceDelayDeleteButton");
-	buttonLayout->addWidget(m_addButton);
-	buttonLayout->addWidget(m_duplicateButton);
-	buttonLayout->addWidget(m_deleteButton);
+	buttonLayout->addWidget(m_addButton, 0, 0);
+	buttonLayout->addWidget(m_duplicateButton, 0, 1);
+	buttonLayout->addWidget(m_deleteButton, 1, 0);
 	layout->addLayout(buttonLayout);
+	m_emptyStateLabel = EditorLayout::emptyStateLabel(this);
+	m_emptyStateLabel->setObjectName("entranceDelayEmptyStateLabel");
+	layout->addWidget(m_emptyStateLabel);
 	QFormLayout* detailLayout = new QFormLayout();
-	m_serviceCombo = new QComboBox(this);
+	m_serviceCombo = new ChoiceComboBox(this);
 	m_serviceCombo->setObjectName("entranceDelayServiceCombo");
 	detailLayout->addRow("Service", m_serviceCombo);
 	m_occurrenceEdit = new QSpinBox(this);
@@ -70,7 +75,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_occurrenceContextLabel->setObjectName("entranceDelayOccurrenceContextLabel");
 	m_occurrenceContextLabel->setWordWrap(true);
 	detailLayout->addRow(QString(), m_occurrenceContextLabel);
-	m_stationCombo = new QComboBox(this);
+	m_stationCombo = new ChoiceComboBox(this);
 	m_stationCombo->setObjectName("entranceDelayStationCombo");
 	detailLayout->addRow("Station", m_stationCombo);
 	m_secondsEdit = new CompactDoubleSpinBox(this);
@@ -235,8 +240,14 @@ void EntranceDelayPanel::updateDetail() {
 		m_occurrenceEdit->setValue(currentOccurrence);
 		m_occurrenceEdit->setEnabled(enabled);
 	}
+	QString emptyState;
+	if (canEdit() && scenario() && !delay) {
+		emptyState = m_listWidget->count() == 0 ? QStringLiteral("This scenario has no entrance delays. Use Add.")
+												: QStringLiteral("Select an entrance delay or use Add.");
+	}
+	DialogLayout::setHelp(m_emptyStateLabel, emptyState);
 	if (!delay) {
-		m_occurrenceContextLabel->setText(QStringLiteral("Select an entrance delay."));
+		m_occurrenceContextLabel->clear();
 	} else {
 		QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
 		if (service)

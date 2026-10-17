@@ -58,6 +58,8 @@ public:
 	void updatePresentation();
 	// Shows the fields of the selected scenario again.
 	void updateDetail();
+	// One line that names the selected scenario, for a header over the editors that work on its entries.
+	QString headerText() const;
 
 	// Selects the scenario at this position of the scene; the list follows when it is refreshed.
 	void selectScenario(int row);
@@ -86,6 +88,8 @@ Q_SIGNALS:
 	// delays are to be shown, and what a run showed no longer applies to the selection. Emitted after the run selection
 	// is updated and, for an edit, after the document is marked changed.
 	void scenarioSelected(const QString& id);
+	// The selected scenario or its id or name has changed, or the document is replaced; the argument is headerText().
+	void headerTextChanged(const QString& text);
 	// A message for the status bar.
 	void statusMessage(const QString& text, int timeoutMs);
 

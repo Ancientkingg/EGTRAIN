@@ -63,6 +63,8 @@ public:
 	QComboBox* serviceCombo() const { return m_serviceCombo; }
 	QSpinBox* occurrenceEdit() const { return m_occurrenceEdit; }
 	QLabel* occurrenceContextLabel() const { return m_occurrenceContextLabel; }
+	// The message above the fields while no entrance delay is selected; hidden otherwise.
+	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }
 	QComboBox* stationCombo() const { return m_stationCombo; }
 	QDoubleSpinBox* secondsEdit() const { return m_secondsEdit; }
 	QPushButton* addButton() const { return m_addButton; }
@@ -99,6 +101,7 @@ private:
 	QComboBox* m_serviceCombo = nullptr;
 	QSpinBox* m_occurrenceEdit = nullptr;
 	QLabel* m_occurrenceContextLabel = nullptr;
+	QLabel* m_emptyStateLabel = nullptr;
 	QComboBox* m_stationCombo = nullptr;
 	QDoubleSpinBox* m_secondsEdit = nullptr;
 };
