@@ -146,12 +146,19 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
         screen_width, screen_height = rendered["availableScreen"]
         assert dialog[2] <= screen_width * 9 // 10 and dialog[3] <= screen_height * 4 // 5, geometry
         assert geometry["footerVisible"] and contains(dialog, footer), geometry
+        # The context line is as tall as its text: no unused space above or below it.
+        assert geometry["contextHeight"][0] == geometry["contextHeight"][1], geometry
         assert contains(footer, geometry["run"]) and contains(footer, geometry["cancel"]), geometry
         assert contains(dialog, scroll) and scroll[1] + scroll[3] <= footer[1], geometry
         if enlarged:
             assert geometry["fontPoints"] == 18 and dialog[2] <= 560 and dialog[3] <= 420, geometry
             assert geometry["controlFontPoints"] == [18, 18, 18, 18], geometry
     assert rendered["expandedGeometry"]["footer"] == rendered["scrolledGeometry"]["footer"], rendered
+    collapsed_geometry, expanded_geometry = rendered["collapsedGeometry"], rendered["expandedGeometry"]
+    # Expanding Run details grows the dialog up to its height limit instead of leaving the details below the fold.
+    assert expanded_geometry["dialog"][3] >= collapsed_geometry["dialog"][3], rendered
+    assert (expanded_geometry["scrollMaximum"] == 0
+            or expanded_geometry["dialog"][3] == expanded_geometry["maximum"][1]), rendered
     keyboard = rendered["keyboard"]
     assert keyboard["bodyFocus"] == (["Loaded Data", "Validation"] if advanced else []), keyboard
     assert keyboard["tabReachedFooter"] and keyboard["backtabReturned"], keyboard

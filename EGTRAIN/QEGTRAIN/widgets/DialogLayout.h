@@ -12,12 +12,45 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStyle>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
 #include "widgets/FocusWheel.h"
 
 namespace DialogLayout {
+
+namespace detail {
+// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
+// width wide: the whole content and every other visible item of the layout (the heading, the footer and any
+// widget a caller added), with the margins and spacing between them.
+inline int heightForContent(QDialog& dialog, int width) {
+	// The style sheet adds padding and borders to labels when they are polished, which changes their size hints.
+	dialog.ensurePolished();
+	QLayout* layout = dialog.layout();
+	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
+	if (!layout || !scroll)
+		return 0;
+	const QMargins margins = layout->contentsMargins();
+	const int innerWidth = width - margins.left() - margins.right();
+	const int frame = 2 * scroll->frameWidth();
+	int height = margins.top() + margins.bottom();
+	int shown = 0;
+	for (int i = 0; i < layout->count(); ++i) {
+		QLayoutItem* item = layout->itemAt(i);
+		if (item->isEmpty())
+			continue;
+		++shown;
+		if (item->widget() == scroll) {
+			QWidget* content = scroll->widget();
+			height += frame + (content->hasHeightForWidth() ? content->heightForWidth(innerWidth - frame) : content->sizeHint().height());
+		} else {
+			height += item->hasHeightForWidth() ? item->heightForWidth(innerWidth) : item->sizeHint().height();
+		}
+	}
+	return height + qMax(0, shown - 1) * layout->spacing();
+}
+} // namespace detail
 
 // Transfers body and actions to dialog. The caller owns button roles, connections,
 // validation, default action and any changes to application state. The combo boxes and spin
@@ -72,7 +105,8 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		subtitle->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 		contentLayout->addWidget(subtitle);
 	}
-	contentLayout->addWidget(body);
+	// The body takes the height that the content has left over, so that the context line keeps its own height.
+	contentLayout->addWidget(body, 1);
 	FocusWheel::guardAll(body);
 
 	auto* scroll = new QScrollArea(&dialog);
@@ -99,15 +133,16 @@ inline QScrollArea* install(QDialog& dialog, const QString& heading,
 		const int maxWidth = qMax(1, availableGeometry.width() * 9 / 10);
 		const int maxHeight = qMax(1, availableGeometry.height() * 4 / 5);
 		dialog.setMaximumSize(maxWidth, maxHeight);
-		dialog.resize(qMin(maxWidth, qMax(480, lineHeight * 32)),
-			qMin(maxHeight, qMax(layout->sizeHint().height(), lineHeight * 16)));
+		const int width = qMin(maxWidth, qMax(480, lineHeight * 32));
+		dialog.resize(width, qMin(maxHeight, detail::heightForContent(dialog, width)));
 	}
 	return scroll;
 }
 
 // Widens an installed dialog to show its body without clipping, up to the width limit
 // that install set. Call it after the body is filled, and again after a change to the body
-// of a dialog that is shown; it never narrows the dialog.
+// of a dialog that is shown; it never narrows the dialog. It also makes the dialog tall enough for the
+// body at the new width, up to the height limit, and never shortens it.
 inline void fitWidthToContent(QDialog& dialog) {
 	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 	if (!scroll || !dialog.layout())
@@ -121,7 +156,8 @@ inline void fitWidthToContent(QDialog& dialog) {
 	const QMargins margins = dialog.layout()->contentsMargins();
 	const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
-	dialog.resize(qMin(dialog.maximumWidth(), qMax(dialog.width(), needed)), dialog.height());
+	const int width = qMin(dialog.maximumWidth(), qMax(dialog.width(), needed));
+	dialog.resize(width, qMin(dialog.maximumHeight(), qMax(dialog.height(), detail::heightForContent(dialog, width))));
 }
 
 // How serious an inline message is. Each value selects one callout of the stylesheet.
@@ -145,6 +181,11 @@ inline void showMessage(QLabel* label, const QString& text, const QVariant& stat
 	label->style()->unpolish(label);
 	label->style()->polish(label);
 	label->setVisible(!text.isEmpty());
+	// A message in a shown dialog adds height to the body. Once the layout has made room for it, the dialog grows
+	// to fit, up to its height limit, so that the body does not scroll the message into view.
+	auto* dialog = qobject_cast<QDialog*>(label->window());
+	if (!text.isEmpty() && dialog && dialog->isVisible() && dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll")))
+		QTimer::singleShot(0, dialog, [dialog] { fitWidthToContent(*dialog); });
 }
 } // namespace detail
 

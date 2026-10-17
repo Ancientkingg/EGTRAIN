@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QSemaphore>
+#include <QTabBar>
 #include <QTemporaryDir>
 #include <QTimer>
 #ifdef NDEBUG
@@ -36,8 +37,64 @@ static int count(const QJsonArray& records, const QString& name, Category catego
 	}
 	return result;
 }
+// The check mark of an editor action stands for an editor that is open: a dock that is docked, floating or behind
+// another tab, and not one that is hidden or closed, whichever way it got there.
+static void checkEditorMenuState(QApplication& app) {
+	QMainWindow window;
+	QMenu menu;
+	QDockWidget* docks[3];
+	QAction* actions[3];
+	for (int i = 0; i < 3; ++i) {
+		docks[i] = new QDockWidget(QString("Editor %1").arg(i), &window);
+		docks[i]->setObjectName(QString("editor%1").arg(i));
+		docks[i]->setWidget(new QWidget);
+		window.addDockWidget(Qt::RightDockWidgetArea, docks[i]);
+		actions[i] = registerEditor(docks[i], &menu, {});
+	}
+	const auto settle = [&] { app.processEvents(); };
+	const auto checks = [&](bool first, bool second, bool third) {
+		settle();
+		assert(actions[0]->isChecked() == first && actions[1]->isChecked() == second && actions[2]->isChecked() == third);
+		assert(first == !docks[0]->isHidden() && second == !docks[1]->isHidden() && third == !docks[2]->isHidden());
+	};
+	checks(true, true, true);
+	// Hidden before the window was ever shown, as the editors that start closed are.
+	docks[1]->hide();
+	checks(true, false, true);
+	window.tabifyDockWidget(docks[0], docks[2]);
+	window.show();
+	checks(true, false, true);
+	const QByteArray hiddenLayout = window.saveState();
+	docks[1]->show();
+	checks(true, true, true);
+	docks[1]->setFloating(true);
+	checks(true, true, true);
+	docks[1]->close();
+	checks(true, false, true);
+	docks[1]->show();
+	checks(true, true, true);
+	// Both docks of a tabbed pair are open, whichever tab is in front.
+	for (QTabBar* tabs : window.findChildren<QTabBar*>()) {
+		for (int tab = 0; tab < tabs->count(); ++tab) {
+			tabs->setCurrentIndex(tab);
+			checks(true, true, true);
+		}
+	}
+	docks[2]->hide();
+	checks(true, true, false);
+	docks[2]->show();
+	checks(true, true, true);
+	docks[1]->setFloating(false);
+	assert(window.restoreState(hiddenLayout));
+	checks(true, false, true);
+	docks[0]->hide();
+	docks[2]->hide();
+	checks(false, false, false);
+}
+
 int main(int argc, char** argv) {
 	QApplication app(argc, argv);
+	checkEditorMenuState(app);
 	assert(durationBucket(0) == Duration::Under1s);
 	assert(durationBucket(999) == Duration::Under1s);
 	assert(durationBucket(1000) == Duration::From1sTo10s);

@@ -323,9 +323,12 @@ bool RunController::showRunReview() {
 	}
 	details->setText(displayedDetails);
 	details->hide();
-	connect(detailsToggle, &QToolButton::toggled, &review, [detailsToggle, details](bool shown) {
+	connect(detailsToggle, &QToolButton::toggled, &review, [&review, detailsToggle, details](bool shown) {
 		detailsToggle->setArrowType(shown ? Qt::DownArrow : Qt::RightArrow);
 		details->setVisible(shown);
+		// The dialog grows for the details once the layout has made room for them.
+		if (shown)
+			QTimer::singleShot(0, &review, [&review] { DialogLayout::fitWidthToContent(review); });
 	});
 	layout->addWidget(detailsToggle);
 	layout->addWidget(details);
