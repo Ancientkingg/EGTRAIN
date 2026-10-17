@@ -903,7 +903,7 @@ void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult&
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
-										  ui(new Ui::MainWindow),
+										  ui(std::make_unique<Ui::MainWindow>()),
 										  m_worker(nullptr),
 										  m_workerThread(nullptr) {
 	QFile themeFile(":/styles/egtrain.qss");
@@ -2012,7 +2012,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 MainWindow::~MainWindow() {
 	if (m_telemetrySender) m_telemetrySender->stop();
 	clearSimulationWorker(true);
-	delete ui;
 	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
 		windowDestroyed();
 }
@@ -4803,6 +4802,8 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
 }
 
+// The menus are shown with popup() and delete themselves when they close, so this function returns while a menu is open.
+// The scripted GUI reads and triggers the open menu through m_sceneContextMenu; exec() on a stack menu would block it.
 void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scenePos*/, const QPoint& screenPos, bool /*keyboard*/) {
 
 	if (m_sceneContextMenu) {

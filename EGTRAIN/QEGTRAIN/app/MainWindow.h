@@ -271,7 +271,7 @@ public slots:
 private:
 	// the scripted GUI runs in tests/e2e
 	friend class MainWindowTestAccess;
-	Ui::MainWindow* ui;
+	std::unique_ptr<Ui::MainWindow> ui;
 
 	// central widget
 	QWidget* centralWidget;
