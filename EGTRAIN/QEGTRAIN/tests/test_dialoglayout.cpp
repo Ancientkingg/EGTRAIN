@@ -583,6 +583,87 @@ bool exerciseMessageBoxDefault() {
 	return ok;
 #endif
 }
+
+// The width of the drawn text of a button, from the pixels that differ strongly from its face. The button is widened first,
+// so that no text is clipped, and the grab is taken at its natural position within it.
+int drawnTextWidth(QPushButton* button) {
+	button->setFixedWidth(button->width() + 300);
+	const QPixmap grab = button->grab();
+	const QImage image = grab.toImage();
+	const QRgb face = controlLook(button).face;
+	const qreal ratio = grab.devicePixelRatio();
+	int left = image.width();
+	int right = -1;
+	for (int y = qRound(3 * ratio); y < image.height() - qRound(3 * ratio); ++y)
+		for (int x = qRound(3 * ratio); x < image.width() - qRound(3 * ratio); ++x)
+			if (colorDifference(image.pixel(x, y), face) >= 200) {
+				left = std::min(left, x);
+				right = std::max(right, x);
+			}
+	return right < left ? 0 : qRound((right - left + 1) / ratio);
+}
+
+// A button shows its whole text when its width holds the text as it is drawn plus the border and the padding of the style
+// sheet (1 px and 7 px on each side). The drawn text can be bolder than the font of the widget.
+bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
+	const int width = button->width();
+	const int needed = drawnTextWidth(button) + 2 * (1 + 7);
+	const bool ok = width >= needed;
+	if (!ok)
+		std::cerr << where << ": the button '" << button->text().toStdString() << "' is " << width << " px wide at " << scale
+				  << " times the font but its text needs " << needed << " px\n";
+	return ok;
+}
+
+// The default button of an update prompt and of a dialog footer with long texts is not narrower than its text.
+bool exerciseDefaultButtonWidth(qreal scale) {
+#ifdef Q_OS_WIN
+	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	Q_UNUSED(scale);
+	return true;
+#else
+	const QFont appFont = qApp->font();
+	QFont font = appFont;
+	font.setPointSizeF(12 * scale);
+	QApplication::setFont(font);
+	QMessageBox box(QMessageBox::Information, QStringLiteral("EGTRAIN 1.0.2 is Available"), QStringLiteral("EGTRAIN 1.0.2 is available."));
+	auto* update = box.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
+	box.addButton(QStringLiteral("Open Release Page"), QMessageBox::AcceptRole);
+	box.addButton(QStringLiteral("Stop Checking"), QMessageBox::DestructiveRole);
+	box.addButton(QStringLiteral("Later"), QMessageBox::RejectRole);
+	box.setDefaultButton(update);
+	for (QAbstractButton* button : box.buttons())
+		button->setFocusPolicy(Qt::NoFocus);
+	box.show();
+	QApplication::processEvents();
+	bool ok = check(update->isDefault(), "the update prompt does not make Update and Restart the default button");
+	// QMessageBox caps its width from the screen width, so on a narrow screen with a wide font every button of a long row is
+	// squeezed, the default one and the others alike. That cap is not what this check is about: it compares only when the
+	// button row got the width it asks for.
+	auto* row = box.findChild<QDialogButtonBox*>();
+	if (row && row->width() < row->sizeHint().width()) {
+		std::cerr << "note: at " << scale << " times the font the message box is narrower than its buttons ("
+				  << row->width() << " of " << row->sizeHint().width() << " px); the update prompt is not compared\n";
+	} else {
+		for (QAbstractButton* button : box.buttons())
+			ok &= buttonShowsText(qobject_cast<QPushButton*>(button), "update prompt", scale);
+	}
+
+	QDialog dialog;
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
+	auto* primary = buttons->addButton(QStringLiteral("Run the whole simulation again"), QDialogButtonBox::AcceptRole);
+	primary->setDefault(true);
+	for (QAbstractButton* button : buttons->buttons())
+		button->setFocusPolicy(Qt::NoFocus);
+	DialogLayout::install(dialog, QStringLiteral("Default action"), QString(), new QWidget, buttons, QRect(0, 0, 1920, 1080));
+	dialog.show();
+	QApplication::processEvents();
+	ok &= check(primary->isDefault(), "the dialog footer does not make its accept button the default button");
+	ok &= buttonShowsText(primary, "dialog footer", scale);
+	QApplication::setFont(appFont);
+	return ok;
+#endif
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -607,5 +688,10 @@ int main(int argc, char** argv) {
 	const bool fit = exerciseFitAfterChange();
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
-	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox ? 0 : 1;
+	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
+	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
+	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && defaultWidth
+			&& scaledDefaultWidth
+		? 0
+		: 1;
 }

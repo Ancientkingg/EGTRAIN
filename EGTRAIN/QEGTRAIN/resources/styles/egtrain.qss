@@ -270,7 +270,6 @@ QMessageBox QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton
     background: #315a70;
     border-color: #315a70;
     color: #ffffff;
-    font-weight: 600;
 }
 
 QPushButton#runReviewRunButton {
