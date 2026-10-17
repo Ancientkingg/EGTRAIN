@@ -1,5 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -554,7 +555,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 	for (int z = 0; z <= Cons_Block; z++) {
 		// A SignalFailure EoA applies at every signalling level, so scan the MA list on any section carrying one
 		bool hasSignalFailureMa = false;
-		for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+		for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
 			if ((it->type == "SignalFailure") && (it->BSID == BS[z + BlockPos].ID) && obeysAuthority(*it)) {
 				hasSignalFailureMa = true;
 				break;
@@ -574,8 +575,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 				}
 			}
 			// Now identifying braking points due to ETCS MA
-			if (ETCS_MA.size() > 0) {
-				for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+			if (run_->etcsMa.size() > 0) {
+				for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
 					if ((it->BSID == BS[z + BlockPos].ID) && (it->TrainInfo.trainDescription != trainDescription) && obeysAuthority(*it)) {
 						double AbscissaToBrakeAtForEoA = -1;	// This is the progressive the train needs to start braking at to meet the EoA
 						double SpeedForEoA = -1;				// This is the speed to be met to respect the MA
@@ -586,7 +587,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 						ETCSBrakingPoint.X = authorityRoutePosition(*it, BS[z + BlockPos]);
 						// A behind or front end cannot become a forward leader through virtual projection.
 						if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling) && it->type == "TrainEnd"
-							&& it->ReversedDirection == train_route[indexOfRoute].reversed_direction
+							&& it->ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction
 							&& (it->typePart != "Tale" || !(ETCSBrakingPoint.X > S)))
 							continue;
 
@@ -598,7 +599,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 
 						} else if (BS[z + BlockPos].SignallingLevel == levelValue(SignallingLevel::VirtualCoupling)) {
 							string NextBlockID;
-							if (z + BlockPos == train_route[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
+							if (z + BlockPos == run_->infra.routes[this->indexOfRoute].N_Block_Sections - 1) { // if the block is the last of the train route then the ID of the Next Block is None
 								NextBlockID = "None";
 							} else {
 								NextBlockID = BS[z + BlockPos + 1].ID;
@@ -609,7 +610,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 								}
 							} else if (it->type == "TrainEnd") {
 								// In case the MA is a Train End the Speed shall be 0 if the train ahead is going in the opposite direction
-								if (it->ReversedDirection != train_route[this->indexOfRoute].reversed_direction) {
+								if (it->ReversedDirection != run_->infra.routes[this->indexOfRoute].reversed_direction) {
 									SpeedForEoA = 0;
 
 								}
@@ -626,7 +627,7 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 											// The inverse ends at X - 0.002; its holdback is not forward travel.
 											const double LeaderStandstill = LeaderBrakingStart < 0 || it->TrainInfo.TrainSpeed == 0
 												? ETCSBrakingPoint.X
-												: std::min(ETCSBrakingPoint.X + ((ETCSBrakingPoint.X - 0.002) - LeaderBrakingStart), train_route[this->indexOfRoute].x_of_end_node * 1000);
+												: std::min(ETCSBrakingPoint.X + ((ETCSBrakingPoint.X - 0.002) - LeaderBrakingStart), run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000);
 											PredictedDistanceToCoupling = LeaderStandstill - ETCSBrakingPoint.X;
 											ETCSBrakingPoint.X = LeaderStandstill;
 											BrakingForEoAModified = true;
@@ -637,8 +638,8 @@ double Train::europeanVitalComputerWithListsImproved(double S, double V, int Pre
 												double TimeToBrake = ((V - SpeedForEoA) / max_train_decelaration); // +(1 * timestep);  //This is the time needed by the train to reach the speed of the train ahead, plus 1 is needed to cover up for the integration delay of 1 step
 												PredictedDistanceToCoupling = it->TrainInfo.TrainSpeed * TimeToBrake;
 												// With the statement below trains will always try to couple with a train ahead if that is possible
-												if ((ETCSBrakingPoint.X + PredictedDistanceToCoupling) <= train_route[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
-													ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;										  // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
+												if ((ETCSBrakingPoint.X + PredictedDistanceToCoupling) <= run_->infra.routes[this->indexOfRoute].x_of_end_node * 1000) { // if with the predicted distance the Braking Point is still within the limits of train route then
+													ETCSBrakingPoint.X = ETCSBrakingPoint.X + PredictedDistanceToCoupling;												 // Change the distance of the BrakingPoint. We chang it here so that the function can also detect other EoA for other train that might pop up between the real BrakingPoint.X and the prediction distance
 													BrakingForEoAModified = true;
 												}
 											}

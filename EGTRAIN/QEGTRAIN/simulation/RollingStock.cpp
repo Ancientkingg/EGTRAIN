@@ -1,6 +1,7 @@
 #include "simulation/RollingStock.h"
 #include "scene/SceneModel.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <thread>
@@ -169,7 +170,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 
 	if (BoardingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator BoardInCar = BoardingPassengersInACar.begin(); BoardInCar != BoardingPassengersInACar.end(); BoardInCar++) {
-			NumberGenerator& N = runNumberGenerator();
+			NumberGenerator& N = run_->numberGenerator;
 			// The number of people boarding from the first door is drawn according to a Gaussian with mean equal to the total number of passenger boarding from that car/2 and standard deviation being 20% of the mean.
 			int Nboarding_FirstDoorInACar = (int)N.getGaussianFloat((*BoardInCar / 2), (*BoardInCar / 2 * 0.20));
 			int Nboarding_SecondDoorInACar = *BoardInCar - Nboarding_FirstDoorInACar;
@@ -180,7 +181,7 @@ double Train::computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_Aligh
 	}
 	if (AlightingPassengersInACar.empty() != 1) {
 		for (list<int>::iterator AlightFromCar = AlightingPassengersInACar.begin(); AlightFromCar != AlightingPassengersInACar.end(); AlightFromCar++) {
-			NumberGenerator& N = runNumberGenerator();
+			NumberGenerator& N = run_->numberGenerator;
 			// The number of people alighting from the first door is drawn according to a Gaussian with mean equal to the total number of passenger aligthing from that car/2 and standard deviation being 20% of the mean.
 			int NAlight_FirstDoorInACar = (int)N.getGaussianFloat((*AlightFromCar / 2), (*AlightFromCar / 2 * 0.20));
 			int NAlight_SecondDoorInACar = *AlightFromCar - NAlight_FirstDoorInACar;
@@ -260,14 +261,14 @@ Regional::Regional() {
 }
 
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
-	for (int i = 0; i < numRegions; i++) {
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, string OutputFolder, double AbsRTSupplement, double PercRTSupplement) {
+	for (int i = 0; i < run.numTrains; i++) {
 
-		regional_train[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
+		run.trains[i].ComputeBlockingTimesInMixedSignallingAreas(SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupplement, PercRTSupplement);
 	}
 
 	// Print the Files
-	PrintTrainBlockingTimes(OutputFolder);
+	PrintTrainBlockingTimes(run, OutputFolder);
 }
 
 int Train::clampStationCount(int requested, const string& trainId) {
@@ -279,11 +280,11 @@ int Train::clampStationCount(int requested, const string& trainId) {
 }
 // Function to Determine for each Route the Block Sections that are occupied by trains
 //(This Function Fill in the list BlocksOccupied)
-void Occupy_Block_Sections_Of_Route(int i) {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].Det_Section_Occupied_By_Train(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections.data(), train_route[regional_train[j].indexOfRoute].N_Block_Sections);
+void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].Det_Section_Occupied_By_Train(i, run.infra.routes[run.trains[j].indexOfRoute].sequence_of_block_sections.data(), run.infra.routes[run.trains[j].indexOfRoute].N_Block_Sections);
 	}
-	updateSingleTrackLocks(i);
+	updateSingleTrackLocks(run, i);
 }
 
 // New occupancy at an origin must not close a crossover after an approaching train has lost the
@@ -292,11 +293,11 @@ void Occupy_Block_Sections_Of_Route(int i) {
 bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
 	if (step <= 0 || timestep <= 0)
 		return false;
-	for (Train& approaching : regional_train) {
+	for (Train& approaching : run_->trains) {
 		if (&approaching == this || !approaching.CanEnter || approaching.OutOfSimulation || step < approaching.departure_time
-			|| approaching.indexOfRoute < 0 || approaching.indexOfRoute >= static_cast<int>(train_route.size()))
+			|| approaching.indexOfRoute < 0 || approaching.indexOfRoute >= static_cast<int>(run_->infra.routes.size()))
 			continue;
-		Route& route = train_route[approaching.indexOfRoute];
+		Route& route = run_->infra.routes[approaching.indexOfRoute];
 		for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
 			const Section& first = route.sequence_of_block_sections[b];
 			const Section& second = route.sequence_of_block_sections[b + 1];
@@ -325,23 +326,23 @@ bool Train::entryConflictsWithCrossover(int step, const Section& origin) const {
 
 // Occupancy keeps its holder. Pending entries reserve the zone before their last braking opportunity, including
 // same-direction followers. Temporary stops do not cancel a reservation; passage, termination or retargeting does.
-void updateSingleTrackLocks(int step) {
-	if (singleTrackLimits.empty() || timestep <= 0)
+void updateSingleTrackLocks(SimulationRun& run, int step) {
+	if (run.infra.singleTrackLimits.empty() || timestep <= 0)
 		return;
-	if (singleTrackHeld.size() != singleTrackLimits.size())
-		singleTrackHeld.assign(singleTrackLimits.size(), 0);
-	if (singleTrackReservations.size() != singleTrackLimits.size())
-		singleTrackReservations.resize(singleTrackLimits.size());
-	const int index = step - static_cast<int>(S_delay / timestep);
-	std::vector<int> forward(singleTrackLimits.size(), 0), backward(singleTrackLimits.size(), 0);
-	std::vector<std::vector<SingleTrackReservation>> requests(singleTrackLimits.size());
-	std::vector<int> retainedDirection(singleTrackLimits.size(), 0);
-	for (int k = 0; k < numRegions && k < static_cast<int>(regional_train.size()); ++k) {
-		Train& train = regional_train[k];
-		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(train_route.size())
-			|| !singleTrackRouteHasZone(train.indexOfRoute))
+	if (run.infra.singleTrackHeld.size() != run.infra.singleTrackLimits.size())
+		run.infra.singleTrackHeld.assign(run.infra.singleTrackLimits.size(), 0);
+	if (run.infra.singleTrackReservations.size() != run.infra.singleTrackLimits.size())
+		run.infra.singleTrackReservations.resize(run.infra.singleTrackLimits.size());
+	const int index = step - static_cast<int>(run.signallingDelay / timestep);
+	std::vector<int> forward(run.infra.singleTrackLimits.size(), 0), backward(run.infra.singleTrackLimits.size(), 0);
+	std::vector<std::vector<SingleTrackReservation>> requests(run.infra.singleTrackLimits.size());
+	std::vector<int> retainedDirection(run.infra.singleTrackLimits.size(), 0);
+	for (int k = 0; k < run.numTrains && k < static_cast<int>(run.trains.size()); ++k) {
+		Train& train = run.trains[k];
+		if (train.OutOfSimulation || train.indexOfRoute < 0 || train.indexOfRoute >= static_cast<int>(run.infra.routes.size())
+			|| !singleTrackRouteHasZone(run, train.indexOfRoute))
 			continue;
-		Route& route = train_route[train.indexOfRoute];
+		Route& route = run.infra.routes[train.indexOfRoute];
 		const bool waiting = !train.CanEnter;
 		if (!waiting && (step < train.departure_time || index < 0 || index >= static_cast<int>(train.instant_spatial_position.size())))
 			continue;
@@ -352,8 +353,8 @@ void updateSingleTrackLocks(int step) {
 		const double speed = !waiting && index < static_cast<int>(train.instant_train_speed.size())
 			? train.instant_train_speed[index]
 			: 0.0;
-		for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
-			const auto& intervals = singleTrackZone(l, train.indexOfRoute).intervals;
+		for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
+			const auto& intervals = singleTrackZone(run, l, train.indexOfRoute).intervals;
 			for (const auto& interval : intervals) {
 				if (!waiting && interval.first <= head && tail < interval.second) {
 					(route.reversed_direction ? backward : forward)[l]++;
@@ -363,7 +364,7 @@ void updateSingleTrackLocks(int step) {
 			for (const auto& interval : intervals) {
 				if (tail >= interval.second)
 					continue;
-				const auto& pending = singleTrackReservations[l];
+				const auto& pending = run.infra.singleTrackReservations[l];
 				const bool retained = std::any_of(pending.begin(), pending.end(), [&](const SingleTrackReservation& owner) {
 					return owner.trainIndex == k && owner.routeIndex == train.indexOfRoute && owner.trainDescription == train.trainDescription
 						&& owner.departureTime == train.departure_time && owner.origin == train.Start_Node_X
@@ -376,77 +377,77 @@ void updateSingleTrackLocks(int step) {
 			}
 		}
 	}
-	for (std::size_t l = 0; l < singleTrackLimits.size(); ++l) {
+	for (std::size_t l = 0; l < run.infra.singleTrackLimits.size(); ++l) {
 		int held = 0;
-		if (singleTrackHeld[l] < 0 && backward[l] > 0)
+		if (run.infra.singleTrackHeld[l] < 0 && backward[l] > 0)
 			held = -1;
 		else if (forward[l] > 0)
 			held = 1;
 		else if (backward[l] > 0)
 			held = -1;
-		auto direction = [](const SingleTrackReservation& owner) { return train_route[owner.routeIndex].reversed_direction ? -1 : 1; };
+		auto direction = [&run](const SingleTrackReservation& owner) { return run.infra.routes[owner.routeIndex].reversed_direction ? -1 : 1; };
 		if (held == 0)
 			held = retainedDirection[l];
 		if (held == 0)
 			for (const auto& request : requests[l])
 				if (direction(request) > 0 || held == 0)
 					held = direction(request); // forward wins only simultaneous requests on a free zone
-		singleTrackReservations[l].clear();
+		run.infra.singleTrackReservations[l].clear();
 		for (const auto& request : requests[l])
 			if (direction(request) == held)
-				singleTrackReservations[l].push_back(request);
-		if (held != singleTrackHeld[l]) {
-			for (int r = 0; r < static_cast<int>(train_route.size()); ++r)
-				for (const std::string& id : singleTrackZone(l, r).sectionIDs)
-					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), id) == BlocksConnected.end())
-						BlocksConnected.push_back(id);
-			singleTrackHeld[l] = held;
+				run.infra.singleTrackReservations[l].push_back(request);
+		if (held != run.infra.singleTrackHeld[l]) {
+			for (int r = 0; r < static_cast<int>(run.infra.routes.size()); ++r)
+				for (const std::string& id : singleTrackZone(run, l, r).sectionIDs)
+					if (std::find(run.blocksConnected.begin(), run.blocksConnected.end(), id) == run.blocksConnected.end())
+						run.blocksConnected.push_back(id);
+			run.infra.singleTrackHeld[l] = held;
 		}
 	}
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(string MainFolder) {
+void PrintTimetablePoints(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/TimetablePoints.txt";
 	ofstream OutputFile;
 	OutputFile.open((char*)FileName.c_str(), ios::binary);
 
-	for (int i = 0; i < numRegions; i++) {
-		OutputFile << regional_train[i].trainDescription << " " << regional_train[i].type << "\n";
+	for (int i = 0; i < run.numTrains; i++) {
+		OutputFile << run.trains[i].trainDescription << " " << run.trains[i].type << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->SuccessorID << " ";
 			}
 		}
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Position << " ";
 			}
 		}
 
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Position << " ";
 			}
 		}
 
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Time << " ";
 			}
 		}
 		OutputFile << "\n";
 
-		if (regional_train[i].TimetablePoints.empty() != 1) {
-			for (list<TrainEvent>::iterator j = regional_train[i].TimetablePoints.begin(); j != regional_train[i].TimetablePoints.end(); j++) {
+		if (run.trains[i].TimetablePoints.empty() != 1) {
+			for (list<TrainEvent>::iterator j = run.trains[i].TimetablePoints.begin(); j != run.trains[i].TimetablePoints.end(); j++) {
 				OutputFile << j->Time2 << " ";
 			}
 		}
@@ -455,56 +456,56 @@ void PrintTimetablePoints(string MainFolder) {
 }
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(string MainFolder) {
+void PrintTrainBlockingTimes(SimulationRun& run, string MainFolder) {
 	string FileName;
 	FileName = FileName + MainFolder + "/BlockingTimes.txt";
 	ofstream OutputFile;
 	OutputFile.open((char*)FileName.c_str(), ios::binary);
 
-	for (int i = 0; i < numRegions; i++) {
-		OutputFile << regional_train[i].trainDescription << "\n";
+	for (int i = 0; i < run.numTrains; i++) {
+		OutputFile << run.trains[i].trainDescription << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].BlockID << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].BlockID << " ";
 		}
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
 			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
 			OutputFile<<regional_train[i].BlockTime[j].PosStart<<" ";
 			else
 			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosEnd<<" ";*/
-			OutputFile << regional_train[i].BlockTime[j].GeoPosStart << " ";
+			OutputFile << run.trains[i].BlockTime[j].GeoPosStart << " ";
 		}
 
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
 			/*if (train_route[regional_train[i].indexOfRoute].reversed_direction==0)
 			OutputFile<<regional_train[i].BlockTime[j].PosEnd<<" ";
 			else
 			OutputFile<<train_route[regional_train[i].indexOfRoute].OriginalRefReversedRoute-regional_train[i].BlockTime[j].PosStart<<" ";*/
-			OutputFile << regional_train[i].BlockTime[j].GeoPosEnd << " ";
+			OutputFile << run.trains[i].BlockTime[j].GeoPosEnd << " ";
 		}
 
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].StartOccTime << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].StartOccTime << " ";
 		}
 		OutputFile << "\n";
 
-		for (int j = 0; j < regional_train[i].N_BlockTimeComplete; j++) {
-			OutputFile << regional_train[i].BlockTime[j].EndOccTime << " ";
+		for (int j = 0; j < run.trains[i].N_BlockTimeComplete; j++) {
+			OutputFile << run.trains[i].BlockTime[j].EndOccTime << " ";
 		}
 		OutputFile << "\n";
 	}
 }
 
 // Function to report the position of the trains in ETCS Level 3
-void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin) {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].ReportPositionToRBC(i, train_route[regional_train[j].indexOfRoute].sequence_of_block_sections.data(), train_route[regional_train[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
+void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].ReportPositionToRBC(i, run.infra.routes[run.trains[j].indexOfRoute].sequence_of_block_sections.data(), run.infra.routes[run.trains[j].indexOfRoute].N_Block_Sections, ETCS3SafetyMargin);
 	}
 }
 
@@ -517,8 +518,8 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	if (Stations[numStations - 1].X == 0) {
 		// find station position
 		for (int j = 0; j < numStations; j++) {
-			if (Stations[numStations - 1].stationName == StationArray[j].stationName) {
-				Stations[numStations - 1].X = StationArray[j].X;
+			if (Stations[numStations - 1].stationName == run_->infra.stations[j].stationName) {
+				Stations[numStations - 1].X = run_->infra.stations[j].X;
 				break;
 			}
 		}
@@ -528,8 +529,8 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	if (Stations[0].X == 0) {
 		// find station position
 		for (int j = 0; j < numStations; j++) {
-			if (Stations[0].stationName == StationArray[j].stationName) {
-				Stations[0].X = StationArray[j].X;
+			if (Stations[0].stationName == run_->infra.stations[j].stationName) {
+				Stations[0].X = run_->infra.stations[j].X;
 				break;
 			}
 		}
@@ -564,13 +565,13 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 	std::ofstream FileOutput;
 
 	// avoid different corridor for initial service (entering station for the first time)
-	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && train_route[indexOfRoute].corridor != train_route[nextServiceRouteID].corridor && train_route[indexOfRoute].reversed_direction == train_route[nextServiceRouteID].reversed_direction) {
+	if (prevIntendedDepTime == 0 && nextServiceRouteID != -1 && run_->infra.routes[indexOfRoute].corridor != run_->infra.routes[nextServiceRouteID].corridor && run_->infra.routes[indexOfRoute].reversed_direction == run_->infra.routes[nextServiceRouteID].reversed_direction) {
 		indexOfRoute = nextServiceRouteID;
 	}
 
 	FileOutput.open((char*)FileName.c_str(), std::ios::binary | std::ios::app); // append
 
-	FileOutput << trainDescription << "\t" << dispLineID << "\t" << train_route[indexOfRoute].reversed_direction << "\t" << train_route[indexOfRoute].corridor << "\t";
+	FileOutput << trainDescription << "\t" << dispLineID << "\t" << run_->infra.routes[indexOfRoute].reversed_direction << "\t" << run_->infra.routes[indexOfRoute].corridor << "\t";
 
 	const int activeFirst = earliestActiveTrajectoryIndex < 0
 		? -1
@@ -580,16 +581,16 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 		if (position != -9999) {
 			// non-reversed route (same with/without jump)
-			if (!train_route[indexOfRoute].reversed_direction) {
+			if (!run_->infra.routes[indexOfRoute].reversed_direction) {
 				FileOutput << position << "\t";
 			}
 			// reversed route without jump
-			else if (train_route[indexOfRoute].diffRegionsJumpX.first == 0) {
-				FileOutput << (train_route[indexOfRoute].OriginalRefReversedRoute - position) << "\t";
+			else if (run_->infra.routes[indexOfRoute].diffRegionsJumpX.first == 0) {
+				FileOutput << (run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - position) << "\t";
 			}
 			// reversed route with jump
 			else {
-				FileOutput << ((train_route[indexOfRoute].OriginalRefReversedRoute - position) - (train_route[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
+				FileOutput << ((run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - position) - (run_->infra.routes[indexOfRoute].diffRegionsJumpX.first * 1000)) << "\t";
 			}
 		} else {
 			FileOutput << "\t";
@@ -630,15 +631,15 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 	double total_nW = number_of_wagons + 1; // train.number_of_wagons does not include loco/first wagon
 
 	// find occupied block section
-	for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-		if (((instant_spatial_position[t] - wagon * (train_length / total_nW)) >= train_route[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000) && (instant_spatial_position[t] - wagon * (train_length / total_nW)) < (train_route[indexOfRoute].sequence_of_block_sections[i].end_node.X * 1000)) {
-			portion = (instant_spatial_position[t] - wagon * (train_length / total_nW)) - train_route[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000;
+	for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
+		if (((instant_spatial_position[t] - wagon * (train_length / total_nW)) >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000) && (instant_spatial_position[t] - wagon * (train_length / total_nW)) < (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].end_node.X * 1000)) {
+			portion = (instant_spatial_position[t] - wagon * (train_length / total_nW)) - run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].start_node.X * 1000;
 
 			// calculate X position
-			if (train_route[indexOfRoute].reversed_direction) {
-				X = (train_route[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
+			if (run_->infra.routes[indexOfRoute].reversed_direction) {
+				X = (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode - portion) / 1000;
 			} else {
-				X = (train_route[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
+				X = (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].GeoXBegNode + portion) / 1000;
 			}
 			return X;
 		}
@@ -649,26 +650,26 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 }
 
 // function to protect all station areas
-void protectStationAreas(int i) {
-	for (int k = 0; k < numRegions; k++) {
+void protectStationAreas(SimulationRun& run, int i) {
+	for (int k = 0; k < run.numTrains; k++) {
 		// cout << ">>>>>>>>>" << regional_train[k].trainDescription << "is OutOfSimulation" << regional_train[k].OutOfSimulation << endl;
-		if (!regional_train[k].OutOfSimulation) {
-			if ((i >= regional_train[k].departure_time) && regional_train[k].CanEnter) {
-				if (timestep <= 0 || i < 0 || i >= static_cast<int>(regional_train[k].instant_spatial_position.size())
-					|| regional_train[k].indexOfRoute < 0 || regional_train[k].indexOfRoute >= static_cast<int>(train_route.size()))
+		if (!run.trains[k].OutOfSimulation) {
+			if ((i >= run.trains[k].departure_time) && run.trains[k].CanEnter) {
+				if (timestep <= 0 || i < 0 || i >= static_cast<int>(run.trains[k].instant_spatial_position.size())
+					|| run.trains[k].indexOfRoute < 0 || run.trains[k].indexOfRoute >= static_cast<int>(run.infra.routes.size()))
 					continue;
-				const int delayedIndex = i - static_cast<int>(S_delay / timestep);
-				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(regional_train[k].instant_spatial_position.size()))
+				const int delayedIndex = i - static_cast<int>(run.signallingDelay / timestep);
+				if (delayedIndex < 0 || delayedIndex >= static_cast<int>(run.trains[k].instant_spatial_position.size()))
 					continue;
-				const Route& route = train_route[regional_train[k].indexOfRoute];
+				const Route& route = run.infra.routes[run.trains[k].indexOfRoute];
 				if (route.N_Block_Sections <= 0)
 					continue;
 
 				// find signalling_block_sections occupied by head of train
 				int hHead = -1;
 				for (int h = 0; h < route.N_Block_Sections; h++) {
-					if ((regional_train[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000)
-						&& (regional_train[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
+					if ((run.trains[k].instant_spatial_position[delayedIndex] < route.sequence_of_block_sections[h].end_node.X * 1000)
+						&& (run.trains[k].instant_spatial_position[delayedIndex] >= route.sequence_of_block_sections[h].start_node.X * 1000)) {
 						hHead = h;
 						break;
 					}
@@ -676,8 +677,8 @@ void protectStationAreas(int i) {
 				if (hHead < 0)
 					continue;
 
-				const std::string stationName = regional_train[k].numStations > 0 && !regional_train[k].Stations.empty()
-					? regional_train[k].Stations[regional_train[k].numStations - 1].stationName
+				const std::string stationName = run.trains[k].numStations > 0 && !run.trains[k].Stations.empty()
+					? run.trains[k].Stations[run.trains[k].numStations - 1].stationName
 					: std::string();
 				auto platformBookedFor = [&](const StationBoundarySection& boundary) {
 					// Legacy Netherlands dispatcher terminals with integer arrival-platform assignments.
@@ -685,28 +686,28 @@ void protectStationAreas(int i) {
 						return false;
 					if (boundary.exit)
 						return false;
-					for (int tr = 0; tr < numRegions; tr++) {
-						if (regional_train[tr].ID == regional_train[k].ID && regional_train[tr].type == regional_train[k].type)
+					for (int tr = 0; tr < run.numTrains; tr++) {
+						if (run.trains[tr].ID == run.trains[k].ID && run.trains[tr].type == run.trains[k].type)
 							continue;
-						if (regional_train[tr].numStations <= 0 || regional_train[tr].Stations.empty())
+						if (run.trains[tr].numStations <= 0 || run.trains[tr].Stations.empty())
 							continue;
-						if (regional_train[tr].Stations[regional_train[tr].numStations - 1].stationName == stationName
-							&& regional_train[tr].reservedPlatform == regional_train[k].arrivalPlatform)
+						if (run.trains[tr].Stations[run.trains[tr].numStations - 1].stationName == stationName
+							&& run.trains[tr].reservedPlatform == run.trains[k].arrivalPlatform)
 							return true;
 
 						// wait for trains leaving the station to prevent deadlocks
-						if (regional_train[tr].Stations[0].stationName != stationName
-							|| regional_train[tr].indexOfRoute < 0
-							|| regional_train[tr].indexOfRoute >= static_cast<int>(train_route.size())
-							|| i >= static_cast<int>(regional_train[tr].instant_spatial_position.size()))
+						if (run.trains[tr].Stations[0].stationName != stationName
+							|| run.trains[tr].indexOfRoute < 0
+							|| run.trains[tr].indexOfRoute >= static_cast<int>(run.infra.routes.size())
+							|| i >= static_cast<int>(run.trains[tr].instant_spatial_position.size()))
 							continue;
-						if (train_route[regional_train[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
+						if (run.infra.routes[run.trains[tr].indexOfRoute].reversed_direction != route.reversed_direction) {
 							// if the other train is not booking a platform, it is not at the platform - enough to check position
-							if (!route.reversed_direction && regional_train[tr].numStations > 1
-								&& regional_train[tr].trainXPosition(i) > regional_train[k].trainXPosition(i))
+							if (!route.reversed_direction && run.trains[tr].numStations > 1
+								&& run.trains[tr].trainXPosition(i) > run.trains[k].trainXPosition(i))
 								return true;
-							if (route.reversed_direction && regional_train[tr].numStations > 1
-								&& regional_train[tr].trainXPosition(i) < regional_train[k].trainXPosition(i))
+							if (route.reversed_direction && run.trains[tr].numStations > 1
+								&& run.trains[tr].trainXPosition(i) < run.trains[k].trainXPosition(i))
 								return true;
 						}
 					}
@@ -714,27 +715,27 @@ void protectStationAreas(int i) {
 				};
 
 				// occupy station interlocking area
-				for (int s = 0; s < stationBoundarySections.size(); s++) {
-					if (!stationBoundarySections[s].entrance)
+				for (int s = 0; s < run.infra.stationBoundaries.size(); s++) {
+					if (!run.infra.stationBoundaries[s].entrance)
 						continue;
 					bool stationAreaHandled = false;
 					for (int offset : {1, 2}) {
 						if (hHead + offset >= route.N_Block_Sections
-							|| stationBoundarySections[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
+							|| run.infra.stationBoundaries[s].entrance->ID != route.sequence_of_block_sections[hHead + offset].ID)
 							continue;
 
 						if (offset == 2) {
 							// do not protect if section before entrance is occupied by another train, otherwise it will be blocked
-							if (std::find(BlocksOccupied.begin(), BlocksOccupied.end(),
+							if (std::find(run.blocksOccupied.begin(), run.blocksOccupied.end(),
 									route.sequence_of_block_sections[hHead + 1].ID)
-								!= BlocksOccupied.end()) {
+								!= run.blocksOccupied.end()) {
 								stationAreaHandled = true;
 								break; // preserve the occupied-intermediate-section exception
 							}
 						}
 
-						stationBoundarySections[s].protectEntrance(hHead + offset, regional_train[k].indexOfRoute,
-							platformBookedFor(stationBoundarySections[s]));
+						run.infra.stationBoundaries[s].protectEntrance(run, hHead + offset, run.trains[k].indexOfRoute,
+							platformBookedFor(run.infra.stationBoundaries[s]));
 						stationAreaHandled = true;
 						break;
 					}
@@ -742,13 +743,13 @@ void protectStationAreas(int i) {
 						break; // train occupies at most one station area
 
 					// check if train entered station area
-					if (stationBoundarySections[s].entrance->ID == route.sequence_of_block_sections[hHead].ID) {
+					if (run.infra.stationBoundaries[s].entrance->ID == route.sequence_of_block_sections[hHead].ID) {
 						// FOR NOW, IGNORE AREAS WITH EXIT SECTION
-						if (stationBoundarySections[s].exit) {
+						if (run.infra.stationBoundaries[s].exit) {
 							continue;
 						}
 
-						regional_train[k].reservedPlatform = regional_train[k].arrivalPlatform;
+						run.trains[k].reservedPlatform = run.trains[k].arrivalPlatform;
 						break;
 					}
 				}

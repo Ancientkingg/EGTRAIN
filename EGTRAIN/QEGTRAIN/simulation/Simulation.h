@@ -9,36 +9,36 @@
 void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
 
 // Updated Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrains();
+void calculateArrivalDelayAllTrains(SimulationRun& run);
 
 // Function to calculate positive an negative delays of trains for all the trains considered in the simulation
-void calculatePosAndNegArrivalDelayAllTrains();
+void calculatePosAndNegArrivalDelayAllTrains(SimulationRun& run);
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
-void calculateDelayStatsAtStation(Stations& S);
+void calculateDelayStatsAtStation(SimulationRun& run, Stations& S);
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
-void calculatePosAndNegDelayStatsAtStation(Stations& S);
+void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S);
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
-void Compute_Input_Delays();
+void Compute_Input_Delays(SimulationRun& run);
 
 // Function to calculate the train delay statistics for all the station considered in the network
-void calculateDelayStatsForAllStations();
+void calculateDelayStatsForAllStations(SimulationRun& run);
 
 // Function to calculate positive and negative train delay statistics for all stations
-void calculatePosAndNegDelayStatsForAllStations();
+void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 
 // Computation times of EGTRAIN and ROMA
 extern double& Comp_Time_EGTRAIN;
 extern double& Comp_Time_ROMA;
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
-void Print_Computing_Times(std::string FolderName);
+void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
 
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(Regional* S, int N_S, std::string FolderName);
+void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, std::string FolderName);
 
 // Function to compute Energy consumption for all the trains in the network
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
@@ -62,6 +62,6 @@ WaitingAtPlatform passengersWaitingAtPlatform(const std::string& stationId, cons
 // Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.
 void Update_List_Passengers_Waiting_At_ALL_Platforms(std::list<StationPlatform>& ALL_PLAT, const std::list<Passenger>& ALL_PAX);
 
-void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
+void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
 
 #endif

@@ -1,5 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <cmath>
@@ -154,12 +155,12 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 
 void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement) {
 
-	BlockTime[N_BlockSections].BlockID = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID;
-	BlockTime[N_BlockSections].length = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].length;
-	BlockTime[N_BlockSections].PosStart = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000;
-	BlockTime[N_BlockSections].PosEnd = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000;
-	BlockTime[N_BlockSections].GeoPosStart = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXBegNode; // This is in meter already
-	BlockTime[N_BlockSections].GeoPosEnd = train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXEndNode;   // This is in meter already
+	BlockTime[N_BlockSections].BlockID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID;
+	BlockTime[N_BlockSections].length = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].length;
+	BlockTime[N_BlockSections].PosStart = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000;
+	BlockTime[N_BlockSections].PosEnd = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000;
+	BlockTime[N_BlockSections].GeoPosStart = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXBegNode; // This is in meter already
+	BlockTime[N_BlockSections].GeoPosEnd = run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].GeoXEndNode;	  // This is in meter already
 
 	BlockTime[N_BlockSections].trainDescription = this->trainDescription;
 
@@ -167,28 +168,28 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string Sign
 
 	int p = EntryTime + 1;
 	for (; p <= End_Time; p++) {
-		if ((instant_spatial_position[p - 1] <= train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) && (instant_spatial_position[p] > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000)) {
+		if ((instant_spatial_position[p - 1] <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) && (instant_spatial_position[p] > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000)) {
 			BlockTime[N_BlockSections].StartRunTime = p - 1;
 		}
 
-		if ((instant_spatial_position[p - 1] <= train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000) && (instant_spatial_position[p] > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000)) {
+		if ((instant_spatial_position[p - 1] <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000) && (instant_spatial_position[p] > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000)) {
 			BlockTime[N_BlockSections].EndRunTime = p - 1;
 		}
 
-		if ((instant_spatial_position[p - 1] - train_length <= train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000) && (instant_spatial_position[p] - train_length > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000)) {
+		if ((instant_spatial_position[p - 1] - train_length <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000) && (instant_spatial_position[p] - train_length > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].end_node.X * 1000)) {
 			BlockTime[N_BlockSections].EndClearTime = p - 1;
 		}
 
 		if (IndexCurrentBS > 0) {
 			if (SignallingType == "Conventional") {
-				if ((instant_spatial_position[p - 1] <= train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000) && (instant_spatial_position[p] > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000)) {
+				if ((instant_spatial_position[p - 1] <= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000) && (instant_spatial_position[p] > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS - 1].start_node.X * 1000)) {
 					BlockTime[N_BlockSections].StartApproachTime = p - 1;
 				}
 
 			} else if (SignallingType == "ETCS2") {
-				if (FoundApprTimeETCS2 == 0) {																														// if the startApproach time of ETCS level 2 has not been fund yet
-					double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);															// Computing the braking curve from the speed instant_train_speed[p]
-					if (instant_spatial_position[p] + BrakingDistance > train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) { // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
+				if (FoundApprTimeETCS2 == 0) {																															   // if the startApproach time of ETCS level 2 has not been fund yet
+					double BrakingDistance = pow(instant_train_speed[p], 2) / (2 * max_train_decelaration);																   // Computing the braking curve from the speed instant_train_speed[p]
+					if (instant_spatial_position[p] + BrakingDistance > run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) { // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
 						BlockTime[N_BlockSections].StartApproachTime = p - 1;
 						FoundApprTimeETCS2 = true; // The StartApproachTime has been found that is why the variable goes to true
 					}
@@ -210,7 +211,7 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string Sign
 		BlockTime[N_BlockSections].sightReacTime = 0;
 	}
 
-	if (IndexCurrentBS == train_route[indexOfRoute].N_Block_Sections - 1) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+	if (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections - 1) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 		BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 		BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 	}
@@ -231,7 +232,7 @@ void Train::ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, string Sign
 
 	// Putting the running time supplements to the blocking time
 	if ((AbsoluteRTSupplement != 0) && (PercentageRTSupplement == 0)) {
-		BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / train_route[indexOfRoute].N_Block_Sections;
+		BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / run_->infra.routes[indexOfRoute].N_Block_Sections;
 		// Shift the EndOccTime of the RunTimeMargin
 		BlockTime[N_BlockSections].EndOccTime = BlockTime[N_BlockSections].EndOccTime + BlockTime[N_BlockSections].RunTimeMargin;
 	} else if ((AbsoluteRTSupplement == 0) && (PercentageRTSupplement != 0)) {
@@ -256,8 +257,8 @@ double Train::ComputeLastOccupationTime_real_time(int t, std::string CurrentBS, 
 	// int n = sizeof(train_route[indexOfRoute].sequence_of_block_sections) / sizeof(train_route[indexOfRoute].sequence_of_block_sections[0]);
 	// auto itr = find(train_route[indexOfRoute].sequence_of_block_sections, train_route[indexOfRoute].sequence_of_block_sections + n, CurrentBS);
 	int IndexCurrentBS = 0; // distance(train_route[indexOfRoute].sequence_of_block_sections, itr);
-	for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
-		if (train_route[indexOfRoute].sequence_of_block_sections[h].ID == CurrentBS) {
+	for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
+		if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].ID == CurrentBS) {
 			// std::cout << "FOUND: " << CurrentBS;
 			IndexCurrentBS = h;
 			break;
@@ -268,7 +269,7 @@ double Train::ComputeLastOccupationTime_real_time(int t, std::string CurrentBS, 
 	double start_occupation_time = 0.0;
 
 	for (; p <= t; p++) {
-		if (instant_spatial_position[p] >= train_route[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) {
+		if (instant_spatial_position[p] >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[IndexCurrentBS].start_node.X * 1000) {
 			start_occupation_time = p;
 			break;
 		}
@@ -281,16 +282,16 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
 	int N_LocationList = 0, N_FinalLocationList = 0;	 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
 
-	if (train_route[this->indexOfRoute].InfrastructureElements.size() > 0) {
+	if (run_->infra.routes[this->indexOfRoute].InfrastructureElements.size() > 0) {
 
-		for (list<InfraElement>::iterator k = train_route[this->indexOfRoute].InfrastructureElements.begin(); k != train_route[this->indexOfRoute].InfrastructureElements.end(); k++) {
+		for (list<InfraElement>::iterator k = run_->infra.routes[this->indexOfRoute].InfrastructureElements.begin(); k != run_->infra.routes[this->indexOfRoute].InfrastructureElements.end(); k++) {
 			BlockingTimes TEMPLoc; // defining temporary Blocking Time variable
 
-			if ((k->SectionID == train_route[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
+			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
 				TEMPLoc.BlockID = k->ID;
 				TEMPLoc.length = 0;
 				TEMPLoc.trainDescription = this->trainDescription;
-				TEMPLoc.SignallingLevel = train_route[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].SignallingLevel; // setting the signalling level of the infrastructure element we are computing the blocking time for
+				TEMPLoc.SignallingLevel = run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].SignallingLevel; // setting the signalling level of the infrastructure element we are computing the blocking time for
 				TEMPLoc.PosStart = k->XCoordinate;
 				TEMPLoc.PosEnd = TEMPLoc.PosStart;
 				TEMPLoc.GeoPosStart = k->GeoXCoord;
@@ -312,7 +313,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 
 				// Identifying the last status of the infrastructure element we are computing the blocking time for and the speed of the previous passing train
 				// TEMPLoc.DetermineLastStatusOfInfraElement(this->trainDescription, InfraElementsList);
-				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, InfraElementsList);
+				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, run_->infra.infraEvents);
 
 				// Increase the locations of 1 element if it is not already in the list
 				if (N_LocationList == 0) {
@@ -389,9 +390,9 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				}
 
 				if (N_BlockSections > 0) {
-					if (FoundApprTimeETCS3 == 0) {																																																																		// if the startApproach time of ETCS level 3 has not been found yet
-						double BrakingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
-						if (instant_spatial_position[p] + BrakingDistance > BlockTime[N_BlockSections].PosStart) {																																																		// if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
+					if (FoundApprTimeETCS3 == 0) {																																																																					  // if the startApproach time of ETCS level 3 has not been found yet
+						double BrakingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
+						if (instant_spatial_position[p] + BrakingDistance > BlockTime[N_BlockSections].PosStart) {																																																					  // if at instant p the instant_spatial_position[p]+BrakingDistance overcomes the entry signal of block section signalling_block_sections[i] then the StartApproachTime is instant p-1
 							BlockTime[N_BlockSections].StartApproachTime = p - 1;
 							FoundApprTimeETCS3 = true; // The StartApproachTime has been found that is why the variable goes to true
 						}
@@ -405,7 +406,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 
 			// Adding RunTimeMargins in case we have one. The RunTime Margin wil be added to the EnRunTIme of the train
 			if ((AbsoluteRTSupplement != 0) && (PercentRTSupplement == 0)) {
-				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (train_route[indexOfRoute].N_Block_Sections);
+				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (run_->infra.routes[indexOfRoute].N_Block_Sections);
 				if (N_BlockSections > 0) { // Add the Running time margin to the locations apart from the initial location
 					BlockTime[N_BlockSections].EndRunTime = BlockTime[N_BlockSections].EndRunTime + BlockTime[N_BlockSections].RunTimeMargin;
 				}
@@ -457,7 +458,7 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == train_route[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
@@ -493,12 +494,12 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 	list<BlockingTimes> LocationList, FinalLocationList; // LocationList is a temporary List where we collect all the ETCS Level 3 locations belonging to the current Block Section
 	int N_LocationList = 0, N_FinalLocationList = 0;	 // Final LocationList instead collects all those locations of LocationList that are not present in the BlockTime of this train (that is why those locations that actually need to be added)
 
-	if (train_route[this->indexOfRoute].InfrastructureElements.size() > 0) {
+	if (run_->infra.routes[this->indexOfRoute].InfrastructureElements.size() > 0) {
 
-		for (list<InfraElement>::iterator k = train_route[this->indexOfRoute].InfrastructureElements.begin(); k != train_route[this->indexOfRoute].InfrastructureElements.end(); k++) {
+		for (list<InfraElement>::iterator k = run_->infra.routes[this->indexOfRoute].InfrastructureElements.begin(); k != run_->infra.routes[this->indexOfRoute].InfrastructureElements.end(); k++) {
 			BlockingTimes TEMPLoc; // defining temporary Blocking Time variable
 								   // Identifying the InfraElement on the route after K
-			list<InfraElement>::iterator LastInfraElementOnRoute = train_route[this->indexOfRoute].InfrastructureElements.end();
+			list<InfraElement>::iterator LastInfraElementOnRoute = run_->infra.routes[this->indexOfRoute].InfrastructureElements.end();
 			LastInfraElementOnRoute--; // this points at the last infraelement on the route
 			string SuccessorInfraElement = "None";
 			if (k == LastInfraElementOnRoute) { // if k is the last element of the route then its successor is None
@@ -519,12 +520,12 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 			}
 
-			if ((k->SectionID == train_route[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
+			if ((k->SectionID == run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].ID) && (k->ID != "VirtualTDSB")) { // if the Infrastructure Element belongs to the block section and it is not a VirtualTDSB
 				TEMPLoc.BlockID = k->ID;
 				TEMPLoc.NextBlockID = SuccessorInfraElement;
 				TEMPLoc.length = 0;
 				TEMPLoc.trainDescription = this->trainDescription;
-				TEMPLoc.SignallingLevel = train_route[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].SignallingLevel; // setting the signalling level of the infrastructure element we are computing the blocking time for
+				TEMPLoc.SignallingLevel = run_->infra.routes[this->indexOfRoute].sequence_of_block_sections[IndexCurrentBS].SignallingLevel; // setting the signalling level of the infrastructure element we are computing the blocking time for
 				TEMPLoc.PosStart = k->XCoordinate;
 				TEMPLoc.PosEnd = TEMPLoc.PosStart;
 				TEMPLoc.GeoPosStart = k->GeoXCoord;
@@ -546,7 +547,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 
 				// Identifying the last status of the infrastructure element we are computing the blocking time for and the speed of the previous passing train
 				// TEMPLoc.DetermineLastStatusOfInfraElement(this->trainDescription, InfraElementsList);
-				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, InfraElementsList);
+				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, run_->infra.infraEvents);
 
 				// Increase the locations of 1 element if it is not already in the list
 				if (N_LocationList == 0) {
@@ -662,8 +663,8 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 						double ApproachingTimeInFollowingMode = 0;
 						// The if condition below means that an absolute braking distance is used if teh trains is the first train of a platoon or at junctions where the route diverges or converge with the route of the train ahead.
 						// This means that at switches that the train and the train ahead take in the same position a relative braking distance is used to compute the approaching time
-						if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																									 // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
-							ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
+						if ((BlockTime[N_BlockSections].NamePreviousTrain == "None") || ((BlockTime[N_BlockSections].LocationWithSwitch == 1) && (BlockTime[N_BlockSections].InfraElementInPositionForTrain == 0))) {																												   // if the train is the first train to run over the section, that means that it is the leader and will travel under ETCS Level 3 with an absolute braking distance. It will also travel with an absolute braking distance over switches that are not in the right position for the train, because the previous train was using a different route.
+							ApproachingDistance = this->BrakingDistanceFastComputation(instant_train_speed[p], 0, instant_spatial_position[p], BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections) + SafetyMargin; // Computing the braking curve from the speed instant_train_speed[p]
 						}
 
 						else { // if the train has instead other trains in front of it, it is a follower and will need to coordinate its speed with the one of the train leader
@@ -673,7 +674,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 									double SpeedCoordinationTime = 0;
 									IsInFollowingMode = true; // The train is in following mode
 									// Compute the time to accelerate the train to the speed of the train ahead
-									SpeedCoordinationTime = this->AccelerationTimeFollowingMode(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections);
+									SpeedCoordinationTime = this->AccelerationTimeFollowingMode(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections);
 									// if the speedcoordination time is different from -99999 that means that is a positive value, as the function AccelerationTimeFollowingMode has been designed
 									// In this case the Approaching time is given by the time needed to accelerate + the time to cross the safety margin at the speed of the previous train
 									if (SpeedCoordinationTime != -99999) {
@@ -688,7 +689,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 									ApproachingDistance = SafetyMargin;
 								}
 							} else if (V_At_SafetyMargin_From_Location > (BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
-								ApproachingDistance = this->BrakingDistanceFastComputation(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, train_route[this->indexOfRoute].sequence_of_block_sections.data(), train_route[this->indexOfRoute].N_Block_Sections) + SafetyMargin;
+								ApproachingDistance = this->BrakingDistanceFastComputation(V_At_SafetyMargin_From_Location, BlockTime[N_BlockSections].SpeedPreviousTrain, S_At_SafetyMargin_FromLocation, BlockTime[N_BlockSections].PosStart, run_->infra.routes[this->indexOfRoute].sequence_of_block_sections.data(), run_->infra.routes[this->indexOfRoute].N_Block_Sections) + SafetyMargin;
 							} else if ((V_At_SafetyMargin_From_Location >= BlockTime[N_BlockSections].SpeedPreviousTrain - 0.278) && (V_At_SafetyMargin_From_Location <= BlockTime[N_BlockSections].SpeedPreviousTrain + 0.278)) {
 								ApproachingDistance = SafetyMargin;
 								// In this case Sight and Reaction time must be 0 since the train does not need ot react (i.e. braking or accelerrating) to the preceding train since they are at the same speed
@@ -723,7 +724,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 
 			// Adding RunTimeMargins in case we have one. The RunTime Margin wil be added to the EnRunTIme of the train
 			if ((AbsoluteRTSupplement != 0) && (PercentRTSupplement == 0)) {
-				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (train_route[indexOfRoute].N_Block_Sections);
+				BlockTime[N_BlockSections].RunTimeMargin = AbsoluteRTSupplement / (run_->infra.routes[indexOfRoute].N_Block_Sections);
 				if (N_BlockSections > 0) { // Add the Running time margin to the locations apart from the initial location
 					BlockTime[N_BlockSections].EndRunTime = BlockTime[N_BlockSections].EndRunTime + BlockTime[N_BlockSections].RunTimeMargin;
 				}
@@ -779,7 +780,7 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				BlockTime[N_BlockSections].sightReacTime = 0;
 			}
 
-			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == train_route[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
+			if ((N_BlockSections == N_FinalLocationList - 1) && (IndexCurrentBS == run_->infra.routes[indexOfRoute].N_Block_Sections)) { // for the last block section we do not have clearing time since the train unblocks the section as soon as its head arrives at the final point of the network
 				BlockTime[N_BlockSections].EndClearTime = BlockTime[N_BlockSections].EndRunTime;
 				BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndClearTime;
 			}
@@ -886,9 +887,9 @@ void Train::ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double 
 	// Compute the time the train Enters the network in the simulation: EntryTime
 	int EntryTime = (int)Det_Run_Start_Time();
 
-	if (train_route[indexOfRoute].N_Block_Sections > 0) { // if the route is composed of at least one block section
-		for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-			const int level = train_route[indexOfRoute].sequence_of_block_sections[i].SignallingLevel;
+	if (run_->infra.routes[indexOfRoute].N_Block_Sections > 0) { // if the route is composed of at least one block section
+		for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
+			const int level = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].SignallingLevel;
 			if (level == levelValue(SignallingLevel::Atb)) { // if block sections have Signalling level 0 then we must apply the conventional signalling rules
 				this->ComputeBlockingTimeForSingleLocation(i, "Conventional", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel2)) { // if Signalling level is 2 apply ETCS Level 2 rules

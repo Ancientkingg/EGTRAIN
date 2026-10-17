@@ -18,23 +18,23 @@
 #include <utility>
 #include <vector>
 
-void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections) {
-	N_Routes = (int)scene.routes.size();
-	train_route.clear();
-	train_route.resize(N_Routes);
-	resetSingleTrackLocks();
+void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections) {
+	run.infra.numRoutes = (int)scene.routes.size();
+	run.infra.routes.clear();
+	run.infra.routes.resize(run.infra.numRoutes);
+	resetSingleTrackLocks(run);
 
-	for (int i = 0; i < N_Routes; i++) {
+	for (int i = 0; i < run.infra.numRoutes; i++) {
 		EG_LOG(SimSetup, Info) << "\rCreating Scene Route : " << i << " " << scene.routes[i].id;
 		const int direction = i < static_cast<int>(routeDirections.size()) ? routeDirections[i] : 0;
-		train_route[i].createRouteFromBlockIds(scene.routes[i].blocks, direction);
-		train_route[i].adjustRouteAcrossDiffRegions();
-		train_route[i].ID = scene.routes[i].id;
+		run.infra.routes[i].createRouteFromBlockIds(run, scene.routes[i].blocks, direction);
+		run.infra.routes[i].adjustRouteAcrossDiffRegions();
+		run.infra.routes[i].ID = scene.routes[i].id;
 		if (scene.routes[i].hasCorridor)
-			train_route[i].corridor = scene.routes[i].corridor;
+			run.infra.routes[i].corridor = scene.routes[i].corridor;
 		if (scene.routes[i].reversed) {
-			train_route[i].reversed_direction = true;
-			train_route[i].OriginalRefReversedRoute = train_route[i].x_of_end_node * 1000.0;
+			run.infra.routes[i].reversed_direction = true;
+			run.infra.routes[i].OriginalRefReversedRoute = run.infra.routes[i].x_of_end_node * 1000.0;
 		}
 	}
 	EG_LOG(SimSetup, Info) << "\n";
@@ -138,14 +138,14 @@ std::vector<std::string> nativeBlockReferenceComponents(const std::string& refer
 	return result;
 }
 
-void nativeResetRuntime() {
-	defaultRun().resetInfrastructure();
-	numAllStationPlatforms = 0;
-	AllStationPlatforms.clear();
-	AllStationPlatformIndex.clear();
+void nativeResetRuntime(SimulationRun& run) {
+	run.resetInfrastructure();
+	run.numPlatforms = 0;
+	run.platforms.clear();
+	run.platformIndex.clear();
 	// The fictitious station of the delay statistics at the final stop of every train
-	Final_Station = Stations();
-	Final_Station.stationName = "Final_Station";
+	run.finalStation = Stations();
+	run.finalStation.stationName = "Final_Station";
 }
 
 bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
@@ -160,7 +160,7 @@ bool nativeHasErrors(const std::vector<SceneDiagnostic>& diagnostics) {
 class RuntimeInfrastructureBackup {
 public:
 	// Takes the infrastructure out of the run, which is left with an empty one.
-	RuntimeInfrastructureBackup() {
+	explicit RuntimeInfrastructureBackup(SimulationRun& run) : run_(run) {
 		exchange();
 	}
 	RuntimeInfrastructureBackup(const RuntimeInfrastructureBackup&) = delete;
@@ -173,13 +173,13 @@ public:
 
 private:
 	void exchange() {
-		SimulationRun& run = defaultRun();
-		std::swap(run.infra, infra_);
-		std::swap(run.platforms, platforms_);
-		std::swap(run.numPlatforms, numPlatforms_);
-		std::swap(run.finalStation, finalStation_);
+		std::swap(run_.infra, infra_);
+		std::swap(run_.platforms, platforms_);
+		std::swap(run_.numPlatforms, numPlatforms_);
+		std::swap(run_.finalStation, finalStation_);
 	}
 
+	SimulationRun& run_;
 	RunInfrastructure infra_;
 	std::list<StationPlatform> platforms_;
 	int numPlatforms_ = 0;
@@ -645,18 +645,18 @@ InfrastructurePlan planInfrastructure(const SceneModel& scene, std::vector<Scene
 
 // Replaces the runtime infrastructure by what the plan describes. A problem that only shows while the runtime is built
 // is added to the diagnostics, and the runtime then holds a partial build.
-void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& plan, std::vector<SceneDiagnostic>& diagnostics) {
+void commitInfrastructure(SimulationRun& run, const SceneModel& scene, const InfrastructurePlan& plan, std::vector<SceneDiagnostic>& diagnostics) {
 	const NativeDiagnosticAdder add{diagnostics};
 
-	nativeResetRuntime();
+	nativeResetRuntime(run);
 	// Base sections plus derived switch sections. A successful build creates exactly this many.
-	signalling_block_sections = std::vector<Section>(plan.sectionIds.size());
-	numTrackLines = static_cast<int>(plan.tracks.size());
+	run.infra.sections = std::vector<Section>(plan.sectionIds.size());
+	run.infra.numTrackLines = static_cast<int>(plan.tracks.size());
 	std::unordered_map<std::string, Node> runtimeNodeById;
 	std::unordered_map<std::string, int> runtimeNodeTrack;
 	for (std::size_t slot = 0; slot < plan.tracks.size(); ++slot) {
 		const NativeTrack& track = plan.tracks[slot];
-		BlockSet& runtimeTrack = blockSets[slot];
+		BlockSet& runtimeTrack = run.infra.blockSets[slot];
 		runtimeTrack.ID = static_cast<int>(slot);
 		runtimeTrack.sceneTrackId = track.id;
 		runtimeTrack.numNodes = static_cast<int>(track.chainNodes.size());
@@ -704,27 +704,27 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 			return;
 		const int slot = trackIt->second;
 		const double targetId = runtimeNodeById[nodeId].ID;
-		for (int index = 0; index < blockSets[slot].numNodes; ++index)
-			if (blockSets[slot].N[index].ID == targetId)
-				update(blockSets[slot].N[index]);
-		for (int index = 0; index < blockSets[slot].arcs; ++index) {
-			if (blockSets[slot].A[index].startNode.ID == targetId)
-				update(blockSets[slot].A[index].startNode);
-			if (blockSets[slot].A[index].endNode.ID == targetId)
-				update(blockSets[slot].A[index].endNode);
-			if (blockSets[slot].member[index].startNode.ID == targetId)
-				update(blockSets[slot].member[index].startNode);
-			if (blockSets[slot].member[index].endNode.ID == targetId)
-				update(blockSets[slot].member[index].endNode);
+		for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
+			if (run.infra.blockSets[slot].N[index].ID == targetId)
+				update(run.infra.blockSets[slot].N[index]);
+		for (int index = 0; index < run.infra.blockSets[slot].arcs; ++index) {
+			if (run.infra.blockSets[slot].A[index].startNode.ID == targetId)
+				update(run.infra.blockSets[slot].A[index].startNode);
+			if (run.infra.blockSets[slot].A[index].endNode.ID == targetId)
+				update(run.infra.blockSets[slot].A[index].endNode);
+			if (run.infra.blockSets[slot].member[index].startNode.ID == targetId)
+				update(run.infra.blockSets[slot].member[index].startNode);
+			if (run.infra.blockSets[slot].member[index].endNode.ID == targetId)
+				update(run.infra.blockSets[slot].member[index].endNode);
 		}
-		for (int index = 0; index < blockSets[slot].numNodes; ++index)
-			if (blockSets[slot].N[index].ID == targetId)
-				runtimeNodeById[nodeId] = blockSets[slot].N[index];
+		for (int index = 0; index < run.infra.blockSets[slot].numNodes; ++index)
+			if (run.infra.blockSets[slot].N[index].ID == targetId)
+				runtimeNodeById[nodeId] = run.infra.blockSets[slot].N[index];
 	};
 
 	for (std::size_t index = 0; index < scene.connections.size(); ++index) {
 		const SceneConnection& source = scene.connections[index];
-		Connections& connection = connections[index];
+		Connections& connection = run.infra.connections[index];
 		const int firstSlot = runtimeNodeTrack[source.fromNodeId];
 		const int secondSlot = runtimeNodeTrack[source.toNodeId];
 		connection.ID = source.id;
@@ -753,7 +753,7 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 			node.connectXNode[count] = runtimeNodeById[source.fromNodeId].X;
 		});
 	}
-	numConnections = static_cast<int>(scene.connections.size());
+	run.infra.numConnections = static_cast<int>(scene.connections.size());
 
 	std::vector<NativeStationBinding> stationBindings;
 	std::unordered_set<std::string> stationNodeAssignments;
@@ -805,8 +805,8 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 	};
 
 	for (const NativeBlockPlan& blockPlan : plan.blocks) {
-		BlockSet& runtimeTrack = blockSets[blockPlan.trackSlot];
-		Section& section = signalling_block_sections[Blocks++];
+		BlockSet& runtimeTrack = run.infra.blockSets[blockPlan.trackSlot];
+		Section& section = run.infra.sections[run.infra.numBlocks++];
 		section.ID = nativeRuntimeBlockId(blockPlan.source->id);
 		section.trackLineId = blockPlan.trackSlot;
 		section.length = blockPlan.endX - blockPlan.startX;
@@ -851,7 +851,7 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 
 	for (std::size_t stationIndex = 0; stationIndex < scene.stations.size(); ++stationIndex) {
 		const SceneStation& source = scene.stations[stationIndex];
-		Stations& station = StationArray[stationIndex];
+		Stations& station = run.infra.stations[stationIndex];
 		station.stationName = source.name.empty() ? source.id : source.name;
 		station.station = true;
 		if (source.hasPosition)
@@ -876,7 +876,7 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 			station.corridors = view->corridors;
 		}
 	}
-	numStations = static_cast<int>(scene.stations.size());
+	run.infra.numStations = static_cast<int>(scene.stations.size());
 	for (const NativeStationBinding& binding : stationBindings) {
 		const Node& node = runtimeNodeById[binding.nodeId];
 		StationPlatform platform;
@@ -885,8 +885,8 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 		platform.BlockSectionID.clear();
 		platform.X = node.X;
 		platform.Y = node.Y;
-		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
-			const Section& section = signalling_block_sections[blockIndex];
+		for (int blockIndex = 0; blockIndex < run.infra.numBlocks; ++blockIndex) {
+			const Section& section = run.infra.sections[blockIndex];
 			for (int nodeIndex = 0; nodeIndex < section.total_nodes; ++nodeIndex) {
 				if ((*section.nodelist_of_nodes_in_signalling_section)[nodeIndex].ID == node.ID) {
 					platform.BlockSectionID = section.ID;
@@ -900,17 +900,17 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 			add(SceneSeverity::Error, "scene.native.binding.platform", "Platform node is not part of a block section",
 				"stations.json", "platform", binding.platform->id, "stations.platforms.nodes", binding.nodeId);
 		} else {
-			AllStationPlatforms.push_back(platform);
-			++numAllStationPlatforms;
+			run.platforms.push_back(platform);
+			++run.numPlatforms;
 		}
 	}
 
-	setAllConnections();
+	setAllConnections(run);
 	std::unordered_map<std::string, int> sectionAliases;
-	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex)
-		sectionAliases[signalling_block_sections[sectionIndex].ID] = sectionIndex;
-	const bool sectionMismatch = derivedSectionsExceedPlan
-		|| sectionAliases.size() != static_cast<std::size_t>(Blocks)
+	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex)
+		sectionAliases[run.infra.sections[sectionIndex].ID] = sectionIndex;
+	const bool sectionMismatch = run.infra.derivedSectionsExceedPlan
+		|| sectionAliases.size() != static_cast<std::size_t>(run.infra.numBlocks)
 		|| sectionAliases.size() != plan.sectionIds.size()
 		|| std::any_of(plan.sectionIds.begin(), plan.sectionIds.end(),
 			[&sectionAliases](const std::string& id) { return sectionAliases.count(id) == 0; });
@@ -923,14 +923,14 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 			"Fix topology or block placement so native section identities match the section catalog");
 		return;
 	}
-	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
-		const auto plannedLevel = plan.signallingLevels.find(signalling_block_sections[sectionIndex].ID);
+	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex) {
+		const auto plannedLevel = plan.signallingLevels.find(run.infra.sections[sectionIndex].ID);
 		if (plannedLevel != plan.signallingLevels.end())
-			signalling_block_sections[sectionIndex].SignallingLevel = plannedLevel->second;
+			run.infra.sections[sectionIndex].SignallingLevel = plannedLevel->second;
 	}
 	if (nativeHasErrors(diagnostics))
 		return;
-	setDependenciesBetweenBlocksInternal(false);
+	setDependenciesBetweenBlocksInternal(run, false);
 
 	auto resolveSection = [&](const std::string& reference) -> int {
 		const auto* planned = plan.sectionInventory.resolve(reference);
@@ -948,8 +948,8 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 				"signalling.json", "block_dependency", itemId, "block_dependencies", sourceIndex < 0 ? sourceRef : targetRef);
 			return;
 		}
-		Section& source = signalling_block_sections[sourceIndex];
-		const std::string target = signalling_block_sections[targetIndex].ID;
+		Section& source = run.infra.sections[sourceIndex];
+		const std::string target = run.infra.sections[targetIndex].ID;
 		for (int index = 0; index < source.N_ConnectedBS; ++index)
 			if (source.IDConnectedBS[index] == target)
 				return;
@@ -962,8 +962,8 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 	};
 	for (const auto& dependency : scene.blockDependencies)
 		addSectionDependency(dependency.block, dependency.dependsOn, dependency.block);
-	for (int sectionIndex = 0; sectionIndex < Blocks; ++sectionIndex) {
-		Section& section = signalling_block_sections[sectionIndex];
+	for (int sectionIndex = 0; sectionIndex < run.infra.numBlocks; ++sectionIndex) {
+		Section& section = run.infra.sections[sectionIndex];
 		for (int arcIndex = 0; arcIndex < section.total_arcs; ++arcIndex) {
 			Node& node = section.arcs_in_signalling_block_section[arcIndex].endNode;
 			node.IDConnectedBlocks.clear();
@@ -972,7 +972,7 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 					const int connectedIndex = resolveSection(section.IDConnectedBS[dependencyIndex]);
 					if (connectedIndex < 0)
 						continue;
-					const Section& connected = signalling_block_sections[connectedIndex];
+					const Section& connected = run.infra.sections[connectedIndex];
 					const bool fromFirst = connected.FirstConnectedTrackLineID == section.trackLineId
 						&& connected.SecondConnectedTrackLineID == node.connectIdBlockSet[connectionIndex]
 						&& std::fabs(connected.XStartSwitch - node.X) <= kNativeCoordinateTolerance
@@ -1000,8 +1000,8 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 				"signalling.json", "single_track_restriction", restriction.startBlock);
 			continue;
 		}
-		singleTrackLimits.emplace_back(signalling_block_sections[start].ID, signalling_block_sections[end].ID,
-			signalling_block_sections[protectedStart].ID, signalling_block_sections[protectedEnd].ID);
+		run.infra.singleTrackLimits.emplace_back(run.infra.sections[start].ID, run.infra.sections[end].ID,
+			run.infra.sections[protectedStart].ID, run.infra.sections[protectedEnd].ID);
 	}
 	for (const auto& boundary : scene.stationBoundaries) {
 		const int entrance = resolveSection(boundary.entranceBlock);
@@ -1011,14 +1011,14 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 				"signalling.json", "station_boundary", boundary.entranceBlock);
 			continue;
 		}
-		stationBoundarySections.emplace_back(&signalling_block_sections[entrance], boundary.direction,
-			boundary.hasExitBlock ? &signalling_block_sections[exit] : nullptr);
+		run.infra.stationBoundaries.emplace_back(&run.infra.sections[entrance], boundary.direction,
+			boundary.hasExitBlock ? &run.infra.sections[exit] : nullptr);
 	}
 
-	setVirtualSignals();
-	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(signalling_block_sections.data(), Blocks);
-	setGeoCoordinates(signalling_block_sections.data(), Blocks);
-	createTds(signalling_block_sections.data(), Blocks, 3, list_of_TDS);
+	setVirtualSignals(run);
+	setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(run.infra.sections.data(), run.infra.numBlocks);
+	setGeoCoordinates(run.infra.sections.data(), run.infra.numBlocks);
+	createTds(run.infra.sections.data(), run.infra.numBlocks, 3, run.infra.detectionSections);
 	for (const auto& route : scene.routes)
 		for (const auto& token : route.blocks)
 			if (resolveSection(token) < 0)
@@ -1026,17 +1026,17 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 					"signalling.json", "route", route.id, "routes.blocks", token);
 	if (nativeHasErrors(diagnostics))
 		return;
-	setUpRoutesFromScene(scene, plan.routeDirections);
+	setUpRoutesFromScene(run, scene, plan.routeDirections);
 	for (std::size_t index = 0; index < scene.routes.size(); ++index) {
-		if (index >= train_route.size()
-			|| train_route[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
+		if (index >= run.infra.routes.size()
+			|| run.infra.routes[index].N_Block_Sections != static_cast<int>(scene.routes[index].blocks.size())) {
 			add(SceneSeverity::Error, "scene.native.route.truncated", "Route did not retain every canonical block token",
 				"signalling.json", "route", scene.routes[index].id, "routes.blocks");
 			continue;
 		}
 		for (std::size_t blockIndex = 0; blockIndex < scene.routes[index].blocks.size(); ++blockIndex) {
 			const auto* planned = plan.sectionInventory.resolve(scene.routes[index].blocks[blockIndex]);
-			if (planned == nullptr || train_route[index].sequence_of_block_sections[blockIndex].ID != planned->id)
+			if (planned == nullptr || run.infra.routes[index].sequence_of_block_sections[blockIndex].ID != planned->id)
 				add(SceneSeverity::Error, "scene.native.route.order",
 					"Native route order does not retain the authored section IDs",
 					"signalling.json", "route", scene.routes[index].id,
@@ -1045,23 +1045,23 @@ void commitInfrastructure(const SceneModel& scene, const InfrastructurePlan& pla
 					"Keep route tokens in authored order and use exact catalog IDs");
 		}
 	}
-	setRouteVirtualSignals();
-	setListAllInfrastructureElementsFromRoutes(train_route, N_Routes);
+	setRouteVirtualSignals(run);
+	setListAllInfrastructureElementsFromRoutes(run);
 }
 
 } // namespace
 
-void resetNativeInfrastructureState() {
-	nativeResetRuntime();
+void resetNativeInfrastructureState(SimulationRun& run) {
+	nativeResetRuntime(run);
 }
 
-std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene) {
+std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(SimulationRun& run, const SceneModel& scene) {
 	std::vector<SceneDiagnostic> diagnostics;
 	const InfrastructurePlan plan = planInfrastructure(scene, diagnostics);
 	if (nativeHasErrors(diagnostics))
 		return diagnostics;
-	RuntimeInfrastructureBackup previous;
-	commitInfrastructure(scene, plan, diagnostics);
+	RuntimeInfrastructureBackup previous(run);
+	commitInfrastructure(run, scene, plan, diagnostics);
 	if (nativeHasErrors(diagnostics))
 		previous.restore();
 	return diagnostics;

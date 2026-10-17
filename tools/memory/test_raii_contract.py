@@ -41,9 +41,9 @@ def main() -> None:
         raise SystemExit("delay statistics still delete raw arrays")
     expected_vectors = {"delays": 1}
     for name, count in expected_vectors.items():
-        pattern = rf"std::vector<double>\s+{name}\s*\(\s*numRegions\s*\)"
+        pattern = rf"std::vector<double>\s+{name}\s*\(\s*run\.numTrains\s*\)"
         if len(re.findall(pattern, delay_functions)) != count:
-            raise SystemExit(f"{name} must use {count} numRegions-sized vectors")
+            raise SystemExit(f"{name} must use {count} run.numTrains-sized vectors")
 
     if "void DispatchController::setupEgtrain()" in dispatch_controller:
         raise SystemExit("obsolete legacy setup path is still compiled")

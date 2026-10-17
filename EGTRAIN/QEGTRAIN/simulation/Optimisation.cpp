@@ -1,9 +1,10 @@
 #include "simulation/Optimisation.h"
+#include "simulation/SimulationRun.h"
 
 using namespace std;
 
 // Function to change the departure time of the trains in order to fit them all in one hour of timetable
-void changeTrainDepartureTimesForHourlyTimetabling(Regional* Trains, int numTrains) {
+void changeTrainDepartureTimesForHourlyTimetabling(SimulationRun& run, Regional* Trains, int numTrains) {
 	list<TrainEvent> ListTrainsUP, ListTrainsDOWN;
 	int N_ListTrainsUP = 0, N_ListTrainsDOWN = 0;
 	// Fill in the list of trains departing in the UP and DOWN direction
@@ -11,7 +12,7 @@ void changeTrainDepartureTimesForHourlyTimetabling(Regional* Trains, int numTrai
 		TrainEvent TEMPTrain;
 		TEMPTrain.Time = Trains[i].departure_time;
 		TEMPTrain.trainDescription = Trains[i].trainDescription;
-		if (train_route[Trains[i].indexOfRoute].reversed_direction == 0) {
+		if (run.infra.routes[Trains[i].indexOfRoute].reversed_direction == 0) {
 			ListTrainsUP.push_back(TEMPTrain);
 			N_ListTrainsUP++; // increase the number of trains in the list UP
 		} else {

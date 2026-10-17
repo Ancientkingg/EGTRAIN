@@ -13,6 +13,7 @@
 
 #include "scene/SignallingLevel.h"
 #include "simulation/Signalling.h"
+#include "simulation/SimulationRun.h"
 
 #include <algorithm>
 #include <climits>
@@ -120,7 +121,7 @@ public:
 		BlocksOccupied = m_occupied;
 		BlocksConnected = m_connected;
 		singleTrackLimits = m_limits;
-		resetSingleTrackLocks();
+		resetSingleTrackLocks(defaultRun());
 		singleTrackHeld = m_held;
 	}
 	SavedGlobals(const SavedGlobals&) = delete;
@@ -160,13 +161,13 @@ void setSignalSpeeds(const std::pair<double, double>& speeds) {
 void holdSingleTrack(int held) {
 	singleTrackLimits.clear();
 	singleTrackLimits.emplace_back("s2", "s3", "s1", "s4");
-	resetSingleTrackLocks();
+	resetSingleTrackLocks(defaultRun());
 	singleTrackHeld = {held};
 }
 
 void freeSingleTrack() {
 	singleTrackLimits.clear();
-	resetSingleTrackLocks();
+	resetSingleTrackLocks(defaultRun());
 }
 
 // A step as the simulation makes it once the trains have been placed: release, then activation. Returns whether both
@@ -174,9 +175,9 @@ void freeSingleTrack() {
 bool runStep(const Ids& occupied, const Ids& connected) {
 	BlocksOccupied = occupied;
 	BlocksConnected = connected;
-	releaseMixedSignallingSystem();
+	releaseMixedSignallingSystem(defaultRun());
 	const bool unchangedByRelease = BlocksOccupied == occupied && BlocksConnected == connected;
-	activateMixedSignallingSystem(redSpeeds.first, redSpeeds.second);
+	activateMixedSignallingSystem(defaultRun(), redSpeeds.first, redSpeeds.second);
 	const bool unchangedByActivation = BlocksOccupied == occupied && BlocksConnected == connected;
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
@@ -187,7 +188,7 @@ bool runStep(const Ids& occupied, const Ids& connected) {
 bool runRelease(const Ids& connected) {
 	BlocksOccupied.clear();
 	BlocksConnected = connected;
-	releaseMixedSignallingSystem();
+	releaseMixedSignallingSystem(defaultRun());
 	const bool unchanged = BlocksOccupied.empty() && BlocksConnected == connected;
 	BlocksConnected.clear();
 	return unchanged;
@@ -197,7 +198,7 @@ bool runRelease(const Ids& connected) {
 Ids runLastSection(const std::string& id) {
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
-	relLastSectionMixedSignalling(id);
+	relLastSectionMixedSignalling(defaultRun(), id);
 	Ids connected = BlocksConnected;
 	BlocksConnected.clear();
 	return connected;
@@ -662,7 +663,7 @@ void lastSectionLine(Report& report, const std::vector<RouteSpec>& specs, const 
 }
 
 void groupLastSection(Report& report) {
-	report.comment("E: relLastSectionMixedSignalling(left=), dirty start; connected= is what the call leaves in BlocksConnected");
+	report.comment("E: relLastSectionMixedSignalling(defaultRun(), left=), dirty start; connected= is what the call leaves in BlocksConnected");
 	for (const int level : kAllLevels)
 		for (std::size_t b = 0; b < kShortRoute; ++b)
 			lastSectionLine(report, {routeSpec(uniform(level, kShortRoute))}, idOf(b));

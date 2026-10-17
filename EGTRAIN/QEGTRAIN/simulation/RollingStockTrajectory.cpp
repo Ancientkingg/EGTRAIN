@@ -1,5 +1,6 @@
 #include "simulation/RollingStock.h"
 #include "scene/SignallingLevel.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -27,7 +28,7 @@ double Train::train_energy_consumption(int t) {
 }
 
 bool Train::isFirstSectionFailed(const Section& firstSection) const {
-	for (const MovementAuthority& authority : ETCS_MA)
+	for (const MovementAuthority& authority : run_->etcsMa)
 		if (authority.type == "SignalFailure" && authority.BSID == firstSection.ID && obeysAuthority(authority)
 			&& std::abs(authority.AbsPosEoA - firstSection.GeoXBegNode) < 0.001)
 			return true;
@@ -41,7 +42,7 @@ void Train::checkEntrance(int i, Section* BS) {
 	// visited in the order in which they are due, so the one due first enters first.
 	const bool waiting = !CanEnter;
 	const bool separated = BS[0].SignallingLevel >= levelValue(SignallingLevel::Atb);
-	if (waiting && separated && std::find(BlocksOccupied.begin(), BlocksOccupied.end(), BS[0].ID) != BlocksOccupied.end())
+	if (waiting && separated && std::find(run_->blocksOccupied.begin(), run_->blocksOccupied.end(), BS[0].ID) != run_->blocksOccupied.end())
 		return;
 	if (waiting && isFirstSectionFailed(BS[0])) // enters when the failure has ended, at any signalling level
 		return;
@@ -49,8 +50,8 @@ void Train::checkEntrance(int i, Section* BS) {
 		return;
 	if (isMovingBlockLevel(BS[0].SignallingLevel)) { // if the signalling system of the firt block section is ETCS Level 3 or Level 4 (Virtual Coupling)
 		bool IsRouteStartingPointOccupied = false;	 // this bool is true if start_node of signalling_block_sections[0] is present in the list of Movement Authorities ETCS_MA, i.e. if the beginning of the train route is occupied by another train
-		if (ETCS_MA.size() > 0) {
-			for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+		if (run_->etcsMa.size() > 0) {
+			for (list<MovementAuthority>::iterator it = run_->etcsMa.begin(); it != run_->etcsMa.end(); it++) {
 				// if the list of Movement Autority includes a Movement Autority related to the beginning Node of the Route which belongs to a train different from this, then break the for loop over the list of ETCS_MA and set the boolean IsRouteStartingPointOccupied to true
 				if ((it->BSID == BS[0].ID) && (std::abs(it->AbsPosEoA - BS[0].GeoXBegNode) < 0.001) && (it->TrainInfo.trainDescription != this->trainDescription) && obeysAuthority(*it)) {
 					IsRouteStartingPointOccupied = true;
@@ -72,7 +73,7 @@ void Train::checkEntrance(int i, Section* BS) {
 		}
 	}
 	if (waiting && separated && CanEnter) // the entering train occupies the first section at once
-		occupyBlockAndConnected(BS[0], BS[0], Start_Node_X * 1000, Start_Node_X * 1000);
+		occupyBlockAndConnected(*run_, BS[0], BS[0], Start_Node_X * 1000, Start_Node_X * 1000);
 }
 
 void Train::checkIfMovementAuthorityStillValid(double speed, double head, const Section& section) {
@@ -80,10 +81,10 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 		return;
 	const MovementAuthority& saved = Last_MA_StoppedAt;
 	const double distance = saved.RelativePosEoA - head;
-	const bool applicable = obeysAuthority(saved) && (saved.type != "TrainEnd" || (saved.typePart == "Tale" && saved.ReversedDirection == train_route[indexOfRoute].reversed_direction) || (saved.typePart == "Front" && saved.ReversedDirection != train_route[indexOfRoute].reversed_direction));
+	const bool applicable = obeysAuthority(saved) && (saved.type != "TrainEnd" || (saved.typePart == "Tale" && saved.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction) || (saved.typePart == "Front" && saved.ReversedDirection != run_->infra.routes[indexOfRoute].reversed_direction));
 	bool valid = false;
 	if (speed == 0 && distance >= 0 && distance < 4 && section.ID == saved.BSID && applicable)
-		for (const MovementAuthority& authority : ETCS_MA)
+		for (const MovementAuthority& authority : run_->etcsMa)
 			if (authority.BSID == saved.BSID && authority.type == saved.type && authority.typePart == saved.typePart
 				&& authority.ReversedDirection == saved.ReversedDirection && obeysAuthority(authority)
 				&& authority.TrainInfo.trainDescription == saved.TrainInfo.trainDescription
@@ -99,13 +100,13 @@ void Train::checkIfMovementAuthorityStillValid(double speed, double head, const 
 void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 	if (IsTrainInFollowingMode == 0)
 		return;
-	for (const MovementAuthority& authority : ETCS_MA)
+	for (const MovementAuthority& authority : run_->etcsMa)
 		if (authority.TrainInfo.trainDescription == LeadingTrainInFollowingMode)
 			return;
 	EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is decoupled from train " << LeadingTrainInFollowingMode << ", which reports no position any more\n";
-	VCmsgTimestep.push_back(time_seconds);
-	VCmsgTrain.push_back(trainDescription);
-	VCmsgText.push_back("Train is now decoupled");
+	run_->vcMsgTimestep.push_back(time_seconds);
+	run_->vcMsgTrain.push_back(trainDescription);
+	run_->vcMsgText.push_back("Train is now decoupled");
 	MovementAuthority ResetPredictedMAToDecoupleAt;
 	IsTrainInFollowingMode = false;
 	LeadingTrainInFollowingMode = "None";
@@ -123,7 +124,7 @@ void Train::PrintTrajectory() {
 	trainout << "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock" << "\n";
 	const auto segments = validTrajectorySegments(instant_spatial_position, earliestActiveTrajectoryIndex, End_Time);
 	bool firstSegment = true;
-	if (train_route[indexOfRoute].reversed_direction == 0) {
+	if (run_->infra.routes[indexOfRoute].reversed_direction == 0) {
 		for (const auto& segment : segments) {
 			if (!firstSegment)
 				trainout << "\n";
@@ -144,7 +145,7 @@ void Train::PrintTrajectory() {
 				trainout << "\n";
 			firstSegment = false;
 			for (int i = segment.first; i <= segment.last; i++) {
-				trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << train_route[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] + train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
+				trainout << i * timestep << "\t" << instant_train_speed[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] << "\t" << run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - instant_spatial_position[i] + train_length << "\t" << instant_train_power_consumption[i] / 1000 << "\t" << BX[i] << "\t" << instant_train_energy_consumption[i] * 0.27778 << "\t" << instant_block_section_occupied[i] << "\n";
 			}
 		}
 	}
@@ -273,7 +274,7 @@ void recordSignalFailuresAtRedAspect(Train& train, double head, double timeSecon
 } // namespace
 
 double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
-	const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, timestepIndex);
+	const SimulationIncident* incident = Active_Train_Breakdown(*run_, trainDescription, timestepIndex);
 	const double cap = incident ? incident->reducedSpeedKmh / 3.6 : 0.0;
 	if (incident && incident->hasReducedSpeed && cap > 0.0 && std::isfinite(cap)
 		&& cap < candidate) {
@@ -285,7 +286,7 @@ double Train::effectiveIncidentSpeedLimit(double candidate, int timestepIndex) {
 }
 
 const MovementAuthority* Train::currentFollowingAuthority(double head, double& leaderHead) const {
-	const Route& route = train_route[indexOfRoute];
+	const Route& route = run_->infra.routes[indexOfRoute];
 	int current = -1;
 	for (int block = 0; block < route.N_Block_Sections; ++block)
 		if (head >= route.sequence_of_block_sections[block].start_node.X * 1000
@@ -299,7 +300,7 @@ const MovementAuthority* Train::currentFollowingAuthority(double head, double& l
 		const Section& section = route.sequence_of_block_sections[block];
 		if (section.SignallingLevel != levelValue(SignallingLevel::VirtualCoupling) || section.ID != Last_Received_MA.BSID)
 			continue;
-		for (const MovementAuthority& authority : ETCS_MA)
+		for (const MovementAuthority& authority : run_->etcsMa)
 			if (authority.BSID == section.ID && authority.type == "TrainEnd" && authority.typePart == "Tale"
 				&& authority.ReversedDirection == route.reversed_direction
 				&& authority.TrainInfo.trainDescription != trainDescription
@@ -332,8 +333,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 		// A broken-down train holds its last state for the whole incident
 		// window; entrance processing is also suspended, so a train whose
 		// window covers its entry time simply enters after the window.
-		if (time_seconds > 0 && Incident_Holds_Train(trainDescription, time_seconds)) {
-			if (const SimulationIncident* incident = Active_Train_Breakdown(trainDescription, time_seconds))
+		if (time_seconds > 0 && Incident_Holds_Train(*run_, trainDescription, time_seconds)) {
+			if (const SimulationIncident* incident = Active_Train_Breakdown(*run_, trainDescription, time_seconds))
 				recordDirectIncident(*incident, time_seconds * timestep, instant_spatial_position[time_seconds - 1]);
 			instant_train_speed[time_seconds] = 0;
 			instant_spatial_position[time_seconds] = instant_spatial_position[time_seconds - 1];
@@ -345,7 +346,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 		}
 
 		// Determine if the Train can enter the route
-		checkEntrance(time_seconds, train_route[indexOfRoute].sequence_of_block_sections.data());
+		checkEntrance(time_seconds, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data());
 		if ((time_seconds >= departure_time) && (CanEnter == 1)) {
 			double V_lim;
 			int U;
@@ -354,10 +355,10 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			string Occupied_TDS;
 
 			// Determination of the right Block Section
-			for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
-				if ((instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000)
-					&& (instant_spatial_position[time_seconds - 1] >= train_route[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
-					Bs = train_route[indexOfRoute].sequence_of_block_sections[h];
+			for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
+				if ((instant_spatial_position[time_seconds - 1] < run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].end_node.X * 1000)
+					&& (instant_spatial_position[time_seconds - 1] >= run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].start_node.X * 1000)) {
+					Bs = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h];
 					instant_block_section_occupied[time_seconds] = Bs.ID;
 
 					if (h != 0)
@@ -366,7 +367,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			}
 
 			// Determine the TDS which is currently occupied in the Block section Bs by the nose of the train
-			Occupied_TDS = DetermineOccupiedTDS((time_seconds - 1), train_route[indexOfRoute].reversed_direction);
+			Occupied_TDS = DetermineOccupiedTDS((time_seconds - 1), run_->infra.routes[indexOfRoute].reversed_direction);
 
 			// Determination of the right running Arc
 			for (int j = 0; j < Bs.total_arcs; j++) {
@@ -393,7 +394,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				int h = stationBlockSection[s];
 				int k = stationArc[s];
 				if (h >= 0 && k >= 0) {
-					auto& Arc = train_route[indexOfRoute].sequence_of_block_sections[h].arcs_in_signalling_block_section[k];
+					auto& Arc = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].arcs_in_signalling_block_section[k];
 					if (Arc.endNode.X * 1000 >= instant_spatial_position[time_seconds - 1]) {
 						Arc.endNode.station = 1;
 						Arc.speedInBraking = 0;
@@ -427,7 +428,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			const double speed = instant_train_speed[time_seconds - 1];
 			// Keep a reached speed target until its boundary, but only while it is still present.
 			if (Vob[time_seconds - 1] > 0 && speed <= Vob[time_seconds - 1] && head < Xob[time_seconds - 1])
-				for (const Section& section : train_route[indexOfRoute].sequence_of_block_sections)
+				for (const Section& section : run_->infra.routes[indexOfRoute].sequence_of_block_sections)
 					for (int arc = 0; arc < section.total_arcs; ++arc)
 						if (section.arcs_in_signalling_block_section[arc].endNode.X * 1000 == Xob[time_seconds - 1]
 							&& section.arcs_in_signalling_block_section[arc].speedInBraking == Vob[time_seconds - 1])
@@ -466,7 +467,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			}
 			bool continueCached;
 			const double Braking_Distance = europeanVitalComputerWithListsImproved(head, std::max(speed, candidateSpeed),
-				time_seconds - 1, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections, continueCached);
+				time_seconds - 1, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data(),
+				run_->infra.routes[indexOfRoute].N_Block_Sections, continueCached);
 			const bool mustBrake = continueCached || speed > V_lim || !isShortOfBrakingPoint(head, Braking_Distance)
 				|| (candidateSpeed > Vobmin && candidateHead >= Braking_Distance);
 			// Check only non-braking candidates; an active plan keeps its own force-bounded step.
@@ -498,14 +500,15 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 			// Braking Phase
 			else if ((mustBrake || infeasibleCandidate)
-				&& (instant_spatial_position[time_seconds - 1] < train_route[indexOfRoute].x_of_end_node * 1000)
+				&& (instant_spatial_position[time_seconds - 1] < run_->infra.routes[indexOfRoute].x_of_end_node * 1000)
 				&& (speed > 0 || (speed == 0 && mustBrake))) {
 
 				if (speed == 0 || infeasibleCandidate || (speed > V_lim && isShortOfBrakingPoint(head, Braking_Distance))) {
 					fullBrakingStep(time_seconds, As);
 					counter = 0;
 				} else
-					brakingStep(time_seconds, As, train_route[indexOfRoute].sequence_of_block_sections.data(), train_route[indexOfRoute].N_Block_Sections);
+					brakingStep(time_seconds, As, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data(),
+						run_->infra.routes[indexOfRoute].N_Block_Sections);
 
 				// if two braking curves are both restrictive
 				/*if ((Xobj!=Xobmin)||(Vobj!=Vobmin)||((Xobj!=Xobmin)&&(Vobj!=Vobmin))){counter=1;
@@ -582,9 +585,9 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 				//-------------------------------
 				// GUI notification
-				VCmsgTimestep.push_back(time_seconds);
-				VCmsgTrain.push_back(trainDescription);
-				VCmsgText.push_back("Train is now virtually\ncoupled to the leader");
+				run_->vcMsgTimestep.push_back(time_seconds);
+				run_->vcMsgTrain.push_back(trainDescription);
+				run_->vcMsgText.push_back("Train is now virtually\ncoupled to the leader");
 				//-------------------------------
 			}
 
@@ -599,9 +602,9 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 					//-------------------------------
 					// GUI notification
-					VCmsgTimestep.push_back(time_seconds);
-					VCmsgTrain.push_back(trainDescription);
-					VCmsgText.push_back("Train is now decoupled");
+					run_->vcMsgTimestep.push_back(time_seconds);
+					run_->vcMsgTrain.push_back(trainDescription);
+					run_->vcMsgText.push_back("Train is now decoupled");
 					//-------------------------------
 
 					MovementAuthority ResetPredictedMAToDecoupleAt;
@@ -627,9 +630,9 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 					//-------------------------------
 					// GUI notification
-					VCmsgTimestep.push_back(time_seconds);
-					VCmsgTrain.push_back(trainDescription);
-					VCmsgText.push_back("Train is now unintentionally\ndecoupling from the leader");
+					run_->vcMsgTimestep.push_back(time_seconds);
+					run_->vcMsgTrain.push_back(trainDescription);
+					run_->vcMsgText.push_back("Train is now unintentionally\ndecoupling from the leader");
 					//-------------------------------
 				}
 
@@ -670,7 +673,7 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			/**************************************************************************************************************************/
 
 			// Release of signalling system when the train exits simulation
-			if (instant_spatial_position[time_seconds - 1] >= train_route[indexOfRoute].x_of_end_node * 1000) {
+			if (instant_spatial_position[time_seconds - 1] >= run_->infra.routes[indexOfRoute].x_of_end_node * 1000) {
 				End_Time = time_seconds - 1;
 				if (destinationTerminationRequested)
 					destinationTerminated = true;
@@ -678,9 +681,10 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				instant_spatial_position[time_seconds] = -9999;
 				instant_train_power_consumption[time_seconds] = -9999;
 				instant_train_tractive_effort[time_seconds] = -9999;
-				Xobmin = train_route[indexOfRoute].x_of_end_node * 1000;
-				Vobmin = train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].arcs_in_signalling_block_section[train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].total_arcs - 1].speedInBraking; /*This is the speedInBraking of the last Arc of the Route*/
-				relLastSectionMixedSignalling(train_route[indexOfRoute].sequence_of_block_sections[train_route[indexOfRoute].N_Block_Sections - 1].ID);
+				Xobmin = run_->infra.routes[indexOfRoute].x_of_end_node * 1000;
+				Vobmin = run_->infra.routes[indexOfRoute].sequence_of_block_sections[run_->infra.routes[indexOfRoute].N_Block_Sections - 1].arcs_in_signalling_block_section[run_->infra.routes[indexOfRoute].sequence_of_block_sections[run_->infra.routes[indexOfRoute].N_Block_Sections - 1].total_arcs - 1].speedInBraking; /*This is the speedInBraking of the last Arc of the Route*/
+				relLastSectionMixedSignalling(*run_,
+					run_->infra.routes[indexOfRoute].sequence_of_block_sections[run_->infra.routes[indexOfRoute].N_Block_Sections - 1].ID);
 				OutOfSimulation = true;
 			}
 			/*else if (instant_spatial_position[i-1]<0){instant_train_speed[i]=0; instant_spatial_position[i]=-9999; instant_train_power_consumption[i]=-9999; }*/
@@ -827,8 +831,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 
 			// Update the status of Infrastructure elements on the route of the train
 			if (time_seconds > 0) {
-				UpdateInfrastructureElementStatus(
-					train_route[indexOfRoute].InfrastructureElements, time_seconds,
+				UpdateInfrastructureElementStatus(*run_,
+					run_->infra.routes[indexOfRoute].InfrastructureElements, time_seconds,
 					instant_spatial_position[time_seconds - 1],
 					instant_spatial_position[time_seconds],
 					instant_train_speed[time_seconds - 1],

@@ -44,6 +44,12 @@ struct RunInfrastructure {
 	std::vector<std::tuple<std::string, std::string, std::string, std::string>> singleTrackLimits;
 	std::vector<int> singleTrackHeld;
 	std::vector<std::vector<SingleTrackReservation>> singleTrackReservations;
+	// The zones of the limits on the routes, derived on first use by singleTrackZone. The index is limit * route count + route.
+	std::vector<SingleTrackZone> singleTrackZones;
+	std::size_t singleTrackZoneLimits = 0, singleTrackZoneRoutes = 0;
+	// 1 for a route on which any limit has a zone.
+	std::vector<char> singleTrackRouteZone;
+	bool singleTrackZonesDerived = false;
 	// The station entrance sections.
 	std::vector<StationBoundarySection> stationBoundaries;
 
@@ -56,11 +62,14 @@ struct RunInfrastructure {
 
 // The state that one simulation run builds up and that the next run must not see.
 //
+// The routines of the simulation library take the run that they work on as a parameter, and the
+// member functions of a train reach it through Train::run_, which the operations builder sets.
+//
 // The process has one run, defaultRun(). It has a fixed address, so reset() clears every member in
 // place and the references that the headers declare under the old global names stay valid
-// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). Code outside this file keeps
-// using those names. A member that is added here must be cleared in reset(), or in
-// resetInfrastructure() when it belongs to the infrastructure.
+// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The application and the tests
+// use those names, and they all refer to defaultRun(). A member that is added here must be cleared
+// in reset(), or in resetInfrastructure() when it belongs to the infrastructure.
 struct SimulationRun {
 	// The settings of the run: a copy of initial_variables that DispatchController::prepareScene takes once the scene is built. It holds
 	// the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not
@@ -118,11 +127,22 @@ struct SimulationRun {
 
 	// Returns every member except the infrastructure to the state of a new run.
 	void reset();
-	// Returns the infrastructure to the state of a new run, and forgets the single-track zones derived from it.
+	// Returns the infrastructure to the state of a new run.
 	void resetInfrastructure();
 };
 
 // The run of the process.
 SimulationRun& defaultRun();
+
+// These two read the route of the train, so they are defined here and not in RollingStock.h.
+inline bool Train::obeysAuthority(const MovementAuthority& authority) const {
+	return authority.type != "SignalFailure" || authority.ReversedDirection == run_->infra.routes[indexOfRoute].reversed_direction;
+}
+
+inline double Train::authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
+	return run_->infra.routes[indexOfRoute].reversed_direction
+		? section.GeoXBegNode - authority.AbsPosEoA + section.start_node.X * 1000
+		: authority.AbsPosEoA;
+}
 
 #endif // SIMULATIONRUN_H

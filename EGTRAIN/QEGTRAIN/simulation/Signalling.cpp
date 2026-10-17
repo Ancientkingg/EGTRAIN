@@ -2,6 +2,7 @@
 #include "scene/SectionInventory.h"
 #include "scene/SignallingLevel.h"
 #include "simulation/builders/InfrastructureBuilderInternal.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include "util/PlaybackProfiler.h"
 #include <algorithm>
@@ -50,7 +51,7 @@ bool parseConnectedSectionIdentity(const std::string& id, ConnectedSectionIdenti
 			result.secondCoordinate);
 }
 
-bool resolveDoubleSwitchSections(const Section& current, const Section& previous,
+bool resolveDoubleSwitchSections(SimulationRun& run, const Section& current, const Section& previous,
 	const Section* sections[2], ConnectedSectionIdentity identities[2],
 	Section* branches[2][2]) {
 	sections[0] = &current;
@@ -58,11 +59,11 @@ bool resolveDoubleSwitchSections(const Section& current, const Section& previous
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
 		if (!parseConnectedSectionIdentity(sections[switchIndex]->ID, identities[switchIndex]))
 			return false;
-		for (int blockIndex = 0; blockIndex < Blocks; ++blockIndex) {
-			if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].firstBlockId)
-				branches[switchIndex][0] = &::signalling_block_sections[blockIndex];
-			else if (::signalling_block_sections[blockIndex].ID == identities[switchIndex].secondBlockId)
-				branches[switchIndex][1] = &::signalling_block_sections[blockIndex];
+		for (int blockIndex = 0; blockIndex < run.infra.numBlocks; ++blockIndex) {
+			if (run.infra.sections[blockIndex].ID == identities[switchIndex].firstBlockId)
+				branches[switchIndex][0] = &run.infra.sections[blockIndex];
+			else if (run.infra.sections[blockIndex].ID == identities[switchIndex].secondBlockId)
+				branches[switchIndex][1] = &run.infra.sections[blockIndex];
 		}
 		if (!branches[switchIndex][0] || !branches[switchIndex][1])
 			return false;
@@ -104,7 +105,7 @@ InfraEvent::InfraEvent() {
 // the function below updates the status of an infrastructure element along a train route given the list of Infrastructure elements on the route of the train, the current time t in the simulation, the train positions at times t and t-1 along the route
 // the speed of the train at time t-1 and the description (i.e. the name) of the train service
 
-void UpdateInfrastructureElementStatus(const list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const string& TrainName) {
+void UpdateInfrastructureElementStatus(SimulationRun& run, const list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const string& TrainName) {
 	if (RouteInfrastructureElements.size() > 0) {
 		string InfraElementID;
 		TrainEvent P;
@@ -194,7 +195,7 @@ void UpdateInfrastructureElementStatus(const list<InfraElement>& RouteInfrastruc
 						// If the InfraElement is not a Switch then its status must always be set to "None" that is the default value of the variable InfraElemStatus
 					}
 
-					for (list<InfraEvent>::iterator e = InfraElementsList.begin(); e != InfraElementsList.end(); e++) {
+					for (list<InfraEvent>::iterator e = run.infra.infraEvents.begin(); e != run.infra.infraEvents.end(); e++) {
 						if (InfraElementID == e->ElementInfo.ID) {
 							e->RecordedEvent.push_back(P); // Update the status of element
 							break;						   // break the for loop on the InfraElementsList after the right infrastructure element to update has been correctly
@@ -517,7 +518,7 @@ void Section::reverseBlockSection(Section blockSets, double RouteLength) {
 
 
 // Function to Generate Block Sections connected by switches (it must be used in createBlockConn)
-void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
+void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3) {
 	if (N1.X < N2.X) {
 		list<Node> listnode;
 		list<Arc> listarc;
@@ -532,9 +533,11 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 		double speed_lim_on_switch_arc = 0;
 
 		// Identifying the speed limit to be set on the switch connection in the block section BS3
-		for (int c = 0; c < numConnections; c++) {
-			if ((AllConnections[c].idFirstTrackLine == BS3.FirstConnectedTrackLineID) && (AllConnections[c].idSecondTrackLine == BS3.SecondConnectedTrackLineID) && (AllConnections[c].xFirstNode == N1.X) && (AllConnections[c].xSecondNode == N2.X)) {
-				speed_lim_on_switch_arc = AllConnections[c].speedlimit;
+		for (int c = 0; c < run.infra.numConnections; c++) {
+			const Connections& connection = run.infra.connections[c];
+			if ((connection.idFirstTrackLine == BS3.FirstConnectedTrackLineID) && (connection.idSecondTrackLine == BS3.SecondConnectedTrackLineID)
+				&& (connection.xFirstNode == N1.X) && (connection.xSecondNode == N2.X)) {
+				speed_lim_on_switch_arc = connection.speedlimit;
 				break;
 			}
 		}
@@ -695,35 +698,35 @@ void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2,
 }
 
 // Function to Create connected block sections each time that a connection Node comes out (it must be used in setAllConnections)
-void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
+void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 	int CheckBlockPresence = 0;
 
 	if (Nb.X < Nb.connectXNode[n_conn]) {		// if the connection Node has a X higher than its X
 		for (int i = 0; i < Temp_Blocks; i++) { // Search for the connected Node in the Block Section belonging to the indicated connectIdBlockSet
-			if (signalling_block_sections[i].trackLineId == Nb.connectIdBlockSet[n_conn]) {
-				for (int j = 0; j < signalling_block_sections[i].total_nodes; j++) { // Search for the connected Node
-					if ((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].X == Nb.connectXNode[n_conn]) {
+			if (run.infra.sections[i].trackLineId == Nb.connectIdBlockSet[n_conn]) {
+				for (int j = 0; j < run.infra.sections[i].total_nodes; j++) { // Search for the connected Node
+					if ((*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].X == Nb.connectXNode[n_conn]) {
 						string BSID, OppBSID;
 						const std::string N1ID = formatSceneSectionCoordinate(Nb.X);
 						const std::string N2ID = formatSceneSectionCoordinate(
-							(*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].X);
-						BSID = BSID + BS1.ID + "-" + N1ID + "/" + signalling_block_sections[i].ID + "-" + N2ID;
-						OppBSID = OppBSID + signalling_block_sections[i].ID + "-" + N2ID + "/" + BS1.ID + "-" + N1ID;
+							(*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].X);
+						BSID = BSID + BS1.ID + "-" + N1ID + "/" + run.infra.sections[i].ID + "-" + N2ID;
+						OppBSID = OppBSID + run.infra.sections[i].ID + "-" + N2ID + "/" + BS1.ID + "-" + N1ID;
 
-						for (int k = 0; k < Temp_Blocks; k++) {																 // search if a block section with the same ID or opposite ID is already present in the database of Block Sections
-							if ((signalling_block_sections[k].ID == BSID) || (signalling_block_sections[k].ID == OppBSID)) { // if it is present CheckBlockPresence increases
+						for (int k = 0; k < Temp_Blocks; k++) {												   // search if a block section with the same ID or opposite ID is already present in the database of Block Sections
+							if ((run.infra.sections[k].ID == BSID) || (run.infra.sections[k].ID == OppBSID)) { // if it is present CheckBlockPresence increases
 								CheckBlockPresence++;
 							}
 						}
 						if (CheckBlockPresence == 0) // if there is not a similar block section the new connecting block section is created
 						{
-							if (Blocks >= static_cast<int>(signalling_block_sections.size())) {
-								derivedSectionsExceedPlan = true;
+							if (run.infra.numBlocks >= static_cast<int>(run.infra.sections.size())) {
+								run.infra.derivedSectionsExceedPlan = true;
 								return;
 							}
-							Blocks++;
-							generateConnectBlock(connections.data(), BS1, signalling_block_sections[i], Nb,
-								(*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j], signalling_block_sections[Blocks - 1]);
+							run.infra.numBlocks++;
+							generateConnectBlock(run, BS1, run.infra.sections[i], Nb,
+								(*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j], run.infra.sections[run.infra.numBlocks - 1]);
 						}
 					}
 				}
@@ -733,17 +736,17 @@ void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn) {
 }
 
 // Function to automatically create block sections connected by switches
-void setAllConnections() {
+void setAllConnections(SimulationRun& run) {
 
-	int Temp_Blocks = Blocks; // Temporary variable which takes the total number of Block without connections
+	int Temp_Blocks = run.infra.numBlocks; // Temporary variable which takes the total number of Block without connections
 	for (int i = 0; i < Temp_Blocks; i++) {
-		for (int j = 0; j < signalling_block_sections[i].total_nodes; j++) {
-			if ((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections > 0) {
+		for (int j = 0; j < run.infra.sections[i].total_nodes; j++) {
+			if ((*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections > 0) {
 				// std::cout << "=============================\n";
 				/*std::cout << signalling_block_sections[i].ID << "-" << signalling_block_sections[i].FirstConnectedTrackLineID <<
 					"+" << signalling_block_sections[i].SecondConnectedTrackLineID << "-" << signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].numConnections <<"="<<j<< std::endl;*/
-				for (int n = 0; n < (*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections; n++) {
-					createBlockConn((*signalling_block_sections[i].nodelist_of_nodes_in_signalling_section)[j], signalling_block_sections[i], Temp_Blocks, n);
+				for (int n = 0; n < (*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections; n++) {
+					createBlockConn(run, (*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j], run.infra.sections[i], Temp_Blocks, n);
 				}
 			}
 		}
@@ -751,35 +754,35 @@ void setAllConnections() {
 }
 
 // This function create a list of section which have the string "input" in their ID
-void setList(string input, list<Section>& BSConnected) {
-	for (int i = 0; i < Blocks; i++) {
-		if (signalling_block_sections[i].ID.find(input, 0) != -1) {
-			BSConnected.push_back(signalling_block_sections[i]);
+void setList(SimulationRun& run, string input, list<Section>& BSConnected) {
+	for (int i = 0; i < run.infra.numBlocks; i++) {
+		if (run.infra.sections[i].ID.find(input, 0) != -1) {
+			BSConnected.push_back(run.infra.sections[i]);
 		}
 	}
 }
 
 // This Function is used to set the dependencies between two block section connected by means of switches
-static void setLegacyConnectedBlockIdsOnNodes() {
-	for (int i = 0; i < Blocks; i++) {
-		for (int h = 0; h < signalling_block_sections[i].total_arcs; h++) {
-			Node& node = signalling_block_sections[i].arcs_in_signalling_block_section[h].endNode;
+static void setLegacyConnectedBlockIdsOnNodes(SimulationRun& run) {
+	for (int i = 0; i < run.infra.numBlocks; i++) {
+		for (int h = 0; h < run.infra.sections[i].total_arcs; h++) {
+			Node& node = run.infra.sections[i].arcs_in_signalling_block_section[h].endNode;
 			if (node.numConnections > 0) {
 				node.IDConnectedBlocks.clear();
-				node.initialiseIdConnectedBlocks(signalling_block_sections[i].IDConnectedBS,
-					signalling_block_sections[i].N_ConnectedBS);
+				node.initialiseIdConnectedBlocks(run.infra.sections[i].IDConnectedBS,
+					run.infra.sections[i].N_ConnectedBS);
 			}
 		}
 	}
 }
 
-void setDependenciesBetweenBlocks() {
-	setDependenciesBetweenBlocksInternal(true);
+void setDependenciesBetweenBlocks(SimulationRun& run) {
+	setDependenciesBetweenBlocksInternal(run, true);
 }
 
-void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependency) {
-	for (int i = 0; i < Blocks; i++) {
-		auto& section = signalling_block_sections[i];
+void setDependenciesBetweenBlocksInternal(SimulationRun& run, bool includeCopenhagenDependency) {
+	for (int i = 0; i < run.infra.numBlocks; i++) {
+		auto& section = run.infra.sections[i];
 		const auto maxConnectedBlocks = std::size(section.IDConnectedBS);
 		auto addConnection = [&](const string& id) {
 			if (section.N_ConnectedBS >= maxConnectedBlocks) {
@@ -791,7 +794,7 @@ void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependency) {
 			return true;
 		};
 		list<Section> BSConn_i;
-		setList(section.ID, BSConn_i);
+		setList(run, section.ID, BSConn_i);
 		list<Section>::iterator it;
 		for (it = BSConn_i.begin(); it != BSConn_i.end(); it++) {
 			if (it->ID != section.ID && !addConnection(it->ID))
@@ -802,7 +805,7 @@ void setDependenciesBetweenBlocksInternal(bool includeCopenhagenDependency) {
 			addConnection("@1-B30@-4.592000/@5-B7@-4.620000");
 	}
 	if (includeCopenhagenDependency)
-		setLegacyConnectedBlockIdsOnNodes();
+		setLegacyConnectedBlockIdsOnNodes(run);
 }
 
 // Function to recognize if two block sections are overlapping
@@ -1740,7 +1743,7 @@ void Route::identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(list<Inf
 	}
 }
 
-void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, int direction) {
+void Route::createRouteFromBlockIds(SimulationRun& run, const std::vector<std::string>& blockIds, int direction) {
 	// Reset scalar/list state in place.
 	ID = "None";
 	N_Block_Sections = 0;
@@ -1756,11 +1759,11 @@ void Route::createRouteFromBlockIds(const std::vector<std::string>& blockIds, in
 
 	list<Section> BlockList;
 	for (const std::string& blockId : blockIds) {
-		for (int i = 0; i < Blocks; i++) {
-			if (signalling_block_sections[i].ID == blockId
+		for (int i = 0; i < run.infra.numBlocks; i++) {
+			if (run.infra.sections[i].ID == blockId
 				|| (blockId.find('/') == std::string::npos
-					&& signalling_block_sections[i].ID == "@" + blockId + "@")) {
-				BlockList.push_back(signalling_block_sections[i]);
+					&& run.infra.sections[i].ID == "@" + blockId + "@")) {
+				BlockList.push_back(run.infra.sections[i]);
 				break;
 			}
 		}
@@ -1895,11 +1898,12 @@ void Route::adjustRouteAcrossDiffRegions() {
 	// std::cout << "JumpX: " << diffRegionsJumpX.first << " and " << diffRegionsJumpX.second << std::endl;
 }
 
-void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes) {
-	if (N_Routes > 0) {
-		for (int i = 0; i < N_Routes; i++) {
-			if (R[i].InfrastructureElements.size() > 0) {
-				for (list<InfraElement>::iterator b = R[i].InfrastructureElements.begin(); b != R[i].InfrastructureElements.end(); b++) {
+void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {
+	if (run.infra.numRoutes > 0) {
+		for (int i = 0; i < run.infra.numRoutes; i++) {
+			if (run.infra.routes[i].InfrastructureElements.size() > 0) {
+				for (list<InfraElement>::iterator b = run.infra.routes[i].InfrastructureElements.begin();
+					b != run.infra.routes[i].InfrastructureElements.end(); b++) {
 					if (b->ID != "VirtualTDSB") { // The element can be inserted only if it is not a Virtual TDSB (which has been created to separate two adjacent diverging switches) but a real infrastructure element
 						InfraEvent TEMP_InfraEvent;
 						TEMP_InfraEvent.ElementInfo = *b;
@@ -1909,20 +1913,20 @@ void setListAllInfrastructureElementsFromRoutes(vector<Route>& R, int N_Routes) 
 						}
 
 						// if the list of infraEvents is empty then insert the TEMP_InfraEvent
-						if (InfraElementsList.size() == 0) {
-							InfraElementsList.push_back(TEMP_InfraEvent);
+						if (run.infra.infraEvents.size() == 0) {
+							run.infra.infraEvents.push_back(TEMP_InfraEvent);
 						}
 						// If it has instead already elements, check if the Infrastructure Element b is already present in the list
 						else {
 							bool IsAlreadyThere = false;
-							for (list<InfraEvent>::iterator e = InfraElementsList.begin(); e != InfraElementsList.end(); e++) {
+							for (list<InfraEvent>::iterator e = run.infra.infraEvents.begin(); e != run.infra.infraEvents.end(); e++) {
 								if (TEMP_InfraEvent.ElementInfo.ID == e->ElementInfo.ID) {
 									IsAlreadyThere = true;
 									break; // break the for loop on InfraElements list
 								}
 							}
 							if (IsAlreadyThere == 0) {
-								InfraElementsList.push_back(TEMP_InfraEvent);
+								run.infra.infraEvents.push_back(TEMP_InfraEvent);
 							}
 						}
 					}
@@ -1941,7 +1945,7 @@ MovementAuthority::MovementAuthority() {
 }
 
 // Function to Occupy a Block Section and all the Block sections connected with it
-void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
+void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1) {
 	int NumBlocksToFind = BLS.N_ConnectedBS + 1;
 	// The section and the sections connected to it, to add to BlocksOccupied
 	std::vector<string> IDToAdd(NumBlocksToFind);
@@ -1954,12 +1958,12 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 	// Filling in the BlocksOccupied list
 	for (int i = 0; i < NumBlocksToFind; i++) {
 		bool IsThere = false;
-		for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+		for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 			if (*it == IDToAdd[i])
 				IsThere = true;
 		}
 		if (IsThere == 0) {
-			BlocksOccupied.push_back(IDToAdd[i]);
+			run.blocksOccupied.push_back(IDToAdd[i]);
 		}
 	}
 
@@ -1979,14 +1983,14 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 
 			// Load BSConnected to free to the BlocksConnected list
 			for (int i = 0; i < N_BLSPrev_Conn; i++) {
-				for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+				for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 					if (*it == IDToFree[i]) {
 						IsInBlocksConnected[i] = true;
 						break;
 					}
 				}
 				if (IsInBlocksConnected[i] == 0)
-					BlocksConnected.push_back(IDToFree[i]);
+					run.blocksConnected.push_back(IDToFree[i]);
 			}
 		}
 	}
@@ -2000,15 +2004,15 @@ void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double 
 	}*/
 
 	// release previously occupied signalling_block_sections TESTE!!!
-	releaseLastBlockAndConnected(BLSPrev);
+	releaseLastBlockAndConnected(run, BLSPrev);
 }
 
 // Function to occupy a double switch
-void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
+void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev) {
 	const Section* doubleSwitchBS[2] = {};
 	ConnectedSectionIdentity identities[2];
 	Section* branchSections[2][2] = {};
-	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
+	if (!resolveDoubleSwitchSections(run, BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
 		return;
 
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
@@ -2028,12 +2032,12 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			// Filling in the BlocksOccupied list
 			for (int i = 0; i < NumBlocksToFind; i++) {
 				bool IsThere = false;
-				for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+				for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 					if (*it == IDToAdd[i])
 						IsThere = true;
 				}
 				if (IsThere == 0)
-					BlocksOccupied.push_back(IDToAdd[i]);
+					run.blocksOccupied.push_back(IDToAdd[i]);
 			}
 		}
 
@@ -2054,22 +2058,22 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 
 			// Filling in the BlocksOccupied list
 			for (int h = 0; h < 2; h++) {
-				for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+				for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 					if (*it == IDToAdd[h])
 						IsInBlocksOccupied[h] = true;
 				}
 				if (IsInBlocksOccupied[h] == 0)
-					BlocksOccupied.push_back(IDToAdd[h]);
+					run.blocksOccupied.push_back(IDToAdd[h]);
 			}
 
 			// Filling in the BlocksConnected list
 			for (int h = 0; h < 2; h++) {
-				for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+				for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 					if (*it == IDToAdd[h])
 						IsInBlocksConnected[h] = true;
 				}
 				if (IsInBlocksConnected[h] == 0)
-					BlocksConnected.push_back(IDToAdd[h]);
+					run.blocksConnected.push_back(IDToAdd[h]);
 			}
 
 			// occupy compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
@@ -2091,12 +2095,12 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 				// Filling in the BlocksOccupied list
 				for (int i = 0; i < NumBlocksToFind; i++) {
 					bool IsThere = false;
-					for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+					for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 						if (*it == IDToAdd[i])
 							IsThere = true;
 					}
 					if (IsThere == 0)
-						BlocksOccupied.push_back(IDToAdd[i]);
+						run.blocksOccupied.push_back(IDToAdd[i]);
 				}
 			}
 		}
@@ -2104,11 +2108,11 @@ void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 }
 
 // Function to release a double switch
-void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
+void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev) {
 	const Section* doubleSwitchBS[2] = {};
 	ConnectedSectionIdentity identities[2];
 	Section* branchSections[2][2] = {};
-	if (!resolveDoubleSwitchSections(BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
+	if (!resolveDoubleSwitchSections(run, BLS, BLSPrev, doubleSwitchBS, identities, branchSections))
 		return;
 
 	for (int switchIndex = 0; switchIndex < 2; ++switchIndex) {
@@ -2128,12 +2132,12 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			}
 			// Filling in the BlocksConnected
 			for (int i = 0; i < NumBlocksToFind; i++) {
-				for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+				for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 					if (*it == IDToAdd[i])
 						IsInBlocksConnected[i] = true;
 				}
 				if (IsInBlocksConnected[i] == 0)
-					BlocksConnected.push_back(IDToAdd[i]);
+					run.blocksConnected.push_back(IDToAdd[i]);
 			}
 
 		}
@@ -2157,54 +2161,54 @@ void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev) {
 			}
 			// Filling in the BlocksConnected
 			for (int i = 0; i < NumBlocksToFind; i++) {
-				for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+				for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 					if (*it == IDToAdd[i])
 						IsInBlocksConnected[i] = true;
 				}
 				if (IsInBlocksConnected[i] == 0)
-					BlocksConnected.push_back(IDToAdd[i]);
+					run.blocksConnected.push_back(IDToAdd[i]);
 			}
 
 			// release compound signalling_block_sections connected to single signalling_block_sections (other branches of double switch)
-			releaseLastBlockAndConnected(*branchSections[switchIndex][0]);
-			releaseLastBlockAndConnected(*branchSections[switchIndex][1]);
+			releaseLastBlockAndConnected(run, *branchSections[switchIndex][0]);
+			releaseLastBlockAndConnected(run, *branchSections[switchIndex][1]);
 		}
 	}
 }
 
 // unlock double switches (otherwise train gets stuck in the middle)
-void unlockDoubleSwitches() {
-	for (int r = 0; r < N_Routes; r++) {
-		for (int b = train_route[r].N_Block_Sections - 1; b >= 0; b--) {
+void unlockDoubleSwitches(SimulationRun& run) {
+	for (int r = 0; r < run.infra.numRoutes; r++) {
+		for (int b = run.infra.routes[r].N_Block_Sections - 1; b >= 0; b--) {
 			// double switch locked
-			if (train_route[r].sequence_of_block_sections[b].start_node.virtualSignal && train_route[r].sequence_of_block_sections[b].code == 0) {
+			if (run.infra.routes[r].sequence_of_block_sections[b].start_node.virtualSignal && run.infra.routes[r].sequence_of_block_sections[b].code == 0) {
 				// changes on previous signalling_block_sections
 				if (b > 0) {
-					train_route[r].sequence_of_block_sections[b - 1].state = SignalState::Green;
-					for (int k = 0; k < train_route[r].sequence_of_block_sections[b - 1].total_arcs; k++) {
-						train_route[r].sequence_of_block_sections[b - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
+					run.infra.routes[r].sequence_of_block_sections[b - 1].state = SignalState::Green;
+					for (int k = 0; k < run.infra.routes[r].sequence_of_block_sections[b - 1].total_arcs; k++) {
+						run.infra.routes[r].sequence_of_block_sections[b - 1].arcs_in_signalling_block_section[k].signalSpeedLimit = 999;
 					}
 
 					// revert changes to speeds
-					double MinSpeedLim = train_route[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].speedLimit;
-					if (train_route[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
-						MinSpeedLim = train_route[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].signalSpeedLimit;
+					double MinSpeedLim = run.infra.routes[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].speedLimit;
+					if (run.infra.routes[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].signalSpeedLimit < MinSpeedLim) {
+						MinSpeedLim = run.infra.routes[r].sequence_of_block_sections[b].arcs_in_signalling_block_section[0].signalSpeedLimit;
 					}
 
 					// the speed limit at the end of block section BLS[h] is MinSpeedLim
-					train_route[r].sequence_of_block_sections[b - 1].arcs_in_signalling_block_section[train_route[r].sequence_of_block_sections[b - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
+					run.infra.routes[r].sequence_of_block_sections[b - 1].arcs_in_signalling_block_section[run.infra.routes[r].sequence_of_block_sections[b - 1].total_arcs - 1].speedInBraking = MinSpeedLim;
 				}
 
 				// changes on signalling_block_sections itself
-				train_route[r].sequence_of_block_sections[b].code = 270;
-				train_route[r].sequence_of_block_sections[b].exit_speed = 0;
+				run.infra.routes[r].sequence_of_block_sections[b].code = 270;
+				run.infra.routes[r].sequence_of_block_sections[b].exit_speed = 0;
 			}
 		}
 	}
 }
 
 // Function to Activate blocks connected with block sections having switches in diverging position
-void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, double S) {
+void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S) {
 	ConnectedSectionIdentity identity;
 	if (!parseConnectedSectionIdentity(BS.ID, identity))
 		return;
@@ -2229,48 +2233,48 @@ void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, dou
 	}
 	// if the S of the train has not passed the initial point of the diverging switch only BlockID1 will result as occupied while BlocksID2 is still free
 	if (S < BS.XStartSwitch * 1000) {
-		for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+		for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 			if (*it == IDToAdd[0])
 				IsInBlocksOccupied[0] = true;
 		}
 		if (IsInBlocksOccupied[0] == 0)
-			BlocksOccupied.push_back(IDToAdd[0]);
+			run.blocksOccupied.push_back(IDToAdd[0]);
 
 	}
 	// if the S of the Train is before the XEndSwitch and after its XStartSwitch all the Block Sections are occupied: Block1 and Block2 and of course the one with the Switch diverging
 	else if ((S >= BS.XStartSwitch * 1000) && (S < BS.XEndSwitch * 1000)) {
 		for (int h = 0; h < 2; h++) {
-			for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+			for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 				if (*it == IDToAdd[h])
 					IsInBlocksOccupied[h] = true;
 			}
 			if (IsInBlocksOccupied[h] == 0)
-				BlocksOccupied.push_back(IDToAdd[h]);
+				run.blocksOccupied.push_back(IDToAdd[h]);
 		}
 	}
 	// When instead the train has passed the XEndSwitch
 	else {
-		for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+		for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 			if (*it == IDToAdd[1])
 				IsInBlocksOccupied[1] = true;
 		}
 		if (IsInBlocksOccupied[1] == 0)
-			BlocksOccupied.push_back(IDToAdd[1]);
+			run.blocksOccupied.push_back(IDToAdd[1]);
 
 		// Filling in the BlocksConnected list
 		for (int h = 0; h < 2; h++) {
-			for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+			for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 				if (*it == IDToAdd[h])
 					IsInBlocksConnected[h] = true;
 			}
 			if (IsInBlocksConnected[h] == 0)
-				BlocksConnected.push_back(IDToAdd[h]);
+				run.blocksConnected.push_back(IDToAdd[h]);
 		}
 	}
 }
 
 // Function to Activate blocks connected with block sections having switches in diverging position
-void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDPrevBS, double S) {
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S) {
 	ConnectedSectionIdentity identity;
 	if (!parseConnectedSectionIdentity(BS.ID, identity))
 		return;
@@ -2296,27 +2300,27 @@ void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDP
 
 	// Filling in the BlocksOccupied list
 	for (int h = 0; h < 2; h++) {
-		for (list<string>::iterator it = BlocksOccupied.begin(); it != BlocksOccupied.end(); it++) {
+		for (list<string>::iterator it = run.blocksOccupied.begin(); it != run.blocksOccupied.end(); it++) {
 			if (*it == IDToAdd[h])
 				IsInBlocksOccupied[h] = true;
 		}
 		if (IsInBlocksOccupied[h] == 0)
-			BlocksOccupied.push_back(IDToAdd[h]);
+			run.blocksOccupied.push_back(IDToAdd[h]);
 	}
 
 	// Filling in the BlocksConnected list
 	for (int h = 0; h < 2; h++) {
-		for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+		for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 			if (*it == IDToAdd[h])
 				IsInBlocksConnected[h] = true;
 		}
 		if (IsInBlocksConnected[h] == 0)
-			BlocksConnected.push_back(IDToAdd[h]);
+			run.blocksConnected.push_back(IDToAdd[h]);
 	}
 }
 
 // Function to Release the Last Block Section and the other connected Blocks when the train exits simulation
-void releaseLastBlockAndConnected(const Section& BLS) {
+void releaseLastBlockAndConnected(SimulationRun& run, const Section& BLS) {
 	// Load the BLS ID and the ones of the connected Blocks in the BlocksConnected list when the former has not a diverging switch
 	if (BLS.withSwitchDiv == 0) {
 		int NumBlocksToFind = BLS.N_ConnectedBS + 1;
@@ -2331,12 +2335,12 @@ void releaseLastBlockAndConnected(const Section& BLS) {
 		}
 		// Filling in the BlocksConnected
 		for (int i = 0; i < NumBlocksToFind; i++) {
-			for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+			for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 				if (*it == IDToAdd[i])
 					IsInBlocksConnected[i] = true;
 			}
 			if (IsInBlocksConnected[i] == 0)
-				BlocksConnected.push_back(IDToAdd[i]);
+				run.blocksConnected.push_back(IDToAdd[i]);
 		}
 
 	}
@@ -2363,18 +2367,18 @@ void releaseLastBlockAndConnected(const Section& BLS) {
 		}
 		// Filling in the BlocksConnected
 		for (int i = 0; i < NumBlocksToFind; i++) {
-			for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
+			for (list<string>::iterator it = run.blocksConnected.begin(); it != run.blocksConnected.end(); it++) {
 				if (*it == IDToAdd[i])
 					IsInBlocksConnected[i] = true;
 			}
 			if (IsInBlocksConnected[i] == 0)
-				BlocksConnected.push_back(IDToAdd[i]);
+				run.blocksConnected.push_back(IDToAdd[i]);
 		}
 	}
 }
 
 // Function to generate MA on Connected Block Sections when a train crosses a connected Node on a block section,
-void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, bool IsRouteReversed, const string& IDSectionToExclude) {
+void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, bool IsRouteReversed, const string& IDSectionToExclude) {
 	// the parameter IDSectionToExclude is something that we put to exclude the connection with a particular block section. If we put IDSectionToExclude = "None", that means that we consider all connected block sections with signalling_block_sections. If IDSectionToExclude  is different from "None" then we will take all the connected blocks of signalling_block_sections apart from the one that we have excluded. In this way we limit listing redundant MAs if MAs relative to IDSectionToExclude have been already provided and/or listed somewhere else
 	for (int i = 0; i < BS.total_arcs; i++) {
 
@@ -2472,12 +2476,12 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 				ListofMA.push_back(MA2);
 				ListofMA.push_back(MA3);
 				for (list<MovementAuthority>::iterator k = ListofMA.begin(); k != ListofMA.end(); k++) {
-					if (ETCS_MA.empty() == 1) {
+					if (run.etcsMa.empty() == 1) {
 						// Create a movement authority if the list is empty
-						ETCS_MA.push_back(*k); // add the MA to the list
-					} else {				   // if the list of ETCS MAs is not empty then check is this MA has been already reported
+						run.etcsMa.push_back(*k); // add the MA to the list
+					} else {					  // if the list of ETCS MAs is not empty then check is this MA has been already reported
 						bool IsMA_BSID_AlreadyThere = false;
-						for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+						for (list<MovementAuthority>::iterator it = run.etcsMa.begin(); it != run.etcsMa.end(); it++) {
 							if ((it->BSID == k->BSID) && (std::abs(it->AbsPosEoA - k->AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == k->TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
 								IsMA_BSID_AlreadyThere = true;
 								break; // break the for loop over the EoAs
@@ -2485,7 +2489,7 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 						}
 						// if the MA is already in ETCS MA then do not add it otherwise add it
 						if (IsMA_BSID_AlreadyThere == 0) { // if the Movement authority was not there yet then add it to the ETCS_MA list
-							ETCS_MA.push_back(*k);		   // add the MA to the list
+							run.etcsMa.push_back(*k);	   // add the MA to the list
 						}
 					}
 				}
@@ -2495,7 +2499,7 @@ void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, d
 }
 
 // Function to Process Train Position and compute Movement Authorities
-void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const string& type, const string& typePart) {
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const string& CurrentSectionID, const string& NextSectionID, const string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const string& type, const string& typePart) {
 	MovementAuthority MA;
 	if (IsRouteReversed == 0) { // if the train route is not reversed
 		MA.ReversedDirection = false;
@@ -2541,12 +2545,12 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 	MA.TrainInfo.NextSectionID = NextSectionID;
 
 	// Reporting the train position to the list of movement authorities
-	if (ETCS_MA.empty() == 1) {
+	if (run.etcsMa.empty() == 1) {
 		// Create a movement authority if the list is empty
-		ETCS_MA.push_back(MA); // add the MA to the list
-	} else {				   // if the list of ETCS MAs is not empty then check is this MA has been already reported
+		run.etcsMa.push_back(MA); // add the MA to the list
+	} else {					  // if the list of ETCS MAs is not empty then check is this MA has been already reported
 		bool IsMA_BSID_AlreadyThere = false;
-		for (list<MovementAuthority>::iterator it = ETCS_MA.begin(); it != ETCS_MA.end(); it++) {
+		for (list<MovementAuthority>::iterator it = run.etcsMa.begin(); it != run.etcsMa.end(); it++) {
 			if ((it->BSID == MA.BSID) && (std::abs(it->AbsPosEoA - MA.AbsPosEoA) < 0.001) && (it->TrainInfo.trainDescription == MA.TrainInfo.trainDescription)) { // Because of rounding issues we consider that two MAs are the same if they belong to the same block section, they relate to the same train and their absolute position differs for less than 1 mm (i.e. 0.001 m)
 				IsMA_BSID_AlreadyThere = true;
 				break; // break the for loop over the EoAs
@@ -2554,13 +2558,13 @@ void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, c
 		}
 		// if the MA is already in ETCS MA then do not add it otherwise add it
 		if (IsMA_BSID_AlreadyThere == 0) { // if the Movement authority was not there yet then add it to the ETCS_MA list
-			ETCS_MA.push_back(MA);		   // add the MA to the list
+			run.etcsMa.push_back(MA);	   // add the MA to the list
 		}
 	}
 }
 
 // Function to Elaborate the MA on block sections with switches in diverging position
-void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
 	// the string of the next block section ID
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2594,8 +2598,8 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Section Block1;
 		Block1 = BS;
 		Block1.ID = BlockID1;
-		elaborateRbcMas(S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
 	}
 	// if the abscissa S_i is on the diverging switch then occupy all of the three block sections
 	else if ((S_i >= BS.XStartSwitch * 1000) && (S_i < BS.XEndSwitch * 1000)) {
@@ -2608,9 +2612,9 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Block2 = BS;
 		Block2.ID = BlockID2;
 
-		elaborateRbcMas(S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
-		elaborateRbcMas(S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block1, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the first block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the second block section
 
 	}
 	// else if the abscissa S is after the XEnd of the switch occupy the section with the diverging switch and the second block section
@@ -2618,13 +2622,13 @@ void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_
 		Section Block2;
 		Block2 = BS;
 		Block2.ID = BlockID2;
-		elaborateRbcMas(S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the Second block section
-		elaborateRbcMas(S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);	   // Occupying the block section with the diverging switch
+		elaborateRbcMas(run, S_i, V_i, Acc_i, Block2, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart); // Occupying the Second block section
+		elaborateRbcMas(run, S_i, V_i, Acc_i, BS, BS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "TrainEnd", typePart);		// Occupying the block section with the diverging switch
 	}
 }
 
 // Function to Block Switches when trains traverse them in the diverging position
-void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const string& trainDescription, const Route& TrainRoute, const string& typePart) {
 	// Defining the next block section ID on the route of the train after BLS
 	string NextSectionID;
 	ConnectedSectionIdentity identity;
@@ -2673,13 +2677,13 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 		Section Block1, Block2;
 		bool Block1Found = false;
 		bool Block2Found = false;
-		for (int i = 0; i < Blocks; i++) { // signalling_block_sections is the set of all block section in the network model
-			if (signalling_block_sections[i].ID == BlockID1) {
-				Block1 = signalling_block_sections[i];
+		for (int i = 0; i < run.infra.numBlocks; i++) { // signalling_block_sections is the set of all block section in the network model
+			if (run.infra.sections[i].ID == BlockID1) {
+				Block1 = run.infra.sections[i];
 				Block1Found = true;
 			}
-			if (signalling_block_sections[i].ID == BlockID2) {
-				Block2 = signalling_block_sections[i];
+			if (run.infra.sections[i].ID == BlockID2) {
+				Block2 = run.infra.sections[i];
 				Block2Found = true;
 			}
 			if ((Block1Found == 1) && (Block2Found == 1)) {
@@ -2688,14 +2692,14 @@ void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, doub
 		}
 
 		// locking start and end of the switch on the signalling_block_sections with SwitchDiv
-		elaborateRbcMas(BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
-		elaborateRbcMas(BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, BLS.XStartSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
+		elaborateRbcMas(run, BLS.XEndSwitch * 1000, V_i, Acc_i, BLS, BLS.ID, NextSectionID, trainDescription, TrainRoute, TrainRoute.reversed_direction, "DivergingSwitchOccupied", typePart);
 		// Blocking the access to the beginning of the switch on Block 1 and connected to Block 1 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);			// IsRouteReversed=0: blocks from AllBlocks list are not reversed
-		lockSwitchesOnAllConnectedSections((AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
+		elaborateRbcMas(run, AbsStartSwitchPos, V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);			 // IsRouteReversed=0: blocks from AllBlocks list are not reversed
+		lockSwitchesOnAllConnectedSections(run, (AbsStartSwitchPos + 10), (AbsStartSwitchPos - 10), V_i, Acc_i, Block1, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block1 is not reversed since we are taking it directly from the AllBlockSections
 		// Blocking the access to the beginning of the switch on Block 2 and connected to Block 2 apart from the BLS itself which has already been considered. We use the convention that the FrontEnd is 10m after and the BackEnd is 10m before the Switching Node
-		elaborateRbcMas(AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);
-		lockSwitchesOnAllConnectedSections((AbsEndSwitchPos + 10), (AbsEndSwitchPos - 10), V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block2 is not reversed since we are taking it directly from the AllBlockSections
+		elaborateRbcMas(run, AbsEndSwitchPos, V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, TrainRoute, 0, "DivergingSwitchOccupied", typePart);
+		lockSwitchesOnAllConnectedSections(run, (AbsEndSwitchPos + 10), (AbsEndSwitchPos - 10), V_i, Acc_i, Block2, BLS.ID, NextSectionID, trainDescription, 0, BLS.ID); // The 0 here for IsRouteReversed means that Block2 is not reversed since we are taking it directly from the AllBlockSections
 	}
 }
 
@@ -2944,31 +2948,31 @@ unsigned routeLevelMask(const Route& route) {
 }
 
 // Function to activate mixed signalling areas
-void activateMixedSignallingSystem() {
+void activateMixedSignallingSystem(SimulationRun& run) {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/activate_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
-	activateMixedSignallingSystem(signalCode1, signalCode2);
+	activateMixedSignallingSystem(run, signalCode1, signalCode2);
 }
 
-void activateMixedSignallingSystem(double redSpeed1, double redSpeed2) {
+void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double redSpeed2) {
 	// The set holds views of the entries of BlocksOccupied, so the entries a route adds leave the set before they leave the list.
 	std::unordered_set<std::string_view> occupiedIds;
-	occupiedIds.reserve(BlocksOccupied.size());
-	occupiedIds.insert(BlocksOccupied.begin(), BlocksOccupied.end());
+	occupiedIds.reserve(run.blocksOccupied.size());
+	occupiedIds.insert(run.blocksOccupied.begin(), run.blocksOccupied.end());
 	std::vector<char> occupied;
-	for (int i = 0; i < N_Routes; i++) {
+	for (int i = 0; i < run.infra.numRoutes; i++) {
 		// the sections of a single-track section held by a train of the other direction are occupied for this route only
-		std::size_t singleTrackAdded = occupySingleTrackForRoute(i);
-		const auto firstAdded = std::prev(BlocksOccupied.end(), static_cast<std::ptrdiff_t>(singleTrackAdded));
+		std::size_t singleTrackAdded = occupySingleTrackForRoute(run, i);
+		Route& route = run.infra.routes[i];
+		const auto firstAdded = std::prev(run.blocksOccupied.end(), static_cast<std::ptrdiff_t>(singleTrackAdded));
 		// Bit n of levels is set when the route has a section of level n. The routine of a level writes only on sections of that level, or
 		// behind an occupied section of that level, so a route without a section of the level skips it.
-		const unsigned levels = routeLevelMask(train_route[i]);
+		const unsigned levels = routeLevelMask(route);
 		if (levels != 0) {
-			occupiedIds.insert(firstAdded, BlocksOccupied.end());
-			setIdFlags(train_route[i], occupiedIds, occupied);
+			occupiedIds.insert(firstAdded, run.blocksOccupied.end());
+			setIdFlags(route, occupiedIds, occupied);
 			// A train must be able to leave both halves before it enters a crossover. Walk forwards so this
 			// route-local occupancy does not propagate recursively through adjacent crossover chains.
-			const Route& route = train_route[i];
 			for (int b = 0; b + 2 < route.N_Block_Sections; ++b) {
 				const Section& first = route.sequence_of_block_sections[b];
 				const Section& second = route.sequence_of_block_sections[b + 1];
@@ -2976,89 +2980,89 @@ void activateMixedSignallingSystem(double redSpeed1, double redSpeed2) {
 					&& first.end_node.virtualSignal && second.start_node.virtualSignal && occupied[b + 2])
 					occupied[b] = 1;
 			}
-			for (auto added = firstAdded; added != BlocksOccupied.end(); ++added)
+			for (auto added = firstAdded; added != run.blocksOccupied.end(); ++added)
 				occupiedIds.erase(*added);
 		}
 		// Set all the speed limits coming from the Infrastructure
-		setInfraSpeedLimits(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+		setInfraSpeedLimits(route.sequence_of_block_sections.data(), route.N_Block_Sections);
 
 		if ((levels & levelBit(SignallingLevel::Bacc)) != 0) {
 			// Set the aspect of signals and Signal Speed Limits for BACC
-			applyFixedBlockAspects(kBacc, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+			applyFixedBlockAspects(kBacc, route.sequence_of_block_sections.data(), route.N_Block_Sections, occupied.data(), redSpeed1,
 				redSpeed2);
-			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Bacc));
+			applyBlockSpeedForLevel(route.sequence_of_block_sections.data(), route.N_Block_Sections, levelValue(SignallingLevel::Bacc));
 		}
 
 		if ((levels & levelBit(SignallingLevel::Atb)) != 0) {
 			// Set the aspect of signals and signal speed limits for ATB
-			applyFixedBlockAspects(kAtb, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+			applyFixedBlockAspects(kAtb, route.sequence_of_block_sections.data(), route.N_Block_Sections, occupied.data(), redSpeed1,
 				redSpeed2);
-			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::Atb));
+			applyBlockSpeedForLevel(route.sequence_of_block_sections.data(), route.N_Block_Sections, levelValue(SignallingLevel::Atb));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel1)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 1
-			applyFixedBlockAspects(kEtcs1, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+			applyFixedBlockAspects(kEtcs1, route.sequence_of_block_sections.data(), route.N_Block_Sections, occupied.data(), redSpeed1,
 				redSpeed2);
-			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
+			applyBlockSpeedForLevel(route.sequence_of_block_sections.data(), route.N_Block_Sections, levelValue(SignallingLevel::EtcsLevel1));
 		}
 
 		if ((levels & levelBit(SignallingLevel::EtcsLevel2)) != 0) {
 			// Set the aspect of signals and signal speed limits for ETCS Level 2
-			applyFixedBlockAspects(kEtcs2, train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, occupied.data(), redSpeed1,
+			applyFixedBlockAspects(kEtcs2, route.sequence_of_block_sections.data(), route.N_Block_Sections, occupied.data(), redSpeed1,
 				redSpeed2);
-			applyBlockSpeedForLevel(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
+			applyBlockSpeedForLevel(route.sequence_of_block_sections.data(), route.N_Block_Sections, levelValue(SignallingLevel::EtcsLevel2));
 		}
 
 		if ((levels & (levelBit(SignallingLevel::EtcsLevel3) | levelBit(SignallingLevel::VirtualCoupling))) != 0) {
 			// Mark the occupied sections of levels 3 and 4 and set their end speeds (the movement authorities come from ReportPositionToRBC)
-			rbcSendsMasToRouteMixedSignalling(train_route[i], occupied.data());
-			manageEtcs3TransitionsToOtherSignalling(train_route[i].sequence_of_block_sections.data(), train_route[i].N_Block_Sections);
+			rbcSendsMasToRouteMixedSignalling(route, occupied.data());
+			manageEtcs3TransitionsToOtherSignalling(route.sequence_of_block_sections.data(), route.N_Block_Sections);
 		}
 
 		for (; singleTrackAdded > 0; --singleTrackAdded)
-			BlocksOccupied.pop_back();
+			run.blocksOccupied.pop_back();
 	}
 }
 
 // Function to Release all block sections in mixed signalling areas
-void releaseMixedSignallingSystem() {
+void releaseMixedSignallingSystem(SimulationRun& run) {
 	QEGTRAIN_PROFILE_SCOPE("worker/playback_step/compute/infrastructure_signalling_cleanup/release_mixed_signalling", "worker",
 		"worker/playback_step/compute/infrastructure_signalling_cleanup");
-	if (BlocksConnected.empty())
+	if (run.blocksConnected.empty())
 		return;
 	// The set holds views of the entries of BlocksConnected.
 	std::unordered_set<std::string_view> connectedIds;
-	connectedIds.reserve(BlocksConnected.size());
-	connectedIds.insert(BlocksConnected.begin(), BlocksConnected.end());
+	connectedIds.reserve(run.blocksConnected.size());
+	connectedIds.insert(run.blocksConnected.begin(), run.blocksConnected.end());
 	std::vector<char> connected;
-	for (int t = 0; t < N_Routes; t++) {
-		setIdFlags(train_route[t], connectedIds, connected);
-		releaseBlocksMixedSignalling(train_route[t].sequence_of_block_sections.data(), train_route[t].N_Block_Sections, connected.data());
+	for (int t = 0; t < run.infra.numRoutes; t++) {
+		setIdFlags(run.infra.routes[t], connectedIds, connected);
+		releaseBlocksMixedSignalling(run.infra.routes[t].sequence_of_block_sections.data(), run.infra.routes[t].N_Block_Sections, connected.data());
 	}
 }
 
 // Function to Release the last block section in mixed signalling
-void relLastSectionMixedSignalling(string blockID) {
+void relLastSectionMixedSignalling(SimulationRun& run, string blockID) {
 	// check all routes
-	for (int r = 0; r < N_Routes; r++) {
-		for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
+	for (int r = 0; r < run.infra.numRoutes; r++) {
+		for (int b = 0; b < run.infra.routes[r].N_Block_Sections; b++) {
 			// check if route contains this signalling_block_sections
-			if (train_route[r].sequence_of_block_sections[b].ID == blockID) {
+			if (run.infra.routes[r].sequence_of_block_sections[b].ID == blockID) {
 				// The state and the speed limit of the sections behind only clear for a section in
 				// BlocksConnected, where a train puts the section it leaves when it enters the next
 				// one. A train that leaves the route enters no next section.
-				releaseLastBlockAndConnected(train_route[r].sequence_of_block_sections[b]);
-				const int level = train_route[r].sequence_of_block_sections[b].SignallingLevel;
+				releaseLastBlockAndConnected(run, run.infra.routes[r].sequence_of_block_sections[b]);
+				const int level = run.infra.routes[r].sequence_of_block_sections[b].SignallingLevel;
 				if (level == levelValue(SignallingLevel::Atb) || level == levelValue(SignallingLevel::EtcsLevel1)
 					|| level == levelValue(SignallingLevel::EtcsLevel2)) {
-					releaseLastSections(train_route[r].sequence_of_block_sections.data(), b, 3);
+					releaseLastSections(run.infra.routes[r].sequence_of_block_sections.data(), b, 3);
 				}
 
 				// Here the function for ETCS Level 3 shall also be added if needed
 
 				else if (level == levelValue(SignallingLevel::Bacc)) {
-					releaseLastSections(train_route[r].sequence_of_block_sections.data(), b, 4);
+					releaseLastSections(run.infra.routes[r].sequence_of_block_sections.data(), b, 4);
 				}
 
 				// proceed to next route
@@ -3070,18 +3074,18 @@ void relLastSectionMixedSignalling(string blockID) {
 
 
 // function to set mid-signals of double switches as virtual signals
-void setVirtualSignals() {
-	for (int i = 0; i < Blocks; i++) {
+void setVirtualSignals(SimulationRun& run) {
+	for (int i = 0; i < run.infra.numBlocks; i++) {
 		// 'virtual' signals (in the middle of double switches)
-		if (signalling_block_sections[i].trackLineId != -1 && blockSets[signalling_block_sections[i].trackLineId].len == 3 && fabs(blockSets[signalling_block_sections[i].trackLineId].member[blockSets[signalling_block_sections[i].trackLineId].len - 1].endNode.X - blockSets[signalling_block_sections[i].trackLineId].member[0].startNode.X - 0.030) < 0.0001) {
+		if (run.infra.sections[i].trackLineId != -1 && run.infra.blockSets[run.infra.sections[i].trackLineId].len == 3 && fabs(run.infra.blockSets[run.infra.sections[i].trackLineId].member[run.infra.blockSets[run.infra.sections[i].trackLineId].len - 1].endNode.X - run.infra.blockSets[run.infra.sections[i].trackLineId].member[0].startNode.X - 0.030) < 0.0001) {
 			// end_node is virtual
-			if (signalling_block_sections[i].start_node.X == blockSets[signalling_block_sections[i].trackLineId].member[0].startNode.X) {
-				signalling_block_sections[i].end_node.virtualSignal = true;
+			if (run.infra.sections[i].start_node.X == run.infra.blockSets[run.infra.sections[i].trackLineId].member[0].startNode.X) {
+				run.infra.sections[i].end_node.virtualSignal = true;
 				// do the same for its connected signalling_block_sections (compound signalling_block_sections)
-				for (int c = 0; c < signalling_block_sections[i].N_ConnectedBS; c++) {
-					for (int j = 0; j < Blocks; j++) {
-						if (signalling_block_sections[j].ID == signalling_block_sections[i].IDConnectedBS[c]) {
-							signalling_block_sections[j].end_node.virtualSignal = true;
+				for (int c = 0; c < run.infra.sections[i].N_ConnectedBS; c++) {
+					for (int j = 0; j < run.infra.numBlocks; j++) {
+						if (run.infra.sections[j].ID == run.infra.sections[i].IDConnectedBS[c]) {
+							run.infra.sections[j].end_node.virtualSignal = true;
 							break;
 						}
 					}
@@ -3089,12 +3093,12 @@ void setVirtualSignals() {
 			}
 			// start_node is virtual
 			else {
-				signalling_block_sections[i].start_node.virtualSignal = true;
+				run.infra.sections[i].start_node.virtualSignal = true;
 				// do the same for its connected signalling_block_sections (compound signalling_block_sections)
-				for (int c = 0; c < signalling_block_sections[i].N_ConnectedBS; c++) {
-					for (int j = 0; j < Blocks; j++) {
-						if (signalling_block_sections[j].ID == signalling_block_sections[i].IDConnectedBS[c]) {
-							signalling_block_sections[j].start_node.virtualSignal = true;
+				for (int c = 0; c < run.infra.sections[i].N_ConnectedBS; c++) {
+					for (int j = 0; j < run.infra.numBlocks; j++) {
+						if (run.infra.sections[j].ID == run.infra.sections[i].IDConnectedBS[c]) {
+							run.infra.sections[j].start_node.virtualSignal = true;
 							break;
 						}
 					}
@@ -3105,27 +3109,27 @@ void setVirtualSignals() {
 }
 
 // set virtual signals on routes from original signalling_block_sections (information is missed when creating routes)
-void setRouteVirtualSignals() {
-	for (int r = 0; r < N_Routes; r++) {
-		for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
-			for (int i = 0; i < Blocks; i++) {
-				if (train_route[r].sequence_of_block_sections[b].ID == signalling_block_sections[i].ID) {
+void setRouteVirtualSignals(SimulationRun& run) {
+	for (int r = 0; r < run.infra.numRoutes; r++) {
+		for (int b = 0; b < run.infra.routes[r].N_Block_Sections; b++) {
+			for (int i = 0; i < run.infra.numBlocks; i++) {
+				if (run.infra.routes[r].sequence_of_block_sections[b].ID == run.infra.sections[i].ID) {
 					// rev route
-					if (train_route[r].reversed_direction) {
-						if (signalling_block_sections[i].start_node.virtualSignal) {
-							train_route[r].sequence_of_block_sections[b].end_node.virtualSignal = true;
+					if (run.infra.routes[r].reversed_direction) {
+						if (run.infra.sections[i].start_node.virtualSignal) {
+							run.infra.routes[r].sequence_of_block_sections[b].end_node.virtualSignal = true;
 						}
-						if (signalling_block_sections[i].end_node.virtualSignal) {
-							train_route[r].sequence_of_block_sections[b].start_node.virtualSignal = true;
+						if (run.infra.sections[i].end_node.virtualSignal) {
+							run.infra.routes[r].sequence_of_block_sections[b].start_node.virtualSignal = true;
 						}
 					}
 					// non-rev route
 					else {
-						if (signalling_block_sections[i].start_node.virtualSignal) {
-							train_route[r].sequence_of_block_sections[b].start_node.virtualSignal = true;
+						if (run.infra.sections[i].start_node.virtualSignal) {
+							run.infra.routes[r].sequence_of_block_sections[b].start_node.virtualSignal = true;
 						}
-						if (signalling_block_sections[i].end_node.virtualSignal) {
-							train_route[r].sequence_of_block_sections[b].end_node.virtualSignal = true;
+						if (run.infra.sections[i].end_node.virtualSignal) {
+							run.infra.routes[r].sequence_of_block_sections[b].end_node.virtualSignal = true;
 						}
 					}
 					break;
@@ -3135,30 +3139,27 @@ void setRouteVirtualSignals() {
 	}
 }
 
-static std::vector<SingleTrackZone> singleTrackZones; // index: limit * route count + route
-static std::size_t singleTrackZoneLimits = 0, singleTrackZoneRoutes = 0;
-static std::vector<char> singleTrackRouteZone; // 1 when any limit has a zone on the route
-static bool singleTrackZonesDerived = false;
-
-void resetSingleTrackLocks() {
-	singleTrackHeld.clear();
-	singleTrackReservations.clear();
-	singleTrackZones.clear();
-	singleTrackRouteZone.clear();
-	singleTrackZonesDerived = false;
+void resetSingleTrackLocks(SimulationRun& run) {
+	RunInfrastructure& infra = run.infra;
+	infra.singleTrackHeld.clear();
+	infra.singleTrackReservations.clear();
+	infra.singleTrackZones.clear();
+	infra.singleTrackRouteZone.clear();
+	infra.singleTrackZonesDerived = false;
 }
 
-const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex) {
+const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int routeIndex) {
 	static const SingleTrackZone none;
-	if (!singleTrackZonesDerived || singleTrackZoneLimits != singleTrackLimits.size() || singleTrackZoneRoutes != train_route.size()) {
-		singleTrackZoneLimits = singleTrackLimits.size();
-		singleTrackZoneRoutes = train_route.size();
-		singleTrackZones.assign(singleTrackZoneLimits * singleTrackZoneRoutes, SingleTrackZone());
-		singleTrackRouteZone.assign(singleTrackZoneRoutes, 0);
-		for (std::size_t k = 0; k < singleTrackZoneLimits; ++k) {
-			const auto& limit = singleTrackLimits[k];
+	RunInfrastructure& infra = run.infra;
+	if (!infra.singleTrackZonesDerived || infra.singleTrackZoneLimits != infra.singleTrackLimits.size() || infra.singleTrackZoneRoutes != infra.routes.size()) {
+		infra.singleTrackZoneLimits = infra.singleTrackLimits.size();
+		infra.singleTrackZoneRoutes = infra.routes.size();
+		infra.singleTrackZones.assign(infra.singleTrackZoneLimits * infra.singleTrackZoneRoutes, SingleTrackZone());
+		infra.singleTrackRouteZone.assign(infra.singleTrackZoneRoutes, 0);
+		for (std::size_t k = 0; k < infra.singleTrackZoneLimits; ++k) {
+			const auto& limit = infra.singleTrackLimits[k];
 			std::unordered_set<std::string> zone{std::get<0>(limit), std::get<1>(limit), std::get<2>(limit), std::get<3>(limit)};
-			for (const Route& route : train_route) {
+			for (const Route& route : infra.routes) {
 				int first = -1, last = -1;
 				for (int b = 0; b < route.N_Block_Sections; ++b) {
 					const std::string& id = route.sequence_of_block_sections[b].ID;
@@ -3172,15 +3173,15 @@ const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex) {
 					for (int b = first; b <= last; ++b)
 						zone.insert(route.sequence_of_block_sections[b].ID);
 			}
-			for (std::size_t r = 0; r < singleTrackZoneRoutes; ++r) {
-				SingleTrackZone& onRoute = singleTrackZones[k * singleTrackZoneRoutes + r];
-				const Route& route = train_route[r];
+			for (std::size_t r = 0; r < infra.singleTrackZoneRoutes; ++r) {
+				SingleTrackZone& onRoute = infra.singleTrackZones[k * infra.singleTrackZoneRoutes + r];
+				const Route& route = infra.routes[r];
 				for (int b = 0; b < route.N_Block_Sections; ++b) {
 					const Section& section = route.sequence_of_block_sections[b];
 					if (zone.count(section.ID) == 0)
 						continue;
 					onRoute.sectionIDs.push_back(section.ID);
-					singleTrackRouteZone[r] = 1;
+					infra.singleTrackRouteZone[r] = 1;
 					const double from = section.start_node.X * 1000, to = section.end_node.X * 1000;
 					auto& intervals = onRoute.intervals;
 					if (!intervals.empty() && intervals.back().first < intervals.back().second && from < to && intervals.back().second == from)
@@ -3190,30 +3191,31 @@ const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex) {
 				}
 			}
 		}
-		singleTrackZonesDerived = true;
+		infra.singleTrackZonesDerived = true;
 	}
-	if (l >= singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= singleTrackZoneRoutes)
+	if (l >= infra.singleTrackZoneLimits || routeIndex < 0 || static_cast<std::size_t>(routeIndex) >= infra.singleTrackZoneRoutes)
 		return none;
-	return singleTrackZones[l * singleTrackZoneRoutes + routeIndex];
+	return infra.singleTrackZones[l * infra.singleTrackZoneRoutes + routeIndex];
 }
 
-bool singleTrackRouteHasZone(int routeIndex) {
-	singleTrackZone(0, routeIndex);
-	return routeIndex >= 0 && static_cast<std::size_t>(routeIndex) < singleTrackRouteZone.size() && singleTrackRouteZone[routeIndex] != 0;
+bool singleTrackRouteHasZone(SimulationRun& run, int routeIndex) {
+	singleTrackZone(run, 0, routeIndex);
+	const std::vector<char>& routeZone = run.infra.singleTrackRouteZone;
+	return routeIndex >= 0 && static_cast<std::size_t>(routeIndex) < routeZone.size() && routeZone[routeIndex] != 0;
 }
 
-std::size_t occupySingleTrackForRoute(int routeIndex) {
+std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex) {
 	std::size_t added = 0;
-	if (routeIndex < 0 || routeIndex >= static_cast<int>(train_route.size()))
+	if (routeIndex < 0 || routeIndex >= static_cast<int>(run.infra.routes.size()))
 		return added;
-	const int direction = train_route[routeIndex].reversed_direction ? -1 : 1;
-	for (std::size_t l = 0; l < singleTrackHeld.size(); ++l) {
-		if (singleTrackHeld[l] == 0 || singleTrackHeld[l] == direction)
+	const int direction = run.infra.routes[routeIndex].reversed_direction ? -1 : 1;
+	for (std::size_t l = 0; l < run.infra.singleTrackHeld.size(); ++l) {
+		if (run.infra.singleTrackHeld[l] == 0 || run.infra.singleTrackHeld[l] == direction)
 			continue;
-		for (const std::string& id : singleTrackZone(l, routeIndex).sectionIDs) {
-			if (std::find(BlocksOccupied.begin(), BlocksOccupied.end(), id) != BlocksOccupied.end())
+		for (const std::string& id : singleTrackZone(run, l, routeIndex).sectionIDs) {
+			if (std::find(run.blocksOccupied.begin(), run.blocksOccupied.end(), id) != run.blocksOccupied.end())
 				continue;
-			BlocksOccupied.push_back(id);
+			run.blocksOccupied.push_back(id);
 			++added;
 		}
 	}
@@ -3225,25 +3227,25 @@ StationBoundarySection::StationBoundarySection(Section* entrance, bool direction
 	: entrance(entrance), direction(direction), exit(exit) {}
 
 // function to protect station interlocking area
-void StationBoundarySection::protectEntrance(int sectionIndex, int routeIndex, bool platformBooked) {
+void StationBoundarySection::protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex, bool platformBooked) {
 	bool needToBlock = false;
 
-	if (platformBooked == false && train_route[routeIndex].sequence_of_block_sections[sectionIndex].ID == entrance->ID && direction == train_route[routeIndex].reversed_direction) {
+	if (platformBooked == false && run.infra.routes[routeIndex].sequence_of_block_sections[sectionIndex].ID == entrance->ID && direction == run.infra.routes[routeIndex].reversed_direction) {
 		std::vector<std::string> sectionsAhead;
 
 		// collect sections ahead
-		for (int i = sectionIndex + 1; i < train_route[routeIndex].N_Block_Sections; i++) {
-			sectionsAhead.push_back(train_route[routeIndex].sequence_of_block_sections[i].ID);
+		for (int i = sectionIndex + 1; i < run.infra.routes[routeIndex].N_Block_Sections; i++) {
+			sectionsAhead.push_back(run.infra.routes[routeIndex].sequence_of_block_sections[i].ID);
 
 			// reached exit of station protected area
-			if (exit && exit->ID == train_route[routeIndex].sequence_of_block_sections[i].ID) {
+			if (exit && exit->ID == run.infra.routes[routeIndex].sequence_of_block_sections[i].ID) {
 				break;
 			}
 		}
 
 		// block entrance if any signalling_block_sections ahead is occupied
 		for (int i = 0; i < sectionsAhead.size(); i++) {
-			for (auto occ = BlocksOccupied.begin(); occ != BlocksOccupied.end(); ++occ) {
+			for (auto occ = run.blocksOccupied.begin(); occ != run.blocksOccupied.end(); ++occ) {
 				if (sectionsAhead[i] == *occ) {
 					needToBlock = true;
 					break;
@@ -3261,13 +3263,14 @@ void StationBoundarySection::protectEntrance(int sectionIndex, int routeIndex, b
 		if (h == 0)
 			Prev_Block = 0;
 
-		occupyBlockAndConnected(train_route[routeIndex].sequence_of_block_sections[h], train_route[routeIndex].sequence_of_block_sections[Prev_Block], -1, -1);
+		occupyBlockAndConnected(run, run.infra.routes[routeIndex].sequence_of_block_sections[h],
+			run.infra.routes[routeIndex].sequence_of_block_sections[Prev_Block], -1, -1);
 
 		return;
 	}
 
 	// release section ahead if still occupied because of protection on previous timestep
-	releaseLastBlockAndConnected(train_route[routeIndex].sequence_of_block_sections[sectionIndex]);
+	releaseLastBlockAndConnected(run, run.infra.routes[routeIndex].sequence_of_block_sections[sectionIndex]);
 }
 
 namespace {
@@ -3308,9 +3311,9 @@ bool breakdownActive(const SimulationIncident& incident, const std::string& trai
 }
 } // namespace
 
-const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex) {
+const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex) {
 	const SimulationIncident* strictestCap = nullptr;
-	for (const auto& incident : simulationIncidents) {
+	for (const auto& incident : run.incidents) {
 		if (!breakdownActive(incident, trainDesc, timestepIndex))
 			continue;
 		if (!incident.hasReducedSpeed)
@@ -3321,8 +3324,8 @@ const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, i
 	return strictestCap;
 }
 
-bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
-	const SimulationIncident* incident = Active_Train_Breakdown(trainDesc, timestepIndex);
+bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex) {
+	const SimulationIncident* incident = Active_Train_Breakdown(run, trainDesc, timestepIndex);
 	return incident != nullptr && !incident->hasReducedSpeed;
 }
 
@@ -3331,7 +3334,7 @@ bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex) {
 // section, and the stopped-at-EoA release check only fires when the train's current section matches the MA's BSID.
 // description names what the authority stands for. The authority lasts for the current step only: the list is
 // cleared at the start of every step.
-static void addEndOfAuthorityBeforeSection(const Route& route, int b, const std::string& description) {
+static void addEndOfAuthorityBeforeSection(SimulationRun& run, const Route& route, int b, const std::string& description) {
 	const Section& section = route.sequence_of_block_sections[b];
 	const int anchorIndex = (b > 0) ? b - 1 : b;
 	const Section& anchor = route.sequence_of_block_sections[anchorIndex];
@@ -3355,19 +3358,19 @@ static void addEndOfAuthorityBeforeSection(const Route& route, int b, const std:
 	MA.TrainInfo.Acceleration = 0;
 	MA.TrainInfo.CurrentSectionID = anchor.ID;
 	MA.TrainInfo.NextSectionID = section.ID;
-	for (const auto& existing : ETCS_MA)
+	for (const auto& existing : run.etcsMa)
 		if (existing.BSID == MA.BSID && std::abs(existing.AbsPosEoA - MA.AbsPosEoA) < 0.001
 			&& existing.TrainInfo.trainDescription == MA.TrainInfo.trainDescription)
 			return;
-	ETCS_MA.push_back(MA);
+	run.etcsMa.push_back(MA);
 }
 
 // Apply active signal_failure incidents to the mixed signalling state. The
 // failed sections join BlocksOccupied so aspect-driven levels turn red, and
 // each one gets an End-of-Authority at its entry so moving-block trains brake
 // for it; occupancy alone never reaches the EVC of ETCS level 3 and 4 trains.
-void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
-	for (const auto& inc : simulationIncidents) {
+void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex) {
+	for (const auto& inc : run.incidents) {
 		if (inc.type != "signal_failure" || timestepIndex < inc.startSeconds)
 			continue;
 		if (runtimeIncidentHasEnd(inc) && timestepIndex > inc.endSeconds) {
@@ -3376,26 +3379,26 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 			// section, so hand it over for release on the first step after the failure.
 			if (timestepIndex - 1 <= inc.endSeconds)
 				for (const auto& secID : inc.resolvedSectionIDs)
-					if (std::find(BlocksConnected.begin(), BlocksConnected.end(), secID) == BlocksConnected.end())
-						BlocksConnected.push_back(secID);
+					if (std::find(run.blocksConnected.begin(), run.blocksConnected.end(), secID) == run.blocksConnected.end())
+						run.blocksConnected.push_back(secID);
 			continue;
 		}
 		for (const auto& secID : inc.resolvedSectionIDs) {
 			bool occupied = false;
-			for (const auto& occ : BlocksOccupied) {
+			for (const auto& occ : run.blocksOccupied) {
 				if (occ == secID) {
 					occupied = true;
 					break;
 				}
 			}
 			if (!occupied)
-				BlocksOccupied.push_back(secID);
+				run.blocksOccupied.push_back(secID);
 
-			for (int r = 0; r < N_Routes; r++) {
-				for (int b = 0; b < train_route[r].N_Block_Sections; b++) {
-					if (train_route[r].sequence_of_block_sections[b].ID != secID)
+			for (int r = 0; r < run.infra.numRoutes; r++) {
+				for (int b = 0; b < run.infra.routes[r].N_Block_Sections; b++) {
+					if (run.infra.routes[r].sequence_of_block_sections[b].ID != secID)
 						continue;
-					addEndOfAuthorityBeforeSection(train_route[r], b, "signal_failure:" + (inc.id.empty() ? inc.target : inc.id));
+					addEndOfAuthorityBeforeSection(run, run.infra.routes[r], b, "signal_failure:" + (inc.id.empty() ? inc.target : inc.id));
 					break;
 				}
 			}
@@ -3405,17 +3408,17 @@ void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex) {
 
 // Each signalled stretch on a route against the holder gets a direction-filtered entry stop authority. Fixed-block
 // aspects alone may become restrictive after a train has passed their braking point, so levels 0..5 all obey it.
-void Apply_Single_Track_Authorities_Mixed_Signalling() {
-	for (std::size_t l = 0; l < singleTrackHeld.size() && l < singleTrackLimits.size(); ++l) {
-		if (singleTrackHeld[l] == 0)
+void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run) {
+	for (std::size_t l = 0; l < run.infra.singleTrackHeld.size() && l < run.infra.singleTrackLimits.size(); ++l) {
+		if (run.infra.singleTrackHeld[l] == 0)
 			continue;
-		const std::string description = "single_track:" + std::get<0>(singleTrackLimits[l]);
-		for (int r = 0; r < static_cast<int>(train_route.size()); r++) {
-			const Route& route = train_route[r];
-			if ((route.reversed_direction ? -1 : 1) == singleTrackHeld[l])
+		const std::string description = "single_track:" + std::get<0>(run.infra.singleTrackLimits[l]);
+		for (int r = 0; r < static_cast<int>(run.infra.routes.size()); r++) {
+			const Route& route = run.infra.routes[r];
+			if ((route.reversed_direction ? -1 : 1) == run.infra.singleTrackHeld[l])
 				continue;
 			// the zone lists its sections of this route in route order
-			const std::vector<std::string>& zone = singleTrackZone(l, r).sectionIDs;
+			const std::vector<std::string>& zone = singleTrackZone(run, l, r).sectionIDs;
 			std::size_t next = 0;
 			bool previousInZone = false;
 			for (int b = 0; b < route.N_Block_Sections && next < zone.size(); b++) {
@@ -3424,7 +3427,7 @@ void Apply_Single_Track_Authorities_Mixed_Signalling() {
 				if (inZone) {
 					++next;
 					if (!previousInZone && section.SignallingLevel >= 0 && section.SignallingLevel <= 5)
-						addEndOfAuthorityBeforeSection(route, b, description);
+						addEndOfAuthorityBeforeSection(run, route, b, description);
 				}
 				previousInZone = inZone;
 			}

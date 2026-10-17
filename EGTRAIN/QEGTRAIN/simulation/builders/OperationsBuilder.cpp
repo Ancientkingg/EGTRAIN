@@ -136,9 +136,9 @@ const NativeStopPlan* nativeStopAtSourceIndex(const NativeTrainPlan& train, std:
 	return nullptr;
 }
 
-int nativeRouteIndex(const std::string& routeId) {
-	for (std::size_t index = 0; index < train_route.size(); ++index)
-		if (train_route[index].ID == routeId)
+int nativeRouteIndex(SimulationRun& run, const std::string& routeId) {
+	for (std::size_t index = 0; index < run.infra.routes.size(); ++index)
+		if (run.infra.routes[index].ID == routeId)
 			return static_cast<int>(index);
 	return -1;
 }
@@ -181,9 +181,9 @@ bool nativeRuntimeNodeForVisit(const Route& route, const SceneStopResolution& re
 	return false;
 }
 
-bool nativeRuntimePlatformExists(const std::string& platformId, const std::string& stationId,
+bool nativeRuntimePlatformExists(SimulationRun& run, const std::string& platformId, const std::string& stationId,
 	const std::string& stationName) {
-	for (const StationPlatform& platform : AllStationPlatforms)
+	for (const StationPlatform& platform : run.platforms)
 		if (platform.ID == platformId
 			&& (platform.StationID == stationId || platform.StationID == stationName))
 			return true;
@@ -191,16 +191,17 @@ bool nativeRuntimePlatformExists(const std::string& platformId, const std::strin
 }
 
 
-int nativeResolveRuntimeSection(const std::string& runtimeSectionId) {
+int nativeResolveRuntimeSection(SimulationRun& run, const std::string& runtimeSectionId) {
 	if (runtimeSectionId.empty())
 		return -1;
-	for (int index = 0; index < Blocks; ++index)
-		if (signalling_block_sections[index].ID == runtimeSectionId)
+	for (int index = 0; index < run.infra.numBlocks; ++index)
+		if (run.infra.sections[index].ID == runtimeSectionId)
 			return index;
 	return -1;
 }
 
-void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vectorSize) {
+void nativeCopyTrainPlan(SimulationRun& run, const NativeTrainPlan& plan, Regional& train, int vectorSize) {
+	train.run_ = &run;
 	train.g = kSceneGravityMs2;
 	train.ID = plan.occurrence;
 	train.type = plan.type;
@@ -222,7 +223,7 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 	train.indexOfRoute = plan.routeIndex;
 	train.trainDescription = plan.trainDescription;
 	train.direction = plan.direction;
-	train.Start_Node_X = train_route[plan.routeIndex].x_of_start_node;
+	train.Start_Node_X = run.infra.routes[plan.routeIndex].x_of_start_node;
 	train.mass_of_traction_unit = plan.physical.mass_of_traction_unit_kg;
 	train.mass_of_a_wagon = plan.physical.mass_of_a_wagon_kg;
 	train.number_of_wagons = plan.physical.number_of_wagons;
@@ -268,18 +269,18 @@ void nativeCopyTrainPlan(const NativeTrainPlan& plan, Regional& train, int vecto
 
 } // namespace
 
-void prepareNativeOperationsState() {
-	defaultRun().reset();
+void prepareNativeOperationsState(SimulationRun& run) {
+	run.reset();
 }
 
-void resetNativeOperationsState() {
-	prepareNativeOperationsState();
+void resetNativeOperationsState(SimulationRun& run) {
+	prepareNativeOperationsState(run);
 }
 
-std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
+std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,
 	const std::string& selectedScenarioId, const SceneRunSelection& selectedOccurrences) {
 	// The passenger windows below and every draw of the run come from this generator.
-	seedRunNumberGenerator(initial_variables.randomSeed);
+	run.numberGenerator = NumberGenerator(initial_variables.randomSeed);
 	std::vector<SceneDiagnostic> diagnostics;
 	nativeIndexById(scene.trainUnits, diagnostics, "trains.json", "train_unit");
 	nativeIndexById(scene.compositions, diagnostics, "trains.json", "composition");
@@ -364,9 +365,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 
 	std::unordered_map<std::string, int> routeById;
 	for (const auto& pair : routes) {
-		const int runtimeIndex = nativeRouteIndex(pair.first);
-		if (runtimeIndex < 0 || runtimeIndex >= static_cast<int>(train_route.size())
-			|| train_route[runtimeIndex].N_Block_Sections <= 0)
+		const int runtimeIndex = nativeRouteIndex(run, pair.first);
+		if (runtimeIndex < 0 || runtimeIndex >= static_cast<int>(run.infra.routes.size())
+			|| run.infra.routes[runtimeIndex].N_Block_Sections <= 0)
 			addNativeDiagnostic(diagnostics, "scene.native.ref.route", "Route is not available in the built runtime infrastructure",
 				"signalling.json", "route", pair.first, "routes[" + pair.first + "]");
 		else
@@ -511,7 +512,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			continue;
 		}
 
-		const Route& runtimeRoute = train_route[routeIt->second];
+		const Route& runtimeRoute = run.infra.routes[routeIt->second];
 		const SceneRouteTraversal routeTraversal = buildSceneRouteTraversal(scene, *routes.at(service.route), sectionInventory);
 		const std::vector<SceneStopResolution> stopResolutions =
 			resolveSceneServiceStops(scene, service, routeTraversal);
@@ -532,7 +533,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 			const ScenePlatform* explicitPlatform = nullptr;
 			if (!stop.platformId.empty()) {
 				explicitPlatform = nativePlatformForStation(*station, stop.platformId);
-				if (explicitPlatform == nullptr || !nativeRuntimePlatformExists(stop.platformId, station->id, stationName))
+				if (explicitPlatform == nullptr || !nativeRuntimePlatformExists(run, stop.platformId, station->id, stationName))
 					addNativeDiagnostic(diagnostics, "scene.native.ref.platform", "Explicit stop platform is unknown or not built in the runtime infrastructure",
 						"services.json", "service", service.id, "services[" + service.id + "].stops[" + std::to_string(stopIndex) + "].platform_id", stop.platformId);
 			}
@@ -574,7 +575,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 				if (station->hasPosition)
 					selectedNode.X = station->positionKm;
 				else if (!station->platforms.empty()) {
-					for (const StationPlatform& platform : AllStationPlatforms) {
+					for (const StationPlatform& platform : run.platforms) {
 						if (platform.ID == station->platforms.front().id) {
 							selectedNode.X = platform.X;
 							selectedNode.Y = platform.Y;
@@ -762,9 +763,9 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 					targetSection = directSection;
 				}
 				const int sectionIndex = targetSection == nullptr ? -1
-																  : nativeResolveRuntimeSection(targetSection->id);
+																  : nativeResolveRuntimeSection(run, targetSection->id);
 				if (sectionIndex >= 0)
-					runtimeIncident.resolvedSectionIDs.push_back(signalling_block_sections[sectionIndex].ID);
+					runtimeIncident.resolvedSectionIDs.push_back(run.infra.sections[sectionIndex].ID);
 				else if (!ambiguousTarget) {
 					addNativeDiagnostic(diagnostics, "scene.native.incident.target", "Signal failure target does not resolve to an exact runtime section",
 						"scenarios.json", "incident", incident.id, "incidents[" + incident.id + "].target", incident.target);
@@ -976,7 +977,7 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	stagedParameters.num_OrderLists = 0;
 
 	const int vectorSize = std::max(1, static_cast<int>(std::ceil(durationSeconds / timestep)));
-	std::list<StationPlatform> stagedPlatforms = AllStationPlatforms;
+	std::list<StationPlatform> stagedPlatforms = run.platforms;
 	for (StationPlatform& platform : stagedPlatforms) {
 		const auto stationIt = stationById.find(platform.StationID);
 		const ScenePlatform* sourcePlatform = nullptr;
@@ -1075,8 +1076,8 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	if (hasErrors(diagnostics))
 		return diagnostics;
 
-	const auto sampleWindow = [](double minimum, double maximum) {
-		return runNumberGenerator().getUniformFloat(minimum, maximum);
+	const auto sampleWindow = [&run](double minimum, double maximum) {
+		return run.numberGenerator.getUniformFloat(minimum, maximum);
 	};
 	for (const ScenePassenger& sourcePassenger : scene.passengers) {
 		const auto stagedPassenger = std::find_if(stagedPassengers.begin(), stagedPassengers.end(),
@@ -1104,17 +1105,17 @@ std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
 	initial_variables = stagedParameters;
 	// The new storage exists before the old trains are released.
 	std::vector<Regional> storage(trains.size());
-	regional_train = std::move(storage);
-	numRegions = static_cast<int>(trains.size());
+	run.trains = std::move(storage);
+	run.numTrains = static_cast<int>(trains.size());
 	for (std::size_t index = 0; index < trains.size(); ++index)
-		nativeCopyTrainPlan(trains[index], regional_train[index], vectorSize);
-	changeTrainDepartureTimesForHourlyTimetabling(regional_train.data(), numRegions);
-	AllStationPlatforms = std::move(stagedPlatforms);
-	numAllStationPlatforms = static_cast<int>(AllStationPlatforms.size());
-	AllDailyPassengers = std::move(stagedPassengers);
-	numAllDailyPassengers = static_cast<int>(AllDailyPassengers.size());
-	AllStationPlatformIndex.build(AllStationPlatforms);
-	AllDailyPassengerIndex.build(AllDailyPassengers);
-	simulationIncidents = std::move(stagedIncidents);
+		nativeCopyTrainPlan(run, trains[index], run.trains[index], vectorSize);
+	changeTrainDepartureTimesForHourlyTimetabling(run, run.trains.data(), run.numTrains);
+	run.platforms = std::move(stagedPlatforms);
+	run.numPlatforms = static_cast<int>(run.platforms.size());
+	run.passengers = std::move(stagedPassengers);
+	run.numPassengers = static_cast<int>(run.passengers.size());
+	run.platformIndex.build(run.platforms);
+	run.passengerIndex.build(run.passengers);
+	run.incidents = std::move(stagedIncidents);
 	return diagnostics;
 }

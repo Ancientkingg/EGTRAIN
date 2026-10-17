@@ -189,9 +189,9 @@ def assert_deferred_success_path_resets() -> None:
         dispatch.index("void DispatchController::beginScenePreparation()"):
         dispatch.index("void DispatchController::resetState()")
     ]
-    if "prepareNativeOperationsState();" not in begin_preparation:
+    if "prepareNativeOperationsState(defaultRun());" not in begin_preparation:
         raise SystemExit("lightweight scene preparation no longer prepares operation state")
-    for reset in ("resetNativeOperationsState();", "resetNativeInfrastructureState();"):
+    for reset in ("resetNativeOperationsState(", "resetNativeInfrastructureState("):
         if reset in begin_preparation:
             raise SystemExit(f"lightweight scene preparation incorrectly calls {reset}")
 
@@ -199,7 +199,7 @@ def assert_deferred_success_path_resets() -> None:
         dispatch.index("void DispatchController::resetState()"):
         dispatch.index("std::shared_ptr<const GuiSimulationSnapshot>")
     ]
-    for reset in ("resetNativeInfrastructureState();", "resetNativeOperationsState();"):
+    for reset in ("resetNativeInfrastructureState(defaultRun());", "resetNativeOperationsState(defaultRun());"):
         if reset not in full_reset:
             raise SystemExit(f"full dispatch reset no longer calls {reset}")
     # The lists of the run are cleared by SimulationRun::reset(), which the operation state calls.
@@ -210,14 +210,14 @@ def assert_deferred_success_path_resets() -> None:
 
     operations = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/OperationsBuilder.cpp").read_text(encoding="utf-8")
     lightweight = operations[
-        operations.index("void prepareNativeOperationsState()"):
-        operations.index("void resetNativeOperationsState()")
+        operations.index("void prepareNativeOperationsState(SimulationRun& run)"):
+        operations.index("void resetNativeOperationsState(SimulationRun& run)")
     ]
     full_operations_reset = operations[
-        operations.index("void resetNativeOperationsState()"):
+        operations.index("void resetNativeOperationsState(SimulationRun& run)"):
         operations.index("std::vector<SceneDiagnostic> buildOperationsFromScene(")
     ]
-    if "defaultRun().reset();" not in lightweight:
+    if "run.reset();" not in lightweight:
         raise SystemExit("operation preparation does not reset the run")
     # The trains are state of the run too: its reset releases their storage, so neither function names them.
     moved = (
@@ -229,7 +229,7 @@ def assert_deferred_success_path_resets() -> None:
         for name in moved:
             if name in body:
                 raise SystemExit(f"{label} handles {name} itself instead of resetting the run")
-    if "prepareNativeOperationsState();" not in full_operations_reset:
+    if "prepareNativeOperationsState(run);" not in full_operations_reset:
         raise SystemExit("full operation reset does not combine the preparation with the reset of the run")
 
     run = (ROOT / "EGTRAIN/QEGTRAIN/simulation/SimulationRun.cpp").read_text(encoding="utf-8")
@@ -247,8 +247,8 @@ def assert_deferred_success_path_resets() -> None:
     if "swap(sections);" not in infra_reset or "numRoutes = 0;" not in infra_reset:
         raise SystemExit("the reset of the infrastructure does not release the section storage and the routes")
     builder = (ROOT / "EGTRAIN/QEGTRAIN/simulation/builders/InfrastructureBuilder.cpp").read_text(encoding="utf-8")
-    native_reset = builder[builder.index("void nativeResetRuntime()"):builder.index("bool nativeHasErrors(")]
-    if "defaultRun().resetInfrastructure();" not in native_reset:
+    native_reset = builder[builder.index("void nativeResetRuntime(SimulationRun& run)"):builder.index("bool nativeHasErrors(")]
+    if "run.resetInfrastructure();" not in native_reset:
         raise SystemExit("the native runtime reset does not reset the infrastructure of the run")
     for name in ("train_route", "signalling_block_sections", "blockSets", "connections", "StationArray", "list_of_TDS"):
         if name in native_reset:

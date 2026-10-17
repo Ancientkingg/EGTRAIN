@@ -181,7 +181,7 @@ class PlaybackProfileTests(unittest.TestCase):
             with self.subTest(function=function):
                 expected = f"{profile.SIGNALLING_PATH}/{name}"
                 self.assertIn(expected, profile.SIGNALLING_CHILDREN)
-                signature = text.find(f"void {function}()")
+                signature = text.find(f"void {function}(SimulationRun& run)")
                 self.assertNotEqual(signature, -1)
                 body = text[text.index("{", signature) + 1:]
                 match = scope.match(body)
