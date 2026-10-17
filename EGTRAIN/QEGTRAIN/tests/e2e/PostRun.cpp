@@ -257,7 +257,7 @@ void MainWindowTestAccess::autostart(MainWindow& w) {
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 		if (!qEnvironmentVariableIsSet("QEGTRAIN_E2E_TELEMETRY_SMOKE"))
 #endif
-			QTimer::singleShot(1500, &w, &MainWindow::runCurrent);
+			QTimer::singleShot(1500, w.m_runController, &RunController::runCurrent);
 	}
 	// At full speed a short run can end before a pause of the signal head check takes effect.
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_PAUSE_STEPS"))
@@ -268,10 +268,10 @@ void MainWindowTestAccess::autostart(MainWindow& w) {
 // snapshot of an autostarted run prints a marker, and QEGTRAIN_E2E_CLOSE_DURING_RUN closes the window then.
 void MainWindowTestAccess::snapshotDelivered(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")
-		&& !w.m_sceneChangedDuringRun && w.m_caseDescriptionEdit) {
+		&& !w.m_runController->m_sceneChangedDuringRun && w.m_caseDescriptionEdit) {
 		w.m_caseDescriptionEdit->setText(QStringLiteral("discarded operational run"));
 		w.commitCaseSettings();
-		sceneEditedDuringRun = w.m_sceneChangedDuringRun;
+		sceneEditedDuringRun = w.m_runController->m_sceneChangedDuringRun;
 	}
 	if (!autostartProgressReported && qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		// fprintf so the marker reaches the real stdout; std::cout is captured
@@ -284,7 +284,7 @@ void MainWindowTestAccess::snapshotDelivered(MainWindow& w) {
 			// The window closes by itself when the worker has finished.
 			QTimer::singleShot(0, &w, [&w]() {
 				w.close();
-				const bool deferred = w.m_worker && w.isVisible()
+				const bool deferred = w.m_runController->m_worker && w.isVisible()
 					&& w.statusBar()->currentMessage() == QStringLiteral("Stopping simulation...");
 				std::fprintf(stdout, "E2E_CLOSE_DURING_RUN deferred=%d\n", deferred ? 1 : 0);
 				std::fflush(stdout);
@@ -339,7 +339,7 @@ void MainWindowTestAccess::checkSignalHeads(MainWindow& w) {
 void MainWindowTestAccess::runResultsRefreshed(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART")) {
 		std::fprintf(stdout, "\nE2E_GUI_RUN_RESULTS rows=%d trains=%d dock_visible=%d output_dir=%s\n",
-			w.m_runResultsTable->rowCount(), static_cast<int>(w.m_completedRun->results.trains.size()),
+			w.m_runResultsTable->rowCount(), static_cast<int>(w.m_runController->m_completedRun->results.trains.size()),
 			w.m_runResultsDock->isVisible() ? 1 : 0, initial_variables.OutputMainFolder.c_str());
 		std::fflush(stdout);
 	}
@@ -363,11 +363,11 @@ void MainWindowTestAccess::routeDiagramBuilt(const std::function<std::string(con
 // run. Both end the run and the process.
 bool MainWindowTestAccess::runFinished(MainWindow& w) {
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_ROUTE_DIAGRAM")) {
-		bool ok = w.m_resultsAvailable && !w.m_completedRun->trains.empty();
+		bool ok = w.m_runController->m_resultsAvailable && !w.m_runController->m_completedRun->trains.empty();
 		if (ok) {
-			const int reference = w.m_completedRun->trains.front().routeIndex;
-			w.buildRouteDiagram(w.m_completedRun, false, reference);
-			w.buildRouteDiagram(w.m_completedRun, true, reference);
+			const int reference = w.m_runController->m_completedRun->trains.front().routeIndex;
+			w.buildRouteDiagram(w.m_runController->m_completedRun, false, reference);
+			w.buildRouteDiagram(w.m_runController->m_completedRun, true, reference);
 			QApplication::processEvents();
 			const auto windows = w.findChildren<DiagramWindow*>();
 			ok = windows.size() == 2;
@@ -376,7 +376,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				const auto axes = view ? view->chart()->axes(Qt::Vertical) : QList<QAbstractAxis*>();
 				auto* clock = axes.isEmpty() ? nullptr : qobject_cast<QCategoryAxis*>(axes.first());
 				ok &= clock && clock->isReverse() && clock->min() == 0
-					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, w.m_startOffsetSeconds)));
+					&& clock->categoriesLabels().contains(QString::fromStdString(formatSimTime(0, w.m_runController->m_startOffsetSeconds)));
 				ok &= view && !view->chart()->axes(Qt::Horizontal).isEmpty();
 				if (view) {
 					for (auto* abstractSeries : view->chart()->series()) {
@@ -391,9 +391,9 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			}
 			// Each route that trains run on is the reference once: the dump of the chart and the CSV for all trains.
 			const QString dir = qEnvironmentVariable("QEGTRAIN_E2E_ROUTE_DIAGRAM");
-			for (const auto& used : usedRouteReferencesFrom(*w.m_completedRun)) {
+			for (const auto& used : usedRouteReferencesFrom(*w.m_runController->m_completedRun)) {
 				for (const bool timetable : {false, true}) {
-					w.buildRouteDiagram(w.m_completedRun, timetable, used.first);
+					w.buildRouteDiagram(w.m_runController->m_completedRun, timetable, used.first);
 					DiagramWindow* window = newestWindow(w);
 					const QString name = QString("%1_route%2").arg(timetable ? "timetable_graph" : "train_path_graph").arg(used.first);
 					ok &= exportChart(window, dir, name);
@@ -403,7 +403,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				}
 			}
 			const QVector<RouteReferenceChoice> choices =
-				buildRouteReferenceChoices(w.m_document->mutableModel(), usedRouteReferencesFrom(*w.m_completedRun));
+				buildRouteReferenceChoices(w.m_document->mutableModel(), usedRouteReferencesFrom(*w.m_runController->m_completedRun));
 			for (const RouteReferenceChoice& choice : choices)
 				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
 			RouteReferenceDialog chooser(choices, "train paths", &w);
@@ -411,7 +411,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		}
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_ROUTE_DIAGRAM_OK\n" : "E2E_ROUTE_DIAGRAM_FAIL\n");
 		std::fflush(ok ? stdout : stderr);
-		w.clearSimulationWorker(false);
+		w.m_runController->clearSimulationWorker(false);
 		QCoreApplication::exit(ok ? 0 : 2);
 		return true;
 	}
@@ -423,17 +423,17 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (content.empty())
 				return true;
 			const QString path = dir + "/" + file;
-			if (writeCsvFileWithProvenance(path, content, w.m_completedRun->provenance))
+			if (writeCsvFileWithProvenance(path, content, w.m_runController->m_completedRun->provenance))
 				return true;
 			std::fprintf(stderr, "E2E_PROVENANCE_EXPORT_WARNING: %s\n", path.toStdString().c_str());
 			return false;
 		};
-		bool ok = w.m_resultsAvailable;
+		bool ok = w.m_runController->m_resultsAvailable;
 		if (ok) {
-			const QStringList ids = trainIdsFrom(*w.m_completedRun);
-			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_completedRun, ids));
-			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_completedRun, ids));
-			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_completedRun, ids);
+			const QStringList ids = trainIdsFrom(*w.m_runController->m_completedRun);
+			ok &= dump("trajectory.csv", trajectoryCsvFrom(*w.m_runController->m_completedRun, ids));
+			ok &= dump("timetable.csv", timetableCsvFrom(*w.m_runController->m_completedRun, ids));
+			const std::string blockingCsv = blockingTimeCsvFrom(*w.m_runController->m_completedRun, ids);
 			ok &= dump("blocking_time.csv", blockingCsv);
 			w.showBlockingTimeDiagram();
 			const auto windows = w.findChildren<DiagramWindow*>();
@@ -465,10 +465,10 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 			if (delay)
 				delay->close();
 			// The Calls tab of the delay analysis. A run with no timetable row has nothing to export.
-			DelayAnalysisWindow* analysis = w.openDelayAnalysis();
+			DelayAnalysisWindow* analysis = w.m_runController->openDelayAnalysis();
 			ok &= analysis != nullptr;
 			if (analysis) {
-				if (!w.m_completedRun->timetable.empty())
+				if (!w.m_runController->m_completedRun->timetable.empty())
 					ok &= analysis->exportCsvTo(dir + "/delay_analysis.csv");
 				analysis->close();
 			}
@@ -482,17 +482,17 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				if (perTrain)
 					perTrain->close();
 			}
-			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_completedRun->results));
-			const std::string capacityCsv = capacityCsvFrom(*w.m_completedRun, firstCapacityScopeWithPairFrom(*w.m_completedRun));
+			ok &= dump("run_summary.csv", buildRunSummaryCsv(w.m_runController->m_completedRun->results));
+			const std::string capacityCsv = capacityCsvFrom(*w.m_runController->m_completedRun, firstCapacityScopeWithPairFrom(*w.m_runController->m_completedRun));
 			if (capacityCsv.empty()) {
 				std::fprintf(stdout, "E2E_CAPACITY_EXPORT_UNAVAILABLE\n");
 			} else {
 				ok &= dump("capacity_analysis.csv", capacityCsv);
 			}
 			// The options of the area window with all its defaults: the first route, its whole block range and every train.
-			const AreaCapacityScope areaScope = AreaCapacityScopeDialog(*w.m_completedRun).scope();
-			const std::string areaCsv = areaCapacityCsv(analyzeAreaCapacity(areaCapacityInputFrom(*w.m_completedRun, areaScope)),
-				areaCapacityLabel(*w.m_completedRun, areaScope));
+			const AreaCapacityScope areaScope = AreaCapacityScopeDialog(*w.m_runController->m_completedRun).scope();
+			const std::string areaCsv = areaCapacityCsv(analyzeAreaCapacity(areaCapacityInputFrom(*w.m_runController->m_completedRun, areaScope)),
+				areaCapacityLabel(*w.m_runController->m_completedRun, areaScope));
 			if (areaCsv.empty()) {
 				std::fprintf(stdout, "E2E_AREA_CAPACITY_EXPORT_UNAVAILABLE\n");
 			} else {
@@ -502,7 +502,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 		std::fprintf(ok ? stdout : stderr, ok ? "E2E_CSV_EXPORT_OK\n" : "E2E_CSV_EXPORT_FAIL\n");
 		std::fflush(stdout);
 		std::fflush(stderr);
-		w.clearSimulationWorker(false);
+		w.m_runController->clearSimulationWorker(false);
 		w.refreshInfrastructurePanel();
 		w.refreshIncidentPanel();
 		w.m_trainUnitSourceLinker->processChanges();
@@ -516,14 +516,14 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 // discarded run (QEGTRAIN_E2E_OPERATIONAL_DISCARD), the replay row of a whole run (QEGTRAIN_E2E_REPLAY_WHOLE_RUN) and the
 // completion with its rerun (QEGTRAIN_E2E_OPERATIONAL_COMPLETION).
 void MainWindowTestAccess::runSettled(MainWindow& w) {
-	if (w.m_resultsAvailable && !w.m_completedReplay.empty() && qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
+	if (w.m_runController->m_resultsAvailable && !w.m_completedReplay.empty() && qEnvironmentVariableIsSet("QEGTRAIN_E2E_SIGNAL_HEADS"))
 		QTimer::singleShot(0, &w, [&w] { runReplaySignals(w); });
 
 	if (qEnvironmentVariableIsSet("QEGTRAIN_E2E_OPERATIONAL_DISCARD")) {
 		const QStringList labels = w.m_networkLegendWidget ? w.m_networkLegendWidget->entryLabels() : QStringList();
-		const bool preview = sceneEditedDuringRun && w.m_runtimeStatus == QStringLiteral("Failed")
+		const bool preview = sceneEditedDuringRun && w.m_runController->m_runtimeStatus == QStringLiteral("Failed")
 			&& w.m_completedReplay.empty() && !w.m_replayBar->isVisible()
-			&& w.m_showingTrackPreview && !w.m_worker && !w.m_resultsAvailable
+			&& w.m_showingTrackPreview && !w.m_runController->m_worker && !w.m_runController->m_resultsAvailable
 			&& labels.contains(QStringLiteral("Local track"))
 			&& labels.contains(QStringLiteral("High speed track (200+ km/h)"))
 			&& !labels.contains(QStringLiteral("Permissive signalling"))
@@ -566,7 +566,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 	}
-	const bool clean = w.m_runtimeStatus == QStringLiteral("Completed") && w.m_snapshot
+	const bool clean = w.m_runController->m_runtimeStatus == QStringLiteral("Completed") && w.m_snapshot
 		&& (operationalCompletions == 0
 			|| w.m_snapshot != operationalFirstFrame)
 		&& std::all_of(w.m_presenter->allArcs.cbegin(), w.m_presenter->allArcs.cend(), [](const TrackLineItem* track) {
@@ -588,8 +588,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 	const int first = w.m_completedReplay.firstTime();
 	const int last = w.m_completedReplay.lastTime();
 	const int middle = first + (last - first) / 2;
-	const RunResults completedResults = w.m_completedRun->results;
-	const auto completedTimetable = w.m_completedRun->timetable;
+	const RunResults completedResults = w.m_runController->m_completedRun->results;
+	const auto completedTimetable = w.m_runController->m_completedRun->timetable;
 	QString rowProblem;
 	if (!checkReplayRow(w, middle, rowProblem)) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: replay row, %s\n", qPrintable(rowProblem));
@@ -605,11 +605,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 					&& pair.first.value == pair.second.value;
 			});
 		};
-		if (!w.m_completedRun)
+		if (!w.m_runController->m_completedRun)
 			return false;
-		const auto& now = w.m_completedRun->results;
+		const auto& now = w.m_runController->m_completedRun->results;
 		if (now.trains.size() != completedResults.trains.size()
-			|| w.m_completedRun->timetable.size() != completedTimetable.size()
+			|| w.m_runController->m_completedRun->timetable.size() != completedTimetable.size()
 			|| !sameValues({{now.networkStartSeconds, completedResults.networkStartSeconds},
 				{now.networkEndSeconds, completedResults.networkEndSeconds},
 				{now.networkTravelSeconds, completedResults.networkTravelSeconds},
@@ -640,7 +640,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 					{a.firstDirectIncidentLocation, b.firstDirectIncidentLocation}})) return false;
 		}
 		for (std::size_t i = 0; i < completedTimetable.size(); ++i) {
-			const auto& a = w.m_completedRun->timetable[i];
+			const auto& a = w.m_runController->m_completedRun->timetable[i];
 			const auto& b = completedTimetable[i];
 			if (a.trainId != b.trainId || a.operatingCode != b.operatingCode
 				|| a.serviceId != b.serviceId || a.occurrence != b.occurrence
@@ -773,7 +773,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		const int enterTime = followedState->departureTime;
 		const int followedRow = w.m_followTrainCombo->findData(followedIndex);
 		const QString name = w.m_followTrainCombo->itemData(followedRow, kFollowNameRole).toString();
-		const QString scheduled = QString::fromStdString(formatSimTime(enterTime, w.m_startOffsetSeconds));
+		const QString scheduled = QString::fromStdString(formatSimTime(enterTime, w.m_runController->m_startOffsetSeconds));
 		const QString notEntered = name + " is scheduled to enter at " + scheduled + ". ";
 		const auto viewCentre = [&w]() { return w.networkView->mapToScene(w.networkView->viewport()->rect().center()); };
 		const auto pixelsBetween = [&w](const QPointF& from, const QPointF& to) {
@@ -844,7 +844,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			w.seekReplay(enterTime + 2 * GuiReplayHistory::cadenceSeconds);
 			w.seekReplay(enterTime + GuiReplayHistory::cadenceSeconds);
 		});
-		w.setStartOffset(w.m_startOffsetSeconds); // writes every row again
+		w.setStartOffset(w.m_runController->m_startOffsetSeconds); // writes every row again
 		if (listUnderFrames.changes != 0 || !listUnderFrames.rowsKept)
 			return fail("while the train runs, the list was written without a change of state");
 		std::fprintf(stdout, "E2E_FOLLOW_REPLAY_DURING_OK\n");
@@ -1142,8 +1142,8 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		if (operationalCompletions == 1) {
 			operationalFirstFrame = selectedFrame;
 			w.m_replayTimer->start();
-			w.runCurrent();
-			if (!w.m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
+			w.m_runController->runCurrent();
+			if (!w.m_runController->m_worker || w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
 				std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: rerun retained replay\n");
 				QCoreApplication::exit(2);
 			}
@@ -1186,7 +1186,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		std::fflush(stdout);
 		QMetaObject::invokeMethod(&w, "waitForUpdates", Qt::QueuedConnection);
 		w.m_replayTimer->start();
-		if (!w.openSceneDirectory(scenePath) || w.m_snapshot || w.m_worker || !w.m_presenter->allArcs.isEmpty()
+		if (!w.openSceneDirectory(scenePath) || w.m_snapshot || w.m_runController->m_worker || !w.m_presenter->allArcs.isEmpty()
 			|| w.m_replayTimer->isActive() || !w.m_completedReplay.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: case teardown\n");
 			QCoreApplication::exit(2);
@@ -1315,7 +1315,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 										 .arg(cadence, memory);
 			return std::make_pair(sentence, QStringLiteral("Go to the first kept time, %1. The earlier part of the run was not kept.").arg(start));
 		};
-		const auto [dropped, tip] = words(w.m_startOffsetSeconds);
+		const auto [dropped, tip] = words(w.m_runController->m_startOffsetSeconds);
 		if (!replaySliderCovers(w, from, last))
 			return QStringLiteral("the slider does not cover %1 to %2 s").arg(from).arg(last);
 		if (w.m_replayLabel->text() != QStringLiteral("Replay") || w.m_replayCoverageLabel->text() != dropped)
@@ -1349,7 +1349,7 @@ bool MainWindowTestAccess::checkReplayRow(MainWindow& w, int middle, QString& fa
 				.arg(last);
 		w.seekReplay(last);
 		// A change of the start time moves the clock in the sentence and in the tooltip.
-		const long long offsetBefore = w.m_startOffsetSeconds;
+		const long long offsetBefore = w.m_runController->m_startOffsetSeconds;
 		w.setStartOffset(offsetBefore + 3600);
 		const auto [movedSentence, movedTip] = words(offsetBefore + 3600);
 		const bool moved = w.m_replayLabel->text() == QStringLiteral("Replay at %1 s").arg(last) && w.m_replayCoverageLabel->text() == movedSentence

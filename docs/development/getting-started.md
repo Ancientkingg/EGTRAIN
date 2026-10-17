@@ -141,13 +141,13 @@ path from the user's side, and [Scene model](../architecture/scene-model.md) des
    earlier run and schedules the recovery copy.
 3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls
    `validateRunnableScene` and fills the validation table. Error diagnostics block Run; warnings do not.
-4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run Scene` reaches `MainWindow::runScene`, which
+4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run Scene` reaches `RunController::runScene`, which
    validates again and opens the review window **Run simulation**. Its button goes on to
    `DispatchController::prepareScene`, which validates, builds the infrastructure and the operations
    with `buildInfrastructureAndSignallingFromScene` and `buildOperationsFromScene`, and then to
-   `MainWindow::startSimulation`. A `SimulationWorker` on its own thread calls
+   `RunController::startSimulation`. A `SimulationWorker` on its own thread calls
    `DispatchController::runSimulation`.
-5. **Results.** When the worker finishes, `MainWindow::onSimulationFinished` copies what the views
+5. **Results.** When the worker finishes, `RunController::onSimulationFinished` copies what the views
    need into one `CompletedRunData` with `captureCompletedRun` and fills the **Run Results** dock.
    **Open result view...** in that dock opens the charts and tables, including the Delay analysis
    window. The output files are written to the [output folder](../guides/command-line.md#output-folder).

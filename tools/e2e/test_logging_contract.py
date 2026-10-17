@@ -70,9 +70,12 @@ ALLOWED = {
     "app/DispatchController.cpp": {"fprintf": 1},
     #   QEGTRAIN_TIMING: the startup timing record, read by startup_launch_contract.py and
     #   tools/performance/startup_benchmark.py. QEGTRAIN_TIMING_ERROR: why that timing failed.
-    #   QEGTRAIN_PLAYBACK_PROFILE: the two error records of the playback profile, which
-    #   tools/performance/playback_profile.py reads.
-    "app/MainWindow.cpp": {"fprintf": 4},
+    #   QEGTRAIN_PLAYBACK_PROFILE: the error record of the playback profile for a startup timing
+    #   run, which tools/performance/playback_profile.py reads.
+    "app/MainWindow.cpp": {"fprintf": 3},
+    #   QEGTRAIN_PLAYBACK_PROFILE: the error record of the playback profile for a scenario that
+    #   the scene does not have, which tools/performance/playback_profile.py reads.
+    "app/RunController.cpp": {"fprintf": 1},
     #   QEGTRAIN_PLAYBACK_PROFILE: the records of the playback profile.
     "util/PlaybackProfiler.cpp": {"fprintf": 1},
     #   QEGTRAIN_DIALOG_SUPPRESSED: the message of a dialog that a scripted run suppresses.

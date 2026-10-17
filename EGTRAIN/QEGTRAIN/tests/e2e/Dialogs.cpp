@@ -386,7 +386,7 @@ void MainWindowTestAccess::reviewClosed(MainWindow& w, QDialog& review) {
 	const QString details = review.findChild<QLabel*>("runReviewDetails")->text();
 	const bool cancelled = review.result() == QDialog::Rejected;
 	reviewDiagnostic.insert("rejected", cancelled);
-	reviewDiagnostic.insert("workerStarted", w.m_worker != nullptr);
+	reviewDiagnostic.insert("workerStarted", w.m_runController->m_worker != nullptr);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_RENDERED=%s\n", QJsonDocument(reviewDiagnostic).toJson(QJsonDocument::Compact).constData());
 	std::fprintf(stdout, "E2E_RUN_REVIEW_SUMMARY=%s\n", factValues[0]->text().toUtf8().constData());
 	std::fprintf(stdout, "E2E_RUN_REVIEW_START=%s\n", factValues[1]->text().toUtf8().constData());

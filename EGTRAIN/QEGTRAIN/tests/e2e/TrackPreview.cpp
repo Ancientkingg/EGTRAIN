@@ -353,10 +353,10 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			runFacetOk = false;
 	}
 	const PreviewContentSnapshot previewBeforeRun = snapshotPreviewContent();
-	w.runScene();
-	const bool workerStarted = w.m_worker != nullptr;
+	w.m_runController->runScene();
+	const bool workerStarted = w.m_runController->m_worker != nullptr;
 	QApplication::processEvents();
-	if (workerStarted || w.m_worker) {
+	if (workerStarted || w.m_runController->m_worker) {
 		runFacetOk = false;
 		fail("run gating", "invalid scene started simulation");
 	}

@@ -89,6 +89,7 @@
 #include <QTabWidget>
 #include <QSet>
 
+#include "app/RunController.h"
 #include "app/RunSelection.h"
 #include "app/SceneSession.h"
 #include "recovery/RecoveryStore.h"
@@ -107,7 +108,6 @@ class AboutDialog;
 class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
-class DelayAnalysisWindow;
 class EntranceDelayPanel;
 class IncidentPanel;
 class InfrastructurePanel;
@@ -183,7 +183,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host {
 	Q_OBJECT
 
 public:
@@ -248,10 +248,6 @@ public slots:
 	void handleDisableHighlight();
 	// updates according to simulation
 	void waitForUpdates();
-	void startSimulation(const telemetry::OperationObservation& operation);
-	void runCurrent();
-	void onSimulationFinished();
-	void runScene();
 	// display train path diagrams
 	void displayTrainPathDiagrams();
 	void zoomIn();
@@ -338,17 +334,9 @@ private:
 	QLineEdit* trainWagonsText;
 	QFormLayout* trainFormLayout;
 
-	// MainWindow creates the worker and thread. Qt owns deletion through deleteLater connections.
-	// QPointer nulls itself if Qt deletes either object before MainWindow clears the fields.
-	QPointer<SimulationWorker> m_worker;
-	QPointer<QThread> m_workerThread;
-	// What Close, New or Open asked for while a run was active. It runs when the worker has finished.
-	std::function<void()> m_afterRunAction;
 	// Set only for the close() that follows a stopped run. The question about unsaved changes
 	// was answered when the close was requested.
 	bool m_closeConfirmed = false;
-	// Three product observations and two isolated cancellation probes.
-	std::array<QMetaObject::Connection, 5> m_simulationObservations{};
 	QSlider* m_speedSlider;
 	QLabel* m_speedLabel;
 	QAction* m_followAction = nullptr;
@@ -384,7 +372,6 @@ private:
 
 	bool m_promptedLoad = false; // ensures the load prompt only fires once
 
-	long long m_startOffsetSeconds = 0; // simulation start, seconds since midnight
 	ConsoleWidget* m_logPane = nullptr; // in-app log output
 	QMenu* m_diagramsMenu = nullptr;	// Diagrams top-level menu
 	QHash<QDockWidget*, QAction*> m_editorActions;
@@ -393,6 +380,8 @@ private:
 	SceneDocument* m_document = nullptr;
 	// Opens, creates and saves scenes. Holds where the scene came from and the diagnostics of its last validation.
 	SceneSession* m_session = nullptr;
+	// Reviews, prepares, starts and stops the run, and keeps what the run leaves.
+	RunController* m_runController = nullptr;
 	// Undo and Redo. The history holds the scene as it was after each edit, and sceneDocumentChanged adds to it.
 	std::unique_ptr<SceneHistory> m_history;
 	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
@@ -446,21 +435,9 @@ private:
 	QPushButton* m_removeRouteSectionButton = nullptr;
 	QPushButton* m_moveRouteSectionUpButton = nullptr;
 	QPushButton* m_moveRouteSectionDownButton = nullptr;
-	QString m_runtimeStatus = QStringLiteral("Not built");
-	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
-	bool m_resultsAvailable = false;
-	bool m_sceneChangedDuringRun = false;
 	RunSelection m_runSelection;
-	// The finished run as values. The Run Results dock shows it and the result windows share it, so each window keeps
-	// the run it was opened for. Null while no run has completed.
-	std::shared_ptr<const CompletedRunData> m_completedRun;
-	RunProvenance m_pendingRunProvenance;
-	std::optional<DelayRunSnapshot> m_delayBaseline;
-	QString m_delayBaselineStatus;
 	QLabel* m_runResultsSummaryLabel = nullptr;
 	QLabel* m_delayFeedbackLabel = nullptr;
-	int m_lastRunSelectedOccurrences = 0;
-	int m_lastRunTotalOccurrences = 0;
 	int m_startupTimingIteration = 0;
 	int m_startupTimingWarmTrials = 0;
 	QString m_startupTimingScenePath;
@@ -604,8 +581,6 @@ private:
 	FollowAvailabilityInput followInput(int row) const;
 	// followAvailability for a train, or for no train when it is not in the list.
 	FollowAvailability followAvailabilityOf(int trainIndex) const;
-	// Sets the clock time at which the simulation starts and shows it in the train list.
-	void setStartOffset(long long seconds);
 	// Writes the list entries, the status label and the Follow control from followAvailability
 	// and returns its answer for the selected train.
 	FollowAvailability updateFollowAvailability();
@@ -625,7 +600,7 @@ private:
 	SignalItem* resolveSignalItem(int track, double position, bool reversed) const;
 	PassengerItem* resolvePassengerItem(const std::string& passengerId) const;
 	// SceneSession::Host: what the session asks of the window, and the points at which it tells the window that the scene
-	// changed.
+	// changed. captureTelemetryOperation, dialogsSuppressed and sceneActionsChanged also serve RunController::Host.
 	telemetry::OperationObservation captureTelemetryOperation() const noexcept override;
 	bool dialogsSuppressed() const override;
 	void commitPendingEdits() override;
@@ -638,6 +613,45 @@ private:
 	void sceneCreated(const telemetry::OperationObservation& operation) override;
 	bool sceneOpened(const SceneSession::OpenedScene& opened) override;
 	void sceneSaved() override;
+	// RunController::Host: what the controller asks of the window, and the points at which it tells the window that the
+	// run changed.
+	bool advancedDetailsEnabled() const override;
+	bool telemetryActive() const override;
+	int stepDelayMs() const override;
+	// The time in seconds over which the occurrences of a service are counted.
+	double serviceOccurrenceDuration() const override;
+	int totalServiceOccurrences() const override;
+	int inPeriodServiceOccurrences() const override;
+	const SceneScenario* selectedScenario() const override;
+	const std::vector<SceneIncident>& selectedScenarioIncidents() const override;
+	QString scenarioContext() const override;
+	void validateScene() override;
+	void showLoadedData() override;
+	void showValidation() override;
+	void runPreparing() override;
+	void teardownForRun() override;
+	void invalidateRunResults() override;
+	std::vector<SceneDiagnostic> timedPreparation(
+		const std::function<std::vector<SceneDiagnostic>()>& prepare, bool& identityOk) override;
+	void loadedDataChanged() override;
+	void caseLayersChanged() override;
+	void buildRunCanvas() override;
+	bool startupTimingHoldsRun(bool identityOk) override;
+	void setStartOffset(long long seconds) override;
+	void runStarting() override;
+	void workerReady() override;
+	void runPhaseChanged(RunController::RunPhase phase) override;
+	void runPanelsChanged() override;
+	void playbackEnded() override;
+	bool endFollowing() override;
+	void resultsKept() override;
+	void resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun) override;
+	bool runFinished() override;
+	void runProgressEnded() override;
+	void replayReady(GuiReplayHistory history) override;
+	void runEnded() override;
+	void runSettled() override;
+	void delayBaselineChanged() override;
 
 	void registerEditorDock(QDockWidget* dock);
 	QMenu* createPopupMenu() override;
@@ -654,7 +668,6 @@ private:
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
 	void refreshValidationPanel();
-	bool advancedDetailsEnabled() const;
 	// Opens the editor or the view that a row of the loaded data tree stands for.
 	void openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item);
 	void sceneDocumentChanged();
@@ -675,7 +688,6 @@ private:
 	bool offerRecovery();
 	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
-	void invalidateRunResults();
 
 	// passenger editor: canonical passengers, journeys, and ordered legs
 	QDockWidget* m_passengerDock = nullptr;
@@ -707,36 +719,16 @@ private:
 	void updateTrainUnitSourceStatus();
 	void refreshInputTractionDiagrams(const std::string& unitId);
 
-	// The time in seconds over which the occurrences of a service are counted.
-	double serviceOccurrenceDuration() const;
-	int totalServiceOccurrences() const;
-	int inPeriodServiceOccurrences() const;
-
 	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
 	SceneScenario* selectedScenario();
-	const SceneScenario* selectedScenario() const;
 	std::vector<SceneIncident>& selectedScenarioIncidents();
-	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
-	QString scenarioContext() const;
-	QString runReviewText() const;
-	bool showRunReview();
-	void setDelayBaseline();
-	// Opens the delay analysis window for the completed run and the delay baseline. Null when there is no run.
-	DelayAnalysisWindow* openDelayAnalysis();
-	// The same, on the tab that compares the run with the baseline.
-	void showDelayComparison();
 	void refreshRunResultsSummary();
-	DelayRunSnapshot completedDelaySnapshot() const;
-	RunProvenance captureRunProvenance() const;
 
 	void handleStartupTimingPaint(const QString& kind, int generation, qint64 elapsedNanoseconds);
 	bool startupTimingIdentityMatches(const QString& path, const SceneModel& model,
 		const std::string* inputSnapshot = nullptr) const;
 	void failStartupTiming(const QString& message);
-	void clearSimulationWorker(bool requestStop);
-	bool deferUntilRunStopped(std::function<void()> action);
-	void runDeferredAction();
 	void clearReplay();
 	void showReplayBar();
 	bool writeReplayText(std::optional<int> shownTime);
@@ -762,11 +754,8 @@ private:
 	void updateZoomStatus();
 	void updateTimeline(int timestep, int totalTimesteps);
 	void updateNetworkLegend();
-	bool hasRawRunResults() const;
 
 private slots:
-	void setStartTime();
-	void chooseOutputFolder();
 	void showSpeedDistanceDiagram();
 	void showSpeedTimeDiagram();
 	void showTimeDistanceDiagram();

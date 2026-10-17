@@ -114,8 +114,9 @@ is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and
 `QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. `MainWindowTestAccess` is the
 friend class of `MainWindow` that the runner calls, and of `SceneDocument`, whose revision a scenario sets when it
-replaces the scene without an edit, of `SceneSession`, whose scene folder and diagnostics a scenario sets, and of
-`UpdateTelemetryController`, whose settings, consent and sender the telemetry smoke sets.
+replaces the scene without an edit, of `SceneSession`, whose scene folder and diagnostics a scenario sets, of
+`UpdateTelemetryController`, whose settings, consent and sender the telemetry smoke sets, and of `RunController`, whose
+worker, status and results a scenario reads and sets.
 A scenario is a member of
 `MainWindowTestAccess` defined in its own file in that folder (the legacy import
 smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the output folder

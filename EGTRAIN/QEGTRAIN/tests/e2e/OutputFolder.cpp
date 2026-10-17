@@ -64,9 +64,9 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 			std::fflush(stderr);
 		}
 		const int code = ok ? 0 : 2;
-		if (w.m_worker && w.m_workerThread && w.m_workerThread->isRunning()) {
-			QObject::connect(w.m_workerThread, &QThread::finished, qApp, [code]() { QCoreApplication::exit(code); });
-			w.m_worker->requestStop();
+		if (w.m_runController->m_worker && w.m_runController->m_workerThread && w.m_runController->m_workerThread->isRunning()) {
+			QObject::connect(w.m_runController->m_workerThread, &QThread::finished, qApp, [code]() { QCoreApplication::exit(code); });
+			w.m_runController->m_worker->requestStop();
 			return;
 		}
 		QCoreApplication::exit(code);
@@ -134,8 +134,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		finish();
 		return;
 	}
-	w.runScene();
-	if (!w.m_worker) {
+	w.m_runController->runScene();
+	if (!w.m_runController->m_worker) {
 		fail(QStringLiteral("the run of the renamed scene did not start"));
 		finish();
 		return;
@@ -157,7 +157,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	}
 	auto* poll = new QTimer(&w);
 	QObject::connect(poll, &QTimer::timeout, &w, [&w, run, thirdFolder, fail, finish, poll]() {
-		if (w.m_worker || w.m_document->mutableModel().name != run->thirdName) {
+		if (w.m_runController->m_worker || w.m_document->mutableModel().name != run->thirdName) {
 			if (++run->attempts < kMaxPolls)
 				return;
 			fail(QStringLiteral("the third scene did not open"));
@@ -168,8 +168,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		poll->stop();
 		if (currentOutputFolder() == thirdFolder)
 			fail(QStringLiteral("opening the third scene replaced the chosen folder with %1").arg(thirdFolder));
-		w.runScene();
-		if (!w.m_worker)
+		w.m_runController->runScene();
+		if (!w.m_runController->m_worker)
 			fail(QStringLiteral("the run of the third scene did not start"));
 		else if (currentOutputFolder() != QDir::cleanPath(run->chosen))
 			fail(QStringLiteral("the run of the third scene writes to %1, not %2").arg(currentOutputFolder(), run->chosen));
