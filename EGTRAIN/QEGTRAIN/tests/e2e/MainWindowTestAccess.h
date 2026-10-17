@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/MainWindow.h"
+#include "editors/SceneDocument.h"
 #include <QString>
 #include <QStringList>
 #include <functional>

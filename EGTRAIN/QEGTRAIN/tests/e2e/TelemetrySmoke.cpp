@@ -164,7 +164,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			w.m_caseSettingsDock->hide();
 			w.revealEditorDock(w.m_caseSettingsDock);
 			const int poll = smoke->polls.load();
-			saveSceneBundle(w.m_sceneModel, (root + "/historical.egscene").toStdString());
+			saveSceneBundle(w.m_document->mutableModel(), (root + "/historical.egscene").toStdString());
 			telemetry_smoke::chooseFile(root + "/historical.egscene", [&w, poll, changed = false]() mutable {
 				if (!changed) {
 					changed = true;
@@ -260,16 +260,16 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 		w.saveSceneAsToBundle();
 		telemetry_smoke::chooseFile(QString());
 		w.saveSceneAsToBundle();
-		++w.m_sceneModel.schemaVersion;
+		++w.m_document->mutableModel().schemaVersion;
 		telemetry_smoke::chooseFile(root + "/schema.egscene");
 		w.saveSceneAsToBundle(); // Unsupported schema before staging: diagnostics only.
-		--w.m_sceneModel.schemaVersion;
+		--w.m_document->mutableModel().schemaVersion;
 		if (mode == "bundle") w.openSceneDirectory(root + "/saved.egscene");
 		w.openSceneDirectory(scenePath);
-		const auto services = w.m_sceneModel.services;
-		w.m_sceneModel.services.clear();
+		const auto services = w.m_document->mutableModel().services;
+		w.m_document->mutableModel().services.clear();
 		w.runScene(); // Handled preflight failure: no usage run pair.
-		w.m_sceneModel.services = services;
+		w.m_document->mutableModel().services = services;
 		later(2);
 		return;
 	}
@@ -284,7 +284,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 				timer->stop();
 				timer->deleteLater();
 				if (mode == "discard") {
-					w.markSceneDirty();
+					w.m_document->markChanged(SceneDocument::AllChanges);
 					return;
 				}
 				w.m_telemetryConsent->save(false, false);

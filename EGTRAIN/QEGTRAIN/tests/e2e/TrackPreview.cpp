@@ -208,7 +208,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 
 	const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 	const bool opened = !scenePath.isEmpty() && w.openSceneDirectory(scenePath);
-	if (!opened || !w.m_sceneLoaded) {
+	if (!opened || !w.m_document->isLoaded()) {
 		fail("open", "incomplete scene did not open");
 	} else {
 		const PreviewContentSnapshot preview = snapshotPreviewContent();
@@ -228,7 +228,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			fail("open", "preview is outside the viewport");
 		if (!w.m_followTrainCombo || w.m_followTrainCombo->currentText() != "No trains to follow")
 			fail("follow", "empty train selector does not explain that no trains are available");
-		else if (!w.m_sceneModel.services.empty() || w.m_followAction->isEnabled()
+		else if (!w.m_document->mutableModel().services.empty() || w.m_followAction->isEnabled()
 			|| w.m_followStatusLabel->text() != "This case has no trains to follow."
 			|| w.m_followAction->toolTip() != w.m_followStatusLabel->text() || w.m_followTrainCombo->toolTip() != w.m_followStatusLabel->text()
 			|| w.m_followTrainCombo->accessibleDescription() != w.m_followStatusLabel->text())
@@ -296,8 +296,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		&& w.ui->actionSimulationStart && !w.ui->actionSimulationStart->isEnabled();
 	if (!runFacetOk)
 		fail("run gating", "Run action is enabled while semantic errors are present");
-	if (w.m_sceneLoaded) {
-		const SceneModel incomplete = w.m_sceneModel;
+	if (w.m_document->isLoaded()) {
+		const SceneModel incomplete = w.m_document->mutableModel();
 		SceneModel fixed = incomplete;
 		fixed.baseTime = "08:00:00";
 		fixed.settings.hasDuration = true;
@@ -340,12 +340,12 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		service.through = true;
 		fixed.services.push_back(service);
 		defaultScenarioIncidents(fixed).clear();
-		w.m_sceneModel = fixed;
+		w.m_document->mutableModel() = fixed;
 		w.refreshValidationPanel();
 		if (hasErrors(w.m_sceneDiagnostics) || !w.m_runSceneAction || !w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || !w.ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
-		w.m_sceneModel = incomplete;
+		w.m_document->mutableModel() = incomplete;
 		w.refreshValidationPanel();
 		if (!hasErrors(w.m_sceneDiagnostics) || !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
@@ -370,11 +370,11 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 	QString persistedScenePath;
 	SceneModel expectedPartial;
 	bool saveReloadOk = true;
-	if (!e2eRoot.isValid() || !w.m_sceneLoaded) {
+	if (!e2eRoot.isValid() || !w.m_document->isLoaded()) {
 		saveReloadOk = false;
 		fail("save/reload", "temporary scene directory unavailable");
 	} else {
-		expectedPartial = w.m_sceneModel;
+		expectedPartial = w.m_document->mutableModel();
 		persistedScenePath = QDir(e2eRoot.path()).filePath("partial");
 		const SceneSaveResult saveResult = ::saveScene(expectedPartial, persistedScenePath.toStdString());
 		if (!saveResult.success()) {
@@ -383,7 +383,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		} else if (!w.openSceneDirectory(persistedScenePath)) {
 			saveReloadOk = false;
 			fail("save/reload", "saved partial scene did not reload");
-		} else if (!sameSceneModel(expectedPartial, w.m_sceneModel)) {
+		} else if (!sameSceneModel(expectedPartial, w.m_document->mutableModel())) {
 			saveReloadOk = false;
 			fail("save/reload", "partial model changed after reload");
 		} else if (!hasDiagnosticCode(w.m_sceneDiagnostics, "scene.trains.none")
@@ -399,7 +399,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 
 	bool structuralOk = saveReloadOk;
 	if (structuralOk) {
-		const SceneModel expectedCurrent = w.m_sceneModel;
+		const SceneModel expectedCurrent = w.m_document->mutableModel();
 		const QString expectedDir = QDir(w.m_sceneDir).absolutePath();
 		const PreviewContentSnapshot expectedContent = snapshotPreviewContent();
 		auto rejectedWithoutReplacement = [&](const QString& candidate, const char* label) {
@@ -408,7 +408,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 				return false;
 			}
 			const bool preserved = QDir(w.m_sceneDir).absolutePath() == expectedDir
-				&& sameSceneModel(w.m_sceneModel, expectedCurrent)
+				&& sameSceneModel(w.m_document->mutableModel(), expectedCurrent)
 				&& samePreviewContent(expectedContent, snapshotPreviewContent());
 			if (!preserved)
 				fail("structural rejection", QString("%1 failure replaced current state").arg(label));
@@ -488,12 +488,12 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 
 	// Exercise identity propagation with an authored signal on a real preview
 	// boundary. Render only an in-memory copy; do not change the opened scene.
-	if (w.m_sceneLoaded) {
-		const TrackPreviewResult source = loadTrackPreview(w.m_sceneModel);
+	if (w.m_document->isLoaded()) {
+		const TrackPreviewResult source = loadTrackPreview(w.m_document->mutableModel());
 		if (source.previewSignals.empty()) {
 			fail("signals", "preview identity fixture has no boundary");
 		} else {
-			SceneModel identified = w.m_sceneModel;
+			SceneModel identified = w.m_document->mutableModel();
 			const std::string sectionId = source.previewSignals.front().sectionId;
 			sceneSignals(identified).push_back({"E2E_SIGNAL_PREVIEW_360", sectionId});
 			w.renderTrackPreview(identified);
@@ -514,7 +514,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 	}
 
 	// A click on a preview item selects it with a cue; a click on empty canvas removes the cue.
-	if (w.m_sceneLoaded && w.scene && w.networkView) {
+	if (w.m_document->isLoaded() && w.scene && w.networkView) {
 		const auto cueCount = [&w]() {
 			int count = 0;
 			for (const QGraphicsItem* item : w.scene->items())

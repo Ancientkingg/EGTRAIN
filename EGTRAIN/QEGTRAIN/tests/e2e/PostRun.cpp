@@ -403,7 +403,7 @@ bool MainWindowTestAccess::runFinished(MainWindow& w) {
 				}
 			}
 			const QVector<RouteReferenceChoice> choices =
-				buildRouteReferenceChoices(w.m_sceneModel, usedRouteReferencesFrom(*w.m_completedRun));
+				buildRouteReferenceChoices(w.m_document->mutableModel(), usedRouteReferencesFrom(*w.m_completedRun));
 			for (const RouteReferenceChoice& choice : choices)
 				std::fprintf(stdout, "E2E_ROUTE_CHOICE %s\n", choice.label.toStdString().c_str());
 			RouteReferenceDialog chooser(choices, "train paths", &w);
@@ -1150,14 +1150,14 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		const QString scenePath = qEnvironmentVariable("QEGTRAIN_E2E_OPERATIONAL_COMPLETION");
-		if (w.m_sceneModel.scenarios.empty()) {
+		if (w.m_document->mutableModel().scenarios.empty()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: no scenario fixture\n");
 			QCoreApplication::exit(2);
 			return;
 		}
-		auto alternate = w.m_sceneModel.scenarios.front();
+		auto alternate = w.m_document->mutableModel().scenarios.front();
 		alternate.id = "__replay_e2e_alternate__";
-		w.m_sceneModel.scenarios.push_back(alternate);
+		w.m_document->mutableModel().scenarios.push_back(alternate);
 		w.setFollowTrain(w.m_followTrainCombo->itemData(0).toInt());
 		if (w.m_followTrainIndex != w.m_followTrainCombo->itemData(0).toInt()) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: Follow in the replay before the scenario changes\n");
@@ -1165,7 +1165,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			return;
 		}
 		w.m_replayTimer->start();
-		w.m_scenarioPanel->selectScenario(static_cast<int>(w.m_sceneModel.scenarios.size()) - 1);
+		w.m_scenarioPanel->selectScenario(static_cast<int>(w.m_document->mutableModel().scenarios.size()) - 1);
 		if (w.m_replayTimer->isActive() || !w.m_completedReplay.empty() || w.m_snapshot
 			|| !w.m_showingTrackPreview || !w.m_presenter->allTrains.isEmpty() || !w.m_presenter->m_activeTrackItems.empty()
 			|| w.m_followTrainIndex >= 0 || w.m_followCamera->hasTarget() || w.m_followCamera->running() || w.m_replayBar->isVisible()) {
