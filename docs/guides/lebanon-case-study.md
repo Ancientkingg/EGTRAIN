@@ -73,9 +73,9 @@ Open the Compositions dock.
 Open the Services dock.
 
 1. Select Add Service and give it an id.
-2. Choose the composition and the route for the service.
+2. On the tab Service, choose the composition and the route for the service.
 3. Select the check box Entry Time (s) and enter the entry time. Select the check box Repeat Headway (s) and enter the headway if the service runs more than once.
-4. Select Add Stop for each station the service calls at. In the window Add timetable stop, set the station, the planned arrival, the planned departure, and Minimum dwell (s) as the timetable requires. Planned time display switches the times between Elapsed offsets (s) and Clock time. The elapsed seconds count from the base time of the case, 06:00:00 for Lebanon.
+4. On the tab Timetable, select Add Stop for each station the service calls at. In the window Add timetable stop, set the station, the planned arrival, the planned departure, and Minimum dwell (s) as the timetable requires. Planned time display switches the times between Elapsed offsets (s) and Clock time. The elapsed seconds count from the base time of the case, 06:00:00 for Lebanon.
 
 ## Read and fix validation errors
 

@@ -92,7 +92,7 @@ An entrance delay is a number of seconds that a scenario adds to the planned dep
 
 ### Service
 
-A service is a train service as the case defines it: an ID, a composition, a route, stops, and optionally an operating code, an entry time, a repetition, a performance, a speed cap, a category and a colour. You meet it in the dock **Services** (**Editors > Services**), tab **Service and timetable**, where **Service Id** is the unique key that other files use. A service can run more than once, and each run is an [occurrence](#occurrence) ([services.json](../architecture/scene-schema.md#servicesjson)).
+A service is a train service as the case defines it: an ID, a composition, a route, stops, and optionally an operating code, an entry time, a repetition, a performance, a speed cap, a category and a colour. You meet it in the dock **Services** (**Editors > Services**), tab **Service**, where **Service Id** is the unique key that other files use. A service can run more than once, and each run is an [occurrence](#occurrence) ([services.json](../architecture/scene-schema.md#servicesjson)).
 
 ### Service code
 
@@ -112,7 +112,7 @@ In the editor the headway is the time between the entries of consecutive occurre
 
 ### Timetable stop
 
-A timetable stop is one scheduled call of a service at a station: the station, an optional platform, **Planned arrival**, **Planned departure** and **Minimum dwell (s)** (the keys `station`, `platform`, `planned_arrival_seconds`, `planned_departure_seconds` and `dwell_seconds`). Arrival and departure are each optional, where blank means absent and 0 is the simulation zero, and both are planned input counted from the base time of the case, never results ([edit and validate](scenes-and-application.md#edit-and-validate)). You meet stops in the table **Timetable stops** on the tab **Service and timetable** (columns **Timetable stops (station)**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**). The dialog **Edit timetable stop** (**Add timetable stop** for a new stop) opens from **Add Stop**, **Insert After Selected** or a click on a row.
+A timetable stop is one scheduled call of a service at a station: the station, an optional platform, **Planned arrival**, **Planned departure** and **Minimum dwell (s)** (the keys `station`, `platform`, `planned_arrival_seconds`, `planned_departure_seconds` and `dwell_seconds`). Arrival and departure are each optional, where blank means absent and 0 is the simulation zero, and both are planned input counted from the base time of the case, never results ([edit and validate](scenes-and-application.md#edit-and-validate)). You meet stops in the table on the tab **Timetable** of the dock **Services** (columns **Station**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**). The dialog **Edit timetable stop** (**Add timetable stop** for a new stop) opens from **Add Stop**, **Insert After Selected** or a click on a row.
 
 ### Dwell
 

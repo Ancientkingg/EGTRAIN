@@ -7,6 +7,9 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QEventLoop>
+#include <QFont>
+#include <QFontMetrics>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPoint>
@@ -202,8 +205,11 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
 			"a panel without a document shows nothing and offers nothing");
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a panel without a document asks to open a case");
 		SceneDocument document;
 		panel.setDocument(&document);
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services.", "a document without a scene asks to open a case");
 		panel.setServiceId("service-1");
 		panel.addStop();
 		panel.removeStop();
@@ -211,6 +217,91 @@ int main(int argc, char** argv) {
 		panel.editStop(0);
 		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty(),
 			"a panel stays disabled while its document holds no scene, and its actions change nothing");
+	}
+
+	{
+		// a service that has no stops
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = lineScene();
+		scene.services[0].stops.clear();
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		ok &= expect(panel.table()->rowCount() == 0 && panel.addButton()->isEnabled()
+				&& panel.emptyStateLabel()->text() == "No stops. Use Add Stop." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a service without stops points to Add Stop");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(!panel.addButton()->isEnabled() && panel.emptyStateLabel()->text() == "No stops.",
+			"a service without stops does not point to Add Stop while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
+		panel.setServiceId("service-2");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message goes away when the service has stops");
+	}
+
+	{
+		// a scene that has no services
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = lineScene();
+		scene.services.clear();
+		document.replace(scene, false);
+		ok &= expect(panel.emptyStateLabel()->text() == "No services. Use Add Service." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a scene without services points to Add Service while it can be edited");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not point to Add Service while a run uses it");
+	}
+
+	for (const double scale : {1.0, 1.25, 1.5}) {
+		// the five columns fill the table without a horizontal scroll bar whatever the font and the width, show their whole
+		// headers when the table is wide enough for them, and elide a long station or platform name
+		SceneModel scene = lineScene();
+		scene.stations[0].name = longName(95).toStdString();
+		scene.services[0].stops[0].platformId = longName(60).toStdString();
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		QFont font = panel.font();
+		font.setPointSizeF(font.pointSizeF() * scale);
+		panel.setFont(font);
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		const QTableWidget* table = panel.table();
+		const QHeaderView* header = table->horizontalHeader();
+		const QFontMetrics body(table->font());
+		int headers = 0;
+		for (int index = 1; index < table->columnCount(); ++index)
+			headers += header->sectionSizeHint(index);
+		// the headers of the four narrow columns, a station column of twelve digits, the frame and the margins of the panel
+		const int wide = headers + body.horizontalAdvance(QString(12, QLatin1Char('0'))) + 2 * table->frameWidth() + 40;
+		panel.setMinimumWidth(wide);
+		panel.resize(wide, 500);
+		panel.show();
+		QApplication::processEvents();
+		const QString label = QString(" at %1 times the font").arg(scale);
+		bool wholeHeaders = true;
+		for (int index = 0; index < table->columnCount(); ++index)
+			wholeHeaders = wholeHeaders && table->columnWidth(index) >= header->sectionSizeHint(index);
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
+			qPrintable("the five columns fill the table without a scroll bar" + label));
+		ok &= expect(wholeHeaders, qPrintable("the five columns show their whole headers when the table fits them" + label));
+		ok &= expect(table->item(0, 0)->text() == longName(95), "the cell of a long station name holds the whole name");
+		ok &= expect(table->item(0, 0)->toolTip().contains(longName(95)), "the tooltip of a long station name holds the whole name");
+		ok &= expect(table->item(0, 1)->text() == longName(60) && table->item(0, 1)->toolTip().endsWith(longName(60)),
+			"the cell and the tooltip of a long platform name hold the whole name");
+		ok &= expect(table->columnWidth(1) < body.horizontalAdvance(longName(60)) && table->columnWidth(0) < body.horizontalAdvance(longName(95)),
+			qPrintable("a long station or platform name does not widen its column" + label));
+
+		// a table narrower than the headers shortens the columns instead of scrolling
+		panel.setMinimumWidth(0);
+		panel.table()->setFixedWidth(headers * 2 / 3 + body.horizontalAdvance(QString(8, QLatin1Char('0'))));
+		QApplication::processEvents();
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
+			qPrintable("a narrow table shortens its columns instead of scrolling" + label));
 	}
 
 	{
@@ -223,7 +314,10 @@ int main(int argc, char** argv) {
 		document.replace(lineScene(), false);
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled(),
 			"a scene shows no stops until a service is given");
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable.",
+			"a scene without a given service asks for a service");
 		panel.setServiceId("service-1");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message is hidden while the service has stops");
 		ok &= expect(panel.table()->rowCount() == 3 && column(panel.table(), 0) == QStringList({"A", "B", "C"})
 				&& column(panel.table(), 1) == QStringList({"platform-a", "platform-b", "platform-c"})
 				&& column(panel.table(), 2) == QStringList({"30", "30", "30"}) && column(panel.table(), 3) == QStringList({"0", "60", "120"})
@@ -234,7 +328,7 @@ int main(int argc, char** argv) {
 				&& !panel.moveUpButton()->isEnabled() && panel.moveDownButton()->isEnabled(),
 			"the first stop is selected and the buttons follow the selection");
 		ok &= expect(panel.timeBaseLabel()->text() == "Case base 08:00:00; planned times are elapsed seconds from this base"
-				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit"
+				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit\nStation A [station-a]"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole).toString() == "station-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 1).toString() == "platform-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 2).toInt() == 1,
@@ -260,7 +354,7 @@ int main(int argc, char** argv) {
 				&& panel.table()->currentRow() == 0 && events.log == editLog && events.kinds == SceneDocument::Services
 				&& document.lastChangeLabel() == "Move timetable stop up" && document.isDirty(),
 			"a stop moves up and stays selected");
-		ok &= expect(panel.table()->item(1, 0)->toolTip() == "Invalid: stop is before or at an already used route visit",
+		ok &= expect(panel.table()->item(1, 0)->toolTip().startsWith("Invalid: stop is before or at an already used route visit\nStation "),
 			"a stop that no longer fits the route order says so");
 		events.log.clear();
 		panel.moveStopUp();
@@ -301,6 +395,8 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
 			"an unknown service shows nothing");
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"an unknown service asks for a service");
 		panel.setServiceId("");
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.addButton()->isEnabled(), "an empty id shows nothing");
 		panel.setServiceId("service-2");

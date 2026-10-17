@@ -34,9 +34,9 @@ The saved file holds the inputs of the case. It holds neither results nor the se
 
 ### 1. Inspect the inputs
 
-1. Choose **Editors > Services**. The panel **Services** opens with the tabs **Service and timetable** and **Run occurrences**. Choosing the entry while the panel is showing hides it. You can use the panel only while no run is active.
-2. On **Service and timetable**, read **Composition**, **Route** (the entry that ends in `[route32]`), **Entry Time (s)**, **Repeat Headway (s)**, **Configured total**, **Running performance (parameter) %** and **Maximum speed restriction km/h**. A field beside a check box works only while its box is checked.
-3. Read the table **Timetable stops**: **Timetable stops (station)**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**. Switch **Planned time display** between **Elapsed offsets (s)** and **Clock time**. This changes how the times are shown, not the case. Leave it on **Elapsed offsets (s)**. Neither stop names a platform.
+1. Choose **Editors > Services**. The panel **Services** opens with the tabs **Service**, **Timetable** and **Run occurrences**. Choosing the entry while the panel is showing hides it. You can use the panel only while no run is active.
+2. On **Service**, read **Composition**, **Route** (the entry that ends in `[route32]`), **Entry Time (s)**, **Repeat Headway (s)**, **Configured total**, **Running performance (parameter) %** and **Maximum speed restriction km/h**. A field beside a check box works only while its box is checked.
+3. Open the tab **Timetable** and read the table: **Station**, **Stop platform**, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**. Switch **Planned time display** between **Elapsed offsets (s)** and **Clock time**. This changes how the times are shown, not the case. Leave it on **Elapsed offsets (s)**. Neither stop names a platform.
 4. A click on a row of the table opens the dialog **Edit timetable stop**. Choose **Cancel** unless you mean to change the stop.
 5. Open the tab **Run occurrences**. The text above the table starts with "Configured total: 4; Number of services in sim.: 4; Selected: 4; Selected in period: 4." The table has the columns **Include**, **Service code (number)**, **Generated service**, **Scheduled entry**, **Running performance (parameter) %** and **Maximum speed restriction (km/h)**.
 6. Choose **Editors > Case Settings** and read **Base time** and **Duration / horizon (s)**. Do not change them.
@@ -62,7 +62,7 @@ Record the arrival and departure delays at `Asd` and `Hvs`. Separate the time fr
 
 ### 3. Compare lower performance
 
-1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service and timetable** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
+1. In the panel **Services** (**Editors > Services**, if it is closed), open **Service** and set **Running performance (parameter) %** to 60. Press Tab to finish the edit. Change nothing else.
 2. On **Run occurrences**, check that the text still contains "Selected: 1" and that the column **Running performance (parameter) %** shows 60. If the selection differs, repeat step 1 of task 2.
 3. Run and export as in task 2, with file names that start with `slower`.
 4. Compare the `Hvs` arrival delay, the whole **Travel time (h:mm:ss)**, **Maximum speed (km/h)** and **Energy consumed (kWh)** with the baseline. Use the same energy column in every comparison.
@@ -77,7 +77,7 @@ Optional: choose **Open result view...** > **Tractive effort / distance** and co
 
 Keep the performance at 60 and move the `Hvs` planned times two minutes later, keeping the 60 s planned dwell.
 
-1. In the panel **Services**, open **Service and timetable** and click the `Hvs` row in **Timetable stops**.
+1. In the panel **Services**, open **Timetable** and click the `Hvs` row in the table.
 2. In **Edit timetable stop**, the time fields hold seconds from the base time while **Planned time display** is **Elapsed offsets (s)**, and HH:MM:SS clock times when it is **Clock time**. Set **Planned arrival** to 1620 and **Planned departure** to 1680, which are 06:55:20 and 06:56:20 for run 1. Leave both boxes ticked and **Minimum dwell (s)** at 60. Click **OK**.
 3. Check the table: `Hvs` shows 1620 and 1680, `Asd` still 120 and 180. Entry time, headway, total, composition and route stay as supplied. Check the selection of run 1 as in step 2 of task 3.
 4. Run and export as in task 2, with file names that start with `slower-revised`.
@@ -96,8 +96,8 @@ Report results per run. The **Network total** row spans from the earliest start 
 ### 6. Recommend and hand in
 
 1. Choose a configuration: the performance, the `Hvs` planned times and the number of runs.
-2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The file keeps **Configured total** from **Service and timetable**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
-3. To check your file, choose **File > Open Case Study...** and select it. Check the performance and the `Hvs` times on **Service and timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
+2. Set the open case to that configuration and choose **File > Save Case Study As...** with a new file name. The file keeps **Configured total** from **Service**, not the ticks on **Run occurrences**, so state in your recommendation which runs you ran. Your first copy keeps what you last saved in it.
+3. To check your file, choose **File > Open Case Study...** and select it. Check the performance on **Service** and the `Hvs` times on **Timetable**. Opening a case resets the selection of runs, so select the runs again on **Run occurrences**, run, and compare with your exports.
 
 Hand in:
 
