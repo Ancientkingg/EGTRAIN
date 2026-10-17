@@ -6,7 +6,9 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QListWidget>
+#include <QMouseEvent>
 #include <QPushButton>
+#include <QSplitter>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -392,7 +394,8 @@ int main(int argc, char** argv) {
 		// a facet without a class
 		chooseFacet(panel, "stations");
 		ok &= expect(panel.table()->rowCount() == 0 && panel.table()->columnCount() == 0 && panel.selectionId().isEmpty()
-				&& panel.guidanceLabel()->text() == "No stations yet. Use Add to create one." && !panel.guidanceLabel()->isHidden(),
+				&& panel.guidanceLabel()->text() == "No stations yet. Add a station, then add its platforms."
+				&& !panel.guidanceLabel()->isHidden(),
 			"a facet without a class lists nothing");
 		panel.addEntity();
 		panel.deleteEntity();
@@ -620,6 +623,82 @@ int main(int argc, char** argv) {
 		connection.firstBlockId = "b1";
 		connection.secondBlockId = "b3";
 		ok &= expect(InfrastructurePanel::sectionLabel(connection) == "connection c1 / b1 -> b3", "a section of a connection is named by its blocks");
+	}
+
+	// The layout: the combo on top, the buttons under the table, and the sections of a route below it in a splitter
+	{
+		SceneDocument document;
+		InfrastructurePanel panel;
+		panel.setFacet(std::make_unique<BlockFacet>());
+		panel.setFacet(std::make_unique<RouteFacet>());
+		panel.setFacet(std::make_unique<ListFacet>(ListFacet::Kind::Tracks));
+		panel.setDocument(&document);
+		document.replace(infrastructureScene(), false);
+		panel.refresh();
+		panel.resize(560, 640);
+		panel.show();
+		QApplication::processEvents();
+		const auto top = [&panel](const QWidget* widget) { return widget->mapTo(&panel, QPoint(0, 0)).y(); };
+		const auto bottom = [&top](const QWidget* widget) { return top(widget) + widget->height(); };
+		const auto right = [&panel](const QWidget* widget) { return widget->mapTo(&panel, QPoint(0, 0)).x() + widget->width(); };
+		const auto inside = [&panel, &bottom, &right](const QWidget* widget) {
+			return widget->isVisible() && bottom(widget) <= panel.height() && right(widget) <= panel.width();
+		};
+		const QTableWidget* table = panel.table();
+		const QPushButton* add = panel.addButton();
+
+		ok &= expect(bottom(panel.facetCombo()) <= top(table) && bottom(table) <= top(add) && top(add) == top(panel.deleteButton())
+				&& inside(add) && inside(panel.deleteButton()),
+			"the combo is above the table, and Add and Delete are in a row under it");
+		ok &= expect(panel.insertBlockButton()->isHidden() && panel.routeSectionDetailWidget()->isHidden(),
+			"the buttons of blocks and the sections of a route are not shown with tracks");
+
+		chooseFacet(panel, "blocks");
+		QApplication::processEvents();
+		ok &= expect(bottom(panel.facetCombo()) <= top(panel.blockTrackFilterCombo()) && bottom(panel.blockTrackFilterCombo()) <= top(table)
+				&& bottom(table) <= top(add),
+			"the filter on the track is between the combo and the table");
+		for (const QPushButton* button : {panel.deleteButton(), panel.insertBlockButton(), panel.moveBlockUpButton(), panel.moveBlockDownButton()})
+			ok &= expect(top(button) == top(add) && inside(button) && button->x() > add->x(), "a button of blocks is in the row of Add");
+		ok &= expect(panel.routeSectionDetailWidget()->isHidden(), "the sections of a route are not shown with blocks");
+
+		chooseFacet(panel, "routes");
+		QApplication::processEvents();
+		QWidget* detail = panel.routeSectionDetailWidget();
+		auto* splitter = qobject_cast<QSplitter*>(detail->parentWidget());
+		const auto* heading = detail->findChild<QLabel*>("routeSectionHeading");
+		ok &= expect(panel.insertBlockButton()->isHidden() && detail->isVisible() && inside(detail) && splitter
+				&& splitter->orientation() == Qt::Vertical && splitter->indexOf(detail) == 1 && splitter->indexOf(table->parentWidget()) == 0,
+			"the sections of a route are in a vertical splitter below the table");
+		ok &= expect(heading && heading->text() == "Route sections" && heading->isVisible() && bottom(add) <= top(heading)
+				&& top(heading) < top(panel.routeSectionCatalogCombo()) && bottom(panel.routeSectionCatalogCombo()) <= top(panel.routeSectionListWidget())
+				&& bottom(panel.routeSectionListWidget()) <= top(panel.removeRouteSectionButton()),
+			"the heading, the catalog, the list and the buttons of the sections follow each other under the buttons of the table");
+		for (const QPushButton* button : {panel.addButton(), panel.deleteButton(), panel.addRouteSectionButton(), panel.removeRouteSectionButton(),
+				 panel.moveRouteSectionUpButton(), panel.moveRouteSectionDownButton()})
+			ok &= expect(inside(button), "a button of the routes can be reached without scrolling");
+		if (splitter) {
+			// The user drags the handle up by 40 pixels.
+			const QList<int> before = splitter->sizes();
+			QSplitterHandle* handle = splitter->handle(1);
+			const QPoint start = handle->rect().center();
+			const QPoint end = start - QPoint(0, 40);
+			QMouseEvent press(QEvent::MouseButtonPress, start, handle->mapToGlobal(start), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+			QMouseEvent move(QEvent::MouseMove, end, handle->mapToGlobal(end), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+			QMouseEvent release(QEvent::MouseButtonRelease, end, handle->mapToGlobal(end), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(handle, &press);
+			QApplication::sendEvent(handle, &move);
+			QApplication::sendEvent(handle, &release);
+			QApplication::processEvents();
+			const QList<int> after = splitter->sizes();
+			ok &= expect(before.size() == 2 && after.size() == 2 && after[0] == before[0] - 40 && after[1] == before[1] + 40 && inside(add),
+				"dragging the handle gives the sections of a route more room and keeps the buttons of the table in view");
+		}
+
+		chooseFacet(panel, "tracks");
+		QApplication::processEvents();
+		ok &= expect(panel.routeSectionDetailWidget()->isHidden() && bottom(table) <= top(add) && inside(add),
+			"the table takes the room of the sections again");
 	}
 
 	return ok ? 0 : 1;

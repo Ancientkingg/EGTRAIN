@@ -4125,6 +4125,44 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.showNormal();
 		w.resize(1280, 800);
 		QApplication::processEvents();
+		// Blocks and Routes have the most controls in the Infrastructure editor. The combo is above the table, the buttons are
+		// in a row under it, and they are in the first view of the dock without sideways scrolling. The buttons of the route
+		// sections below the table are in view when `allButtons` is set; a small floating dock scrolls to them.
+		const auto checkInfrastructureControls = [&](const char* where, bool allButtons) {
+			auto* scroll = w.m_infrastructureDock->findChild<QScrollArea*>("editorContentScroll");
+			const QString shownFacet = w.m_infrastructurePanel->facetKey();
+			for (const char* facet : {"blocks", "routes"}) {
+				w.m_infrastructureFacetCombo->setCurrentIndex(w.m_infrastructureFacetCombo->findData(QString::fromLatin1(facet)));
+				QApplication::processEvents();
+				scroll->verticalScrollBar()->setValue(0);
+				scroll->horizontalScrollBar()->setValue(0);
+				QList<QWidget*> controls = {w.m_addInfrastructureButton, w.m_deleteInfrastructureButton};
+				if (QString::fromLatin1(facet) == "blocks")
+					controls << w.m_insertBlockButton << w.m_moveBlockUpButton << w.m_moveBlockDownButton;
+				else if (allButtons)
+					controls << w.m_addRouteSectionButton << w.m_removeRouteSectionButton << w.m_moveRouteSectionUpButton
+							 << w.m_moveRouteSectionDownButton;
+				const QRect view = scroll->viewport()->rect();
+				for (const QWidget* control : controls) {
+					const QRect placed(control->mapTo(scroll->viewport(), QPoint(0, 0)), control->size());
+					if (!control->isVisible() || !view.contains(placed))
+						facetFailure(ok, "presentation",
+							QString("%1 is not in the first view of the infrastructure editor (%2, %3)")
+								.arg(control->objectName(), facet, where));
+				}
+				const int comboTop = w.m_infrastructureFacetCombo->mapTo(scroll->viewport(), QPoint(0, 0)).y();
+				const int tableTop = w.m_infrastructureTable->mapTo(scroll->viewport(), QPoint(0, 0)).y();
+				const int buttonsTop = w.m_addInfrastructureButton->mapTo(scroll->viewport(), QPoint(0, 0)).y();
+				if (!(comboTop < tableTop && tableTop + w.m_infrastructureTable->height() <= buttonsTop))
+					facetFailure(ok, "presentation",
+						QString("the infrastructure buttons are not under the table (%1, %2)").arg(facet, where));
+				if (scroll->horizontalScrollBar()->isVisible())
+					facetFailure(ok, "presentation",
+						QString("the infrastructure editor scrolls sideways (%1, %2)").arg(facet, where));
+			}
+			w.m_infrastructureFacetCombo->setCurrentIndex(w.m_infrastructureFacetCombo->findData(shownFacet));
+			QApplication::processEvents();
+		};
 		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock,
 				 w.m_compositionDock, w.m_serviceDock, w.m_incidentDock, w.m_passengerDock}) {
 			const QFont normalFont = dock->font();
@@ -4151,6 +4189,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!scroll->viewport()->rect().contains(addCenter))
 						facetFailure(ok, "presentation", "passenger Add action is outside the initial viewport");
 				}
+				if (dock == w.m_infrastructureDock)
+					checkInfrastructureControls("docked", true);
 				dock->setFloating(true);
 				dock->resize(750, 600);
 				QApplication::processEvents();
@@ -4162,6 +4202,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
 				}
+				if (dock == w.m_infrastructureDock)
+					checkInfrastructureControls("floating", false);
 				dock->setFloating(false);
 				dock->hide();
 			}
