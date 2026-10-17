@@ -24,7 +24,7 @@ public:
 	using MessageCallback = std::function<void(eglog::Category, eglog::Level, QString)>;
 
 	explicit ConsoleStreambuf(std::function<void(QString)> callback);
-	~ConsoleStreambuf();
+	~ConsoleStreambuf() override;
 
 	// Set before install().
 	void setMessageCallback(MessageCallback callback);
@@ -88,7 +88,7 @@ class ConsoleWidget : public QDockWidget {
 	Q_OBJECT
 public:
 	explicit ConsoleWidget(QWidget* parent = nullptr);
-	~ConsoleWidget();
+	~ConsoleWidget() override;
 
 private:
 	QPointer<QPlainTextEdit> m_textEdit;

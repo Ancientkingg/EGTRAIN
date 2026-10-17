@@ -24,8 +24,8 @@ class NetworkView : public QGraphicsView {
 	Q_OBJECT
 
 public:
-	NetworkView(QWidget* parent = 0);
-	~NetworkView();
+	NetworkView(QWidget* parent = nullptr);
+	~NetworkView() override;
 
 	using QGraphicsView::centerOn;
 	void centerOn(const QPointF& scenePos);

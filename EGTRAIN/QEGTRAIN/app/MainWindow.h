@@ -195,8 +195,8 @@ class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost {
 	Q_OBJECT
 
 public:
-	explicit MainWindow(QWidget* parent = 0);
-	~MainWindow();
+	explicit MainWindow(QWidget* parent = nullptr);
+	~MainWindow() override;
 
 	// setup GUI
 	void setupGUI();

@@ -43,7 +43,7 @@ class NetworkScene : public QGraphicsScene {
 public:
 	// NetworkScene(QWidget *parent);
 	NetworkScene(QObject* parent);
-	~NetworkScene();
+	~NetworkScene() override;
 
 	void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;

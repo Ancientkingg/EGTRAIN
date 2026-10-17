@@ -26,16 +26,16 @@ class TrackLineItem : public QGraphicsLineItem {
 	// Q_OBJECT
 
 public:
-	TrackLineItem(const QLineF& line, QGraphicsItem* parent = 0);
-	~TrackLineItem();
+	TrackLineItem(const QLineF& line, QGraphicsItem* parent = nullptr);
+	~TrackLineItem() override;
 
 	void setOperationalState(TrackOperationalState state);
 	TrackOperationalState operationalState() const;
 
 	// reimplemented functions
-	QPainterPath shape() const;
-	QRectF boundingRect() const;
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	QPainterPath shape() const override;
+	QRectF boundingRect() const override;
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// track to which Arc belongs
 	int track;
@@ -45,7 +45,7 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 1 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

@@ -14,11 +14,11 @@ class NodeItem : public QGraphicsEllipseItem {
 	// Q_OBJECT
 
 public:
-	NodeItem(const QRectF& rect, QGraphicsItem* parent = 0);
-	~NodeItem();
+	NodeItem(const QRectF& rect, QGraphicsItem* parent = nullptr);
+	~NodeItem() override;
 
 	// reimplemented functions
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// track to which Node belongs
 	int track;
@@ -28,7 +28,7 @@ public:
 
 	// to allow cast
 	enum { Type = UserType + 2 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}

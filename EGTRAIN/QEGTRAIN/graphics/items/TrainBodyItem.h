@@ -12,18 +12,18 @@ class TrainBodyItem : public QGraphicsPolygonItem {
 	// Q_OBJECT
 
 public:
-	TrainBodyItem(const QPolygonF& polygon, QGraphicsItem* parent = 0);
-	~TrainBodyItem();
+	TrainBodyItem(const QPolygonF& polygon, QGraphicsItem* parent = nullptr);
+	~TrainBodyItem() override;
 
 	// reimplemented functions
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	// train index on list of trains (train ID is not unique, index is)
 	int index;
 
 	// to allow cast
 	enum { Type = UserType + 7 };
-	int type() const {
+	int type() const override {
 		// Enable the use of qgraphicsitem_cast with this item.
 		return Type;
 	}
