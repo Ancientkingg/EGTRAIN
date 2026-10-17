@@ -7,6 +7,7 @@
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RunResults.h"
 
+#include <QImage>
 #include <QString>
 #include <QStringList>
 
@@ -21,6 +22,11 @@
 // CSV text of a finished run and the inputs of its diagrams. The functions read nothing but their arguments.
 
 std::string csvValue(const RunResultValue& value);
+
+class QTableView;
+
+// The whole table as an image: every row and column at its natural size, with no scroll bars.
+QImage fullTableImage(const QTableView& table);
 
 std::string buildBlockingTimeCsv(const QStringList& visibleTrainIds,
 	const std::vector<BlockingTimeDiagramSegment>& segments,
@@ -69,6 +75,7 @@ struct BlockingTimeDiagramData {
 	std::vector<std::vector<BlockingTimePlannedReference>> plannedLines; // Clipped to the scope, for the chart
 	std::vector<BlockingTimeTrajectory> trajectories;
 	std::vector<std::vector<std::string>> trajectoryRows; // The export rows of the trajectories
+	std::pair<double, double> timeRange;				  // Elapsed seconds that the chart spans: the interval of the scope
 	int omitted = 0;									  // Endpoints and events that could not be projected
 };
 

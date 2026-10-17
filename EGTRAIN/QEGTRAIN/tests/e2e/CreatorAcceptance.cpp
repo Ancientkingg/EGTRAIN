@@ -58,6 +58,7 @@
 #include <QGraphicsTextItem>
 #include <QGuiApplication>
 #include <QIODevice>
+#include <QImage>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -2062,6 +2063,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptFileDialog(path("run_summary.png"), false);
 		summaryPng->click();
 		process();
+		int summaryColumnsWidth = 0;
+		for (int column = 0; column < w.m_runResultsTable->columnCount(); ++column)
+			summaryColumnsWidth += w.m_runResultsTable->columnWidth(column);
+		const QImage summaryImage(path("run_summary.png"));
+		if (summaryImage.isNull() || summaryImage.width() / summaryImage.devicePixelRatio() < summaryColumnsWidth) {
+			fail(QStringLiteral("the run summary picture does not show every column of the table"));
+			return;
+		}
 
 		auto boundedResultDialog = [process](QDialog* dialog, QTableWidget* table,
 									   QPushButton* secondary) {

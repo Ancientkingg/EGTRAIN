@@ -39,6 +39,9 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QHeaderView>
+#include <QImage>
+#include <QTableWidget>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QtCharts/QChart>
@@ -503,6 +506,8 @@ void checkBlockingDiagrams(const CapturedRun& run) {
 		const auto diagram = blockingTimeDiagramData(run.data, scopes[k]);
 		if (!diagram)
 			continue;
+		check(diagram->timeRange.first == scopes[k].startTime && diagram->timeRange.second == scopes[k].endTime,
+			label + ": the time axis spans the interval of the scope");
 		std::size_t points = 0;
 		bool inScope = true;
 		for (const BlockingTimeTrajectory& line : diagram->trajectories)
@@ -1138,6 +1143,45 @@ void testUsedRoutes() {
 	check(usedRouteReferencesFrom(CompletedRunData()).empty(), "no route in an empty run");
 }
 
+// The picture of a table shows every column and row, whatever the width of the table.
+void testFullTableImage() {
+	QTableWidget table;
+	const QStringList headers = {"Train", "Operating code", "Start time (hh:mm:ss)", "Energy consumed (kWh)",
+		"Energy consumed with regenerative braking (kWh)", "Substation request (kWh)", "Substation request with regenerative braking (kWh)"};
+	table.setColumnCount(headers.size());
+	table.setHorizontalHeaderLabels(headers);
+	table.setRowCount(30);
+	for (int row = 0; row < table.rowCount(); ++row)
+		for (int column = 0; column < table.columnCount(); ++column)
+			table.setItem(row, column, new QTableWidgetItem(QString("r%1 c%2").arg(row).arg(column)));
+	const QColor marker(250, 10, 10);
+	table.item(table.rowCount() - 1, table.columnCount() - 1)->setBackground(marker);
+	table.resizeColumnsToContents();
+	table.resize(320, 140);
+	table.show();
+	QApplication::processEvents();
+
+	int columnsWidth = 0;
+	for (int column = 0; column < table.columnCount(); ++column)
+		columnsWidth += table.columnWidth(column);
+	int rowsHeight = 0;
+	for (int row = 0; row < table.rowCount(); ++row)
+		rowsHeight += table.rowHeight(row);
+	check(columnsWidth > table.width() && rowsHeight > table.height(), "the table is narrower and lower than its contents");
+
+	const QImage image = fullTableImage(table);
+	const qreal ratio = image.devicePixelRatio();
+	check(image.width() / ratio >= columnsWidth + table.verticalHeader()->width() && image.height() / ratio >= rowsHeight + table.horizontalHeader()->height(),
+		"the picture of the table spans all columns and rows");
+	// The marked cell is the last of the last row. Without scroll bars it is drawn in the bottom right corner.
+	bool marked = false;
+	for (int x = image.width() - 12; x < image.width() - 2; ++x)
+		for (int y = image.height() - 12; y < image.height() - 2; ++y)
+			marked = marked || image.pixelColor(x, y) == marker;
+	check(marked, "the last cell is drawn in the picture, with no scroll bar over it");
+	check(table.width() == 320 && table.height() == 140, "the picture leaves the size of the table as it was");
+}
+
 // Runs the scope dialog on hand-made choices and lets `answer` act on it once it is open.
 bool askScope(const BlockingTimeScopeChoices& choices, BlockingTimeScope& scope, const std::function<void(QDialog&)>& answer) {
 	QTimer::singleShot(0, [&answer]() {
@@ -1352,6 +1396,30 @@ void testCapacityDialog() {
 	});
 	check(!accepted && kept.routeIndex == -1 && kept.blockIds.empty() && kept.occurrenceIds.empty() && kept.cycleEndOccurrenceId.empty(),
 		"cancel after a refusal gives no scope");
+
+	// With exactly two checked occurrences the second one is the only one that can close the cycle, so it is chosen.
+	CapacityAnalysisScope pair;
+	accepted = askCapacityScope(run, pair, [](QDialog& dialog) {
+		const auto combos = dialog.findChildren<QComboBox*>();
+		const auto list = dialog.findChild<QListWidget*>();
+		const auto* status = dialog.findChild<QLabel*>("capacityScopeStatus");
+		if (combos.size() != 4 || !list || !status)
+			return;
+		combos[2]->setCurrentIndex(0);
+		check(combos[3]->currentIndex() == 0, "three checked occurrences leave the closing occurrence to the user");
+		list->item(1)->setCheckState(Qt::Unchecked);
+		check(combos[3]->currentData().toString() == "c", "the second of two checked occurrences closes the cycle");
+		list->item(1)->setCheckState(Qt::Checked);
+		list->item(2)->setCheckState(Qt::Unchecked);
+		check(combos[3]->currentData().toString() == "b", "the choice follows the checked occurrences");
+		list->item(2)->setCheckState(Qt::Checked);
+		check(combos[3]->currentData().toString() == "b", "a third checked occurrence keeps the choice");
+		list->item(2)->setCheckState(Qt::Unchecked);
+		forbidMessageBox();
+		dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok)->click();
+	});
+	check(accepted && pair.occurrenceIds == std::vector<std::string>({"a", "b"}) && pair.cycleEndOccurrenceId == "b",
+		"two checked occurrences are accepted without choosing the closing one");
 }
 
 // --- Long identifiers ---
@@ -1526,6 +1594,7 @@ int main(int argc, char** argv) {
 	testUsedRoutes();
 	testScopeDialog();
 	testCapacityDialog();
+	testFullTableImage();
 	testScopeDialogsWithLongIds();
 
 	if (failures)

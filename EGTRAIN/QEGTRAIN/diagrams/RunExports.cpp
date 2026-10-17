@@ -5,6 +5,10 @@
 #include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
 
+#include <QAbstractItemModel>
+#include <QHeaderView>
+#include <QTableView>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -335,6 +339,7 @@ std::optional<BlockingTimeDiagramData> blockingTimeDiagramData(const CompletedRu
 
 	BlockingTimeDiagramData result;
 	result.referencePath = referenceRoute.path;
+	result.timeRange = {scope.startTime, std::max(scope.endTime, scope.startTime + 1.0)};
 	const RouteProjections maps = projectRoutes(data, result.referencePath, true);
 	result.segments = projectBlockingSegments(scoped, maps.byTrain, result.omitted, &result.unmapped);
 	const auto allExtents = buildBlockSectionExtents(referenceRoute.blocks);
@@ -630,4 +635,28 @@ std::optional<RouteDiagramData> routeDiagramData(const CompletedRunData& data, b
 		}
 	}
 	return result;
+}
+
+QImage fullTableImage(const QTableView& table) {
+	// A copy of the view on the same model with the sections of the table at their sizes but no scroll bars, so that
+	// the width of the dock and the scrolling do not matter.
+	QTableView full;
+	full.setModel(table.model());
+	full.setFont(table.font());
+	full.setPalette(table.palette());
+	full.setAlternatingRowColors(table.alternatingRowColors());
+	full.setShowGrid(table.showGrid());
+	full.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	full.horizontalHeader()->setStretchLastSection(false);
+	full.horizontalHeader()->setFixedHeight(table.horizontalHeader()->height());
+	full.verticalHeader()->setFixedWidth(table.verticalHeader()->width());
+	for (int column = 0; column < table.model()->columnCount(); ++column)
+		full.setColumnWidth(column, table.columnWidth(column));
+	for (int row = 0; row < table.model()->rowCount(); ++row)
+		full.setRowHeight(row, table.rowHeight(row));
+	const int frame = 2 * full.frameWidth();
+	full.resize(full.verticalHeader()->width() + full.horizontalHeader()->length() + frame,
+		full.horizontalHeader()->height() + full.verticalHeader()->length() + frame);
+	return full.grab().toImage();
 }
