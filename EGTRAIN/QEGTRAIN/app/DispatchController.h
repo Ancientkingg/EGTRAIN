@@ -43,8 +43,8 @@ public:
 	void resetState();
 
 	// The run that prepareScene made, with the results after it has been run. The thread that steps the run
-	// owns it: while a SimulationWorker is running, the window sees the run only through the snapshots. Call this
-	// on the GUI thread before the worker starts or after it has joined.
+	// owns it: while a SimulationWorker is running, only that thread calls this, and the window sees the run through
+	// the snapshots. Other threads call it before the worker starts or after it has joined.
 	const SimulationRun& run() const;
 
 	void runSimulation();
