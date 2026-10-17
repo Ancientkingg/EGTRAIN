@@ -21,12 +21,14 @@ class QPushButton;
 struct SceneSectionDescriptor;
 struct SceneSectionInventory;
 
-// The infrastructure of the scene: a combo to pick the kind of entity, a table with one row for each entity of that
-// kind, and the buttons that add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections,
-// stations, platforms, signals, signalling areas, routes, block dependencies, single-track restrictions and station
-// boundaries. What a kind lists and how it is edited is up to its InfrastructureFacet; a kind without one lists
-// nothing. Blocks come with a filter on the track and buttons that insert and move a block, and routes with the list of
-// their sections and the buttons that change it. The buttons call the facet that is chosen.
+// The infrastructure of the scene: a combo on top to pick the kind of entity, a sentence about the kind
+// (infrastructureGuidanceText), a table with one row for each entity of that kind, and under the table the buttons that
+// add and delete one. The kinds are the facets: tracks, nodes, arcs, blocks, connections, stations, platforms, signals,
+// signalling areas, routes, block dependencies, single-track restrictions and station boundaries. What a kind lists and
+// how it is edited is up to its InfrastructureFacet; a kind without one lists nothing. Blocks come with a filter on the
+// track under the combo and buttons that insert and move a block. Routes come with the heading "Route sections" and the
+// list of their sections and the buttons that change it, below the table in a splitter. The buttons call the facet that
+// is chosen.
 class InfrastructurePanel : public SceneEditorPanel {
 	Q_OBJECT
 

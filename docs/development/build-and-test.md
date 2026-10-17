@@ -320,7 +320,7 @@ deletion change the model and mark the document once, that a refused or cancelle
 keeps what refers to the entity.
 The infrastructure facets have one test for each file of facets: `test_editor_infrastructure_topology`,
 `test_editor_infrastructure_blocks`, `test_editor_infrastructure_stations` and `test_editor_infrastructure_signals`.
-`test_editor_infrastructure` checks the panel itself with facets of its own.
+`test_editor_infrastructure` checks the panel itself with facets of its own, including where its buttons and the sections of a route are placed. `test_infrastructureguidance` checks the sentence above the table for each of the thirteen facets, with and without entities and a scene.
 
 `test_recoverystore` checks `RecoveryStore` in one process: the layout of an
 instance folder, writing and replacing a copy, a failed write that keeps the
@@ -1389,8 +1389,11 @@ without a file, with Save As starting at the original; and that a folder that ca
 be made is reported once while the editing goes on. Next
 it checks the layout of the editors: the main window does not grow beyond 1280
 by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
-font size, a floated dock stays within 750 by 600 and keeps its scroll area, and
-the Add button of the Passengers editor is in view. Last, it opens each editor dock, moves the focus
+font size, a floated dock stays within 750 by 600 and keeps its scroll area,
+the Add button of the Passengers editor is in view, and the buttons of the Infrastructure editor for Blocks and
+Routes sit under its table without sideways scrolling. In the docked editor all of them, including the four buttons of the
+route sections, are in the first view. In the floating dock of 750 by 600 the table buttons and the block buttons are in
+the first view, and the route section buttons are reached by scrolling to the end of the editor. Last, it opens each editor dock, moves the focus
 through its fields with Tab, scrolls, floats and resizes the dock, resizes the
 main window and closes and reopens the dock, and requires that the modified
 flag and the revision of the scene stay as they were.

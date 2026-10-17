@@ -1,6 +1,8 @@
 #include "editors/InfrastructurePanel.h"
 
+#include "editors/infrastructure/InfrastructureGuidance.h"
 #include "scene/SectionInventory.h"
+#include "widgets/EditorLayout.h"
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -9,6 +11,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QSplitter>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -50,56 +53,73 @@ const SceneModel& emptyScene() {
 InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("infrastructurePanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
-	QHBoxLayout* toolbar = new QHBoxLayout();
-	toolbar->addWidget(new QLabel("Entity", this));
+	QHBoxLayout* facetRow = new QHBoxLayout();
+	facetRow->addWidget(new QLabel("Entity", this));
 	m_facetCombo = new QComboBox(this);
 	m_facetCombo->setObjectName("infrastructureFacetCombo");
 	m_facetCombo->setAccessibleName("Infrastructure entity");
 	for (const FacetEntry& entry : kFacets)
 		m_facetCombo->addItem(QString::fromLatin1(entry.title), QString::fromLatin1(entry.key));
-	toolbar->addWidget(m_facetCombo, 1);
-	m_addButton = new QPushButton("Add", this);
-	m_addButton->setObjectName("infrastructureAddButton");
-	m_deleteButton = new QPushButton("Delete", this);
-	m_deleteButton->setObjectName("infrastructureDeleteButton");
-	toolbar->addWidget(m_addButton);
-	toolbar->addWidget(m_deleteButton);
-	layout->addLayout(toolbar);
+	facetRow->addWidget(m_facetCombo, 1);
+	layout->addLayout(facetRow);
 
-	QHBoxLayout* blockToolbar = new QHBoxLayout();
 	m_blockTrackFilterCombo = new QComboBox(this);
 	m_blockTrackFilterCombo->setObjectName("blockTrackFilterCombo");
 	m_blockTrackFilterCombo->setAccessibleName("Block track filter");
 	m_blockTrackFilterCombo->setToolTip("Show blocks on one track; Add appends to this track");
-	blockToolbar->addWidget(m_blockTrackFilterCombo, 1);
-	m_insertBlockButton = new QPushButton("Insert", this);
-	m_insertBlockButton->setObjectName("blockInsertButton");
-	m_moveBlockUpButton = new QPushButton("Move Up", this);
-	m_moveBlockUpButton->setObjectName("blockMoveUpButton");
-	m_moveBlockDownButton = new QPushButton("Move Down", this);
-	m_moveBlockDownButton->setObjectName("blockMoveDownButton");
-	blockToolbar->addWidget(m_insertBlockButton);
-	blockToolbar->addWidget(m_moveBlockUpButton);
-	blockToolbar->addWidget(m_moveBlockDownButton);
-	layout->addLayout(blockToolbar);
+	layout->addWidget(m_blockTrackFilterCombo);
 
 	m_guidanceLabel = new QLabel(this);
 	m_guidanceLabel->setObjectName("infrastructureGuidance");
 	m_guidanceLabel->setWordWrap(true);
 	m_guidanceLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	layout->addWidget(m_guidanceLabel);
-	m_table = new QTableWidget(this);
+
+	// The table with its buttons, and below it the sections of a route. The user can resize the two.
+	auto* splitter = new QSplitter(Qt::Vertical, this);
+	splitter->setObjectName("infrastructureSplitter");
+	splitter->setChildrenCollapsible(false);
+	layout->addWidget(splitter, 1);
+
+	auto* tablePane = new QWidget(splitter);
+	tablePane->setObjectName("infrastructureTablePane");
+	QVBoxLayout* tableLayout = new QVBoxLayout(tablePane);
+	tableLayout->setContentsMargins(0, 0, 0, 0);
+	m_table = new QTableWidget(tablePane);
 	m_table->setObjectName("infrastructureTable");
 	m_table->setAccessibleName("Infrastructure fields");
 	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->horizontalHeader()->setStretchLastSection(true);
-	layout->addWidget(m_table);
+	tableLayout->addWidget(m_table, 1);
 
-	m_routeSectionDetailWidget = new QWidget(this);
+	QHBoxLayout* actions = new QHBoxLayout();
+	m_addButton = new QPushButton("Add", tablePane);
+	m_addButton->setObjectName("infrastructureAddButton");
+	m_deleteButton = new QPushButton("Delete", tablePane);
+	m_deleteButton->setObjectName("infrastructureDeleteButton");
+	m_insertBlockButton = new QPushButton("Insert", tablePane);
+	m_insertBlockButton->setObjectName("blockInsertButton");
+	m_moveBlockUpButton = new QPushButton("Move Up", tablePane);
+	m_moveBlockUpButton->setObjectName("blockMoveUpButton");
+	m_moveBlockDownButton = new QPushButton("Move Down", tablePane);
+	m_moveBlockDownButton->setObjectName("blockMoveDownButton");
+	actions->addWidget(m_addButton);
+	actions->addWidget(m_deleteButton);
+	actions->addWidget(m_insertBlockButton);
+	actions->addWidget(m_moveBlockUpButton);
+	actions->addWidget(m_moveBlockDownButton);
+	actions->addStretch();
+	tableLayout->addLayout(actions);
+
+	m_routeSectionDetailWidget = new QWidget(splitter);
 	m_routeSectionDetailWidget->setObjectName("routeSectionDetailWidget");
 	QVBoxLayout* routeSectionDetailLayout = new QVBoxLayout(m_routeSectionDetailWidget);
+	routeSectionDetailLayout->setContentsMargins(0, 0, 0, 0);
+	QLabel* routeSectionHeading = EditorLayout::sectionHeading("Route sections", m_routeSectionDetailWidget);
+	routeSectionHeading->setObjectName("routeSectionHeading");
+	routeSectionDetailLayout->addWidget(routeSectionHeading);
 	QHBoxLayout* routeSectionCatalogLayout = new QHBoxLayout();
 	routeSectionCatalogLayout->addWidget(new QLabel("Section catalog", m_routeSectionDetailWidget));
 	m_routeSectionCatalogCombo = new QComboBox(m_routeSectionDetailWidget);
@@ -113,7 +133,7 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	m_routeSectionListWidget = new QListWidget(m_routeSectionDetailWidget);
 	m_routeSectionListWidget->setObjectName("routeSectionList");
 	m_routeSectionListWidget->setAccessibleName("Ordered route sections");
-	routeSectionDetailLayout->addWidget(m_routeSectionListWidget);
+	routeSectionDetailLayout->addWidget(m_routeSectionListWidget, 1);
 	QHBoxLayout* routeSectionActions = new QHBoxLayout();
 	m_removeRouteSectionButton = new QPushButton("Remove", m_routeSectionDetailWidget);
 	m_removeRouteSectionButton->setObjectName("routeRemoveSectionButton");
@@ -126,7 +146,8 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	routeSectionActions->addWidget(m_moveRouteSectionDownButton);
 	routeSectionActions->addStretch();
 	routeSectionDetailLayout->addLayout(routeSectionActions);
-	layout->addWidget(m_routeSectionDetailWidget);
+	splitter->setStretchFactor(0, 1);
+	splitter->setStretchFactor(1, 1);
 
 	connect(m_facetCombo, &QComboBox::currentTextChanged, this, [this](const QString&) {
 		m_selectionId.clear();
@@ -254,19 +275,15 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_table->setEnabled(editable);
 
 	const bool empty = m_table->rowCount() == 0;
-	QString guidance;
-	if (!hasScene())
-		guidance = QStringLiteral("Open a case to edit infrastructure.");
-	else if (key == QStringLiteral("blocks") && empty)
-		guidance = QStringLiteral("No blocks on this track. Choose another track or add a block.");
-	else if (key == QStringLiteral("routes") && empty)
-		guidance = QStringLiteral("No routes yet. Add a route, then choose sections from the catalog.");
-	else if (empty)
-		guidance = QStringLiteral("No %1 yet. Use Add to create one.").arg(facetTitle().toLower());
-	else if (key == QStringLiteral("routes"))
-		guidance = QStringLiteral("Select a route to edit its ordered sections below.");
-	else if (key == QStringLiteral("blocks"))
-		guidance = QStringLiteral("Blocks are ordered on the chosen track; select a row to insert or move it.");
+	InfrastructureGuidanceState state;
+	state.loaded = hasScene();
+	state.editable = editable;
+	if (state.loaded) {
+		state.tracks = static_cast<int>(model().tracks.size());
+		state.nodes = static_cast<int>(model().nodes.size());
+		state.stations = static_cast<int>(model().stations.size());
+	}
+	const QString guidance = infrastructureGuidanceText(key, empty, state);
 	m_guidanceLabel->setText(guidance);
 	m_guidanceLabel->setVisible(!guidance.isEmpty());
 
