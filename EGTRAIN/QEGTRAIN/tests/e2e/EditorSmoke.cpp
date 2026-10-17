@@ -4020,20 +4020,6 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 	}
 
-	if (ok && w.m_sceneLoaded) {
-		QTemporaryDir undoTempDir;
-		QString undoOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
-		if (undoOut.isEmpty())
-			undoOut = undoTempDir.path();
-		const QStringList undoFailures = checkUndoRedo(w, scenePath, undoOut);
-		for (const QString& failure : undoFailures) {
-			ok = false;
-			failures << failure;
-		}
-		if (undoFailures.isEmpty())
-			std::fprintf(stdout, "E2E_EDITOR_UNDO_REDO_OK\n");
-	}
-
 	if (ok) {
 		auto* servicePages = w.findChild<QTabWidget*>("serviceEditorPages");
 		const bool serviceStructure = servicePages && servicePages->count() == 2
@@ -4284,6 +4270,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_UNTOUCHED_OK\n");
 	}
+	// Last, because it opens copies of the scene and leaves another scene and selection behind.
+	if (ok && w.m_sceneLoaded) {
+		QTemporaryDir undoTempDir;
+		QString undoOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		if (undoOut.isEmpty())
+			undoOut = undoTempDir.path();
+		const QStringList undoFailures = checkUndoRedo(w, scenePath, undoOut);
+		for (const QString& failure : undoFailures) {
+			ok = false;
+			failures << failure;
+		}
+		if (undoFailures.isEmpty())
+			std::fprintf(stdout, "E2E_EDITOR_UNDO_REDO_OK\n");
+	}
+
 	if (ok) {
 		std::fprintf(stdout, "E2E_EDITOR_SMOKE_OK\n");
 		std::fflush(stdout);
