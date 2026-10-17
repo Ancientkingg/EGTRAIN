@@ -91,14 +91,15 @@ once. A test gets only the library members it references. `egtrain_recovery` hol
 `RecoveryStore`, `RecoveryController` and `RecoveryPrompt`. `QEGTRAIN` links it, and so do
 `test_recoverystore`, `test_recoverycontroller` and `test_recoveryprompt`.
 
-Three things are still compiled more than once. The telemetry sources are built
+Four things are still compiled more than once. The telemetry sources are built
 again with test hooks as `egtrain_telemetry_hooks` when tests are built, and as
 `egtrain_telemetry_smoke` for the application in the isolated telemetry smoke
 configuration, because the hooks change the layout of the telemetry classes.
 `TelemetryConsentDialog.cpp` is compiled in `QEGTRAIN` and in
 `test_telemetryconsent` for the same reason. `update/SelfUpdater.cpp` is compiled
 in `QEGTRAIN` and in `test_selfupdater` with `EGTRAIN_UPDATE_TEST_HOOK`, which adds
-`SelfUpdater::setTestHook`. See
+`SelfUpdater::setTestHook`. `app/UpdateTelemetryController.cpp` is compiled in `QEGTRAIN` and in
+`test_updatetelemetrycontroller`, together with `TelemetryConsentDialog.cpp` and `SelfUpdater.cpp`. See
 [Source layout](../architecture/source-layout.md#libraries).
 
 With `EGTRAIN_BUILD_TESTS=ON`, `QEGTRAIN` also compiles the sources in
@@ -110,7 +111,8 @@ is set. A build without tests, such as the three package builds, compiles none
 of it: in such a build the first show of the window starts no scenario and
 `QEGTRAIN_E2E_SETTINGS_DIR` redirects no settings. `MainWindowTestAccess` is the
 friend class of `MainWindow` that the runner calls, and of `SceneDocument`, whose revision a scenario sets when it
-replaces the scene without an edit, and of `SceneSession`, whose scene folder and diagnostics a scenario sets.
+replaces the scene without an edit, of `SceneSession`, whose scene folder and diagnostics a scenario sets, and of
+`UpdateTelemetryController`, whose settings, consent and sender the telemetry smoke sets.
 A scenario is a member of
 `MainWindowTestAccess` defined in its own file in that folder (the legacy import
 smoke is `LegacyImport.cpp`, the scene drop smoke `SceneDrop.cpp`, the output folder
@@ -131,7 +133,7 @@ application holds by then. A scenario keeps its state, such as whether it
 has begun its checks, in `MainWindowTestAccess`, not in the window.
 
 `Dialogs.cpp` answers the dialogs that the window opens. `showStartupChooser`, `showRunReview` and
-`showPrivacySettings` call the `dialogShown` hook of `MainWindowTestHooks` with the dialog just before
+`UpdateTelemetryController::showPrivacySettings` call the `dialogShown` hook of `MainWindowTestHooks` with the dialog just before
 it opens, and the first two call `dialogClosed` once they have read the answer. With
 `QEGTRAIN_E2E_STARTUP_CHOOSER` set, the runner records the rows and menus of the case chooser, takes the
 action that `QEGTRAIN_E2E_CHOOSER_INTERACTION` names on the row of `QEGTRAIN_E2E_CHOOSER_PATH`, and prints
@@ -143,7 +145,7 @@ to `1` or `settings` and `QEGTRAIN_E2E_SETTINGS_DIR` set, the `privacyPreview` h
 dialog a fake context, no telemetry starts, and `QEGTRAIN_E2E_SCREENSHOT` names the file that receives a
 picture of the dialog. In the isolated telemetry smoke configuration (`EGTRAIN_ISOLATED_TELEMETRY_SMOKE`,
 described in [Telemetry](../telemetry/README.md)) `TelemetrySmoke.cpp` is compiled too. Its hooks
-`telemetryStart`, `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
+`telemetryStart` (which gets the `UpdateTelemetryController` of the window), `observationStep`, `runStarting` and `windowDestroyed` start the telemetry in the
 folder that `QEGTRAIN_E2E_TELEMETRY_SMOKE` names, fail the steps that install the observation of a run,
 stop a run at the point that the mode names, and print `E2E_TELEMETRY_SHUTDOWN`; the actions of each mode
 are in `runTelemetrySmoke`, which `tools/e2e/telemetry_smoke.py` drives.

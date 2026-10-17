@@ -54,7 +54,7 @@ public:
 #ifdef EGTRAIN_ISOLATED_TELEMETRY_SMOKE
 	// The telemetry smoke, defined in TelemetrySmoke.cpp: the isolated start of telemetry, the script that follows it, and the
 	// checks that a run and the end of the window report.
-	static bool startTelemetrySmoke(MainWindow& w);
+	static bool startTelemetrySmoke(UpdateTelemetryController& controller);
 	static void telemetryObservationStep(int step);
 	static void telemetryRunStarting(MainWindow& w);
 	static void telemetryWindowDestroyed();

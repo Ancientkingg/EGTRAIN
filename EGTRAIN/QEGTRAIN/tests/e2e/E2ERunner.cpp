@@ -119,7 +119,7 @@ bool previewPrivacy(TelemetryContext& context, bool& initialPrompt) {
 	return true;
 }
 
-bool startNoTelemetry(MainWindow&) {
+bool startNoTelemetry(UpdateTelemetryController&) {
 	return false;
 }
 

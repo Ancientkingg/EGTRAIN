@@ -12,7 +12,7 @@
 #include "app/SceneOpenRequest.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/SceneSavePolicy.h"
-#include "app/UpdatePromptText.h"
+#include "app/UpdateTelemetryController.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
@@ -60,6 +60,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
+#include "editors/ValidationPanel.h"
 #include "editors/infrastructure/BlockRouteFacets.h"
 #include "editors/infrastructure/SignalFacets.h"
 #include "editors/infrastructure/StationFacets.h"
@@ -80,14 +81,7 @@
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
-#include "update/ReleaseInfo.h"
-#include "update/UpdateChecker.h"
 #include "update/UpdateNotices.h"
-#include "update/UpdateSettings.h"
-#include "telemetry/TelemetryConsent.h"
-#include "telemetry/TelemetryConsentDialog.h"
-#include "telemetry/TelemetrySender.h"
-#include "update/SelfUpdater.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QValueAxis>
@@ -113,7 +107,6 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QDialogButtonBox>
-#include <QProgressDialog>
 #include <QInputDialog>
 #include <QCoreApplication>
 #include <QElapsedTimer>
@@ -125,7 +118,6 @@
 #include <QScopedValueRollback>
 #include <QSettings>
 #include <QIcon>
-#include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMimeData>
@@ -437,39 +429,6 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 	}
 }
 
-void addLoadedDataTreeItem(QTreeWidget* tree, QTreeWidgetItem* parent, const SceneLoadedData& item) {
-	auto* row = parent ? new QTreeWidgetItem(parent) : new QTreeWidgetItem(tree);
-	QString label = QString::fromStdString(item.category);
-	const bool isEntityId = item.targetType == "train_unit" || item.targetType == "composition"
-		|| item.targetType == "service" || item.targetType == "incident";
-	if (!isEntityId && !label.contains(':')) {
-		label.replace('_', ' ');
-		if (!label.isEmpty())
-			label[0] = label[0].toUpper();
-		if (label == "Scene")
-			label = "Case metadata";
-		if (label == "Train units")
-			label = "Rolling stock units";
-	}
-	row->setText(0, label);
-	row->setText(1, QString::fromStdString(item.sourceFile));
-	row->setText(2, QString::number(item.parsedCount));
-	row->setText(3, QString::fromStdString(item.status));
-	if (!item.targetType.empty()) {
-		row->setData(0, kLoadedDataTargetTypeRole, QString::fromStdString(item.targetType));
-		const QString tooltip = item.targetType == "network"
-			? QStringLiteral("Activate this row to focus the existing network view.")
-			: (item.targetType == "validation"
-					  ? QStringLiteral("Activate this row to open the existing validation table.")
-					  : (item.targetType == "train_unit_plot"
-								? QStringLiteral("Activate this row to plot this rolling stock unit's tractive effort.")
-								: QStringLiteral("Activate this row to open the existing editor.")));
-		row->setToolTip(0, tooltip);
-	}
-	for (const auto& child : item.children)
-		addLoadedDataTreeItem(tree, row, child);
-}
-
 bool e2eDialogsSuppressed() {
 	return startupTimingEnabled()
 		|| PlaybackProfiler::enabled()
@@ -597,12 +556,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	startRecovery();
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	setupEditMenu();
-	setupUpdateActions();
+	m_updateTelemetry = std::make_unique<UpdateTelemetryController>(
+		this, [this] { return m_session->maybeSaveScene(); },
+		[this] {
+			if (m_recovery)
+				m_recovery->shutdown();
+		});
+	m_updateTelemetry->setupUpdateActions(ui->menuHelp);
 	if (ui->menuHelp) {
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy && diagnostics..."));
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
 		privacy->setShortcut(QKeySequence::Preferences);
-		connect(privacy, &QAction::triggered, this, [this] { showPrivacySettings(false); });
+		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 
@@ -1193,17 +1158,34 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		ui->menuView->addAction(m_logPane->toggleViewAction());
 
 	// scene validation panel: dockable table of SceneDiagnostic entries, empty until a scene loads
+	m_validation = new ValidationPanel(this);
+	m_validation->setDocument(m_document);
+	m_validation->setDiagnostics(m_session->mutableDiagnostics());
+	m_validation->setAdvancedDetails([this] { return advancedDetailsEnabled(); });
+	m_validation->setDurationOverride([] {
+		return initial_variables.durationOverride ? std::optional<double>(initial_variables.times) : std::nullopt;
+	});
+	m_validation->setLoadedDataContext([this] {
+		ValidationPanel::LoadedDataContext context;
+		context.sceneDir = m_session->sceneDir();
+		context.sceneIsBundle = m_session->sceneIsBundle();
+		context.bundleVersion = m_session->sceneBundleVersion();
+		context.runtimeStatus = m_runtimeStatus;
+		context.runtimeDiagnostics = m_runtimeDiagnostics;
+		context.appliedScenarioId = m_runSelection.appliedScenarioId();
+		context.resultsAvailable = m_resultsAvailable;
+		return context;
+	});
+	connect(m_validation, &ValidationPanel::statusChanged, this, &MainWindow::updateCaseLayersPanel);
+	connect(m_validation, &ValidationPanel::refreshed, this, [this] {
+		m_scenarioPanel->refresh();
+		m_passengerPanel->refresh();
+		updateSceneActions();
+	});
+	connect(m_validation, &ValidationPanel::targetActivated, this, &MainWindow::openLoadedDataTarget);
 	m_validationDock = new QDockWidget("Scene Validation", this);
 	m_validationDock->setObjectName("sceneValidationDock");
-	m_validationTable = new QTableWidget(0, 6, m_validationDock);
-	QStringList validationHeaders;
-	validationHeaders << "Severity" << "Code" << "Message" << "File" << "Path" << "Suggested Fix";
-	m_validationTable->setHorizontalHeaderLabels(validationHeaders);
-	m_validationTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_validationTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_validationTable->horizontalHeader()->setStretchLastSection(true);
-	m_validationTable->resizeColumnsToContents();
-	m_validationDock->setWidget(m_validationTable);
+	m_validationDock->setWidget(m_validation->table());
 	addDockWidget(Qt::BottomDockWidgetArea, m_validationDock);
 	m_validationDock->hide();
 	tabifyDockWidget(m_logPane, m_validationDock);
@@ -1213,24 +1195,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_loadedDataDock = new QDockWidget("Loaded Data", this);
 	m_loadedDataDock->setObjectName("loadedDataDock");
-	m_loadedDataTree = new QTreeWidget(m_loadedDataDock);
-	m_loadedDataTree->setColumnCount(4);
-	m_loadedDataTree->setHeaderLabels(QStringList() << "Category" << "Source" << "Count" << "Status");
-	m_loadedDataTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_loadedDataTree->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_loadedDataTree->setUniformRowHeights(true);
-	m_loadedDataTree->setToolTip("Activate rows to open existing editors.");
-	m_loadedDataTree->setAccessibleDescription("Loaded case data. Activatable rows open existing editors.");
-	m_loadedDataTree->header()->setStretchLastSection(true);
-	m_loadedDataDock->setWidget(m_loadedDataTree);
+	m_loadedDataDock->setWidget(m_validation->tree());
 	addDockWidget(Qt::BottomDockWidgetArea, m_loadedDataDock);
 	m_loadedDataDock->hide();
 	tabifyDockWidget(m_validationDock, m_loadedDataDock);
 	tabifyDockWidget(m_loadedDataDock, m_runResultsDock);
 	if (ui->menuView)
 		ui->menuView->addAction(m_loadedDataDock->toggleViewAction());
-	connect(m_loadedDataTree, &QTreeWidget::itemActivated, this,
-		[this](QTreeWidgetItem* item, int) { activateLoadedDataItem(item); });
 
 	m_advancedDetailsAction = new QAction(QStringLiteral("Advanced / Developer details"), this);
 	m_advancedDetailsAction->setObjectName(QStringLiteral("actionAdvancedDetails"));
@@ -1254,7 +1225,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		}
 		if (!enabled && m_validationDock)
 			m_validationDock->hide();
-		updateDiagnosticPresentation();
+		m_validation->updateStatus();
 		m_scenarioPanel->updatePresentation();
 		refreshRunResultsSummary();
 		updateDiagramActions();
@@ -1636,8 +1607,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
-	m_validationStatusLabel = new QLabel(this);
-	statusBar()->addPermanentWidget(m_validationStatusLabel);
+	statusBar()->addPermanentWidget(m_validation->statusLabel());
 	m_zoomStatusLabel = new QLabel(this);
 	m_zoomStatusLabel->setObjectName("zoomStatusLabel");
 	m_zoomStatusLabel->setToolTip("Network zoom");
@@ -1695,7 +1665,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 }
 
 MainWindow::~MainWindow() {
-	if (m_telemetrySender) m_telemetrySender->stop();
+	m_updateTelemetry->stopTelemetry();
 	clearSimulationWorker(true);
 	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
 		windowDestroyed();
@@ -1736,7 +1706,7 @@ void selectSceneOutputFolder(const std::string& sceneName) {
 } // namespace
 
 telemetry::OperationObservation MainWindow::captureTelemetryOperation() const noexcept {
-	return telemetry::OperationObservation(m_telemetrySender.get());
+	return m_updateTelemetry->captureOperation();
 }
 
 void MainWindow::registerEditorDock(QDockWidget* dock) {
@@ -1790,7 +1760,7 @@ bool MainWindow::afterRunStopped(std::function<void()> action) {
 }
 
 void MainWindow::offerUpdateCheck() {
-	startUpdateCheck(true);
+	m_updateTelemetry->startUpdateCheck(true);
 }
 
 void MainWindow::sceneActionsChanged() {
@@ -2068,287 +2038,6 @@ void MainWindow::updateSceneActions() {
 		recentScenesMenu->setEnabled(!SceneSession::recentScenes().isEmpty());
 }
 
-void MainWindow::setupUpdateActions() {
-	if (!ui->menuHelp || updatesSuppressedByEnvironment())
-		return;
-
-	m_checkForUpdatesAction = new QAction(QStringLiteral("Check for Updates..."), this);
-	m_checkForUpdatesAction->setObjectName(QStringLiteral("actionCheckForUpdates"));
-	m_automaticUpdateChecksAction = new QAction(
-		QStringLiteral("Automatically Check for Updates"), this);
-	m_automaticUpdateChecksAction->setObjectName(QStringLiteral("actionAutomaticallyCheckForUpdates"));
-	m_automaticUpdateChecksAction->setCheckable(true);
-	QSettings settings;
-	{
-		const QSignalBlocker blocker(m_automaticUpdateChecksAction);
-		m_automaticUpdateChecksAction->setChecked(
-			readUpdateCheckState(settings) == UpdateCheckState::Enabled);
-	}
-	ui->menuHelp->addSeparator();
-	ui->menuHelp->addAction(m_checkForUpdatesAction);
-	ui->menuHelp->addAction(m_automaticUpdateChecksAction);
-
-	m_updateChecker = new UpdateChecker(this);
-	m_selfUpdater = new SelfUpdater(this);
-	connect(m_checkForUpdatesAction, &QAction::triggered, this,
-		[this]() { startUpdateCheck(true); });
-	connect(m_automaticUpdateChecksAction, &QAction::toggled, this, [this](bool checked) {
-		QSettings preferences;
-		writeUpdateCheckState(preferences, checked ? UpdateCheckState::Enabled : UpdateCheckState::Disabled);
-		preferences.sync();
-	});
-	connect(m_updateChecker, &UpdateChecker::finished, this, &MainWindow::handleUpdateCheckFinished);
-	connect(m_selfUpdater, &SelfUpdater::progress, this, [this](qint64 received, qint64 total) {
-		if (!m_updateProgress)
-			return;
-		if (total > 0) {
-			const qint64 maxValue = std::numeric_limits<int>::max();
-			m_updateProgress->setRange(0, total > maxValue ? static_cast<int>(maxValue) : static_cast<int>(total));
-			m_updateProgress->setValue(received > maxValue ? static_cast<int>(maxValue) : static_cast<int>(received));
-		} else {
-			m_updateProgress->setRange(0, 0);
-		}
-	});
-	connect(m_selfUpdater, &SelfUpdater::finished, this, &MainWindow::handleSelfUpdateFinished);
-	connect(m_selfUpdater, &SelfUpdater::preparing, this, [this](const QString& version) {
-		if (!m_updateProgress)
-			return;
-		m_updateProgress->setLabelText(QStringLiteral("Verifying and preparing EGTRAIN %1...")
-				.arg(version));
-		m_updateProgress->setCancelButton(nullptr);
-		m_updateProgress->setRange(0, 0);
-	});
-}
-
-void MainWindow::startTelemetryAfterInitialConsent() {
-	if (m_telemetrySender) return;
-	try {
-		if (const auto telemetryStart = mainWindowTestHooks().telemetryStart) {
-			if (!telemetryStart(*this)) return;
-		} else {
-			const TelemetryContext context = applicationTelemetryContext();
-			if (!context.capable()) return;
-			m_telemetrySettings.reset(new QSettings);
-			m_telemetryConsent.reset(new TelemetryConsent(*m_telemetrySettings, context));
-			telemetry::Application metadata;
-			metadata.version = QCoreApplication::applicationVersion();
-			m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
-				QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation))
-					.filePath(QStringLiteral("Telemetry"))));
-		}
-		m_telemetrySender->requestInteractiveSession();
-		connect(m_telemetryConsent.get(), &TelemetryConsent::revoked, this, [this](bool usage, bool diagnostics) {
-				if (m_telemetrySender) m_telemetrySender->invalidateConsent(usage, diagnostics); }, Qt::DirectConnection);
-		connect(
-			m_telemetryConsent.get(), &TelemetryConsent::receiverChanged, this,
-			[this] { if (m_telemetrySender) m_telemetrySender->invalidateReceiver(); }, Qt::DirectConnection);
-	} catch (...) {
-		m_telemetrySender.reset();
-		m_telemetryConsent.reset();
-		m_telemetrySettings.reset();
-	}
-}
-
-void MainWindow::showPrivacySettings(bool initialPrompt) {
-	QSettings previewSettings;
-	TelemetryContext context = applicationTelemetryContext();
-	const auto& privacyPreview = mainWindowTestHooks().privacyPreview;
-	const bool preview = privacyPreview && privacyPreview(context, initialPrompt);
-	TelemetryConsent previewConsent(previewSettings, context);
-	TelemetryConsent& consent = preview || !m_telemetryConsent ? previewConsent : *m_telemetryConsent;
-	if (!consent.available()) {
-		if (!initialPrompt)
-			QMessageBox::information(this, QStringLiteral("Privacy & diagnostics"),
-				QStringLiteral("Usage statistics and diagnostics are unavailable in this build or run. Nothing is collected or sent."));
-		return;
-	}
-	if (initialPrompt && !consent.promptRequired()) return;
-	TelemetryConsentDialog dialog(consent, context.domain(), initialPrompt, this);
-	if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
-		dialogShown(dialog, "privacySettings");
-	dialog.exec();
-	if (!preview && m_telemetrySender) m_telemetrySender->requestConsentRefresh();
-}
-
-void MainWindow::maybePromptForUpdateChecks() {
-	if (!m_updateChecker || updatesSuppressedByEnvironment())
-		return;
-	QSettings settings;
-	const UpdateCheckState state = readUpdateCheckState(settings);
-	if (state == UpdateCheckState::Unknown) {
-		QMessageBox dialog(QMessageBox::Question,
-			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
-			update_prompt::automaticChecksQuestion(),
-			QMessageBox::NoButton, this);
-		dialog.setInformativeText(update_prompt::automaticChecksDetail());
-		QPushButton* enableButton = dialog.addButton(QStringLiteral("Check Automatically"),
-			QMessageBox::AcceptRole);
-		dialog.addButton(QStringLiteral("Don't Check Automatically"), QMessageBox::RejectRole);
-		dialog.setDefaultButton(enableButton);
-		dialog.exec();
-		const UpdateCheckState chosen = dialog.clickedButton() == enableButton
-			? UpdateCheckState::Enabled
-			: UpdateCheckState::Disabled;
-		writeUpdateCheckState(settings, chosen);
-		settings.sync();
-		if (m_automaticUpdateChecksAction) {
-			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
-			m_automaticUpdateChecksAction->setChecked(chosen == UpdateCheckState::Enabled);
-		}
-		if (chosen == UpdateCheckState::Enabled)
-			startUpdateCheck(false);
-		return;
-	}
-	if (state == UpdateCheckState::Enabled)
-		startUpdateCheck(false);
-}
-
-void MainWindow::startUpdateCheck(bool manual) {
-	if (!m_updateChecker || updatesSuppressedByEnvironment())
-		return;
-	QSettings settings;
-	if (!shouldCheckForUpdates(readUpdateCheckState(settings), manual))
-		return;
-	if (!manual && m_updateChecker->isChecking())
-		return;
-	m_manualUpdateCheck = manual;
-	m_updateChecker->check();
-}
-
-void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
-	const bool manual = m_manualUpdateCheck;
-	m_manualUpdateCheck = false;
-	if (!result.success || !result.release) {
-		if (manual) {
-			QMessageBox::warning(this, QStringLiteral("Check for Updates"),
-				result.error.isEmpty() ? QStringLiteral("Could not check for updates.") : result.error);
-		} else {
-			qWarning().noquote() << "Automatic update check failed:"
-								 << (result.error.isEmpty() ? QStringLiteral("unknown error") : result.error);
-		}
-		return;
-	}
-
-	const std::optional<SemanticVersion> current =
-		parseStableVersion(QCoreApplication::applicationVersion().toStdString());
-	if (!current) {
-		const QString error = QStringLiteral("The installed application version is invalid.");
-		if (manual)
-			QMessageBox::warning(this, QStringLiteral("Check for Updates"), error);
-		else
-			qWarning().noquote() << "Automatic update check failed:" << error;
-		return;
-	}
-	if (!isUpdateAvailable(*current, *result.release)) {
-		if (manual)
-			QMessageBox::information(this, QStringLiteral("Check for Updates"),
-				QStringLiteral("EGTRAIN %1 is up to date.").arg(formatSemanticVersion(*current)));
-		return;
-	}
-	{
-		QSettings settings;
-		if (!shouldOfferRelease(result.release->version, readFailedUpdateVersion(settings), manual))
-			return;
-	}
-
-	const StableRelease& release = *result.release;
-	QString availability;
-	if (m_selfUpdater && !m_selfUpdater->canSelfUpdate(release)) {
-		const SelfUpdateCapability capability = m_selfUpdater->capability();
-		availability = capability.supported
-			? QStringLiteral("\n\nNo automatic update package is available for this platform. Use the release page to update manually.")
-			: QStringLiteral("\n\n%1 Use the release page to update manually.").arg(capability.reason);
-	} else if (m_selfUpdater && m_selfUpdater->capability().usesInstaller) {
-		availability = QStringLiteral("\n\nUpdate and Restart runs the EGTRAIN installer. EGTRAIN closes while the installer "
-									  "updates this installation and starts again afterwards.");
-	}
-	QMessageBox dialog(QMessageBox::Information,
-		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
-		update_prompt::availableText(formatSemanticVersion(release.version), formatSemanticVersion(*current)),
-		QMessageBox::NoButton, this);
-	setMarkdownInformativeText(dialog,
-		(release.notes.isEmpty() ? QStringLiteral("No release notes were provided.") : releaseNotesMarkdown(release.notes))
-			+ availability);
-	QPushButton* updateButton = nullptr;
-	if (m_selfUpdater && m_selfUpdater->canSelfUpdate(release))
-		updateButton = dialog.addButton(QStringLiteral("Update and Restart"), QMessageBox::AcceptRole);
-	QPushButton* openButton = dialog.addButton(QStringLiteral("Open Release Page"),
-		QMessageBox::AcceptRole);
-	dialog.addButton(QStringLiteral("Later"), QMessageBox::RejectRole);
-	QPushButton* stopButton = dialog.addButton(QStringLiteral("Stop Checking"),
-		QMessageBox::DestructiveRole);
-	dialog.exec();
-	QAbstractButton* clickedButton = dialog.clickedButton();
-	if (updateButton && clickedButton == updateButton) {
-		startSelfUpdate(release);
-	} else if (clickedButton == stopButton) {
-		QSettings settings;
-		writeUpdateCheckState(settings, UpdateCheckState::Disabled);
-		settings.sync();
-		if (m_automaticUpdateChecksAction) {
-			const QSignalBlocker blocker(m_automaticUpdateChecksAction);
-			m_automaticUpdateChecksAction->setChecked(false);
-		}
-	} else if (clickedButton == openButton
-		&& !QDesktopServices::openUrl(release.releasePage)) {
-		QMessageBox::warning(this, QStringLiteral("Open Release Page"),
-			QStringLiteral("Could not open the release page:\n%1").arg(release.releasePage.toString()));
-	}
-}
-
-void MainWindow::startSelfUpdate(const StableRelease& release) {
-	if (!m_selfUpdater || m_selfUpdater->isBusy() || !m_session->maybeSaveScene())
-		return;
-	m_updateProgress = new QProgressDialog(QStringLiteral("Downloading EGTRAIN %1...")
-											   .arg(formatSemanticVersion(release.version)),
-		QStringLiteral("Cancel"), 0, 0, this);
-	m_updateProgress->setWindowTitle(QStringLiteral("EGTRAIN Update"));
-	m_updateProgress->setWindowModality(Qt::WindowModal);
-	m_updateProgress->setAutoClose(false);
-	m_updateProgress->setAutoReset(false);
-	m_updateProgress->setMinimumDuration(0);
-	connect(m_updateProgress, &QProgressDialog::canceled, this, [this]() {
-		if (!m_selfUpdater)
-			return;
-		if (m_selfUpdater->isPreparing()) {
-			// Preparation cannot be interrupted safely; Esc or a stray cancel
-			// must not hide the dialog while the update is still progressing.
-			if (m_updateProgress && !m_updateProgress->isVisible())
-				m_updateProgress->show();
-			return;
-		}
-		m_selfUpdater->cancel();
-	});
-	m_updateProgress->show();
-	m_selfUpdater->start(release);
-}
-
-void MainWindow::handleSelfUpdateFinished(bool success, const QString& error) {
-	if (m_updateProgress) {
-		m_updateProgress->close();
-		m_updateProgress->deleteLater();
-		m_updateProgress = nullptr;
-	}
-	if (!success) {
-		QMessageBox::warning(this, QStringLiteral("EGTRAIN Update"),
-			error.isEmpty() ? QStringLiteral("The update was not installed. EGTRAIN is unchanged.") : error);
-		return;
-	}
-	const bool installer = m_selfUpdater && m_selfUpdater->capability().usesInstaller;
-	QMessageBox::information(this, QStringLiteral("EGTRAIN Update"),
-		installer ? QStringLiteral("The installer is ready. EGTRAIN will close now, run the installer and start again.")
-				  : QStringLiteral("The update is ready. EGTRAIN will restart now."));
-	if (!m_selfUpdater || !m_selfUpdater->restart()) {
-		QMessageBox::warning(this, QStringLiteral("EGTRAIN Update"),
-			QStringLiteral("Could not start the update installer. EGTRAIN is unchanged."));
-		return;
-	}
-	// The scene was saved or discarded before the download started, and the progress dialog has kept the window from edits.
-	if (m_recovery)
-		m_recovery->shutdown();
-	QCoreApplication::quit();
-}
-
 bool MainWindow::advancedDetailsEnabled() const {
 	if (m_advancedDetailsAction)
 		return m_advancedDetailsAction->isChecked();
@@ -2356,170 +2045,16 @@ bool MainWindow::advancedDetailsEnabled() const {
 	return settings.value(kAdvancedDetailsKey, false).toBool();
 }
 
-void MainWindow::updateDiagnosticPresentation() {
-	const SceneDiagnosticCounts counts = countDiagnostics(m_session->diagnostics());
-	if (m_validationStatusLabel) {
-		if (advancedDetailsEnabled()) {
-			QString message = QStringLiteral("Validation: %1 error(s), %2 warning(s)")
-								  .arg(counts.errors)
-								  .arg(counts.warnings);
-			if (counts.infos > 0)
-				message += QStringLiteral(", %1 info").arg(counts.infos);
-			m_validationStatusLabel->setText(message);
-		} else if (counts.errors > 0) {
-			m_validationStatusLabel->setText(
-				QStringLiteral("Not ready: %1 validation error(s) must be fixed").arg(counts.errors));
-		} else {
-			m_validationStatusLabel->clear();
-		}
-	}
-	updateCaseLayersPanel();
-}
-
 void MainWindow::refreshValidationPanel() {
 	if (m_committingPendingEditorValues)
 		return;
 	commitPendingEditorValues();
-	if (!m_document->isLoaded()) {
-		m_session->setDiagnostics({});
-		if (m_validationTable)
-			m_validationTable->setRowCount(0);
-		if (m_validationStatusLabel)
-			m_validationStatusLabel->clear();
-		refreshLoadedDataTree();
-		m_scenarioPanel->refresh();
-		m_passengerPanel->refresh();
-		updateSceneActions();
-		updateCaseLayersPanel();
-		return;
-	}
-
-	const std::optional<double> effectiveDurationOverride = initial_variables.durationOverride
-		? std::optional<double>(initial_variables.times)
-		: std::nullopt;
-	m_session->setDiagnostics(validateRunnableScene(m_document->model(), {}, effectiveDurationOverride));
-
-	std::vector<SceneDiagnostic> ordered = m_session->diagnostics();
-	std::stable_sort(ordered.begin(), ordered.end(), [](const SceneDiagnostic& a, const SceneDiagnostic& b) {
-		return static_cast<int>(a.severity) > static_cast<int>(b.severity);
-	});
-
-	if (m_validationTable) {
-		m_validationTable->clearContents();
-		m_validationTable->setRowCount(static_cast<int>(ordered.size()));
-		for (int row = 0; row < static_cast<int>(ordered.size()); ++row) {
-			const SceneDiagnostic& d = ordered[row];
-			m_validationTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(severityLabel(d.severity))));
-			m_validationTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(d.code)));
-			m_validationTable->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.message)));
-			m_validationTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(d.file)));
-			m_validationTable->setItem(row, 4, new QTableWidgetItem(QString::fromStdString(d.path)));
-			m_validationTable->setItem(row, 5, new QTableWidgetItem(QString::fromStdString(d.suggestedFix)));
-		}
-		m_validationTable->resizeColumnsToContents();
-	}
-
-	updateDiagnosticPresentation();
-	refreshLoadedDataTree();
-	m_scenarioPanel->refresh();
-	m_passengerPanel->refresh();
-	updateSceneActions();
+	m_validation->refresh();
 }
 
-void MainWindow::refreshLoadedDataTree() {
-	if (!m_loadedDataTree)
-		return;
-
-	m_loadedDataTree->clear();
-	if (!m_document->isLoaded())
-		return;
-
-	refreshLoadedDataSummary(m_document->mutableModel());
-	refreshLoadedDataDiagnostics(m_document->mutableModel(), m_session->diagnostics());
-	auto addRow = [](QTreeWidgetItem* parent, const QString& category, const QString& source,
-					  const QString& count, const QString& status) {
-		return new QTreeWidgetItem(parent, QStringList{category, source, count, status});
-	};
-	const SceneDiagnosticCounts validationCounts = countDiagnostics(m_session->diagnostics());
-	const SceneDiagnosticCounts runtimeCounts = countDiagnostics(m_runtimeDiagnostics);
-	const bool dataInvalid = std::any_of(m_document->model().loadedData.begin(), m_document->model().loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Invalid"; });
-	const bool dataWarning = std::any_of(m_document->model().loadedData.begin(), m_document->model().loadedData.end(),
-		[](const SceneLoadedData& row) { return row.status == "Warning"; });
-	const QString caseStatus = validationCounts.errors > 0 || runtimeCounts.errors > 0 || dataInvalid
-		? QStringLiteral("Invalid")
-		: (validationCounts.warnings > 0 || runtimeCounts.warnings > 0 || dataWarning
-				  ? QStringLiteral("Warning")
-				  : QStringLiteral("Ready"));
-	auto* caseRoot = new QTreeWidgetItem(m_loadedDataTree);
-	caseRoot->setText(0, "Case Study");
-	caseRoot->setText(1, m_session->sceneDir());
-	caseRoot->setText(2, "1");
-	caseRoot->setText(3, caseStatus);
-	caseRoot->setToolTip(0, "Loaded case-study review.");
-	addRow(caseRoot, "Name", QString::fromStdString(m_document->model().name), "1", "Parsed");
-	addRow(caseRoot, "Description",
-		m_document->model().description.empty() ? QStringLiteral("(none)") : QString::fromStdString(m_document->model().description),
-		"1", "Parsed");
-	addRow(caseRoot, "Source path", m_session->sceneDir(), "1", "Loaded");
-	addRow(caseRoot, "Canonical schema version", QString::number(m_document->model().schemaVersion),
-		QString::number(kCurrentSceneSchemaVersion), "Parsed");
-	addRow(caseRoot, "Saved with app version",
-		m_document->model().savedWithAppVersion.empty()
-			? QStringLiteral("(not recorded)")
-			: QString::fromStdString(m_document->model().savedWithAppVersion),
-		"1", m_document->model().savedWithAppVersion.empty() ? QStringLiteral("Missing optional") : QStringLiteral("Loaded"));
-	if (m_session->sceneIsBundle())
-		addRow(caseRoot, "Bundle format version", m_session->sceneBundleVersion() ? QString::number(*m_session->sceneBundleVersion()) : QStringLiteral("(not recorded)"),
-			QString::number(kCurrentSceneBundleVersion),
-			m_session->sceneBundleVersion() ? QStringLiteral("Loaded") : QStringLiteral("Missing"));
-
-	auto* sourceFiles = addRow(caseRoot, "Source files discovered", QString(),
-		QString::number(static_cast<int>(m_document->model().sourceFiles.size())), "Loaded");
-	for (const auto& source : m_document->model().sourceFiles) {
-		addRow(sourceFiles, QString::fromStdString(source), QString::fromStdString(source), "1",
-			QStringLiteral("Loaded"));
-	}
-	for (const auto& item : m_document->model().loadedData) {
-		addLoadedDataTreeItem(m_loadedDataTree, caseRoot, item);
-	}
-	auto* runtimeAndResults = addRow(caseRoot, "Runtime and results", QString(), QString(),
-		m_runtimeStatus);
-	const bool runtimeReady = m_runtimeStatus == "Ready" || m_runtimeStatus == "Running"
-		|| m_runtimeStatus == "Completed";
-	const bool runAttempted = m_runtimeStatus != "Not built";
-	addRow(runtimeAndResults, "Runtime infrastructure", QString(), "1",
-		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Runtime rolling stock", QString(), "1",
-		runtimeReady ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Applied scenario", m_runSelection.appliedScenarioId().empty() ? QStringLiteral("(none)") : QString::fromStdString(m_runSelection.appliedScenarioId()), "1",
-		runAttempted ? m_runtimeStatus : QStringLiteral("Not built"));
-	addRow(runtimeAndResults, "Current run", QString(), "1", m_runtimeStatus);
-	auto* runtime = addRow(runtimeAndResults, "Runtime", QString(),
-		QString::number(static_cast<int>(m_runtimeDiagnostics.size())), m_runtimeStatus);
-	for (const auto& diagnostic : m_runtimeDiagnostics) {
-		const QString severity = diagnostic.severity == SceneSeverity::Error ? QStringLiteral("Failed")
-																			 : (diagnostic.severity == SceneSeverity::Warning ? QStringLiteral("Warning") : QStringLiteral("Ready"));
-		const QString detail = QString::fromStdString(diagnostic.code) + ": "
-			+ QString::fromStdString(diagnostic.message);
-		addRow(runtime, detail, QString::fromStdString(diagnostic.file), "1", severity);
-	}
-	addRow(runtimeAndResults, "Results", QString(), m_resultsAvailable ? "1" : "0",
-		m_resultsAvailable ? QStringLiteral("Ready") : QStringLiteral("Not built"));
-	caseRoot->setExpanded(true);
-	m_loadedDataTree->resizeColumnToContents(0);
-	m_loadedDataTree->resizeColumnToContents(1);
-	m_loadedDataTree->setColumnWidth(1, std::min(m_loadedDataTree->columnWidth(1), 360));
-}
-
-void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
+void MainWindow::openLoadedDataTarget(const QString& targetType, QTreeWidgetItem* item) {
 	const auto operation = captureTelemetryOperation();
-	if (!item)
-		return;
-	const QString targetType = item->data(0, kLoadedDataTargetTypeRole).toString();
 	const QString targetId = item->text(0);
-	if (targetType.isEmpty())
-		return;
 	auto raiseDock = [this, operation](QDockWidget* dock) { revealEditorDock(dock, operation); };
 	if (targetType == "network") {
 		if (networkView) {
@@ -2531,15 +2066,7 @@ void MainWindow::activateLoadedDataItem(QTreeWidgetItem* item) {
 	}
 	if (targetType == "validation") {
 		raiseDock(m_validationDock);
-		if (m_validationTable) {
-			for (int row = 0; row < m_validationTable->rowCount(); ++row) {
-				QTableWidgetItem* file = m_validationTable->item(row, 3);
-				if (file && file->text() == item->text(1)) {
-					m_validationTable->selectRow(row);
-					break;
-				}
-			}
-		}
+		m_validation->selectDiagnosticOfFile(item->text(1));
 		return;
 	}
 	if (targetType == "train_unit_plot") {
@@ -2599,7 +2126,7 @@ void MainWindow::invalidateAfterSceneChange() {
 	if (m_worker) {
 		m_sceneChangedDuringRun = true;
 		m_resultsAvailable = false;
-		refreshLoadedDataTree();
+		m_validation->refreshLoadedData();
 		updateDiagramActions();
 	} else {
 		invalidateRunResults();
@@ -2740,7 +2267,7 @@ void MainWindow::invalidateRunResults() {
 		m_runResultsDock->setWindowTitle(QString("Run Results — %1 (not built)").arg(scenarioContext()));
 	if (m_runResultsDock)
 		m_runResultsDock->hide();
-	refreshLoadedDataTree();
+	m_validation->refreshLoadedData();
 	updateDiagramActions();
 	refreshFollowTrainChoices();
 }
@@ -3614,11 +3141,11 @@ void MainWindow::showEvent(QShowEvent* e) {
 		const bool recovered = offerRecovery();
 		if (!recovered && !initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
-		showPrivacySettings(true);
-		startTelemetryAfterInitialConsent();
+		m_updateTelemetry->showPrivacySettings(true);
+		m_updateTelemetry->startTelemetryAfterInitialConsent();
 		reportInstallerUpdate(this);
 		reportRolledBackUpdate(this);
-		maybePromptForUpdateChecks();
+		m_updateTelemetry->maybePromptForUpdateChecks();
 	};
 #ifdef Q_OS_MACOS
 	// Finder hands over the file that started the program as an open event, and that event reaches
@@ -4146,7 +3673,7 @@ void MainWindow::startSimulation(const telemetry::OperationObservation& operatio
 	connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
 	connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
 
-	if (m_telemetrySender) {
+	if (m_updateTelemetry->sender()) {
 		const auto observationStep = mainWindowTestHooks().observationStep;
 		const auto rollback = [this]() noexcept {
 			for (auto& connection : m_simulationObservations) {
@@ -4256,7 +3783,7 @@ void MainWindow::onSimulationFinished() {
 		}
 	}
 	m_pendingRunProvenance = RunProvenance();
-	refreshLoadedDataTree();
+	m_validation->refreshLoadedData();
 
 	if (const auto runFinished = mainWindowTestHooks().runFinished; runFinished && runFinished(*this))
 		return;
@@ -4449,7 +3976,7 @@ void MainWindow::runScene() {
 		return;
 	}
 	m_runtimeStatus = QStringLiteral("Ready");
-	refreshLoadedDataTree();
+	m_validation->refreshLoadedData();
 	initial_variables.startingSimulationTime = baseTimeToSeconds(m_document->model().baseTime);
 	m_startOffsetSeconds = initial_variables.startingSimulationTime;
 	m_pendingRunProvenance = captureRunProvenance();
@@ -4503,7 +4030,7 @@ void MainWindow::runScene() {
 	updateSceneActions();
 
 	m_runtimeStatus = QStringLiteral("Running");
-	refreshLoadedDataTree();
+	m_validation->refreshLoadedData();
 	startSimulation(operation);
 	statusBar()->showMessage(QString("Running scene: %1").arg(QString::fromStdString(m_document->model().name)));
 }

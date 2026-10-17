@@ -17,6 +17,7 @@
 #include "editors/ScenarioPanel.h"
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
+#include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
@@ -581,9 +582,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				return diagnostic;
 			};
 			const auto applyPresentation = [&w]() {
-				w.updateDiagnosticPresentation();
+				w.m_validation->updateStatus();
 				w.m_scenarioPanel->updatePresentation();
-				w.refreshLoadedDataTree();
+				w.m_validation->refreshLoadedData();
 				QApplication::processEvents();
 			};
 			const auto firstScenarioText = [&w]() {
@@ -615,7 +616,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				failures << "presentation: normal mode did not close diagnostic docks";
 			w.m_session->m_sceneDiagnostics.clear();
 			applyPresentation();
-			if (!w.m_validationStatusLabel->text().isEmpty()
+			if (!w.m_validation->statusLabel()->text().isEmpty()
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
 				|| firstScenarioText().contains("Warning")
 				|| firstScenarioText().contains("Invalid"))
@@ -624,7 +625,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
-			if (!w.m_validationStatusLabel->text().isEmpty()
+			if (!w.m_validation->statusLabel()->text().isEmpty()
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("Ready to run")
 				|| firstScenarioText().contains("Warning"))
 				failures << "presentation: normal mode exposed a non-blocking warning";
@@ -632,7 +633,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Error,
 				"E2E invalid scenario")};
 			applyPresentation();
-			if (!w.m_validationStatusLabel->text().contains("Not ready")
+			if (!w.m_validation->statusLabel()->text().contains("Not ready")
 				|| w.m_caseReadinessLabel->text() != QStringLiteral("E2E invalid scenario")
 				|| !firstScenarioText().contains("Invalid"))
 				failures << "presentation: normal mode hid an actionable invalid scenario";
@@ -641,8 +642,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_session->m_sceneDiagnostics = {syntheticDiagnostic(SceneSeverity::Warning,
 				"E2E non-blocking warning")};
 			applyPresentation();
-			if (!w.m_validationStatusLabel->text().contains("Validation:")
-				|| !w.m_validationStatusLabel->text().contains("warning")
+			if (!w.m_validation->statusLabel()->text().contains("Validation:")
+				|| !w.m_validation->statusLabel()->text().contains("warning")
 				|| !firstScenarioText().contains("Warning"))
 				failures << "presentation: advanced mode hid full warning details";
 
@@ -1799,10 +1800,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 	// step b: validation assertions
 	if (w.m_document->isLoaded()) {
-		if (!w.m_loadedDataTree || w.m_loadedDataTree->topLevelItemCount() <= 0) {
+		if (!w.m_validation->tree() || w.m_validation->tree()->topLevelItemCount() <= 0) {
 			ok = false;
 			failures << "validation: loaded data tree empty";
-		} else if (w.m_loadedDataTree->topLevelItem(0)->childCount() <= 0) {
+		} else if (w.m_validation->tree()->topLevelItem(0)->childCount() <= 0) {
 			ok = false;
 			failures << "validation: loaded data tree lacks drilldown rows";
 		}
@@ -1878,34 +1879,34 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 			}
 		}
-		bool explorerOk = w.m_loadedDataTree && w.m_loadedDataTree->topLevelItemCount() > 0;
-		QTreeWidgetItem* caseRoot = explorerOk ? w.m_loadedDataTree->topLevelItem(0) : nullptr;
+		bool explorerOk = w.m_validation->tree() && w.m_validation->tree()->topLevelItemCount() > 0;
+		QTreeWidgetItem* caseRoot = explorerOk ? w.m_validation->tree()->topLevelItem(0) : nullptr;
 		explorerOk = explorerOk && caseRoot->text(0) == "Case Study"
 			&& caseRoot->text(3) != "Invalid" && caseRoot->text(3) != "Failed";
 		for (const QString& category : {QStringLiteral("Source path"), QStringLiteral("Canonical schema version"),
 				 QStringLiteral("Runtime"), QStringLiteral("Results")}) {
-			const QList<QTreeWidgetItem*> rows = w.m_loadedDataTree->findItems(
+			const QList<QTreeWidgetItem*> rows = w.m_validation->tree()->findItems(
 				category, Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* row = rows.isEmpty() ? nullptr : rows.front();
 			if (!row || row->text(3).isEmpty())
 				explorerOk = false;
 		}
 		if (w.m_session->m_sceneIsBundle) {
-			const QList<QTreeWidgetItem*> bundleRows = w.m_loadedDataTree->findItems(
+			const QList<QTreeWidgetItem*> bundleRows = w.m_validation->tree()->findItems(
 				"Bundle format version", Qt::MatchExactly | Qt::MatchRecursive, 0);
 			QTreeWidgetItem* bundleRow = bundleRows.isEmpty() ? nullptr : bundleRows.front();
 			if (!bundleRow || bundleRow->text(1) != "1")
 				explorerOk = false;
 		}
 		QTreeWidgetItem* trainTarget = nullptr;
-		for (QTreeWidgetItemIterator it(w.m_loadedDataTree); *it && !trainTarget; ++it) {
-			if ((*it)->data(0, kLoadedDataTargetTypeRole).toString() == "train_unit")
+		for (QTreeWidgetItemIterator it(w.m_validation->tree()); *it && !trainTarget; ++it) {
+			if ((*it)->data(0, ValidationPanel::kTargetTypeRole).toString() == "train_unit")
 				trainTarget = *it;
 		}
 		if (!trainTarget || !w.m_trainUnitListWidget) {
 			explorerOk = false;
 		} else {
-			w.activateLoadedDataItem(trainTarget);
+			w.m_validation->activateItem(trainTarget);
 			explorerOk = explorerOk && w.m_trainUnitListWidget->currentItem()
 				&& w.m_trainUnitListWidget->currentItem()->text() == trainTarget->text(0)
 				&& w.m_trainUnitDock && w.m_trainUnitDock->isVisible();
@@ -3592,9 +3593,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.refreshValidationPanel();
 		QApplication::processEvents();
 		SceneDiagnosticCounts counts = countDiagnostics(w.m_session->m_sceneDiagnostics);
-		if (!w.m_validationTable || !w.m_validationStatusLabel || counts.errors != 0
-			|| w.m_validationTable->rowCount() != static_cast<int>(w.m_session->m_sceneDiagnostics.size())
-			|| !w.m_validationStatusLabel->text().startsWith("Validation:"))
+		if (!w.m_validation->table() || !w.m_validation->statusLabel() || counts.errors != 0
+			|| w.m_validation->table()->rowCount() != static_cast<int>(w.m_session->m_sceneDiagnostics.size())
+			|| !w.m_validation->statusLabel()->text().startsWith("Validation:"))
 			facetFailure(facetOk, "validation", "refresh did not report a clean, complete result");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_VALIDATION_OK\n");
@@ -4515,7 +4516,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	const auto validationCurrent = [&w]() {
 		const std::vector<SceneDiagnostic> shown = w.m_session->m_sceneDiagnostics;
 		w.refreshValidationPanel();
-		return shown.size() == w.m_session->m_sceneDiagnostics.size() && w.m_validationTable->rowCount() == static_cast<int>(shown.size())
+		return shown.size() == w.m_session->m_sceneDiagnostics.size() && w.m_validation->table()->rowCount() == static_cast<int>(shown.size())
 			&& std::equal(shown.begin(), shown.end(), w.m_session->m_sceneDiagnostics.begin(),
 				[](const SceneDiagnostic& a, const SceneDiagnostic& b) {
 					return a.code == b.code && a.path == b.path && a.message == b.message;

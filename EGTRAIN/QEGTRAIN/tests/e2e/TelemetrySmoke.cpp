@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/MainWindowSupport.h"
+#include "app/UpdateTelemetryController.h"
 #include "app/TelemetrySmokeSupport.h"
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/RunResults.h"
@@ -48,7 +49,8 @@ void refuseTelemetry(const char* reason) {
 // Starts the telemetry of the window with the settings and the queue in the folder that QEGTRAIN_E2E_TELEMETRY_SMOKE names,
 // which must be below the temporary directory, with a loopback endpoint and a sender whose requests the script answers. The
 // consent that the mode QEGTRAIN_E2E_TELEMETRY_MODE asks for is saved first. It then starts the script that drives the window.
-bool MainWindowTestAccess::startTelemetrySmoke(MainWindow& w) {
+bool MainWindowTestAccess::startTelemetrySmoke(UpdateTelemetryController& controller) {
+	auto& w = *qobject_cast<MainWindow*>(controller.window());
 	try {
 		const QString requestedDir = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE");
 		const QString isolatedDir = QDir(requestedDir).canonicalPath();
@@ -62,10 +64,10 @@ bool MainWindowTestAccess::startTelemetrySmoke(MainWindow& w) {
 			return false;
 		}
 		const TelemetryContext context = {true, true, true, QStringLiteral("https://127.0.0.1:19497/collect"), QStringLiteral("1")};
-		w.m_telemetrySettings.reset(new QSettings(QDir(isolatedDir).filePath("consent.ini"), QSettings::IniFormat));
-		w.m_telemetryConsent.reset(new TelemetryConsent(*w.m_telemetrySettings, context));
+		controller.m_telemetrySettings.reset(new QSettings(QDir(isolatedDir).filePath("consent.ini"), QSettings::IniFormat));
+		controller.m_telemetryConsent.reset(new TelemetryConsent(*controller.m_telemetrySettings, context));
 		const QString smokeMode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
-		if (!w.m_telemetryConsent->save(smokeMode != "diagnostics" && smokeMode != "late" && smokeMode != "import_late",
+		if (!controller.m_telemetryConsent->save(smokeMode != "diagnostics" && smokeMode != "late" && smokeMode != "import_late",
 				smokeMode != "usage" && smokeMode != "late" && smokeMode != "import_late")) {
 			refuseTelemetry("consent_storage_failure");
 			return false;
@@ -73,15 +75,15 @@ bool MainWindowTestAccess::startTelemetrySmoke(MainWindow& w) {
 		telemetry::Application metadata;
 		metadata.version = QCoreApplication::applicationVersion();
 		smoke = std::make_shared<telemetry_smoke::State>();
-		w.m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
+		controller.m_telemetrySender.reset(new telemetry::TelemetrySender(context, metadata,
 			QDir(isolatedDir).filePath("queue"), telemetry_smoke::options(isolatedDir, smokeMode, smoke)));
 		QTimer::singleShot(0, &w, [&w] { runTelemetrySmoke(w, 0); });
 		return true;
 	} catch (...) {
 		refuseTelemetry("initialization_exception");
-		w.m_telemetrySender.reset();
-		w.m_telemetryConsent.reset();
-		w.m_telemetrySettings.reset();
+		controller.m_telemetrySender.reset();
+		controller.m_telemetryConsent.reset();
+		controller.m_telemetrySettings.reset();
 		return false;
 	}
 }
@@ -121,7 +123,7 @@ void MainWindowTestAccess::telemetryWindowDestroyed() {
 // does the actions of the mode that come before a case is open. Stage 1 opens, reloads and exports in every way. Stage 2
 // starts a run. Stages 3 and 5 wait for the run to end and export its results, and stage 4 ends the application.
 void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
-	if (!smoke || !w.m_telemetrySender) return;
+	if (!smoke || !w.m_updateTelemetry->m_telemetrySender) return;
 	const QString root = QDir(qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_SMOKE")).canonicalPath();
 	const QString mode = qEnvironmentVariable("QEGTRAIN_E2E_TELEMETRY_MODE", "mixed");
 	const auto later = [&w](int next, int delay = 500) {
@@ -144,9 +146,9 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 				[&w, mode, poll, changed = false]() mutable {
 					if (!changed) {
 						changed = true;
-						if (mode == "import_revoke") w.m_telemetryConsent->save(false, false);
-						w.m_telemetryConsent->save(true, true);
-						w.m_telemetrySender->requestConsentRefresh();
+						if (mode == "import_revoke") w.m_updateTelemetry->m_telemetryConsent->save(false, false);
+						w.m_updateTelemetry->m_telemetryConsent->save(true, true);
+						w.m_updateTelemetry->m_telemetrySender->requestConsentRefresh();
 					}
 					return smoke->polls.load() > poll;
 				});
@@ -168,8 +170,8 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			telemetry_smoke::chooseFile(root + "/historical.egscene", [&w, poll, changed = false]() mutable {
 				if (!changed) {
 					changed = true;
-					w.m_telemetryConsent->save(true, true);
-					w.m_telemetrySender->requestConsentRefresh();
+					w.m_updateTelemetry->m_telemetryConsent->save(true, true);
+					w.m_updateTelemetry->m_telemetrySender->requestConsentRefresh();
 				}
 				return smoke->polls.load() > poll;
 			});
@@ -188,9 +190,9 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			telemetry_smoke::chooseFile(root + "/stale.csv", [&w, poll, changed = false]() mutable {
 				if (!changed) {
 					changed = true;
-					w.m_telemetryConsent->save(false, false);
-					w.m_telemetryConsent->save(true, true);
-					w.m_telemetrySender->requestConsentRefresh();
+					w.m_updateTelemetry->m_telemetryConsent->save(false, false);
+					w.m_updateTelemetry->m_telemetryConsent->save(true, true);
+					w.m_updateTelemetry->m_telemetrySender->requestConsentRefresh();
 				}
 				return smoke->polls.load() > poll;
 			});
@@ -287,9 +289,9 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 					w.m_document->markChanged(SceneDocument::AllChanges);
 					return;
 				}
-				w.m_telemetryConsent->save(false, false);
-				w.m_telemetryConsent->save(true, true);
-				w.m_telemetrySender->requestConsentRefresh();
+				w.m_updateTelemetry->m_telemetryConsent->save(false, false);
+				w.m_updateTelemetry->m_telemetryConsent->save(true, true);
+				w.m_updateTelemetry->m_telemetrySender->requestConsentRefresh();
 			});
 			timer->start();
 		}

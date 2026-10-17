@@ -281,7 +281,8 @@ add_library(egtrain_editors STATIC
     ${SRC_DIR}/editors/ServicePanel.cpp
     ${SRC_DIR}/editors/TimetableStopsPanel.cpp
     ${SRC_DIR}/editors/TrainUnitPanel.cpp
-    ${SRC_DIR}/editors/TrainUnitSourceLinker.cpp)
+    ${SRC_DIR}/editors/TrainUnitSourceLinker.cpp
+    ${SRC_DIR}/editors/ValidationPanel.cpp)
 target_link_libraries(egtrain_editors
     PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets egtrain_scene egtrain_diagrams egtrain_widgets egtrain_runselection egtrain_util)
 
@@ -420,9 +421,10 @@ egtrain_target_warnings(egtrain_dispatch)
 #   egtrain_sim, egtrain_rttp       legacy code with 104 and 4 warning lines, see #453, #454 and #482
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
-#                                   app/main.cpp, update/SelfUpdater.cpp,
+#                                   app/main.cpp, app/UpdateTelemetryController.cpp, update/SelfUpdater.cpp,
 #                                   update/UpdateNotices.cpp and telemetry/TelemetryConsentDialog.cpp
-#                                   build here too; test_selfupdater builds SelfUpdater.cpp with the flags
+#                                   build here too; test_selfupdater builds SelfUpdater.cpp with the flags and
+#                                   test_updatetelemetrycontroller builds UpdateTelemetryController.cpp with them
 # A test executable that uses the simulation has no flags either.
 
 # --- Sources ---
@@ -432,6 +434,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/app/RuntimeGeometryFromRun.cpp
     ${SRC_DIR}/app/SceneOutputDirectory.cpp
     ${SRC_DIR}/app/SceneSession.cpp
+    ${SRC_DIR}/app/UpdateTelemetryController.cpp
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
     ${SRC_DIR}/update/UpdateNotices.cpp
@@ -451,6 +454,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/app/RuntimeGeometryFromRun.h
     ${SRC_DIR}/app/SceneOutputDirectory.h
     ${SRC_DIR}/app/SceneSession.h
+    ${SRC_DIR}/app/UpdateTelemetryController.h
     ${SRC_DIR}/graphics/RuntimeGeometrySource.h
     ${SRC_DIR}/graphics/SignalItemRoles.h
     ${SRC_DIR}/simulation/NumberGenerator.h
@@ -729,6 +733,21 @@ if(EGTRAIN_BUILD_TESTS)
     endforeach()
     # Qt 5 Secure Transport on macOS does not trust the root certificate of a request, and the program then returns 77.
     set_tests_properties(test_telemetrynetwork_trusted PROPERTIES SKIP_RETURN_CODE 77)
+
+    # The controller is compiled here with the dialogs and the self updater that the application alone uses.
+    add_executable(test_updatetelemetrycontroller
+        ${SRC_DIR}/tests/test_updatetelemetrycontroller.cpp
+        ${SRC_DIR}/app/UpdateTelemetryController.cpp
+        ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
+        ${SRC_DIR}/update/SelfUpdater.cpp)
+    target_link_libraries(test_updatetelemetrycontroller PRIVATE egtrain_telemetry egtrain_update egtrain_scene egtrain_util Qt5::Widgets Qt5::Network)
+    add_test(NAME test_updatetelemetrycontroller COMMAND test_updatetelemetrycontroller)
+    # The test answers real message boxes, which crash Qt 5.15 on the offscreen platform on Windows.
+    if(WIN32)
+        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=windows")
+    else()
+        set_tests_properties(test_updatetelemetrycontroller PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    endif()
 
     add_executable(test_updatechecker ${SRC_DIR}/tests/test_updatechecker.cpp)
     target_link_libraries(test_updatechecker PRIVATE egtrain_update egtrain_util Qt5::Core Qt5::Network)
@@ -1059,6 +1078,11 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_editor_scenario PRIVATE egtrain_editors Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_editor_scenario COMMAND test_editor_scenario)
     set_tests_properties(test_editor_scenario PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(test_editor_validation ${SRC_DIR}/tests/test_editor_validation.cpp)
+    target_link_libraries(test_editor_validation PRIVATE egtrain_editors Qt5::Core Qt5::Gui Qt5::Widgets)
+    add_test(NAME test_editor_validation COMMAND test_editor_validation)
+    set_tests_properties(test_editor_validation PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_editor_incident ${SRC_DIR}/tests/test_editor_incident.cpp)
     target_link_libraries(test_editor_incident PRIVATE egtrain_editors Qt5::Core Qt5::Gui Qt5::Widgets)
@@ -1571,7 +1595,7 @@ if(EGTRAIN_BUILD_TESTS)
 	foreach(egtrain_test
 			test_timeformat test_version test_log test_speedformat test_trajectory test_csvwriter
 			test_playbackprofiler
-			test_httptransport test_selfupdater
+			test_httptransport test_selfupdater test_updatetelemetrycontroller
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
@@ -1584,7 +1608,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
 			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
-			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
+			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_livecommand test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
 	endforeach()
@@ -1610,14 +1634,14 @@ if(EGTRAIN_BUILD_TESTS)
 	endfunction()
 	egtrain_label_tests(unit
 		test_updatepreparation test_timeformat test_version test_log test_telemetryconsent test_telemetryqueue
-		test_telemetrysender test_telemetryoperations test_updatechecker test_updatestaging test_updaterecord test_recoverystore
+		test_telemetrysender test_telemetryoperations test_updatechecker test_updatetelemetrycontroller test_updatestaging test_updaterecord test_recoverystore
 		test_distribution
 		test_guisimulationsnapshot test_liveframe test_livecommand test_liveserver test_followavailability test_replaycoverage test_simulationworker test_recoverycontroller test_recoveryprompt test_trackpreview test_speedformat test_trajectory test_runresults test_delayanalysis test_delayanalysiswindow
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_networkpresenter test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_check_docs docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
@@ -1639,9 +1663,9 @@ if(EGTRAIN_BUILD_TESTS)
 		test_windows_image_size test_windows_default_stack test_win32_configure_rejected test_verify_signatures
 		test_sign_macos)
 	egtrain_label_tests(gui
-		test_telemetryconsent test_telemetryoperations test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
+		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_runtimecanvas
-		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel
+		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract

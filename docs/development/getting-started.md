@@ -119,13 +119,13 @@ into `MainWindow.cpp`. [Scene editor flow](../architecture/scene-editor-flow.md)
 path from the user's side, and [Scene model](../architecture/scene-model.md) describes the data.
 
 1. **Open.** `File > Open Case Study...` (a `.egscene` bundle), `File > Open Scene Folder...` or the
-   case chooser lead to `MainWindow::openSceneDirectory`. It probes the scene format, loads the scene
-   with `loadScenePath` into a `SceneModel` and hands it to the `SceneDocument` of the window.
+   case chooser lead to `SceneSession::openSceneDirectory`. It probes the scene format, and the window
+   loads the scene with `loadScenePath` into a `SceneModel` and hands it to its `SceneDocument`.
 2. **Edit.** An editor panel changes the model in place and calls `SceneDocument::markChanged`.
    `MainWindow::sceneDocumentChanged` records the step for Undo and Redo, discards the results of an
    earlier run and schedules the recovery copy.
-3. **Validate.** `MainWindow::refreshValidationPanel` calls `validateRunnableScene` and fills the
-   validation table. Error diagnostics block Run; warnings do not.
+3. **Validate.** `MainWindow::refreshValidationPanel` asks `ValidationPanel::refresh`, which calls
+   `validateRunnableScene` and fills the validation table. Error diagnostics block Run; warnings do not.
 4. **Run.** `Run` in the toolbar (Ctrl+R) or `File > Run Scene` reaches `MainWindow::runScene`, which
    validates again and opens the review window **Run simulation**. Its button goes on to
    `DispatchController::prepareScene`, which validates, builds the infrastructure and the operations
