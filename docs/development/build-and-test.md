@@ -1009,8 +1009,8 @@ arrival, have no delay and are counted in neither file. A stop with no timetable
 point keeps the arrival recorded during the run. A station row without such a
 train holds `-1` in the average, deviation, maximum, cumulative and percentage
 columns and 0 in `Total_Delay` and the train counts. The `Final_Station` row is
-the same statistic over the last stop of each train whose last stop is counted,
-and holds the same values when none is. The first station of the network has no row and
+the same statistic over the last stop of each train whose last stop is counted;
+when no last stop is counted it holds the values of a row without a counted train. The first station of the network has no row and
 is not in `TOTALS`; its calls can still be the last stop of a train and so enter
 `Final_Station`. See [Delay analysis](../guides/delay-analysis.md#the-station-statistics-files).
 
