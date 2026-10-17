@@ -12,6 +12,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStyle>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QtGlobal>
 
@@ -172,6 +173,11 @@ inline void showMessage(QLabel* label, const QString& text, const QVariant& stat
 	label->style()->unpolish(label);
 	label->style()->polish(label);
 	label->setVisible(!text.isEmpty());
+	// A message in a shown dialog adds height to the body. Once the layout has made room for it, the dialog grows
+	// to fit, up to its height limit, so that the body does not scroll the message into view.
+	auto* dialog = qobject_cast<QDialog*>(label->window());
+	if (!text.isEmpty() && dialog && dialog->isVisible() && dialog->findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll")))
+		QTimer::singleShot(0, dialog, [dialog] { fitWidthToContent(*dialog); });
 }
 } // namespace detail
 

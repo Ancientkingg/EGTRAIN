@@ -211,6 +211,9 @@ bool exerciseContentHeight(qreal scale) {
 		ok &= check(fits.scroll->verticalScrollBar()->maximum() == 0 && !fits.scroll->verticalScrollBar()->isVisible(),
 			"a body shorter than the height limit opens with a vertical scroll bar");
 		ok &= check(fits.dialog.height() < fits.limit, "a body shorter than the height limit opens at the height limit");
+		if (bodyHeight == 20)
+			ok &= check(fits.dialog.height() < 16 * QFontMetrics(fits.dialog.font()).height(),
+				"a dialog with a short body opens taller than its content needs");
 		ok &= check(fits.buttons->isVisible() && fits.buttons->geometry().bottom() <= fits.dialog.height(),
 			"the footer of a dialog that fits is not visible");
 	}
@@ -221,6 +224,76 @@ bool exerciseContentHeight(qreal scale) {
 	ok &= check(tall.buttons->isVisible() && tall.scroll->geometry().bottom() <= tall.buttons->geometry().top()
 			&& tall.buttons->geometry().bottom() <= tall.dialog.height(),
 		"the footer of a dialog that scrolls is not visible below the body");
+	return ok;
+}
+
+// A message shown in a shown dialog makes the dialog taller, up to the height limit, instead of scrolling the body.
+bool exerciseStatusAfterOpen(qreal scale) {
+	const QRect screen(0, 0, 1920, 1080);
+	const QString longText = QStringLiteral("The planned time is before the previous stop, so the stop would be out of order. ").repeated(3);
+	bool ok = true;
+	for (const int bodyHeight : {400, 3000}) {
+		QDialog dialog;
+		QFont font = dialog.font();
+		font.setPointSizeF(12 * scale);
+		dialog.setFont(font);
+		auto* body = new QWidget;
+		auto* fields = new QVBoxLayout(body);
+		auto* filler = new QWidget(body);
+		filler->setFixedHeight(bodyHeight);
+		fields->addWidget(filler);
+		auto* message = new QLabel(&dialog);
+		fields->addWidget(message);
+		DialogLayout::setStatus(message, DialogLayout::Severity::Error, QString());
+		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		QScrollArea* scroll = DialogLayout::install(dialog, QStringLiteral("Edit"), QString(), body, buttons, screen);
+		dialog.show();
+		QApplication::processEvents();
+		const int before = dialog.height();
+		DialogLayout::setStatus(message, DialogLayout::Severity::Error, longText);
+		QApplication::processEvents();
+		const int limit = screen.height() * 4 / 5;
+		if (bodyHeight == 400) {
+			ok &= check(dialog.height() > before, "a message shown in a shown dialog does not make it taller");
+			ok &= check(scroll->verticalScrollBar()->maximum() == 0 && message->isVisible(),
+				"a message shown in a shown dialog that has room for it scrolls the body");
+		} else {
+			ok &= check(dialog.height() == limit && before == limit, "a message in a dialog at the height limit changes its height");
+		}
+		ok &= check(buttons->geometry().bottom() <= dialog.height(), "the footer is not visible after a message is shown");
+	}
+	return ok;
+}
+
+// fitWidthToContent makes a shown dialog taller for a body that has grown, up to the height limit, and never shorter.
+bool exerciseFitHeight() {
+	const QRect screen(0, 0, 1920, 1080);
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* fields = new QVBoxLayout(body);
+	auto* filler = new QWidget(body);
+	filler->setFixedHeight(100);
+	fields->addWidget(filler);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);
+	QScrollArea* scroll = DialogLayout::install(dialog, QStringLiteral("Fit"), QString(), body, buttons, screen);
+	dialog.show();
+	QApplication::processEvents();
+	const int limit = screen.height() * 4 / 5;
+	const int initial = dialog.height();
+	filler->setFixedHeight(600);
+	DialogLayout::fitWidthToContent(dialog);
+	QApplication::processEvents();
+	const int grown = dialog.height();
+	bool ok = check(grown > initial && grown <= limit, "fitWidthToContent does not make the dialog taller for a taller body");
+	ok &= check(scroll->verticalScrollBar()->maximum() == 0, "a dialog made taller by fitWidthToContent still scrolls its body");
+	filler->setFixedHeight(100);
+	DialogLayout::fitWidthToContent(dialog);
+	QApplication::processEvents();
+	ok &= check(dialog.height() == grown, "fitWidthToContent shortens the dialog");
+	filler->setFixedHeight(3000);
+	DialogLayout::fitWidthToContent(dialog);
+	QApplication::processEvents();
+	ok &= check(dialog.height() == limit, "fitWidthToContent grows the dialog beyond the height limit");
 	return ok;
 }
 
@@ -789,6 +862,8 @@ int main(int argc, char** argv) {
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
 	const bool contentHeight = exerciseContentHeight(1.0) && exerciseContentHeight(1.5);
 	const bool contextHeight = exerciseContextHeight(1.0) && exerciseContextHeight(1.5);
+	const bool statusAfterOpen = exerciseStatusAfterOpen(1.0) && exerciseStatusAfterOpen(1.5);
+	const bool fitHeight = exerciseFitHeight();
 	const bool indicators = exerciseItemViewIndicators();
 	const bool messages = exerciseInlineMessages();
 	const bool panelMessages = exercisePanelMessages();
@@ -799,7 +874,7 @@ int main(int argc, char** argv) {
 	const bool runReview = exerciseRunReviewDefault();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && contentHeight && contextHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
+	return small && scaledSmall && large && contentHeight && contextHeight && statusAfterOpen && fitHeight && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
 			&& scaledDefaultWidth
 		? 0
 		: 1;
