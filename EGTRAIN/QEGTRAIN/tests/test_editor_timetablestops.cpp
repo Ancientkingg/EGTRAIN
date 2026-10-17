@@ -303,6 +303,12 @@ int main(int argc, char** argv) {
 		QApplication::processEvents();
 		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
 			qPrintable("a narrow table shortens its columns instead of scrolling" + label));
+		// a cut header is read from its tooltip, which holds the whole text on one line
+		const QStringList headerTips = {"Station", "Stop platform", "Minimum dwell (s)", "Planned arrival", "Planned departure"};
+		bool wholeTips = table->columnCount() == headerTips.size();
+		for (int index = 0; wholeTips && index < table->columnCount(); ++index)
+			wholeTips = table->model()->headerData(index, Qt::Horizontal, Qt::ToolTipRole).toString() == headerTips.at(index);
+		ok &= expect(wholeTips, qPrintable("every column header has its whole text as a tooltip" + label));
 	}
 
 	for (const double scale : {1.0, 1.5}) {

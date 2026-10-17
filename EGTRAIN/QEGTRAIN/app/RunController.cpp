@@ -4,6 +4,7 @@
 #include "app/DispatchController.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
+#include "app/PathMessages.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
@@ -706,7 +707,7 @@ void RunController::chooseOutputFolder() {
 		return;
 	QDir().mkpath(dir);
 	simulation.setNextRunOutputFolder(dir.toStdString());
-	m_window->statusBar()->showMessage(QString("Output folder: %1").arg(dir), 4000);
+	m_window->statusBar()->showMessage(path_message::outputFolder(dir), 4000);
 }
 
 void RunController::setStartTime() {

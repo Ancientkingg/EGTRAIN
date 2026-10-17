@@ -8,6 +8,7 @@
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
+#include "app/PathMessages.h"
 #include "app/RunSelection.h"
 #include "app/OpenRequestRelay.h"
 #include "app/ReleaseNotesText.h"
@@ -83,6 +84,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include "widgets/TimeProgressBar.h"
@@ -490,8 +492,7 @@ void saveCsvInteractive(QWidget* parent, const QString& suggestedName,
 	const bool written = artifactWriter(path, content);
 	operation.exportFinished(telemetry::ExportKind::Csv, written, true, telemetry::Error::IoFailure);
 	if (!written) {
-		QMessageBox::warning(parent, "Export failed",
-			QString("Could not export the data and provenance to:\n%1").arg(path));
+		QMessageBox::warning(parent, "Export failed", path_message::writeFailed("export the data and provenance to", path));
 	}
 }
 
@@ -1652,6 +1653,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		scroll->setMinimumSize(0, 0);
 		scroll->setWidget(content);
 		dock->setWidget(scroll);
+		// The wheel scrolls the dock over a field and changes the field only once it has focus.
+		FocusWheel::watch(content);
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
@@ -3607,7 +3610,7 @@ void MainWindow::setupRunResultsDock() {
 		QBuffer buffer(&data);
 		if (!buffer.open(QIODevice::WriteOnly) || !fullTableImage(*m_runResultsTable).save(&buffer, "PNG")) {
 			operation.failure(telemetry::Operation::Export, telemetry::Error::InternalFailure);
-			QMessageBox::warning(this, "Export failed", QString("Could not write the image to:\n%1").arg(path));
+			QMessageBox::warning(this, "Export failed", path_message::writeFailed("write the image to", path));
 			return;
 		}
 		const std::string bytes(data.constData(), static_cast<std::size_t>(data.size()));
@@ -3615,8 +3618,7 @@ void MainWindow::setupRunResultsDock() {
 			m_runController->completedRun() ? m_runController->completedRun()->provenance : RunProvenance());
 		operation.exportFinished(telemetry::ExportKind::Png, written, true, telemetry::Error::IoFailure);
 		if (!written)
-			QMessageBox::warning(this, "Export failed",
-				QString("Could not export the image and provenance to:\n%1").arg(path));
+			QMessageBox::warning(this, "Export failed", path_message::writeFailed("export the image and provenance to", path));
 	});
 	resultViews->addWidget(exportCsvBtn);
 	resultViews->addWidget(exportPngBtn);
