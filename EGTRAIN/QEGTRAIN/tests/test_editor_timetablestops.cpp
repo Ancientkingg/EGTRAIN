@@ -202,6 +202,9 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
 			"a panel without a document shows nothing and offers nothing");
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable."
+				&& panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a panel without a document asks for a service");
 		SceneDocument document;
 		panel.setDocument(&document);
 		panel.setServiceId("service-1");
@@ -214,6 +217,28 @@ int main(int argc, char** argv) {
 	}
 
 	{
+		// a service that has no stops
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = lineScene();
+		scene.services[0].stops.clear();
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		ok &= expect(panel.table()->rowCount() == 0 && panel.addButton()->isEnabled()
+				&& panel.emptyStateLabel()->text() == "No stops. Use Add Stop." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a service without stops points to Add Stop");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(!panel.addButton()->isEnabled() && panel.emptyStateLabel()->text() == "No stops.",
+			"a service without stops does not point to Add Stop while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
+		panel.setServiceId("service-2");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message goes away when the service has stops");
+	}
+
+	{
 		SceneDocument document;
 		TimetableStopsPanel panel;
 		panel.setDocument(&document);
@@ -223,7 +248,10 @@ int main(int argc, char** argv) {
 		document.replace(lineScene(), false);
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled(),
 			"a scene shows no stops until a service is given");
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable.",
+			"a scene without a given service asks for a service");
 		panel.setServiceId("service-1");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message is hidden while the service has stops");
 		ok &= expect(panel.table()->rowCount() == 3 && column(panel.table(), 0) == QStringList({"A", "B", "C"})
 				&& column(panel.table(), 1) == QStringList({"platform-a", "platform-b", "platform-c"})
 				&& column(panel.table(), 2) == QStringList({"30", "30", "30"}) && column(panel.table(), 3) == QStringList({"0", "60", "120"})
@@ -301,6 +329,8 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
 			"an unknown service shows nothing");
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"an unknown service asks for a service");
 		panel.setServiceId("");
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.addButton()->isEnabled(), "an empty id shows nothing");
 		panel.setServiceId("service-2");

@@ -80,6 +80,7 @@
 #include <QPointer>
 #include <QPointF>
 #include <QPushButton>
+#include <QRect>
 #include <QRectF>
 #include <QRegularExpression>
 #include <QSaveFile>
@@ -4069,9 +4070,33 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 	if (ok) {
 		auto* servicePages = w.findChild<QTabWidget*>("serviceEditorPages");
-		const bool serviceStructure = servicePages && servicePages->count() == 2
+		const bool serviceStructure = servicePages && servicePages->count() == 3 && servicePages->tabText(0) == "Service"
+			&& servicePages->tabText(1) == "Timetable" && servicePages->tabText(2) == "Run occurrences"
 			&& w.m_serviceOccurrenceTable && w.m_serviceOccurrenceTable->parentWidget()
-			&& w.m_stopTableWidget && w.m_stopTimeBaseLabel && w.m_stopTimeBaseLabel->wordWrap();
+			&& w.m_stopTableWidget && w.m_stopTimeBaseLabel && w.m_stopTimeBaseLabel->wordWrap()
+			&& servicePages->widget(1)->isAncestorOf(w.m_stopTableWidget) && servicePages->widget(1)->isAncestorOf(w.m_stopTimeModeCombo)
+			&& servicePages->widget(1)->isAncestorOf(w.m_addStopButton);
+		// The time mode, the base time sentence, the stop table and its five buttons are whole inside the visible part of
+		// the Services dock when the Timetable tab is open, so no action of the timetable is below the fold. Returns what
+		// is missing, or nothing.
+		const auto timetableTabFailure = [&w]() -> QString {
+			QTabWidget* pages = w.m_servicePanel->pages();
+			const int previousTab = pages->currentIndex();
+			pages->setCurrentIndex(1);
+			QApplication::processEvents();
+			QWidget* visibleArea = w.m_serviceDock->findChild<QScrollArea*>("editorContentScroll")->viewport();
+			QString failure;
+			const std::array<QWidget*, 8> parts = {w.m_stopTimeModeCombo, w.m_stopTimeBaseLabel, w.m_stopTableWidget, w.m_addStopButton,
+				w.m_insertStopAfterButton, w.m_timetableStopsPanel->removeButton(), w.m_moveStopUpButton, w.m_moveStopDownButton};
+			for (QWidget* part : parts) {
+				const QRect area(part->mapTo(visibleArea, QPoint(0, 0)), part->size());
+				if (!part->isVisible() || !visibleArea->rect().contains(area))
+					failure = QString("%1 is not whole on the Timetable tab").arg(part->objectName());
+			}
+			pages->setCurrentIndex(previousTab);
+			QApplication::processEvents();
+			return failure;
+		};
 		const bool signalDetails = w.signallingGroupDetails && w.signallingGroupDetails->isReadOnly()
 			&& w.signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
 		const bool resultsStructure = w.m_runResultsDock
@@ -4096,6 +4121,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QApplication::processEvents();
 				if (w.width() > 1280 || w.height() > 800)
 					facetFailure(ok, "presentation", dock->objectName() + " enlarged the main window");
+				if (dock == w.m_serviceDock) {
+					const QString failure = timetableTabFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " at 1280 by 800 pixels");
+				}
 				if (dock == w.m_passengerDock) {
 					auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
 					scroll->verticalScrollBar()->setValue(0);
@@ -4166,6 +4196,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (serviceFields->horizontalScrollBar()->isVisible() || editRight.x() > serviceFields->viewport()->width())
 					facetFailure(ok, "presentation", "the fields of a service are cut at the right at 1280 by 698 pixels");
 			}
+			const QString timetableFailure = timetableTabFailure();
+			if (!timetableFailure.isEmpty())
+				facetFailure(ok, "presentation", timetableFailure + " at 1280 by 698 pixels");
 			w.m_serviceDock->hide();
 			w.resize(1280, 800);
 			QApplication::processEvents();

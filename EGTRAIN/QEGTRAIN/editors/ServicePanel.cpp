@@ -4,12 +4,16 @@
 #include "scene/SceneReferences.h"
 #include "scene/SectionInventory.h"
 #include "scene/RuntimeLimits.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFormLayout>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -104,79 +108,67 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	listPane->setMaximumWidth(listPane->fontMetrics().averageCharWidth() * 32);
 	serviceLayout->addWidget(listPane);
 
-	// right: the selected service's service-level fields
+	// right: the fields of the selected service, its timetable and its occurrences on three tabs
 	QWidget* detailPane = new QWidget(this);
-	m_detailLayout = new QVBoxLayout(detailPane);
-	m_detailLayout->addWidget(new QLabel("Service Id", detailPane));
+	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
+	m_emptyLabel = EditorLayout::emptyStateLabel(detailPane);
+	m_emptyLabel->setObjectName("serviceEmptyStateLabel");
+	detailLayout->addWidget(m_emptyLabel);
+	QFormLayout* form = new QFormLayout();
+	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+	detailLayout->addLayout(form);
+	detailLayout->addStretch();
+
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("serviceIdEdit");
-	m_detailLayout->addWidget(m_idEdit);
-	m_detailLayout->addWidget(new QLabel("Service code (number)", detailPane));
+	form->addRow("Service Id", m_idEdit);
 	m_operatingCodeEdit = new QLineEdit(detailPane);
 	m_operatingCodeEdit->setObjectName("serviceOperatingCodeEdit");
-	m_detailLayout->addWidget(m_operatingCodeEdit);
-	m_detailLayout->addWidget(new QLabel("Category", detailPane));
-	m_categoryCombo = new QComboBox(detailPane);
+	form->addRow("Service code (number)", m_operatingCodeEdit);
+	m_categoryCombo = new ChoiceComboBox(detailPane);
 	m_categoryCombo->setObjectName("serviceCategoryCombo");
-	m_detailLayout->addWidget(m_categoryCombo);
-	m_detailLayout->addWidget(new QLabel("Service visualization colour", detailPane));
+	form->addRow("Category", m_categoryCombo);
 	m_colorButton = new ColorChoiceButton(detailPane);
 	m_colorButton->setObjectName("serviceColorButton");
-	m_detailLayout->addWidget(m_colorButton);
-	m_detailLayout->addWidget(new QLabel("Composition", detailPane));
-	m_compositionCombo = new QComboBox(detailPane);
+	form->addRow("Service visualization colour", m_colorButton);
+	m_compositionCombo = new ChoiceComboBox(detailPane);
 	m_compositionCombo->setObjectName("serviceCompositionCombo");
-	m_detailLayout->addWidget(m_compositionCombo);
-	m_detailLayout->addWidget(new QLabel("Route", detailPane));
-	m_routeCombo = new QComboBox(detailPane);
+	form->addRow("Composition", m_compositionCombo);
+	m_routeCombo = new ChoiceComboBox(detailPane);
 	m_routeCombo->setObjectName("serviceRouteCombo");
-	m_detailLayout->addWidget(m_routeCombo);
+	form->addRow("Route", m_routeCombo);
 
-	QHBoxLayout* entryTimeLayout = new QHBoxLayout();
 	m_hasEntryTimeCheck = new QCheckBox("Entry Time (s)", detailPane);
 	m_hasEntryTimeCheck->setObjectName("serviceHasEntryTimeCheck");
 	m_entryTimeSecondsEdit = new QLineEdit(detailPane);
 	m_entryTimeSecondsEdit->setObjectName("serviceEntryTimeSecondsEdit");
 	m_entryTimeSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_entryTimeSecondsEdit));
-	entryTimeLayout->addWidget(m_hasEntryTimeCheck);
-	entryTimeLayout->addWidget(m_entryTimeSecondsEdit);
-	m_detailLayout->addLayout(entryTimeLayout);
+	form->addRow(m_hasEntryTimeCheck, m_entryTimeSecondsEdit);
 
-	QHBoxLayout* repeatLayout = new QHBoxLayout();
 	m_hasRepeatCheck = new QCheckBox("Repeat Headway (s)", detailPane);
 	m_hasRepeatCheck->setObjectName("serviceHasRepeatCheck");
 	m_headwaySecondsEdit = new QLineEdit(detailPane);
 	m_headwaySecondsEdit->setObjectName("serviceHeadwaySecondsEdit");
 	m_headwaySecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_headwaySecondsEdit));
-	repeatLayout->addWidget(m_hasRepeatCheck);
-	repeatLayout->addWidget(m_headwaySecondsEdit);
-	m_detailLayout->addLayout(repeatLayout);
+	form->addRow(m_hasRepeatCheck, m_headwaySecondsEdit);
 
-	QHBoxLayout* repeatCountLayout = new QHBoxLayout();
 	m_hasRepeatCountCheck = new QCheckBox("Configured total", detailPane);
 	m_hasRepeatCountCheck->setObjectName("serviceHasRepeatCountCheck");
 	m_repeatCountEdit = new QLineEdit(detailPane);
 	m_repeatCountEdit->setObjectName("serviceRepeatCountEdit");
 	m_repeatCountEdit->setValidator(new QIntValidator(1, std::numeric_limits<int>::max(), m_repeatCountEdit));
-	repeatCountLayout->addWidget(m_hasRepeatCountCheck);
-	repeatCountLayout->addWidget(m_repeatCountEdit);
-	m_detailLayout->addLayout(repeatCountLayout);
+	form->addRow(m_hasRepeatCountCheck, m_repeatCountEdit);
 
-	QHBoxLayout* performanceLayout = new QHBoxLayout();
-	// The label wraps when the pane is narrow, so that its row does not set the width of the pane.
-	auto* performanceLabel = new QLabel("Running performance (parameter) %", detailPane);
-	performanceLabel->setWordWrap(true);
-	performanceLayout->addWidget(performanceLabel);
 	m_performancePercentEdit = new CompactDoubleSpinBox(detailPane);
 	m_performancePercentEdit->setObjectName("servicePerformancePercentEdit");
 	m_performancePercentEdit->setRange(1.0, 100.0);
 	m_performancePercentEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_performancePercentEdit->setValue(100);
 	m_performancePercentEdit->setKeyboardTracking(false);
-	performanceLayout->addWidget(m_performancePercentEdit);
-	m_detailLayout->addLayout(performanceLayout);
+	form->addRow("Running performance (parameter) %", m_performancePercentEdit);
 
-	QHBoxLayout* maximumSpeedLayout = new QHBoxLayout();
 	m_hasMaximumSpeedCheck = new QCheckBox("Maximum speed restriction km/h", detailPane);
 	m_hasMaximumSpeedCheck->setObjectName("serviceHasMaximumSpeedCheck");
 	m_maximumSpeedKmhEdit = new ServiceSpeedSpinBox(detailPane);
@@ -184,25 +176,17 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_maximumSpeedKmhEdit->setRange(0.1, 1000.0);
 	m_maximumSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_maximumSpeedKmhEdit->setValue(100.0);
-	maximumSpeedLayout->addWidget(m_hasMaximumSpeedCheck);
-	maximumSpeedLayout->addWidget(m_maximumSpeedKmhEdit);
-	m_detailLayout->addLayout(maximumSpeedLayout);
+	form->addRow(m_hasMaximumSpeedCheck, m_maximumSpeedKmhEdit);
 
-	QHBoxLayout* operatingCodeStepLayout = new QHBoxLayout();
 	m_hasOperatingCodeStepCheck = new QCheckBox("Service code (number) step", detailPane);
 	m_hasOperatingCodeStepCheck->setObjectName("serviceHasOperatingCodeStepCheck");
 	m_operatingCodeStepEdit = new QLineEdit(detailPane);
 	m_operatingCodeStepEdit->setObjectName("serviceOperatingCodeStepEdit");
 	m_operatingCodeStepEdit->setValidator(
 		new QIntValidator(-std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), m_operatingCodeStepEdit));
-	operatingCodeStepLayout->addWidget(m_hasOperatingCodeStepCheck);
-	operatingCodeStepLayout->addWidget(m_operatingCodeStepEdit);
-	m_detailLayout->addLayout(operatingCodeStepLayout);
+	form->addRow(m_hasOperatingCodeStepCheck, m_operatingCodeStepEdit);
 
-	m_detailLayout->addStretch();
-
-	// the service detail pane plus the timetable editor is tall, so let it scroll
-	// instead of overflowing the dock and overlapping the tab bar
+	// the fields are tall, so let them scroll instead of overflowing the dock and overlapping the tab bar
 	QScrollArea* detailScroll = new QScrollArea(this);
 	detailScroll->setWidgetResizable(true);
 	detailScroll->setFrameShape(QFrame::NoFrame);
@@ -210,7 +194,11 @@ ServicePanel::ServicePanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_pages = new QTabWidget(this);
 	m_pages->setObjectName("serviceEditorPages");
 	m_pages->setMinimumSize(0, 0);
-	m_pages->addTab(detailScroll, "Service and timetable");
+	m_pages->addTab(detailScroll, "Service");
+
+	QWidget* timetablePane = new QWidget(this);
+	m_timetableLayout = new QVBoxLayout(timetablePane);
+	m_pages->addTab(timetablePane, "Timetable");
 
 	QWidget* occurrencePane = new QWidget(this);
 	QVBoxLayout* occurrenceLayout = new QVBoxLayout(occurrencePane);
@@ -287,8 +275,7 @@ void ServicePanel::setOccurrenceDuration(std::function<double()> duration) {
 }
 
 void ServicePanel::setTimetableWidget(QWidget* widget) {
-	// before the stretch that ends the fields
-	m_detailLayout->insertWidget(m_detailLayout->count() - 1, widget);
+	m_timetableLayout->addWidget(widget);
 }
 
 bool ServicePanel::hasScene() const {
@@ -345,6 +332,17 @@ void ServicePanel::updateDetail() {
 	const SceneModel noScene;
 	const SceneModel& model = m_document ? m_document->model() : noScene;
 	const SceneService* service = hasSelection ? &model.services[static_cast<std::size_t>(row)] : nullptr;
+
+	QString emptyText;
+	if (!service) {
+		if (!hasScene())
+			emptyText = QStringLiteral("Open a case to edit services.");
+		else if (canEdit())
+			emptyText = QStringLiteral("Select a service or use Add Service.");
+		else
+			emptyText = QStringLiteral("No services.");
+	}
+	DialogLayout::setHelp(m_emptyLabel, emptyText);
 
 	{
 		const QSignalBlocker blocker(m_idEdit);

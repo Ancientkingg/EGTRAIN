@@ -6,6 +6,7 @@
 #include "util/TimeFormat.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -99,7 +100,6 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	setObjectName("timetableStopsPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
-	layout->addWidget(new QLabel("Timetable stops", this));
 	QHBoxLayout* timeModeLayout = new QHBoxLayout();
 	timeModeLayout->addWidget(new QLabel("Planned time display", this));
 	m_timeModeCombo = new QComboBox(this);
@@ -112,6 +112,9 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_timeBaseLabel->setWordWrap(true);
 	layout->addLayout(timeModeLayout);
 	layout->addWidget(m_timeBaseLabel);
+	m_emptyLabel = EditorLayout::emptyStateLabel(this);
+	m_emptyLabel->setObjectName("timetableEmptyStateLabel");
+	layout->addWidget(m_emptyLabel);
 	m_table = new QTableWidget(this);
 	m_table->setObjectName("timetableStopTable");
 	m_table->setColumnCount(5);
@@ -210,10 +213,17 @@ void TimetableStopsPanel::refresh() {
 								   : QStringLiteral("planned times are elapsed seconds from this base"))
 			: QString());
 	m_timeModeCombo->setEnabled(editorAvailable);
+	const int stopCount = hasService ? static_cast<int>(model.services[static_cast<std::size_t>(serviceIndex)].stops.size()) : 0;
+	QString emptyText;
+	if (!hasService)
+		emptyText = QStringLiteral("Select a service to edit its timetable.");
+	else if (stopCount == 0)
+		emptyText = editorAvailable ? QStringLiteral("No stops. Use Add Stop.") : QStringLiteral("No stops.");
+	DialogLayout::setHelp(m_emptyLabel, emptyText);
 	{
 		const QSignalBlocker blocker(m_table);
 		m_table->clearContents();
-		m_table->setRowCount(hasService ? static_cast<int>(model.services[static_cast<std::size_t>(serviceIndex)].stops.size()) : 0);
+		m_table->setRowCount(stopCount);
 		if (hasService) {
 			const SceneService& service = model.services[static_cast<std::size_t>(serviceIndex)];
 			const std::vector<SceneStopResolution> resolutions = resolveSceneServiceStops(model, service, sceneServiceTraversal(model, service));

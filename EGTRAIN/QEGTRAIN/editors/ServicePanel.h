@@ -25,9 +25,10 @@ class QTableWidget;
 class QTableWidgetItem;
 class QVBoxLayout;
 
-// The services of the scene: a list to pick one, the fields of the selected service, the place for its timetable
-// and a tab that lists the occurrences the services generate and lets the user leave some out of the next run.
-// Renaming a service rewrites the entities that refer to it, and deleting one that is referred to is refused.
+// The services of the scene: a list to pick one and three tabs. The first holds the fields of the selected service,
+// the second the place for its timetable, and the third lists the occurrences the services generate and lets the
+// user leave some out of the next run. Renaming a service rewrites the entities that refer to it, and deleting one
+// that is referred to is refused.
 class ServicePanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -45,8 +46,7 @@ public:
 	// The time in seconds over which the occurrences of a service are counted. Without one the duration of the scene
 	// settings is used.
 	void setOccurrenceDuration(std::function<double()> duration);
-	// Puts the timetable of the selected service under the fields of the service. The widget becomes a child of the
-	// panel.
+	// Puts the timetable of the selected service on the Timetable tab. The widget becomes a child of the panel.
 	void setTimetableWidget(QWidget* widget);
 	void refresh() override;
 	// Takes the id and the fields that are being edited into the document.
@@ -110,6 +110,8 @@ public:
 	QPushButton* selectAllButton() const { return m_selectAllButton; }
 	QPushButton* selectNoneButton() const { return m_selectNoneButton; }
 	QLabel* occurrenceSelectionLabel() const { return m_occurrenceSelectionLabel; }
+	// The message above the fields when no service can be shown, hidden otherwise.
+	QLabel* emptyStateLabel() const { return m_emptyLabel; }
 
 Q_SIGNALS:
 	// The service has got another id and the entities that referred to it have followed. Emitted after the document
@@ -161,7 +163,8 @@ private:
 	QDoubleSpinBox* m_maximumSpeedKmhEdit = nullptr;
 	QCheckBox* m_hasOperatingCodeStepCheck = nullptr;
 	QLineEdit* m_operatingCodeStepEdit = nullptr;
-	QVBoxLayout* m_detailLayout = nullptr;
+	QLabel* m_emptyLabel = nullptr;
+	QVBoxLayout* m_timetableLayout = nullptr;
 	QTabWidget* m_pages = nullptr;
 	QTableWidget* m_occurrenceTable = nullptr;
 	QPushButton* m_selectAllButton = nullptr;

@@ -1,11 +1,13 @@
 #include "editors/ServicePanel.h"
 
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFormLayout>
 #include <QLabel>
 #include <QLayout>
 #include <QLineEdit>
@@ -167,6 +169,27 @@ int main(int argc, char** argv) {
 		ok &= expect(!panel.addButton()->isEnabled() && document.revision() == 0 && !document.isDirty()
 				&& document.model().services.empty(),
 			"a panel stays disabled while its document holds no scene, and its actions change nothing");
+	}
+
+	{
+		// the message above the fields says why no service is shown
+		SceneDocument document;
+		ServicePanel panel;
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a panel without a document asks to open a case");
+		panel.setDocument(&document);
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services.", "a document without a scene asks to open a case");
+		SceneModel scene = serviceScene();
+		scene.services.clear();
+		document.replace(scene, false);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service or use Add Service." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a scene without services points to Add Service");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not point to Add Service while a run uses it");
+		document.setEditable(true);
+		document.replace(serviceScene(), false);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message is hidden while a service is shown");
 	}
 
 	{
@@ -523,26 +546,38 @@ int main(int argc, char** argv) {
 	}
 
 	{
-		// the running performance row can be narrower than its label, which wraps
+		// the fields are one form: each label or check box is in the row of its field, and the choices can shrink
 		ServicePanel panel;
-		QLabel* label = nullptr;
-		for (QLabel* candidate : panel.findChildren<QLabel*>())
-			if (candidate->text() == "Running performance (parameter) %")
-				label = candidate;
-		QLayout* row = nullptr;
-		if (label)
-			for (int i = 0; i < label->parentWidget()->layout()->count(); ++i) {
-				QLayout* candidate = label->parentWidget()->layout()->itemAt(i)->layout();
-				if (candidate && candidate->indexOf(label) >= 0)
-					row = candidate;
-			}
-		ok &= expect(label && row, "the running performance label is in a row of the fields");
-		if (label && row) {
-			const int textWidth = label->fontMetrics().horizontalAdvance(label->text());
-			ok &= expect(label->wordWrap() && row->minimumSize().width() < textWidth
-					&& label->heightForWidth(textWidth / 2) >= 2 * label->fontMetrics().lineSpacing(),
-				"the running performance label wraps, so its row does not need the width of the whole text");
+		auto* form = panel.pages()->widget(0)->findChild<QFormLayout*>();
+		ok &= expect(form && form->rowWrapPolicy() == QFormLayout::WrapLongRows, "the fields of a service are a form that wraps long rows");
+		if (form) {
+			const auto labelText = [form](QWidget* field) {
+				auto* label = qobject_cast<QLabel*>(form->labelForField(field));
+				return label ? label->text() : QString();
+			};
+			ok &= expect(labelText(panel.idEdit()) == "Service Id" && labelText(panel.operatingCodeEdit()) == "Service code (number)"
+					&& labelText(panel.categoryCombo()) == "Category" && labelText(panel.colorButton()) == "Service visualization colour"
+					&& labelText(panel.compositionCombo()) == "Composition" && labelText(panel.routeCombo()) == "Route"
+					&& labelText(panel.performancePercentEdit()) == "Running performance (parameter) %",
+				"each field has its label in its row");
+			ok &= expect(form->labelForField(panel.entryTimeSecondsEdit()) == panel.hasEntryTimeCheck()
+					&& form->labelForField(panel.headwaySecondsEdit()) == panel.hasRepeatCheck()
+					&& form->labelForField(panel.repeatCountEdit()) == panel.hasRepeatCountCheck()
+					&& form->labelForField(panel.maximumSpeedKmhEdit()) == panel.hasMaximumSpeedCheck()
+					&& form->labelForField(panel.operatingCodeStepEdit()) == panel.hasOperatingCodeStepCheck(),
+				"each check box is in the row of the field it switches on");
 		}
+		ok &= expect(dynamic_cast<ChoiceComboBox*>(panel.categoryCombo()) && dynamic_cast<ChoiceComboBox*>(panel.compositionCombo())
+				&& dynamic_cast<ChoiceComboBox*>(panel.routeCombo()),
+			"the category, composition and route are choices that can shrink below their longest entry");
+	}
+
+	{
+		// a row keeps its field beside its label while there is room and puts it under the label in a narrow panel
+		ServicePanel panel;
+		auto* form = panel.pages()->widget(0)->findChild<QFormLayout*>();
+		ok &= expect(form && form->hasHeightForWidth() && form->heightForWidth(form->minimumSize().width()) > form->heightForWidth(4000),
+			"the fields are taller in a narrow panel, because their rows wrap");
 	}
 
 	{
@@ -550,8 +585,8 @@ int main(int argc, char** argv) {
 		ServicePanel panel;
 		auto* timetable = new QWidget;
 		panel.setTimetableWidget(timetable);
-		ok &= expect(panel.isAncestorOf(timetable) && panel.pages()->count() == 2,
-			"the timetable is part of the panel and the panel has the fields and the occurrences as pages");
+		ok &= expect(panel.pages()->widget(1)->isAncestorOf(timetable) && panel.pages()->count() == 3,
+			"the timetable is on its own page between the fields and the occurrences");
 	}
 
 	{

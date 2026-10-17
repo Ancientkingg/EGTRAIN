@@ -48,6 +48,8 @@ public:
 	QPushButton* moveDownButton() const { return m_moveDownButton; }
 	QComboBox* timeModeCombo() const { return m_timeModeCombo; }
 	QLabel* timeBaseLabel() const { return m_timeBaseLabel; }
+	// The message above the table when there is no service or it has no stops, hidden otherwise.
+	QLabel* emptyStateLabel() const { return m_emptyLabel; }
 
 Q_SIGNALS:
 	// The table shows the stops again, so what depends on the timetable of the services is out of date.
@@ -68,6 +70,7 @@ private:
 	bool m_clockMode = false;
 	QComboBox* m_timeModeCombo = nullptr;
 	QLabel* m_timeBaseLabel = nullptr;
+	QLabel* m_emptyLabel = nullptr;
 	QTableWidget* m_table = nullptr;
 	QPushButton* m_addButton = nullptr;
 	QPushButton* m_insertAfterButton = nullptr;
