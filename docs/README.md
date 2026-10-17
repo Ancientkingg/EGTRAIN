@@ -22,6 +22,7 @@ Choose the route that matches your task.
 ## Tutorials
 
 - [Tutorial: modify a supplied case](guides/tutorial-modify-a-case.md): save a working copy of Paimpol, change a dwell and a performance, validate, save, reopen, run, and compare delays in an incident scenario.
+- [Tutorial: the smallest useful scene](guides/tutorial-minimal-scene.md): build a one-track case with two stations and one train from New Case Study..., run it, save it as a folder and a bundle, and open it again.
 
 ## Create or edit scenes
 
