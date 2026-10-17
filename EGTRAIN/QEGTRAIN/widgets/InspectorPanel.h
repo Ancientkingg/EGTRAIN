@@ -157,6 +157,7 @@ private:
 	QLineEdit* signallingNextTrackText = nullptr;
 	QPlainTextEdit* signallingGroupDetails = nullptr;
 	QWidget* trainInfoWidget = nullptr;
+	QLineEdit* trainNameText = nullptr;
 	QLineEdit* trainIDText = nullptr;
 	QLineEdit* trainTypeText = nullptr;
 	QLineEdit* trainLengthText = nullptr;

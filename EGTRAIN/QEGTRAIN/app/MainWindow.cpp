@@ -2687,9 +2687,7 @@ void MainWindow::refreshFollowTrainChoices() {
 	// one row that says why.
 	if (!m_showingTrackPreview && simulation.run().numTrains > 0) {
 		for (int train = 0; train < simulation.run().numTrains; ++train) {
-			QString label = QString::fromStdString(simulation.run().trains[train].trainDescription);
-			if (label.isEmpty() || label == "None")
-				label = QString("Train %1").arg(train + 1);
+			const QString label = QString::fromStdString(followTrainName(simulation.run().trains[train].trainDescription, train));
 			m_followTrainCombo->addItem(label, train);
 			m_followTrainCombo->setItemData(train, label, kFollowNameRole);
 		}

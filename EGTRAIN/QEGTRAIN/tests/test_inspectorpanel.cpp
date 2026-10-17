@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsScene>
+#include <QLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -203,6 +204,8 @@ int main(int argc, char* argv[]) {
 	TrainItemGroup trainGroup;
 	TrainBodyItem trainBody(QPolygonF(), &trainGroup);
 	trainBody.index = 3;
+	trainGroup.index = 3;
+	trainGroup.trainDescription = "IC_DEMO-12";
 	trainGroup.trainId = 12;
 	trainGroup.trainType = "IC";
 	scene.addItem(&trainGroup);
@@ -210,7 +213,10 @@ int main(int argc, char* argv[]) {
 	ok &= expect(panel.selectedTrainIndex() == 3 && host.followed == std::vector<int>{3} && text(panel, "ID") == "12"
 			&& text(panel, "Type") == "IC",
 		"selecting a train shows it and follows it");
+	ok &= expect(text(panel, "Train") == "IC_DEMO-12", "the train is named as the train list and the Follow status name it");
+	trainGroup.trainDescription = "None";
 	panel.displayTrainDetails(&trainBody, false);
+	ok &= expect(text(panel, "Train") == "Train 4", "a train without a description is named by its place in the list");
 	ok &= expect(host.followed.size() == 1, "showing a train without the follow mode does not follow it");
 	panel.clearSelectedTrain();
 	ok &= expect(panel.selectedTrainIndex() == -1, "the window can forget the selected train");
@@ -221,6 +227,7 @@ int main(int argc, char* argv[]) {
 	presenter.m_signalDecorations.append(&signal);
 	scene.addItem(&signal);
 	panel.displaySignallingInfo(&signal);
+	QWidget* signallingBox = field(panel, "Signals at location");
 	ok &= expect(host.signalInspections == 1 && text(panel, "Aspect") == "Stop" && text(panel, "Signals at location") == "first",
 		"selecting a signal shows its aspect and its details");
 	signal.setAspectCode(180);
@@ -228,6 +235,18 @@ int main(int argc, char* argv[]) {
 	panel.refreshInspectedSignal();
 	ok &= expect(text(panel, "Aspect") == "Proceed" && text(panel, "Signals at location") == "second",
 		"the signal that is shown follows its aspect");
+
+	// In a narrow dock the box has the width of the form and does not share it with the label. The label column of the
+	// form wraps at one width and not at another, so the widths around 300 are tried.
+	QWidget* signalForm = signallingBox->parentWidget();
+	const QMargins margins = signalForm->layout()->contentsMargins();
+	bool boxUsesForm = true;
+	for (int width : {300, 340, 380}) {
+		panel.dock()->setFixedWidth(width);
+		QCoreApplication::processEvents();
+		boxUsesForm &= signallingBox->width() >= signalForm->width() - margins.left() - margins.right();
+	}
+	ok &= expect(boxUsesForm, "in a narrow dock the signals at location use the width of the form");
 	panel.handleCloseInfoDockWidget();
 	presenter.m_signalDecorations.clear();
 
