@@ -503,6 +503,13 @@ int main(int argc, char** argv) {
 						&& error->styleSheet().isEmpty(),
 					"a reachable stop and the case base time are help, and the error label is hidden and takes its look from the stylesheet");
 				const QSize openSize = dialog.size();
+				const auto* openScroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
+				const QWidget* dwell = edit(dialog, "stopEditorDwellEdit");
+				// A screen that is too small for the content caps the height, and the body then scrolls.
+				ok &= expect(openScroll && (dialog.height() == dialog.maximumHeight() || openScroll->verticalScrollBar()->maximum() == 0)
+						&& (dialog.height() == dialog.maximumHeight()
+							|| openScroll->viewport()->rect().contains(QRect(dwell->mapTo(openScroll->viewport(), QPoint(0, 0)), dwell->size()))),
+					"the dialog opens at the height its content needs, with the dwell field in view and no vertical scroll range");
 				edit(dialog, "stopEditorDwellEdit")->setText("-1");
 				click(dialog, "stopEditorAcceptButton");
 				settle();

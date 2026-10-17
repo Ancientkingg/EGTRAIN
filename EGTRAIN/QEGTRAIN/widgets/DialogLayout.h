@@ -147,12 +147,10 @@ inline void fitWidthToContent(QDialog& dialog) {
 	auto* scroll = dialog.findChild<QScrollArea*>(QStringLiteral("dialogBodyScroll"));
 	if (!scroll || !dialog.layout())
 		return;
-	// A change to the body of a shown dialog leaves layout requests queued, and the size hint
-	// of the body is out of date until they have run.
-	if (dialog.isVisible()) {
-		for (QLayout* layout : scroll->widget()->findChildren<QLayout*>())
-			layout->activate();
-	}
+	// The layouts of the body keep size hints from before the body was filled or changed, also in a dialog that is not
+	// shown yet, so they are brought up to date before the body is measured.
+	for (QLayout* layout : scroll->widget()->findChildren<QLayout*>())
+		layout->activate();
 	const QMargins margins = dialog.layout()->contentsMargins();
 	const int needed = margins.left() + margins.right() + 2 * scroll->frameWidth()
 		+ scroll->widget()->sizeHint().width() + scroll->verticalScrollBar()->sizeHint().width();
