@@ -215,8 +215,10 @@ void TimetableStopsPanel::refresh() {
 	m_timeModeCombo->setEnabled(editorAvailable);
 	const int stopCount = hasService ? static_cast<int>(model.services[static_cast<std::size_t>(serviceIndex)].stops.size()) : 0;
 	QString emptyText;
-	if (!hasService)
-		emptyText = QStringLiteral("Select a service to edit its timetable.");
+	if (!hasScene())
+		emptyText = QStringLiteral("Open a case to edit services.");
+	else if (!hasService)
+		emptyText = model.services.empty() && !canEdit() ? QStringLiteral("No services.") : QStringLiteral("Select a service to edit its timetable.");
 	else if (stopCount == 0)
 		emptyText = editorAvailable ? QStringLiteral("No stops. Use Add Stop.") : QStringLiteral("No stops.");
 	DialogLayout::setHelp(m_emptyLabel, emptyText);

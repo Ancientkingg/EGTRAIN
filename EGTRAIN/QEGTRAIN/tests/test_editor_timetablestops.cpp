@@ -202,11 +202,11 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.table()->rowCount() == 0 && !panel.table()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.timeModeCombo()->isEnabled() && panel.timeBaseLabel()->text().isEmpty(),
 			"a panel without a document shows nothing and offers nothing");
-		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable."
-				&& panel.emptyStateLabel()->isVisibleTo(&panel),
-			"a panel without a document asks for a service");
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services." && panel.emptyStateLabel()->isVisibleTo(&panel),
+			"a panel without a document asks to open a case");
 		SceneDocument document;
 		panel.setDocument(&document);
+		ok &= expect(panel.emptyStateLabel()->text() == "Open a case to edit services.", "a document without a scene asks to open a case");
 		panel.setServiceId("service-1");
 		panel.addStop();
 		panel.removeStop();
@@ -236,6 +236,21 @@ int main(int argc, char** argv) {
 		panel.refresh();
 		panel.setServiceId("service-2");
 		ok &= expect(panel.emptyStateLabel()->isHidden(), "the message goes away when the service has stops");
+	}
+
+	{
+		// a scene that has no services
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = lineScene();
+		scene.services.clear();
+		document.replace(scene, false);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select a service to edit its timetable.",
+			"a scene without services asks for a service while it can be edited");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not ask for a service while a run uses it");
 	}
 
 	{
