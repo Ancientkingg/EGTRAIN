@@ -596,7 +596,6 @@ public:
 	// Regional Destructor
 	~Regional() {
 		/*PrintTrajectory();*/
-		// cout << "\nTrain " << this->ID << " Destroyed";
 	}
 
 	// moved PrintTrajectory to simulation code because here destructor automatically deletes vectors before print function

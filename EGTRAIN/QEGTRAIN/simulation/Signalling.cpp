@@ -742,9 +742,6 @@ void setAllConnections(SimulationRun& run) {
 	for (int i = 0; i < Temp_Blocks; i++) {
 		for (int j = 0; j < run.infra.sections[i].total_nodes; j++) {
 			if ((*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections > 0) {
-				// std::cout << "=============================\n";
-				/*std::cout << signalling_block_sections[i].ID << "-" << signalling_block_sections[i].FirstConnectedTrackLineID <<
-					"+" << signalling_block_sections[i].SecondConnectedTrackLineID << "-" << signalling_block_sections[i].nodelist_of_nodes_in_signalling_section[j].numConnections <<"="<<j<< std::endl;*/
 				for (int n = 0; n < (*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j].numConnections; n++) {
 					createBlockConn(run, (*run.infra.sections[i].nodelist_of_nodes_in_signalling_section)[j], run.infra.sections[i], Temp_Blocks, n);
 				}
@@ -1894,8 +1891,6 @@ void Route::adjustRouteAcrossDiffRegions() {
 	// The first section does not move, so only the end of the route follows the sections that did.
 	if (N_Block_Sections > 0)
 		x_of_end_node = sequence_of_block_sections[N_Block_Sections - 1].end_node.X;
-
-	// std::cout << "JumpX: " << diffRegionsJumpX.first << " and " << diffRegionsJumpX.second << std::endl;
 }
 
 void setListAllInfrastructureElementsFromRoutes(SimulationRun& run) {

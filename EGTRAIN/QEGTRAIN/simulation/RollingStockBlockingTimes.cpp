@@ -86,7 +86,6 @@ void BlockingTimes::checkIfLastInfraElementStatusIsInLineWithTrainNeeds(string T
 	else {
 		;
 		//.log("Infra element : " + NameOfInfraElement);
-		// cout << NameOfInfraElement << "\n";
 	}
 
 	bool ElementFound = false;
@@ -259,7 +258,6 @@ double Train::ComputeLastOccupationTime_real_time(int t, std::string CurrentBS, 
 	int IndexCurrentBS = 0; // distance(train_route[indexOfRoute].sequence_of_block_sections, itr);
 	for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
 		if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].ID == CurrentBS) {
-			// std::cout << "FOUND: " << CurrentBS;
 			IndexCurrentBS = h;
 			break;
 		}

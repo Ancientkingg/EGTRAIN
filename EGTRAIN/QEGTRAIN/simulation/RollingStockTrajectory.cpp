@@ -845,7 +845,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			instant_train_power_consumption[time_seconds] = 0.0;
 			instant_train_tractive_effort[time_seconds] = 0.0;
 		}
-		// cout << instant_spatial_position[i] << " " << As.gradient << " " << As.curvature << "\n";
 	} else {
 		instant_block_section_occupied[time_seconds] = "-";
 	}

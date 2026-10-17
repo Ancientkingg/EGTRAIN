@@ -125,17 +125,6 @@ double Train::AccelerationTimeFollowingMode(double V1, double V2, double X1, dou
 
 			EG_LOG(SimEvents, Warning) << "Train " << this->trainDescription << " has air resistances larger than tractive effort on this section with V1: " << V1 << " V2: " << V2 << " X1: " << X1 << " X2: " << X2 << ". The Cruising mode will be applied since trains cannot accelerate\n";
 			AccelerationTime = -99999;
-
-			// Then if it is because the speed difference is very small and lower than 0.1 m/s
-			/*if ((V2 - V1) < 0.1) {   //then impose that the acceleration distance is 0, given that train 1 and train 2 travel almost at the same speed with an approximation of 0.1 m/s
-			AccelerationDistance = 0;
-			}
-			else { //In case the speed difference is larger than 0.1 m/s and the rescueacceleration distance is negative then throw a Warning message
-			cout << "Warning: For Train " << this->trainDescription << " a non positive approximated acceleration distance has been computed with V1: " << V1 << " V2: " << V2 << " X1: " << X1 << " X2: " << X2 << ". Please check the reason why this happened\n";
-			printf_s("%.11f", V1); cout << " "; printf_s("%.11f", V2);
-			cout << "\n The average gradient is: "; printf_s("%.7f", AverageGradient); cout << "\n";
-			cout << "Probably the gradient is too steep for the power of the train locomotive to accelerate\n";
-			}*/
 		}
 	}
 
