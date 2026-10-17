@@ -322,11 +322,11 @@ to the console directly.
   `EGTRAIN_LOG` switches Qt messages on and off per level and `QT_MESSAGE_PATTERN` still
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
-- `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for one
-  `std::fprintf` to `stderr` before `std::abort()` in `BlockingTimeList::checkIndex`. It stays:
-  the default sink does not flush `std::cout` and a category can be switched off, so a logged
-  message could be lost when the process aborts. The command-line entry points
-  (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also writes the
+- `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`.
+  `BlockingTimeList::checkIndex` logs a negative index as `sim.setup` at `error` and calls
+  `eglog::flush()`, which flushes `std::cout` and `std::cerr`, before `std::abort()`: the sinks
+  write `std::cout` without a flush. The command-line entry points (`app/main.cpp`,
+  `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also writes the
   line `End of Simulation` of a run without a window to `std::cout` itself: scripts read it, so
   no logging rule may hide it. A run in the window logs the same line as `app.run`.
 - The code in `simulation/` uses `sim.setup` for the set-up of a run (the selected case, the

@@ -79,6 +79,11 @@ bool configure(const std::string& rules);
 // string when it is not set. The caller reports a false result: this code never prints.
 bool configureFromEnvironment();
 
+// Flushes std::cout and std::cerr, which the default sink and the sink of the application write
+// without a flush. A caller that ends the process without leaving main(), with std::abort(),
+// calls it after its last message.
+void flush();
+
 // One message. The destructor passes the collected text to the sink unless it is empty. When an
 // argument of the stream expression throws, the text streamed before it is still passed.
 class Line {

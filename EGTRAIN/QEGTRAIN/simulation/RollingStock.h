@@ -137,11 +137,10 @@ public:
 	}
 
 private:
-	// Writes to stderr and not through EG_LOG: the sink writes std::cout without a flush and
-	// the pair can be switched off, so the message could be lost when abort() follows.
 	static void checkIndex(int index) {
 		if (index < 0) {
-			std::fprintf(stderr, "BlockTime index %d is negative\n", index);
+			EG_LOG(SimSetup, Error) << "BlockTime index " << index << " is negative\n";
+			eglog::flush();
 			std::abort();
 		}
 	}

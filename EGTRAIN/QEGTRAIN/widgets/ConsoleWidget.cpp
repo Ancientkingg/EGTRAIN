@@ -285,10 +285,8 @@ void qtMessageToLog(QtMsgType type, const QMessageLogContext& context, const QSt
 			eglog::Line(eglog::Category::AppUi, level).stream() << text;
 	}
 	// Qt ends the program when this function returns, and the text of a fatal message must be out by then.
-	if (fatal) {
-		std::cout.flush();
-		std::cerr.flush();
-	}
+	if (fatal)
+		eglog::flush();
 }
 
 std::string installConsoleLogging() {

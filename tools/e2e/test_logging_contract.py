@@ -72,10 +72,6 @@ EXEMPT_FILES = {
 # holds none.
 ALLOWED = {
     "diagrams/RunResults.cpp": {"cerr": 1},
-    # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
-    # right before std::abort(). EG_LOG would write std::cout without a flush and can be
-    # switched off, so the message could be lost.
-    "simulation/RollingStock.h": {"fprintf": 1},
 }
 
 # A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
