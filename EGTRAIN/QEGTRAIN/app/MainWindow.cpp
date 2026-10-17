@@ -1136,6 +1136,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionSimulationStop->setProperty("toolbarGroup", "Playback");
 	addToolbarButton(ui->actionSimulationStart, "actionRunButton", Qt::ToolButtonTextBesideIcon);
 	addToolbarButton(ui->actionSimulationPause, "actionPauseButton", Qt::ToolButtonTextBesideIcon);
+	// The button reads Pause or Resume. Its width fits the longer text, so the toolbar does not move when the text changes.
+	if (auto* pauseToolButton = qobject_cast<QToolButton*>(m_toolBar->widgetForAction(ui->actionSimulationPause))) {
+		const QString shownText = ui->actionSimulationPause->text();
+		int widestText = 0;
+		for (const char* candidate : {"Pause", "Resume"}) {
+			ui->actionSimulationPause->setText(QString::fromLatin1(candidate));
+			widestText = qMax(widestText, pauseToolButton->sizeHint().width());
+		}
+		ui->actionSimulationPause->setText(shownText);
+		pauseToolButton->setFixedWidth(widestText);
+	}
 	addToolbarButton(ui->actionSimulationStop, "actionStopButton", Qt::ToolButtonTextBesideIcon);
 	QLabel* slowerLabel = addToolbarLabel("Slower", "speedSlowerLabel");
 	slowerLabel->setProperty("toolbarGroup", "Playback");

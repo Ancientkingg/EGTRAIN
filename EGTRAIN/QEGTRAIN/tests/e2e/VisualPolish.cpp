@@ -630,6 +630,42 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	checkCommandBarAtSize(1024, 720, "QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT");
 	checkCommandBarAtSize(1200, 800, "QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT");
 	checkCommandBarAtSize(1440, 900, "QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT");
+	// The Pause button reads Resume while the run is paused. It keeps its width, so the toolbar does not move and the
+	// zoom buttons stay inside it.
+	if (pauseAction && w.m_toolBar) {
+		w.resize(1024, 720);
+		QApplication::processEvents();
+		const QStringList toolbarControlNames{"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton",
+			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
+			"actionZoomOutButton", "actionFitButton"};
+		const QString pauseText = pauseAction->text();
+		const auto controlGeometries = [&w, &toolbarControlNames]() {
+			QList<QRect> geometries;
+			for (const QString& name : toolbarControlNames) {
+				const QWidget* control = w.findChild<QWidget*>(name);
+				geometries << (control ? control->geometry() : QRect());
+			}
+			return geometries;
+		};
+		const QList<QRect> pauseGeometries = controlGeometries();
+		pauseAction->setText("Resume");
+		QApplication::processEvents();
+		const QList<QRect> resumeGeometries = controlGeometries();
+		const QRect toolbarArea = w.m_toolBar->rect();
+		for (const char* zoomName : {"actionZoomInButton", "actionZoomOutButton"}) {
+			const QWidget* zoom = w.findChild<QWidget*>(zoomName);
+			if (!zoom || !zoom->isVisibleTo(w.m_toolBar) || !toolbarArea.contains(zoom->geometry())) {
+				ok = false;
+				failures << QString("%1 is not inside the toolbar while the Pause button reads Resume").arg(zoomName);
+			}
+		}
+		pauseAction->setText(pauseText);
+		QApplication::processEvents();
+		if (pauseGeometries != resumeGeometries) {
+			ok = false;
+			failures << "the toolbar controls move or change size when the Pause button reads Resume";
+		}
+	}
 	w.resize(1200, 800);
 	QApplication::processEvents();
 	const int defaultNetworkWidth = w.networkView ? w.networkView->width() : 0;
