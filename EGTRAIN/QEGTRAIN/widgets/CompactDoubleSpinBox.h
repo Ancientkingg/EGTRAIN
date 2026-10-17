@@ -76,7 +76,8 @@ private:
 
 	static QString compactText(double value) {
 		const double magnitude = std::fabs(value);
-		if (magnitude >= 1e6 && magnitude < 1e15)
+		// Six significant digits round 999999.5 and up to 1e+06, so the plain form starts there.
+		if (magnitude >= 999999.5 && magnitude < 1e15)
 			return QString::number(value, 'f', 0);
 		return QString::number(value, 'g', 6);
 	}

@@ -87,6 +87,8 @@ int main(int argc, char** argv) {
 	ok &= check(spin.text() == "1e+15", __LINE__);
 	spin.setValue(1234567.5);
 	ok &= check(spin.text() == "1234568", __LINE__);
+	spin.setValue(999999.6);
+	ok &= check(spin.text() == "1000000", __LINE__);
 	spin.setValue(123456789012.0);
 	spin.interpretText();
 	ok &= check(spin.value() == 123456789012.0, __LINE__);

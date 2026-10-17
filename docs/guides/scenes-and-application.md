@@ -47,7 +47,7 @@ have positive width, be ordered, and not overlap.
 The label under **Link parameter file...** and **Link traction file...** shows
 the state of the link. **Unlinked** means no file is linked. A linked file that
 exists shows **Linked**, **Up to date** or **Reloaded**, **Rejected** with the
-reason when it cannot be read, or **Kept local** after Keep local. **Missing**
+reason when it cannot be read, or **Kept local** after Keep local. A reload or a retry that has not finished shows **Linked; waiting for reload** or **Retrying**, and during a run **Linked; pending reload after run** or **Retry pending after run**. **Missing**
 replaces all of these when the linked file does not exist, also after Keep local.
 It shows the path of the file, and **Retry** stays available. A conflict between
 local edits and a changed file is a question, not a label: it asks for Reload
