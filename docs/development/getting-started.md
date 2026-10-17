@@ -5,8 +5,10 @@ checks a pull request has to pass. It points to the longer guides for details. E
 C++17 desktop application for railway micro-simulation, built with CMake.
 
 The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17. The Linux and
-Windows recipes in [Build and test](build-and-test.md#configure) are the ones CI uses on every pull
-request; they have not been run again for this page.
+Windows commands on this page were not run for it. CI installs the same packages as
+[Build and test](build-and-test.md#configure) lists, but it configures with more options; see
+[Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
+is not what CI uses and was not checked for this page.
 
 ## What you need
 
@@ -34,11 +36,18 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 cmake --build build --parallel 4
 ```
 
-On Ubuntu and Windows only the install and configure lines differ; copy them from
-[Configure](build-and-test.md#configure). Without `--parallel`, `cmake --build` uses one job with
-the Makefile generator, which takes a long time; `CMAKE_BUILD_PARALLEL_LEVEL` sets the number of jobs
-as well. A first full build with tests and four jobs took about 14 minutes on an Apple silicon laptop. A Release build, the default, links with link-time optimization; `-DEGTRAIN_IPO=OFF` at
-configure time makes the links shorter.
+On Ubuntu and Windows, take the install and configure lines from
+[Configure](build-and-test.md#configure). The build, test and run commands below use the macOS and
+Linux form. With a multi-config generator such as Visual Studio, add `--config Release` to
+`cmake --build` and `-C Release` to `ctest`, and run the executable from
+[Run a local build](build-and-test.md#run-a-local-build).
+
+Without `--parallel`, `cmake --build` uses one job with the Makefile generator, which takes a long
+time; `CMAKE_BUILD_PARALLEL_LEVEL` sets the number of jobs as well. A first full build with tests
+and four jobs took about 14 minutes on one Apple silicon laptop, and it will differ on other machines.
+
+A Release build, the default, links with link-time optimization. `-DEGTRAIN_IPO=OFF` at configure
+time makes the links shorter.
 
 The build makes three programs and, with `EGTRAIN_BUILD_TESTS=ON`, one executable for each test:
 
@@ -63,6 +72,9 @@ cd EGTRAIN/QEGTRAIN
 The window opens the Netherlands case with the **Open a Case** chooser on top. Choose a case there, or
 start with `-n 2` (Paimpol) or `--scene Scenes/Paimpol` to skip the chooser; the other options are in
 [Command-line options](../guides/command-line.md).
+
+These paths are for macOS; on other systems use the path from
+[Run a local build](build-and-test.md#run-a-local-build).
 
 A run without a window needs no display and exits when the run ends. It writes to the folder that
 `QEGTRAIN_OUTPUT_DIR` names:
@@ -145,6 +157,11 @@ is the full rule.
 | Simulation, scene model, conversion or memory | the whole suite, then `python3 tools/e2e/headless_smoke.py` and `python3 tools/e2e/roundtrip_smoke.py` |
 | Scene format | the same, and validate and export the committed scenes with `build/scene_tool` |
 
+CI configures with `-DEGTRAIN_WARNINGS_AS_ERRORS=ON -DEGTRAIN_IPO=OFF` on all three systems; the
+warnings option is off by default. Add it to your configure line to see the warnings that CI rejects.
+The Windows leg also uses Ninja with `cl`, `-DCMAKE_BUILD_TYPE=Release` and
+`-DEGTRAIN_NETWORK_TESTS=ON`; see `.github/workflows/cmake.yml`.
+
 The two Python smokes and the visual smoke read the application from the macOS path
 `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`; `visual_polish_smoke.sh` takes another path from
 `QEGTRAIN_APP`. `headless_smoke.py` runs the seven committed cases one after the other; name case
@@ -168,7 +185,8 @@ which has no Qt dependency and builds quickly. It starts from the finished build
    ok &= expect(formatSimTime(7200) == "02:00:01", "formatSimTime two hours");
    ```
 
-2. Build and run only that test:
+2. Build and run only that test (with a multi-config generator, add `--config Release` and
+   `-C Release` as above):
 
    ```bash
    cmake --build build --target test_timeformat
@@ -179,8 +197,8 @@ which has no Qt dependency and builds quickly. It starts from the finished build
 
 3. Correct the expected text to `"02:00:00"` and run the two commands again. The test passes.
 
-4. Run the unit tests that finish quickly. `-j 4` runs four tests at a time; on an Apple silicon laptop
-   the set took about four minutes that way:
+4. Run the unit tests that finish quickly. `-j 4` runs four tests at a time. The set took about four
+   minutes that way on one Apple silicon laptop:
 
    ```bash
    ctest --test-dir build -L unit -LE slow --output-on-failure -j 4
@@ -195,17 +213,15 @@ root `CMakeLists.txt` and a label; [Tests](coding-guidelines.md#tests) shows how
 
 ## Where output goes
 
-A run writes to `<QStandardPaths::AppDataLocation>/Output/<scene>`, or to `$QEGTRAIN_OUTPUT_DIR/Output/<scene>`
-when that variable is set. CTest writes its log, settings and some run output below `build/`, the Bash
-smokes write below `$TMPDIR`, and `headless_smoke.py` writes to `EGTRAIN/QEGTRAIN/Output`, which Git
-ignores. [Where test and run output goes](build-and-test.md#where-test-and-run-output-goes) has the list.
+[Where test and run output goes](build-and-test.md#where-test-and-run-output-goes) lists where a
+run, CTest and each smoke write their files.
 
 ## Contributing
 
 What the repository itself shows:
 
-- Pull requests go to `main`. CI builds and runs the whole CTest suite on macOS, Windows and Linux,
-  unless every changed file is documentation. The format and tidy checks run when C++ sources change.
+- Pull requests go to `main`. CI builds and runs the CTest suite on macOS, Windows and Linux without
+  the tests labelled `network`, which run on Windows only, unless every changed file is documentation. The format and tidy checks run when C++ sources change.
   [CI and release branches](build-and-test.md#ci-and-release-branches) lists the workflows, and
   [Required checks on `main`](build-and-test.md#required-checks-on-main) the checks that must pass.
 - Code follows [Coding guidelines](coding-guidelines.md). `.clang-format` and `.editorconfig` set the

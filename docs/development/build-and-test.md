@@ -218,14 +218,18 @@ directory; EGTRAIN then writes `<override>/Output/<scene>`.
 
 ## Common setup failures
 
-Configure and build problems that have come up, with the text CMake or the tool prints.
+Configure and build problems that have come up, with the text CMake or the tool prints. The wording
+of CMake and CTest messages varies with the CMake version. The Qt5 message, the wrong-source-directory
+message, `No tests were found!!!` and the missing-target error were reproduced on macOS. The other
+rows were checked against `CMakeLists.txt` and the scripts but not run, and the Windows rows were not
+run on Windows.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `Could not find a package configuration file provided by "Qt5"`, or on macOS `The imported target "Qt5::Core" references the file ... but this file does not exist` | CMake does not look in the folder of Qt 5. Homebrew `qt@5` is not on the default search path | Add `-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5` (the Qt 5.15 `msvc2019_64` folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
 | `Could not find a package configuration file provided by "Qt5Charts"` (or `Qt5Svg`) | The module is not installed | `libqt5charts5-dev libqt5svg5-dev` on Ubuntu; the `qtcharts` module of the Qt installer on Windows |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
-| `Could NOT find Python3` with `Required is at least version "3.9"` | Python is older than 3.9 or not on `PATH`. Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
+| `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |
 | `The source ".../CMakeLists.txt" does not match the source ".../CMakeLists.txt" used to generate cache` | The `build` folder was configured for another checkout, for example a copied folder or another Git worktree | Use one build folder per checkout, for example `-B build-feature`, or delete the old one |
 | `EGTRAIN supports 64-bit Windows (x64) only` | A 32-bit generator or toolset | Configure for x64: `-A x64` with a Visual Studio generator, or an x64 configuration in Visual Studio |
 | `No tests were found!!!` from `ctest`, or `No rule to make target 'test_timeformat'` | The build folder was configured without `-DEGTRAIN_BUILD_TESTS=ON`, which is off by default | Run the configure command again with the option, in the same folder |
@@ -1630,13 +1634,14 @@ most of its checks, so run it locally to read its logs.
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
 | Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
 
-Point `TMPDIR` and `QEGTRAIN_OUTPUT_DIR` at folders outside the checkout when several people test on
-one machine, so that no run reads another run's files.
+Point `TMPDIR` at a folder outside the checkout when several people test on one machine, so that
+no run reads another run's files. Do the same with `QEGTRAIN_OUTPUT_DIR` for manual runs of the
+application; CTest and the smoke scripts set it themselves.
 
 ## CI and release branches
 
 - `main` is the validation branch. Pull requests build the project and run
-  the whole CTest suite, in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
+  the CTest suite without the tests labelled `network` (those run on Windows only), in parallel, on macOS, Windows (MSVC, Qt 5.15.2, vcpkg
   x64) and Linux (Ubuntu with apt Qt 5), unless every changed file matches the
   documentation rule below. The same checks run on `main` once a night (02:17 UTC)
   and when started by hand from the Actions tab (`workflow_dispatch`); both
