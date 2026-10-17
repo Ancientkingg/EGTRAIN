@@ -114,6 +114,7 @@ class CaseSettingsPanel;
 class ColorChoiceButton;
 class CompositionPanel;
 class DelayAnalysisWindow;
+class EntranceDelayPanel;
 class IncidentPanel;
 class PassengerPanel;
 class ScenarioPanel;
@@ -566,6 +567,8 @@ private:
 	QCheckBox* m_incidentTerminateAtDestinationCheck = nullptr;
 	QPushButton* m_addIncidentButton = nullptr;
 	// entrance-delay editor: rows belong to the selected scenario
+	EntranceDelayPanel* m_entranceDelayPanel = nullptr;
+	// Parts of m_entranceDelayPanel, for the scripted runs in tests/e2e
 	QListWidget* m_entranceDelayListWidget = nullptr;
 	QComboBox* m_entranceDelayServiceCombo = nullptr;
 	QSpinBox* m_entranceDelayOccurrenceEdit = nullptr;
@@ -732,23 +735,12 @@ private:
 	int totalServiceOccurrences() const;
 	int inPeriodServiceOccurrences() const;
 
-	// incident editor
+	// Shows the scenarios, the incidents and the entrance delays again.
 	void refreshIncidentPanel();
-	void refreshEntranceDelayPanel();
-	void updateEntranceDelayDetailPanel();
-	void addEntranceDelay();
-	void duplicateEntranceDelay();
-	void deleteEntranceDelay();
-	void commitEntranceDelayService(int index);
-	void commitEntranceDelayOccurrence();
-	void commitEntranceDelayStation(int index);
-	void commitEntranceDelaySeconds();
-	SceneEntranceDelay* selectedEntranceDelay();
 	SceneScenario* selectedScenario();
 	const SceneScenario* selectedScenario() const;
 	std::vector<SceneIncident>& selectedScenarioIncidents();
 	const std::vector<SceneIncident>& selectedScenarioIncidents() const;
-	void markScenarioModified();
 	QString scenarioContext() const;
 	QString runReviewText() const;
 	bool showRunReview();

@@ -47,6 +47,7 @@
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
+#include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
@@ -1873,49 +1874,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_addIncidentButton = m_incidentPanel->addButton();
 	scenarioEditorTabs->addTab(m_incidentPanel, "Incidents");
 
-	QWidget* entranceDelayPane = new QWidget(scenarioEditorTabs);
-	QVBoxLayout* entranceDelayLayout = new QVBoxLayout(entranceDelayPane);
-	entranceDelayLayout->addWidget(new QLabel("Entrance Delays", entranceDelayPane));
-	m_entranceDelayListWidget = new QListWidget(entranceDelayPane);
-	m_entranceDelayListWidget->setObjectName("entranceDelayListWidget");
-	m_entranceDelayListWidget->setAccessibleName("Entrance delay library");
-	entranceDelayLayout->addWidget(m_entranceDelayListWidget, 1);
-	QHBoxLayout* entranceDelayButtonLayout = new QHBoxLayout();
-	m_addEntranceDelayButton = new QPushButton("Add", entranceDelayPane);
-	m_addEntranceDelayButton->setObjectName("entranceDelayAddButton");
-	m_duplicateEntranceDelayButton = new QPushButton("Duplicate", entranceDelayPane);
-	m_duplicateEntranceDelayButton->setObjectName("entranceDelayDuplicateButton");
-	m_deleteEntranceDelayButton = new QPushButton("Delete", entranceDelayPane);
-	m_deleteEntranceDelayButton->setObjectName("entranceDelayDeleteButton");
-	entranceDelayButtonLayout->addWidget(m_addEntranceDelayButton);
-	entranceDelayButtonLayout->addWidget(m_duplicateEntranceDelayButton);
-	entranceDelayButtonLayout->addWidget(m_deleteEntranceDelayButton);
-	entranceDelayLayout->addLayout(entranceDelayButtonLayout);
-	QFormLayout* entranceDelayDetailLayout = new QFormLayout();
-	m_entranceDelayServiceCombo = new QComboBox(entranceDelayPane);
-	m_entranceDelayServiceCombo->setObjectName("entranceDelayServiceCombo");
-	entranceDelayDetailLayout->addRow("Service", m_entranceDelayServiceCombo);
-	m_entranceDelayOccurrenceEdit = new QSpinBox(entranceDelayPane);
-	m_entranceDelayOccurrenceEdit->setObjectName("entranceDelayOccurrenceSpin");
-	m_entranceDelayOccurrenceEdit->setRange(1, 1);
-	m_entranceDelayOccurrenceEdit->setKeyboardTracking(false);
-	entranceDelayDetailLayout->addRow("Occurrence", m_entranceDelayOccurrenceEdit);
-	m_entranceDelayOccurrenceContextLabel = new QLabel(entranceDelayPane);
-	m_entranceDelayOccurrenceContextLabel->setObjectName("entranceDelayOccurrenceContextLabel");
-	m_entranceDelayOccurrenceContextLabel->setWordWrap(true);
-	entranceDelayDetailLayout->addRow(QString(), m_entranceDelayOccurrenceContextLabel);
-	m_entranceDelayStationCombo = new QComboBox(entranceDelayPane);
-	m_entranceDelayStationCombo->setObjectName("entranceDelayStationCombo");
-	entranceDelayDetailLayout->addRow("Station", m_entranceDelayStationCombo);
-	m_entranceDelaySecondsEdit = new CompactDoubleSpinBox(entranceDelayPane);
-	m_entranceDelaySecondsEdit->setObjectName("entranceDelaySecondsEdit");
-	m_entranceDelaySecondsEdit->setRange(-std::numeric_limits<double>::max(),
-		std::numeric_limits<double>::max());
-	m_entranceDelaySecondsEdit->setDecimals(std::numeric_limits<double>::max_digits10);
-	m_entranceDelaySecondsEdit->setKeyboardTracking(false);
-	entranceDelayDetailLayout->addRow("Delay (s)", m_entranceDelaySecondsEdit);
-	entranceDelayLayout->addLayout(entranceDelayDetailLayout);
-	scenarioEditorTabs->addTab(entranceDelayPane, "Entrance Delays");
+	m_entranceDelayPanel = new EntranceDelayPanel(scenarioEditorTabs);
+	m_entranceDelayListWidget = m_entranceDelayPanel->listWidget();
+	m_entranceDelayServiceCombo = m_entranceDelayPanel->serviceCombo();
+	m_entranceDelayOccurrenceEdit = m_entranceDelayPanel->occurrenceEdit();
+	m_entranceDelayOccurrenceContextLabel = m_entranceDelayPanel->occurrenceContextLabel();
+	m_entranceDelayStationCombo = m_entranceDelayPanel->stationCombo();
+	m_entranceDelaySecondsEdit = m_entranceDelayPanel->secondsEdit();
+	m_addEntranceDelayButton = m_entranceDelayPanel->addButton();
+	m_duplicateEntranceDelayButton = m_entranceDelayPanel->duplicateButton();
+	m_deleteEntranceDelayButton = m_entranceDelayPanel->deleteButton();
+	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance Delays");
 	scenarioEditorTabs->setMinimumSize(0, 0);
 	incidentLayout->addWidget(scenarioEditorTabs, 1);
 
@@ -1949,19 +1918,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	m_incidentPanel->setDocument(m_document);
 	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_entranceDelayListWidget, &QListWidget::currentRowChanged, this,
-		[this](int) { updateEntranceDelayDetailPanel(); });
-	connect(m_addEntranceDelayButton, &QPushButton::clicked, this, &MainWindow::addEntranceDelay);
-	connect(m_duplicateEntranceDelayButton, &QPushButton::clicked, this, &MainWindow::duplicateEntranceDelay);
-	connect(m_deleteEntranceDelayButton, &QPushButton::clicked, this, &MainWindow::deleteEntranceDelay);
-	connect(m_entranceDelayServiceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-		&MainWindow::commitEntranceDelayService);
-	connect(m_entranceDelayOccurrenceEdit, &QAbstractSpinBox::editingFinished, this,
-		&MainWindow::commitEntranceDelayOccurrence);
-	connect(m_entranceDelayStationCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-		&MainWindow::commitEntranceDelayStation);
-	connect(m_entranceDelaySecondsEdit, &QAbstractSpinBox::editingFinished, this,
-		&MainWindow::commitEntranceDelaySeconds);
+	m_entranceDelayPanel->setPrompts(m_userPrompts.get());
+	m_entranceDelayPanel->setRunSelection(&m_runSelection);
+	m_entranceDelayPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
+	m_entranceDelayPanel->setDocument(m_document);
+	connect(m_entranceDelayPanel, &EntranceDelayPanel::changed, this, &MainWindow::refreshValidationPanel);
 
 	// Passenger authoring: a deliberately direct list/detail editor over the
 	// canonical SceneModel.  Journeys and legs remain nested under the selected
@@ -2028,9 +1989,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_servicePanel->setRunSelection(&m_runSelection);
 	m_servicePanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
 	connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel, &TimetableStopsPanel::setServiceId);
-	connect(m_timetableStopsPanel, &TimetableStopsPanel::timetableRefreshed, this, &MainWindow::refreshEntranceDelayPanel);
 	connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_servicePanel, &ServicePanel::occurrencesChanged, this, &MainWindow::refreshEntranceDelayPanel);
 	connect(m_servicePanel, &ServicePanel::changed, this, &MainWindow::refreshValidationPanel);
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);
@@ -3346,14 +3305,7 @@ void MainWindow::commitPendingEditorValues() {
 	}
 	m_scenarioPanel->commitPendingEditors();
 	m_incidentPanel->commitPendingEditors();
-	if (m_entranceDelayOccurrenceEdit && hasEditorFocus(m_entranceDelayOccurrenceEdit)) {
-		m_entranceDelayOccurrenceEdit->interpretText();
-		commitEntranceDelayOccurrence();
-	}
-	if (m_entranceDelaySecondsEdit && hasEditorFocus(m_entranceDelaySecondsEdit)) {
-		m_entranceDelaySecondsEdit->interpretText();
-		commitEntranceDelaySeconds();
-	}
+	m_entranceDelayPanel->commitPendingEditors();
 
 	m_committingPendingEditorValues = false;
 }
@@ -4767,16 +4719,6 @@ const std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() const 
 	return scenario ? scenario->incidents : empty;
 }
 
-SceneEntranceDelay* MainWindow::selectedEntranceDelay() {
-	if (!m_entranceDelayListWidget)
-		return nullptr;
-	SceneScenario* scenario = selectedScenario();
-	const int row = m_entranceDelayListWidget->currentRow();
-	return scenario && row >= 0 && row < static_cast<int>(scenario->entranceDelays.size())
-		? &scenario->entranceDelays[static_cast<std::size_t>(row)]
-		: nullptr;
-}
-
 QString MainWindow::scenarioContext() const {
 	if (!m_runSelection.appliedScenarioId().empty())
 		return QString::fromStdString(m_runSelection.appliedScenarioId());
@@ -4784,282 +4726,10 @@ QString MainWindow::scenarioContext() const {
 	return scenario ? QString::fromStdString(scenario->id) : QStringLiteral("(none)");
 }
 
-void MainWindow::markScenarioModified() {
-	if (const SceneScenario* scenario = selectedScenario())
-		m_runSelection.markScenarioModified(scenario->id);
-	markSceneDirty();
-}
-
 void MainWindow::refreshIncidentPanel() {
 	m_scenarioPanel->refresh();
 	m_incidentPanel->refresh();
-	refreshEntranceDelayPanel();
-}
-
-void MainWindow::refreshEntranceDelayPanel() {
-	if (!m_entranceDelayListWidget)
-		return;
-	const bool hasScene = m_sceneLoaded;
-	const SceneScenario* scenario = selectedScenario();
-	const int previousRow = m_entranceDelayListWidget->currentRow();
-	{
-		const QSignalBlocker blocker(m_entranceDelayListWidget);
-		m_entranceDelayListWidget->clear();
-		if (hasScene && scenario) {
-			for (const SceneEntranceDelay& delay : scenario->entranceDelays) {
-				QString label = QString("%1 / #%2 @ %3: %4 s")
-									.arg(QString::fromStdString(delay.serviceId.empty() ? std::string("(empty)") : delay.serviceId))
-									.arg(delay.occurrence)
-									.arg(QString::fromStdString(delay.stationId.empty() ? std::string("(empty)") : delay.stationId))
-									.arg(QString::number(delay.delaySeconds, 'g', 12));
-				const auto service = std::find_if(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-					[&delay](const SceneService& candidate) { return candidate.id == delay.serviceId; });
-				if (service != m_sceneModel.services.end()) {
-					const std::string code = sceneServiceOccurrenceOperatingCode(*service, delay.occurrence);
-					label += QString(" | code %1").arg(code.empty() ? QStringLiteral("(unavailable)") : QString::fromStdString(code));
-				}
-				m_entranceDelayListWidget->addItem(label);
-			}
-		}
-		const int rowCount = m_entranceDelayListWidget->count();
-		const int rowToSelect = rowCount <= 0 ? -1
-											  : (previousRow < 0 ? 0 : std::min(previousRow, rowCount - 1));
-		m_entranceDelayListWidget->setCurrentRow(rowToSelect);
-		m_entranceDelayListWidget->setEnabled(hasScene && !m_worker);
-	}
-	if (m_addEntranceDelayButton)
-		m_addEntranceDelayButton->setEnabled(hasScene && !m_worker && scenario != nullptr);
-	updateEntranceDelayDetailPanel();
-}
-
-void MainWindow::updateEntranceDelayDetailPanel() {
-	const SceneEntranceDelay* delay = selectedEntranceDelay();
-	const bool enabled = m_sceneLoaded && !m_worker && delay != nullptr;
-	const SceneService* service = nullptr;
-	if (delay) {
-		for (const SceneService& candidate : m_sceneModel.services) {
-			if (candidate.id == delay->serviceId) {
-				service = &candidate;
-				break;
-			}
-		}
-	}
-
-	if (m_entranceDelayServiceCombo) {
-		const QSignalBlocker blocker(m_entranceDelayServiceCombo);
-		m_entranceDelayServiceCombo->clear();
-		for (const SceneService& candidate : m_sceneModel.services)
-			m_entranceDelayServiceCombo->addItem(ServicePanel::generatedServiceLabel(candidate, 1),
-				QString::fromStdString(candidate.id));
-		if (delay) {
-			int index = m_entranceDelayServiceCombo->findData(QString::fromStdString(delay->serviceId));
-			if (index < 0) {
-				const QString invalid = delay->serviceId.empty()
-					? QStringLiteral("Invalid: (empty)")
-					: QString("Invalid: %1").arg(QString::fromStdString(delay->serviceId));
-				m_entranceDelayServiceCombo->addItem(invalid, QString::fromStdString(delay->serviceId));
-				index = m_entranceDelayServiceCombo->count() - 1;
-			}
-			m_entranceDelayServiceCombo->setCurrentIndex(index);
-		}
-		m_entranceDelayServiceCombo->setEnabled(enabled);
-	}
-
-	const int occurrenceCount = service
-		? std::max(1, sceneServiceOccurrenceCount(*service, serviceOccurrenceDuration()))
-		: 1;
-	if (m_entranceDelayOccurrenceEdit) {
-		const QSignalBlocker blocker(m_entranceDelayOccurrenceEdit);
-		const int currentOccurrence = delay ? delay->occurrence : 1;
-		m_entranceDelayOccurrenceEdit->setRange(std::min(1, currentOccurrence),
-			std::max(occurrenceCount, currentOccurrence));
-		m_entranceDelayOccurrenceEdit->setValue(currentOccurrence);
-		m_entranceDelayOccurrenceEdit->setEnabled(enabled);
-	}
-	if (m_entranceDelayOccurrenceContextLabel) {
-		if (!delay) {
-			m_entranceDelayOccurrenceContextLabel->setText(QStringLiteral("Select an entrance delay."));
-		} else {
-			QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
-			if (service) {
-				context += QStringLiteral(" | ") + ServicePanel::generatedServiceLabel(*service, delay->occurrence);
-			} else {
-				context += QStringLiteral(" | Generated operating code: (unavailable)");
-			}
-			m_entranceDelayOccurrenceContextLabel->setText(context);
-		}
-	}
-
-	if (m_entranceDelayStationCombo) {
-		const QSignalBlocker blocker(m_entranceDelayStationCombo);
-		m_entranceDelayStationCombo->clear();
-		std::set<std::string> eligibleStations;
-		if (service) {
-			for (const SceneStop& stop : service->stops) {
-				if (eligibleStations.insert(stop.stationId).second && stop.hasPlannedDeparture)
-					m_entranceDelayStationCombo->addItem(QString::fromStdString(stop.stationId),
-						QString::fromStdString(stop.stationId));
-			}
-		}
-		if (delay) {
-			int index = m_entranceDelayStationCombo->findData(QString::fromStdString(delay->stationId));
-			if (index < 0) {
-				const QString invalid = delay->stationId.empty()
-					? QStringLiteral("Invalid: (empty)")
-					: QString("Invalid: %1").arg(QString::fromStdString(delay->stationId));
-				m_entranceDelayStationCombo->addItem(invalid, QString::fromStdString(delay->stationId));
-				index = m_entranceDelayStationCombo->count() - 1;
-			}
-			m_entranceDelayStationCombo->setCurrentIndex(index);
-		}
-		m_entranceDelayStationCombo->setEnabled(enabled);
-	}
-
-	if (m_entranceDelaySecondsEdit) {
-		const QSignalBlocker blocker(m_entranceDelaySecondsEdit);
-		m_entranceDelaySecondsEdit->setValue(delay ? delay->delaySeconds : 0.0);
-		m_entranceDelaySecondsEdit->setEnabled(enabled);
-	}
-	if (m_duplicateEntranceDelayButton)
-		m_duplicateEntranceDelayButton->setEnabled(enabled);
-	if (m_deleteEntranceDelayButton)
-		m_deleteEntranceDelayButton->setEnabled(enabled);
-}
-
-void MainWindow::addEntranceDelay() {
-	if (!m_sceneLoaded || m_worker)
-		return;
-	SceneScenario* scenario = selectedScenario();
-	if (!scenario)
-		return;
-	SceneEntranceDelay delay;
-	for (const SceneService& service : m_sceneModel.services) {
-		for (const SceneStop& stop : service.stops) {
-			if (!stop.hasPlannedDeparture)
-				continue;
-			delay.serviceId = service.id;
-			delay.stationId = stop.stationId;
-			break;
-		}
-		if (!delay.serviceId.empty())
-			break;
-	}
-	if (delay.serviceId.empty() && !m_sceneModel.services.empty())
-		delay.serviceId = m_sceneModel.services.front().id;
-	scenario->entranceDelays.push_back(std::move(delay));
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
-	if (m_entranceDelayListWidget)
-		m_entranceDelayListWidget->setCurrentRow(static_cast<int>(scenario->entranceDelays.size()) - 1);
-}
-
-void MainWindow::duplicateEntranceDelay() {
-	if (!m_sceneLoaded || m_worker || !m_entranceDelayListWidget)
-		return;
-	SceneScenario* scenario = selectedScenario();
-	const int row = m_entranceDelayListWidget->currentRow();
-	if (!scenario || row < 0 || row >= static_cast<int>(scenario->entranceDelays.size()))
-		return;
-	scenario->entranceDelays.insert(scenario->entranceDelays.begin() + row + 1,
-		scenario->entranceDelays[static_cast<std::size_t>(row)]);
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
-	if (m_entranceDelayListWidget)
-		m_entranceDelayListWidget->setCurrentRow(row + 1);
-}
-
-void MainWindow::deleteEntranceDelay() {
-	if (!m_sceneLoaded || m_worker || !m_entranceDelayListWidget)
-		return;
-	SceneScenario* scenario = selectedScenario();
-	const int row = m_entranceDelayListWidget->currentRow();
-	if (!scenario || row < 0 || row >= static_cast<int>(scenario->entranceDelays.size()))
-		return;
-	const QString description = QString::fromStdString(scenario->entranceDelays[static_cast<std::size_t>(row)].serviceId);
-	if (QMessageBox::question(this, "Delete Entrance Delay",
-			QString("Delete entrance delay for service '%1'?").arg(description),
-			QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-		!= QMessageBox::Yes)
-		return;
-	scenario->entranceDelays.erase(scenario->entranceDelays.begin() + row);
-	markScenarioModified();
-	refreshEntranceDelayPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitEntranceDelayService(int index) {
-	if (!m_sceneLoaded || m_worker || index < 0 || !m_entranceDelayServiceCombo)
-		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
-	if (!delay)
-		return;
-	const std::string serviceId = m_entranceDelayServiceCombo->itemData(index).toString().toStdString();
-	if (serviceId == delay->serviceId)
-		return;
-	delay->serviceId = serviceId;
-	delay->occurrence = 1;
-	delay->stationId.clear();
-	for (const SceneService& service : m_sceneModel.services) {
-		if (service.id != serviceId)
-			continue;
-		for (const SceneStop& stop : service.stops) {
-			if (stop.hasPlannedDeparture) {
-				delay->stationId = stop.stationId;
-				break;
-			}
-		}
-		break;
-	}
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
-}
-
-void MainWindow::commitEntranceDelayOccurrence() {
-	if (!m_sceneLoaded || m_worker || !m_entranceDelayOccurrenceEdit)
-		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
-	if (!delay)
-		return;
-	const int occurrence = m_entranceDelayOccurrenceEdit->value();
-	if (delay->occurrence == occurrence)
-		return;
-	delay->occurrence = occurrence;
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
-}
-
-void MainWindow::commitEntranceDelayStation(int index) {
-	if (!m_sceneLoaded || m_worker || index < 0 || !m_entranceDelayStationCombo)
-		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
-	if (!delay)
-		return;
-	const std::string stationId = m_entranceDelayStationCombo->itemData(index).toString().toStdString();
-	if (delay->stationId == stationId)
-		return;
-	delay->stationId = stationId;
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
-}
-
-void MainWindow::commitEntranceDelaySeconds() {
-	if (!m_sceneLoaded || m_worker || !m_entranceDelaySecondsEdit)
-		return;
-	SceneEntranceDelay* delay = selectedEntranceDelay();
-	if (!delay)
-		return;
-	const double seconds = m_entranceDelaySecondsEdit->value();
-	if (delay->delaySeconds == seconds)
-		return;
-	delay->delaySeconds = seconds;
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshEntranceDelayPanel();
+	m_entranceDelayPanel->refresh();
 }
 
 void MainWindow::addRecentScene(const QString& path) {

@@ -7,6 +7,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CompositionPanel.h"
+#include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
@@ -3324,7 +3325,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					QMetaObject::invokeMethod(w.m_entranceDelayOccurrenceEdit, "editingFinished", Qt::DirectConnection);
 					w.m_entranceDelaySecondsEdit->setValue(entranceDelaySeconds);
 					QMetaObject::invokeMethod(w.m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
-					const SceneEntranceDelay* delay = w.selectedEntranceDelay();
+					const SceneEntranceDelay* delay = w.m_entranceDelayPanel->selectedEntranceDelay();
 					const bool editedDelay = delay && delay->serviceId == entranceDelayServiceId
 						&& delay->occurrence == 2 && delay->stationId == entranceDelayStationId
 						&& delay->delaySeconds == entranceDelaySeconds && editedService != w.m_sceneModel.services.end()
@@ -3770,9 +3771,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					pendingDelayEdit->setText(QString::number(pendingEntranceDelay, 'g', 16));
 					pendingDelayEdit->setFocus();
 					QApplication::processEvents();
-					if (!w.selectedEntranceDelay() || w.selectedEntranceDelay()->delaySeconds == pendingEntranceDelay
-						|| !triggerPendingSave() || !w.selectedEntranceDelay()
-						|| w.selectedEntranceDelay()->delaySeconds != pendingEntranceDelay) {
+					if (!w.m_entranceDelayPanel->selectedEntranceDelay() || w.m_entranceDelayPanel->selectedEntranceDelay()->delaySeconds == pendingEntranceDelay
+						|| !triggerPendingSave() || !w.m_entranceDelayPanel->selectedEntranceDelay()
+						|| w.m_entranceDelayPanel->selectedEntranceDelay()->delaySeconds != pendingEntranceDelay) {
 						facetFailure(facetOk, "save/reload",
 							"Save did not commit the still-focused entrance-delay value");
 					} else {
