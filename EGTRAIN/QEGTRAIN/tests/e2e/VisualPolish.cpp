@@ -2103,6 +2103,25 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 						std::fprintf(stdout, "E2E_FOLLOW_ENTERED_OK\n");
 						std::fflush(stdout);
 					}
+					// The toolbar button switches Follow off: the sentence stops saying that the view follows the train.
+					// Switching it on again restores the sentence.
+					if (QToolButton* toggleButton = w.findChild<QToolButton*>("actionFollowButton")) {
+						const QString switchedOff = futureName + " is running. Follow can be switched on now.";
+						toggleButton->click();
+						QApplication::processEvents();
+						const bool offShown = !w.m_followAction->isChecked() && w.m_followTrainIndex == -1 && !toggleButton->isChecked()
+							&& w.m_followStatusLabel->text() == switchedOff && w.m_followAction->toolTip() == switchedOff
+							&& toggleButton->accessibleDescription() == switchedOff;
+						toggleButton->click();
+						QApplication::processEvents();
+						if (!offShown || !w.m_followAction->isChecked() || w.m_followTrainIndex != futureFollowIndex
+							|| w.m_followStatusLabel->text() != running) {
+							ok = false;
+							failures << QString("the Follow sentence is not updated by the toolbar button (off shown=%1 label=%2)")
+											.arg(offShown)
+											.arg(w.m_followStatusLabel->text());
+						}
+					}
 					// A frame that changes no state leaves the list alone, so that an open list does not flicker.
 					const FollowListUnderFrames listUnderFrames = showFramesOverMarkedList(w.m_followTrainCombo, [&w, futureEntryTime]() {
 						updateTrainPosition(w, futureEntryTime);
