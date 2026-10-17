@@ -4,7 +4,7 @@ This tutorial changes a copy of the Paimpol case study and follows the change th
 
 You need EGTRAIN running with the case study Paimpol available, and you should have done [Getting started](getting-started.md) once, so that opening a case, running it and reading the Run Results are familiar. The words case study, scenario and baseline are in the [glossary](glossary.md). The steps take the Paimpol timetable as it is committed and use the labels of the current program.
 
-**Save the supplied case under a new name with File > Save Case Study As... before you change anything, and never save into the supplied case.** The example cases of an installed copy are protected: **File > Save Scene** on one of them asks for a new bundle name instead of writing. A scene folder anywhere else is not protected, for example the `Scenes` folder of a source checkout, where **Save Scene** writes into the committed files.
+Save the supplied case under a new name with **File > Save Case Study As...** before you change anything, and never save into the supplied case. The example cases of an installed copy are protected: **File > Save Scene** on one of them asks for a new bundle name instead of writing. A scene folder anywhere else is not protected, for example the `Scenes` folder of a source checkout, where **Save Scene** writes into the committed files.
 
 ## 1. Open Paimpol and save a working copy
 
@@ -18,30 +18,32 @@ If the dialog answers "Installed example scenes cannot be overwritten. Choose a 
 
 ## 2. Run the copy once
 
-Choose **Run** in the toolbar, check the dialog **Run simulation**, and choose its button **Run simulation**. When the status bar reads "Simulation complete", the dock **Run Results** opens. Choose **Open result view... > Timetable** and find the rows of `Guin-Paim-EXPRESS-1-1`. Note the columns **Arrival delay** and **Departure delay**. A headless check of the unchanged case gave:
+Choose **Run** in the toolbar, check the dialog **Run simulation**, and choose its button **Run simulation**. When the status bar reads "Simulation complete", the dock **Run Results** opens. Choose **Open result view... > Timetable** and find the rows of `Guin-Paim-EXPRESS-1-1`. Note the columns **Arrival delay** and **Departure delay**.
+
+The numbers in this tutorial were not read from the window. They come from runs without a window, made as in [Check the copy outside the window](#check-the-copy-outside-the-window) with `-g 0`, and read from the simulated times in `TrainTrajectories/TimetablePoints.txt` in the output folder of the run and the planned times in `services.json`. The delay is the simulated time minus the planned time. For the unchanged case the run gave:
 
 | Station | Arrival delay | Departure delay |
 | --- | --- | --- |
 | Pontrieaux | +13 s | +13 s |
 | Paimpol | 23 s early | none planned |
 
-Close the timetable window. Your numbers should be the same or within a second or two.
+Close the timetable window. The window should show the same values.
 
 ## 3. Change a dwell and a performance
 
 Both edits are to the service `Guin-Paim-EXPRESS-1`, the train that runs from Guingamp to Paimpol and stops at Pontrieaux on the way.
 
-1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list.
-2. On the page **Service and timetable**, find **Timetable stops** and click the row **Pontrieaux**. The dialog **Edit timetable stop** opens.
+1. Open the dock **Services** (**Editors > Services**) and choose `Guin-Paim-EXPRESS-1` in the list. The dock has the tabs **Service**, **Timetable** and **Run occurrences**.
+2. Open the tab **Timetable** and click the row **Pontrieaux** in the table of stops. The dialog **Edit timetable stop** opens.
 3. Try **Cancel** first: change **Minimum dwell (s)** from 60 to 999 and choose **Cancel**. The row still shows 60 and the title bar shows no mark for unsaved changes.
 4. Click the row again, enter `180` in **Minimum dwell (s)** and choose **OK**. **OK** applies all fields of the dialog together. The row shows 180 and the title bar shows the mark.
-5. In the same service, set **Running performance (parameter) %** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
+5. Open the tab **Service**, set **Running performance (parameter) %** to `80` and press Enter. The field accepts 1 to 100; 100 is the committed value.
 
 A dwell longer than the window between the planned arrival and departure is allowed but is reported, as the next step shows.
 
 ## 4. Validate
 
-Choose **View > Scene Validation** (Ctrl+Shift+V). The columns are **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**. Paimpol opens with no errors and about 371 warnings, most of them passenger journeys without route-choice legs. Your edit added one warning:
+Choose **View > Scene Validation** (Ctrl+Shift+V). The columns are **Severity**, **Code**, **Message**, **File**, **Path** and **Suggested Fix**. Paimpol opens with no errors and 371 warnings: 369 passenger journeys without route-choice legs and 2 final blocks that are clipped. `scene_tool validate --runnable` counts them in the same way. Your edit adds one warning:
 
 - Code `scene.dwell.exceeds_window`, message "Dwell time exceeds departure - arrival window", path `services[Guin-Paim-EXPRESS-1].stops[1].dwell_seconds`.
 
@@ -50,20 +52,27 @@ A warning does not block a run. An error does: **Run** is disabled and the dock 
 ## 5. Save, reopen from Recent Scenes, and check the original
 
 1. Choose **File > Save Scene**. This writes `paimpol-practice.egscene`.
-2. Open the original: choose **Open Case** in the toolbar, then **Paimpol** under **Bundled cases**. Open the dock **Services** again, choose `Guin-Paim-EXPRESS-1` in the list. It has **Running performance (parameter) %** 100 and the row Pontrieaux has dwell 60. The original is as it was.
+2. Open the original: choose **Open Case** in the toolbar, then **Paimpol** under **Bundled cases**. Open the dock **Services** again and choose `Guin-Paim-EXPRESS-1` in the list. On the tab **Service**, **Running performance (parameter) %** is 100. On the tab **Timetable**, the row Pontrieaux has dwell 60. The original is as it was.
 3. Choose **File > Recent Scenes > paimpol-practice.egscene**, then `Guin-Paim-EXPRESS-1` in the list of **Services**. The row Pontrieaux has dwell 180 and the performance is 80. The title bar reads `EGTRAIN - Paimpol practice`.
 
-A supplied file stays as it was. If you keep a second copy of the file you downloaded, `cmp` shows that nothing changed:
+The supplied case is a scene folder, not a file. In a source checkout, this prints nothing:
 
 ```bash
-cmp Paimpol.egscene Paimpol.before.egscene
+git status --short EGTRAIN/QEGTRAIN/Scenes/Paimpol
 ```
 
-In a source checkout, `git status --short EGTRAIN/QEGTRAIN/Scenes` prints nothing.
+In an installed copy, copy the folder before step 1 and compare it with the installed folder afterwards. On macOS the installed folder is `/Applications/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol`:
+
+```bash
+cp -R /Applications/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol ~/Paimpol.before
+diff -r ~/Paimpol.before /Applications/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol
+```
+
+`diff` prints nothing when the folders are the same.
 
 ## 6. Run the edited copy
 
-Choose **Run** and **Run simulation** again. The dock **Run Results** now shows a **Performance (%)** of 80.0 for the express and 100.0 for the other train. In **Open result view... > Timetable**, `Guin-Paim-EXPRESS-1-1` is later than in step 2. The headless check gave:
+Choose **Run** and **Run simulation** again. The dock **Run Results** now shows a **Performance (%)** of 80.0 for the express and 100.0 for the other train. In **Open result view... > Timetable**, `Guin-Paim-EXPRESS-1-1` is later than in step 2. The run without a window gave:
 
 | Station | Arrival delay | Departure delay |
 | --- | --- | --- |
@@ -76,14 +85,14 @@ The other train, `Guin-Paim-ALL-STOPS-1-1`, has the same times as before.
 
 A comparison needs two runs of the same case: a baseline without incidents or entrance delays, and a scenario that has them. The order matters because every edit clears the baseline ([the table below](#what-clears-results-and-the-baseline)). Make the scenario first, then run both.
 
-1. Open the dock **Incidents** (**Editors > Incidents**). The list has one row, for the scenario `baseline` (named Baseline), with 0 incident(s), 0 delay(s) and the marker `default`. With it selected, choose **Duplicate** (**Blank** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
-2. On the tab **Incidents**, choose **Add Incident**. Set **Type** to `train_breakdown` and **Target** to `Guin-Paim-EXPRESS-1 | route route6 | entry +10 s`. Enter `900` in **Start (s)** and `1200` in **Recovery end (s)**, leaving **Use recovery end** ticked and **Reduced speed cap** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s.
+1. Open the dock **Incidents** (**Editors > Incidents**). The list **Scenarios** has one row, for the scenario `baseline` (named Baseline), with 0 incident(s), 0 delay(s) and the marker `default`. With it selected, choose **Duplicate** (**Blank** makes an empty scenario instead). The new scenario `baseline_copy` is selected. Replace **Name** with `Express breakdown`.
+2. In the incident editor of the dock, choose **Add Incident**. Set **Type** to `train_breakdown` and **Target** to `Guin-Paim-EXPRESS-1 | route route6 | entry +10 s`. Enter `900` in **Start (s)** and `1200` in **Recovery end (s)**, leaving **Use recovery end** ticked and **Reduced speed cap** unticked, and press Enter after each number. The train stops at 900 s and recovers at 1200 s.
 3. Choose **File > Save Scene**. The list marks the scenario `modified` until you save. Saving does not clear results or the baseline.
 4. Choose `baseline` in the list. Choosing a scenario is not an edit. Choose **Run** and check that the dialog **Run simulation** says **Active incidents** 0 and the scenario `baseline`. After "Simulation complete", choose **Set delay baseline** in the dock **Run Results**. The line next to it names the baseline.
 5. Choose `baseline_copy` in the list. The results are cleared and the baseline stays. Choose **Run**; the dialog now says **Active incidents** 1. After "Simulation complete", choose **Compare delays**.
-6. The window **Delay analysis** opens on the tab **Against baseline**. `Guin-Paim-EXPRESS-1` has a positive additional delay at Paimpol. The headless check gave 343 s: the arrival at Paimpol moves from 2866 s to 3209 s. `Guin-Paim-ALL-STOPS-1` is Same. How to read the window, and what it does not claim, is in [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
+6. The window **Delay analysis** opens on the tab **Against baseline**. `Guin-Paim-EXPRESS-1` has a positive additional delay at Paimpol. The run without a window, with `baseline_copy` as the default scenario, gave 343 s: the arrival at Paimpol moves from 2866 s to 3209 s. `Guin-Paim-ALL-STOPS-1` is Same. How to read the window, and what it does not claim, is in [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
 
-If the tab lists reasons instead of a difference, the baseline does not fit the run. The usual cause is an edit between the two runs: the line in **Run Results** then reads "Delay baseline cleared after a case edit". Repeat step 4. Keep every occurrence selected on the page **Run occurrences** of **Services**, because the two runs must hold the same trains.
+After any edit, **Compare delays** is disabled and the line above the buttons in **Run Results** reads "Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline." until a run completes. Repeat step 4 and step 5. If the tab **Against baseline** lists reasons instead of a difference, the two runs do not match in another way. For example, the selection on the tab **Run occurrences** of **Services** differs between the runs, and the tab says that an occurrence is in one run only. Keep every occurrence selected, because the two runs must hold the same trains.
 
 ## What clears results and the baseline
 
@@ -109,21 +118,22 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## Check the copy outside the window
 
-The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)):
+The saved bundle is an ordinary case study ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in [Run a local build](../development/build-and-test.md#run-a-local-build). With the macOS app and the bundle in the current folder:
 
 ```bash
-scene_tool validate --runnable paimpol-practice.egscene
-QEGTRAIN --scene paimpol-practice.egscene -g 0
+APP=/Applications/QEGTRAIN.app/Contents/MacOS
+"$APP/scene_tool" validate --runnable paimpol-practice.egscene
+"$APP/QEGTRAIN" --scene paimpol-practice.egscene -g 0
 ```
 
-The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`.
+The first command prints the diagnostics and exits with 0 when there is no error. The second runs the default scenario, `baseline`, without a window, and writes the [run output](run-output.md) to the folder named `Paimpol practice`. To run the scenario `baseline_copy` this way, make it the default scenario in `scenarios.json` of a folder saved with **Save Scene As Folder...**, as in the next section.
 
 ## Limits and the JSON route
 
 - The editors are tables, lists and dialogs. You cannot place an incident by clicking the canvas. The incident target is a choice in a list.
 - This tutorial changes one value at a time. For many changes at once, save the case with **File > Save Scene As Folder...** and edit the JSON files, then validate with `scene_tool validate`. The keys are in [V1 scene properties](v1-scene-properties.md) and the [schema reference](../architecture/scene-schema.md).
 - The same two edits in `services.json` are `"performance_percent": 80` on the service and `"dwell_seconds": 180` on its second stop.
-- The same scenario in `scenarios.json` is:
+- The same scenario is the object below in the list `scenarios` of `scenarios.json`. It has the incident id that the editor proposes (`new_incident`) and the scenario id that **Duplicate** proposes. The key `default_scenario_id` in that file names the scenario that a run without a window uses; set it to `baseline_copy` for that run.
 
 ```json
 {
@@ -131,7 +141,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
   "name": "Express breakdown",
   "incidents": [
     {
-      "id": "breakdown-1",
+      "id": "new_incident",
       "type": "train_breakdown",
       "target": "Guin-Paim-EXPRESS-1",
       "occurrence": 1,
@@ -149,7 +159,7 @@ The first command prints the diagnostics and exits with 0 when there is no error
 ## If something does not work
 
 - **Run** is disabled: the dock **Case and Layers** names the first error. Fix it in the dock **Scene Validation** or take the last edit back with **Edit > Undo**.
-- **Compare delays** is disabled: the tooltip says what is missing. Set the baseline from a run with no incidents and no entrance delays, then run a scenario that has them, without editing in between.
+- **Compare delays** is disabled: the tooltip says what is missing. Set the baseline from a run with no incidents and no entrance delays, then run a scenario that has them, without editing in between. After an edit, run both again.
 - The numbers differ from the tables: check that the dwell is 180, the performance is 80, and that you ran the scenarios named in the steps.
 
 For the other tasks see [How-to recipes](how-to.md), and to build a case from nothing see [Tutorial: the smallest useful scene](tutorial-minimal-scene.md).

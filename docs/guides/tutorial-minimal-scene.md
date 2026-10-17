@@ -30,7 +30,7 @@ A new case holds one scenario, `baseline`, and nothing else. **Run** stays disab
 
 ## 2. Infrastructure, in dependency order
 
-Everything in this part happens in the dock **Infrastructure**. The list **Entity** chooses the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
+Everything in this part happens in the dock **Infrastructure**. The list **Entity** chooses the table. **Add** and **Delete** are under the table. **Add** appends a row with proposed values, and a cell is edited by clicking it, typing and pressing Enter. A line of text above the table says what the table lists. While the table is empty, the line says what to add first, for example "No nodes yet. Add a track first, then add nodes on it." Each table refers to the ones before it, so build in this order. A row that other rows refer to cannot be deleted while they do.
 
 1. **Tracks.** Choose **Add**. The track is `track`.
 2. **Nodes.** Choose **Add** three times. The nodes `node`, `node_2` and `node_3` go on the first track, at **X (km)** 0, 1 and 2 and **Y (km)** 0. The proposed positions are the ones you want.
@@ -76,8 +76,8 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 
 ## 5. A service with two stops
 
-1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the page **Service and timetable**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry Time (s)** enters at the planned departure of its first stop.
-2. Choose **Add Stop**. In the dialog **Add timetable stop**, set **Station** to `station` and **Compatible platform** to `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
+1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry Time (s)** enters at the planned departure of its first stop.
+2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, set **Station** to `station` and **Compatible platform** to `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
 3. Choose **Add Stop** again. Set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
@@ -88,7 +88,7 @@ Choose **View > Scene Validation** (Ctrl+Shift+V). The table is empty: the case 
 
 ## 7. Run
 
-Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, **Active incidents** 0) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` is 8 seconds early: the train arrives at 242 s after the base time, and the plan says 250 s. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
+Choose **Run**, check the dialog **Run simulation** (**Selected in period** 1, **Active incidents** 0) and choose its button **Run simulation**. The train leaves `station` and stops at `station_2`. When the status bar reads "Simulation complete", the dock **Run Results** lists the train. In **Open result view... > Timetable**, the arrival at `station_2` should be 8 seconds early: a run of the saved folder without a window, as in section 10, put the arrival at 242 s after the base time in `TrainTrajectories/TimetablePoints.txt` of the output folder, and the plan says 250 s. The number was not read from the window. The row of `station` has no arrival to compare: it has no planned arrival, and the train begins its route there ([how delays are calculated](delay-analysis.md)).
 
 ## 8. Save as a folder and as a bundle
 
@@ -104,12 +104,13 @@ Both are now listed under **File > Recent Scenes**.
 
 ## 10. Check the saved scene outside the window
 
-`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)):
+`scene_tool` reads the folder and the bundle ([command-line tools](command-line.md#scene_tool)). The programs are not on the search path. Use their full paths. In the macOS app they are `/Applications/QEGTRAIN.app/Contents/MacOS/scene_tool` and `/Applications/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`. In the Windows installation or the unzipped portable folder they are `scene_tool.exe` and `QEGTRAIN.exe` next to each other. In a build from source, run from `EGTRAIN/QEGTRAIN` and use `../../build/scene_tool` and `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` (on Linux `../../build/QEGTRAIN`), as in [Run a local build](../development/build-and-test.md#run-a-local-build). With the macOS app and the folder and bundle in the current folder:
 
 ```bash
-scene_tool validate --runnable minimal-line
-scene_tool validate --runnable minimal-line.egscene
-QEGTRAIN --scene minimal-line.egscene -g 0
+APP=/Applications/QEGTRAIN.app/Contents/MacOS
+"$APP/scene_tool" validate --runnable minimal-line
+"$APP/scene_tool" validate --runnable minimal-line.egscene
+"$APP/QEGTRAIN" --scene minimal-line.egscene -g 0
 ```
 
 The two `validate` commands print nothing for a case without diagnostics and exit with 0. The last command runs the case without a window and ends with the line `End of Simulation`; its [output files](run-output.md) are in the folder `Minimal line` of the output folder.
@@ -125,8 +126,8 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 ## If something does not work
 
-- **Add** is disabled in Blocks: add a track first, and choose it in the filter above the table.
-- **Add** in Platforms says "Add a station before adding a platform": add the stations first.
+- **Add** is disabled in Blocks, and the text above the table reads "No blocks yet. Add a track first, then add blocks on it.": add a track first. With a track, the filter above the table names it and **Add** works.
+- **Add** in Platforms leaves the table as it is and the status bar reads "Add a station before adding a platform": add the stations first.
 - The dialog **Add timetable stop** shows "(no reachable station here)": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
 - A refused edit says "Infrastructure IDs must be non-empty and unique": choose another name.
 - **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Scene Validation** lists all of them.
