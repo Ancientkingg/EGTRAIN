@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
@@ -653,6 +654,50 @@ std::pair<ControlLook, ControlLook> dialogDefaultLooks() {
 	return {enabledDefault, controlLook(primary)};
 }
 
+// The look of one row of a shown menu: the common colour of the row is the face, the strongest contrast in it the ink.
+ControlLook menuRowLook(QMenu& menu, QAction* action) {
+	const QPixmap grab = menu.grab();
+	const QImage image = grab.toImage();
+	const qreal ratio = grab.devicePixelRatio();
+	const QRect row = menu.actionGeometry(action).adjusted(4, 2, -4, -2);
+	const int left = qRound(row.left() * ratio);
+	const int right = qRound(row.right() * ratio);
+	const int top = qRound(row.top() * ratio);
+	const int bottom = qRound(row.bottom() * ratio);
+	std::map<QRgb, int> counts;
+	for (int y = top; y <= bottom; ++y)
+		for (int x = left; x <= right; ++x)
+			++counts[image.pixel(x, y)];
+	const QRgb face = std::max_element(counts.begin(), counts.end(), [](const auto& a, const auto& b) { return a.second < b.second; })->first;
+	QRgb ink = face;
+	for (int y = top; y <= bottom; ++y)
+		for (int x = left; x <= right; ++x)
+			if (colorDifference(image.pixel(x, y), face) > colorDifference(ink, face))
+				ink = image.pixel(x, y);
+	return {face, ink};
+}
+
+// A menu with an enabled and a disabled entry: the disabled text is lighter, also while the entry is under the pointer.
+bool exerciseDisabledMenuItems() {
+	QMenu menu;
+	QAction* live = menu.addAction(QStringLiteral("MMMM MMMM"));
+	QAction* gone = menu.addAction(QStringLiteral("MMMM MMMM"));
+	gone->setEnabled(false);
+	menu.setFont(qApp->font());
+	menu.show();
+	QApplication::processEvents();
+	const ControlLook enabled = menuRowLook(menu, live);
+	const ControlLook disabled = menuRowLook(menu, gone);
+	menu.setActiveAction(gone);
+	QApplication::processEvents();
+	const ControlLook hovered = menuRowLook(menu, gone);
+	menu.hide();
+	bool ok = checkLooks(colorDifference(enabled.face, enabled.ink) >= 90, "an enabled menu entry draws text distinct from its face", enabled, disabled);
+	ok &= checkLooks(qGray(disabled.ink) >= qGray(enabled.ink) + 30, "a disabled menu entry has lighter text", enabled, disabled);
+	ok &= checkLooks(sameLook(hovered, disabled), "a disabled menu entry under the pointer does not look selectable", disabled, hovered);
+	return ok;
+}
+
 bool exerciseDisabledControls() {
 	bool ok = true;
 	const std::pair<ControlKind, const char*> controls[] = {
@@ -685,6 +730,7 @@ bool exerciseDisabledControls() {
 	const auto defaults = dialogDefaultLooks();
 	ok &= checkLooks(qGray(defaults.second.face) >= qGray(defaults.first.face) + 30,
 		"a disabled default button keeps its lighter face", defaults.first, defaults.second);
+	ok &= exerciseDisabledMenuItems();
 	return ok;
 }
 

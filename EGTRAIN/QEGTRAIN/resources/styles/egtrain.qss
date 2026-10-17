@@ -436,3 +436,8 @@ QMenu::item:selected {
     background: #d8e1e5;
     color: #24313a;
 }
+
+QMenu::item:disabled, QMenu::item:disabled:selected {
+    background: transparent;
+    color: #64717a;
+}
