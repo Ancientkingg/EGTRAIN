@@ -66,6 +66,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QToolButton>
+#include <QTransform>
 #include <QVariantAnimation>
 #include <QVector>
 #include <QWidget>
@@ -748,7 +749,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << "train source paint changed under halo effect";
 			}
-			const QPointF viewportCenter = w.networkView->mapToScene(w.networkView->viewport()->rect().center());
+			// The centre of the viewport in view pixels is half its size. QRect::center rounds it down, which puts it up to a
+			// pixel off, and so does the rounding of mapFromScene to whole pixels.
+			const QTransform sceneToView = w.networkView->viewportTransform();
+			const QPointF viewportCenter = sceneToView.inverted().map(QRectF(w.networkView->viewport()->rect()).center());
 			const QRectF visibleScene = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
 			const QRectF sceneBounds = w.networkView->sceneRect();
 			const QPointF requestedCenter = selectedTrain->sceneBoundingRect().center();
@@ -761,9 +765,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				clampedCenter(requestedCenter.x(), sceneBounds.left(), sceneBounds.right(), visibleScene.width() / 2.0),
 				clampedCenter(requestedCenter.y(), sceneBounds.top(), sceneBounds.bottom(), visibleScene.height() / 2.0));
 			const qreal centerTolerance = 2.0;
-			const qreal centerDistance = QLineF(w.networkView->mapFromScene(viewportCenter),
-				w.networkView->mapFromScene(expectedCenter))
-											 .length();
+			const qreal centerDistance = QLineF(sceneToView.map(viewportCenter), sceneToView.map(expectedCenter)).length();
 			if (centerDistance > centerTolerance) {
 				ok = false;
 				failures << QString("train scene click did not center the view (distance=%1px tolerance=%2px view=%3,%4 expected=%5,%6)")

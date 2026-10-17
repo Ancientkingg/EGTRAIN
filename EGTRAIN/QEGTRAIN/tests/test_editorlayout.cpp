@@ -2,8 +2,12 @@
 #include "widgets/EditorLayout.h"
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontMetrics>
+#include <QFrame>
+#include <QRect>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QVBoxLayout>
@@ -204,6 +208,84 @@ bool exerciseSectionHeading() {
 	ok &= check(panel.minimumSizeHint().width() <= kPanelWidth, "a sectionHeading with a long word raises the minimum width of its panel");
 	return ok;
 }
+
+// The width that the text of the label needs when a line may break at a space or at a zero-width space only.
+int wrappedTextWidth(const QLabel* label, int width) {
+	return label->fontMetrics().boundingRect(QRect(0, 0, width, 100000), Qt::TextWordWrap, label->text()).width();
+}
+
+bool exerciseBreakableName() {
+	const QString name = QStringLiteral("Amsterdam_Hilversum_Student");
+	const QString broken = EditorLayout::breakableName(name);
+	bool ok = check(QString(broken).remove(QChar(0x200B)) == name, "breakableName changes more than it adds");
+	ok &= check(broken.count(QChar(0x200B)) == 2, "breakableName does not add a break after each underscore");
+	ok &= check(EditorLayout::breakableName(QStringLiteral("Netherlands")) == QStringLiteral("Netherlands"),
+		"breakableName changes a name without an underscore");
+
+	// A panel a little wider than the longest part of the name and much narrower than the whole name.
+	QWidget controlPanel;
+	QLabel* control = EditorLayout::wrappedLabel(name, &controlPanel);
+	const int width = control->fontMetrics().horizontalAdvance(QStringLiteral("Amsterdam_Hilversum_")) + 8;
+	ok &= check(control->fontMetrics().horizontalAdvance(name) > width + 20, "the name is not wider than the panel, so the test proves nothing");
+	ok &= check(wrappedTextWidth(control, width) > width,
+		"control: a name with underscores fits the panel without a break, so the test proves nothing");
+
+	QWidget panel;
+	QLabel* label = EditorLayout::wrappedLabel(broken, &panel);
+	auto* layout = new QVBoxLayout(&panel);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addWidget(label);
+	layout->addStretch();
+	panel.resize(width, 1000);
+	panel.show();
+	QApplication::processEvents();
+	ok &= check(label->width() == width, "the label does not have the width of the panel, so the test proves nothing");
+	ok &= check(wrappedTextWidth(label, label->width()) <= label->width(), "a wrapped name is cut at the edge of its panel");
+	ok &= check(label->height() >= 2 * label->fontMetrics().lineSpacing(), "a wrapped name does not break between its parts");
+	return ok;
+}
+
+// A scroll area for a panel of one check box with a text wider than the area, as high as the area allows.
+// The check box is the widest thing that the panel has, as in a rail of toggles.
+bool exerciseVerticalScrollArea() {
+	const QString text = QStringLiteral("A check box with a text that is much wider than the scroll area is made narrow");
+	const auto fill = [&text](QWidget* panel) {
+		auto* box = new QCheckBox(text, panel);
+		auto* layout = new QVBoxLayout(panel);
+		layout->addWidget(box);
+		layout->addSpacing(400);
+		return box;
+	};
+
+	auto* controlPanel = new QWidget;
+	fill(controlPanel);
+	QScrollArea control;
+	control.setWidgetResizable(true);
+	control.setWidget(controlPanel);
+	// The width that the panel asks for, without room for the vertical scroll bar that its height needs.
+	control.resize(control.widget()->sizeHint().width(), 100);
+	control.show();
+	QApplication::processEvents();
+	bool ok = check(control.verticalScrollBar()->isVisible() && control.horizontalScrollBar()->isVisible(),
+		"control: a plain scroll area as wide as its panel has no scroll bars, so the test proves nothing");
+
+	auto* panel = new QWidget;
+	QCheckBox* box = fill(panel);
+	EditorLayout::VerticalScrollArea scroll;
+	scroll.setWidget(panel);
+	ok &= check(scroll.horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff, "a VerticalScrollArea can show a horizontal scroll bar");
+	ok &= check(scroll.widgetResizable() && scroll.frameShape() == QFrame::NoFrame, "a VerticalScrollArea has a frame or a panel of its own size");
+	ok &= check(scroll.minimumSizeHint().width() >= scroll.widget()->minimumSizeHint().width() + scroll.verticalScrollBar()->sizeHint().width(),
+		"the minimum width of a VerticalScrollArea has no room for the panel and the vertical scroll bar");
+	scroll.resize(scroll.minimumSizeHint().width(), 100);
+	scroll.show();
+	QApplication::processEvents();
+	ok &= check(scroll.verticalScrollBar()->isVisible(), "a VerticalScrollArea shorter than its panel has no vertical scroll bar");
+	ok &= check(!scroll.horizontalScrollBar()->isVisible(), "a VerticalScrollArea shows a horizontal scroll bar");
+	ok &= check(box->width() >= box->sizeHint().width() && box->geometry().right() < scroll.viewport()->width(),
+		"a VerticalScrollArea at its minimum width cuts its panel at the right");
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -224,5 +306,7 @@ int main(int argc, char** argv) {
 	const bool wrapping = exerciseWrapping();
 	const bool emptyState = exerciseEmptyStateLabel();
 	const bool heading = exerciseSectionHeading();
-	return properties && widening && scrollBar && wrapping && emptyState && heading ? 0 : 1;
+	const bool name = exerciseBreakableName();
+	const bool verticalScroll = exerciseVerticalScrollArea();
+	return properties && widening && scrollBar && wrapping && emptyState && heading && name && verticalScroll ? 0 : 1;
 }

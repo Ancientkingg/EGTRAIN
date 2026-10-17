@@ -20,9 +20,11 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QShortcut>
 #include <QSignalBlocker>
 #include <QTableWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -76,6 +78,21 @@ QString stopResolutionText(SceneStopResolutionStatus status) {
 	return {};
 }
 
+// How the stop dialog shows a resolution: as help when the stop is on the route, as a warning when the platform or the
+// route context needs a look, and as an error when the stop has no place on the route.
+std::optional<DialogLayout::Severity> stopResolutionSeverity(SceneStopResolutionStatus status) {
+	switch (status) {
+		case SceneStopResolutionStatus::Resolved: return std::nullopt;
+		case SceneStopResolutionStatus::AmbiguousPlatform:
+		case SceneStopResolutionStatus::OffRouteContext:
+		case SceneStopResolutionStatus::InvalidPlatform: return DialogLayout::Severity::Warning;
+		case SceneStopResolutionStatus::OutOfOrder:
+		case SceneStopResolutionStatus::UnknownStation:
+		case SceneStopResolutionStatus::UnresolvedRoute: return DialogLayout::Severity::Error;
+	}
+	return DialogLayout::Severity::Error;
+}
+
 } // namespace
 
 TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(parent) {
@@ -119,7 +136,7 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_moveDownButton = new QPushButton("Move Down", this);
 	m_moveDownButton->setObjectName("moveTimetableStopDownButton");
 	buttonLayout->addWidget(m_addButton, 0, 0);
-	buttonLayout->addWidget(m_insertAfterButton, 0, 1);
+	buttonLayout->addWidget(m_insertAfterButton, 0, 1, 1, 2);
 	buttonLayout->addWidget(m_removeButton, 1, 0);
 	buttonLayout->addWidget(m_moveUpButton, 1, 1);
 	buttonLayout->addWidget(m_moveDownButton, 1, 2);
@@ -337,8 +354,13 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	form->addRow("Compatible platform", platformCombo);
 	auto* eligibilityLabel = new QLabel(&dialog);
 	eligibilityLabel->setObjectName("stopEditorEligibilityLabel");
-	eligibilityLabel->setWordWrap(true);
 	form->addRow(QString(), eligibilityLabel);
+	const auto showEligibility = [eligibilityLabel](SceneStopResolutionStatus status, const QString& text) {
+		if (const auto severity = stopResolutionSeverity(status))
+			DialogLayout::setStatus(eligibilityLabel, *severity, text);
+		else
+			DialogLayout::setHelp(eligibilityLabel, text);
+	};
 
 	auto* modeCombo = new ChoiceComboBox(&dialog);
 	modeCombo->setObjectName("stopEditorTimeModeCombo");
@@ -346,11 +368,10 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	modeCombo->addItem("Clock time", true);
 	modeCombo->setCurrentIndex(m_clockMode ? 1 : 0);
 	form->addRow("Planned time display", modeCombo);
-	auto* baseLabel = new QLabel(QString("Case base time: %1")
-									 .arg(QString::fromStdString(model.baseTime.empty() ? std::string("00:00:00") : model.baseTime)),
-		&dialog);
+	auto* baseLabel = new QLabel(&dialog);
 	baseLabel->setObjectName("stopEditorBaseTimeLabel");
-	baseLabel->setWordWrap(true);
+	DialogLayout::setHelp(baseLabel,
+		QString("Case base time: %1").arg(QString::fromStdString(model.baseTime.empty() ? std::string("00:00:00") : model.baseTime)));
 	form->addRow(QString(), baseLabel);
 
 	auto* arrivalPresent = new QCheckBox("Planned arrival", &dialog);
@@ -380,9 +401,22 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	layout->addLayout(form);
 	auto* errorLabel = new QLabel(&dialog);
 	errorLabel->setObjectName("stopEditorErrorLabel");
-	errorLabel->setStyleSheet("color: #b00020;");
-	errorLabel->setWordWrap(true);
 	layout->addWidget(errorLabel);
+	// An empty text hides the label. A text is scrolled into view once the layout has made room for it, because the body
+	// of the dialog scrolls and the label is at its end.
+	const auto showError = [errorLabel](const QString& text) {
+		DialogLayout::setStatus(errorLabel, DialogLayout::Severity::Error, text);
+		if (text.isEmpty())
+			return;
+		QTimer::singleShot(0, errorLabel, [errorLabel] {
+			for (QWidget* ancestor = errorLabel->parentWidget(); ancestor; ancestor = ancestor->parentWidget())
+				if (auto* scroll = qobject_cast<QScrollArea*>(ancestor)) {
+					scroll->ensureWidgetVisible(errorLabel);
+					return;
+				}
+		});
+	};
+	showError(QString());
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
 	buttons->setObjectName("stopEditorButtons");
 	buttons->button(QDialogButtonBox::Ok)->setObjectName("stopEditorAcceptButton");
@@ -416,7 +450,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 	};
 	const auto updateEligibility = [&]() {
 		if (!windowProblem.empty()) {
-			eligibilityLabel->setText(QString::fromStdString(windowProblem));
+			showEligibility(SceneStopResolutionStatus::UnresolvedRoute, QString::fromStdString(windowProblem));
 			return SceneStopResolutionStatus::UnresolvedRoute;
 		}
 		SceneService candidate = service;
@@ -428,7 +462,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			sceneServiceTraversal(model, candidate));
 		const auto status = stopIndex < resolutions.size() ? resolutions[stopIndex].status
 														   : SceneStopResolutionStatus::UnresolvedRoute;
-		eligibilityLabel->setText(stopResolutionText(status));
+		showEligibility(status, stopResolutionText(status));
 		if (stationCombo->currentIndex() >= 0 && !stationOnRoute(draft.stationId))
 			stationCombo->setItemData(stationCombo->currentIndex(), eligibilityLabel->text(), Qt::ToolTipRole);
 		if (invalidPlatformIndex >= 0 && platformCombo->currentIndex() == invalidPlatformIndex)
@@ -488,7 +522,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			}
 			refreshPlatforms();
 			updateEligibility();
-			errorLabel->clear();
+			showError(QString());
 		});
 	}
 	connect(stationCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
@@ -525,7 +559,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		return parsePlannedTime(edit->text().toStdString(), clock, baseOffsetSeconds, value);
 	};
 	const auto showParseError = [&](QLineEdit* edit, const QString& field) {
-		errorLabel->setText(QString("%1 is invalid. Enter a non-negative elapsed value or HH:MM:SS[.fraction] with an explicit +Nd day prefix.").arg(field));
+		showError(QString("%1 is invalid. Enter a non-negative elapsed value or HH:MM:SS[.fraction] with an explicit +Nd day prefix.").arg(field));
 		edit->setFocus();
 	};
 	connect(modeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog, [&](int index) {
@@ -540,7 +574,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 			|| !parseField(departurePresent, departureEdit, dialogClockMode, departure)) {
 			const QSignalBlocker blocker(modeCombo);
 			modeCombo->setCurrentIndex(dialogClockMode ? 1 : 0);
-			errorLabel->setText("Finish the invalid planned time before changing its display mode.");
+			showError("Finish the invalid planned time before changing its display mode.");
 			return;
 		}
 		draft.hasPlannedArrival = arrival.has_value();
@@ -552,12 +586,12 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		dialogClockMode = nextClockMode;
 		setTimeField(arrivalPresent, arrivalEdit, arrival);
 		setTimeField(departurePresent, departureEdit, departure);
-		errorLabel->clear();
+		showError(QString());
 	});
 	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 	connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
 		if (!windowProblem.empty()) {
-			errorLabel->setText(QString::fromStdString(windowProblem));
+			showError(QString::fromStdString(windowProblem));
 			if (positionCombo)
 				positionCombo->setFocus();
 			return;
@@ -575,19 +609,19 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		bool dwellOk = false;
 		const double dwell = dwellEdit->text().trimmed().toDouble(&dwellOk);
 		if (!dwellOk || !std::isfinite(dwell) || dwell < 0.0) {
-			errorLabel->setText("Minimum dwell must be a finite non-negative number of seconds.");
+			showError("Minimum dwell must be a finite non-negative number of seconds.");
 			dwellEdit->setFocus();
 			return;
 		}
 		if (draft.stationId.empty()) {
-			errorLabel->setText("Choose a station for this timetable stop.");
+			showError("Choose a station for this timetable stop.");
 			stationCombo->setFocus();
 			return;
 		}
 		const bool changedAssignment = append || draft.stationId != service.stops[stopIndex].stationId
 			|| draft.platformId != service.stops[stopIndex].platformId;
 		if (changedAssignment && updateEligibility() == SceneStopResolutionStatus::AmbiguousPlatform) {
-			errorLabel->setText("Choose a compatible platform: more than one is reachable at this station.");
+			showError("Choose a compatible platform: more than one is reachable at this station.");
 			platformCombo->setFocus();
 			return;
 		}
@@ -601,7 +635,7 @@ void TimetableStopsPanel::editStop(int row, int insertIndex) {
 		if (append) {
 			const auto result = insertSceneStop(model, service, stopIndex, draft);
 			if (!result.inserted) {
-				errorLabel->setText(QString::fromStdString(result.error));
+				showError(QString::fromStdString(result.error));
 				return;
 			}
 		}

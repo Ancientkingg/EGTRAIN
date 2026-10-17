@@ -22,6 +22,7 @@
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
@@ -1192,13 +1193,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QLabel* caseTitle = new QLabel("Current case study", caseLayersWidget);
 	caseTitle->setObjectName("caseStudyTitleLabel");
 	caseLayersLayout->addWidget(caseTitle);
-	m_caseNameLabel = new QLabel(caseLayersWidget);
+	m_caseNameLabel = EditorLayout::wrappedLabel(QString(), caseLayersWidget);
 	m_caseNameLabel->setObjectName("caseNameLabel");
-	m_caseNameLabel->setWordWrap(true);
 	caseLayersLayout->addWidget(m_caseNameLabel);
-	m_caseReadinessLabel = new QLabel(caseLayersWidget);
+	m_caseReadinessLabel = EditorLayout::wrappedLabel(QString(), caseLayersWidget);
 	m_caseReadinessLabel->setObjectName("caseReadinessLabel");
-	m_caseReadinessLabel->setWordWrap(true);
 	caseLayersLayout->addWidget(m_caseReadinessLabel);
 	QLabel* layersTitle = new QLabel("Layers", caseLayersWidget);
 	layersTitle->setObjectName("layersTitleLabel");
@@ -1238,10 +1237,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_networkLegendWidget = new NetworkLegendWidget(caseLayersWidget);
 	caseLayersLayout->addWidget(m_networkLegendWidget);
 	caseLayersLayout->addStretch();
-	auto* caseLayersScroll = new QScrollArea(m_caseLayersDock);
+	auto* caseLayersScroll = new EditorLayout::VerticalScrollArea(m_caseLayersDock);
 	caseLayersScroll->setObjectName("caseLayersScroll");
-	caseLayersScroll->setWidgetResizable(true);
-	caseLayersScroll->setFrameShape(QFrame::NoFrame);
 	caseLayersScroll->setWidget(caseLayersWidget);
 	m_caseLayersDock->setWidget(caseLayersScroll);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
@@ -4356,7 +4353,7 @@ void MainWindow::updateCaseLayersPanel() {
 	if (caseName.trimmed().isEmpty())
 		caseName = QStringLiteral("Default case study");
 	if (m_caseNameLabel)
-		m_caseNameLabel->setText(caseName);
+		m_caseNameLabel->setText(EditorLayout::breakableName(caseName));
 
 	QString readiness = "Ready to run";
 	bool blocked = false;
@@ -6098,10 +6095,13 @@ void MainWindow::setupRunResultsDock() {
 	QWidget* container = new QWidget(m_runResultsDock);
 	QVBoxLayout* containerLayout = new QVBoxLayout(container);
 	containerLayout->setContentsMargins(0, 0, 0, 0);
-	m_runResultsSummaryLabel = new QLabel(container);
+	m_runResultsSummaryLabel = EditorLayout::wrappedLabel(QString(), container);
 	m_runResultsSummaryLabel->setObjectName("runResultsContextLabel");
-	m_runResultsSummaryLabel->setWordWrap(true);
 	containerLayout->addWidget(m_runResultsSummaryLabel);
+	auto* resultsCaption = new QLabel(container);
+	resultsCaption->setObjectName("runResultsViewsCaption");
+	DialogLayout::setHelp(resultsCaption, "Results");
+	containerLayout->addWidget(resultsCaption);
 	QHBoxLayout* resultViews = new QHBoxLayout();
 	auto* diagramsButton = new QToolButton(container);
 	diagramsButton->setText("Open result view...");
@@ -6172,9 +6172,12 @@ void MainWindow::setupRunResultsDock() {
 	resultViews->addStretch();
 	containerLayout->addLayout(resultViews);
 	QHBoxLayout* delayRow = new QHBoxLayout();
-	m_delayFeedbackLabel = new QLabel(container);
+	auto* delayCaption = new QLabel(container);
+	delayCaption->setObjectName("delayComparisonCaption");
+	DialogLayout::setHelp(delayCaption, "Delay comparison");
+	containerLayout->addWidget(delayCaption);
+	m_delayFeedbackLabel = EditorLayout::wrappedLabel(QString(), container);
 	m_delayFeedbackLabel->setObjectName("delayFeedbackLabel");
-	m_delayFeedbackLabel->setWordWrap(true);
 	containerLayout->addWidget(m_delayFeedbackLabel);
 	m_setDelayBaselineButton = new QPushButton("Set delay baseline", container);
 	m_setDelayBaselineButton->setObjectName("setDelayBaselineButton");
@@ -6289,7 +6292,7 @@ void MainWindow::refreshRunResultsSummary() {
 					   .arg(destinationTerminationCount);
 	}
 	if (m_delayBaseline)
-		summary += QString(" | Delay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
+		summary += QString("\nDelay baseline: %1").arg(completedRunContext(m_delayBaseline->provenance));
 	m_runResultsSummaryLabel->setText(summary);
 }
 

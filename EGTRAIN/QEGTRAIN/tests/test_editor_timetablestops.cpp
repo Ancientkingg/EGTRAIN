@@ -6,9 +6,12 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
+#include <QEventLoop>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPoint>
 #include <QPushButton>
+#include <QRect>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -20,6 +23,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -168,6 +172,24 @@ static QLineEdit* edit(QDialog& dialog, const char* name) {
 
 static QLabel* label(QDialog& dialog, const char* name) {
 	return dialog.findChild<QLabel*>(name);
+}
+
+// The role that a dialog label has: "help", or the value of its status property, which is "neutral", "warning" or "error".
+static QString role(const QLabel* message) {
+	return message->property("dialogHelp").toBool() ? QStringLiteral("help") : message->property("dialogStatus").toString();
+}
+
+// Lets the events that a change has posted take effect, including the timers that fire at once.
+static void settle() {
+	QEventLoop loop;
+	QTimer::singleShot(30, &loop, &QEventLoop::quit);
+	loop.exec();
+}
+
+// Whether the message is whole inside the part of the dialog body that is in view.
+static bool inView(QDialog& dialog, const QLabel* message) {
+	const auto* scroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
+	return scroll && scroll->viewport()->rect().contains(QRect(message->mapTo(scroll->viewport(), QPoint(0, 0)), message->size()));
 }
 
 int main(int argc, char** argv) {
@@ -337,10 +359,19 @@ int main(int argc, char** argv) {
 						&& edit(dialog, "stopEditorDepartureEdit")->text() == "90"
 						&& label(dialog, "stopEditorEligibilityLabel")->text() == "Reachable ordered route visit",
 					"the dialog shows the stop that is edited");
+				QLabel* error = label(dialog, "stopEditorErrorLabel");
+				ok &= expect(role(label(dialog, "stopEditorEligibilityLabel")) == "help" && role(label(dialog, "stopEditorBaseTimeLabel")) == "help"
+						&& label(dialog, "stopEditorBaseTimeLabel")->text() == "Case base time: 08:00:00" && !error->isVisible()
+						&& error->styleSheet().isEmpty(),
+					"a reachable stop and the case base time are help, and the error label is hidden and takes its look from the stylesheet");
+				const QSize openSize = dialog.size();
 				edit(dialog, "stopEditorDwellEdit")->setText("-1");
 				click(dialog, "stopEditorAcceptButton");
-				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("Minimum dwell must be"),
+				settle();
+				ok &= expect(dialog.isVisible() && error->text().startsWith("Minimum dwell must be"),
 					"a negative dwell is refused with a message and the dialog stays open");
+				ok &= expect(error->isVisible() && role(error) == "error" && dialog.size() == openSize && inView(dialog, error),
+					"the message is an error callout in view, and the dialog does not change size when it appears");
 				edit(dialog, "stopEditorDwellEdit")->setText("45");
 				edit(dialog, "stopEditorArrivalEdit")->setText("no time");
 				click(dialog, "stopEditorAcceptButton");
@@ -419,9 +450,12 @@ int main(int argc, char** argv) {
 				click(dialog, "stopEditorAcceptButton");
 				ok &= expect(dialog.isVisible() && label(dialog, "stopEditorErrorLabel")->text().startsWith("No station visit is available"),
 					"a position with no station cannot be accepted");
+				ok &= expect(role(label(dialog, "stopEditorEligibilityLabel")) == "error" && role(label(dialog, "stopEditorErrorLabel")) == "error",
+					"a position with no station is shown as an error");
 				combo(dialog, "stopEditorPositionCombo")->setCurrentIndex(3);
-				ok &= expect(label(dialog, "stopEditorErrorLabel")->text().isEmpty() && combo(dialog, "stopEditorStationCombo")->currentText() == "D",
-					"choosing a position again offers its stations and clears the message");
+				ok &= expect(label(dialog, "stopEditorErrorLabel")->text().isEmpty() && !label(dialog, "stopEditorErrorLabel")->isVisible()
+						&& role(label(dialog, "stopEditorEligibilityLabel")) == "help" && combo(dialog, "stopEditorStationCombo")->currentText() == "D",
+					"choosing a position again offers its stations and clears and hides the message");
 				ok &= expect(combo(dialog, "stopEditorPlatformCombo")->currentData().toString().isEmpty(),
 					"a platform that was chosen before the position changed is not kept");
 				QComboBox* platform = combo(dialog, "stopEditorPlatformCombo");
@@ -468,6 +502,47 @@ int main(int argc, char** argv) {
 		ok &= expect(run.accepted && stationsOf(document.model().services[1]) == std::vector<std::string>({"station-a", "station-b", "station-c", "station-d"})
 				&& panel.table()->currentRow() == 1,
 			"stops inserted one after the other keep the order of the route");
+	}
+
+	{
+		// how a stop resolves decides the role of its message
+		SceneModel scene = lineScene();
+		// Station B gets a second platform on the route, so a stop there without a platform is ambiguous. Station E has no platform node on the route.
+		scene.stations[1].platforms.push_back({"platform-b2", {"node-3"}});
+		SceneStation off;
+		off.id = "station-e";
+		off.name = "E";
+		off.platforms = {{"platform-e", {}}};
+		scene.stations.push_back(off);
+		const std::vector<std::pair<std::string, std::vector<SceneStop>>> cases = {
+			{"resolved", {stop("station-a", "platform-a", 0.0, 30.0)}},
+			{"ambiguous", {stop("station-b", "", 0.0, 30.0)}},
+			{"off-route", {stop("station-e", "", 0.0, 30.0)}},
+			{"invalid-platform", {stop("station-a", "platform-x", 0.0, 30.0)}},
+			{"unknown-station", {stop("station-z", "", 0.0, 30.0)}},
+			{"out-of-order", {stop("station-c", "platform-c", 0.0, 30.0), stop("station-b", "platform-b", 60.0, 90.0)}},
+		};
+		for (const auto& entry : cases) {
+			SceneService service;
+			service.id = entry.first;
+			service.route = "route-1";
+			service.stops = entry.second;
+			scene.services.push_back(service);
+		}
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		QStringList roles;
+		for (const auto& entry : cases) {
+			panel.setServiceId(QString::fromStdString(entry.first));
+			runDialog(
+				panel,
+				[&](QDialog& dialog) { roles << role(label(dialog, "stopEditorEligibilityLabel")); },
+				[&] { panel.editStop(static_cast<int>(entry.second.size()) - 1); });
+		}
+		ok &= expect(roles == QStringList({"help", "warning", "warning", "warning", "error", "error"}),
+			"a stop on the route is help, an ambiguous or off-route stop or an invalid platform is a warning, and a missing station or a stop out of order is an error");
 	}
 
 	{

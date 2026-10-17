@@ -2910,6 +2910,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!dialog->isVisible() || mode->currentIndex() != 0 || arrival->text() != "invalid"
 						|| dialog->findChild<QLabel*>("stopEditorErrorLabel")->text().isEmpty())
 						facetFailure(facetOk, "timetable", "invalid time was accepted or discarded");
+					else if (const auto* error = dialog->findChild<QLabel*>("stopEditorErrorLabel");
+						!error->isVisible() || error->property("dialogStatus").toString() != "error" || !error->styleSheet().isEmpty())
+						facetFailure(facetOk, "timetable", "the stop dialog error is not an error callout of the stylesheet");
 					dialog->findChild<QPushButton*>("stopEditorCancelButton")->click();
 				});
 				timer.start(0);
@@ -4033,6 +4036,113 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				dock->hide();
 			}
 			dock->setFont(normalFont);
+		}
+		if (ok) {
+			// A window of 1280 by 698 pixels with Loaded Data below the network: the Case and Layers rail is too short for its
+			// content and scrolls, and a long case name without spaces and the first layer toggle stay whole.
+			const std::string caseName = w.m_sceneModel.name;
+			w.m_sceneModel.name = "Amsterdam_Hilversum_Student";
+			w.updateCaseLayersPanel();
+			w.resize(1280, 698);
+			w.m_caseLayersDock->show();
+			w.m_loadedDataDock->show();
+			w.m_loadedDataDock->raise();
+			QApplication::processEvents();
+			auto* rail = w.m_caseLayersDock->findChild<QScrollArea*>("caseLayersScroll");
+			const QWidget* railViewport = rail ? rail->viewport() : nullptr;
+			const auto insideRail = [railViewport](const QWidget* widget) {
+				const QPoint left = widget->mapTo(railViewport, QPoint(0, 0));
+				return left.x() >= 0 && left.x() + widget->width() <= railViewport->width();
+			};
+			if (!rail || !rail->verticalScrollBar()->isVisible())
+				facetFailure(ok, "presentation", "the case and layers rail does not scroll with Loaded Data open, so the check proves nothing");
+			else if (rail->horizontalScrollBar()->isVisible() || rail->horizontalScrollBarPolicy() != Qt::ScrollBarAlwaysOff
+				|| rail->widget()->width() > railViewport->width())
+				facetFailure(ok, "presentation", "the case and layers rail scrolls sideways with Loaded Data open");
+			else {
+				const QRect nameArea = w.m_caseNameLabel->contentsRect();
+				const QRect nameText = w.m_caseNameLabel->fontMetrics().boundingRect(QRect(0, 0, nameArea.width(), 100000),
+					Qt::TextWordWrap, w.m_caseNameLabel->text());
+				if (!insideRail(w.m_caseNameLabel) || nameText.width() > nameArea.width()
+					|| w.m_caseNameLabel->height() < w.m_caseNameLabel->heightForWidth(w.m_caseNameLabel->width()))
+					facetFailure(ok, "presentation", "the case name is cut in the case and layers rail with Loaded Data open");
+				if (!insideRail(w.m_stationLayerCheck) || w.m_stationLayerCheck->width() < w.m_stationLayerCheck->sizeHint().width())
+					facetFailure(ok, "presentation", "the first layer toggle is cut in the case and layers rail with Loaded Data open");
+			}
+			w.m_loadedDataDock->hide();
+			w.m_caseLayersDock->hide();
+			w.m_sceneModel.name = caseName;
+			w.updateCaseLayersPanel();
+
+			// The fields of a service at the same size: the running performance field is not cut at the right.
+			w.m_serviceDock->show();
+			w.m_serviceDock->raise();
+			QApplication::processEvents();
+			auto* serviceFields = w.m_servicePanel->pages() ? qobject_cast<QScrollArea*>(w.m_servicePanel->pages()->widget(0)) : nullptr;
+			QDoubleSpinBox* performanceEdit = w.m_servicePanel->performancePercentEdit();
+			if (!serviceFields || !performanceEdit->isVisible())
+				facetFailure(ok, "presentation", "the fields of a service are not shown at 1280 by 698 pixels");
+			else {
+				const QPoint editRight = performanceEdit->mapTo(serviceFields->viewport(), QPoint(performanceEdit->width(), 0));
+				if (serviceFields->horizontalScrollBar()->isVisible() || editRight.x() > serviceFields->viewport()->width())
+					facetFailure(ok, "presentation", "the fields of a service are cut at the right at 1280 by 698 pixels");
+			}
+			w.m_serviceDock->hide();
+			w.resize(1280, 800);
+			QApplication::processEvents();
+		}
+		if (ok) {
+			// Run Results over Loaded Data in a window of 1280 by 800 pixels, after a run whose case name and baseline have
+			// 300 characters without a space: the labels wrap or clip, so the dock needs no more width than its buttons.
+			w.showNormal();
+			w.resize(1280, 800);
+			w.m_loadedDataDock->show();
+			w.m_runResultsDock->show();
+			w.m_runResultsDock->raise();
+			QApplication::processEvents();
+			const int shortMinimumWidth = w.m_runResultsDock->minimumSizeHint().width();
+
+			RunProvenance provenance;
+			provenance.caseName = std::string(300, 'W');
+			provenance.appliedScenario = "baseline";
+			CompletedRunData completed;
+			completed.provenance = provenance;
+			completed.results.trains.emplace_back();
+			completed.results.trains.back().trainId = "train-1";
+			w.m_completedRun = std::make_shared<const CompletedRunData>(completed);
+			DelayRunSnapshot baseline;
+			baseline.provenance = provenance;
+			baseline.scenarioId = "baseline";
+			w.m_delayBaseline = baseline;
+			w.refreshRunResults();
+			w.updateDiagramActions();
+			QApplication::processEvents();
+
+			const QDockWidget* results = w.m_runResultsDock;
+			const QStringList summaryLines = w.m_runResultsSummaryLabel->text().split('\n');
+			QStringList captions;
+			for (const QLabel* label : results->findChildren<QLabel*>(QRegularExpression("Caption$")))
+				captions << label->text();
+			if (!w.tabifiedDockWidgets(w.m_loadedDataDock).contains(w.m_runResultsDock) || !results->isVisible())
+				facetFailure(ok, "presentation", "Run Results is not shown over Loaded Data, so the check proves nothing");
+			else if (w.width() > 1280 || w.height() > 800)
+				facetFailure(ok, "presentation", "Run Results enlarged the main window");
+			else if (results->minimumSizeHint().width() > shortMinimumWidth || results->minimumSizeHint().width() > w.width() / 2
+				|| results->minimumSizeHint().height() > w.height() / 2)
+				facetFailure(ok, "presentation", "a long run identity raises the minimum size of Run Results");
+			else if (summaryLines.size() != 2 || !summaryLines[0].startsWith("Run: ") || !summaryLines[1].startsWith("Delay baseline: "))
+				facetFailure(ok, "presentation", "the run and the delay baseline are not on lines of their own in Run Results");
+			else if (captions != QStringList({"Results", "Delay comparison"}))
+				facetFailure(ok, "presentation", "the button rows of Run Results have no captions");
+			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
+				facetFailure(ok, "presentation", "a long run identity widens the labels of Run Results");
+
+			w.m_completedRun.reset();
+			w.m_delayBaseline.reset();
+			w.m_runResultsTable->setRowCount(0);
+			w.m_runResultsDock->hide();
+			w.m_loadedDataDock->hide();
+			w.updateDiagramActions();
 		}
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
 	}
