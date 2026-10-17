@@ -578,9 +578,12 @@ int main(int argc, char** argv) {
 					&& form->labelForField(panel.operatingCodeStepEdit()) == panel.hasOperatingCodeStepCheck(),
 				"each check box is in the row of the field it switches on");
 		}
-		ok &= expect(dynamic_cast<ChoiceComboBox*>(panel.categoryCombo()) && dynamic_cast<ChoiceComboBox*>(panel.compositionCombo())
-				&& dynamic_cast<ChoiceComboBox*>(panel.routeCombo()),
-			"the category, composition and route are choices that can shrink below their longest entry");
+		bool shrinks = true;
+		for (QComboBox* choice : {panel.categoryCombo(), panel.compositionCombo(), panel.routeCombo()}) {
+			choice->addItem(QString(120, QLatin1Char('x')));
+			shrinks = shrinks && dynamic_cast<ChoiceComboBox*>(choice) && choice->minimumSizeHint().width() < choice->sizeHint().width();
+		}
+		ok &= expect(shrinks, "the category, composition and route are choices that can shrink below their longest entry");
 	}
 
 	{
