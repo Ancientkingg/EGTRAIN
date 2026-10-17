@@ -265,7 +265,8 @@ QLabel#runReviewDetails {
     padding: 8px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default,
+QMessageBox QDialogButtonBox QPushButton:default, QPushButton#runReviewRunButton {
     background: #315a70;
     border-color: #315a70;
     color: #ffffff;
@@ -276,12 +277,14 @@ QPushButton#runReviewRunButton {
     min-width: 110px;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:hover,
+QMessageBox QDialogButtonBox QPushButton:default:hover, QPushButton#runReviewRunButton:hover {
     background: #26495c;
     border-color: #26495c;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:focus,
+QMessageBox QDialogButtonBox QPushButton:default:focus, QPushButton#runReviewRunButton:focus {
     border-color: #315a70;
     outline: 2px solid #315a70;
 }
@@ -294,7 +297,8 @@ QLineEdit:disabled {
     color: #64717a;
 }
 
-QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
+QDialog[dialogPresentation="true"] QDialogButtonBox QPushButton:default:disabled,
+QMessageBox QDialogButtonBox QPushButton:default:disabled, QPushButton#runReviewRunButton:disabled {
     background: #dce3e7;
     border-color: #c9d3db;
     color: #64717a;

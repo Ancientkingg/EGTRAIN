@@ -13,6 +13,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QTableWidget>
@@ -420,6 +421,29 @@ std::pair<ControlLook, ControlLook> controlLooks(ControlKind kind, bool presenta
 	return {enabled, controlLook(control)};
 }
 
+// The look of the default button of a dialog footer, enabled and then disabled.
+std::pair<ControlLook, ControlLook> dialogDefaultLooks() {
+	QDialog dialog;
+	auto* body = new QWidget;
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	auto* primary = buttons->button(QDialogButtonBox::Ok);
+	primary->setText(QStringLiteral("MMMM MMMM"));
+	primary->setFocusPolicy(Qt::NoFocus);
+	primary->setFont(qApp->font());
+	buttons->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
+	buttons->button(QDialogButtonBox::Cancel)->setFocusPolicy(Qt::NoFocus);
+	DialogLayout::install(dialog, QStringLiteral("Default action"), QString(), body, buttons, QRect(0, 0, 1920, 1080));
+	dialog.show();
+	QApplication::processEvents();
+	primary->setFixedSize(150, 48);
+	primary->setDefault(true);
+	QApplication::processEvents();
+	const ControlLook enabledDefault = controlLook(primary);
+	primary->setEnabled(false);
+	QApplication::processEvents();
+	return {enabledDefault, controlLook(primary)};
+}
+
 bool exerciseDisabledControls() {
 	bool ok = true;
 	const std::pair<ControlKind, const char*> controls[] = {
@@ -449,28 +473,45 @@ bool exerciseDisabledControls() {
 	const auto checked = controlLooks(ControlKind::CheckedToolButton, false, false);
 	ok &= checkLooks(sameLook(checked.first, checked.second), "a disabled checked tool button keeps its checked look", checked.first, checked.second);
 
-	QDialog dialog;
-	auto* body = new QWidget;
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	auto* primary = buttons->button(QDialogButtonBox::Ok);
-	primary->setText(QStringLiteral("MMMM MMMM"));
-	primary->setFocusPolicy(Qt::NoFocus);
-	primary->setFont(qApp->font());
-	buttons->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
-	buttons->button(QDialogButtonBox::Cancel)->setFocusPolicy(Qt::NoFocus);
-	DialogLayout::install(dialog, QStringLiteral("Default action"), QString(), body, buttons, QRect(0, 0, 1920, 1080));
-	dialog.show();
-	QApplication::processEvents();
-	primary->setFixedSize(150, 48);
-	primary->setDefault(true);
-	QApplication::processEvents();
-	const ControlLook enabledDefault = controlLook(primary);
-	primary->setEnabled(false);
-	QApplication::processEvents();
-	const ControlLook disabledDefault = controlLook(primary);
-	ok &= checkLooks(qGray(disabledDefault.face) >= qGray(enabledDefault.face) + 30,
-		"a disabled default button keeps its lighter face", enabledDefault, disabledDefault);
+	const auto defaults = dialogDefaultLooks();
+	ok &= checkLooks(qGray(defaults.second.face) >= qGray(defaults.first.face) + 30,
+		"a disabled default button keeps its lighter face", defaults.first, defaults.second);
 	return ok;
+}
+
+// A question box with Yes and No, No the default, built and styled without running its event loop. Its default button
+// looks like the default button of a dialog footer and the other button keeps the plain look.
+bool exerciseMessageBoxDefault() {
+#ifdef Q_OS_WIN
+	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	return true;
+#else
+	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
+		QMessageBox::Yes | QMessageBox::No);
+	box.setDefaultButton(QMessageBox::No);
+	auto* defaultButton = qobject_cast<QPushButton*>(box.button(QMessageBox::No));
+	auto* otherButton = qobject_cast<QPushButton*>(box.button(QMessageBox::Yes));
+	for (QPushButton* button : {defaultButton, otherButton}) {
+		button->setText(QStringLiteral("MMMM MMMM"));
+		button->setFocusPolicy(Qt::NoFocus);
+		button->setFont(qApp->font());
+		button->setFixedSize(150, 48);
+	}
+	box.ensurePolished();
+	bool ok = check(defaultButton->isDefault() && !otherButton->isDefault(), "the message box does not make No the default button");
+	const auto dialogDefault = dialogDefaultLooks();
+	const ControlLook plain = controlLooks(ControlKind::PushButton, true, false).first;
+	const ControlLook defaultLook = controlLook(defaultButton);
+	ok &= checkLooks(sameLook(defaultLook, dialogDefault.first),
+		"the default button of a message box does not look like the default button of a dialog", defaultLook, dialogDefault.first);
+	ok &= checkLooks(sameLook(controlLook(otherButton), plain),
+		"the other button of a message box does not keep the plain look", controlLook(otherButton), plain);
+	defaultButton->setEnabled(false);
+	const ControlLook disabledLook = controlLook(defaultButton);
+	ok &= checkLooks(sameLook(disabledLook, dialogDefault.second),
+		"a disabled default button of a message box does not look like a disabled default button of a dialog", disabledLook, dialogDefault.second);
+	return ok;
+#endif
 }
 } // namespace
 
@@ -493,5 +534,6 @@ int main(int argc, char** argv) {
 	const bool messages = exerciseInlineMessages();
 	const bool narrow = exerciseNarrowBody();
 	const bool disabled = exerciseDisabledControls();
-	return small && scaledSmall && large && indicators && messages && narrow && disabled ? 0 : 1;
+	const bool messageBox = exerciseMessageBoxDefault();
+	return small && scaledSmall && large && indicators && messages && narrow && disabled && messageBox ? 0 : 1;
 }
