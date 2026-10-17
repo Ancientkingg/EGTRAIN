@@ -4,7 +4,7 @@ This page takes you from a download to a finished run of the Paimpol case study,
 
 The steps use the labels of the window. A label such as **Run** is a menu entry or a button, and a name such as `Paimpol` is a case. On macOS the key Ctrl in a shortcut is the Command key.
 
-This walk was done on macOS. The Windows and Linux windows use the same labels but were not walked. Their install steps and folder paths come from the README and from the code, and were not tried.
+This walk was done on macOS. On Linux (an Ubuntu 24.04 desktop in a container, 2026-10-17) the first steps were repeated with the program built from source: opening Paimpol, the dialog **Run simulation**, the run, the results table and the output folder `~/.local/share/EGTRAIN/EGTRAIN/Output/Paimpol` matched this page, with Ctrl as the shortcut key. The AppImage is started and walked through these steps by the Linux rehearsal job of each release run; its install step was not walked by hand. The Windows window uses the same labels but was not walked, and its install steps and folder path come from the README and from the code.
 
 ## Three things to keep apart
 
@@ -72,7 +72,7 @@ The **Replay** row has **Start**, **Play**, **End**, a slider and a label such a
 
 ## 6. Read the results
 
-The dock **Run Results** names the run in its title and in the line at its top, for example `Run: Paimpol / baseline | Occurrences: 2/2 selected | Status: Completed`. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
+The dock **Run Results** names the run in its title and in the line at its top, for example `Run: Paimpol / baseline | Occurrences: 2/2 selected | Status: Completed`. When some ticked occurrences enter outside the run period, the line also gives the number inside it, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
 
 To open a result window, click **Open result view...** in the dock and choose an entry, or use the menu **Diagrams**. Two to try first:
 
@@ -98,9 +98,9 @@ A run also writes text files, such as the energy files and the delay statistics.
 | --- | --- | --- |
 | macOS | `~/Library/Application Support/EGTRAIN/EGTRAIN` | yes |
 | Windows | `%APPDATA%\EGTRAIN\EGTRAIN` | not verified on this system |
-| Linux | `~/.local/share/EGTRAIN/EGTRAIN` | not verified on this system |
+| Linux | `~/.local/share/EGTRAIN/EGTRAIN` | yes, on Ubuntu 24.04 |
 
-The Windows and Linux entries follow the rule of Qt for the application data folder. **File > Set Output Folder...** chooses another folder for the following runs of the session. [Command-line options](command-line.md#output-folder) explain the rule and `QEGTRAIN_OUTPUT_DIR`, and [Run output](run-output.md) lists the files.
+The Windows entry follows the rule of Qt for the application data folder. **File > Set Output Folder...** chooses another folder for the following runs of the session. [Command-line options](command-line.md#output-folder) explain the rule and `QEGTRAIN_OUTPUT_DIR`, and [Run output](run-output.md) lists the files.
 
 ## If something goes wrong
 

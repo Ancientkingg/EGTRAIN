@@ -420,3 +420,10 @@ std::string directIncidentEvidenceText(const RunResults& results) {
 	return "Direct incident evidence recorded for " + std::to_string(withEvidence) + " of " + std::to_string(results.trains.size())
 		+ (results.trains.size() == 1 ? " train" : " trains");
 }
+
+std::string runOccurrencesText(int selected, int total, int selectedInPeriod) {
+	std::string text = std::to_string(selected) + "/" + std::to_string(total) + " selected";
+	if (selectedInPeriod != selected)
+		text += ", " + std::to_string(selectedInPeriod) + " in the run period";
+	return text;
+}

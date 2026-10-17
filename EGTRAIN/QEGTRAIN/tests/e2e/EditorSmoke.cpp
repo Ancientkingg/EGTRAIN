@@ -4428,6 +4428,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			else if (w.m_runResultsSummaryLabel->width() > results->width() || w.m_delayFeedbackLabel->width() > results->width())
 				facetFailure(ok, "presentation", "a long run identity widens the labels of Run Results");
 
+			// The line says how many ticked occurrences are in the run period when some are not, and stays short otherwise.
+			w.m_runController->m_lastRunSelectedOccurrences = 196;
+			w.m_runController->m_lastRunTotalOccurrences = 196;
+			w.m_runController->m_lastRunSelectedInPeriodOccurrences = 185;
+			w.refreshRunResultsSummary();
+			const QString outsidePeriod = w.m_runResultsSummaryLabel->text();
+			w.m_runController->m_lastRunSelectedInPeriodOccurrences = 196;
+			w.refreshRunResultsSummary();
+			const QString insidePeriod = w.m_runResultsSummaryLabel->text();
+			if (!outsidePeriod.contains(" | Occurrences: 196/196 selected, 185 in the run period | Status: Completed")
+				|| !insidePeriod.contains(" | Occurrences: 196/196 selected | Status: Completed"))
+				facetFailure(ok, "presentation", "the occurrences line of Run Results does not say how many selected occurrences are in the run period");
+
 			w.m_runController->m_completedRun.reset();
 			w.m_runController->m_delayBaseline.reset();
 			w.m_runResultsTable->setRowCount(0);

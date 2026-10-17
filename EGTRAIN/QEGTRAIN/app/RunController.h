@@ -177,6 +177,8 @@ public:
 	bool hasRunResults() const;
 	int lastRunSelectedOccurrences() const { return m_lastRunSelectedOccurrences; }
 	int lastRunTotalOccurrences() const { return m_lastRunTotalOccurrences; }
+	// How many of the selected occurrences enter the simulation inside the run period.
+	int lastRunSelectedInPeriodOccurrences() const { return m_lastRunSelectedInPeriodOccurrences; }
 	// The clock time of second 0 of the run, in seconds since midnight.
 	long long startOffsetSeconds() const { return m_startOffsetSeconds; }
 	void setStartOffsetSeconds(long long seconds) { m_startOffsetSeconds = seconds; }
@@ -258,6 +260,7 @@ private:
 	QString m_delayBaselineStatus;
 	int m_lastRunSelectedOccurrences = 0;
 	int m_lastRunTotalOccurrences = 0;
+	int m_lastRunSelectedInPeriodOccurrences = 0;
 	long long m_startOffsetSeconds;
 };
 
