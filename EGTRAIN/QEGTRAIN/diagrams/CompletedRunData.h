@@ -14,6 +14,7 @@
 
 class Route;
 struct SceneModel;
+struct SimulationRun;
 
 // A finished run as plain values. It holds nothing of the simulation, so a window can show and export it
 // after another run has replaced the simulation state. Only captureCompletedRun reads the simulation.
@@ -112,9 +113,8 @@ struct CompletedRunData {
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
 std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 
-// Copies the finished run out of the simulation globals. The scene gives the route nodes their station names and
-// may be null.
-CompletedRunData captureCompletedRun(const SceneModel* scene, long long startOffsetSeconds,
+// Copies the finished run out of the simulation. The scene gives the route nodes their station names and may be null.
+CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel* scene, long long startOffsetSeconds,
 	const RunProvenance& provenance);
 
 #endif // COMPLETEDRUNDATA_H

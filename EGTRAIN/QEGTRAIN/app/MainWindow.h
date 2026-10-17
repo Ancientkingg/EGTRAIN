@@ -172,9 +172,6 @@ struct StableRelease;
 #include "diagrams/CompletedRunData.h"
 #include "diagrams/RunResults.h"
 
-// boolean to define if GUI is used or not
-extern bool GUI;
-
 using namespace std;
 
 struct SceneSaveResult;

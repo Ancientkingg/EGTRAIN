@@ -211,7 +211,9 @@ New code adds no owning raw pointers. Choose the owner by what the object is.
   `BlocksOccupied` and `ETCS_MA`, are references to them. A new member needs a line in `reset()`.
   The routines of `simulation/` take the run they work on as a `SimulationRun&` parameter, and the
   member functions of a `Train` reach it through `Train::run_`, which `buildOperationsFromScene`
-  sets. They do not use the old names, which the window and the tests still use.
+  sets. They do not use the old names, which only the tests still use. The window and `main.cpp` read the run
+  through `DispatchController::run()`, and `captureCompletedRun` takes it as a parameter. The canvas takes
+  `mutableRun()` because it writes its layout into the tracks, stations and connections.
   `SimulationRun::settings` is the copy of `initial_variables` that `DispatchController::prepareScene`
   takes once the scene is built. `DispatchController` and the routines of `simulation/` read the
   buffer time, the recovery time, the output folder and the other settings of a run from the copy,

@@ -22,6 +22,7 @@
 #include "graphics/items/TrainBodyItem.h"
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneModel.h"
+#include "simulation/SimulationRun.h"
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
 #include "widgets/NetworkLegendWidget.h"
@@ -2173,7 +2174,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			}
 		}
 		if (!movedState || !interruptedState || movedState->routeIndex < 0
-			|| movedState->routeIndex >= static_cast<int>(train_route.size())
+			|| movedState->routeIndex >= static_cast<int>(simulation.run().infra.routes.size())
 			|| movedState->routeAxisPosition == -9999
 			|| movedState->wagonHeadPositions.empty()
 			|| movedState->wagonHeadPositions.size() != movedState->wagonTailPositions.size()) {
