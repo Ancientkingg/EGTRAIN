@@ -30,6 +30,7 @@
 #include "widgets/CompactDoubleSpinBox.h"
 #include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
+#include "simulation/SimulationRun.h"
 #include "diagrams/TrainFilterButton.h"
 #include "diagrams/RouteDiagramCoordinates.h"
 #include "diagrams/RouteReferenceChoice.h"
@@ -146,8 +147,6 @@
 #include <initializer_list>
 #include <memory>
 
-// utilization of GUI
-// bool GUI = true; // GUI used by default
 extern InitialParameters initial_variables;
 
 namespace {
@@ -1027,7 +1026,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
 	m_presenter = std::make_unique<NetworkPresenter>(scene.data(), networkView);
-	m_presenter->setGeometrySource(makeRuntimeGeometryFromGlobals());
+	m_presenter->setGeometrySource(makeRuntimeGeometryFromRun(simulation));
 	m_presenter->setFrameHost(this);
 	networkView->setScene(scene);
 
@@ -4522,9 +4521,9 @@ void MainWindow::refreshFollowTrainChoices() {
 	// The data of a row is the train index and the name of the train. The text of the row is
 	// the name with a state, which updateFollowAvailability writes. A list without trains has
 	// one row that says why.
-	if (!m_showingTrackPreview && numRegions > 0) {
-		for (int train = 0; train < numRegions; ++train) {
-			QString label = QString::fromStdString(regional_train[train].trainDescription);
+	if (!m_showingTrackPreview && simulation.run().numTrains > 0) {
+		for (int train = 0; train < simulation.run().numTrains; ++train) {
+			QString label = QString::fromStdString(simulation.run().trains[train].trainDescription);
 			if (label.isEmpty() || label == "None")
 				label = QString("Train %1").arg(train + 1);
 			m_followTrainCombo->addItem(label, train);
@@ -4563,7 +4562,7 @@ FollowAvailabilityInput MainWindow::followInput(int row) const {
 	if (m_snapshot)
 		in.timestep = m_snapshot->timestep;
 	const int train = m_followTrainCombo && row >= 0 ? m_followTrainCombo->itemData(row).toInt() : -1;
-	in.hasRun = train >= 0 && !m_showingTrackPreview && numRegions > 0;
+	in.hasRun = train >= 0 && !m_showingTrackPreview && simulation.run().numTrains > 0;
 	in.sceneHasServices = in.hasRun || !m_sceneModel.services.empty();
 	if (train < 0)
 		return in;
@@ -4775,7 +4774,7 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	}
 
 	const int comboIndex = m_followTrainCombo ? m_followTrainCombo->findData(trainIndex) : -1;
-	if (trainIndex >= numRegions || (m_followTrainCombo && comboIndex < 0)) {
+	if (trainIndex >= simulation.run().numTrains || (m_followTrainCombo && comboIndex < 0)) {
 		setFollowTrain(-1);
 		statusBar()->showMessage("Cannot follow the selected train: it is no longer available", 5000);
 		return;
@@ -5260,8 +5259,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 }
 
 bool MainWindow::hasRawRunResults() const {
-	for (int i = 0; i < numRegions; ++i)
-		if (regional_train[i].trajectorySize() > 0)
+	for (int i = 0; i < simulation.run().numTrains; ++i)
+		if (simulation.run().trains[i].trajectorySize() > 0)
 			return true;
 	return false;
 }
@@ -5647,9 +5646,9 @@ RunProvenance MainWindow::captureRunProvenance() const {
 	provenance.tsmMode = initial_variables.TSM;
 	provenance.routeChoiceMode = initial_variables.RChoice;
 	provenance.randomSeed = initial_variables.randomSeed;
-	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
-	for (int index = 0; index < numRegions; ++index) {
-		const Train& train = regional_train[index];
+	provenance.selectedOccurrences.reserve(static_cast<std::size_t>(std::max(0, simulation.run().numTrains)));
+	for (int index = 0; index < simulation.run().numTrains; ++index) {
+		const Train& train = simulation.run().trains[index];
 		provenance.selectedOccurrences.push_back({train.serviceId, train.serviceOccurrence,
 			train.operatingCode});
 	}
@@ -5846,7 +5845,7 @@ void MainWindow::onSimulationFinished() {
 	if (m_resultsAvailable) {
 		// Freeze result values before a subsequent run replaces the runtime trains.
 		m_completedRun = std::make_shared<const CompletedRunData>(
-			captureCompletedRun(&m_sceneModel, m_startOffsetSeconds, m_pendingRunProvenance));
+			captureCompletedRun(simulation.run(), &m_sceneModel, m_startOffsetSeconds, m_pendingRunProvenance));
 		refreshRunResults();
 	} else {
 		m_pendingRunProvenance = RunProvenance();
@@ -6862,7 +6861,7 @@ void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
 	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(re->track, 0)));
 	nodeStationNameText->setText(QString::fromStdString(re->node->stationName));
 	if (re->track >= 0 && re->track < 268)
-		nodeRegionText->setText(QString::number(blockSets[re->track].region));
+		nodeRegionText->setText(QString::number(simulation.run().infra.blockSets[re->track].region));
 	else
 		nodeRegionText->setText("None");
 	QStringList connectedTracks;
@@ -8037,7 +8036,7 @@ void MainWindow::updateNetworkLegend() {
 	// Runtime retains preview fit bounds, and a discarded run may still have
 	// Failed status while the authoring preview is displayed.
 	const bool preview = m_showingTrackPreview;
-	content.hasTracks = numTrackLines > 0 || !m_sceneModel.tracks.empty();
+	content.hasTracks = simulation.run().infra.numTrackLines > 0 || !m_sceneModel.tracks.empty();
 	content.showOperationalTrackStates = !preview;
 	content.hasSelectedTrack = preview && m_presenter->m_previewHasSelectedTrack;
 	for (const TrainItemGroup* train : m_presenter->allTrains) {

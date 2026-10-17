@@ -1,6 +1,7 @@
 #include "diagrams/CompletedRunData.h"
 
 #include "diagrams/SimulationHeaders.h"
+#include "simulation/SimulationRun.h"
 #include "scene/SceneModel.h"
 
 #include <algorithm>
@@ -75,11 +76,11 @@ BlockingTimeDiagramInput blockingTimeInputFrom(const BlockingTimes& source) {
 	return block;
 }
 
-std::vector<const Train*> runResultTrainPointers() {
+std::vector<const Train*> runResultTrainPointers(const SimulationRun& run) {
 	std::vector<const Train*> trains;
-	trains.reserve(static_cast<std::size_t>(std::max(0, numRegions)));
-	for (int i = 0; i < numRegions; ++i)
-		trains.push_back(&regional_train[i]);
+	trains.reserve(static_cast<std::size_t>(std::max(0, run.numTrains)));
+	for (int i = 0; i < run.numTrains; ++i)
+		trains.push_back(&run.trains[static_cast<std::size_t>(i)]);
 	return trains;
 }
 
@@ -165,16 +166,21 @@ std::vector<std::string> sectionsWithStation(const Route& route, const std::stri
 // Trains that run on one route share the search for a station.
 class StationSections {
 public:
+	explicit StationSections(const std::vector<Route>& routes) : m_routes(routes) {}
+
+	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(m_routes.size()); }
+
 	const std::vector<std::string>& of(int routeIndex, const std::string& stationName) {
 		auto found = m_cache.find({routeIndex, stationName});
 		if (found == m_cache.end())
 			found = m_cache.emplace(std::make_pair(routeIndex, stationName),
-							   sectionsWithStation(train_route[static_cast<std::size_t>(routeIndex)], stationName))
+							   sectionsWithStation(m_routes[static_cast<std::size_t>(routeIndex)], stationName))
 						.first;
 		return found->second;
 	}
 
 private:
+	const std::vector<Route>& m_routes;
 	std::map<std::pair<int, std::string>, std::vector<std::string>> m_cache;
 };
 
@@ -182,7 +188,7 @@ std::vector<CompletedStop> captureStops(const Train& train, StationSections& sec
 	std::vector<CompletedStop> stops;
 	const int count = std::min({train.numStations, static_cast<int>(Train::kMaxTimetableStations),
 		static_cast<int>(train.Stations.size())});
-	const bool onKnownRoute = train.indexOfRoute >= 0 && train.indexOfRoute < static_cast<int>(train_route.size());
+	const bool onKnownRoute = sections.hasRoute(train.indexOfRoute);
 	for (int index = 0; index < count; ++index) {
 		const Node& node = train.Stations[static_cast<std::size_t>(index)];
 		CompletedStop stop;
@@ -217,27 +223,27 @@ CompletedTrain captureTrain(const Train& source, BlockNameTable& blocks, Station
 
 } // namespace
 
-CompletedRunData captureCompletedRun(const SceneModel* scene, long long startOffsetSeconds,
+CompletedRunData captureCompletedRun(const SimulationRun& run, const SceneModel* scene, long long startOffsetSeconds,
 	const RunProvenance& provenance) {
 	CompletedRunData data;
 	data.settings.timestepSeconds = timestep;
-	data.settings.horizonSteps = initial_variables.times;
+	data.settings.horizonSteps = run.settings.times;
 	data.settings.startOffsetSeconds = startOffsetSeconds;
 	data.settings.caseName = provenance.caseName;
 	data.provenance = provenance;
 
-	const std::vector<const Train*> trains = runResultTrainPointers();
+	const std::vector<const Train*> trains = runResultTrainPointers(run);
 	data.results = buildRunResults(trains, timestep);
 	data.timetable = buildTimetableResults(trains);
 
 	BlockNameTable blocks(data.blockNames);
-	StationSections sections;
+	StationSections sections(run.infra.routes);
 	data.trains.reserve(trains.size());
 	for (const Train* train : trains)
 		data.trains.push_back(captureTrain(*train, blocks, sections));
 
-	data.routes.reserve(train_route.size());
-	for (const Route& route : train_route) {
+	data.routes.reserve(run.infra.routes.size());
+	for (const Route& route : run.infra.routes) {
 		CompletedRoute captured;
 		captured.id = route.ID;
 		captured.corridor = route.corridor;

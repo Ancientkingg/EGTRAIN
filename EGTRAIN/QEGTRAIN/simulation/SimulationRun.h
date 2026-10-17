@@ -67,8 +67,8 @@ struct RunInfrastructure {
 //
 // The process has one run, defaultRun(). It has a fixed address, so reset() clears every member in
 // place and the references that the headers declare under the old global names stay valid
-// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The window and the tests
-// use those names, and they all refer to defaultRun(). DispatchController::prepareScene builds a
+// (BlocksOccupied, ETCS_MA and so on, defined in SimulationRun.cpp). The tests use those names,
+// and they all refer to defaultRun(); the window reads the run through DispatchController::run(). DispatchController::prepareScene builds a
 // run apart from it and puts the finished run in its place with adopt(). A member that is added
 // here must be cleared in reset(), or in resetInfrastructure() when it belongs to the
 // infrastructure, and a member that points at another member needs a line in adopt().

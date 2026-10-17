@@ -18,6 +18,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "simulation/SimulationRun.h"
 #include "util/CsvWriter.h"
 #include "util/TrajectoryUtil.h"
 #ifdef signals
@@ -237,7 +238,7 @@ bool runScene(const std::string& sceneDir, const std::string& outputDir, Capture
 		train_route[r].reversed_direction = r % 2 == 0;
 	RunProvenance provenance;
 	provenance.caseName = run.loaded.scene.name;
-	run.data = captureCompletedRun(&run.loaded.scene, initial_variables.startingSimulationTime, provenance);
+	run.data = captureCompletedRun(simulation.run(), &run.loaded.scene, initial_variables.startingSimulationTime, provenance);
 	return true;
 }
 
@@ -253,6 +254,11 @@ void compareCapture(const CapturedRun& run) {
 	check(data.settings.caseName == run.loaded.scene.name && data.provenance.caseName == run.loaded.scene.name, scene + ": case name");
 	check(static_cast<int>(data.trains.size()) == numRegions, scene + ": train count");
 	check(static_cast<int>(data.results.trains.size()) == numRegions, scene + ": result rows");
+	// The capture reads the run that it is given, whatever the run of the process holds.
+	const auto emptyRun = std::make_unique<SimulationRun>();
+	const CompletedRunData fromEmptyRun = captureCompletedRun(*emptyRun, &run.loaded.scene, 0, RunProvenance());
+	check(fromEmptyRun.trains.empty() && fromEmptyRun.routes.empty() && fromEmptyRun.results.trains.empty(),
+		scene + ": capture of an empty run");
 	check(!data.timetable.empty(), scene + ": timetable rows");
 
 	check(data.routes.size() == train_route.size(), scene + ": route count");

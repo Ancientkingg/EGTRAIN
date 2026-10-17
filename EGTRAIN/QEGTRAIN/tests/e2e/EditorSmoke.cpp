@@ -1151,12 +1151,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				const std::vector<SceneDiagnostic> nativeDiagnostics =
 					buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
-				bool nativeRouteMatches = !hasErrors(nativeDiagnostics) && N_Routes == 1
-					&& train_route.size() == 1 && train_route.front().N_Block_Sections == 3;
+				bool nativeRouteMatches = !hasErrors(nativeDiagnostics) && defaultRun().infra.numRoutes == 1
+					&& defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().N_Block_Sections == 3;
 				if (nativeRouteMatches)
 					for (std::size_t index = 0; index < expectedNativeRoute.size(); ++index)
 						nativeRouteMatches = nativeRouteMatches
-							&& train_route.front().sequence_of_block_sections[index].ID
+							&& defaultRun().infra.routes.front().sequence_of_block_sections[index].ID
 								== expectedNativeRoute[index];
 				if (!nativeRouteMatches)
 					facetFailure(facetOk, "stations/signalling",
@@ -1722,10 +1722,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
 						const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
 							w.m_sceneModel, w.m_runSelection.scenarioId(), SceneRunSelection());
-						const auto stagedPassenger = std::find_if(AllDailyPassengers.begin(), AllDailyPassengers.end(),
+						const auto stagedPassenger = std::find_if(defaultRun().passengers.begin(), defaultRun().passengers.end(),
 							[&](const Passenger& passenger) { return passenger.ID == e2ePassengerId; });
 						bool nativePassengerOk = !hasErrors(infrastructureDiagnostics)
-							&& !hasErrors(operationsDiagnostics) && stagedPassenger != AllDailyPassengers.end();
+							&& !hasErrors(operationsDiagnostics) && stagedPassenger != defaultRun().passengers.end();
 						if (nativePassengerOk) {
 							const auto stagedJourney = std::find_if(stagedPassenger->Journeys.begin(),
 								stagedPassenger->Journeys.end(), [&](const Journey& journey) {
@@ -1747,9 +1747,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							const double expectedWidth = sourcePlatform.hasWidth ? sourcePlatform.widthM : 2.5;
 							const int expectedCapacity = static_cast<int>((expectedLength * expectedWidth)
 								/ (3.14159 * std::pow(0.8, 2)) * 0.8);
-							const auto stagedPlatform = std::find_if(AllStationPlatforms.begin(), AllStationPlatforms.end(),
+							const auto stagedPlatform = std::find_if(defaultRun().platforms.begin(), defaultRun().platforms.end(),
 								[&](const StationPlatform& platform) { return platform.ID == sourcePlatform.id; });
-							if (stagedPlatform != AllStationPlatforms.end())
+							if (stagedPlatform != defaultRun().platforms.end())
 								nativePlatformOk = stagedPlatform->length == expectedLength
 									&& stagedPlatform->width == expectedWidth
 									&& stagedPlatform->Max_Passenger_Volume == expectedCapacity;
@@ -3386,9 +3386,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
 						w.m_sceneModel, w.m_runSelection.scenarioId(), delayedOccurrence);
 					if (hasErrors(infrastructureDiagnostics) || hasErrors(operationsDiagnostics)
-						|| numRegions != 1
-						|| regional_train[0].trainDescription != entranceDelayServiceId + "-2"
-						|| regional_train[0].EntranceDelay != entranceDelaySeconds)
+						|| defaultRun().numTrains != 1
+						|| defaultRun().trains[0].trainDescription != entranceDelayServiceId + "-2"
+						|| defaultRun().trains[0].EntranceDelay != entranceDelaySeconds)
 						facetFailure(facetOk, "entrance delay",
 							"publicly authored delay did not reach the selected native occurrence");
 				}

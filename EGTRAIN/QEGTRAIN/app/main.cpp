@@ -8,6 +8,7 @@
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneValidator.h"
+#include "simulation/SimulationRun.h"
 #if EGTRAIN_BUILD_TESTS
 #include "tests/e2e/E2ERunner.h"
 #endif
@@ -473,7 +474,7 @@ int main(int argc, char* argv[]) {
 	// No window reads the snapshots of this run.
 	simulation.setSnapshotsEnabled(false);
 	simulation.runSimulation();
-	if (numRegions <= 0)
+	if (simulation.run().numTrains <= 0)
 		return 1;
 	// The line that scripts read for a completed run, without a newline. It does not go through the logging core,
 	// so no logging rule hides it.
