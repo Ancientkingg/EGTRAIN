@@ -313,12 +313,16 @@ int main(int argc, char** argv) {
 		ok &= expect(wholeTips, qPrintable("every column header has its whole text as a tooltip" + label));
 	}
 
-	for (const double scale : {1.0, 1.5}) {
-		// clock times, also with a day prefix, are not elided at the width of a docked editor, whatever the platform or the station is
+	for (int variant = 0; variant < 4; ++variant) {
+		// clock times, also with a day prefix, are not elided at the width of a docked editor, whatever the platform or the station is;
+		// without a day prefix, the widest time sets the width of the column
+		const double scale = variant % 2 == 0 ? 1.0 : 1.5;
+		const bool dayPrefix = variant < 2;
 		SceneModel scene = lineScene();
 		scene.stations[0].name = longName(95).toStdString();
 		scene.services[0].stops[0].platformId = longName(60).toStdString();
-		scene.services[0].stops[2] = stop("station-c", "platform-c", 100000.0, 100030.0);
+		if (dayPrefix)
+			scene.services[0].stops[2] = stop("station-c", "platform-c", 100000.0, 100030.0);
 		SceneDocument document;
 		TimetableStopsPanel panel;
 		QFont font = panel.font();
@@ -334,7 +338,7 @@ int main(int argc, char** argv) {
 		const QTableWidget* table = panel.table();
 		const QFontMetrics body(table->font());
 		const int margin = 2 * (table->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, table) + 1);
-		const QString label = QString(" at %1 times the font").arg(scale);
+		const QString label = QString(" at %1 times the font%2").arg(scale).arg(dayPrefix ? QString() : QStringLiteral(" without a day prefix"));
 		bool whole = true;
 		for (int row = 0; row < table->rowCount(); ++row) {
 			for (int index = 3; index < 5; ++index)
@@ -352,7 +356,7 @@ int main(int argc, char** argv) {
 				whole = whole && table->itemDelegate(cell)->sizeHint(option, cell).width() <= table->columnWidth(index);
 			}
 		}
-		ok &= expect(column(table, 3).back().startsWith("+1d ") && whole,
+		ok &= expect((!dayPrefix || column(table, 3).back().startsWith("+1d ")) && whole,
 			qPrintable("the clock times with and without a day prefix are whole in the planned columns" + label));
 		ok &= expect(!table->horizontalScrollBar()->isVisible() && table->horizontalHeader()->length() == table->viewport()->width(),
 			qPrintable("the columns still fill the table without a scroll bar when the clock times keep their width" + label));
