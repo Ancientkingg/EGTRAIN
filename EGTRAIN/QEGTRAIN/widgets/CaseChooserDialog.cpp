@@ -121,8 +121,11 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 			addLabelRow(list, QString("Unavailable: %1").arg(name), false)->setToolTip(rowToolTip(name, path));
 		}
 	}
-	if (list->count() == 0)
-		addLabelRow(list, "No cases found. Use Other ways to open... below.", false);
+	if (list->count() == 0) {
+		const QString hint = QStringLiteral("No cases found. Use Other ways to open... below.");
+		// The row can be elided in a narrow dialog, so the tooltip holds the whole sentence.
+		addLabelRow(list, hint, false)->setToolTip(hint);
+	}
 }
 
 } // namespace
