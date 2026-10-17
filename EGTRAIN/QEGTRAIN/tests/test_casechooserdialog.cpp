@@ -93,6 +93,19 @@ QStringList rowTexts(const QListWidget* list) {
 	return texts;
 }
 
+void click(QListWidget* list, QListWidgetItem* item) {
+	const QPoint point = list->visualItemRect(item).center();
+	sendMouse(list->viewport(), QEvent::MouseButtonPress, point);
+	sendMouse(list->viewport(), QEvent::MouseButtonRelease, point);
+	QApplication::processEvents();
+}
+
+// The reason that the dialog shows under the list; empty when no reason is shown.
+QString statusText(const CaseChooserDialog& dialog) {
+	const auto* status = dialog.findChild<QLabel*>(QStringLiteral("caseChooserStatus"));
+	return status && status->isVisible() ? status->text() : QString();
+}
+
 QString currentText(const QListWidget* list) {
 	return list->currentItem() ? list->currentItem()->text() : QString();
 }
@@ -135,7 +148,10 @@ void checkRowStyles(const QString& scenario, const QListWidget* list) {
 			check(!item->data(Qt::FontRole).isValid(), scenario, "a case row has a font of its own");
 			continue;
 		}
-		check(item->flags() == Qt::NoItemFlags, scenario, "a label row can be selected or reached with the keyboard");
+		const bool unavailable = text.startsWith(QLatin1String("Unavailable: "));
+		// An unavailable row can be selected so that its reason shows, but it has no path to open.
+		check(item->flags() == (unavailable ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags), scenario,
+			unavailable ? "an unavailable row cannot be selected" : "a heading or message row can be selected or reached with the keyboard");
 		const bool heading = text == QLatin1String("Bundled cases") || text == QLatin1String("Recent cases");
 		check(font.bold() == heading && font.italic() == !heading, scenario,
 			heading ? "a group heading is not bold" : "an unavailable or message row is not italic and plain");
@@ -258,6 +274,24 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 			scenario, "the missing recent cases are not listed as unavailable");
 		check(currentText(shown.dialog.list()) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled(), scenario,
 			"an unavailable row changed the selection");
+		check(statusText(shown.dialog).isEmpty(), scenario, "a reason shows while a case row is selected");
+		// A click selects the unavailable row, says why it cannot be opened and turns Open off; Enter and a double click
+		// open nothing, not the case that was selected before.
+		QListWidget* list = shown.dialog.list();
+		list->setFocus();
+		click(list, list->item(texts.size() - 2));
+		check(currentText(list) == QLatin1String("Unavailable: gone case") && !shown.dialog.openButton()->isEnabled()
+				&& shown.dialog.selectedPath().isEmpty() && !statusText(shown.dialog).isEmpty(),
+			scenario, "an unavailable row is not selected with a reason and Open disabled");
+		sendKey(list, Qt::Key_Return);
+		doubleClick(list, list->item(texts.size() - 2));
+		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue
+				&& shown.dialog.chosenPath().isEmpty(),
+			scenario, "Enter or a double click on an unavailable row opened a case");
+		sendKey(list, Qt::Key_Up);
+		sendKey(list, Qt::Key_Up);
+		check(currentText(list) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled() && statusText(shown.dialog).isEmpty(),
+			scenario, "the reason stays or Open stays disabled after leaving the unavailable row");
 	}
 
 	// 4. Nothing to list at all, and nothing but unavailable recent cases: Open stays disabled and Enter opens nothing.
@@ -290,10 +324,36 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 			scenario, "unavailable recent cases alone are not listed under their heading");
 		check(!shown.dialog.list()->currentItem() && !shown.dialog.openButton()->isEnabled(), scenario,
 			"a heading or an unavailable row is selected or Open is enabled");
-		doubleClick(shown.dialog.list(), shown.dialog.list()->item(1));
 		doubleClick(shown.dialog.list(), shown.dialog.list()->item(0));
 		check(shown.dialog.isVisible() && shown.dialog.chosenPath().isEmpty() && !shown.dialog.list()->currentItem(), scenario,
-			"a double click on a heading or an unavailable row opened or selected it");
+			"a double click on a heading opened or selected it");
+		doubleClick(shown.dialog.list(), shown.dialog.list()->item(1));
+		check(shown.dialog.isVisible() && shown.dialog.chosenPath().isEmpty() && currentText(shown.dialog.list()) == QLatin1String("Unavailable: gone case")
+				&& !shown.dialog.openButton()->isEnabled() && !statusText(shown.dialog).isEmpty(),
+			scenario, "a double click on an unavailable row opened it or gave no reason");
+		shown.dialog.list()->setFocus();
+		sendKey(shown.dialog.list(), Qt::Key_Return);
+		check(shown.dialog.isVisible() && shown.dialog.outcome() == CaseChooserDialog::Outcome::Continue, scenario,
+			"Enter on an unavailable row opened something");
+	}
+
+	// 4b. Several spellings of one path list one row, also when the case is missing; a different path stays.
+	{
+		const QString scenario = tag + QStringLiteral(" spellings of one path");
+		CaseChooserDialog::Options spelled;
+		spelled.availableGeometry = screen;
+		const QString gone = s.missing.first();
+		const QString elsewhere = QFileInfo(s.outside).absolutePath();
+		spelled.recentPaths = QStringList{gone, gone + QLatin1Char('/'), QFileInfo(gone).absolutePath() + QStringLiteral("/./gone_case"),
+			s.outside, s.outside + QLatin1Char('/'), elsewhere + QStringLiteral("/../elsewhere/recent_one"), s.missing.last()};
+#ifdef Q_OS_WIN
+		spelled.recentPaths << gone.toUpper() << s.outside.toUpper();
+#endif
+		Shown shown(scenario, spelled, screen);
+		check(rowTexts(shown.dialog.list())
+				== QStringList({QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
+					QStringLiteral("Unavailable: other gone case")}),
+			scenario, "the spellings of one path do not list one row each");
 	}
 
 	// 5. Forty bundled cases: the list scrolls and the footer stays.
@@ -341,7 +401,7 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 	options.availableGeometry = screen;
 	const QString betaPath = s.scenes.filePath(QStringLiteral("beta"));
 
-	// Arrow keys skip the headings and the unavailable row and stop at the first and last case.
+	// Arrow keys skip the headings, reach the unavailable row and stop at the first and last case.
 	{
 		const QString scenario = QStringLiteral("keyboard");
 		Shown shown(scenario, options, screen);
@@ -351,16 +411,18 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 					QStringLiteral("Recent cases"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One")}),
 			scenario, "unexpected rows");
 		list->setFocus();
-		const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Recent One"), QStringLiteral("Recent One")};
-		const QStringList up = {QStringLiteral("Beta case"), QStringLiteral("Alpha case"), QStringLiteral("Alpha case")};
+		const QStringList down = {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case"), QStringLiteral("Recent One"),
+			QStringLiteral("Recent One")};
+		const QStringList up = {QStringLiteral("Unavailable: gone case"), QStringLiteral("Beta case"), QStringLiteral("Alpha case"),
+			QStringLiteral("Alpha case")};
 		check(currentText(list) == QLatin1String("Alpha case"), scenario, "the first case is not selected");
 		for (const QString& expected : down) {
 			sendKey(list, Qt::Key_Down);
-			check(currentText(list) == expected, scenario, "Down did not skip the headings and the unavailable row");
+			check(currentText(list) == expected, scenario, "Down did not skip the headings");
 		}
 		for (const QString& expected : up) {
 			sendKey(list, Qt::Key_Up);
-			check(currentText(list) == expected, scenario, "Up did not skip the headings and the unavailable row");
+			check(currentText(list) == expected, scenario, "Up did not skip the headings");
 		}
 		check(shown.dialog.openButton()->isEnabled(), scenario, "Open is disabled on a case row");
 		// Down then Enter opens the row under the cursor through the default Open button.
