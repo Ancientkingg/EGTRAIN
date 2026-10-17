@@ -5,6 +5,8 @@ Choose the route that matches your task.
 ## Run existing scenes
 
 - [EGTRAIN releases](https://github.com/Ancientkingg/EGTRAIN/releases)
+- [Getting started](guides/getting-started.md): from a download to a first run of the Paimpol case study, its results and two exported files.
+- [How-to](guides/how-to.md): recipes for opening and saving a case, fixing validation errors, editing a timetable or rolling stock, comparing a scenario with a baseline, moving around the network view, replaying a run, exporting results and converting a legacy case, and why a command is disabled.
 - [Opening an `.egscene` case study](guides/opening-a-case-study.md)
 - [Glossary of application terms](guides/glossary.md)
 - [Command-line options and scene_tool](guides/command-line.md)
