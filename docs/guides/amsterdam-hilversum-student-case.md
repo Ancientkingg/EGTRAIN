@@ -71,7 +71,7 @@ The percentage multiplies the tractive effort at every speed and the maximum spe
 
 Optional: choose **Open result view...** > **Tractive effort / distance** and compare it with **Speed / distance**. It shows the tractive effort the run applied, in kN, not the traction curve of the rolling stock unit. Export a PNG if you want it in your hand-in.
 
-**Set delay baseline** and **Compare delays** compare a run with incidents against a baseline run. This exercise does not use them.
+**Set delay baseline** and **Compare delays** compare a run with incidents or entrance delays against a baseline run. This exercise does not use them.
 
 ### 4. Revise the timetable
 
