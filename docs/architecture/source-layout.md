@@ -51,6 +51,8 @@ Paths are relative to `EGTRAIN/QEGTRAIN/`. A file named without its extension ha
 | `Scenes/` | The committed case studies, one folder each |
 | `tests/` | One `test_<name>.cpp` for each test executable, with `fixtures/` (test data), `characterization/` (the characterization tests with their `expected/` files), `e2e/` (the runner of the scripted window scenarios), `live/` and the helper programs `update_probe*.cpp` and `live_client.cpp` |
 
+`app/MainWindow.cpp` has 4,928 lines (measured with `wc -l` on 2026-10-17, after the inspector move), under the 5,000 that the move of the shell services aimed at.
+
 ## Completed-run data
 
 When a run ends, `captureCompletedRun` (`diagrams/CompletedRunCapture.cpp`) copies what the result views need out of the
