@@ -332,6 +332,8 @@ struct RunSetup {
 	bool detailedFiles = false;
 	// The step whose snapshot is followed by a stop request; -1 lets the run end.
 	int stopAtSnapshot = -1;
+	// The settings of the application change after the scene is prepared: another output folder and a shorter horizon.
+	bool changeSettingsAfterPreparation = false;
 };
 
 // Prepares the scene and runs it, as a run without a window does.
@@ -353,6 +355,10 @@ Outcome runScene(const RunSetup& setup) {
 	if (!outcome.prepared)
 		return outcome;
 	outcome.startedClean = carriesNothingOver(defaultRun());
+	if (setup.changeSettingsAfterPreparation) {
+		initial_variables.OutputMainFolder = (std::filesystem::path(output.path().toStdString()) / "elsewhere").string();
+		initial_variables.times = 1;
+	}
 	int snapshots = 0;
 	QObject context;
 	QObject::connect(&simulation, &DispatchController::snapshotAvailable, &context, [&] {
@@ -412,6 +418,11 @@ bool gapTests(const SceneModel& line, const SceneModel& passengerScene) {
 	ok &= expect(firstPassengers.prepared && firstPassengers.completed && !AllDailyPassengers.empty(), "the passenger scene runs");
 
 	ok &= sameFiles("passengers, second run", firstPassengers, runScene(passengerRun));
+
+	// The routines of the run read its settings, so settings of the application that change after preparation reach no file.
+	RunSetup changedRun = lineRun;
+	changedRun.changeSettingsAfterPreparation = true;
+	ok &= sameFiles("a change of the settings after preparation", firstLine, runScene(changedRun));
 
 	RunSetup stoppedRun = lineRun;
 	stoppedRun.stopAtSnapshot = 300;

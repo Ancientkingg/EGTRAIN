@@ -12,8 +12,6 @@
 
 using namespace std;
 
-extern InitialParameters initial_variables;
-
 namespace {
 bool energySeriesCovers(const std::vector<double>& values, int first, int last) {
 	if (first < 0 || last < first || last >= static_cast<int>(values.size()))
@@ -237,7 +235,7 @@ void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, strin
 	ofstream FileOutput;
 	FileOutput.open((char*)FileName.c_str(), ios::binary);
 	FileOutput << "Train/Time ";
-	for (int t = 0; t < initial_variables.times; t++) {
+	for (int t = 0; t < run.settings.times; t++) {
 		FileOutput << t * timestep << " ";
 	}
 	FileOutput << "\n";
@@ -245,7 +243,7 @@ void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, strin
 		FileOutput << S[i].trainDescription << " ";
 		const auto exportCells = trajectoryExportCells(S[i].instant_spatial_position,
 			S[i].earliestActiveTrajectoryIndex, S[i].End_Time);
-		for (int t = 0; t < initial_variables.times; t++) {
+		for (int t = 0; t < run.settings.times; t++) {
 			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 			if (position == -9999) {
 				FileOutput << -9999 << " ";
@@ -482,7 +480,7 @@ void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int Simula
 			// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant.
 			// Without it they are worked out here for this platform only, and the platform is not modified.
 			std::optional<WaitingAtPlatform> refreshed;
-			if (!initial_variables.PAX_GUI) {
+			if (!run.settings.PAX_GUI) {
 				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, run.passengers);
 			}
 			const int waitingCount = refreshed ? refreshed->count : PlatformIt->Current_N_Passengers;

@@ -118,7 +118,7 @@ void Train::leaveFollowingModeWhenLeaderIsGone(int time_seconds) {
 
 void Train::PrintTrajectory() {
 	string path;
-	path = path + initial_variables.OutputMainFolder + "/TEMP/Traj_Train_" + trainDescription + ".txt";
+	path = path + run_->settings.OutputMainFolder + "/TEMP/Traj_Train_" + trainDescription + ".txt";
 	ofstream trainout;
 	trainout.open((char*)path.c_str(), ios::binary);
 	trainout << "Time[s]\tSpeed[m/s]\tPosition[m]\tTail_Position[m]\tPower_Cons[kW]\tBX[m]\tinstant_train_energy_consumption[KWh]\tBlock" << "\n";

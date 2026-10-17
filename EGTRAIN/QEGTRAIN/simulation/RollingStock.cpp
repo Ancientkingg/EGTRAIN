@@ -549,13 +549,13 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	//}
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
-		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, initial_variables.OutputMainFolder + "/Rescheduling");
-		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
+		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
+		EG_LOG(SimEvents, Info) << "\n<<< " << trainDescription << " ARRIVED at " << Stations[numStations - 1].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 	// train departing from origin
 	else if (((std::fabs(X - Stations[0].X) < 0.001) || (std::fabs(std::fabs(X - Stations[0].X) - train_length / 1000) < 0.001)) && (t >= 1) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] != 0)) { // position tolerance of 1m
 		// printTrainArrDepMsg(Stations[0].stationName, "dep", trainIdx, t, "Input_EGTRAIN/Rescheduling");
-		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, initial_variables.startingSimulationTime) << "\n";
+		EG_LOG(SimEvents, Info) << "\n>>> " << trainDescription << " DEPARTED from " << Stations[0].stationName << " at t = " << t << " - " << simulationTime(t, run_->settings.startingSimulationTime) << "\n";
 	}
 }
 
@@ -577,7 +577,7 @@ void Train::printTrainServicePathDiagram(std::string FolderName, int nextService
 		? -1
 		: std::max(earliestActiveTrajectoryIndex, prevIntendedDepTime);
 	const auto exportCells = trajectoryExportCells(instant_spatial_position, activeFirst, End_Time);
-	for (int t = 0; t < initial_variables.times; t++) {
+	for (int t = 0; t < run_->settings.times; t++) {
 		const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 		if (position != -9999) {
 			// non-reversed route (same with/without jump)

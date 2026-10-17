@@ -804,13 +804,13 @@ int main() {
 
 	{
 		const auto savedRoutes = train_route;
-		const std::string savedOutputFolder = initial_variables.OutputMainFolder;
+		const std::string savedOutputFolder = defaultRun().settings.OutputMainFolder;
 		QTemporaryDir temp;
 		ok &= expect(temp.isValid() && QDir().mkpath(temp.filePath("TEMP")),
 			"temporary directory for trajectory export is available");
 		if (!temp.isValid())
 			return 1;
-		initial_variables.OutputMainFolder = temp.path().toStdString();
+		defaultRun().settings.OutputMainFolder = temp.path().toStdString();
 		train_route.clear();
 		train_route.resize(2);
 		train_route[1].reversed_direction = true;
@@ -860,7 +860,7 @@ int main() {
 			}
 		}
 		train_route = savedRoutes;
-		initial_variables.OutputMainFolder = savedOutputFolder;
+		defaultRun().settings.OutputMainFolder = savedOutputFolder;
 	}
 
 	if (!ok)

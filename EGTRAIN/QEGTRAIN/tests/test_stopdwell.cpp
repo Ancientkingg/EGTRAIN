@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 		std::cerr << "failed: the scene does not prepare a run\n";
 		return 1;
 	}
-	initial_variables.PAX_GUI = true;
+	defaultRun().settings.PAX_GUI = true;
 	const Train& native = regional_train[0];
 	bool ok = true;
 	eglog::setSink([](eglog::Category, eglog::Level, const std::string&) {});
