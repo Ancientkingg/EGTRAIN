@@ -127,3 +127,19 @@ void SignalItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 		painter->drawLine(QLineF(c.x() - 0.4 * r, c.y(), c.x() + 0.4 * r, c.y()));
 	}
 }
+
+QString signalAspectLabel(const SignalItem* signal) {
+	if (signal->failed())
+		return QStringLiteral("Failed");
+	switch (classifySignalCue(signal->aspectCode())) {
+		case SignalCueKind::Stop:
+			return QStringLiteral("Stop");
+		case SignalCueKind::Caution:
+			return QStringLiteral("Caution");
+		case SignalCueKind::Proceed:
+			return QStringLiteral("Proceed");
+		case SignalCueKind::Neutral:
+		default:
+			return QStringLiteral("Unavailable");
+	}
+}

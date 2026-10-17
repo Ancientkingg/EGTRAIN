@@ -3,6 +3,7 @@
 #include "recovery/RecoveryController.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneHistory.h"
+#include "simulation/SimulationWorker.h"
 #include <QAbstractButton>
 #include <QApplication>
 #include <QCoreApplication>

@@ -105,7 +105,7 @@ public:
 	std::vector<SceneDiagnostic>* mutableDiagnostics() { return &m_sceneDiagnostics; }
 
 	// The Recent Scenes menu, which the window puts in its File menu.
-	QMenu* recentScenesMenu() const { return m_recentScenesMenu; }
+	QMenu* recentScenesMenu() const;
 	// The paths of the recent scenes, newest first.
 	static QStringList recentScenes();
 	void addRecentScene(const QString& path);

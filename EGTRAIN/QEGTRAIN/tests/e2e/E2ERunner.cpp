@@ -1,5 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "app/DispatchController.h"
+#include "simulation/RollingStock.h"
 #include "tests/e2e/E2ERunner.h"
 #include "app/MainWindowTestHooks.h"
 #include "telemetry/TelemetryConsent.h"

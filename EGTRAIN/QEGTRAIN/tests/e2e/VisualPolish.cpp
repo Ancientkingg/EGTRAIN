@@ -4,6 +4,8 @@
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
 #include "editors/InfrastructurePanel.h"
+#include "graphics/items/PlatformItem.h"
+#include "graphics/NetworkScene.h"
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
@@ -23,14 +25,18 @@
 #include "graphics/items/TrainItemGroup.h"
 #include "scene/SceneModel.h"
 #include "simulation/SimulationRun.h"
+#include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ConsoleWidget.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include <QAbstractAnimation>
 #include <QAction>
 #include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
+#include <QClipboard>
 #include <QColor>
 #include <QCoreApplication>
 #include <QDockWidget>
@@ -76,6 +82,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <QWindow>
 #include <string>
 #include <utility>
 
@@ -738,7 +745,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				ok = false;
 				failures << "train scene click did not activate follow";
 			}
-			if (!w.trainInfoWidget || !w.trainInfoWidget->isVisible() || w.trainIDText->text().trimmed().isEmpty()) {
+			if (!w.m_inspector->trainInfoWidget || !w.m_inspector->trainInfoWidget->isVisible() || w.m_inspector->trainIDText->text().trimmed().isEmpty()) {
 				ok = false;
 				failures << "train scene click did not populate train info";
 			}
@@ -781,9 +788,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	if (!w.m_presenter->allArcs.isEmpty() && w.m_presenter->allArcs.first() && w.m_presenter->allArcs.first()->arc) {
-		w.displayArcInfo(w.m_presenter->allArcs.first());
-		if (!w.arcOperationalStateText || w.arcOperationalStateText->text().trimmed().isEmpty()
-			|| !w.arcConnectedSignalsText || w.arcConnectedSignalsText->text().trimmed().isEmpty()) {
+		w.m_inspector->displayArcInfo(w.m_presenter->allArcs.first());
+		if (!w.m_inspector->arcOperationalStateText || w.m_inspector->arcOperationalStateText->text().trimmed().isEmpty()
+			|| !w.m_inspector->arcConnectedSignalsText || w.m_inspector->arcConnectedSignalsText->text().trimmed().isEmpty()) {
 			ok = false;
 			failures << "arc inspector fields are empty";
 		}
@@ -799,11 +806,11 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	if (stationItem && stationItem->node && !stationItem->node->stationName.empty()) {
-		w.displayStationNodeInfo(stationItem);
-		if (!w.nodeStationNameText || w.nodeStationNameText->text().trimmed().isEmpty()
-			|| !w.nodeRegionText || w.nodeRegionText->text().trimmed().isEmpty()
-			|| !w.nodeConnectedTracksText || w.nodeConnectedTracksText->text().trimmed().isEmpty()
-			|| !w.nodeSignalledText || w.nodeSignalledText->text().trimmed().isEmpty()) {
+		w.m_inspector->displayStationNodeInfo(stationItem);
+		if (!w.m_inspector->nodeStationNameText || w.m_inspector->nodeStationNameText->text().trimmed().isEmpty()
+			|| !w.m_inspector->nodeRegionText || w.m_inspector->nodeRegionText->text().trimmed().isEmpty()
+			|| !w.m_inspector->nodeConnectedTracksText || w.m_inspector->nodeConnectedTracksText->text().trimmed().isEmpty()
+			|| !w.m_inspector->nodeSignalledText || w.m_inspector->nodeSignalledText->text().trimmed().isEmpty()) {
 			ok = false;
 			failures << "station inspector fields are empty";
 		}
@@ -816,16 +823,16 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	}
 	if (inspectorSignal) {
-		w.displaySignallingInfo(inspectorSignal);
-		if (!w.signallingAspectText || w.signallingAspectText->text().trimmed().isEmpty()
-			|| !w.signallingProtectedSectionText || w.signallingProtectedSectionText->text().trimmed().isEmpty()
-			|| !w.signallingNextTrackText || w.signallingNextTrackText->text().trimmed().isEmpty()) {
+		w.m_inspector->displaySignallingInfo(inspectorSignal);
+		if (!w.m_inspector->signallingAspectText || w.m_inspector->signallingAspectText->text().trimmed().isEmpty()
+			|| !w.m_inspector->signallingProtectedSectionText || w.m_inspector->signallingProtectedSectionText->text().trimmed().isEmpty()
+			|| !w.m_inspector->signallingNextTrackText || w.m_inspector->signallingNextTrackText->text().trimmed().isEmpty()) {
 			ok = false;
 			failures << "signal inspector fields are empty";
 		}
 	}
-	w.handleCloseInfoDockWidget();
-	w.infoDockWidget->hide();
+	w.m_inspector->handleCloseInfoDockWidget();
+	w.m_inspector->dock()->hide();
 
 	// Every kind of item gets one cue; another selection or a click on empty canvas removes it.
 	if (w.scene) {
@@ -846,17 +853,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		};
 		QList<Selection> selections;
 		if (!w.m_presenter->allArcs.isEmpty() && w.m_presenter->allArcs.first() && w.m_presenter->allArcs.first()->arc)
-			selections.push_back({"arc", w.m_presenter->allArcs.first(), [&w]() { w.displayArcInfo(w.m_presenter->allArcs.first()); }});
+			selections.push_back({"arc", w.m_presenter->allArcs.first(), [&w]() { w.m_inspector->displayArcInfo(w.m_presenter->allArcs.first()); }});
 		if (nodeItem)
-			selections.push_back({"node", nodeItem, [&w, nodeItem]() { w.displayNodeInfo(nodeItem); }});
+			selections.push_back({"node", nodeItem, [&w, nodeItem]() { w.m_inspector->displayNodeInfo(nodeItem); }});
 		if (connectionItem)
-			selections.push_back({"connection", connectionItem, [&w, connectionItem]() { w.displayConnectionInfo(connectionItem); }});
+			selections.push_back({"connection", connectionItem, [&w, connectionItem]() { w.m_inspector->displayConnectionInfo(connectionItem); }});
 		if (stationItem && stationItem->node)
-			selections.push_back({"station node", stationItem, [&w, stationItem]() { w.displayStationNodeInfo(stationItem); }});
+			selections.push_back({"station node", stationItem, [&w, stationItem]() { w.m_inspector->displayStationNodeInfo(stationItem); }});
 		if (inspectorSignal)
-			selections.push_back({"signal", inspectorSignal, [&w, inspectorSignal]() { w.displaySignallingInfo(inspectorSignal); }});
+			selections.push_back({"signal", inspectorSignal, [&w, inspectorSignal]() { w.m_inspector->displaySignallingInfo(inspectorSignal); }});
 		if (selectedTrain && selectedTrainBody)
-			selections.push_back({"train", selectedTrain, [&w, selectedTrainBody]() { w.displayTrainDetails(selectedTrainBody, false); }});
+			selections.push_back({"train", selectedTrain, [&w, selectedTrainBody]() { w.m_inspector->displayTrainDetails(selectedTrainBody, false); }});
 		bool cueOk = selections.size() >= 4;
 		if (!cueOk)
 			failures << "too few kinds of item to check the selection cue";
@@ -896,7 +903,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				}
 			}
 		}
-		w.handleDisableHighlight();
+		w.m_inspector->handleDisableHighlight();
 		QApplication::processEvents();
 		if (selectionCueCount() != 0 || w.m_presenter->effect) {
 			cueOk = false;
@@ -904,7 +911,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 		// The cue follows the layer of the item it marks.
 		if (selectedTrain && selectedTrainBody && w.m_trainLayerCheck) {
-			w.displayTrainDetails(selectedTrainBody, false);
+			w.m_inspector->displayTrainDetails(selectedTrainBody, false);
 			QApplication::processEvents();
 			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
 			// The scene emits its change signal some events after an item changes.
@@ -921,7 +928,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				cueOk = false;
 				failures << "the selection cue does not follow the train layer";
 			}
-			w.handleDisableHighlight();
+			w.m_inspector->handleDisableHighlight();
 			QApplication::processEvents();
 			if (selectionCueCount() != 0) {
 				cueOk = false;
@@ -1244,7 +1251,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	captureScreenshot("QEGTRAIN_E2E_DENSE_SCREENSHOT", "dense");
 	if (w.networkView && selectedTrain && selectedTrainBody) {
 		w.networkView->fitToTopology();
-		w.displayTrainDetails(selectedTrainBody, false);
+		w.m_inspector->displayTrainDetails(selectedTrainBody, false);
 		QApplication::processEvents();
 		TrainBadgeItem* selectedBadge = w.m_presenter->m_trainBadges.value(selectedTrain->index, nullptr);
 		const bool ordinaryMarkers = std::all_of(w.m_presenter->m_trainBadges.cbegin(), w.m_presenter->m_trainBadges.cend(),
@@ -1397,7 +1404,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		} else {
 			details->trigger();
 			QApplication::processEvents();
-			if (!w.trainInfoWidget || !w.trainInfoWidget->isVisible() || (w.m_followAction && w.m_followAction->isChecked()) || w.m_followTrainIndex != -1) {
+			if (!w.m_inspector->trainInfoWidget || !w.m_inspector->trainInfoWidget->isVisible() || (w.m_followAction && w.m_followAction->isChecked()) || w.m_followTrainIndex != -1) {
 				ok = false;
 				failures << "train context details unexpectedly changed follow mode";
 			}
@@ -1451,9 +1458,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.scene->addItem(staleGroup);
 		QMenu* menu = requestContextMenu(staleBody->sceneBoundingRect().center(), false);
 		QAction* details = findMenuAction(menu, "Show details");
-		const bool infoVisibleBefore = w.infoDockWidget && w.infoDockWidget->isVisible();
-		const bool trainInfoVisibleBefore = w.trainInfoWidget && w.trainInfoWidget->isVisible();
-		const QString infoTitleBefore = w.infoDockWidget ? w.infoDockWidget->windowTitle() : QString();
+		const bool infoVisibleBefore = w.m_inspector->dock() && w.m_inspector->dock()->isVisible();
+		const bool trainInfoVisibleBefore = w.m_inspector->trainInfoWidget && w.m_inspector->trainInfoWidget->isVisible();
+		const QString infoTitleBefore = w.m_inspector->dock() ? w.m_inspector->dock()->windowTitle() : QString();
 		const bool effectPresentBefore = w.m_presenter->effect != nullptr;
 		// The bounds of a train group are those of its bodies, so the scene has to hear
 		// of the change before the body leaves.
@@ -1463,9 +1470,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (details)
 			details->trigger();
 		QApplication::processEvents();
-		if ((w.infoDockWidget && w.infoDockWidget->isVisible()) != infoVisibleBefore
-			|| (w.trainInfoWidget && w.trainInfoWidget->isVisible()) != trainInfoVisibleBefore
-			|| (w.infoDockWidget && w.infoDockWidget->windowTitle() != infoTitleBefore)
+		if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) != infoVisibleBefore
+			|| (w.m_inspector->trainInfoWidget && w.m_inspector->trainInfoWidget->isVisible()) != trainInfoVisibleBefore
+			|| (w.m_inspector->dock() && w.m_inspector->dock()->windowTitle() != infoTitleBefore)
 			|| (w.m_presenter->effect != nullptr) != effectPresentBefore) {
 			ok = false;
 			failures << "stale train context action changed application state";
@@ -1496,7 +1503,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		} else {
 			details->trigger();
 			QApplication::processEvents();
-			if (!w.nodeInfoWidget || !w.nodeInfoWidget->isVisible()) {
+			if (!w.m_inspector->nodeInfoWidget || !w.m_inspector->nodeInfoWidget->isVisible()) {
 				ok = false;
 				failures << "station context details did not open station info";
 			}
@@ -1541,7 +1548,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		if (details) {
 			details->trigger();
 			QApplication::processEvents();
-			if (!w.arcInfoWidget || !w.arcInfoWidget->isVisible()) {
+			if (!w.m_inspector->arcInfoWidget || !w.m_inspector->arcInfoWidget->isVisible()) {
 				ok = false;
 				failures << "track context details did not open arc info";
 			}
@@ -1581,7 +1588,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		} else {
 			details->trigger();
 			QApplication::processEvents();
-			if (!w.signallingInfoWidget || !w.signallingInfoWidget->isVisible()) {
+			if (!w.m_inspector->signallingInfoWidget || !w.m_inspector->signallingInfoWidget->isVisible()) {
 				ok = false;
 				failures << "signal context details did not open signal info";
 			}
@@ -1708,7 +1715,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			selectionEvent.setWidget(w.networkView->viewport());
 			w.scene->mousePressEvent(&selectionEvent);
 			QApplication::processEvents();
-			if (!w.m_presenter->effect || !w.infoDockWidget || !w.infoDockWidget->isVisible()
+			if (!w.m_presenter->effect || !w.m_inspector->dock() || !w.m_inspector->dock()->isVisible()
 				|| !w.m_followAction || !w.m_followAction->isChecked() || w.m_followTrainIndex != selectedTrain->index) {
 				ok = false;
 				failures << "empty-space context menu could not establish selection and follow mode";
@@ -1729,7 +1736,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			QApplication::processEvents();
 			stop->trigger();
 			QApplication::processEvents();
-			if ((w.infoDockWidget && w.infoDockWidget->isVisible()) || w.m_presenter->effect
+			if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) || w.m_presenter->effect
 				|| (w.m_followAction && w.m_followAction->isChecked()) || w.m_followTrainIndex != -1) {
 				ok = false;
 				failures << "empty-space context actions did not clear selection and follow mode";
@@ -1758,8 +1765,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const QString clipboardBefore = QStringLiteral("e2e-stale-sentinel");
 		if (QApplication::clipboard())
 			QApplication::clipboard()->setText(clipboardBefore);
-		const bool infoVisibleBefore = w.infoDockWidget && w.infoDockWidget->isVisible();
-		const QString infoTitleBefore = w.infoDockWidget ? w.infoDockWidget->windowTitle() : QString();
+		const bool infoVisibleBefore = w.m_inspector->dock() && w.m_inspector->dock()->isVisible();
+		const QString infoTitleBefore = w.m_inspector->dock() ? w.m_inspector->dock()->windowTitle() : QString();
 		w.scene->removeItem(temporaryPassenger);
 		delete temporaryPassenger;
 		if (copy)
@@ -1769,8 +1776,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "stale passenger context action changed the clipboard";
 		}
-		if ((w.infoDockWidget && w.infoDockWidget->isVisible()) != infoVisibleBefore
-			|| (w.infoDockWidget && w.infoDockWidget->windowTitle() != infoTitleBefore)) {
+		if ((w.m_inspector->dock() && w.m_inspector->dock()->isVisible()) != infoVisibleBefore
+			|| (w.m_inspector->dock() && w.m_inspector->dock()->windowTitle() != infoTitleBefore)) {
 			ok = false;
 			failures << "stale passenger context action changed application state";
 		}
@@ -2687,7 +2694,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			QApplication::processEvents();
 		}
 
-		if (w.m_selectedTrainIndex != selectedTrain->index) {
+		if (w.m_inspector->selectedTrainIndex() != selectedTrain->index) {
 			ok = false;
 			failures << "viewport reselection did not select the exact moved train";
 		}
@@ -2707,14 +2714,14 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "viewport reselection did not highlight and promote the exact moved train";
 		}
-		if (!w.infoDockWidget || !w.infoDockWidget->isVisible()
-			|| w.infoDockWidget->windowTitle() != QStringLiteral("Train Info")
-			|| !w.trainInfoWidget || !w.trainInfoWidget->isVisible()) {
+		if (!w.m_inspector->dock() || !w.m_inspector->dock()->isVisible()
+			|| w.m_inspector->dock()->windowTitle() != QStringLiteral("Train Info")
+			|| !w.m_inspector->trainInfoWidget || !w.m_inspector->trainInfoWidget->isVisible()) {
 			ok = false;
 			failures << "viewport reselection did not restore train info state";
 		}
-		auto* inspectorScroll = w.infoDockWidget ? qobject_cast<QScrollArea*>(w.infoDockWidget->widget()) : nullptr;
-		for (QLineEdit* field : {w.trainIDText, w.trainTypeText, w.trainLengthText, w.trainWagonsText}) {
+		auto* inspectorScroll = w.m_inspector->dock() ? qobject_cast<QScrollArea*>(w.m_inspector->dock()->widget()) : nullptr;
+		for (QLineEdit* field : {w.m_inspector->trainIDText, w.m_inspector->trainTypeText, w.m_inspector->trainLengthText, w.m_inspector->trainWagonsText}) {
 			if (!inspectorScroll || !field) {
 				ok = false;
 				failures << "train inspector viewport unavailable";
@@ -2728,14 +2735,14 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				break;
 			}
 		}
-		const QString expectedTrainId = QString::fromStdString(w.to_string_precision(selectedTrain->trainId, 0));
+		const QString expectedTrainId = QString::fromStdString(InspectorPanel::to_string_precision(selectedTrain->trainId, 0));
 		const QString expectedTrainType = QString::fromStdString(selectedTrain->trainType);
-		const QString expectedTrainLength = QString::fromStdString(w.to_string_precision(selectedTrain->trainLength, 0));
-		const QString expectedWagonCount = QString::fromStdString(w.to_string_precision(selectedTrain->wagonCount, 0));
-		if (!w.trainIDText || w.trainIDText->text() != expectedTrainId
-			|| !w.trainTypeText || w.trainTypeText->text() != expectedTrainType
-			|| !w.trainLengthText || w.trainLengthText->text() != expectedTrainLength
-			|| !w.trainWagonsText || w.trainWagonsText->text() != expectedWagonCount) {
+		const QString expectedTrainLength = QString::fromStdString(InspectorPanel::to_string_precision(selectedTrain->trainLength, 0));
+		const QString expectedWagonCount = QString::fromStdString(InspectorPanel::to_string_precision(selectedTrain->wagonCount, 0));
+		if (!w.m_inspector->trainIDText || w.m_inspector->trainIDText->text() != expectedTrainId
+			|| !w.m_inspector->trainTypeText || w.m_inspector->trainTypeText->text() != expectedTrainType
+			|| !w.m_inspector->trainLengthText || w.m_inspector->trainLengthText->text() != expectedTrainLength
+			|| !w.m_inspector->trainWagonsText || w.m_inspector->trainWagonsText->text() != expectedWagonCount) {
 			ok = false;
 			failures << "viewport reselection did not populate the exact moved train details";
 		}
@@ -2763,12 +2770,12 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		emptyRelease.setWidget(w.networkView->viewport());
 		w.scene->mouseReleaseEvent(&emptyRelease);
 		QApplication::processEvents();
-		if (w.m_presenter->effect || (w.infoDockWidget && w.infoDockWidget->isVisible())) {
+		if (w.m_presenter->effect || (w.m_inspector->dock() && w.m_inspector->dock()->isVisible())) {
 			ok = false;
 			failures << "empty scene click did not clear selection";
 		}
-		if (w.arcInfoWidget->isVisible() || w.nodeInfoWidget->isVisible() || w.connectionInfoWidget->isVisible()
-			|| w.signallingInfoWidget->isVisible() || w.trainInfoWidget->isVisible()) {
+		if (w.m_inspector->arcInfoWidget->isVisible() || w.m_inspector->nodeInfoWidget->isVisible() || w.m_inspector->connectionInfoWidget->isVisible()
+			|| w.m_inspector->signallingInfoWidget->isVisible() || w.m_inspector->trainInfoWidget->isVisible()) {
 			ok = false;
 			failures << "empty scene click left an entity pane visible";
 		}

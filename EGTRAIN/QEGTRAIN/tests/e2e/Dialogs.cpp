@@ -1,6 +1,7 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
 #include "app/MainWindowTestHooks.h"
+#include "simulation/SimulationWorker.h"
 #include "widgets/CaseChooserDialog.h"
 #include <QAction>
 #include <QApplication>

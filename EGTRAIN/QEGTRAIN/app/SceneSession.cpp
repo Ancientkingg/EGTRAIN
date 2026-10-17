@@ -538,6 +538,10 @@ QString SceneSession::saveSceneAsStartPath() const {
 	return dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
 }
 
+QMenu* SceneSession::recentScenesMenu() const {
+	return m_recentScenesMenu;
+}
+
 QStringList SceneSession::recentScenes() {
 	return QSettings().value(kRecentScenesKey).toStringList();
 }

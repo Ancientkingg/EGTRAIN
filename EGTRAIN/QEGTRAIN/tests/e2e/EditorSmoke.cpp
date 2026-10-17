@@ -19,6 +19,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/ValidationPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "graphics/NetworkScene.h"
 #include "recovery/RecoveryController.h"
 #include "recovery/RecoveryStore.h"
 #include "scene/SceneBundle.h"
@@ -38,6 +39,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/SimulationRun.h"
+#include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include <QAbstractButton>
@@ -4158,8 +4160,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			return failure;
 		};
-		const bool signalDetails = w.signallingGroupDetails && w.signallingGroupDetails->isReadOnly()
-			&& w.signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
+		const bool signalDetails = w.m_inspector->signallingGroupDetails && w.m_inspector->signallingGroupDetails->isReadOnly()
+			&& w.m_inspector->signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
 		const bool resultsStructure = w.m_runResultsDock
 			&& w.m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton")
 			&& w.m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 12

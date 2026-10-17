@@ -406,7 +406,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			failures << "no station to select for the name check";
 		} else {
 			const bool wasHidden = chosen->isNameHiddenByCollision();
-			w.displayStationNodeInfo(chosenNode);
+			w.m_inspector->displayStationNodeInfo(chosenNode);
 			w.updateViewportOverlays();
 			QApplication::processEvents();
 			if (!chosen->isSelected() || !chosen->nameItem()->isVisible() || chosen->isNameHiddenByCollision()

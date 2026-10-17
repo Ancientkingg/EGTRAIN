@@ -1,6 +1,10 @@
 #include "app/MainWindow.h"
 #include "app/CannotOpenMessage.h"
 #include "app/DialogFolders.h"
+#include "app/DispatchController.h"
+#include "app/FollowAvailability.h"
+#include "app/GuiReplayHistory.h"
+#include "app/GuiSimulationSnapshot.h"
 #include "graphics/SignalItemRoles.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
@@ -16,6 +20,58 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QAccessible>
+#include <QApplication>
+#include <QBrush>
+#include <QCheckBox>
+#include <QClipboard>
+#include <QColor>
+#include <QDockWidget>
+#include <QDoubleSpinBox>
+#include <QFileDialog>
+#include <QFont>
+#include <QGraphicsEffect>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsItemGroup>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsScene>
+#include <QGraphicsTextItem>
+#include <QGraphicsView>
+#include <QHBoxLayout>
+#include <QImage>
+#include <QIntValidator>
+#include <QLineEdit>
+#include <QList>
+#include <QListWidget>
+#include <QMenu>
+#include <QMessageBox>
+#include <QMovie>
+#include <QPainter>
+#include <QPen>
+#include <QPixmap>
+#include <QPushButton>
+#include <QSet>
+#include <QSizePolicy>
+#include <QSlider>
+#include <QSpinBox>
+#include <QStatusBar>
+#include <QTextOption>
+#include <QTime>
+#include <QTimer>
+#include <QToolBar>
+#include <QTransform>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QVariantAnimation>
+#include <QWheelEvent>
+#include <QtCharts/QChartView>
+#include <qmath.h>
+#include <iostream>
+#include <list>
+#include <set>
+#include <sstream>
+#include <tuple>
+#include <unordered_map>
+QT_CHARTS_USE_NAMESPACE
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"
@@ -23,10 +79,34 @@
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
-#include "widgets/PlainToolTip.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
+#include "widgets/NetworkLegendWidget.h"
+#include "widgets/TimeProgressBar.h"
+#include "graphics/FollowCamera.h"
+#include "graphics/NetworkPresenter.h"
+#include "graphics/NetworkScene.h"
+#include "graphics/NetworkView.h"
+#include "graphics/items/ConnectionItem.h"
+#include "graphics/items/HighlightEffect.h"
+#include "graphics/items/IconItem.h"
+#include "graphics/items/NodeItem.h"
+#include "graphics/items/PassengerItem.h"
+#include "graphics/items/PlatformItem.h"
+#include "graphics/items/SignalItem.h"
+#include "graphics/items/StationNodeItem.h"
+#include "graphics/items/StationOverlayItem.h"
+#include "graphics/items/TrackLineItem.h"
+#include "graphics/items/TrainBadgeItem.h"
+#include "graphics/items/TrainBodyItem.h"
+#include "graphics/items/TrainItemGroup.h"
+#include "graphics/items/VirtualArcItem.h"
+#include "simulation/Infrastructure.h"
+#include "simulation/Signalling.h"
+#include "simulation/SimulationWorker.h"
 #include <QScrollBar>
 #include "diagrams/DiagramWindow.h"
 #include "simulation/SimulationRun.h"
@@ -77,6 +157,7 @@
 #include "scene/SceneHistory.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
+#include "scene/SceneValidator.h"
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
@@ -648,16 +729,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedLabel->setObjectName("speedModeLabel");
 	m_speedLabel->hide();
 
-	// setup info dock widget
-	setupInfoDockWidget();
-	setupRunResultsDock();
-
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
 	m_presenter = std::make_unique<NetworkPresenter>(scene.data(), networkView);
 	m_presenter->setGeometrySource(makeRuntimeGeometryFromRun(simulation));
 	m_presenter->setFrameHost(this);
 	networkView->setScene(scene);
+
+	// setup info dock widget
+	m_inspector = new InspectorPanel(this, scene.data(), *m_presenter, *this);
+	setupRunResultsDock();
 
 	connect(networkView, &NetworkView::viewportChanged, this, [this]() {
 		// The camera changes the position of the view and never its scale, so the overlays and the zoom
@@ -692,7 +773,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			m_followCamera->stop();
 		}
 	});
-	connect(infoDockWidget, &InfoDockWidget::closed, this, &MainWindow::handleCloseInfoDockWidget);
 
 	connect(ui->displayTrainPathDiagrams, &QAction::triggered, this, &MainWindow::displayTrainPathDiagrams);
 
@@ -740,16 +820,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	updateSceneActions();
 
 	// connect scene signals
-	connect(scene, &NetworkScene::MousePressedOnPreview, this, &MainWindow::displayPreviewInfo);
-	connect(scene, &NetworkScene::MousePressedOnNode, this, &MainWindow::displayNodeInfo);
-	connect(scene, &NetworkScene::MousePressedOnStationNode, this, &MainWindow::displayStationNodeInfo);
-	connect(scene, &NetworkScene::MousePressedOnArc, this, &MainWindow::displayArcInfo);
-	connect(scene, &NetworkScene::MousePressedOnConnection, this, &MainWindow::displayConnectionInfo);
-	connect(scene, &NetworkScene::MousePressedOnSignal, this, &MainWindow::displaySignallingInfo);
-	connect(scene, &NetworkScene::MousePressedOnTrain, this, &MainWindow::displayTrainInfo);
-	connect(scene, &NetworkScene::MousePressedOnPassenger, this, &MainWindow::displayPassengerInfo);
+	connect(scene, &NetworkScene::MousePressedOnPreview, m_inspector, &InspectorPanel::displayPreviewInfo);
+	connect(scene, &NetworkScene::MousePressedOnNode, m_inspector, &InspectorPanel::displayNodeInfo);
+	connect(scene, &NetworkScene::MousePressedOnStationNode, m_inspector, &InspectorPanel::displayStationNodeInfo);
+	connect(scene, &NetworkScene::MousePressedOnArc, m_inspector, &InspectorPanel::displayArcInfo);
+	connect(scene, &NetworkScene::MousePressedOnConnection, m_inspector, &InspectorPanel::displayConnectionInfo);
+	connect(scene, &NetworkScene::MousePressedOnSignal, m_inspector, &InspectorPanel::displaySignallingInfo);
+	connect(scene, &NetworkScene::MousePressedOnTrain, m_inspector, &InspectorPanel::displayTrainInfo);
+	connect(scene, &NetworkScene::MousePressedOnPassenger, m_inspector, &InspectorPanel::displayPassengerInfo);
 	connect(scene, &NetworkScene::ContextMenuRequested, this, &MainWindow::showSceneContextMenu);
-	connect(scene, &NetworkScene::DisableHighlight, this, &MainWindow::handleDisableHighlight);
+	connect(scene, &NetworkScene::DisableHighlight, m_inspector, &InspectorPanel::handleDisableHighlight);
 
 	// connect signals from EGTRAIN simulation
 	connect(&simulation, &DispatchController::snapshotAvailable, this, &MainWindow::waitForUpdates,
@@ -2050,7 +2130,7 @@ void MainWindow::delayBaselineChanged() {
 }
 
 void MainWindow::renderTrackPreview(const SceneModel& sceneModel) {
-	clearPreviewInspection();
+	m_inspector->clearPreviewInspection();
 	m_presenter->resetPreviewFit();
 	const QString selectedInfrastructureId = m_infrastructurePanel->selectionId();
 	const bool hasRuntimeGraphics = static_cast<bool>(m_snapshot) || !m_presenter->allTrains.isEmpty()
@@ -2407,7 +2487,7 @@ void MainWindow::invalidateRunResults() {
 	if (!m_runController->running()) {
 		if (m_replayActive && m_document->isLoaded() && scene) {
 			setFollowTrain(-1);
-			handleCloseInfoDockWidget();
+			m_inspector->handleCloseInfoDockWidget();
 			renderTrackPreview(m_document->model()); // Teardown clears history and graphics together.
 		}
 		clearReplay();
@@ -2895,10 +2975,10 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		menu->setAttribute(Qt::WA_DeleteOnClose);
 		menu->setTitle("Preview: " + id);
 		const auto resolve = [this, kind, id, track, reversed, revision]() {
-			return resolvePreviewItem(kind, id, track, reversed, revision);
+			return m_inspector->resolvePreviewItem(kind, id, track, reversed, revision);
 		};
 		connect(menu->addAction("Show details"), &QAction::triggered, this, [this, resolve]() {
-			if (auto* current = resolve()) displayPreviewInfo(current);
+			if (auto* current = resolve()) m_inspector->displayPreviewInfo(current);
 		});
 		connect(menu->addAction("Center in view"), &QAction::triggered, this, [this, resolve]() {
 			if (auto* current = resolve()) centerSceneItem(current);
@@ -2942,7 +3022,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		details->setIcon(QIcon(classifyTrainType(group->trainType, group->trainDescription).iconResource));
 		connect(details, &QAction::triggered, this, [this, trainIndex]() {
 			if (auto* body = resolveTrainBodyItem(trainIndex))
-				displayTrainDetails(body, false);
+				m_inspector->displayTrainDetails(body, false);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, trainIndex]() {
@@ -2978,7 +3058,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		details->setIcon(QIcon(":/icons/station-dark.svg"));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
-				displayStationNodeInfo(current);
+				m_inspector->displayStationNodeInfo(current);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, nodeId, track]() {
@@ -3009,7 +3089,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		QAction* details = menu->addAction("Show details");
 		connect(details, &QAction::triggered, this, [this, arcId, track]() {
 			if (auto* current = resolveArcItem(arcId, track))
-				displayArcInfo(current);
+				m_inspector->displayArcInfo(current);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, arcId, track]() {
@@ -3044,7 +3124,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		details->setIcon(QIcon(classifySignalAspect(signal->failed() ? 0 : signal->aspectCode()).iconResource));
 		connect(details, &QAction::triggered, this, [this, track, position, reversed]() {
 			if (auto* current = resolveSignalItem(track, position, reversed))
-				displaySignallingInfo(current);
+				m_inspector->displaySignallingInfo(current);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, track, position, reversed]() {
@@ -3077,7 +3157,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		details->setIcon(QIcon(":/icons/passenger.svg"));
 		connect(details, &QAction::triggered, this, [this, passengerId]() {
 			if (auto* current = resolvePassengerItem(passengerId))
-				displayPassengerInfo(current);
+				m_inspector->displayPassengerInfo(current);
 		});
 		QAction* center = menu->addAction("Center in view");
 		connect(center, &QAction::triggered, this, [this, passengerId]() {
@@ -3102,7 +3182,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 	connect(clear, &QAction::triggered, this, [this]() {
 		if (scene)
 			scene->clearSelection();
-		handleDisableHighlight();
+		m_inspector->handleDisableHighlight();
 	});
 	QAction* stop = menu->addAction("Stop following train");
 	connect(stop, &QAction::triggered, this, [this]() { setFollowTrain(-1); });
@@ -3400,7 +3480,7 @@ void MainWindow::showDelayAnalysis() {
 }
 
 void MainWindow::teardownGUI() {
-	clearPreviewInspection();
+	m_inspector->clearPreviewInspection();
 	m_showingTrackPreview = true;
 	// Stop any running simulation before clearing scene objects it may reference.
 	m_runController->clearSimulationWorker(true);
@@ -3409,16 +3489,13 @@ void MainWindow::teardownGUI() {
 
 	// The presenter stops the movement of the trains, deletes all items of the scene and drops the pointers to them.
 	m_presenter->clear();
-	m_selectedStationName.clear();
-	m_hasSelectedStationIdentity = false;
-	m_selectedStationNodeId = 0.0;
-	m_selectedStationTrack = -1;
+	m_inspector->clearSelectedStation();
 	if (m_networkLegendWidget)
 		m_networkLegendWidget->setCaseContent(NetworkLegendContent());
 	m_infrastructurePanel->setSelectionId(QString());
 
 	setFollowTrain(-1);
-	m_selectedTrainIndex = -1;
+	m_inspector->clearSelectedTrain();
 
 	m_snapshot.reset();
 	refreshFollowTrainChoices();
@@ -3652,159 +3729,6 @@ void MainWindow::refreshRunResultsSummary() {
 	m_runResultsSummaryLabel->setText(summary);
 }
 
-void MainWindow::setupInfoDockWidget() {
-	// main widget
-	infoWidget = new QWidget();
-
-	// Arc info widget
-	arcInfoWidget = new QWidget();
-	arcIDText = new QLineEdit(arcInfoWidget);
-	arcFirstNodeIDText = new QLineEdit(arcInfoWidget);
-	arcSecondNodeIDText = new QLineEdit(arcInfoWidget);
-	arcTrackIDText = new QLineEdit(arcInfoWidget);
-	arcLengthText = new QLineEdit(arcInfoWidget);
-	arcCurvatureText = new QLineEdit(arcInfoWidget);
-	arcGradientText = new QLineEdit(arcInfoWidget);
-	arcSpeedLimitText = new QLineEdit(arcInfoWidget);
-	arcOperationalStateText = new QLineEdit(arcInfoWidget);
-	arcOperationalStateText->setObjectName("arcOperationalStateText");
-	arcConnectedSignalsText = new QLineEdit(arcInfoWidget);
-	arcConnectedSignalsText->setObjectName("arcConnectedSignalsText");
-	arcFormLayout = new QFormLayout();
-	arcFormLayout->addRow("Arc ID", arcIDText);
-	arcFormLayout->addRow("First Node ID", arcFirstNodeIDText);
-	arcFormLayout->addRow("Second Node ID", arcSecondNodeIDText);
-	arcFormLayout->addRow("Track ID", arcTrackIDText);
-	arcFormLayout->addRow("Length (m)", arcLengthText);
-	arcFormLayout->addRow("Curvature (m)", arcCurvatureText);
-	arcFormLayout->addRow("Gradient (rise/length)", arcGradientText);
-	arcFormLayout->addRow("Speed Limit (m/s)", arcSpeedLimitText);
-	arcFormLayout->addRow("Operational state", arcOperationalStateText);
-	arcFormLayout->addRow("Connected signals", arcConnectedSignalsText);
-	arcInfoWidget->setLayout(arcFormLayout);
-
-	// Node info widget
-	nodeInfoWidget = new QWidget();
-	nodeIDText = new QLineEdit(nodeInfoWidget);
-	nodeTrackIDText = new QLineEdit(nodeInfoWidget);
-	nodeXText = new QLineEdit(nodeInfoWidget);
-	nodeYText = new QLineEdit(nodeInfoWidget);
-	nodeStationNameText = new QLineEdit(nodeInfoWidget);
-	nodeStationNameText->setObjectName("nodeStationNameText");
-	nodeRegionText = new QLineEdit(nodeInfoWidget);
-	nodeRegionText->setObjectName("nodeRegionText");
-	nodeConnectedTracksText = new QLineEdit(nodeInfoWidget);
-	nodeConnectedTracksText->setObjectName("nodeConnectedTracksText");
-	nodeSignalledText = new QLineEdit(nodeInfoWidget);
-	nodeSignalledText->setObjectName("nodeSignalledText");
-	nodeFormLayout = new QFormLayout();
-	nodeFormLayout->addRow("Node ID", nodeIDText);
-	nodeFormLayout->addRow("Track ID", nodeTrackIDText);
-	nodeFormLayout->addRow("X (m)", nodeXText);
-	nodeFormLayout->addRow("Y (m)", nodeYText);
-	nodeFormLayout->addRow("Name", nodeStationNameText);
-	nodeFormLayout->addRow("Region", nodeRegionText);
-	nodeFormLayout->addRow("Connected tracks", nodeConnectedTracksText);
-	nodeFormLayout->addRow("Signalled", nodeSignalledText);
-	nodeInfoWidget->setLayout(nodeFormLayout);
-
-	// connection info widget
-	connectionInfoWidget = new QWidget();
-	connectionFirstTrackIDText = new QLineEdit(connectionInfoWidget);
-	connectionSecondTrackIDText = new QLineEdit(connectionInfoWidget);
-	connectionXFirstNodeText = new QLineEdit(connectionInfoWidget);
-	connectionXSecondNodeText = new QLineEdit(connectionInfoWidget);
-	connectionFormLayout = new QFormLayout();
-	connectionFormLayout->addRow("First Track ID", connectionFirstTrackIDText);
-	connectionFormLayout->addRow("Second Track ID", connectionSecondTrackIDText);
-	connectionFormLayout->addRow("X First Node (m)", connectionXFirstNodeText);
-	connectionFormLayout->addRow("X Second Node (m)", connectionXSecondNodeText);
-	connectionInfoWidget->setLayout(connectionFormLayout);
-
-	// signalling info widget
-	signallingInfoWidget = new QWidget();
-	signallingTrackIDText = new QLineEdit(signallingInfoWidget);
-	signallingXText = new QLineEdit(signallingInfoWidget);
-	signallingIDSectionAheadText = new QLineEdit(signallingInfoWidget);
-	signallingLengthSectionAheadText = new QLineEdit(signallingInfoWidget);
-	signallingAspectText = new QLineEdit(signallingInfoWidget);
-	signallingAspectText->setObjectName("signallingAspectText");
-	signallingProtectedSectionText = new QLineEdit(signallingInfoWidget);
-	signallingProtectedSectionText->setObjectName("signallingProtectedSectionText");
-	signallingNextTrackText = new QLineEdit(signallingInfoWidget);
-	signallingNextTrackText->setObjectName("signallingNextTrackText");
-	signallingGroupDetails = new QPlainTextEdit(signallingInfoWidget);
-	signallingGroupDetails->setObjectName("signallingGroupDetails");
-	signallingGroupDetails->setReadOnly(true);
-	signallingGroupDetails->setMaximumHeight(120);
-	signallingGroupDetails->setLineWrapMode(QPlainTextEdit::WidgetWidth);
-	signallingGroupDetails->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-	signallingFormLayout = new QFormLayout();
-	signallingFormLayout->addRow("Track ID", signallingTrackIDText);
-	signallingFormLayout->addRow("X (m)", signallingXText);
-	signallingFormLayout->addRow("ID of Block Section", signallingIDSectionAheadText);
-	signallingFormLayout->addRow("Length of Block Section (m)", signallingLengthSectionAheadText);
-	signallingFormLayout->addRow("Aspect", signallingAspectText);
-	signallingFormLayout->addRow("Protected section", signallingProtectedSectionText);
-	signallingFormLayout->addRow("Next track", signallingNextTrackText);
-	signallingFormLayout->addRow("Signals at location", signallingGroupDetails);
-	signallingInfoWidget->setLayout(signallingFormLayout);
-
-	// train info widget
-	trainInfoWidget = new QWidget();
-	trainIDText = new QLineEdit(trainInfoWidget);
-	trainTypeText = new QLineEdit(trainInfoWidget);
-	trainLengthText = new QLineEdit(trainInfoWidget);
-	trainWagonsText = new QLineEdit(trainInfoWidget);
-	trainFormLayout = new QFormLayout();
-	trainFormLayout->addRow("ID", trainIDText);
-	trainFormLayout->addRow("Type", trainTypeText);
-	trainFormLayout->addRow("Length (m)", trainLengthText);
-	trainFormLayout->addRow("Number of wagons", trainWagonsText);
-	trainInfoWidget->setLayout(trainFormLayout);
-
-	// main layout
-	infoWidgetMainLayout = new QVBoxLayout();
-	infoWidgetMainLayout->addWidget(arcInfoWidget);
-	infoWidgetMainLayout->addWidget(nodeInfoWidget);
-	infoWidgetMainLayout->addWidget(connectionInfoWidget);
-	infoWidgetMainLayout->addWidget(signallingInfoWidget);
-	infoWidgetMainLayout->addWidget(trainInfoWidget);
-	infoWidgetMainLayout->addStretch();
-	infoWidget->setLayout(infoWidgetMainLayout);
-	for (QFormLayout* form : {arcFormLayout, nodeFormLayout, connectionFormLayout,
-			 signallingFormLayout, trainFormLayout})
-		form->setRowWrapPolicy(QFormLayout::WrapLongRows);
-	for (auto* label : infoWidget->findChildren<QLabel*>())
-		label->setWordWrap(true);
-	for (auto* edit : infoWidget->findChildren<QLineEdit*>()) {
-		edit->setReadOnly(true);
-		connect(edit, &QLineEdit::textChanged, edit, [edit](const QString& text) {
-			edit->setToolTip(plainToolTip(text));
-			edit->setCursorPosition(0);
-		});
-	}
-
-	// dock widget
-	infoDockWidget = new InfoDockWidget("Simulation Info");
-	auto* infoScroll = new QScrollArea(infoDockWidget);
-	infoScroll->setWidgetResizable(true);
-	infoScroll->setFrameShape(QFrame::NoFrame);
-	infoScroll->setMinimumSize(300, 0);
-	infoScroll->setWidget(infoWidget);
-	infoDockWidget->setWidget(infoScroll);
-	infoDockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
-	addDockWidget(Qt::RightDockWidgetArea, infoDockWidget);
-
-	// hide widgets
-	infoDockWidget->hide();
-	arcInfoWidget->hide();
-	nodeInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-}
-
 // help from menu
 void MainWindow::handleHelpAbout() {
 	if (!m_aboutDialog)
@@ -3814,575 +3738,53 @@ void MainWindow::handleHelpAbout() {
 	m_aboutDialog->activateWindow();
 }
 
-// hides all widgets from the dock widget
-// removes highlight from last clicked item
-void MainWindow::handleCloseInfoDockWidget() {
-	m_previewSelectedStationId.clear();
-	m_presenter->m_inspectedSignal = nullptr;
-	m_selectedStationName.clear();
-	m_hasSelectedStationIdentity = false;
-	m_selectedStationNodeId = 0.0;
-	m_selectedStationTrack = -1;
-	m_selectedTrainIndex = -1;
-	for (auto* overlay : m_presenter->m_stationOverlays)
-		if (overlay)
-			overlay->setSelected(false);
-
-	// hide all widgets
-	arcInfoWidget->hide();
-	nodeInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->trainPaxItem = nullptr; // Explicitly dismissed or replaced train inspection.
-	m_presenter->removePaxInfoIcon();
-
-	// remove highlight
-	if (m_presenter->effect) {
-		delete m_presenter->effect;
-		m_presenter->effect = nullptr;
-	}
-	updateViewportOverlays();
-}
-
-void MainWindow::clearPreviewInspection() {
-	if (m_sceneContextMenu) {
-		m_sceneContextMenu->close();
-		m_sceneContextMenu.clear();
-	}
-	if (m_showingTrackPreview) {
-		handleCloseInfoDockWidget();
-		infoDockWidget->hide();
-		for (auto* field : {nodeIDText, nodeXText, nodeYText, nodeTrackIDText,
-				 nodeStationNameText, nodeRegionText, nodeConnectedTracksText, nodeSignalledText,
-				 arcIDText, arcFirstNodeIDText, arcSecondNodeIDText, arcTrackIDText,
-				 arcLengthText, arcCurvatureText, arcGradientText, arcSpeedLimitText,
-				 arcOperationalStateText, arcConnectedSignalsText, connectionFirstTrackIDText,
-				 connectionSecondTrackIDText, connectionXFirstNodeText, connectionXSecondNodeText,
-				 signallingTrackIDText, signallingXText, signallingAspectText,
-				 signallingProtectedSectionText, signallingNextTrackText,
-				 signallingIDSectionAheadText, signallingLengthSectionAheadText})
-			field->clear();
-		signallingGroupDetails->clear();
-	}
-}
-
-QGraphicsItem* MainWindow::resolvePreviewItem(const QString& kind, const QString& id,
-	const QString& track, bool reversed, quint64 revision) const {
-	if (!m_showingTrackPreview || !m_document->isLoaded() || revision != m_document->revision() || !scene)
-		return nullptr;
-	for (auto* item : scene->items()) {
-		if (item->data(PreviewGraphics::Kind).toString() != kind
-			|| item->data(PreviewGraphics::Id).toString() != id)
-			continue;
-		if (kind == "signal" && (item->data(PreviewGraphics::TrackId).toString() != track || item->data(PreviewGraphics::Reversed).toBool() != reversed))
-			continue;
-		return item;
-	}
-	return nullptr;
-}
-
-void MainWindow::displayPreviewInfo(QGraphicsItem* item) {
-	if (!item || item->scene() != scene || !m_showingTrackPreview || !m_document->isLoaded())
-		return;
-	const QString kind = item->data(PreviewGraphics::Kind).toString();
-	const std::string id = item->data(PreviewGraphics::Id).toString().toStdString();
-	const auto text = [](const std::string& value) { return QString::fromStdString(value); };
-	const auto number = [](double value) { return QString::number(value, 'g', 12); };
-	const QString unavailable = QStringLiteral("Unavailable before Run");
-	// Resolve canonical values at interaction; no pointers survive an edit/rebuild.
-	clearPreviewInspection();
-	QString title;
-	if (kind == "node" || kind == "station-node" || kind == "station") {
-		const SceneNode* node = nullptr;
-		const SceneStation* station = nullptr;
-		for (const auto& candidate : m_document->model().nodes)
-			if (kind != "station" && candidate.id == id)
-				node = &candidate;
-		const auto memberships = previewStationMemberships(m_document->model());
-		const auto membership = memberships.find(id);
-		const std::string stationId = kind == "station" ? id
-			: membership == memberships.end()			? std::string()
-														: membership->second.stationId;
-		for (const auto& candidate : m_document->model().stations)
-			if (candidate.id == stationId)
-				station = &candidate;
-		if (kind == "station") {
-			if (!station)
-				return;
-			for (const auto& anchor : m_presenter->m_cachedTrackPreview.stations)
-				if (anchor.id == id)
-					for (const auto& candidate : m_document->model().nodes)
-						if (!anchor.nodeId.empty() && candidate.id == anchor.nodeId)
-							node = &candidate;
-		} else if (!node) {
-			return;
-		}
-		nodeIDText->setText(node ? text(node->id) : QStringLiteral("No node anchor"));
-		nodeXText->setText(node					  ? number(node->xKm * 1000)
-				: station && station->hasPosition ? number(station->positionKm * 1000)
-												  : unavailable);
-		nodeYText->setText(node ? number(node->yKm * 1000) : unavailable);
-		nodeTrackIDText->setText(node ? text(node->trackId) : QStringLiteral("No node anchor"));
-		nodeStationNameText->setText(station
-				? text(station->name.empty() ? station->id : station->name) + " [" + text(station->id) + "]"
-				: QString());
-		nodeRegionText->setText(unavailable);
-		nodeSignalledText->setText(unavailable);
-		QStringList connectedTracks;
-		if (node) {
-			connectedTracks << text(node->trackId);
-			for (const auto& connection : m_document->model().connections) {
-				const std::string other = connection.fromNodeId == node->id ? connection.toNodeId
-					: connection.toNodeId == node->id						? connection.fromNodeId
-																			: std::string();
-				for (const auto& candidate : m_document->model().nodes)
-					if (candidate.id == other && !connectedTracks.contains(text(candidate.trackId)))
-						connectedTracks << text(candidate.trackId);
-			}
-		}
-		nodeConnectedTracksText->setText(connectedTracks.join(", "));
-		if (station)
-			m_previewSelectedStationId = text(station->id);
-		title = kind == "station" ? "Station " + text(id) : "Node " + text(id);
-		if (kind != "station" && membership != memberships.end() && !membership->second.platformId.empty())
-			title += " / platform " + text(membership->second.platformId);
-		nodeInfoWidget->show();
-	} else if (kind == "arc" || kind == "track") {
-		if (kind == "arc") {
-			const auto arc = std::find_if(m_document->model().arcs.begin(), m_document->model().arcs.end(),
-				[&](const SceneArc& value) { return value.id == id; });
-			if (arc == m_document->model().arcs.end())
-				return;
-			arcIDText->setText(text(arc->id));
-			arcFirstNodeIDText->setText(text(arc->fromNodeId));
-			arcSecondNodeIDText->setText(text(arc->toNodeId));
-			arcTrackIDText->setText(text(arc->trackId));
-			const SceneNode* from = nullptr;
-			const SceneNode* to = nullptr;
-			for (const auto& node : m_document->model().nodes) {
-				if (node.id == arc->fromNodeId) from = &node;
-				if (node.id == arc->toNodeId) to = &node;
-			}
-			arcLengthText->setText(from && to
-					? number(std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000)
-					: unavailable);
-			arcCurvatureText->setText(number(arc->curvatureRadiusM));
-			arcGradientText->setText(number(arc->gradientPercent));
-			arcSpeedLimitText->setText(number(arc->speedLimitMs));
-		} else {
-			if (std::none_of(m_document->model().tracks.begin(), m_document->model().tracks.end(),
-					[&](const SceneTrack& track) { return track.id == id; }))
-				return;
-			arcIDText->setText("No authored arc (fallback)");
-			arcTrackIDText->setText(text(id));
-		}
-		arcOperationalStateText->setText(unavailable);
-		arcConnectedSignalsText->setText(unavailable);
-		title = kind == "arc" ? "Arc " + text(id) : "Track " + text(id);
-		arcInfoWidget->show();
-	} else if (kind == "connection") {
-		const auto connection = std::find_if(m_document->model().connections.begin(), m_document->model().connections.end(),
-			[&](const SceneConnection& value) { return value.id == id; });
-		if (connection == m_document->model().connections.end())
-			return;
-		for (const auto& node : m_document->model().nodes) {
-			if (node.id == connection->fromNodeId) {
-				connectionFirstTrackIDText->setText(text(node.trackId));
-				connectionXFirstNodeText->setText(number(node.xKm * 1000));
-			}
-			if (node.id == connection->toNodeId) {
-				connectionSecondTrackIDText->setText(text(node.trackId));
-				connectionXSecondNodeText->setText(number(node.xKm * 1000));
-			}
-		}
-		title = "Connection " + text(id);
-		connectionInfoWidget->show();
-	} else if (kind == "signal") {
-		const std::string track = item->data(PreviewGraphics::TrackId).toString().toStdString();
-		const auto head = std::find_if(m_presenter->m_cachedTrackPreview.previewSignals.begin(), m_presenter->m_cachedTrackPreview.previewSignals.end(),
-			[&](const TrackPreviewSignal& signal) { return signal.trackId == track && signal.sectionId == id; });
-		if (head == m_presenter->m_cachedTrackPreview.previewSignals.end())
-			return;
-		signallingTrackIDText->setText(text(track));
-		signallingXText->setText(number(head->rawX * 1000));
-		signallingAspectText->setText(unavailable);
-		signallingProtectedSectionText->setText(text(id));
-		signallingNextTrackText->setText(unavailable);
-		signallingIDSectionAheadText->setText(text(id));
-		signallingLengthSectionAheadText->setText(unavailable);
-		QStringList ids;
-		for (const auto& signal : sceneSignals(m_document->model()))
-			if (signal.protectedSection == id)
-				ids << text(signal.id);
-		signallingGroupDetails->setPlainText(QStringLiteral("Track %1; section %2; %3; authored signal IDs: %4")
-				.arg(text(track), text(id), item->data(PreviewGraphics::Reversed).toBool() ? "reverse" : "forward",
-					ids.isEmpty() ? "None" : ids.join(", ")));
-		title = "Signal " + text(id);
-		signallingInfoWidget->show();
-	} else {
-		return;
-	}
-	infoDockWidget->setWindowTitle("Preview: " + title + " (not running)");
-	infoDockWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	item->setGraphicsEffect(m_presenter->effect);
-	updateViewportOverlays();
-	// Do not recolor boundary dots/squares or neutral signal heads on inspection.
-}
-
-// shows Node info on dock widget
-void MainWindow::displayNodeInfo(NodeItem* el) {
-	if (!el || !el->node)
-		return;
-	handleCloseInfoDockWidget();
-
-	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(el->node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * el->node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * el->node->Y, 2))); // km to m
-	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(el->track, 0)));
-	nodeStationNameText->clear();
-	nodeRegionText->clear();
-	nodeConnectedTracksText->clear();
-	nodeSignalledText->clear();
-
-	// hide other widgets
-	arcInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	infoDockWidget->setWindowTitle("Node Info");
-	infoDockWidget->show();
-	nodeInfoWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	el->setGraphicsEffect(m_presenter->effect);
-}
-
-// shows station Node info on dock widget
-void MainWindow::displayStationNodeInfo(StationNodeItem* re) {
-	if (!re || !re->node)
-		return;
-	handleCloseInfoDockWidget();
-	m_selectedStationName = QString::fromStdString(re->node->stationName);
-	m_hasSelectedStationIdentity = true;
-	m_selectedStationNodeId = re->node->ID;
-	m_selectedStationTrack = re->track;
-	for (auto* overlay : m_presenter->m_stationOverlays)
-		if (overlay)
-			overlay->setSelected(overlay->hasSourceIdentity()
-					? overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack)
-					: !m_hasSelectedStationIdentity && overlay->stationName() == m_selectedStationName);
-	updateViewportOverlays();
-
-	// update Node info displayed on widget
-	nodeIDText->setText(QString::fromStdString(to_string_precision(re->node->ID, 0)));
-	nodeXText->setText(QString::fromStdString(to_string_precision(1000 * re->node->X, 2))); // km to m
-	nodeYText->setText(QString::fromStdString(to_string_precision(1000 * re->node->Y, 2))); // km to m
-	nodeTrackIDText->setText(QString::fromStdString(to_string_precision(re->track, 0)));
-	nodeStationNameText->setText(QString::fromStdString(re->node->stationName));
-	if (re->track >= 0 && re->track < 268)
-		nodeRegionText->setText(QString::number(simulation.run().infra.blockSets[re->track].region));
-	else
-		nodeRegionText->setText("None");
-	QStringList connectedTracks;
-	if (re->track >= 0 && re->track < 268)
-		connectedTracks << QString::number(re->track);
-	const int connectionCount = std::max(0, std::min(re->node->numConnections, 6));
-	for (int i = 0; i < connectionCount; ++i) {
-		const int connectedTrack = re->node->connectIdBlockSet[i];
-		if (connectedTrack >= 0 && connectedTrack < 268
-			&& !connectedTracks.contains(QString::number(connectedTrack)))
-			connectedTracks << QString::number(connectedTrack);
-	}
-	nodeConnectedTracksText->setText(connectedTracks.join(", "));
-	nodeSignalledText->setText(re->node->isSignalled ? "Yes" : "No");
-
-	// hide other widgets
-	arcInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	infoDockWidget->setWindowTitle("Station Node Info");
-	infoDockWidget->show();
-	nodeInfoWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	re->setGraphicsEffect(m_presenter->effect);
-}
-
-// shows Arc info on dock widget
-void MainWindow::displayArcInfo(TrackLineItem* line) {
-	if (!line || !line->arc)
-		return;
-	handleCloseInfoDockWidget();
-
-	// update Arc info displayed on widget
-	arcIDText->setText(QString::fromStdString(to_string_precision(line->arc->ID, 0)));
-	arcFirstNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->startNode.ID, 0)));
-	arcSecondNodeIDText->setText(QString::fromStdString(to_string_precision(line->arc->endNode.ID, 0)));
-	arcTrackIDText->setText(QString::fromStdString(to_string_precision(line->track, 0)));
-	arcLengthText->setText(QString::fromStdString(to_string_precision(line->arc->length, 2)));
-	arcCurvatureText->setText(QString::fromStdString(to_string_precision(line->arc->curvature, 2)));
-	arcGradientText->setText(QString::fromStdString(to_string_precision(line->arc->gradient, 3)));
-	arcSpeedLimitText->setText(QString::fromStdString(to_string_precision(line->arc->speedLimit, 2)));
-	const auto operationalStateName = [](TrackOperationalState state) {
-		switch (state) {
-			case TrackOperationalState::Prepared:
-				return QStringLiteral("Permissive signalling");
-			case TrackOperationalState::Occupied:
-				return QStringLiteral("Occupied");
-			case TrackOperationalState::Blocked:
-				return QStringLiteral("Blocked");
-			case TrackOperationalState::Free:
-			default:
-				return QStringLiteral("Free");
-		}
-	};
-	arcOperationalStateText->setText(operationalStateName(line->operationalState()));
-	QStringList sectionIds;
-	const double arcStart = std::min(line->arc->startNode.X, line->arc->endNode.X);
-	const double arcEnd = std::max(line->arc->startNode.X, line->arc->endNode.X);
-	const auto appendSection = [&sectionIds](const std::string& sectionId) {
-		if (!sectionId.empty() && !sectionIds.contains(QString::fromStdString(sectionId)))
-			sectionIds << QString::fromStdString(sectionId);
-	};
-	const std::string startSection = line->arc->startNode.tdsbId;
-	const std::string endSection = line->arc->endNode.tdsbId;
-	const auto sectionTouchesArc = [&startSection, &endSection](const std::string& sectionId) {
-		return !sectionId.empty() && (sectionId == startSection || sectionId == endSection);
-	};
-	for (auto* candidate : m_presenter->allSignals) {
-		if (!candidate || candidate->trackID != line->track)
-			continue;
-		const bool positionMatches = candidate->X >= arcStart - 1e-9 && candidate->X <= arcEnd + 1e-9;
-		const bool sectionMatches = sectionTouchesArc(candidate->sectionAheadId)
-			|| sectionTouchesArc(candidate->sectionBehindId);
-		if (!positionMatches && !sectionMatches)
-			continue;
-		appendSection(candidate->sectionAheadId);
-		appendSection(candidate->sectionBehindId);
-	}
-	arcConnectedSignalsText->setText(sectionIds.isEmpty() ? QStringLiteral("None") : sectionIds.join(", "));
-
-	// hide other widgets
-	nodeInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	infoDockWidget->setWindowTitle("Arc Info");
-	infoDockWidget->show();
-	arcInfoWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	line->setGraphicsEffect(m_presenter->effect);
-}
-
-// shows connection info on dock widget
-void MainWindow::displayConnectionInfo(ConnectionItem* line) {
-	if (!line || !line->connection)
-		return;
-	handleCloseInfoDockWidget();
-
-	// update connection info displayed on widget
-	connectionFirstTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idFirstTrackLine, 0)));
-	connectionSecondTrackIDText->setText(QString::fromStdString(to_string_precision(line->connection->idSecondTrackLine, 0)));
-	connectionXFirstNodeText->setText(QString::fromStdString(to_string_precision(1000 * line->connection->xFirstNode, 2)));	  // km to m
-	connectionXSecondNodeText->setText(QString::fromStdString(to_string_precision(1000 * line->connection->xSecondNode, 2))); // km to m
-
-	// hide other widgets
-	arcInfoWidget->hide();
-	nodeInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	infoDockWidget->setWindowTitle("Connection Info");
-	infoDockWidget->show();
-	connectionInfoWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	line->setGraphicsEffect(m_presenter->effect);
-}
-
-// shows signalling info on dock widget
-void MainWindow::displaySignallingInfo(SignalItem* signal) {
-	if (!signal)
-		return;
-	handleCloseInfoDockWidget();
-	m_presenter->m_inspectedSignal = signal;
-
-	// update signalling info displayed on widget
-	signallingTrackIDText->setText(QString::fromStdString(to_string_precision(signal->trackID, 0)));
-	signallingXText->setText(QString::fromStdString(to_string_precision(1000 * signal->X, 2))); // km to m
-	signallingAspectText->setText(signalAspectLabel(signal));
-	signallingGroupDetails->setPlainText(signal->toolTip());
-	const std::string protectedSection = !signal->sectionAheadId.empty()
-		? signal->sectionAheadId
-		: signal->sectionBehindId;
-	const int nextTrack = signal->sectionAheadTrackId >= 0
-		? signal->sectionAheadTrackId
-		: signal->sectionBehindTrackId;
-	signallingProtectedSectionText->setText(protectedSection.empty()
-			? QStringLiteral("None")
-			: QString::fromStdString(protectedSection));
-	signallingNextTrackText->setText(nextTrack < 0 ? QStringLiteral("None") : QString::number(nextTrack));
-
-	// check if section ahead exists
-	if (!signal->sectionAheadId.empty()) {
-		signallingIDSectionAheadText->setText(QString::fromStdString(signal->sectionAheadId));
-		signallingLengthSectionAheadText->setText(QString::fromStdString(to_string_precision(1000 * signal->sectionAheadLength, 2))); // km to m
-	} else {
-		signallingIDSectionAheadText->setText("None");
-		signallingLengthSectionAheadText->setText("None");
-	}
-
-	// hide other widgets
-	arcInfoWidget->hide();
-	connectionInfoWidget->hide();
-	nodeInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show widget
-	infoDockWidget->setWindowTitle("Signalling Info");
-	infoDockWidget->show();
-	signallingInfoWidget->show();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	signal->setGraphicsEffect(m_presenter->effect);
-	updateSignalCues();
-}
-
-void MainWindow::displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode) {
-	if (!trainItem)
-		return;
-	// update train info displayed on widget
-	TrainItemGroup* groupItem = qgraphicsitem_cast<TrainItemGroup*>(trainItem->parentItem());
-	if (!groupItem)
-		return;
-	handleCloseInfoDockWidget();
-	m_selectedTrainIndex = trainItem->index;
-	trainIDText->setText(QString::fromStdString(to_string_precision(groupItem->trainId, 0)));
-	trainTypeText->setText(QString::fromStdString(groupItem->trainType));
-	trainLengthText->setText(QString::fromStdString(to_string_precision(groupItem->trainLength, 0)));
-	trainWagonsText->setText(QString::fromStdString(to_string_precision(groupItem->wagonCount, 0)));
-
-	// hide other widgets
-	arcInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	nodeInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
-
-	// show pax info only while its layer is enabled
-	if (m_runController->passengerGui() && m_presenter->m_passengerLayerVisible)
-		m_presenter->paintTrainPassengerInfo(groupItem);
-
-	// show widget
-	infoDockWidget->setWindowTitle("Train Info");
-	infoDockWidget->show();
-	trainInfoWidget->show();
-	if (changeFollowMode)
-		setFollowTrain(trainItem->index);
-	updateViewportOverlays();
-
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
-	}
-	if (trainItem->parentItem()) {
-		trainItem->parentItem()->setGraphicsEffect(m_presenter->effect);
-	} // effect on entire train
-}
-
-// shows train info on dock widget
-void MainWindow::displayTrainInfo(TrainBodyItem* trainItem) {
-	displayTrainDetails(trainItem, true);
-}
-
 // the details of a passenger in the snapshot; only the id is known when the snapshot does not list the passenger
 GuiPassengerState MainWindow::passengerState(const std::string& id) const {
 	return passengerStateIn(m_snapshot.get(), id);
 }
 
-// show text icon on top of passenger icon
-void MainWindow::displayPassengerInfo(PassengerItem* paxItem) {
-	if (!paxItem)
-		return;
-	handleCloseInfoDockWidget();
-	// hide other widgets
-	infoDockWidget->hide();
-	arcInfoWidget->hide();
-	nodeInfoWidget->hide();
-	connectionInfoWidget->hide();
-	signallingInfoWidget->hide();
-	trainInfoWidget->hide();
-	m_presenter->removeTrainPaxInfoIcon();
-	m_presenter->removePaxInfoIcon();
+bool MainWindow::showingTrackPreview() const {
+	return m_showingTrackPreview;
+}
 
-	// show pax info
-	m_presenter->paintPassengerInfoIcon(paxItem, passengerState(paxItem->passengerId), m_replayActive);
+const SceneModel* MainWindow::loadedScene() const {
+	return m_document->isLoaded() ? &m_document->model() : nullptr;
+}
 
-	// effect on clicked item
-	if (!m_presenter->effect) {
-		m_presenter->effect = new HighlightEffect(Qt::blue, 1);
+quint64 MainWindow::loadedSceneRevision() const {
+	return m_document->revision();
+}
+
+int MainWindow::regionOfTrack(int track) const {
+	return simulation.run().infra.blockSets[track].region;
+}
+
+bool MainWindow::passengerGui() const {
+	return m_runController->passengerGui();
+}
+
+bool MainWindow::replayActive() const {
+	return m_replayActive;
+}
+
+void MainWindow::closeSceneContextMenu() {
+	if (m_sceneContextMenu) {
+		m_sceneContextMenu->close();
+		m_sceneContextMenu.clear();
 	}
-	paxItem->setGraphicsEffect(m_presenter->effect);
 }
 
-void MainWindow::handleDisableHighlight() {
-	handleCloseInfoDockWidget();
-	if (infoDockWidget)
-		infoDockWidget->hide();
+void MainWindow::inspectionChanged() {
+	updateViewportOverlays();
 }
 
-
-// double to string with precision
-string MainWindow::to_string_precision(double value, int precision) {
-	std::ostringstream out;
-	out.precision(precision);
-	out << std::fixed << value;
-	return out.str();
+void MainWindow::signalInspected() {
+	updateSignalCues();
 }
 
+void MainWindow::followTrain(int trainIndex) {
+	setFollowTrain(trainIndex);
+}
 
 // fit view
 void MainWindow::fitView() {
@@ -5369,7 +4771,7 @@ void MainWindow::bindStationOverlaySources() {
 					QTimer::singleShot(0, this, [this, representativeNodeId, representativeTrack]() {
 						if (auto* current = resolveStationNodeItem(
 								representativeNodeId, representativeTrack))
-							displayStationNodeInfo(current);
+							m_inspector->displayStationNodeInfo(current);
 					});
 				});
 		} else {
@@ -5435,7 +4837,7 @@ void MainWindow::updateStationOverlayDegrees() {
 }
 
 bool MainWindow::isTrainOverlayPromoted(int trainIndex) const {
-	return trainIndex == m_selectedTrainIndex
+	return trainIndex == m_inspector->selectedTrainIndex()
 		|| (m_followAction && m_followAction->isChecked() && m_followTrainIndex == trainIndex);
 }
 
@@ -5455,13 +4857,7 @@ void MainWindow::updateViewportOverlays() {
 	for (auto* overlay : m_presenter->m_stationOverlays) {
 		if (!overlay)
 			continue;
-		const bool selectedByIdentity = m_hasSelectedStationIdentity && overlay->hasSourceIdentity()
-			&& overlay->matchesSourceIdentity(m_selectedStationNodeId, m_selectedStationTrack);
-		const bool selectedByLegacyName = !m_hasSelectedStationIdentity && !overlay->hasSourceIdentity()
-			&& !m_selectedStationName.isEmpty() && overlay->stationName() == m_selectedStationName;
-		overlay->setSelected(m_showingTrackPreview
-				? !m_previewSelectedStationId.isEmpty() && overlay->data(PreviewGraphics::Id).toString() == m_previewSelectedStationId
-				: selectedByIdentity || selectedByLegacyName);
+		overlay->setSelected(m_inspector->selectsStationOverlay(overlay));
 		overlay->setVisible(m_presenter->m_stationLayerVisible);
 		overlay->setFollowed(false);
 		if (!hasFollowedCenter)
@@ -5523,16 +4919,7 @@ void MainWindow::updateSignalCues() {
 		}
 		item->setVisible(visible);
 	}
-	if (signallingInfoWidget && signallingInfoWidget->isVisible() && signallingGroupDetails
-		&& m_presenter->m_inspectedSignal && m_presenter->m_signalDecorations.contains(m_presenter->m_inspectedSignal)) {
-		const QString details = m_presenter->m_inspectedSignal->toolTip();
-		if (signallingGroupDetails->toPlainText() != details) {
-			const int scroll = signallingGroupDetails->verticalScrollBar()->value();
-			signallingGroupDetails->setPlainText(details);
-			signallingGroupDetails->verticalScrollBar()->setValue(scroll);
-		}
-		signallingAspectText->setText(signalAspectLabel(m_presenter->m_inspectedSignal));
-	}
+	m_inspector->refreshInspectedSignal();
 }
 
 void MainWindow::updateZoomStatus() {

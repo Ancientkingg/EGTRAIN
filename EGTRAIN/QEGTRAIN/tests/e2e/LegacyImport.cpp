@@ -8,6 +8,7 @@
 #include <QStringList>
 #include <cstdio>
 #include <string>
+#include "graphics/NetworkScene.h"
 
 // Imports one legacy case into a new scene folder, then tries an import that must fail and checks
 // that the open scene is untouched. The folders come from QEGTRAIN_E2E_LEGACY_SOURCE and _DEST for

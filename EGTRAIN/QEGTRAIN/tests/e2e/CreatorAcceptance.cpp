@@ -25,6 +25,11 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneModel.h"
 #include "scene/SignallingLevelNames.h"
+#include "simulation/RollingStock.h"
+#include "simulation/SimulationWorker.h"
+#include "widgets/ElidedLabel.h"
+#include "widgets/InfoDockWidget.h"
+#include "widgets/TimeProgressBar.h"
 #include <QAbstractButton>
 #include <QAbstractGraphicsShapeItem>
 #include <QAccessible>
@@ -37,6 +42,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QElapsedTimer>
 #include <QEvent>
@@ -2603,13 +2609,13 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	}
 	const quint64 revision = w.m_document->revision();
 	const auto held = [&w, revision]() {
-		return w.resolvePreviewItem("arc", "creator-main-arc-0", QString(), false, revision);
+		return w.m_inspector->resolvePreviewItem("arc", "creator-main-arc-0", QString(), false, revision);
 	};
 	w.showSceneContextMenu(held(), QPointF(), QPoint(), false);
 	w.m_speedSlider->setValue(0);
 	w.m_runSceneAction->trigger();
 	if (!w.m_runController->m_worker || w.m_showingTrackPreview || held() || w.m_sceneContextMenu
-		|| !w.m_previewSelectedStationId.isEmpty() || !w.nodeIDText->text().isEmpty()) {
+		|| !w.m_inspector->m_previewSelectedStationId.isEmpty() || !w.m_inspector->nodeIDText->text().isEmpty()) {
 		failure = "preview-to-prepared-runtime did not clear canonical state/actions";
 		return false;
 	}
@@ -2696,7 +2702,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		return condition;
 	};
 	const auto find = [&](const QString& kind, const QString& id) {
-		return w.resolvePreviewItem(kind, id, QString(), false, w.m_document->revision());
+		return w.m_inspector->resolvePreviewItem(kind, id, QString(), false, w.m_document->revision());
 	};
 	const auto click = [&](const QPointF& position) {
 		QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
@@ -2741,7 +2747,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 			w.networkView->resetTransform();
 			w.networkView->scale(2, 2);
 			click(QPointF(point.x, point.y + line.displayOffset));
-			if (!require(w.nodeIDText->text() == QString::fromStdString(point.nodeId), "node event canonical ID")) return false;
+			if (!require(w.m_inspector->nodeIDText->text() == QString::fromStdString(point.nodeId), "node event canonical ID")) return false;
 		}
 	}
 	for (const auto& arc : saved.arcs) {
@@ -2752,12 +2758,12 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		const auto to = std::find_if(saved.nodes.begin(), saved.nodes.end(), [&](const SceneNode& node) { return node.id == arc.toNodeId; });
 		const double lengthM = std::hypot(to->xKm - from->xKm, to->yKm - from->yKm) * 1000;
 		click(item->line().pointAt(0.5));
-		if (!require(w.arcIDText->text() == QString::fromStdString(arc.id)
-					&& w.arcSpeedLimitText->text().toDouble() == arc.speedLimitMs
-					&& std::fabs(w.arcLengthText->text().toDouble() - lengthM) < 1e-6
-					&& w.arcGradientText->text().toDouble() == arc.gradientPercent
-					&& w.arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
-					&& w.arcOperationalStateText->text() == "Unavailable before Run",
+		if (!require(w.m_inspector->arcIDText->text() == QString::fromStdString(arc.id)
+					&& w.m_inspector->arcSpeedLimitText->text().toDouble() == arc.speedLimitMs
+					&& std::fabs(w.m_inspector->arcLengthText->text().toDouble() - lengthM) < 1e-6
+					&& w.m_inspector->arcGradientText->text().toDouble() == arc.gradientPercent
+					&& w.m_inspector->arcCurvatureText->text().toDouble() == arc.curvatureRadiusM
+					&& w.m_inspector->arcOperationalStateText->text() == "Unavailable before Run",
 				"arc event canonical fields")) return false;
 	}
 	auto* connection = qgraphicsitem_cast<ConnectionItem*>(find("connection", "creator-switch"));
@@ -2765,8 +2771,8 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				&& connection->pen().width() == 2 && connection->pen().isCosmetic(),
 			"preview connection paint/backing")) return false;
 	click(connection->line().pointAt(0.5));
-	if (!require(w.infoDockWidget->windowTitle().contains("creator-switch")
-				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
+	if (!require(w.m_inspector->dock()->windowTitle().contains("creator-switch")
+				&& w.m_inspector->connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
 	if (!require(w.m_document->revision() == initialRevision && w.m_document->isDirty() == savedDirty
 				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
@@ -2821,10 +2827,10 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	w.networkView->resetTransform();
 	w.networkView->scale(2, 2);
 	click(z1->rect().center());
-	if (!require(w.nodeStationNameText->text() == "Duplicate [later]" && w.nodeXText->text().toDouble() == 1000
-				&& w.infoDockWidget->windowTitle().contains("platform-real"),
+	if (!require(w.m_inspector->nodeStationNameText->text() == "Duplicate [later]" && w.m_inspector->nodeXText->text().toDouble() == 1000
+				&& w.m_inspector->dock()->windowTitle().contains("platform-real"),
 			QString("station square canonical inspection: name=%1 x=%2 title=%3")
-				.arg(w.nodeStationNameText->text(), w.nodeXText->text(), w.infoDockWidget->windowTitle()))) return false;
+				.arg(w.m_inspector->nodeStationNameText->text(), w.m_inspector->nodeXText->text(), w.m_inspector->dock()->windowTitle()))) return false;
 	StationOverlayItem* earlier = nullptr;
 	StationOverlayItem* between = nullptr;
 	for (auto* overlay : w.m_presenter->m_stationOverlays) {
@@ -2840,16 +2846,16 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(picture && picture->parentItem() == z1, "artwork bound downward to authored square with different winning station")) return false;
 	picture->setPos(picture->pos() + QPointF(150, -150));
 	clickArtwork(picture);
-	if (!require(w.nodeStationNameText->text() == "Duplicate [earlier]"
-				&& w.m_previewSelectedStationId == "earlier",
+	if (!require(w.m_inspector->nodeStationNameText->text() == "Duplicate [earlier]"
+				&& w.m_inspector->m_previewSelectedStationId == "earlier",
 			"displaced artwork owns canonical station identity")) return false;
 	// Position-only artwork has a real station, not an invented node.
 	auto* positionPicture = w.m_presenter->m_stationPictures.value(between, nullptr);
 	if (!require(positionPicture && !positionPicture->parentItem(), "position-only artwork has no invented parent")) return false;
 	positionPicture->setPos(positionPicture->pos() + QPointF(0, -300));
 	clickArtwork(positionPicture);
-	if (!require(w.nodeIDText->text() == "No node anchor" && w.nodeXText->text().toDouble() == 1500
-				&& w.nodeStationNameText->text() == "Duplicate [between]",
+	if (!require(w.m_inspector->nodeIDText->text() == "No node anchor" && w.m_inspector->nodeXText->text().toDouble() == 1500
+				&& w.m_inspector->nodeStationNameText->text() == "Duplicate [between]",
 			"position-only canonical inspection")) return false;
 	const bool oldLayer = w.m_presenter->m_stationLayerVisible, oldNames = w.m_presenter->m_stationNamesVisible;
 	w.m_presenter->m_stationLayerVisible = false;
@@ -2866,17 +2872,17 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	for (auto* decoration : w.m_presenter->m_stationDecorations) decoration->setVisible(oldLayer);
 	w.updateViewportOverlays();
 	click(qgraphicsitem_cast<TrackLineItem*>(find("track", "fallback"))->line().pointAt(0.5));
-	if (!require(w.arcIDText->text() == "No authored arc (fallback)" && w.arcFirstNodeIDText->text().isEmpty()
-				&& w.nodeStationNameText->text().isEmpty(),
+	if (!require(w.m_inspector->arcIDText->text() == "No authored arc (fallback)" && w.m_inspector->arcFirstNodeIDText->text().isEmpty()
+				&& w.m_inspector->nodeStationNameText->text().isEmpty(),
 			"fallback clears unrelated canonical fields")) return false;
 	const quint64 fixtureRevision = w.m_document->revision();
 	for (const auto& track : {QString("Z"), QString("A")}) {
-		auto* head = w.resolvePreviewItem("signal", "@" + track + "-section1@", track, false, fixtureRevision);
+		auto* head = w.m_inspector->resolvePreviewItem("signal", "@" + track + "-section1@", track, false, fixtureRevision);
 		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
 		click(head->sceneBoundingRect().center());
-		if (!require(w.signallingTrackIDText->text() == track && w.signallingXText->text().toDouble() == 1000
-					&& w.signallingLengthSectionAheadText->text() == "Unavailable before Run"
-					&& w.signallingGroupDetails->toPlainText().contains("authored-" + track),
+		if (!require(w.m_inspector->signallingTrackIDText->text() == track && w.m_inspector->signallingXText->text().toDouble() == 1000
+					&& w.m_inspector->signallingLengthSectionAheadText->text() == "Unavailable before Run"
+					&& w.m_inspector->signallingGroupDetails->toPlainText().contains("authored-" + track),
 				"exact canonical preview signal identity")) return false;
 	}
 	if (!require(w.m_presenter->m_previewFitBounds == topologyBounds && !w.m_runController->m_worker && w.m_presenter->allArcs.isEmpty()
@@ -2884,12 +2890,12 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 			"hit geometry/inspection mutated topology or runtime")) return false;
 	// Held payload tests the same guard as menus without dereferencing a deleted action.
 	const auto held = [&w, fixtureRevision]() {
-		return w.resolvePreviewItem("arc", "z-arc0", QString(), false, fixtureRevision);
+		return w.m_inspector->resolvePreviewItem("arc", "z-arc0", QString(), false, fixtureRevision);
 	};
 	w.showSceneContextMenu(find("arc", "z-arc0"), QPointF(), QPoint(), false);
 	w.renderTrackPreview(w.m_document->mutableModel());
-	if (!require(!w.m_sceneContextMenu && !w.infoDockWidget->isVisible() && w.nodeIDText->text().isEmpty()
-				&& w.m_previewSelectedStationId.isEmpty() && held(),
+	if (!require(!w.m_sceneContextMenu && !w.m_inspector->dock()->isVisible() && w.m_inspector->nodeIDText->text().isEmpty()
+				&& w.m_inspector->m_previewSelectedStationId.isEmpty() && held(),
 			"same-revision rebuild clears menu/inspection and safely resolves payload")) return false;
 	w.m_document->mutableModel().arcs.front().id = "renamed";
 	w.m_document->markChanged(SceneDocument::AllChanges);
