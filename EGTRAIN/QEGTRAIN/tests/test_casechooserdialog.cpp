@@ -25,6 +25,8 @@
 #include <QTextDocument>
 #include <QToolTip>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -224,6 +226,45 @@ struct Shown {
 		checkRowStyles(scenario, dialog.list());
 	}
 };
+
+// WCAG relative luminance of a colour.
+double luminance(QRgb color) {
+	auto channel = [](int value) {
+		const double c = value / 255.0;
+		return c <= 0.03928 ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4);
+	};
+	return 0.2126 * channel(qRed(color)) + 0.7152 * channel(qGreen(color)) + 0.0722 * channel(qBlue(color));
+}
+
+double contrastRatio(QRgb first, QRgb second) {
+	const double a = luminance(first);
+	const double b = luminance(second);
+	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+}
+
+// Selects the row and checks that its drawn text has a contrast ratio of at least 4.5 against the highlight. The
+// highlight is the colour at the right end of the row, the text colour the pixel of the text area farthest from it.
+void checkSelectedRowContrast(const QString& scenario, QListWidget* list, QListWidgetItem* item) {
+	list->setFocus();
+	list->setCurrentItem(item);
+	QApplication::processEvents();
+	const QImage image = list->viewport()->grab().toImage();
+	const double ratio = image.devicePixelRatio();
+	const QRect row = list->visualItemRect(item);
+	const QRgb highlight = image.pixel(qRound((row.right() - 6) * ratio), qRound(row.center().y() * ratio));
+	QRgb ink = highlight;
+	int farthest = 0;
+	for (int y = qRound((row.top() + 2) * ratio); y < qRound((row.bottom() - 2) * ratio); ++y) {
+		for (int x = qRound((row.left() + 4) * ratio); x < qRound((row.left() + 160) * ratio); ++x) {
+			const int distance = std::abs(qGray(image.pixel(x, y)) - qGray(highlight));
+			if (distance > farthest) {
+				farthest = distance;
+				ink = image.pixel(x, y);
+			}
+		}
+	}
+	check(contrastRatio(ink, highlight) >= 4.5, scenario, "the text of the selected row has a contrast ratio below 4.5 against its highlight");
+}
 
 // The six states of the chooser at one font size.
 void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
@@ -433,6 +474,23 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 		check(!shown.dialog.isVisible() && shown.dialog.result() == QDialog::Accepted
 				&& shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected && shown.dialog.chosenPath() == betaPath,
 			scenario, "Down then Enter did not open the case");
+	}
+
+	// A selected case row and a selected unavailable row stay readable.
+	{
+		const QString scenario = QStringLiteral("selected row contrast");
+		Shown shown(scenario, options, screen);
+		QListWidget* list = shown.dialog.list();
+		shown.dialog.activateWindow();
+		for (const QString& text : {QStringLiteral("Beta case"), QStringLiteral("Unavailable: gone case")}) {
+			const QList<QListWidgetItem*> found = list->findItems(text, Qt::MatchExactly);
+			check(found.size() == 1, scenario, "a row to select is missing");
+			if (found.size() == 1)
+				checkSelectedRowContrast(scenario + QLatin1Char(' ') + text, list, found.first());
+		}
+		const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone case"), Qt::MatchExactly);
+		check(unavailable.size() == 1 && unavailable.first()->isSelected() && unavailable.first()->font().italic(), scenario,
+			"a selected unavailable row is not italic");
 	}
 
 	// A name or path with "&", "<", ">" or an entity shows as typed in the tooltip of a case row and of an unavailable row.
