@@ -402,6 +402,25 @@ int main(int argc, char** argv) {
 			"a panel whose document is gone shows nothing and edits nothing");
 	}
 
+	{
+		// long names of services and stations do not widen the panel
+		SceneModel scene = delayScene();
+		const std::string longService(150, 's');
+		const std::string longStation(150, 'a');
+		scene.services[0].id = longService;
+		scene.services[0].stops[0].stationId = longStation;
+		scene.scenarios[0].entranceDelays[0] = delay(longService.c_str(), 2, longStation.c_str(), 30.0);
+		SceneDocument document;
+		EntranceDelayPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.listWidget()->setCurrentRow(0);
+		ok &= expect(panel.serviceCombo()->currentData().toString() == QString::fromStdString(longService)
+				&& panel.stationCombo()->currentText() == QString::fromStdString(longStation),
+			"the fields show the long names");
+		ok &= expect(panel.minimumSizeHint().width() < 400, "long names of services and stations do not widen the panel");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all entrance delay panel tests passed\n";

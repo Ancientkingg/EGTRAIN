@@ -1,6 +1,7 @@
 #include "editors/EntranceDelayPanel.h"
 
 #include "editors/ServicePanel.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/EditorLayout.h"
 
@@ -62,7 +63,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_emptyStateLabel->setObjectName("entranceDelayEmptyStateLabel");
 	layout->addWidget(m_emptyStateLabel);
 	QFormLayout* detailLayout = new QFormLayout();
-	m_serviceCombo = new QComboBox(this);
+	m_serviceCombo = new ChoiceComboBox(this);
 	m_serviceCombo->setObjectName("entranceDelayServiceCombo");
 	detailLayout->addRow("Service", m_serviceCombo);
 	m_occurrenceEdit = new QSpinBox(this);
@@ -74,7 +75,7 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	m_occurrenceContextLabel->setObjectName("entranceDelayOccurrenceContextLabel");
 	m_occurrenceContextLabel->setWordWrap(true);
 	detailLayout->addRow(QString(), m_occurrenceContextLabel);
-	m_stationCombo = new QComboBox(this);
+	m_stationCombo = new ChoiceComboBox(this);
 	m_stationCombo->setObjectName("entranceDelayStationCombo");
 	detailLayout->addRow("Station", m_stationCombo);
 	m_secondsEdit = new CompactDoubleSpinBox(this);
