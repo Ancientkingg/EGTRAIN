@@ -1,27 +1,24 @@
 # Opening an `.egscene` case study
 
-An `.egscene` file contains one canonical case study. It is a ZIP archive with
-the same JSON data that EGTRAIN loads from a V1 scene directory.
+An `.egscene` file contains one case study. It is a ZIP archive with the same
+JSON files that EGTRAIN loads from a scene folder. This page is about the
+bundle: how to open one, which versions open, what happens when a file is
+opened by double-click, and how to handle bundles from the command line.
+[Getting started](getting-started.md) takes you from a download through a first
+run, and [How-to](how-to.md) has the recipes for everyday tasks.
 
 ## Open and run
 
-1. Download the case-study `.egscene` file from the
-   [EGTRAIN releases page](https://github.com/Ancientkingg/EGTRAIN/releases).
-2. In EGTRAIN, choose **File > Open Case Study...** and select the file. On
-   Windows and macOS you can instead
-   [double-click the file](#open-by-double-click).
+The steps for opening a case are in [Getting started](getting-started.md#2-the-first-start) and [How-to](how-to.md#open-a-case). In short, choose **File > Open Case Study...** and select the file (the dialog starts in the folder above the open case, and on macOS, with no case open, in the `Scenes` folder of the app), or [double-click it](#open-by-double-click) on Windows and macOS.
 
-   ![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
+![Selecting a Paimpol .egscene file in the case-study picker](../images/opening-a-case-study-file-picker.png)
 
-3. Review any validation diagnostics shown by the application. The loaded
-   network appears in the main window before the simulation starts.
+![The Paimpol network loaded and ready to run](../images/opening-a-case-study-loaded-network.png)
 
-   ![The Paimpol network loaded and ready to run](../images/opening-a-case-study-loaded-network.png)
-
-4. Choose **Run** when the case study is ready.
-
-Opening a bundle does not run it or modify the downloaded file. Use
-**File > Save Case Study As...** to create a new `.egscene` after editing the scene.
+Opening a bundle does not run it or modify the downloaded file. To run it,
+follow [Getting started](getting-started.md#4-run-the-simulation). Use
+**File > Save Case Study As...** to create a new `.egscene` after editing the
+scene.
 
 When you open a scene in the EGTRAIN window, EGTRAIN checks its version before
 it loads the scene. The check never changes the file you opened. Three dialogs

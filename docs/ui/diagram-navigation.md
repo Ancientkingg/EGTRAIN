@@ -1,5 +1,7 @@
 # Inspecting diagrams
 
+This page describes the result windows: hover, select, zoom, pan and the data behind the charts. [How-to](../guides/how-to.md#results-and-exports) lists the result windows and the exports, [How-to](../guides/how-to.md#move-around-the-network-view-and-follow-a-train) covers the network view, and [Timetable graphs and train paths](../guides/scenes-and-application.md#timetable-graphs-and-train-paths) describes what the two route charts plot.
+
 Hover near a plotted line or event marker to inspect its nearest **recorded sample**. The tooltip shows that sample's values, units and available station, call or block context. A line between samples is useful for finding a train, but the tooltip does not interpolate a value at the pointer. Filled occupation regions can be inspected inside their boundaries when marked as such by the chart; ordinary closed outlines cannot.
 
 Click a line or marker to select its train. The train filter controls visibility; neither filtering nor navigation changes the underlying CSV data schema. Drag a rectangle to zoom into an area. Two-finger scrolling pans by the supplied pixel distance; an ordinary wheel pans using wheel steps. Ctrl or Command plus wheel zooms around the pointer. Pinch zooms on devices that deliver native or Qt pinch gestures. Use + or - to zoom, arrow keys to pan while the chart has focus, and Home, 0 or Reset zoom to return to the chart's initial bounds. Reset does not remove a train selection or change filters.

@@ -5,7 +5,10 @@ Choose the route that matches your task.
 ## Run existing scenes
 
 - [EGTRAIN releases](https://github.com/Ancientkingg/EGTRAIN/releases)
+- [Getting started](guides/getting-started.md): from a download to a first run of the Paimpol case study, its results and two exported files.
+- [How-to](guides/how-to.md): recipes for opening and saving a case, fixing validation errors, editing a timetable or rolling stock, comparing a scenario with a baseline, moving around the network view, replaying a run, exporting results and converting a legacy case, and why a command is disabled.
 - [Opening an `.egscene` case study](guides/opening-a-case-study.md)
+- [Updating EGTRAIN](guides/updates.md): the automatic and manual checks, consent, what an update does to an installed or portable copy, and the earlier builds that need a manual upgrade.
 - [Glossary of application terms](guides/glossary.md)
 - [Command-line options and scene_tool](guides/command-line.md)
 - [Run output files](guides/run-output.md)
@@ -16,9 +19,14 @@ Choose the route that matches your task.
 - [How capacity is analysed](guides/capacity-analysis.md): the train chain window and the capacity by area window, with the choice of scope and period, the completeness rule, the governing resource and a figure reproduced by hand.
 - [Inspecting diagrams](ui/diagram-navigation.md): how to hover, select, zoom and pan in a result diagram, and how the timetable graph, the train-path graph and the blocking-time charts are drawn.
 
+## Tutorials
+
+- [Tutorial: modify a supplied case](guides/tutorial-modify-a-case.md): save a working copy of Paimpol, change a dwell and a performance, validate, save, reopen, run, and compare delays in an incident scenario.
+- [Tutorial: the smallest useful scene](guides/tutorial-minimal-scene.md): build a one-track case with two stations and one train from New Case Study..., run it, save it as a folder and a bundle, and open it again.
+
 ## Create or edit scenes
 
-- [Using EGTRAIN and authoring V1 scenes](guides/scenes-and-application.md)
+- [Using EGTRAIN and authoring scenes](guides/scenes-and-application.md): what the docks and windows show, the rules for editing and validating, and the scene files in a Reference part.
 - [V1 scene property reference](guides/v1-scene-properties.md)
 - [Scene schema reference](architecture/scene-schema.md)
 - [Scene bundle format](architecture/scene-bundle.md)
@@ -27,10 +35,10 @@ Choose the route that matches your task.
 - [Assignment corridor](product/assignment-corridor.md)
 - [Assignment workflow](product/assignment-workflow.md)
 
-Canonical V1 scene directories are the editable source of truth. Transparent
-`.egscene` bundles package those files for transport. Legacy import and export
-remain explicit interoperability actions; normal scene loading and simulation
-use the canonical model.
+A scene folder is the editable source of truth. An `.egscene` bundle packages
+its files for transport. Legacy import and export remain explicit
+interoperability actions; normal scene loading and simulation use the
+canonical model.
 
 ## Develop or contribute
 

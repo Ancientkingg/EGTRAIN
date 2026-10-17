@@ -1279,31 +1279,16 @@ Qt is not instrumented, so a window run reports data races in `ConsoleWidget` an
 
 ## Completed-run replay
 
-After a successful, unchanged full run, the Replay row appears under the network.
-Start, End, Play/Pause, the slider, its arrow keys and mouse wheel seek only the
-latest completed run. Play advances one requested simulation second per wall
-second; each selection displays the last recorded frame at or before that time,
-not interpolated positions. The label beside the slider names the selected frame
-time and keeps the width of its longest text, so the slider does not change its width
-while the selection moves. The text below the controls does not depend on the selected
-time, so the row keeps its height while the user seeks. It reports the interval that is
-kept and the five-second sampling cadence; the slider covers exactly that interval and
-Start goes to its first time. When the run is larger than the replay memory and the
-oldest frames were dropped, the text says from which time the replay starts, as a clock
-time and in seconds, and that the earlier part was not kept because the run is larger
-than the replay memory, and the tooltip of Start says that it goes to the first kept
-time. When not even one frame fits, the label says "No replay", the text says why, the
-slider is empty and the slider and Play are disabled. A replay
-seek explicitly restores historical operational overlays; normal completion does
-not. A new run or scene/scenario edit clears replay and returns active replay to
-the authoring preview. Train, station and signal inspections remain selected
-across seeks; future or exited trains do not appear on layer toggles or drive
-Follow station emphasis. Follow stays on after the followed train has left at the
-displayed time and continues when the replay goes back; in a live run it is
-switched off at that point. Unsuccessful and stopped runs have no replay, and a
-stopped run keeps no results either.
-Passenger journey details are unavailable in replay; snapshot scalar counts
-and statuses remain visible.
+What the Replay row shows and how a user works with it is in
+[Replay a completed run](../guides/how-to.md#replay-a-completed-run). This section
+keeps what a developer needs.
+
+The label beside the slider names the selected frame time and keeps the width of
+its longest text, so the slider does not change its width while the selection
+moves. The text below the controls does not depend on the selected time, so the
+row keeps its height while the user seeks. A replay seek explicitly restores
+historical operational overlays; normal completion does not. Future or exited
+trains do not appear on layer toggles or drive Follow station emphasis.
 
 The history (`app/GuiReplayHistory`) records every fifth simulated second and the
 last one, in a compact form. What is the same for the whole run (identity and
@@ -1362,11 +1347,9 @@ Recording a frame took 1 to 30 microseconds (Copenhagen and Netherlands: 21 to
 
 ## Close, New and Open during a run
 
-Close, New Case Study, the Open commands and Load Legacy Case first ask a
-running simulation to stop. The status bar shows "Stopping simulation..." and
-the window stays usable. The command continues when the worker has finished,
-and the current scene is replaced only then, so an open that fails leaves it in
-place. `test_close_during_run_smoke` closes the window during an autostarted
+What a user sees when a command waits for a run to stop is in
+[Close, start a new case or open another during a run](../guides/how-to.md#close-start-a-new-case-or-open-another-during-a-run).
+`test_close_during_run_smoke` closes the window during an autostarted
 run: the close request has to return with the run still stopping, and the
 application has to exit by itself afterwards.
 
