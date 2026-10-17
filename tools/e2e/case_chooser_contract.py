@@ -87,7 +87,7 @@ def main():
         alias = root / "same-scene-alias"
         alias.symlink_to(fixture, target_is_directory=True)
         missing = root / "missing_case"
-        recents = [fixture, alias, Path(first["path"]), missing]
+        recents = [fixture, alias, Path(first["path"]), missing, f"{missing}/"]
 
         for interaction in ("select", "open", "keyboard", "doubleclick"):
             contract, settings_text = launch(app, root / f"settings-{interaction}", recents,
@@ -107,11 +107,13 @@ def main():
             unavailable = next(row for row in rows if row["tooltip"] == tooltip("missing case", missing))
             assert shown_lines(unavailable["tooltip"]) == ["missing case", str(missing)], unavailable
             assert unavailable["title"] == "Unavailable: missing case", unavailable
-            assert not unavailable["enabled"] and not unavailable["selectable"], unavailable
+            assert sum(row["title"].startswith("Unavailable: ") for row in rows) == 1, rows
+            assert unavailable["enabled"] and unavailable["selectable"] and not unavailable["path"], unavailable
             assert str(missing) in settings_text, settings_text
             menu_missing = next(action for action in contract["recentActions"]
                                 if action["path"] == str(missing))
             assert menu_missing["title"].startswith("Unavailable: "), menu_missing
+            assert sum(action["title"].startswith("Unavailable: ") for action in contract["recentActions"]) == 1, contract
             assert not menu_missing["enabled"] and menu_missing["tooltip"] == str(missing), menu_missing
             assert contract["selectedPath"] == str(fixture), contract
             if interaction == "select":

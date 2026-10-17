@@ -12,6 +12,7 @@
 #include "scene/SceneMigration.h"
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
+#include "widgets/CaseChooserDialog.h"
 #include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
@@ -28,6 +29,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPushButton>
+#include <QSet>
 #include <QSettings>
 #include <QStatusBar>
 #include <QUrl>
@@ -543,14 +545,26 @@ QMenu* SceneSession::recentScenesMenu() const {
 }
 
 QStringList SceneSession::recentScenes() {
-	return QSettings().value(kRecentScenesKey).toStringList();
+	// Several spellings of one path, kept by an earlier version, list once, with the newest.
+	QStringList recent;
+	QSet<QString> seen;
+	for (const QString& stored : QSettings().value(kRecentScenesKey).toStringList()) {
+		const QString key = sceneListKey(stored);
+		if (seen.contains(key))
+			continue;
+		seen.insert(key);
+		recent << stored;
+	}
+	return recent;
 }
 
 void SceneSession::addRecentScene(const QString& path) {
 	const QString cleanPath = QFileInfo(path).absoluteFilePath();
 	QSettings settings;
-	QStringList recent = settings.value(kRecentScenesKey).toStringList();
-	recent.removeAll(cleanPath);
+	QStringList recent = recentScenes();
+	const QString key = sceneListKey(cleanPath);
+	recent.erase(std::remove_if(recent.begin(), recent.end(), [&key](const QString& stored) { return sceneListKey(stored) == key; }),
+		recent.end());
 	recent.prepend(cleanPath);
 	while (recent.size() > kMaxRecentScenes)
 		recent.removeLast();
