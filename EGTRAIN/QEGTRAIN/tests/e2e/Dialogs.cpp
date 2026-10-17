@@ -136,7 +136,7 @@ void MainWindowTestAccess::chooserShown(MainWindow& w, CaseChooserDialog& dialog
 	QPushButton* openBtn = dialog.openButton();
 	QPushButton* continueBtn = dialog.continueButton();
 	chooserSceneDirBefore = w.m_sceneDir;
-	chooserSceneRevisionBefore = w.m_sceneRevision;
+	chooserSceneRevisionBefore = w.m_document->revision();
 	chooserContract = QVariantMap();
 	QVariantList rows;
 	for (int row = 0; row < list->count(); ++row) {
@@ -211,7 +211,7 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 	chooserContract.insert("chosenPath", dialog.chosenPath());
 	chooserContract.insert("accepted", dialog.result() == QDialog::Accepted);
 	chooserContract.insert("loadedAfter", w.m_sceneDir);
-	chooserContract.insert("loaded", w.m_sceneLoaded);
+	chooserContract.insert("loaded", w.m_document->isLoaded());
 	printMarker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
 	printMarker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
 	printMarker("E2E_STARTUP_CHOOSER_ACTION", dialog.continueButton()->text());
@@ -219,12 +219,12 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 	printMarker("E2E_STARTUP_CHOOSER_GROUP_SELECTABLE", list->item(0)->flags() & Qt::ItemIsEnabled ? "yes" : "no");
 	printMarker("E2E_STARTUP_CHOOSER_FIRST", list->currentItem() ? list->currentItem()->text() : QString());
 	printMarker("E2E_STARTUP_CHOOSER_OPEN_ENABLED", dialog.openButton()->isEnabled() ? "yes" : "no");
-	printMarker("E2E_STARTUP_CHOOSER_MODEL", QString::fromStdString(w.m_sceneModel.name));
+	printMarker("E2E_STARTUP_CHOOSER_MODEL", QString::fromStdString(w.m_document->mutableModel().name));
 	printMarker("E2E_STARTUP_CHOOSER_CASE_LABEL", w.m_caseNameLabel ? w.m_caseNameLabel->text() : QString());
 	printMarker("E2E_STARTUP_CHOOSER_READINESS", w.m_caseReadinessLabel ? w.m_caseReadinessLabel->text() : QString());
 	printMarker("E2E_STARTUP_CHOOSER_STATUS", w.statusBar()->currentMessage());
 	printMarker("E2E_STARTUP_CHOOSER_UNCHANGED",
-		w.m_sceneLoaded && w.m_sceneDir == chooserSceneDirBefore && w.m_sceneRevision == chooserSceneRevisionBefore
+		w.m_document->isLoaded() && w.m_sceneDir == chooserSceneDirBefore && w.m_document->revision() == chooserSceneRevisionBefore
 			? QStringLiteral("yes")
 			: QStringLiteral("no"));
 	std::fflush(stdout);
@@ -236,8 +236,8 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 // Escape when QEGTRAIN_E2E_REVIEW_CANCEL is escape.
 void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 	reviewDiagnostic = QJsonObject();
-	reviewRevisionBefore = w.m_sceneRevision;
-	reviewSelectionBefore = w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration());
+	reviewRevisionBefore = w.m_document->revision();
+	reviewSelectionBefore = w.m_runSelection.selectedOccurrences(w.m_document->mutableModel(), w.serviceOccurrenceDuration());
 	reviewAdvanced = w.advancedDetailsEnabled();
 	auto* body = review.findChild<QWidget*>("runReviewBody");
 	auto* buttons = review.findChild<QDialogButtonBox*>("runReviewButtons");
@@ -400,7 +400,7 @@ void MainWindowTestAccess::reviewClosed(MainWindow& w, QDialog& review) {
 	std::fprintf(stdout, "E2E_RUN_REVIEW_VALIDATION_VISIBLE=%d\n", details.contains("Validation:") ? 1 : 0);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_CANCELLED=%d\n", cancelled ? 1 : 0);
 	std::fprintf(stdout, "E2E_RUN_REVIEW_UNCHANGED=%d\n",
-		w.m_sceneRevision == reviewRevisionBefore && w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration()) == reviewSelectionBefore ? 1 : 0);
+		w.m_document->revision() == reviewRevisionBefore && w.m_runSelection.selectedOccurrences(w.m_document->mutableModel(), w.serviceOccurrenceDuration()) == reviewSelectionBefore ? 1 : 0);
 	std::fflush(stdout);
 	QCoreApplication::exit(0);
 }

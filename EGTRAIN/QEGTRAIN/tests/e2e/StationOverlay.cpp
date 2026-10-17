@@ -51,7 +51,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 	if (scenarioStarted)
 		return;
 	const bool waitingForAutostart = qEnvironmentVariableIsSet("QEGTRAIN_AUTOSTART") && !w.m_snapshot;
-	if ((!w.m_sceneLoaded || !w.networkView || w.m_presenter->m_stationOverlays.isEmpty() || waitingForAutostart)
+	if ((!w.m_document->isLoaded() || !w.networkView || w.m_presenter->m_stationOverlays.isEmpty() || waitingForAutostart)
 		&& scenarioAttempts < 120) {
 		++scenarioAttempts;
 		QTimer::singleShot(500, &w, [&w] { MainWindowTestAccess::runStationOverlay(w); });
@@ -76,7 +76,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 	} else {
 		w.resize(1200, 800);
 		QApplication::processEvents();
-		const QString caseName = QString::fromStdString(w.m_sceneModel.name);
+		const QString caseName = QString::fromStdString(w.m_document->mutableModel().name);
 		const QString screenshotBase = qEnvironmentVariable("QEGTRAIN_E2E_STATION_SCREENSHOT_BASE");
 		if (caseName == QLatin1String("Copenhagen")) {
 			const auto kb = std::find_if(w.m_presenter->m_stationOverlays.cbegin(), w.m_presenter->m_stationOverlays.cend(),

@@ -89,7 +89,6 @@
 #include <QTabWidget>
 #include <QSet>
 
-#include "editors/SceneDocument.h"
 #include "app/RunSelection.h"
 #include "recovery/RecoveryStore.h"
 #include "scene/SceneDiagnostic.h"
@@ -121,6 +120,8 @@ class PassengerPanel;
 class ScenarioPanel;
 class ServicePanel;
 class RecoveryController;
+class SceneDocument;
+class SceneEditorPanel;
 class SceneHistory;
 struct SceneHistoryEntry;
 class UserPrompts;
@@ -410,13 +411,8 @@ private:
 	QMenu* m_editorsMenu = nullptr; // Editors top-level menu (dock toggles)
 	QString m_sceneDir;
 	std::string m_savedSceneSha256;
-	// The scene is owned by the document. The references below let the code that has not moved to the editors read
-	// and write it under its old names.
-	SceneDocument* m_document = new SceneDocument(this);
-	SceneModel& m_sceneModel = m_document->mutableModel();
-	bool& m_sceneLoaded = m_document->m_loaded;
-	bool& m_sceneDirty = m_document->m_dirty;
-	quint64& m_sceneRevision = m_document->m_revision;
+	// The scene, its unsaved state and its revision. The editors work on it through their panels.
+	SceneDocument* m_document = nullptr;
 	// Undo and Redo. The history holds the scene as it was after each edit, and sceneDocumentChanged adds to it.
 	std::unique_ptr<SceneHistory> m_history;
 	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
@@ -434,6 +430,8 @@ private:
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
+	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
+	std::vector<SceneEditorPanel*> m_editorPanels;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;
@@ -699,18 +697,11 @@ private:
 	void commitCaseSettings();
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
-	// The facets of the infrastructure panel that MainWindow implements.
-	class UnmovedInfrastructureFacet;
-	void fillInfrastructureRows(const QString& facet);
-	void commitInfrastructureCell(int row, int column);
-	void addInfrastructureEntity();
-	void deleteInfrastructureEntity();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	bool advancedDetailsEnabled() const;
 	void updateDiagnosticPresentation();
 	void activateLoadedDataItem(QTreeWidgetItem* item);
-	void markSceneDirty();
 	void sceneDocumentChanged();
 	void invalidateAfterSceneChange();
 	void setupEditMenu();

@@ -17,8 +17,6 @@
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
 
-class MainWindow;
-
 // Copies `snapshot` over `live`, except for the parts of the scene that the application derives from the files on disk and
 // from checking the scene, which an edit does not author: the loaded data, the source files and the version that saved the
 // scene. Those keep their values in `live`.
@@ -80,8 +78,8 @@ Q_SIGNALS:
 	void editableChanged(bool editable);
 
 private:
-	// MainWindow holds references to the state until its editors have moved out.
-	friend class MainWindow;
+	// The scripted runs in tests/e2e set the revision directly.
+	friend class MainWindowTestAccess;
 
 	SceneModel m_model;
 	bool m_loaded = false;

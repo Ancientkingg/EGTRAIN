@@ -20,7 +20,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	if (scenarioStarted)
 		return;
 
-	if (!w.m_sceneLoaded) {
+	if (!w.m_document->isLoaded()) {
 		QString sceneDir = qEnvironmentVariable("QEGTRAIN_E2E_SCENE");
 		if (sceneDir.isEmpty() || !w.openSceneDirectory(sceneDir)) {
 			std::fprintf(stderr, "E2E_SCENE_RENDER_FAIL: scene did not open\n");
@@ -31,7 +31,7 @@ void MainWindowTestAccess::runSceneRender(MainWindow& w) {
 	}
 	if (!w.m_worker && w.m_presenter->allTrains.isEmpty()) {
 		// Before the first run Follow is off and its tooltip says why.
-		const bool services = !w.m_sceneModel.services.empty();
+		const bool services = !w.m_document->mutableModel().services.empty();
 		const QString reason = services ? QStringLiteral("Run the case first, then you can follow a train.")
 										: QStringLiteral("This case has no trains to follow.");
 		const bool explained = w.m_followTrainCombo->count() == 1 && w.m_followTrainCombo->currentData().toInt() == -1

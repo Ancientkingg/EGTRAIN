@@ -122,9 +122,9 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	const auto crashAfterEdits = [&](bool newCase) -> QString {
 		if (newCase) {
 			w.newScene();
-			if (!w.m_sceneDirty || !w.m_sceneDir.isEmpty())
+			if (!w.m_document->isDirty() || !w.m_sceneDir.isEmpty())
 				return QStringLiteral("the new case was not created");
-		} else if (w.m_sceneDirty) {
+		} else if (w.m_document->isDirty()) {
 			return QStringLiteral("the scene had edits before the script made its own");
 		}
 		editThreeTimes();
@@ -151,12 +151,12 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	const auto startAgain = [&]() -> QString {
 		// A prompt that opened has been answered before the script runs.
 		waitFor([] { return QApplication::activeModalWidget() == nullptr; });
-		const bool opened = w.m_sceneDir.isEmpty() && w.m_sceneDirty && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();
+		const bool opened = w.m_sceneDir.isEmpty() && w.m_document->isDirty() && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();
 		printLine(QStringLiteral("E2E_RECOVERY_STATE prompted=%1|opened=%2|name=%3|description=%4|base_time=%5|hint=%6")
 				.arg(recoveryPromptSeen ? 1 : 0)
 				.arg(opened ? 1 : 0)
-				.arg(QString::fromStdString(w.m_sceneModel.name), QString::fromStdString(w.m_sceneModel.description),
-					QString::fromStdString(w.m_sceneModel.baseTime), w.m_recoveredSourceHint));
+				.arg(QString::fromStdString(w.m_document->mutableModel().name), QString::fromStdString(w.m_document->mutableModel().description),
+					QString::fromStdString(w.m_document->mutableModel().baseTime), w.m_recoveredSourceHint));
 		const QString saveAs = qEnvironmentVariable("QEGTRAIN_E2E_RECOVERY_SAVE_AS");
 		if (opened) {
 			if (saveAs.isEmpty())
@@ -167,8 +167,8 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 			const bool saved = w.saveSceneToCurrentDir();
 			printLine(QStringLiteral("E2E_RECOVERY_SAVE_AS_START %1").arg(*start));
 			const SceneLoadResult reloaded = loadScenePath(target.toStdString());
-			if (!saved || w.m_sceneDirty || QFileInfo(w.m_sceneDir).absoluteFilePath() != target || !w.m_sceneIsBundle
-				|| !w.m_recoveredSourceHint.isEmpty() || reloaded.scene.name != w.m_sceneModel.name)
+			if (!saved || w.m_document->isDirty() || QFileInfo(w.m_sceneDir).absoluteFilePath() != target || !w.m_sceneIsBundle
+				|| !w.m_recoveredSourceHint.isEmpty() || reloaded.scene.name != w.m_document->mutableModel().name)
 				return QStringLiteral("Save As did not leave a saved scene at the file that was chosen");
 			printLine(QStringLiteral("E2E_RECOVERY_SAVED name=%1").arg(QString::fromStdString(reloaded.scene.name)));
 		}
@@ -192,7 +192,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 			return QStringLiteral("the autosave did not finish");
 		if (unavailable != 1)
 			return QStringLiteral("the window reported the failed autosave %1 times").arg(unavailable);
-		if (!w.m_sceneDirty || w.m_sceneModel.name != "Recovery smoke case again")
+		if (!w.m_document->isDirty() || w.m_document->mutableModel().name != "Recovery smoke case again")
 			return QStringLiteral("the failed autosave stopped the editing");
 		w.runScene();
 		if (!w.m_worker)

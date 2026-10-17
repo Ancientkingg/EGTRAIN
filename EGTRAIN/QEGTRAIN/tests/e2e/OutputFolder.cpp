@@ -78,7 +78,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 		finish();
 		return;
 	}
-	const std::string startupName = w.m_sceneModel.name;
+	const std::string startupName = w.m_document->mutableModel().name;
 	const QString startupFolder = outputFolderOf(run->base, startupName);
 	if (currentOutputFolder() != startupFolder)
 		fail(QStringLiteral("the start-up scene does not write to %1").arg(startupFolder));
@@ -87,7 +87,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	run->thirdPath = run->temp.filePath(QStringLiteral("third.egscene"));
 	run->chosen = run->temp.filePath(QStringLiteral("chosen"));
 	const auto writeBundle = [&w, fail](const QString& path, const std::string& name) {
-		SceneModel copy = w.m_sceneModel;
+		SceneModel copy = w.m_document->mutableModel();
 		copy.name = name;
 		if (!saveSceneBundle(copy, path.toStdString()).success())
 			fail(QStringLiteral("the bundle of %1 was not written").arg(QString::fromStdString(name)));
@@ -101,17 +101,17 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 
 	// The start-up scene is saved, so a new case replaces it without asking to save.
 	w.newScene();
-	if (!w.m_sceneDir.isEmpty() || w.m_sceneModel.name == startupName) {
+	if (!w.m_sceneDir.isEmpty() || w.m_document->mutableModel().name == startupName) {
 		fail(QStringLiteral("the new case was not created"));
 		finish();
 		return;
 	}
-	const QString newFolder = outputFolderOf(run->base, w.m_sceneModel.name);
+	const QString newFolder = outputFolderOf(run->base, w.m_document->mutableModel().name);
 	if (currentOutputFolder() != newFolder)
 		fail(QStringLiteral("after creating a case the folder is %1, not %2").arg(currentOutputFolder(), newFolder));
 
 	const QString secondFolder = outputFolderOf(run->base, run->secondName);
-	if (!w.openSceneDirectory(run->secondPath) || w.m_sceneModel.name != run->secondName) {
+	if (!w.openSceneDirectory(run->secondPath) || w.m_document->mutableModel().name != run->secondName) {
 		fail(QStringLiteral("the second scene did not open"));
 		finish();
 		return;
@@ -129,7 +129,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	}
 	w.m_caseNameEdit->setText(QString::fromStdString(run->renamedName));
 	w.commitCaseSettings();
-	if (w.m_sceneModel.name != run->renamedName) {
+	if (w.m_document->mutableModel().name != run->renamedName) {
 		fail(QStringLiteral("the second scene was not renamed"));
 		finish();
 		return;
@@ -145,7 +145,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	if (!QDir(renamedFolder + QStringLiteral("/TrainTrajectories")).exists())
 		fail(QStringLiteral("the run of the renamed scene prepared no files in %1").arg(renamedFolder));
 	// The rename is not saved. Opening the next scene must not ask about it.
-	w.m_sceneDirty = false;
+	w.m_document->setDirty(false);
 
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
 	const QString thirdFolder = outputFolderOf(run->base, run->thirdName);
@@ -157,7 +157,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	}
 	auto* poll = new QTimer(&w);
 	QObject::connect(poll, &QTimer::timeout, &w, [&w, run, thirdFolder, fail, finish, poll]() {
-		if (w.m_worker || w.m_sceneModel.name != run->thirdName) {
+		if (w.m_worker || w.m_document->mutableModel().name != run->thirdName) {
 			if (++run->attempts < kMaxPolls)
 				return;
 			fail(QStringLiteral("the third scene did not open"));

@@ -404,7 +404,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 1) {
-		if (!w.m_sceneLoaded || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
+		if (!w.m_document->isLoaded() || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
 			|| !w.m_addInfrastructureButton || !w.m_caseSettingsDock) {
 			fail(QStringLiteral("blank case or creator controls did not load"));
 			return;
@@ -579,7 +579,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 2) {
-		if (!w.m_sceneLoaded || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
+		if (!w.m_document->isLoaded() || !w.m_infrastructureFacetCombo || !w.m_infrastructureTable
 			|| !w.m_addInfrastructureButton || !w.m_deleteInfrastructureButton) {
 			fail(QStringLiteral("infrastructure controls disappeared before signalling authoring"));
 			return;
@@ -752,27 +752,27 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_infrastructureTable->item(mainBlockRow, 0)->setText(renamedBlock);
 		process();
 		bool referenceStillValid = false;
-		if (w.m_sceneModel.routes.size() == 1 && w.m_sceneModel.routes.front().blocks.size() == 3
-			&& w.m_sceneModel.blockDependencies.size() == 1
-			&& w.m_sceneModel.singleTrackRestrictions.size() == 1
-			&& w.m_sceneModel.stationBoundaries.size() == 1
-			&& !sceneSignals(w.m_sceneModel).empty()) {
+		if (w.m_document->mutableModel().routes.size() == 1 && w.m_document->mutableModel().routes.front().blocks.size() == 3
+			&& w.m_document->mutableModel().blockDependencies.size() == 1
+			&& w.m_document->mutableModel().singleTrackRestrictions.size() == 1
+			&& w.m_document->mutableModel().stationBoundaries.size() == 1
+			&& !sceneSignals(w.m_document->mutableModel()).empty()) {
 			const auto mentions = [&renamedBlock](const std::string& value) {
 				return value.find(renamedBlock.toStdString()) != std::string::npos;
 			};
-			const auto& route = w.m_sceneModel.routes.front();
-			const auto& dependency = w.m_sceneModel.blockDependencies.front();
-			const auto& restriction = w.m_sceneModel.singleTrackRestrictions.front();
-			const auto& boundary = w.m_sceneModel.stationBoundaries.front();
+			const auto& route = w.m_document->mutableModel().routes.front();
+			const auto& dependency = w.m_document->mutableModel().blockDependencies.front();
+			const auto& restriction = w.m_document->mutableModel().singleTrackRestrictions.front();
+			const auto& boundary = w.m_document->mutableModel().stationBoundaries.front();
 			referenceStillValid = mentions(route.blocks.front()) && mentions(dependency.block)
 				&& mentions(restriction.startBlock) && mentions(boundary.entranceBlock)
-				&& mentions(sceneSignals(w.m_sceneModel).front().protectedSection);
+				&& mentions(sceneSignals(w.m_document->mutableModel()).front().protectedSection);
 		}
 		if (!referenceStillValid) {
 			fail(QStringLiteral("public block rename did not retain all references"));
 			return;
 		}
-		const std::size_t blockCount = w.m_sceneModel.blocks.size();
+		const std::size_t blockCount = w.m_document->mutableModel().blocks.size();
 		const int renamedRow = rowFor(renamedBlock);
 		if (renamedRow < 0) {
 			fail(QStringLiteral("renamed block could not be selected for delete check"));
@@ -781,7 +781,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_infrastructureTable->setCurrentCell(renamedRow, 0);
 		w.m_deleteInfrastructureButton->click();
 		process();
-		if (w.m_sceneModel.blocks.size() != blockCount) {
+		if (w.m_document->mutableModel().blocks.size() != blockCount) {
 			fail(QStringLiteral("referenced delete changed canonical data"));
 			return;
 		}
@@ -791,7 +791,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 3) {
-		if (!w.m_sceneLoaded || !w.m_trainUnitDock || !w.m_trainUnitListWidget
+		if (!w.m_document->isLoaded() || !w.m_trainUnitDock || !w.m_trainUnitListWidget
 			|| !w.m_addTrainUnitButton || !w.m_trainUnitIdEdit || !w.m_compositionDock
 			|| !w.m_addCompositionButton || !w.m_addUnitButton || !w.m_addTrainUnitTractionButton) {
 			fail(QStringLiteral("rolling-stock creator controls are unavailable"));
@@ -855,10 +855,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_addUnitButton->click();
 		process();
 		if (w.m_compositionUnitsListWidget->count() != 2
-			|| w.m_sceneModel.compositions.empty()
-			|| w.m_sceneModel.compositions.front().units.size() != 2
-			|| w.m_sceneModel.compositions.front().units.front() != "creator-unit-a"
-			|| w.m_sceneModel.compositions.front().units.back() != "creator-unit-b") {
+			|| w.m_document->mutableModel().compositions.empty()
+			|| w.m_document->mutableModel().compositions.front().units.size() != 2
+			|| w.m_document->mutableModel().compositions.front().units.front() != "creator-unit-a"
+			|| w.m_document->mutableModel().compositions.front().units.back() != "creator-unit-b") {
 			fail(QStringLiteral("composition membership did not retain both units in order"));
 			return;
 		}
@@ -868,7 +868,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 4) {
-		if (!w.m_sceneLoaded || !w.m_serviceDock || !w.m_serviceListWidget || !w.m_addServiceButton
+		if (!w.m_document->isLoaded() || !w.m_serviceDock || !w.m_serviceListWidget || !w.m_addServiceButton
 			|| !w.m_serviceIdEdit || !w.m_serviceOperatingCodeEdit || !w.m_serviceCompositionCombo
 			|| !w.m_serviceRouteCombo || !w.m_addStopButton || !w.m_stopTableWidget) {
 			fail(QStringLiteral("service creator controls are unavailable"));
@@ -941,24 +941,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("second service stop did not commit station/platform timetable"));
 			return;
 		}
-		if (w.m_sceneModel.services.empty() || w.m_sceneModel.services.front().stops.size() != 2
-			|| !w.m_sceneModel.services.front().hasRepeat
-			|| !w.m_sceneModel.services.front().hasRepeatCount
-			|| w.m_sceneModel.services.front().repeatCount != 3
-			|| w.m_sceneModel.services.front().headwaySeconds != 300.0
-			|| w.m_sceneModel.services.front().stops.front().stationId != "creator-station-a"
-			|| w.m_sceneModel.services.front().stops.back().stationId != "creator-station-b"
-			|| !w.m_sceneModel.services.front().stops.front().hasPlannedArrival
-			|| !w.m_sceneModel.services.front().stops.front().hasPlannedDeparture
-			|| w.m_sceneModel.services.front().stops.front().plannedArrivalSeconds != 180.0
-			|| w.m_sceneModel.services.front().stops.front().plannedDepartureSeconds != 240.0
-			|| w.m_sceneModel.services.front().stops.front().dwellSeconds != 60.0
-			|| w.m_sceneModel.services.front().stops.back().plannedArrivalSeconds != 480.0
-			|| w.m_sceneModel.services.front().stops.back().plannedDepartureSeconds != 540.0
-			|| w.m_sceneModel.services.front().stops.back().dwellSeconds != 60.0) {
-			const SceneService* service = w.m_sceneModel.services.empty()
+		if (w.m_document->mutableModel().services.empty() || w.m_document->mutableModel().services.front().stops.size() != 2
+			|| !w.m_document->mutableModel().services.front().hasRepeat
+			|| !w.m_document->mutableModel().services.front().hasRepeatCount
+			|| w.m_document->mutableModel().services.front().repeatCount != 3
+			|| w.m_document->mutableModel().services.front().headwaySeconds != 300.0
+			|| w.m_document->mutableModel().services.front().stops.front().stationId != "creator-station-a"
+			|| w.m_document->mutableModel().services.front().stops.back().stationId != "creator-station-b"
+			|| !w.m_document->mutableModel().services.front().stops.front().hasPlannedArrival
+			|| !w.m_document->mutableModel().services.front().stops.front().hasPlannedDeparture
+			|| w.m_document->mutableModel().services.front().stops.front().plannedArrivalSeconds != 180.0
+			|| w.m_document->mutableModel().services.front().stops.front().plannedDepartureSeconds != 240.0
+			|| w.m_document->mutableModel().services.front().stops.front().dwellSeconds != 60.0
+			|| w.m_document->mutableModel().services.front().stops.back().plannedArrivalSeconds != 480.0
+			|| w.m_document->mutableModel().services.front().stops.back().plannedDepartureSeconds != 540.0
+			|| w.m_document->mutableModel().services.front().stops.back().dwellSeconds != 60.0) {
+			const SceneService* service = w.m_document->mutableModel().services.empty()
 				? nullptr
-				: &w.m_sceneModel.services.front();
+				: &w.m_document->mutableModel().services.front();
 			fail(QStringLiteral("service repeat or ordered stop values were not retained: stops=%1 repeat=%2 count-flag=%3 count=%4 headway=%5 first=%6 last=%7 arrival=%8 departure=%9 dwell=%10")
 					.arg(service ? static_cast<int>(service->stops.size()) : -1)
 					.arg(service && service->hasRepeat)
@@ -990,7 +990,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 5) {
-		if (!w.m_sceneLoaded || !w.m_incidentDock || !w.m_scenarioListWidget
+		if (!w.m_document->isLoaded() || !w.m_incidentDock || !w.m_scenarioListWidget
 			|| !w.m_blankScenarioButton || !w.m_addIncidentButton || !w.m_addEntranceDelayButton
 			|| !w.m_incidentHasReducedSpeedCheck || !w.m_incidentReducedSpeedKmhEdit) {
 			fail(QStringLiteral("scenario creator controls are unavailable"));
@@ -1054,11 +1054,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_entranceDelaySecondsEdit->setValue(90.0);
 		QMetaObject::invokeMethod(w.m_entranceDelaySecondsEdit, "editingFinished", Qt::DirectConnection);
 		process();
-		if (w.m_sceneModel.scenarios.size() != 3
-			|| w.m_sceneModel.scenarios[1].incidents.size() != 2
-			|| w.m_sceneModel.scenarios[2].entranceDelays.size() != 1
-			|| w.m_sceneModel.scenarios[2].entranceDelays.front().occurrence != 2
-			|| w.m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds <= 0.0
+		if (w.m_document->mutableModel().scenarios.size() != 3
+			|| w.m_document->mutableModel().scenarios[1].incidents.size() != 2
+			|| w.m_document->mutableModel().scenarios[2].entranceDelays.size() != 1
+			|| w.m_document->mutableModel().scenarios[2].entranceDelays.front().occurrence != 2
+			|| w.m_document->mutableModel().scenarios[2].entranceDelays.front().delaySeconds <= 0.0
 			|| hasErrors(w.m_sceneDiagnostics)) {
 			QString detail;
 			for (const SceneDiagnostic& diagnostic : w.m_sceneDiagnostics)
@@ -1067,11 +1067,11 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 					break;
 				}
 			fail(QStringLiteral("scenario library or validation did not retain all three scenarios: scenarios=%1 incident-count=%2 delay-count=%3 occurrence=%4 seconds=%5 %6")
-					.arg(static_cast<int>(w.m_sceneModel.scenarios.size()))
-					.arg(w.m_sceneModel.scenarios.size() > 1 ? static_cast<int>(w.m_sceneModel.scenarios[1].incidents.size()) : -1)
-					.arg(w.m_sceneModel.scenarios.size() > 2 ? static_cast<int>(w.m_sceneModel.scenarios[2].entranceDelays.size()) : -1)
-					.arg(w.m_sceneModel.scenarios.size() > 2 && !w.m_sceneModel.scenarios[2].entranceDelays.empty() ? w.m_sceneModel.scenarios[2].entranceDelays.front().occurrence : -1)
-					.arg(w.m_sceneModel.scenarios.size() > 2 && !w.m_sceneModel.scenarios[2].entranceDelays.empty() ? w.m_sceneModel.scenarios[2].entranceDelays.front().delaySeconds : -1.0)
+					.arg(static_cast<int>(w.m_document->mutableModel().scenarios.size()))
+					.arg(w.m_document->mutableModel().scenarios.size() > 1 ? static_cast<int>(w.m_document->mutableModel().scenarios[1].incidents.size()) : -1)
+					.arg(w.m_document->mutableModel().scenarios.size() > 2 ? static_cast<int>(w.m_document->mutableModel().scenarios[2].entranceDelays.size()) : -1)
+					.arg(w.m_document->mutableModel().scenarios.size() > 2 && !w.m_document->mutableModel().scenarios[2].entranceDelays.empty() ? w.m_document->mutableModel().scenarios[2].entranceDelays.front().occurrence : -1)
+					.arg(w.m_document->mutableModel().scenarios.size() > 2 && !w.m_document->mutableModel().scenarios[2].entranceDelays.empty() ? w.m_document->mutableModel().scenarios[2].entranceDelays.front().delaySeconds : -1.0)
 					.arg(detail));
 			return;
 		}
@@ -1081,7 +1081,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 	}
 
 	if (creatorAcceptance.phase == 6) {
-		if (!w.m_sceneLoaded || !w.m_passengerDock || !w.m_passengerListWidget
+		if (!w.m_document->isLoaded() || !w.m_passengerDock || !w.m_passengerListWidget
 			|| !w.m_addPassengerButton || !w.m_addPassengerJourneyButton
 			|| !w.m_addPassengerLegButton || !w.m_passengerTabs) {
 			fail(QStringLiteral("passenger creator controls are unavailable"));
@@ -1123,10 +1123,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_passengerLegOccurrenceEdit->setValue(1);
 		w.m_passengerLegOccurrenceEdit->clearFocus();
 		process();
-		if (w.m_sceneModel.passengers.size() != 1
-			|| w.m_sceneModel.passengers.front().journeys.size() != 1
-			|| w.m_sceneModel.passengers.front().journeys.front().legs.size() != 1
-			|| w.m_sceneModel.passengers.front().journeys.front().legs.front().occurrence != 1
+		if (w.m_document->mutableModel().passengers.size() != 1
+			|| w.m_document->mutableModel().passengers.front().journeys.size() != 1
+			|| w.m_document->mutableModel().passengers.front().journeys.front().legs.size() != 1
+			|| w.m_document->mutableModel().passengers.front().journeys.front().legs.front().occurrence != 1
 			|| hasErrors(w.m_sceneDiagnostics)) {
 			fail(QStringLiteral("passenger journey/leg or validation did not retain authored values"));
 			return;
@@ -1138,7 +1138,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 7) {
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
-		if (!w.m_sceneLoaded || folder.isEmpty() || !w.m_saveSceneAsFolderAction
+		if (!w.m_document->isLoaded() || folder.isEmpty() || !w.m_saveSceneAsFolderAction
 			|| !w.m_newSceneAction || !w.m_trainUnitListWidget) {
 			fail(QStringLiteral("folder persistence controls or target are unavailable"));
 			return;
@@ -1167,7 +1167,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_saveSceneAsFolderAction->trigger();
 		process();
 		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != folder || w.m_sceneIsBundle
-			|| w.m_sceneDirty || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
+			|| w.m_document->isDirty() || !QFileInfo(QDir(folder).filePath("scene.json")).exists()) {
 			fail(QStringLiteral("public Save Scene As Folder did not persist the focused physical value"));
 			return;
 		}
@@ -1183,17 +1183,17 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		openFolder->trigger();
 		process();
 		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != folder || w.m_sceneIsBundle
-			|| w.m_sceneModel.name != "creator_acceptance_case"
-			|| w.m_sceneModel.tracks.size() != 2 || w.m_sceneModel.nodes.size() != 6
-			|| w.m_sceneModel.arcs.size() != 4 || w.m_sceneModel.blocks.size() != 6
-			|| w.m_sceneModel.connections.size() != 1 || w.m_sceneModel.stations.size() != 2
-			|| w.m_sceneModel.trainUnits.size() != 2 || w.m_sceneModel.compositions.size() != 1
-			|| w.m_sceneModel.services.size() != 1 || w.m_sceneModel.scenarios.size() != 3
-			|| w.m_sceneModel.passengers.size() != 1
-			|| w.m_sceneModel.trainUnits.front().physical.mass_of_traction_unit_kg != 91000.0
-			|| w.m_sceneModel.passengers.front().id != "creator-passenger"
-			|| w.m_sceneModel.passengers.front().journeys.size() != 1
-			|| w.m_sceneModel.passengers.front().journeys.front().id != "creator-journey"
+			|| w.m_document->mutableModel().name != "creator_acceptance_case"
+			|| w.m_document->mutableModel().tracks.size() != 2 || w.m_document->mutableModel().nodes.size() != 6
+			|| w.m_document->mutableModel().arcs.size() != 4 || w.m_document->mutableModel().blocks.size() != 6
+			|| w.m_document->mutableModel().connections.size() != 1 || w.m_document->mutableModel().stations.size() != 2
+			|| w.m_document->mutableModel().trainUnits.size() != 2 || w.m_document->mutableModel().compositions.size() != 1
+			|| w.m_document->mutableModel().services.size() != 1 || w.m_document->mutableModel().scenarios.size() != 3
+			|| w.m_document->mutableModel().passengers.size() != 1
+			|| w.m_document->mutableModel().trainUnits.front().physical.mass_of_traction_unit_kg != 91000.0
+			|| w.m_document->mutableModel().passengers.front().id != "creator-passenger"
+			|| w.m_document->mutableModel().passengers.front().journeys.size() != 1
+			|| w.m_document->mutableModel().passengers.front().journeys.front().id != "creator-journey"
 			|| hasErrors(w.m_sceneDiagnostics)) {
 			fail(QStringLiteral("folder reopen did not retain complete creator rows"));
 			return;
@@ -1216,7 +1216,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		if (previewArcs != 4 || previewNodes != 6 || previewConnections != 1
 			|| !w.m_presenter->allArcs.isEmpty() || !w.m_presenter->allSignals.isEmpty() || !w.m_presenter->allPlatforms.isEmpty()
-			|| w.m_worker || w.m_sceneDirty || !w.m_showingTrackPreview) {
+			|| w.m_worker || w.m_document->isDirty() || !w.m_showingTrackPreview) {
 			fail(QStringLiteral("normal Open lacks semantic preview infrastructure: arcs=%1 nodes=%2 connections=%3")
 					.arg(previewArcs)
 					.arg(previewNodes)
@@ -1246,7 +1246,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 8) {
 		const QString bundle = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_BUNDLE"));
-		if (!w.m_sceneLoaded || bundle.isEmpty() || !w.m_saveSceneAsAction || !w.m_newSceneAction) {
+		if (!w.m_document->isLoaded() || bundle.isEmpty() || !w.m_saveSceneAsAction || !w.m_newSceneAction) {
 			fail(QStringLiteral("bundle persistence controls or target are unavailable"));
 			return;
 		}
@@ -1254,12 +1254,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		w.m_saveSceneAsAction->trigger();
 		process();
 		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != bundle || !w.m_sceneIsBundle
-			|| w.m_sceneDirty || !QFileInfo(bundle).exists()) {
+			|| w.m_document->isDirty() || !QFileInfo(bundle).exists()) {
 			fail(QStringLiteral("public Save Case Study As bundle did not complete"));
 			return;
 		}
 		const QString folder = emitPath(qEnvironmentVariable("QEGTRAIN_E2E_CREATOR_FOLDER"));
-		const std::string originalName = w.m_sceneModel.name;
+		const std::string originalName = w.m_document->mutableModel().name;
 		auto openRecent = [&w](const QString& path) {
 			for (QAction* action : w.m_recentScenesMenu->actions()) {
 				if (action->data().toString() == path) {
@@ -1280,19 +1280,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			}
 			process();
 			if (decision == QMessageBox::Cancel) {
-				if (w.m_sceneDir != bundle || !w.m_sceneDirty
-					|| w.m_sceneModel.name != "pending case name") {
+				if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+					|| w.m_document->mutableModel().name != "pending case name") {
 					fail(QStringLiteral("Cancel did not retain focused edits and current bundle"));
 					return;
 				}
 			} else {
-				if (w.m_sceneDir != folder || w.m_sceneIsBundle || w.m_sceneDirty
-					|| w.m_sceneModel.name != originalName) {
+				if (w.m_sceneDir != folder || w.m_sceneIsBundle || w.m_document->isDirty()
+					|| w.m_document->mutableModel().name != originalName) {
 					fail(QStringLiteral("Save or Discard did not continue the pending folder open"));
 					return;
 				}
 				if (!openRecent(bundle)
-					|| w.m_sceneModel.name != (decision == QMessageBox::Save ? "pending case name" : originalName)) {
+					|| w.m_document->mutableModel().name != (decision == QMessageBox::Save ? "pending case name" : originalName)) {
 					fail(QStringLiteral("Save or Discard persisted the wrong outgoing bundle contents"));
 					return;
 				}
@@ -1322,8 +1322,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		});
 		acceptMessageBox(QMessageBox::Cancel);
 		w.m_openCaseAction->trigger();
-		if (w.m_sceneDir != bundle || !w.m_sceneDirty
-			|| w.m_sceneModel.name != "chooser pending edit") {
+		if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+			|| w.m_document->mutableModel().name != "chooser pending edit") {
 			fail(QStringLiteral("chooser bypassed the pending-open cancellation boundary"));
 			return;
 		}
@@ -1348,8 +1348,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				fail(QStringLiteral("invalid incoming bundle was not offered as a recent scene"));
 				return;
 			}
-			if (w.m_sceneDir != bundle || !w.m_sceneDirty
-				|| w.m_sceneModel.name != "retained after failed open") {
+			if (w.m_sceneDir != bundle || !w.m_document->isDirty()
+				|| w.m_document->mutableModel().name != "retained after failed open") {
 				fail(QStringLiteral("failed incoming load erased current dirty case"));
 				return;
 			}
@@ -1365,7 +1365,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		const QString failedSave = QDir(emitPath(qEnvironmentVariable("QEGTRAIN_E2E_OUT")))
 									   .filePath(QStringLiteral("failed-save.egscene"));
 		if (!QDir().mkpath(failedSave)
-			|| saveSceneBundle(w.m_sceneModel, failedSave.toStdString()).success()) {
+			|| saveSceneBundle(w.m_document->mutableModel(), failedSave.toStdString()).success()) {
 			fail(QStringLiteral("could not create failed-save fixture"));
 			return;
 		}
@@ -1377,8 +1377,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("failed-save replacement was not offered as a recent scene"));
 			return;
 		}
-		if (!w.m_sceneLoaded || w.m_sceneDir != failedSave || !w.m_sceneDirty
-			|| w.m_sceneModel.name != "retained after failed save") {
+		if (!w.m_document->isLoaded() || w.m_sceneDir != failedSave || !w.m_document->isDirty()
+			|| w.m_document->mutableModel().name != "retained after failed save") {
 			fail(QStringLiteral("failed save replaced the unsaved current case"));
 			return;
 		}
@@ -1400,13 +1400,13 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptMessageBox(QMessageBox::Save);
 		openRecent(bundle);
 		rejectSaveAs.stop();
-		if (!w.m_sceneLoaded || !w.m_sceneDir.isEmpty() || !w.m_sceneDirty
-			|| w.m_sceneModel.name != "retained after failed save") {
+		if (!w.m_document->isLoaded() || !w.m_sceneDir.isEmpty() || !w.m_document->isDirty()
+			|| w.m_document->mutableModel().name != "retained after failed save") {
 			fail(QStringLiteral("cancelled Save As replaced the unsaved current case"));
 			return;
 		}
 		acceptMessageBox(QMessageBox::Discard);
-		if (!openRecent(bundle) || w.m_sceneDir != bundle || w.m_sceneDirty) {
+		if (!openRecent(bundle) || w.m_sceneDir != bundle || w.m_document->isDirty()) {
 			fail(QStringLiteral("Discard did not continue opening from an unsaved new case"));
 			return;
 		}
@@ -1423,24 +1423,24 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		openBundle->trigger();
 		process();
 		if (QFileInfo(w.m_sceneDir).absoluteFilePath() != bundle || !w.m_sceneIsBundle
-			|| w.m_sceneModel.name != "creator_acceptance_case"
-			|| w.m_sceneModel.blocks.size() != 6 || w.m_sceneModel.trainUnits.size() != 2
-			|| w.m_sceneModel.compositions.size() != 1 || w.m_sceneModel.services.size() != 1
-			|| w.m_sceneModel.scenarios.size() != 3 || w.m_sceneModel.passengers.size() != 1
-			|| w.m_sceneModel.services.front().repeatCount != 3
-			|| w.m_sceneModel.services.front().stops.size() != 2 || hasErrors(w.m_sceneDiagnostics)) {
+			|| w.m_document->mutableModel().name != "creator_acceptance_case"
+			|| w.m_document->mutableModel().blocks.size() != 6 || w.m_document->mutableModel().trainUnits.size() != 2
+			|| w.m_document->mutableModel().compositions.size() != 1 || w.m_document->mutableModel().services.size() != 1
+			|| w.m_document->mutableModel().scenarios.size() != 3 || w.m_document->mutableModel().passengers.size() != 1
+			|| w.m_document->mutableModel().services.front().repeatCount != 3
+			|| w.m_document->mutableModel().services.front().stops.size() != 2 || hasErrors(w.m_sceneDiagnostics)) {
 			fail(QStringLiteral("bundle reopen did not retain complete creator IDs and values: path=%1 bundle=%2 name=%3 blocks=%4 units=%5 compositions=%6 services=%7 scenarios=%8 passengers=%9 repeat=%10 stops=%11 errors=%12")
 					.arg(w.m_sceneDir)
 					.arg(w.m_sceneIsBundle)
-					.arg(QString::fromStdString(w.m_sceneModel.name))
-					.arg(static_cast<int>(w.m_sceneModel.blocks.size()))
-					.arg(static_cast<int>(w.m_sceneModel.trainUnits.size()))
-					.arg(static_cast<int>(w.m_sceneModel.compositions.size()))
-					.arg(static_cast<int>(w.m_sceneModel.services.size()))
-					.arg(static_cast<int>(w.m_sceneModel.scenarios.size()))
-					.arg(static_cast<int>(w.m_sceneModel.passengers.size()))
-					.arg(w.m_sceneModel.services.empty() ? -1 : w.m_sceneModel.services.front().repeatCount)
-					.arg(w.m_sceneModel.services.empty() ? -1 : static_cast<int>(w.m_sceneModel.services.front().stops.size()))
+					.arg(QString::fromStdString(w.m_document->mutableModel().name))
+					.arg(static_cast<int>(w.m_document->mutableModel().blocks.size()))
+					.arg(static_cast<int>(w.m_document->mutableModel().trainUnits.size()))
+					.arg(static_cast<int>(w.m_document->mutableModel().compositions.size()))
+					.arg(static_cast<int>(w.m_document->mutableModel().services.size()))
+					.arg(static_cast<int>(w.m_document->mutableModel().scenarios.size()))
+					.arg(static_cast<int>(w.m_document->mutableModel().passengers.size()))
+					.arg(w.m_document->mutableModel().services.empty() ? -1 : w.m_document->mutableModel().services.front().repeatCount)
+					.arg(w.m_document->mutableModel().services.empty() ? -1 : static_cast<int>(w.m_document->mutableModel().services.front().stops.size()))
 					.arg(hasErrors(w.m_sceneDiagnostics)));
 			return;
 		}
@@ -1582,7 +1582,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		w.m_speedSlider->setValue(500);
-		if (!w.m_sceneLoaded || !w.m_runSceneAction || !w.m_serviceOccurrenceTable
+		if (!w.m_document->isLoaded() || !w.m_runSceneAction || !w.m_serviceOccurrenceTable
 			|| !w.m_scenarioListWidget || !w.m_setDelayBaselineButton || !w.m_compareDelayButton
 			|| !w.m_delayFeedbackLabel) {
 			fail(QStringLiteral("run and occurrence controls are unavailable"));
@@ -1594,8 +1594,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			return;
 		}
 		int baselineRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
-			if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "baseline")
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
+			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "baseline")
 				baselineRow = row;
 		if (baselineRow < 0) {
 			fail(QStringLiteral("baseline scenario was not retained after bundle reopen"));
@@ -1614,10 +1614,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		creatorAcceptance.polls = 0;
 		w.m_runSceneAction->trigger();
-		const quint64 runningRevision = w.m_sceneRevision;
-		const bool runningDirty = w.m_sceneDirty;
+		const quint64 runningRevision = w.m_document->revision();
+		const bool runningDirty = w.m_document->isDirty();
 		w.commitPendingEditorValues();
-		if (!w.m_worker || w.m_sceneRevision != runningRevision || w.m_sceneDirty != runningDirty) {
+		if (!w.m_worker || w.m_document->revision() != runningRevision || w.m_document->isDirty() != runningDirty) {
 			fail(QStringLiteral("resolving pending edits during a run changed disabled scenario inputs"));
 			return;
 		}
@@ -1680,8 +1680,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 
 	if (creatorAcceptance.phase == 11) {
 		int entranceRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
-			if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "entrance")
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
+			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "entrance")
 				entranceRow = row;
 		if (entranceRow < 0 || !w.m_scenarioListWidget || !w.m_runSceneAction) {
 			fail(QStringLiteral("entrance scenario was not available for public run"));
@@ -1790,8 +1790,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		marker("E2E_CREATOR_ENTRANCE_RUN_OK");
 		int incidentRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
-			if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == "incident")
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
+			if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == "incident")
 				incidentRow = row;
 		if (incidentRow < 0 || !w.m_scenarioListWidget || !w.m_runSceneAction) {
 			fail(QStringLiteral("incident scenario was not available for final public run"));
@@ -2348,12 +2348,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 // signal endpoints. It prints E2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK and returns true, or sets failure and returns
 // false.
 bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& failure, bool measuredPresentation) {
-	const SceneModel originalFixture = w.m_sceneModel;
+	const SceneModel originalFixture = w.m_document->mutableModel();
 	// Only this optional, bounded Run fixture prepares native infrastructure.
 	// Add a fourth authored point on a directed runnable chain, not a fallback.
-	auto arc = std::find_if(w.m_sceneModel.arcs.begin(), w.m_sceneModel.arcs.end(),
+	auto arc = std::find_if(w.m_document->mutableModel().arcs.begin(), w.m_document->mutableModel().arcs.end(),
 		[](const SceneArc& value) { return value.id == "creator-main-arc-0"; });
-	if (arc == w.m_sceneModel.arcs.end()) {
+	if (arc == w.m_document->mutableModel().arcs.end()) {
 		failure = "parity fixture arc missing";
 		return false;
 	}
@@ -2363,19 +2363,19 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 	second.id = "parity-second-arc";
 	second.fromNodeId = "parity-midpoint";
 	second.toNodeId = oldEnd;
-	w.m_sceneModel.arcs.push_back(second);
-	w.m_sceneModel.nodes.push_back({"parity-midpoint", "creator-main", 0.5, 0.125});
-	w.m_sceneModel.stations.push_back({"parity-first-station", "First", false, 0,
+	w.m_document->mutableModel().arcs.push_back(second);
+	w.m_document->mutableModel().nodes.push_back({"parity-midpoint", "creator-main", 0.5, 0.125});
+	w.m_document->mutableModel().stations.push_back({"parity-first-station", "First", false, 0,
 		{{"parity-first-platform", {"creator-main-node-0"}}}});
 
 	if (measuredPresentation) {
 		// Paimpol-equivalent presentation fixture, still using the authored projection path.
-		for (auto& node : w.m_sceneModel.nodes) node.yKm = 0.0;
-		w.m_sceneModel.trackViews = {{"creator-main", 0, 0}, {"creator-yard", 1, 0}};
-		w.m_sceneModel.stations[0].name = "Koge"; // Exercise the named presentation nudge too.
-		w.m_sceneModel.stationViews = {
-			{w.m_sceneModel.stations[0].id, 1.0, 0.0, {{0, 0.0}}, {}},
-			{w.m_sceneModel.stations[1].id, 1.0, 0.02, {{0, 2.0}}, {}}};
+		for (auto& node : w.m_document->mutableModel().nodes) node.yKm = 0.0;
+		w.m_document->mutableModel().trackViews = {{"creator-main", 0, 0}, {"creator-yard", 1, 0}};
+		w.m_document->mutableModel().stations[0].name = "Koge"; // Exercise the named presentation nudge too.
+		w.m_document->mutableModel().stationViews = {
+			{w.m_document->mutableModel().stations[0].id, 1.0, 0.0, {{0, 0.0}}, {}},
+			{w.m_document->mutableModel().stations[1].id, 1.0, 0.02, {{0, 2.0}}, {}}};
 	}
 	const qreal expectedScale = 0.45;
 	const auto checkPresentation = [&]() {
@@ -2431,11 +2431,11 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			const auto* overlay = w.m_presenter->m_stationOverlays[i];
 			const auto* picture = w.m_presenter->m_stationPictures.value(w.m_presenter->m_stationOverlays[i], nullptr);
 			const auto* label = qgraphicsitem_cast<QGraphicsTextItem*>(w.m_presenter->m_stationLabels[i]);
-			const auto source = std::find_if(w.m_sceneModel.stations.begin(), w.m_sceneModel.stations.end(),
+			const auto source = std::find_if(w.m_document->mutableModel().stations.begin(), w.m_document->mutableModel().stations.end(),
 				[&](const auto& station) { return QString::fromStdString(station.name) == overlay->stationName(); });
-			if (source == w.m_sceneModel.stations.end() || !picture || !label) return false;
+			if (source == w.m_document->mutableModel().stations.end() || !picture || !label) return false;
 			const QPointF textCenter = overlay->stableAnchor()
-				+ stationDecorationOffset(w.m_sceneModel.stationViews, source->id, source->name) * expectedScale;
+				+ stationDecorationOffset(w.m_document->mutableModel().stationViews, source->id, source->name) * expectedScale;
 			// The scene size, without the enlargement that keeps the artwork readable at Fit.
 			const auto sceneSizeRect = [](const QGraphicsItem* item) {
 				// The item transform acts after the item scale, so remove it in scaled coordinates.
@@ -2493,8 +2493,8 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			return reject(QStringLiteral("has no signal head"));
 		return true;
 	};
-	w.markSceneDirty();
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->markChanged(SceneDocument::AllChanges);
+	w.renderTrackPreview(w.m_document->mutableModel());
 	if (!checkInfrastructurePaint("preview"))
 		return false;
 	if (measuredPresentation && !checkPresentation()) {
@@ -2514,7 +2514,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 		else if (auto* square = qgraphicsitem_cast<StationNodeItem*>(item))
 			boundaries.push_back({item->type(), square->rect(), square->brush().color(), square->pen().color()});
 	}
-	const quint64 revision = w.m_sceneRevision;
+	const quint64 revision = w.m_document->revision();
 	const auto held = [&w, revision]() {
 		return w.resolvePreviewItem("arc", "creator-main-arc-0", QString(), false, revision);
 	};
@@ -2591,7 +2591,7 @@ bool MainWindowTestAccess::checkPreviewRuntimeParity(MainWindow& w, QString& fai
 			return false;
 		}
 	w.clearSimulationWorker(true);
-	w.m_sceneModel = originalFixture;
+	w.m_document->mutableModel() = originalFixture;
 	if (measuredPresentation)
 		std::fprintf(stdout, "\nE2E_MEASURED_PRESENTATION_PARITY_OK\n");
 	std::fprintf(stdout, "\nE2E_PREVIEW_PREPARED_RUNTIME_PARITY_OK\n");
@@ -2609,7 +2609,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		return condition;
 	};
 	const auto find = [&](const QString& kind, const QString& id) {
-		return w.resolvePreviewItem(kind, id, QString(), false, w.m_sceneRevision);
+		return w.resolvePreviewItem(kind, id, QString(), false, w.m_document->revision());
 	};
 	const auto click = [&](const QPointF& position) {
 		QGraphicsSceneMouseEvent event(QEvent::GraphicsSceneMousePress);
@@ -2632,9 +2632,9 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 				}
 			}
 	};
-	const SceneModel saved = w.m_sceneModel;
-	const bool savedDirty = w.m_sceneDirty;
-	const quint64 initialRevision = w.m_sceneRevision;
+	const SceneModel saved = w.m_document->mutableModel();
+	const bool savedDirty = w.m_document->isDirty();
+	const quint64 initialRevision = w.m_document->revision();
 	const QString editorSelection = w.m_infrastructurePanel->selectionId();
 	// Event-driven checks on the actual public-Open result (nonnumeric IDs).
 	for (const auto& line : w.m_presenter->m_cachedTrackPreview.lines) {
@@ -2681,18 +2681,18 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(w.infoDockWidget->windowTitle().contains("creator-switch")
 				&& w.connectionXFirstNodeText->text().toDouble() == 1000,
 			"connection event canonical fields")) return false;
-	if (!require(w.m_sceneRevision == initialRevision && w.m_sceneDirty == savedDirty
+	if (!require(w.m_document->revision() == initialRevision && w.m_document->isDirty() == savedDirty
 				&& w.m_infrastructurePanel->selectionId() == editorSelection && !w.m_worker && w.m_presenter->allArcs.isEmpty()
 				&& w.m_presenter->allSignals.isEmpty() && w.m_presenter->allPlatforms.isEmpty(),
 			"inspection mutated Open state")) return false;
 
-	const bool unchangedNodes = w.m_sceneModel.nodes.size() == saved.nodes.size()
-		&& std::equal(saved.nodes.begin(), saved.nodes.end(), w.m_sceneModel.nodes.begin(),
+	const bool unchangedNodes = w.m_document->mutableModel().nodes.size() == saved.nodes.size()
+		&& std::equal(saved.nodes.begin(), saved.nodes.end(), w.m_document->mutableModel().nodes.begin(),
 			[](const SceneNode& a, const SceneNode& b) {
 				return std::tie(a.id, a.trackId, a.xKm, a.yKm) == std::tie(b.id, b.trackId, b.xKm, b.yKm);
 			});
-	const bool unchangedArcs = w.m_sceneModel.arcs.size() == saved.arcs.size()
-		&& std::equal(saved.arcs.begin(), saved.arcs.end(), w.m_sceneModel.arcs.begin(),
+	const bool unchangedArcs = w.m_document->mutableModel().arcs.size() == saved.arcs.size()
+		&& std::equal(saved.arcs.begin(), saved.arcs.end(), w.m_document->mutableModel().arcs.begin(),
 			[](const SceneArc& a, const SceneArc& b) {
 				return std::tie(a.id, a.trackId, a.fromNodeId, a.toNodeId, a.curvatureRadiusM, a.gradientPercent, a.speedLimitMs)
 					== std::tie(b.id, b.trackId, b.fromNodeId, b.toNodeId, b.curvatureRadiusM, b.gradientPercent, b.speedLimitMs);
@@ -2715,9 +2715,9 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	fixture.stations = {{"earlier", "Duplicate", false, 0, {{"platform-real", {"z1", "z0", "z2"}}}},
 		{"later", "Duplicate", true, 1 + 5e-9, {}}, {"between", "Duplicate", true, 1.5, {}}};
 	sceneSignals(fixture) = {{"authored-Z", "@Z-section1@"}, {"authored-A", "@A-section1@"}};
-	w.m_sceneModel = fixture;
-	++w.m_sceneRevision;
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel() = fixture;
+	++w.m_document->m_revision;
+	w.renderTrackPreview(w.m_document->mutableModel());
 	const QRectF topologyBounds = w.m_presenter->m_previewFitBounds;
 	auto* z0 = qgraphicsitem_cast<NodeItem*>(find("node", "z0"));
 	auto* z1 = qgraphicsitem_cast<StationNodeItem*>(find("station-node", "z1"));
@@ -2782,7 +2782,7 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(w.arcIDText->text() == "No authored arc (fallback)" && w.arcFirstNodeIDText->text().isEmpty()
 				&& w.nodeStationNameText->text().isEmpty(),
 			"fallback clears unrelated canonical fields")) return false;
-	const quint64 fixtureRevision = w.m_sceneRevision;
+	const quint64 fixtureRevision = w.m_document->revision();
 	for (const auto& track : {QString("Z"), QString("A")}) {
 		auto* head = w.resolvePreviewItem("signal", "@" + track + "-section1@", track, false, fixtureRevision);
 		if (!require(head != nullptr, "same-chainage signal head missing")) return false;
@@ -2800,29 +2800,29 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 		return w.resolvePreviewItem("arc", "z-arc0", QString(), false, fixtureRevision);
 	};
 	w.showSceneContextMenu(find("arc", "z-arc0"), QPointF(), QPoint(), false);
-	w.renderTrackPreview(w.m_sceneModel);
+	w.renderTrackPreview(w.m_document->mutableModel());
 	if (!require(!w.m_sceneContextMenu && !w.infoDockWidget->isVisible() && w.nodeIDText->text().isEmpty()
 				&& w.m_previewSelectedStationId.isEmpty() && held(),
 			"same-revision rebuild clears menu/inspection and safely resolves payload")) return false;
-	w.m_sceneModel.arcs.front().id = "renamed";
-	w.markSceneDirty();
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel().arcs.front().id = "renamed";
+	w.m_document->markChanged(SceneDocument::AllChanges);
+	w.renderTrackPreview(w.m_document->mutableModel());
 	if (!require(!held() && find("arc", "renamed"), "rename invalidates queued canonical identity")) return false;
-	w.m_sceneModel.arcs.erase(w.m_sceneModel.arcs.begin());
-	w.markSceneDirty();
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel().arcs.erase(w.m_document->mutableModel().arcs.begin());
+	w.m_document->markChanged(SceneDocument::AllChanges);
+	w.renderTrackPreview(w.m_document->mutableModel());
 	if (!require(!find("arc", "renamed"), "delete removes canonical graphic")) return false;
-	w.m_sceneModel = fixture;
-	++w.m_sceneRevision;
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel() = fixture;
+	++w.m_document->m_revision;
+	w.renderTrackPreview(w.m_document->mutableModel());
 	if (!require(find("arc", "z-arc0") && !held(), "replacement reusing IDs rejects old payload")) return false;
 	// A platform darkens a station square only at the end of its line; an interior square is the ordinary grey
 	// unless it joins three or more tracks.
 	SceneModel lineEndFixture = fixture;
 	lineEndFixture.stations.front().platforms.front().nodeIds.push_back("z3");
-	w.m_sceneModel = lineEndFixture;
-	++w.m_sceneRevision;
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel() = lineEndFixture;
+	++w.m_document->m_revision;
+	w.renderTrackPreview(w.m_document->mutableModel());
 	const auto squareFill = [&](const QString& id) {
 		const auto* square = qgraphicsitem_cast<StationNodeItem*>(find("station-node", id));
 		return square ? square->brush().color() : QColor();
@@ -2830,10 +2830,10 @@ bool MainWindowTestAccess::checkPreviewInfrastructure(MainWindow& w, QString& fa
 	if (!require(squareFill("z1") == classifyStation(false, 3).fill && squareFill("z2") == classifyStation(false, 0).fill
 				&& squareFill("z3") == classifyStation(true, 0).fill,
 			"station square colour: interchange, interior platform node and line end")) return false;
-	w.m_sceneModel = saved;
-	w.m_sceneDirty = savedDirty;
-	++w.m_sceneRevision;
-	w.renderTrackPreview(w.m_sceneModel);
+	w.m_document->mutableModel() = saved;
+	w.m_document->setDirty(savedDirty);
+	++w.m_document->m_revision;
+	w.renderTrackPreview(w.m_document->mutableModel());
 	std::fprintf(stdout, "E2E_PREVIEW_IDENTITY_LIFETIME_OK\n");
 	std::fflush(stdout);
 	return true;

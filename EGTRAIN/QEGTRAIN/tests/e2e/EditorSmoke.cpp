@@ -459,7 +459,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		failures << "scene: no scene path";
 	} else {
 		bool opened = w.openSceneDirectory(scenePath);
-		if (!opened || !w.m_sceneLoaded) {
+		if (!opened || !w.m_document->isLoaded()) {
 			ok = false;
 			failures << "scene: scene did not open";
 		} else {
@@ -472,7 +472,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				highlightCarrier->setGraphicsEffect(w.m_presenter->effect);
 			}
 			bool reopened = w.openSceneDirectory(scenePath);
-			if (!reopened || !w.m_sceneLoaded || QDir(w.m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
+			if (!reopened || !w.m_document->isLoaded() || QDir(w.m_sceneDir).absolutePath() != QDir(scenePath).absolutePath()) {
 				ok = false;
 				failures << "scene: scene did not reopen";
 			}
@@ -487,7 +487,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QString alternateScenePath = qEnvironmentVariable("QEGTRAIN_E2E_SCENE_ALT");
 			if (!alternateScenePath.isEmpty() && QDir(alternateScenePath).absolutePath() != QDir(scenePath).absolutePath()) {
 				bool switched = w.openSceneDirectory(alternateScenePath);
-				if (!switched || !w.m_sceneLoaded || QDir(w.m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
+				if (!switched || !w.m_document->isLoaded() || QDir(w.m_sceneDir).absolutePath() != QDir(alternateScenePath).absolutePath()) {
 					ok = false;
 					failures << "scene: alternate scene did not open";
 				}
@@ -495,12 +495,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					ok = false;
 					failures << "scene: legacy scene state not cleared on alternate";
 				}
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: newly opened case has an implicit infrastructure selection";
 				}
 				w.refreshInfrastructurePanel();
-				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_infrastructureTable->currentRow() != -1 || w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: a refresh selected a row that nobody selected";
 				}
@@ -508,17 +508,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_infrastructureTable->setCurrentCell(0, 0);
 				const QString explicitlySelectedTrack = w.m_infrastructurePanel->selectionId();
 				w.refreshInfrastructurePanel();
-				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty
+				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()
 					|| w.m_infrastructurePanel->selectionId() != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
 				}
 				bool restored = w.openSceneDirectory(scenePath);
-				if (!restored || !w.m_sceneLoaded) {
+				if (!restored || !w.m_document->isLoaded()) {
 					ok = false;
 					failures << "scene: scene did not reopen after alternate";
 				}
-				if (w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty) {
+				if (w.m_presenter->m_previewHasSelectedTrack || w.m_document->isDirty()) {
 					ok = false;
 					failures << "scene: explicit selection leaked into another case";
 				}
@@ -555,9 +555,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			failures << "presentation: scenario list is unavailable for diagnostic checks";
 		} else {
 			const std::vector<SceneDiagnostic> originalDiagnostics = w.m_sceneDiagnostics;
-			const std::string originalName = w.m_sceneModel.name;
-			const bool originalDirty = w.m_sceneDirty;
-			const quint64 originalRevision = w.m_sceneRevision;
+			const std::string originalName = w.m_document->mutableModel().name;
+			const bool originalDirty = w.m_document->isDirty();
+			const quint64 originalRevision = w.m_document->revision();
 			const QString originalEditorText = w.m_caseNameEdit ? w.m_caseNameEdit->text() : QString();
 			const auto syntheticDiagnostic = [](SceneSeverity severity, const char* message) {
 				SceneDiagnostic diagnostic;
@@ -582,15 +582,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (w.m_caseNameEdit) {
 				w.m_caseNameEdit->setFocus();
 				w.m_caseNameEdit->setText(originalEditorText + " pending");
-				const bool dirtyBeforeToggle = w.m_sceneDirty;
-				const quint64 revisionBeforeToggle = w.m_sceneRevision;
+				const bool dirtyBeforeToggle = w.m_document->isDirty();
+				const quint64 revisionBeforeToggle = w.m_document->revision();
 				detailsAction->setChecked(true);
 				QApplication::processEvents();
 				if (!w.m_loadedDataDock->isVisible() || !QSettings().value(kAdvancedDetailsKey).toBool())
 					failures << "presentation: advanced details did not open or persist";
 				if (w.m_caseNameEdit->text() != originalEditorText + " pending"
-					|| w.m_sceneModel.name != originalName || w.m_sceneDirty != dirtyBeforeToggle
-					|| w.m_sceneRevision != revisionBeforeToggle)
+					|| w.m_document->mutableModel().name != originalName || w.m_document->isDirty() != dirtyBeforeToggle
+					|| w.m_document->revision() != revisionBeforeToggle)
 					failures << "presentation: advanced toggle replaced or committed focused case text";
 				w.m_caseNameEdit->setText(originalEditorText);
 			} else {
@@ -635,8 +635,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 			w.m_sceneDiagnostics = originalDiagnostics;
 			applyPresentation();
-			if (w.m_sceneModel.name != originalName || w.m_sceneDirty != originalDirty
-				|| w.m_sceneRevision != originalRevision)
+			if (w.m_document->mutableModel().name != originalName || w.m_document->isDirty() != originalDirty
+				|| w.m_document->revision() != originalRevision)
 				failures << "presentation: diagnostic checks changed scene state";
 		}
 	}
@@ -650,13 +650,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		QString outBase = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
 		if (outBase.isEmpty())
 			outBase = newCaseTempDir.path();
-		if (!w.m_sceneLoaded || originalScenePath.isEmpty()) {
+		if (!w.m_document->isLoaded() || originalScenePath.isEmpty()) {
 			facetFailure(facetOk, "new case", "the original scene was not available to restore");
 		} else {
 			discardConfirmation();
 			w.newScene();
 			QApplication::processEvents();
-			if (!w.m_sceneLoaded || !w.m_sceneDirty || !w.m_sceneDir.isEmpty() || w.m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled() || !w.m_saveSceneAsFolderAction || !w.m_saveSceneAsFolderAction->isEnabled())
+			if (!w.m_document->isLoaded() || !w.m_document->isDirty() || !w.m_sceneDir.isEmpty() || w.m_sceneIsBundle || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled() || !w.m_saveSceneAsAction || !w.m_saveSceneAsAction->isEnabled() || !w.m_saveSceneAsFolderAction || !w.m_saveSceneAsFolderAction->isEnabled())
 				facetFailure(facetOk, "new case", "new case did not start unsaved and dirty with save actions enabled");
 			if (!w.m_runSceneAction || w.m_runSceneAction->isEnabled() || !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
 				facetFailure(facetOk, "new case", "Run actions were enabled for an empty case");
@@ -677,7 +677,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				bufferEdit->setValue(30.0);
 				recoveryEdit->setValue(7.5);
 				w.commitPendingCaseSettings();
-				if (w.m_sceneModel.name != "E2E New Case" || w.m_sceneModel.description != "new case editor smoke" || w.m_sceneModel.baseTime != "09:15:30" || !w.m_sceneModel.settings.hasDuration || w.m_sceneModel.settings.durationSeconds != 7200.0 || !w.m_sceneModel.settings.hasBufferTime || w.m_sceneModel.settings.bufferTimeSeconds != 30.0 || !w.m_sceneModel.settings.hasRecoveryTime || w.m_sceneModel.settings.recoveryTimePercent != 7.5 || w.m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
+				if (w.m_document->mutableModel().name != "E2E New Case" || w.m_document->mutableModel().description != "new case editor smoke" || w.m_document->mutableModel().baseTime != "09:15:30" || !w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.durationSeconds != 7200.0 || !w.m_document->mutableModel().settings.hasBufferTime || w.m_document->mutableModel().settings.bufferTimeSeconds != 30.0 || !w.m_document->mutableModel().settings.hasRecoveryTime || w.m_document->mutableModel().settings.recoveryTimePercent != 7.5 || w.m_startOffsetSeconds != 9 * 3600 + 15 * 60 + 30)
 					facetFailure(facetOk, "new case", "case settings edits did not commit all six values");
 			}
 
@@ -734,7 +734,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				};
 				if (!addInfrastructureRow("tracks") || !setInfrastructureCell("tracks", 0, 0, "e2e-main") || !addInfrastructureRow("tracks") || !setInfrastructureCell("tracks", 1, 0, "e2e-yard"))
 					facetFailure(facetOk, "infrastructure", "track creation or ID editing did not apply");
-				if (!setInfrastructureCell("tracks", 0, 0, "e2e-yard") || w.m_sceneModel.tracks.size() != 2 || w.m_sceneModel.tracks[0].id != "e2e-main")
+				if (!setInfrastructureCell("tracks", 0, 0, "e2e-yard") || w.m_document->mutableModel().tracks.size() != 2 || w.m_document->mutableModel().tracks[0].id != "e2e-main")
 					facetFailure(facetOk, "infrastructure", "duplicate track ID was not rejected safely");
 				for (int row = 0; row < 3; ++row) {
 					if (!addInfrastructureRow("nodes") || !setInfrastructureCell("nodes", row, 0, QString("e2e-main-node-%1").arg(row)) || !setInfrastructureCell("nodes", row, 1, "e2e-main") || !setInfrastructureCell("nodes", row, 2, QString::number(row)) || !setInfrastructureCell("nodes", row, 3, QString::number(row == 1 ? 0.25 : 0.0)))
@@ -823,13 +823,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							facetFailure(facetOk, "infrastructure", "block placement columns were not visible after reorder");
 					}
 				}
-				const std::size_t blocksBeforeInvalidAdd = w.m_sceneModel.blocks.size();
+				const std::size_t blocksBeforeInvalidAdd = w.m_document->mutableModel().blocks.size();
 				const bool orphanTrackAddDisabled = setInfrastructureCell("blocks", 1, 1, QString())
 					&& !infrastructureAdd->isEnabled();
 				infrastructureAdd->click();
 				w.m_infrastructurePanel->addEntity(); // also exercise the handler's defensive check
 				QApplication::processEvents();
-				if (!orphanTrackAddDisabled || w.m_sceneModel.blocks.size() != blocksBeforeInvalidAdd)
+				if (!orphanTrackAddDisabled || w.m_document->mutableModel().blocks.size() != blocksBeforeInvalidAdd)
 					facetFailure(facetOk, "infrastructure", "Add accepted an invalid selected block track");
 				if (!setInfrastructureCell("blocks", 0, 1, "e2e-main") || !infrastructureAdd->isEnabled())
 					facetFailure(facetOk, "infrastructure", "orphan block could not be restored to a valid track");
@@ -851,7 +851,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					} else {
 						protectedSection->setCurrentIndex(blockChoice);
 						QApplication::processEvents();
-						if (sceneSignals(w.m_sceneModel).front().protectedSection
+						if (sceneSignals(w.m_document->mutableModel()).front().protectedSection
 							!= protectedSection->itemData(blockChoice).toString().toStdString())
 							facetFailure(facetOk, "stations/signalling", "signal section choice did not commit");
 					}
@@ -887,13 +887,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				};
 				// "(all tracks)" and every track of the scene in scene order after the given number of extra items.
 				const auto trackListHolds = [&w](const QComboBox* combo, int extraItems) {
-					if (!combo || combo->count() != extraItems + 1 + static_cast<int>(w.m_sceneModel.tracks.size()))
+					if (!combo || combo->count() != extraItems + 1 + static_cast<int>(w.m_document->mutableModel().tracks.size()))
 						return false;
 					if (combo->itemText(extraItems) != QStringLiteral("(all tracks)") || !combo->itemData(extraItems).toString().isEmpty())
 						return false;
-					for (std::size_t index = 0; index < w.m_sceneModel.tracks.size(); ++index) {
+					for (std::size_t index = 0; index < w.m_document->mutableModel().tracks.size(); ++index) {
 						const int item = extraItems + 1 + static_cast<int>(index);
-						const QString id = QString::fromStdString(w.m_sceneModel.tracks[index].id);
+						const QString id = QString::fromStdString(w.m_document->mutableModel().tracks[index].id);
 						if (combo->itemData(item).toString() != id || !combo->itemText(item).startsWith(id + QStringLiteral(" (blocks "))
 							|| !combo->itemText(item).endsWith(QStringLiteral(" km)")))
 							return false;
@@ -902,13 +902,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				};
 				if (!addInfrastructureRow("signalling_areas"))
 					facetFailure(facetOk, "stations/signalling", "signalling area row could not be added");
-				const SceneBlockExtent networkExtent = sceneBlockExtent(buildSceneSectionInventory(w.m_sceneModel), "");
-				const bool signallingAreaStartsUnchosen = w.m_sceneModel.signallingAreas.size() == 1
+				const SceneBlockExtent networkExtent = sceneBlockExtent(buildSceneSectionInventory(w.m_document->mutableModel()), "");
+				const bool signallingAreaStartsUnchosen = w.m_document->mutableModel().signallingAreas.size() == 1
 					&& networkExtent.found && networkExtent.startKm == 0.0 && networkExtent.endKm > 0.0
-					&& w.m_sceneModel.signallingAreas.front().startKm == networkExtent.startKm
-					&& w.m_sceneModel.signallingAreas.front().endKm == networkExtent.endKm
-					&& w.m_sceneModel.signallingAreas.front().level == kSignallingLevelUnset
-					&& w.m_sceneModel.signallingAreas.front().trackId.empty();
+					&& w.m_document->mutableModel().signallingAreas.front().startKm == networkExtent.startKm
+					&& w.m_document->mutableModel().signallingAreas.front().endKm == networkExtent.endKm
+					&& w.m_document->mutableModel().signallingAreas.front().level == kSignallingLevelUnset
+					&& w.m_document->mutableModel().signallingAreas.front().trackId.empty();
 				if (!signallingAreaStartsUnchosen)
 					facetFailure(facetOk, "stations/signalling", "Add did not create a signalling area with the network extent and no chosen system");
 				QString firstSceneError;
@@ -934,24 +934,24 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					|| !chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::VirtualCoupling)))
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area authoring did not apply");
 				const QComboBox* chosenSystem = areaSystemCombo();
-				const bool networkAreaAuthored = w.m_sceneModel.signallingAreas.size() == 1
-					&& w.m_sceneModel.signallingAreas.front().id == "e2e-signalling-area"
-					&& w.m_sceneModel.signallingAreas.front().startKm == 0.25
-					&& w.m_sceneModel.signallingAreas.front().endKm == 1.75
-					&& w.m_sceneModel.signallingAreas.front().level == levelValue(SignallingLevel::VirtualCoupling)
-					&& w.m_sceneModel.signallingAreas.front().trackId.empty()
+				const bool networkAreaAuthored = w.m_document->mutableModel().signallingAreas.size() == 1
+					&& w.m_document->mutableModel().signallingAreas.front().id == "e2e-signalling-area"
+					&& w.m_document->mutableModel().signallingAreas.front().startKm == 0.25
+					&& w.m_document->mutableModel().signallingAreas.front().endKm == 1.75
+					&& w.m_document->mutableModel().signallingAreas.front().level == levelValue(SignallingLevel::VirtualCoupling)
+					&& w.m_document->mutableModel().signallingAreas.front().trackId.empty()
 					&& systemListHolds(chosenSystem, 0) && chosenSystem->currentText() == QStringLiteral("4 Virtual coupling")
 					&& areaLevelError().isEmpty();
 				if (!networkAreaAuthored)
 					facetFailure(facetOk, "stations/signalling", "network-wide signalling area was not canonical");
 				if (!chooseListItem(areaTrackCombo(), QStringLiteral("e2e-main"))
-					|| w.m_sceneModel.signallingAreas.front().trackId != "e2e-main"
+					|| w.m_document->mutableModel().signallingAreas.front().trackId != "e2e-main"
 					|| !trackListHolds(areaTrackCombo(), 0) || areaTrackCombo()->currentData().toString() != QStringLiteral("e2e-main"))
 					facetFailure(facetOk, "stations/signalling", "signalling area track-scope edit did not apply");
 				const bool areaTrackRenameUpdated = setInfrastructureCell("tracks", 0, 0, "e2e-main-renamed")
-					&& w.m_sceneModel.signallingAreas.front().trackId == "e2e-main-renamed"
+					&& w.m_document->mutableModel().signallingAreas.front().trackId == "e2e-main-renamed"
 					&& setInfrastructureCell("tracks", 0, 0, "e2e-main")
-					&& w.m_sceneModel.signallingAreas.front().trackId == "e2e-main";
+					&& w.m_document->mutableModel().signallingAreas.front().trackId == "e2e-main";
 				if (!areaTrackRenameUpdated)
 					facetFailure(facetOk, "stations/signalling", "track rename did not preserve signalling-area scope");
 				if (!chooseInfrastructureFacet("signalling_areas")) {
@@ -977,31 +977,31 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							facetFailure(facetOk, "stations/signalling", "a signalling area list kept a mouse wheel event instead of handing it on");
 					}
 					// A level or track that does not exist is listed first and goes when a real choice replaces it.
-					w.m_sceneModel.signallingAreas.front().level = 9;
+					w.m_document->mutableModel().signallingAreas.front().level = 9;
 					w.m_infrastructurePanel->refreshTable();
 					const QComboBox* staleSystem = areaSystemCombo();
 					if (!staleSystem || staleSystem->itemText(0) != QStringLiteral("Invalid level 9")
 						|| staleSystem->currentText() != QStringLiteral("Invalid level 9") || !systemListHolds(staleSystem, 1))
 						facetFailure(facetOk, "stations/signalling", "a stale level was not listed as invalid above the six systems");
 					if (!chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::EtcsLevel2))
-						|| w.m_sceneModel.signallingAreas.front().level != levelValue(SignallingLevel::EtcsLevel2)
+						|| w.m_document->mutableModel().signallingAreas.front().level != levelValue(SignallingLevel::EtcsLevel2)
 						|| !systemListHolds(areaSystemCombo(), 0)
 						|| areaSystemCombo()->currentText() != QString::fromStdString(signallingLevelName(levelValue(SignallingLevel::EtcsLevel2))))
 						facetFailure(facetOk, "stations/signalling", "choosing a system did not replace the stale level");
-					w.m_sceneModel.signallingAreas.front().trackId = "ghost";
+					w.m_document->mutableModel().signallingAreas.front().trackId = "ghost";
 					w.m_infrastructurePanel->refreshTable();
 					const QComboBox* staleTrack = areaTrackCombo();
 					if (!staleTrack || staleTrack->itemText(0) != QStringLiteral("Invalid track: ghost")
 						|| staleTrack->currentText() != QStringLiteral("Invalid track: ghost") || !trackListHolds(staleTrack, 1))
 						facetFailure(facetOk, "stations/signalling", "a stale track was not listed as invalid above the tracks");
-					if (!chooseListItem(areaTrackCombo(), QString()) || !w.m_sceneModel.signallingAreas.front().trackId.empty()
+					if (!chooseListItem(areaTrackCombo(), QString()) || !w.m_document->mutableModel().signallingAreas.front().trackId.empty()
 						|| !trackListHolds(areaTrackCombo(), 0) || areaTrackCombo()->currentText() != QStringLiteral("(all tracks)"))
 						facetFailure(facetOk, "stations/signalling", "choosing all tracks did not replace the stale track");
 					// The values that the save and reload comparison expects.
 					if (!chooseListItem(areaSystemCombo(), levelValue(SignallingLevel::VirtualCoupling))
 						|| !chooseListItem(areaTrackCombo(), QStringLiteral("e2e-main"))
-						|| w.m_sceneModel.signallingAreas.front().level != levelValue(SignallingLevel::VirtualCoupling)
-						|| w.m_sceneModel.signallingAreas.front().trackId != "e2e-main")
+						|| w.m_document->mutableModel().signallingAreas.front().level != levelValue(SignallingLevel::VirtualCoupling)
+						|| w.m_document->mutableModel().signallingAreas.front().trackId != "e2e-main")
 						facetFailure(facetOk, "stations/signalling", "the signalling area could not be restored through its lists");
 				}
 				if (!addInfrastructureRow("connections") || !setInfrastructureCell("connections", 0, 0, "e2e-switch") || !setInfrastructureCell("connections", 0, 1, mainNodeIds[1]) || !setInfrastructureCell("connections", 0, 2, yardNodeIds[1]) || !setInfrastructureCell("connections", 0, 3, "true") || !setInfrastructureCell("connections", 0, 4, "9.25"))
@@ -1052,8 +1052,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						QApplication::processEvents();
 						routeRemoveSection->click();
 						QApplication::processEvents();
-						if (w.m_sceneModel.routes.empty()
-							|| w.m_sceneModel.routes.front().blocks
+						if (w.m_document->mutableModel().routes.empty()
+							|| w.m_document->mutableModel().routes.front().blocks
 								!= std::vector<std::string>(expectedNativeRoute.begin(), expectedNativeRoute.end()))
 							facetFailure(facetOk, "stations/signalling",
 								"ordered route section controls did not retain the switched path");
@@ -1092,7 +1092,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					QApplication::processEvents();
 					return rows.empty() && addInfrastructureRow(facet);
 				};
-				if (!recreateIncompleteRow("block_dependencies", w.m_sceneModel.blockDependencies)) {
+				if (!recreateIncompleteRow("block_dependencies", w.m_document->mutableModel().blockDependencies)) {
 					facetFailure(facetOk, "stations/signalling", "dependency row add/delete cycle failed");
 				}
 				const QString dependencyBlock = selectSectionCell("block_dependencies", 0, 0,
@@ -1102,7 +1102,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (dependencyBlock.isEmpty() || dependencyDependsOn.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "dependency selectors did not expose catalog choices");
 				if (!recreateIncompleteRow("single_track_restrictions",
-						w.m_sceneModel.singleTrackRestrictions)) {
+						w.m_document->mutableModel().singleTrackRestrictions)) {
 					facetFailure(facetOk, "stations/signalling", "restriction row add/delete cycle failed");
 				}
 				const QString restrictionStart = selectSectionCell("single_track_restrictions", 0, 0,
@@ -1115,7 +1115,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					"base block e2e-yard-block-2 / track e2e-yard");
 				if (restrictionStart.isEmpty() || restrictionEnd.isEmpty() || restrictionProtectedStart.isEmpty() || restrictionProtectedEnd.isEmpty())
 					facetFailure(facetOk, "stations/signalling", "restriction selectors did not expose catalog choices");
-				if (!recreateIncompleteRow("station_boundaries", w.m_sceneModel.stationBoundaries)) {
+				if (!recreateIncompleteRow("station_boundaries", w.m_document->mutableModel().stationBoundaries)) {
 					facetFailure(facetOk, "stations/signalling", "boundary row add/delete cycle failed");
 				}
 				const QString boundaryEntrance = selectSectionCell("station_boundaries", 0, 0,
@@ -1132,13 +1132,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						if (noneChoice >= 0)
 							exitCombo->setCurrentIndex(noneChoice);
 						QApplication::processEvents();
-						if (w.m_sceneModel.stationBoundaries.empty()
-							|| w.m_sceneModel.stationBoundaries.front().hasExitBlock
-							|| !w.m_sceneModel.stationBoundaries.front().exitBlock.empty())
+						if (w.m_document->mutableModel().stationBoundaries.empty()
+							|| w.m_document->mutableModel().stationBoundaries.front().hasExitBlock
+							|| !w.m_document->mutableModel().stationBoundaries.front().exitBlock.empty())
 							facetFailure(facetOk, "stations/signalling", "boundary (none) did not clear exit atomically");
 					}
 				}
-				const bool m3TablesAuthored = w.m_sceneModel.stations.size() == 2 && w.m_sceneModel.stations[0].platforms.size() == 1 && w.m_sceneModel.stations[1].platforms.size() == 1 && sceneSignals(w.m_sceneModel).size() == 1 && w.m_sceneModel.routes.size() == 1 && w.m_sceneModel.blockDependencies.size() == 1 && w.m_sceneModel.singleTrackRestrictions.size() == 1 && w.m_sceneModel.stationBoundaries.size() == 1;
+				const bool m3TablesAuthored = w.m_document->mutableModel().stations.size() == 2 && w.m_document->mutableModel().stations[0].platforms.size() == 1 && w.m_document->mutableModel().stations[1].platforms.size() == 1 && sceneSignals(w.m_document->mutableModel()).size() == 1 && w.m_document->mutableModel().routes.size() == 1 && w.m_document->mutableModel().blockDependencies.size() == 1 && w.m_document->mutableModel().singleTrackRestrictions.size() == 1 && w.m_document->mutableModel().stationBoundaries.size() == 1;
 				if (!m3TablesAuthored)
 					facetFailure(facetOk, "stations/signalling", "canonical M3 rows were not created through the table controls");
 				if (chooseInfrastructureFacet("platforms")) {
@@ -1150,7 +1150,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						lengthEdit->setValue(123.75);
 						widthEdit->setValue(4.25);
 						QApplication::processEvents();
-						const ScenePlatform& platform = w.m_sceneModel.stations.front().platforms.front();
+						const ScenePlatform& platform = w.m_document->mutableModel().stations.front().platforms.front();
 						if (!platform.hasLength || platform.lengthM != 123.75
 							|| !platform.hasWidth || platform.widthM != 4.25)
 							facetFailure(facetOk, "platform geometry", "public geometry edits did not set presence/value");
@@ -1159,7 +1159,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "platform geometry", "platform facet was unavailable");
 				}
 				const std::vector<SceneDiagnostic> nativeDiagnostics =
-					buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
+					buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_document->mutableModel());
 				bool nativeRouteMatches = !hasErrors(nativeDiagnostics) && defaultRun().infra.numRoutes == 1
 					&& defaultRun().infra.routes.size() == 1 && defaultRun().infra.routes.front().N_Block_Sections == 3;
 				if (nativeRouteMatches)
@@ -1174,36 +1174,36 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const std::string renamedBlockId = "e2e-main-block-renamed";
 				const bool blockRenamed = setInfrastructureCell("blocks", 1, 0,
 					QString::fromStdString(renamedBlockId));
-				const SceneSectionInventory renamedInventory = buildSceneSectionInventory(w.m_sceneModel);
+				const SceneSectionInventory renamedInventory = buildSceneSectionInventory(w.m_document->mutableModel());
 				const auto resolvesThroughRenamedBlock = [&](const std::string& reference) {
 					const SceneSectionDescriptor* section = renamedInventory.resolve(reference);
 					return section
 						&& (section->sourceBlockId == renamedBlockId || section->firstBlockId == renamedBlockId || section->secondBlockId == renamedBlockId);
 				};
 				const bool blockReferencesUpdated = blockRenamed
-					&& std::any_of(w.m_sceneModel.blocks.begin(), w.m_sceneModel.blocks.end(),
+					&& std::any_of(w.m_document->mutableModel().blocks.begin(), w.m_document->mutableModel().blocks.end(),
 						[&](const SceneBlock& block) { return block.id == renamedBlockId; })
-					&& w.m_sceneModel.routes.size() == 1 && w.m_sceneModel.routes[0].blocks.size() == 3
-					&& renamedInventory.resolve(w.m_sceneModel.routes[0].blocks[0])
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.routes[0].blocks[1])
-					&& renamedInventory.resolve(w.m_sceneModel.routes[0].blocks[2])
-					&& w.m_sceneModel.blockDependencies.size() == 1
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.blockDependencies[0].block)
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.blockDependencies[0].dependsOn)
-					&& w.m_sceneModel.singleTrackRestrictions.size() == 1
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.singleTrackRestrictions[0].startBlock)
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.singleTrackRestrictions[0].protectedStartBlock)
-					&& w.m_sceneModel.stationBoundaries.size() == 1
-					&& resolvesThroughRenamedBlock(w.m_sceneModel.stationBoundaries[0].entranceBlock)
-					&& !sceneSignals(w.m_sceneModel).empty()
-					&& resolvesThroughRenamedBlock(sceneSignals(w.m_sceneModel).front().protectedSection);
+					&& w.m_document->mutableModel().routes.size() == 1 && w.m_document->mutableModel().routes[0].blocks.size() == 3
+					&& renamedInventory.resolve(w.m_document->mutableModel().routes[0].blocks[0])
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().routes[0].blocks[1])
+					&& renamedInventory.resolve(w.m_document->mutableModel().routes[0].blocks[2])
+					&& w.m_document->mutableModel().blockDependencies.size() == 1
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().blockDependencies[0].block)
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().blockDependencies[0].dependsOn)
+					&& w.m_document->mutableModel().singleTrackRestrictions.size() == 1
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().singleTrackRestrictions[0].startBlock)
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().singleTrackRestrictions[0].protectedStartBlock)
+					&& w.m_document->mutableModel().stationBoundaries.size() == 1
+					&& resolvesThroughRenamedBlock(w.m_document->mutableModel().stationBoundaries[0].entranceBlock)
+					&& !sceneSignals(w.m_document->mutableModel()).empty()
+					&& resolvesThroughRenamedBlock(sceneSignals(w.m_document->mutableModel()).front().protectedSection);
 				if (!blockReferencesUpdated)
 					facetFailure(facetOk, "infrastructure", "block ID rename did not update decorated/composite references");
 				if (w.m_addServiceButton && w.m_serviceListWidget && w.m_serviceRouteCombo && w.m_addStopButton) {
 					w.m_addServiceButton->click();
 					QApplication::processEvents();
-					if (!w.m_sceneModel.services.empty())
-						w.m_sceneModel.services.front().composition = "e2e-unresolved-composition";
+					if (!w.m_document->mutableModel().services.empty())
+						w.m_document->mutableModel().services.front().composition = "e2e-unresolved-composition";
 					if (w.m_serviceListWidget->count() != 1 || w.m_serviceRouteCombo->findData("e2e-block-route") < 0)
 						facetFailure(facetOk, "stations/signalling", "service route choices did not refresh immediately");
 					else {
@@ -1222,12 +1222,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							if (!accepted)
 								facetFailure(facetOk, "stations/signalling", "modal stop was not accepted");
 						}
-						const bool platformMoveUpdatedStop = !w.m_sceneModel.services.empty()
-							&& w.m_sceneModel.services.front().stops.size() == 2
+						const bool platformMoveUpdatedStop = !w.m_document->mutableModel().services.empty()
+							&& w.m_document->mutableModel().services.front().stops.size() == 2
 							&& setInfrastructureCell("platforms", 1, 0, "e2e-station-a")
-							&& w.m_sceneModel.services.front().stops.back().stationId == "e2e-station-a"
+							&& w.m_document->mutableModel().services.front().stops.back().stationId == "e2e-station-a"
 							&& setInfrastructureCell("platforms", 1, 0, "e2e-station-b")
-							&& w.m_sceneModel.services.front().stops.back().stationId == "e2e-station-b";
+							&& w.m_document->mutableModel().services.front().stops.back().stationId == "e2e-station-b";
 						if (!platformMoveUpdatedStop)
 							facetFailure(facetOk, "stations/signalling", "moving a referenced platform did not keep its stop usable");
 					}
@@ -1281,52 +1281,52 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					QApplication::processEvents();
 					const QString facetName = QString::fromLatin1(facet);
 					std::size_t actualSize = expectedSize;
-					if (facetName == "tracks") actualSize = w.m_sceneModel.tracks.size();
-					else if (facetName == "nodes") actualSize = w.m_sceneModel.nodes.size();
-					else if (facetName == "arcs") actualSize = w.m_sceneModel.arcs.size();
-					else if (facetName == "blocks") actualSize = w.m_sceneModel.blocks.size();
-					else if (facetName == "connections") actualSize = w.m_sceneModel.connections.size();
-					else if (facetName == "stations") actualSize = w.m_sceneModel.stations.size();
+					if (facetName == "tracks") actualSize = w.m_document->mutableModel().tracks.size();
+					else if (facetName == "nodes") actualSize = w.m_document->mutableModel().nodes.size();
+					else if (facetName == "arcs") actualSize = w.m_document->mutableModel().arcs.size();
+					else if (facetName == "blocks") actualSize = w.m_document->mutableModel().blocks.size();
+					else if (facetName == "connections") actualSize = w.m_document->mutableModel().connections.size();
+					else if (facetName == "stations") actualSize = w.m_document->mutableModel().stations.size();
 					else if (facetName == "platforms") {
 						actualSize = 0;
-						for (const auto& station : w.m_sceneModel.stations)
+						for (const auto& station : w.m_document->mutableModel().stations)
 							actualSize += station.platforms.size();
-					} else if (facetName == "signals") actualSize = sceneSignals(w.m_sceneModel).size();
-					else if (facetName == "routes") actualSize = w.m_sceneModel.routes.size();
+					} else if (facetName == "signals") actualSize = sceneSignals(w.m_document->mutableModel()).size();
+					else if (facetName == "routes") actualSize = w.m_document->mutableModel().routes.size();
 					if (actualSize != expectedSize)
 						facetFailure(facetOk, "delete integrity", QString("referenced %1 delete was not refused").arg(label));
 				};
-				refuseInfrastructureDelete("tracks", 0, 0, w.m_sceneModel.tracks.size(), "track");
-				refuseInfrastructureDelete("nodes", 0, 0, w.m_sceneModel.nodes.size(), "node");
+				refuseInfrastructureDelete("tracks", 0, 0, w.m_document->mutableModel().tracks.size(), "track");
+				refuseInfrastructureDelete("nodes", 0, 0, w.m_document->mutableModel().nodes.size(), "node");
 				if (chooseBlockTrack("e2e-main"))
-					refuseInfrastructureDelete("blocks", 0, 0, w.m_sceneModel.blocks.size(), "block");
+					refuseInfrastructureDelete("blocks", 0, 0, w.m_document->mutableModel().blocks.size(), "block");
 				else
 					facetFailure(facetOk, "delete integrity", "block facet filter unavailable");
-				refuseInfrastructureDelete("connections", 0, 0, w.m_sceneModel.connections.size(), "connection");
-				refuseInfrastructureDelete("stations", 0, 0, w.m_sceneModel.stations.size(), "station");
+				refuseInfrastructureDelete("connections", 0, 0, w.m_document->mutableModel().connections.size(), "connection");
+				refuseInfrastructureDelete("stations", 0, 0, w.m_document->mutableModel().stations.size(), "station");
 				std::size_t platformCount = 0;
-				for (const auto& station : w.m_sceneModel.stations)
+				for (const auto& station : w.m_document->mutableModel().stations)
 					platformCount += station.platforms.size();
 				refuseInfrastructureDelete("platforms", 0, 1, platformCount, "platform");
-				refuseInfrastructureDelete("signals", 0, 0, sceneSignals(w.m_sceneModel).size(), "signal");
-				refuseInfrastructureDelete("routes", 0, 0, w.m_sceneModel.routes.size(), "route");
-				expectedTracks = w.m_sceneModel.tracks;
-				expectedNodes = w.m_sceneModel.nodes;
-				expectedArcs = w.m_sceneModel.arcs;
-				expectedBlocks = w.m_sceneModel.blocks;
-				expectedConnections = w.m_sceneModel.connections;
-				expectedRoutes = w.m_sceneModel.routes;
-				expectedBlockDependencies = w.m_sceneModel.blockDependencies;
-				expectedSingleTrackRestrictions = w.m_sceneModel.singleTrackRestrictions;
-				expectedStationBoundaries = w.m_sceneModel.stationBoundaries;
-				expectedSignallingAreas = w.m_sceneModel.signallingAreas;
-				expectedStations = w.m_sceneModel.stations;
-				expectedSignals = sceneSignals(w.m_sceneModel);
-				expectedNewCaseServices = w.m_sceneModel.services;
-				expectedNewCaseIncidents = defaultScenario(w.m_sceneModel)
-					? defaultScenario(w.m_sceneModel)->incidents
+				refuseInfrastructureDelete("signals", 0, 0, sceneSignals(w.m_document->mutableModel()).size(), "signal");
+				refuseInfrastructureDelete("routes", 0, 0, w.m_document->mutableModel().routes.size(), "route");
+				expectedTracks = w.m_document->mutableModel().tracks;
+				expectedNodes = w.m_document->mutableModel().nodes;
+				expectedArcs = w.m_document->mutableModel().arcs;
+				expectedBlocks = w.m_document->mutableModel().blocks;
+				expectedConnections = w.m_document->mutableModel().connections;
+				expectedRoutes = w.m_document->mutableModel().routes;
+				expectedBlockDependencies = w.m_document->mutableModel().blockDependencies;
+				expectedSingleTrackRestrictions = w.m_document->mutableModel().singleTrackRestrictions;
+				expectedStationBoundaries = w.m_document->mutableModel().stationBoundaries;
+				expectedSignallingAreas = w.m_document->mutableModel().signallingAreas;
+				expectedStations = w.m_document->mutableModel().stations;
+				expectedSignals = sceneSignals(w.m_document->mutableModel());
+				expectedNewCaseServices = w.m_document->mutableModel().services;
+				expectedNewCaseIncidents = defaultScenario(w.m_document->mutableModel())
+					? defaultScenario(w.m_document->mutableModel())->incidents
 					: std::vector<SceneIncident>();
-				if (loadTrackPreview(w.m_sceneModel).lines.size() < 2)
+				if (loadTrackPreview(w.m_document->mutableModel()).lines.size() < 2)
 					facetFailure(facetOk, "infrastructure", "authored topology did not reach the existing preview");
 				if (facetOk)
 					std::fprintf(stdout, "E2E_EDITOR_INFRASTRUCTURE_OK\n");
@@ -1342,15 +1342,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QDir(newCaseFolder).removeRecursively();
 			QDir(absentSettingsFolder).removeRecursively();
 			QFile::remove(newCaseBundle);
-			const SceneSaveResult folderSave = ::saveScene(w.m_sceneModel, newCaseFolder.toStdString());
-			const SceneSaveResult bundleSave = saveSceneBundle(w.m_sceneModel, newCaseBundle.toStdString());
+			const SceneSaveResult folderSave = ::saveScene(w.m_document->mutableModel(), newCaseFolder.toStdString());
+			const SceneSaveResult bundleSave = saveSceneBundle(w.m_document->mutableModel(), newCaseBundle.toStdString());
 			if (!folderSave.success() || !bundleSave.success())
 				facetFailure(facetOk, "new case", "folder or bundle save failed");
 			std::string expectedName = "E2E New Case";
 			std::string expectedDescription = "new case editor smoke";
 			const auto verifyNewCase = [&]() {
-				const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(w.m_sceneModel));
-				return w.m_sceneLoaded && !w.m_sceneDirty && w.m_sceneModel.schemaVersion == 1 && w.m_sceneModel.name == expectedName && w.m_sceneModel.description == expectedDescription && w.m_sceneModel.baseTime == "09:15:30" && w.m_sceneModel.settings.hasDuration && w.m_sceneModel.settings.durationSeconds == 7200.0 && w.m_sceneModel.settings.hasBufferTime && w.m_sceneModel.settings.bufferTimeSeconds == 30.0 && w.m_sceneModel.settings.hasRecoveryTime && w.m_sceneModel.settings.recoveryTimePercent == 7.5 && w.m_sceneModel.defaultScenarioId == "baseline" && scenario && scenario->id == "baseline" && scenario->name == "Baseline" && sameIncidents(scenario->incidents, expectedNewCaseIncidents) && scenario->entranceDelays.empty() && (expectedTracks.empty() || sameInfrastructure(w.m_sceneModel, expectedTracks, expectedNodes, expectedArcs, expectedBlocks, expectedConnections)) && (expectedRoutes.empty() || sameBlockReferences(w.m_sceneModel, expectedRoutes, expectedBlockDependencies, expectedSingleTrackRestrictions, expectedStationBoundaries)) && (expectedSignallingAreas.empty() || sameSignallingAreas(w.m_sceneModel.signallingAreas, expectedSignallingAreas)) && (expectedStations.empty() || sameStations(w.m_sceneModel.stations, expectedStations)) && (expectedSignals.empty() || sameSignals(sceneSignals(w.m_sceneModel), expectedSignals)) && (expectedNewCaseServices.empty() || sameServices(w.m_sceneModel.services, expectedNewCaseServices));
+				const SceneScenario* scenario = defaultScenario(static_cast<const SceneModel&>(w.m_document->mutableModel()));
+				return w.m_document->isLoaded() && !w.m_document->isDirty() && w.m_document->mutableModel().schemaVersion == 1 && w.m_document->mutableModel().name == expectedName && w.m_document->mutableModel().description == expectedDescription && w.m_document->mutableModel().baseTime == "09:15:30" && w.m_document->mutableModel().settings.hasDuration && w.m_document->mutableModel().settings.durationSeconds == 7200.0 && w.m_document->mutableModel().settings.hasBufferTime && w.m_document->mutableModel().settings.bufferTimeSeconds == 30.0 && w.m_document->mutableModel().settings.hasRecoveryTime && w.m_document->mutableModel().settings.recoveryTimePercent == 7.5 && w.m_document->mutableModel().defaultScenarioId == "baseline" && scenario && scenario->id == "baseline" && scenario->name == "Baseline" && sameIncidents(scenario->incidents, expectedNewCaseIncidents) && scenario->entranceDelays.empty() && (expectedTracks.empty() || sameInfrastructure(w.m_document->mutableModel(), expectedTracks, expectedNodes, expectedArcs, expectedBlocks, expectedConnections)) && (expectedRoutes.empty() || sameBlockReferences(w.m_document->mutableModel(), expectedRoutes, expectedBlockDependencies, expectedSingleTrackRestrictions, expectedStationBoundaries)) && (expectedSignallingAreas.empty() || sameSignallingAreas(w.m_document->mutableModel().signallingAreas, expectedSignallingAreas)) && (expectedStations.empty() || sameStations(w.m_document->mutableModel().stations, expectedStations)) && (expectedSignals.empty() || sameSignals(sceneSignals(w.m_document->mutableModel()), expectedSignals)) && (expectedNewCaseServices.empty() || sameServices(w.m_document->mutableModel().services, expectedNewCaseServices));
 			};
 			if (!w.openSceneDirectory(newCaseFolder) || !verifyNewCase())
 				facetFailure(facetOk, "new case", "folder save did not reopen with the edited settings");
@@ -1380,7 +1380,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 
 			QFile::remove(newCaseBundle);
-			const SceneSaveResult updatedBundleSave = saveSceneBundle(w.m_sceneModel, newCaseBundle.toStdString());
+			const SceneSaveResult updatedBundleSave = saveSceneBundle(w.m_document->mutableModel(), newCaseBundle.toStdString());
 			if (!updatedBundleSave.success() || !w.openSceneDirectory(newCaseBundle) || !verifyNewCase())
 				facetFailure(facetOk, "new case", "bundle save did not reopen with the edited settings");
 			if (!w.openSceneDirectory(newCaseFolder) || !verifyNewCase())
@@ -1393,8 +1393,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				nameEdit->setFocus();
 				nameEdit->setText(pendingNewName);
 				QApplication::processEvents();
-				const bool cleanBeforeNew = !w.m_sceneDirty
-					&& w.m_sceneModel.name == expectedName
+				const bool cleanBeforeNew = !w.m_document->isDirty()
+					&& w.m_document->mutableModel().name == expectedName
 					&& nameEdit->text() == pendingNewName
 					&& QApplication::focusWidget() == nameEdit;
 				if (!cleanBeforeNew)
@@ -1404,7 +1404,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_newSceneAction->trigger();
 					QApplication::processEvents();
 					if (w.m_sceneDir != QFileInfo(newCaseFolder).absoluteFilePath()
-						|| !w.m_sceneDirty || w.m_sceneModel.name != pendingNewName.toStdString()
+						|| !w.m_document->isDirty() || w.m_document->mutableModel().name != pendingNewName.toStdString()
 						|| nameEdit->text() != pendingNewName)
 						facetFailure(facetOk, "new case", "Cancel did not preserve the dirty scene after pending New action text");
 				}
@@ -1423,25 +1423,25 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			absentSettings.settings.recoveryTimePercent = 0.0;
 			const SceneSaveResult absentSave = ::saveScene(absentSettings, absentSettingsFolder.toStdString());
 			if (!absentSave.success() || !w.openSceneDirectory(absentSettingsFolder)
-				|| w.m_sceneModel.settings.hasDuration || w.m_sceneModel.settings.hasBufferTime
-				|| w.m_sceneModel.settings.hasRecoveryTime)
+				|| w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.hasBufferTime
+				|| w.m_document->mutableModel().settings.hasRecoveryTime)
 				facetFailure(facetOk, "new case", "canonical scene with absent optional settings did not load");
 			else if (descriptionEdit && w.m_caseSettingsDock) {
 				w.m_caseSettingsDock->show();
 				w.m_caseSettingsDock->raise();
 				descriptionEdit->setText("metadata-only edit");
 				w.commitCaseSettings();
-				const bool flagsRemainAbsent = !w.m_sceneModel.settings.hasDuration
-					&& !w.m_sceneModel.settings.hasBufferTime && !w.m_sceneModel.settings.hasRecoveryTime;
+				const bool flagsRemainAbsent = !w.m_document->mutableModel().settings.hasDuration
+					&& !w.m_document->mutableModel().settings.hasBufferTime && !w.m_document->mutableModel().settings.hasRecoveryTime;
 				if (!flagsRemainAbsent || !w.m_saveSceneAction || !w.m_saveSceneAction->isEnabled())
 					facetFailure(facetOk, "new case", "metadata-only edit did not keep optional settings absent before Save");
 				else {
 					w.m_saveSceneAction->trigger();
-					if (w.m_sceneDirty || w.m_sceneModel.settings.hasDuration || w.m_sceneModel.settings.hasBufferTime
-						|| w.m_sceneModel.settings.hasRecoveryTime
+					if (w.m_document->isDirty() || w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.hasBufferTime
+						|| w.m_document->mutableModel().settings.hasRecoveryTime
 						|| !w.openSceneDirectory(absentSettingsFolder)
-						|| w.m_sceneModel.settings.hasDuration || w.m_sceneModel.settings.hasBufferTime
-						|| w.m_sceneModel.settings.hasRecoveryTime)
+						|| w.m_document->mutableModel().settings.hasDuration || w.m_document->mutableModel().settings.hasBufferTime
+						|| w.m_document->mutableModel().settings.hasRecoveryTime)
 						facetFailure(facetOk, "new case", "metadata-only Save created optional settings");
 				}
 			} else {
@@ -1456,7 +1456,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 
 	// step c: exercise the passenger authoring surface, legacy import seam, and
 	// native passenger/platform staging entirely through public controls.
-	if (w.m_sceneLoaded) {
+	if (w.m_document->isLoaded()) {
 		bool facetOk = true;
 		auto* passengerDock = w.findChild<QDockWidget*>("passengerDock");
 		auto* passengerList = w.findChild<QListWidget*>("passengerListWidget");
@@ -1510,17 +1510,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const SceneService* passengerService = nullptr;
 			std::string originStationId;
 			std::string destinationStationId;
-			for (const auto& service : w.m_sceneModel.services) {
+			for (const auto& service : w.m_document->mutableModel().services) {
 				for (std::size_t first = 0; first < service.stops.size() && !passengerService; ++first) {
 					for (std::size_t last = first + 1; last < service.stops.size(); ++last) {
 						if (service.stops[first].stationId == service.stops[last].stationId)
 							continue;
-						const bool knownOrigin = std::any_of(w.m_sceneModel.stations.begin(),
-							w.m_sceneModel.stations.end(), [&](const SceneStation& station) {
+						const bool knownOrigin = std::any_of(w.m_document->mutableModel().stations.begin(),
+							w.m_document->mutableModel().stations.end(), [&](const SceneStation& station) {
 								return station.id == service.stops[first].stationId;
 							});
-						const bool knownDestination = std::any_of(w.m_sceneModel.stations.begin(),
-							w.m_sceneModel.stations.end(), [&](const SceneStation& station) {
+						const bool knownDestination = std::any_of(w.m_document->mutableModel().stations.begin(),
+							w.m_document->mutableModel().stations.end(), [&](const SceneStation& station) {
 								return station.id == service.stops[last].stationId;
 							});
 						if (!knownOrigin || !knownDestination)
@@ -1537,7 +1537,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!passengerService) {
 				facetFailure(facetOk, "passenger", "no service with two canonical station stops was available");
 			} else {
-				e2ePassengerId = sceneUniquePassengerId(w.m_sceneModel, "e2e_passenger");
+				e2ePassengerId = sceneUniquePassengerId(w.m_document->mutableModel(), "e2e_passenger");
 				const int passengerCountBefore = passengerList->count();
 				passengerAdd->click();
 				QApplication::processEvents();
@@ -1547,7 +1547,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					passengerId->setText(QString::fromStdString(e2ePassengerId));
 					if (!commitLineEdit(passengerId))
 						facetFailure(facetOk, "passenger", "passenger ID edit did not commit");
-					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_journey");
+					e2eJourneyId = sceneUniquePassengerJourneyId(w.m_document->mutableModel(), "e2e_journey");
 					journeyAdd->click();
 					QApplication::processEvents();
 					ScenePassenger* authoredPassenger = w.m_passengerPanel->selectedPassenger();
@@ -1567,7 +1567,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						passengerTabs->setCurrentIndex(1);
 						legAdd->click();
 						QApplication::processEvents();
-						e2eLegId = sceneUniquePassengerLegId(w.m_sceneModel, "e2e_leg");
+						e2eLegId = sceneUniquePassengerLegId(w.m_document->mutableModel(), "e2e_leg");
 						const auto configureLeg = [&](const std::string& id) {
 							legId->setText(QString::fromStdString(id));
 							const bool idOk = commitLineEdit(legId);
@@ -1586,7 +1586,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						};
 						if (!configureLeg(e2eLegId))
 							facetFailure(facetOk, "passenger", "leg ID, typed stops, service, or occurrence did not commit");
-						const std::string secondLegId = sceneUniquePassengerLegId(w.m_sceneModel, "e2e_leg_second");
+						const std::string secondLegId = sceneUniquePassengerLegId(w.m_document->mutableModel(), "e2e_leg_second");
 						legAdd->click();
 						QApplication::processEvents();
 						if (!configureLeg(secondLegId))
@@ -1613,7 +1613,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							: 0;
 						journeyAdd->click();
 						QApplication::processEvents();
-						const std::string temporaryJourneyId = sceneUniquePassengerJourneyId(w.m_sceneModel, "e2e_temp_journey");
+						const std::string temporaryJourneyId = sceneUniquePassengerJourneyId(w.m_document->mutableModel(), "e2e_temp_journey");
 						journeyId->setText(QString::fromStdString(temporaryJourneyId));
 						commitLineEdit(journeyId);
 						acceptConfirmation();
@@ -1624,7 +1624,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						const int passengerCountWithAuthor = passengerList->count();
 						passengerAdd->click();
 						QApplication::processEvents();
-						const std::string temporaryPassengerId = sceneUniquePassengerId(w.m_sceneModel, "e2e_temp_passenger");
+						const std::string temporaryPassengerId = sceneUniquePassengerId(w.m_document->mutableModel(), "e2e_temp_passenger");
 						passengerId->setText(QString::fromStdString(temporaryPassengerId));
 						commitLineEdit(passengerId);
 						acceptConfirmation();
@@ -1710,7 +1710,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								if (findPassengerRow("e2e_unresolved") >= 0)
 									facetFailure(facetOk, "passenger import", "invalid imported passenger was not deletable through the public control");
 							}
-							const auto passengersBeforeFailedImport = w.m_sceneModel.passengers;
+							const auto passengersBeforeFailedImport = w.m_document->mutableModel().passengers;
 							QTemporaryDir partialFixture;
 							const QString partialPassengerDir = QDir(partialFixture.path()).filePath("Passengers");
 							const bool partialReady = partialFixture.isValid()
@@ -1721,16 +1721,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								facetFailure(facetOk, "passenger import", "could not create the partial import fixture");
 							} else {
 								importPassengersFrom(passengerImport, partialFixture.path());
-								if (!samePassengers(passengersBeforeFailedImport, w.m_sceneModel.passengers)
+								if (!samePassengers(passengersBeforeFailedImport, w.m_document->mutableModel().passengers)
 									|| importResults->rowCount() != 1 || !importResults->item(0, 2)
 									|| importResults->item(0, 2)->text() != "Rejected")
 									facetFailure(facetOk, "passenger import", "a failed import changed the scene or hid its rejection");
 							}
 						}
 
-						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
+						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_document->mutableModel());
 						const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
-							w.m_sceneModel, w.m_runSelection.scenarioId(), SceneRunSelection());
+							w.m_document->mutableModel(), w.m_runSelection.scenarioId(), SceneRunSelection());
 						const auto stagedPassenger = std::find_if(defaultRun().passengers.begin(), defaultRun().passengers.end(),
 							[&](const Passenger& passenger) { return passenger.ID == e2ePassengerId; });
 						bool nativePassengerOk = !hasErrors(infrastructureDiagnostics)
@@ -1750,8 +1750,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}
 						}
 						bool nativePlatformOk = false;
-						if (!w.m_sceneModel.stations.empty() && !w.m_sceneModel.stations.front().platforms.empty()) {
-							const ScenePlatform& sourcePlatform = w.m_sceneModel.stations.front().platforms.front();
+						if (!w.m_document->mutableModel().stations.empty() && !w.m_document->mutableModel().stations.front().platforms.empty()) {
+							const ScenePlatform& sourcePlatform = w.m_document->mutableModel().stations.front().platforms.front();
 							const double expectedLength = sourcePlatform.hasLength ? sourcePlatform.lengthM : 100.0;
 							const double expectedWidth = sourcePlatform.hasWidth ? sourcePlatform.widthM : 2.5;
 							const int expectedCapacity = static_cast<int>((expectedLength * expectedWidth)
@@ -1774,7 +1774,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	}
 
 	// step b: validation assertions
-	if (w.m_sceneLoaded) {
+	if (w.m_document->isLoaded()) {
 		if (!w.m_loadedDataTree || w.m_loadedDataTree->topLevelItemCount() <= 0) {
 			ok = false;
 			failures << "validation: loaded data tree empty";
@@ -1795,7 +1795,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			failures << "service: pane empty";
 		}
 		bool scenarioOk = w.m_scenarioListWidget && w.m_scenarioListWidget->count() > 0
-			&& w.m_runSelection.scenarioId() == w.m_sceneModel.defaultScenarioId;
+			&& w.m_runSelection.scenarioId() == w.m_document->mutableModel().defaultScenarioId;
 		if (!scenarioOk) {
 			ok = false;
 			failures << "scenario: canonical default was not initially selected";
@@ -1816,7 +1816,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			w.m_scenarioListWidget->setCurrentRow(0);
 			QApplication::processEvents();
-			if (w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId) {
+			if (w.m_runSelection.scenarioId() != w.m_document->mutableModel().defaultScenarioId) {
 				ok = false;
 				failures << "scenario: selection did not return to canonical default";
 			}
@@ -1825,7 +1825,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_scenarioPanel->deleteScenario();
 			QApplication::processEvents();
 			if (w.m_scenarioListWidget->count() != countBeforeDefaultDelete
-				|| w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId
+				|| w.m_runSelection.scenarioId() != w.m_document->mutableModel().defaultScenarioId
 				|| w.m_deleteScenarioButton->isEnabled()) {
 				ok = false;
 				failures << "scenario: default deletion was not refused or button stayed enabled";
@@ -1837,14 +1837,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_deleteScenarioButton->click();
 			QApplication::processEvents();
 			if (w.m_scenarioListWidget->count() != originalScenarioCount + 1
-				|| w.m_runSelection.scenarioId() != w.m_sceneModel.defaultScenarioId
-				|| !defaultScenario(static_cast<const SceneModel&>(w.m_sceneModel))) {
+				|| w.m_runSelection.scenarioId() != w.m_document->mutableModel().defaultScenarioId
+				|| !defaultScenario(static_cast<const SceneModel&>(w.m_document->mutableModel()))) {
 				ok = false;
 				failures << "scenario: non-default deletion did not select a valid default";
 			}
 			if (w.m_scenarioListWidget->count() > originalScenarioCount) {
 				for (int row = 0; row < w.m_scenarioListWidget->count(); ++row) {
-					if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == w.m_sceneModel.defaultScenarioId)
+					if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == w.m_document->mutableModel().defaultScenarioId)
 						continue;
 					w.m_scenarioListWidget->setCurrentRow(row);
 					acceptConfirmation();
@@ -1973,14 +1973,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		} else {
 			std::fprintf(stdout, "E2E_EDITOR_EXPLORER_OK\n");
 		}
-		expectedCompositions = w.m_sceneModel.compositions;
-		expectedTrainUnits = w.m_sceneModel.trainUnits;
-		expectedServices = w.m_sceneModel.services;
+		expectedCompositions = w.m_document->mutableModel().compositions;
+		expectedTrainUnits = w.m_document->mutableModel().trainUnits;
+		expectedServices = w.m_document->mutableModel().services;
 		expectedIncidents = w.selectedScenarioIncidents();
 	}
 
 	std::string editedTrainUnitId;
-	if (!w.m_sceneLoaded || !w.m_trainUnitListWidget) {
+	if (!w.m_document->isLoaded() || !w.m_trainUnitListWidget) {
 		bool facetOk = false;
 		facetFailure(facetOk, "train unit", "scene or train-unit list unavailable");
 	} else {
@@ -1997,22 +1997,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		layoutOk = layoutOk && headings.size() == 3
 			&& w.m_trainUnitTractionTable->y() > headings[1]->y()
 			&& w.m_plotTrainUnitTractionButton->y() < headings[2]->y();
-		const bool wasDirty = w.m_sceneDirty;
-		w.m_sceneDirty = false;
+		const bool wasDirty = w.m_document->isDirty();
+		w.m_document->setDirty(false);
 		const QSize oldSize = w.m_trainUnitDock->size();
 		const QSize oldTableSize = w.m_trainUnitTractionTable->size();
 		const bool wasFloating = w.m_trainUnitDock->isFloating();
 		w.m_trainUnitDock->setFloating(true);
 		w.m_trainUnitDock->resize(1400, 1200);
 		QApplication::processEvents();
-		layoutOk = layoutOk && !w.m_sceneDirty && w.m_trainUnitTractionTable->width() > oldTableSize.width()
+		layoutOk = layoutOk && !w.m_document->isDirty() && w.m_trainUnitTractionTable->width() > oldTableSize.width()
 			&& w.m_trainUnitTractionTable->height() > oldTableSize.height();
 		const QString layoutShot = QDir(qEnvironmentVariable("QEGTRAIN_E2E_OUT", QDir::tempPath()))
 									   .filePath("rolling-stock-expanded.png");
 		layoutOk = w.m_trainUnitDock->grab().save(layoutShot, "PNG") && layoutOk;
 		w.m_trainUnitDock->setFloating(wasFloating);
 		w.m_trainUnitDock->resize(oldSize);
-		w.m_sceneDirty = wasDirty;
+		w.m_document->setDirty(wasDirty);
 		w.m_trainUnitListWidget->setCurrentRow(-1);
 		layoutOk = layoutOk && !w.m_trainUnitIdEdit->isEnabled() && !w.m_trainUnitSourceDataEdit->isEnabled()
 			&& !w.m_trainUnitSourceTractionEdit->isEnabled() && !w.m_trainUnitTractionTable->isEnabled();
@@ -2026,36 +2026,36 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "train unit", "add did not apply");
 		} else {
 			w.m_trainUnitListWidget->setCurrentRow(originalCount);
-			const std::string initialTrainUnitId = w.m_sceneModel.trainUnits[originalCount].id;
+			const std::string initialTrainUnitId = w.m_document->mutableModel().trainUnits[originalCount].id;
 			w.m_compositionListWidget->setCurrentRow(0);
 			acceptUnitChoice(QString::fromStdString(initialTrainUnitId));
 			w.m_compositionPanel->addUnit();
 			QApplication::processEvents();
 			bool assignedInitialId = false;
 			if (w.m_compositionListWidget->currentRow() >= 0
-				&& w.m_compositionListWidget->currentRow() < static_cast<int>(w.m_sceneModel.compositions.size())) {
-				const auto& units = w.m_sceneModel.compositions[w.m_compositionListWidget->currentRow()].units;
+				&& w.m_compositionListWidget->currentRow() < static_cast<int>(w.m_document->mutableModel().compositions.size())) {
+				const auto& units = w.m_document->mutableModel().compositions[w.m_compositionListWidget->currentRow()].units;
 				assignedInitialId = std::find(units.begin(), units.end(), initialTrainUnitId) != units.end();
 			}
 			if (!assignedInitialId)
 				facetFailure(facetOk, "train unit", "composition assignment did not apply under the initial id");
 
-			const std::string initialIdBeforeDuplicateRename = w.m_sceneModel.trainUnits[originalCount].id;
-			const std::vector<SceneComposition> compositionsBeforeDuplicateRename = w.m_sceneModel.compositions;
+			const std::string initialIdBeforeDuplicateRename = w.m_document->mutableModel().trainUnits[originalCount].id;
+			const std::vector<SceneComposition> compositionsBeforeDuplicateRename = w.m_document->mutableModel().compositions;
 			if (originalCount <= 0) {
 				facetFailure(facetOk, "train unit", "scene lacks another train unit id for duplicate rename coverage");
 			} else if (w.m_trainUnitIdEdit) {
-				const std::string conflictingId = w.m_sceneModel.trainUnits.front().id;
+				const std::string conflictingId = w.m_document->mutableModel().trainUnits.front().id;
 				w.m_trainUnitIdEdit->setText(QString::fromStdString(conflictingId));
 				w.m_trainUnitPanel->commitIdEdit();
-				const bool selectedIdUnchanged = w.m_sceneModel.trainUnits[originalCount].id == initialIdBeforeDuplicateRename;
+				const bool selectedIdUnchanged = w.m_document->mutableModel().trainUnits[originalCount].id == initialIdBeforeDuplicateRename;
 				const bool editorIdRestored = w.m_trainUnitIdEdit->text().trimmed().toStdString() == initialIdBeforeDuplicateRename;
-				const bool referencesUnchanged = sameCompositions(compositionsBeforeDuplicateRename, w.m_sceneModel.compositions);
+				const bool referencesUnchanged = sameCompositions(compositionsBeforeDuplicateRename, w.m_document->mutableModel().compositions);
 				if (!selectedIdUnchanged || !editorIdRestored || !referencesUnchanged)
 					facetFailure(facetOk, "train unit", "duplicate-id rename changed the selected unit or composition references");
 			}
 
-			editedTrainUnitId = sceneUniqueTrainUnitId(w.m_sceneModel, "e2e_train_unit");
+			editedTrainUnitId = sceneUniqueTrainUnitId(w.m_document->mutableModel(), "e2e_train_unit");
 			if (!w.m_trainUnitIdEdit) {
 				facetFailure(facetOk, "train unit", "id editor unavailable");
 			} else {
@@ -2064,7 +2064,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			bool oldReferencePresent = false;
 			bool newReferencePresent = false;
-			for (const auto& composition : w.m_sceneModel.compositions) {
+			for (const auto& composition : w.m_document->mutableModel().compositions) {
 				for (const auto& unitId : composition.units) {
 					oldReferencePresent = oldReferencePresent || unitId == initialTrainUnitId;
 					newReferencePresent = newReferencePresent || unitId == editedTrainUnitId;
@@ -2087,7 +2087,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				w.m_trainUnitSourceDataEdit->setText(editedSourceData);
 				w.m_trainUnitSourceTractionEdit->setText(editedSourceTraction);
 				QMetaObject::invokeMethod(w.m_trainUnitSourceTractionEdit, "editingFinished", Qt::DirectConnection);
-				const SceneTrainUnit& editedUnit = w.m_sceneModel.trainUnits[originalCount];
+				const SceneTrainUnit& editedUnit = w.m_document->mutableModel().trainUnits[originalCount];
 				if (editedUnit.sourceDataFile != editedSourceData.toStdString()
 					|| editedUnit.sourceTractionFile != editedSourceTraction.toStdString())
 					facetFailure(facetOk, "train unit", "source reference edits did not commit both fields");
@@ -2102,7 +2102,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_trainUnitPhysicalEdits[static_cast<size_t>(field)]->setValue(physicalValues[field]);
 				w.m_trainUnitPanel->commitPhysical(field);
 			}
-			const SceneTrainPhysical& committedPhysical = w.m_sceneModel.trainUnits[originalCount].physical;
+			const SceneTrainPhysical& committedPhysical = w.m_document->mutableModel().trainUnits[originalCount].physical;
 			if (committedPhysical.mass_of_traction_unit_kg != physicalValues[0])
 				facetFailure(facetOk, "train unit", "traction-unit mass did not commit the requested value");
 			if (committedPhysical.mass_of_a_wagon_kg != physicalValues[1])
@@ -2121,9 +2121,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "train unit", "jerk did not commit the requested value");
 			if (committedPhysical.length_m != physicalValues[8])
 				facetFailure(facetOk, "train unit", "length did not commit the requested value");
-			const int initialCurveRows = static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size());
+			const int initialCurveRows = static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size());
 			w.m_trainUnitPanel->addTractionRow();
-			if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1) {
+			if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1) {
 				facetFailure(facetOk, "train unit", "traction row add did not apply");
 			} else if (w.m_trainUnitTractionTable) {
 				const int row = w.m_trainUnitTractionTable->rowCount() - 1;
@@ -2139,7 +2139,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					edit->setValue(tractionValues[column]);
 				}
 				w.m_trainUnitPanel->addTractionRow();
-				if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
+				if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 2)
 					facetFailure(facetOk, "train unit", "second traction row add did not apply");
 				else {
 					const int secondRow = w.m_trainUnitTractionTable->rowCount() - 1;
@@ -2153,9 +2153,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						QMetaObject::invokeMethod(secondRowEdit, "editingFinished", Qt::DirectConnection);
 					}
 					w.m_trainUnitPanel->removeTractionRow();
-					if (static_cast<int>(w.m_sceneModel.trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
+					if (static_cast<int>(w.m_document->mutableModel().trainUnits[originalCount].tractionCurve.size()) != initialCurveRows + 1)
 						facetFailure(facetOk, "train unit", "traction row delete did not apply");
-					else if (w.m_sceneModel.trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
+					else if (w.m_document->mutableModel().trainUnits[originalCount].tractionCurve[initialCurveRows] != tractionValues)
 						facetFailure(facetOk, "train unit", "editing a non-current traction row deleted the wrong row");
 				}
 			}
@@ -2167,15 +2167,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else {
 				const int duplicateRow = originalCount + 1;
 				w.m_trainUnitListWidget->setCurrentRow(duplicateRow);
-				const std::string duplicateId = w.m_sceneModel.trainUnits[duplicateRow].id;
+				const std::string duplicateId = w.m_document->mutableModel().trainUnits[duplicateRow].id;
 				w.m_compositionListWidget->setCurrentRow(0);
 				acceptUnitChoice(QString::fromStdString(duplicateId));
 				w.m_compositionPanel->addUnit();
 				QApplication::processEvents();
 				const int referencedCount = w.m_trainUnitListWidget->count();
 				w.m_trainUnitPanel->deleteUnit();
-				const bool duplicateStillPresent = std::any_of(w.m_sceneModel.trainUnits.begin(),
-					w.m_sceneModel.trainUnits.end(), [&](const SceneTrainUnit& unit) { return unit.id == duplicateId; });
+				const bool duplicateStillPresent = std::any_of(w.m_document->mutableModel().trainUnits.begin(),
+					w.m_document->mutableModel().trainUnits.end(), [&](const SceneTrainUnit& unit) { return unit.id == duplicateId; });
 				if (w.m_trainUnitListWidget->count() != referencedCount || !duplicateStillPresent)
 					facetFailure(facetOk, "train unit", "referenced-unit delete was not refused");
 				w.m_compositionListWidget->setCurrentRow(0);
@@ -2189,26 +2189,26 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				acceptConfirmation();
 				w.m_trainUnitPanel->deleteUnit();
 				if (w.m_trainUnitListWidget->count() != originalCount + 1
-					|| std::any_of(w.m_sceneModel.trainUnits.begin(), w.m_sceneModel.trainUnits.end(),
+					|| std::any_of(w.m_document->mutableModel().trainUnits.begin(), w.m_document->mutableModel().trainUnits.end(),
 						[&](const SceneTrainUnit& unit) { return unit.id == duplicateId; }))
 					facetFailure(facetOk, "train unit", "unreferenced-unit delete did not apply");
 			}
 		}
-		if (!w.m_sceneModel.trainUnits.empty()) {
+		if (!w.m_document->mutableModel().trainUnits.empty()) {
 			w.m_trainUnitListWidget->setCurrentRow(0);
-			if (!w.m_trainUnitSourceDataEdit || w.m_trainUnitSourceDataEdit->text().toStdString() != w.m_sceneModel.trainUnits.front().sourceDataFile
-				|| !w.m_trainUnitSourceTractionEdit || w.m_trainUnitSourceTractionEdit->text().toStdString() != w.m_sceneModel.trainUnits.front().sourceTractionFile)
+			if (!w.m_trainUnitSourceDataEdit || w.m_trainUnitSourceDataEdit->text().toStdString() != w.m_document->mutableModel().trainUnits.front().sourceDataFile
+				|| !w.m_trainUnitSourceTractionEdit || w.m_trainUnitSourceTractionEdit->text().toStdString() != w.m_document->mutableModel().trainUnits.front().sourceTractionFile)
 				facetFailure(facetOk, "train unit", "source references are not visible and unchanged");
 		}
-		expectedCompositions = w.m_sceneModel.compositions;
+		expectedCompositions = w.m_document->mutableModel().compositions;
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_TRAIN_UNIT_OK\n");
 	}
 
-	if (!w.m_sceneModel.trainUnits.empty()) {
+	if (!w.m_document->mutableModel().trainUnits.empty()) {
 		bool facetOk = true;
 		w.m_trainUnitListWidget->setCurrentRow(0);
-		sourceLinkUnitId = w.m_sceneModel.trainUnits.front().id;
+		sourceLinkUnitId = w.m_document->mutableModel().trainUnits.front().id;
 		sourcePhysicalPath = sourceLinkFixture.filePath("physical.txt");
 		sourceTractionPath = sourceLinkFixture.filePath("traction.txt");
 		const auto writeSource = [&](const QString& path, const QByteArray& bytes) {
@@ -2235,17 +2235,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		TrainUnitSourceLinker::Link link;
 		link.dataPath = sourcePhysicalPath;
 		link.tractionPath = sourceTractionPath;
-		link.acceptedPhysical = w.m_sceneModel.trainUnits.front().physical;
-		link.acceptedTraction = w.m_sceneModel.trainUnits.front().tractionCurve;
+		link.acceptedPhysical = w.m_document->mutableModel().trainUnits.front().physical;
+		link.acceptedTraction = w.m_document->mutableModel().trainUnits.front().tractionCurve;
 		w.m_trainUnitSourceLinker->m_links[sourceLinkUnitId] = link;
 		w.m_trainUnitSourceLinker->refreshWatches();
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 71\n");
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		settle();
-		if (w.m_sceneModel.trainUnits.front().physical.length_m != 71.0
-			|| w.m_sceneModel.trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
+		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 71.0
+			|| w.m_document->mutableModel().trainUnits.front().tractionCurve != std::vector<std::array<double, 5>>{{0, 40, 210000, 0, 0}})
 			facetFailure(facetOk, "source links", "complete file changes did not apply");
-		const quint64 acceptedRevision = w.m_sceneRevision;
+		const quint64 acceptedRevision = w.m_document->revision();
 		w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred = true;
 		writeSource(sourceTractionPath, "0 40 210000 0 0\n");
 		bool unchangedPrompted = false;
@@ -2253,19 +2253,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		w.m_trainUnitSourceLinker->m_pendingPaths.insert(sourceTractionPath);
 		w.m_trainUnitSourceLinker->processChanges();
 		settle();
-		if (w.m_sceneRevision != acceptedRevision || unchangedPrompted
+		if (w.m_document->revision() != acceptedRevision || unchangedPrompted
 			|| w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionDeferred)
 			facetFailure(facetOk, "source links", "unchanged deferred save prompted or dirtied the scene");
 		writeSource(sourceTractionPath, "0 40 220000 0 0\npartial\n");
 		settle();
-		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 210000
+		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 210000
 			|| !w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId).tractionStatus.startsWith("Rejected"))
 			facetFailure(facetOk, "source links", "malformed file replaced accepted data");
 		QFile::remove(sourceTractionPath);
 		settle();
 		writeSource(sourceTractionPath, "0 40 220000 0 0\n");
 		settle();
-		if (w.m_sceneModel.trainUnits.front().tractionCurve.front()[2] != 220000
+		if (w.m_document->mutableModel().trainUnits.front().tractionCurve.front()[2] != 220000
 			|| !w.m_trainUnitSourceLinker->watchedFiles().contains(sourceTractionPath))
 			facetFailure(facetOk, "source links", "deletion/recreation did not recover the watch");
 		// The focused editor must commit before comparing with the accepted source.
@@ -2280,31 +2280,31 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		writeSource(sourcePhysicalPath, "151000 0 0 36.111111111111 0.75 1.45 0.004 0.75 72\n");
 		answerReload("Keep local");
 		w.m_trainUnitSourceLinker->processFile(sourcePhysicalPath, false);
-		if (w.m_sceneModel.trainUnits.front().physical.length_m != 73.0)
+		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 73.0)
 			facetFailure(facetOk, "source links", "focused local edit was overwritten");
-		const quint64 keptRevision = w.m_sceneRevision;
+		const quint64 keptRevision = w.m_document->revision();
 		settle();
-		if (w.m_sceneRevision != keptRevision)
+		if (w.m_document->revision() != keptRevision)
 			facetFailure(facetOk, "source links", "rejected content was reapplied");
 		answerReload("Reload");
 		w.m_trainUnitSourceLinker->retry(sourceLinkUnitId, false);
 		w.m_trainUnitSourceLinker->processChanges();
-		if (w.m_sceneModel.trainUnits.front().physical.length_m != 72.0)
+		if (w.m_document->mutableModel().trainUnits.front().physical.length_m != 72.0)
 			facetFailure(facetOk, "source links", "explicit retry did not reload");
 		// A duplicate shares values, not the authority to watch an external file.
 		w.m_trainUnitPanel->duplicateUnit();
-		const std::string duplicateId = w.m_sceneModel.trainUnits[1].id;
+		const std::string duplicateId = w.m_document->mutableModel().trainUnits[1].id;
 		if (w.m_trainUnitSourceLinker->m_links.count(duplicateId))
 			facetFailure(facetOk, "source links", "duplicate inherited a live link");
 		w.m_trainUnitSourceLinker->m_links[duplicateId] = w.m_trainUnitSourceLinker->m_links.at(sourceLinkUnitId);
 		writeSource(sourceTractionPath, "0 40 230000 0 0\n");
 		settle();
-		if (w.m_sceneModel.trainUnits[0].tractionCurve.front()[2] != 230000
-			|| w.m_sceneModel.trainUnits[1].tractionCurve.front()[2] != 230000)
+		if (w.m_document->mutableModel().trainUnits[0].tractionCurve.front()[2] != 230000
+			|| w.m_document->mutableModel().trainUnits[1].tractionCurve.front()[2] != 230000)
 			facetFailure(facetOk, "source links",
 				QString("shared source values %1 / %2; status %3")
-					.arg(w.m_sceneModel.trainUnits[0].tractionCurve.front()[2])
-					.arg(w.m_sceneModel.trainUnits[1].tractionCurve.front()[2])
+					.arg(w.m_document->mutableModel().trainUnits[0].tractionCurve.front()[2])
+					.arg(w.m_document->mutableModel().trainUnits[1].tractionCurve.front()[2])
 					.arg(w.m_trainUnitSourceLinker->m_links.at(duplicateId).tractionStatus));
 		w.m_trainUnitIdEdit->setText(QString::fromStdString(duplicateId + "_renamed"));
 		w.m_trainUnitPanel->commitIdEdit();
@@ -2329,16 +2329,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	}
 
 	std::string editedCompositionId;
-	if (!w.m_sceneLoaded || !w.m_compositionListWidget || expectedCompositions.empty()) {
+	if (!w.m_document->isLoaded() || !w.m_compositionListWidget || expectedCompositions.empty()) {
 		bool facetOk = false;
 		facetFailure(facetOk, "composition", "scene or composition list unavailable");
 	} else {
 		bool facetOk = true;
 		const int originalCount = w.m_compositionListWidget->count();
 		int assignedCompositionRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.compositions.size()); ++row) {
-			const std::string& compositionId = w.m_sceneModel.compositions[static_cast<std::size_t>(row)].id;
-			if (std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().compositions.size()); ++row) {
+			const std::string& compositionId = w.m_document->mutableModel().compositions[static_cast<std::size_t>(row)].id;
+			if (std::any_of(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 					[&compositionId](const SceneService& service) { return service.composition == compositionId; })) {
 				assignedCompositionRow = row;
 				break;
@@ -2352,7 +2352,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (w.m_compositionUnitsListWidget && w.m_compositionUnitsListWidget->count() > 0 && w.m_compositionUnitsListWidget->item(0)) {
 				w.m_compositionUnitsListWidget->setCurrentRow(0);
 				const SceneTrainUnit* tractionUnit =
-					sceneTrainUnitById(w.m_sceneModel, w.m_compositionUnitsListWidget->item(0)->text().toStdString());
+					sceneTrainUnitById(w.m_document->mutableModel(), w.m_compositionUnitsListWidget->item(0)->text().toStdString());
 				if (tractionUnit && !tractionUnit->tractionCurve.empty()) {
 					if (!w.m_plotTractionButton || !w.m_plotTractionButton->isEnabled())
 						facetFailure(facetOk, "composition", "traction plot disabled for a unit with a curve");
@@ -2367,40 +2367,40 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				facetFailure(facetOk, "composition", "duplicate did not apply");
 			} else {
 				const std::string originalAssignedCompositionId =
-					w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id;
+					w.m_document->mutableModel().compositions[static_cast<std::size_t>(assignedCompositionRow)].id;
 				const std::string duplicateCompositionId =
-					w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow + 1)].id;
+					w.m_document->mutableModel().compositions[static_cast<std::size_t>(assignedCompositionRow + 1)].id;
 				w.m_compositionListWidget->setCurrentRow(assignedCompositionRow);
 				if (!w.m_compositionIdEdit) {
 					facetFailure(facetOk, "composition", "id editor unavailable");
 				} else {
 					w.m_compositionIdEdit->setText(QString());
 					w.m_compositionPanel->commitIdEdit();
-					const bool emptyRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
+					const bool emptyRejected = w.m_document->mutableModel().compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
 						&& w.m_compositionListWidget->currentRow() == assignedCompositionRow;
 					w.m_compositionIdEdit->setText(QString::fromStdString(duplicateCompositionId));
 					w.m_compositionPanel->commitIdEdit();
-					const bool duplicateRejected = w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id
+					const bool duplicateRejected = w.m_document->mutableModel().compositions[static_cast<std::size_t>(assignedCompositionRow)].id
 							== originalAssignedCompositionId
 						&& w.m_compositionIdEdit->text() == QString::fromStdString(originalAssignedCompositionId)
 						&& w.m_compositionListWidget->currentRow() == assignedCompositionRow;
 					if (!emptyRejected || !duplicateRejected)
 						facetFailure(facetOk, "composition", "empty or duplicate ID was not rejected with the prior text restored");
 
-					editedCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_composition");
+					editedCompositionId = sceneUniqueCompositionId(w.m_document->mutableModel(), "e2e_composition");
 					w.m_compositionIdEdit->setText(QString::fromStdString(editedCompositionId));
 					w.m_compositionPanel->commitIdEdit();
 					int migratedServiceCount = 0;
 					int staleServiceCount = 0;
-					for (const auto& service : w.m_sceneModel.services) {
+					for (const auto& service : w.m_document->mutableModel().services) {
 						if (service.composition == editedCompositionId)
 							++migratedServiceCount;
 						if (service.composition == originalAssignedCompositionId)
 							++staleServiceCount;
 					}
-					if (w.m_sceneModel.compositions[static_cast<std::size_t>(assignedCompositionRow)].id != editedCompositionId
+					if (w.m_document->mutableModel().compositions[static_cast<std::size_t>(assignedCompositionRow)].id != editedCompositionId
 						|| migratedServiceCount <= 0 || staleServiceCount != 0
 						|| w.m_compositionListWidget->currentRow() != assignedCompositionRow
 						|| !w.m_serviceCompositionCombo
@@ -2412,13 +2412,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_compositionListWidget->setCurrentRow(assignedCompositionRow);
 			w.m_compositionPanel->deleteComposition();
 			if (w.m_compositionListWidget->count() != referencedCompositionCount
-				|| !std::any_of(w.m_sceneModel.compositions.begin(), w.m_sceneModel.compositions.end(),
+				|| !std::any_of(w.m_document->mutableModel().compositions.begin(), w.m_document->mutableModel().compositions.end(),
 					[&](const SceneComposition& composition) {
 						return composition.id == editedCompositionId;
 					}))
 				facetFailure(facetOk, "composition", "service-referenced composition delete was not refused");
 			w.m_compositionPanel->addComposition();
-			const std::string temporaryCompositionId = w.m_sceneModel.compositions.back().id;
+			const std::string temporaryCompositionId = w.m_document->mutableModel().compositions.back().id;
 			if (w.m_compositionListWidget->count() != originalCount + 2
 				|| !w.m_serviceCompositionCombo
 				|| w.m_serviceCompositionCombo->findText(
@@ -2435,13 +2435,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "composition", "delete did not refresh the service selector");
 			}
 			int editedRow = -1;
-			for (int row = 0; row < static_cast<int>(w.m_sceneModel.compositions.size()); ++row) {
-				if (w.m_sceneModel.compositions[row].id == editedCompositionId) {
+			for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().compositions.size()); ++row) {
+				if (w.m_document->mutableModel().compositions[row].id == editedCompositionId) {
 					editedRow = row;
 					break;
 				}
 			}
-			if (editedRow < 0 || w.m_sceneModel.compositions[editedRow].units != expectedCompositions[static_cast<std::size_t>(assignedCompositionRow)].units)
+			if (editedRow < 0 || w.m_document->mutableModel().compositions[editedRow].units != expectedCompositions[static_cast<std::size_t>(assignedCompositionRow)].units)
 				facetFailure(facetOk, "composition", "edited composition was not retained");
 			if (facetOk)
 				std::fprintf(stdout, "E2E_EDITOR_COMPOSITION_OK\n");
@@ -2449,7 +2449,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	}
 
 	std::string editedServiceId;
-	if (!w.m_sceneLoaded || !w.m_serviceListWidget || expectedServices.empty() || editedCompositionId.empty()) {
+	if (!w.m_document->isLoaded() || !w.m_serviceListWidget || expectedServices.empty() || editedCompositionId.empty()) {
 		bool facetOk = false;
 		facetFailure(facetOk, "service", "scene or service setup unavailable");
 	} else {
@@ -2459,40 +2459,40 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const int originalCount = w.m_serviceListWidget->count();
 		w.m_serviceListWidget->setCurrentRow(0);
 		const std::string unknownCategory = "Regional heritage / custom";
-		w.m_sceneModel.services[0].category = unknownCategory;
+		w.m_document->mutableModel().services[0].category = unknownCategory;
 		expectedServices[0].category = unknownCategory;
 		w.m_servicePanel->updateDetail();
 		if (!w.m_serviceCategoryCombo || w.m_serviceCategoryCombo->currentData().toString().toStdString() != unknownCategory
 			|| !w.m_serviceCategoryCombo->currentText().startsWith("Unknown: "))
 			facetFailure(facetOk, "service", "unknown category is not preserved in the chooser");
 		const std::string storedColor = "#3c8dd2";
-		w.m_sceneModel.services[0].visualizationColor = storedColor;
+		w.m_document->mutableModel().services[0].visualizationColor = storedColor;
 		expectedServices[0].visualizationColor = storedColor;
 		w.m_servicePanel->updateDetail();
 		if (!w.m_serviceColorButton || !w.m_serviceColorButton->isEnabled()
 			|| w.m_serviceColorButton->valueText() != QString::fromStdString(storedColor)
 			|| w.m_serviceColorButton->swatchColor() != QColor(0x3C, 0x8D, 0xD2))
 			facetFailure(facetOk, "service colour", "stored colour is not shown in the editor");
-		const auto originalService = w.m_sceneModel.services[0];
-		const auto sourceRoute = std::find_if(w.m_sceneModel.routes.begin(), w.m_sceneModel.routes.end(),
+		const auto originalService = w.m_document->mutableModel().services[0];
+		const auto sourceRoute = std::find_if(w.m_document->mutableModel().routes.begin(), w.m_document->mutableModel().routes.end(),
 			[&](const SceneRoute& route) { return route.id == originalService.route; });
-		if (sourceRoute != w.m_sceneModel.routes.end()) {
+		if (sourceRoute != w.m_document->mutableModel().routes.end()) {
 			SceneRoute duplicateRoute = *sourceRoute;
 			duplicateRoute.id += "-same-description";
-			w.m_sceneModel.routes.push_back(duplicateRoute);
+			w.m_document->mutableModel().routes.push_back(duplicateRoute);
 			w.m_servicePanel->updateDetail();
 			w.m_serviceRouteCombo->setCurrentIndex(w.m_serviceRouteCombo->findData(QString::fromStdString(duplicateRoute.id)));
-			if (w.m_sceneModel.services[0].route != duplicateRoute.id
+			if (w.m_document->mutableModel().services[0].route != duplicateRoute.id
 				|| !w.m_serviceRouteCombo->toolTip().contains("not scheduled calls"))
 				facetFailure(facetOk, "service routes", "descriptive route selection lost canonical identity or context");
-			w.m_sceneModel.services[0].route = "missing-route";
+			w.m_document->mutableModel().services[0].route = "missing-route";
 			w.m_servicePanel->updateDetail();
 			if (w.m_serviceRouteCombo->currentData().toString() != "missing-route"
-				|| !sameStop(w.m_sceneModel.services[0].stops.front(), originalService.stops.front())
+				|| !sameStop(w.m_document->mutableModel().services[0].stops.front(), originalService.stops.front())
 				|| !w.m_stopTableWidget->item(0, 0)->toolTip().contains("unresolved"))
 				facetFailure(facetOk, "service routes", "missing route or invalid stop was silently replaced");
-			w.m_sceneModel.services[0] = originalService;
-			w.m_sceneModel.routes.pop_back();
+			w.m_document->mutableModel().services[0] = originalService;
+			w.m_document->mutableModel().routes.pop_back();
 			w.m_servicePanel->updateDetail();
 		}
 		w.m_servicePanel->duplicateService();
@@ -2500,7 +2500,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			facetFailure(facetOk, "service", "duplicate did not apply");
 		} else {
 			w.m_serviceListWidget->setCurrentRow(1);
-			SceneService categoryExpected = w.m_sceneModel.services[1];
+			SceneService categoryExpected = w.m_document->mutableModel().services[1];
 			if (categoryExpected.category != unknownCategory)
 				facetFailure(facetOk, "service", "duplicate lost category");
 			if (categoryExpected.visualizationColor != storedColor)
@@ -2512,30 +2512,30 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const int index = w.m_serviceCategoryCombo->findData(category);
 					w.m_serviceCategoryCombo->setCurrentIndex(index);
 					categoryExpected.category = category.toStdString();
-					if (index < 0 || !sameServices({categoryExpected}, {w.m_sceneModel.services[1]}))
+					if (index < 0 || !sameServices({categoryExpected}, {w.m_document->mutableModel().services[1]}))
 						facetFailure(facetOk, "service", "category selection changed other service settings");
 				}
 			}
 			if (w.m_serviceColorButton) {
 				auto* defaultColorButton = w.m_serviceColorButton->findChild<QPushButton*>("serviceColorDefaultButton");
-				const bool dirtyBeforeColor = w.m_sceneDirty;
+				const bool dirtyBeforeColor = w.m_document->isDirty();
 				// an edit changes the colour and marks the scene modified; an equal value changes nothing
 				const auto colorStep = [&](const char* what, const std::function<void()>& action,
 										   const std::string& expectedColor) {
-					w.m_sceneDirty = false;
-					const quint64 revisionBefore = w.m_sceneRevision;
-					const SceneService before = w.m_sceneModel.services[1];
+					w.m_document->setDirty(false);
+					const quint64 revisionBefore = w.m_document->revision();
+					const SceneService before = w.m_document->mutableModel().services[1];
 					action();
 					SceneService expected = before;
 					expected.visualizationColor = expectedColor;
 					const bool changed = expectedColor != before.visualizationColor;
-					if (!sameServices({expected}, {w.m_sceneModel.services[1]}) || w.m_sceneDirty != changed
-						|| (w.m_sceneRevision != revisionBefore) != changed)
+					if (!sameServices({expected}, {w.m_document->mutableModel().services[1]}) || w.m_document->isDirty() != changed
+						|| (w.m_document->revision() != revisionBefore) != changed)
 						facetFailure(facetOk, "service colour",
 							QString("%1 gave the wrong model or dirty state").arg(QLatin1String(what)));
 				};
 				// the comparison used below sees a colour that differs alone
-				SceneService withColor = w.m_sceneModel.services[1];
+				SceneService withColor = w.m_document->mutableModel().services[1];
 				withColor.visualizationColor = "#112233";
 				SceneService withoutColor = withColor;
 				withoutColor.visualizationColor.clear();
@@ -2551,15 +2551,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (w.m_serviceColorButton->valueText() != "Default")
 						facetFailure(facetOk, "service colour", "Default did not show the default look");
 					// a stored text that is not a colour is shown and kept until changed
-					w.m_sceneModel.services[1].visualizationColor = "not-a-colour";
+					w.m_document->mutableModel().services[1].visualizationColor = "not-a-colour";
 					w.m_servicePanel->updateDetail();
 					w.m_serviceListWidget->setCurrentRow(0);
 					w.m_serviceListWidget->setCurrentRow(1);
 					if (w.m_serviceColorButton->valueText() != "Invalid: not-a-colour"
-						|| w.m_sceneModel.services[1].visualizationColor != "not-a-colour")
+						|| w.m_document->mutableModel().services[1].visualizationColor != "not-a-colour")
 						facetFailure(facetOk, "service colour", "invalid stored colour is not shown as invalid and kept");
 					colorStep("choosing a colour over an invalid text", [&]() { w.m_serviceColorButton->chooseColor(QColor(0x3C, 0x8D, 0xD2)); }, storedColor);
-					w.m_sceneModel.services[1].visualizationColor = "not-a-colour";
+					w.m_document->mutableModel().services[1].visualizationColor = "not-a-colour";
 					w.m_servicePanel->updateDetail();
 					colorStep("Default over an invalid text", [&]() { defaultColorButton->click(); }, "");
 					// the colour stays on the service for the save and reload below
@@ -2567,23 +2567,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (w.m_serviceColorButton->valueText() != QString::fromStdString(storedColor))
 						facetFailure(facetOk, "service colour", "chosen colour is not shown");
 				}
-				w.m_sceneDirty = dirtyBeforeColor;
+				w.m_document->setDirty(dirtyBeforeColor);
 			} else {
 				facetFailure(facetOk, "service colour", "colour control unavailable");
 			}
-			const std::string oldServiceId = w.m_sceneModel.services[1].id;
+			const std::string oldServiceId = w.m_document->mutableModel().services[1].id;
 			int referenceScenarioRow = -1;
 			std::size_t temporaryDelayCount = 0;
 			int temporaryDelayRow = -1;
 			std::size_t temporaryIncidentCount = 0;
-			for (int scenarioRow = 0; scenarioRow < static_cast<int>(w.m_sceneModel.scenarios.size()); ++scenarioRow) {
-				if (w.m_sceneModel.scenarios[static_cast<std::size_t>(scenarioRow)].id == w.m_runSelection.scenarioId()) {
+			for (int scenarioRow = 0; scenarioRow < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++scenarioRow) {
+				if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(scenarioRow)].id == w.m_runSelection.scenarioId()) {
 					referenceScenarioRow = scenarioRow;
 					break;
 				}
 			}
 			if (referenceScenarioRow >= 0) {
-				SceneScenario& referenceScenario = w.m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				SceneScenario& referenceScenario = w.m_document->mutableModel().scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 				if (w.m_addEntranceDelayButton && w.m_entranceDelayListWidget && w.m_entranceDelayServiceCombo) {
 					w.m_addEntranceDelayButton->click();
 					QApplication::processEvents();
@@ -2603,7 +2603,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "service", "public entrance-delay controls unavailable for rename coverage");
 				}
 				SceneIncident incident;
-				incident.id = sceneUniqueIncidentId(w.m_sceneModel, "e2e_service_rename_incident");
+				incident.id = sceneUniqueIncidentId(w.m_document->mutableModel(), "e2e_service_rename_incident");
 				incident.type = "train_breakdown";
 				incident.target = oldServiceId;
 				incident.endSeconds = 1.0;
@@ -2611,15 +2611,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				++temporaryIncidentCount;
 			}
 			w.m_runSelection.setExcluded(SceneServiceOccurrence{oldServiceId, 1}, true);
-			editedServiceId = sceneUniqueServiceId(w.m_sceneModel, "e2e_service");
+			editedServiceId = sceneUniqueServiceId(w.m_document->mutableModel(), "e2e_service");
 			if (!w.m_serviceIdEdit) {
 				facetFailure(facetOk, "service", "id editor unavailable");
 			} else {
-				const std::string duplicateServiceId = w.m_sceneModel.services.front().id;
+				const std::string duplicateServiceId = w.m_document->mutableModel().services.front().id;
 				const auto referencesStillOld = [&]() {
 					if (referenceScenarioRow < 0)
 						return true;
-					const SceneScenario& scenario = w.m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+					const SceneScenario& scenario = w.m_document->mutableModel().scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 					const bool delayStillOld = temporaryDelayCount == 0
 						|| (!scenario.entranceDelays.empty() && scenario.entranceDelays.back().serviceId == oldServiceId);
 					const bool incidentStillOld = temporaryIncidentCount == 0
@@ -2629,24 +2629,24 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				};
 				w.m_serviceIdEdit->setText(QString());
 				w.m_servicePanel->commitIdEdit();
-				const bool emptyRejected = w.m_sceneModel.services[1].id == oldServiceId
+				const bool emptyRejected = w.m_document->mutableModel().services[1].id == oldServiceId
 					&& w.m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
 					&& referencesStillOld();
 				w.m_serviceIdEdit->setText(QString::fromStdString(duplicateServiceId));
 				w.m_servicePanel->commitIdEdit();
-				const bool duplicateRejected = w.m_sceneModel.services[1].id == oldServiceId
+				const bool duplicateRejected = w.m_document->mutableModel().services[1].id == oldServiceId
 					&& w.m_serviceIdEdit->text() == QString::fromStdString(oldServiceId)
 					&& referencesStillOld();
 				if (!emptyRejected || !duplicateRejected)
 					facetFailure(facetOk, "service", "empty or duplicate ID rename changed canonical references");
 				w.m_serviceIdEdit->setText(QString::fromStdString(editedServiceId));
 				w.m_servicePanel->commitIdEdit();
-				if (w.m_sceneModel.services.size() <= 1 || w.m_sceneModel.services[1].id != editedServiceId)
+				if (w.m_document->mutableModel().services.size() <= 1 || w.m_document->mutableModel().services[1].id != editedServiceId)
 					facetFailure(facetOk, "service", "id edit did not apply");
 			}
 			bool referencesUpdated = true;
 			if (referenceScenarioRow >= 0) {
-				const SceneScenario& referenceScenario = w.m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				const SceneScenario& referenceScenario = w.m_document->mutableModel().scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 				if (temporaryDelayCount > 0)
 					referencesUpdated = referencesUpdated && !referenceScenario.entranceDelays.empty()
 						&& referenceScenario.entranceDelays.back().serviceId == editedServiceId;
@@ -2662,11 +2662,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const int referencedServiceCount = w.m_serviceListWidget->count();
 			w.m_servicePanel->deleteService();
 			if (w.m_serviceListWidget->count() != referencedServiceCount
-				|| !std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+				|| !std::any_of(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 					[&](const SceneService& service) { return service.id == editedServiceId; }))
 				facetFailure(facetOk, "service", "operation-referenced service delete was not refused");
 			if (referenceScenarioRow >= 0) {
-				SceneScenario& referenceScenario = w.m_sceneModel.scenarios[static_cast<std::size_t>(referenceScenarioRow)];
+				SceneScenario& referenceScenario = w.m_document->mutableModel().scenarios[static_cast<std::size_t>(referenceScenarioRow)];
 				if (temporaryDelayCount > 0 && w.m_entranceDelayListWidget && w.m_deleteEntranceDelayButton
 					&& temporaryDelayRow >= 0 && temporaryDelayRow < w.m_entranceDelayListWidget->count()) {
 					w.m_entranceDelayListWidget->setCurrentRow(temporaryDelayRow);
@@ -2701,16 +2701,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			// Typed digits change nothing until editing ends. Return applies the typed value as one scene change,
 			// and ServicePanel::commitPendingEditors applies a text that is still being typed.
-			const bool dirtyBeforeTyping = w.m_sceneDirty;
+			const bool dirtyBeforeTyping = w.m_document->isDirty();
 			const QString typingFailure = [&]() -> QString {
 				if (!w.m_servicePerformancePercentEdit || !w.m_servicePerformancePercentEdit->isEnabled())
 					return QStringLiteral("running performance editor unavailable");
 				QLineEdit* performanceField = w.m_servicePerformancePercentEdit->findChild<QLineEdit*>();
 				if (!performanceField)
 					return QStringLiteral("running performance editor has no text field");
-				if (w.m_serviceListWidget->currentRow() != 1 || w.m_sceneModel.services.size() < 2)
+				if (w.m_serviceListWidget->currentRow() != 1 || w.m_document->mutableModel().services.size() < 2)
 					return QStringLiteral("running performance editor is not showing service row 1");
-				const double valueBeforeTyping = w.m_sceneModel.services[1].performancePercent;
+				const double valueBeforeTyping = w.m_document->mutableModel().services[1].performancePercent;
 				if (w.m_servicePerformancePercentEdit->value() != valueBeforeTyping)
 					return QString("running performance editor shows %1 but the service has %2")
 						.arg(w.m_servicePerformancePercentEdit->value())
@@ -2718,23 +2718,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (valueBeforeTyping == 9.0 || valueBeforeTyping == 93.0 || valueBeforeTyping == 94.0)
 					return QString("service running performance %1 equals a value typed by the check").arg(valueBeforeTyping);
 				const auto typeDigits = [&](const QString& digits) -> QString {
-					const double valueBefore = w.m_sceneModel.services[1].performancePercent;
-					w.m_sceneDirty = false;
-					const quint64 revisionBefore = w.m_sceneRevision;
+					const double valueBefore = w.m_document->mutableModel().services[1].performancePercent;
+					w.m_document->setDirty(false);
+					const quint64 revisionBefore = w.m_document->revision();
 					w.m_servicePerformancePercentEdit->selectAll();
 					QString typedSoFar;
 					for (const QChar digit : digits) {
 						QKeyEvent keyPress(QEvent::KeyPress, digit.unicode(), Qt::NoModifier, QString(digit));
 						QApplication::sendEvent(performanceField, &keyPress);
 						typedSoFar += digit;
-						const double appliedValue = w.m_sceneModel.services[1].performancePercent;
-						if (appliedValue != valueBefore || w.m_sceneRevision != revisionBefore || w.m_sceneDirty)
+						const double appliedValue = w.m_document->mutableModel().services[1].performancePercent;
+						if (appliedValue != valueBefore || w.m_document->revision() != revisionBefore || w.m_document->isDirty())
 							return QString("running performance was applied while typing \"%1\": the service has %2 instead of %3 "
 										   "and the scene revision moved by %4")
 								.arg(typedSoFar)
 								.arg(appliedValue)
 								.arg(valueBefore)
-								.arg(w.m_sceneRevision - revisionBefore);
+								.arg(w.m_document->revision() - revisionBefore);
 					}
 					if (w.m_servicePerformancePercentEdit->text() != digits)
 						return QString("running performance editor shows \"%1\" after typing \"%2\"")
@@ -2744,34 +2744,34 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QString failure = typeDigits(QStringLiteral("94"));
 				if (!failure.isEmpty())
 					return failure;
-				const quint64 revisionBeforeReturn = w.m_sceneRevision;
+				const quint64 revisionBeforeReturn = w.m_document->revision();
 				QKeyEvent returnPress(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
 				QKeyEvent returnRelease(QEvent::KeyRelease, Qt::Key_Return, Qt::NoModifier);
 				QApplication::sendEvent(w.m_servicePerformancePercentEdit, &returnPress);
 				QApplication::sendEvent(w.m_servicePerformancePercentEdit, &returnRelease);
-				if (w.m_sceneModel.services[1].performancePercent != 94.0 || w.m_sceneRevision != revisionBeforeReturn + 1
-					|| !w.m_sceneDirty)
+				if (w.m_document->mutableModel().services[1].performancePercent != 94.0 || w.m_document->revision() != revisionBeforeReturn + 1
+					|| !w.m_document->isDirty())
 					return QString("Return did not apply the typed running performance once: the service has %1 instead of 94 "
 								   "and the scene revision moved by %2")
-						.arg(w.m_sceneModel.services[1].performancePercent)
-						.arg(w.m_sceneRevision - revisionBeforeReturn);
+						.arg(w.m_document->mutableModel().services[1].performancePercent)
+						.arg(w.m_document->revision() - revisionBeforeReturn);
 				failure = typeDigits(QStringLiteral("93"));
 				if (!failure.isEmpty())
 					return failure;
-				const quint64 revisionBeforeCommit = w.m_sceneRevision;
+				const quint64 revisionBeforeCommit = w.m_document->revision();
 				w.m_servicePanel->commitPendingEditors();
-				if (w.m_sceneModel.services[1].performancePercent != 93.0 || w.m_sceneRevision != revisionBeforeCommit + 1
-					|| !w.m_sceneDirty)
+				if (w.m_document->mutableModel().services[1].performancePercent != 93.0 || w.m_document->revision() != revisionBeforeCommit + 1
+					|| !w.m_document->isDirty())
 					return QString("committing pending settings did not apply the typed running performance once: the service has %1 "
 								   "instead of 93 and the scene revision moved by %2")
-						.arg(w.m_sceneModel.services[1].performancePercent)
-						.arg(w.m_sceneRevision - revisionBeforeCommit);
+						.arg(w.m_document->mutableModel().services[1].performancePercent)
+						.arg(w.m_document->revision() - revisionBeforeCommit);
 				if (w.m_servicePerformancePercentEdit->value() != 93.0 || w.m_servicePerformancePercentEdit->text() != "93")
 					return QString("running performance editor shows \"%1\" after the pending commit of 93")
 						.arg(w.m_servicePerformancePercentEdit->text());
 				return QString();
 			}();
-			w.m_sceneDirty = dirtyBeforeTyping;
+			w.m_document->setDirty(dirtyBeforeTyping);
 			if (!typingFailure.isEmpty())
 				facetFailure(facetOk, "service", typingFailure);
 			if (w.m_servicePerformancePercentEdit)
@@ -2808,17 +2808,17 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					occurrencePreviewOk = false;
 			}
 			occurrencePreviewOk = occurrencePreviewOk && serviceOccurrences == 3
-				&& w.m_sceneModel.services[1].operatingCode == "1723"
-				&& w.m_sceneModel.services[1].performancePercent == 95.5
-				&& w.m_sceneModel.services[1].hasRepeat && w.m_sceneModel.services[1].headwaySeconds == 1800.0
-				&& w.m_sceneModel.services[1].hasRepeatCount && w.m_sceneModel.services[1].repeatCount == 3
-				&& w.m_sceneModel.services[1].hasOperatingCodeStep && w.m_sceneModel.services[1].operatingCodeStep == 2
-				&& w.m_sceneModel.services[1].hasMaximumSpeed && w.m_sceneModel.services[1].maximumSpeedKmh == 100.0;
+				&& w.m_document->mutableModel().services[1].operatingCode == "1723"
+				&& w.m_document->mutableModel().services[1].performancePercent == 95.5
+				&& w.m_document->mutableModel().services[1].hasRepeat && w.m_document->mutableModel().services[1].headwaySeconds == 1800.0
+				&& w.m_document->mutableModel().services[1].hasRepeatCount && w.m_document->mutableModel().services[1].repeatCount == 3
+				&& w.m_document->mutableModel().services[1].hasOperatingCodeStep && w.m_document->mutableModel().services[1].operatingCodeStep == 2
+				&& w.m_document->mutableModel().services[1].hasMaximumSpeed && w.m_document->mutableModel().services[1].maximumSpeedKmh == 100.0;
 			if (!occurrencePreviewOk)
 				facetFailure(facetOk, "service", "occurrence preview did not derive the requested codes or fields");
-			w.m_sceneModel.services[1].performancePercent = precisePerformancePercent;
-			w.m_sceneModel.services[1].hasMaximumSpeed = true;
-			w.m_sceneModel.services[1].maximumSpeedKmh = preciseMaximumSpeedKmh;
+			w.m_document->mutableModel().services[1].performancePercent = precisePerformancePercent;
+			w.m_document->mutableModel().services[1].hasMaximumSpeed = true;
+			w.m_document->mutableModel().services[1].maximumSpeedKmh = preciseMaximumSpeedKmh;
 			w.m_servicePanel->updateDetail();
 			if (w.m_serviceMaximumSpeedKmhEdit->text() != QString::number(preciseMaximumSpeedKmh, 'g', 6))
 				facetFailure(facetOk, "service", "speed editor did not use compact display precision");
@@ -2826,13 +2826,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_serviceMaximumSpeedKmhEdit->interpretText();
 			w.m_serviceMaximumSpeedKmhEdit->clearFocus();
 			w.m_servicePanel->commitPendingEditors();
-			if (w.m_sceneModel.services[1].performancePercent != precisePerformancePercent
-				|| w.m_sceneModel.services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
+			if (w.m_document->mutableModel().services[1].performancePercent != precisePerformancePercent
+				|| w.m_document->mutableModel().services[1].maximumSpeedKmh != preciseMaximumSpeedKmh)
 				facetFailure(facetOk, "service", "untouched precise service settings changed during pending commit");
-			const SceneService serviceBeforeSelection = w.m_sceneModel.services[1];
-			const bool dirtyBeforeSelection = w.m_sceneDirty;
+			const SceneService serviceBeforeSelection = w.m_document->mutableModel().services[1];
+			const bool dirtyBeforeSelection = w.m_document->isDirty();
 			w.m_servicePanel->selectNoneOccurrences();
-			if (w.m_runSelection.selectedInPeriodCount(w.m_sceneModel, w.serviceOccurrenceDuration()) != 0)
+			if (w.m_runSelection.selectedInPeriodCount(w.m_document->mutableModel(), w.serviceOccurrenceDuration()) != 0)
 				facetFailure(facetOk, "service", "empty GUI selection counted all services in period");
 			if (w.m_serviceOccurrenceTable) {
 				for (int previewRow = 0; previewRow < w.m_serviceOccurrenceTable->rowCount(); ++previewRow) {
@@ -2842,12 +2842,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						include->setCheckState(Qt::Checked);
 				}
 			}
-			const bool oneOccurrenceSelected = w.m_runSelection.selectedCount(w.m_sceneModel, w.serviceOccurrenceDuration()) == 1
-				&& w.m_runSelection.selectedOccurrences(w.m_sceneModel, w.serviceOccurrenceDuration())
+			const bool oneOccurrenceSelected = w.m_runSelection.selectedCount(w.m_document->mutableModel(), w.serviceOccurrenceDuration()) == 1
+				&& w.m_runSelection.selectedOccurrences(w.m_document->mutableModel(), w.serviceOccurrenceDuration())
 						.count(SceneServiceOccurrence{editedServiceId, 1})
 					== 1;
-			const bool selectionDidNotDirty = w.m_sceneDirty == dirtyBeforeSelection
-				&& sameServices({serviceBeforeSelection}, {w.m_sceneModel.services[1]});
+			const bool selectionDidNotDirty = w.m_document->isDirty() == dirtyBeforeSelection
+				&& sameServices({serviceBeforeSelection}, {w.m_document->mutableModel().services[1]});
 			if (!oneOccurrenceSelected || !selectionDidNotDirty)
 				facetFailure(facetOk, "service", "occurrence selection changed canonical fields or dirty state");
 		}
@@ -2855,7 +2855,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (w.m_serviceListWidget->count() != originalCount + 2) {
 			facetFailure(facetOk, "service", "add did not apply");
 		} else {
-			const std::string unreferencedServiceId = w.m_sceneModel.services.back().id;
+			const std::string unreferencedServiceId = w.m_document->mutableModel().services.back().id;
 			if (w.m_selectNoneOccurrencesButton) {
 				w.m_selectNoneOccurrencesButton->click();
 				QApplication::processEvents();
@@ -2865,15 +2865,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			acceptConfirmation();
 			w.m_servicePanel->deleteService();
 			if (w.m_serviceListWidget->count() != originalCount + 1
-				|| std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+				|| std::any_of(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 					[&](const SceneService& service) { return service.id == unreferencedServiceId; })
 				|| (occurrenceExclusionCreated
 					&& w.m_runSelection.isExcluded(SceneServiceOccurrence{unreferencedServiceId, 1})))
 				facetFailure(facetOk, "service", "unreferenced service delete did not prune occurrence exclusions");
 		}
 		int editedRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.services.size()); ++row) {
-			if (w.m_sceneModel.services[row].id == editedServiceId) {
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().services.size()); ++row) {
+			if (w.m_document->mutableModel().services[row].id == editedServiceId) {
 				editedRow = row;
 				break;
 			}
@@ -2881,7 +2881,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (editedRow < 0) {
 			facetFailure(facetOk, "service", "edited service was not retained");
 		} else {
-			const SceneService& edited = w.m_sceneModel.services[editedRow];
+			const SceneService& edited = w.m_document->mutableModel().services[editedRow];
 			if (edited.composition != editedCompositionId || edited.route != expectedServices[0].route
 				|| !edited.hasEntryTime || edited.entryTimeSeconds != 600.0
 				|| !edited.hasRepeat || edited.headwaySeconds != 1800.0
@@ -2898,14 +2898,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_SERVICE_OCCURRENCES_OK\n");
 	}
 
-	if (!w.m_sceneLoaded || !w.m_serviceListWidget || !w.m_stopTableWidget || editedServiceId.empty()) {
+	if (!w.m_document->isLoaded() || !w.m_serviceListWidget || !w.m_stopTableWidget || editedServiceId.empty()) {
 		bool facetOk = false;
 		facetFailure(facetOk, "timetable", "scene or edited service unavailable");
 	} else {
 		bool facetOk = true;
 		int serviceRow = -1;
-		for (int row = 0; row < static_cast<int>(w.m_sceneModel.services.size()); ++row) {
-			if (w.m_sceneModel.services[row].id == editedServiceId) {
+		for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().services.size()); ++row) {
+			if (w.m_document->mutableModel().services[row].id == editedServiceId) {
 				serviceRow = row;
 				break;
 			}
@@ -2917,23 +2917,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			w.m_serviceEntryTimeSecondsEdit->setText("0");
 			w.m_servicePanel->commitEntryTimeSeconds();
-			const int originalStopCount = static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size());
+			const int originalStopCount = static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size());
 			if (originalStopCount <= 0)
 				facetFailure(facetOk, "timetable", "no baseline stop available for move coverage");
 			if (originalStopCount > 0) {
-				const SceneStop before = w.m_sceneModel.services[serviceRow].stops.front();
-				const bool dirtyBefore = w.m_sceneDirty;
+				const SceneStop before = w.m_document->mutableModel().services[serviceRow].stops.front();
+				const bool dirtyBefore = w.m_document->isDirty();
 				w.m_stopTableWidget->setCurrentCell(originalStopCount - 1, 0);
 				for (const int mode : {1, 0}) {
 					w.m_stopTimeModeCombo->setCurrentIndex(mode);
-					const auto& selected = w.m_sceneModel.services[serviceRow].stops.back();
+					const auto& selected = w.m_document->mutableModel().services[serviceRow].stops.back();
 					const QString expected = selected.hasPlannedArrival
 						? QString::fromStdString(formatPlannedTime(selected.plannedArrivalSeconds,
-							  mode == 1, baseTimeToSeconds(w.m_sceneModel.baseTime)))
+							  mode == 1, baseTimeToSeconds(w.m_document->mutableModel().baseTime)))
 						: QStringLiteral("\u2014");
 					if (w.m_stopTableWidget->currentRow() != originalStopCount - 1
 						|| w.m_stopTableWidget->item(originalStopCount - 1, 3)->text() != expected
-						|| w.m_sceneDirty != dirtyBefore || w.m_moveStopDownButton->isEnabled()
+						|| w.m_document->isDirty() != dirtyBefore || w.m_moveStopDownButton->isEnabled()
 						|| w.m_moveStopUpButton->isEnabled() != (originalStopCount > 1))
 						facetFailure(facetOk, "timetable", "matrix display toggle changed selection, values or actions");
 				}
@@ -2950,7 +2950,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(true);
 					arrival->setText("90");
 					mode->setCurrentIndex(1);
-					if (arrival->text().toStdString() != formatPlannedTime(90.0, true, baseTimeToSeconds(w.m_sceneModel.baseTime)))
+					if (arrival->text().toStdString() != formatPlannedTime(90.0, true, baseTimeToSeconds(w.m_document->mutableModel().baseTime)))
 						facetFailure(facetOk, "timetable", "clock conversion did not use case base time");
 					mode->setCurrentIndex(0);
 					if (arrival->text() != "90")
@@ -2969,10 +2969,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				timer.start(0);
 				QMetaObject::invokeMethod(w.m_stopTableWidget, "cellClicked", Qt::DirectConnection,
 					Q_ARG(int, 0), Q_ARG(int, 0));
-				if (!sameStop(before, w.m_sceneModel.services[serviceRow].stops.front()) || dirtyBefore != w.m_sceneDirty)
+				if (!sameStop(before, w.m_document->mutableModel().services[serviceRow].stops.front()) || dirtyBefore != w.m_document->isDirty())
 					facetFailure(facetOk, "timetable", "Cancel changed canonical stop or dirty state");
 				if (!editStopDialog(0, [](QDialog*) {})
-					|| !sameStop(before, w.m_sceneModel.services[serviceRow].stops.front()))
+					|| !sameStop(before, w.m_document->mutableModel().services[serviceRow].stops.front()))
 					facetFailure(facetOk, "timetable", "unchanged Accept lost optional values or precision");
 				for (const QString arrivalText : {QStringLiteral("90.1234567890123"), QStringLiteral("0"), QString()}) {
 					const bool accepted = editStopDialog(0, [&](QDialog* dialog) {
@@ -2980,13 +2980,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						dialog->findChild<QLineEdit*>("stopEditorArrivalEdit")->setText(arrivalText);
 						dialog->findChild<QCheckBox*>("stopEditorDeparturePresent")->setChecked(false);
 					});
-					const auto& stop = w.m_sceneModel.services[serviceRow].stops.front();
+					const auto& stop = w.m_document->mutableModel().services[serviceRow].stops.front();
 					if (!accepted || stop.hasPlannedArrival != !arrivalText.isEmpty() || stop.hasPlannedDeparture
 						|| (stop.hasPlannedArrival && stop.plannedArrivalSeconds != arrivalText.toDouble()))
 						facetFailure(facetOk, "timetable", "modal lost fractional, zero or absent planned time");
 				}
-				w.m_sceneModel.services[serviceRow].stops.front().platformId = "unknown-platform";
-				const SceneStop unknownPlatform = w.m_sceneModel.services[serviceRow].stops.front();
+				w.m_document->mutableModel().services[serviceRow].stops.front().platformId = "unknown-platform";
+				const SceneStop unknownPlatform = w.m_document->mutableModel().services[serviceRow].stops.front();
 				bool unknownPlatformShown = false;
 				if (!editStopDialog(0, [&](QDialog* dialog) {
 						auto* platform = dialog->findChild<QComboBox*>("stopEditorPlatformCombo");
@@ -2994,15 +2994,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							&& platform->currentData().toString() == "unknown-platform"
 							&& !platform->itemData(platform->currentIndex(), Qt::ToolTipRole).toString().isEmpty();
 					})
-					|| !unknownPlatformShown || !sameStop(unknownPlatform, w.m_sceneModel.services[serviceRow].stops.front()))
+					|| !unknownPlatformShown || !sameStop(unknownPlatform, w.m_document->mutableModel().services[serviceRow].stops.front()))
 					facetFailure(facetOk, "timetable", "unknown imported platform was replaced or not explained");
-				w.m_sceneModel.services[serviceRow].stops.front() = before;
-				const auto savedStops = w.m_sceneModel.services[serviceRow].stops;
-				const auto savedStations = w.m_sceneModel.stations;
-				const auto traversal = sceneServiceTraversal(w.m_sceneModel, w.m_sceneModel.services[serviceRow]);
+				w.m_document->mutableModel().services[serviceRow].stops.front() = before;
+				const auto savedStops = w.m_document->mutableModel().services[serviceRow].stops;
+				const auto savedStations = w.m_document->mutableModel().stations;
+				const auto traversal = sceneServiceTraversal(w.m_document->mutableModel(), w.m_document->mutableModel().services[serviceRow]);
 				if (!traversal.visits.empty()) {
 					const auto& visit = traversal.visits.front();
-					for (auto& station : w.m_sceneModel.stations) {
+					for (auto& station : w.m_document->mutableModel().stations) {
 						if (station.id != visit.stationId) continue;
 						const auto platform = std::find_if(station.platforms.begin(), station.platforms.end(),
 							[&](const ScenePlatform& p) { return p.id == visit.platformId; });
@@ -3012,35 +3012,35 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							station.platforms.push_back(alternative);
 						}
 					}
-					w.m_sceneModel.services[serviceRow].stops.clear();
+					w.m_document->mutableModel().services[serviceRow].stops.clear();
 					w.m_timetableStopsPanel->refresh();
 					const bool accepted = editStopDialog(-1, [](QDialog*) {});
-					if (accepted || !w.m_sceneModel.services[serviceRow].stops.empty())
+					if (accepted || !w.m_document->mutableModel().services[serviceRow].stops.empty())
 						facetFailure(facetOk, "timetable", "ambiguous new stop accepted without a platform");
 				} else {
 					facetFailure(facetOk, "timetable", "ambiguous stop fixture has no route visits");
 				}
-				w.m_sceneModel.stations = savedStations;
-				w.m_sceneModel.services[serviceRow].stops = savedStops;
+				w.m_document->mutableModel().stations = savedStations;
+				w.m_document->mutableModel().services[serviceRow].stops = savedStops;
 				w.m_timetableStopsPanel->refresh();
 			}
 			// Give this repeat-call fixture a second real anchor before the final
 			// station, instead of calling the same consumed node twice.
-			SceneStop finalStop = w.m_sceneModel.services[serviceRow].stops.back();
-			const auto finalResolution = resolveSceneServiceStops(w.m_sceneModel, w.m_sceneModel.services[serviceRow],
-				sceneServiceTraversal(w.m_sceneModel, w.m_sceneModel.services[serviceRow]))
+			SceneStop finalStop = w.m_document->mutableModel().services[serviceRow].stops.back();
+			const auto finalResolution = resolveSceneServiceStops(w.m_document->mutableModel(), w.m_document->mutableModel().services[serviceRow],
+				sceneServiceTraversal(w.m_document->mutableModel(), w.m_document->mutableModel().services[serviceRow]))
 											 .back();
 			if (finalStop.platformId.empty() && finalResolution.candidatePlatformIds.size() == 1)
 				finalStop.platformId = finalResolution.candidatePlatformIds.front();
-			for (auto& station : w.m_sceneModel.stations)
+			for (auto& station : w.m_document->mutableModel().stations)
 				for (auto& platform : station.platforms)
 					if (station.id == finalStop.stationId && platform.id == finalStop.platformId
 						&& !platform.nodeIds.empty()) {
-						const auto anchor = std::find_if(w.m_sceneModel.nodes.begin(), w.m_sceneModel.nodes.end(),
+						const auto anchor = std::find_if(w.m_document->mutableModel().nodes.begin(), w.m_document->mutableModel().nodes.end(),
 							[&](const SceneNode& node) { return node.id == platform.nodeIds.front(); });
 						const SceneNode* preceding = nullptr;
-						if (anchor != w.m_sceneModel.nodes.end())
-							for (const auto& node : w.m_sceneModel.nodes)
+						if (anchor != w.m_document->mutableModel().nodes.end())
+							for (const auto& node : w.m_document->mutableModel().nodes)
 								if (node.trackId == anchor->trackId && node.xKm < anchor->xKm
 									&& (!preceding || node.xKm > preceding->xKm))
 									preceding = &node;
@@ -3048,7 +3048,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							platform.nodeIds.insert(platform.nodeIds.begin(), preceding->id);
 					}
 			double lastTime = 0.0;
-			for (const auto& stop : w.m_sceneModel.services[serviceRow].stops) {
+			for (const auto& stop : w.m_document->mutableModel().services[serviceRow].stops) {
 				if (stop.hasPlannedArrival) lastTime = std::max(lastTime, stop.plannedArrivalSeconds);
 				if (stop.hasPlannedDeparture) lastTime = std::max(lastTime, stop.plannedDepartureSeconds);
 			}
@@ -3064,10 +3064,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				dialog->findChild<QLineEdit*>("stopEditorDepartureEdit")->setText(QString::number(arrivalSeconds + 60));
 				dialog->findChild<QLineEdit*>("stopEditorDwellEdit")->setText("60");
 			});
-			if (!accepted || static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
+			if (!accepted || static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size()) != originalStopCount + 1)
 				facetFailure(facetOk, "timetable", "modal add stop did not apply");
 			else {
-				const auto& stop = w.m_sceneModel.services[serviceRow].stops.back();
+				const auto& stop = w.m_document->mutableModel().services[serviceRow].stops.back();
 				if (stop.stationId != finalStop.stationId || stop.platformId != finalStop.platformId
 					|| !stop.hasPlannedArrival || stop.plannedArrivalSeconds != arrivalSeconds
 					|| !stop.hasPlannedDeparture || stop.plannedDepartureSeconds != arrivalSeconds + 60
@@ -3075,15 +3075,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "timetable", "modal values were not committed together");
 			}
 			SceneStop editedStop;
-			if (static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) > originalStopCount)
-				editedStop = w.m_sceneModel.services[serviceRow].stops.back();
+			if (static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size()) > originalStopCount)
+				editedStop = w.m_document->mutableModel().services[serviceRow].stops.back();
 			if (facetOk) {
 				w.m_stopTableWidget->setCurrentCell(originalStopCount, 0);
 				w.m_timetableStopsPanel->moveStopUp();
-				if (w.m_sceneModel.services[serviceRow].stops[originalStopCount - 1].stationId != editedStop.stationId)
+				if (w.m_document->mutableModel().services[serviceRow].stops[originalStopCount - 1].stationId != editedStop.stationId)
 					facetFailure(facetOk, "timetable", "move up did not apply");
 				w.m_timetableStopsPanel->moveStopDown();
-				if (!sameStop(w.m_sceneModel.services[serviceRow].stops.back(), editedStop))
+				if (!sameStop(w.m_document->mutableModel().services[serviceRow].stops.back(), editedStop))
 					facetFailure(facetOk, "timetable", "move down did not restore edited stop");
 				// The source scene's final stop intentionally omits a planned departure;
 				// leave the edited stop before it so the model remains valid for save/reload.
@@ -3093,12 +3093,12 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// Insertion positions. Each prepared timetable leaves out one stop of the full
 			// timetable, so the position where it belongs has a free station.
 			{
-				auto& stops = w.m_sceneModel.services[serviceRow].stops;
+				auto& stops = w.m_document->mutableModel().services[serviceRow].stops;
 				const std::vector<SceneStop> fullStops = stops;
-				const bool dirtySaved = w.m_sceneDirty;
+				const bool dirtySaved = w.m_document->isDirty();
 				const auto prepare = [&](std::vector<SceneStop> prepared) {
 					stops = std::move(prepared);
-					w.m_sceneDirty = false;
+					w.m_document->setDirty(false);
 					w.m_timetableStopsPanel->refresh();
 				};
 				const auto without = [&](std::size_t index) {
@@ -3163,7 +3163,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const auto insertStop = [&](const char* what, QPushButton* opener, int position,
 											const SceneStop& stop, std::size_t index) {
 					const std::vector<SceneStop> before = stops;
-					const quint64 revisionBefore = w.m_sceneRevision;
+					const quint64 revisionBefore = w.m_document->revision();
 					SceneStop entered = stop;
 					const bool accepted = editStopDialog(-1, [&](QDialog* dialog) {
 						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
@@ -3184,7 +3184,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					for (std::size_t i = 0; i < before.size(); ++i)
 						if (!sameStop(stops[i < index ? i : i + 1], before[i]))
 							facetFailure(facetOk, "timetable", QString("%1: an existing stop changed or moved out of order").arg(what));
-					if (!w.m_sceneDirty || w.m_sceneRevision == revisionBefore
+					if (!w.m_document->isDirty() || w.m_document->revision() == revisionBefore
 						|| w.m_stopTableWidget->currentRow() != static_cast<int>(index))
 						facetFailure(facetOk, "timetable", QString("%1: scene not marked modified or new row not selected").arg(what));
 				};
@@ -3196,7 +3196,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					// position that has choices; Cancel changes nothing.
 					prepare(without(1));
 					const std::vector<SceneStop> gapStops = stops;
-					const quint64 revisionBefore = w.m_sceneRevision;
+					const quint64 revisionBefore = w.m_document->revision();
 					const bool opened = cancelStopDialog(w.m_addStopButton, [&](QDialog* dialog) {
 						auto* positionCombo = dialog->findChild<QComboBox*>("stopEditorPositionCombo");
 						auto* station = dialog->findChild<QComboBox*>("stopEditorStationCombo");
@@ -3213,7 +3213,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								|| !positionCombo->itemText(3).startsWith("After stop 3: ")))
 							facetFailure(facetOk, "timetable", "repeated station did not give distinct position entries");
 					});
-					if (!opened || !sameStopList(stops, gapStops) || w.m_sceneDirty || w.m_sceneRevision != revisionBefore)
+					if (!opened || !sameStopList(stops, gapStops) || w.m_document->isDirty() || w.m_document->revision() != revisionBefore)
 						facetFailure(facetOk, "timetable", "Add Stop on a present destination failed or Cancel changed the timetable");
 
 					// A position with no station visit blocks OK and leaves the timetable unchanged.
@@ -3231,8 +3231,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						stayedOpen = dialog->isVisible();
 						blockedError = dialog->findChild<QLabel*>("stopEditorErrorLabel")->text(); });
 					if (!blocked || !stationDisabled || !stayedOpen || eligibilityText.isEmpty()
-						|| blockedError != eligibilityText || !sameStopList(stops, gapStops) || w.m_sceneDirty
-						|| w.m_sceneRevision != revisionBefore)
+						|| blockedError != eligibilityText || !sameStopList(stops, gapStops) || w.m_document->isDirty()
+						|| w.m_document->revision() != revisionBefore)
 						facetFailure(facetOk, "timetable", "a position without a station visit did not block OK");
 
 					// Insert at the start, between two stops and after the last stop.
@@ -3257,7 +3257,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					// The inserted order and planned times survive save and reload.
 					QTemporaryDir reloadDir;
 					const QString reloadPath = QDir(reloadDir.path()).filePath("inserted_stop_scene");
-					const SceneSaveResult saved = ::saveScene(w.m_sceneModel, reloadPath.toStdString());
+					const SceneSaveResult saved = ::saveScene(w.m_document->mutableModel(), reloadPath.toStdString());
 					const SceneLoadResult reloaded = ::loadScene(reloadPath.toStdString());
 					const auto reloadedService = std::find_if(reloaded.scene.services.begin(), reloaded.scene.services.end(),
 						[&](const SceneService& candidate) { return candidate.id == editedServiceId; });
@@ -3267,23 +3267,23 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "timetable", "inserted stop order or planned times changed after save and reload");
 				}
 				stops = fullStops;
-				w.m_sceneDirty = dirtySaved;
+				w.m_document->setDirty(dirtySaved);
 				w.m_timetableStopsPanel->refresh();
 				w.updateSceneWindowTitle();
 			}
 			// Loaded invalid drafts remain removable; adding through the UI above
 			// must not create one.
-			w.m_sceneModel.services[serviceRow].stops.push_back(editedStop);
+			w.m_document->mutableModel().services[serviceRow].stops.push_back(editedStop);
 			w.m_timetableStopsPanel->refresh();
 			w.m_stopTableWidget->setCurrentCell(originalStopCount + 1, 0);
-			if (static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 2) {
+			if (static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size()) != originalStopCount + 2) {
 				facetFailure(facetOk, "timetable", "temporary stop add did not apply");
 			} else {
 				w.m_timetableStopsPanel->removeStop();
-				if (static_cast<int>(w.m_sceneModel.services[serviceRow].stops.size()) != originalStopCount + 1)
+				if (static_cast<int>(w.m_document->mutableModel().services[serviceRow].stops.size()) != originalStopCount + 1)
 					facetFailure(facetOk, "timetable", "stop delete did not apply");
 			}
-			if (facetOk && !sameStop(w.m_sceneModel.services[serviceRow].stops[originalStopCount - 1], editedStop))
+			if (facetOk && !sameStop(w.m_document->mutableModel().services[serviceRow].stops[originalStopCount - 1], editedStop))
 				facetFailure(facetOk, "timetable", "edited stop was not retained");
 		}
 		if (facetOk)
@@ -3293,7 +3293,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	std::string entranceDelayServiceId = editedServiceId;
 	std::string entranceDelayStationId;
 	double entranceDelaySeconds = 12.75;
-	if (!w.m_sceneLoaded || editedServiceId.empty() || !w.m_entranceDelayListWidget
+	if (!w.m_document->isLoaded() || editedServiceId.empty() || !w.m_entranceDelayListWidget
 		|| !w.m_addEntranceDelayButton || !w.m_duplicateEntranceDelayButton
 		|| !w.m_deleteEntranceDelayButton || !w.m_entranceDelayServiceCombo
 		|| !w.m_entranceDelayOccurrenceEdit || !w.m_entranceDelayStationCombo
@@ -3323,11 +3323,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else {
 				w.m_entranceDelayServiceCombo->setCurrentIndex(serviceIndex);
 				QApplication::processEvents();
-				const auto editedService = std::find_if(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+				const auto editedService = std::find_if(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 					[&](const SceneService& candidate) { return candidate.id == entranceDelayServiceId; });
 				int repeatedDepartureRow = -1;
 				std::string repeatedStationId;
-				if (editedService != w.m_sceneModel.services.end()) {
+				if (editedService != w.m_document->mutableModel().services.end()) {
 					const auto repeated = std::adjacent_find(editedService->stops.begin(), editedService->stops.end(),
 						[](const SceneStop& first, const SceneStop& second) {
 							return first.stationId == second.stationId && first.hasPlannedDeparture
@@ -3347,7 +3347,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						w.m_serviceDock->raise();
 					}
 					w.m_serviceListWidget->setCurrentRow(static_cast<int>(
-						std::distance(w.m_sceneModel.services.begin(), editedService)));
+						std::distance(w.m_document->mutableModel().services.begin(), editedService)));
 					w.m_stopTableWidget->setCurrentCell(repeatedDepartureRow, 0);
 					w.m_moveStopDownButton->click();
 					QApplication::processEvents();
@@ -3383,7 +3383,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const SceneEntranceDelay* delay = w.m_entranceDelayPanel->selectedEntranceDelay();
 					const bool editedDelay = delay && delay->serviceId == entranceDelayServiceId
 						&& delay->occurrence == 2 && delay->stationId == entranceDelayStationId
-						&& delay->delaySeconds == entranceDelaySeconds && editedService != w.m_sceneModel.services.end()
+						&& delay->delaySeconds == entranceDelaySeconds && editedService != w.m_document->mutableModel().services.end()
 						&& editedService->hasRepeat
 						&& sceneServiceOccurrenceCount(*editedService, w.serviceOccurrenceDuration()) >= 2
 						&& w.m_entranceDelayOccurrenceContextLabel
@@ -3391,9 +3391,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!editedDelay)
 						facetFailure(facetOk, "entrance delay", "service, occurrence, station, or seconds edit did not persist");
 					const SceneRunSelection delayedOccurrence{{entranceDelayServiceId, 2}};
-					const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
+					const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_document->mutableModel());
 					const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
-						w.m_sceneModel, w.m_runSelection.scenarioId(), delayedOccurrence);
+						w.m_document->mutableModel(), w.m_runSelection.scenarioId(), delayedOccurrence);
 					if (hasErrors(infrastructureDiagnostics) || hasErrors(operationsDiagnostics)
 						|| defaultRun().numTrains != 1
 						|| defaultRun().trains[0].trainDescription != entranceDelayServiceId + "-2"
@@ -3421,14 +3421,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	}
 
 	std::string editedIncidentId;
-	if (!w.m_sceneLoaded || !w.m_incidentListWidget || editedServiceId.empty()) {
+	if (!w.m_document->isLoaded() || !w.m_incidentListWidget || editedServiceId.empty()) {
 		bool facetOk = false;
 		facetFailure(facetOk, "incident", "scene or edited service unavailable");
 	} else {
 		bool facetOk = true;
 		const double preciseBreakdownSpeed = 40.125;
 		const int originalCount = w.m_incidentListWidget->count();
-		editedIncidentId = sceneUniqueIncidentId(w.m_sceneModel, "e2e_incident");
+		editedIncidentId = sceneUniqueIncidentId(w.m_document->mutableModel(), "e2e_incident");
 		w.m_incidentPanel->addIncident();
 		if (w.m_incidentListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "incident", "add did not apply");
@@ -3499,7 +3499,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		} else {
 			const int serviceCount = w.m_serviceListWidget->count();
 			w.m_servicePanel->addService();
-			const std::string temporaryServiceId = w.m_sceneModel.services.back().id;
+			const std::string temporaryServiceId = w.m_document->mutableModel().services.back().id;
 			if (w.m_incidentTargetCombo->findData(QString::fromStdString(temporaryServiceId)) < 0)
 				facetFailure(facetOk, "incident", "service add did not refresh breakdown targets");
 			acceptConfirmation();
@@ -3541,7 +3541,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
 
-	if (w.m_sceneLoaded) {
+	if (w.m_document->isLoaded()) {
 		bool facetOk = true;
 		w.refreshValidationPanel();
 		QApplication::processEvents();
@@ -3554,7 +3554,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_VALIDATION_OK\n");
 	}
 
-	if (w.m_sceneLoaded) {
+	if (w.m_document->isLoaded()) {
 		bool facetOk = true;
 		QString outBase = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
 		QTemporaryDir tmpDir;
@@ -3565,50 +3565,50 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (outputDir.exists() && !outputDir.removeRecursively()) {
 			facetFailure(facetOk, "save/reload", "output path could not be cleaned");
 		} else {
-			for (int row = 0; row < static_cast<int>(w.m_sceneModel.services.size()); ++row) {
-				if (w.m_sceneModel.services[static_cast<std::size_t>(row)].id != editedServiceId)
+			for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().services.size()); ++row) {
+				if (w.m_document->mutableModel().services[static_cast<std::size_t>(row)].id != editedServiceId)
 					continue;
 				w.m_serviceListWidget->setCurrentRow(row);
 				w.m_serviceOperatingCodeEdit->setText("1731");
 				w.m_servicePanel->commitPendingEditors();
-				if (w.m_sceneModel.services[static_cast<std::size_t>(row)].operatingCode != "1731")
+				if (w.m_document->mutableModel().services[static_cast<std::size_t>(row)].operatingCode != "1731")
 					facetFailure(facetOk, "save/reload", "pending service text did not commit before persistence");
 				break;
 			}
-			expectedTrainUnits = w.m_sceneModel.trainUnits;
-			expectedCompositions = w.m_sceneModel.compositions;
-			expectedServices = w.m_sceneModel.services;
-			expectedStations = w.m_sceneModel.stations;
-			expectedPassengers = w.m_sceneModel.passengers;
+			expectedTrainUnits = w.m_document->mutableModel().trainUnits;
+			expectedCompositions = w.m_document->mutableModel().compositions;
+			expectedServices = w.m_document->mutableModel().services;
+			expectedStations = w.m_document->mutableModel().stations;
+			expectedPassengers = w.m_document->mutableModel().passengers;
 			expectedIncidents = w.selectedScenarioIncidents();
 			if (const SceneScenario* scenario = w.selectedScenario())
 				expectedEntranceDelays = scenario->entranceDelays;
-			auto result = ::saveScene(w.m_sceneModel, outScenePath.toStdString());
+			auto result = ::saveScene(w.m_document->mutableModel(), outScenePath.toStdString());
 			if (!result.success()) {
 				facetFailure(facetOk, "save/reload", "save failed");
 			} else if (!w.openSceneDirectory(outScenePath)) {
 				facetFailure(facetOk, "save/reload", "saved scene did not reload");
-			} else if (!sameTrainUnits(expectedTrainUnits, w.m_sceneModel.trainUnits)) {
+			} else if (!sameTrainUnits(expectedTrainUnits, w.m_document->mutableModel().trainUnits)) {
 				facetFailure(facetOk, "save/reload", "train-unit facet changed after reload");
-			} else if (!sameCompositions(expectedCompositions, w.m_sceneModel.compositions)) {
+			} else if (!sameCompositions(expectedCompositions, w.m_document->mutableModel().compositions)) {
 				facetFailure(facetOk, "save/reload", "composition facet changed after reload");
-			} else if (!sameServices(expectedServices, w.m_sceneModel.services)) {
+			} else if (!sameServices(expectedServices, w.m_document->mutableModel().services)) {
 				facetFailure(facetOk, "save/reload", "service/timetable facet changed after reload");
-			} else if (!std::any_of(w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+			} else if (!std::any_of(w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 						   [&](const SceneService& service) {
 							   return service.id == editedServiceId && service.visualizationColor == "#3c8dd2";
 						   })) {
 				facetFailure(facetOk, "save/reload", "service colour changed after reload");
-			} else if (!sameStations(expectedStations, w.m_sceneModel.stations)) {
+			} else if (!sameStations(expectedStations, w.m_document->mutableModel().stations)) {
 				facetFailure(facetOk, "save/reload", "platform geometry changed after reload");
-			} else if (!samePassengers(expectedPassengers, w.m_sceneModel.passengers)) {
+			} else if (!samePassengers(expectedPassengers, w.m_document->mutableModel().passengers)) {
 				facetFailure(facetOk, "save/reload", "passenger hierarchy changed after reload");
 			} else if (!sameIncidents(expectedIncidents, w.selectedScenarioIncidents())) {
 				facetFailure(facetOk, "save/reload", "incident facet changed after reload");
 			} else if (!w.selectedScenario()
 				|| !sameEntranceDelays(expectedEntranceDelays, w.selectedScenario()->entranceDelays)) {
 				facetFailure(facetOk, "save/reload", "entrance-delay facet changed after reload");
-			} else if (w.m_sceneDirty || hasErrors(w.m_sceneDiagnostics)) {
+			} else if (w.m_document->isDirty() || hasErrors(w.m_sceneDiagnostics)) {
 				facetFailure(facetOk, "save/reload", "reloaded scene is dirty or invalid");
 			} else {
 				const auto triggerPendingSave = [&]() {
@@ -3616,7 +3616,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						return false;
 					w.m_saveSceneAction->trigger();
 					QApplication::processEvents();
-					return !w.m_sceneDirty;
+					return !w.m_document->isDirty();
 				};
 				const auto spinTextEdit = [](QAbstractSpinBox* spin) {
 					return spin ? spin->findChild<QLineEdit*>() : nullptr;
@@ -3627,10 +3627,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							return row;
 					return -1;
 				};
-				const int trainUnitRow = modelRowFor(w.m_sceneModel.trainUnits, editedTrainUnitId);
-				const int compositionRow = modelRowFor(w.m_sceneModel.compositions, editedCompositionId);
-				const int serviceRow = modelRowFor(w.m_sceneModel.services, editedServiceId);
-				const int passengerRow = modelRowFor(w.m_sceneModel.passengers, e2ePassengerId);
+				const int trainUnitRow = modelRowFor(w.m_document->mutableModel().trainUnits, editedTrainUnitId);
+				const int compositionRow = modelRowFor(w.m_document->mutableModel().compositions, editedCompositionId);
+				const int serviceRow = modelRowFor(w.m_document->mutableModel().services, editedServiceId);
+				const int passengerRow = modelRowFor(w.m_document->mutableModel().passengers, e2ePassengerId);
 				if (passengerRow < 0 || e2eJourneyId.empty() || e2eLegId.empty()
 					|| !w.m_passengerDock || !w.m_passengerListWidget || !w.m_passengerIdEdit
 					|| !w.m_passengerJourneyListWidget || !w.m_passengerJourneyIdEdit
@@ -3648,7 +3648,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const std::string pendingPassengerId = e2ePassengerId + "_focused";
 					w.m_passengerIdEdit->setText(QString::fromStdString(pendingPassengerId));
 					w.m_passengerIdEdit->setFocus();
-					if (!triggerPendingSave() || w.m_sceneModel.passengers[static_cast<std::size_t>(passengerRow)].id != pendingPassengerId)
+					if (!triggerPendingSave() || w.m_document->mutableModel().passengers[static_cast<std::size_t>(passengerRow)].id != pendingPassengerId)
 						facetFailure(facetOk, "save/reload", "Save did not commit the still-focused passenger ID");
 					else
 						e2ePassengerId = pendingPassengerId;
@@ -3744,7 +3744,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						int implicitPlatformRow = -1;
 						ScenePlatform* implicitPlatform = nullptr;
 						int platformRow = 0;
-						for (auto& station : w.m_sceneModel.stations) {
+						for (auto& station : w.m_document->mutableModel().stations) {
 							for (auto& platform : station.platforms) {
 								if (!implicitPlatform && !platform.hasLength && !platform.hasWidth) {
 									implicitPlatformRow = platformRow;
@@ -3789,10 +3789,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							const double pendingLengthValue = 234.5;
 							pendingLength->setFocus();
 							enterSpinText(pendingLength, QString::number(pendingLengthValue, 'g', 16));
-							if (!triggerPendingSave() || w.m_sceneModel.stations.empty()
-								|| w.m_sceneModel.stations.front().platforms.empty()
-								|| !w.m_sceneModel.stations.front().platforms.front().hasLength
-								|| w.m_sceneModel.stations.front().platforms.front().lengthM != pendingLengthValue)
+							if (!triggerPendingSave() || w.m_document->mutableModel().stations.empty()
+								|| w.m_document->mutableModel().stations.front().platforms.empty()
+								|| !w.m_document->mutableModel().stations.front().platforms.front().hasLength
+								|| w.m_document->mutableModel().stations.front().platforms.front().lengthM != pendingLengthValue)
 								facetFailure(facetOk, "save/reload", "Save did not commit the still-focused platform length");
 						}
 					}
@@ -3860,16 +3860,15 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!triggerPendingSave()) {
 						facetFailure(facetOk, "save/reload", "Save action did not flush focused train-unit text");
 					} else {
-						const int committedTrainRow = modelRowFor(w.m_sceneModel.trainUnits, editedTrainUnitId);
+						const int committedTrainRow = modelRowFor(w.m_document->mutableModel().trainUnits, editedTrainUnitId);
 						if (committedTrainRow < 0
-							|| !w.m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)].hasPhysical
-							|| w.m_sceneModel.trainUnits[static_cast<std::size_t>(committedTrainRow)]
-									.physical.mass_of_traction_unit_kg
+							|| !w.m_document->mutableModel().trainUnits[static_cast<std::size_t>(committedTrainRow)].hasPhysical
+							|| w.m_document->mutableModel().trainUnits[static_cast<std::size_t>(committedTrainRow)].physical.mass_of_traction_unit_kg
 								!= pendingPhysicalMass)
 							facetFailure(facetOk, "save/reload", "focused train-unit text was not committed before Save");
 					}
 
-					const std::string pendingCompositionId = sceneUniqueCompositionId(w.m_sceneModel, "e2e_pending_composition");
+					const std::string pendingCompositionId = sceneUniqueCompositionId(w.m_document->mutableModel(), "e2e_pending_composition");
 					if (w.m_compositionDock) {
 						w.m_compositionDock->show();
 						w.m_compositionDock->raise();
@@ -3881,20 +3880,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!triggerPendingSave()) {
 						facetFailure(facetOk, "save/reload", "Save action did not flush focused composition text");
 					} else {
-						const int committedCompositionRow = modelRowFor(w.m_sceneModel.compositions, pendingCompositionId);
+						const int committedCompositionRow = modelRowFor(w.m_document->mutableModel().compositions, pendingCompositionId);
 						if (committedCompositionRow < 0
 							|| !std::any_of(
-								w.m_sceneModel.services.begin(), w.m_sceneModel.services.end(),
+								w.m_document->mutableModel().services.begin(), w.m_document->mutableModel().services.end(),
 								[&](const SceneService& service) { return service.composition == pendingCompositionId; }))
 							facetFailure(facetOk, "save/reload", "focused composition text was not committed before Save");
 						else
 							editedCompositionId = pendingCompositionId;
 					}
 
-					const int pendingServiceRow = modelRowFor(w.m_sceneModel.services, editedServiceId);
+					const int pendingServiceRow = modelRowFor(w.m_document->mutableModel().services, editedServiceId);
 					int pendingStopRow = -1;
 					if (pendingServiceRow >= 0) {
-						const auto& stops = w.m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)].stops;
+						const auto& stops = w.m_document->mutableModel().services[static_cast<std::size_t>(pendingServiceRow)].stops;
 						for (int row = 0; row < static_cast<int>(stops.size()); ++row) {
 							if (stops[static_cast<std::size_t>(row)].hasPlannedArrival && stops[static_cast<std::size_t>(row)].hasPlannedDeparture) {
 								pendingStopRow = row;
@@ -3905,8 +3904,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							pendingStopRow = 0;
 					}
 					const int scenarioRow = [&]() {
-						for (int row = 0; row < static_cast<int>(w.m_sceneModel.scenarios.size()); ++row)
-							if (w.m_sceneModel.scenarios[static_cast<std::size_t>(row)].id == w.m_runSelection.scenarioId())
+						for (int row = 0; row < static_cast<int>(w.m_document->mutableModel().scenarios.size()); ++row)
+							if (w.m_document->mutableModel().scenarios[static_cast<std::size_t>(row)].id == w.m_runSelection.scenarioId())
 								return row;
 						return -1;
 					}();
@@ -3920,9 +3919,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						w.m_serviceListWidget->setCurrentRow(pendingServiceRow);
 						w.m_stopTableWidget->setCurrentCell(pendingStopRow, 0);
 						QApplication::processEvents();
-						const int pendingDwell = static_cast<int>(w.m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)]
-														 .stops[static_cast<std::size_t>(pendingStopRow)]
-														 .dwellSeconds)
+						const int pendingDwell = static_cast<int>(w.m_document->mutableModel().services[static_cast<std::size_t>(pendingServiceRow)].stops[static_cast<std::size_t>(pendingStopRow)].dwellSeconds)
 							+ 1;
 						if (!editStopDialog(pendingStopRow, [&](QDialog* dialog) {
 								auto* dwell = dialog->findChild<QLineEdit*>("stopEditorDwellEdit");
@@ -3931,9 +3928,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}))
 							facetFailure(facetOk, "save/reload", "focused modal dwell was not accepted");
 						if (!triggerPendingSave()
-							|| w.m_sceneModel.services[static_cast<std::size_t>(pendingServiceRow)]
-									.stops[static_cast<std::size_t>(pendingStopRow)]
-									.dwellSeconds
+							|| w.m_document->mutableModel().services[static_cast<std::size_t>(pendingServiceRow)].stops[static_cast<std::size_t>(pendingStopRow)].dwellSeconds
 								!= pendingDwell)
 							facetFailure(facetOk, "save/reload", "focused stop dwell text was not committed before Save");
 
@@ -3968,18 +3963,18 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							QApplication::processEvents();
 							if (!w.m_incidentEndSecondsEdit->hasFocus())
 								facetFailure(facetOk, "save/reload", "incident end field did not receive focus");
-							if (w.m_sceneModel.routes.empty()) {
+							if (w.m_document->mutableModel().routes.empty()) {
 								facetFailure(facetOk, "save/reload", "route unavailable for blocked Run coverage");
 							} else {
-								const std::vector<std::string> validRoute = w.m_sceneModel.routes.front().blocks;
-								w.m_sceneModel.routes.front().blocks.clear();
+								const std::vector<std::string> validRoute = w.m_document->mutableModel().routes.front().blocks;
+								w.m_document->mutableModel().routes.front().blocks.clear();
 								w.m_runSceneAction->trigger();
 								QApplication::processEvents();
 								if (w.m_worker || !w.m_incidentPanel->selectedIncident()
 									|| !w.m_incidentPanel->selectedIncident()->hasEndSeconds
 									|| w.m_incidentPanel->selectedIncident()->endSeconds != pendingIncidentEnd)
 									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
-								w.m_sceneModel.routes.front().blocks = validRoute;
+								w.m_document->mutableModel().routes.front().blocks = validRoute;
 								w.refreshValidationPanel();
 							}
 						}
@@ -3988,26 +3983,26 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					w.m_trainUnitListWidget->setCurrentRow(trainUnitRow);
 					w.m_trainUnitSourceDataEdit->setText(QString::fromStdString(pendingSource));
 					w.m_trainUnitSourceDataEdit->setFocus();
-					if (w.m_sceneModel.trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
+					if (w.m_document->mutableModel().trainUnits[static_cast<std::size_t>(trainUnitRow)].sourceDataFile
 						== pendingSource) {
 						facetFailure(facetOk, "save/reload", "pending source edit committed before Save");
 					} else if (!w.saveSceneToCurrentDir()) {
 						facetFailure(facetOk, "save/reload", "pending editor values were not saved");
 					} else {
-						expectedTrainUnits = w.m_sceneModel.trainUnits;
-						expectedCompositions = w.m_sceneModel.compositions;
-						expectedServices = w.m_sceneModel.services;
-						expectedStations = w.m_sceneModel.stations;
-						expectedPassengers = w.m_sceneModel.passengers;
+						expectedTrainUnits = w.m_document->mutableModel().trainUnits;
+						expectedCompositions = w.m_document->mutableModel().compositions;
+						expectedServices = w.m_document->mutableModel().services;
+						expectedStations = w.m_document->mutableModel().stations;
+						expectedPassengers = w.m_document->mutableModel().passengers;
 						expectedIncidents = w.selectedScenarioIncidents();
 						if (const SceneScenario* scenario = w.selectedScenario())
 							expectedEntranceDelays = scenario->entranceDelays;
 						if (!w.openSceneDirectory(outScenePath)
-							|| !sameTrainUnits(expectedTrainUnits, w.m_sceneModel.trainUnits)
-							|| !sameCompositions(expectedCompositions, w.m_sceneModel.compositions)
-							|| !sameServices(expectedServices, w.m_sceneModel.services)
-							|| !sameStations(expectedStations, w.m_sceneModel.stations)
-							|| !samePassengers(expectedPassengers, w.m_sceneModel.passengers)
+							|| !sameTrainUnits(expectedTrainUnits, w.m_document->mutableModel().trainUnits)
+							|| !sameCompositions(expectedCompositions, w.m_document->mutableModel().compositions)
+							|| !sameServices(expectedServices, w.m_document->mutableModel().services)
+							|| !sameStations(expectedStations, w.m_document->mutableModel().stations)
+							|| !samePassengers(expectedPassengers, w.m_document->mutableModel().passengers)
 							|| !sameIncidents(expectedIncidents, w.selectedScenarioIncidents())
 							|| !w.selectedScenario()
 							|| !sameEntranceDelays(expectedEntranceDelays,
@@ -4025,10 +4020,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "save/reload", "temporary occurrence selection was serialized or not reset on reopen");
 					const QString bundlePath = outScenePath + ".egscene";
 					QFile::remove(bundlePath);
-					const SceneSaveResult bundleSave = saveSceneBundle(w.m_sceneModel, bundlePath.toStdString());
+					const SceneSaveResult bundleSave = saveSceneBundle(w.m_document->mutableModel(), bundlePath.toStdString());
 					if (!bundleSave.success() || !w.openSceneDirectory(bundlePath) || !w.selectedScenario()
-						|| !sameStations(expectedStations, w.m_sceneModel.stations)
-						|| !samePassengers(expectedPassengers, w.m_sceneModel.passengers)
+						|| !sameStations(expectedStations, w.m_document->mutableModel().stations)
+						|| !samePassengers(expectedPassengers, w.m_document->mutableModel().passengers)
 						|| !sameEntranceDelays(expectedEntranceDelays,
 							w.selectedScenario()->entranceDelays))
 						facetFailure(facetOk, "save/reload", "entrance delays changed after bundle save and reopen");
@@ -4091,8 +4086,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		if (ok) {
 			// A window of 1280 by 698 pixels with Loaded Data below the network: the Case and Layers rail is too short for its
 			// content and scrolls, and a long case name without spaces and the first layer toggle stay whole.
-			const std::string caseName = w.m_sceneModel.name;
-			w.m_sceneModel.name = "Amsterdam_Hilversum_Student";
+			const std::string caseName = w.m_document->mutableModel().name;
+			w.m_document->mutableModel().name = "Amsterdam_Hilversum_Student";
 			w.updateCaseLayersPanel();
 			w.resize(1280, 698);
 			w.m_caseLayersDock->show();
@@ -4122,7 +4117,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			w.m_loadedDataDock->hide();
 			w.m_caseLayersDock->hide();
-			w.m_sceneModel.name = caseName;
+			w.m_document->mutableModel().name = caseName;
 			w.updateCaseLayersPanel();
 
 			// The fields of a service at the same size: the running performance field is not cut at the right.
@@ -4197,19 +4192,19 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
 	}
-	if (ok && w.m_sceneLoaded) {
+	if (ok && w.m_document->isLoaded()) {
 		// Visiting an editor must not change the case: tabbing through the fields, resizing, scrolling and reopening the docks
 		// leave the dirty flag and the revision as they were.
 		bool facetOk = true;
-		bool dirtyBefore = w.m_sceneDirty;
-		quint64 revisionBefore = w.m_sceneRevision;
+		bool dirtyBefore = w.m_document->isDirty();
+		quint64 revisionBefore = w.m_document->revision();
 		const auto expectUntouched = [&](const QDockWidget* dock, const char* step) {
-			if (w.m_sceneDirty == dirtyBefore && w.m_sceneRevision == revisionBefore)
+			if (w.m_document->isDirty() == dirtyBefore && w.m_document->revision() == revisionBefore)
 				return;
 			facetFailure(facetOk, "untouched fields",
 				QString("%1 changed the case during %2").arg(dock->objectName(), step));
-			dirtyBefore = w.m_sceneDirty;
-			revisionBefore = w.m_sceneRevision;
+			dirtyBefore = w.m_document->isDirty();
+			revisionBefore = w.m_document->revision();
 		};
 		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock,
 				 w.m_compositionDock, w.m_serviceDock, w.m_incidentDock, w.m_passengerDock}) {
@@ -4290,7 +4285,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_UNTOUCHED_OK\n");
 	}
 	// Last, because it opens copies of the scene and leaves another scene and selection behind.
-	if (ok && w.m_sceneLoaded) {
+	if (ok && w.m_document->isLoaded()) {
 		QTemporaryDir undoTempDir;
 		QString undoOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
 		if (undoOut.isEmpty())
@@ -4304,7 +4299,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_UNDO_REDO_OK\n");
 	}
 
-	if (ok && w.m_sceneLoaded) {
+	if (ok && w.m_document->isLoaded()) {
 		QTemporaryDir recoveryTempDir;
 		QString recoveryOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
 		if (recoveryOut.isEmpty())
@@ -4371,26 +4366,26 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	// The scene is a copy, so that Save does not touch the committed scene.
 	const QString copyPath = QDir(outFolder).filePath("editor_smoke_undo_scene");
 	QDir(copyPath).removeRecursively();
-	if (!w.openSceneDirectory(scenePath) || !::saveScene(w.m_sceneModel, copyPath.toStdString()).success()
+	if (!w.openSceneDirectory(scenePath) || !::saveScene(w.m_document->mutableModel(), copyPath.toStdString()).success()
 		|| !w.openSceneDirectory(copyPath)) {
 		failures << QStringLiteral("undo/redo: the copy of the scene did not open");
 		return finish();
 	}
-	expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_sceneDirty
+	expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_document->isDirty()
 			&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
 		"a scene that was just opened has a history to undo");
 
 	// Typing that is not committed is no edit.
 	{
-		const quint64 revision = w.m_sceneRevision;
+		const quint64 revision = w.m_document->revision();
 		w.m_caseNameEdit->setText("typing that is not committed");
 		process();
-		expect(w.m_history->undoCount() == 0 && w.m_sceneRevision == revision && !w.m_undoAction->isEnabled(),
+		expect(w.m_history->undoCount() == 0 && w.m_document->revision() == revision && !w.m_undoAction->isEnabled(),
 			"typing created a step");
-		w.m_caseNameEdit->setText(QString::fromStdString(w.m_sceneModel.name));
+		w.m_caseNameEdit->setText(QString::fromStdString(w.m_document->mutableModel().name));
 	}
 
-	std::vector<std::string> states{authoredSceneBytes(w.m_sceneModel)};
+	std::vector<std::string> states{authoredSceneBytes(w.m_document->mutableModel())};
 	// The scenarios that the window marks as edited, in each state.
 	std::vector<std::set<std::string>> modifiedStates{w.modifiedScenarioIds()};
 	std::size_t position = 0;
@@ -4398,7 +4393,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 
 	// What the editors show must be the scene, whatever way the scene was reached.
 	const auto editorMismatch = [&w]() -> QString {
-		const SceneModel& model = w.m_sceneModel;
+		const SceneModel& model = w.m_document->mutableModel();
 		const SceneScenario* scenario = w.selectedScenario();
 		const auto count = [](const QListWidget* list) { return static_cast<std::size_t>(list->count()); };
 		if (w.m_caseNameEdit->text().toStdString() != model.name)
@@ -4444,18 +4439,18 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	const auto checkReached = [&](std::size_t at, const char* how) {
 		const QString where = QStringLiteral("%1 to state %2").arg(QLatin1String(how)).arg(at);
 		const bool dirty = !savedState || *savedState != at;
-		expect(authoredSceneBytes(w.m_sceneModel) == states[at], where + " did not restore the scene");
+		expect(authoredSceneBytes(w.m_document->mutableModel()) == states[at], where + " did not restore the scene");
 		expect(w.m_history->undoCount() == at && w.m_history->redoCount() == states.size() - 1 - at,
 			where + " moved the history to another place");
-		expect(w.m_sceneDirty == dirty && w.isWindowModified() == dirty && w.m_history->isAtSavedPoint() == !dirty,
+		expect(w.m_document->isDirty() == dirty && w.isWindowModified() == dirty && w.m_history->isAtSavedPoint() == !dirty,
 			where + " left a wrong unsaved mark");
 		expect(!w.m_resultsAvailable && !w.m_completedRun, where + " kept results of a run");
 		const QString mismatch = editorMismatch();
 		expect(mismatch.isEmpty(), where + " left the " + mismatch + " editor with another scene");
 		expect(validationCurrent(), where + " left the validation of another scene");
 		expect(w.modifiedScenarioIds() == modifiedStates[at], where + " left other scenarios marked as edited");
-		expect(w.m_startOffsetSeconds == baseTimeToSeconds(w.m_sceneModel.baseTime), where + " left the start time of another scene");
-		expect(std::any_of(w.m_sceneModel.scenarios.begin(), w.m_sceneModel.scenarios.end(),
+		expect(w.m_startOffsetSeconds == baseTimeToSeconds(w.m_document->mutableModel().baseTime), where + " left the start time of another scene");
+		expect(std::any_of(w.m_document->mutableModel().scenarios.begin(), w.m_document->mutableModel().scenarios.end(),
 				   [&w](const SceneScenario& scenario) { return scenario.id == w.m_runSelection.scenarioId(); }),
 			where + " left a scenario selected that the scene does not have");
 		expect(w.m_undoAction->isEnabled() == (at > 0) && w.m_redoAction->isEnabled() == (at + 1 < states.size()),
@@ -4478,10 +4473,10 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	// One edit must add exactly one step, that the scene and the head of the history agree on, and drop what could be redone.
 	const auto step = [&](const char* name, const char* label, const std::function<void()>& edit) {
 		const std::size_t undoBefore = w.m_history->undoCount();
-		const std::string before = authoredSceneBytes(w.m_sceneModel);
+		const std::string before = authoredSceneBytes(w.m_document->mutableModel());
 		edit();
 		process();
-		const std::string after = authoredSceneBytes(w.m_sceneModel);
+		const std::string after = authoredSceneBytes(w.m_document->mutableModel());
 		const QString what = QLatin1String(name);
 		bool good = expect(after != before, what + " did not change the scene");
 		good = expect(w.m_history->undoCount() == undoBefore + 1, what + " did not add exactly one step") && good;
@@ -4490,7 +4485,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			&& good;
 		good = expect(w.m_history->undoLabel() == label, what + " is labelled '" + QString::fromStdString(w.m_history->undoLabel()) + "'")
 			&& good;
-		good = expect(w.m_sceneDirty && w.isWindowModified() && w.m_undoAction->isEnabled(), what + " left the scene clean")
+		good = expect(w.m_document->isDirty() && w.isWindowModified() && w.m_undoAction->isEnabled(), what + " left the scene clean")
 			&& good;
 		if (good) {
 			if (savedState && *savedState > position)
@@ -4539,8 +4534,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return accepted;
 	};
 	const auto selectServiceWithStops = [&](std::size_t stops) {
-		for (std::size_t row = 0; row < w.m_sceneModel.services.size(); ++row) {
-			if (w.m_sceneModel.services[row].stops.size() < stops)
+		for (std::size_t row = 0; row < w.m_document->mutableModel().services.size(); ++row) {
+			if (w.m_document->mutableModel().services[row].stops.size() < stops)
 				continue;
 			w.m_serviceListWidget->setCurrentRow(static_cast<int>(row));
 			process();
@@ -4575,10 +4570,10 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.m_runSceneAction->trigger();
 		if (!expect(w.m_worker != nullptr, "the run did not start"))
 			return finish();
-		const quint64 revision = w.m_sceneRevision;
+		const quint64 revision = w.m_document->revision();
 		w.undoScene();
 		w.redoScene();
-		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_sceneRevision == revision,
+		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_document->revision() == revision,
 			"Undo or Redo worked while a run used the scene");
 		QElapsedTimer waited;
 		waited.start();
@@ -4597,8 +4592,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	if (!step("an added rolling stock unit", "Add rolling stock unit", [&] { w.m_trainUnitPanel->addUnit(); }))
 		return finish();
 	// A link to a source file is session state: it stays with a unit that the scene still has and goes with one that it lost.
-	const std::string linkedUnitId = w.m_sceneModel.trainUnits.front().id;
-	const std::string addedUnitId = w.m_sceneModel.trainUnits.back().id;
+	const std::string linkedUnitId = w.m_document->mutableModel().trainUnits.front().id;
+	const std::string addedUnitId = w.m_document->mutableModel().trainUnits.back().id;
 	{
 		QFile linkedFile(QDir(outFolder).filePath("undo_link.txt"));
 		if (!linkedFile.open(QIODevice::WriteOnly)) {
@@ -4619,7 +4614,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	if (!step("a unit added to a composition", "Add composition unit", [&] {
 			w.m_compositionListWidget->setCurrentRow(w.m_compositionListWidget->count() - 1);
-			acceptUnitChoice(QString::fromStdString(w.m_sceneModel.trainUnits.back().id));
+			acceptUnitChoice(QString::fromStdString(w.m_document->mutableModel().trainUnits.back().id));
 			w.m_compositionPanel->addUnit();
 		}))
 		return finish();
@@ -4631,13 +4626,13 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			return finish();
 		savedState = position;
 		modifiedStates[position].clear();
-		expect(!w.m_sceneDirty && !w.isWindowModified() && w.m_history->isAtSavedPoint() && w.m_history->undoCount() == steps
+		expect(!w.m_document->isDirty() && !w.isWindowModified() && w.m_history->isAtSavedPoint() && w.m_history->undoCount() == steps
 				&& w.m_undoAction->isEnabled(),
 			"Save did not keep the history or did not mark the scene as saved");
 	}
 
 	std::set<std::string> serviceIdsBefore;
-	for (const SceneService& service : w.m_sceneModel.services)
+	for (const SceneService& service : w.m_document->mutableModel().services)
 		serviceIdsBefore.insert(service.id);
 	if (!step("a duplicated service", "Add service", [&] {
 			w.m_serviceListWidget->setCurrentRow(0);
@@ -4645,7 +4640,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		}))
 		return finish();
 	std::string duplicatedServiceId;
-	for (const SceneService& service : w.m_sceneModel.services) {
+	for (const SceneService& service : w.m_document->mutableModel().services) {
 		if (serviceIdsBefore.count(service.id) == 0)
 			duplicatedServiceId = service.id;
 	}
@@ -4666,12 +4661,12 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	// A stop dialog that is accepted is one step, and one that is cancelled is none.
 	{
 		const std::size_t steps = w.m_history->undoCount();
-		const quint64 revision = w.m_sceneRevision;
+		const quint64 revision = w.m_document->revision();
 		const bool accepted = editStopDialog(0, false, [](QDialog* dialog) {
 			dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(true);
 			dialog->findChild<QLineEdit*>("stopEditorArrivalEdit")->setText("456");
 		});
-		expect(!accepted && w.m_history->undoCount() == steps && w.m_sceneRevision == revision,
+		expect(!accepted && w.m_history->undoCount() == steps && w.m_document->revision() == revision,
 			"a cancelled stop dialog created a step");
 	}
 	if (!step("an accepted stop dialog", "Edit", [&] {
@@ -4707,8 +4702,8 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	// The duplicate is the service that nothing refers to.
 	if (!step("a deleted service", "Delete service", [&] {
-			for (std::size_t row = 0; row < w.m_sceneModel.services.size(); ++row) {
-				if (w.m_sceneModel.services[row].id == duplicatedServiceId)
+			for (std::size_t row = 0; row < w.m_document->mutableModel().services.size(); ++row) {
+				if (w.m_document->mutableModel().services[row].id == duplicatedServiceId)
 					w.m_serviceListWidget->setCurrentRow(static_cast<int>(row));
 			}
 			answerMessageBox(&w, QMessageBox::Yes);
@@ -4752,7 +4747,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	undo();
 	if (!step("an edit after Undo past the saved state", "Edit", editDescription("again")))
 		return finish();
-	expect(!savedState.has_value() && w.m_sceneDirty, "an edit that dropped the saved state left the scene clean");
+	expect(!savedState.has_value() && w.m_document->isDirty(), "an edit that dropped the saved state left the scene clean");
 	undo();
 	redo();
 	if (!failures.isEmpty())
@@ -4763,7 +4758,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			return finish();
 		savedState = position;
 		modifiedStates[position].clear();
-		expect(!w.m_sceneDirty && w.m_history->undoCount() == steps, "Save again did not mark the scene as saved");
+		expect(!w.m_document->isDirty() && w.m_history->undoCount() == steps, "Save again did not mark the scene as saved");
 		undo();
 		redo();
 	}
@@ -4778,16 +4773,16 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 			failures << QStringLiteral("undo/redo: the saved copy did not open");
 			return finish();
 		}
-		expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_sceneDirty
+		expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_document->isDirty()
 				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
 			"opening a scene kept the history of the one before");
 		answerMessageBox(&w, QMessageBox::Discard);
 		w.newScene();
 		process();
-		expect(w.m_sceneDirty && !w.m_history->canUndo() && !w.m_history->canRedo() && !w.m_history->isAtSavedPoint()
+		expect(w.m_document->isDirty() && !w.m_history->canUndo() && !w.m_history->canRedo() && !w.m_history->isAtSavedPoint()
 				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
 			"a new scene kept the history of the one before or started clean");
-		const std::string newSceneName = w.m_sceneModel.name;
+		const std::string newSceneName = w.m_document->mutableModel().name;
 		w.m_caseNameEdit->setText("E2E new case");
 		w.commitPendingCaseSettings();
 		process();
@@ -4796,16 +4791,16 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		w.m_caseNameEdit->setText("typed but not committed");
 		w.m_undoAction->trigger();
 		process();
-		expect(w.m_sceneModel.name == "E2E new case" && w.m_caseNameEdit->text() == "E2E new case" && w.m_history->undoCount() == 1
+		expect(w.m_document->mutableModel().name == "E2E new case" && w.m_caseNameEdit->text() == "E2E new case" && w.m_history->undoCount() == 1
 				&& w.m_history->redoCount() == 1,
 			"Undo did not revert the value that was still being typed");
 		w.m_redoAction->trigger();
 		process();
-		expect(w.m_sceneModel.name == "typed but not committed", "Redo did not bring back the value that was typed");
+		expect(w.m_document->mutableModel().name == "typed but not committed", "Redo did not bring back the value that was typed");
 		w.m_undoAction->trigger();
 		w.m_undoAction->trigger();
 		process();
-		expect(w.m_sceneDirty && w.m_sceneModel.name == newSceneName && !w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(),
+		expect(w.m_document->isDirty() && w.m_document->mutableModel().name == newSceneName && !w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(),
 			"Undo in a new scene did not return to its first state or marked it clean");
 	}
 	return finish();
@@ -4879,7 +4874,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	// Leaves the copy of a scene named name, as a window that ended without closing does.
 	const auto leaveCopy = [&](const QString& name) {
 		RecoveryStore crashed(root);
-		SceneModel scene = w.m_sceneModel;
+		SceneModel scene = w.m_document->mutableModel();
 		scene.name = name.toStdString();
 		RecoverySource source;
 		source.kind = RecoverySourceKind::Bundle;
@@ -4915,13 +4910,13 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		return finish();
 
 	// An opened bundle is the source of its copies, and a scene without edits has none.
-	if (!w.openSceneDirectory(scenePath) || !saveSceneBundle(w.m_sceneModel, bundle.toStdString()).success() || !w.openSceneDirectory(bundle)) {
+	if (!w.openSceneDirectory(scenePath) || !saveSceneBundle(w.m_document->mutableModel(), bundle.toStdString()).success() || !w.openSceneDirectory(bundle)) {
 		failures << QStringLiteral("recovery: the bundle for the checks did not open");
 		return finish();
 	}
 	QByteArray originalBytes = fileBytes(bundle);
 	QDateTime originalTime = QFileInfo(bundle).lastModified();
-	expect(!w.m_sceneDirty && w.m_recoverySource.kind == RecoverySourceKind::Bundle && w.m_recoverySource.path == bundle
+	expect(!w.m_document->isDirty() && w.m_recoverySource.kind == RecoverySourceKind::Bundle && w.m_recoverySource.path == bundle
 			&& w.m_recoverySource.sizeBytes == QFileInfo(bundle).size()
 			&& w.m_recoverySource.modified.toMSecsSinceEpoch() == originalTime.toMSecsSinceEpoch(),
 		"an opened bundle is not the source of its copies");
@@ -4932,7 +4927,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	w.m_caseBaseTimeEdit->setText("09:15:30");
 	w.commitPendingCaseSettings();
 	editCase("E2E recovery three");
-	expect(w.m_sceneDirty && !w.m_recovery->isIdle(), "an edit did not start the autosave");
+	expect(w.m_document->isDirty() && !w.m_recovery->isIdle(), "an edit did not start the autosave");
 	if (!settle())
 		return finish();
 	{
@@ -4959,13 +4954,13 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	process();
 	if (!settle())
 		return finish();
-	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "Undo to the saved state left a copy");
+	expect(!w.m_document->isDirty() && ownRecord().isEmpty(), "Undo to the saved state left a copy");
 	while (w.m_history->canRedo())
 		w.redoScene();
 	process();
 	if (!settle())
 		return finish();
-	expect(w.m_sceneDirty && ownRecord().value("display_name").toString() == "E2E recovery three", "Redo from the saved state left no copy");
+	expect(w.m_document->isDirty() && ownRecord().value("display_name").toString() == "E2E recovery three", "Redo from the saved state left no copy");
 
 	// Save takes the copy away and reads the file that it wrote as the new source.
 	if (!expect(w.saveSceneToCurrentDir(), "the bundle was not saved"))
@@ -4974,7 +4969,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		return finish();
 	originalBytes = fileBytes(bundle);
 	originalTime = QFileInfo(bundle).lastModified();
-	expect(!w.m_sceneDirty && ownRecord().isEmpty() && w.m_recoverySource.sizeBytes == QFileInfo(bundle).size()
+	expect(!w.m_document->isDirty() && ownRecord().isEmpty() && w.m_recoverySource.sizeBytes == QFileInfo(bundle).size()
 			&& w.m_recoverySource.modified.toMSecsSinceEpoch() == originalTime.toMSecsSinceEpoch(),
 		"Save left a copy or did not read the saved file");
 
@@ -4987,28 +4982,28 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		return finish();
 	if (!settle())
 		return finish();
-	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "opening the scene again left the copy of the edits that it dropped");
+	expect(!w.m_document->isDirty() && ownRecord().isEmpty(), "opening the scene again left the copy of the edits that it dropped");
 
 	// A new scene is recoverable. Discard followed by an open that fails, and Cancel, keep its copy. An open that succeeds takes it.
 	w.newScene();
 	process();
 	if (!settle())
 		return finish();
-	expect(w.m_sceneDirty && w.m_sceneDir.isEmpty()
+	expect(w.m_document->isDirty() && w.m_sceneDir.isEmpty()
 			&& ownRecord().value("source").toObject().value("kind").toString() == "untitled",
 		"a new scene has no copy");
 	answerMessageBox(&w, QMessageBox::Discard);
 	expect(!w.requestOpenScene(QDir(outFolder).filePath("no_such_recovery_scene")), "a scene that is not there opened");
 	if (!settle())
 		return finish();
-	expect(w.m_sceneDirty && !ownRecord().isEmpty(), "Discard followed by an open that failed removed the copy");
+	expect(w.m_document->isDirty() && !ownRecord().isEmpty(), "Discard followed by an open that failed removed the copy");
 	answerMessageBox(&w, QMessageBox::Cancel);
-	expect(!w.requestOpenScene(bundle) && w.m_sceneDirty && !ownRecord().isEmpty(), "Cancel removed the copy");
+	expect(!w.requestOpenScene(bundle) && w.m_document->isDirty() && !ownRecord().isEmpty(), "Cancel removed the copy");
 	answerMessageBox(&w, QMessageBox::Discard);
 	expect(w.requestOpenScene(bundle), "the bundle did not open after Discard");
 	if (!settle())
 		return finish();
-	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "opening a scene after Discard left the copy of the one that it dropped");
+	expect(!w.m_document->isDirty() && ownRecord().isEmpty(), "opening a scene after Discard left the copy of the one that it dropped");
 
 	// Closing the window keeps the copy when the user cancels, and leaves nothing otherwise.
 	editCase("E2E recovery five");
@@ -5039,9 +5034,9 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	leftFolders << laterId;
 	answerPrompt({"recoveryLaterButton"});
 	expect(!laterId.isEmpty() && !w.offerRecovery(), "Decide Later opened a copy");
-	expect(QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_sceneDirty, "Decide Later changed the scene or removed the copy");
+	expect(QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_document->isDirty(), "Decide Later changed the scene or removed the copy");
 	answerPrompt({"recoveryDiscardButton", "recoveryDiscardButton"});
-	expect(!w.offerRecovery() && !QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_sceneDirty,
+	expect(!w.offerRecovery() && !QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_document->isDirty(),
 		"Discard did not remove the copy or changed the scene");
 
 	// Recover opens the copy as an unsaved scene without a file, and the original stays as it was until Save As.
@@ -5051,7 +5046,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	const bool offered = w.offerRecovery();
 	if (!settle())
 		return finish();
-	expect(offered && w.m_sceneDir.isEmpty() && !w.m_sceneIsBundle && w.m_sceneDirty && w.m_sceneModel.name == "E2E recovered case",
+	expect(offered && w.m_sceneDir.isEmpty() && !w.m_sceneIsBundle && w.m_document->isDirty() && w.m_document->mutableModel().name == "E2E recovered case",
 		"the recovered copy is not an unsaved scene without a file");
 	expect(!w.m_history->isAtSavedPoint() && !w.m_history->canUndo(), "the recovered copy has a saved state or a history");
 	expect(w.m_recoveredSourceHint == bundle && QFileInfo(w.saveSceneAsStartPath()).fileName() == QFileInfo(bundle).fileName(),
@@ -5071,14 +5066,14 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 		"an edit of a recovered scene has no copy that names the original");
 	// Save As, from the step after the file dialog: the recovered scene becomes a scene with a file, and its copy goes.
 	{
-		const SceneSaveResult saved = saveSceneBundle(w.m_sceneModel, savedBundle.toStdString());
+		const SceneSaveResult saved = saveSceneBundle(w.m_document->mutableModel(), savedBundle.toStdString());
 		w.m_sceneDir = QFileInfo(savedBundle).absoluteFilePath();
 		w.m_sceneIsBundle = true;
 		w.m_sceneBundleVersion = kCurrentSceneBundleVersion;
 		expect(w.finishSceneSave(saved, telemetry::OperationObservation(), telemetry::ExportKind::SceneBundle), "Save As failed");
 		if (!settle())
 			return finish();
-		expect(!w.m_sceneDirty && ownRecord().isEmpty() && w.m_recoveredSourceHint.isEmpty()
+		expect(!w.m_document->isDirty() && ownRecord().isEmpty() && w.m_recoveredSourceHint.isEmpty()
 				&& w.m_recoverySource.path == w.m_sceneDir,
 			"Save As left the copy or the hint of a recovered scene");
 		expect(fileBytes(bundle) == originalBytes && QFileInfo(bundle).lastModified() == originalTime, "Save As changed the original");
@@ -5108,7 +5103,7 @@ QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& sc
 	settle();
 	QObject::disconnect(counter);
 	expect(unavailable == 1, "the window reported the failed autosave " + QString::number(unavailable) + " times");
-	expect(w.m_sceneDirty && w.m_history->undoCount() == steps + 2 && w.m_sceneModel.name == "E2E unwritable two",
+	expect(w.m_document->isDirty() && w.m_history->undoCount() == steps + 2 && w.m_document->mutableModel().name == "E2E unwritable two",
 		"a failed autosave stopped the editing");
 	return finish();
 }

@@ -40,7 +40,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 	if (!temp.isValid()) {
 		fail(QStringLiteral("temporary directory creation failed"));
 	} else {
-		SceneModel droppedScene = w.m_sceneModel;
+		SceneModel droppedScene = w.m_document->mutableModel();
 		droppedScene.name = "Dropped Scene";
 		const QString validPath = temp.filePath(QStringLiteral("valid.EGSCENE"));
 		if (!saveSceneBundle(droppedScene, validPath.toStdString()).success())
@@ -94,23 +94,23 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		if (w.networkView->dragMode() != QGraphicsView::ScrollHandDrag)
 			fail(QStringLiteral("canvas pan drag mode changed"));
 
-		const quint64 revisionBeforeValidDrop = w.m_sceneRevision;
+		const quint64 revisionBeforeValidDrop = w.m_document->revision();
 		deliver({QUrl::fromLocalFile(validPath)}, true, true, true, QString());
 		if (w.m_sceneDir != QFileInfo(validPath).absoluteFilePath()
-			|| w.m_sceneModel.name != "Dropped Scene" || w.m_sceneRevision != revisionBeforeValidDrop + 1
+			|| w.m_document->mutableModel().name != "Dropped Scene" || w.m_document->revision() != revisionBeforeValidDrop + 1
 			|| !w.scene || w.networkView->scene() != w.scene
 			|| w.scene->items().isEmpty())
 			fail(QStringLiteral("valid dropped scene did not open and render"));
 
 		const QString scenePath = w.m_sceneDir;
-		const std::string sceneName = w.m_sceneModel.name;
-		const quint64 sceneRevision = w.m_sceneRevision;
+		const std::string sceneName = w.m_document->mutableModel().name;
+		const quint64 sceneRevision = w.m_document->revision();
 		QGraphicsScene* const renderedScene = w.scene;
 		const QList<QGraphicsItem*> renderedItems = w.scene ? w.scene->items() : QList<QGraphicsItem*>();
 		const auto unchanged = [&](const QString& label) {
 			const QList<QGraphicsItem*> currentItems = w.scene ? w.scene->items() : QList<QGraphicsItem*>();
-			if (w.m_sceneDir != scenePath || w.m_sceneModel.name != sceneName
-				|| w.m_sceneRevision != sceneRevision || w.scene != renderedScene
+			if (w.m_sceneDir != scenePath || w.m_document->mutableModel().name != sceneName
+				|| w.m_document->revision() != sceneRevision || w.scene != renderedScene
 				|| !w.scene || w.networkView->scene() != renderedScene
 				|| currentItems.size() != renderedItems.size()
 				|| !std::equal(currentItems.cbegin(), currentItems.cend(), renderedItems.cbegin()))
@@ -118,7 +118,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		};
 
 		bool canceledUnsavedPrompt = false;
-		w.m_sceneDirty = true;
+		w.m_document->setDirty(true);
 		QTimer cancelTimer(&w);
 		cancelTimer.setInterval(0);
 		QObject::connect(&cancelTimer, &QTimer::timeout, &w, [&]() {
@@ -136,7 +136,7 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		if (!canceledUnsavedPrompt)
 			fail(QStringLiteral("dirty-scene drop did not show the unsaved-scene prompt"));
 		unchanged(QStringLiteral("canceled dirty-scene drop"));
-		w.m_sceneDirty = false;
+		w.m_document->setDirty(false);
 
 		deliver({QUrl::fromLocalFile(validPath)}, true, false, false,
 			QStringLiteral("copying"), Qt::MoveAction);

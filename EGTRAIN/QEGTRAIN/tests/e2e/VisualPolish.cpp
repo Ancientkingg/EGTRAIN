@@ -104,7 +104,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	// needs trains of a coloured and of another service on the canvas, so wait for
 	// them until the run ends; every rendered frame calls this function again.
 	QHash<QString, QColor> serviceColors;
-	for (const SceneService& service : w.m_sceneModel.services) {
+	for (const SceneService& service : w.m_document->mutableModel().services) {
 		int red = 0, green = 0, blue = 0;
 		if (sceneParseVisualizationColor(service.visualizationColor, &red, &green, &blue))
 			serviceColors.insert(QString::fromStdString(service.id), QColor(red, green, blue));
