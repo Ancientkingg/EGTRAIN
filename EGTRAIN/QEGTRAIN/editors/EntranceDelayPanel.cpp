@@ -43,7 +43,7 @@ const SceneStop* firstDepartureStop(const SceneService& service) {
 EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("entranceDelayPanel");
 	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->addWidget(new QLabel("Entrance Delays", this));
+	layout->addWidget(new QLabel("Entrance delays", this));
 	m_listWidget = new QListWidget(this);
 	m_listWidget->setObjectName("entranceDelayListWidget");
 	m_listWidget->setAccessibleName("Entrance delay library");
