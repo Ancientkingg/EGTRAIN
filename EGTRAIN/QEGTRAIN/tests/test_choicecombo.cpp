@@ -1,6 +1,7 @@
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/FocusWheel.h"
 
 #include <QAbstractItemView>
 #include <QAbstractSpinBox>
@@ -18,6 +19,8 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QSlider>
+#include <QSpinBox>
 #include <QWheelEvent>
 #include <QToolTip>
 #include <QVBoxLayout>
@@ -264,17 +267,25 @@ void wheelDown(QWidget* target) {
 
 // A tall form whose scroll area has room to scroll, with one field of each kind that offers a value to the wheel.
 // A form that goes through DialogLayout::install has every field guarded by that call. A form in a plain scroll area
-// guards only the fields that guard themselves, ChoiceComboBox and CompactDoubleSpinBox.
+// guards only the fields that guard themselves, ChoiceComboBox and CompactDoubleSpinBox. A watched form has every field
+// guarded, also the ones that appear after the watch, as in an editor dock.
+enum class FormKind { Installed,
+	Plain,
+	Watched };
+
 struct WheelForm {
 	QDialog dialog;
 	ChoiceComboBox* choice = nullptr;
 	QComboBox* plain = nullptr;
 	CompactDoubleSpinBox* compact = nullptr;
 	QDoubleSpinBox* spin = nullptr;
+	QSlider* slider = nullptr;
+	QComboBox* lateCombo = nullptr;
+	QSpinBox* lateSpin = nullptr;
 	QScrollArea* scroll = nullptr;
-	bool installed;
+	FormKind kind;
 
-	explicit WheelForm(bool throughDialogLayout) : installed(throughDialogLayout) {
+	explicit WheelForm(FormKind formKind) : kind(formKind) {
 		auto* body = new QWidget;
 		auto* form = new QFormLayout(body);
 		choice = new ChoiceComboBox(body);
@@ -289,13 +300,17 @@ struct WheelForm {
 		spin = new QDoubleSpinBox(body);
 		spin->setRange(0, 100);
 		spin->setValue(50);
+		slider = new QSlider(Qt::Horizontal, body);
+		slider->setRange(0, 100);
+		slider->setValue(50);
 		form->addRow(QStringLiteral("Choice"), choice);
 		form->addRow(QStringLiteral("Plain choice"), plain);
 		form->addRow(QStringLiteral("Compact number"), compact);
 		form->addRow(QStringLiteral("Number"), spin);
+		form->addRow(QStringLiteral("Slider"), slider);
 		for (int row = 0; row < 40; ++row)
 			form->addRow(QStringLiteral("Line %1").arg(row), new QLineEdit(body));
-		if (throughDialogLayout) {
+		if (kind == FormKind::Installed) {
 			auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 			scroll = DialogLayout::install(dialog, QStringLiteral("Wheel"), QString(), body, buttons, QRect(0, 0, 1280, 600));
 		} else {
@@ -305,29 +320,52 @@ struct WheelForm {
 			auto* layout = new QVBoxLayout(&dialog);
 			layout->addWidget(scroll);
 			dialog.resize(600, 400);
+			if (kind == FormKind::Watched)
+				FocusWheel::watch(body);
 		}
 		dialog.show();
 		QApplication::setActiveWindow(&dialog);
 		QApplication::processEvents();
+		if (kind == FormKind::Watched) {
+			// Fields inside a widget that is added later, the way a table or a tab page adds its editors.
+			auto* page = new QWidget(body);
+			auto* pageLayout = new QFormLayout(page);
+			lateCombo = new QComboBox(page);
+			lateCombo->addItems({QStringLiteral("one"), QStringLiteral("two"), QStringLiteral("three")});
+			lateSpin = new QSpinBox(page);
+			lateSpin->setRange(0, 100);
+			lateSpin->setValue(50);
+			pageLayout->addRow(QStringLiteral("Late choice"), lateCombo);
+			pageLayout->addRow(QStringLiteral("Late number"), lateSpin);
+			form->insertRow(0, page);
+			page->show();
+			QApplication::processEvents();
+		}
 	}
 
 	// The fields with the values that a wheel step would change and that the form guards.
 	QList<QWidget*> fields() const {
-		if (installed)
-			return {choice, plain, compact, spin};
+		if (kind == FormKind::Installed)
+			return {choice, plain, compact, spin, slider};
+		if (kind == FormKind::Watched)
+			return {choice, plain, compact, spin, slider, lateCombo, lateSpin};
 		return {choice, compact};
 	}
 	QString value(QWidget* field) const {
 		if (auto* combo = qobject_cast<QComboBox*>(field))
 			return combo->currentText();
+		if (auto* bar = qobject_cast<QSlider*>(field))
+			return QString::number(bar->value());
 		return qobject_cast<QAbstractSpinBox*>(field)->text();
 	}
 };
 
-// The wheel scrolls a form over a combo box or a spin box without changing it, until the field has keyboard focus.
-bool exerciseWheel(bool throughDialogLayout) {
-	WheelForm f(throughDialogLayout);
-	const QString form = throughDialogLayout ? QStringLiteral("installed form: ") : QStringLiteral("plain scroll area: ");
+// The wheel scrolls a form over a combo box, spin box or slider without changing it, until the field has keyboard focus.
+bool exerciseWheel(FormKind kind) {
+	WheelForm f(kind);
+	const QString form = kind == FormKind::Installed ? QStringLiteral("installed form: ")
+		: kind == FormKind::Plain					 ? QStringLiteral("plain scroll area: ")
+													 : QStringLiteral("watched form: ");
 	bool ok = check(f.scroll->verticalScrollBar()->maximum() > 0, qPrintable(form + "the wheel form does not scroll, so the test proves nothing"));
 	for (QWidget* field : f.fields()) {
 		const QString name = form + field->metaObject()->className();
@@ -370,7 +408,8 @@ int main(int argc, char** argv) {
 	const bool selection = exerciseSelection();
 	const bool elision = exerciseElision();
 	const bool invalid = exerciseInvalidChoice();
-	const bool wheelInstalled = exerciseWheel(true);
-	const bool wheelPlain = exerciseWheel(false);
-	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain ? 0 : 1;
+	const bool wheelInstalled = exerciseWheel(FormKind::Installed);
+	const bool wheelPlain = exerciseWheel(FormKind::Plain);
+	const bool wheelWatched = exerciseWheel(FormKind::Watched);
+	return small && scaledSmall && large && selection && elision && invalid && wheelInstalled && wheelPlain && wheelWatched ? 0 : 1;
 }

@@ -42,6 +42,7 @@
 #include "simulation/SimulationWorker.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/FocusWheel.h"
 #include <QAbstractButton>
 #include <QAbstractSpinBox>
 #include <QAction>
@@ -92,6 +93,7 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QScrollArea>
+#include <QSlider>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSize>
@@ -4192,6 +4194,55 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		// in a row under it, and they are in the first view of the dock without sideways scrolling. The buttons of the route
 		// sections below the table are in the first view when `allButtons` is set. A small floating dock can need a scroll to reach them,
 		// so there the check scrolls to the end and requires them to be in view.
+		// The wheel over a field of a dock that has no focus leaves the field as it is and scrolls the dock.
+		int dockWheelFields = 0;
+		const auto dockWheelFailure = [&dockWheelFields](QDockWidget* dock) -> QString {
+			auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
+			if (!scroll)
+				return dock->objectName() + " has no scroll area";
+			const auto stateOf = [](QWidget* field) -> QString {
+				if (auto* combo = qobject_cast<QComboBox*>(field))
+					return QString::number(combo->currentIndex());
+				if (auto* slider = qobject_cast<QSlider*>(field))
+					return QString::number(slider->value());
+				return qobject_cast<QAbstractSpinBox*>(field)->text();
+			};
+			// Only a field that no other scroll area holds hands the wheel to the dock.
+			const auto heldByOtherArea = [scroll](const QWidget* field) {
+				for (const QWidget* parent = field->parentWidget(); parent && parent != scroll->viewport(); parent = parent->parentWidget()) {
+					if (qobject_cast<const QAbstractScrollArea*>(parent))
+						return true;
+				}
+				return false;
+			};
+			scroll->verticalScrollBar()->setValue(0);
+			bool scrolled = false;
+			for (QWidget* field : scroll->widget()->findChildren<QWidget*>()) {
+				if (!FocusWheel::isValueField(field) || !field->isVisible() || !field->isEnabled() || field->hasFocus())
+					continue;
+				const QString before = stateOf(field);
+				const QPoint center = field->rect().center();
+				const QPoint global = field->mapToGlobal(center);
+				QWidget* under = field->childAt(center);
+				for (QWidget* receiver = under ? under : field; receiver; receiver = receiver->parentWidget()) {
+					QWheelEvent wheel(QPointF(receiver->mapFromGlobal(global)), QPointF(global), QPoint(), QPoint(0, -120), Qt::NoButton,
+						Qt::NoModifier, Qt::NoScrollPhase, false);
+					QApplication::sendEvent(receiver, &wheel);
+					if (wheel.isAccepted())
+						break;
+				}
+				QApplication::processEvents();
+				++dockWheelFields;
+				if (stateOf(field) != before)
+					return QString("a mouse wheel changed %1 in %2 without focus").arg(field->objectName().isEmpty() ? field->metaObject()->className() : field->objectName(), dock->objectName());
+				if (!scrolled && !heldByOtherArea(field) && scroll->verticalScrollBar()->maximum() > 0) {
+					if (scroll->verticalScrollBar()->value() == 0)
+						return QString("a mouse wheel over a field of %1 did not scroll the dock").arg(dock->objectName());
+					scrolled = true;
+				}
+			}
+			return QString();
+		};
 		const auto checkInfrastructureControls = [&](const char* where, bool allButtons) {
 			auto* scroll = w.m_infrastructureDock->findChild<QScrollArea*>("editorContentScroll");
 			const QString shownFacet = w.m_infrastructurePanel->facetKey();
@@ -4275,6 +4326,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const QString failure = timetableTabFailure();
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " at 1280 by 800 pixels");
+				}
+				if (scale == 1.0) {
+					const QString failure = dockWheelFailure(dock);
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure);
 				}
 				if (dock == w.m_compositionDock) {
 					const QString failure = compositionButtonFailure(640);
@@ -4508,6 +4564,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_loadedDataDock->hide();
 			w.updateDiagramActions();
 		}
+		if (ok && dockWheelFields == 0)
+			facetFailure(ok, "presentation", "no editor dock had a field for the wheel check");
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
 	}
 	if (ok && w.m_document->isLoaded()) {

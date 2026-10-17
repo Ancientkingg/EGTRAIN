@@ -83,6 +83,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/ElidedLabel.h"
+#include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
 #include "widgets/TimeProgressBar.h"
@@ -1652,6 +1653,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		scroll->setMinimumSize(0, 0);
 		scroll->setWidget(content);
 		dock->setWidget(scroll);
+		// The wheel scrolls the dock over a field and changes the field only once it has focus.
+		FocusWheel::watch(content);
 	}
 	addDockWidget(Qt::RightDockWidgetArea, m_passengerDock);
 	m_passengerDock->hide();
