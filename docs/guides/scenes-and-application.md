@@ -267,18 +267,13 @@ delay baseline**. The results panel confirms the completed run identity and
 places the next action or disabled reason beside the baseline controls.
 Selecting another scenario keeps the baseline but reports that the newly
 selected scenario has not been run; a canonical scene edit, **New**, or
-**Open** clears the baseline and explains that a new run without incidents or entrance delays is
-needed. **Compare delays** requires a run with incidents or entrance delays and
-matching scene revision, base time, duration, timestep, and full selected
-`(service_id, occurrence)` identity set. It opens the delay analysis window on
-its tab Against baseline. The tab shows, for each call, the baseline and
-scenario arrival and departure and their difference, and for each occurrence the
-input delay, whether direct runtime evidence was recorded, and the difference at
-the final arrival. The totals add the final arrival differences and count the
-occurrences that are later, the same or earlier. A difference that cannot be
-computed is not available, never 0. Timetable differences alone are never
-treated as causal, and a run without direct evidence is still compared. When the
-runs do not match, the tab lists each reason.
+**Open** clears the baseline and explains that a new run without incidents or
+entrance delays is needed. **Compare delays** requires a run with incidents or
+entrance delays that matches the baseline, and opens the delay analysis window
+on its tab Against baseline. The window reports the difference and the recorded
+direct incident evidence, and never states a cause. What it shows, how to read
+it and what it does not cover are in
+[How delays are calculated](delay-analysis.md#the-delay-analysis-window).
 
 ### Timetable graphs and train paths
 

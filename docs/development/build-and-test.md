@@ -1003,14 +1003,16 @@ read the first point. See [Delay analysis](../guides/delay-analysis.md#limits).
 
 Both station statistics files take the arrival of a stop from its timetable
 point, the arrival that `TimetablePoints.txt`, the timetable results, the
-diagrams and the CSV export report, so a `result` line and a station row show the same delay. A train that
-did not reach a stop, and a stop without a planned arrival, have no delay and are
-counted in neither file. A stop with no timetable point keeps the arrival
-recorded during the run. A station row without such a train holds `-1` in the
-average, deviation, maximum, cumulative and percentage columns and 0 in
-`Total_Delay` and the train counts. The
-`Final_Station` row is the same statistic for the last stop of every train. The
-first station of the network is not printed and not in `TOTALS`.
+diagrams and the CSV export report, so a `result` line and a station row show
+the same delay. A train that did not reach a stop, and a stop without a planned
+arrival, have no delay and are counted in neither file. A stop with no timetable
+point keeps the arrival recorded during the run. A station row without such a
+train holds `-1` in the average, deviation, maximum, cumulative and percentage
+columns and 0 in `Total_Delay` and the train counts. The `Final_Station` row is
+the same statistic over the last stop of each train whose last stop is counted,
+and holds the same values when none is. The first station of the network has no row and
+is not in `TOTALS`; its calls can still be the last stop of a train and so enter
+`Final_Station`. See [Delay analysis](../guides/delay-analysis.md#the-station-statistics-files).
 
 Integers and strings must match exactly. Floats match within an absolute
 tolerance of 1e-4 and a relative tolerance of 1e-9, and the statistics rows

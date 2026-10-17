@@ -12,7 +12,7 @@ Choose the route that matches your task.
 - [Sharing a live run](guides/live-sharing.md): how to start a run with the live stream, a small client that reads positions and sends one command, the commands, and what to check when it does not work.
 - [Lebanon case study guide](guides/lebanon-case-study.md)
 - [Amsterdam to Hilversum student case](guides/amsterdam-hilversum-student-case.md)
-- [How delays are calculated](guides/delay-analysis.md)
+- [How delays are calculated](guides/delay-analysis.md): the definitions of delay, how to read the Delay analysis window and its comparison against a baseline, the statistics files, the supported scope and the limits.
 - [How capacity is analysed](guides/capacity-analysis.md): the train chain window and the capacity by area window, with the choice of scope and period, the completeness rule, the governing resource and a figure reproduced by hand.
 - [Inspecting diagrams](ui/diagram-navigation.md): how to hover, select, zoom and pan in a result diagram, and how the timetable graph, the train-path graph and the blocking-time charts are drawn.
 
