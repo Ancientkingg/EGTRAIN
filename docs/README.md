@@ -34,7 +34,8 @@ use the canonical model.
 
 ## Develop or contribute
 
-- [Build and test guide](development/build-and-test.md)
+- [Getting started as a developer](development/getting-started.md): the tools you need, a first build and run, a map of the sources, the path from opening a case to saving it, which checks to run, and a first change to a test.
+- [Build and test guide](development/build-and-test.md): configure recipes for each system, common setup failures, test labels and smokes, where output goes, and CI.
 - [Coding guidelines](development/coding-guidelines.md)
 - [QEGTRAIN source layout](architecture/source-layout.md): the folders of `EGTRAIN/QEGTRAIN` and what each holds, the libraries and the renames.
 - [Scene model design](architecture/scene-model.md)
