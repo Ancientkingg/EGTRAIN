@@ -1617,7 +1617,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_insertBlockButton = m_infrastructurePanel->insertBlockButton();
 	m_moveBlockUpButton = m_infrastructurePanel->moveBlockUpButton();
 	m_moveBlockDownButton = m_infrastructurePanel->moveBlockDownButton();
-	m_routeSectionDetailWidget = m_infrastructurePanel->routeSectionDetailWidget();
 	m_routeSectionCatalogCombo = m_infrastructurePanel->routeSectionCatalogCombo();
 	m_routeSectionListWidget = m_infrastructurePanel->routeSectionListWidget();
 	m_addRouteSectionButton = m_infrastructurePanel->addRouteSectionButton();

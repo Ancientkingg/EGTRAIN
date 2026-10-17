@@ -443,7 +443,7 @@ private:
 	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
 	QDockWidget* m_infrastructureDock = nullptr;
 	InfrastructurePanel* m_infrastructurePanel = nullptr;
-	// Parts of m_infrastructurePanel, for the scripted runs in tests/e2e and the facets that have not moved out
+	// Parts of m_infrastructurePanel, for the scripted runs in tests/e2e and the facets that MainWindow implements
 	QComboBox* m_infrastructureFacetCombo = nullptr;
 	QTableWidget* m_infrastructureTable = nullptr;
 	QPushButton* m_addInfrastructureButton = nullptr;
@@ -452,7 +452,6 @@ private:
 	QPushButton* m_insertBlockButton = nullptr;
 	QPushButton* m_moveBlockUpButton = nullptr;
 	QPushButton* m_moveBlockDownButton = nullptr;
-	QWidget* m_routeSectionDetailWidget = nullptr;
 	QComboBox* m_routeSectionCatalogCombo = nullptr;
 	QListWidget* m_routeSectionListWidget = nullptr;
 	QPushButton* m_addRouteSectionButton = nullptr;
@@ -679,7 +678,7 @@ private:
 	void commitCaseSettings();
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
-	// The facets of the infrastructure panel that have not moved out of the window yet.
+	// The facets of the infrastructure panel that MainWindow implements.
 	class UnmovedInfrastructureFacet;
 	void fillInfrastructureRows(const QString& facet);
 	void commitPendingPlatformGeometry();

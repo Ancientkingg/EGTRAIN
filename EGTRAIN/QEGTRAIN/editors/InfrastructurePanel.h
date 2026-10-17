@@ -2,7 +2,6 @@
 #define INFRASTRUCTUREPANEL_H
 
 #include "editors/SceneEditorPanel.h"
-// After SceneEditorPanel.h, which includes the scene model the way InfrastructureFacet.h needs it.
 #include "editors/infrastructure/InfrastructureFacet.h"
 #include "widgets/UserPrompts.h"
 
