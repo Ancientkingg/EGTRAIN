@@ -44,6 +44,15 @@ with five finite values: starting speed (m/s), ending speed (m/s), and the
 coefficients `a b c` for force in N, `a + b*v + c*v*v`. Speed intervals must
 have positive width, be ordered, and not overlap.
 
+The label under **Link parameter file...** and **Link traction file...** shows
+the state of the link. **Unlinked** means no file is linked. A linked file that
+exists shows **Linked**, **Up to date** or **Reloaded**, **Rejected** with the
+reason when it cannot be read, or **Kept local** after Keep local. **Missing**
+replaces all of these when the linked file does not exist, also after Keep local.
+It shows the path of the file, and **Retry** stays available. A conflict between
+local edits and a changed file is a question, not a label: it asks for Reload
+or Keep local.
+
 Each linked update is applied only after the complete candidate validates.
 Malformed or missing content leaves accepted values unchanged and keeps
 **Retry** available. A valid change marks the scene dirty only when values
