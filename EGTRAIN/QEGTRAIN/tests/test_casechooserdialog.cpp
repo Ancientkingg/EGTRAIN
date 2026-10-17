@@ -488,6 +488,9 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 			if (found.size() == 1)
 				checkSelectedRowContrast(scenario + QLatin1Char(' ') + text, list, found.first());
 		}
+		const QList<QListWidgetItem*> unavailable = list->findItems(QStringLiteral("Unavailable: gone case"), Qt::MatchExactly);
+		check(unavailable.size() == 1 && unavailable.first()->isSelected() && unavailable.first()->font().italic(), scenario,
+			"a selected unavailable row is not italic");
 	}
 
 	// A name or path with "&", "<", ">" or an entity shows as typed in the tooltip of a case row and of an unavailable row.
