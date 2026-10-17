@@ -116,6 +116,7 @@ class CompositionPanel;
 class DelayAnalysisWindow;
 class EntranceDelayPanel;
 class IncidentPanel;
+class InfrastructurePanel;
 class PassengerPanel;
 class ScenarioPanel;
 class ServicePanel;
@@ -441,6 +442,8 @@ private:
 	QDoubleSpinBox* m_caseBufferSecondsEdit = nullptr;
 	QDoubleSpinBox* m_caseRecoveryPercentEdit = nullptr;
 	QDockWidget* m_infrastructureDock = nullptr;
+	InfrastructurePanel* m_infrastructurePanel = nullptr;
+	// Parts of m_infrastructurePanel, for the scripted runs in tests/e2e and the facets that MainWindow implements
 	QComboBox* m_infrastructureFacetCombo = nullptr;
 	QTableWidget* m_infrastructureTable = nullptr;
 	QPushButton* m_addInfrastructureButton = nullptr;
@@ -449,15 +452,12 @@ private:
 	QPushButton* m_insertBlockButton = nullptr;
 	QPushButton* m_moveBlockUpButton = nullptr;
 	QPushButton* m_moveBlockDownButton = nullptr;
-	QWidget* m_routeSectionDetailWidget = nullptr;
 	QComboBox* m_routeSectionCatalogCombo = nullptr;
 	QListWidget* m_routeSectionListWidget = nullptr;
 	QPushButton* m_addRouteSectionButton = nullptr;
 	QPushButton* m_removeRouteSectionButton = nullptr;
 	QPushButton* m_moveRouteSectionUpButton = nullptr;
 	QPushButton* m_moveRouteSectionDownButton = nullptr;
-	std::vector<int> m_blockRowModelIndices;
-	QString m_infrastructureSelectionId;
 	std::vector<SceneDiagnostic> m_sceneDiagnostics;
 	QString m_runtimeStatus = QStringLiteral("Not built");
 	std::vector<SceneDiagnostic> m_runtimeDiagnostics;
@@ -676,10 +676,12 @@ private:
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
 	void commitCaseSettings();
+	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
-	void refreshInfrastructureTable(bool resetSelection = false);
-	void refreshBlockTrackFilter();
-	void refreshRouteSectionPanel();
+	// The facets of the infrastructure panel that MainWindow implements.
+	class UnmovedInfrastructureFacet;
+	void fillInfrastructureRows(const QString& facet);
+	void commitPendingPlatformGeometry();
 	void commitInfrastructureCell(int row, int column);
 	void commitPlatformGeometryCell(int row, int column, double value);
 	void addInfrastructureEntity();
@@ -690,7 +692,6 @@ private:
 	void moveRouteSectionUp();
 	void moveRouteSectionDown();
 	void deleteInfrastructureEntity();
-	void updateInfrastructureSelection();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	bool advancedDetailsEnabled() const;

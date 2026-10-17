@@ -9,6 +9,7 @@
 #include "editors/CompositionPanel.h"
 #include "editors/EntranceDelayPanel.h"
 #include "editors/IncidentPanel.h"
+#include "editors/InfrastructurePanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/PassengerPanel.h"
@@ -464,10 +465,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				w.m_infrastructureFacetCombo->setCurrentIndex(w.m_infrastructureFacetCombo->findData("tracks"));
 				w.m_infrastructureTable->setCurrentCell(0, 0);
-				const QString explicitlySelectedTrack = w.m_infrastructureSelectionId;
+				const QString explicitlySelectedTrack = w.m_infrastructurePanel->selectionId();
 				w.refreshInfrastructurePanel();
 				if (explicitlySelectedTrack.isEmpty() || !w.m_presenter->m_previewHasSelectedTrack || w.m_sceneDirty
-					|| w.m_infrastructureSelectionId != explicitlySelectedTrack) {
+					|| w.m_infrastructurePanel->selectionId() != explicitlySelectedTrack) {
 					ok = false;
 					failures << "scene: explicit track selection was lost or dirtied the scene";
 				}
@@ -775,7 +776,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				const bool orphanTrackAddDisabled = setInfrastructureCell("blocks", 1, 1, QString())
 					&& !infrastructureAdd->isEnabled();
 				infrastructureAdd->click();
-				w.addInfrastructureEntity(); // also exercise the handler's defensive check
+				w.m_infrastructurePanel->addEntity(); // also exercise the handler's defensive check
 				QApplication::processEvents();
 				if (!orphanTrackAddDisabled || w.m_sceneModel.blocks.size() != blocksBeforeInvalidAdd)
 					facetFailure(facetOk, "infrastructure", "Add accepted an invalid selected block track");
@@ -926,7 +927,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					}
 					// A level or track that does not exist is listed first and goes when a real choice replaces it.
 					w.m_sceneModel.signallingAreas.front().level = 9;
-					w.refreshInfrastructureTable();
+					w.m_infrastructurePanel->refreshTable();
 					const QComboBox* staleSystem = areaSystemCombo();
 					if (!staleSystem || staleSystem->itemText(0) != QStringLiteral("Invalid level 9")
 						|| staleSystem->currentText() != QStringLiteral("Invalid level 9") || !systemListHolds(staleSystem, 1))
@@ -937,7 +938,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						|| areaSystemCombo()->currentText() != QString::fromStdString(signallingLevelName(levelValue(SignallingLevel::EtcsLevel2))))
 						facetFailure(facetOk, "stations/signalling", "choosing a system did not replace the stale level");
 					w.m_sceneModel.signallingAreas.front().trackId = "ghost";
-					w.refreshInfrastructureTable();
+					w.m_infrastructurePanel->refreshTable();
 					const QComboBox* staleTrack = areaTrackCombo();
 					if (!staleTrack || staleTrack->itemText(0) != QStringLiteral("Invalid track: ghost")
 						|| staleTrack->currentText() != QStringLiteral("Invalid track: ghost") || !trackListHolds(staleTrack, 1))

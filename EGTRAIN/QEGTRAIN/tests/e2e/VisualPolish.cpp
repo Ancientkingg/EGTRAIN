@@ -3,6 +3,7 @@
 #include "app/DispatchController.h"
 #include "app/GuiSimulationSnapshot.h"
 #include "app/MainWindowSupport.h"
+#include "editors/InfrastructurePanel.h"
 #include "graphics/SignalItemRoles.h"
 #include "ui_MainWindow.h"
 
@@ -2911,7 +2912,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 					const auto* track = qgraphicsitem_cast<const TrackLineItem*>(item);
 					return track && track->pen().color() == kSelectionCueColor;
 				});
-				if (w.m_infrastructureTable->currentRow() != -1 || !w.m_infrastructureSelectionId.isEmpty()
+				if (w.m_infrastructureTable->currentRow() != -1 || !w.m_infrastructurePanel->selectionId().isEmpty()
 					|| w.m_presenter->m_previewHasSelectedTrack || cueDrawn) {
 					ok = false;
 					failures << "Stop selected a track without a selection in the infrastructure editor";
