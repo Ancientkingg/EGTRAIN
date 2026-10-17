@@ -103,6 +103,7 @@ struct CreatorAcceptanceState {
 	int polls = 0;
 	QPointer<DiagramWindow> baselineDiagram;
 	std::string baselineCsv; // What the baseline diagram exported when it opened
+	QString baselineContext; // What the context line of the baseline diagram said when it opened
 };
 
 CreatorAcceptanceState creatorAcceptance;
@@ -161,6 +162,10 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };
+	// The context line that the charts of a run show under their toolbar.
+	auto chartContextLine = [](const RunProvenance& run) {
+		return QStringLiteral("Run: %1 / %2").arg(QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
+	};
 	auto editLine = [process](QLineEdit* edit, const QString& value) {
 		if (!edit)
 			return false;
@@ -1654,11 +1659,19 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		for (QWidget* widget : QApplication::topLevelWidgets()) {
 			if (auto* diagram = qobject_cast<DiagramWindow*>(widget))
-				if (diagram->windowTitle().contains(QStringLiteral("Time vs Distance")))
+				if (diagram->windowTitle() == QStringLiteral("Time vs Distance"))
 					creatorAcceptance.baselineDiagram = diagram;
 		}
 		if (!creatorAcceptance.baselineDiagram) {
 			fail(QStringLiteral("baseline result diagram did not open"));
+			return;
+		}
+		// The title names the chart. The context line names the run.
+		creatorAcceptance.baselineContext = chartContextLine(w.m_completedRun->provenance);
+		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
+		if (!baselineContext || !baselineContext->isVisible() || baselineContext->text() != creatorAcceptance.baselineContext) {
+			fail(QStringLiteral("baseline result diagram does not name its run in the context line: ")
+				+ (baselineContext ? baselineContext->text() : QStringLiteral("no context label")));
 			return;
 		}
 		creatorAcceptance.baselineCsv = creatorAcceptance.baselineDiagram->csvContent();
@@ -1896,6 +1909,14 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			fail(QStringLiteral("the baseline diagram did not keep exporting the baseline run after later runs"));
 			return;
 		}
+		const auto* baselineContext = creatorAcceptance.baselineDiagram->findChild<QLabel*>("diagramContext");
+		const QString currentContext = chartContextLine(w.m_completedRun->provenance);
+		if (!baselineContext || baselineContext->text() != creatorAcceptance.baselineContext
+			|| currentContext == creatorAcceptance.baselineContext) {
+			fail(QStringLiteral("the baseline diagram did not keep naming the baseline run after later runs: ")
+				+ (baselineContext ? baselineContext->text() : QStringLiteral("no context label")));
+			return;
+		}
 		QAction* speedButton = findResultAction(QStringLiteral("Speed / distance"));
 		if (!speedButton) {
 			fail(QStringLiteral("speed/distance result control is unavailable"));
@@ -1908,6 +1929,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
 			|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
 			fail(QStringLiteral("current trajectory/speed exports were not driven through the diagram"));
+			return;
+		}
+		const auto* speedContext = speedDiagram->findChild<QLabel*>("diagramContext");
+		if (!speedContext || !speedContext->isVisible() || speedContext->text() != currentContext) {
+			fail(QStringLiteral("the speed diagram does not name the current run in its context line: ")
+				+ (speedContext ? speedContext->text() : QStringLiteral("no context label")));
 			return;
 		}
 		QAction* tractiveButton = findResultAction(QStringLiteral("Tractive effort / distance"));
@@ -1923,6 +1950,51 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
 			return;
+		}
+		// A run with 300-character names: the title stays the name of the chart, the context line holds the run and stays
+		// within three lines, and the chart title that a PNG shows still has the run in brackets.
+		{
+			const std::shared_ptr<const CompletedRunData> kept = w.m_completedRun;
+			auto longRun = std::make_shared<CompletedRunData>(*kept);
+			longRun->provenance.caseName = std::string(300, 'c');
+			longRun->provenance.appliedScenario = std::string(300, 's');
+			w.m_completedRun = longRun;
+			const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
+			const char* const chartTitles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance",
+				"Simulated Tractive Effort vs Distance", "Arrival delay along journey (minutes)"};
+			QString problem;
+			for (int chart = 0; chart < 5 && problem.isEmpty(); ++chart) {
+				if (chart < 4)
+					w.buildPerTrainDiagram(chart);
+				else
+					w.showDelayDiagram();
+				process();
+				const auto windows = w.findChildren<DiagramWindow*>();
+				DiagramWindow* window = windows.isEmpty() ? nullptr : windows.last();
+				const auto* context = window ? window->findChild<QLabel*>("diagramContext") : nullptr;
+				const auto* view = window ? window->findChild<QChartView*>() : nullptr;
+				const QString title = QString::fromLatin1(chartTitles[chart]);
+				if (!window || !context || !view)
+					problem = title + QStringLiteral(" did not open");
+				else if (window->windowTitle() != title)
+					problem = title + QStringLiteral(" has the window title ") + window->windowTitle();
+				else if (!context->isVisible() || context->text() != QStringLiteral("Run: ") + run
+					|| !context->toolTip().contains(run))
+					problem = title + QStringLiteral(" does not show the run in its context line");
+				else if (context->height() > context->fontMetrics().height() * 3
+					|| window->width() > window->screen()->availableGeometry().width() * 9 / 10)
+					problem = title + QStringLiteral(" does not keep its size with a long run");
+				else if (view->chart()->title() != title + QStringLiteral(" [") + run + QStringLiteral("]"))
+					problem = title + QStringLiteral(" has the chart title ") + view->chart()->title();
+				if (window)
+					window->close();
+			}
+			w.m_completedRun = kept;
+			process();
+			if (!problem.isEmpty()) {
+				fail(QStringLiteral("result chart with a long run identity: ") + problem);
+				return;
+			}
 		}
 		QAction* timetableButton = findResultAction(QStringLiteral("Timetable"));
 		if (!timetableButton) {
