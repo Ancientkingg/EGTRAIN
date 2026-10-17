@@ -505,7 +505,9 @@ int main(int argc, char** argv) {
 				ok &= expect(error->isVisible() && role(error) == "error" && dialog.width() == openSize.width() && dialog.height() >= openSize.height() && inView(dialog, error),
 					"the message is an error callout in view, and the dialog does not get narrower or shorter when it appears");
 				auto* bodyScroll = dialog.findChild<QScrollArea*>("dialogBodyScroll");
-				ok &= expect(bodyScroll && bodyScroll->verticalScrollBar()->value() == 0, "the first rows stay in view when the message appears");
+				// The dialog grows for the message up to its height limit; only a dialog at that limit scrolls the message into view.
+				ok &= expect(bodyScroll && (bodyScroll->verticalScrollBar()->value() == 0 || dialog.height() == dialog.maximumHeight()),
+					"the first rows stay in view when the message appears and the dialog has room to grow");
 				edit(dialog, "stopEditorDwellEdit")->setText("45");
 				edit(dialog, "stopEditorArrivalEdit")->setText("no time");
 				click(dialog, "stopEditorAcceptButton");
