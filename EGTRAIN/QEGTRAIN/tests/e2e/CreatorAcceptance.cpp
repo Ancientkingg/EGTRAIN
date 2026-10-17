@@ -162,7 +162,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		return accepted;
 	};
 	auto process = []() { QApplication::processEvents(); };
-	// The context line that the charts of a run show under their toolbar.
+	// The context line that the charts of a run show under their toolbar. Every creator run applies a scenario (baseline,
+	// entrance or incident), so the line has both parts.
 	auto chartContextLine = [](const RunProvenance& run) {
 		return QStringLiteral("Run: %1 / %2").arg(QString::fromStdString(run.caseName), QString::fromStdString(run.appliedScenario));
 	};
@@ -1956,6 +1957,12 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
 			|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
 			fail(QStringLiteral("simulated tractive-effort exports were not driven through the diagram"));
+			return;
+		}
+		const auto* tractiveContext = tractiveDiagram->findChild<QLabel*>("diagramContext");
+		if (!tractiveContext || !tractiveContext->isVisible() || tractiveContext->text() != currentContext) {
+			fail(QStringLiteral("the tractive-effort diagram does not name the current run in its context line: ")
+				+ (tractiveContext ? tractiveContext->text() : QStringLiteral("no context label")));
 			return;
 		}
 		// A run with 300-character names: the title stays the name of the chart, the context line holds the run and stays
