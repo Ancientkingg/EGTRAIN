@@ -153,5 +153,8 @@ std::vector<TimetableResultRow> buildTimetableResults(const std::vector<const Tr
 // For the Run Results summary: "Direct incident evidence recorded for 1 of 3 trains". A train counts when the
 // run recorded at least one direct incident effect on it.
 std::string directIncidentEvidenceText(const RunResults& results);
+// For the Run Results summary: "196/196 selected" when every ticked occurrence enters the simulation inside the
+// run period, and "196/196 selected, 185 in the run period" when some of them do not.
+std::string runOccurrencesText(int selected, int total, int selectedInPeriod);
 
 #endif // RUNRESULTS_H

@@ -3726,10 +3726,10 @@ void MainWindow::refreshRunResultsSummary() {
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
-	QString summary = QString("Run: %1 | Occurrences: %2/%3 selected | Status: Completed")
-						  .arg(completedRunContext(m_runController->completedRun()->provenance))
-						  .arg(m_runController->lastRunSelectedOccurrences())
-						  .arg(m_runController->lastRunTotalOccurrences());
+	QString summary = QString("Run: %1 | Occurrences: %2 | Status: Completed")
+						  .arg(completedRunContext(m_runController->completedRun()->provenance),
+							  QString::fromStdString(runOccurrencesText(m_runController->lastRunSelectedOccurrences(),
+								  m_runController->lastRunTotalOccurrences(), m_runController->lastRunSelectedInPeriodOccurrences())));
 	if (advancedDetailsEnabled()) {
 		summary += QString(" | %1 | Destination terminations: %2")
 					   .arg(QString::fromStdString(directIncidentEvidenceText(m_runController->completedRun()->results)))

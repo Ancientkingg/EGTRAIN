@@ -543,6 +543,7 @@ void RunController::discardResults() {
 void RunController::sceneWillBeReplaced() {
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
+	m_lastRunSelectedInPeriodOccurrences = 0;
 }
 
 // starts EGTRAIN simulation on a worker thread
@@ -759,6 +760,7 @@ void RunController::runScene() {
 	m_selection.pruneExcluded(m_document->model(), m_host.serviceOccurrenceDuration());
 	m_lastRunTotalOccurrences = m_host.totalServiceOccurrences();
 	m_lastRunSelectedOccurrences = m_selection.selectedCount(m_document->model(), m_host.serviceOccurrenceDuration());
+	m_lastRunSelectedInPeriodOccurrences = m_selection.selectedInPeriodCount(m_document->model(), m_host.serviceOccurrenceDuration());
 	if (m_lastRunSelectedOccurrences <= 0) {
 		operation.failure(telemetry::Operation::Simulation, telemetry::Error::InvalidInput);
 		showError("Cannot Run Scene", "Select at least one generated service occurrence before running.");

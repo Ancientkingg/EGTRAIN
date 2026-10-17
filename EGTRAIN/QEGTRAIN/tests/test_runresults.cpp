@@ -641,6 +641,14 @@ int main() {
 	}
 
 	{
+		ok &= expect(runOccurrencesText(2, 2, 2) == "2/2 selected", "the occurrences text stays short when every selected occurrence is in the run period");
+		ok &= expect(runOccurrencesText(196, 196, 185) == "196/196 selected, 185 in the run period",
+			"the occurrences text names the selected occurrences that are in the run period when they differ");
+		ok &= expect(runOccurrencesText(3, 5, 0) == "3/5 selected, 0 in the run period",
+			"the occurrences text names a run period without selected occurrences");
+	}
+
+	{
 		QTemporaryDir temp;
 		ok &= expect(temp.isValid(), "temporary directory for provenance tests is available");
 		const QString sceneDir = temp.filePath("scene");
