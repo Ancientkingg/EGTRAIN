@@ -155,7 +155,7 @@ void SceneSession::createNewScene(const telemetry::OperationObservation& operati
 
 void SceneSession::openSceneDialog() {
 	const auto operation = m_host.captureTelemetryOperation();
-	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
 	const QString path = QFileDialog::getOpenFileName(m_window, "Open Case Study", startDir,
 		"EGTRAIN Case Study (*.egscene)");
 	if (path.isEmpty())
@@ -166,7 +166,7 @@ void SceneSession::openSceneDialog() {
 
 void SceneSession::openSceneFolderDialog() {
 	const auto operation = m_host.captureTelemetryOperation();
-	const QString startDir = m_sceneDir.isEmpty() ? QDir::homePath() : QFileInfo(m_sceneDir).absolutePath();
+	const QString startDir = dialog_folders::openStartFolder(m_sceneDir);
 	const QString dir = QFileDialog::getExistingDirectory(m_window, "Open Scene Folder", startDir);
 	if (!dir.isEmpty())
 		requestOpenScene(dir, operation);
