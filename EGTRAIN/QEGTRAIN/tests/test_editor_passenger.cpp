@@ -287,6 +287,9 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger, or use Add to create one or Import to read a legacy passenger folder."
 				&& role(panel.diagnosticLabel()) == "help",
 			"a passenger list without a selection says what to select");
+		panel.commitPendingEditors();
+		ok &= expect(prompts.errors.empty() && panel.passengerIdEdit()->text().isEmpty(),
+			"committing pending edits without a selected passenger shows no error and keeps the form empty");
 		ok &= expect(events.log.empty() && document.revision() == 1 && !document.isDirty(), "clearing the selection edits nothing");
 		panel.passengerList()->setCurrentRow(0);
 		panel.journeyList()->setCurrentRow(1);

@@ -385,13 +385,17 @@ double PassengerPanel::occurrenceDuration() const {
 	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
 }
 
+int PassengerPanel::selectedPassengerRow() const {
+	// Ctrl+click on the selected entry clears the selection and keeps the current row.
+	const QListWidgetItem* current = m_passengerList->currentItem();
+	return current && current->isSelected() ? m_passengerList->currentRow() : -1;
+}
+
 ScenePassenger* PassengerPanel::selectedPassenger() {
 	if (!m_document || !m_document->isLoaded())
 		return nullptr;
 	auto& passengers = m_document->mutableModel().passengers;
-	// Ctrl+click on the selected entry clears the selection and keeps the current row.
-	const QListWidgetItem* current = m_passengerList->currentItem();
-	const int row = current && current->isSelected() ? m_passengerList->currentRow() : -1;
+	const int row = selectedPassengerRow();
 	return row >= 0 && row < static_cast<int>(passengers.size()) ? &passengers[static_cast<std::size_t>(row)] : nullptr;
 }
 
@@ -645,7 +649,7 @@ void PassengerPanel::deletePassenger() {
 	if (!canEdit())
 		return;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
 	const std::string id = passengers[static_cast<std::size_t>(row)].id;
@@ -759,7 +763,7 @@ void PassengerPanel::commitPassengerId() {
 	if (!canEdit())
 		return;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
 	const std::string oldId = passengers[static_cast<std::size_t>(row)].id;

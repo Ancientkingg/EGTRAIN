@@ -53,6 +53,7 @@ public:
 	// Empties the table with the result of the latest import.
 	void clearImportResult();
 
+	int selectedPassengerRow() const;
 	ScenePassenger* selectedPassenger();
 	ScenePassengerJourney* selectedPassengerJourney();
 	ScenePassengerLeg* selectedPassengerLeg();
