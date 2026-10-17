@@ -298,10 +298,19 @@ int main(int argc, char** argv) {
 				&& panel.idEdit()->text().isEmpty(),
 			"nothing can be done with the scenarios, and the fields are empty, while a run uses the scene");
 		panel.nameEdit()->setText("while running");
+		prompts.errorCount = 0;
 		panel.commitPendingEditors();
+		panel.commitIdEdit();
+		panel.commitNameEdit();
+		panel.commitDescriptionEdit();
 		panel.selectScenario(1);
-		ok &= expect(document.model().scenarios[0].name == "Pending name" && events.log.empty() && selection.scenarioId() == "baseline",
-			"pending text and selections change nothing while a run uses the scene");
+		panel.addBlankScenario();
+		panel.duplicateScenario();
+		panel.deleteScenario();
+		panel.importScenario();
+		ok &= expect(document.model().scenarios[0].name == "Pending name" && document.model().scenarios.size() == 2 && events.log.empty()
+				&& selection.scenarioId() == "baseline" && prompts.errorCount == 0,
+			"pending text, selections and actions change nothing and report nothing while a run uses the scene");
 		document.setEditable(true);
 		panel.refresh();
 		ok &= expect(panel.idEdit()->text() == "baseline" && panel.listWidget()->isEnabled(), "the scenarios can be edited again after the run");

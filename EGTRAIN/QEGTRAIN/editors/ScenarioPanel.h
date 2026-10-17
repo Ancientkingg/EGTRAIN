@@ -93,7 +93,8 @@ private:
 	bool hasScene() const;
 	// False while a run uses the scene.
 	bool canEdit() const;
-	// The selected scenario. The second form adds the baseline scenario to a scene that has none.
+	// The selected scenario. The second form adds the baseline scenario to a scene that has none, and is null unless the
+	// scene can be edited.
 	const SceneScenario* selectedScenario() const;
 	SceneScenario* selectedScenarioForEdit();
 	// The scenario of the latest run, or else the selected one, as the run results name it.

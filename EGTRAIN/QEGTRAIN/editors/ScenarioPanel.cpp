@@ -141,7 +141,7 @@ const SceneScenario* ScenarioPanel::selectedScenario() const {
 }
 
 SceneScenario* ScenarioPanel::selectedScenarioForEdit() {
-	return hasScene() ? m_runSelection->selectedScenario(m_document->mutableModel()) : nullptr;
+	return canEdit() ? m_runSelection->selectedScenario(m_document->mutableModel()) : nullptr;
 }
 
 QString ScenarioPanel::scenarioContext() const {
@@ -293,7 +293,7 @@ void ScenarioPanel::selectScenario(int row) {
 }
 
 void ScenarioPanel::addBlankScenario() {
-	if (!hasScene())
+	if (!canEdit())
 		return;
 	SceneModel& model = m_document->mutableModel();
 	SceneScenario scenario;
@@ -378,7 +378,7 @@ void ScenarioPanel::exportScenario() {
 }
 
 void ScenarioPanel::importScenario() {
-	if (!hasScene())
+	if (!canEdit())
 		return;
 	const QString path = m_importFileChooser
 		? m_importFileChooser()
