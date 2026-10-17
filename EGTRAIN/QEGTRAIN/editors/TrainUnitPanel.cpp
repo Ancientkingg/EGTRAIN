@@ -349,10 +349,10 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 	} else if (!QFileInfo(linkedPath).exists()) {
 		// A file that is gone is missing whatever the last answer to its changes was, also after Keep local.
 		statusLabel->setText(QStringLiteral("Missing: %1; Retry available").arg(breakablePath(linkedPath)));
-		statusLabel->setToolTip(linkedPath);
+		statusLabel->setToolTip(display_path::format(linkedPath));
 	} else {
 		statusLabel->setText(status.isEmpty() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName()) : status);
-		statusLabel->setToolTip(linkedPath);
+		statusLabel->setToolTip(display_path::format(linkedPath));
 	}
 }
 

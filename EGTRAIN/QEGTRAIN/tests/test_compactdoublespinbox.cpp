@@ -94,11 +94,13 @@ int main(int argc, char** argv) {
 	ok &= check(spin.text() == "0.5", __LINE__);
 
 	// the field shows the full value in its tooltip only when the text is not it, after the tooltip it has
+	// A visible tip stays up for a moment after it is hidden, so a marker shows whether the field showed a tip of its own.
 	const auto shownToolTip = [&spin]() {
-		QToolTip::hideText();
+		const QString marker = QStringLiteral("marker");
+		QToolTip::showText(spin.mapToGlobal(QPoint(2, 2)), marker, &spin);
 		QHelpEvent help(QEvent::ToolTip, QPoint(2, 2), spin.mapToGlobal(QPoint(2, 2)));
 		QApplication::sendEvent(&spin, &help);
-		return QToolTip::isVisible() ? QToolTip::text() : QString();
+		return QToolTip::text() == marker ? QString() : QToolTip::text();
 	};
 	spin.setValue(123456789012.5);
 	ok &= check(shownToolTip() == "123456789012.5", __LINE__);
@@ -110,6 +112,20 @@ int main(int argc, char** argv) {
 	ok &= check(shownToolTip() == "L: 1234567.5 m", __LINE__);
 	spin.setToolTip("Length");
 	ok &= check(shownToolTip() == "Length\nL: 1234567.5 m", __LINE__);
+	spin.setPrefix(QString());
+	spin.setSuffix(QString());
+	spin.setToolTip(QString());
+	for (double plainValue : {0.1, 22.2, -573.3, 0.0001, 1e-7, 1e15}) {
+		spin.setValue(plainValue);
+		ok &= check(shownToolTip().isEmpty(), __LINE__);
+	}
+	spin.setValue(1234.5678);
+	ok &= check(shownToolTip() == "1234.5678", __LINE__);
+	spin.setValue(0.123456789);
+	ok &= check(shownToolTip() == "0.123456789", __LINE__);
+	spin.setPrefix("L: ");
+	spin.setSuffix(" m");
+	spin.setToolTip("Length");
 	spin.setValue(0.5);
 	ok &= check(spin.text() == "L: 0.5 m" && shownToolTip() == "Length", __LINE__);
 	QToolTip::hideText();

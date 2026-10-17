@@ -471,7 +471,7 @@ int main(int argc, char** argv) {
 		ok &= expect(file.open(QIODevice::WriteOnly), "a file for the link could be made");
 		file.close();
 		panel.setSourceState(true, existing, QString());
-		ok &= expect(panel.sourceStatusLabel(true)->text() == "Linked: linked.txt" && panel.sourceStatusLabel(true)->toolTip() == existing
+		ok &= expect(panel.sourceStatusLabel(true)->text() == "Linked: linked.txt" && panel.sourceStatusLabel(true)->toolTip() == display_path::format(existing)
 				&& panel.unlinkButton(true)->isEnabled() && panel.retryButton(true)->isEnabled()
 				&& panel.sourceStatusLabel(false)->text() == "Unlinked",
 			"a linked source shows its file, with the path as tooltip, and the other source is not touched");
@@ -479,7 +479,7 @@ int main(int argc, char** argv) {
 		const auto shownText = [&panel](bool traction) { return QString(panel.sourceStatusLabel(traction)->text()).remove(QChar(0x200B)); };
 		const QString missingText = "Missing: " + display_path::format(missing) + "; Retry available";
 		panel.setSourceState(true, missing, QString());
-		ok &= expect(shownText(true) == missingText && panel.sourceStatusLabel(true)->toolTip() == missing
+		ok &= expect(shownText(true) == missingText && panel.sourceStatusLabel(true)->toolTip() == display_path::format(missing)
 				&& panel.unlinkButton(true)->isEnabled() && panel.retryButton(true)->isEnabled(),
 			"a linked file that is gone is missing, with its path, and can be retried or unlinked");
 		for (const char* status : {"Rejected: The traction source could not be read; Retry available", "Kept local; Retry available",

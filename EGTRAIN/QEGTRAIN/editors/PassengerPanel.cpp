@@ -930,7 +930,7 @@ void PassengerPanel::importPassengers() {
 	const ScenePassengerImportResult imported = importLegacyPassengers(sourcePath.toStdString(), model);
 	clearImportResult();
 	// The tooltip of the source is the path of the file or folder the row is about, and that of every other cell is its text.
-	const auto addResultRow = [this](const QString& source, const QString& sourcePath, int row, const QString& passengerId,
+	const auto addResultRow = [this](const QString& source, const QString& sourceFile, int row, const QString& passengerId,
 								  const QString& status, const QString& detail) {
 		const int target = m_importResultTable->rowCount();
 		m_importResultTable->insertRow(target);
@@ -938,7 +938,7 @@ void PassengerPanel::importPassengers() {
 			passengerId.isEmpty() ? QStringLiteral("-") : passengerId, status, detail};
 		for (int column = 0; column < texts.size(); ++column) {
 			auto* item = new QTableWidgetItem(texts[column]);
-			item->setToolTip(column == 0 ? display_path::format(sourcePath) : texts[column]);
+			item->setToolTip(column == 0 ? display_path::format(sourceFile) : texts[column]);
 			m_importResultTable->setItem(target, column, item);
 		}
 	};
