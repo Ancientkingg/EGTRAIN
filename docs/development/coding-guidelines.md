@@ -328,16 +328,13 @@ to the console directly.
   `EGTRAIN_LOG` switches Qt messages on and off per level and `QT_MESSAGE_PATTERN` still
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
-- `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
-  `owl`. No statement uses either (the definitions and declarations of `owl` are not uses), and
-  nothing calls `Logger::init`, so neither writes anything.
-- `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for one
-  `std::fprintf` to `stderr` before `std::abort()` in `BlockingTimeList::checkIndex`. It stays:
-  the default sink does not flush `std::cout` and a category can be switched off, so a logged
-  message could be lost when the process aborts. The command-line entry points
-  (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also writes the
-  line `End of Simulation` of a run without a window to `std::cout` itself: scripts read it, so
-  no logging rule may hide it. A run in the window logs the same line as `app.run`.
+- `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for the
+  marker line `QEGTRAIN_NATIVE_DETAIL`. `BlockingTimeList::checkIndex` logs a negative index as
+  `sim.setup` at `error` and calls `eglog::flush()`, which flushes `std::cout` and `std::cerr`,
+  before `std::abort()`: the sinks write `std::cout` without a flush. The command-line entry
+  points (`app/main.cpp`, `scene/SceneTool.cpp`) write to `std::cerr`. `app/main.cpp` also
+  writes the line `End of Simulation` of a run without a window to `std::cout` itself: scripts
+  read it, so no logging rule may hide it. A run in the window logs the same line as `app.run`.
 - The code in `simulation/` uses `sim.setup` for the set-up of a run (the selected case, the
   route set-up) and for problems found in the scene data or the model while it is built or
   while the blocking times are computed. It uses `sim.events` for virtual coupling and
@@ -350,18 +347,20 @@ to the console directly.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file
-  (`cout`, `cerr`, `clog`, `printf`, `fprintf` to `stdout` or `stderr`, `owl` and `eglogger`)
-  and compares them with the list `ALLOWED` in both directions. A new console write outside the
-  deliberate files fails the test; when statements are removed, lower the entry of the file to
-  the new number and delete it at zero. Test markers (`E2E_` and `QEGTRAIN_` lines, and the
-  marker helpers of `app/MainWindow.cpp`, which print a name that the caller built) are not
-  counted. The files that write the console on purpose are listed in `EXEMPT_FILES` with the
-  reason. The test also checks that the code still writes the stdout lines that scripts read.
+  (`cout`, `cerr`, `clog`, `printf` and `fprintf` to `stdout` or `stderr`)
+  and compares them with the list `ALLOWED` in both directions. A new console write fails the
+  test; when statements are removed, lower the entry of the file to the new number and delete it
+  at zero. The writes that stay are counted in `ALLOWED` and named in a comment there: the
+  command-line output of `app/main.cpp` and the marker lines of the profiling switches and of
+  scripted runs (`QEGTRAIN_TIMING`, `QEGTRAIN_NATIVE_DETAIL`, `QEGTRAIN_PLAYBACK_PROFILE`,
+  `QEGTRAIN_DIALOG_SUPPRESSED`), which start with a fixed word and carry no level or category.
+  The files that write the console on purpose are listed in `EXEMPT_FILES` with the reason. The
+  test also checks that the code still writes the stdout lines that scripts read.
 
 New code follows the newer modules: return the problem to the caller, and print only at the
 top level, with `qWarning()` in Qt code and `std::cerr` with `toDisplayText()` in
 command-line code. A message from `simulation/` or `io/` that cannot be returned uses `EG_LOG`.
-Do not add `eglogger` or `owl` calls or another logging helper.
+Do not add another logging helper.
 
 ## Tests
 

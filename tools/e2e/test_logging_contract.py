@@ -2,17 +2,17 @@
 """Static check of the console output statements in the application source.
 
 The test counts the statements that write the console (std::cout, std::cerr, std::clog, printf,
-fprintf to stdout or stderr, and the loggers owl and eglogger) in every C++ file under
-EGTRAIN/QEGTRAIN, apart from the tests and the files in EXEMPT_FILES. It compares the count of
-each file and kind with ALLOWED, in both directions, so a new console write fails the test.
+fprintf to stdout or stderr) in every C++ file under EGTRAIN/QEGTRAIN, apart from the tests and
+the files in EXEMPT_FILES. It compares the count of each file and kind with ALLOWED, in both
+directions, so a new console write fails the test.
 The test also checks that the source still holds the producers of the stdout lines that scripts
 read (PRODUCERS).
 
 To lower an entry of ALLOWED after a statement is removed, change the number to the one that the
-failing test reports, and delete a kind at zero and a file with no kind left. To add a deliberate
-console write, put the file in EXEMPT_FILES with the reason. A test marker (a format string that
-starts with E2E_ or QEGTRAIN_) is never counted. A marker helper that prints a name built by its
-caller belongs in PLAIN_MARKER_FILES.
+failing test reports, and delete a kind at zero and a file with no kind left. A console write
+that must stay, such as a line that a script reads or a message of the command line, is counted
+in ALLOWED and named in the comment above its entry. A file that exists to write the console
+goes in EXEMPT_FILES with the reason.
 
 Comments and string contents are removed before counting (clean_cpp_code of
 tools/memory/ownership_inventory.py), so a statement in a comment or in a string is not counted.
@@ -31,38 +31,20 @@ from ownership_inventory import clean_cpp_code, source_files  # noqa: E402
 
 # One regular expression per kind, matched on the cleaned text. std::cout.rdbuf(...) and
 # std::cout.flush() are not writes; std::cout.write(...) is. snprintf and sprintf_s do not
-# match printf. The kinds owl and eglogger are the two loggers that write nothing.
+# match printf.
 # Known gap: a stream passed as a conditional expression (`ok ? stdout : stderr`) does not match
-# the fprintf pattern, so such a statement is not counted, marker or not. The same holds for
-# fputs, fwrite, perror and Qt calls, which the code base does not use for console output.
+# the fprintf pattern, so such a statement is not counted. The same holds for fputs, fwrite,
+# perror and Qt calls, which the code base does not use for console output.
 KINDS = {
     "cout": re.compile(r"\bcout\s*(?:<<|\.\s*(?:write|put)\s*\()"),
     "cerr": re.compile(r"\bcerr\s*(?:<<|\.\s*(?:write|put)\s*\()"),
     "clog": re.compile(r"\bclog\s*(?:<<|\.\s*(?:write|put)\s*\()"),
     "printf": re.compile(r"(?<!\w)(?:printf|printf_s|vprintf|puts|putchar)\s*\("),
     "fprintf": re.compile(r"\b(?:fprintf|vfprintf)\s*\(\s*(?:std::)?(?:stdout|stderr)\b"),
-    "owl": re.compile(r"\bowl\s*<<"),
-    "eglogger": re.compile(r"\beglogger\s*<<"),
-}
-
-# Test markers are read by scripts. Both patterns are matched on the original text, right after
-# the stream of an fprintf statement, because the cleaned text has the format string blanked.
-# A prefix marker starts with E2E_ or QEGTRAIN_ (after an optional newline). The format can be a
-# conditional expression of two such strings.
-MARKER_START = r'"(?:\\n)?(?:E2E_|QEGTRAIN_)'
-PREFIX_MARKER = re.compile(r'\s*,\s*(?:[^?;",]*\?\s*' + MARKER_START + r'(?:[^"\\]|\\.)*"\s*:\s*)?' + MARKER_START)
-# A plain marker prints a name that the caller built: the format is exactly %s\n or %s=%s\n.
-PLAIN_MARKER = re.compile(r'\s*,\s*"%s(?:=%s)?\\n"')
-
-# Files where a plain marker is not counted, with the reason. Elsewhere
-# fprintf(stderr, "%s\n", message) is an ordinary diagnostic.
-PLAIN_MARKER_FILES = {
-    "app/MainWindow.cpp": "its marker helpers print a name that the caller built",
 }
 
 # Files whose console writes are deliberate, with the reason. They are not counted.
 EXEMPT_FILES = {
-    "app/main.cpp": "the questions of interactive mode, usage text, startup errors, the banner lines the launch test reads and the end line of a run without a window",
     "scene/SceneTool.cpp": "the scene_tool command line",
     "update/UpdateHelper.cpp": "the separate update helper executable",
     "util/Log.cpp": "the default sink, the one place that writes the console for the logging core",
@@ -71,14 +53,31 @@ EXEMPT_FILES = {
 
 # Each entry is the number of console write statements that a file still holds. The test fails
 # when a count differs in either direction, so the list can only shrink, and a file with no entry
-# holds none. The kinds owl and eglogger are the two loggers that write nothing.
+# holds none.
 ALLOWED = {
+    # The command line of the application, which prints what a user or a script reads before the
+    # logging core takes over, and the lines that a run without a window prints itself:
+    #   cout: the notice that no arguments were given, the five questions of --interactive, the
+    #         lines "Graphical user interface (GUI): 0" and "1" that startup_launch_contract.py
+    #         reads, and the line "End of Simulation" that scripts read.
+    #   cerr: the errors and the warning of the options, the diagnostics of a scene, the endpoint
+    #         of the live stream and the problems that installConsoleLogging returns.
+    "app/main.cpp": {"cout": 9, "cerr": 13},
+    # Marker lines of the profiling switches and of scripted runs. Each starts with a fixed word,
+    # so no logging rule may hide it and no level or category may come in front of it.
+    #   QEGTRAIN_NATIVE_DETAIL: the stage times of the preparation of a scene, written with
+    #   QEGTRAIN_STARTUP_NATIVE_DETAIL=1 and QEGTRAIN_STARTUP_TIMING=1.
+    "app/DispatchController.cpp": {"fprintf": 1},
+    #   QEGTRAIN_TIMING: the startup timing record, read by startup_launch_contract.py and
+    #   tools/performance/startup_benchmark.py. QEGTRAIN_TIMING_ERROR: why that timing failed.
+    #   QEGTRAIN_PLAYBACK_PROFILE: the two error records of the playback profile, which
+    #   tools/performance/playback_profile.py reads.
+    "app/MainWindow.cpp": {"fprintf": 4},
+    #   QEGTRAIN_PLAYBACK_PROFILE: the records of the playback profile.
+    "util/PlaybackProfiler.cpp": {"fprintf": 1},
+    #   QEGTRAIN_DIALOG_SUPPRESSED: the message of a dialog that a scripted run suppresses.
+    "widgets/UserPrompts.h": {"fprintf": 1},
     "diagrams/RunResults.cpp": {"cerr": 1},
-    # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
-    # right before std::abort(). EG_LOG would write std::cout without a flush and can be
-    # switched off, so the message could be lost.
-    "simulation/RollingStock.h": {"fprintf": 1},
-    "util/Logger.hpp": {"cout": 2},
 }
 
 # A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
@@ -107,22 +106,15 @@ PRODUCERS = [
 ]
 
 
-def count_statements(text, plain_markers=False):
+def count_statements(text):
     """Return {kind: count} for the console writes in the original text of one file.
 
-    Kinds with no statement are left out. A plain marker is not counted when plain_markers is set.
+    Kinds with no statement are left out.
     """
     cleaned = clean_cpp_code(text)
     counts = {}
     for kind, pattern in KINDS.items():
-        found = 0
-        for match in pattern.finditer(cleaned):
-            if kind == "fprintf":
-                if PREFIX_MARKER.match(text, match.end()):
-                    continue
-                if plain_markers and PLAIN_MARKER.match(text, match.end()):
-                    continue
-            found += 1
+        found = len(pattern.findall(cleaned))
         if found:
             counts[kind] = found
     return counts
@@ -138,45 +130,36 @@ def has_producer(text, needle, statement=PRODUCER_STATEMENT):
     )
 
 
-# (what the case shows, fixture text, plain_markers, expected result of count_statements)
+# (what the case shows, fixture text, expected result of count_statements)
 COUNT_CASES = [
-    ("a line comment is not counted", '// cout << "x";\n', False, {}),
-    ("a block comment is not counted", '/* cout << 1;\n cerr << 2; */\n', False, {}),
-    ("a string literal is not counted", 'const char* s = "cout << x; owl << y;";\n', False, {}),
-    ("cout without a space is counted", "cout<<1;\n", False, {"cout": 1}),
-    ("two statements are two", "cout << 1; std::cout << 2;\n", False, {"cout": 2}),
-    ("cerr is counted", 'std::cerr << "x";\n', False, {"cerr": 1}),
-    ("clog is counted", 'std::clog << "x";\n', False, {"clog": 1}),
-    ("std::printf is counted", 'std::printf("x");\n', False, {"printf": 1}),
-    ("owl is counted", 'owl << "x";\n', False, {"owl": 1}),
-    ("eglogger is counted", 'eglogger << "x";\n', False, {"eglogger": 1}),
-    ("snprintf and sprintf_s are not counted", 'snprintf(b, 3, "x"); sprintf_s(b, "x");\n', False, {}),
-    ("cout.write is counted", 'std::cout.write("x", 1);\n', False, {"cout": 1}),
-    ("cout.rdbuf is not counted", "std::cout.rdbuf(p);\n", False, {}),
-    ("cout.flush is not counted", "std::cout.flush();\n", False, {}),
-    ("an E2E_ marker is not counted", r'fprintf(stdout, "E2E_X\n");' + "\n", False, {}),
-    ("a QEGTRAIN_ marker is not counted", r'fprintf(stderr, "QEGTRAIN_X\n");' + "\n", False, {}),
-    ("a marker after a newline is not counted", r'std::fprintf(stdout, "\nE2E_X %d\n", 1);' + "\n", False, {}),
-    ("a diagnostic is counted", r'fprintf(stderr, "problem\n");' + "\n", False, {"fprintf": 1}),
-    ("a plain marker is counted by default", r'fprintf(stdout, "%s\n", name);' + "\n", False, {"fprintf": 1}),
-    ("a plain marker is not counted in a plain marker file", r'fprintf(stdout, "%s\n", name);' + "\n", True, {}),
-    ("a two-part plain marker is not counted in a plain marker file", r'fprintf(stdout, "%s=%s\n", a, b);' + "\n", True, {}),
-    ("a longer format is counted in a plain marker file", r'fprintf(stdout, "%s\n extra", name);' + "\n", True, {"fprintf": 1}),
-    ("a conditional format of two markers is not counted", r'fprintf(stdout, ok ? "E2E_A\n" : "\nQEGTRAIN_B\n");' + "\n", False, {}),
-    ("a conditional format with a diagnostic is counted", r'fprintf(stdout, ok ? "E2E_A\n" : "problem\n");' + "\n", False, {"fprintf": 1}),
-    ("a conditional stream is not counted", r'fprintf(ok ? stdout : stderr, "problem\n");' + "\n", False, {}),
-    ("cout.put is counted", "std::cout.put('x');\n", False, {"cout": 1}),
-    ("printf_s, vprintf, puts and putchar are counted", 'printf_s("x"); vprintf(f, a); puts("x"); putchar(1);\n', False, {"printf": 4}),
-    ("vfprintf to stderr is counted", "vfprintf(stderr, f, a);\n", False, {"fprintf": 1}),
-    ("fprintf to a file is not counted", 'fprintf(file, "x");\n', False, {}),
+    ("a line comment is not counted", '// cout << "x";\n', {}),
+    ("a block comment is not counted", '/* cout << 1;\n cerr << 2; */\n', {}),
+    ("a string literal is not counted", 'const char* s = "cout << x; cerr << y;";\n', {}),
+    ("cout without a space is counted", "cout<<1;\n", {"cout": 1}),
+    ("two statements are two", "cout << 1; std::cout << 2;\n", {"cout": 2}),
+    ("cerr is counted", 'std::cerr << "x";\n', {"cerr": 1}),
+    ("clog is counted", 'std::clog << "x";\n', {"clog": 1}),
+    ("std::printf is counted", 'std::printf("x");\n', {"printf": 1}),
+    ("snprintf and sprintf_s are not counted", 'snprintf(b, 3, "x"); sprintf_s(b, "x");\n', {}),
+    ("cout.write is counted", 'std::cout.write("x", 1);\n', {"cout": 1}),
+    ("cout.rdbuf is not counted", "std::cout.rdbuf(p);\n", {}),
+    ("cout.flush is not counted", "std::cout.flush();\n", {}),
+    ("a diagnostic is counted", r'fprintf(stderr, "problem\n");' + "\n", {"fprintf": 1}),
+    ("a line that scripts read is counted", r'std::fprintf(stdout, "\nQEGTRAIN_X %d\n", 1);' + "\n", {"fprintf": 1}),
+    ("fflush is not counted", "std::fflush(stdout);\n", {}),
+    ("a conditional stream is not counted", r'fprintf(ok ? stdout : stderr, "problem\n");' + "\n", {}),
+    ("cout.put is counted", "std::cout.put('x');\n", {"cout": 1}),
+    ("printf_s, vprintf, puts and putchar are counted", 'printf_s("x"); vprintf(f, a); puts("x"); putchar(1);\n', {"printf": 4}),
+    ("vfprintf to stderr is counted", "vfprintf(stderr, f, a);\n", {"fprintf": 1}),
+    ("fprintf to a file is not counted", 'fprintf(file, "x");\n', {}),
 ]
 
 
 def check_patterns():
     """Return the failed self-checks, run on fixture text before the scan."""
     failures = []
-    for what, text, plain_markers, expected in COUNT_CASES:
-        got = count_statements(text, plain_markers)
+    for what, text, expected in COUNT_CASES:
+        got = count_statements(text)
         if got != expected:
             failures.append(f"self-check: {what}: expected {expected}, got {got}")
     live = 'std::cout << "\\n End of Simulation";\n'
@@ -218,7 +201,7 @@ def read_sources():
 def check_counts(sources):
     """Return the differences between the scan and ALLOWED, and the scan itself."""
     problems = []
-    for table, label in ((ALLOWED, "ALLOWED"), (EXEMPT_FILES, "EXEMPT_FILES"), (PLAIN_MARKER_FILES, "PLAIN_MARKER_FILES")):
+    for table, label in ((ALLOWED, "ALLOWED"), (EXEMPT_FILES, "EXEMPT_FILES")):
         for name in sorted(table):
             if name not in sources:
                 problems.append(f"{name}: listed in {label}, but no scanned file has this path")
@@ -231,7 +214,7 @@ def check_counts(sources):
     found = {}
     for name, text in sources.items():
         if name not in EXEMPT_FILES:
-            found[name] = count_statements(text, plain_markers=name in PLAIN_MARKER_FILES)
+            found[name] = count_statements(text)
     for name in sorted(found):
         have = found[name]
         want = ALLOWED.get(name, {})

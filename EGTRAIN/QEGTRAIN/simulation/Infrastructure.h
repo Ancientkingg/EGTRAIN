@@ -17,7 +17,6 @@
 #include <vector>
 #include "util/portability.h"
 #include "simulation/InitialParameters.h"
-#include "util/Logger.hpp"
 
 
 struct SimulationRun;

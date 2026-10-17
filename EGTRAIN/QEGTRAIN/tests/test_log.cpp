@@ -273,6 +273,29 @@ static bool testSink() {
 	return ok;
 }
 
+// A stream buffer that counts how often it is synchronised.
+class SyncCounter : public std::stringbuf {
+public:
+	int syncs = 0;
+
+protected:
+	int sync() override {
+		++syncs;
+		return std::stringbuf::sync();
+	}
+};
+
+static bool testFlush() {
+	SyncCounter out;
+	SyncCounter err;
+	std::streambuf* originalOut = std::cout.rdbuf(&out);
+	std::streambuf* originalErr = std::cerr.rdbuf(&err);
+	flush();
+	std::cout.rdbuf(originalOut);
+	std::cerr.rdbuf(originalErr);
+	return expect(out.syncs > 0 && err.syncs > 0, "flush synchronises std::cout and std::cerr");
+}
+
 static void setLogVariable(const char* value) {
 #ifdef _WIN32
 	_putenv_s("EGTRAIN_LOG", value);
@@ -325,6 +348,7 @@ int main() {
 	ok &= testLazyEvaluation();
 	ok &= testElseBinding();
 	ok &= testSink();
+	ok &= testFlush();
 	ok &= testEnvironment();
 	return ok ? 0 : 1;
 }

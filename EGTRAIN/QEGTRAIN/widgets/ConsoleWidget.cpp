@@ -199,10 +199,17 @@ void ConsoleWidget::appendText(const QString& text) {
 
 void ConsoleWidget::appendMessage(eglog::Category category, eglog::Level level, const QString& text) {
 	m_textEdit->moveCursor(QTextCursor::End);
+	QString shown = consoleMessageText(category, level, text);
 	// A message starts on a line of its own, unless its text starts with the line break itself.
-	if (!m_textEdit->textCursor().atBlockStart() && !text.startsWith(QLatin1Char('\n')))
+	// QPlainTextEdit breaks the line at a carriage return too, and a carriage return at the start
+	// of a line has nothing to return to.
+	if (m_textEdit->textCursor().atBlockStart()) {
+		if (shown.startsWith(QLatin1Char('\r')))
+			shown.remove(0, 1);
+	} else if (!shown.startsWith(QLatin1Char('\n')) && !shown.startsWith(QLatin1Char('\r'))) {
 		m_textEdit->insertPlainText(QStringLiteral("\n"));
-	m_textEdit->insertPlainText(consoleMessageText(category, level, text));
+	}
+	m_textEdit->insertPlainText(shown);
 	m_textEdit->verticalScrollBar()->setValue(m_textEdit->verticalScrollBar()->maximum());
 }
 
@@ -251,7 +258,7 @@ thread_local bool insideSink = false;
 void consoleLogSink(eglog::Category category, eglog::Level level, const std::string& text) {
 	insideSink = true;
 	if (logFile().isOpen()) {
-		// Like the dock, the file starts a message on a line of its own, unless its text starts with the line break itself.
+		// Like the dock, the file starts a message on a line of its own, unless its text starts with a line feed. A carriage return does not end a line of a file.
 		QByteArray line = consoleMessageText(category, level, QString::fromStdString(text)).toUtf8();
 		if (!logFileAtLineStart && !line.startsWith('\n'))
 			line.prepend('\n');
@@ -285,10 +292,8 @@ void qtMessageToLog(QtMsgType type, const QMessageLogContext& context, const QSt
 			eglog::Line(eglog::Category::AppUi, level).stream() << text;
 	}
 	// Qt ends the program when this function returns, and the text of a fatal message must be out by then.
-	if (fatal) {
-		std::cout.flush();
-		std::cerr.flush();
-	}
+	if (fatal)
+		eglog::flush();
 }
 
 std::string installConsoleLogging() {

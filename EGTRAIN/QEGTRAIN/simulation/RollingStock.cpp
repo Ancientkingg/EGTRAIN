@@ -3,6 +3,7 @@
 #include "scene/SignallingLevel.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
+#include "util/timeutil.hpp"
 
 #include <thread>
 #include <chrono>
@@ -540,13 +541,6 @@ void Train::checkTrainArrDep(int trainIdx, int t) {
 	double X = trainXPosition(t);
 
 	// check arrivals and departures
-	// for (int a = 0; a < numStations; a++) {
-	//	if (std::fabs(X- Stations[a].X) < 0.001)
-	//	{
-	// cout << "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n " <<
-	//	trainDescription << " TRAIN at " << Stations[numStations - 1].stationName << " at t = " << t << endl;
-	//	}
-	//}
 	// train stopped at last station
 	if (((std::fabs(X - Stations[numStations - 1].X) < 0.001) || (std::fabs(std::fabs(X - Stations[numStations - 1].X) - train_length / 1000) < 0.001)) && (t >= 2) && (instant_train_speed[t - 2] != 0) && (instant_train_speed[t - 1] == 0) && (instant_train_speed[t] == 0)) { // position tolerance of 1m
 		printTrainArrDepMsg(Stations[numStations - 1].stationName, "arr", trainIdx, t, run_->settings.OutputMainFolder + "/Rescheduling");
@@ -657,7 +651,6 @@ double Train::trainXPosition(int t, int wagon /*= 0*/) {
 // function to protect all station areas
 void protectStationAreas(SimulationRun& run, int i) {
 	for (int k = 0; k < run.numTrains; k++) {
-		// cout << ">>>>>>>>>" << regional_train[k].trainDescription << "is OutOfSimulation" << regional_train[k].OutOfSimulation << endl;
 		if (!run.trains[k].OutOfSimulation) {
 			if ((i >= run.trains[k].departure_time) && run.trains[k].CanEnter) {
 				if (timestep <= 0 || i < 0 || i >= static_cast<int>(run.trains[k].instant_spatial_position.size())

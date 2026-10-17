@@ -27,7 +27,10 @@
 
 using namespace std;
 
-// Logging logger(initial_variables.full_path, boost::log::trivial::trace,initial_variables.enabled_log,initial_variables.log_to_file);
+// The console output of this file is deliberate and does not go through the logging core, so no
+// logging rule can hide it: the questions of --interactive, the errors of the options, the
+// diagnostics of a scene and the lines that scripts read. tools/e2e/test_logging_contract.py
+// counts it.
 
 // check if command line option was entered
 bool cmdOptionEntered(char** begin, char** end, const std::string& option) {
@@ -295,7 +298,6 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
-Logger owl;
 int main(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();

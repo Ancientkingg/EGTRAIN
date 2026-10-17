@@ -28,8 +28,6 @@
 #include <string>
 #include <thread>
 
-Logger owl;
-
 namespace {
 
 bool expect(bool condition, const std::string& message) {

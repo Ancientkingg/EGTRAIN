@@ -4,7 +4,6 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Simulation.h"
 #include "simulation/SimulationRun.h"
-#include "util/Logger.hpp"
 
 #include <QFile>
 #include <QFileInfo>
@@ -20,8 +19,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-Logger owl;
 
 static bool expect(bool condition, const char* message) {
 	if (!condition)

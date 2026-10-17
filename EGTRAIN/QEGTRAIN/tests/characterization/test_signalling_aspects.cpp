@@ -30,8 +30,6 @@
 #include <utility>
 #include <vector>
 
-Logger owl;
-
 namespace {
 
 constexpr int kNoLevel = kSignallingLevelUnset;

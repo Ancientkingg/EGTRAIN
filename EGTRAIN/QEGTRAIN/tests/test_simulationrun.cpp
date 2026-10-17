@@ -39,8 +39,6 @@
 #include <utility>
 #include <vector>
 
-Logger owl;
-
 namespace {
 
 bool expect(bool condition, const std::string& message) {

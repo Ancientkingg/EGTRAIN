@@ -87,9 +87,7 @@ built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_http`, `egtr
 `egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController`,
 `SimulationWorker` and `RunControl`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
 tests link them instead of listing their sources, so each file is compiled
-once. A test gets only the library members it references. The application and
-every test that pulls in Infrastructure, Signalling or RollingStock from
-`egtrain_sim` define the global `Logger owl`. `egtrain_recovery` holds
+once. A test gets only the library members it references. `egtrain_recovery` holds
 `RecoveryStore`, `RecoveryController` and `RecoveryPrompt`, and `test_recoverystore`,
 `test_recoverycontroller` and `test_recoveryprompt` are the only targets that link it.
 

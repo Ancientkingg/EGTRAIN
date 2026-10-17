@@ -374,8 +374,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				if ((instant_spatial_position[time_seconds - 1] < Bs.arcs_in_signalling_block_section[j].endNode.X * 1000)
 					&& (instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000))
 					As = Bs.arcs_in_signalling_block_section[j];
-				// logger.Log("\nkkkk");
-				////	logger.Log(to_string(instant_spatial_position[time_seconds - 1]));
 			}
 			// Determination of the right speed limit to observe
 			double Speeds[3];
@@ -847,7 +845,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 			instant_train_power_consumption[time_seconds] = 0.0;
 			instant_train_tractive_effort[time_seconds] = 0.0;
 		}
-		// cout << instant_spatial_position[i] << " " << As.gradient << " " << As.curvature << "\n";
 	} else {
 		instant_block_section_occupied[time_seconds] = "-";
 	}

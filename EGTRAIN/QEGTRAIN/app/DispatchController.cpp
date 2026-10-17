@@ -248,6 +248,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 		const auto milliseconds = [](std::chrono::nanoseconds duration) {
 			return std::chrono::duration<double, std::milli>(duration).count();
 		};
+		// A marker line of the startup timing, written as it is and not through the logging core.
 		std::fprintf(stdout, "QEGTRAIN_NATIVE_DETAIL invocation=%llu total_ms=%.6f reset_setup_ms=%.6f runnable_validation_ms=%.6f infrastructure_signalling_ms=%.6f operations_ms=%.6f output_directory_setup_ms=%.6f stage=%s\n",
 			invocation, milliseconds(total), milliseconds(resetSetupTime), milliseconds(validationTime),
 			milliseconds(infrastructureTime), milliseconds(operationsTime), milliseconds(outputTime), stage);

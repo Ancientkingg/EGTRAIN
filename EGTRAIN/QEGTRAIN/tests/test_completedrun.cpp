@@ -19,7 +19,6 @@
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
 #include "util/CsvWriter.h"
-#include "util/Logger.hpp"
 #include "util/TrajectoryUtil.h"
 #ifdef signals
 #undef signals
@@ -50,8 +49,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-Logger owl;
 
 namespace {
 

@@ -31,8 +31,6 @@
 #include <string>
 #include <vector>
 
-Logger owl;
-
 namespace {
 
 // End of the signalling area in km; it covers the chainage of every track.

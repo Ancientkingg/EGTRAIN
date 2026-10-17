@@ -204,6 +204,11 @@ bool configureFromEnvironment() {
 	return configure(value ? value : "");
 }
 
+void flush() {
+	std::cout.flush();
+	std::cerr.flush();
+}
+
 Line::Line(Category category, Level level) : m_category(category), m_level(level) {
 }
 

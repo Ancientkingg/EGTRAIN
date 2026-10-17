@@ -145,14 +145,12 @@ endfunction()
 
 # --- Model libraries ---
 # Each source below is compiled once. The libraries are static, so a target that links one gets
-# only the objects it references. A target that pulls in Infrastructure,
-# Signalling or RollingStock from egtrain_sim must define `Logger owl`.
+# only the objects it references.
 add_library(egtrain_pugixml STATIC ${SRC_DIR}/io/third_party/pugixml.cpp)
 
 add_library(egtrain_util STATIC
     ${SRC_DIR}/util/CsvWriter.cpp
     ${SRC_DIR}/util/Log.cpp
-    ${SRC_DIR}/util/Logger.cpp
     ${SRC_DIR}/util/PlaybackProfiler.cpp
     ${SRC_DIR}/util/SpeedFormat.cpp
     ${SRC_DIR}/util/TimeFormat.cpp
@@ -359,7 +357,6 @@ foreach(egtrain_lib ${EGTRAIN_TELEMETRY_LIBS})
 endforeach()
 
 # The application, test_simulationworker and test_characterization run the simulation through these.
-# They need `Logger owl` from the target, like egtrain_sim.
 add_library(egtrain_dispatch STATIC
     ${SRC_DIR}/app/DispatchController.cpp
     ${SRC_DIR}/app/GuiReplayHistory.cpp
@@ -454,7 +451,6 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/simulation/NumberGenerator.h
     ${SRC_DIR}/simulation/Optimisation.h
     ${SRC_DIR}/util/Log.h
-    ${SRC_DIR}/util/Logger.hpp
     ${SRC_DIR}/util/PlaybackProfiler.h
     ${SRC_DIR}/simulation/Passengers.h
     ${SRC_DIR}/util/portability.h
