@@ -7,6 +7,7 @@
 #include "diagrams/DiagramWindow.h"
 #include "diagrams/TractionCurve.h"
 #include "editors/CompositionPanel.h"
+#include "editors/IncidentPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/PassengerPanel.h"
@@ -1190,10 +1191,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						if (w.m_incidentStartSecondsEdit && w.m_incidentEndSecondsEdit) {
 							w.m_incidentStartSecondsEdit->setText("10");
 							w.m_incidentEndSecondsEdit->setText("20");
-							w.commitIncidentStartSeconds();
-							w.commitIncidentEndSeconds();
+							w.m_incidentPanel->commitStartSeconds();
+							w.m_incidentPanel->commitEndSeconds();
 						}
-						const SceneIncident* signalIncident = w.selectedIncident();
+						const SceneIncident* signalIncident = w.m_incidentPanel->selectedIncident();
 						if (!signalIncident || signalIncident->target != "e2e-signal")
 							facetFailure(facetOk, "stations/signalling",
 								"bound signal_failure target did not persist canonically");
@@ -1206,8 +1207,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(facetOk, "stations/signalling", "block signal_failure target was not offered");
 					} else {
 						w.m_incidentTargetCombo->setCurrentText(QString::fromStdString(renamedBlockId));
-						w.commitIncidentTarget(QString::fromStdString(renamedBlockId));
-						const SceneIncident* blockIncident = w.selectedIncident();
+						w.m_incidentPanel->commitTarget();
+						const SceneIncident* blockIncident = w.m_incidentPanel->selectedIncident();
 						if (!blockIncident || blockIncident->target != renamedBlockId)
 							facetFailure(facetOk, "stations/signalling", "block signal_failure target did not persist canonically");
 					}
@@ -3372,13 +3373,13 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const double preciseBreakdownSpeed = 40.125;
 		const int originalCount = w.m_incidentListWidget->count();
 		editedIncidentId = sceneUniqueIncidentId(w.m_sceneModel, "e2e_incident");
-		w.addIncident();
+		w.m_incidentPanel->addIncident();
 		if (w.m_incidentListWidget->count() != originalCount + 1) {
 			facetFailure(facetOk, "incident", "add did not apply");
 		} else {
 			if (w.m_incidentIdEdit)
 				w.m_incidentIdEdit->setText(QString::fromStdString(editedIncidentId));
-			w.commitIncidentIdEdit();
+			w.m_incidentPanel->commitIdEdit();
 			if (w.m_incidentTypeCombo)
 				w.m_incidentTypeCombo->setCurrentText("train_breakdown");
 			if (!w.m_incidentHasReducedSpeedCheck || !w.m_incidentHasReducedSpeedCheck->isEnabled())
@@ -3392,30 +3393,30 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			if (w.m_incidentStartSecondsEdit)
 				w.m_incidentStartSecondsEdit->setText("100");
-			w.commitIncidentStartSeconds();
+			w.m_incidentPanel->commitStartSeconds();
 			if (w.m_incidentEndSecondsEdit)
 				w.m_incidentEndSecondsEdit->setText("200");
-			w.commitIncidentEndSeconds();
+			w.m_incidentPanel->commitEndSeconds();
 			if (w.m_incidentHasReducedSpeedCheck)
 				w.m_incidentHasReducedSpeedCheck->setChecked(true);
-			if (SceneIncident* incident = w.selectedIncident(); !incident
+			if (SceneIncident* incident = w.m_incidentPanel->selectedIncident(); !incident
 				|| !incident->hasReducedSpeed || !w.m_incidentReducedSpeedKmhEdit
 				|| incident->reducedSpeedKmh != w.m_incidentReducedSpeedKmhEdit->value())
 				facetFailure(facetOk, "incident", "enabling the speed cap did not commit its displayed value");
 			if (w.m_incidentReducedSpeedKmhEdit)
 				w.m_incidentReducedSpeedKmhEdit->setValue(preciseBreakdownSpeed);
-			w.commitIncidentReducedSpeed();
+			w.m_incidentPanel->commitReducedSpeed();
 			if (w.m_incidentHasEndSecondsCheck)
 				w.m_incidentHasEndSecondsCheck->setChecked(false);
 			if (w.m_incidentTerminateAtDestinationCheck)
 				w.m_incidentTerminateAtDestinationCheck->setChecked(true);
 		}
-		w.duplicateIncident();
+		w.m_incidentPanel->duplicateIncident();
 		if (w.m_incidentListWidget->count() != originalCount + 2) {
 			facetFailure(facetOk, "incident", "duplicate did not apply");
 		} else {
 			acceptConfirmation();
-			w.deleteIncident();
+			w.m_incidentPanel->deleteIncident();
 			if (w.m_incidentListWidget->count() != originalCount + 1)
 				facetFailure(facetOk, "incident", "delete did not apply");
 		}
@@ -3454,22 +3455,22 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		const QString review = w.runReviewText();
 		if (editedRow >= 0) {
 			w.m_incidentListWidget->setCurrentRow(editedRow);
-			SceneIncident* incident = w.selectedIncident();
+			SceneIncident* incident = w.m_incidentPanel->selectedIncident();
 			const SceneIncident saved = *incident;
 			incident->hasOccurrence = false;
 			incident->occurrence = 1;
-			w.updateIncidentDetailPanel();
+			w.m_incidentPanel->updateDetail();
 			w.commitPendingEditorValues();
 			if (incident->hasOccurrence || !w.m_incidentTargetCombo->currentText().contains("Historical scope"))
 				facetFailure(facetOk, "incident", "historical all-occurrence scope was narrowed");
 			incident->hasOccurrence = true;
 			incident->occurrence = std::numeric_limits<int>::max();
-			w.updateIncidentDetailPanel();
+			w.m_incidentPanel->updateDetail();
 			if (!w.m_incidentTargetCombo->currentText().contains("Invalid removed target")
 				|| w.m_incidentTargetCombo->currentData().toString().toStdString() != saved.target)
 				facetFailure(facetOk, "incident", "removed occurrence was silently retargeted");
 			*incident = saved;
-			w.updateIncidentDetailPanel();
+			w.m_incidentPanel->updateDetail();
 		}
 		const bool reviewOk = review.contains(QString("Scenario: %1").arg(w.scenarioContext()))
 			&& review.contains(QString("id=%1 type=train_breakdown target=%2 start=100")
@@ -3918,9 +3919,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								w.m_sceneModel.routes.front().blocks.clear();
 								w.m_runSceneAction->trigger();
 								QApplication::processEvents();
-								if (w.m_worker || !w.selectedIncident()
-									|| !w.selectedIncident()->hasEndSeconds
-									|| w.selectedIncident()->endSeconds != pendingIncidentEnd)
+								if (w.m_worker || !w.m_incidentPanel->selectedIncident()
+									|| !w.m_incidentPanel->selectedIncident()->hasEndSeconds
+									|| w.m_incidentPanel->selectedIncident()->endSeconds != pendingIncidentEnd)
 									facetFailure(facetOk, "save/reload", "Run did not flush focused incident text before validation");
 								w.m_sceneModel.routes.front().blocks = validRoute;
 								w.refreshValidationPanel();

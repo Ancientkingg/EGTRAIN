@@ -47,6 +47,7 @@
 #include "diagrams/TractionCurve.h"
 #include "editors/CaseSettingsPanel.h"
 #include "editors/CompositionPanel.h"
+#include "editors/IncidentPanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
 #include "editors/ServicePanel.h"
@@ -809,19 +810,6 @@ std::string platformSelectionKey(const std::string& stationId, const std::string
 	return stationId + "\n" + platformId;
 }
 
-std::vector<std::string> signalFailureTargets(const SceneModel& sceneModel) {
-	std::vector<std::string> targets;
-	std::set<std::string> seen;
-	const auto add = [&targets, &seen](const std::string& target) {
-		if (!target.empty() && seen.insert(target).second)
-			targets.push_back(target);
-	};
-	for (const auto& signal : sceneSignals(sceneModel))
-		add(signal.id);
-	for (const auto& block : sceneModel.blocks)
-		add(block.id);
-	return targets;
-}
 } // namespace
 
 bool startupTimingEnabled() {
@@ -1871,76 +1859,19 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QTabWidget* scenarioEditorTabs = new QTabWidget(incidentWidget);
 	scenarioEditorTabs->setObjectName("scenarioEditorTabs");
 
-	// incident list and the buttons that manage it
-	QWidget* incidentEditorPane = new QWidget(scenarioEditorTabs);
-	QVBoxLayout* incidentEditorLayout = new QVBoxLayout(incidentEditorPane);
-	QWidget* incidentListPane = new QWidget(incidentEditorPane);
-	QVBoxLayout* incidentListLayout = new QVBoxLayout(incidentListPane);
-	incidentListLayout->addWidget(new QLabel("Incidents", incidentListPane));
-	m_incidentListWidget = new QListWidget(incidentListPane);
-	incidentListLayout->addWidget(m_incidentListWidget);
-	QHBoxLayout* incidentButtonLayout = new QHBoxLayout();
-	m_addIncidentButton = new QPushButton("Add Incident", incidentListPane);
-	m_duplicateIncidentButton = new QPushButton("Duplicate", incidentListPane);
-	m_deleteIncidentButton = new QPushButton("Delete", incidentListPane);
-	incidentButtonLayout->addWidget(m_addIncidentButton);
-	incidentButtonLayout->addWidget(m_duplicateIncidentButton);
-	incidentButtonLayout->addWidget(m_deleteIncidentButton);
-	incidentListLayout->addLayout(incidentButtonLayout);
-
-	incidentEditorLayout->addWidget(incidentListPane, 1);
-
-	// selected incident's fields
-	QWidget* incidentDetailPane = new QWidget(incidentWidget);
-	QVBoxLayout* incidentDetailLayout = new QVBoxLayout(incidentDetailPane);
-	incidentDetailLayout->addWidget(new QLabel("Incident Id", incidentDetailPane));
-	m_incidentIdEdit = new QLineEdit(incidentDetailPane);
-	incidentDetailLayout->addWidget(m_incidentIdEdit);
-	incidentDetailLayout->addWidget(new QLabel("Type", incidentDetailPane));
-	m_incidentTypeCombo = new QComboBox(incidentDetailPane);
-	m_incidentTypeCombo->addItem("signal_failure");
-	m_incidentTypeCombo->addItem("train_breakdown");
-	incidentDetailLayout->addWidget(m_incidentTypeCombo);
-	incidentDetailLayout->addWidget(new QLabel("Target", incidentDetailPane));
-	m_incidentTargetCombo = new QComboBox(incidentDetailPane);
-	incidentDetailLayout->addWidget(m_incidentTargetCombo);
-	incidentDetailLayout->addWidget(new QLabel("Start (s)", incidentDetailPane));
-	m_incidentStartSecondsEdit = new QLineEdit(incidentDetailPane);
-	m_incidentStartSecondsEdit->setValidator(
-		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentStartSecondsEdit));
-	incidentDetailLayout->addWidget(m_incidentStartSecondsEdit);
-	incidentDetailLayout->addWidget(new QLabel("Recovery end (s)", incidentDetailPane));
-	m_incidentEndSecondsEdit = new QLineEdit(incidentDetailPane);
-	m_incidentEndSecondsEdit->setObjectName("incidentEndSecondsEdit");
-	m_incidentEndSecondsEdit->setValidator(
-		new QIntValidator(0, std::numeric_limits<int>::max(), m_incidentEndSecondsEdit));
-	incidentDetailLayout->addWidget(m_incidentEndSecondsEdit);
-	m_incidentHasEndSecondsCheck = new QCheckBox("Use recovery end", incidentDetailPane);
-	m_incidentHasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
-	m_incidentHasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
-	incidentDetailLayout->addWidget(m_incidentHasEndSecondsCheck);
-	m_incidentHasReducedSpeedCheck = new QCheckBox("Reduced speed cap", incidentDetailPane);
-	m_incidentHasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
-	m_incidentReducedSpeedKmhEdit = new CompactDoubleSpinBox(incidentDetailPane);
-	m_incidentReducedSpeedKmhEdit->setObjectName("incidentReducedSpeedKmhEdit");
-	m_incidentReducedSpeedKmhEdit->setRange(0.01, 1000.0);
-	m_incidentReducedSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
-	m_incidentReducedSpeedKmhEdit->setSuffix(" km/h");
-	incidentDetailLayout->addWidget(m_incidentHasReducedSpeedCheck);
-	incidentDetailLayout->addWidget(m_incidentReducedSpeedKmhEdit);
-	m_incidentTerminateAtDestinationCheck = new QCheckBox("Terminate at destination", incidentDetailPane);
-	m_incidentTerminateAtDestinationCheck->setObjectName("incidentTerminateAtDestinationCheck");
-	incidentDetailLayout->addWidget(m_incidentTerminateAtDestinationCheck);
-	incidentDetailLayout->addStretch();
-
-	// the detail pane may become taller than the dock, so let it scroll rather
-	// than overflowing and overlapping the tab bar
-	QScrollArea* incidentDetailScroll = new QScrollArea(incidentEditorPane);
-	incidentDetailScroll->setWidgetResizable(true);
-	incidentDetailScroll->setFrameShape(QFrame::NoFrame);
-	incidentDetailScroll->setWidget(incidentDetailPane);
-	incidentEditorLayout->addWidget(incidentDetailScroll, 2);
-	scenarioEditorTabs->addTab(incidentEditorPane, "Incidents");
+	m_incidentPanel = new IncidentPanel(scenarioEditorTabs);
+	m_incidentListWidget = m_incidentPanel->listWidget();
+	m_incidentIdEdit = m_incidentPanel->idEdit();
+	m_incidentTypeCombo = m_incidentPanel->typeCombo();
+	m_incidentTargetCombo = m_incidentPanel->targetCombo();
+	m_incidentStartSecondsEdit = m_incidentPanel->startSecondsEdit();
+	m_incidentEndSecondsEdit = m_incidentPanel->endSecondsEdit();
+	m_incidentHasReducedSpeedCheck = m_incidentPanel->hasReducedSpeedCheck();
+	m_incidentReducedSpeedKmhEdit = m_incidentPanel->reducedSpeedKmhEdit();
+	m_incidentHasEndSecondsCheck = m_incidentPanel->hasEndSecondsCheck();
+	m_incidentTerminateAtDestinationCheck = m_incidentPanel->terminateAtDestinationCheck();
+	m_addIncidentButton = m_incidentPanel->addButton();
+	scenarioEditorTabs->addTab(m_incidentPanel, "Incidents");
 
 	QWidget* entranceDelayPane = new QWidget(scenarioEditorTabs);
 	QVBoxLayout* entranceDelayLayout = new QVBoxLayout(entranceDelayPane);
@@ -1995,9 +1926,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	tabifyDockWidget(m_serviceDock, m_incidentDock);
 	registerEditorDock(m_incidentDock);
 
-	connect(m_incidentListWidget, &QListWidget::currentRowChanged, this, [this](int) {
-		updateIncidentDetailPanel();
-	});
 	m_scenarioPanel->setPrompts(m_userPrompts.get());
 	m_scenarioPanel->setRunSelection(&m_runSelection);
 	m_scenarioPanel->setDiagnostics(&m_sceneDiagnostics);
@@ -2016,18 +1944,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_scenarioPanel, &ScenarioPanel::statusMessage, this,
 		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
 	connect(m_scenarioPanel, &ScenarioPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_incidentIdEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentIdEdit);
-	connect(m_incidentTypeCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentType);
-	connect(m_incidentTargetCombo, &QComboBox::currentTextChanged, this, &MainWindow::commitIncidentTarget);
-	connect(m_incidentStartSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentStartSeconds);
-	connect(m_incidentEndSecondsEdit, &QLineEdit::editingFinished, this, &MainWindow::commitIncidentEndSeconds);
-	connect(m_incidentHasReducedSpeedCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasReducedSpeed);
-	connect(m_incidentReducedSpeedKmhEdit, &QAbstractSpinBox::editingFinished, this, &MainWindow::commitIncidentReducedSpeed);
-	connect(m_incidentHasEndSecondsCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentHasEndSeconds);
-	connect(m_incidentTerminateAtDestinationCheck, &QCheckBox::toggled, this, &MainWindow::commitIncidentTerminateAtDestination);
-	connect(m_addIncidentButton, &QPushButton::clicked, this, &MainWindow::addIncident);
-	connect(m_duplicateIncidentButton, &QPushButton::clicked, this, &MainWindow::duplicateIncident);
-	connect(m_deleteIncidentButton, &QPushButton::clicked, this, &MainWindow::deleteIncident);
+	m_incidentPanel->setPrompts(m_userPrompts.get());
+	m_incidentPanel->setRunSelection(&m_runSelection);
+	m_incidentPanel->setOccurrenceDuration([this] { return serviceOccurrenceDuration(); });
+	m_incidentPanel->setDocument(m_document);
+	connect(m_incidentPanel, &IncidentPanel::changed, this, &MainWindow::refreshValidationPanel);
 	connect(m_entranceDelayListWidget, &QListWidget::currentRowChanged, this,
 		[this](int) { updateEntranceDelayDetailPanel(); });
 	connect(m_addEntranceDelayButton, &QPushButton::clicked, this, &MainWindow::addEntranceDelay);
@@ -2109,11 +2030,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_servicePanel, &ServicePanel::selectedServiceChanged, m_timetableStopsPanel, &TimetableStopsPanel::setServiceId);
 	connect(m_timetableStopsPanel, &TimetableStopsPanel::timetableRefreshed, this, &MainWindow::refreshEntranceDelayPanel);
 	connect(m_timetableStopsPanel, &TimetableStopsPanel::changed, this, &MainWindow::refreshValidationPanel);
-	connect(m_servicePanel, &ServicePanel::occurrencesChanged, this, [this] {
-		refreshEntranceDelayPanel();
-		refreshIncidentTargetCombo();
-	});
-	connect(m_servicePanel, &ServicePanel::serviceRenamed, this, [this] { updateIncidentDetailPanel(); });
+	connect(m_servicePanel, &ServicePanel::occurrencesChanged, this, &MainWindow::refreshEntranceDelayPanel);
 	connect(m_servicePanel, &ServicePanel::changed, this, &MainWindow::refreshValidationPanel);
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);
@@ -3428,15 +3345,7 @@ void MainWindow::commitPendingEditorValues() {
 		return;
 	}
 	m_scenarioPanel->commitPendingEditors();
-	commitIncidentIdEdit();
-	commitIncidentStartSeconds();
-	if (m_incidentEndSecondsEdit && ((m_incidentHasEndSecondsCheck && m_incidentHasEndSecondsCheck->isChecked()) || hasEditorFocus(m_incidentEndSecondsEdit)))
-		commitIncidentEndSeconds();
-	if (m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked()
-		&& m_incidentReducedSpeedKmhEdit) {
-		m_incidentReducedSpeedKmhEdit->interpretText();
-		commitIncidentReducedSpeed();
-	}
+	m_incidentPanel->commitPendingEditors();
 	if (m_entranceDelayOccurrenceEdit && hasEditorFocus(m_entranceDelayOccurrenceEdit)) {
 		m_entranceDelayOccurrenceEdit->interpretText();
 		commitEntranceDelayOccurrence();
@@ -4852,14 +4761,6 @@ std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() {
 	return scenario ? scenario->incidents : empty;
 }
 
-SceneIncident* MainWindow::selectedIncident() {
-	if (!m_incidentListWidget)
-		return nullptr;
-	auto& incidents = selectedScenarioIncidents();
-	const int row = m_incidentListWidget->currentRow();
-	return row >= 0 && row < static_cast<int>(incidents.size()) ? &incidents[row] : nullptr;
-}
-
 const std::vector<SceneIncident>& MainWindow::selectedScenarioIncidents() const {
 	static const std::vector<SceneIncident> empty;
 	const SceneScenario* scenario = selectedScenario();
@@ -4890,42 +4791,8 @@ void MainWindow::markScenarioModified() {
 }
 
 void MainWindow::refreshIncidentPanel() {
-	const bool hasScene = m_sceneLoaded;
 	m_scenarioPanel->refresh();
-	const auto& incidents = selectedScenarioIncidents();
-
-	if (m_incidentListWidget) {
-		int previousRow = m_incidentListWidget->currentRow();
-		const QSignalBlocker blocker(m_incidentListWidget);
-		m_incidentListWidget->clear();
-		if (hasScene) {
-			for (const auto& incident : incidents) {
-				QString label = QString::fromStdString(incident.id) + " (" + QString::fromStdString(incident.type) + ")";
-				if (incident.hasOccurrence || incident.occurrence != 1)
-					label += QString(" #%1").arg(incident.occurrence);
-				if (incident.hasReducedSpeed || incident.reducedSpeedKmh != 0.0)
-					label += QString(" / %1 km/h").arg(incident.reducedSpeedKmh);
-				m_incidentListWidget->addItem(label);
-			}
-		}
-		int rowCount = m_incidentListWidget->count();
-		int rowToSelect = -1;
-		if (rowCount > 0) {
-			if (previousRow < 0)
-				rowToSelect = 0;
-			else if (previousRow >= rowCount)
-				rowToSelect = rowCount - 1; // keep selection near a deleted last row
-			else
-				rowToSelect = previousRow;
-		}
-		m_incidentListWidget->setCurrentRow(rowToSelect);
-		m_incidentListWidget->setEnabled(hasScene && !m_worker);
-	}
-
-	if (m_addIncidentButton)
-		m_addIncidentButton->setEnabled(hasScene && !m_worker);
-
-	updateIncidentDetailPanel();
+	m_incidentPanel->refresh();
 	refreshEntranceDelayPanel();
 }
 
@@ -5193,480 +5060,6 @@ void MainWindow::commitEntranceDelaySeconds() {
 	markScenarioModified();
 	refreshValidationPanel();
 	refreshEntranceDelayPanel();
-}
-
-void MainWindow::updateIncidentDetailPanel() {
-	const auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget ? m_incidentListWidget->currentRow() : -1;
-	bool hasSelection = m_sceneLoaded && !m_worker && row >= 0
-		&& row < static_cast<int>(incidents.size());
-	const bool isBreakdown = hasSelection && incidents[static_cast<std::size_t>(row)].type == "train_breakdown";
-
-	if (m_incidentIdEdit) {
-		const QSignalBlocker blocker(m_incidentIdEdit);
-		m_incidentIdEdit->setText(hasSelection ? QString::fromStdString(incidents[row].id) : QString());
-		m_incidentIdEdit->setEnabled(hasSelection);
-	}
-
-	if (m_incidentTypeCombo) {
-		const QSignalBlocker blocker(m_incidentTypeCombo);
-		if (hasSelection) {
-			QString currentType = QString::fromStdString(incidents[row].type);
-			int typeIndex = m_incidentTypeCombo->findText(currentType);
-			// unknown type: default to signal_failure
-			m_incidentTypeCombo->setCurrentIndex(typeIndex >= 0 ? typeIndex : 0);
-		} else {
-			m_incidentTypeCombo->setCurrentIndex(0);
-		}
-		m_incidentTypeCombo->setEnabled(hasSelection);
-	}
-
-	// the target choices depend on the type; refresh the target combo after the
-	// type combo is already showing the correct value
-	refreshIncidentTargetCombo();
-
-	if (m_incidentStartSecondsEdit) {
-		const QSignalBlocker blocker(m_incidentStartSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(incidents[row].startSeconds) : 0;
-		m_incidentStartSecondsEdit->setText(QString::number(seconds));
-		m_incidentStartSecondsEdit->setEnabled(hasSelection);
-	}
-
-	if (m_incidentEndSecondsEdit) {
-		const QSignalBlocker blocker(m_incidentEndSecondsEdit);
-		int seconds = hasSelection ? static_cast<int>(incidents[row].endSeconds) : 0;
-		m_incidentEndSecondsEdit->setText(QString::number(seconds));
-		m_incidentEndSecondsEdit->setEnabled(hasSelection);
-	}
-	if (m_incidentHasEndSecondsCheck) {
-		const QSignalBlocker blocker(m_incidentHasEndSecondsCheck);
-		const bool hasEnd = hasSelection
-			&& (incidents[static_cast<std::size_t>(row)].hasEndSeconds || incidents[static_cast<std::size_t>(row)].endSeconds != 0.0);
-		m_incidentHasEndSecondsCheck->setChecked(hasEnd);
-		m_incidentHasEndSecondsCheck->setEnabled(hasSelection);
-	}
-	if (m_incidentHasReducedSpeedCheck) {
-		const QSignalBlocker blocker(m_incidentHasReducedSpeedCheck);
-		const bool hasCap = isBreakdown
-			&& (incidents[static_cast<std::size_t>(row)].hasReducedSpeed || incidents[static_cast<std::size_t>(row)].reducedSpeedKmh != 0.0);
-		m_incidentHasReducedSpeedCheck->setChecked(hasCap);
-		m_incidentHasReducedSpeedCheck->setEnabled(isBreakdown);
-	}
-	if (m_incidentReducedSpeedKmhEdit) {
-		const QSignalBlocker blocker(m_incidentReducedSpeedKmhEdit);
-		const double cap = hasSelection && std::isfinite(incidents[static_cast<std::size_t>(row)].reducedSpeedKmh)
-				&& incidents[static_cast<std::size_t>(row)].reducedSpeedKmh > 0.0
-			? incidents[static_cast<std::size_t>(row)].reducedSpeedKmh
-			: 40.0;
-		m_incidentReducedSpeedKmhEdit->setValue(cap);
-		m_incidentReducedSpeedKmhEdit->setEnabled(isBreakdown
-			&& m_incidentHasReducedSpeedCheck && m_incidentHasReducedSpeedCheck->isChecked());
-	}
-	if (m_incidentTerminateAtDestinationCheck) {
-		const QSignalBlocker blocker(m_incidentTerminateAtDestinationCheck);
-		m_incidentTerminateAtDestinationCheck->setChecked(isBreakdown && hasSelection
-			&& incidents[static_cast<std::size_t>(row)].terminateAtDestination);
-		m_incidentTerminateAtDestinationCheck->setEnabled(isBreakdown);
-	}
-
-	if (m_duplicateIncidentButton)
-		m_duplicateIncidentButton->setEnabled(hasSelection);
-	if (m_deleteIncidentButton)
-		m_deleteIncidentButton->setEnabled(hasSelection);
-}
-
-void MainWindow::refreshIncidentTargetCombo() {
-	if (!m_incidentTargetCombo)
-		return;
-	const SceneIncident* incident = selectedIncident();
-	const QSignalBlocker blocker(m_incidentTargetCombo);
-	m_incidentTargetCombo->clear();
-	m_incidentTargetCombo->addItem(QStringLiteral("Choose target"), QString());
-	int current = 0;
-	if (incident) {
-		const QString target = QString::fromStdString(incident->target);
-		bool found = false;
-		if (incident->type == "signal_failure") {
-			for (const std::string& value : signalFailureTargets(m_sceneModel))
-				m_incidentTargetCombo->addItem(QString::fromStdString(value), QString::fromStdString(value));
-			current = m_incidentTargetCombo->findData(target);
-			if (current < 0 && !target.isEmpty()) {
-				m_incidentTargetCombo->addItem(QStringLiteral("Invalid removed target: ") + target, target);
-				current = m_incidentTargetCombo->count() - 1;
-			}
-		} else {
-			const bool singular = incident->hasOccurrence || incident->occurrence != 1;
-			if (!singular && !incident->target.empty()) {
-				const bool exists = std::any_of(m_sceneModel.services.begin(), m_sceneModel.services.end(),
-					[&](const SceneService& service) { return service.id == incident->target; });
-				m_incidentTargetCombo->addItem(
-					(exists ? QStringLiteral("Historical scope: all generated services [")
-							: QStringLiteral("Invalid removed target; historical all scope ["))
-						+ target + QStringLiteral("]"),
-					target);
-				const int index = m_incidentTargetCombo->count() - 1;
-				m_incidentTargetCombo->setItemData(index, 0, Qt::UserRole + 1);
-				current = index;
-			}
-			int shown = 0;
-			for (const SceneService& service : m_sceneModel.services) {
-				const int count = std::max(0,
-					sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
-				for (int occurrence = 1; occurrence <= count && shown < Max_N_Reg; ++occurrence, ++shown) {
-					m_incidentTargetCombo->addItem(ServicePanel::generatedServiceLabel(service, occurrence),
-						QString::fromStdString(service.id));
-					const int index = m_incidentTargetCombo->count() - 1;
-					m_incidentTargetCombo->setItemData(index, occurrence, Qt::UserRole + 1);
-					if (singular && service.id == incident->target && occurrence == incident->occurrence) {
-						current = index;
-						found = true;
-					}
-				}
-				if (shown >= Max_N_Reg)
-					break;
-			}
-			if (singular && !found && !incident->target.empty()) {
-				for (const SceneService& service : m_sceneModel.services) {
-					if (service.id != incident->target)
-						continue;
-					const int count = std::max(0,
-						sceneServiceOccurrenceCount(service, serviceOccurrenceDuration()));
-					if (incident->occurrence < 1 || incident->occurrence > count)
-						break;
-					m_incidentTargetCombo->addItem(ServicePanel::generatedServiceLabel(service, incident->occurrence),
-						QString::fromStdString(service.id));
-					current = m_incidentTargetCombo->count() - 1;
-					m_incidentTargetCombo->setItemData(current, incident->occurrence, Qt::UserRole + 1);
-					found = true;
-					break;
-				}
-			}
-		}
-		if (incident->type != "signal_failure" && !incident->target.empty()
-			&& ((incident->hasOccurrence || incident->occurrence != 1) ? !found : current == 0)) {
-			m_incidentTargetCombo->addItem(
-				QStringLiteral("Invalid removed target [") + target + QStringLiteral(", ")
-					+ QString::number(incident->occurrence) + QStringLiteral("]"),
-				target);
-			current = m_incidentTargetCombo->count() - 1;
-			m_incidentTargetCombo->setItemData(current,
-				incident->hasOccurrence || incident->occurrence != 1 ? incident->occurrence : 0,
-				Qt::UserRole + 1);
-		}
-	}
-	QHash<QString, int> labelCounts;
-	for (int index = 0; index < m_incidentTargetCombo->count(); ++index)
-		++labelCounts[m_incidentTargetCombo->itemText(index)];
-	for (int index = 0; index < m_incidentTargetCombo->count(); ++index) {
-		const QString label = m_incidentTargetCombo->itemText(index);
-		const QString identity = QString(" [%1, #%2]")
-									 .arg(m_incidentTargetCombo->itemData(index).toString())
-									 .arg(m_incidentTargetCombo->itemData(index, Qt::UserRole + 1).toInt());
-		if (labelCounts.value(label) > 1)
-			m_incidentTargetCombo->setItemText(index, label + identity);
-		m_incidentTargetCombo->setItemData(index, label + identity, Qt::ToolTipRole);
-	}
-	m_incidentTargetCombo->setCurrentIndex(std::max(0, current));
-	m_incidentTargetCombo->setEnabled(incident != nullptr && !m_worker);
-	m_incidentTargetCombo->setToolTip(
-		QStringLiteral("Service code with route, elapsed scheduled entry and stable identity."));
-}
-
-void MainWindow::addIncident() {
-	if (!m_sceneLoaded)
-		return;
-
-	auto& incidents = selectedScenarioIncidents();
-	SceneIncident incident;
-	incident.id = sceneUniqueIncidentId(m_sceneModel, "new_incident");
-	incident.type = "signal_failure";
-	incident.hasEndSeconds = true;
-	incidents.push_back(incident);
-
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-
-	if (m_incidentListWidget)
-		m_incidentListWidget->setCurrentRow(static_cast<int>(incidents.size()) - 1);
-}
-
-void MainWindow::duplicateIncident() {
-	if (!m_sceneLoaded || !m_incidentListWidget)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	SceneIncident duplicate = incidents[row];
-	duplicate.id = sceneUniqueIncidentId(m_sceneModel, duplicate.id + "_copy");
-	incidents.insert(incidents.begin() + row + 1, duplicate);
-
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-
-	if (m_incidentListWidget)
-		m_incidentListWidget->setCurrentRow(row + 1);
-}
-
-void MainWindow::deleteIncident() {
-	if (!m_sceneLoaded || !m_incidentListWidget)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	QString id = QString::fromStdString(incidents[row].id);
-	auto response = QMessageBox::question(this,
-		"Delete Incident",
-		QString("Delete incident '%1'?").arg(id),
-		QMessageBox::Yes | QMessageBox::No,
-		QMessageBox::No);
-	if (response != QMessageBox::Yes)
-		return;
-
-	incidents.erase(incidents.begin() + row);
-
-	markScenarioModified();
-	refreshIncidentPanel();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitIncidentIdEdit() {
-	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentIdEdit)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	std::string newId = m_incidentIdEdit->text().trimmed().toStdString();
-	if (newId == incidents[row].id)
-		return;
-	if (newId.empty()) {
-		showBlockingError(this, "Invalid Incident ID", "Incident IDs must not be empty.", true);
-		updateIncidentDetailPanel();
-		return;
-	}
-	if (sceneUniqueIncidentId(m_sceneModel, newId) != newId) {
-		showBlockingError(this, "Incident ID already exists",
-			"Incident IDs must be unique across all scenarios.", true);
-		updateIncidentDetailPanel();
-		return;
-	}
-
-	incidents[row].id = newId;
-
-	// update the list row label in place instead of rebuilding the panel, so a
-	// focus-out that lands on another control keeps that pending click intact
-	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
-		const QSignalBlocker blocker(m_incidentListWidget);
-		QString label = QString::fromStdString(newId) + " (" + QString::fromStdString(incidents[row].type) + ")";
-		item->setText(label);
-	}
-
-	markScenarioModified();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitIncidentType(const QString& text) {
-	if (!m_sceneLoaded || !m_incidentListWidget)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	std::string newType = text.toStdString();
-	if (newType == incidents[row].type)
-		return;
-
-	incidents[row].type = newType;
-	if (newType == "signal_failure") {
-		incidents[row].hasOccurrence = false;
-		incidents[row].occurrence = 1;
-		incidents[row].hasReducedSpeed = false;
-		incidents[row].reducedSpeedKmh = 0.0;
-		incidents[row].terminateAtDestination = false;
-	}
-
-	// when the type changes the valid target pool also changes; drop a target
-	// that is no longer valid for the new type
-	bool targetValid = incidents[row].target.empty();
-	if (!targetValid) {
-		if (newType == "signal_failure") {
-			const auto targets = signalFailureTargets(m_sceneModel);
-			targetValid = std::find(targets.begin(), targets.end(), incidents[row].target) != targets.end();
-		} else {
-			for (const auto& service : m_sceneModel.services) {
-				if (service.id == incidents[row].target) {
-					targetValid = true;
-					break;
-				}
-			}
-		}
-	}
-	if (!targetValid)
-		incidents[row].target.clear();
-
-	// update the list row label in place to reflect the new type
-	if (QListWidgetItem* item = m_incidentListWidget->item(row)) {
-		const QSignalBlocker blocker(m_incidentListWidget);
-		QString label = QString::fromStdString(incidents[row].id) + " (" + text + ")";
-		item->setText(label);
-	}
-
-	markScenarioModified();
-	refreshValidationPanel();
-
-	// The target choices and breakdown-only controls both depend on the type.
-	updateIncidentDetailPanel();
-}
-
-void MainWindow::commitIncidentTarget(const QString&) {
-	if (!m_sceneLoaded || m_worker || !m_incidentTargetCombo)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	const std::string newTarget = m_incidentTargetCombo->currentData().toString().toStdString();
-	int occurrence = m_incidentTargetCombo->currentData(Qt::UserRole + 1).toInt();
-	const bool singular = incident->type != "signal_failure" && occurrence > 0;
-	occurrence = std::max(1, occurrence);
-	if (incident->target == newTarget && incident->hasOccurrence == singular
-		&& incident->occurrence == occurrence)
-		return;
-	incident->target = newTarget;
-	incident->hasOccurrence = singular;
-	incident->occurrence = occurrence;
-	markScenarioModified();
-	refreshValidationPanel();
-	updateIncidentDetailPanel();
-}
-
-void MainWindow::commitIncidentStartSeconds() {
-	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentStartSecondsEdit)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	bool ok = false;
-	int seconds = m_incidentStartSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_incidentStartSecondsEdit);
-		m_incidentStartSecondsEdit->setText(QString::number(seconds));
-	}
-
-	double newValue = static_cast<double>(seconds);
-	if (newValue == incidents[row].startSeconds)
-		return;
-
-	incidents[row].startSeconds = newValue;
-
-	markScenarioModified();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitIncidentEndSeconds() {
-	if (!m_sceneLoaded || !m_incidentListWidget || !m_incidentEndSecondsEdit)
-		return;
-	auto& incidents = selectedScenarioIncidents();
-	int row = m_incidentListWidget->currentRow();
-	if (row < 0 || row >= static_cast<int>(incidents.size()))
-		return;
-
-	bool ok = false;
-	int seconds = m_incidentEndSecondsEdit->text().toInt(&ok);
-	if (!ok)
-		seconds = 0;
-
-	// normalize a blank or partial entry back to a plain integer display
-	{
-		const QSignalBlocker blocker(m_incidentEndSecondsEdit);
-		m_incidentEndSecondsEdit->setText(QString::number(seconds));
-	}
-
-	double newValue = static_cast<double>(seconds);
-	if (newValue == incidents[row].endSeconds && incidents[row].hasEndSeconds)
-		return;
-
-	incidents[row].endSeconds = newValue;
-	incidents[row].hasEndSeconds = true;
-
-	markScenarioModified();
-	refreshValidationPanel();
-}
-
-void MainWindow::commitIncidentReducedSpeed() {
-	if (!m_sceneLoaded || !m_incidentReducedSpeedKmhEdit)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	const double speed = m_incidentReducedSpeedKmhEdit->value();
-	if (incident->reducedSpeedKmh == speed && incident->hasReducedSpeed)
-		return;
-	incident->reducedSpeedKmh = speed;
-	incident->hasReducedSpeed = true;
-	markScenarioModified();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-}
-
-void MainWindow::commitIncidentHasReducedSpeed(bool checked) {
-	if (!m_sceneLoaded)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	if (incident->hasReducedSpeed == checked)
-		return;
-	incident->hasReducedSpeed = checked;
-	if (checked && m_incidentReducedSpeedKmhEdit)
-		incident->reducedSpeedKmh = m_incidentReducedSpeedKmhEdit->value();
-	else if (!checked)
-		incident->reducedSpeedKmh = 0.0;
-	markScenarioModified();
-	refreshValidationPanel();
-	updateIncidentDetailPanel();
-}
-
-void MainWindow::commitIncidentHasEndSeconds(bool checked) {
-	if (!m_sceneLoaded)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	if (incident->hasEndSeconds == checked)
-		return;
-	incident->hasEndSeconds = checked;
-	if (!checked)
-		incident->endSeconds = 0.0;
-	markScenarioModified();
-	refreshValidationPanel();
-	updateIncidentDetailPanel();
-}
-
-void MainWindow::commitIncidentTerminateAtDestination(bool checked) {
-	if (!m_sceneLoaded)
-		return;
-	SceneIncident* incident = selectedIncident();
-	if (!incident)
-		return;
-	if (incident->terminateAtDestination == checked)
-		return;
-	incident->terminateAtDestination = checked;
-	markScenarioModified();
-	refreshValidationPanel();
 }
 
 void MainWindow::addRecentScene(const QString& path) {
