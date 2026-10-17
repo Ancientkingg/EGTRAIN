@@ -22,8 +22,6 @@
 #include <tuple>
 #include <vector>
 
-Logger owl;
-
 static bool expect(bool condition, const std::string& message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";

@@ -81,8 +81,6 @@
 #include <system_error>
 #include <vector>
 
-Logger owl;
-
 namespace {
 
 // ---------------------------------------------------------------------------

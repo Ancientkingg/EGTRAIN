@@ -2,9 +2,9 @@
 """Static check of the console output statements in the application source.
 
 The test counts the statements that write the console (std::cout, std::cerr, std::clog, printf,
-fprintf to stdout or stderr, and the loggers owl and eglogger) in every C++ file under
-EGTRAIN/QEGTRAIN, apart from the tests and the files in EXEMPT_FILES. It compares the count of
-each file and kind with ALLOWED, in both directions, so a new console write fails the test.
+fprintf to stdout or stderr) in every C++ file under EGTRAIN/QEGTRAIN, apart from the tests and
+the files in EXEMPT_FILES. It compares the count of each file and kind with ALLOWED, in both
+directions, so a new console write fails the test.
 The test also checks that the source still holds the producers of the stdout lines that scripts
 read (PRODUCERS).
 
@@ -31,7 +31,7 @@ from ownership_inventory import clean_cpp_code, source_files  # noqa: E402
 
 # One regular expression per kind, matched on the cleaned text. std::cout.rdbuf(...) and
 # std::cout.flush() are not writes; std::cout.write(...) is. snprintf and sprintf_s do not
-# match printf. The kinds owl and eglogger are the two loggers that write nothing.
+# match printf.
 # Known gap: a stream passed as a conditional expression (`ok ? stdout : stderr`) does not match
 # the fprintf pattern, so such a statement is not counted, marker or not. The same holds for
 # fputs, fwrite, perror and Qt calls, which the code base does not use for console output.
@@ -41,8 +41,6 @@ KINDS = {
     "clog": re.compile(r"\bclog\s*(?:<<|\.\s*(?:write|put)\s*\()"),
     "printf": re.compile(r"(?<!\w)(?:printf|printf_s|vprintf|puts|putchar)\s*\("),
     "fprintf": re.compile(r"\b(?:fprintf|vfprintf)\s*\(\s*(?:std::)?(?:stdout|stderr)\b"),
-    "owl": re.compile(r"\bowl\s*<<"),
-    "eglogger": re.compile(r"\beglogger\s*<<"),
 }
 
 # Test markers are read by scripts. Both patterns are matched on the original text, right after
@@ -71,14 +69,13 @@ EXEMPT_FILES = {
 
 # Each entry is the number of console write statements that a file still holds. The test fails
 # when a count differs in either direction, so the list can only shrink, and a file with no entry
-# holds none. The kinds owl and eglogger are the two loggers that write nothing.
+# holds none.
 ALLOWED = {
     "diagrams/RunResults.cpp": {"cerr": 1},
     # Deliberate, stays at 1: BlockingTimeList::checkIndex reports a negative index on stderr
     # right before std::abort(). EG_LOG would write std::cout without a flush and can be
     # switched off, so the message could be lost.
     "simulation/RollingStock.h": {"fprintf": 1},
-    "util/Logger.hpp": {"cout": 2},
 }
 
 # A statement that writes a line to the console: cout, or EG_LOG(Category, Level), whose default sink writes to std::cout.
@@ -142,14 +139,12 @@ def has_producer(text, needle, statement=PRODUCER_STATEMENT):
 COUNT_CASES = [
     ("a line comment is not counted", '// cout << "x";\n', False, {}),
     ("a block comment is not counted", '/* cout << 1;\n cerr << 2; */\n', False, {}),
-    ("a string literal is not counted", 'const char* s = "cout << x; owl << y;";\n', False, {}),
+    ("a string literal is not counted", 'const char* s = "cout << x; cerr << y;";\n', False, {}),
     ("cout without a space is counted", "cout<<1;\n", False, {"cout": 1}),
     ("two statements are two", "cout << 1; std::cout << 2;\n", False, {"cout": 2}),
     ("cerr is counted", 'std::cerr << "x";\n', False, {"cerr": 1}),
     ("clog is counted", 'std::clog << "x";\n', False, {"clog": 1}),
     ("std::printf is counted", 'std::printf("x");\n', False, {"printf": 1}),
-    ("owl is counted", 'owl << "x";\n', False, {"owl": 1}),
-    ("eglogger is counted", 'eglogger << "x";\n', False, {"eglogger": 1}),
     ("snprintf and sprintf_s are not counted", 'snprintf(b, 3, "x"); sprintf_s(b, "x");\n', False, {}),
     ("cout.write is counted", 'std::cout.write("x", 1);\n', False, {"cout": 1}),
     ("cout.rdbuf is not counted", "std::cout.rdbuf(p);\n", False, {}),

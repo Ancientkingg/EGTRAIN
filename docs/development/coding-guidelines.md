@@ -322,9 +322,6 @@ to the console directly.
   `EGTRAIN_LOG` switches Qt messages on and off per level and `QT_MESSAGE_PATTERN` still
   applies. A `qFatal()` message is never filtered. The handler writes to the console streams
   only, not to the system log.
-- `util/Logger.hpp` defines the `eglogger` macro and `app/main.cpp` defines a second `Logger`,
-  `owl`. No statement uses either (the definitions and declarations of `owl` are not uses), and
-  nothing calls `Logger::init`, so neither writes anything.
 - `simulation/`, `io/` and `app/DispatchController.cpp` write through `EG_LOG`, except for one
   `std::fprintf` to `stderr` before `std::abort()` in `BlockingTimeList::checkIndex`. It stays:
   the default sink does not flush `std::cout` and a category can be switched off, so a logged
@@ -344,7 +341,7 @@ to the console directly.
 - `scene/`, `update/` and `telemetry/` neither log nor print, apart from their entry points.
   They return the problem, as a `SceneDiagnostic` or an `error` field (`UpdateCheckResult`).
 - `tools/e2e/test_logging_contract.py` counts the console write statements per file
-  (`cout`, `cerr`, `clog`, `printf`, `fprintf` to `stdout` or `stderr`, `owl` and `eglogger`)
+  (`cout`, `cerr`, `clog`, `printf` and `fprintf` to `stdout` or `stderr`)
   and compares them with the list `ALLOWED` in both directions. A new console write outside the
   deliberate files fails the test; when statements are removed, lower the entry of the file to
   the new number and delete it at zero. Test markers (`E2E_` and `QEGTRAIN_` lines, and the
@@ -355,7 +352,7 @@ to the console directly.
 New code follows the newer modules: return the problem to the caller, and print only at the
 top level, with `qWarning()` in Qt code and `std::cerr` with `toDisplayText()` in
 command-line code. A message from `simulation/` or `io/` that cannot be returned uses `EG_LOG`.
-Do not add `eglogger` or `owl` calls or another logging helper.
+Do not add another logging helper.
 
 ## Tests
 

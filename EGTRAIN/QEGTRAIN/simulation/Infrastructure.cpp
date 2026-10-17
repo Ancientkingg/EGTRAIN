@@ -6,8 +6,6 @@
 
 using namespace std;
 
-extern Logger owl;
-
 InitialParameters initial_variables(0);
 
 

@@ -49,8 +49,6 @@
 #define TEST_NOINLINE __attribute__((noinline))
 #endif
 
-Logger owl;
-
 static bool expect(bool condition, const std::string& message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";

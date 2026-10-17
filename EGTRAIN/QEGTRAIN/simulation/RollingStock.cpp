@@ -3,6 +3,7 @@
 #include "scene/SignallingLevel.h"
 #include "simulation/SimulationRun.h"
 #include "util/Log.h"
+#include "util/timeutil.hpp"
 
 #include <thread>
 #include <chrono>

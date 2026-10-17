@@ -27,8 +27,6 @@
 #include <string>
 #include <vector>
 
-Logger owl;
-
 static bool expect(bool condition, const char* message) {
 	if (!condition)
 		std::cerr << "failed: " << message << "\n";

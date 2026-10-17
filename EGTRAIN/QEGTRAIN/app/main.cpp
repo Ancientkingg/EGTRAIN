@@ -27,8 +27,6 @@
 
 using namespace std;
 
-// Logging logger(initial_variables.full_path, boost::log::trivial::trace,initial_variables.enabled_log,initial_variables.log_to_file);
-
 // check if command line option was entered
 bool cmdOptionEntered(char** begin, char** end, const std::string& option) {
 	return std::find(begin, end, option) != end;
@@ -295,7 +293,6 @@ static SceneRequest readSceneRequest(bool sceneOption, bool showBox) {
 	return request;
 }
 
-Logger owl;
 int main(int argc, char* argv[]) {
 	beginStartupTiming();
 	const std::string loggingProblems = installConsoleLogging();

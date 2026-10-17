@@ -374,8 +374,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				if ((instant_spatial_position[time_seconds - 1] < Bs.arcs_in_signalling_block_section[j].endNode.X * 1000)
 					&& (instant_spatial_position[time_seconds - 1] >= Bs.arcs_in_signalling_block_section[j].startNode.X * 1000))
 					As = Bs.arcs_in_signalling_block_section[j];
-				// logger.Log("\nkkkk");
-				////	logger.Log(to_string(instant_spatial_position[time_seconds - 1]));
 			}
 			// Determination of the right speed limit to observe
 			double Speeds[3];

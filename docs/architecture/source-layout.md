@@ -38,7 +38,7 @@ docs/                     Guides and architecture, development, product, telemet
 | `widgets/` | Dock widgets and small controls: `ConsoleWidget`, `InfoDockWidget`, `TimeProgressBar`, `AboutDialog`, `CaseChooserDialog`, `NetworkLegendWidget`, `ColorChoiceButton`, `ChoiceComboBox`, `CompactDoubleSpinBox`, `DialogLayout`, `EditorLayout`, `ElidedLabel`, `UserPrompts` |
 | `diagrams/` | Chart and result windows: `DiagramWindow`, `BlockingTimeDiagram`, `BlockingTimeScope`, `CapacityAnalysis`, `CapacityScope`, `AreaCapacity`, `AreaCapacityWindow`, `DelayAnalysis`, `DelayAnalysisWindow`, `CompletedRunData`, `CompletedRunCapture`, `RunExports`, `RunResults`, `TimetableTableWindow`, `RouteDiagramCoordinates`, `RouteReferenceChoice`, `TractionCurve`, `TrainColors`, `TrainFilterButton`, `SimulationHeaders` |
 | `io/` | Interoperability formats: `RttpXml`, the XML of the legacy channels, and `ExternalState`, the sender of that XML; `LiveFrame`, the JSON frames of the live contract (`docs/live/frame-v1.schema.json`), `LiveCommand`, the requests of its clients and the checks on them, and `LiveServer`, the ZeroMQ transport that publishes the frames and takes the requests; vendored pugixml in `io/third_party/` |
-| `util/` | Cross-cutting helpers and the logger: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `Logger`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
+| `util/` | Cross-cutting helpers and the logging core: `Util`, `timeutil`, `TrajectoryUtil`, `portability`, `QtMsvcCompat`, `Log`, `CsvWriter`, `PlaybackProfiler`, `Version`, `SpeedFormat`, `TimeFormat` |
 | `update/` | Release check, package download and self-update: `UpdateChecker`, `HttpTransport`, `WinHttpTransport`, `ReleaseInfo`, `Distribution`, `SelfUpdater`, `UpdatePreparation`, `UpdateSettings`, `UpdateRecord`, `UpdateNotices`, and `UpdateHelper`, the source of the `egtrain_update_helper` executable |
 | `telemetry/` | Consent, queue and sender for usage and diagnostics events: `TelemetryConsent`, `TelemetryConsentDialog`, `TelemetryEvent`, `TelemetryOperation`, `TelemetryQueue`, `TelemetrySender` |
 | `recovery/` | `RecoveryStore`: recovery copies of a scene with unsaved edits, kept below a folder that the caller names. `RecoveryController`: writes them on a timer on one worker thread. `RecoveryPrompt`: the dialog that offers the copies that an earlier run left behind. It has nothing to do with the recovery time of a timetable |
@@ -155,7 +155,6 @@ after what they draw.
 | `infoQDockWidget` | `InfoDockWidget` |
 | `EGTRAIN` (class) | `DispatchController` |
 | `IOClass` (file) | `RttpXml` and `ExternalState` |
-| `Owl` | `Logger` |
 | `initial_parameters` | `InitialParameters` |
 
 The `EGTRAIN` rename touched the class only. The project name, the `QEGTRAIN`

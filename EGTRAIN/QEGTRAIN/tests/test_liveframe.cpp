@@ -16,7 +16,6 @@
 #include "simulation/InitialParameters.h"
 #include "simulation/Infrastructure.h"
 #include "simulation/Simulation.h"
-#include "util/Logger.hpp"
 #ifdef signals
 #undef signals
 #endif
@@ -37,8 +36,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-Logger owl;
 
 namespace {
 using nlohmann::json;
