@@ -62,6 +62,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFont>
+#include <QFormLayout>
 #include <QGraphicsItem>
 #include <QHeaderView>
 #include <QHelpEvent>
@@ -1832,6 +1833,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			} else {
 				w.m_blankScenarioButton->click();
 				QApplication::processEvents();
+				if (w.m_incidentPanel->emptyStateLabel()->text() != "This scenario has no incidents. Use Add Incident."
+					|| w.m_entranceDelayPanel->emptyStateLabel()->text() != "This scenario has no entrance delays. Use Add.") {
+					ok = false;
+					failures << "scenario: a blank scenario did not say that it has no incidents and no entrance delays";
+				}
 				w.m_duplicateScenarioButton->click();
 				QApplication::processEvents();
 			}
@@ -3354,7 +3360,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_incidentDock->raise();
 		}
 		if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
-			tabs->setCurrentIndex(1);
+			tabs->setCurrentWidget(w.m_entranceDelayPanel);
 		const int originalDelayCount = w.m_entranceDelayListWidget->count();
 		w.m_addEntranceDelayButton->click();
 		QApplication::processEvents();
@@ -3584,6 +3590,33 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						QString::number(entranceDelaySeconds, 'g', 12)));
 		if (!reviewOk)
 			facetFailure(facetOk, "incident", "run review omitted complete incident or entrance-delay configuration");
+		// The dock names the selected scenario above three tabs, and a check box stands in front of the field it switches on.
+		auto* scenarioTabs = w.findChild<QTabWidget*>("scenarioEditorTabs");
+		auto* scenarioHeader = w.findChild<QLabel*>("scenarioHeaderLabel");
+		if (!scenarioTabs || !scenarioHeader || scenarioTabs->count() != 3 || scenarioTabs->tabText(0) != "Scenario"
+			|| scenarioTabs->tabText(1) != "Incidents" || scenarioTabs->tabText(2) != "Entrance delays"
+			|| scenarioTabs->widget(0) != w.m_scenarioPanel || scenarioTabs->widget(1) != w.m_incidentPanel
+			|| scenarioTabs->widget(2) != w.m_entranceDelayPanel)
+			facetFailure(facetOk, "incident", "the dock lacks the Scenario, Incidents and Entrance delays tabs");
+		else if (scenarioHeader->parentWidget() != scenarioTabs->parentWidget()
+			|| scenarioHeader->text() != w.m_scenarioPanel->headerText()
+			|| !w.m_scenarioPanel->headerText().contains(QString::fromStdString(w.m_runSelection.scenarioId())))
+			facetFailure(facetOk, "incident", "the header above the tabs does not name the selected scenario");
+		const auto checkBeforeField = [](QWidget* check, QWidget* field) {
+			QFormLayout* form = field && field->parentWidget() ? field->parentWidget()->findChild<QFormLayout*>() : nullptr;
+			int row = -1;
+			QFormLayout::ItemRole role = QFormLayout::SpanningRole;
+			if (!form)
+				return false;
+			form->getWidgetPosition(field, &row, &role);
+			return row >= 0 && role == QFormLayout::FieldRole && form->itemAt(row, QFormLayout::LabelRole)
+				&& form->itemAt(row, QFormLayout::LabelRole)->widget() == check;
+		};
+		if (!checkBeforeField(w.m_incidentHasEndSecondsCheck, w.m_incidentEndSecondsEdit)
+			|| !checkBeforeField(w.m_incidentHasReducedSpeedCheck, w.m_incidentReducedSpeedKmhEdit))
+			facetFailure(facetOk, "incident", "the recovery end and reduced speed fields do not follow their check boxes");
+		if (!w.m_incidentPanel->emptyStateLabel()->isHidden() || !w.m_entranceDelayPanel->emptyStateLabel()->isHidden())
+			facetFailure(facetOk, "incident", "an empty-state message shows although an incident and an entrance delay are selected");
 		if (facetOk)
 			std::fprintf(stdout, "E2E_EDITOR_INCIDENT_OK\n");
 	}
@@ -3865,7 +3898,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						w.m_incidentDock->raise();
 					}
 					if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
-						tabs->setCurrentIndex(1);
+						tabs->setCurrentWidget(w.m_entranceDelayPanel);
 					w.m_entranceDelayListWidget->setCurrentRow(entranceDelayRow);
 					QApplication::processEvents();
 					const double pendingEntranceDelay = entranceDelaySeconds + 0.5;
@@ -3983,6 +4016,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							w.m_incidentDock->show();
 							w.m_incidentDock->raise();
 						}
+						if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
+							tabs->setCurrentWidget(w.m_scenarioPanel);
 						w.m_scenarioListWidget->setCurrentRow(scenarioRow);
 						QApplication::processEvents();
 						w.m_scenarioDescriptionEdit->setText("pending scenario values");
@@ -3999,7 +4034,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						} else {
 							const int incidentRow = static_cast<int>(std::distance(incidents.begin(), pendingIncident));
 							if (auto* tabs = w.findChild<QTabWidget*>("scenarioEditorTabs"))
-								tabs->setCurrentIndex(0);
+								tabs->setCurrentWidget(w.m_incidentPanel);
 							w.m_incidentListWidget->setCurrentRow(incidentRow);
 							QApplication::processEvents();
 							if (w.m_incidentHasEndSecondsCheck->isChecked())
@@ -4277,6 +4312,54 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!timetableFailure.isEmpty())
 				facetFailure(ok, "presentation", timetableFailure + " at 1280 by 698 pixels");
 			w.m_serviceDock->hide();
+
+			// The Incidents dock at the same size: the scenario header sits above the tabs, and the Add button and the
+			// fields of the selected incident are inside the viewport of the dock, also at 1.5 times the font.
+			const QFont incidentFont = w.m_incidentDock->font();
+			for (const double scale : {1.0, 1.5}) {
+				QFont font = incidentFont;
+				font.setPointSizeF(incidentFont.pointSizeF() * scale);
+				w.m_incidentDock->setFont(font);
+				w.m_incidentDock->show();
+				w.m_incidentDock->raise();
+				auto* incidentTabs = w.m_incidentDock->findChild<QTabWidget*>("scenarioEditorTabs");
+				auto* incidentHeader = w.m_incidentDock->findChild<QLabel*>("scenarioHeaderLabel");
+				auto* incidentScroll = w.m_incidentDock->findChild<QScrollArea*>("editorContentScroll");
+				if (!incidentTabs || !incidentHeader || !incidentScroll || !w.m_incidentPanel->selectedIncident()) {
+					facetFailure(ok, "presentation", "the Incidents dock lacks its header, tabs or a selected incident");
+					break;
+				}
+				const auto inViewport = [incidentScroll](const QWidget* widget) {
+					const QPoint topLeft = widget->mapTo(incidentScroll->viewport(), QPoint(0, 0));
+					return widget->isVisibleTo(incidentScroll) && QRect(topLeft, widget->size()).intersects(incidentScroll->viewport()->rect())
+						&& incidentScroll->viewport()->rect().contains(widget->mapTo(incidentScroll->viewport(), widget->rect().center()));
+				};
+				incidentTabs->setCurrentWidget(w.m_scenarioPanel);
+				QApplication::processEvents();
+				incidentScroll->verticalScrollBar()->setValue(0);
+				if (incidentHeader->mapTo(w.m_incidentDock, QPoint(0, 0)).y() >= incidentTabs->mapTo(w.m_incidentDock, QPoint(0, 0)).y()
+					|| !inViewport(incidentHeader))
+					facetFailure(ok, "presentation", "the scenario header is not above the tabs at 1280 by 698 pixels");
+				for (const QPushButton* button : {w.m_blankScenarioButton, w.m_duplicateScenarioButton, w.m_deleteScenarioButton,
+						 w.m_scenarioPanel->importButton(), w.m_scenarioPanel->exportButton()}) {
+					if (!inViewport(button))
+						facetFailure(ok, "presentation", "a scenario button is outside the dock viewport at 1280 by 698 pixels");
+				}
+				incidentTabs->setCurrentWidget(w.m_incidentPanel);
+				QApplication::processEvents();
+				incidentScroll->verticalScrollBar()->setValue(0);
+				const bool endCheckFirst = w.m_incidentHasEndSecondsCheck->mapTo(w.m_incidentPanel, QPoint(0, w.m_incidentHasEndSecondsCheck->height())).y()
+					<= w.m_incidentEndSecondsEdit->mapTo(w.m_incidentPanel, QPoint(0, 0)).y();
+				if (!inViewport(w.m_addIncidentButton) || !inViewport(w.m_incidentIdEdit) || !inViewport(w.m_incidentTypeCombo))
+					facetFailure(ok, "presentation", "the incident list or the first fields are outside the dock viewport at 1280 by 698 pixels");
+				if (!endCheckFirst)
+					facetFailure(ok, "presentation", "the recovery end check box does not come before its field");
+				if (incidentScroll->horizontalScrollBar()->isVisible())
+					facetFailure(ok, "presentation", "the Incidents dock scrolls sideways at 1280 by 698 pixels");
+				incidentTabs->setCurrentWidget(w.m_scenarioPanel);
+			}
+			w.m_incidentDock->hide();
+			w.m_incidentDock->setFont(incidentFont);
 			w.resize(1280, 800);
 			QApplication::processEvents();
 		}

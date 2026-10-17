@@ -127,8 +127,9 @@ int main(int argc, char** argv) {
 		EntranceDelayPanel panel;
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.listWidget()->isEnabled() && !panel.addButton()->isEnabled()
 				&& !panel.serviceCombo()->isEnabled() && !panel.occurrenceEdit()->isEnabled() && !panel.stationCombo()->isEnabled()
-				&& !panel.secondsEdit()->isEnabled() && panel.occurrenceContextLabel()->text() == "Select an entrance delay.",
-			"a panel without a document shows nothing and offers nothing");
+				&& !panel.secondsEdit()->isEnabled() && panel.occurrenceContextLabel()->text().isEmpty()
+				&& panel.emptyStateLabel()->isHidden(),
+			"a panel without a document shows nothing and offers nothing, and does not point to the disabled Add button");
 		SceneDocument document;
 		panel.setDocument(&document);
 		panel.addEntranceDelay();
@@ -285,13 +286,20 @@ int main(int argc, char** argv) {
 		selection.selectScenario("alt");
 		panel.refresh();
 		ok &= expect(panel.listWidget()->count() == 0 && panel.addButton()->isEnabled() && !panel.duplicateButton()->isEnabled()
-				&& !panel.deleteButton()->isEnabled() && panel.occurrenceContextLabel()->text() == "Select an entrance delay."
+				&& !panel.deleteButton()->isEnabled() && panel.occurrenceContextLabel()->text().isEmpty()
+				&& panel.emptyStateLabel()->text() == "This scenario has no entrance delays. Use Add."
+				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
 				&& !panel.serviceCombo()->isEnabled(),
-			"a scenario without delays shows an empty list, and a delay can be added");
+			"a scenario without delays shows an empty list and says so, and a delay can be added");
 		panel.addEntranceDelay();
 		ok &= expect(document.model().scenarios[1].entranceDelays.size() == 1 && document.model().scenarios[0].entranceDelays.size() == 2
 				&& selection.isScenarioModified("alt") && !selection.isScenarioModified("base"),
 			"a delay is added to the selected scenario");
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "the selected delay has no empty-state message");
+		panel.listWidget()->setCurrentRow(-1);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select an entrance delay or use Add." && !panel.emptyStateLabel()->isHidden(),
+			"a scenario with delays and no selected row asks for a selection");
+		panel.listWidget()->setCurrentRow(0);
 		selection.selectScenario("base");
 		panel.refresh();
 

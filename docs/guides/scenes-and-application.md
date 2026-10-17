@@ -165,8 +165,9 @@ from midnight. The complete key contract and historical aliases are in the
 ## Scenario library and student loop
 
 Open the **Incidents** dock to choose the canonical default or another named
-scenario. The library shows each scenario's ID, name, incident and entrance-
-delay counts, default marker, and an in-memory modified marker. The authored
+scenario. The dock has the tabs **Scenario**, **Incidents** and **Entrance delays**,
+and a line above them names the selected scenario. The library on the **Scenario**
+tab shows each scenario's ID, name, incident and entrance-delay counts, default marker, and an in-memory modified marker. The authored
 description remains available; Advanced mode adds the full validation status.
 Normal mode still marks an actionable invalid scenario as `Invalid` but does
 not surface non-blocking warning detail. **Blank** and

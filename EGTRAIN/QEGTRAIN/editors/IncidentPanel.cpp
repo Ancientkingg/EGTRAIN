@@ -4,10 +4,12 @@
 #include "scene/RuntimeLimits.h"
 #include "scene/SceneIds.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFormLayout>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QHash>
@@ -75,50 +77,51 @@ IncidentPanel::IncidentPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	listLayout->addLayout(buttonLayout);
 	layout->addWidget(listPane, 1);
 
-	// the fields of the selected incident
+	// the fields of the selected incident; a check box that switches a field on comes before that field
 	QWidget* detailPane = new QWidget(this);
-	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
-	detailLayout->addWidget(new QLabel("Incident Id", detailPane));
+	QVBoxLayout* detailOuter = new QVBoxLayout(detailPane);
+	m_emptyStateLabel = EditorLayout::emptyStateLabel(detailPane);
+	m_emptyStateLabel->setObjectName("incidentEmptyStateLabel");
+	detailOuter->addWidget(m_emptyStateLabel);
+	QFormLayout* detailLayout = new QFormLayout();
+	detailLayout->setRowWrapPolicy(QFormLayout::WrapAllRows);
 	m_idEdit = new QLineEdit(detailPane);
 	m_idEdit->setObjectName("incidentIdEdit");
-	detailLayout->addWidget(m_idEdit);
-	detailLayout->addWidget(new QLabel("Type", detailPane));
+	detailLayout->addRow("Incident Id", m_idEdit);
 	m_typeCombo = new QComboBox(detailPane);
 	m_typeCombo->setObjectName("incidentTypeCombo");
 	m_typeCombo->addItem("signal_failure");
 	m_typeCombo->addItem("train_breakdown");
-	detailLayout->addWidget(m_typeCombo);
-	detailLayout->addWidget(new QLabel("Target", detailPane));
+	detailLayout->addRow("Type", m_typeCombo);
 	m_targetCombo = new QComboBox(detailPane);
 	m_targetCombo->setObjectName("incidentTargetCombo");
-	detailLayout->addWidget(m_targetCombo);
-	detailLayout->addWidget(new QLabel("Start (s)", detailPane));
+	detailLayout->addRow("Target", m_targetCombo);
 	m_startSecondsEdit = new QLineEdit(detailPane);
 	m_startSecondsEdit->setObjectName("incidentStartSecondsEdit");
 	m_startSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_startSecondsEdit));
-	detailLayout->addWidget(m_startSecondsEdit);
-	detailLayout->addWidget(new QLabel("Recovery end (s)", detailPane));
-	m_endSecondsEdit = new QLineEdit(detailPane);
-	m_endSecondsEdit->setObjectName("incidentEndSecondsEdit");
-	m_endSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_endSecondsEdit));
-	detailLayout->addWidget(m_endSecondsEdit);
+	detailLayout->addRow("Start (s)", m_startSecondsEdit);
 	m_hasEndSecondsCheck = new QCheckBox("Use recovery end", detailPane);
 	m_hasEndSecondsCheck->setObjectName("incidentHasEndSecondsCheck");
 	m_hasEndSecondsCheck->setToolTip("When disabled, a reduced-speed breakdown continues until the destination.");
-	detailLayout->addWidget(m_hasEndSecondsCheck);
+	m_endSecondsEdit = new QLineEdit(detailPane);
+	m_endSecondsEdit->setObjectName("incidentEndSecondsEdit");
+	m_endSecondsEdit->setAccessibleName("Recovery end (s)");
+	m_endSecondsEdit->setValidator(new QIntValidator(0, std::numeric_limits<int>::max(), m_endSecondsEdit));
+	detailLayout->addRow(m_hasEndSecondsCheck, m_endSecondsEdit);
 	m_hasReducedSpeedCheck = new QCheckBox("Reduced speed cap", detailPane);
 	m_hasReducedSpeedCheck->setObjectName("incidentHasReducedSpeedCheck");
 	m_reducedSpeedKmhEdit = new CompactDoubleSpinBox(detailPane);
 	m_reducedSpeedKmhEdit->setObjectName("incidentReducedSpeedKmhEdit");
+	m_reducedSpeedKmhEdit->setAccessibleName("Reduced speed cap");
 	m_reducedSpeedKmhEdit->setRange(0.01, 1000.0);
 	m_reducedSpeedKmhEdit->setDecimals(std::numeric_limits<double>::max_digits10);
 	m_reducedSpeedKmhEdit->setSuffix(" km/h");
-	detailLayout->addWidget(m_hasReducedSpeedCheck);
-	detailLayout->addWidget(m_reducedSpeedKmhEdit);
+	detailLayout->addRow(m_hasReducedSpeedCheck, m_reducedSpeedKmhEdit);
 	m_terminateAtDestinationCheck = new QCheckBox("Terminate at destination", detailPane);
 	m_terminateAtDestinationCheck->setObjectName("incidentTerminateAtDestinationCheck");
-	detailLayout->addWidget(m_terminateAtDestinationCheck);
-	detailLayout->addStretch();
+	detailLayout->addRow(m_terminateAtDestinationCheck);
+	detailOuter->addLayout(detailLayout);
+	detailOuter->addStretch();
 
 	// the detail pane may become taller than the dock, so let it scroll rather
 	// than overflowing and overlapping the tab bar
@@ -251,6 +254,12 @@ void IncidentPanel::updateDetail() {
 	const SceneIncident* incident = canEdit() ? shownIncident() : nullptr;
 	const bool hasSelection = incident != nullptr;
 	const bool isBreakdown = hasSelection && incident->type == "train_breakdown";
+	QString emptyState;
+	if (canEdit() && !hasSelection) {
+		emptyState = scenarioIncidents().empty() ? QStringLiteral("This scenario has no incidents. Use Add Incident.")
+												 : QStringLiteral("Select an incident or use Add Incident.");
+	}
+	DialogLayout::setHelp(m_emptyStateLabel, emptyState);
 
 	{
 		const QSignalBlocker blocker(m_idEdit);

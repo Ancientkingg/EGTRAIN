@@ -567,6 +567,32 @@ int main(int argc, char** argv) {
 			"a panel whose document is gone shows nothing and edits nothing");
 	}
 
+	{
+		// the header text names the selected scenario and follows its id and name
+		SceneDocument document;
+		ScenarioPanel panel;
+		RunSelection selection;
+		panel.setRunSelection(&selection);
+		QStringList headers;
+		QObject::connect(&panel, &ScenarioPanel::headerTextChanged, &panel, [&headers](const QString& text) { headers << text; });
+		panel.setDocument(&document);
+		ok &= expect(panel.headerText() == "No scenario selected", "a panel without a scene names no scenario");
+		document.replace(scenarioScene(), false);
+		ok &= expect(panel.headerText() == "Scenario: base (Baseline)" && headers.last() == panel.headerText(),
+			"the header names the default scenario when the scene is loaded");
+		panel.listWidget()->setCurrentRow(1);
+		ok &= expect(headers.last() == "Scenario: alt (Alternative)", "selecting another scenario changes the header");
+		panel.nameEdit()->setText("Renamed");
+		panel.commitNameEdit();
+		ok &= expect(headers.last() == "Scenario: alt (Renamed)", "renaming the selected scenario changes the header");
+		panel.idEdit()->setText("other");
+		panel.commitIdEdit();
+		ok &= expect(headers.last() == "Scenario: other (Renamed)", "changing the id of the selected scenario changes the header");
+		panel.nameEdit()->setText("");
+		panel.commitNameEdit();
+		ok &= expect(panel.headerText() == "Scenario: other", "a scenario without a name is named by its id");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all scenario panel tests passed\n";

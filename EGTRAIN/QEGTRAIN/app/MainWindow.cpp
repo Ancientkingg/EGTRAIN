@@ -1463,10 +1463,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_blankScenarioButton = m_scenarioPanel->blankButton();
 	m_duplicateScenarioButton = m_scenarioPanel->duplicateButton();
 	m_deleteScenarioButton = m_scenarioPanel->deleteButton();
-	incidentLayout->addWidget(m_scenarioPanel, 0);
+
+	// The header names the scenario whose entries the tabs show, also while the scenario list is on another tab. It stays on
+	// one line, and a name wider than the dock is cut at the edge; the tooltip has all of it.
+	QLabel* scenarioHeaderLabel = new QLabel(incidentWidget);
+	scenarioHeaderLabel->setObjectName("scenarioHeaderLabel");
+	scenarioHeaderLabel->setTextFormat(Qt::PlainText);
+	scenarioHeaderLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+	QFont scenarioHeaderFont = scenarioHeaderLabel->font();
+	scenarioHeaderFont.setBold(true);
+	scenarioHeaderLabel->setFont(scenarioHeaderFont);
+	incidentLayout->addWidget(scenarioHeaderLabel, 0);
 
 	QTabWidget* scenarioEditorTabs = new QTabWidget(incidentWidget);
 	scenarioEditorTabs->setObjectName("scenarioEditorTabs");
+	scenarioEditorTabs->addTab(m_scenarioPanel, "Scenario");
 
 	m_incidentPanel = new IncidentPanel(scenarioEditorTabs);
 	m_incidentListWidget = m_incidentPanel->listWidget();
@@ -1492,7 +1503,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_addEntranceDelayButton = m_entranceDelayPanel->addButton();
 	m_duplicateEntranceDelayButton = m_entranceDelayPanel->duplicateButton();
 	m_deleteEntranceDelayButton = m_entranceDelayPanel->deleteButton();
-	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance Delays");
+	scenarioEditorTabs->addTab(m_entranceDelayPanel, "Entrance delays");
 	scenarioEditorTabs->setMinimumSize(0, 0);
 	incidentLayout->addWidget(scenarioEditorTabs, 1);
 
@@ -1514,6 +1525,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		};
 	});
 	m_scenarioPanel->setDocument(m_document);
+	const auto showScenarioHeader = [scenarioHeaderLabel](const QString& text) {
+		scenarioHeaderLabel->setText(text);
+		scenarioHeaderLabel->setToolTip(text);
+	};
+	showScenarioHeader(m_scenarioPanel->headerText());
+	connect(m_scenarioPanel, &ScenarioPanel::headerTextChanged, scenarioHeaderLabel, showScenarioHeader);
 	connect(m_scenarioPanel, &ScenarioPanel::scenarioSelected, this, [this] {
 		invalidateRunResults();
 		refreshIncidentPanel();

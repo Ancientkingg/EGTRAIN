@@ -4,6 +4,8 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFormLayout>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -516,6 +518,72 @@ int main(int argc, char** argv) {
 		panel.refresh();
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.addButton()->isEnabled(),
 			"a panel whose document is gone shows nothing and edits nothing");
+	}
+
+	{
+		// the empty state follows the list and the selection
+		SceneDocument document;
+		IncidentPanel panel;
+		FakePrompts prompts;
+		prompts.confirmAnswer = true;
+		RunSelection selection;
+		panel.setPrompts(&prompts);
+		panel.setRunSelection(&selection);
+		panel.setDocument(&document);
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a panel without a scene does not point to Add Incident, which is disabled");
+		document.replace(incidentScene(), false);
+		selection.selectScenario("alt");
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->text().isEmpty(),
+			"a selected incident has no empty-state message");
+		panel.deleteIncident();
+		ok &= expect(panel.emptyStateLabel()->text() == "This scenario has no incidents. Use Add Incident."
+				&& !panel.emptyStateLabel()->isHidden() && panel.emptyStateLabel()->property("dialogHelp").toBool()
+				&& panel.addButton()->isEnabled() && !panel.idEdit()->isEnabled(),
+			"a scenario without incidents says so, and the Add button it points to is enabled");
+		panel.addIncident();
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "adding an incident removes the message");
+		panel.listWidget()->setCurrentRow(-1);
+		ok &= expect(panel.emptyStateLabel()->text() == "Select an incident or use Add Incident.",
+			"a scenario with incidents and no selected row asks for a selection");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.emptyStateLabel()->isHidden(), "a scene that a run uses does not point to the disabled Add button");
+	}
+
+	{
+		// a check box stands in front of the field it switches on
+		SceneDocument document;
+		IncidentPanel panel;
+		panel.setDocument(&document);
+		document.replace(incidentScene(), false);
+		QFormLayout* form = panel.idEdit()->parentWidget()->findChild<QFormLayout*>();
+		const auto labelOf = [form](QWidget* field) -> QWidget* {
+			int row = -1;
+			QFormLayout::ItemRole role = QFormLayout::SpanningRole;
+			if (!form)
+				return nullptr;
+			form->getWidgetPosition(field, &row, &role);
+			QLayoutItem* label = row >= 0 && role == QFormLayout::FieldRole ? form->itemAt(row, QFormLayout::LabelRole) : nullptr;
+			return label ? label->widget() : nullptr;
+		};
+		ok &= expect(form && labelOf(panel.endSecondsEdit()) == panel.hasEndSecondsCheck()
+				&& labelOf(panel.reducedSpeedKmhEdit()) == panel.hasReducedSpeedCheck(),
+			"the recovery end and the reduced speed are fields of rows that start with their check boxes");
+		ok &= expect(form && qobject_cast<QLabel*>(labelOf(panel.startSecondsEdit())) && qobject_cast<QLabel*>(labelOf(panel.idEdit())),
+			"the other fields have text labels");
+		panel.resize(420, 700);
+		panel.show();
+		QApplication::processEvents();
+		const auto topLeft = [&panel](const QWidget* widget) { return widget->mapTo(&panel, QPoint(0, 0)); };
+		const auto precedes = [&topLeft](const QWidget* check, const QWidget* field) {
+			return topLeft(check).y() + check->height() <= topLeft(field).y();
+		};
+		ok &= expect(precedes(panel.hasEndSecondsCheck(), panel.endSecondsEdit())
+				&& precedes(panel.hasReducedSpeedCheck(), panel.reducedSpeedKmhEdit()),
+			"each check box is drawn above the field it switches on");
+		ok &= expect(panel.rect().contains(topLeft(panel.addButton())) && panel.rect().contains(topLeft(panel.idEdit())),
+			"the Add button and the first field are inside the panel");
 	}
 
 	if (!ok)

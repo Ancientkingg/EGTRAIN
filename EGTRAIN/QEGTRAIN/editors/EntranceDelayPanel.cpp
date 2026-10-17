@@ -2,6 +2,7 @@
 
 #include "editors/ServicePanel.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -57,6 +58,9 @@ EntranceDelayPanel::EntranceDelayPanel(QWidget* parent) : SceneEditorPanel(paren
 	buttonLayout->addWidget(m_duplicateButton);
 	buttonLayout->addWidget(m_deleteButton);
 	layout->addLayout(buttonLayout);
+	m_emptyStateLabel = EditorLayout::emptyStateLabel(this);
+	m_emptyStateLabel->setObjectName("entranceDelayEmptyStateLabel");
+	layout->addWidget(m_emptyStateLabel);
 	QFormLayout* detailLayout = new QFormLayout();
 	m_serviceCombo = new QComboBox(this);
 	m_serviceCombo->setObjectName("entranceDelayServiceCombo");
@@ -235,8 +239,14 @@ void EntranceDelayPanel::updateDetail() {
 		m_occurrenceEdit->setValue(currentOccurrence);
 		m_occurrenceEdit->setEnabled(enabled);
 	}
+	QString emptyState;
+	if (canEdit() && scenario() && !delay) {
+		emptyState = m_listWidget->count() == 0 ? QStringLiteral("This scenario has no entrance delays. Use Add.")
+												: QStringLiteral("Select an entrance delay or use Add.");
+	}
+	DialogLayout::setHelp(m_emptyStateLabel, emptyState);
 	if (!delay) {
-		m_occurrenceContextLabel->setText(QStringLiteral("Select an entrance delay."));
+		m_occurrenceContextLabel->clear();
 	} else {
 		QString context = QString("Valid occurrence range: 1..%1").arg(occurrenceCount);
 		if (service)

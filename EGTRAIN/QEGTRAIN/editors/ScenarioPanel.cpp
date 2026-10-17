@@ -243,6 +243,7 @@ void ScenarioPanel::updatePresentation() {
 			item->setToolTip(label);
 		}
 	}
+	emit headerTextChanged(headerText());
 }
 
 void ScenarioPanel::updateDetail() {
@@ -277,6 +278,16 @@ void ScenarioPanel::updateDetail() {
 	m_deleteButton->setEnabled(deletable);
 	m_importButton->setEnabled(editable);
 	m_exportButton->setEnabled(enabled);
+	emit headerTextChanged(headerText());
+}
+
+QString ScenarioPanel::headerText() const {
+	const SceneScenario* scenario = selectedScenario();
+	if (!scenario)
+		return QStringLiteral("No scenario selected");
+	if (scenario->name.empty())
+		return QStringLiteral("Scenario: %1").arg(QString::fromStdString(scenario->id));
+	return QStringLiteral("Scenario: %1 (%2)").arg(QString::fromStdString(scenario->id), QString::fromStdString(scenario->name));
 }
 
 void ScenarioPanel::selectScenario(int row) {
