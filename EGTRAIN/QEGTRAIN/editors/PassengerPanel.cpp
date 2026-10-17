@@ -154,6 +154,9 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_diagnosticLabel = new QLabel(passengerDetailPane);
 	m_diagnosticLabel->setObjectName("passengerDiagnosticLabel");
 	passengerDetailLayout->addWidget(m_diagnosticLabel);
+	m_warningLabel = new QLabel(passengerDetailPane);
+	m_warningLabel->setObjectName("passengerWarningLabel");
+	passengerDetailLayout->addWidget(m_warningLabel);
 
 	m_tabs = new QTabWidget(passengerDetailPane);
 	m_tabs->setObjectName("passengerEditorTabs");
@@ -422,7 +425,9 @@ void PassengerPanel::updatePassengerDetail() {
 	m_deleteJourneyButton->setEnabled(enabled && !m_journeyList->selectedItems().isEmpty());
 	updateJourneyDetail();
 
-	QStringList messages;
+	QStringList errors;
+	QStringList notes;
+	bool hasWarning = false;
 	if (passenger && m_diagnostics) {
 		const QString passengerPrefix = QStringLiteral("passengers[%1]").arg(passengerRow);
 		const int journeyRow = m_journeyList->currentRow();
@@ -447,21 +452,27 @@ void PassengerPanel::updatePassengerDetail() {
 				|| path.startsWith(passengerPrefix)
 				|| itemId == passengerId || itemId == journeyId || itemId == legId
 				|| relatedId == passengerId || relatedId == journeyId || relatedId == legId;
-			if (match)
-				messages << QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
-						+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
+			if (!match)
+				continue;
+			const QString line = QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
+				+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
+			if (diagnostic.severity == SceneSeverity::Error) {
+				errors << line;
+			} else {
+				notes << line;
+				hasWarning = hasWarning || diagnostic.severity == SceneSeverity::Warning;
+			}
 		}
 	}
-	if (messages.isEmpty()) {
+	if (errors.isEmpty() && notes.isEmpty()) {
 		DialogLayout::setHelp(m_diagnosticLabel,
 			passenger ? QStringLiteral("No validation messages for this passenger selection.")
 					  : QStringLiteral("Select a passenger, or use Add to create one or Import to read a legacy passenger folder."));
-		return;
+	} else {
+		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, errors.join(QStringLiteral("\n")));
 	}
-	const bool hasError = std::any_of(messages.begin(), messages.end(),
-		[](const QString& message) { return message.startsWith("ERROR:"); });
-	DialogLayout::setStatus(m_diagnosticLabel, hasError ? DialogLayout::Severity::Error : DialogLayout::Severity::Warning,
-		messages.join(QStringLiteral("\n")));
+	DialogLayout::setStatus(m_warningLabel, hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral,
+		notes.join(QStringLiteral("\n")));
 }
 
 void PassengerPanel::updateJourneyDetail() {

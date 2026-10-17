@@ -460,20 +460,31 @@ int main(int argc, char** argv) {
 		std::vector<SceneDiagnostic> diagnostics = {legError, journeyWarning, otherPassenger};
 		panel.setDiagnostics(&diagnostics);
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown\nWARNING: Journey is odd"
-				&& role(panel.diagnosticLabel()) == "error",
-			"the messages for the selected passenger are shown as an error when there is one");
+		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
+				&& !panel.diagnosticLabel()->isHidden(),
+			"an error goes in the error callout");
+		ok &= expect(panel.warningLabel()->text() == "WARNING: Journey is odd" && role(panel.warningLabel()) == "warning"
+				&& !panel.warningLabel()->isHidden(),
+			"a warning goes in the warning callout, apart from the error");
+		diagnostics = {legError, otherPassenger};
+		panel.refresh();
+		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown" && role(panel.diagnosticLabel()) == "error"
+				&& panel.warningLabel()->isHidden(),
+			"an error alone leaves the warning callout hidden");
 		diagnostics = {journeyWarning, otherPassenger};
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "WARNING: Journey is odd" && role(panel.diagnosticLabel()) == "warning",
-			"a warning alone is shown as a warning");
+		ok &= expect(panel.diagnosticLabel()->isHidden() && panel.warningLabel()->text() == "WARNING: Journey is odd"
+				&& role(panel.warningLabel()) == "warning" && !panel.warningLabel()->isHidden(),
+			"a warning alone leaves the error callout hidden");
 		panel.passengerList()->setCurrentRow(1);
-		ok &= expect(panel.diagnosticLabel()->text() == "INFO: Elsewhere", "another passenger shows its own messages");
+		ok &= expect(panel.warningLabel()->text() == "INFO: Elsewhere" && role(panel.warningLabel()) == "neutral"
+				&& panel.diagnosticLabel()->isHidden(),
+			"another passenger shows its own messages, a note as a neutral callout");
 		panel.passengerList()->setCurrentRow(0);
 		panel.setDiagnostics(nullptr);
 		panel.refresh();
 		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection."
-				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden(),
+				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden() && panel.warningLabel()->isHidden(),
 			"a panel without diagnostics shows none, as help");
 
 		// a run closes the document
