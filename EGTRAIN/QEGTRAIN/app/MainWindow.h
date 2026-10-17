@@ -690,16 +690,8 @@ private:
 	// The facets of the infrastructure panel that MainWindow implements.
 	class UnmovedInfrastructureFacet;
 	void fillInfrastructureRows(const QString& facet);
-	void commitPendingPlatformGeometry();
 	void commitInfrastructureCell(int row, int column);
-	void commitPlatformGeometryCell(int row, int column, double value);
 	void addInfrastructureEntity();
-	void insertBlock();
-	void moveBlock(int offset);
-	void addRouteSection();
-	void removeRouteSection();
-	void moveRouteSectionUp();
-	void moveRouteSectionDown();
 	void deleteInfrastructureEntity();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();

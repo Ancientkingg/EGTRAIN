@@ -102,7 +102,6 @@
 #include <QMouseEvent>
 #include <QDialog>
 #include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
