@@ -58,6 +58,7 @@
 #include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
+#include "editors/infrastructure/BlockRouteFacets.h"
 #include "editors/infrastructure/TopologyFacets.h"
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
@@ -439,34 +440,6 @@ void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 	});
 }
 
-void populateSceneSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
-	const std::string& current, bool allowNone, const QString& noneLabel) {
-	if (!combo)
-		return;
-	combo->clear();
-	if (allowNone)
-		combo->addItem(noneLabel, QString());
-	for (const auto& section : inventory.sections)
-		combo->addItem(InfrastructurePanel::sectionLabel(section), QString::fromStdString(section.id));
-
-	int selected = combo->findData(QString::fromStdString(current));
-	if (selected < 0 && !current.empty()) {
-		if (const auto* resolved = inventory.resolve(current)) {
-			combo->addItem(QStringLiteral("%1 (legacy: %2)")
-							   .arg(InfrastructurePanel::sectionLabel(*resolved), QString::fromStdString(current)),
-				QString::fromStdString(current));
-		} else {
-			combo->addItem(QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
-				QString::fromStdString(current));
-		}
-		selected = combo->count() - 1;
-	} else if (selected < 0 && current.empty() && !allowNone) {
-		combo->addItem(QStringLiteral("Invalid: (empty)"), QString());
-		selected = combo->count() - 1;
-	}
-	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));
-}
-
 bool sceneHasTrack(const SceneModel& scene, const std::string& trackId) {
 	return std::any_of(scene.tracks.begin(), scene.tracks.end(),
 		[&trackId](const SceneTrack& track) { return track.id == trackId; });
@@ -806,8 +779,6 @@ std::string platformSelectionKey(const std::string& stationId, const std::string
 
 // The headers of the infrastructure table of a facet.
 QStringList infrastructureColumns(const QString& facet) {
-	if (facet == "blocks")
-		return {"ID", "Track ID", "Length (km)", "Order", "Start km", "End km", "Coverage"};
 	if (facet == "stations")
 		return {"ID", "Name", "Has position", "Position km"};
 	if (facet == "platforms")
@@ -816,12 +787,6 @@ QStringList infrastructureColumns(const QString& facet) {
 		return {"ID", "Protected section"};
 	if (facet == "signalling_areas")
 		return {"ID", "Start km", "End km", "Signalling system", "Track"};
-	if (facet == "routes")
-		return {"ID", "Sections", "Has corridor", "Corridor", "Reversed"};
-	if (facet == "block_dependencies")
-		return {"Block", "Depends on"};
-	if (facet == "single_track_restrictions")
-		return {"Start", "End", "Protected start", "Protected end"};
 	return {"Entrance", "Exit", "Direction"};
 }
 
@@ -1631,6 +1596,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_infrastructurePanel->setPrompts(m_userPrompts.get());
 	for (std::unique_ptr<InfrastructureFacet>& facet : makeTopologyFacets())
 		m_infrastructurePanel->setFacet(std::move(facet));
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeBlockRouteFacets())
+		m_infrastructurePanel->setFacet(std::move(facet));
 	for (const QString& key : InfrastructurePanel::facetKeys())
 		if (!m_infrastructurePanel->facet(key))
 			m_infrastructurePanel->setFacet(std::make_unique<UnmovedInfrastructureFacet>(*this, key));
@@ -1640,6 +1607,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			renderTrackPreview(m_sceneModel);
 	});
 	connect(m_infrastructurePanel, &InfrastructurePanel::changed, this, &MainWindow::refreshValidationPanel);
+	connect(m_infrastructurePanel, &InfrastructurePanel::entitiesChanged, this, [this](const QString& facet) {
+		if (facet == QStringLiteral("routes"))
+			m_servicePanel->refresh();
+		if (facet == QStringLiteral("blocks"))
+			refreshIncidentPanel();
+	});
 	connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, this,
 		[this](const QString& text, int timeoutMs) { statusBar()->showMessage(text, timeoutMs); });
 	connect(m_infrastructureDock, &QDockWidget::visibilityChanged, this,
@@ -1647,13 +1620,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 			if (visible)
 				m_infrastructurePanel->updateSelection();
 		});
-	connect(m_insertBlockButton, &QPushButton::clicked, this, &MainWindow::insertBlock);
-	connect(m_moveBlockUpButton, &QPushButton::clicked, this, [this]() { moveBlock(-1); });
-	connect(m_moveBlockDownButton, &QPushButton::clicked, this, [this]() { moveBlock(1); });
-	connect(m_addRouteSectionButton, &QPushButton::clicked, this, &MainWindow::addRouteSection);
-	connect(m_removeRouteSectionButton, &QPushButton::clicked, this, &MainWindow::removeRouteSection);
-	connect(m_moveRouteSectionUpButton, &QPushButton::clicked, this, &MainWindow::moveRouteSectionUp);
-	connect(m_moveRouteSectionDownButton, &QPushButton::clicked, this, &MainWindow::moveRouteSectionDown);
 	refreshInfrastructurePanel();
 
 	m_trainUnitDock = new QDockWidget("Rolling stock units", this);
@@ -3412,52 +3378,10 @@ void MainWindow::fillInfrastructureRows(const QString& facet) {
 		auto* combo = new QComboBox(m_infrastructureTable);
 		combo->setObjectName(objectName);
 		const QSignalBlocker blocker(combo);
-		populateSceneSectionCombo(combo, sectionInventory, current, allowNone, noneLabel);
+		InfrastructurePanel::populateSectionCombo(combo, sectionInventory, current, allowNone, noneLabel);
 		return combo;
 	};
-	if (facet == "blocks") {
-		const QString selectedTrack = m_blockTrackFilterCombo
-			? m_blockTrackFilterCombo->currentData().toString()
-			: QString();
-		m_infrastructureTable->setRowCount(0);
-		for (int modelIndex = 0; modelIndex < static_cast<int>(m_sceneModel.blocks.size()); ++modelIndex) {
-			const SceneBlock& block = m_sceneModel.blocks[static_cast<std::size_t>(modelIndex)];
-			if (QString::fromStdString(block.trackId) != selectedTrack)
-				continue;
-			const int row = m_infrastructureTable->rowCount();
-			m_infrastructureTable->insertRow(row);
-			m_infrastructurePanel->blockRowModelIndices().push_back(modelIndex);
-			setCell(row, 0, QString::fromStdString(block.id));
-			setCell(row, 1, QString::fromStdString(block.trackId));
-			setCell(row, 2, QString::number(block.lengthKm, 'g', precision));
-			const SceneSectionDescriptor* descriptor = nullptr;
-			for (const auto& section : sectionInventory.sections) {
-				if (section.sourceBlockId == block.id) {
-					descriptor = &section;
-					break;
-				}
-			}
-			setCell(row, 3, QString::number(row + 1), false);
-			if (!descriptor) {
-				setCell(row, 4, QStringLiteral("unavailable"), false);
-				setCell(row, 5, QStringLiteral("unavailable"), false);
-				setCell(row, 6, QStringLiteral("unavailable"), false);
-			} else {
-				setCell(row, 4, QString::number(descriptor->startKm, 'g', precision), false);
-				setCell(row, 5, QString::number(descriptor->endKm, 'g', precision), false);
-				QStringList coverage;
-				if (descriptor->trackCoverageGap)
-					coverage << QStringLiteral("gap");
-				if (descriptor->layoutOverflow)
-					coverage << QStringLiteral("overflow");
-				if (descriptor->clippedToTrackEnd)
-					coverage << QStringLiteral("clipped");
-				if (coverage.isEmpty())
-					coverage << QStringLiteral("complete");
-				setCell(row, 6, coverage.join(QStringLiteral(", ")), false);
-			}
-		}
-	} else if (facet == "stations") {
+	if (facet == "stations") {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.stations.size()));
 		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
 			const SceneStation& station = m_sceneModel.stations[static_cast<std::size_t>(row)];
@@ -3531,7 +3455,7 @@ void MainWindow::fillInfrastructureRows(const QString& facet) {
 					.arg(QString::fromStdString(signal.id)));
 			combo->setToolTip(QStringLiteral("Choose the block or switch section protected by this signal"));
 			const QSignalBlocker comboBlocker(combo);
-			populateSceneSectionCombo(combo, sectionInventory, signal.protectedSection, true,
+			InfrastructurePanel::populateSectionCombo(combo, sectionInventory, signal.protectedSection, true,
 				QStringLiteral("(unbound)"));
 			connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
 				[this, row, combo](int) {
@@ -3610,87 +3534,6 @@ void MainWindow::fillInfrastructureRows(const QString& facet) {
 					refreshValidationPanel();
 				});
 			m_infrastructureTable->setCellWidget(row, 4, trackCombo);
-		}
-	} else if (facet == "routes") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.routes.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneRoute& route = m_sceneModel.routes[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(route.id));
-			setCell(row, 1,
-				route.blocks.empty()
-					? QStringLiteral("0 sections")
-					: QStringLiteral("%1 section(s)").arg(static_cast<int>(route.blocks.size())),
-				false);
-			setCell(row, 2, route.hasCorridor ? QStringLiteral("true") : QStringLiteral("false"));
-			setCell(row, 3, QString::fromStdString(route.corridor));
-			setCell(row, 4, route.reversed ? QStringLiteral("true") : QStringLiteral("false"));
-		}
-	} else if (facet == "block_dependencies") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.blockDependencies.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const auto& dependency = m_sceneModel.blockDependencies[static_cast<std::size_t>(row)];
-			auto* blockCombo = makeSectionCombo(dependency.block, false, QString(),
-				QStringLiteral("dependencyBlockCombo"));
-			auto* dependsOnCombo = makeSectionCombo(dependency.dependsOn, false, QString(),
-				QStringLiteral("dependencyDependsOnCombo"));
-			blockCombo->setToolTip(QStringLiteral("Dependency block; catalog data is the exact section ID"));
-			dependsOnCombo->setToolTip(QStringLiteral("Depends-on section; catalog data is the exact section ID"));
-			connect(blockCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-				[this, row, blockCombo](int) {
-					if (row < 0 || row >= static_cast<int>(m_sceneModel.blockDependencies.size()))
-						return;
-					const std::string value = blockCombo->currentData().toString().toStdString();
-					if (m_sceneModel.blockDependencies[static_cast<std::size_t>(row)].block == value)
-						return;
-					m_sceneModel.blockDependencies[static_cast<std::size_t>(row)].block = value;
-					markSceneDirty();
-					refreshValidationPanel();
-				});
-			connect(dependsOnCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-				[this, row, dependsOnCombo](int) {
-					if (row < 0 || row >= static_cast<int>(m_sceneModel.blockDependencies.size()))
-						return;
-					const std::string value = dependsOnCombo->currentData().toString().toStdString();
-					if (m_sceneModel.blockDependencies[static_cast<std::size_t>(row)].dependsOn == value)
-						return;
-					m_sceneModel.blockDependencies[static_cast<std::size_t>(row)].dependsOn = value;
-					markSceneDirty();
-					refreshValidationPanel();
-				});
-			m_infrastructureTable->setCellWidget(row, 0, blockCombo);
-			m_infrastructureTable->setCellWidget(row, 1, dependsOnCombo);
-		}
-	} else if (facet == "single_track_restrictions") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.singleTrackRestrictions.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const auto& restriction = m_sceneModel.singleTrackRestrictions[static_cast<std::size_t>(row)];
-			const std::array<std::string, 4> current = {restriction.startBlock, restriction.endBlock,
-				restriction.protectedStartBlock, restriction.protectedEndBlock};
-			const std::array<QString, 4> names = {QStringLiteral("restrictionStartCombo"),
-				QStringLiteral("restrictionEndCombo"), QStringLiteral("restrictionProtectedStartCombo"),
-				QStringLiteral("restrictionProtectedEndCombo")};
-			for (int column = 0; column < 4; ++column) {
-				auto* combo = makeSectionCombo(current[static_cast<std::size_t>(column)], false,
-					QString(), names[static_cast<std::size_t>(column)]);
-				connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-					[this, row, column, combo](int) {
-						if (row < 0 || row >= static_cast<int>(m_sceneModel.singleTrackRestrictions.size()))
-							return;
-						SceneSingleTrackRestriction& restriction =
-							m_sceneModel.singleTrackRestrictions[static_cast<std::size_t>(row)];
-						std::string* target = column == 0 ? &restriction.startBlock
-														  : (column == 1 ? &restriction.endBlock
-																		 : (column == 2 ? &restriction.protectedStartBlock
-																						: &restriction.protectedEndBlock));
-						const std::string value = combo->currentData().toString().toStdString();
-						if (*target == value)
-							return;
-						*target = value;
-						markSceneDirty();
-						refreshValidationPanel();
-					});
-				m_infrastructureTable->setCellWidget(row, column, combo);
-			}
 		}
 	} else {
 		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.stationBoundaries.size()));
@@ -3800,39 +3643,7 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 		}
 		return false;
 	};
-	if (facet == "blocks" && row < static_cast<int>(m_sceneModel.blocks.size())) {
-		const std::vector<int>& blockRows = m_infrastructurePanel->blockRowModelIndices();
-		if (row < 0 || row >= static_cast<int>(blockRows.size()))
-			return;
-		const int modelIndex = blockRows[static_cast<std::size_t>(row)];
-		if (modelIndex < 0 || modelIndex >= static_cast<int>(m_sceneModel.blocks.size()))
-			return;
-		SceneBlock& block = m_sceneModel.blocks[static_cast<std::size_t>(modelIndex)];
-		if (column == 0) {
-			const std::string oldId = block.id;
-			const std::string newId = value.toStdString();
-			if (oldId == newId)
-				return;
-			if (!idCanReplaceRow(modelIndex, m_sceneModel.blocks, newId)) {
-				rejectUnsafeId();
-				return;
-			}
-			block.id = newId;
-			sceneRewriteBlockReferences(m_sceneModel, oldId, newId);
-			m_infrastructurePanel->setSelectionId(value);
-			changed = true;
-		} else if (column == 1 && block.trackId != value.toStdString()) {
-			block.trackId = value.toStdString();
-			m_infrastructurePanel->refreshBlockTrackFilter();
-			if (m_blockTrackFilterCombo) {
-				const QSignalBlocker blocker(m_blockTrackFilterCombo);
-				m_blockTrackFilterCombo->setCurrentIndex(m_blockTrackFilterCombo->findData(value));
-			}
-			changed = true;
-		} else if (column == 2) {
-			parseNumber(block.lengthKm);
-		}
-	} else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
+	if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size())) {
 		SceneStation& station = m_sceneModel.stations[static_cast<std::size_t>(row)];
 		if (column == 0) {
 			const std::string oldId = station.id;
@@ -3948,29 +3759,6 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 		} else if (column == 2) {
 			parseNumber(area.endKm);
 		}
-	} else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size())) {
-		SceneRoute& route = m_sceneModel.routes[static_cast<std::size_t>(row)];
-		if (column == 0) {
-			const std::string oldId = route.id;
-			const std::string newId = value.toStdString();
-			if (oldId != newId) {
-				if (!idCanReplaceRow(row, m_sceneModel.routes, newId)) {
-					rejectUnsafeId();
-					return;
-				}
-				route.id = newId;
-				sceneRewriteRouteReferences(m_sceneModel, oldId, newId);
-				m_infrastructurePanel->setSelectionId(value);
-				changed = true;
-			}
-		} else if (column == 2) {
-			parseBool(route.hasCorridor);
-		} else if (column == 3 && route.corridor != value.toStdString()) {
-			route.corridor = value.toStdString();
-			changed = true;
-		} else if (column == 4) {
-			parseBool(route.reversed);
-		}
 	} else if (facet == "station_boundaries" && row < static_cast<int>(m_sceneModel.stationBoundaries.size())) {
 		SceneStationBoundary& boundary = m_sceneModel.stationBoundaries[static_cast<std::size_t>(row)];
 		if (column == 2) {
@@ -3981,9 +3769,9 @@ void MainWindow::commitInfrastructureCell(int row, int column) {
 		return;
 	markSceneDirty();
 	refreshValidationPanel();
-	if (facet == "stations" || facet == "platforms" || facet == "routes")
+	if (facet == "stations" || facet == "platforms")
 		m_servicePanel->refresh();
-	if (facet == "signals" || facet == "blocks")
+	if (facet == "signals")
 		refreshIncidentPanel();
 	m_infrastructurePanel->refreshTable();
 }
@@ -4023,20 +3811,7 @@ void MainWindow::addInfrastructureEntity() {
 	const QString facet = m_infrastructureFacetCombo->currentData().toString();
 	std::string id;
 	int newRow = -1;
-	if (facet == "blocks") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "block", facet.toStdString());
-		const std::string selectedTrack = m_blockTrackFilterCombo
-			? m_blockTrackFilterCombo->currentData().toString().toStdString()
-			: std::string();
-		const auto track = std::find_if(m_sceneModel.tracks.begin(), m_sceneModel.tracks.end(),
-			[&selectedTrack](const SceneTrack& candidate) { return candidate.id == selectedTrack; });
-		if (selectedTrack.empty() || track == m_sceneModel.tracks.end()) {
-			statusBar()->showMessage("Select a valid track before adding a block", 4000);
-			return;
-		}
-		m_sceneModel.blocks.push_back({id, track->id, 1.0});
-		newRow = static_cast<int>(m_sceneModel.blocks.size()) - 1;
-	} else if (facet == "stations") {
+	if (facet == "stations") {
 		id = sceneUniqueInfrastructureId(m_sceneModel, "station", facet.toStdString());
 		SceneStation station;
 		station.id = id;
@@ -4061,16 +3836,6 @@ void MainWindow::addInfrastructureEntity() {
 		const SceneBlockExtent extent = sceneBlockExtent(buildSceneSectionInventory(m_sceneModel), "");
 		m_sceneModel.signallingAreas.push_back({id, extent.startKm, extent.endKm, kSignallingLevelUnset, {}});
 		newRow = static_cast<int>(m_sceneModel.signallingAreas.size()) - 1;
-	} else if (facet == "routes") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "route", facet.toStdString());
-		m_sceneModel.routes.push_back({id, {}, false, {}, false});
-		newRow = static_cast<int>(m_sceneModel.routes.size()) - 1;
-	} else if (facet == "block_dependencies") {
-		m_sceneModel.blockDependencies.push_back({});
-		newRow = static_cast<int>(m_sceneModel.blockDependencies.size()) - 1;
-	} else if (facet == "single_track_restrictions") {
-		m_sceneModel.singleTrackRestrictions.push_back({});
-		newRow = static_cast<int>(m_sceneModel.singleTrackRestrictions.size()) - 1;
 	} else if (facet == "station_boundaries") {
 		m_sceneModel.stationBoundaries.push_back({});
 		newRow = static_cast<int>(m_sceneModel.stationBoundaries.size()) - 1;
@@ -4079,138 +3844,13 @@ void MainWindow::addInfrastructureEntity() {
 		m_infrastructurePanel->setSelectionId(QString::fromStdString(id));
 	markSceneDirty();
 	refreshValidationPanel();
-	if (facet == "stations" || facet == "platforms" || facet == "routes")
+	if (facet == "stations" || facet == "platforms")
 		m_servicePanel->refresh();
-	if (facet == "signals" || facet == "blocks")
+	if (facet == "signals")
 		refreshIncidentPanel();
 	m_infrastructurePanel->refreshTable();
-	if (facet != QStringLiteral("blocks") && m_infrastructureTable
-		&& newRow >= 0 && newRow < m_infrastructureTable->rowCount())
+	if (m_infrastructureTable && newRow >= 0 && newRow < m_infrastructureTable->rowCount())
 		m_infrastructureTable->setCurrentCell(newRow, 0);
-}
-
-void MainWindow::insertBlock() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable || !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("blocks"))
-		return;
-	const std::vector<int>& blockRows = m_infrastructurePanel->blockRowModelIndices();
-	const int row = m_infrastructureTable->currentRow();
-	if (row < 0 || row >= static_cast<int>(blockRows.size()))
-		return;
-	const int modelIndex = blockRows[static_cast<std::size_t>(row)];
-	if (modelIndex < 0 || modelIndex >= static_cast<int>(m_sceneModel.blocks.size()))
-		return;
-	const std::string trackId = m_sceneModel.blocks[static_cast<std::size_t>(modelIndex)].trackId;
-	const std::string id = sceneUniqueInfrastructureId(m_sceneModel, "block", "blocks");
-	m_sceneModel.blocks.insert(m_sceneModel.blocks.begin() + modelIndex, {id, trackId, 1.0});
-	m_infrastructurePanel->setSelectionId(QString::fromStdString(id));
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-	m_infrastructurePanel->refreshTable();
-}
-
-void MainWindow::moveBlock(int offset) {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable
-		|| !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("blocks"))
-		return;
-	const std::vector<int>& blockRows = m_infrastructurePanel->blockRowModelIndices();
-	const int row = m_infrastructureTable->currentRow();
-	const int neighborRow = row + offset;
-	if (row < 0 || row >= static_cast<int>(blockRows.size())
-		|| neighborRow < 0 || neighborRow >= static_cast<int>(blockRows.size()))
-		return;
-	const int modelIndex = blockRows[static_cast<std::size_t>(row)];
-	const int neighbor = blockRows[static_cast<std::size_t>(neighborRow)];
-	if (modelIndex < 0 || modelIndex >= static_cast<int>(m_sceneModel.blocks.size())
-		|| neighbor < 0 || neighbor >= static_cast<int>(m_sceneModel.blocks.size()))
-		return;
-	std::swap(m_sceneModel.blocks[static_cast<std::size_t>(modelIndex)],
-		m_sceneModel.blocks[static_cast<std::size_t>(neighbor)]);
-	m_infrastructurePanel->setSelectionId(QString::fromStdString(
-		m_sceneModel.blocks[static_cast<std::size_t>(neighbor)].id));
-	markSceneDirty();
-	refreshValidationPanel();
-	refreshIncidentPanel();
-	m_infrastructurePanel->refreshTable();
-}
-
-void MainWindow::addRouteSection() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable || !m_routeSectionCatalogCombo
-		|| !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("routes"))
-		return;
-	const int row = m_infrastructureTable->currentRow();
-	if (row < 0 || row >= static_cast<int>(m_sceneModel.routes.size())
-		|| m_routeSectionCatalogCombo->currentIndex() < 0)
-		return;
-	const std::string section = m_routeSectionCatalogCombo->currentData().toString().toStdString();
-	if (section.empty())
-		return;
-	m_sceneModel.routes[static_cast<std::size_t>(row)].blocks.push_back(section);
-	m_infrastructurePanel->setSelectionId(QString::fromStdString(m_sceneModel.routes[static_cast<std::size_t>(row)].id));
-	markSceneDirty();
-	refreshValidationPanel();
-	m_infrastructurePanel->refreshTable();
-	m_routeSectionListWidget->setCurrentRow(m_routeSectionListWidget->count() - 1);
-}
-
-void MainWindow::removeRouteSection() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable || !m_routeSectionListWidget
-		|| !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("routes"))
-		return;
-	const int routeRow = m_infrastructureTable->currentRow();
-	const int sectionRow = m_routeSectionListWidget->currentRow();
-	if (routeRow < 0 || routeRow >= static_cast<int>(m_sceneModel.routes.size())
-		|| sectionRow < 0
-		|| sectionRow >= static_cast<int>(m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks.size()))
-		return;
-	m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks.erase(
-		m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks.begin() + sectionRow);
-	markSceneDirty();
-	refreshValidationPanel();
-	m_infrastructurePanel->refreshTable();
-	m_routeSectionListWidget->setCurrentRow(std::min(sectionRow,
-		m_routeSectionListWidget->count() - 1));
-}
-
-void MainWindow::moveRouteSectionUp() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable || !m_routeSectionListWidget
-		|| !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("routes"))
-		return;
-	const int routeRow = m_infrastructureTable->currentRow();
-	const int sectionRow = m_routeSectionListWidget->currentRow();
-	if (routeRow < 0 || routeRow >= static_cast<int>(m_sceneModel.routes.size()) || sectionRow <= 0
-		|| sectionRow >= static_cast<int>(m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks.size()))
-		return;
-	auto& blocks = m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks;
-	std::swap(blocks[static_cast<std::size_t>(sectionRow)], blocks[static_cast<std::size_t>(sectionRow - 1)]);
-	markSceneDirty();
-	refreshValidationPanel();
-	m_infrastructurePanel->refreshTable();
-	m_routeSectionListWidget->setCurrentRow(sectionRow - 1);
-}
-
-void MainWindow::moveRouteSectionDown() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureTable || !m_routeSectionListWidget
-		|| !m_infrastructureFacetCombo
-		|| m_infrastructureFacetCombo->currentData().toString() != QStringLiteral("routes"))
-		return;
-	const int routeRow = m_infrastructureTable->currentRow();
-	const int sectionRow = m_routeSectionListWidget->currentRow();
-	if (routeRow < 0 || routeRow >= static_cast<int>(m_sceneModel.routes.size()))
-		return;
-	auto& blocks = m_sceneModel.routes[static_cast<std::size_t>(routeRow)].blocks;
-	if (sectionRow < 0 || sectionRow + 1 >= static_cast<int>(blocks.size()))
-		return;
-	std::swap(blocks[static_cast<std::size_t>(sectionRow)], blocks[static_cast<std::size_t>(sectionRow + 1)]);
-	markSceneDirty();
-	refreshValidationPanel();
-	m_infrastructurePanel->refreshTable();
-	m_routeSectionListWidget->setCurrentRow(sectionRow + 1);
 }
 
 void MainWindow::deleteInfrastructureEntity() {
@@ -4220,24 +3860,13 @@ void MainWindow::deleteInfrastructureEntity() {
 	const int row = m_infrastructureTable->currentRow();
 	if (row < 0)
 		return;
-	int modelRow = row;
-	if (facet == QStringLiteral("blocks")) {
-		const std::vector<int>& blockRows = m_infrastructurePanel->blockRowModelIndices();
-		if (row >= static_cast<int>(blockRows.size()))
-			return;
-		modelRow = blockRows[static_cast<std::size_t>(row)];
-		if (modelRow < 0 || modelRow >= static_cast<int>(m_sceneModel.blocks.size()))
-			return;
-	}
 	const int idColumn = facet == "platforms" ? 1 : 0;
 	QString id;
 	if (const auto* item = m_infrastructureTable->item(row, idColumn))
 		id = item->text();
 	else if (auto* combo = qobject_cast<QComboBox*>(m_infrastructureTable->cellWidget(row, idColumn)))
 		id = combo->currentData().toString();
-	const bool anonymousRow = facet == QStringLiteral("block_dependencies")
-		|| facet == QStringLiteral("single_track_restrictions")
-		|| facet == QStringLiteral("station_boundaries");
+	const bool anonymousRow = facet == QStringLiteral("station_boundaries");
 	if (id.isEmpty() && !anonymousRow)
 		return;
 	QString displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
@@ -4255,9 +3884,7 @@ void MainWindow::deleteInfrastructureEntity() {
 			flattened += static_cast<int>(platforms.size());
 		}
 	}
-	if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
-		id = QString::fromStdString(m_sceneModel.blocks[static_cast<std::size_t>(modelRow)].id);
-	else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
+	if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
 		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(row)].id);
 	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
 		id = QString::fromStdString(m_sceneModel.stations[static_cast<std::size_t>(stationIndex)]
@@ -4267,8 +3894,6 @@ void MainWindow::deleteInfrastructureEntity() {
 		id = QString::fromStdString(sceneSignals(m_sceneModel)[static_cast<std::size_t>(row)].id);
 	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
 		id = QString::fromStdString(m_sceneModel.signallingAreas[static_cast<std::size_t>(row)].id);
-	else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size()))
-		id = QString::fromStdString(m_sceneModel.routes[static_cast<std::size_t>(row)].id);
 	displayId = id.isEmpty() ? QStringLiteral("incomplete row") : id;
 	const std::string platformScope = stationIndex >= 0
 		? m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].id
@@ -4287,9 +3912,7 @@ void MainWindow::deleteInfrastructureEntity() {
 		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 	if (answer != QMessageBox::Yes)
 		return;
-	if (facet == "blocks" && modelRow < static_cast<int>(m_sceneModel.blocks.size()))
-		m_sceneModel.blocks.erase(m_sceneModel.blocks.begin() + modelRow);
-	else if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
+	if (facet == "stations" && row < static_cast<int>(m_sceneModel.stations.size()))
 		m_sceneModel.stations.erase(m_sceneModel.stations.begin() + row);
 	else if (facet == "platforms" && stationIndex >= 0 && platformIndex >= 0)
 		m_sceneModel.stations[static_cast<std::size_t>(stationIndex)].platforms.erase(
@@ -4298,12 +3921,6 @@ void MainWindow::deleteInfrastructureEntity() {
 		sceneSignals(m_sceneModel).erase(sceneSignals(m_sceneModel).begin() + row);
 	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
 		m_sceneModel.signallingAreas.erase(m_sceneModel.signallingAreas.begin() + row);
-	else if (facet == "routes" && row < static_cast<int>(m_sceneModel.routes.size()))
-		m_sceneModel.routes.erase(m_sceneModel.routes.begin() + row);
-	else if (facet == "block_dependencies" && row < static_cast<int>(m_sceneModel.blockDependencies.size()))
-		m_sceneModel.blockDependencies.erase(m_sceneModel.blockDependencies.begin() + row);
-	else if (facet == "single_track_restrictions" && row < static_cast<int>(m_sceneModel.singleTrackRestrictions.size()))
-		m_sceneModel.singleTrackRestrictions.erase(m_sceneModel.singleTrackRestrictions.begin() + row);
 	else if (facet == "station_boundaries" && row < static_cast<int>(m_sceneModel.stationBoundaries.size()))
 		m_sceneModel.stationBoundaries.erase(m_sceneModel.stationBoundaries.begin() + row);
 	else
@@ -4311,9 +3928,9 @@ void MainWindow::deleteInfrastructureEntity() {
 	m_infrastructurePanel->setSelectionId(QString());
 	markSceneDirty();
 	refreshValidationPanel();
-	if (facet == "stations" || facet == "platforms" || facet == "routes")
+	if (facet == "stations" || facet == "platforms")
 		m_servicePanel->refresh();
-	if (facet == "signals" || facet == "blocks")
+	if (facet == "signals")
 		refreshIncidentPanel();
 	m_infrastructurePanel->refreshTable();
 }

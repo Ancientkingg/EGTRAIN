@@ -145,6 +145,13 @@ InfrastructurePanel::InfrastructurePanel(QWidget* parent) : SceneEditorPanel(par
 	connect(m_table, &QTableWidget::itemSelectionChanged, this, &InfrastructurePanel::updateSelection);
 	connect(m_addButton, &QPushButton::clicked, this, &InfrastructurePanel::addEntity);
 	connect(m_deleteButton, &QPushButton::clicked, this, &InfrastructurePanel::deleteEntity);
+	connect(m_insertBlockButton, &QPushButton::clicked, this, &InfrastructurePanel::insertEntity);
+	connect(m_moveBlockUpButton, &QPushButton::clicked, this, [this] { moveEntity(-1); });
+	connect(m_moveBlockDownButton, &QPushButton::clicked, this, [this] { moveEntity(1); });
+	connect(m_addRouteSectionButton, &QPushButton::clicked, this, &InfrastructurePanel::addSection);
+	connect(m_removeRouteSectionButton, &QPushButton::clicked, this, &InfrastructurePanel::removeSection);
+	connect(m_moveRouteSectionUpButton, &QPushButton::clicked, this, [this] { moveSection(-1); });
+	connect(m_moveRouteSectionDownButton, &QPushButton::clicked, this, [this] { moveSection(1); });
 	connect(m_routeSectionListWidget, &QListWidget::itemSelectionChanged, this, [this] { refreshRouteSectionPanel(); });
 	InfrastructurePanel::refresh(false);
 }
@@ -416,10 +423,50 @@ void InfrastructurePanel::deleteEntity() {
 		current->remove(*this);
 }
 
+void InfrastructurePanel::insertEntity() {
+	if (!canEdit())
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->insert(*this);
+}
+
+void InfrastructurePanel::moveEntity(int offset) {
+	if (!canEdit())
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->move(*this, offset);
+}
+
+void InfrastructurePanel::addSection() {
+	if (!canEdit())
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->addSection(*this);
+}
+
+void InfrastructurePanel::removeSection() {
+	if (!canEdit())
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->removeSection(*this);
+}
+
+void InfrastructurePanel::moveSection(int offset) {
+	if (!canEdit())
+		return;
+	if (InfrastructureFacet* current = currentFacet())
+		current->moveSection(*this, offset);
+}
+
 void InfrastructurePanel::entityChanged(const QString& label) {
+	entityEdited(label);
+	emit entitiesChanged(facetKey());
+	refreshTable();
+}
+
+void InfrastructurePanel::entityEdited(const QString& label) {
 	m_document->markChanged(SceneDocument::Infrastructure, label);
 	emit changed();
-	refreshTable();
 }
 
 void InfrastructurePanel::refuseEdit(const QString& message) {
@@ -441,6 +488,32 @@ bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std
 		return false;
 	}
 	return m_prompts->confirm(this, "Delete infrastructure entity", QString("Delete %1 '%2'?").arg(kind, id));
+}
+
+void InfrastructurePanel::populateSectionCombo(QComboBox* combo, const SceneSectionInventory& inventory,
+	const std::string& current, bool allowNone, const QString& noneLabel) {
+	if (!combo)
+		return;
+	combo->clear();
+	if (allowNone)
+		combo->addItem(noneLabel, QString());
+	for (const SceneSectionDescriptor& section : inventory.sections)
+		combo->addItem(sectionLabel(section), QString::fromStdString(section.id));
+
+	int selected = combo->findData(QString::fromStdString(current));
+	if (selected < 0 && !current.empty()) {
+		if (const SceneSectionDescriptor* resolved = inventory.resolve(current)) {
+			combo->addItem(QStringLiteral("%1 (legacy: %2)").arg(sectionLabel(*resolved), QString::fromStdString(current)),
+				QString::fromStdString(current));
+		} else {
+			combo->addItem(QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)), QString::fromStdString(current));
+		}
+		selected = combo->count() - 1;
+	} else if (selected < 0 && current.empty() && !allowNone) {
+		combo->addItem(QStringLiteral("Invalid: (empty)"), QString());
+		selected = combo->count() - 1;
+	}
+	combo->setCurrentIndex(selected >= 0 ? selected : (combo->count() > 0 ? 0 : -1));
 }
 
 QString InfrastructurePanel::sectionLabel(const SceneSectionDescriptor& section) {
