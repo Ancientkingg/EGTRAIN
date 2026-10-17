@@ -521,6 +521,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 	}
 
+	// An ampersand in an action text marks a mnemonic, so the Help entry has to be written with two to show one. The icon
+	// text is the text as drawn, without the mnemonic markers and the trailing dots.
+	{
+		const QAction* privacyAction = w.findChild<QAction*>("actionPrivacyDiagnostics");
+		if (!privacyAction || privacyAction->iconText() != QStringLiteral("Privacy & diagnostics")) {
+			ok = false;
+			failures << "help menu: the privacy entry is missing or does not show Privacy & diagnostics";
+		}
+	}
+
 	// Optional diagnostics must not replace a focused editor value or hide a
 	// blocking error. Exercise both presentation modes without committing edits.
 	{

@@ -12,6 +12,7 @@
 #include "app/SceneOpenRequest.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/SceneSavePolicy.h"
+#include "app/UpdatePromptText.h"
 #include "ui_MainWindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
@@ -918,7 +919,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	setupEditMenu();
 	setupUpdateActions();
 	if (ui->menuHelp) {
-		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy & diagnostics..."));
+		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy && diagnostics..."));
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
 		privacy->setShortcut(QKeySequence::Preferences);
 		connect(privacy, &QAction::triggered, this, [this] { showPrivacySettings(false); });
@@ -2772,10 +2773,9 @@ void MainWindow::maybePromptForUpdateChecks() {
 	if (state == UpdateCheckState::Unknown) {
 		QMessageBox dialog(QMessageBox::Question,
 			QStringLiteral("Automatically Check for EGTRAIN Updates?"),
-			QStringLiteral("EGTRAIN can check GitHub Releases when the application starts and notify you "
-						   "when a newer stable version is available."),
+			update_prompt::automaticChecksQuestion(),
 			QMessageBox::NoButton, this);
-		dialog.setInformativeText(QStringLiteral("You can change this later from Help."));
+		dialog.setInformativeText(update_prompt::automaticChecksDetail());
 		QPushButton* enableButton = dialog.addButton(QStringLiteral("Check Automatically"),
 			QMessageBox::AcceptRole);
 		dialog.addButton(QStringLiteral("Don't Check Automatically"), QMessageBox::RejectRole);
@@ -2859,7 +2859,7 @@ void MainWindow::handleUpdateCheckFinished(const UpdateCheckResult& result) {
 	}
 	QMessageBox dialog(QMessageBox::Information,
 		QStringLiteral("EGTRAIN %1 is Available").arg(formatSemanticVersion(release.version)),
-		QStringLiteral("You are currently using %1.").arg(formatSemanticVersion(*current)),
+		update_prompt::availableText(formatSemanticVersion(release.version), formatSemanticVersion(*current)),
 		QMessageBox::NoButton, this);
 	setMarkdownInformativeText(dialog,
 		(release.notes.isEmpty() ? QStringLiteral("No release notes were provided.") : releaseNotesMarkdown(release.notes))
