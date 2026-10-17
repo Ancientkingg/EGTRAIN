@@ -66,6 +66,7 @@
 #include "scene/SceneMigration.h"
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
+#include "scene/SceneHistory.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
@@ -912,7 +913,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	ui->setupUi(this);
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
+	m_history = std::make_unique<SceneHistory>();
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
+	setupEditMenu();
 	setupUpdateActions();
 	if (ui->menuHelp) {
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy & diagnostics..."));
@@ -2093,6 +2096,7 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_sceneDir.clear();
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
+	m_history->reset(m_sceneModel);
 	selectSceneOutputFolder(m_sceneModel.name);
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
@@ -2145,6 +2149,9 @@ telemetry::OperationObservation MainWindow::captureTelemetryOperation() const no
 
 void MainWindow::registerEditorDock(QDockWidget* dock) {
 	m_editorActions.insert(dock, telemetry::registerEditor(dock, editorsMenu(), [this] { return captureTelemetryOperation(); }));
+	// The dock also takes Undo and Redo, so that they work while it floats as a window of its own.
+	dock->addAction(m_undoAction);
+	dock->addAction(m_redoAction);
 }
 
 QMenu* MainWindow::createPopupMenu() {
@@ -2361,6 +2368,7 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		m_runSelection.selectScenario(m_sceneModel.scenarios.front().id);
 		m_sceneModel.defaultScenarioId = m_runSelection.scenarioId();
 	}
+	m_history->reset(m_sceneModel, true);
 	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
 	m_passengerPanel->clearImportResult();
@@ -2458,6 +2466,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	refreshSavedSceneMetadata(m_sceneModel);
 	m_sceneModel.savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	m_history->markSaved();
 	m_document->markSaved();
 	m_runSelection.clearModifiedScenarios();
 	updateSceneWindowTitle();
@@ -2645,6 +2654,7 @@ void MainWindow::updateSceneActions() {
 		m_serviceDock->setEnabled(m_sceneLoaded && !m_worker);
 	if (m_passengerDock)
 		m_passengerDock->setEnabled(m_sceneLoaded && !m_worker);
+	updateUndoRedoActions();
 	updateDiagramActions();
 	if (m_recentScenesMenu) {
 		QSettings settings;
@@ -3172,6 +3182,11 @@ void MainWindow::markSceneDirty() {
 }
 
 void MainWindow::sceneDocumentChanged() {
+	m_history->record(m_sceneModel, modifiedScenarioIds());
+	invalidateAfterSceneChange();
+}
+
+void MainWindow::invalidateAfterSceneChange() {
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
 			"Delay baseline cleared after a case edit. Complete a run with no incidents or entrance delays to set a new baseline.");
@@ -3186,6 +3201,113 @@ void MainWindow::sceneDocumentChanged() {
 	}
 	updateSceneWindowTitle();
 	updateSceneActions();
+}
+
+namespace {
+
+// The text of an Undo or Redo action: the verb, and the label of the edit that it would revert or repeat.
+QString historyActionText(const QString& verb, const std::string& label) {
+	return label.empty() ? verb : QStringLiteral("%1 %2").arg(verb, QString::fromStdString(label));
+}
+
+} // namespace
+
+void MainWindow::setupEditMenu() {
+	m_undoAction = new QAction(historyActionText(QStringLiteral("Undo"), {}), this);
+	m_undoAction->setObjectName(QStringLiteral("actionUndo"));
+	m_undoAction->setShortcut(QKeySequence::Undo);
+	m_redoAction = new QAction(historyActionText(QStringLiteral("Redo"), {}), this);
+	m_redoAction->setObjectName(QStringLiteral("actionRedo"));
+	m_redoAction->setShortcuts(QKeySequence::Redo);
+	for (QAction* action : {m_undoAction, m_redoAction}) {
+		action->setShortcutContext(Qt::WindowShortcut);
+		action->setEnabled(false);
+		ui->menuEdit->addAction(action);
+	}
+	connect(m_undoAction, &QAction::triggered, this, &MainWindow::undoScene);
+	connect(m_redoAction, &QAction::triggered, this, &MainWindow::redoScene);
+}
+
+void MainWindow::updateUndoRedoActions() {
+	const bool editable = m_sceneLoaded && !m_worker;
+	const bool canUndo = editable && m_history->canUndo();
+	const bool canRedo = editable && m_history->canRedo();
+	m_undoAction->setEnabled(canUndo);
+	m_redoAction->setEnabled(canRedo);
+	m_undoAction->setText(historyActionText(QStringLiteral("Undo"), canUndo ? m_history->undoLabel() : std::string()));
+	m_redoAction->setText(historyActionText(QStringLiteral("Redo"), canRedo ? m_history->redoLabel() : std::string()));
+}
+
+std::set<std::string> MainWindow::modifiedScenarioIds() const {
+	std::set<std::string> ids;
+	for (const SceneScenario& scenario : m_sceneModel.scenarios) {
+		if (m_runSelection.isScenarioModified(scenario.id))
+			ids.insert(scenario.id);
+	}
+	return ids;
+}
+
+void MainWindow::undoScene() {
+	stepSceneHistory(false);
+}
+
+void MainWindow::redoScene() {
+	stepSceneHistory(true);
+}
+
+void MainWindow::stepSceneHistory(bool redo) {
+	if (!m_sceneLoaded || m_worker)
+		return;
+	// A value that is still being typed becomes the edit that Undo reverts.
+	commitPendingEditorValues();
+	if (!(redo ? m_history->canRedo() : m_history->canUndo()))
+		return;
+	const QString label = QString::fromStdString(redo ? m_history->redoLabel() : m_history->undoLabel());
+	restoreSceneFromHistory(*(redo ? m_history->redo() : m_history->undo()));
+	statusBar()->showMessage(QString("%1 %2").arg(redo ? "Redid" : "Undid", label), 8000);
+}
+
+void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
+	const QScopedValueRollback<bool> restoring(m_restoringHistory, true);
+	std::vector<std::string> previousUnitIds;
+	for (const SceneTrainUnit& unit : m_sceneModel.trainUnits)
+		previousUnitIds.push_back(unit.id);
+
+	m_document->restore(*entry.scene, !m_history->isAtSavedPoint());
+
+	// What the window keeps about the scene by id follows the restored scene. A rolling stock link stays with a unit that
+	// still has its id, and is dropped for one that is gone.
+	m_runSelection.clearModifiedScenarios();
+	for (const std::string& id : entry.modifiedScenarioIds)
+		m_runSelection.markScenarioModified(id);
+	const bool scenarioKept = std::any_of(m_sceneModel.scenarios.begin(), m_sceneModel.scenarios.end(),
+		[this](const SceneScenario& scenario) { return scenario.id == m_runSelection.scenarioId(); });
+	if (!scenarioKept) {
+		const SceneScenario* fallback = defaultScenario(static_cast<const SceneModel&>(m_sceneModel));
+		m_runSelection.selectScenario(fallback ? fallback->id : std::string());
+	}
+	for (const std::string& id : previousUnitIds) {
+		if (m_trainUnitSourceLinker->linkOf(id) && !sceneTrainUnitById(m_sceneModel, id))
+			m_trainUnitSourceLinker->forgetUnit(id);
+	}
+	setStartOffset(baseTimeToSeconds(m_sceneModel.baseTime));
+	m_runSelection.pruneExcluded(m_sceneModel, serviceOccurrenceDuration());
+
+	invalidateAfterSceneChange();
+	refreshAllEditorPanels();
+	updateCaseLayersPanel();
+}
+
+// Shows the scene in every editor, in the order in which openSceneDirectory refreshes them: validation last.
+void MainWindow::refreshAllEditorPanels() {
+	m_caseSettingsPanel->refresh();
+	m_trainUnitPanel->refresh();
+	m_compositionPanel->refresh();
+	m_servicePanel->refresh();
+	m_timetableStopsPanel->refresh();
+	refreshIncidentPanel();
+	refreshInfrastructurePanel();
+	refreshValidationPanel();
 }
 
 void MainWindow::invalidateRunResults() {
@@ -3218,7 +3340,8 @@ void MainWindow::invalidateRunResults() {
 }
 
 void MainWindow::commitPendingEditorValues() {
-	if (m_committingPendingEditorValues)
+	// The editors hold the scene before a restored one until they are refreshed, and that is not an edit.
+	if (m_committingPendingEditorValues || m_restoringHistory)
 		return;
 	m_committingPendingEditorValues = true;
 

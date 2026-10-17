@@ -120,6 +120,8 @@ class InfrastructurePanel;
 class PassengerPanel;
 class ScenarioPanel;
 class ServicePanel;
+class SceneHistory;
+struct SceneHistoryEntry;
 class UserPrompts;
 class QPlainTextEdit;
 class TimetableStopsPanel;
@@ -417,6 +419,13 @@ private:
 	bool& m_sceneLoaded = m_document->m_loaded;
 	bool& m_sceneDirty = m_document->m_dirty;
 	quint64& m_sceneRevision = m_document->m_revision;
+	// Undo and Redo. The history holds the scene as it was after each edit, and sceneDocumentChanged adds to it.
+	std::unique_ptr<SceneHistory> m_history;
+	// True while the editors are refreshed with a restored scene. Until then they hold the scene before it, so what they
+	// hold is not committed.
+	bool m_restoringHistory = false;
+	QAction* m_undoAction = nullptr;
+	QAction* m_redoAction = nullptr;
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
@@ -699,6 +708,15 @@ private:
 	void activateLoadedDataItem(QTreeWidgetItem* item);
 	void markSceneDirty();
 	void sceneDocumentChanged();
+	void invalidateAfterSceneChange();
+	void setupEditMenu();
+	void undoScene();
+	void redoScene();
+	void stepSceneHistory(bool redo);
+	void restoreSceneFromHistory(const SceneHistoryEntry& entry);
+	void refreshAllEditorPanels();
+	void updateUndoRedoActions();
+	std::set<std::string> modifiedScenarioIds() const;
 	void invalidateRunResults();
 
 	// passenger editor: canonical passengers, journeys, and ordered legs
