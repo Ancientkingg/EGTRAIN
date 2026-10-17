@@ -228,6 +228,47 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		} else {
 			fail(QStringLiteral("the recent scene is not in the menu"));
 		}
+
+		// A folder case is labeled by the name in its manifest, with '&' doubled so the menu does not read it as a
+		// mnemonic. A bundle and a folder that share a label and a parent folder are told apart by their file names.
+		const QString uniqueName = QFileInfo(temp.path()).fileName();
+		const auto labelOf = [&w](const QString& path) {
+			for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
+				if (action->data().toString() == path)
+					return action->text();
+			}
+			return QString();
+		};
+		const QString namedFolder = QFileInfo(temp.filePath(QStringLiteral("named-") + uniqueName)).absoluteFilePath();
+		QFile manifest(namedFolder + QStringLiteral("/scene.json"));
+		if (QDir().mkpath(namedFolder) && manifest.open(QIODevice::WriteOnly)) {
+			manifest.write(QStringLiteral("{\"name\": \"R&D ").toUtf8() + uniqueName.toUtf8() + "\"}");
+			manifest.close();
+			w.m_session->addRecentScene(namedFolder);
+			if (labelOf(namedFolder) != QStringLiteral("R&&D ") + uniqueName)
+				fail(QStringLiteral("a recent folder case is not labeled by its manifest name: ") + labelOf(namedFolder));
+		} else {
+			fail(QStringLiteral("the recent folder fixture could not be created"));
+		}
+
+		const QString sharedName = QStringLiteral("shared-") + uniqueName;
+		const QString sharedBundle = QFileInfo(temp.filePath(sharedName + QStringLiteral(".egscene"))).absoluteFilePath();
+		const QString sharedFolder = QFileInfo(temp.filePath(sharedName)).absoluteFilePath();
+		QFile sharedManifest(sharedFolder + QStringLiteral("/scene.json"));
+		if (QFile::copy(validPath, sharedBundle) && QDir().mkpath(sharedFolder) && sharedManifest.open(QIODevice::WriteOnly)) {
+			sharedManifest.write("{}");
+			sharedManifest.close();
+			w.m_session->addRecentScene(sharedBundle);
+			w.m_session->addRecentScene(sharedFolder);
+			const QString bundleLabel = labelOf(sharedBundle);
+			const QString folderLabel = labelOf(sharedFolder);
+			if (bundleLabel == folderLabel || !bundleLabel.startsWith(sharedName) || !bundleLabel.endsWith(sharedName + QStringLiteral(".egscene)"))
+				|| !folderLabel.startsWith(sharedName) || !folderLabel.endsWith(display_path::format(QStringLiteral("/") + sharedName) + QStringLiteral(")")))
+				fail(QStringLiteral("two recent scenes with one label and one parent are not told apart: ") + bundleLabel + QStringLiteral(" | ")
+					+ folderLabel);
+		} else {
+			fail(QStringLiteral("the shared-label recent fixtures could not be created"));
+		}
 	}
 
 	if (ok)

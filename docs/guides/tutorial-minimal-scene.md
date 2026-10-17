@@ -100,7 +100,7 @@ Both are now listed under **File > Recent Scenes**.
 ## 9. Reopen and confirm
 
 1. Choose **File > Open Scene Folder...**, choose the folder `minimal-line`, and check the Infrastructure, Services and Rolling stock units against the sections above. The title bar reads `EGTRAIN - Minimal line`.
-2. Choose **File > Recent Scenes** and the entry `minimal-line.egscene`. The case is the same, and **Run** completes with the same arrival.
+2. Choose **File > Recent Scenes** and the entry `minimal-line` for the bundle (the folder is listed as `Minimal line`). The case is the same, and **Run** completes with the same arrival.
 
 ## 10. Check the saved scene outside the window
 
