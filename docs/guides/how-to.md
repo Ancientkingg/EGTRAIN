@@ -52,7 +52,7 @@ You should see `Scene saved` in the status bar. Your file is now the open case, 
 Other ways to save:
 
 - **File > Save Scene** (Ctrl+S) writes the case back to the bundle or scene folder it came from. For an example case of the package, and for a new case that has no file yet, it asks for a new `.egscene` file instead, as **Save Case Study As...** does, and Cancel keeps the edit. A scene folder outside the installation, such as one in a source checkout, is saved in place.
-- **File > Save Scene As Folder...** writes the scene as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `Save scene files there?`.
+- **File > Save Scene As Folder...** writes the scene as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `Save scene files there?`. A folder that already holds a `scene.json` is written over without a question; other files in it are kept.
 - A destination inside the installation is refused with **Cannot Save Scene**: `Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
 To check a saved case, open it again from **File > Recent Scenes**. The three save commands are enabled whenever a case is open, also during a run.
@@ -179,7 +179,7 @@ You need a run that reached its end. Until then the result commands are disabled
 | Capacity | Capacity analysis... |
 | Capacity by area | Capacity by area... |
 
-3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section.
+3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.
 4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](../ui/diagram-navigation.md).
 
 The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
@@ -215,7 +215,7 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 | **Pause**, **Stop** | No run is active, or the run is already stopping | Start a run, or wait for the run to stop |
 | **File > Save Scene**, **Save Case Study As...**, **Save Scene As Folder...** | No case is open | Open or create a case. A normal start always has one open |
 | **File > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
-| The contents of the editors **Services**, **Passengers** and **Infrastructure** (the menu **Editors** still opens them) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling stock units**, **Compositions** and **Incidents** stay usable during a run, and an edit there discards the results of that run |
+| The contents of the editors **Services**, **Passengers**, **Infrastructure** and **Incidents** (the menu **Editors** still opens them) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling stock units** and **Compositions** stay usable during a run, and an edit there discards the results of that run |
 | **Edit > Undo**, **Edit > Redo** | A run uses the case, or there is nothing to undo or redo | Stop the run or wait |
 | **Diagrams** entries, **Open result view...**, **Export CSV...**, **Export PNG...** in **Run Results** | No run has reached its end since the last edit | Run again. A stopped run, an edit, a new case and another scenario all discard results |
 | **Set delay baseline** | There is no completed run, or its scenario has an incident or an entrance delay | [Compare a scenario with a baseline](#compare-a-scenario-with-a-baseline) |
