@@ -42,9 +42,10 @@ public:
 	// Returns the controller to a new run.
 	void resetState();
 
-	// The run that prepareScene made, with the results after it has been run. The thread that steps the run
-	// owns it: while a SimulationWorker is running, only that thread calls this, and the window sees the run through
-	// the snapshots. Other threads call it before the worker starts or after it has joined.
+	// The run that prepareScene made, with the results after it has been run. While a SimulationWorker is running,
+	// the thread that steps the run owns its state, and the window reads only what a step does not change (the
+	// infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the
+	// worker has joined.
 	const SimulationRun& run() const;
 	// The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The
 	// thread rules of run() apply.
