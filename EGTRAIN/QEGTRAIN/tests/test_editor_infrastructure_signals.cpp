@@ -222,13 +222,17 @@ static bool testFacets() {
 	ok &= expect(f.panel.facet("signals") && f.panel.facet("signalling_areas") && !f.panel.facet("blocks") && !f.panel.facet("stations"),
 		"the panel has the facets of the signalling and no others");
 	f.choose("signals");
+	f.select(1);
+	f.prompts.confirmAnswer = true;
 	f.document.setEditable(false);
 	f.panel.refresh();
+	f.type(0, 0, "signal-x");
 	f.panel.addEntity();
 	f.panel.deleteEntity();
 	f.panel.commitCell(0, 0);
 	f.panel.commitPendingEditors();
-	ok &= expect(f.untouched() && sceneSignals(f.model()).size() == 2 && sceneSignals(f.model())[0].id == "signal-1",
+	ok &= expect(f.untouched() && f.prompts.confirmCount == 0 && sceneSignals(f.model()).size() == 2 && sceneSignals(f.model())[0].id == "signal-1"
+			&& sceneSignals(f.model())[1].id == "signal-2",
 		"nothing is edited, added or deleted while a run uses the scene");
 	ok &= expect(!f.table()->isEnabled(), "the table cannot be used while a run uses the scene");
 	return ok;
@@ -264,10 +268,12 @@ static bool testSignalEdit() {
 	f.chooseBlock(1, "block-a2");
 	ok &= expect(sceneSignals(f.model())[1].protectedSection == sectionOf(f.model(), "block-a2") && f.editedOnce("Edit signal") && f.combo(1, 1) == second,
 		"a section is chosen, which marks the document once and leaves the combo in the table");
-	f.chooseBlock(1, "block-a2");
-	ok &= expect(f.untouched(), "choosing the section that is chosen changes nothing");
 	f.choose(second, QString());
 	ok &= expect(sceneSignals(f.model())[1].protectedSection.empty() && f.editedOnce("Edit signal"), "choosing none unbinds the signal");
+	// the combo shows none while the model already has the section that is chosen
+	sceneSignals(f.edit())[1].protectedSection = sectionOf(f.model(), "block-a2");
+	f.chooseBlock(1, "block-a2");
+	ok &= expect(f.untouched(), "choosing the section that the signal has changes nothing");
 
 	// rename: only the signal-failure incidents that target the signal follow
 	f.type(0, 0, " signal-x ");
@@ -397,8 +403,10 @@ static bool testAreaCombos() {
 	f.choose(system, 4);
 	ok &= expect(f.model().signallingAreas[0].level == 4 && f.editedOnce("Edit signalling area") && f.combo(0, 3) == system,
 		"another system is chosen, which marks the document once and leaves the combo in the table");
-	f.choose(system, 4);
-	ok &= expect(f.untouched(), "choosing the system that is chosen changes nothing");
+	// the combo shows another system than the model has
+	f.edit().signallingAreas[0].level = 5;
+	f.choose(system, 5);
+	ok &= expect(f.untouched(), "choosing the system that the area has changes nothing");
 
 	// track
 	QComboBox* track = f.combo(0, 4);
@@ -407,8 +415,10 @@ static bool testAreaCombos() {
 		"another track is chosen, which marks the document once and leaves the combo in the table");
 	f.choose(track, QString());
 	ok &= expect(f.model().signallingAreas[0].trackId.empty() && f.editedOnce("Edit signalling area"), "all tracks can be chosen");
-	f.choose(track, QString());
-	ok &= expect(f.untouched(), "choosing the track that is chosen changes nothing");
+	// the combo shows another track than the model has
+	f.edit().signallingAreas[0].trackId = "track-b";
+	f.choose(track, "track-b");
+	ok &= expect(f.untouched(), "choosing the track that the area has changes nothing");
 
 	// a combo of a row that is gone does nothing
 	QComboBox* last = f.combo(1, 3);
