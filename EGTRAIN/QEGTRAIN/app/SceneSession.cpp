@@ -394,6 +394,8 @@ bool SceneSession::finishSceneSave(const SceneSaveResult& result,
 	refreshSavedSceneMetadata(m_document->mutableModel());
 	m_document->mutableModel().savedWithAppVersion = EGTRAIN_APP_VERSION;
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	// A saved folder case may carry a new name, which Recent Scenes shows.
+	rebuildRecentScenesMenu();
 	m_host.sceneSaved();
 	return true;
 }
