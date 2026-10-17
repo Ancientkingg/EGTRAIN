@@ -4,13 +4,13 @@
 #include "scene/SceneReferences.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/DisplayPath.h"
 #include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QGridLayout>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -34,18 +34,27 @@ bool hasEditorFocus(const QWidget* editor) {
 	return editor && (editor->hasFocus() || (focus && editor->isAncestorOf(focus)));
 }
 
+// The path as the person reads it on this system, with a zero-width space after each separator and underscore so
+// that a label can wrap it. The characters are not drawn.
+QString breakablePath(const QString& path) {
+	QString shown = EditorLayout::breakableName(display_path::format(path));
+	shown.replace(display_path::separator(), QString(display_path::separator()) + QChar(0x200B));
+	return shown;
+}
+
 } // namespace
 
 TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	setObjectName("trainUnitPanel");
-	QHBoxLayout* layout = new QHBoxLayout(this);
+	QVBoxLayout* layout = new QVBoxLayout(this);
 
-	// left: the list of units and the buttons that manage it
+	// top: the list of units and the buttons that manage it
 	QWidget* listPane = new QWidget(this);
 	QVBoxLayout* listLayout = new QVBoxLayout(listPane);
 	listLayout->addWidget(new QLabel("Rolling stock units", listPane));
 	m_listWidget = new QListWidget(listPane);
 	m_listWidget->setObjectName("trainUnitList");
+	m_listWidget->setMaximumHeight(fontMetrics().lineSpacing() * 6);
 	listLayout->addWidget(m_listWidget);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Unit", listPane);
@@ -58,10 +67,9 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	buttonLayout->addWidget(m_duplicateButton, 0, 1);
 	buttonLayout->addWidget(m_deleteButton, 1, 0);
 	listLayout->addLayout(buttonLayout);
-	listPane->setMaximumWidth(listPane->fontMetrics().averageCharWidth() * 32);
 	layout->addWidget(listPane);
 
-	// right: the id of the selected unit above its traction and physical values
+	// below: the id of the selected unit above its traction and physical values
 	QWidget* detailPane = new QWidget(this);
 	QVBoxLayout* detailLayout = new QVBoxLayout(detailPane);
 	const auto addHeading = [](QWidget* page, QVBoxLayout* pageLayout, const QString& title) {
@@ -72,16 +80,16 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	// Adds the buttons and the status of one source link to a page. `name` is part of the object names.
 	const auto addSourceLink = [](QWidget* page, QVBoxLayout* pageLayout, const QString& linkText, const QString& name,
 								   QPushButton*& link, QPushButton*& unlink, QPushButton*& retry, QLabel*& status) {
-		QHBoxLayout* actions = new QHBoxLayout();
+		QGridLayout* actions = new QGridLayout();
 		link = new QPushButton(linkText, page);
 		link->setObjectName("linkTrainUnit" + name + "Button");
 		unlink = new QPushButton("Unlink", page);
 		unlink->setObjectName("unlinkTrainUnit" + name + "Button");
 		retry = new QPushButton("Retry", page);
 		retry->setObjectName("retryTrainUnit" + name + "Button");
-		actions->addWidget(link);
-		actions->addWidget(unlink);
-		actions->addWidget(retry);
+		actions->addWidget(link, 0, 0, 1, 2);
+		actions->addWidget(unlink, 1, 0);
+		actions->addWidget(retry, 1, 1);
 		pageLayout->addLayout(actions);
 		status = EditorLayout::wrappedLabel("Unlinked", page);
 		status->setObjectName("trainUnit" + name + "StatusLabel");
@@ -121,23 +129,24 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tractionTable->horizontalHeader()->setStretchLastSection(true);
 	m_tractionTable->setMinimumHeight(m_tractionTable->fontMetrics().lineSpacing() * 8);
 	tractionLayout->addWidget(m_tractionTable, 1);
-	QHBoxLayout* tractionButtonLayout = new QHBoxLayout();
+	QGridLayout* tractionButtonLayout = new QGridLayout();
 	m_addTractionRowButton = new QPushButton("Add Traction Row", tractionPage);
 	m_addTractionRowButton->setObjectName("addTrainUnitTractionRowButton");
 	m_removeTractionRowButton = new QPushButton("Delete Traction Row", tractionPage);
 	m_removeTractionRowButton->setObjectName("removeTrainUnitTractionRowButton");
-	tractionButtonLayout->addWidget(m_addTractionRowButton);
-	tractionButtonLayout->addWidget(m_removeTractionRowButton);
-	tractionLayout->addLayout(tractionButtonLayout);
 	m_plotButton = new QPushButton("Plot input traction characteristic", tractionPage);
 	m_plotButton->setObjectName("plotTrainUnitTractionButton");
-	tractionLayout->addWidget(m_plotButton);
+	tractionButtonLayout->addWidget(m_addTractionRowButton, 0, 0);
+	tractionButtonLayout->addWidget(m_removeTractionRowButton, 0, 1);
+	tractionButtonLayout->addWidget(m_plotButton, 1, 0, 1, 2);
+	tractionLayout->addLayout(tractionButtonLayout);
 	m_tabs->addTab(tractionPage, "Traction");
 
 	QWidget* physicalPage = new QWidget(m_tabs);
 	QVBoxLayout* physicalPageLayout = new QVBoxLayout(physicalPage);
 	addHeading(physicalPage, physicalPageLayout, "Rolling stock unit characteristics");
 	QFormLayout* physicalLayout = new QFormLayout();
+	physicalLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	const char* physicalLabels[PhysicalFieldCount] = {
 		"Traction-unit mass (kg)", "Wagon mass (kg)", "Wagon count",
 		"Maximum speed (m/s)", "Maximum deceleration (m/s²)", "Frontal area (m²)",
@@ -340,13 +349,13 @@ void TrainUnitPanel::setSourceState(bool traction, const QString& linkedPath, co
 	} else if (!linked) {
 		statusLabel->setText(QStringLiteral("Unlinked"));
 		statusLabel->setToolTip(QString());
+	} else if (!QFileInfo(linkedPath).exists()) {
+		// A file that is gone is missing whatever the last answer to its changes was, also after Keep local.
+		statusLabel->setText(QStringLiteral("Missing: %1; Retry available").arg(breakablePath(linkedPath)));
+		statusLabel->setToolTip(display_path::format(linkedPath));
 	} else {
-		QString display = status;
-		if (display.isEmpty())
-			display = QFileInfo(linkedPath).exists() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName())
-													 : QStringLiteral("Linked file missing; Retry");
-		statusLabel->setText(display);
-		statusLabel->setToolTip(linkedPath);
+		statusLabel->setText(status.isEmpty() ? QStringLiteral("Linked: %1").arg(QFileInfo(linkedPath).fileName()) : status);
+		statusLabel->setToolTip(display_path::format(linkedPath));
 	}
 }
 

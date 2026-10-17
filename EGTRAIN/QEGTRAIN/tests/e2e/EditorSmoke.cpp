@@ -1691,7 +1691,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							bool sawUnresolved = false;
 							int rejectedCollisionRows = 0;
 							for (int row = 0; row < importResults->rowCount(); ++row) {
-								const QTableWidgetItem* statusItem = importResults->item(row, 2);
+								const QTableWidgetItem* statusItem = importResults->item(row, 3);
 								if (!statusItem)
 									continue;
 								sawAccepted = sawAccepted || statusItem->text() == "Accepted";
@@ -1752,8 +1752,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							} else {
 								importPassengersFrom(passengerImport, partialFixture.path());
 								if (!samePassengers(passengersBeforeFailedImport, w.m_document->mutableModel().passengers)
-									|| importResults->rowCount() != 1 || !importResults->item(0, 2)
-									|| importResults->item(0, 2)->text() != "Rejected")
+									|| importResults->rowCount() != 1 || !importResults->item(0, 3)
+									|| importResults->item(0, 3)->text() != "Rejected")
 									facetFailure(facetOk, "passenger import", "a failed import changed the scene or hid its rejection");
 							}
 						}
@@ -4259,6 +4259,38 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			return scroll->horizontalScrollBar()->isVisible() ? QString("the Compositions dock scrolls sideways") : QString();
 		};
+		// The link, traction row and plot buttons of the rolling stock editor on both tabs are whole inside the visible part of the
+		// dock, and the dock does not scroll sideways. A docked dock is first made `dockWidth` pixels wide.
+		const auto trainUnitButtonFailure = [&w](int dockWidth = 0) -> QString {
+			if (dockWidth > 0 && !w.m_trainUnitDock->isFloating())
+				w.resizeDocks({w.m_trainUnitDock}, {dockWidth}, Qt::Horizontal);
+			TrainUnitPanel* panel = w.m_trainUnitPanel;
+			if (!panel->selectedUnit() && panel->listWidget()->count() > 0)
+				panel->listWidget()->setCurrentRow(0);
+			if (!panel->selectedUnit())
+				return QStringLiteral("no rolling stock unit is available to check");
+			auto* scroll = w.m_trainUnitDock->findChild<QScrollArea*>("editorContentScroll");
+			QString failure;
+			for (const int tab : {0, 1}) {
+				panel->tabs()->setCurrentIndex(tab);
+				scroll->horizontalScrollBar()->setValue(0);
+				// The scroll bars follow a change of the panel over a few passes of the event loop.
+				for (int pass = 0; pass < 3; ++pass)
+					QApplication::processEvents();
+				QList<QPushButton*> buttons = {panel->linkButton(tab == 0), panel->unlinkButton(tab == 0), panel->retryButton(tab == 0)};
+				if (tab == 0)
+					buttons << panel->addTractionRowButton() << panel->removeTractionRowButton() << panel->plotButton();
+				for (const QPushButton* button : buttons) {
+					const QRect placed(button->mapTo(scroll->viewport(), QPoint(0, 0)), button->size());
+					if (placed.left() < 0 || placed.right() >= scroll->viewport()->width())
+						failure = QString("%1 is cut off at the side of the Rolling stock dock").arg(button->objectName());
+				}
+				if (failure.isEmpty() && scroll->horizontalScrollBar()->isVisible())
+					failure = QStringLiteral("the Rolling stock dock scrolls sideways");
+			}
+			panel->tabs()->setCurrentIndex(0);
+			return failure;
+		};
 		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock,
 				 w.m_compositionDock, w.m_serviceDock, w.m_incidentDock, w.m_passengerDock}) {
 			const QFont normalFont = dock->font();
@@ -4280,6 +4312,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					const QString failure = compositionButtonFailure(640);
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " at 1280 by 800 pixels");
+				}
+				if (dock == w.m_trainUnitDock) {
+					const QString failure = trainUnitButtonFailure(qRound(480 * scale));
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + QString(" at %1 times the font in a dock of %2 pixels").arg(scale).arg(qRound(480 * scale)));
 				}
 				if (dock == w.m_passengerDock) {
 					auto* scroll = dock->findChild<QScrollArea*>("editorContentScroll");
@@ -4305,6 +4342,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				}
 				if (dock == w.m_compositionDock) {
 					const QString failure = compositionButtonFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
+				}
+				if (dock == w.m_trainUnitDock) {
+					const QString failure = trainUnitButtonFailure();
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
 				}

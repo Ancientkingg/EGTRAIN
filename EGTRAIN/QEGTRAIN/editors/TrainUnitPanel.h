@@ -54,7 +54,8 @@ public:
 	// The shown unit, or null.
 	const SceneTrainUnit* selectedUnit() const;
 	// Shows the state of the source link of the shown unit. `linkedPath` is empty when the source is not linked, and
-	// `status` is empty when the link has no status of its own.
+	// `status` is empty when the link has no status of its own. A linked file that does not exist is shown as missing,
+	// with its path, whatever the status says.
 	void setSourceState(bool traction, const QString& linkedPath, const QString& status);
 
 	QListWidget* listWidget() const { return m_listWidget; }

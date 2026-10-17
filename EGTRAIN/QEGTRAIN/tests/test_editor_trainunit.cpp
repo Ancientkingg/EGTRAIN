@@ -1,5 +1,7 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "widgets/DisplayPath.h"
+
 #include <QApplication>
 #include <QDoubleSpinBox>
 #include <QFile>
@@ -470,13 +472,31 @@ int main(int argc, char** argv) {
 		ok &= expect(file.open(QIODevice::WriteOnly), "a file for the link could be made");
 		file.close();
 		panel.setSourceState(true, existing, QString());
-		ok &= expect(panel.sourceStatusLabel(true)->text() == "Linked: linked.txt" && panel.sourceStatusLabel(true)->toolTip() == existing
+		ok &= expect(panel.sourceStatusLabel(true)->text() == "Linked: linked.txt" && panel.sourceStatusLabel(true)->toolTip() == display_path::format(existing)
 				&& panel.unlinkButton(true)->isEnabled() && panel.retryButton(true)->isEnabled()
 				&& panel.sourceStatusLabel(false)->text() == "Unlinked",
 			"a linked source shows its file, with the path as tooltip, and the other source is not touched");
-		panel.setSourceState(true, directory.filePath("missing.txt"), QString());
-		ok &= expect(panel.sourceStatusLabel(true)->text() == "Linked file missing; Retry",
-			"a linked file that is gone says so");
+		const QString missing = directory.filePath("missing.txt");
+		const auto shownText = [&panel](bool traction) { return QString(panel.sourceStatusLabel(traction)->text()).remove(QChar(0x200B)); };
+		const QString missingText = "Missing: " + display_path::format(missing) + "; Retry available";
+		panel.setSourceState(true, missing, QString());
+		ok &= expect(shownText(true) == missingText && panel.sourceStatusLabel(true)->toolTip() == display_path::format(missing)
+				&& panel.unlinkButton(true)->isEnabled() && panel.retryButton(true)->isEnabled(),
+			"a linked file that is gone is missing, with its path, and can be retried or unlinked");
+		for (const char* status : {"Rejected: The traction source could not be read; Retry available", "Kept local; Retry available",
+				 "Up to date", "Linked; waiting for reload"}) {
+			panel.setSourceState(true, missing, status);
+			ok &= expect(shownText(true) == missingText, "a linked file that is gone is missing whatever the last status was");
+		}
+		panel.setSourceState(false, missing, "Kept local; Retry available");
+		ok &= expect(shownText(false) == missingText && shownText(true) == missingText,
+			"the parameter source and the traction source each show their own missing file");
+		panel.setSourceState(false, existing, "Rejected: The parameter source could not be read; Retry available");
+		ok &= expect(panel.sourceStatusLabel(false)->text() == "Rejected: The parameter source could not be read; Retry available",
+			"a file that exists and cannot be read is rejected, not missing");
+		panel.setSourceState(false, existing, "Kept local; Retry available");
+		ok &= expect(panel.sourceStatusLabel(false)->text() == "Kept local; Retry available",
+			"a file that exists keeps the status of its link");
 		panel.setSourceState(true, existing, "Reloaded");
 		ok &= expect(panel.sourceStatusLabel(true)->text() == "Reloaded", "the status of the link replaces the default text");
 		panel.listWidget()->setCurrentRow(-1);
@@ -484,6 +504,53 @@ int main(int argc, char** argv) {
 		panel.setSourceState(true, existing, "Reloaded");
 		ok &= expect(panel.sourceStatusLabel(true)->text() == "No unit selected" && !panel.linkButton(true)->isEnabled(),
 			"without a selected unit the state is not shown");
+	}
+
+	for (const double scale : {1.0, 1.5}) {
+		// the buttons of the links and of the traction curve are in two rows and fit the panel at its minimum width
+		SceneDocument document;
+		TrainUnitPanel panel;
+		QFont font = panel.font();
+		font.setPointSizeF(font.pointSizeF() * scale);
+		panel.setFont(font);
+		panel.setDocument(&document);
+		document.replace(unitScene(), false);
+		panel.show();
+		panel.resize(panel.minimumSizeHint());
+		QApplication::processEvents();
+		const QString label = QString(" at %1 times the font").arg(scale);
+		ok &= expect(panel.minimumSizeHint().width() <= 480 * scale, qPrintable("the panel is not wider than a dock of 480 pixels needs" + label));
+		const auto inside = [&panel](const QList<QPushButton*>& buttons) {
+			bool whole = true;
+			for (const QPushButton* button : buttons) {
+				const QRect placed(button->mapTo(&panel, QPoint(0, 0)), button->size());
+				whole = whole && button->isVisible() && panel.rect().contains(placed) && button->width() >= button->minimumSizeHint().width();
+			}
+			return whole;
+		};
+		panel.tabs()->setCurrentIndex(0);
+		QApplication::processEvents();
+		QPushButton* link = panel.linkButton(true);
+		QPushButton* unlink = panel.unlinkButton(true);
+		QPushButton* retry = panel.retryButton(true);
+		ok &= expect(inside({link, unlink, retry, panel.addTractionRowButton(), panel.removeTractionRowButton(), panel.plotButton()}),
+			qPrintable("the buttons of the Traction tab are whole inside the panel at its minimum width" + label));
+		ok &= expect(link->y() < unlink->y() && unlink->y() == retry->y() && unlink->x() < retry->x(),
+			qPrintable("Link is above Unlink and Retry on the Traction tab" + label));
+		ok &= expect(panel.addTractionRowButton()->y() == panel.removeTractionRowButton()->y()
+				&& panel.plotButton()->y() > panel.addTractionRowButton()->y(),
+			qPrintable("Plot is under the traction row buttons" + label));
+		panel.tabs()->setCurrentIndex(1);
+		QApplication::processEvents();
+		ok &= expect(inside({panel.linkButton(false), panel.unlinkButton(false), panel.retryButton(false)}),
+			qPrintable("the buttons of the Physical tab are whole inside the panel at its minimum width" + label));
+		ok &= expect(panel.linkButton(false)->y() < panel.unlinkButton(false)->y()
+				&& panel.unlinkButton(false)->y() == panel.retryButton(false)->y(),
+			qPrintable("Link is above Unlink and Retry on the Physical tab" + label));
+		bool fieldsInside = true;
+		for (const QDoubleSpinBox* field : panel.physicalEdits())
+			fieldsInside = fieldsInside && panel.rect().contains(QRect(field->mapTo(&panel, QPoint(0, 0)), field->size()));
+		ok &= expect(fieldsInside, qPrintable("the physical fields are whole inside the panel at its minimum width" + label));
 	}
 
 	{
