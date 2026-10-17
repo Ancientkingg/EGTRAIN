@@ -64,4 +64,7 @@ private:
 	QString m_inspectionIdentity;
 };
 
+// The state of a signal head in tooltips, the inspector and the scripted runs.
+QString signalAspectLabel(const SignalItem* signal);
+
 #endif // SIGNALITEM_H

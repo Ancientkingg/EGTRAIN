@@ -148,6 +148,7 @@ class ValidationPanel;
 #include "graphics/items/TrainBadgeItem.h"
 #include "widgets/NetworkLegendWidget.h"
 #include "widgets/InfoDockWidget.h"
+#include "widgets/InspectorPanel.h"
 #include "graphics/items/HighlightEffect.h"
 #include "widgets/TimeProgressBar.h"
 #include "widgets/ElidedLabel.h"
@@ -183,7 +184,8 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host,
+	private InspectorPanel::Host {
 	Q_OBJECT
 
 public:
@@ -214,11 +216,6 @@ public:
 	// fit view
 	void fitView();
 
-	// double to string with precision
-	string to_string_precision(double value, int precision);
-
-	// setup info dock widget
-	void setupInfoDockWidget();
 	void setupRunResultsDock();
 	void refreshRunResults();
 
@@ -236,16 +233,6 @@ protected:
 
 public slots:
 	void handleHelpAbout();
-	void handleCloseInfoDockWidget();
-	void displayPreviewInfo(QGraphicsItem* item);
-	void displayNodeInfo(NodeItem* el);
-	void displayStationNodeInfo(StationNodeItem* re);
-	void displayArcInfo(TrackLineItem* line);
-	void displayConnectionInfo(ConnectionItem* line);
-	void displaySignallingInfo(SignalItem* signal);
-	void displayTrainInfo(TrainBodyItem* trainItem);
-	void displayPassengerInfo(PassengerItem* paxItem);
-	void handleDisableHighlight();
 	// updates according to simulation
 	void waitForUpdates();
 	// display train path diagrams
@@ -281,58 +268,12 @@ private:
 	QLabel* loadingLabel;
 	QMovie* loadingMovie;
 
-	// dock widget
-	QWidget* infoWidget;
-	QVBoxLayout* infoWidgetMainLayout;
-	InfoDockWidget* infoDockWidget;
+	// The Simulation Info dock: the form of the selected item
+	InspectorPanel* m_inspector = nullptr;
 	QDockWidget* m_runResultsDock = nullptr;
 	QTableWidget* m_runResultsTable = nullptr;
 	QPushButton* m_setDelayBaselineButton = nullptr;
 	QPushButton* m_compareDelayButton = nullptr;
-	QWidget* arcInfoWidget;
-	QLineEdit* arcIDText;
-	QLineEdit* arcFirstNodeIDText;
-	QLineEdit* arcSecondNodeIDText;
-	QLineEdit* arcTrackIDText;
-	QLineEdit* arcLengthText;
-	QLineEdit* arcCurvatureText;
-	QLineEdit* arcGradientText;
-	QLineEdit* arcSpeedLimitText;
-	QLineEdit* arcOperationalStateText;
-	QLineEdit* arcConnectedSignalsText;
-	QFormLayout* arcFormLayout;
-	QWidget* nodeInfoWidget;
-	QLineEdit* nodeIDText;
-	QLineEdit* nodeTrackIDText;
-	QLineEdit* nodeXText;
-	QLineEdit* nodeYText;
-	QLineEdit* nodeStationNameText;
-	QLineEdit* nodeRegionText;
-	QLineEdit* nodeConnectedTracksText;
-	QLineEdit* nodeSignalledText;
-	QFormLayout* nodeFormLayout;
-	QWidget* connectionInfoWidget;
-	QLineEdit* connectionFirstTrackIDText;
-	QLineEdit* connectionSecondTrackIDText;
-	QLineEdit* connectionXFirstNodeText;
-	QLineEdit* connectionXSecondNodeText;
-	QFormLayout* connectionFormLayout;
-	QWidget* signallingInfoWidget;
-	QLineEdit* signallingTrackIDText;
-	QLineEdit* signallingXText;
-	QLineEdit* signallingIDSectionAheadText;
-	QLineEdit* signallingLengthSectionAheadText;
-	QLineEdit* signallingAspectText;
-	QLineEdit* signallingProtectedSectionText;
-	QLineEdit* signallingNextTrackText;
-	QPlainTextEdit* signallingGroupDetails;
-	QFormLayout* signallingFormLayout;
-	QWidget* trainInfoWidget;
-	QLineEdit* trainIDText;
-	QLineEdit* trainTypeText;
-	QLineEdit* trainLengthText;
-	QLineEdit* trainWagonsText;
-	QFormLayout* trainFormLayout;
 
 	// Set only for the close() that follows a stopped run. The question about unsaved changes
 	// was answered when the close was requested.
@@ -351,7 +292,6 @@ private:
 	QPointer<QMenu> m_sceneContextMenu;
 	QPointer<AboutDialog> m_aboutDialog;
 	int m_followTrainIndex = -1;
-	int m_selectedTrainIndex = -1;
 	bool m_updatingFollowCombo = false;
 	qint64 m_lastRenderMs = 0;
 	// Draws the newest delivered snapshot once the 33 ms render limit is over,
@@ -556,11 +496,6 @@ private:
 	QCheckBox* m_signalLayerCheck = nullptr;
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
-	QString m_selectedStationName;
-	QString m_previewSelectedStationId;
-	bool m_hasSelectedStationIdentity = false;
-	double m_selectedStationNodeId = 0.0;
-	int m_selectedStationTrack = -1;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;
@@ -592,7 +527,6 @@ private:
 	// Moves the view to the followed train at once, or stops the camera when the view does not follow it.
 	void cutToFollowedTrain(const FollowAvailability& following);
 	void setFollowTrain(int trainIndex);
-	void displayTrainDetails(TrainBodyItem* trainItem, bool changeFollowMode);
 	TrainItemGroup* resolveTrainItem(int trainIndex) const;
 	TrainBodyItem* resolveTrainBodyItem(int trainIndex) const;
 	StationNodeItem* resolveStationNodeItem(double nodeId, int track) const;
@@ -658,9 +592,6 @@ private:
 	void revealEditorDock(QDockWidget* dock);
 	void revealEditorDock(QDockWidget* dock, const telemetry::OperationObservation& operation);
 	void renderTrackPreview(const SceneModel& sceneModel);
-	void clearPreviewInspection();
-	QGraphicsItem* resolvePreviewItem(const QString& kind, const QString& id,
-		const QString& track, bool reversed, quint64 revision) const;
 	void updateCaseLayersPanel();
 	void commitPendingEditorValues();
 	void commitPendingCaseSettings();
@@ -738,7 +669,19 @@ private:
 
 	void bindStationOverlaySources();
 	void updateStationOverlayDegrees();
-	GuiPassengerState passengerState(const std::string& id) const;
+
+	// InspectorPanel::Host: what the Simulation Info dock asks of the window.
+	bool showingTrackPreview() const override;
+	const SceneModel* loadedScene() const override;
+	quint64 loadedSceneRevision() const override;
+	int regionOfTrack(int track) const override;
+	bool passengerGui() const override;
+	GuiPassengerState passengerState(const std::string& id) const override;
+	bool replayActive() const override;
+	void closeSceneContextMenu() override;
+	void inspectionChanged() override;
+	void signalInspected() override;
+	void followTrain(int trainIndex) override;
 
 	// NetworkPresenter::FrameHost: the parts of a frame that the follow camera, the legend and the signal inspector take.
 	bool isTrainOverlayPromoted(int trainIndex) const override;

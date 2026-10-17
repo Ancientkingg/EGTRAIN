@@ -4158,8 +4158,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			QApplication::processEvents();
 			return failure;
 		};
-		const bool signalDetails = w.signallingGroupDetails && w.signallingGroupDetails->isReadOnly()
-			&& w.signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
+		const bool signalDetails = w.m_inspector->signallingGroupDetails && w.m_inspector->signallingGroupDetails->isReadOnly()
+			&& w.m_inspector->signallingGroupDetails->lineWrapMode() == QPlainTextEdit::WidgetWidth;
 		const bool resultsStructure = w.m_runResultsDock
 			&& w.m_runResultsDock->findChild<QToolButton*>("runResultsViewsButton")
 			&& w.m_runResultsDock->findChildren<QAction*>(QRegularExpression("^resultView_")).size() == 12

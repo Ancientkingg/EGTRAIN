@@ -258,6 +258,7 @@ add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/ColorChoiceButton.cpp
     ${SRC_DIR}/widgets/ConsoleWidget.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
+    ${SRC_DIR}/widgets/InspectorPanel.cpp
     ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
     ${SRC_DIR}/widgets/TimeProgressBar.cpp)
 target_link_libraries(egtrain_widgets
@@ -973,6 +974,12 @@ if(EGTRAIN_BUILD_TESTS)
     set_tests_properties(test_networkpresenter PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_inspectorpanel ${SRC_DIR}/tests/test_inspectorpanel.cpp)
+    target_link_libraries(test_inspectorpanel PRIVATE egtrain_widgets egtrain_graphics egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
+    add_test(NAME test_inspectorpanel COMMAND test_inspectorpanel)
+    set_tests_properties(test_inspectorpanel PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_runtimecanvas ${SRC_DIR}/tests/test_runtimecanvas.cpp)
     target_link_libraries(test_runtimecanvas PRIVATE egtrain_graphics egtrain_sim Qt5::Core Qt5::Gui Qt5::Widgets cppzmq nlohmann_json::nlohmann_json)
     add_test(NAME test_runtimecanvas COMMAND test_runtimecanvas)
@@ -1647,7 +1654,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates test_diagramwindow
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
-		test_networkscene_selection test_networkpresenter test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
+		test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_check_docs docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
@@ -1671,7 +1678,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_sign_macos)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
-		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_runtimecanvas
+		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas
 		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke

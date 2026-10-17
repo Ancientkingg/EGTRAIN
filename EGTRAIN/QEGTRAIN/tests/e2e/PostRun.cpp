@@ -1008,10 +1008,10 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		QCoreApplication::exit(2);
 		return;
 	}
-	w.displayTrainDetails(bodySelection, false);
+	w.m_inspector->displayTrainDetails(bodySelection, false);
 	w.seekReplay(last);
 	w.seekReplay(activeFrame->timestep);
-	if (w.m_selectedTrainIndex != activeIndex || !w.trainInfoWidget->isVisible()
+	if (w.m_inspector->selectedTrainIndex() != activeIndex || !w.m_inspector->trainInfoWidget->isVisible()
 		|| !w.resolveTrainItem(activeIndex)->graphicsEffect()) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: train inspection lost\n");
 		QCoreApplication::exit(2);
@@ -1024,7 +1024,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			QCoreApplication::exit(2);
 			return;
 		}
-		w.handleCloseInfoDockWidget();
+		w.m_inspector->handleCloseInfoDockWidget();
 		w.seekReplay(activeFrame->timestep + GuiReplayHistory::cadenceSeconds);
 		if (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem) {
 			std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: closed passenger inspection returned\n");
@@ -1038,7 +1038,7 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 			QCoreApplication::exit(2);
 			return;
 		}
-		w.displayTrainDetails(futureBody, false);
+		w.m_inspector->displayTrainDetails(futureBody, false);
 		TrainItemGroup* futureTarget = w.resolveTrainItem(future->index);
 		w.seekReplay(future->departureTime - 1);
 		if (w.m_presenter->trainPaxItem != futureTarget || w.m_presenter->trainPaxInfoItem) {
@@ -1080,11 +1080,11 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		QCoreApplication::exit(2);
 		return;
 	}
-	w.displayStationNodeInfo(w.resolveStationNodeItem(
+	w.m_inspector->displayStationNodeInfo(w.resolveStationNodeItem(
 		stationSelection->sourceNodeId(), stationSelection->sourceTrack()));
 	w.seekReplay(first);
-	if (!stationSelection->isSelected() || !w.m_hasSelectedStationIdentity
-		|| !w.infoDockWidget->isVisible()
+	if (!stationSelection->isSelected() || !w.m_inspector->m_hasSelectedStationIdentity
+		|| !w.m_inspector->dock()->isVisible()
 		|| (initial_variables.PAX_GUI && (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: station selection lost\n");
 		QCoreApplication::exit(2);
@@ -1102,31 +1102,31 @@ void MainWindowTestAccess::checkOperationalCompletion(MainWindow& w) {
 		QCoreApplication::exit(2);
 		return;
 	}
-	w.displaySignallingInfo(signalSelection);
+	w.m_inspector->displaySignallingInfo(signalSelection);
 	w.seekReplay(middle);
 	w.m_replayTimer->start();
 	const bool timerDelivered = QMetaObject::invokeMethod(w.m_replayTimer, "timeout");
 	w.m_replayTimer->stop();
 	const QString inspectedAspect = signalAspectLabel(signalSelection);
 	if (!timerDelivered || w.m_presenter->m_inspectedSignal != signalSelection
-		|| !w.signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
+		|| !w.m_inspector->signallingInfoWidget->isVisible() || !signalSelection->graphicsEffect()
 		|| (initial_variables.PAX_GUI && (w.m_presenter->trainPaxItem || w.m_presenter->trainPaxInfoItem))
-		|| w.signallingGroupDetails->toPlainText().isEmpty()
-		|| w.signallingAspectText->text() != inspectedAspect
+		|| w.m_inspector->signallingGroupDetails->toPlainText().isEmpty()
+		|| w.m_inspector->signallingAspectText->text() != inspectedAspect
 		|| !coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime))) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: signal inspection lost on seek/play (timer=%d selected=%d visible=%d effect=%d details=%d coherent=%d)\n",
-			timerDelivered, w.m_presenter->m_inspectedSignal == signalSelection, w.signallingInfoWidget->isVisible(),
-			signalSelection->graphicsEffect() != nullptr, !w.signallingGroupDetails->toPlainText().isEmpty(),
+			timerDelivered, w.m_presenter->m_inspectedSignal == signalSelection, w.m_inspector->signallingInfoWidget->isVisible(),
+			signalSelection->graphicsEffect() != nullptr, !w.m_inspector->signallingGroupDetails->toPlainText().isEmpty(),
 			coherent(w.m_completedReplay.atOrBefore(w.m_replayRequestedTime)));
 		QCoreApplication::exit(2);
 		return;
 	}
-	w.signallingGroupDetails->selectAll();
-	const QString selectedDetails = w.signallingGroupDetails->textCursor().selectedText();
-	const int detailScroll = w.signallingGroupDetails->verticalScrollBar()->value();
+	w.m_inspector->signallingGroupDetails->selectAll();
+	const QString selectedDetails = w.m_inspector->signallingGroupDetails->textCursor().selectedText();
+	const int detailScroll = w.m_inspector->signallingGroupDetails->verticalScrollBar()->value();
 	w.updateSignalCues();
-	if (w.signallingGroupDetails->textCursor().selectedText() != selectedDetails
-		|| w.signallingGroupDetails->verticalScrollBar()->value() != detailScroll) {
+	if (w.m_inspector->signallingGroupDetails->textCursor().selectedText() != selectedDetails
+		|| w.m_inspector->signallingGroupDetails->verticalScrollBar()->value() != detailScroll) {
 		std::fprintf(stderr, "E2E_OPERATIONAL_COMPLETION_FAIL: unchanged signal refresh resets inspection selection\n");
 		QCoreApplication::exit(2);
 		return;

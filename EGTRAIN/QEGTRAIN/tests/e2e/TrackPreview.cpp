@@ -550,7 +550,7 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 			clickAt(lineItem ? target->mapToScene(lineItem->line().pointAt(0.5)) : target->sceneBoundingRect().center());
 			++clicked;
 			SelectionCueItem* cue = w.m_presenter->effect ? w.m_presenter->effect->cue() : nullptr;
-			if (!cue || !cue->isVisible() || cueCount() != 1 || !w.infoDockWidget->isVisible()) {
+			if (!cue || !cue->isVisible() || cueCount() != 1 || !w.m_inspector->dock()->isVisible()) {
 				cuesOk = false;
 				fail("selection", QString("a click on a preview %1 gives no single cue").arg(kind));
 			}

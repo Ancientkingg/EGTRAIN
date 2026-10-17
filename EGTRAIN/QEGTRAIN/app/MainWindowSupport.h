@@ -32,23 +32,6 @@ constexpr int kFollowStatusMaxWidth = 640;
 // The key of the setting behind the Advanced Details switch.
 constexpr const char* kAdvancedDetailsKey = "advancedDetails";
 
-// The state of a signal head in tooltips, the inspector and the scripted runs.
-inline QString signalAspectLabel(const SignalItem* signal) {
-	if (signal->failed())
-		return QStringLiteral("Failed");
-	switch (classifySignalCue(signal->aspectCode())) {
-		case SignalCueKind::Stop:
-			return QStringLiteral("Stop");
-		case SignalCueKind::Caution:
-			return QStringLiteral("Caution");
-		case SignalCueKind::Proceed:
-			return QStringLiteral("Proceed");
-		case SignalCueKind::Neutral:
-		default:
-			return QStringLiteral("Unavailable");
-	}
-}
-
 // Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
 inline int baseTimeToSeconds(const std::string& hhmmss) {
 	if (hhmmss.empty())
