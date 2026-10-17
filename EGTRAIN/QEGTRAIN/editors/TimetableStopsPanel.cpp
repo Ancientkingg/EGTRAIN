@@ -8,6 +8,7 @@
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 
+#include <QAbstractItemDelegate>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -26,6 +27,7 @@
 #include <QShortcut>
 #include <QSignalBlocker>
 #include <QStyle>
+#include <QStyleOptionViewItem>
 #include <QTableWidget>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -298,6 +300,11 @@ void TimetableStopsPanel::fitColumns() {
 	const QFontMetrics metrics(m_table->font());
 	// The space that a cell keeps around its text.
 	const int margin = 2 * (m_table->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, m_table) + 1);
+	QStyleOptionViewItem option;
+	option.initFrom(m_table);
+	option.widget = m_table;
+	option.font = m_table->font();
+	option.fontMetrics = metrics;
 	const int minimum = header->minimumSectionSize();
 	const int typicalValue = metrics.horizontalAdvance(QString(kTypicalValueChars, QLatin1Char('0'))) + margin;
 	const int minimumStation = std::max(minimum, metrics.horizontalAdvance(QString(kMinimumStationChars, QLatin1Char('0'))) + margin);
@@ -311,8 +318,9 @@ void TimetableStopsPanel::fitColumns() {
 		const bool clockTime = isClockTime(column);
 		int widest = 0;
 		for (int row = 0; row < m_table->rowCount(); ++row) {
-			if (const QTableWidgetItem* item = m_table->item(row, column))
-				widest = std::max(widest, metrics.horizontalAdvance(item->text()) + margin);
+			// The delegate reports what its style needs to draw the text whole, which can be more than the advance of the text.
+			const QModelIndex cell = m_table->model()->index(row, column);
+			widest = std::max(widest, m_table->itemDelegate(cell)->sizeHint(option, cell).width());
 		}
 		int& width = widths[static_cast<std::size_t>(column)];
 		width = std::max(header->sectionSizeHint(column), clockTime ? widest : std::min(widest, typicalValue));

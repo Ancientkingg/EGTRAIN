@@ -94,6 +94,8 @@ Q_SIGNALS:
 private:
 	bool canEdit() const;
 	double occurrenceDuration() const;
+	// The row of the selected passenger, or -1 when the list has no selection.
+	int selectedPassengerRow() const;
 
 	void updatePassengerDetail();
 	void updateJourneyDetail();

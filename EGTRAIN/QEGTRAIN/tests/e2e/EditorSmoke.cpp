@@ -44,6 +44,7 @@
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/FocusWheel.h"
 #include <QAbstractButton>
+#include <QAbstractItemDelegate>
 #include <QAbstractSpinBox>
 #include <QAction>
 #include <QApplication>
@@ -102,6 +103,7 @@
 #include <QString>
 #include <QStringList>
 #include <QStyle>
+#include <QStyleOptionViewItem>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -4164,13 +4166,16 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const int previousMode = w.m_stopTimeModeCombo->currentIndex();
 			w.m_stopTimeModeCombo->setCurrentIndex(w.m_stopTimeModeCombo->findData(true));
 			QApplication::processEvents();
-			const QFontMetrics metrics(w.m_stopTableWidget->font());
-			const int margin = 2 * (w.m_stopTableWidget->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, w.m_stopTableWidget) + 1);
+			QStyleOptionViewItem option;
+			option.initFrom(w.m_stopTableWidget);
+			option.widget = w.m_stopTableWidget;
+			option.font = w.m_stopTableWidget->font();
+			option.fontMetrics = QFontMetrics(option.font);
 			for (int row = 0; row < w.m_stopTableWidget->rowCount(); ++row) {
 				for (int column = 3; column < 5; ++column) {
-					const QTableWidgetItem* cell = w.m_stopTableWidget->item(row, column);
-					if (cell && metrics.horizontalAdvance(cell->text()) + margin > w.m_stopTableWidget->columnWidth(column))
-						failure = QString("the clock time '%1' is elided on the Timetable tab").arg(cell->text());
+					const QModelIndex cell = w.m_stopTableWidget->model()->index(row, column);
+					if (w.m_stopTableWidget->itemDelegate(cell)->sizeHint(option, cell).width() > w.m_stopTableWidget->columnWidth(column))
+						failure = QString("the clock time '%1' is elided on the Timetable tab").arg(cell.data().toString());
 				}
 			}
 			w.m_stopTimeModeCombo->setCurrentIndex(previousMode);
@@ -4354,6 +4359,29 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QApplication::processEvents();
 				if (w.width() > 1280 || w.height() > 800)
 					facetFailure(ok, "presentation", dock->objectName() + " enlarged the main window");
+				// A dock opens at the width of its size hint. That leaves the network canvas at least 35 percent of the width
+				// beside the Case and Layers rail, however large the text is, and the Rolling stock dock holds its buttons.
+				w.m_caseLayersDock->show();
+				// The size hint of the dock is kept until its layout is told that the window changed.
+				dock->widget()->updateGeometry();
+				QApplication::processEvents();
+				w.resizeDocks({dock}, {dock->sizeHint().width()}, Qt::Horizontal);
+				QApplication::processEvents();
+				const int besideRail = w.width() - w.m_caseLayersDock->width();
+				if (w.centralWidget->width() * 100 < besideRail * 35)
+					facetFailure(ok, "presentation",
+						QString("%1 leaves the network %2 of %3 pixels at %4 times the font at 1280 by 800 pixels")
+							.arg(dock->objectName())
+							.arg(w.centralWidget->width())
+							.arg(besideRail)
+							.arg(scale));
+				if (dock == w.m_trainUnitDock && scale == 1.0) {
+					const QString failure = trainUnitButtonFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " at the width that it opens with");
+				}
+				w.m_caseLayersDock->hide();
+				QApplication::processEvents();
 				if (dock == w.m_serviceDock) {
 					const QString failure = timetableTabFailure();
 					if (!failure.isEmpty())
@@ -4453,6 +4481,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			// The fields of a service at the same size: the running performance field is not cut at the right.
 			w.m_serviceDock->show();
 			w.m_serviceDock->raise();
+			w.resizeDocks({w.m_serviceDock}, {w.m_serviceDock->sizeHint().width()}, Qt::Horizontal);
 			QApplication::processEvents();
 			auto* serviceFields = w.m_servicePanel->pages() ? qobject_cast<QScrollArea*>(w.m_servicePanel->pages()->widget(0)) : nullptr;
 			QDoubleSpinBox* performanceEdit = w.m_servicePanel->performancePercentEdit();

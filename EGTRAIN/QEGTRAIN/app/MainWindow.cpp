@@ -1483,7 +1483,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	for (QDockWidget* dock : {m_caseSettingsDock, m_infrastructureDock, m_trainUnitDock,
 			 m_compositionDock, m_serviceDock, m_incidentDock, m_passengerDock}) {
 		auto* content = dock->widget();
-		auto* scroll = new QScrollArea(dock);
+		auto* scroll = new EditorLayout::DockScrollArea(dock);
 		scroll->setObjectName("editorContentScroll");
 		scroll->setWidgetResizable(true);
 		scroll->setFrameShape(QFrame::NoFrame);

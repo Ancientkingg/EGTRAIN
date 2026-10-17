@@ -319,6 +319,7 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	passengerLayout->addWidget(passengerDetailPane, 2);
 
 	connect(m_passengerList, &QListWidget::currentRowChanged, this, [this](int) { updatePassengerDetail(); });
+	connect(m_passengerList, &QListWidget::itemSelectionChanged, this, [this] { updatePassengerDetail(); });
 	connect(m_journeyList, &QListWidget::currentRowChanged, this, [this](int) { updateJourneyDetail(); });
 	connect(m_legList, &QListWidget::currentRowChanged, this, [this](int) { updateLegDetail(); });
 	connect(m_addPassengerButton, &QPushButton::clicked, this, &PassengerPanel::addPassenger);
@@ -384,11 +385,17 @@ double PassengerPanel::occurrenceDuration() const {
 	return m_occurrenceDuration ? m_occurrenceDuration() : m_document->model().settings.durationSeconds;
 }
 
+int PassengerPanel::selectedPassengerRow() const {
+	// Ctrl+click on the selected entry clears the selection and keeps the current row.
+	const QListWidgetItem* current = m_passengerList->currentItem();
+	return current && current->isSelected() ? m_passengerList->currentRow() : -1;
+}
+
 ScenePassenger* PassengerPanel::selectedPassenger() {
 	if (!m_document || !m_document->isLoaded())
 		return nullptr;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	const int row = selectedPassengerRow();
 	return row >= 0 && row < static_cast<int>(passengers.size()) ? &passengers[static_cast<std::size_t>(row)] : nullptr;
 }
 
@@ -414,6 +421,7 @@ void PassengerPanel::refresh() {
 	{
 		const int previousRow = m_passengerList->currentRow();
 		const QString previousId = m_passengerList->currentItem() ? m_passengerList->currentItem()->text() : QString();
+		const bool selectionCleared = m_passengerList->currentItem() && !m_passengerList->currentItem()->isSelected();
 		const QSignalBlocker blocker(m_passengerList);
 		m_passengerList->clear();
 		if (loaded) {
@@ -422,6 +430,8 @@ void PassengerPanel::refresh() {
 		}
 		const int samePassenger = rowOfEntry(m_passengerList, previousId, previousRow);
 		m_passengerList->setCurrentRow(samePassenger >= 0 ? samePassenger : rowAfterRebuild(previousRow, m_passengerList->count()));
+		if (selectionCleared)
+			m_passengerList->clearSelection();
 		m_passengerList->setEnabled(editable);
 	}
 	if (!loaded)
@@ -642,7 +652,7 @@ void PassengerPanel::deletePassenger() {
 	if (!canEdit())
 		return;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
 	const std::string id = passengers[static_cast<std::size_t>(row)].id;
@@ -756,7 +766,7 @@ void PassengerPanel::commitPassengerId() {
 	if (!canEdit())
 		return;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	const int row = selectedPassengerRow();
 	if (row < 0 || row >= static_cast<int>(passengers.size()))
 		return;
 	const std::string oldId = passengers[static_cast<std::size_t>(row)].id;

@@ -3,15 +3,22 @@
 #include "widgets/DialogLayout.h"
 
 #include <QChar>
+#include <QDockWidget>
+#include <QEvent>
 #include <QFont>
 #include <QFrame>
 #include <QLabel>
+#include <QMainWindow>
+#include <QObject>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSize>
 #include <QSizePolicy>
 #include <QString>
 #include <QWidget>
+
+#include <algorithm>
+#include <limits>
 
 namespace EditorLayout {
 
@@ -80,6 +87,52 @@ public:
 		if (const QWidget* panel = widget())
 			hint.setWidth(panel->minimumSizeHint().width() + verticalScrollBar()->sizeHint().width() + 2 * frameWidth());
 		return hint;
+	}
+};
+
+// Scroll area for the panel of an editor dock. QScrollArea keeps the size hint of the panel from the first time it was
+// asked, which can be before the panel shows its tabs and tables, so the hint of this area is at least the width that the
+// panel needs now, with the vertical scroll bar. As in QScrollArea the hint is at most 36 line heights wide.
+// While the dock is docked in a main window, the hint is also at most five eighths of the width that the docks on the left
+// of the window leave, but not under 12 line heights. A dock with large text then opens narrower than its panel, which
+// scrolls inside it, and the network canvas keeps the rest.
+class DockScrollArea : public QScrollArea {
+public:
+	explicit DockScrollArea(QWidget* parent = nullptr)
+		: QScrollArea(parent) {}
+
+	QSize sizeHint() const override {
+		QSize hint = QScrollArea::sizeHint();
+		const QWidget* panel = widget();
+		if (!panel)
+			return hint;
+		const int lineHeight = fontMetrics().height();
+		const int needed = panel->minimumSizeHint().width() + verticalScrollBar()->sizeHint().width() + 2 * frameWidth();
+		hint.setWidth(std::min(std::max(hint.width(), needed), 36 * lineHeight));
+		hint.setWidth(std::min(hint.width(), std::max(widthLimitInWindow(), 12 * lineHeight)));
+		return hint;
+	}
+
+	// A change of the layout of the panel also changes the size hint of this area, which a dock keeps until told.
+	bool eventFilter(QObject* watched, QEvent* event) override {
+		if (watched == widget() && event->type() == QEvent::LayoutRequest)
+			updateGeometry();
+		return QScrollArea::eventFilter(watched, event);
+	}
+
+private:
+	// The widest that the dock opens in its main window; unlimited while the dock floats.
+	int widthLimitInWindow() const {
+		const auto* dock = qobject_cast<const QDockWidget*>(parentWidget());
+		const auto* window = dock && !dock->isFloating() ? qobject_cast<const QMainWindow*>(dock->parentWidget()) : nullptr;
+		if (!window)
+			return std::numeric_limits<int>::max();
+		int beside = window->width();
+		for (QDockWidget* other : window->findChildren<QDockWidget*>(QString(), Qt::FindDirectChildrenOnly)) {
+			if (other != dock && other->isVisible() && !other->isFloating() && window->dockWidgetArea(other) == Qt::LeftDockWidgetArea)
+				beside -= other->width();
+		}
+		return beside * 5 / 8;
 	}
 };
 
