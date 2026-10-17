@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QRect>
 #include <QString>
 #include <QStringList>
 
@@ -29,6 +30,8 @@ public:
 		QStringList sceneRoots;
 		// Recent scene paths, listed in the order given.
 		QStringList recentPaths;
+		// The screen area that the dialog has to fit in. The current screen when empty.
+		QRect availableGeometry;
 	};
 
 	explicit CaseChooserDialog(const Options& options, QWidget* parent = nullptr);
