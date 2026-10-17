@@ -1402,8 +1402,9 @@ void checkWidensForLongBlocks(QDialog& dialog, int longRoute, bool opensNarrow, 
 	checkScopeDialogFits(dialog, what + " after choosing the route with the long block ids");
 }
 
-// The scope dialogs of a run whose route has a 300-character id and 2000 blocks, at 10 pt and at 18 pt. Each fits the
-// screen, with the route chosen or not, and its body does not scroll sideways.
+// The scope dialogs of a run whose route has a 300-character id and 2000 blocks, at 10 pt, at 18 pt and at 1.25 times 18 pt,
+// which covers a platform font that is wider than the macOS one. Each fits the screen, with the route chosen or not, and its
+// body does not scroll sideways.
 void testScopeDialogsWithLongIds() {
 	const QFont original = QApplication::font();
 	const std::string routeId(300, 'R');
@@ -1432,11 +1433,11 @@ void testScopeDialogsWithLongIds() {
 	CompletedRunData shortRun;
 	shortRun.routes = {routeOf("R1", {{"n", 0.0}}, {{"a", 0.0, 1.0}, {"b", 1.0, 2.0}}), routeOf("R2", {{"n", 0.0}}, blocks)};
 
-	for (const double points : {10.0, 18.0}) {
+	for (const double points : {10.0, 18.0, 22.5}) {
 		QFont font = original;
 		font.setPointSizeF(points);
 		QApplication::setFont(font);
-		const std::string what = std::to_string(static_cast<int>(points)) + " pt";
+		const std::string what = QString::number(points).toStdString() + " pt";
 
 		BlockingTimeScope scope = defaultBlockingTimeScope(choices.caseEndSeconds);
 		bool accepted = askScope(choices, scope, [&what](QDialog& dialog) {

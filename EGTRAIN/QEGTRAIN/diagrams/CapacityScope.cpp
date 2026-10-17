@@ -167,6 +167,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
+	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	auto* routeCombo = new ChoiceComboBox(&dialog);
 	for (std::size_t routeIndex = 0; routeIndex < run.routes.size(); ++routeIndex) {
 		const CompletedRoute& route = run.routes[routeIndex];

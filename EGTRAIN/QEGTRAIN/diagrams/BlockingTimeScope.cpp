@@ -48,6 +48,7 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	dialog.setWindowTitle("Blocking-time scope");
 	auto* body = new QWidget;
 	auto* form = new QFormLayout(body);
+	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 	auto* routeCombo = new ChoiceComboBox(&dialog);
 	routeCombo->addItem("All routes / all corridors", -1);
 	for (std::size_t routeIndex = 0; routeIndex < choices.routes.size(); ++routeIndex) {
