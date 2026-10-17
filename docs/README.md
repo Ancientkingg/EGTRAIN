@@ -75,5 +75,6 @@ Each of these pages records one conversion, comparison or rehearsal. They are no
 - [V1 native cutover report](guides/v1-native-cutover-report.md): the conversion of the cases that were committed then to canonical V1 scenes, with the source corrections and the legacy material that was not migrated.
 - [Original-case native runtime parity](guides/original-case-runtime-parity.md): the comparison of the output of the Netherlands, Paimpol, Copenhagen and Milano-Brescia cases before and after the native runtime cutover, and the differences found.
 - [Release rehearsal 2026-08-23](development/release-rehearsal-2026-08-23.md): the record of one release rehearsal, with the result for each platform.
+- [Release rehearsal 2026-10-17](development/release-rehearsal-2026-10-17.md): the record of the packaged rehearsal on macOS, Windows and Linux, with the result for each checklist row, the defects and the rows left to the owner.
 
 Keep new documentation short, concrete, and current.
