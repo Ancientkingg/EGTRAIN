@@ -81,6 +81,7 @@ The original EGTRAIN case-study inputs for the SORTEDMOBILITY research project a
 
 - Run a case study: [Opening an `.egscene` case study](docs/guides/opening-a-case-study.md) and [Command-line options and scene_tool](docs/guides/command-line.md).
 - Create or edit scenes: [Using EGTRAIN and authoring V1 scenes](docs/guides/scenes-and-application.md) and [V1 scene properties](docs/guides/v1-scene-properties.md).
+- Build the application from source: [Getting started as a developer](docs/development/getting-started.md).
 - Build, test and contribute: [Build And Test](docs/development/build-and-test.md), [Coding guidelines](docs/development/coding-guidelines.md), [V1 Scene Model](docs/architecture/scene-model.md) and, for the repository layout, [QEGTRAIN source layout](docs/architecture/source-layout.md#repository-layout).
 
 EGTRAIN is a C++17 application built with Qt 5 and CMake. See [Documentation](docs/README.md) for the full list.

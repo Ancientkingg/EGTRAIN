@@ -4,8 +4,11 @@ This page takes you from a fresh clone to a built application, a first run, a ch
 checks a pull request has to pass. It points to the longer guides for details. EGTRAIN is a Qt 5 and
 C++17 desktop application for railway micro-simulation, built with CMake.
 
-The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17. The Linux and
-Windows commands on this page were not run for it. CI installs the same packages as
+The commands were last run from a fresh clone on macOS (Apple silicon) on 2026-10-17. On Linux,
+configure, build, CTest, the headless run, both smokes and the test walkthrough below were run in a
+clean Ubuntu 24.04 arm64 container on 2026-10-17 at `dbaadd94`. One test, `test_measure_peak_rss`,
+failed there because the first process of the container did not reap orphaned children; the test
+counts such a zombie as exited. The Windows commands on this page were not run. CI installs the same packages as
 [Build and test](build-and-test.md#configure) lists, but it configures with more options; see
 [Which checks to run](#which-checks-to-run). The Visual Studio generator path in the build guide
 is not what CI uses and was not checked for this page.
@@ -28,7 +31,14 @@ commands for each system.
 
 ## Clone, configure and build
 
-From the repository root, on macOS with Homebrew:
+Clone the repository and change into it:
+
+```bash
+git clone https://github.com/Ancientkingg/EGTRAIN.git
+cd EGTRAIN
+```
+
+On macOS with Homebrew:
 
 ```bash
 brew install qt@5 zeromq cppzmq nlohmann-json
@@ -37,14 +47,15 @@ cmake --build build --parallel 4
 ```
 
 On Ubuntu and Windows, take the install and configure lines from
-[Configure](build-and-test.md#configure). The build, test and run commands below use the macOS and
+[Configure](build-and-test.md#configure); the Ubuntu line installs `git` and `python3` too. The build, test and run commands below use the macOS and
 Linux form. With a multi-config generator such as Visual Studio, add `--config Release` to
 `cmake --build` and `-C Release` to `ctest`, and run the executable from
 [Run a local build](build-and-test.md#run-a-local-build).
 
 Without `--parallel`, `cmake --build` uses one job with the Makefile generator, which takes a long
 time; `CMAKE_BUILD_PARALLEL_LEVEL` sets the number of jobs as well. A first full build with tests
-and four jobs took about 14 minutes on one Apple silicon laptop, and it will differ on other machines.
+and four jobs took about 14 minutes on one Apple silicon laptop and about 7 minutes in one Linux
+container with 10 CPUs; it will differ on other machines.
 
 A Release build, the default, links with link-time optimization. `-DEGTRAIN_IPO=OFF` at configure
 time makes the links shorter.
@@ -73,17 +84,21 @@ The window opens the Netherlands case with the **Open a Case** chooser on top. C
 start with `-n 2` (Paimpol) or `--scene Scenes/Paimpol` to skip the chooser; the other options are in
 [Command-line options](../guides/command-line.md).
 
-These paths are for macOS; on other systems use the path from
-[Run a local build](build-and-test.md#run-a-local-build).
+These paths are for macOS. On Linux the executable is `../../build/QEGTRAIN`. On Windows it is
+`..\..\build\Release\QEGTRAIN.exe` with a multi-config generator and `..\..\build\QEGTRAIN.exe` with
+a single-config one; see [Run a local build](build-and-test.md#run-a-local-build).
 
 A run without a window needs no display and exits when the run ends. It writes to the folder that
-`QEGTRAIN_OUTPUT_DIR` names:
+`QEGTRAIN_OUTPUT_DIR` names. On Linux, with the executable path of that system:
 
 ```bash
 mkdir -p /tmp/egtrain-out
-QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-out ../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN -n 2 -g 0
+QEGTRAIN_OUTPUT_DIR=/tmp/egtrain-out ../../build/QEGTRAIN -n 2 -g 0
 ls /tmp/egtrain-out/Output/Paimpol
 ```
+
+On macOS use `../../build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` in the second line. The run prints its
+progress as one long line.
 
 The files are listed in [Run output](../guides/run-output.md). On Windows a run without a window prints
 nothing to a terminal; see [Windows headless runs](build-and-test.md#windows-headless-runs).
@@ -162,8 +177,10 @@ warnings option is off by default. Add it to your configure line to see the warn
 The Windows leg also uses Ninja with `cl`, `-DCMAKE_BUILD_TYPE=Release` and
 `-DEGTRAIN_NETWORK_TESTS=ON`; see `.github/workflows/cmake.yml`.
 
-The two Python smokes and the visual smoke read the application from the macOS path
-`build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN`; `visual_polish_smoke.sh` takes another path from
+The two Python smokes read the application that `QEGTRAIN_APP` names, and otherwise the executable in
+`build/` for the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/QEGTRAIN` on
+Linux and `build/QEGTRAIN.exe` or `build/Release/QEGTRAIN.exe` on Windows. They stop and name the paths
+they tried when none exists. `visual_polish_smoke.sh` reads the macOS path, or the path in
 `QEGTRAIN_APP`. `headless_smoke.py` runs the seven committed cases one after the other; name case
 numbers to run fewer, for example `python3 tools/e2e/headless_smoke.py 2`, because Copenhagen alone
 takes minutes. On Linux and Windows CTest registers the tests that run there
@@ -198,7 +215,7 @@ which has no Qt dependency and builds quickly. It starts from the finished build
 3. Correct the expected text to `"02:00:00"` and run the two commands again. The test passes.
 
 4. Run the unit tests that finish quickly. `-j 4` runs four tests at a time. The set took about four
-   minutes that way on one Apple silicon laptop:
+   minutes that way on one Apple silicon laptop and about one minute in one Linux container with 10 CPUs:
 
    ```bash
    ctest --test-dir build -L unit -LE slow --output-on-failure -j 4
