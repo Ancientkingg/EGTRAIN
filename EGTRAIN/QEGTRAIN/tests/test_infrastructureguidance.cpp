@@ -23,13 +23,13 @@ struct EmptyHint {
 };
 
 constexpr EmptyHint kEmptyHints[] = {
-	{"tracks", "Add a track first"},
-	{"nodes", "Add a track first"},
-	{"arcs", "at least two nodes"},
+	{"tracks", "Add a track:"},
+	{"nodes", "Add creates a node"},
+	{"arcs", "Add creates an arc"},
 	{"blocks", "this track"},
-	{"connections", "two nodes"},
+	{"connections", "Add creates a connection"},
 	{"stations", "its platforms"},
-	{"platforms", "Add a station first"},
+	{"platforms", "first station"},
 	{"signals", "the section it protects"},
 	{"signalling_areas", "signalling system"},
 	{"routes", "sections from the catalog"},
@@ -37,6 +37,17 @@ constexpr EmptyHint kEmptyHints[] = {
 	{"single_track_restrictions", "protected start and end"},
 	{"station_boundaries", "entrance section"},
 };
+
+// The scene of the other tests: it has what every facet builds on.
+InfrastructureGuidanceState sceneState() {
+	InfrastructureGuidanceState state;
+	state.loaded = true;
+	state.editable = true;
+	state.tracks = 1;
+	state.nodes = 2;
+	state.stations = 1;
+	return state;
+}
 
 const QString kNoCase = QStringLiteral("Open a case to edit infrastructure.");
 
@@ -48,17 +59,18 @@ int main() {
 	ok &= check(facets.size() == 13, "the panel has thirteen facets");
 	ok &= check(static_cast<int>(std::size(kEmptyHints)) == facets.size(), "the test names a hint for each facet");
 
+	const InfrastructureGuidanceState noScene;
 	QSet<QString> emptyTexts;
 	for (const EmptyHint& hint : kEmptyHints) {
 		const QString facet = QString::fromLatin1(hint.facet);
 		ok &= check(facets.contains(facet), facet + " is a facet of the panel");
 
 		// No scene: every facet asks for a case, whether the table is empty or not.
-		ok &= check(infrastructureGuidanceText(facet, true, false) == kNoCase, facet + " without a scene and without rows");
-		ok &= check(infrastructureGuidanceText(facet, false, false) == kNoCase, facet + " without a scene and with rows");
+		ok &= check(infrastructureGuidanceText(facet, true, noScene) == kNoCase, facet + " without a scene and without rows");
+		ok &= check(infrastructureGuidanceText(facet, false, noScene) == kNoCase, facet + " without a scene and with rows");
 
 		// A scene and no rows: a sentence of its own that says what to do.
-		const QString empty = infrastructureGuidanceText(facet, true, true);
+		const QString empty = infrastructureGuidanceText(facet, true, sceneState());
 		ok &= check(empty.startsWith(QLatin1String("No ")) && empty.endsWith(QLatin1Char('.')), facet + " empty: " + empty);
 		ok &= check(empty.contains(QLatin1String(hint.mentions)), facet + " empty does not mention '" + hint.mentions + "': " + empty);
 		ok &= check(!empty.contains(QLatin1String("Use Add to create one")), facet + " empty has the generic sentence");
@@ -68,7 +80,7 @@ int main() {
 
 	// A scene and rows: only blocks and routes have something to explain.
 	for (const QString& facet : facets) {
-		const QString listed = infrastructureGuidanceText(facet, false, true);
+		const QString listed = infrastructureGuidanceText(facet, false, sceneState());
 		if (facet == QLatin1String("blocks"))
 			ok &= check(listed == QLatin1String("Blocks are ordered on the chosen track; select a row to insert or move it."),
 				"blocks with rows: " + listed);
@@ -79,10 +91,47 @@ int main() {
 	}
 
 	// A key that is no facet has nothing to say once a scene is open.
-	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), true, true).isEmpty(), "an unknown key, empty");
-	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), false, true).isEmpty(), "an unknown key, with rows");
-	ok &= check(infrastructureGuidanceText(QString(), true, true).isEmpty(), "no key");
-	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), true, false) == kNoCase, "an unknown key without a scene");
+	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), true, sceneState()).isEmpty(), "an unknown key, empty");
+	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), false, sceneState()).isEmpty(), "an unknown key, with rows");
+	ok &= check(infrastructureGuidanceText(QString(), true, sceneState()).isEmpty(), "no key");
+	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), true, noScene) == kNoCase, "an unknown key without a scene");
+
+	// A prerequisite is named only while the scene lacks it.
+	const auto text = [](const char* facet, int tracks, int nodes, int stations) {
+		InfrastructureGuidanceState state = sceneState();
+		state.tracks = tracks;
+		state.nodes = nodes;
+		state.stations = stations;
+		return infrastructureGuidanceText(QLatin1String(facet), true, state);
+	};
+	ok &= check(text("nodes", 0, 0, 0).contains(QLatin1String("Add a track first")), "nodes without a track");
+	ok &= check(!text("nodes", 1, 0, 0).contains(QLatin1String("Add a track first")), "nodes with a track");
+	ok &= check(text("arcs", 1, 1, 1).contains(QLatin1String("at least two nodes")), "arcs with one node");
+	ok &= check(!text("arcs", 1, 2, 1).contains(QLatin1String("add at least two nodes")), "arcs with two nodes");
+	ok &= check(text("blocks", 0, 0, 0).contains(QLatin1String("Add a track first")), "blocks without a track");
+	ok &= check(text("blocks", 1, 0, 0).contains(QLatin1String("No blocks on this track")), "blocks with a track");
+	ok &= check(text("connections", 1, 1, 1).contains(QLatin1String("add the nodes first")), "connections with one node");
+	ok &= check(!text("connections", 1, 2, 1).contains(QLatin1String("first")), "connections with two nodes");
+	ok &= check(text("platforms", 1, 2, 0).contains(QLatin1String("Add a station first")), "platforms without a station");
+	ok &= check(!text("platforms", 1, 2, 1).contains(QLatin1String("Add a station first")), "platforms with a station");
+
+	// While a run holds the scene Add is off: no sentence asks to add, and the empty ones say why.
+	for (const QString& facet : facets) {
+		InfrastructureGuidanceState busy = sceneState();
+		busy.editable = false;
+		const QString empty = infrastructureGuidanceText(facet, true, busy);
+		ok &= check(empty.startsWith(QLatin1String("No ")) && empty.endsWith(QLatin1String("while a run is in progress.")),
+			facet + " empty during a run: " + empty);
+		ok &= check(!empty.contains(QLatin1String("Add ")), facet + " empty during a run asks to add: " + empty);
+		const QString listed = infrastructureGuidanceText(facet, false, busy);
+		ok &= check(listed.isEmpty() || listed.startsWith(QLatin1String("The scene cannot be edited")),
+			facet + " with rows during a run: " + listed);
+		// A missing scene wins over a missing edit right.
+		busy.loaded = false;
+		ok &= check(infrastructureGuidanceText(facet, true, busy) == kNoCase, facet + " unloaded and not editable");
+	}
+	ok &= check(infrastructureGuidanceText(QStringLiteral("gantries"), true, InfrastructureGuidanceState{true, false, 0, 0, 0}).isEmpty(),
+		"an unknown key during a run");
 
 	return ok ? 0 : 1;
 }

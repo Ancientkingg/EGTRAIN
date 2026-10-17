@@ -275,7 +275,15 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	m_table->setEnabled(editable);
 
 	const bool empty = m_table->rowCount() == 0;
-	const QString guidance = infrastructureGuidanceText(key, empty, hasScene());
+	InfrastructureGuidanceState state;
+	state.loaded = hasScene();
+	state.editable = editable;
+	if (state.loaded) {
+		state.tracks = static_cast<int>(model().tracks.size());
+		state.nodes = static_cast<int>(model().nodes.size());
+		state.stations = static_cast<int>(model().stations.size());
+	}
+	const QString guidance = infrastructureGuidanceText(key, empty, state);
 	m_guidanceLabel->setText(guidance);
 	m_guidanceLabel->setVisible(!guidance.isEmpty());
 

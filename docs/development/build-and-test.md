@@ -1391,7 +1391,9 @@ it checks the layout of the editors: the main window does not grow beyond 1280
 by 800 pixels when an editor dock is shown at the normal and at 1.5 times the
 font size, a floated dock stays within 750 by 600 and keeps its scroll area,
 the Add button of the Passengers editor is in view, and the buttons of the Infrastructure editor for Blocks and
-Routes sit under its table and are in view without sideways scrolling. Last, it opens each editor dock, moves the focus
+Routes sit under its table without sideways scrolling. In the docked editor all of them, including the four buttons of the
+route sections, are in the first view. In the floating dock of 750 by 600 the table buttons and the block buttons are in
+the first view, and the route section buttons are reached by scrolling to the end of the editor. Last, it opens each editor dock, moves the focus
 through its fields with Tab, scrolls, floats and resizes the dock, resizes the
 main window and closes and reopens the dock, and requires that the modified
 flag and the revision of the scene stay as they were.

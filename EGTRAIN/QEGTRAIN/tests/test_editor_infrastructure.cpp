@@ -401,6 +401,23 @@ int main(int argc, char** argv) {
 		panel.deleteEntity();
 		ok &= expect(events.log.empty() && !document.isDirty(), "a facet without a class changes nothing");
 
+		// the sentence follows what the scene has: the panel hands over its tracks, nodes and stations and its editability
+		panel.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}};
+		chooseFacet(panel, "arcs");
+		ok &= expect(panel.table()->rowCount() == 0 && panel.guidanceLabel()->text().contains("at least two nodes"),
+			"an empty arcs table asks for nodes while the scene has fewer than two");
+		panel.mutableModel().nodes = {{"n1", "T1", 0.0, 0.0}, {"n2", "T1", 1.0, 0.0}};
+		panel.refresh();
+		ok &= expect(panel.guidanceLabel()->text().startsWith("No arcs yet. Add creates an arc"),
+			"an empty arcs table does not ask for nodes that exist");
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(panel.guidanceLabel()->text() == "No arcs yet. The scene cannot be edited while a run is in progress.",
+			"an empty table says why Add is off while a run uses the scene");
+		document.setEditable(true);
+		panel.mutableModel().nodes.clear();
+		panel.refresh();
+
 		// pending edits go to the facet that is chosen
 		chooseFacet(panel, "tracks");
 		const int pendingBefore = trackFacet->pendingCount;
@@ -678,7 +695,7 @@ int main(int argc, char** argv) {
 				 panel.moveRouteSectionUpButton(), panel.moveRouteSectionDownButton()})
 			ok &= expect(inside(button), "a button of the routes can be reached without scrolling");
 		if (splitter) {
-			// The user drags the handle up by 40 pixels.
+			// The user drags the handle up by 40 pixels; the table pane keeps its minimum height, so it may give less.
 			const QList<int> before = splitter->sizes();
 			QSplitterHandle* handle = splitter->handle(1);
 			const QPoint start = handle->rect().center();
@@ -691,7 +708,9 @@ int main(int argc, char** argv) {
 			QApplication::sendEvent(handle, &release);
 			QApplication::processEvents();
 			const QList<int> after = splitter->sizes();
-			ok &= expect(before.size() == 2 && after.size() == 2 && after[0] == before[0] - 40 && after[1] == before[1] + 40 && inside(add),
+			ok &= expect(before.size() == 2 && after.size() == 2 && after[0] < before[0] && after[1] > before[1]
+					&& after[0] + after[1] == before[0] + before[1] && before[0] - after[0] <= 40 + splitter->handleWidth()
+					&& inside(add),
 				"dragging the handle gives the sections of a route more room and keeps the buttons of the table in view");
 		}
 

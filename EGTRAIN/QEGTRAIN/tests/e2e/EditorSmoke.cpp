@@ -4127,7 +4127,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		QApplication::processEvents();
 		// Blocks and Routes have the most controls in the Infrastructure editor. The combo is above the table, the buttons are
 		// in a row under it, and they are in the first view of the dock without sideways scrolling. The buttons of the route
-		// sections below the table are in view when `allButtons` is set; a small floating dock scrolls to them.
+		// sections below the table are in the first view when `allButtons` is set. A small floating dock can need a scroll to reach them,
+		// so there the check scrolls to the end and requires them to be in view.
 		const auto checkInfrastructureControls = [&](const char* where, bool allButtons) {
 			auto* scroll = w.m_infrastructureDock->findChild<QScrollArea*>("editorContentScroll");
 			const QString shownFacet = w.m_infrastructurePanel->facetKey();
@@ -4139,9 +4140,10 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				QList<QWidget*> controls = {w.m_addInfrastructureButton, w.m_deleteInfrastructureButton};
 				if (QString::fromLatin1(facet) == "blocks")
 					controls << w.m_insertBlockButton << w.m_moveBlockUpButton << w.m_moveBlockDownButton;
-				else if (allButtons)
-					controls << w.m_addRouteSectionButton << w.m_removeRouteSectionButton << w.m_moveRouteSectionUpButton
-							 << w.m_moveRouteSectionDownButton;
+				const QList<QWidget*> sectionButtons = {w.m_addRouteSectionButton, w.m_removeRouteSectionButton,
+					w.m_moveRouteSectionUpButton, w.m_moveRouteSectionDownButton};
+				if (QString::fromLatin1(facet) == "routes" && allButtons)
+					controls << sectionButtons;
 				const QRect view = scroll->viewport()->rect();
 				for (const QWidget* control : controls) {
 					const QRect placed(control->mapTo(scroll->viewport(), QPoint(0, 0)), control->size());
@@ -4149,6 +4151,18 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 						facetFailure(ok, "presentation",
 							QString("%1 is not in the first view of the infrastructure editor (%2, %3)")
 								.arg(control->objectName(), facet, where));
+				}
+				if (QString::fromLatin1(facet) == "routes" && !allButtons) {
+					// A small dock does not show the route section buttons at once: scrolling down brings all four into view.
+					scroll->verticalScrollBar()->setValue(scroll->verticalScrollBar()->maximum());
+					for (const QWidget* control : sectionButtons) {
+						const QRect placed(control->mapTo(scroll->viewport(), QPoint(0, 0)), control->size());
+						if (!control->isVisible() || !view.contains(placed))
+							facetFailure(ok, "presentation",
+								QString("%1 cannot be scrolled into view in the infrastructure editor (%2, %3)")
+									.arg(control->objectName(), facet, where));
+					}
+					scroll->verticalScrollBar()->setValue(0);
 				}
 				const int comboTop = w.m_infrastructureFacetCombo->mapTo(scroll->viewport(), QPoint(0, 0)).y();
 				const int tableTop = w.m_infrastructureTable->mapTo(scroll->viewport(), QPoint(0, 0)).y();
