@@ -1136,6 +1136,13 @@ if(EGTRAIN_BUILD_TESTS)
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/e2e/test_qt_resources.py)
     add_test(NAME test_app_icon_config
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/e2e/test_app_icon_config.py)
+    add_test(NAME test_check_docs
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/docs/test_check_docs.py)
+    # The documentation check reads the file list from Git, so it runs only in a checkout.
+    if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
+        add_test(NAME docs_check
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/docs/check_docs.py --root ${CMAKE_SOURCE_DIR})
+    endif()
     add_executable(test_qt_resource_images
         ${SRC_DIR}/tests/test_qt_resource_images.cpp
         ${EGTRAIN_RESOURCES})
@@ -1612,7 +1619,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_networkscene_selection test_networkpresenter test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
 		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
-		test_app_icon_config test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
+		test_app_icon_config test_check_docs docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
 		test_sceneversions
 		test_operationsbuilder test_completedrun test_simulationrun test_rttp test_headless_smoke_decode test_release_version test_release_assets
