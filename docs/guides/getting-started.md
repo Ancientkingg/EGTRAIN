@@ -26,7 +26,7 @@ The packages contain the example cases, so you need no separate case file. If yo
 
 EGTRAIN asks its questions in this order. Some appear only once.
 
-1. **Recover Unsaved Work** appears only when an earlier session ended with unsaved edits. A first start has nothing to recover. See [If something goes wrong](#if-something-goes-wrong).
+1. **Recover Unsaved Work** appears only when an earlier session ended with unsaved edits. A first start has nothing to recover. After **Recover**, the list of the next step does not appear; open Paimpol with **Open Case** in the toolbar. See [If something goes wrong](#if-something-goes-wrong).
 2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the example cases of the package, and the group **Recent cases**, which lists other cases you opened or saved before. Select **Paimpol** and click **Open**, or double-click it. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
 3. At the first start only, EGTRAIN may ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Updating EGTRAIN](updates.md).
 
@@ -60,9 +60,9 @@ While the run is active:
 - The progress bar under the network shows the clock time, the step (`Step n of m`) and the end time. The status bar reads `Running scene: Paimpol`, and the trains move on the network view.
 - Move the speed slider towards **Faster** or **Slower**. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
-- The editors cannot change the case, and **File > Set Output Folder...** is disabled.
+- The editors **Services**, **Passengers**, **Infrastructure** and **Incidents**, **Edit > Undo** and **Edit > Redo**, and **File > Set Output Folder...** are disabled. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay open, but an edit there discards the results of that run, so wait for the run to end first.
 
-At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network.
+At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network. If you used **Follow**, the text ends with `Follow disabled`, because Follow switches off when the run ends.
 
 ## 5. Replay the run
 
@@ -86,7 +86,7 @@ The other entries are listed in [How-to](how-to.md#results-and-exports). The two
 
 Each result window has its own **Export CSV...** and **Export PNG...** for the data and the chart of that window. Every export writes a second file with the same name plus `.provenance.json`, which records the run that produced it. Keep the two files together.
 
-A save dialog starts in the folder that holds your open case, or in your Documents folder for an installed example case. Exports are not written to the output folder below.
+An export dialog starts in your Documents folder, or in your home folder when there is none. Exports are not written to the output folder below.
 
 ## 8. Where the other output goes
 

@@ -342,7 +342,7 @@ Notes on the update rows:
   is never offered. **Update and Restart** is offered only for a stable release
   that is newer than the running version, holds `update-manifest.json` and the
   package of the platform, and only where the installation can update itself.
-  [Application updates](../guides/scenes-and-application.md#application-updates)
+  [Application updates](../guides/updates.md)
   describes the update.
 - A candidate that carries the baseline version is offered the latest published
   stable release when that is newer. Do not update it in place before the other

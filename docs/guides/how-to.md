@@ -94,7 +94,7 @@ The buttons **Add Stop**, **Insert After Selected**, **Remove Stop**, **Move Up*
 
 ## Edit rolling stock
 
-You need the same as for a timetable stop.
+You need an open case that you have copied and no active run. The editors **Rolling stock units** and **Compositions** are not disabled during a run, but an edit there discards the results of that run.
 
 1. Choose **Editors > Rolling stock units**. **Add Unit**, **Duplicate** and **Delete** change the list. Select a unit to edit its physical values and its traction rows (**Add Traction Row**, **Delete Traction Row**). **Plot input traction characteristic** plots the curve.
 2. Choose **Editors > Compositions** to put units in order for a train: **Add Composition**, **Add Unit**, **Remove Unit**, **Move Up**, **Move Down**.
@@ -162,7 +162,7 @@ You need a run that reached its end. Until then the result commands are disabled
 3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section.
 4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](../ui/diagram-navigation.md).
 
-The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. A save dialog starts in the folder of your open case, or in your Documents folder for an example case. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
+The buttons **Export CSV...** and **Export PNG...** in the dock save the summary table as `run_summary.csv` and `run_summary.png`. Each export asks for a path, adds the extension when you leave it off and writes a second file, `<name>.provenance.json`, that records the run. Exports are not written to the output folder, and they are not part of the case. An export dialog starts in your Documents folder, or in your home folder when there is none. A window keeps the run it was opened for, so a later run does not change it. If the write fails, the message **Export failed** names the path.
 
 Delay figures are explained in [How delays are calculated](delay-analysis.md), capacity in [How capacity is analysed](capacity-analysis.md) and the text files of a run in [Run output](run-output.md).
 
@@ -192,10 +192,11 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 | Command | It is disabled when | What to do |
 | --- | --- | --- |
 | **Run** (toolbar), **Simulation > Run**, **File > Run Scene** | No case is open, a run is active, or validation reports an error | Read the first error in **View > Scene Validation** ([fix validation errors](#fix-validation-errors)) or wait for the run |
-| **Pause**, **Stop** | No run is active | Start a run |
+| **Pause**, **Stop** | No run is active, or the run is already stopping | Start a run, or wait for the run to stop |
 | **File > Save Scene**, **Save Case Study As...**, **Save Scene As Folder...** | No case is open | Open or create a case. A normal start always has one open |
 | **File > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
-| The editors (menu **Editors**), **Edit > Undo** and **Edit > Redo** | A run uses the case | Stop the run or wait |
+| The editors **Services**, **Passengers**, **Infrastructure** and **Incidents** (menu **Editors**) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling stock units** and **Compositions** stay open during a run, and an edit there discards the results of that run |
+| **Edit > Undo**, **Edit > Redo** | A run uses the case, or there is nothing to undo or redo | Stop the run or wait |
 | **Diagrams** entries, **Open result view...**, **Export CSV...**, **Export PNG...** in **Run Results** | No run has reached its end since the last edit | Run again. A stopped run, an edit, a new case and another scenario all discard results |
 | **Set delay baseline** | There is no completed run, or its scenario has an incident or an entrance delay | [Compare a scenario with a baseline](#compare-a-scenario-with-a-baseline) |
 | **Compare delays** | There is no baseline, or the completed run has neither an incident nor an entrance delay | Same |

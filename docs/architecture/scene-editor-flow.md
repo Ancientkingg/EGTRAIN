@@ -180,7 +180,7 @@ calls. The dialog for a new stop has a position chooser whose item data is the
 insertion index, so a repeated station gives distinct entries. Stop choices are the
 route visits between the neighbours of that position
 (`sceneStopInsertionWindow`); a position without a window shows the reason, offers
-no station and blocks Accept. Accept calls `insertSceneStop`, which inserts only
+no station and blocks OK. OK calls `insertSceneStop`, which inserts only
 when the new stop resolves and no resolved stop changes its visit, and otherwise
 leaves the service unchanged. Add Stop opens after the last stop or at the last
 position that has choices and shows a message only when no position has any;
@@ -190,7 +190,7 @@ saveable, with a reason beside the platform selector. Route edits never delete
 or silently retarget stops.
 
 Clicking or keyboard-activating a timetable row opens a copied-stop dialog.
-Accept validates the focused fields and commits once; Cancel changes nothing,
+OK validates the focused fields and commits once; Cancel changes nothing,
 including when adding a stop. The matrix and dialog offer Elapsed/Clock time
 with the canonical case base time shown. Blank arrival or departure means absent,
 not zero. Clock input uses `HH:MM:SS[.fraction]` and explicit `+Nd ` prefixes for
