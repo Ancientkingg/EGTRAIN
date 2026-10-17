@@ -28,13 +28,13 @@ Use one of these:
 - Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu reads `No Recent Scenes` while it is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
-- From a terminal, `QEGTRAIN --scene path/to/case.egscene` ([command-line options](command-line.md)).
+- From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
 
 You should see the window title `EGTRAIN - <case name>`, the network in the view and the status bar `Scene loaded: <case name> (<n> services, <m> routes)`. Opening a case does not run it and does not change the file.
 
 If the case does not open, a dialog says why: **Cannot Open Case Study**, **Older Scene Not Supported** or **Newer Scene**. [Opening an `.egscene` case study](opening-a-case-study.md) explains each. While the current case has unsaved edits, see [the unsaved changes question](#answer-the-unsaved-changes-question).
 
-**View > Advanced / Developer details** switches between the normal view and a view with the dock **Loaded Data**, the validation counts and the non-blocking warnings. It changes what is shown, not what a run does.
+Normal mode keeps the network view and the editors uncluttered. **View > Advanced / Developer details** switches to advanced mode, which raises the dock **Loaded Data** automatically after a case opens and shows the full validation counts, the non-blocking warnings and the technical inventories. In normal mode **View > Loaded Data** and **View > Scene Validation** still open those docks. The choice changes what is shown, not what a run does.
 
 ## Copy and save a case
 
@@ -52,7 +52,7 @@ Other ways to save:
 - **File > Save Scene As Folder...** writes the scene as a folder of JSON files, which you can edit by hand. If the folder you choose is not empty and holds no `scene.json`, EGTRAIN asks `Save scene files there?`.
 - A destination inside the installation is refused with **Cannot Save Scene**: `Installed example scenes cannot be overwritten. Choose a location outside the EGTRAIN installation.`
 
-To check a saved case, open it again from **File > Recent Scenes**. The three save commands are available whenever a case is open, also during a run.
+To check a saved case, open it again from **File > Recent Scenes**. The three save commands are enabled whenever a case is open, also during a run.
 
 ## Fix validation errors
 
@@ -127,7 +127,7 @@ The two buttons say why they are disabled in their tooltips and in the line abov
 
 ## Replay a completed run
 
-You need a run that reached its end. A stopped or failed run has no replay.
+You need a run that reached its end. A stopped or failed run has no replay, and a stopped run keeps no results either.
 
 1. When the run has ended, the **Replay** row appears under the network. Click **Start**, **Play** or **End**, or move the slider. The arrow keys and the mouse wheel move the slider too.
 2. Each selection shows the last recorded frame at or before the chosen time, not an interpolated position. The label beside the slider reads, for example, `Replay at 1230 s`. **Play** advances one simulated second for each second of real time, and the button then reads **Pause**.

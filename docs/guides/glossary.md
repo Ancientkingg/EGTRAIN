@@ -56,11 +56,11 @@ The runtime is the working data that a run builds in memory from the case: the i
 
 ### Playback
 
-Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider between **Slower** and **Faster** control it, and the tooltip of the slider reads "Simulation speed: fastest" or names a factor. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Completed-run replay](../development/build-and-test.md#completed-run-replay) says what a stopped run leaves.
+Playback is what you watch during a run: the trains move on the canvas as the simulation produces steps. **Pause** (the button then reads **Resume**), **Stop** and the speed slider between **Slower** and **Faster** control it, and the tooltip of the slider reads "Simulation speed: fastest" or names a factor. A run that you stop before its end leaves no results. Playback is not the replay and not the results; [Replay a completed run](how-to.md#replay-a-completed-run) says what a stopped run leaves.
 
 ### Replay
 
-The replay is the row under the network that appears after a successful run. It has the buttons **Start**, **Play** (which then reads **Pause**) and **End**, a slider and a label that begins "Replay" and states the interval between frames. It shows the recorded frames of the latest completed run: a position shows the last recorded frame at or before the chosen time. A stopped run has none, and a new run or any edit of the case clears it ([Completed-run replay](../development/build-and-test.md#completed-run-replay)).
+The replay is the row under the network that appears after a successful run. It has the buttons **Start**, **Play** (which then reads **Pause**) and **End**, a slider and a label that begins "Replay" and states the interval between frames. It shows the recorded frames of the latest completed run: a position shows the last recorded frame at or before the chosen time. A stopped run has none, and a new run or any edit of the case clears it ([Replay a completed run](how-to.md#replay-a-completed-run)).
 
 ### Results
 

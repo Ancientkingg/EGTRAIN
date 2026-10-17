@@ -7,7 +7,7 @@ The steps use the labels of the window. A label such as **Run** is a menu entry 
 ## Three things to keep apart
 
 - **The case** is the input: the network, the rolling stock, the services and the scenario. Opening a case does not change it, and a run does not change it. Only your edits do, and only a save writes them.
-- **Playback** is what you watch while a run is active: trains move on the network view as the simulation produces steps. A run that you stop leaves nothing behind.
+- **Playback** is what you watch while a run is active: trains move on the network view as the simulation produces steps. A run that you stop leaves no results.
 - **Results** are what a run that reached its end leaves in memory: the dock **Run Results**, the result windows, the replay row and the output files. Any edit of the case, a new case or another scenario discards them. Saving the case does not save them.
 
 The [glossary](glossary.md) defines the other words of the program.
@@ -27,8 +27,8 @@ The packages contain the example cases, so you need no separate case file. If yo
 EGTRAIN asks its questions in this order. Some appear only once.
 
 1. **Recover Unsaved Work** appears only when an earlier session ended with unsaved edits. A first start has nothing to recover. See [If something goes wrong](#if-something-goes-wrong).
-2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the example cases of the package, and the group **Recent cases** once you have opened cases of your own. Select **Paimpol** and click **Open**, or double-click it. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
-3. At the first start only, EGTRAIN may ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Application updates](scenes-and-application.md#application-updates).
+2. **Open a Case** opens over the case that EGTRAIN has loaded already (Netherlands, unless you chose another). The list has the group **Bundled cases**, which holds the example cases of the package, and the group **Recent cases**, which lists other cases you opened or saved before. Select **Paimpol** and click **Open**, or double-click it. The first entry of the list is already selected when the window opens, so select `Paimpol` itself before you click **Open**. **Continue** keeps the loaded case.
+3. At the first start only, EGTRAIN may ask **Check for EGTRAIN updates automatically?** Either answer works: **Check Automatically** or **Don't Check Automatically**. **Help** changes the choice later. See [Updating EGTRAIN](updates.md).
 
 The toolbar button **Open Case** shows **Open a Case** again whenever you want to open another case. If you started EGTRAIN by opening a `.egscene` file, or if the list does not show Paimpol, use **File > Open Case Study...** and select `Paimpol.egscene` instead; [Opening an `.egscene` case study](opening-a-case-study.md) describes that.
 

@@ -1,96 +1,14 @@
-# Using EGTRAIN and authoring V1 scenes
+# Using EGTRAIN and authoring scenes
 
-This guide covers canonical scene authoring: open a V1 directory or V2 bundle,
-convert an external legacy case when needed, edit planned input, validate it,
-and run it through the native scene path.
+This page describes in detail how EGTRAIN works with a case: what the docks and windows show, the rules for editing and validating, and the files of a scene. For a first run see [Getting started](getting-started.md). For common tasks see [How-to](how-to.md), and for the meaning of the words see the [glossary](glossary.md). The last part, [Reference](#reference), holds the scene files, the version rules, bundles and the conversion of a legacy case.
 
 ## Open and run
 
-Choose `File > Open Case Study...` and select an `.egscene` file. Use
-`File > Open Scene Folder...` when editing a canonical directory containing
-`scene.json`. Normal mode keeps the canvas and editor flow uncluttered; use
-`View > Advanced / Developer details` when you want the automatic Loaded Data
-panel, full validation counts, and technical inventories. The existing View
-actions can still open Loaded Data or Validation explicitly in normal mode.
-Use
-`Save Case Study As...` for a new bundle. From the command line, `--scene`
-accepts the same bundle or directory path, and a bundle file name alone opens
-the bundle too. On Windows and macOS a double-click on a bundle opens it as well
-([Open by double-click](opening-a-case-study.md#open-by-double-click)).
+Opening and running a case is described in [Getting started](getting-started.md). The ways to open a case, the normal and the advanced view, saving a copy and the command-line forms are in [How-to](how-to.md#open-a-case), and bundles are in [Opening an `.egscene` case study](opening-a-case-study.md).
 
-The application loads the six required JSON files, accepts optional scenarios,
-passengers, display metadata in `views.json`, and historical
-compatibility aliases, and validates before a run. Infrastructure, signalling,
-rolling stock, services, the selected
-scenario, and passengers are built directly from `SceneModel` in memory.
+## Application updates
 
-### Application updates
-
-At first launch EGTRAIN asks whether to check for releases automatically. You
-can disable or re-enable automatic checks from **Help**. **Check for Updates...**
-always performs a manual check, even when automatic checks are disabled. An
-available update is downloaded only after consent; **Update and Restart**
-installs it and relaunches the application. If the install location is not
-writable, download the release and install it with the platform's normal
-permissions instead. On macOS, EGTRAIN cannot update itself while it runs from a
-disk image or another read-only location; move it to the Applications folder
-first.
-
-EGTRAIN counts a Windows copy as managed by an installer when the file
-`installed-by-setup.ini` is in the same folder as `QEGTRAIN.exe`. The EGTRAIN
-installer writes that file and the portable package does not contain it. Such a
-copy does not replace its own files. **Update and Restart** downloads the Setup
-program of the newer release instead of the portable package, checks it against
-the update manifest, closes EGTRAIN, runs the Setup without windows and starts
-EGTRAIN again. A portable folder that holds the file, for example one zipped from
-an installed copy, is treated the same way until the file is deleted.
-
-EGTRAIN does not take the end of the Setup for a successful update. At the next
-start it compares the version that the update was to install with the version
-that runs. It tells you once that EGTRAIN was updated, that the Setup finished but
-an older version runs, or that the Setup did not finish and the installation may
-be incomplete. In the last case download the Setup from the release page and run
-it again.
-
-An update is prepared in a hidden `.qegtrain-update-*` folder next to the
-installation, and the updated application starts in its own directory. After a
-successful update the folder is removed. On Windows the update helper cannot
-delete itself, so the application removes the rest about 20 seconds after it
-started, or at its next start when it was closed before that. Folders left by an
-interrupted update are removed at a start of the application once they are older
-than an hour.
-
-When the new version cannot be started, the update helper puts the previous
-version back and starts it again. That version then tells you once which version
-could not be started. Automatic checks do not offer that version again, a newer
-version is offered as usual, and **Help > Check for Updates...** still offers it.
-
-The helper tries again for a few seconds when it cannot rename the installation,
-because on Windows a file of the application that just ended can stay locked for a
-short time. If the files still cannot be replaced, the previous version stays
-installed and starts again, and the helper removes the staging folder (on
-Windows the helper itself stays until the next start removes it). That
-version then tells you once that the update to the new version could not be
-applied. Automatic checks keep offering it, and **Help > Check for Updates...**
-tries again.
-
-Production updates are stable versioned releases. With automatic checks enabled,
-EGTRAIN offers newer releases on the next application start; it does not interrupt
-an already-running session when a release is published. Use **Help > Check for
-Updates...** to check immediately. Installing an update always requires consent.
-
-Production build 107 and earlier have no updater and need one manual upgrade.
-The Linux AppImage from production build 111 also needs one manual upgrade to
-correct its update-staging path. After that, use **Update and Restart** for
-future releases. Windows and macOS build 111 can update in place.
-
-Application version, scene schema version, and bundle version are independent.
-The saved-with application version is provenance and does not by itself prompt
-for an upgrade. An upgrade to a copy is offered only for a scene version that
-has a registered migration, and none exists today; when one is offered, the
-original directory or ZIP remains unchanged. Newer schema or bundle versions
-require a newer app. The [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
-lists which scenes open.
+Checks for a newer release, consent and the installation of an update are described in [Updating EGTRAIN](updates.md).
 
 ## Review what loaded
 
@@ -134,35 +52,112 @@ a Keep local/Reload decision, grouped for all units sharing the file. Updates
 observed during a run are offered after the run completes. Completed result
 charts do not change.
 
-## Scene directory
+## Edit and validate
 
-| File | Status | Contents |
-| --- | --- | --- |
-| `scene.json` | required | schema version, name, units, base time, simulation settings, import report |
-| `infrastructure.json` | required | tracks, nodes, arcs, blocks, connections |
-| `stations.json` | required | stations, positions, platforms, platform nodes |
-| `signalling.json` | required | signals, routes, signalling areas, dependencies, restrictions, boundaries |
-| `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
-| `services.json` | required | route/composition links and planned timetable stops |
-| `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
-| `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
-| `views.json` | optional display metadata | authored track levels/regions and station display geometry; preserved in folders and bundles |
+### Services
 
-Signalling areas in `signalling.json` give runtime sections their signalling
-level; see [Signalling levels](../architecture/signalling-levels.md).
+In Services, Category offers Intercity, Regional, High speed/international,
+Freight, Metro/urban, Suburban and No category. Unknown imported values remain
+visible until you choose a replacement. This label does not change train
+performance, composition or stops. It survives duplication and folder/bundle
+saves, but not legacy export.
 
-The writer emits preferred V1 keys. Stop plans use independently optional
-`planned_arrival_seconds` and `planned_departure_seconds` on any stop, plus
-required `dwell_seconds`. Legacy `-1` values remain omitted planned fields;
-they are not treated as results or filled by a last-stop rule. See [V1 scene
-properties](v1-scene-properties.md) for editing examples.
+Service visualization colour, directly below Category, sets the colour of the
+service's trains. Choose... opens a colour dialog; Default removes the colour.
+Without a colour, every train is drawn in the default yellow. The colour applies
+to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
+replay, and the Map key lists it with the service id. In the result windows of
+a run, the lines of those trains in the speed, time, distance and tractive
+effort diagrams, the delay diagram, the timetable graph and the train-path
+graph take the colour with their line widths and dash patterns unchanged, and
+the train filter shows it as the swatch of each train; the timetable table
+shows the swatch too. Trains without a colour keep the chart colours. The
+blocking-time charts keep the colours that show the block types and show the
+service colour in the train filter only. A stored value that is not
+a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
+you choose a colour or press Default; trains of that service use the default
+yellow. Changing the colour counts as a scene edit, so it discards the run
+results and replay like any other service edit. It survives duplication and
+folder/bundle saves, but not legacy export.
 
-Scenario files use `default_scenario_id`, named `scenarios`, concrete
-`incidents`, and `entrance_delays`. Passenger windows use absolute seconds
-from midnight. The complete key contract and historical aliases are in the
-[schema reference](../architecture/scene-schema.md).
+The route chooser shows endpoints and direction. Its tooltip lists stations
+passed by the route, not stopping calls. Add Stop chooses a remaining station
+visit and its unique reachable platform; if several platforms are reachable,
+choose one explicitly. Moving stops or changing routes can leave invalid
+assignments: the editor keeps them for repair and explains the problem. These
+drafts can be saved, but incompatible stop instructions cannot run. Historical
+blank-platform rows outside the route remain schedule context, not simulated
+stops.
+
+### Timetable stops
+
+Click a timetable row to edit its station, platform, dwell, arrival and departure.
+OK applies the fields together; Cancel leaves the row unchanged. Add Stop
+uses the same dialog with an Insert position chooser: "At the start of the
+timetable" or "After stop k" for each stop, so a station that occurs twice has two
+entries. The station and platform choices are the route visits between the
+neighbouring stops of that position. Add Stop opens after the last stop, or at the
+last position that has choices when the destination is already in the timetable.
+Insert After Selected needs a selected row and opens the dialog after it. When no
+position has a station visit, Add Stop shows a message and opens no dialog. A
+position whose neighbouring stops leave no station visit, or follow a stop that
+does not resolve, shows the reason and blocks OK. OK inserts only when the
+new stop resolves and no other stop changes its route visit; otherwise the dialog
+stays open with the reason and the timetable is unchanged. Existing stops keep
+their times, and the new stop gets the times entered in the dialog. Removing every
+row gives a service with no scheduled calls.
+Blank planned times are absent, while `0` is simulation zero. Use Elapsed for
+seconds from zero or Clock for case-base time: with base `08:00:00`, `90` seconds
+is `08:01:30`. Enter `+1d 00:00:00` for next midnight. Merely switching mode or
+changing the case base time does not shift stored offsets. Entry stays elapsed
+seconds. Invalid chronology blocks Run; incomplete departures and insufficient
+dwell windows are warnings. These checks do not guarantee physical feasibility.
+
+### Records, scenarios and passengers
+
+Keep IDs unique and keep service links consistent; [Links between records](#links-between-records) lists the links.
+
+`passengers.json` is optional canonical input. The Passengers dock edits its
+journeys and ordered legs and can append the supported DAS/RouteChoice CSV pair.
+The import result table identifies malformed, unresolved, accepted, and
+ID-collision rows. The native runtime does not reopen those files. Random
+passenger draws and simulation results are excluded from scene input. Likewise, legacy OL, TDS,
+Rescheduling, and GUI files have their own active/inert/output classifications;
+see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
+behavior from a filename.
+
+Named-scenario selection, entrance delays, incidents, and passengers execute
+from canonical data. The runtime applies only the selected/default scenario.
+
+### Validation
+
+Run the structural and semantic validation command after edits. The path can
+name a scene directory or bundle:
+
+```bash
+./build/scene_tool validate path/to/scene
+```
+
+The command preserves support for structurally valid, incomplete historical
+scenes. Run gating additionally uses `validateRunnableScene`; the equivalent
+directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
+--runnable path/to/scene` prints the diagnostics of that run gating. Structural
+loading is checked first so semantic reference diagnostics do not cascade from
+malformed JSON.
+
+Before committing a scene, validate it and run the native scene path. Use
+`scene_tool export` only when a downstream legacy tool needs interoperability
+files; edits to that export do not flow back into canonical JSON. The exporter
+generates legacy infrastructure, signalling constraints, rolling stock,
+timetables, and supported passenger CSVs from canonical data. It reports an
+error when a canonical passenger window cannot be represented by the legacy
+half-hour bucket format instead of silently changing it. The signalling areas of
+the scene are exported to `TrackLines/AreasCaseStudy.txt`; an edit of that file
+does not flow back.
 
 ## Scenario library and student loop
+
+### Scenarios
 
 Open the **Incidents** dock to choose the canonical default or another named
 scenario. The library shows each scenario's ID, name, incident and entrance-
@@ -177,6 +172,8 @@ reference. Imports retain entrance delays, validate references against the
 open case, and report any adjusted ID rather than replacing an existing
 scenario or incident.
 
+### The student loop
+
 The completed student loop is: open a case, optionally review **Loaded Data**
 and **Validation**, choose or edit a scenario, save (or **Save Case Study As...**),
 review the run summary, run the selected scenario, then use **Run Results** to
@@ -185,24 +182,19 @@ are cleared when the case or scenario changes and are rebuilt only by a new
 run, so a result window is never presented as belonging to a newly selected
 scenario.
 
-When a run has finished without being stopped, the **Replay** row appears under the
-network. **Start**, **Play**, **End** and the slider move through the run, and each
-selection shows the last recorded frame at or before that time; a frame is recorded every
-five simulated seconds. Beside the slider the row names the frame that is shown, as in
-"Replay at 1230 s", and below the controls it says which part of the run the replay holds,
-as in "Whole run, 0 to 7999 s, a frame every 5 s." The replay has 128 MiB of memory. A run
-that is larger than that loses its oldest frames, and the text says from which time the
-replay starts, for example "Starts at 10:00:20 (7220 s), ends at 7999 s, a frame every
-5 s. The earlier part was not kept because the run is larger than the replay memory
-(128 MiB)." The slider then covers only the kept part, **Start** goes to its first time,
-and the tooltip of **Start** says so. If not even one moment of the run fits, the row says
-"No replay" with the reason, and the slider and **Play** are disabled.
+### Replay
+
+The **Replay** row that appears under the network after a run is described in [Replay a completed run](how-to.md#replay-a-completed-run).
+
+### Incidents and Follow
 
 The incident editor exposes occurrence, reduced-speed cap, recovery end (or
 until-destination), and destination termination directly; these are not hidden
 JSON-only settings. During playback, choose a train in **Train to follow** and
 activate **Follow** to center the network view on it immediately, including
 while paused.
+
+### Follow in detail
 
 The list names the state of each train. A train that has not entered the network
 shows its scheduled entry time, as in "Rail-1 (scheduled 08:25:50)"; the time is
@@ -243,6 +235,8 @@ update. The zoom buttons of the toolbar centre the view on the train at once, an
 layer off stop the view where it is. The train item has its own movement of 120 ms
 between two updates.
 
+### Selecting items
+
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
 inspector opens and a light blue ring marks the item. The ring keeps its size at
@@ -250,6 +244,8 @@ every zoom and neither covers nor recolours the item. It follows a moving train 
 disappears with the layer of its item. Clicking another item moves the ring;
 clicking an empty part of the canvas or closing the inspector removes it.
 Dragging the canvas pans the view and keeps the selection.
+
+### Signal heads
 
 Signal heads on the canvas show what the simulation holds for the displayed
 time: Stop (red, with a dark bar), Caution (yellow, with a dark dot), Proceed
@@ -261,6 +257,8 @@ a head is at least 6 pixels wide; zoom in to see them. While a run is paused the
 canvas shows the last snapshot the simulation delivered, and after the run the
 replay slider shows the heads of the selected time. The tooltip and the signalling
 inspector name the state, and the Map key lists all five.
+
+### Delay baseline
 
 A completed run without incidents or entrance delays can be frozen with **Set
 delay baseline**. The results panel confirms the completed run identity and
@@ -275,7 +273,7 @@ direct incident evidence, and never states a cause. What it shows, how to read
 it and what it does not cover are in
 [How delays are calculated](delay-analysis.md#the-delay-analysis-window).
 
-### Timetable graphs and train paths
+## Timetable graphs and train paths
 
 These two **Diagrams** and **Run Results > Open result view...** actions use the
 same reference-route distance axis, but show different data:
@@ -326,9 +324,70 @@ warning remains visible when a curve contains negative effort below the default
 `0 kN` lower bound; those values remain in the input, not removed or clamped by
 the plot.
 
-## Portable bundles
+## Reference
 
-V2 `.egscene` files package canonical V1 JSON in a deterministic ZIP archive.
+The files of a scene, the rules that link them, the version rules, bundles and the conversion of a legacy case.
+
+### Scene directory
+
+The application loads the six required JSON files, accepts optional scenarios,
+passengers, display metadata in `views.json`, and historical
+compatibility aliases, and validates before a run. Infrastructure, signalling,
+rolling stock, services, the selected
+scenario, and passengers are built directly from `SceneModel` in memory.
+
+| File | Status | Contents |
+| --- | --- | --- |
+| `scene.json` | required | schema version, name, units, base time, simulation settings, import report |
+| `infrastructure.json` | required | tracks, nodes, arcs, blocks, connections |
+| `stations.json` | required | stations, positions, platforms, platform nodes |
+| `signalling.json` | required | signals, routes, signalling areas, dependencies, restrictions, boundaries |
+| `rolling_stock.json` | required | physical/traction rolling stock units and compositions |
+| `services.json` | required | route/composition links and planned timetable stops |
+| `scenarios.json` | optional on load; always written | default scenario, named scenarios, incidents, entrance delays |
+| `passengers.json` | optional | journeys, absolute midnight-second windows, and legs |
+| `views.json` | optional display metadata | authored track levels/regions and station display geometry; preserved in folders and bundles |
+
+Signalling areas in `signalling.json` give runtime sections their signalling
+level; see [Signalling levels](../architecture/signalling-levels.md).
+
+The writer emits preferred V1 keys. Stop plans use independently optional
+`planned_arrival_seconds` and `planned_departure_seconds` on any stop, plus
+required `dwell_seconds`. Legacy `-1` values remain omitted planned fields;
+they are not treated as results or filled by a last-stop rule. See [V1 scene
+properties](v1-scene-properties.md) for editing examples.
+
+Scenario files use `default_scenario_id`, named `scenarios`, concrete
+`incidents`, and `entrance_delays`. Passenger windows use absolute seconds
+from midnight. The complete key contract and historical aliases are in the
+[schema reference](../architecture/scene-schema.md).
+
+### Links between records
+
+Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
+links consistent:
+
+```text
+service.composition -> rolling_stock.compositions[].id
+service.route       -> signalling.routes[].id
+stop.station        -> stations[].id
+stop.platform       -> platform on that station
+scenario incident   -> signal/block or service target as appropriate
+```
+
+### Versions
+
+Application version, scene schema version, and bundle version are independent.
+The saved-with application version is provenance and does not by itself prompt
+for an upgrade. An upgrade to a copy is offered only for a scene version that
+has a registered migration, and none exists today; when one is offered, the
+original directory or ZIP remains unchanged. Newer schema or bundle versions
+require a newer app. The [Compatibility boundary](../architecture/scene-model.md#compatibility-boundary)
+lists which scenes open.
+
+### Portable bundles
+
+An `.egscene` file packages the canonical JSON files of a scene in a deterministic ZIP archive.
 The bundle version describes the container; `schema_version` still describes
 the canonical data. Bundles include `scenarios.json`, omit generated results
 and legacy input, and do not replace editable directory scenes.
@@ -345,7 +404,7 @@ See [Opening an `.egscene` case study](opening-a-case-study.md) for the student
 workflow and [Scene bundle format](../architecture/scene-bundle.md) for the
 entry allowlist and size limits.
 
-## Convert a legacy case
+### Convert a legacy case
 
 Use the GUI's `File > Load Legacy Case...` or `scene_tool import`. Select a
 separate destination; the importer never modifies the source. A legacy train
@@ -385,111 +444,6 @@ Inspect importer diagnostics before opening the result. Structural/import
 errors prevent a usable scene from being published; semantic diagnostics stay
 with the scene for repair.
 
-## Edit and validate
+### Scope
 
-In Services, Category offers Intercity, Regional, High speed/international,
-Freight, Metro/urban, Suburban and No category. Unknown imported values remain
-visible until you choose a replacement. This label does not change train
-performance, composition or stops. It survives duplication and folder/bundle
-saves, but not legacy export.
-
-Service visualization colour, directly below Category, sets the colour of the
-service's trains. Choose... opens a colour dialog; Default removes the colour.
-Without a colour, every train is drawn in the default yellow. The colour applies
-to every occurrence of the service (201-1, 201-2, ...) on the canvas and in
-replay, and the Map key lists it with the service id. In the result windows of
-a run, the lines of those trains in the speed, time, distance and tractive
-effort diagrams, the delay diagram, the timetable graph and the train-path
-graph take the colour with their line widths and dash patterns unchanged, and
-the train filter shows it as the swatch of each train; the timetable table
-shows the swatch too. Trains without a colour keep the chart colours. The
-blocking-time charts keep the colours that show the block types and show the
-service colour in the train filter only. A stored value that is not
-a `#RRGGBB` colour is shown as "Invalid: " followed by the text and is kept until
-you choose a colour or press Default; trains of that service use the default
-yellow. Changing the colour counts as a scene edit, so it discards the run
-results and replay like any other service edit. It survives duplication and
-folder/bundle saves, but not legacy export.
-
-The route chooser shows endpoints and direction. Its tooltip lists stations
-passed by the route, not stopping calls. Add Stop chooses a remaining station
-visit and its unique reachable platform; if several platforms are reachable,
-choose one explicitly. Moving stops or changing routes can leave invalid
-assignments: the editor keeps them for repair and explains the problem. These
-drafts can be saved, but incompatible stop instructions cannot run. Historical
-blank-platform rows outside the route remain schedule context, not simulated
-stops.
-
-Click a timetable row to edit its station, platform, dwell, arrival and departure.
-Accept applies the fields together; Cancel leaves the row unchanged. Add Stop
-uses the same dialog with an Insert position chooser: "At the start of the
-timetable" or "After stop k" for each stop, so a station that occurs twice has two
-entries. The station and platform choices are the route visits between the
-neighbouring stops of that position. Add Stop opens after the last stop, or at the
-last position that has choices when the destination is already in the timetable.
-Insert After Selected needs a selected row and opens the dialog after it. When no
-position has a station visit, Add Stop shows a message and opens no dialog. A
-position whose neighbouring stops leave no station visit, or follow a stop that
-does not resolve, shows the reason and blocks Accept. Accept inserts only when the
-new stop resolves and no other stop changes its route visit; otherwise the dialog
-stays open with the reason and the timetable is unchanged. Existing stops keep
-their times, and the new stop gets the times entered in the dialog. Removing every
-row gives a service with no scheduled calls.
-Blank planned times are absent, while `0` is simulation zero. Use Elapsed for
-seconds from zero or Clock for case-base time: with base `08:00:00`, `90` seconds
-is `08:01:30`. Enter `+1d 00:00:00` for next midnight. Merely switching mode or
-changing the case base time does not shift stored offsets. Entry stays elapsed
-seconds. Invalid chronology blocks Run; incomplete departures and insufficient
-dwell windows are warnings. These checks do not guarantee physical feasibility.
-
-Edit canonical JSON or use the scene editor. Keep IDs unique and keep service
-links consistent:
-
-```text
-service.composition -> rolling_stock.compositions[].id
-service.route       -> signalling.routes[].id
-stop.station        -> stations[].id
-stop.platform       -> platform on that station
-scenario incident   -> signal/block or service target as appropriate
-```
-
-`passengers.json` is optional canonical input. The Passengers dock edits its
-journeys and ordered legs and can append the supported DAS/RouteChoice CSV pair.
-The import result table identifies malformed, unresolved, accepted, and
-ID-collision rows. The native runtime does not reopen those files. Random
-passenger draws and simulation results are excluded from scene input. Likewise, legacy OL, TDS,
-Rescheduling, and GUI files have their own active/inert/output classifications;
-see the [migration matrix](v1-scene-migration-matrix.md) instead of inferring
-behavior from a filename.
-
-Named-scenario selection, entrance delays, incidents, and passengers execute
-from canonical data. The runtime applies only the selected/default scenario.
-
-Run the structural and semantic validation command after edits. The path can
-name a scene directory or bundle:
-
-```bash
-./build/scene_tool validate path/to/scene
-```
-
-The command preserves support for structurally valid, incomplete historical
-scenes. Run gating additionally uses `validateRunnableScene`; the equivalent
-directory helper is `validateRunnableSceneDirectory`. `scene_tool validate
---runnable path/to/scene` prints the diagnostics of that run gating. Structural
-loading is checked first so semantic reference diagnostics do not cascade from
-malformed JSON.
-
-Before committing a scene, validate it and run the native scene path. Use
-`scene_tool export` only when a downstream legacy tool needs interoperability
-files; edits to that export do not flow back into canonical JSON. The exporter
-generates legacy infrastructure, signalling constraints, rolling stock,
-timetables, and supported passenger CSVs from canonical data. It reports an
-error when a canonical passenger window cannot be represented by the legacy
-half-hour bucket format instead of silently changing it. The signalling areas of
-the scene are exported to `TrackLines/AreasCaseStudy.txt`; an edit of that file
-does not flow back.
-
-## Scope
-
-The V2 bundle changes packaging only. V1 JSON and `SceneModel` remain the
-simulation-data contract.
+The bundle changes packaging only. The scene JSON and `SceneModel` remain the simulation-data contract.
