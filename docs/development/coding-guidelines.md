@@ -83,7 +83,7 @@ clang-tidy 23.1.3 over all analysed modules.
 
 | Check | Findings | Why it is not selected |
 | --- | --- | --- |
-| `readability-implicit-bool-conversion` | 2269, of which 1407 in `tests/` | Almost all are a pointer or an integer used as a condition (`if (ptr)`, `!ptr`), the idiom of the Qt code and of this code. With those conditions allowed, 455 remain (391 in `tests/`), mostly the same idiom inside a larger expression such as `a && !m_worker`. `scene/`, `io/` and `util/` have 44, all of the first kind |
+| `readability-implicit-bool-conversion` | 2269, of which 1407 in `tests/` | Almost all are a pointer or an integer used as a condition (`if (ptr)`, `!ptr`), the idiom of the Qt code and of this code. With those conditions allowed, 455 remain, mostly the same idiom inside a larger expression such as `a && !m_worker`. `scene/`, `io/` and `util/` have 44, all of the first kind |
 | `cppcoreguidelines-owning-memory` | 918, of which 183 in `tests/` | The check follows `gsl::owner`, and nearly every finding is `new` for a widget, layout, action or thread that a Qt parent owns. `scene/`, `io/` and `util/`, which do not use Qt ownership, have none |
 
 ## Warnings
