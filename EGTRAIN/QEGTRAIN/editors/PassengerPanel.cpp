@@ -319,6 +319,7 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	passengerLayout->addWidget(passengerDetailPane, 2);
 
 	connect(m_passengerList, &QListWidget::currentRowChanged, this, [this](int) { updatePassengerDetail(); });
+	connect(m_passengerList, &QListWidget::itemSelectionChanged, this, [this] { updatePassengerDetail(); });
 	connect(m_journeyList, &QListWidget::currentRowChanged, this, [this](int) { updateJourneyDetail(); });
 	connect(m_legList, &QListWidget::currentRowChanged, this, [this](int) { updateLegDetail(); });
 	connect(m_addPassengerButton, &QPushButton::clicked, this, &PassengerPanel::addPassenger);
@@ -388,7 +389,9 @@ ScenePassenger* PassengerPanel::selectedPassenger() {
 	if (!m_document || !m_document->isLoaded())
 		return nullptr;
 	auto& passengers = m_document->mutableModel().passengers;
-	const int row = m_passengerList->currentRow();
+	// Ctrl+click on the selected entry clears the selection and keeps the current row.
+	const QListWidgetItem* current = m_passengerList->currentItem();
+	const int row = current && current->isSelected() ? m_passengerList->currentRow() : -1;
 	return row >= 0 && row < static_cast<int>(passengers.size()) ? &passengers[static_cast<std::size_t>(row)] : nullptr;
 }
 
