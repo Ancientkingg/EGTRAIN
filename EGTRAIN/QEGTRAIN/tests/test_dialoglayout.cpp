@@ -278,6 +278,48 @@ bool exerciseInlineMessages() {
 	return ok;
 }
 
+// An editor panel gives its message labels their role while it is hidden. Labels set before the panel is
+// shown look the same as labels set afterwards, and the text colour of every role differs from a plain label.
+bool exercisePanelMessages() {
+	using DialogLayout::Severity;
+	QWidget panel;
+	auto* fields = new QVBoxLayout(&panel);
+	auto addLabel = [&]() {
+		auto* label = new QLabel(&panel);
+		fields->addWidget(label);
+		return label;
+	};
+	QLabel* plain = addLabel();
+	plain->setText(QStringLiteral("Plain label"));
+	QLabel* early[3] = {addLabel(), addLabel(), addLabel()};
+	QLabel* late[3] = {addLabel(), addLabel(), addLabel()};
+	DialogLayout::setStatus(early[0], Severity::Error, QStringLiteral("Early error"));
+	DialogLayout::setStatus(early[1], Severity::Warning, QStringLiteral("Early warning"));
+	DialogLayout::setHelp(early[2], QStringLiteral("Early help"));
+	panel.resize(400, 400);
+	panel.show();
+	QApplication::processEvents();
+	DialogLayout::setStatus(late[0], Severity::Error, QStringLiteral("Late error"));
+	DialogLayout::setStatus(late[1], Severity::Warning, QStringLiteral("Late warning"));
+	DialogLayout::setHelp(late[2], QStringLiteral("Late help"));
+	QApplication::processEvents();
+
+	bool ok = true;
+	for (int role = 0; role < 3; ++role) {
+		ok &= check(early[role]->isVisible() && late[role]->isVisible(), "a message label of a panel is not shown with its panel");
+		ok &= check(sampleBackground(early[role]) == sampleBackground(late[role])
+				&& early[role]->palette().color(QPalette::WindowText) == late[role]->palette().color(QPalette::WindowText),
+			"a role given before the panel is shown does not look as the same role given after");
+		ok &= check(early[role]->palette().color(QPalette::WindowText) != plain->palette().color(QPalette::WindowText),
+			"a role of a message label does not change the text colour of a plain label");
+	}
+	ok &= check(early[0]->palette().color(QPalette::WindowText) != early[1]->palette().color(QPalette::WindowText)
+			&& early[0]->palette().color(QPalette::WindowText) != early[2]->palette().color(QPalette::WindowText)
+			&& early[1]->palette().color(QPalette::WindowText) != early[2]->palette().color(QPalette::WindowText),
+		"the error, warning and help roles do not have three text colours");
+	return ok;
+}
+
 // A plain widget, not a dialog, as an editor panel is. Its labels hold a word wider than the widget
 // and a text that needs many lines.
 bool exerciseNarrowBody() {
@@ -532,8 +574,9 @@ int main(int argc, char** argv) {
 	const bool large = exercise(QRect(0, 0, 1920, 1080), 1.5);
 	const bool indicators = exerciseItemViewIndicators();
 	const bool messages = exerciseInlineMessages();
+	const bool panelMessages = exercisePanelMessages();
 	const bool narrow = exerciseNarrowBody();
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
-	return small && scaledSmall && large && indicators && messages && narrow && disabled && messageBox ? 0 : 1;
+	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && disabled && messageBox ? 0 : 1;
 }

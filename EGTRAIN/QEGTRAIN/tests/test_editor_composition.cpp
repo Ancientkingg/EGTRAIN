@@ -111,6 +111,13 @@ static QStringList items(const QListWidget* list) {
 	return result;
 }
 
+// The role that the stylesheet rules give a message label, "" when it has none; "inline style" when the label colours itself.
+static std::string role(const QLabel* label) {
+	if (!label->styleSheet().isEmpty())
+		return "inline style";
+	return label->property("dialogStatus").toString().toStdString();
+}
+
 static std::vector<std::string> serviceCompositions(const SceneDocument& document) {
 	std::vector<std::string> result;
 	for (const SceneService& item : document.model().services)
@@ -167,12 +174,14 @@ int main(int argc, char** argv) {
 		panel.unitsListWidget()->setCurrentRow(0);
 		ok &= expect(panel.unitSourceDataLabel()->text() == "u1.xml" && panel.unitSourceTractionLabel()->text() == "(none)"
 				&& panel.plotTractionButton()->isEnabled() && panel.unitWarningLabel()->text().isEmpty()
+				&& panel.unitWarningLabel()->isHidden()
 				&& !panel.moveUnitUpButton()->isEnabled() && panel.moveUnitDownButton()->isEnabled()
 				&& panel.removeUnitButton()->isEnabled(),
 			"a unit with a traction curve shows its sources and can be plotted");
 		panel.unitsListWidget()->setCurrentRow(1);
 		ok &= expect(panel.unitSourceDataLabel()->text() == "(none)" && !panel.plotTractionButton()->isEnabled()
 				&& panel.unitWarningLabel()->text() == QString::fromStdString(tractionAssociationWarning(true, false))
+				&& !panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) == "warning"
 				&& panel.moveUnitUpButton()->isEnabled() && !panel.moveUnitDownButton()->isEnabled(),
 			"a unit without a traction curve cannot be plotted and says why");
 		document.mutableModel().trainUnits[1].sourceDataFile = "u2.xml";
@@ -368,6 +377,25 @@ int main(int argc, char** argv) {
 		panel.refresh();
 		ok &= expect(panel.listWidget()->count() == 0 && !panel.addButton()->isEnabled(),
 			"a panel whose document is gone shows nothing and edits nothing");
+	}
+
+	{
+		// a unit that the scene does not define is an error, not a note
+		SceneDocument document;
+		CompositionPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = compositionScene();
+		scene.compositions[0].units.push_back("missing");
+		document.replace(scene, false);
+		ok &= expect(panel.unitWarningLabel()->isHidden() && panel.unitWarningLabel()->text().isEmpty(),
+			"a composition without a selected unit shows no warning");
+		panel.unitsListWidget()->setCurrentRow(2);
+		ok &= expect(panel.unitWarningLabel()->text() == QString::fromStdString(tractionAssociationWarning(false, false))
+				&& !panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) == "error",
+			"a unit that the scene does not define is reported as an error");
+		panel.unitsListWidget()->setCurrentRow(0);
+		ok &= expect(panel.unitWarningLabel()->isHidden() && role(panel.unitWarningLabel()) != "inline style",
+			"selecting a unit with a curve hides the warning again");
 	}
 
 	if (!ok)

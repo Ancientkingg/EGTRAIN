@@ -4,6 +4,7 @@
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
 #include "widgets/CompactDoubleSpinBox.h"
+#include "widgets/DialogLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -132,8 +133,6 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	passengerDetailLayout->addLayout(passengerForm);
 	m_diagnosticLabel = new QLabel(passengerDetailPane);
 	m_diagnosticLabel->setObjectName("passengerDiagnosticLabel");
-	m_diagnosticLabel->setWordWrap(true);
-	m_diagnosticLabel->setStyleSheet("color: #5b6871;");
 	passengerDetailLayout->addWidget(m_diagnosticLabel);
 
 	m_tabs = new QTabWidget(passengerDetailPane);
@@ -427,16 +426,16 @@ void PassengerPanel::updatePassengerDetail() {
 						+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
 		}
 	}
-	m_diagnosticLabel->setText(messages.isEmpty()
-			? (passenger ? QStringLiteral("No validation messages for this passenger selection.")
-						 : QStringLiteral("Select a passenger or use Add to create one."))
-			: messages.join(QStringLiteral("\n")));
-	m_diagnosticLabel->setStyleSheet(messages.isEmpty() ? "color: #5b6871;"
-			: std::any_of(messages.begin(), messages.end(), [](const QString& message) {
-				  return message.startsWith("ERROR:");
-			  })
-			? "color: #81352d;"
-			: "color: #965c22;");
+	if (messages.isEmpty()) {
+		DialogLayout::setHelp(m_diagnosticLabel,
+			passenger ? QStringLiteral("No validation messages for this passenger selection.")
+					  : QStringLiteral("Select a passenger or use Add to create one."));
+		return;
+	}
+	const bool hasError = std::any_of(messages.begin(), messages.end(),
+		[](const QString& message) { return message.startsWith("ERROR:"); });
+	DialogLayout::setStatus(m_diagnosticLabel, hasError ? DialogLayout::Severity::Error : DialogLayout::Severity::Warning,
+		messages.join(QStringLiteral("\n")));
 }
 
 void PassengerPanel::updateJourneyDetail() {

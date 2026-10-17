@@ -158,6 +158,16 @@ static std::vector<std::string> comboData(const QComboBox* combo) {
 	return values;
 }
 
+// The role of a message label: "help", the status ("error" or "warning"), or "" when it has none. A role that comes from the
+// stylesheet rules leaves the label without a style sheet of its own.
+static std::string role(const QLabel* label) {
+	if (!label->styleSheet().isEmpty())
+		return "inline style";
+	if (label->property("dialogHelp").toBool())
+		return label->property("dialogStatus").isValid() ? "help and status" : "help";
+	return label->property("dialogStatus").toString().toStdString();
+}
+
 static std::vector<std::string> legIds(const ScenePassengerJourney& journey) {
 	std::vector<std::string> ids;
 	for (const auto& value : journey.legs)
@@ -193,6 +203,7 @@ int main(int argc, char** argv) {
 				&& panel.tabs()->isHidden(),
 			"a panel without a document shows no passengers and offers no action");
 		ok &= expect(panel.diagnosticLabel()->text() == "Select a passenger or use Add to create one."
+				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden()
 				&& panel.journeyOriginCombo()->itemText(0) == "Select a journey or leg"
 				&& panel.legServiceCombo()->itemText(0) == "Select a leg",
 			"a panel without a selection says what to select");
@@ -440,20 +451,20 @@ int main(int argc, char** argv) {
 		panel.setDiagnostics(&diagnostics);
 		panel.refresh();
 		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Leg service is unknown\nWARNING: Journey is odd"
-				&& panel.diagnosticLabel()->styleSheet().contains("#81352d"),
-			"the messages for the selected passenger are shown, in the colour of an error when there is one");
+				&& role(panel.diagnosticLabel()) == "error",
+			"the messages for the selected passenger are shown as an error when there is one");
 		diagnostics = {journeyWarning, otherPassenger};
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "WARNING: Journey is odd"
-				&& panel.diagnosticLabel()->styleSheet().contains("#965c22"),
-			"a warning alone is shown in the colour of a warning");
+		ok &= expect(panel.diagnosticLabel()->text() == "WARNING: Journey is odd" && role(panel.diagnosticLabel()) == "warning",
+			"a warning alone is shown as a warning");
 		panel.passengerList()->setCurrentRow(1);
 		ok &= expect(panel.diagnosticLabel()->text() == "INFO: Elsewhere", "another passenger shows its own messages");
 		panel.passengerList()->setCurrentRow(0);
 		panel.setDiagnostics(nullptr);
 		panel.refresh();
-		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection.",
-			"a panel without diagnostics shows none");
+		ok &= expect(panel.diagnosticLabel()->text() == "No validation messages for this passenger selection."
+				&& role(panel.diagnosticLabel()) == "help" && !panel.diagnosticLabel()->isHidden(),
+			"a panel without diagnostics shows none, as help");
 
 		// a run closes the document
 		const quint64 revisionBeforeRun = document.revision();

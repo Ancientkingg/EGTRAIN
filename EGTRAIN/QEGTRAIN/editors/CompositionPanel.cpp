@@ -3,6 +3,7 @@
 #include "diagrams/TractionCurve.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
+#include "widgets/DialogLayout.h"
 
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -88,8 +89,6 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	detailLayout->addWidget(m_plotTractionButton);
 	m_unitWarningLabel = new QLabel(detailPane);
 	m_unitWarningLabel->setObjectName("compositionUnitWarningLabel");
-	m_unitWarningLabel->setWordWrap(true);
-	m_unitWarningLabel->setStyleSheet("color: #b00020;");
 	detailLayout->addWidget(m_unitWarningLabel);
 	layout->addWidget(detailPane);
 
@@ -206,7 +205,7 @@ void CompositionPanel::refreshUnitDetails() {
 	QString warning;
 	if (hasUnitSelection)
 		warning = QString::fromStdString(tractionAssociationWarning(unit != nullptr, unit && !unit->tractionCurve.empty()));
-	m_unitWarningLabel->setText(warning);
+	DialogLayout::setStatus(m_unitWarningLabel, unit ? DialogLayout::Severity::Warning : DialogLayout::Severity::Error, warning);
 }
 
 void CompositionPanel::plotSelectedUnitTraction() {
