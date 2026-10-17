@@ -39,9 +39,4 @@ private:
 
 constexpr unsigned long kMaxRandomSeed = NumberGenerator::kIm - 1;
 
-// The generator of the run that drives the passenger sampling.
-NumberGenerator& runNumberGenerator();
-// Restarts the run generator from inSeed. Scene preparation calls it, so every run starts from the same state.
-void seedRunNumberGenerator(unsigned long inSeed);
-
 #endif

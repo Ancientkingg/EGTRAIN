@@ -71,7 +71,7 @@ std::string arrayText(const std::vector<Element>& elements, Used used) {
 
 Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 	const auto& [tracks, links, stationArray, trackCount, linkCount, stationCount, sections, blockCount, detectionSections, infraEvents,
-		exceedPlan, limits, held, reservations, boundaries, routes, routeCount] = infrastructure;
+		exceedPlan, limits, held, reservations, zones, zoneLimits, zoneRoutes, routeZone, zonesDerived, boundaries, routes, routeCount] = infrastructure;
 	return {{"infra.blockSets", arrayText(tracks, [](const BlockSet& track) { return !track.sceneTrackId.empty() || !track.N.empty(); })},
 		{"infra.connections", arrayText(links, [](const Connections& link) { return !link.ID.empty(); })},
 		{"infra.stations", arrayText(stationArray, [](const Stations& station) { return !station.stationName.empty(); })},
@@ -86,6 +86,11 @@ Description describeInfrastructure(const RunInfrastructure& infrastructure) {
 		{"infra.singleTrackLimits", std::to_string(limits.size())},
 		{"infra.singleTrackHeld", std::to_string(held.size())},
 		{"infra.singleTrackReservations", std::to_string(reservations.size())},
+		{"infra.singleTrackZones", std::to_string(zones.size())},
+		{"infra.singleTrackZoneLimits", std::to_string(zoneLimits)},
+		{"infra.singleTrackZoneRoutes", std::to_string(zoneRoutes)},
+		{"infra.singleTrackRouteZone", std::to_string(routeZone.size())},
+		{"infra.singleTrackZonesDerived", std::to_string(zonesDerived)},
 		{"infra.stationBoundaries", std::to_string(boundaries.size())},
 		{"infra.routes", std::to_string(routes.size())},
 		{"infra.numRoutes", std::to_string(routeCount)}};
@@ -220,6 +225,10 @@ void fill(SimulationRun& run) {
 	infrastructure.singleTrackLimits.emplace_back("s1", "s2", "s0", "s3");
 	infrastructure.singleTrackHeld.push_back(1);
 	infrastructure.singleTrackReservations.emplace_back();
+	infrastructure.singleTrackZones.emplace_back();
+	infrastructure.singleTrackZoneLimits = infrastructure.singleTrackZoneRoutes = 1;
+	infrastructure.singleTrackRouteZone.push_back(1);
+	infrastructure.singleTrackZonesDerived = true;
 	infrastructure.stationBoundaries.emplace_back(&infrastructure.sections[0], false, nullptr);
 	infrastructure.routes.resize(1);
 	infrastructure.numRoutes = 1;
@@ -240,14 +249,14 @@ bool resetTests() {
 			&& &AllDailyPassengerIndex == &run.passengerIndex && &AllStationPlatformIndex == &run.platformIndex
 			&& &TotalInputDelays == &run.totalInputDelays && &EntranceInputDelays == &run.entranceInputDelays
 			&& &DisturbanceInput == &run.disturbanceInput && &Final_Station == &run.finalStation
-			&& &regional_train == &run.trains && &numRegions == &run.numTrains && &runNumberGenerator() == &run.numberGenerator
+			&& &regional_train == &run.trains && &numRegions == &run.numTrains
 			&& &S_delay == &run.signallingDelay && &Comp_Time_EGTRAIN == &run.compTimeEgtrain && &Comp_Time_ROMA == &run.compTimeRoma,
 		"the global names refer to the members of the run");
 	RunInfrastructure& infra = run.infra;
 	ok &= expect(&numTrackLines == &infra.numTrackLines && &blockSets == &infra.blockSets && &numConnections == &infra.numConnections
 			&& &connections == &infra.connections && &numStations == &infra.numStations && &StationArray == &infra.stations
 			&& &Blocks == &infra.numBlocks && &signalling_block_sections == &infra.sections && &list_of_TDS == &infra.detectionSections
-			&& &InfraElementsList == &infra.infraEvents && &derivedSectionsExceedPlan == &infra.derivedSectionsExceedPlan
+			&& &InfraElementsList == &infra.infraEvents
 			&& &singleTrackLimits == &infra.singleTrackLimits && &singleTrackHeld == &infra.singleTrackHeld
 			&& &singleTrackReservations == &infra.singleTrackReservations && &stationBoundarySections == &infra.stationBoundaries
 			&& &N_Routes == &infra.numRoutes && &train_route == &infra.routes,
@@ -281,7 +290,7 @@ bool resetTests() {
 		"the arrays of the network keep their address when the infrastructure is reset");
 
 	// The generator of a seeded run starts again from the default seed.
-	seedRunNumberGenerator(5);
+	run.numberGenerator = NumberGenerator(5);
 	run.reset();
 	ok &= expect(isNewRun(run), "reset returns the generator to the default seed");
 	return ok;
@@ -464,6 +473,68 @@ bool settingsTests(const SceneModel& line) {
 	return ok;
 }
 
+// The steps of a run that DispatchController runs for the trains and the signalling, on the run that is given.
+void stepRun(SimulationRun& run, int t) {
+	for (std::size_t index = 0; index < run.trains.size(); ++index) {
+		Regional& train = run.trains[index];
+		train.trajectoryComputationIncludingMovingBlock(t, signalCode1, signalCode2, signalCode3);
+		train.recordEarliestActiveTrajectoryIndex(t);
+		train.recordStationPassagesAtTime(t);
+		train.checkTrainArrDep(static_cast<int>(index), t);
+	}
+	for (Regional& train : run.trains)
+		Simulate_Train_Passenger_Interactions(run, t, run.settings.startingSimulationTime, train, run.passengers, run.platforms);
+	run.etcsMa.clear();
+	Occupy_Block_Sections_Of_Route(run, t);
+	Apply_Signal_Failures_Mixed_Signalling(run, t);
+	Apply_Single_Track_Authorities_Mixed_Signalling(run);
+	ReportAllTrainPositionsToRBC(run, t, 50);
+	protectStationAreas(run, t);
+	releaseMixedSignallingSystem(run);
+	activateMixedSignallingSystem(run);
+	unlockDoubleSwitches(run);
+	run.blocksOccupied.clear();
+	run.blocksConnected.clear();
+}
+
+// The builders and the routines of a step work on the run that they are given. A second run, built from the scene and stepped while
+// the run of the process is a new run, follows the trajectory that the controller gives the same scene in the run of the process, and
+// leaves the run of the process as it was.
+bool explicitRunTests(const SceneModel& line) {
+	bool ok = true;
+	const SceneModel movingBlock = movingBlockLine(line);
+	RunSetup setup;
+	setup.scene = &movingBlock;
+	setup.selection = {{"T1", 1}};
+	setup.horizonSeconds = 600;
+	const Outcome reference = runScene(setup);
+	ok &= expect(reference.prepared && reference.completed && !defaultRun().trains.empty(), "the controller runs the scene in the run of the process");
+	if (!reference.completed || defaultRun().trains.empty())
+		return false;
+	const std::vector<double> positions = defaultRun().trains[0].instant_spatial_position;
+	const std::vector<double> speeds = defaultRun().trains[0].instant_train_speed;
+	const std::string description = defaultRun().trains[0].trainDescription;
+
+	CoutSilencer silencer;
+	simulation.resetState();
+	ok &= expect(isNewRun(defaultRun()), "the run of the process is a new run before the second run is built");
+	const auto other = std::make_unique<SimulationRun>();
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(*other, movingBlock)), "the infrastructure is built into a run of its own");
+	ok &= expect(!hasErrors(buildOperationsFromScene(*other, movingBlock, "baseline", setup.selection)), "the operations are built into a run of its own");
+	ok &= expect(other->numTrains == 1 && other->infra.numBlocks > 0 && !other->infra.routes.empty(), "the second run holds the trains and the infrastructure");
+	ok &= expect(!other->trains.empty() && other->trains[0].run_ == other.get(), "a train of the second run belongs to it");
+	other->settings = initial_variables;
+	for (Regional& train : other->trains)
+		train.departure_time = train.scheduled_departure_time;
+	for (int t = 0; t < setup.horizonSeconds; ++t)
+		stepRun(*other, t);
+	ok &= expect(other->trains[0].trainDescription == description && other->trains[0].instant_spatial_position == positions
+			&& other->trains[0].instant_train_speed == speeds,
+		"the second run follows the trajectory of the same scene in the run of the process");
+	ok &= expect(isNewRun(defaultRun()), "building and stepping another run leaves the run of the process as it was");
+	return ok;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -480,5 +551,6 @@ int main(int argc, char** argv) {
 		return 1;
 	ok &= gapTests(line.scene, passengers.scene);
 	ok &= settingsTests(line.scene);
+	ok &= explicitRunTests(line.scene);
 	return ok ? 0 : 1;
 }

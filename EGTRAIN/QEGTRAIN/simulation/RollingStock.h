@@ -9,7 +9,8 @@
 //   test_operationsbuilder.cpp);
 // - Train::brakingCurveSpeed (RollingStockBraking.cpp, RollingStockTrajectory.cpp, test_operationsbuilder.cpp);
 // - Train::obeysAuthority (RollingStockBraking.cpp, RollingStockTrajectory.cpp) and Train::authorityRoutePosition
-//   (RollingStockBraking.cpp, RollingStockTrajectory.cpp, test_operationsbuilder.cpp);
+//   (RollingStockBraking.cpp, RollingStockTrajectory.cpp, test_operationsbuilder.cpp), which read the route of the run and so are
+//   defined in SimulationRun.h;
 // - the trajectory accessors Train::speedKmhAt, positionKmAt, trajectorySize and recordEarliestActiveTrajectoryIndex
 //   (DispatchController.cpp, MainWindow.cpp, RollingStockStops.cpp, test_operationsbuilder.cpp).
 
@@ -44,19 +45,21 @@ extern std::vector<std::string>& VCmsgText;
 
 extern InitialParameters initial_variables;
 
+struct SimulationRun;
+
 // Build rolling stock, timetable, selected-scenario incidents, entrance
 // delays, platforms, and passengers from an in-memory canonical scene.
 // The function is transactional: errors leave existing operation globals intact.
-std::vector<SceneDiagnostic> buildOperationsFromScene(const SceneModel& scene,
+std::vector<SceneDiagnostic> buildOperationsFromScene(SimulationRun& run, const SceneModel& scene,
 	const std::string& selectedScenarioId = {},
 	const SceneRunSelection& selectedOccurrences = {});
 
 // Returns the operations state of the run to that of a new run: the trains and their storage, platforms, passengers,
 // incidents and statistics.
-void prepareNativeOperationsState();
+void prepareNativeOperationsState(SimulationRun& run);
 
 // The reset between scene runs, which is the same as preparing a new run.
-void resetNativeOperationsState();
+void resetNativeOperationsState(SimulationRun& run);
 
 // Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
 int trainPassengerCapacity(double numberOfWagons);
@@ -174,6 +177,8 @@ inline bool isPastStopHoldback(double position, double stoppingPoint) {
 
 class Train {
 public:
+	// The run that the train is part of, which the operations builder sets. The train does not own it.
+	SimulationRun* run_ = nullptr;
 	double number_of_wagons = 0.0; /*!< number of Wagons*/
 	double massFactor = 0.0;	   // mass factor
 	double mass_of_traction_unit = 0.0, mass_of_a_wagon = 0.0, total_train_mass = 0.0, max_train_decelaration = 0.0, max_train_speed = 0.0, g = 0.0, frontal_wagon_area = 0.0, massPerWagonAxle = 0.0, Jerk = 0.0, train_length = 0.0;
@@ -365,18 +370,12 @@ public:
 	// A signal failure makes an End of Authority for every route copy of the failed section, and a held single-track
 	// section makes one of the same type for the routes against its holder. Its position is expressed for the
 	// direction of its route, so only trains of that direction obey it.
-	bool obeysAuthority(const MovementAuthority& authority) const {
-		return authority.type != "SignalFailure" || authority.ReversedDirection == train_route[indexOfRoute].reversed_direction;
-	}
+	inline bool obeysAuthority(const MovementAuthority& authority) const;
 
 	// True while a signal failure of the first section of the route holds this train at its entry
 	bool isFirstSectionFailed(const Section& firstSection) const;
 
-	double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const {
-		return train_route[indexOfRoute].reversed_direction
-			? section.GeoXBegNode - authority.AbsPosEoA + section.start_node.X * 1000
-			: authority.AbsPosEoA;
-	}
+	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
 	// Resolve only the selected, currently published forward Tale within the EVC's existing scope.
 	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
@@ -616,21 +615,21 @@ static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members 
 extern std::vector<Regional>& regional_train;
 
 // Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
-void Occupy_Block_Sections_Of_Route(int i);
+void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);
 
 // Function to report the position of the trains in ETCS Level 3
-void ReportAllTrainPositionsToRBC(int i, double ETCS3SafetyMargin);
+void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin);
 
 // Function to Print out the blocking times of all the Trains
-void PrintTrainBlockingTimes(std::string MainFolder);
+void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
 
 // Function to Print out the blocking times of all the Trains
-void PrintTimetablePoints(std::string MainFolder);
+void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
 
 // Function to compute Blocking Times of trains in mixed signalling areas
-void ComputeBlockingTimesInMixedSignallingForAllTrains(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
+void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 // function to protect all station areas
-void protectStationAreas(int i);
+void protectStationAreas(SimulationRun& run, int i);
 
 #endif

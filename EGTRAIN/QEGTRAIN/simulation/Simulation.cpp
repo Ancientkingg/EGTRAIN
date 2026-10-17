@@ -1,5 +1,6 @@
 #include "simulation/Simulation.h"
 #include "diagrams/RunResults.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 #include <algorithm>
 #include <cstdio>
@@ -91,7 +92,7 @@ void calculateDelayStatistics(Stations& result, const std::vector<double>& delay
 	}
 }
 
-void calculateStationDelayStatistics(Stations& station, bool includeNonPositive) {
+void calculateStationDelayStatistics(SimulationRun& run, Stations& station, bool includeNonPositive) {
 	std::vector<double> arrivals;
 	std::vector<double> consecutive;
 	const auto append = [&arrivals, &consecutive, includeNonPositive](const Train& train, int index) {
@@ -104,8 +105,8 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 		consecutive.push_back(train.StationConsecDelay[index]);
 	};
 
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex) {
-		const Train& train = regional_train[trainIndex];
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex) {
+		const Train& train = run.trains[trainIndex];
 		if (station.stationName == "Final_Station") {
 			if (train.numStations > 0)
 				append(train, train.numStations - 1);
@@ -121,58 +122,58 @@ void calculateStationDelayStatistics(Stations& station, bool includeNonPositive)
 } // namespace
 
 // Updated Function to Calculate the arrival delay at each station for each train
-void calculateArrivalDelayAllTrains() {
-	for (int j = 0; j < numRegions; j++) {
+void calculateArrivalDelayAllTrains(SimulationRun& run) {
+	for (int j = 0; j < run.numTrains; j++) {
 		// Determine the actual arrivals at the train stations
-		regional_train[j].Determine_Actual_Station_Arrivals();
+		run.trains[j].Determine_Actual_Station_Arrivals();
 		// Compute the arrival delays
-		regional_train[j].computeArrivalDelaysAtStations();
+		run.trains[j].computeArrivalDelaysAtStations();
 	}
 }
 
 // Function to calculate the train delay statistics for a single station instant_spatial_position
-void calculateDelayStatsAtStation(Stations& S) {
-	calculateStationDelayStatistics(S, false);
+void calculateDelayStatsAtStation(SimulationRun& run, Stations& S) {
+	calculateStationDelayStatistics(run, S, false);
 }
 
 // Function to Calculate the positive and negative delays stats at station instant_spatial_position
-void calculatePosAndNegDelayStatsAtStation(Stations& S) {
-	calculateStationDelayStatistics(S, true);
+void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S) {
+	calculateStationDelayStatistics(run, S, true);
 }
 
 // Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
-void Compute_Input_Delays() {
-	std::vector<double> delays(numRegions);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays;
-	calculateDelayStatistics(TotalInputDelays, delays, {}, false);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].EntranceDelay;
-	calculateDelayStatistics(EntranceInputDelays, delays, {}, false);
-	for (int trainIndex = 0; trainIndex < numRegions; ++trainIndex)
-		delays[trainIndex] = regional_train[trainIndex].TotalInputDelays
-			- regional_train[trainIndex].EntranceDelay;
-	calculateDelayStatistics(DisturbanceInput, delays, {}, false);
+void Compute_Input_Delays(SimulationRun& run) {
+	std::vector<double> delays(run.numTrains);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].TotalInputDelays;
+	calculateDelayStatistics(run.totalInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].EntranceDelay;
+	calculateDelayStatistics(run.entranceInputDelays, delays, {}, false);
+	for (int trainIndex = 0; trainIndex < run.numTrains; ++trainIndex)
+		delays[trainIndex] = run.trains[trainIndex].TotalInputDelays
+			- run.trains[trainIndex].EntranceDelay;
+	calculateDelayStatistics(run.disturbanceInput, delays, {}, false);
 }
 
 // Function to calculate the train delay statistics for all the station considered in the network
-void calculateDelayStatsForAllStations() {
-	for (int s = 0; s < numStations; s++) {
-		calculateDelayStatsAtStation(StationArray[s]);
+void calculateDelayStatsForAllStations(SimulationRun& run) {
+	for (int s = 0; s < run.infra.numStations; s++) {
+		calculateDelayStatsAtStation(run, run.infra.stations[s]);
 	}
 }
 
 // Function to calculate positive and negative train delay statistics for all stations
-void calculatePosAndNegDelayStatsForAllStations() {
-	for (int s = 0; s < numStations; s++) {
-		calculatePosAndNegDelayStatsAtStation(StationArray[s]);
+void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run) {
+	for (int s = 0; s < run.infra.numStations; s++) {
+		calculatePosAndNegDelayStatsAtStation(run, run.infra.stations[s]);
 	}
 }
 
 // Function to calculate positive an negative delays of trains for all the trains considered in the simulation
-void calculatePosAndNegArrivalDelayAllTrains() {
-	for (int j = 0; j < numRegions; j++) {
-		regional_train[j].Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
+void calculatePosAndNegArrivalDelayAllTrains(SimulationRun& run) {
+	for (int j = 0; j < run.numTrains; j++) {
+		run.trains[j].Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 	}
 }
 
@@ -230,7 +231,7 @@ void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains) {
 }
 
 // Function to Print all the trajectories
-void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
+void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, string FolderName) {
 	string FileName;
 	FileName = FolderName + "/TrainPathDiagram.txt";
 	ofstream FileOutput;
@@ -248,10 +249,10 @@ void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
 			const double position = t < static_cast<int>(exportCells.size()) ? exportCells[t] : -9999;
 			if (position == -9999) {
 				FileOutput << -9999 << " ";
-			} else if (train_route[S[i].indexOfRoute].reversed_direction == 0) {
+			} else if (run.infra.routes[S[i].indexOfRoute].reversed_direction == 0) {
 				FileOutput << position << " ";
 			} else {
-				FileOutput << train_route[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
+				FileOutput << run.infra.routes[S[i].indexOfRoute].OriginalRefReversedRoute - position << " ";
 			}
 		}
 		FileOutput << "\n";
@@ -261,13 +262,13 @@ void PrintTrainPathDiagram(Regional* S, int N_S, string FolderName) {
 }
 
 // Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
-void Print_Computing_Times(string FolderName) {
+void Print_Computing_Times(const SimulationRun& run, string FolderName) {
 	string FileName;
 	FileName = FileName + FolderName + "/Computing_Times.txt";
 	ofstream Comp_Times;
 	Comp_Times.open((char*)FileName.c_str());
 	Comp_Times << "TOT_Comp_Time_EGTRAIN[s]" << " " << "TOT_Comp_Time_ROMA" << " " << "TOT_COMP_TIME" << "\n";
-	Comp_Times << Comp_Time_EGTRAIN << " " << Comp_Time_ROMA << " " << Comp_Time_EGTRAIN + Comp_Time_ROMA << "\n";
+	Comp_Times << run.compTimeEgtrain << " " << run.compTimeRoma << " " << run.compTimeEgtrain + run.compTimeRoma << "\n";
 	Comp_Times.close();
 }
 
@@ -341,7 +342,8 @@ const Index& indexOf(const Index& shared, List& list, std::optional<Index>& own)
 }
 } // namespace
 
-void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Train& T, list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
+void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T,
+	list<Passenger>& ALLPAX, const list<StationPlatform>& ALLPLATFORMS) {
 	// if the train is stopped for a service stop
 	if (T.StoppedForServiceStop == 1) {
 		int N_AlightPax = 0;
@@ -475,13 +477,13 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 		// Specifying Boarding procedure
 		// Boarding procedure will follow the order at which passengers arrived at the platform
 		std::optional<PlatformIndex> callPlatforms;
-		const StationPlatform* PlatformIt = indexOf(AllStationPlatformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
+		const StationPlatform* PlatformIt = indexOf(run.platformIndex, ALLPLATFORMS, callPlatforms).find(T.CurrentServiceStop, T.CurrentServiceStopPlatform);
 		if (PlatformIt != nullptr) {
 			// With the passenger GUI the count and the list of the waiting passengers of the platform are updated at every time instant.
 			// Without it they are worked out here for this platform only, and the platform is not modified.
 			std::optional<WaitingAtPlatform> refreshed;
 			if (!initial_variables.PAX_GUI) {
-				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, AllDailyPassengers);
+				refreshed = passengersWaitingAtPlatform(PlatformIt->StationID, PlatformIt->ID, run.passengers);
 			}
 			const int waitingCount = refreshed ? refreshed->count : PlatformIt->Current_N_Passengers;
 			const list<pair<string, double>>& waitingList = refreshed ? refreshed->passengers : PlatformIt->Current_List_Pax_On_Platform;
@@ -491,7 +493,7 @@ void Simulate_Train_Passenger_Interactions(int t, int SimulationStartingTime, Tr
 
 			if (!waitingList.empty()) {
 				std::optional<PassengerIndex> callPassengers;
-				const PassengerIndex& passengerIndex = indexOf(AllDailyPassengerIndex, ALLPAX, callPassengers);
+				const PassengerIndex& passengerIndex = indexOf(run.passengerIndex, ALLPAX, callPassengers);
 				for (const pair<string, double>& Pax : waitingList) {
 					for (Passenger* p : passengerIndex.find(Pax.first)) {
 						// iterating through the passengers with the ID of the one in the list of passengers on the platform, in the order of the list of all passengers

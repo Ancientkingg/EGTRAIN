@@ -12,13 +12,14 @@
 #include "simulation/Infrastructure.h"
 
 struct SceneModel;
+struct SimulationRun;
 
 // Build the infrastructure/signalling globals from an already loaded scene.
 // This path is filesystem-free and is the normal V1 runtime path.
-std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(const SceneModel& scene);
+std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(SimulationRun& run, const SceneModel& scene);
 
 // Release fixed-capacity native infrastructure state between scene runs.
-void resetNativeInfrastructureState();
+void resetNativeInfrastructureState(SimulationRun& run);
 
 // --- Incidents: Disruption events ---
 struct SimulationIncident {
@@ -37,10 +38,10 @@ struct SimulationIncident {
 };
 
 extern std::vector<SimulationIncident>& simulationIncidents;
-bool Incident_Holds_Train(const std::string& trainDesc, int timestepIndex);
-const SimulationIncident* Active_Train_Breakdown(const std::string& trainDesc, int timestepIndex);
-void Apply_Signal_Failures_Mixed_Signalling(int timestepIndex);
-void Apply_Single_Track_Authorities_Mixed_Signalling();
+bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
+const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
+void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex);
+void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 
 // --- TrainEvent: ordered train events (departures, arrivals, etc.) ---
 class TrainEvent {
@@ -102,7 +103,7 @@ extern std::list<InfraEvent>& InfraElementsList;
 
 // Update status of an infrastructure element along a train route given the list of infrastructure elements,
 // current time t, train positions at t and t-1, train speed at t-1, and train description
-void UpdateInfrastructureElementStatus(const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
+void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
 
 // Order all recorded infrastructure element events chronologically
 void SortRecordedEventsForAllInfrastructureElements(std::list<InfraEvent>& ListOfAllInfraEvents);
@@ -256,19 +257,19 @@ public:
 extern std::vector<Section>& signalling_block_sections; // Global block sections, sized by the scene builder
 
 // Generate block sections connected by switches (updated, supports custom switch speed limits)
-void generateConnectBlock(Connections* AllConnections, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
+void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
 
 // Create connected block sections at connection nodes
-void createBlockConn(Node Nb, Section BS1, int Temp_Blocks, int n_conn);
+void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn);
 
 // Automatically create block sections connected by switches
-void setAllConnections();
+void setAllConnections(SimulationRun& run);
 
 // Create list of sections whose ID contains "input"
-void setList(std::string input, std::list<Section>& BSConnected);
+void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
 
 // Set dependencies between block sections connected by switches
-void setDependenciesBetweenBlocks();
+void setDependenciesBetweenBlocks(SimulationRun& run);
 
 // Check if two block sections are overlapping
 bool areBlocksConnected(Section A, Section blockSets);
@@ -309,7 +310,7 @@ public:
 	void identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(std::list<InfraElement>& RouteInfrastructureElements);
 
 	// Build route from canonical scene block ids.
-	void createRouteFromBlockIds(const std::vector<std::string>& blockIds, int direction = 0);
+	void createRouteFromBlockIds(SimulationRun& run, const std::vector<std::string>& blockIds, int direction = 0);
 
 	// Adjust route across different regions (different km references)
 	void adjustRouteAcrossDiffRegions();
@@ -318,11 +319,11 @@ public:
 extern std::vector<Route>& train_route;
 
 // Set up all routes from canonical scene model.
-void setUpRoutesFromScene(const SceneModel& scene, const std::vector<int>& routeDirections = {});
+void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
 
 // --- InfraElementsList: set up list of infrastructure element events ---
-void setListAllInfrastructureElementsFromRoutes(std::vector<Route>& R, int N_Routes);
+void setListAllInfrastructureElementsFromRoutes(SimulationRun& run);
 
 // --- MovementAuthority: end of authority for levels 3 and 4, and for a failed signal at every level ---
 class MovementAuthority {
@@ -360,37 +361,37 @@ extern std::list<std::string>& BlocksConnected; // Blocks connected to occupied 
 extern std::list<MovementAuthority>& ETCS_MA;	// Movement authorities: levels 3 and 4, and failed signals at every level
 
 // Occupy a block section and all connected blocks
-void occupyBlockAndConnected(const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
+void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
 
 // Occupy a double switch
-void occupyDoubleSwitch(const Section& BLS, const Section& BLSPrev);
+void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
 
 // Release a double switch
-void releaseDoubleSwitch(const Section& BLS, const Section& BLSPrev);
+void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
 
 // Unlock double switches (prevents trains getting stuck in the middle)
-void unlockDoubleSwitches();
+void unlockDoubleSwitches(SimulationRun& run);
 
 // Activate blocks connected to block sections with diverging switches
-void activateBlocksWithSwitchesDiv(const Section& BS, int TrackLineIDPrevBS, double S);
+void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
 // Activate blocks connected to block sections with diverging switches (fixed block variant)
-void activateBlocksWithSwitchesDivFixedBlock(const Section& BS, int TrackLineIDPrevBS, double S);
+void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
 // Release last block section and connected blocks when train exits simulation
-void releaseLastBlockAndConnected(const Section& BLS);
+void releaseLastBlockAndConnected(SimulationRun& run, const Section& BLS);
 
 // Generate MAs on connected block sections when train crosses a connection node
-void lockSwitchesOnAllConnectedSections(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, bool IsRouteReversed, const std::string& IDSectionToExclude);
+void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, bool IsRouteReversed, const std::string& IDSectionToExclude);
 
 // Process train position and compute Movement Authorities
-void elaborateRbcMas(double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const std::string& type, const std::string& typePart);
+void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const std::string& type, const std::string& typePart);
 
 // Elaborate MAs on block sections with diverging switches
-void elaborateMaOnBlockSectionsWithSwitchDiv(double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
 
 // Lock switches while trains traverse in diverging position
-void lockSwitchesWhileTrainTraverses(double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
+void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
 
 // --- Mixed Signalling: multi-system signalling areas ---
 // Set infrastructure speed limits (from infrastructure, not signalling)
@@ -411,23 +412,23 @@ void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected
 unsigned routeLevelMask(const Route& route);
 
 // Activate mixed signalling areas
-void activateMixedSignallingSystem();
+void activateMixedSignallingSystem(SimulationRun& run);
 // The same with other red speeds, the limits that the fixed-block levels write behind an occupied section. The call above passes
 // signalCode1 and signalCode2.
-void activateMixedSignallingSystem(double redSpeed1, double redSpeed2);
+void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double redSpeed2);
 
 // Release all block sections in mixed signalling areas
-void releaseMixedSignallingSystem();
+void releaseMixedSignallingSystem(SimulationRun& run);
 
 // Release last block section in mixed signalling
-void relLastSectionMixedSignalling(std::string blockID);
+void relLastSectionMixedSignalling(SimulationRun& run, std::string blockID);
 
 
 // Set mid-signals of double switches as virtual signals
-void setVirtualSignals();
+void setVirtualSignals(SimulationRun& run);
 
 // Set virtual signals on routes from original block sections (info lost during route creation)
-void setRouteVirtualSignals();
+void setRouteVirtualSignals(SimulationRun& run);
 
 // Single track limits: (first plain block ID, last plain block ID, protected block ID at the first end,
 // protected block ID at the last end).
@@ -457,15 +458,15 @@ struct SingleTrackZone {
 	std::vector<std::string> sectionIDs;
 };
 // Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
-void resetSingleTrackLocks();
+void resetSingleTrackLocks(SimulationRun& run);
 // The zone of limit l on route routeIndex. The zones of all limits and routes are derived on first use.
-const SingleTrackZone& singleTrackZone(std::size_t l, int routeIndex);
+const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int routeIndex);
 // True when the zone of any limit has a section on the route.
-bool singleTrackRouteHasZone(int routeIndex);
+bool singleTrackRouteHasZone(SimulationRun& run, int routeIndex);
 // Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
-std::size_t occupySingleTrackForRoute(int routeIndex);
+std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex);
 // Updates occupancy and pending entry reservations. Every changed zone is released (RollingStock.cpp).
-void updateSingleTrackLocks(int step);
+void updateSingleTrackLocks(SimulationRun& run, int step);
 
 // --- StationBoundarySection: protects entrance of main stations ---
 class StationBoundarySection {
@@ -473,7 +474,7 @@ public:
 	StationBoundarySection(Section* entrance, bool direction, Section* exit);
 
 	// Protect station interlocking area
-	void protectEntrance(int sectionIndex, int routeIndex, bool platformBooked);
+	void protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex, bool platformBooked);
 
 	Section* entrance; // Entrance section
 	bool direction;	   // Direction to observe

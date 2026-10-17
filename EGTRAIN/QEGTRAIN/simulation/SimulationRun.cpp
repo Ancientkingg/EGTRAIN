@@ -23,6 +23,11 @@ void RunInfrastructure::reset() {
 	singleTrackLimits.clear();
 	singleTrackHeld.clear();
 	singleTrackReservations.clear();
+	singleTrackZones.clear();
+	singleTrackZoneLimits = 0;
+	singleTrackZoneRoutes = 0;
+	singleTrackRouteZone.clear();
+	singleTrackZonesDerived = false;
 	stationBoundaries.clear();
 	routes.clear();
 	numRoutes = 0;
@@ -57,7 +62,6 @@ void SimulationRun::reset() {
 
 void SimulationRun::resetInfrastructure() {
 	infra.reset();
-	resetSingleTrackLocks();
 }
 
 namespace {
@@ -67,14 +71,6 @@ SimulationRun theRun;
 
 SimulationRun& defaultRun() {
 	return theRun;
-}
-
-NumberGenerator& runNumberGenerator() {
-	return theRun.numberGenerator;
-}
-
-void seedRunNumberGenerator(unsigned long inSeed) {
-	theRun.numberGenerator = NumberGenerator(inSeed);
 }
 
 // The global names of the state that the run holds. They are references to the members of the run.
@@ -110,7 +106,6 @@ int& Blocks = theRun.infra.numBlocks;
 vector<Section>& signalling_block_sections = theRun.infra.sections;
 list<TDS>& list_of_TDS = theRun.infra.detectionSections;
 list<InfraEvent>& InfraElementsList = theRun.infra.infraEvents;
-bool& derivedSectionsExceedPlan = theRun.infra.derivedSectionsExceedPlan;
 vector<tuple<string, string, string, string>>& singleTrackLimits = theRun.infra.singleTrackLimits;
 vector<int>& singleTrackHeld = theRun.infra.singleTrackHeld;
 vector<vector<SingleTrackReservation>>& singleTrackReservations = theRun.infra.singleTrackReservations;

@@ -1,4 +1,5 @@
 #include "simulation/RollingStock.h"
+#include "simulation/SimulationRun.h"
 
 #include <algorithm>
 #include <string>
@@ -12,9 +13,9 @@ void Train::cacheStationPositions() {
 		stationArc[s] = -1;
 	}
 	for (int s = 0; s < numStations; s++) {
-		for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
-			for (int k = 0; k < train_route[indexOfRoute].sequence_of_block_sections[h].total_arcs; k++) {
-				if (train_route[indexOfRoute].sequence_of_block_sections[h].arcs_in_signalling_block_section[k].endNode.stationName == Stations[s].stationName) {
+		for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
+			for (int k = 0; k < run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].total_arcs; k++) {
+				if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[h].arcs_in_signalling_block_section[k].endNode.stationName == Stations[s].stationName) {
 					stationBlockSection[s] = h;
 					stationArc[s] = k;
 				}
@@ -51,8 +52,8 @@ void Train::computeArrivalAndDepartureAtLocation(double LocationPosition, TrainE
 		if (IsDepartureFound == 1)
 			PassingPoint.Time2 = DepartureTime;
 		// The position of the PassingPoint must be the absolute geographical position, so we must use a conversion if we are using a route that is reversed
-		if (train_route[indexOfRoute].reversed_direction == 1) {
-			PassingPoint.Position = train_route[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
+		if (run_->infra.routes[indexOfRoute].reversed_direction == 1) {
+			PassingPoint.Position = run_->infra.routes[indexOfRoute].OriginalRefReversedRoute - LocationPosition;
 		} else {
 			PassingPoint.Position = LocationPosition;
 		}
@@ -61,15 +62,15 @@ void Train::computeArrivalAndDepartureAtLocation(double LocationPosition, TrainE
 
 void Train::ComputeTimetablingPoints() {
 	if (TimetablePoints.empty() == 1) {
-		for (int i = 0; i < train_route[indexOfRoute].N_Block_Sections; i++) {
-			for (int j = 0; j < train_route[indexOfRoute].sequence_of_block_sections[i].total_arcs; j++) {
-				if (train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
+		for (int i = 0; i < run_->infra.routes[indexOfRoute].N_Block_Sections; i++) {
+			for (int j = 0; j < run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].total_arcs; j++) {
+				if (run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName.empty() != 1) { // if the Node on the route is a station or junction area
 					TrainEvent TTPoint;
-					TTPoint.SuccessorID = train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName; // this is the name of the location of the timetable point
-					TTPoint.Position = train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X;
+					TTPoint.SuccessorID = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.stationName; // this is the name of the location of the timetable point
+					TTPoint.Position = run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X;
 					TTPoint.trainDescription = this->trainDescription; // Assigning the trainDescription to the Train Event
 																	   // In this case we compute the arrival and departure of the train from the location and we assign these to the TrainEvent
-					computeArrivalAndDepartureAtLocation(train_route[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
+					computeArrivalAndDepartureAtLocation(run_->infra.routes[indexOfRoute].sequence_of_block_sections[i].arcs_in_signalling_block_section[j].endNode.X * 1000, TTPoint);
 					// Compute the arrival and departure times of the train from the location and push it back into the TimeTablePoints List
 					this->TimetablePoints.push_back(TTPoint);
 				}
@@ -189,7 +190,7 @@ void Train::Compute_Pos_And_Neg_Arrival_Delays_At_Stations() {
 }
 
 bool Train::stationIsOnRoute(int stationIndex, const vector<string>& allowedBlockIds) const {
-	if (Stations.empty() || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(train_route.size()))
+	if (Stations.empty() || stationIndex < 0 || stationIndex >= numStations || indexOfRoute < 0 || indexOfRoute >= static_cast<int>(run_->infra.routes.size()))
 		return false;
 	const string& stationName = Stations[stationIndex].stationName;
 	if (stationName.empty() || stationName == "None")
@@ -197,7 +198,7 @@ bool Train::stationIsOnRoute(int stationIndex, const vector<string>& allowedBloc
 	const auto matches = [&stationName](const Node& node) {
 		return node.station && node.stationName == stationName;
 	};
-	const Route& route = train_route[indexOfRoute];
+	const Route& route = run_->infra.routes[indexOfRoute];
 	for (int h = 0; h < route.N_Block_Sections; ++h) {
 		const Section& section = route.sequence_of_block_sections[h];
 		if (!allowedBlockIds.empty() && std::find(allowedBlockIds.begin(), allowedBlockIds.end(), section.ID) == allowedBlockIds.end())
@@ -218,20 +219,20 @@ double Train::stationRoutePositionMeters(int stationIndex) const {
 	const string stationName = stationNameForArrivalStats(stationIndex);
 	double stationX = Stations[stationIndex].X;
 	if (stationX == 0) {
-		for (int h = 0; h < ::numStations; h++) {
-			if (StationArray[h].stationName == stationName) {
-				stationX = StationArray[h].X;
+		for (int h = 0; h < run_->infra.numStations; h++) {
+			if (run_->infra.stations[h].stationName == stationName) {
+				stationX = run_->infra.stations[h].X;
 				break;
 			}
 		}
 	}
 	const double stationMeters = stationX * 1000.0;
-	for (int h = 0; h < train_route[indexOfRoute].N_Block_Sections; h++) {
-		const Section& section = train_route[indexOfRoute].sequence_of_block_sections[h];
+	for (int h = 0; h < run_->infra.routes[indexOfRoute].N_Block_Sections; h++) {
+		const Section& section = run_->infra.routes[indexOfRoute].sequence_of_block_sections[h];
 		const double low = std::min(section.GeoXBegNode, section.GeoXEndNode) - 5.0;
 		const double high = std::max(section.GeoXBegNode, section.GeoXEndNode) + 5.0;
 		if (stationMeters >= low && stationMeters <= high) {
-			const double portion = train_route[indexOfRoute].reversed_direction
+			const double portion = run_->infra.routes[indexOfRoute].reversed_direction
 				? section.GeoXBegNode - stationMeters
 				: stationMeters - section.GeoXBegNode;
 			return section.start_node.X * 1000.0 + portion;

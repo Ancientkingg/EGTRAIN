@@ -7,6 +7,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SectionInventory.h"
 #include "simulation/Signalling.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <algorithm>
@@ -139,7 +140,7 @@ static bool hasDiagnostic(const std::vector<SceneDiagnostic>& diagnostics, Scene
 static bool runTinyBuilderChecks() {
 	bool ok = true;
 	SceneModel scene = tinyScene();
-	auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	ok &= expect(!hasErrors(diagnostics), "complete scene builds without errors");
 	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == 3 && blockSets[0].arcs == 2,
 		"track nodes and arcs retain canonical topology");
@@ -199,7 +200,7 @@ static bool runTinyBuilderChecks() {
 	reservedBlockId.singleTrackRestrictions[0].startBlock = "Depot/1";
 	reservedBlockId.singleTrackRestrictions[0].protectedStartBlock = "Depot/1";
 	reservedBlockId.stationBoundaries[0].entranceBlock = "Depot/1";
-	diagnostics = buildInfrastructureAndSignallingFromScene(reservedBlockId);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reservedBlockId);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.reserved")
 			&& Blocks == blocksBeforeReservedId
 			&& signalling_block_sections[0].ID == firstSectionBeforeReservedId,
@@ -216,12 +217,12 @@ static bool runTinyBuilderChecks() {
 	segmentedRegionRoute.routes[0].blocks = {
 		"block.a", "block.b", "region.block.2", "region.block.1"};
 	segmentedRegionRoute.importReport.push_back({"legacy_root"});
-	diagnostics = buildInfrastructureAndSignallingFromScene(segmentedRegionRoute);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), segmentedRegionRoute);
 	ok &= expect(!hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& N_Routes == 1 && train_route.size() == 1 && !train_route[0].reversed_direction,
 		"native route direction follows the first connected legacy regional segment");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(stableConnectionScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3, "stable-ID connection scene builds one switch section");
 	if (!hasErrors(diagnostics) && Blocks == 3) {
 		const Section& source = signalling_block_sections[0];
@@ -242,7 +243,7 @@ static bool runTinyBuilderChecks() {
 		creatorNamedSwitch.SecondConnectedTrackLineID = 1;
 		BlocksOccupied.clear();
 		BlocksConnected.clear();
-		activateBlocksWithSwitchesDivFixedBlock(creatorNamedSwitch, 0, -1.0);
+		activateBlocksWithSwitchesDivFixedBlock(defaultRun(), creatorNamedSwitch, 0, -1.0);
 		ok &= expect(creatorNamedSwitch.ID
 					== "@creator@main-block@-1.000000/@creator-yard@block@-2.000000"
 				&& std::find(BlocksOccupied.begin(), BlocksOccupied.end(), "@creator@main-block@")
@@ -258,14 +259,14 @@ static bool runTinyBuilderChecks() {
 		malformedSwitch.ID = "malformed/switch";
 		Section malformedPrevious;
 		malformedPrevious.ID = "also-malformed/switch";
-		occupyDoubleSwitch(malformedSwitch, malformedPrevious);
+		occupyDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"malformed double-switch identities are rejected before occupancy mutation");
-		releaseDoubleSwitch(malformedSwitch, malformedPrevious);
+		releaseDoubleSwitch(defaultRun(), malformedSwitch, malformedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"malformed double-switch identities are rejected before release mutation");
-		occupyDoubleSwitch(signalling_block_sections[2], malformedPrevious);
-		releaseDoubleSwitch(signalling_block_sections[2], malformedPrevious);
+		occupyDoubleSwitch(defaultRun(), signalling_block_sections[2], malformedPrevious);
+		releaseDoubleSwitch(defaultRun(), signalling_block_sections[2], malformedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"a valid first switch half cannot mutate before a malformed second half is rejected");
 		Section unresolvedSwitch;
@@ -274,10 +275,10 @@ static bool runTinyBuilderChecks() {
 		Section unresolvedPrevious;
 		unresolvedPrevious.ID = "@missing.c@-3.000000/@missing.d@-4.000000";
 		unresolvedPrevious.withSwitchDiv = true;
-		occupyDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		occupyDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"unresolved double-switch branches are rejected before occupancy mutation");
-		releaseDoubleSwitch(unresolvedSwitch, unresolvedPrevious);
+		releaseDoubleSwitch(defaultRun(), unresolvedSwitch, unresolvedPrevious);
 		ok &= expect(BlocksOccupied == occupiedBefore && BlocksConnected == connectedBefore,
 			"unresolved double-switch branches are rejected before release mutation");
 		BlocksOccupied.clear();
@@ -287,7 +288,7 @@ static bool runTinyBuilderChecks() {
 	const std::string firstSectionBeforeDisconnectedRoute = signalling_block_sections[0].ID;
 	SceneModel disconnectedRoute = tinyScene();
 	disconnectedRoute.routes.front().blocks = {"block.a", "block.a"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(disconnectedRoute);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), disconnectedRoute);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
 			&& Blocks == blocksBeforeDisconnectedRoute
 			&& signalling_block_sections[0].ID == firstSectionBeforeDisconnectedRoute,
@@ -296,7 +297,7 @@ static bool runTinyBuilderChecks() {
 	epsilonConnection.nodes[2].xKm = 1.0 + 5e-9;
 	epsilonConnection.nodes[3].xKm = 2.0 + 5e-9;
 	const SceneSectionInventory epsilonInventory = buildSceneSectionInventory(epsilonConnection);
-	diagnostics = buildInfrastructureAndSignallingFromScene(epsilonConnection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), epsilonConnection);
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3
 			&& epsilonInventory.sections.size() == 3
 			&& signalling_block_sections[2].ID == epsilonInventory.sections[2].id,
@@ -316,7 +317,7 @@ static bool runTinyBuilderChecks() {
 	derivedUTurn.routes.push_back({"switch-u-turn", {aToB, bToC, aToB}, false, {}, false});
 	const int blocksBeforeDerivedUTurn = Blocks;
 	const std::string firstSectionBeforeDerivedUTurn = signalling_block_sections[0].ID;
-	diagnostics = buildInfrastructureAndSignallingFromScene(derivedUTurn);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), derivedUTurn);
 	ok &= expect(!aToB.empty() && !bToC.empty()
 			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& Blocks == blocksBeforeDerivedUTurn
@@ -324,7 +325,7 @@ static bool runTinyBuilderChecks() {
 		"legacy provenance cannot hide a connection-derived U-turn from native preflight");
 	SceneModel mixedDerivedUTurn = derivedUTurn;
 	mixedDerivedUTurn.routes = {{"mixed-switch-u-turn", {"b.left", bToC, aToB}, false, {}, false}};
-	diagnostics = buildInfrastructureAndSignallingFromScene(mixedDerivedUTurn);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), mixedDerivedUTurn);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.direction")
 			&& Blocks == blocksBeforeDerivedUTurn
 			&& signalling_block_sections[0].ID == firstSectionBeforeDerivedUTurn,
@@ -348,12 +349,12 @@ static bool runTinyBuilderChecks() {
 	legacyFork.importReport.push_back({"legacy_root"});
 	legacyFork.routes.push_back({"legacy-fork", {bToA, cToA}, false, {}, false});
 	const int blocksBeforeLegacyFork = Blocks;
-	diagnostics = buildInfrastructureAndSignallingFromScene(legacyFork);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), legacyFork);
 	ok &= expect(!bToA.empty() && !cToA.empty()
 			&& hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "route.disconnected")
 			&& Blocks == blocksBeforeLegacyFork,
 		"legacy regional compatibility rejects a wrong-branch switch fork before runtime mutation");
-	diagnostics = buildInfrastructureAndSignallingFromScene(signallingAreasScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), signallingAreasScene());
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 3,
 		"signalling areas apply before route construction");
 	if (!hasErrors(diagnostics) && Blocks == 3) {
@@ -378,7 +379,7 @@ static bool runTinyBuilderChecks() {
 	conflictingAreas.nodes.push_back({"gamma.end", "gamma", 5.0, 0.0});
 	conflictingAreas.arcs.push_back({"gamma.arc", "gamma", "gamma.start", "gamma.end", 0.0, 0.0, 10.0});
 	conflictingAreas.blocks.push_back({"gamma.block", "gamma", 1.0});
-	diagnostics = buildInfrastructureAndSignallingFromScene(conflictingAreas);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), conflictingAreas);
 	bool sectionIdsUnchanged = Blocks == blocksBeforeConflict;
 	for (std::size_t index = 0; sectionIdsUnchanged && index < sectionIdsBeforeConflict.size(); ++index)
 		sectionIdsUnchanged = signalling_block_sections[index].ID == sectionIdsBeforeConflict[index];
@@ -388,14 +389,14 @@ static bool runTinyBuilderChecks() {
 	SceneModel invalidSwitchReference = stableConnectionScene();
 	invalidSwitchReference.blockDependencies.push_back(
 		{"alpha.block", "@alpha.block@-9.000000/@beta.block@-10.000000"});
-	diagnostics = buildInfrastructureAndSignallingFromScene(invalidSwitchReference);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidSwitchReference);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 		"invalid switch references are rejected before replacing the existing runtime");
 	SceneModel duplicateSwitchSection = stableConnectionScene();
 	duplicateSwitchSection.connections.push_back(
 		{"switch.duplicate", "alpha.end", "beta.start", true, 7.5});
-	diagnostics = buildInfrastructureAndSignallingFromScene(duplicateSwitchSection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), duplicateSwitchSection);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 		"duplicate switch sections are rejected before fixed-capacity runtime mutation");
@@ -419,7 +420,7 @@ static bool runTinyBuilderChecks() {
 		{"long.beta.block", "long.beta", 10.0}};
 	oversizedSwitchSection.connections.push_back(
 		{"long.switch", "alpha.10", "beta.0", false, 0.0});
-	diagnostics = buildInfrastructureAndSignallingFromScene(oversizedSwitchSection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), oversizedSwitchSection);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "capacity")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 		"derived switch arc capacity is rejected before runtime mutation");
@@ -430,7 +431,7 @@ static bool runTinyBuilderChecks() {
 	runtimeBlockIdCollision.singleTrackRestrictions.front().endBlock = "@block.a@";
 	runtimeBlockIdCollision.singleTrackRestrictions.front().protectedEndBlock = "@block.a@";
 	runtimeBlockIdCollision.stationBoundaries.front().exitBlock = "@block.a@";
-	diagnostics = buildInfrastructureAndSignallingFromScene(runtimeBlockIdCollision);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), runtimeBlockIdCollision);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "id.duplicate")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 		"canonical block IDs that collapse to one runtime ID are rejected before mutation");
@@ -448,14 +449,14 @@ static bool runTinyBuilderChecks() {
 		excessiveDependencies.blocks.push_back({block, track, 1.0});
 		excessiveDependencies.blockDependencies.push_back({"block.a", block});
 	}
-	diagnostics = buildInfrastructureAndSignallingFromScene(excessiveDependencies);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), excessiveDependencies);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "capacity")
 			&& Blocks == 3 && signalling_block_sections[0].ID == "@alpha.block@",
 		"dependency overflow is rejected before replacing the existing runtime");
 
 	SceneModel explicitReversed = scene;
 	explicitReversed.routes.front().reversed = true;
-	diagnostics = buildInfrastructureAndSignallingFromScene(explicitReversed);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), explicitReversed);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& train_route.front().reversed_direction
 			&& train_route.front().OriginalRefReversedRoute == train_route.front().x_of_end_node * 1000.0,
@@ -463,18 +464,18 @@ static bool runTinyBuilderChecks() {
 
 	SceneModel descendingRoute = scene;
 	descendingRoute.routes.front().blocks = {"block.b", "block.a"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(descendingRoute);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), descendingRoute);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& train_route.front().reversed_direction,
 		"descending canonical block order retains the runtime reverse direction");
-	diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	ok &= expect(!hasErrors(diagnostics), "the native runtime can be rebuilt safely");
 	SceneModel regionalDirection = stableConnectionScene();
 	regionalDirection.nodes[2].xKm = 0.0;
 	regionalDirection.nodes[3].xKm = 1.0;
 	regionalDirection.routes.push_back(
 		{"route.regional", {"alpha.block", "beta.block"}, false, {}, false});
-	diagnostics = buildInfrastructureAndSignallingFromScene(regionalDirection);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), regionalDirection);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1
 			&& !train_route.front().reversed_direction
 			&& train_route.front().sequence_of_block_sections[0].ID == "@alpha.block@"
@@ -484,7 +485,7 @@ static bool runTinyBuilderChecks() {
 	const int blocksBeforeInvalid = Blocks;
 	SceneModel invalidReference = scene;
 	invalidReference.routes.front().blocks = {"missing.block"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(invalidReference);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidReference);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved"),
 		"unknown route block returns an actionable signalling diagnostic");
 	ok &= expect(Blocks == blocksBeforeInvalid && train_route.size() == 1,
@@ -495,14 +496,14 @@ static bool runTinyBuilderChecks() {
 	const int routeBlocksBeforeMalformed = train_route.front().N_Block_Sections;
 	SceneModel malformedReference = scene;
 	malformedReference.routes.front().blocks = {"@block.a@-0.500000"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(malformedReference);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), malformedReference);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "signalling.json", "ref.unresolved")
 			&& Blocks == blocksBeforeInvalid && N_Routes == routesBeforeMalformed
 			&& train_route.size() == 1 && train_route.front().ID == routeIdBeforeMalformed
 			&& train_route.front().N_Block_Sections == routeBlocksBeforeMalformed,
 		"malformed decorated route references are rejected before replacing the existing runtime");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && N_Routes == 1 && train_route.size() == 1,
 		"multi-region route builds with a multi-arc middle block");
 	if (!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3) {
@@ -523,13 +524,13 @@ static bool runTinyBuilderChecks() {
 	const int blocksBeforeInvalidTopology = Blocks;
 	SceneModel invalidTopology = scene;
 	invalidTopology.arcs.front().toNodeId = "missing.node";
-	diagnostics = buildInfrastructureAndSignallingFromScene(invalidTopology);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), invalidTopology);
 	ok &= expect(hasDiagnostic(diagnostics, SceneSeverity::Error, "infrastructure.json", "ref.unresolved"),
 		"unknown arc endpoint returns an actionable infrastructure diagnostic");
 	ok &= expect(Blocks == blocksBeforeInvalidTopology, "invalid topology is rejected before runtime mutation");
 	SceneModel partialArea = tinyScene();
 	partialArea.signallingAreas = {{"partial-area", 0.0, 1.5, 2, {}}};
-	diagnostics = buildInfrastructureAndSignallingFromScene(partialArea);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), partialArea);
 	ok &= expect(!hasErrors(diagnostics) && Blocks == 2, "partial signalling area scene builds");
 	if (!hasErrors(diagnostics) && Blocks == 2) {
 		constexpr int unsetLevel = -99999999;
@@ -609,7 +610,7 @@ static std::vector<int> levelsOfLine(const std::string& prefix, std::size_t coun
 
 // Builds the scene and returns the levels of the single track "b.<i>" sections.
 static std::vector<int> buildLineLevels(const SceneModel& scene, std::size_t count, bool& built) {
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	built = !hasErrors(diagnostics) && static_cast<std::size_t>(Blocks) == count;
 	return levelsOfLine("", count);
 }
@@ -663,7 +664,7 @@ static std::set<std::string> builtUncoveredRouteSections() {
 static bool driftGuard(const SceneModel& scene, std::size_t uncovered, const std::string& what) {
 	bool complete = false;
 	const std::set<std::string> named = namedUncoveredSections(scene, complete);
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	const std::set<std::string> unset = builtUncoveredRouteSections();
 	return expect(!hasErrors(diagnostics) && complete && named == unset && unset.size() == uncovered, what);
 }
@@ -700,7 +701,7 @@ static bool runAreaRoundtripChecks() {
 		origin.hasPosition = true;
 		origin.positionKm = 0;
 		source.stations.push_back(origin);
-		const auto built = buildInfrastructureAndSignallingFromScene(source);
+		const auto built = buildInfrastructureAndSignallingFromScene(defaultRun(), source);
 		ok &= expect(!hasErrors(built) && Blocks == 8, "roundtrip source builds");
 		const std::vector<int> base = [&] {
 			auto first = levelsOfLine("a.", 4), second = levelsOfLine("b.", 4);
@@ -725,7 +726,7 @@ static bool runAreaRoundtripChecks() {
 		ok &= expect(importLegacyScene((root / "exported").string(), (root / "imported").string(), "Areas").success(), "roundtrip output imports");
 		const auto loaded = loadScene((root / "imported").string());
 		ok &= expect(!hasErrors(loaded.diagnostics), "roundtrip output loads");
-		const auto after = buildInfrastructureAndSignallingFromScene(loaded.scene);
+		const auto after = buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene);
 		std::vector<int> afterBase;
 		const auto mapped = builtSectionLevels();
 		for (const auto& track : {"B0", "B1"})
@@ -749,7 +750,7 @@ static bool runAreaMappingChecks() {
 	SceneModel scene = lineScene(4);
 	scene.signallingAreas = {{"all", 0.0, 4.0, 2, {}}};
 	ok &= lineLevelsAre(scene, {2, 2, 2, 2}, "a network-wide area gives every section its level");
-	if (!hasErrors(buildInfrastructureAndSignallingFromScene(scene)))
+	if (!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), scene)))
 		ok &= expect(builtRouteLevels(0) == builtSectionLevels() && builtRouteLevels(0).size() == 4,
 			"the route sections carry the levels of the same sections");
 	scene.signallingAreas = {{"head", 0.0, 2.0, 3, {}}};
@@ -789,15 +790,15 @@ static bool runAreaMappingChecks() {
 	// Track scope overrides the network-wide level on its own track.
 	SceneModel tracks = twoLineScene(3);
 	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-a", 0.0, 3.0, 4, "line.a"}};
-	bool built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	bool built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && Blocks == 6;
 	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({1, 1, 1}),
 		"a track-scoped area overrides the network-wide area on its track only");
 	tracks.signallingAreas = {{"all", 0.0, 3.0, 1, {}}, {"track-b-head", 0.0, 1.0, 5, "line.b"}};
-	built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && Blocks == 6;
 	ok &= expect(built && levelsOfLine("a.", 3) == Levels({1, 1, 1}) && levelsOfLine("b.", 3) == Levels({5, 1, 1}),
 		"a track-scoped area overrides only the sections it contains");
 	tracks.signallingAreas = {{"track-a", 0.0, 3.0, 4, "line.a"}};
-	built = !hasErrors(buildInfrastructureAndSignallingFromScene(tracks)) && Blocks == 6;
+	built = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tracks)) && Blocks == 6;
 	ok &= expect(built && levelsOfLine("a.", 3) == Levels({4, 4, 4}) && levelsOfLine("b.", 3) == Levels({u, u, u}),
 		"a track-scoped area leaves the other tracks without a level");
 
@@ -806,10 +807,10 @@ static bool runAreaMappingChecks() {
 	forward.signallingAreas = {{"low", 0.0, 2.0, 1, {}}, {"high", 2.0, 3.0, 4, {}}};
 	SceneModel reverse = lineScene(4, true);
 	reverse.signallingAreas = forward.signallingAreas;
-	bool forwardBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(forward)) && train_route.size() == 1
+	bool forwardBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), forward)) && train_route.size() == 1
 		&& !train_route.front().reversed_direction;
 	const std::map<std::string, int> forwardLevels = builtRouteLevels(0);
-	bool reverseBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(reverse)) && train_route.size() == 1
+	bool reverseBuilt = !hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), reverse)) && train_route.size() == 1
 		&& train_route.front().reversed_direction;
 	const std::map<std::string, int> reverseLevels = builtRouteLevels(0);
 	ok &= expect(forwardBuilt && reverseBuilt && forwardLevels.size() == 4
@@ -865,7 +866,7 @@ static bool runLongTrackChecks() {
 	for (int index = 0; index < arcCount / arcsPerBlock; ++index)
 		scene.blocks.push_back({"block." + std::to_string(index), "track.long",
 			static_cast<double>(arcsPerBlock)});
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	ok &= expect(!hasErrors(diagnostics), "a track with more than 1500 nodes and arcs builds");
 	ok &= expect(numTrackLines == 1 && blockSets[0].numNodes == arcCount + 1 && blockSets[0].arcs == arcCount
 			&& blockSets[0].len == arcCount,
@@ -882,7 +883,7 @@ static bool runLongTrackChecks() {
 			"the long track keeps its arcs past the former limit");
 	}
 	ok &= expect(Blocks == arcCount / arcsPerBlock, "the long track yields one section per block");
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	ok &= expect(blockSets[0].N.capacity() == 0 && blockSets[0].A.capacity() == 0
 			&& blockSets[0].member.capacity() == 0,
 		"the runtime reset releases the track buffers");
@@ -902,7 +903,7 @@ static bool runManySectionsChecks() {
 			"node." + std::to_string(index + 1), 0.0, 0.0, 20.0});
 	for (int index = 0; index < blockCount; ++index)
 		scene.blocks.push_back({"block." + std::to_string(index), "track.many", 1.0});
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(scene);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	ok &= expect(!hasErrors(diagnostics), "a scene with more than 6000 sections builds");
 	ok &= expect(Blocks == blockCount && signalling_block_sections.size() == static_cast<std::size_t>(blockCount),
 		"the section storage is sized from the scene");
@@ -910,7 +911,7 @@ static bool runManySectionsChecks() {
 		ok &= expect(signalling_block_sections.front().ID == "@block.0@"
 				&& signalling_block_sections.back().ID == "@block.6000@",
 			"the sections past the former limit are built");
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	ok &= expect(Blocks == 0 && signalling_block_sections.capacity() == 0,
 		"the runtime reset releases the section storage");
 	return ok;
@@ -918,7 +919,7 @@ static bool runManySectionsChecks() {
 
 static bool runRouteStorageChecks() {
 	bool ok = true;
-	auto diagnostics = buildInfrastructureAndSignallingFromScene(tinyScene());
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && !train_route.front().reversed_direction
 			&& train_route.front().N_Block_Sections == 2
 			&& train_route.front().sequence_of_block_sections.size() == 2,
@@ -926,18 +927,18 @@ static bool runRouteStorageChecks() {
 
 	SceneModel reversed = tinyScene();
 	reversed.routes.front().blocks = {"block.b", "block.a"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(reversed);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversed);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
 			&& train_route.front().N_Block_Sections == 2
 			&& train_route.front().sequence_of_block_sections.size() == 2,
 		"a reversed route holds exactly the sections of its route");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().N_Block_Sections == 3
 			&& train_route.front().sequence_of_block_sections.size() == 3,
 		"a route over several regions holds exactly the sections of its route");
 
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	ok &= expect(N_Routes == 0 && train_route.empty(), "the runtime reset removes the routes");
 	return ok;
 }
@@ -953,31 +954,31 @@ static bool runRouteEndChecks() {
 			&& route.x_of_end_node == route.sequence_of_block_sections.back().end_node.X;
 	};
 
-	auto diagnostics = buildInfrastructureAndSignallingFromScene(tinyScene());
+	auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene());
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().diffRegionsJumpX.first == 0
 			&& spansSections(train_route.front(), 0.0, 2.0),
 		"a route without a jump ends where its last section ends");
 
 	SceneModel reversed = tinyScene();
 	reversed.routes.front().blocks = {"block.b", "block.a"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(reversed);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversed);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
 			&& train_route.front().diffRegionsJumpX.first == 0 && spansSections(train_route.front(), 0.0, 2.0),
 		"a reversed route without a jump ends where its last section ends");
 
-	diagnostics = buildInfrastructureAndSignallingFromScene(multiRegionRouteScene());
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), multiRegionRouteScene());
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().diffRegionsJumpX.first != 0
 			&& spansSections(train_route.front(), 0.0, 4.0),
 		"a route across a jump ends where its last section ends after the shift");
 
 	SceneModel reversedRegions = multiRegionRouteScene();
 	reversedRegions.routes.front().blocks = {"c.block", "b.block", "a.block"};
-	diagnostics = buildInfrastructureAndSignallingFromScene(reversedRegions);
+	diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), reversedRegions);
 	ok &= expect(!hasErrors(diagnostics) && train_route.size() == 1 && train_route.front().reversed_direction
 			&& train_route.front().diffRegionsJumpX.first != 0 && spansSections(train_route.front(), 0.0, 4.0),
 		"a reversed route across a jump ends where its last section ends after the shift");
 
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	return ok;
 }
 
@@ -1352,11 +1353,11 @@ static bool runSignallingMessageChecks() {
 	};
 
 	// The route setup of a build: the progress text of each route, then the line end, also without routes.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())), "the scene with one route builds");
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), "the scene with one route builds");
 	shows(capture.take(), {{infoLevel, "\rCreating Scene Route : 0 route.tiny"}, {infoLevel, "\n"}}, "the route setup of a scene with one route");
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(stableConnectionScene())), "the scene without routes builds");
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())), "the scene without routes builds");
 	shows(capture.take(), {{infoLevel, "\n"}}, "the route setup of a scene without routes");
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	capture.take();
 
 	// A cut abscissa outside the section is an error. The failed cut replaces the section by a default one, so the id is a constant.
@@ -1404,7 +1405,7 @@ static bool runSignallingMessageChecks() {
 	const auto crossing = [&](const InfraElement& element) {
 		std::list<InfraElement> elements(1);
 		elements.front() = element;
-		UpdateInfrastructureElementStatus(elements, 10, 4.0, 6.0, 0.0, "T1");
+		UpdateInfrastructureElementStatus(defaultRun(), elements, 10, 4.0, 6.0, 0.0, "T1");
 		return capture.take();
 	};
 	InfraElement divergingSwitch;
@@ -1558,7 +1559,7 @@ static bool runSignallingMessageChecks() {
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.X = 1.0;
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.numConnections = 1;
 	unknownBlock.arcs_in_signalling_block_section[0].endNode.IDConnectedBlocks.push_back("@A@-1.000000/@B@-2.000000");
-	lockSwitchesOnAllConnectedSections(1010.0, 990.0, 10.0, 0.0, unknownBlock, "now", "next", "T1", false, "None");
+	lockSwitchesOnAllConnectedSections(defaultRun(), 1010.0, 990.0, 10.0, 0.0, unknownBlock, "now", "next", "T1", false, "None");
 	ETCS_MA.clear();
 	shows(capture.take(),
 		{{errorLevel, "\n\nError: there is not Block ahving the same ID of Block signalling_block_sections in Function: "
@@ -1571,8 +1572,8 @@ static bool runSignallingMessageChecks() {
 	signalling_block_sections[0].ID = "@Cap@";
 	for (std::size_t index = 1; index < signalling_block_sections.size(); ++index)
 		signalling_block_sections[index].ID = "@Cap@-" + std::to_string(index);
-	setDependenciesBetweenBlocks();
-	resetNativeInfrastructureState();
+	setDependenciesBetweenBlocks(defaultRun());
+	resetNativeInfrastructureState(defaultRun());
 	shows(capture.take(),
 		{{errorLevel, "ERROR: Block section @Cap@ has more than 10 connected block sections\n"}},
 		"a section with more connected sections than it holds");
@@ -1614,9 +1615,9 @@ static bool runOccupancyListChecks() {
 	describe(current, "occ.main", {"occ.c1", "occ.c2"});
 	describe(previous, "occ.prev", {});
 	startWith({"occ.c1"}, {});
-	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
 	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "an occupied section adds itself and the connected sections that are missing");
-	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
 	listsAre({"occ.c1", "occ.main", "occ.c2"}, {"occ.prev"}, "a second occupation of the same sections adds no id twice");
 
 	// The connected sections of the previous section are added to BlocksConnected when the train tail crosses its end node, before the
@@ -1624,10 +1625,10 @@ static bool runOccupancyListChecks() {
 	describe(previous, "occ.prev", {"prev.c1"});
 	previous.end_node.X = 2.0;
 	startWith({}, {});
-	occupyBlockAndConnected(current, previous, 2001.0, 1999.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 2001.0, 1999.0);
 	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"prev.c1", "occ.prev"}, "the tail crossing the end of the previous section connects its sections first");
 	startWith({}, {});
-	occupyBlockAndConnected(current, previous, 2002.0, 2001.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 2002.0, 2001.0);
 	listsAre({"occ.main", "occ.c1", "occ.c2"}, {"occ.prev", "prev.c1"},
 		"the tail past the end of the previous section connects its sections after the section");
 
@@ -1635,40 +1636,40 @@ static bool runOccupancyListChecks() {
 	describe(current, "big.main", {"big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"});
 	describe(previous, "occ.prev", {});
 	startWith({}, {});
-	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
 	listsAre({"big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8", "big.c9"}, {"occ.prev"},
 		"a section with ten connected sections adds all eleven ids");
 	startWith({"big.c9"}, {});
-	occupyBlockAndConnected(current, previous, 5000.0, 5000.0);
+	occupyBlockAndConnected(defaultRun(), current, previous, 5000.0, 5000.0);
 	listsAre({"big.c9", "big.main", "big.c0", "big.c1", "big.c2", "big.c3", "big.c4", "big.c5", "big.c6", "big.c7", "big.c8"}, {"occ.prev"},
 		"the last connected section of ten is skipped when it is listed already");
 
 	// A released section without a switch adds itself and its connected sections to BlocksConnected only.
 	describe(current, "rel.main", {"rel.c1", "rel.c2"});
 	startWith({}, {"rel.c2"});
-	releaseLastBlockAndConnected(current);
+	releaseLastBlockAndConnected(defaultRun(), current);
 	listsAre({}, {"rel.c2", "rel.main", "rel.c1"}, "a released section adds itself and the connected sections that are missing");
 
 	// A released section with a diverging switch also adds the two block ids of its name, before the connected sections.
 	const std::string switchId = "@sw.a@-1.000000/@sw.b@-2.000000";
 	describe(current, switchId, {"sw.c1", "sw.c2"}, true);
 	startWith({}, {"sw.c1"});
-	releaseLastBlockAndConnected(current);
+	releaseLastBlockAndConnected(defaultRun(), current);
 	listsAre({}, {"sw.c1", switchId, "@sw.a@", "@sw.b@", "sw.c2"}, "a released section with a switch adds the two blocks of its name");
 	describe(current, switchId, {"sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"}, true);
 	startWith({}, {});
-	releaseLastBlockAndConnected(current);
+	releaseLastBlockAndConnected(defaultRun(), current);
 	listsAre({}, {switchId, "@sw.a@", "@sw.b@", "sw.d0", "sw.d1", "sw.d2", "sw.d3", "sw.d4", "sw.d5", "sw.d6", "sw.d7", "sw.d8", "sw.d9"},
 		"a released section with a switch and ten connected sections adds thirteen ids");
 
 	// A switch whose name holds no two block ids changes nothing.
 	describe(current, "sw.without.blocks", {"sw.c1"}, true);
 	startWith({"kept.occupied"}, {"kept.connected"});
-	releaseLastBlockAndConnected(current);
+	releaseLastBlockAndConnected(defaultRun(), current);
 	listsAre({"kept.occupied"}, {"kept.connected"}, "a section with a switch and a name without two blocks changes neither list");
 
 	// A double switch: two switch halves, each with its two blocks in the section list.
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	signalling_block_sections = std::vector<Section>(4);
 	Blocks = static_cast<int>(signalling_block_sections.size());
 	describe(signalling_block_sections[0], "@dsA@", {"a.c"});
@@ -1681,32 +1682,32 @@ static bool runOccupancyListChecks() {
 	describe(previous, secondId, {});
 	const IdList fullOccupied = {firstId, "s1.c", "@dsA@", "@dsB@", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"};
 	startWith({}, {});
-	occupyDoubleSwitch(current, previous);
+	occupyDoubleSwitch(defaultRun(), current, previous);
 	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"}, "a double switch occupies both halves, their blocks and the sections connected to them");
 	startWith({firstId}, {});
-	occupyDoubleSwitch(current, previous);
+	occupyDoubleSwitch(defaultRun(), current, previous);
 	listsAre(fullOccupied, {"@dsA@", "@dsB@", "@dsC@", "@dsD@"},
 		"a double switch whose first half is listed already still adds the sections connected to it");
 
 	current.withSwitchDiv = true;
 	previous.withSwitchDiv = false;
 	startWith({}, {});
-	releaseDoubleSwitch(current, previous);
+	releaseDoubleSwitch(defaultRun(), current, previous);
 	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId}, "a released double switch with a switch on its first half only");
 	current.withSwitchDiv = false;
 	startWith({}, {});
-	releaseDoubleSwitch(current, previous);
+	releaseDoubleSwitch(defaultRun(), current, previous);
 	listsAre({}, {firstId, "s1.c", secondId}, "a released double switch without a switch on either half");
 	current.withSwitchDiv = true;
 	previous.withSwitchDiv = true;
 	startWith({}, {});
-	releaseDoubleSwitch(current, previous);
+	releaseDoubleSwitch(defaultRun(), current, previous);
 	listsAre({}, {firstId, "@dsA@", "@dsB@", "s1.c", "a.c", "b.c", secondId, "@dsC@", "@dsD@", "c.c", "d.c"},
 		"a released double switch with a switch on both halves");
 
 	BlocksOccupied.clear();
 	BlocksConnected.clear();
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	return ok;
 }
 
@@ -1748,10 +1749,10 @@ static void describeCuttableSection(Section& section) {
 // The nodes that a section lists, for the sections of a scene, the section that a switch derives and the sections that a cut makes.
 static bool runNodeListChecks() {
 	bool ok = true;
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 
 	// A section built from a scene lists the nodes of its track that it passes, from its first node to its last.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())) && Blocks == 2, "the scene with two blocks builds");
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())) && Blocks == 2, "the scene with two blocks builds");
 	if (Blocks == 2) {
 		const Section& first = signalling_block_sections[0];
 		const Section& second = signalling_block_sections[1];
@@ -1765,7 +1766,7 @@ static bool runNodeListChecks() {
 
 	// A section derived for a switch lists the nodes of the first section up to the switch node, the switch node of the second section
 	// and the nodes of the second section behind it.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(stableConnectionScene())) && Blocks == 3, "the scene with a switch builds");
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), stableConnectionScene())) && Blocks == 3, "the scene with a switch builds");
 	if (Blocks == 3) {
 		const Section& alpha = signalling_block_sections[0];
 		const Section& beta = signalling_block_sections[1];
@@ -1781,7 +1782,7 @@ static bool runNodeListChecks() {
 				&& listedSceneIds(derived) == std::vector<std::string>({"alpha.start", "alpha.end", "beta.start", "beta.end"}),
 			"the section derived for the switch lists the nodes of both blocks in order");
 	}
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 
 	// A cut section lists its start node and the end node of each of its arcs.
 	Section source;
@@ -1834,7 +1835,7 @@ static bool runNodeListChecks() {
 	}
 
 	// The sections of a route share the lists of the network, and a copy of a section keeps its list when the network is reset.
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())) && Blocks == 2 && train_route.size() == 1
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())) && Blocks == 2 && train_route.size() == 1
 			&& train_route.front().sequence_of_block_sections.size() == 2,
 		"the scene with one route builds");
 	if (Blocks == 2 && train_route.size() == 1 && train_route.front().sequence_of_block_sections.size() == 2) {
@@ -1846,14 +1847,14 @@ static bool runNodeListChecks() {
 		Section kept = signalling_block_sections[0];
 		const WeakList keptList = signalling_block_sections[0].nodelist_of_nodes_in_signalling_section;
 		const WeakList droppedList = signalling_block_sections[1].nodelist_of_nodes_in_signalling_section;
-		resetNativeInfrastructureState();
+		resetNativeInfrastructureState(defaultRun());
 		ok &= expect(!keptList.expired() && kept.nodelist_of_nodes_in_signalling_section.use_count() == 1 && kept.total_nodes == 2
 				&& listedAbscissas(kept) == std::vector<double>({0.0, 1.0}),
 			"a copy of a section keeps its list after the reset");
 		ok &= expect(droppedList.expired(), "the list of a section that no copy holds is freed by the reset");
 	}
 
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	return ok;
 }
 
@@ -2051,14 +2052,14 @@ static bool hasErrorMessage(const std::vector<SceneDiagnostic>& diagnostics, con
 
 // Builds the scene that the previous runtime holds, then a scene that passes the checks and fails while the runtime is built.
 static bool failedBuildKeepsRuntime(const SceneModel& failing, const std::string& code, const std::string& message, const std::string& what) {
-	bool ok = expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())), what + ": the previous scene builds");
+	bool ok = expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())), what + ": the previous scene builds");
 	StationArray[0].virtualSignal = true;
 	const InfrastructureSnapshot before = takeInfrastructureSnapshot();
 	ok &= expect(before.blocks == 2 && before.routeCount == 1 && before.platformCount == 2 && before.firstStationName == "Tiny"
 			&& before.detectionSectionCount > 0 && before.boundaryEntrances.size() == 1,
 		what + ": the previous runtime holds the scene");
 
-	const auto diagnostics = buildInfrastructureAndSignallingFromScene(failing);
+	const auto diagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), failing);
 	ok &= expect(hasErrorMessage(diagnostics, code, message), what + ": the build reaches its error '" + message + "'");
 	ok &= expect(before == takeInfrastructureSnapshot(), what + ": the previous infrastructure is still in the runtime");
 	ok &= expect(runtimePointersAreValid(), what + ": the pointers into the sections and the detection sections are valid");
@@ -2094,9 +2095,9 @@ static bool runFailedBuildChecks() {
 	ok &= failedBuildKeepsRuntime(routeOverEndNodeSwitchesScene(), "scene.native.route.order",
 		"Native route order does not retain the authored section IDs", "a route cut outside its section");
 
-	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(tinyScene())) && Blocks == 2 && runtimePointersAreValid(),
+	ok &= expect(!hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), tinyScene())) && Blocks == 2 && runtimePointersAreValid(),
 		"the scene builds again after the failed builds");
-	resetNativeInfrastructureState();
+	resetNativeInfrastructureState(defaultRun());
 	return ok;
 }
 

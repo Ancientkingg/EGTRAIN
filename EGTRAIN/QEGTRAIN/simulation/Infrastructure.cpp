@@ -1,5 +1,6 @@
 #include "simulation/Infrastructure.h"
 #include "scene/SectionInventory.h"
+#include "simulation/SimulationRun.h"
 #include <cstdio>
 #include <cfloat>
 
@@ -115,7 +116,7 @@ Stations::Stations() {
 	N_StationPlatforms = 0;
 }
 
-void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
+void Print_Station_Delay_Stats(const SimulationRun& run, string Name_StationDelay, string kindofdelay) {
 	ofstream FileOutput;
 	string FileOutName;
 	if (kindofdelay == "pos")
@@ -125,33 +126,33 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 	FileOutput.open((char*)FileOutName.c_str());
 	FileOutput << "StName" << " " << "Av_Delay" << " " << "Std_Delay" << " " << "Total_Delay" << " " << "Max_Tot_Delay" << " " << "Cum_Cons_Delay" << " " << "Max_Cons_Delay" << " " << "Perc_Delayed" << " " << "Perc_Delayed_3min" << " " << "Perc_Delayed_5min" << " " << "N_StopTrains" << " " << "N_DelTrains" << "\n";
 	// Print first the amount of Entrance delay and disturbances to dwell times in input
-	FileOutput << "Ent_Del+DwT_Dist" << " " << TotalInputDelays.Av_Arrival_Delay << " " << TotalInputDelays.Std_Arrival_Delay << " " << TotalInputDelays.totalArrivalDelay << " " << TotalInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << TotalInputDelays.Perc_Delayed_T << " " << TotalInputDelays.Perc_Delayed_T_3min << " " << TotalInputDelays.Perc_Delayed_T_5min << " " << TotalInputDelays.N_Stopped_Trains << " " << TotalInputDelays.N_Delayed_Arr << "\n";
-	FileOutput << "Ent_Delays" << " " << EntranceInputDelays.Av_Arrival_Delay << " " << EntranceInputDelays.Std_Arrival_Delay << " " << EntranceInputDelays.totalArrivalDelay << " " << EntranceInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << EntranceInputDelays.Perc_Delayed_T << " " << EntranceInputDelays.Perc_Delayed_T_3min << " " << EntranceInputDelays.Perc_Delayed_T_5min << " " << EntranceInputDelays.N_Stopped_Trains << " " << EntranceInputDelays.N_Delayed_Arr << "\n";
-	FileOutput << "DwT_Dist" << " " << DisturbanceInput.Av_Arrival_Delay << " " << DisturbanceInput.Std_Arrival_Delay << " " << DisturbanceInput.totalArrivalDelay << " " << DisturbanceInput.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << DisturbanceInput.Perc_Delayed_T << " " << DisturbanceInput.Perc_Delayed_T_3min << " " << DisturbanceInput.Perc_Delayed_T_5min << " " << DisturbanceInput.N_Stopped_Trains << " " << DisturbanceInput.N_Delayed_Arr << "\n";
+	FileOutput << "Ent_Del+DwT_Dist" << " " << run.totalInputDelays.Av_Arrival_Delay << " " << run.totalInputDelays.Std_Arrival_Delay << " " << run.totalInputDelays.totalArrivalDelay << " " << run.totalInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << run.totalInputDelays.Perc_Delayed_T << " " << run.totalInputDelays.Perc_Delayed_T_3min << " " << run.totalInputDelays.Perc_Delayed_T_5min << " " << run.totalInputDelays.N_Stopped_Trains << " " << run.totalInputDelays.N_Delayed_Arr << "\n";
+	FileOutput << "Ent_Delays" << " " << run.entranceInputDelays.Av_Arrival_Delay << " " << run.entranceInputDelays.Std_Arrival_Delay << " " << run.entranceInputDelays.totalArrivalDelay << " " << run.entranceInputDelays.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << run.entranceInputDelays.Perc_Delayed_T << " " << run.entranceInputDelays.Perc_Delayed_T_3min << " " << run.entranceInputDelays.Perc_Delayed_T_5min << " " << run.entranceInputDelays.N_Stopped_Trains << " " << run.entranceInputDelays.N_Delayed_Arr << "\n";
+	FileOutput << "DwT_Dist" << " " << run.disturbanceInput.Av_Arrival_Delay << " " << run.disturbanceInput.Std_Arrival_Delay << " " << run.disturbanceInput.totalArrivalDelay << " " << run.disturbanceInput.Max_TotalDelay << " " << "N/D" << " " << "N/D" << " " << run.disturbanceInput.Perc_Delayed_T << " " << run.disturbanceInput.Perc_Delayed_T_3min << " " << run.disturbanceInput.Perc_Delayed_T_5min << " " << run.disturbanceInput.N_Stopped_Trains << " " << run.disturbanceInput.N_Delayed_Arr << "\n";
 
 	// Print the calculated delays for all the stations
-	for (int s = 1; s < numStations; s++) { // Print it for every station but the first, if you want it also for the first just start the for loop with s=0
-		FileOutput << StationArray[s].stationName << " " << StationArray[s].Av_Arrival_Delay << " " << StationArray[s].Std_Arrival_Delay << " " << StationArray[s].totalArrivalDelay << " " << StationArray[s].Max_TotalDelay << " " << StationArray[s].Tot_Consec_Delay << " " << StationArray[s].Max_Cons_Delay << " " << StationArray[s].Perc_Delayed_T << " " << StationArray[s].Perc_Delayed_T_3min << " " << StationArray[s].Perc_Delayed_T_5min << " " << StationArray[s].N_Stopped_Trains << " " << StationArray[s].N_Delayed_Arr << "\n";
+	for (int s = 1; s < run.infra.numStations; s++) { // Print it for every station but the first, if you want it also for the first just start the for loop with s=0
+		FileOutput << run.infra.stations[s].stationName << " " << run.infra.stations[s].Av_Arrival_Delay << " " << run.infra.stations[s].Std_Arrival_Delay << " " << run.infra.stations[s].totalArrivalDelay << " " << run.infra.stations[s].Max_TotalDelay << " " << run.infra.stations[s].Tot_Consec_Delay << " " << run.infra.stations[s].Max_Cons_Delay << " " << run.infra.stations[s].Perc_Delayed_T << " " << run.infra.stations[s].Perc_Delayed_T_3min << " " << run.infra.stations[s].Perc_Delayed_T_5min << " " << run.infra.stations[s].N_Stopped_Trains << " " << run.infra.stations[s].N_Delayed_Arr << "\n";
 	}
 
 	// Computing Totals over the stations
 	double TotalAV = 0, TotalStd = 0, TOTDelay = 0, MAX_TOTDelay = 0, TOTCONSDelay = 0, MAX_CONSDelay = 0, AV_Punct = 0, AV_Punct_3min = 0, AV_Punct_5min = 0;
 	int stationsWithSamples = 0;
-	for (int s = 1; s < numStations; s++) { // Calculate it for every station but the first, if you want it also for the first station just start the loop with s=0
-		if (StationArray[s].N_Stopped_Trains <= 0)
+	for (int s = 1; s < run.infra.numStations; s++) { // Calculate it for every station but the first, if you want it also for the first station just start the loop with s=0
+		if (run.infra.stations[s].N_Stopped_Trains <= 0)
 			continue;
 		++stationsWithSamples;
-		TotalAV = TotalAV + StationArray[s].Av_Arrival_Delay;			// Calculating the Average Delay over the stations
-		TotalStd = TotalStd + StationArray[s].Std_Arrival_Delay;		// Calculating the Average Std over the stations
-		TOTDelay = TOTDelay + StationArray[s].totalArrivalDelay;		// Calculating the Total Delay over all stations
-		TOTCONSDelay = TOTCONSDelay + StationArray[s].Tot_Consec_Delay; // Calculating the Total consecutive delay over all stations
-		if (stationsWithSamples == 1 || StationArray[s].Max_TotalDelay > MAX_TOTDelay)
-			MAX_TOTDelay = StationArray[s].Max_TotalDelay; // Calculating the MAX TOTAL DELAY
-		if (stationsWithSamples == 1 || StationArray[s].Max_Cons_Delay > MAX_CONSDelay)
-			MAX_CONSDelay = StationArray[s].Max_Cons_Delay;					 // Calculating the MAX CONSECUTIVE DELAY
-		AV_Punct = AV_Punct + StationArray[s].Perc_Delayed_T;				 // Calculating the  Avergae Punctuality at stations
-		AV_Punct_3min = AV_Punct_3min + StationArray[s].Perc_Delayed_T_3min; // Calculating the  Avergae Punctuality at 3 min at stations
-		AV_Punct_5min = AV_Punct_5min + StationArray[s].Perc_Delayed_T_5min; // Calculating the  Avergae Punctuality at 5 min at stations
+		TotalAV = TotalAV + run.infra.stations[s].Av_Arrival_Delay;			  // Calculating the Average Delay over the stations
+		TotalStd = TotalStd + run.infra.stations[s].Std_Arrival_Delay;		  // Calculating the Average Std over the stations
+		TOTDelay = TOTDelay + run.infra.stations[s].totalArrivalDelay;		  // Calculating the Total Delay over all stations
+		TOTCONSDelay = TOTCONSDelay + run.infra.stations[s].Tot_Consec_Delay; // Calculating the Total consecutive delay over all stations
+		if (stationsWithSamples == 1 || run.infra.stations[s].Max_TotalDelay > MAX_TOTDelay)
+			MAX_TOTDelay = run.infra.stations[s].Max_TotalDelay; // Calculating the MAX TOTAL DELAY
+		if (stationsWithSamples == 1 || run.infra.stations[s].Max_Cons_Delay > MAX_CONSDelay)
+			MAX_CONSDelay = run.infra.stations[s].Max_Cons_Delay;				   // Calculating the MAX CONSECUTIVE DELAY
+		AV_Punct = AV_Punct + run.infra.stations[s].Perc_Delayed_T;				   // Calculating the  Avergae Punctuality at stations
+		AV_Punct_3min = AV_Punct_3min + run.infra.stations[s].Perc_Delayed_T_3min; // Calculating the  Avergae Punctuality at 3 min at stations
+		AV_Punct_5min = AV_Punct_5min + run.infra.stations[s].Perc_Delayed_T_5min; // Calculating the  Avergae Punctuality at 5 min at stations
 	}
 
 	/*//Calculating the averages over all stations
@@ -175,7 +176,7 @@ void Print_Station_Delay_Stats(string Name_StationDelay, string kindofdelay) {
 
 	FileOutput << "TOTALS" << " " << TotalAV << " " << TotalStd << " " << TOTDelay << " " << MAX_TOTDelay << " " << TOTCONSDelay << " " << MAX_CONSDelay << " " << AV_Punct << " " << AV_Punct_3min << " " << AV_Punct_5min << "\n";
 	// Printing the Final_Delay fittitious station
-	FileOutput << Final_Station.stationName << " " << Final_Station.Av_Arrival_Delay << " " << Final_Station.Std_Arrival_Delay << " " << Final_Station.totalArrivalDelay << " " << Final_Station.Max_TotalDelay << " " << Final_Station.Tot_Consec_Delay << " " << Final_Station.Max_Cons_Delay << " " << Final_Station.Perc_Delayed_T << " " << Final_Station.Perc_Delayed_T_3min << " " << Final_Station.Perc_Delayed_T_5min << " " << Final_Station.N_Stopped_Trains << " " << Final_Station.N_Delayed_Arr << "\n";
+	FileOutput << run.finalStation.stationName << " " << run.finalStation.Av_Arrival_Delay << " " << run.finalStation.Std_Arrival_Delay << " " << run.finalStation.totalArrivalDelay << " " << run.finalStation.Max_TotalDelay << " " << run.finalStation.Tot_Consec_Delay << " " << run.finalStation.Max_Cons_Delay << " " << run.finalStation.Perc_Delayed_T << " " << run.finalStation.Perc_Delayed_T_3min << " " << run.finalStation.Perc_Delayed_T_5min << " " << run.finalStation.N_Stopped_Trains << " " << run.finalStation.N_Delayed_Arr << "\n";
 
 	FileOutput.close();
 }

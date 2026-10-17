@@ -1179,7 +1179,7 @@ L levels=0000000 shape=21 connected=s6 | 11:?:7:0/0:5 11:?:7:0:5 270:G:999:0/0:5
 L levels=0000000 shape=21 connected=s2,s5 | 270:G:999:0/0:5 270:G:999:0:5 270:G:999:0/0:5 270:G:999:0:5 270:G:999:0/0:5 270:G:999:0:5 11:?:7:0/0:5
 L levels=0000000 shape=21 connected=s0,s6 | 270:G:999:0/0:5 11:?:7:0:5 270:G:999:0/0:5 270:G:999:0:5 270:G:999:0/0:5 270:G:999:0:5 270:G:999:0/0:5
 L levels=0000000 shape=21 connected=s9 | 11:?:7:0/0:5 11:?:7:0:5 11:?:7:0/0:5 11:?:7:0:5 11:?:7:0/0:5 11:?:7:0:5 11:?:7:0/0:5
-# E: relLastSectionMixedSignalling(left=), dirty start; connected= is what the call leaves in BlocksConnected
+# E: relLastSectionMixedSignalling(defaultRun(), left=), dirty start; connected= is what the call leaves in BlocksConnected
 E levels=uuuuuu shape=1 left=s0 | 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 => connected=s0
 E levels=uuuuuu shape=1 left=s1 | 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 => connected=s1
 E levels=uuuuuu shape=1 left=s2 | 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 11:?:7:0:5 => connected=s2

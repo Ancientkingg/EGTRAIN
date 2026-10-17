@@ -20,6 +20,8 @@
 #include "util/Logger.hpp"
 
 
+struct SimulationRun;
+
 // The length of a simulation step in seconds.
 inline constexpr double timestep = 1;
 // Signalling speed limits in m/s: signalCode1 caps the section with code 75 at levels 0 and 5, signalCode2 the double red section of level 5, signalCode3 is passed to the routines as V_0, which they do not use
@@ -287,7 +289,7 @@ extern Stations& DisturbanceInput;
 extern Stations& Final_Station; // Fictitious station to measure delays at trains' final stations
 extern int& numStations;
 
-void Print_Station_Delay_Stats(std::string Name_StationDelay, std::string kindofdelay);
+void Print_Station_Delay_Stats(const SimulationRun& run, std::string Name_StationDelay, std::string kindofdelay);
 
 // --- Location: can correspond to a block section or a section ---
 

@@ -4,6 +4,6 @@
 #include "simulation/RollingStock.h"
 
 // Function to change the departure time of the trains in order to fit them all in one hour of timetable
-void changeTrainDepartureTimesForHourlyTimetabling(Regional* Trains, int numTrains);
+void changeTrainDepartureTimesForHourlyTimetabling(SimulationRun& run, Regional* Trains, int numTrains);
 
 #endif

@@ -265,7 +265,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 
 	const std::vector<SceneDiagnostic> infrastructure =
-		buildInfrastructureAndSignallingFromScene(scene);
+		buildInfrastructureAndSignallingFromScene(defaultRun(), scene);
 	diagnostics.insert(diagnostics.end(), infrastructure.begin(), infrastructure.end());
 	const bool infrastructureFailed = hasErrors(diagnostics);
 	if (infrastructureFailed)
@@ -279,7 +279,7 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 	}
 
 	const std::vector<SceneDiagnostic> operations =
-		buildOperationsFromScene(scene, selectedScenarioId, selectedOccurrences);
+		buildOperationsFromScene(defaultRun(), scene, selectedScenarioId, selectedOccurrences);
 	diagnostics.insert(diagnostics.end(), operations.begin(), operations.end());
 	if (hasErrors(diagnostics)) {
 		resetState();
@@ -328,14 +328,14 @@ std::vector<SceneDiagnostic> DispatchController::prepareScene(const SceneModel& 
 
 void DispatchController::beginScenePreparation() {
 	snapshotMailbox_.take();
-	prepareNativeOperationsState();
+	prepareNativeOperationsState(defaultRun());
 }
 
 // Reset all native runtime state before loading another canonical scene.
 void DispatchController::resetState() {
 	snapshotMailbox_.take();
-	resetNativeInfrastructureState();
-	resetNativeOperationsState();
+	resetNativeInfrastructureState(defaultRun());
+	resetNativeOperationsState(defaultRun());
 }
 
 std::shared_ptr<const GuiSimulationSnapshot> DispatchController::takeSimulationSnapshot() {
@@ -524,7 +524,8 @@ void DispatchController::runSimulation() {
 		EG_LOG(AppRun, Error) << "ERROR: Cannot run simulation because zero trains were loaded.\n";
 		return;
 	}
-	const InitialParameters& settings = defaultRun().settings;
+	SimulationRun& run = defaultRun();
+	const InitialParameters& settings = run.settings;
 	const std::string trajectoryFolder = settings.OutputMainFolder + "/TrainTrajectories";
 
 	// The worker of a run in the window made its control before the run, so a stop requested earlier is
@@ -589,24 +590,24 @@ void DispatchController::runSimulation() {
 	Compute_TimetablingPoints_For_All_Trains(regional_train.data(), numRegions);
 
 	// Calculate Train Delays
-	calculateArrivalDelayAllTrains();
-	calculateDelayStatsForAllStations();
-	calculateDelayStatsAtStation(Final_Station); // Computing the delay stats at the final station of all the trains
-	Compute_Input_Delays();						 // Computing the amount of entrance delays and disturbances set in input in the scenario
-												 // Print Delay at stations in the right folder
-	Print_Station_Delay_Stats(trajectoryFolder, "pos");
+	calculateArrivalDelayAllTrains(run);
+	calculateDelayStatsForAllStations(run);
+	calculateDelayStatsAtStation(run, run.finalStation); // Computing the delay stats at the final station of all the trains
+	Compute_Input_Delays(run);							 // Computing the amount of entrance delays and disturbances set in input in the scenario
+														 // Print Delay at stations in the right folder
+	Print_Station_Delay_Stats(run, trajectoryFolder, "pos");
 
 	// Print Out Passenger Delays
 	printPassengerTotalJourneyDelay(AllDailyPassengers, settings.OutputMainFolder + "/PassengerStatus");
 
 	// Calculating positive and negative Train Delays to debug the program
-	calculatePosAndNegArrivalDelayAllTrains();
-	calculatePosAndNegDelayStatsForAllStations();
-	calculatePosAndNegDelayStatsAtStation(Final_Station); // Calculating the pos and neg Delay stats at final station of all trains
-														  // Print aggregated results of positive and negative delays at stations
-	Print_Station_Delay_Stats(trajectoryFolder, "pos&neg");
+	calculatePosAndNegArrivalDelayAllTrains(run);
+	calculatePosAndNegDelayStatsForAllStations(run);
+	calculatePosAndNegDelayStatsAtStation(run, run.finalStation); // Calculating the pos and neg Delay stats at final station of all trains
+																  // Print aggregated results of positive and negative delays at stations
+	Print_Station_Delay_Stats(run, trajectoryFolder, "pos&neg");
 
-	Print_Computing_Times(trajectoryFolder); // Printing the total computation time of ROMA and EGTRAIN
+	Print_Computing_Times(run, trajectoryFolder); // Printing the total computation time of ROMA and EGTRAIN
 
 
 	if (stoppedHere())
@@ -614,13 +615,13 @@ void DispatchController::runSimulation() {
 
 	EG_LOG(AppRun, Info) << "\n\n Computing Train Blocking Times....\n\n";
 
-	ComputeBlockingTimesInMixedSignallingForAllTrains(5, (3 + settings.bufferTime), 0.5, 50, trajectoryFolder, 0, settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
+	ComputeBlockingTimesInMixedSignallingForAllTrains(run, 5, (3 + settings.bufferTime), 0.5, 50, trajectoryFolder, 0, settings.recoveryTimePercentage); // Computing Blocking Times in mixed signalling Areas
 
 	// The dense path diagram is part of the detailed trajectories.
 	if (settings.exportDetailedTrajectories)
-		PrintTrainPathDiagram(regional_train.data(), numRegions, trajectoryFolder);
+		PrintTrainPathDiagram(run, regional_train.data(), numRegions, trajectoryFolder);
 
-	PrintTimetablePoints(trajectoryFolder);
+	PrintTimetablePoints(run, trajectoryFolder);
 
 	// print trajectories
 	// before in Regional destructor - moved here because vectors are deleted automatically in the destructor and it is no longer possible to use them there
@@ -646,7 +647,8 @@ void DispatchController::runSimulation() {
 }
 
 void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(double v1, double v2, double v3) {
-	const InitialParameters& settings = defaultRun().settings;
+	SimulationRun& run = defaultRun();
+	const InitialParameters& settings = run.settings;
 	nlohmann::json jsmsg;
 
 	// The trains by departure time; trains due at the same time stay in the order of regional_train.
@@ -725,7 +727,7 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 
 					// The interaction Trains and passengers and corresponding dwell time dependency at platform is simulated here in a non multi-thread fashion
 					// Simulating interaction with the passengers and changing dwell times according to the chosen passenger-dependent dwell time function
-					Simulate_Train_Passenger_Interactions(t, settings.startingSimulationTime, regional_train[n], AllDailyPassengers, AllStationPlatforms);
+					Simulate_Train_Passenger_Interactions(run, t, settings.startingSimulationTime, regional_train[n], AllDailyPassengers, AllStationPlatforms);
 
 					// round to 2 decimals
 					double xPosition = std::ceil(regional_train[n].trainXPosition(t) * 100.0) / 100.0;
@@ -775,26 +777,26 @@ void DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers(doubl
 					"worker/playback_step/compute");
 				ETCS_MA.clear(); // Clear the list containing all the Movement Authorities given to the trains at the previous instant
 
-				Occupy_Block_Sections_Of_Route(t); // Fill in the lists Blocks_Occupied and BlocksConnected
+				Occupy_Block_Sections_Of_Route(run, t); // Fill in the lists Blocks_Occupied and BlocksConnected
 
 				// Occupy failed sections and give them an End of Authority so both
 				// aspect-driven and moving-block trains react to the incident
-				Apply_Signal_Failures_Mixed_Signalling(t);
+				Apply_Signal_Failures_Mixed_Signalling(run, t);
 
 				// Held single-track sections give trains of the other direction an End of Authority at levels 3 and 4
-				Apply_Single_Track_Authorities_Mixed_Signalling();
+				Apply_Single_Track_Authorities_Mixed_Signalling(run);
 
 				// Only levels 3 and 4
-				ReportAllTrainPositionsToRBC(t, 50);
+				ReportAllTrainPositionsToRBC(run, t, 50);
 
 				// function to protect all station areas
-				protectStationAreas(t);
+				protectStationAreas(run, t);
 
-				releaseMixedSignallingSystem(); // Release Blocks connected with the one really occupied by a train
+				releaseMixedSignallingSystem(run); // Release Blocks connected with the one really occupied by a train
 
-				activateMixedSignallingSystem(); // Apply the rules of the signalling system for all the Blocks contained
+				activateMixedSignallingSystem(run); // Apply the rules of the signalling system for all the Blocks contained
 
-				unlockDoubleSwitches(); // unlock double switches (otherwise trains stop in the middle of double switches)
+				unlockDoubleSwitches(run); // unlock double switches (otherwise trains stop in the middle of double switches)
 
 				BlocksOccupied.clear();	 // Clear the list BlocksOccupied
 				BlocksConnected.clear(); // Clear the list BlocksConnected

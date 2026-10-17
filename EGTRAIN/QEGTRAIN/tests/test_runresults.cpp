@@ -3,6 +3,7 @@
 #include "scene/SceneModel.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Simulation.h"
+#include "simulation/SimulationRun.h"
 #include "util/Logger.hpp"
 
 #include <QFile>
@@ -55,6 +56,7 @@ static QJsonObject readJsonObject(const QString& path) {
 static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
 	const std::vector<std::string>& stations) {
 	auto train = std::make_unique<Train>();
+	train->run_ = &defaultRun();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
 	train->Stations.resize(stations.size());
@@ -68,6 +70,7 @@ static std::unique_ptr<Train> makeTimetableTrain(const std::string& id,
 static std::unique_ptr<Regional> makeRegionalTimetableTrain(const std::string& id,
 	const std::vector<std::string>& stations) {
 	auto train = std::make_unique<Regional>();
+	train->run_ = &defaultRun();
 	train->trainDescription = id;
 	train->numStations = static_cast<int>(stations.size());
 	train->Stations.resize(stations.size());
@@ -89,6 +92,7 @@ static TrainEvent makeTimetableEvent(const std::string& station, double arrival,
 static std::unique_ptr<Train> makeTrain(const std::string& id, int first, int last, double energy,
 	double regen, double substation, double substationRegen) {
 	auto train = std::make_unique<Train>();
+	train->run_ = &defaultRun();
 	train->trainDescription = id;
 	train->earliestActiveTrajectoryIndex = first;
 	train->End_Time = last;
@@ -157,6 +161,7 @@ int main() {
 		ETCS_MA.clear();
 
 		Train train;
+		train.run_ = &defaultRun();
 		train.trainDescription = "moving-block-test";
 		train.indexOfRoute = 0;
 		train.departure_time = 0;
@@ -896,6 +901,7 @@ int main() {
 		const double tails[2][4] = {{16, 26, 46, 76}, {984, 974, 954, 924}};
 		for (int direction = 0; direction < 2; ++direction) {
 			auto train = std::make_unique<Train>();
+			train->run_ = &defaultRun();
 			train->trainDescription = direction == 0 ? "tail-forward" : "tail-reversed";
 			train->indexOfRoute = direction;
 			train->train_length = 84.0;

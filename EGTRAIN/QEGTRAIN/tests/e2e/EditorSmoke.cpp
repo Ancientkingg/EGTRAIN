@@ -28,6 +28,7 @@
 #include "simulation/Passengers.h"
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
+#include "simulation/SimulationRun.h"
 #include "util/TimeFormat.h"
 #include "widgets/ColorChoiceButton.h"
 #include <QAbstractButton>
@@ -1103,7 +1104,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(facetOk, "platform geometry", "platform facet was unavailable");
 				}
 				const std::vector<SceneDiagnostic> nativeDiagnostics =
-					buildInfrastructureAndSignallingFromScene(w.m_sceneModel);
+					buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
 				bool nativeRouteMatches = !hasErrors(nativeDiagnostics) && N_Routes == 1
 					&& train_route.size() == 1 && train_route.front().N_Block_Sections == 3;
 				if (nativeRouteMatches)
@@ -1672,8 +1673,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}
 						}
 
-						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(w.m_sceneModel);
-						const auto operationsDiagnostics = buildOperationsFromScene(
+						const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
+						const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
 							w.m_sceneModel, w.m_runSelection.scenarioId(), SceneRunSelection());
 						const auto stagedPassenger = std::find_if(AllDailyPassengers.begin(), AllDailyPassengers.end(),
 							[&](const Passenger& passenger) { return passenger.ID == e2ePassengerId; });
@@ -3332,8 +3333,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					if (!editedDelay)
 						facetFailure(facetOk, "entrance delay", "service, occurrence, station, or seconds edit did not persist");
 					const SceneRunSelection delayedOccurrence{{entranceDelayServiceId, 2}};
-					const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(w.m_sceneModel);
-					const auto operationsDiagnostics = buildOperationsFromScene(
+					const auto infrastructureDiagnostics = buildInfrastructureAndSignallingFromScene(defaultRun(), w.m_sceneModel);
+					const auto operationsDiagnostics = buildOperationsFromScene(defaultRun(),
 						w.m_sceneModel, w.m_runSelection.scenarioId(), delayedOccurrence);
 					if (hasErrors(infrastructureDiagnostics) || hasErrors(operationsDiagnostics)
 						|| numRegions != 1

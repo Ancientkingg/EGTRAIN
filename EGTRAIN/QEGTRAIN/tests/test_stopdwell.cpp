@@ -13,6 +13,7 @@
 #include "simulation/RollingStock.h"
 #include "simulation/Signalling.h"
 #include "simulation/Simulation.h"
+#include "simulation/SimulationRun.h"
 #include "util/Log.h"
 
 #include <cmath>
@@ -79,7 +80,7 @@ int lengthOfStop(const Train& native, double plannedDwell, int waiting) {
 
 	for (int step = kFirstStep; step < kLastStep; ++step) {
 		service.trajectoryComputationIncludingMovingBlock(step, signalCode1, signalCode2, signalCode3);
-		Simulate_Train_Passenger_Interactions(step, 0, service, passengers, platforms);
+		Simulate_Train_Passenger_Interactions(defaultRun(), step, 0, service, passengers, platforms);
 		if (!service.StoppedForServiceStop)
 			return step - kFirstStep;
 	}
@@ -94,8 +95,8 @@ int main(int argc, char** argv) {
 		return 2;
 	}
 	const auto loaded = loadScene(argv[1]);
-	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(loaded.scene))
-		|| hasErrors(buildOperationsFromScene(loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1) {
+	if (hasErrors(loaded.diagnostics) || hasErrors(buildInfrastructureAndSignallingFromScene(defaultRun(), loaded.scene))
+		|| hasErrors(buildOperationsFromScene(defaultRun(), loaded.scene, "baseline", {{"F1", 1}})) || numRegions != 1) {
 		std::cerr << "failed: the scene does not prepare a run\n";
 		return 1;
 	}
