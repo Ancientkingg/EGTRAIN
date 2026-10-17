@@ -440,3 +440,8 @@ QMenu::item:selected {
 QMenu::item:disabled {
     color: #64717a;
 }
+
+QMenu::item:disabled:selected {
+    background: transparent;
+    color: #64717a;
+}
