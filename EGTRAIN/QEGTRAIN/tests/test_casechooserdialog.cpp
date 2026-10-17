@@ -74,7 +74,7 @@ void doubleClick(QListWidget* list, QListWidgetItem* item) {
 	QApplication::processEvents();
 }
 
-// The text that a tooltip shows once the pointer rests on `point` of `widget`.
+// The text that a tooltip shows once the pointer rests on `point` of `widget`, without the break opportunities.
 QString shownTip(QWidget* widget, const QPoint& point) {
 	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
 	QApplication::sendEvent(widget, &help);
@@ -84,7 +84,7 @@ QString shownTip(QWidget* widget, const QPoint& point) {
 		return text;
 	QTextDocument document;
 	document.setHtml(text);
-	return document.toPlainText();
+	return document.toPlainText().remove(QChar(0x200B));
 }
 
 QStringList rowTexts(const QListWidget* list) {

@@ -653,7 +653,8 @@ static bool exerciseRunContext() {
 	const auto* warning = window.findChild<QLabel*>("diagramWarning");
 	const QRect screenArea = window.screen()->availableGeometry();
 	bool ok = expect(window.windowTitle() == chartName, "the window title is the name of the chart");
-	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run && context->toolTip().contains(run)
+	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run
+			&& QString(context->toolTip()).remove(QChar(0x200B)).contains(run)
 			&& context->height() <= context->fontMetrics().height() * 3 && warning->isHidden(),
 		"the context line holds the whole run within three lines and no warning strip opens");
 	ok &= expect(window.width() <= screenArea.width() * 9 / 10 && window.height() <= screenArea.height() * 4 / 5,
@@ -973,6 +974,59 @@ static bool exercisePlainToolTips() {
 		ok &= expect(shownTip(&field) == text, "a read-only field tooltip shows its text as typed");
 	}
 	ok &= expect(plainToolTip(QString()).isEmpty(), "an empty text gives no tooltip");
+	return ok;
+}
+
+// The widest tooltip that Qt shows at the moment.
+static int shownTipWidth(QWidget* widget) {
+	const QPoint point(4, 4);
+	QHelpEvent help(QEvent::ToolTip, point, widget->mapToGlobal(point));
+	QApplication::sendEvent(widget, &help);
+	QApplication::processEvents();
+	int widest = 0;
+	for (QWidget* top : QApplication::topLevelWidgets())
+		if (top->isVisible() && top->inherits("QTipLabel")) widest = std::max(widest, top->width());
+	QToolTip::hideText();
+	return widest;
+}
+
+// A 300-character identifier has no space to wrap at; the tooltip must still fit the screen.
+static bool exerciseLongToolTips() {
+	const QString id = QString(300, QLatin1Char('Q'));
+	DiagramWindow window("Long tooltip");
+	window.show();
+	QApplication::processEvents();
+	window.setPresentation("Long tooltip", QStringLiteral("Reference: ") + id, QString());
+	QApplication::processEvents();
+	auto* context = window.findChild<QLabel*>("diagramContext");
+	const int screenWidth = window.screen()->availableGeometry().width();
+	bool ok = true;
+	const int contextWidth = shownTipWidth(context);
+	ok &= expect(contextWidth > 0 && contextWidth <= screenWidth,
+		"the context tooltip of a 300-character id is no wider than the screen");
+	ok &= expect(shownTip(context).remove(QChar(0x200B)) == context->text(),
+		"the break opportunities are the only change to the context tooltip");
+	QLineEdit field;
+	field.setToolTip(plainToolTip(id));
+	field.show();
+	QApplication::processEvents();
+	const int fieldWidth = shownTipWidth(&field);
+	ok &= expect(fieldWidth > 0 && fieldWidth <= screenWidth,
+		"the tooltip of a read-only field with a 300-character id is no wider than the screen");
+	const QString path = QStringLiteral("/Users/someone/a folder/without-any-space-in-its-long-name/case file");
+	const QString shortWords = QStringLiteral("Case A & B | Scenario C");
+	ok &= expect(plainToolTip(shortWords) == Qt::convertFromPlainText(shortWords, Qt::WhiteSpaceNormal),
+		"a text with short words gets no break opportunity");
+	ok &= expect(plainToolTip(path).contains(QChar(0x200B))
+			&& QString(plainToolTip(path)).remove(QChar(0x200B)) == Qt::convertFromPlainText(path, Qt::WhiteSpaceNormal),
+		"a long word in a text with spaces gets a break opportunity and nothing else changes");
+	const QString pairs = QString(31, QLatin1Char('a')) + QString::fromUcs4(U"\U0001F682") + QString(40, QLatin1Char('b'));
+	const QString broken = withBreakOpportunities(pairs);
+	bool splitsPair = false;
+	for (int i = 1; i < broken.size(); ++i)
+		splitsPair = splitsPair || (broken.at(i - 1).isHighSurrogate() && broken.at(i) == QChar(0x200B));
+	ok &= expect(!splitsPair && QString(broken).remove(QChar(0x200B)) == pairs && broken.contains(QChar(0x200B)),
+		"a break opportunity never separates the halves of a character");
 	return ok;
 }
 
@@ -1472,6 +1526,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();
 	ok &= exercisePlainToolTips();
+	ok &= exerciseLongToolTips();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";
 	return 0;

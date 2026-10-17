@@ -44,7 +44,11 @@ def launch(app: Path, settings: Path, recents=(), interaction="", target=None):
     prefix = "E2E_STARTUP_CHOOSER_CONTRACT="
     lines = [line[len(prefix):] for line in result.stdout.splitlines() if line.startswith(prefix)]
     assert len(lines) == 1, result.stdout[-3000:]
-    return json.loads(lines[0]), ini.read_text()
+    contract = json.loads(lines[0])
+    # A tooltip carries zero-width spaces where a long run of characters may wrap.
+    for row in contract["rows"]:
+        row["tooltip"] = row["tooltip"].replace("\u200b", "")
+    return contract, ini.read_text()
 
 
 def check_common(contract):
