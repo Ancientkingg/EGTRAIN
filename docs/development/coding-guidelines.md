@@ -78,10 +78,13 @@ cannot see how Qt owns objects.
 | `performance-inefficient-string-concatenation` | A few temporaries in code that is not hot |
 | `performance-faster-string-find`, `performance-prefer-single-char-overloads` | Micro-optimisations |
 
-`app/MainWindow.cpp`, `app/MainWindow.h` and `app/DispatchController.cpp` still have
-findings that the script leaves out, because other work changes those files.
-`KNOWN_FINDINGS` in `tools/tidy.py` lists them; delete an entry when its findings are
-fixed.
+Two checks are not selected, because their findings are not worth fixing. Counts are from
+clang-tidy 23.1.3 over all analysed modules.
+
+| Check | Findings | Why it is not selected |
+| --- | --- | --- |
+| `readability-implicit-bool-conversion` | 2269, of which 1407 in `tests/` | Almost all are a pointer or an integer used as a condition (`if (ptr)`, `!ptr`), the idiom of the Qt code and of this code. With those conditions allowed, 455 remain, mostly the same idiom inside a larger expression such as `a && !m_worker`. `scene/`, `io/` and `util/` have 44, all of the first kind |
+| `cppcoreguidelines-owning-memory` | 918, of which 183 in `tests/` | The check follows `gsl::owner`, and nearly every finding is `new` for a widget, layout, action or thread that a Qt parent owns. `scene/`, `io/` and `util/`, which do not use Qt ownership, have none |
 
 ## Warnings
 

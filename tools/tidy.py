@@ -35,18 +35,6 @@ HEADER_SUFFIXES = (".h", ".hpp")
 GLOBAL_INPUTS = ("tools/tidy.py", "CMakeLists.txt", ".clang-tidy", ".github/workflows/tidy.yml")
 GLOBAL_SUFFIXES = ("/.clang-tidy", "/CMakeLists.txt", ".ui", ".qrc")
 INSTALL_HINT = "brew install llvm (macOS), or on Ubuntu add apt.llvm.org and install clang-tidy-23"
-# The findings of files that other work is changing right now: the number of findings of each check in each file.
-# A file with more findings of a check than listed here reports all of them. Remove an entry when its findings are fixed.
-KNOWN_FINDINGS = {
-    "EGTRAIN/QEGTRAIN/app/DispatchController.cpp": {"bugprone-integer-division": 1},
-    "EGTRAIN/QEGTRAIN/app/MainWindow.cpp": {
-        "misc-unused-parameters": 8,
-        "performance-no-automatic-move": 1,
-        "performance-unnecessary-value-param": 3,
-        "readability-redundant-declaration": 4,
-    },
-    "EGTRAIN/QEGTRAIN/app/MainWindow.h": {"readability-duplicate-include": 1},
-}
 INCLUDE = re.compile(r'^\s*#\s*include\s*"(?:[^"]*/)?([^"/]+)"', re.MULTILINE)
 FINDING = re.compile(r"^(?P<file>/\S.*?):(?P<line>\d+):(?P<column>\d+): (?:warning|error): (?P<message>.*) \[(?P<check>[^\]]+)\]$")
 
@@ -165,17 +153,6 @@ def analyse(clang_tidy: str, build_dir: Path, name: str, extra: list) -> tuple:
     return name, found, result.returncode, result.stderr
 
 
-def without_known(findings: dict) -> dict:
-    counts = {}
-    for name, _, _, check in findings:
-        counts[(name, check)] = counts.get((name, check), 0) + 1
-    return {
-        key: text
-        for key, text in findings.items()
-        if counts[(key[0], key[3])] > KNOWN_FINDINGS.get(key[0], {}).get(key[3], 0)
-    }
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run clang-tidy on the C++ sources outside simulation/.")
     parser.add_argument("files", nargs="*", help="analyse these sources only")
@@ -213,7 +190,6 @@ def main() -> int:
             findings.update(found)
             if code != 0 and not found:
                 failures.append((name, errors.strip()))
-    findings = without_known(findings)
     for (name, line, column, check), message in sorted(findings.items()):
         print(f"{name}:{line}:{column}: {message} [{check}]")
     for name, errors in failures:

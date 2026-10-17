@@ -17,6 +17,16 @@
 # A check is switched off below only when its findings are a matter of style, or
 # when it cannot see how Qt owns and connects objects. docs/development/coding-guidelines.md
 # gives the reason of each one.
+#
+# Two checks are not selected, because their findings are not worth fixing:
+#   readability-implicit-bool-conversion  2269 findings, 862 of them outside tests/. Almost all are a
+#       pointer or an integer used as a condition (`if (ptr)`, `!ptr`, `a && ptr`), the idiom of the Qt
+#       code and of this code. With those conditions allowed 455 remain, mostly the
+#       same idiom inside a larger expression such as `a && !m_worker`. scene/, io/ and util/ have 44,
+#       all of the first kind.
+#   cppcoreguidelines-owning-memory  918 findings, 735 of them outside tests/. The check follows
+#       gsl::owner, and nearly every finding is `new` for a widget, layout, action or thread that a Qt
+#       parent owns. scene/, io/ and util/ have none.
 Checks: >
   -*,
   bugprone-*,

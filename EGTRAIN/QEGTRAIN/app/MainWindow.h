@@ -71,7 +71,6 @@
 #include <utility>
 #include <unordered_map>
 #include <tuple>
-#include <optional>
 #include <memory>
 #include <QStatusBar>
 #include <QSlider>
@@ -274,7 +273,7 @@ public slots:
 private:
 	// the scripted GUI runs in tests/e2e
 	friend class MainWindowTestAccess;
-	Ui::MainWindow* ui;
+	std::unique_ptr<Ui::MainWindow> ui;
 
 	// central widget
 	QWidget* centralWidget;
@@ -835,9 +834,9 @@ private slots:
 	void showCapacityAnalysis();
 	void showAreaCapacity();
 	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		const std::shared_ptr<const CompletedRunData>& run, std::vector<BlockingTimeDiagramSegment> segments,
-		double axisMinKm, double axisMaxKm, const QString& referenceId,
-		std::vector<BlockSectionExtent> extents, std::vector<BlockingTimeDiagramSegment> unmapped);
+		const std::shared_ptr<const CompletedRunData>& run,
+		const std::vector<BlockingTimeDiagramSegment>& segments, double axisMinKm, double axisMaxKm, const QString& referenceId,
+		const std::vector<BlockSectionExtent>& extents, const std::vector<BlockingTimeDiagramSegment>& unmapped);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 };
 

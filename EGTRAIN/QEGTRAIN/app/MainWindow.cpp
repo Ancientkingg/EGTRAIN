@@ -149,7 +149,6 @@
 #include <initializer_list>
 #include <memory>
 
-extern InitialParameters initial_variables;
 
 namespace {
 class ReplaySlider : public QSlider {
@@ -294,7 +293,7 @@ QChart* buildInputTractionChart(const SceneTrainUnit& unit) {
 }
 
 QString completedRunContext(const RunProvenance& provenance) {
-	const QString caseName = QString::fromStdString(provenance.caseName);
+	QString caseName = QString::fromStdString(provenance.caseName);
 	const QString scenario = QString::fromStdString(provenance.appliedScenario);
 	if (caseName.isEmpty())
 		return scenario.isEmpty() ? QStringLiteral("(none)") : scenario;
@@ -857,7 +856,7 @@ void setStartupTimingPreloadIdentity(const QString& path, const SceneLoadResult&
 }
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
-										  ui(new Ui::MainWindow),
+										  ui(std::make_unique<Ui::MainWindow>()),
 										  m_worker(nullptr),
 										  m_workerThread(nullptr) {
 	QFile themeFile(":/styles/egtrain.qss");
@@ -1970,7 +1969,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 MainWindow::~MainWindow() {
 	if (m_telemetrySender) m_telemetrySender->stop();
 	clearSimulationWorker(true);
-	delete ui;
 	if (const auto windowDestroyed = mainWindowTestHooks().windowDestroyed)
 		windowDestroyed();
 }
@@ -4184,7 +4182,9 @@ void MainWindow::setFollowTrain(int trainIndex) {
 	statusBar()->showMessage(QString::fromStdString(following.statusText), 5000);
 }
 
-void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& scenePos, const QPoint& screenPos, bool keyboard) {
+// The menus are shown with popup() and delete themselves when they close, so this function returns while a menu is open.
+// The scripted GUI reads and triggers the open menu through m_sceneContextMenu; exec() on a stack menu would block it.
+void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scenePos*/, const QPoint& screenPos, bool /*keyboard*/) {
 
 	if (m_sceneContextMenu) {
 		m_sceneContextMenu->close();
@@ -4563,7 +4563,6 @@ void MainWindow::showEvent(QShowEvent* e) {
 	if (m_promptedLoad)
 		return;
 	m_promptedLoad = true;
-	extern InitialParameters initial_variables;
 	if (mainWindowTestHooks().suppressStartupPrompts) {
 		if (const auto& afterFirstShow = mainWindowTestHooks().afterFirstShow)
 			afterFirstShow(*this);
@@ -5321,7 +5320,6 @@ void MainWindow::teardownGUI() {
 // The choice is stored in the controller and applied when the next run is prepared, so the
 // folder of a run that is already active never changes.
 void MainWindow::chooseOutputFolder() {
-	extern InitialParameters initial_variables;
 	const std::string& chosen = simulation.nextRunOutputFolder();
 	QString dir = QFileDialog::getExistingDirectory(this, "Choose Output Folder",
 		QString::fromStdString(chosen.empty() ? initial_variables.OutputMainFolder : chosen));
@@ -5351,7 +5349,6 @@ void MainWindow::setStartTime() {
 
 void MainWindow::runScene() {
 	const auto operation = captureTelemetryOperation();
-	extern InitialParameters initial_variables;
 	if (!m_sceneLoaded)
 		return;
 
@@ -7358,9 +7355,9 @@ void MainWindow::showAreaCapacity() {
 
 void MainWindow::showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result,
 	const QString& sectionLabel, const std::shared_ptr<const CompletedRunData>& run,
-	std::vector<BlockingTimeDiagramSegment> segments, double axisMinKm, double axisMaxKm,
-	const QString& referenceId, std::vector<BlockSectionExtent> extents,
-	std::vector<BlockingTimeDiagramSegment> unmapped) {
+	const std::vector<BlockingTimeDiagramSegment>& segments, double axisMinKm, double axisMaxKm,
+	const QString& referenceId, const std::vector<BlockSectionExtent>& extents,
+	const std::vector<BlockingTimeDiagramSegment>& unmapped) {
 	QChart* chart = new QChart();
 	chart->setTitle("Compressed blocking-time diagram");
 	addBlockingTimeSeries(chart, segments, true);
