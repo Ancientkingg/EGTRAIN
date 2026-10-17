@@ -97,7 +97,7 @@ If EGTRAIN closes without an answer, for example after a crash, it offers the ed
 
 ## Edit a timetable stop
 
-You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The dock **Services** is disabled during a run.
+You need an open case that you have copied ([Copy and save a case](#copy-and-save-a-case)) and no active run. The contents of the dock **Services** are disabled during a run; the menu entry still opens it.
 
 1. Choose **Editors > Services** and select the service in the list **Services**. The dock has the tabs **Service**, **Timetable** and **Run occurrences**. Open the tab **Timetable**.
 2. In the table of stops, click the row of the stop. The dialog **Edit timetable stop** opens with the station, the platform, **Minimum dwell (s)**, **Planned arrival** and **Planned departure**.
@@ -187,8 +187,8 @@ Delay figures are explained in [How delays are calculated](delay-analysis.md), c
 A legacy case is the input folder of earlier versions. EGTRAIN converts it into a new scene folder and leaves the source unchanged.
 
 1. Choose **File > Load Legacy Case...**, or **Other ways to open... > Import Legacy Case...** in **Open a Case**. The chooser in **Open a Case** first asks `Choose the original text-input folder, then a folder for the converted scene. Continue?` The menu entry goes straight to the folder dialogs.
-2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Scene Destination**. The destination must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
-3. Read **Legacy Import Diagnostics**, which counts errors and warnings and shows the first findings. The converted scene then opens. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
+2. Select the legacy case folder in **Select Legacy Case Folder**, then a destination in **Select Scene Destination**. The destination must already exist, so create an empty folder for it first (the folder dialog has a button for a new folder); a name that does not exist gives `Directory not found`. It must be separate from the source and outside it, or **Cannot Import Legacy Case** says so. If the open case has unsaved edits, EGTRAIN asks about them after you have chosen both folders and before it imports.
+3. Read **Legacy Import Diagnostics**, which counts errors and warnings and shows the first findings. The converted scene then opens. A legacy case without a usable `InitialParameters` file, such as one that `scene_tool export` wrote, has no base time and no duration: the scene reports two validation errors and cannot run until you set both in **Editors > Case Settings**. The details are in `import_report` in `scene.json`, and the dock **Loaded Data** shows the counts.
 
 From a terminal:
 
@@ -211,7 +211,7 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 | **Pause**, **Stop** | No run is active, or the run is already stopping | Start a run, or wait for the run to stop |
 | **File > Save Scene**, **Save Case Study As...**, **Save Scene As Folder...** | No case is open | Open or create a case. A normal start always has one open |
 | **File > Set Output Folder...** | A run is active | Wait for the run to end. The folder applies from the next run |
-| The editors **Services**, **Passengers**, **Infrastructure** and **Incidents** (menu **Editors**) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling stock units** and **Compositions** stay open during a run, and an edit there discards the results of that run |
+| The contents of the editors **Services**, **Passengers** and **Infrastructure** (the menu **Editors** still opens them) | A run uses the case | Stop the run or wait. **Case Settings**, **Rolling stock units**, **Compositions** and **Incidents** stay usable during a run, and an edit there discards the results of that run |
 | **Edit > Undo**, **Edit > Redo** | A run uses the case, or there is nothing to undo or redo | Stop the run or wait |
 | **Diagrams** entries, **Open result view...**, **Export CSV...**, **Export PNG...** in **Run Results** | No run has reached its end since the last edit | Run again. A stopped run, an edit, a new case and another scenario all discard results |
 | **Set delay baseline** | There is no completed run, or its scenario has an incident or an entrance delay | [Compare a scenario with a baseline](#compare-a-scenario-with-a-baseline) |

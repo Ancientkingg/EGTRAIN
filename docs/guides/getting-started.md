@@ -59,12 +59,12 @@ To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The tabl
 
 While the run is active:
 
-- The progress bar under the network shows the clock time, the step (`Step n of m`) and the end time. The status bar reads `Running scene: Paimpol`, and the trains move on the network view.
+- The progress bar under the network shows the clock time, the step (`Step n of m`) and the end time. The status bar reads `Running scene: Paimpol`, and the trains move on the network view. On this long line they are small at the full view: choose a train in the list next to **Follow**, or zoom in on a station, to see one.
 - Move the speed slider towards **Faster** or **Slower**. It starts at the fastest setting. **Pause** (Ctrl+.) stops the clock, and the button then reads **Resume**. **Stop** (Ctrl+Esc) ends the run, and a stopped run leaves no results.
 - To keep a train in view, choose it in the list next to **Follow** and click **Follow**. Zooming and dragging still work.
-- The editors **Services**, **Passengers**, **Infrastructure** and **Incidents**, **Edit > Undo** and **Edit > Redo**, and **File > Set Output Folder...** are disabled. The editors **Case Settings**, **Rolling stock units** and **Compositions** stay open, but an edit there discards the results of that run, so wait for the run to end first.
+- The menu **Editors** still opens every editor, but the contents of **Services**, **Passengers** and **Infrastructure** are disabled, and so are **Edit > Undo**, **Edit > Redo** and **File > Set Output Folder...**. The editors **Case Settings**, **Rolling stock units**, **Compositions** and **Incidents** stay usable, but an edit there discards the results of that run, so wait for the run to end first.
 
-At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network. If you used **Follow**, the text ends with `Follow disabled`, because Follow switches off when the run ends.
+At the fastest speed the run of Paimpol takes seconds. When it has ended, the status bar reads `Simulation complete - open the Diagrams menu for results`, the dock **Run Results** opens, and the **Replay** row appears under the network. If a train was still followed at the end, the text reads `Simulation complete - Follow disabled` instead. Follow also switches off when the followed train leaves the network, so in Paimpol it is usually off before the end.
 
 ## 5. Replay the run
 
