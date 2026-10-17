@@ -77,7 +77,7 @@ const RunMode kWorkerCommand{false, true};
 const RunMode kHeadlessRequest{true, false};
 const RunMode kHeadlessCommand{true, true};
 
-// Runs the prepared scene the way MainWindow::startSimulation does and requests
+// Runs the prepared scene the way RunController::startSimulation does and requests
 // the stop at the given point. A folder in chosenDuringRun is set as the output
 // folder of the next run once the worker thread has started.
 void runScene(const SceneModel& scene, const QString& outputDir, StopAt stopAt, RunObservation& observed,

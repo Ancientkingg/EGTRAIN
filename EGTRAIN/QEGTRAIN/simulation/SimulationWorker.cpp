@@ -22,7 +22,7 @@ void SimulationWorker::run() {
 	emit simulationStarted();
 	// Each run uses a new worker, so a stop or pause requested before or during
 	// simulationStarted is kept. The delay keeps the slider value set before
-	// clicking Start (see MainWindow::startSimulation).
+	// clicking Start (see RunController::startSimulation).
 	m_controller.runSimulation();
 	emit simulationFinished();
 }

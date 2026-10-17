@@ -1928,8 +1928,8 @@ void MainWindow::runStarting() {
 }
 
 void MainWindow::workerReady() {
-	if (const auto runStarting = mainWindowTestHooks().runStarting)
-		runStarting(*this);
+	if (const auto hook = mainWindowTestHooks().runStarting)
+		hook(*this);
 }
 
 void MainWindow::runPhaseChanged(RunController::RunPhase phase) {
@@ -2000,8 +2000,8 @@ void MainWindow::resultsDiscarded(bool stoppedByUser, bool sceneChangedDuringRun
 }
 
 bool MainWindow::runFinished() {
-	const auto runFinished = mainWindowTestHooks().runFinished;
-	return runFinished && runFinished(*this);
+	const auto hook = mainWindowTestHooks().runFinished;
+	return hook && hook(*this);
 }
 
 void MainWindow::runProgressEnded() {
@@ -2022,8 +2022,8 @@ void MainWindow::runEnded() {
 }
 
 void MainWindow::runSettled() {
-	if (const auto runSettled = mainWindowTestHooks().runSettled)
-		runSettled(*this);
+	if (const auto hook = mainWindowTestHooks().runSettled)
+		hook(*this);
 }
 
 void MainWindow::delayBaselineChanged() {

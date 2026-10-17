@@ -12,7 +12,6 @@
 #include "util/TimeFormat.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/UserPrompts.h"
-#include <QApplication>
 #include <QCoreApplication>
 #include <QDialog>
 #include <QDialogButtonBox>
