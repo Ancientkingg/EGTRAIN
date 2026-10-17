@@ -16,6 +16,9 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStyle>
+#include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
 #include <QTemporaryDir>
 
 #include <cstdlib>
@@ -123,6 +126,44 @@ void checkRowStyles(const QString& scenario, const QListWidget* list) {
 	}
 }
 
+// The text of a list row as the list draws it: the row text elided to the width of the text area of the row.
+class RowTextProbe : public QStyledItemDelegate {
+public:
+	QString drawnText(const QListWidget* list, int row) const {
+		const QModelIndex index = list->model()->index(row, 0);
+		QStyleOptionViewItem option;
+		option.initFrom(list->viewport());
+		option.widget = list;
+		option.rect = list->visualRect(index);
+		option.textElideMode = list->textElideMode();
+		initStyleOption(&option, index);
+		const QRect textArea = list->style()->subElementRect(QStyle::SE_ItemViewItemText, &option, list);
+		return option.fontMetrics.elidedText(option.text, option.textElideMode, textArea.width());
+	}
+};
+
+// A row with a 300 character name stays inside the list: no horizontal scroll bar, a row that does not extend past the
+// viewport, the middle of the name elided and its two ends shown. The tooltip and the item data keep the whole name and path.
+void checkLongRow(const QString& scenario, const CaseChooserDialog& dialog, const QString& name, const QString& path, int row) {
+	const QListWidget* list = dialog.list();
+	const QListWidgetItem* item = list->item(row);
+	check(item && item->text() == name, scenario, "the row text is not the manifest name");
+	if (!item)
+		return;
+	check(list->horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOff && !list->horizontalScrollBar()->isVisible()
+			&& list->horizontalScrollBar()->maximum() == 0,
+		scenario, "the list has a horizontal scroll bar");
+	check(list->visualItemRect(item).width() <= list->viewport()->width(), scenario, "the row is wider than the list");
+	const RowTextProbe probe;
+	const QString drawn = probe.drawnText(list, row);
+	check(drawn != name && drawn.contains(QChar(0x2026)) && drawn.startsWith(name.left(5)) && drawn.endsWith(name.right(4)), scenario,
+		"the visible text is not the name elided in the middle");
+	check(list->fontMetrics().horizontalAdvance(drawn) <= list->viewport()->width(), scenario, "the visible text is wider than the list");
+	check(item->toolTip().contains(name.toHtmlEscaped()) && item->toolTip().contains(path.toHtmlEscaped()), scenario,
+		"the tooltip does not hold the whole name and path");
+	check(item->data(Qt::UserRole).toString() == path, scenario, "the item data is not the full path");
+}
+
 struct Scenarios {
 	QTemporaryDir temporary;
 	QDir scenes;
@@ -153,7 +194,7 @@ struct Shown {
 // The six states of the chooser at one font size.
 void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 	const QStringList roots = {s.scenes.path()};
-	const QString longName(300, QLatin1Char('W'));
+	const QString longName = QStringLiteral("Start") + QString(291, QLatin1Char('W')) + QStringLiteral("Tail");
 	CaseChooserDialog::Options options;
 	options.sceneRoots = roots;
 	options.availableGeometry = screen;
@@ -166,6 +207,10 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 		check(rowTexts(list).first() == QLatin1String("Bundled cases") && !rowTexts(list).contains(QLatin1String("Recent cases")),
 			scenario, "the list has no bundled group first, or lists a recent group without a recent case");
 		check(shown.dialog.continueButton()->text() == QLatin1String("Cancel"), scenario, "the left button is not Cancel");
+		bool offersContinue = false;
+		for (const QPushButton* button : shown.dialog.findChildren<QPushButton*>())
+			offersContinue = offersContinue || button->text() == QLatin1String("Continue");
+		check(!offersContinue, scenario, "a dialog with no case loaded offers Continue");
 		check(shown.dialog.findChild<QLabel*>(QStringLiteral("dialogContext"))->text() == QLatin1String("Choose a case to open."),
 			scenario, "wrong context line");
 		check(currentText(list) == QLatin1String("Alpha case") && shown.dialog.openButton()->isEnabled(), scenario,
@@ -251,18 +296,25 @@ void exerciseLayouts(Scenarios& s, const QRect& screen, const QString& tag) {
 			"forty cases do not scroll");
 	}
 
-	// 6. A case title of 300 characters does not widen the dialog; the row keeps the whole title.
+	// 6. A case title of 300 characters does not widen the dialog or add a horizontal scroll bar, in the bundled group and in the
+	// recent group. The row elides the middle of the name; the opened path is complete.
 	{
 		const QString scenario = tag + QStringLiteral(" long case title");
 		Scenarios one;
 		one.bundled(QStringLiteral("long_title"), longName);
+		const QString recent = makeScene(QDir(one.temporary.filePath(QStringLiteral("elsewhere"))), QStringLiteral("long_recent"), longName);
 		CaseChooserDialog::Options titled = options;
 		titled.sceneRoots = QStringList{one.scenes.path()};
+		titled.recentPaths = QStringList{recent};
 		Shown shown(scenario, titled, screen);
 		const QListWidget* list = shown.dialog.list();
-		check(list->count() == 2 && list->item(1)->text() == longName, scenario, "the title is not the manifest name");
-		check(list->item(1)->toolTip() == one.scenes.absoluteFilePath(QStringLiteral("long_title")), scenario,
-			"the tooltip is not the exact path");
+		check(list->count() == 4, scenario, "the list does not hold two headings and two cases");
+		checkLongRow(scenario + QStringLiteral(" bundled"), shown.dialog, longName, one.scenes.absoluteFilePath(QStringLiteral("long_title")), 1);
+		checkLongRow(scenario + QStringLiteral(" recent"), shown.dialog, longName, recent, 3);
+		shown.dialog.list()->setCurrentRow(3);
+		shown.dialog.openButton()->click();
+		check(shown.dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected && shown.dialog.chosenPath() == recent, scenario,
+			"Open did not return the full path of the recent case");
 	}
 }
 
