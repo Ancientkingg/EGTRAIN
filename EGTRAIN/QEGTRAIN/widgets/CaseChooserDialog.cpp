@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSet>
+#include <QStyledItemDelegate>
 #include <QVBoxLayout>
 
 namespace {
@@ -46,6 +47,21 @@ QListWidgetItem* addLabelRow(QListWidget* list, const QString& text, bool headin
 	return item;
 }
 
+// Draws the rows as the list style does and asks for no width, so that a row takes the width of the list and elides its text
+// instead of widening the list.
+class NarrowRowDelegate : public QStyledItemDelegate {
+public:
+	using QStyledItemDelegate::QStyledItemDelegate;
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		return QSize(0, QStyledItemDelegate::sizeHint(option, index).height());
+	}
+};
+
+// The tooltip of a row: the whole name and the whole path, because the row itself may show the name elided.
+QString rowToolTip(const QString& name, const QString& path) {
+	return QStringLiteral("<p>%1<br>%2</p>").arg(name.toHtmlEscaped(), path.toHtmlEscaped());
+}
+
 void addGroup(QListWidget* list, const QString& title) {
 	addLabelRow(list, title, true)->setData(Qt::UserRole, QString());
 }
@@ -56,9 +72,10 @@ bool addSceneItem(QListWidget* list, QSet<QString>& seen, const QString& path) {
 	if (canonical.isEmpty() || seen.contains(canonical))
 		return false;
 	seen.insert(canonical);
-	auto* item = new QListWidgetItem(displayName(path), list);
+	const QString name = displayName(path);
+	auto* item = new QListWidgetItem(name, list);
 	item->setData(Qt::UserRole, path);
-	item->setToolTip(path.toHtmlEscaped());
+	item->setToolTip(rowToolTip(name, path));
 	return true;
 }
 
@@ -100,12 +117,15 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 		if (valid) {
 			addSceneItem(list, seen, path);
 		} else {
-			addLabelRow(list, QString("Unavailable: %1").arg(displayName(path)), false)
-				->setToolTip(path.toHtmlEscaped());
+			const QString name = displayName(path);
+			addLabelRow(list, QString("Unavailable: %1").arg(name), false)->setToolTip(rowToolTip(name, path));
 		}
 	}
-	if (list->count() == 0)
-		addLabelRow(list, "No cases found. Use Other ways to open... below.", false);
+	if (list->count() == 0) {
+		const QString hint = QStringLiteral("No cases found. Use Other ways to open... below.");
+		// The row can be elided in a narrow dialog, so the tooltip holds the whole sentence.
+		addLabelRow(list, hint, false)->setToolTip(hint);
+	}
 }
 
 } // namespace
@@ -120,6 +140,10 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	auto* bodyLayout = new QVBoxLayout(body);
 	m_list = new QListWidget(body);
 	m_list->setObjectName("caseChooserList");
+	// A name wider than the list ends in an ellipsis in the middle, so the list never needs a horizontal scroll bar.
+	m_list->setTextElideMode(Qt::ElideMiddle);
+	m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	m_list->setItemDelegate(new NarrowRowDelegate(m_list));
 	fillList(m_list, options.sceneRoots, options.recentPaths);
 	bodyLayout->addWidget(m_list, 1);
 

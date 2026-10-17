@@ -16,6 +16,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def tooltip(name, path):
+    return f"<p>{html.escape(name, quote=False)}<br>{html.escape(str(path), quote=False)}</p>"
+
+
 def launch(app: Path, settings: Path, recents=(), interaction="", target=None):
     ini = settings / "EGTRAIN/EGTRAIN.ini"
     ini.parent.mkdir(parents=True)
@@ -87,12 +91,12 @@ def main():
             assert len(fixture_rows) == 1, rows
             assert fixture_rows[0] == {"title": title.strip(), "path": str(fixture),
                                        "enabled": True, "selectable": True,
-                                       "tooltip": html.escape(str(fixture), quote=False)}, fixture_rows
+                                       "tooltip": tooltip(title.strip(), fixture)}, fixture_rows
             assert not any(row["path"] == str(alias) for row in rows), rows
             assert sum(row["path"] == first["path"] for row in rows) == 1, rows
             assert sum(row["title"] == "Recent cases" for row in rows) == 1, rows
             assert not any(row["title"] == "No other recent cases to show" for row in rows), rows
-            unavailable = next(row for row in rows if row["tooltip"] == str(missing))
+            unavailable = next(row for row in rows if row["tooltip"] == tooltip("missing case", missing))
             assert unavailable["title"] == "Unavailable: missing case", unavailable
             assert not unavailable["enabled"] and not unavailable["selectable"], unavailable
             assert str(missing) in settings_text, settings_text
