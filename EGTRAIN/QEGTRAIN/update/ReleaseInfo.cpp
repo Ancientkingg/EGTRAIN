@@ -8,6 +8,7 @@
 #include <QSysInfo>
 #include <QStringList>
 #include <cmath>
+#include <utility>
 
 namespace {
 
@@ -16,11 +17,51 @@ void setError(QString* error, const QString& message) {
 		*error = message;
 }
 
+// The notes keep their line structure: line ends are LF, trailing spaces are gone and a run of blank lines is one.
+QString normalizedNotes(QString notes) {
+	notes.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+	notes.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+	notes.replace(QRegularExpression(QStringLiteral("[ \\t]+(?=\\n|$)")), QString());
+	notes.replace(QRegularExpression(QStringLiteral("\\n{3,}")), QStringLiteral("\n\n"));
+	return notes.trimmed();
+}
+
+// Where a cut would break Markdown: code spans and fenced blocks, and links with their text.
+QList<std::pair<int, int>> unbreakableRanges(const QString& notes) {
+	static const QRegularExpression pattern(QStringLiteral("(?<!`)(`+)(?!`)(?s:.+?)(?<!`)\\1(?!`)|^~~~(?s:.*?)^~~~|!?\\[[^\\]\\n]*\\]\\([^)\\s]*\\)"),
+		QRegularExpression::MultilineOption);
+	QList<std::pair<int, int>> ranges;
+	for (QRegularExpressionMatchIterator it = pattern.globalMatch(notes); it.hasNext();) {
+		const QRegularExpressionMatch match = it.next();
+		ranges.append({static_cast<int>(match.capturedStart()), static_cast<int>(match.capturedEnd())});
+	}
+	return ranges;
+}
+
+// Cuts long notes at the end of a line or of a word, never inside a code span or a link, and points to the release page.
+QString shortenedNotes(const QString& notes) {
+	constexpr int kMaxNotesLength = 360;
+	if (notes.size() <= kMaxNotesLength)
+		return notes;
+	const QList<std::pair<int, int>> ranges = unbreakableRanges(notes);
+	int cut = kMaxNotesLength;
+	for (bool moved = true; moved;) {
+		moved = false;
+		while (cut > 0 && !notes.at(cut).isSpace())
+			--cut;
+		for (const auto& range : ranges) {
+			if (range.first < cut && cut < range.second) {
+				cut = range.first;
+				moved = true;
+				break;
+			}
+		}
+	}
+	return notes.left(cut).trimmed() + QStringLiteral("\n\nThe full notes are on the release page.");
+}
+
 QString releaseNotes(const QJsonObject& object) {
-	QString notes = object.value(QStringLiteral("body")).toString().simplified();
-	if (notes.size() > 360)
-		notes = notes.left(357) + QStringLiteral("...");
-	return notes;
+	return shortenedNotes(normalizedNotes(object.value(QStringLiteral("body")).toString()));
 }
 
 // The package names that each distribution key accepts. %1 stands for the release version.
