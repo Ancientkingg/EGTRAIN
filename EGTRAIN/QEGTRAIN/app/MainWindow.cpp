@@ -22,6 +22,7 @@
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
 #include "widgets/AboutDialog.h"
 #include "widgets/CaseChooserDialog.h"
@@ -1153,13 +1154,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	QLabel* caseTitle = new QLabel("Current case study", caseLayersWidget);
 	caseTitle->setObjectName("caseStudyTitleLabel");
 	caseLayersLayout->addWidget(caseTitle);
-	m_caseNameLabel = new QLabel(caseLayersWidget);
+	m_caseNameLabel = EditorLayout::wrappedLabel(QString(), caseLayersWidget);
 	m_caseNameLabel->setObjectName("caseNameLabel");
-	m_caseNameLabel->setWordWrap(true);
 	caseLayersLayout->addWidget(m_caseNameLabel);
-	m_caseReadinessLabel = new QLabel(caseLayersWidget);
+	m_caseReadinessLabel = EditorLayout::wrappedLabel(QString(), caseLayersWidget);
 	m_caseReadinessLabel->setObjectName("caseReadinessLabel");
-	m_caseReadinessLabel->setWordWrap(true);
 	caseLayersLayout->addWidget(m_caseReadinessLabel);
 	QLabel* layersTitle = new QLabel("Layers", caseLayersWidget);
 	layersTitle->setObjectName("layersTitleLabel");
@@ -1199,10 +1198,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_networkLegendWidget = new NetworkLegendWidget(caseLayersWidget);
 	caseLayersLayout->addWidget(m_networkLegendWidget);
 	caseLayersLayout->addStretch();
-	auto* caseLayersScroll = new QScrollArea(m_caseLayersDock);
+	auto* caseLayersScroll = new EditorLayout::VerticalScrollArea(m_caseLayersDock);
 	caseLayersScroll->setObjectName("caseLayersScroll");
-	caseLayersScroll->setWidgetResizable(true);
-	caseLayersScroll->setFrameShape(QFrame::NoFrame);
 	caseLayersScroll->setWidget(caseLayersWidget);
 	m_caseLayersDock->setWidget(caseLayersScroll);
 	addDockWidget(Qt::LeftDockWidgetArea, m_caseLayersDock);
@@ -4806,7 +4803,7 @@ void MainWindow::updateCaseLayersPanel() {
 	if (caseName.trimmed().isEmpty())
 		caseName = QStringLiteral("Default case study");
 	if (m_caseNameLabel)
-		m_caseNameLabel->setText(caseName);
+		m_caseNameLabel->setText(EditorLayout::breakableName(caseName));
 
 	QString readiness = "Ready to run";
 	bool blocked = false;

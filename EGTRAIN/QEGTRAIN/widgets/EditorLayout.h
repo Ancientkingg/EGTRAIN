@@ -2,8 +2,13 @@
 
 #include "widgets/DialogLayout.h"
 
+#include <QChar>
 #include <QFont>
+#include <QFrame>
 #include <QLabel>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QSize>
 #include <QSizePolicy>
 #include <QString>
 #include <QWidget>
@@ -49,5 +54,33 @@ inline QLabel* sectionHeading(const QString& title, QWidget* parent) {
 	heading->setFont(font);
 	return heading;
 }
+
+// The name with a zero-width space after each underscore. A wrapped label breaks a line at a space only, so
+// a name such as Amsterdam_Hilversum_Student would be clipped at the edge of its panel. With the added characters
+// it wraps between its parts. The characters are not drawn.
+inline QString breakableName(QString name) {
+	return name.replace(QLatin1Char('_'), QString(QLatin1Char('_')) + QChar(0x200B));
+}
+
+// Scroll area for the panel of a narrow rail dock. It scrolls up and down and never shows a horizontal scroll
+// bar. Its minimum width is the minimum width of the panel plus the vertical scroll bar, so the dock cannot be
+// made narrower than the panel needs and the scroll bar does not take room from the fields of the panel. The
+// panel is resized with the area and has no frame.
+class VerticalScrollArea : public QScrollArea {
+public:
+	explicit VerticalScrollArea(QWidget* parent = nullptr)
+		: QScrollArea(parent) {
+		setWidgetResizable(true);
+		setFrameShape(QFrame::NoFrame);
+		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	}
+
+	QSize minimumSizeHint() const override {
+		QSize hint = QScrollArea::minimumSizeHint();
+		if (const QWidget* panel = widget())
+			hint.setWidth(panel->minimumSizeHint().width() + verticalScrollBar()->sizeHint().width() + 2 * frameWidth());
+		return hint;
+	}
+};
 
 } // namespace EditorLayout

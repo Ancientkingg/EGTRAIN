@@ -4033,6 +4033,45 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			dock->setFont(normalFont);
 		}
+		if (ok) {
+			// A window of 1280 by 698 pixels with Loaded Data below the network: the Case and Layers rail is too short for its
+			// content and scrolls, and a long case name without spaces and the first layer toggle stay whole.
+			const std::string caseName = w.m_sceneModel.name;
+			w.m_sceneModel.name = "Amsterdam_Hilversum_Student";
+			w.updateCaseLayersPanel();
+			w.resize(1280, 698);
+			w.m_caseLayersDock->show();
+			w.m_loadedDataDock->show();
+			w.m_loadedDataDock->raise();
+			QApplication::processEvents();
+			auto* rail = w.m_caseLayersDock->findChild<QScrollArea*>("caseLayersScroll");
+			const QWidget* railViewport = rail ? rail->viewport() : nullptr;
+			const auto insideRail = [railViewport](const QWidget* widget) {
+				const QPoint left = widget->mapTo(railViewport, QPoint(0, 0));
+				return left.x() >= 0 && left.x() + widget->width() <= railViewport->width();
+			};
+			if (!rail || !rail->verticalScrollBar()->isVisible())
+				facetFailure(ok, "presentation", "the case and layers rail does not scroll with Loaded Data open, so the check proves nothing");
+			else if (rail->horizontalScrollBar()->isVisible() || rail->horizontalScrollBarPolicy() != Qt::ScrollBarAlwaysOff
+				|| rail->widget()->width() > railViewport->width())
+				facetFailure(ok, "presentation", "the case and layers rail scrolls sideways with Loaded Data open");
+			else {
+				const QRect nameArea = w.m_caseNameLabel->contentsRect();
+				const QRect nameText = w.m_caseNameLabel->fontMetrics().boundingRect(QRect(0, 0, nameArea.width(), 100000),
+					Qt::TextWordWrap, w.m_caseNameLabel->text());
+				if (!insideRail(w.m_caseNameLabel) || nameText.width() > nameArea.width()
+					|| w.m_caseNameLabel->height() < w.m_caseNameLabel->heightForWidth(w.m_caseNameLabel->width()))
+					facetFailure(ok, "presentation", "the case name is cut in the case and layers rail with Loaded Data open");
+				if (!insideRail(w.m_stationLayerCheck) || w.m_stationLayerCheck->width() < w.m_stationLayerCheck->sizeHint().width())
+					facetFailure(ok, "presentation", "the first layer toggle is cut in the case and layers rail with Loaded Data open");
+			}
+			w.m_loadedDataDock->hide();
+			w.m_caseLayersDock->hide();
+			w.m_sceneModel.name = caseName;
+			w.updateCaseLayersPanel();
+			w.resize(1280, 800);
+			QApplication::processEvents();
+		}
 		if (ok) std::fprintf(stdout, "E2E_EDITOR_LAYOUT_OK\n");
 	}
 	if (ok && w.m_sceneLoaded) {
