@@ -111,7 +111,7 @@ Results are the Run Results table, the result windows opened from it and the rep
 
 ## 8. Quit, relaunch and confirm that the edits persisted
 
-1. Choose **File > Quit** (on macOS, the Quit entry of the application menu). If the title bar still shows the mark for unsaved changes, EGTRAIN asks **Unsaved Scene**; choose **Save**.
+1. Choose **File > Quit** (on macOS, the Quit entry of the application menu). If the title bar still shows the mark for unsaved changes, EGTRAIN asks about them (the box is titled **Unsaved Scene** on Windows and Linux, and is a sheet without a title on macOS); choose **Save**.
 2. Start EGTRAIN again. In **Open a Case**, choose `paimpol-practice` under **Recent cases** and **Open**. **File > Recent Scenes** does the same from the window.
 3. In **Services**, `Guin-Paim-EXPRESS-1` has dwell 180 at Pontrieaux and performance 80. In **Incidents**, the list holds `baseline` and `baseline_copy` with one incident. The scenario that is selected after opening is the default, `baseline`.
 4. The Run Results are empty and **Compare delays** is disabled: results and the baseline were not saved. Run both scenarios again to compare.

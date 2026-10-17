@@ -26,7 +26,7 @@ Use one of these:
 - Click **Open Case** in the toolbar. In **Open a Case**, select an entry under **Bundled cases** or **Recent cases** and click **Open**. A long case name is shortened in the middle of the row; hold the pointer over the row to see the whole name and the path. **Other ways to open...** offers **New Case Study...**, **Open Scene Folder...** and **Import Legacy Case...**.
 - Choose **File > Open Case Study...** (Ctrl+O) and select an `.egscene` file.
 - Choose **File > Open Scene Folder...** and select a folder that holds `scene.json`.
-- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
+- Choose **File > Recent Scenes**. It lists the last 8 cases you opened or saved. The menu checks the files each time it opens. An entry whose file is gone reads `Unavailable:` and is disabled, and the menu is greyed out while the list is empty.
 - Drag one `.egscene` file onto the window. A folder or several files are refused with `Drop rejected: <reason>. Scene unchanged.` in the status bar.
 - On Windows and macOS, double-click an `.egscene` file ([Open by double-click](opening-a-case-study.md#open-by-double-click)).
 - From a terminal, `QEGTRAIN --scene path/to/case.egscene` opens a bundle or a scene folder, and `QEGTRAIN path/to/case.egscene` opens a bundle ([command-line options](command-line.md)).
@@ -87,10 +87,10 @@ You can save a case that has errors. Warnings do not stop a run, but read them: 
 
 ## Answer the unsaved changes question
 
-After an edit the case is unsaved. EGTRAIN then asks **Unsaved Scene** (`The current scene has unsaved changes.`) before it replaces the case, which happens when you open another case, choose **New Case Study...**, load a legacy case or close the window.
+After an edit the case is unsaved. EGTRAIN then asks (`The current scene has unsaved changes.`) before it replaces the case, which happens when you open another case, choose **New Case Study...**, load a legacy case or close the window. On Windows and Linux the box is titled **Unsaved Scene** and offers **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title that offers **Save**, **Cancel** and **Don't Save**, which does what **Discard** does.
 
 - **Save** saves the case first. For an example case or a new case it asks for a new `.egscene` file, and if you cancel that dialog, the open or close is cancelled too.
-- **Discard** drops the edits.
+- **Discard** (**Don't Save** on macOS) drops the edits.
 - **Cancel** keeps the case and its edits. After an open, the status bar reads `Open canceled. Current scene retained.`
 
 If EGTRAIN closes without an answer, for example after a crash, it offers the edits again at the next start in **Recover Unsaved Work** (see [Getting started](getting-started.md#if-something-goes-wrong)). **Edit > Undo** and **Edit > Redo** step through the edits of the session.

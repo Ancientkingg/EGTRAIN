@@ -110,6 +110,8 @@ public:
 	static QStringList recentScenes();
 	void addRecentScene(const QString& path);
 	void rebuildRecentScenesMenu();
+	// Marks the entries of the menu whose scene is gone as unavailable, and the others as available.
+	void refreshRecentSceneAvailability();
 
 	// Asks about unsaved changes, then opens the scene at `path`, after a running simulation has stopped. Returns
 	// whether the request was accepted; the open can still fail later.
@@ -125,6 +127,9 @@ public:
 	void newScene();
 	// Imports a legacy case, which the user chooses, as a scene and opens it.
 	void actionLoad_Network();
+	// The text of the box that reports an import: the counts of the diagnostics by severity, then the first four
+	// lines, the most serious first, then the number of lines left out.
+	static QString legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics);
 	void importLegacyCase(const QString& sourceDir, const QString& destinationDir,
 		const telemetry::OperationObservation& operation);
 
