@@ -1,4 +1,5 @@
 #include "app/CannotOpenMessage.h"
+#include "widgets/DisplayPath.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -32,6 +33,12 @@ int main(int argc, char** argv) {
 		std::cerr << "failed: the text shows the folder of the file\n";
 		return 1;
 	}
+
+	// A path without a file name is shown with the separators of the system.
+	display_path::separator() = QLatin1Char('\\');
+	requireText(cannot_open::text("/no/such/place/", {}), "\\no\\such\\place\\ could not be opened.\nThe file is damaged or is not an EGTRAIN case study.",
+		"text for a path without a file name");
+	display_path::separator() = QDir::separator();
 
 	// A folder is not a damaged file: the sentence says what a scene folder holds.
 	QTemporaryDir temp;

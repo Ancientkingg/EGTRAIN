@@ -2,6 +2,7 @@
 
 #include "graphics/NetworkScene.h"
 #include "scene/SceneBundle.h"
+#include "widgets/DisplayPath.h"
 #include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
@@ -185,6 +186,24 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 			emit w.m_session->recentScenesMenu()->aboutToShow();
 			if (recentAction->isEnabled() || !recentAction->text().startsWith(QStringLiteral("Unavailable: ")))
 				fail(QStringLiteral("a deleted recent scene is not marked unavailable when the menu opens"));
+
+			// The tip and the status tip show the path with the separators of Windows; the action keeps the stored path.
+			const QChar savedSeparator = display_path::separator();
+			display_path::separator() = QLatin1Char('\\');
+			w.m_session->rebuildRecentScenesMenu();
+			display_path::separator() = savedSeparator;
+			QString shownPath = recentPath;
+			shownPath.replace(QLatin1Char('/'), QLatin1Char('\\'));
+			bool listed = false;
+			for (const QAction* action : w.m_session->recentScenesMenu()->actions()) {
+				if (action->data().toString() != recentPath)
+					continue;
+				listed = true;
+				if (action->toolTip() != shownPath || action->statusTip() != shownPath)
+					fail(QStringLiteral("a recent scene does not show its path with backslashes"));
+			}
+			if (!listed)
+				fail(QStringLiteral("the recent scene is not in the rebuilt menu"));
 		} else {
 			fail(QStringLiteral("the recent scene is not in the menu"));
 		}

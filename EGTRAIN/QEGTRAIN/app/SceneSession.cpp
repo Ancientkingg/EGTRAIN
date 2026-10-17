@@ -13,6 +13,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SceneWriter.h"
 #include "widgets/CaseChooserDialog.h"
+#include "widgets/DisplayPath.h"
 #include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
@@ -606,7 +607,7 @@ void SceneSession::rebuildRecentScenesMenu() {
 		const QString name = info.fileName();
 		QString label = name;
 		if (nameCount.value(name) > 1) {
-			QString parent = info.dir().path();
+			QString parent = display_path::format(info.dir().path());
 			if (parent.length() > 44)
 				parent = parent.left(20) + "..." + parent.right(20);
 			label = QString("%1 (%2)").arg(name, parent);
@@ -616,8 +617,8 @@ void SceneSession::rebuildRecentScenesMenu() {
 		action->setEnabled(exists);
 		action->setData(path);
 		action->setProperty(kRecentLabelProperty, label);
-		action->setStatusTip(path);
-		action->setToolTip(path);
+		action->setStatusTip(display_path::format(path));
+		action->setToolTip(display_path::format(path));
 		connect(action, &QAction::triggered, this, [this, action]() {
 			requestOpenScene(action->data().toString());
 		});

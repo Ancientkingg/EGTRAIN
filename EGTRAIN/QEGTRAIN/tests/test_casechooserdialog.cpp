@@ -1,4 +1,5 @@
 #include "widgets/CaseChooserDialog.h"
+#include "widgets/DisplayPath.h"
 
 #include <QApplication>
 #include <QDialogButtonBox>
@@ -192,7 +193,8 @@ void checkLongRow(const QString& scenario, const CaseChooserDialog& dialog, cons
 		"the visible text is not the name elided in the middle");
 	check(list->fontMetrics().horizontalAdvance(drawn) <= list->viewport()->width(), scenario, "the visible text is wider than the list");
 	const QString tip = shownTip(list->viewport(), list->visualItemRect(item).center());
-	check(tip.contains(name) && tip.contains(path), scenario, "the tooltip does not hold the whole name and path as typed");
+	check(tip.contains(name) && tip.contains(display_path::format(path)), scenario,
+		"the tooltip does not hold the whole name and path with the separators of this system");
 	check(item->data(Qt::UserRole).toString() == path, scenario, "the item data is not the full path");
 }
 
@@ -459,9 +461,45 @@ void exerciseInteraction(Scenarios& s, const QRect& screen) {
 		const auto lines = [](QString tip) {
 			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
 		};
-		check(lines(caseTip) == QStringList({oddTitle, path}), scenario, "the tooltip of a case row is not its name and path as typed");
-		check(lines(goneTip) == QStringList({QFileInfo(gone).fileName(), gone}), scenario,
+		check(lines(caseTip) == QStringList({oddTitle, display_path::format(path)}), scenario, "the tooltip of a case row is not its name and path as typed");
+		check(lines(goneTip) == QStringList({QFileInfo(gone).fileName(), display_path::format(gone)}), scenario,
 			"the tooltip of an unavailable row is not its name and path as typed");
+	}
+
+	// The tooltip shows the path with the separators of Windows, and the stored path stays as it is.
+	{
+		const QString scenario = QStringLiteral("native separators");
+		const QChar savedSeparator = display_path::separator();
+		display_path::separator() = QLatin1Char('\\');
+		Scenarios own;
+		const QString path = own.bundled(QStringLiteral("native_case"), QStringLiteral("Native case"));
+		const QString gone = own.temporary.filePath(QStringLiteral("moved/gone_case"));
+		CaseChooserDialog::Options windows = options;
+		windows.sceneRoots = QStringList{own.scenes.path()};
+		windows.recentPaths = QStringList{gone};
+		Shown shown(scenario, windows, screen);
+		const QListWidget* list = shown.dialog.list();
+		QString caseTip, goneTip;
+		const QListWidgetItem* caseItem = nullptr;
+		for (int row = 0; row < list->count(); ++row) {
+			const QRect rect = list->visualItemRect(list->item(row));
+			if (list->item(row)->text() == QLatin1String("Native case")) {
+				caseItem = list->item(row);
+				caseTip = shownTip(list->viewport(), rect.center());
+			} else if (list->item(row)->text().startsWith(QLatin1String("Unavailable: "))) {
+				goneTip = shownTip(list->viewport(), rect.center());
+			}
+		}
+		display_path::separator() = savedSeparator;
+		const auto backslashes = [](QString text) { return text.replace(QLatin1Char('/'), QLatin1Char('\\')); };
+		const auto lines = [](QString tip) {
+			return tip.replace(QChar::LineSeparator, QLatin1Char('\n')).split(QLatin1Char('\n'));
+		};
+		check(lines(caseTip) == QStringList({QStringLiteral("Native case"), backslashes(path)}), scenario,
+			"the tooltip of a case row does not show its path with backslashes");
+		check(lines(goneTip) == QStringList({QStringLiteral("gone case"), backslashes(gone)}), scenario,
+			"the tooltip of an unavailable row does not show its path with backslashes");
+		check(caseItem && caseItem->data(Qt::UserRole).toString() == path, scenario, "the stored path of a case row changed");
 	}
 
 	// A double click opens the row; Open opens the selected row.

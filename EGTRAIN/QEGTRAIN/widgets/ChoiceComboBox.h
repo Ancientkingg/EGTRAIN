@@ -13,11 +13,14 @@
 #include <QToolTip>
 #include <QtGlobal>
 
+#include "widgets/FocusWheel.h"
+
 // Combo box for choice fields in dialogs whose entries can be long imported names.
 // The field can shrink below its text so that a form never needs a horizontal scroll
 // bar, while its size hint still lets the dialog grow to show the whole text. A text
 // wider than the field is drawn with its middle elided. The tooltip is the current
-// text, and the popup list is as wide as its widest entry within the screen.
+// text, and the popup list is as wide as its widest entry within the screen. The wheel changes the choice only
+// while the field has keyboard focus.
 class ChoiceComboBox : public QComboBox {
 public:
 	explicit ChoiceComboBox(QWidget* parent = nullptr)
@@ -25,6 +28,7 @@ public:
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		setSizeAdjustPolicy(AdjustToContents);
 		view()->setTextElideMode(Qt::ElideMiddle);
+		FocusWheel::guard(this);
 	}
 
 	// The current text as the field draws it.

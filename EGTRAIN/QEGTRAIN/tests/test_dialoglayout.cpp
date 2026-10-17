@@ -664,6 +664,46 @@ bool exerciseDefaultButtonWidth(qreal scale) {
 	return ok;
 #endif
 }
+
+// The footer of the Run simulation review is built as the review builds it: the buttons exist and are named before the
+// dialog is installed, the accept button is the default. Its face and text look like the default
+// button of a dialog footer, whichever widget style the platform supplies.
+bool exerciseRunReviewDefault() {
+	QDialog review;
+	review.setObjectName(QStringLiteral("runReviewDialog"));
+	auto* buttons = new QDialogButtonBox(&review);
+	buttons->setObjectName(QStringLiteral("runReviewButtons"));
+	buttons->addButton(QDialogButtonBox::Cancel);
+	auto* runButton = buttons->addButton(QStringLiteral("MMMM MMMM"), QDialogButtonBox::AcceptRole);
+	runButton->setObjectName(QStringLiteral("runReviewRunButton"));
+	runButton->setDefault(true);
+	DialogLayout::install(review, QStringLiteral("Run simulation"), QString(), new QWidget, buttons, QRect(0, 0, 1920, 1080));
+	review.show();
+	QApplication::processEvents();
+	runButton->setFixedSize(150, 48);
+	QApplication::processEvents();
+	const ControlLook reviewLook = controlLook(runButton);
+	const ControlLook dialogDefault = dialogDefaultLooks().first;
+	bool ok = check(runButton->isDefault(), "the Run simulation button is not the default button");
+	ok &= checkLooks(sameLook(reviewLook, dialogDefault),
+		"the Run simulation button does not look like the default button of a dialog", reviewLook, dialogDefault);
+#ifndef Q_OS_WIN
+	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	QMessageBox box(QMessageBox::Question, QStringLiteral("Delete"), QStringLiteral("Delete the item?"),
+		QMessageBox::Yes | QMessageBox::No);
+	box.setDefaultButton(QMessageBox::No);
+	auto* boxDefault = qobject_cast<QPushButton*>(box.button(QMessageBox::No));
+	boxDefault->setText(QStringLiteral("MMMM MMMM"));
+	boxDefault->setFocusPolicy(Qt::NoFocus);
+	boxDefault->setFont(qApp->font());
+	boxDefault->setFixedSize(150, 48);
+	box.ensurePolished();
+	const ControlLook boxLook = controlLook(boxDefault);
+	ok &= checkLooks(reviewLook.face == boxLook.face,
+		"the Run simulation button does not have the face of the default button of a message box", reviewLook, boxLook);
+#endif
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -688,9 +728,10 @@ int main(int argc, char** argv) {
 	const bool fit = exerciseFitAfterChange();
 	const bool disabled = exerciseDisabledControls();
 	const bool messageBox = exerciseMessageBoxDefault();
+	const bool runReview = exerciseRunReviewDefault();
 	const bool defaultWidth = exerciseDefaultButtonWidth(1.0);
 	const bool scaledDefaultWidth = exerciseDefaultButtonWidth(1.5);
-	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && defaultWidth
+	return small && scaledSmall && large && indicators && messages && panelMessages && narrow && fit && disabled && messageBox && runReview && defaultWidth
 			&& scaledDefaultWidth
 		? 0
 		: 1;

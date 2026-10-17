@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QString>
 
+#include "widgets/DisplayPath.h"
+
 // The message for a case study that is damaged or is not a case study. The window and the start of the program show
 // the same title and text; the internal error follows the plain sentence. A folder gets its own sentence, which names
 // the scene.json that a scene folder holds.
@@ -23,7 +25,7 @@ inline QString text(const QString& path, const QString& error) {
 			? QStringLiteral("The folder holds a damaged or incomplete EGTRAIN scene.")
 			: QStringLiteral("The folder holds no EGTRAIN scene. A scene folder holds a scene.json file.");
 	}
-	QString message = QStringLiteral("%1 could not be opened.\n%2").arg(name.isEmpty() ? path : name, sentence);
+	QString message = QStringLiteral("%1 could not be opened.\n%2").arg(name.isEmpty() ? display_path::format(path) : name, sentence);
 	if (!error.isEmpty())
 		message += QStringLiteral("\n\n") + error;
 	return message;
