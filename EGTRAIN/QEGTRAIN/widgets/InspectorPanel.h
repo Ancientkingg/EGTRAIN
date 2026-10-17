@@ -26,7 +26,7 @@ class TrainBodyItem;
 struct GuiPassengerState;
 struct SceneModel;
 
-// The Simulation Info dock. It has one form for each kind of item that the user can select on the canvas: a node, an arc,
+// The inspector dock, titled after the selected item. It has one form for each kind of item that the user can select on the canvas: a node, an arc,
 // a connection, a signal and a train. Selecting an item shows its form, fills it in and puts a highlight on the item.
 // Before a run the items are the ones of the track preview, which the form fills in from the scene. During and after a
 // run the items belong to the run and the form fills in from them. The panel keeps what is selected, so that the window

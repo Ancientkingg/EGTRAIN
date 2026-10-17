@@ -246,10 +246,13 @@ between two updates.
 
 Click a track, connection, node, station, signal, train or passenger on the
 canvas to select it, in the preview as well as during a run. The matching
-inspector opens and a light blue ring marks the item. The ring keeps its size at
+inspector opens and a light blue ring marks the item. Its title reads
+Preview: <kind> <id> (not running) in the preview and Node Info, Station Node
+Info, Arc Info, Connection Info, Signalling Info or Train Info during a run. The ring keeps its size at
 every zoom and neither covers nor recolours the item. It follows a moving train and
 disappears with the layer of its item. Clicking another item moves the ring;
-clicking an empty part of the canvas or closing the inspector removes it.
+clicking an empty part of the canvas or closing the inspector removes it. The
+inspector also closes when a run stops.
 Dragging the canvas pans the view and keeps the selection.
 
 ### Signal heads
