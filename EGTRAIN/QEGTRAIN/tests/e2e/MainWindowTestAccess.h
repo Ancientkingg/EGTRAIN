@@ -19,6 +19,8 @@ public:
 	static void updateTrainPosition(MainWindow& w, int t);
 	static void runStationOverlay(MainWindow& w);
 	static void runEditorSmoke(MainWindow& w);
+	// The checks of Undo and Redo that the editor smoke makes, defined with it.
+	static QStringList checkUndoRedo(MainWindow& w, const QString& scenePath, const QString& outFolder);
 	static void runSceneRender(MainWindow& w);
 	static void runTrackPreview(MainWindow& w);
 	static void runLegacyImport(MainWindow& w);

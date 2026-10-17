@@ -19,6 +19,11 @@
 
 class MainWindow;
 
+// Copies `snapshot` over `live`, except for the parts of the scene that the application derives from the files on disk and
+// from checking the scene, which an edit does not author: the loaded data, the source files and the version that saved the
+// scene. Those keep their values in `live`.
+void assignAuthoredScene(SceneModel& live, const SceneModel& snapshot);
+
 // The scene that the editors work on: the model, whether it is loaded, edited since it was saved and open for edits, and
 // how often it has been changed. Editors change the model in place through mutableModel() and then call markChanged().
 class SceneDocument : public QObject {
@@ -49,13 +54,17 @@ public:
 	bool isDirty() const { return m_dirty; }
 	// False while a run uses the model.
 	bool isEditable() const { return m_editable; }
-	// Grows with every replace() and markChanged(), never otherwise.
+	// Grows with every replace(), restore() and markChanged(), never otherwise.
 	quint64 revision() const { return m_revision; }
 	// The label of the latest markChanged().
 	const QString& lastChangeLabel() const { return m_lastChangeLabel; }
 
 	// Takes another model: a scene that is opened or created. `dirty` tells whether it differs from what is saved.
 	void replace(SceneModel newModel, bool dirty);
+	// Puts back an earlier state of the scene, as Undo and Redo do. The authored parts of the model become those of
+	// `snapshot` (see assignAuthoredScene), and `dirty` tells whether that state differs from what is saved. It is not an
+	// edit: changed() is not emitted, so the editors have to be refreshed by the caller.
+	void restore(const SceneModel& snapshot, bool dirty);
 	// Records that an editor has changed `kinds` of the model, and what the change was called.
 	void markChanged(ChangeKinds kinds, const QString& label = {});
 	void markSaved() { setDirty(false); }

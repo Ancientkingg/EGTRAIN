@@ -4,6 +4,8 @@
 #include <QString>
 
 #include <iostream>
+#include <set>
+#include <string>
 #include <vector>
 
 static bool expect(bool condition, const char* message) {
@@ -138,6 +140,65 @@ int main() {
 		document.replace(namedScene("b"), true);
 		step();
 		ok &= expect(increasing, "the revision grows with every replace and every markChanged");
+	}
+
+	{
+		SceneModel live = namedScene("live");
+		live.description = "live description";
+		live.savedWithAppVersion = "live version";
+		live.sourceFiles = {"live.json"};
+		SceneLoadedData liveData;
+		liveData.category = "live data";
+		live.loadedData = {liveData};
+		live.services.resize(1);
+		live.services[0].id = "live service";
+
+		SceneModel snapshot = namedScene("snapshot");
+		snapshot.savedWithAppVersion = "snapshot version";
+		snapshot.sourceFiles = {"snapshot.json", "other.json"};
+		SceneLoadedData snapshotData;
+		snapshotData.category = "snapshot data";
+		snapshot.loadedData = {snapshotData, snapshotData};
+		snapshot.baseTime = "08:00:00";
+		snapshot.defaultScenarioId = "scenario";
+		snapshot.scenarios.resize(1);
+		snapshot.scenarios[0].id = "scenario";
+		snapshot.passengers.resize(2);
+		snapshot.passengers[1].id = "passenger";
+		snapshot.importReport.resize(1);
+		snapshot.importReport[0].category = "report";
+
+		assignAuthoredScene(live, snapshot);
+		ok &= expect(live.name == "snapshot" && live.description.empty() && live.baseTime == "08:00:00"
+				&& live.defaultScenarioId == "scenario" && live.scenarios.size() == 1 && live.scenarios[0].id == "scenario"
+				&& live.services.empty() && live.passengers.size() == 2 && live.passengers[1].id == "passenger"
+				&& live.importReport.size() == 1 && live.importReport[0].category == "report",
+			"assignAuthoredScene takes the authored parts of the snapshot, also where the snapshot has less than the scene");
+		ok &= expect(live.savedWithAppVersion == "live version" && live.sourceFiles == std::set<std::string>{"live.json"}
+				&& live.loadedData.size() == 1 && live.loadedData[0].category == "live data",
+			"assignAuthoredScene keeps the loaded data, the source files and the saving version of the scene");
+	}
+	{
+		SceneDocument document;
+		document.replace(namedScene("opened"), false);
+		Recorder recorder(document);
+		document.mutableModel().sourceFiles = {"opened.json"};
+		const quint64 revision = document.revision();
+
+		document.restore(namedScene("earlier"), true);
+		ok &= expect(document.model().name == "earlier" && document.model().sourceFiles == std::set<std::string>{"opened.json"},
+			"restore takes the authored parts of the snapshot and keeps the derived ones");
+		ok &= expect(document.isLoaded() && document.isEditable() && document.isDirty() && document.revision() == revision + 1,
+			"restore advances the revision and sets the dirty state");
+		ok &= expect(recorder.dirty == std::vector<bool>{true} && recorder.changes.empty() && recorder.replaced == 0,
+			"restore emits dirtyChanged for a new dirty state, but neither changed nor replaced");
+
+		document.restore(namedScene("opened"), false);
+		ok &= expect(!document.isDirty() && document.revision() == revision + 2 && recorder.dirty == std::vector<bool>({true, false}),
+			"restore to the saved state clears the dirty state");
+		document.restore(namedScene("opened"), false);
+		ok &= expect(recorder.dirty.size() == 2 && document.revision() == revision + 3,
+			"a restore that keeps the dirty state still advances the revision");
 	}
 
 	if (!ok)

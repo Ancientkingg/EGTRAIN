@@ -1,5 +1,6 @@
 #include "tests/e2e/MainWindowTestAccess.h"
 
+#include "app/DispatchController.h"
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "ui_MainWindow.h"
@@ -18,6 +19,7 @@
 #include "graphics/items/HighlightEffect.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
+#include "scene/SceneHistory.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneModel.h"
 #include "scene/SceneReferences.h"
@@ -48,6 +50,7 @@
 #include <QDir>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
+#include <QElapsedTimer>
 #include <QEvent>
 #include <QEventLoop>
 #include <QFile>
@@ -62,6 +65,7 @@
 #include <QList>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QMenuBar>
 #include <QMetaObject>
 #include <QObject>
 #include <QPlainTextEdit>
@@ -102,6 +106,8 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -123,6 +129,32 @@ void importPassengersFrom(QPushButton* button, const QString& folder) {
 	button->click();
 	QApplication::processEvents();
 	mainWindowTestHooks().passengerSource = nullptr;
+}
+
+// The bytes that Save writes, which are what an edit authors. The parts of the model that the window derives are not in them.
+std::string authoredSceneBytes(const SceneModel& model) {
+	std::string bytes = encodeSceneMetadata(model).dump();
+	for (const nlohmann::json& part : {encodeInfrastructure(model), encodeStations(model), encodeSignalling(model),
+			 encodeRollingStock(model), encodeServices(model), encodeScenarios(model), encodeViews(model),
+			 encodePassengers(model.passengers)})
+		bytes += part.dump();
+	return bytes;
+}
+
+// Answers the message box that opens during the next moments with the button.
+void answerMessageBox(QObject* context, QMessageBox::StandardButton button) {
+	QTimer::singleShot(25, context, [button]() {
+		for (QWidget* widget : QApplication::topLevelWidgets()) {
+			auto* dialog = qobject_cast<QMessageBox*>(widget);
+			if (!dialog || !dialog->isVisible())
+				continue;
+			if (QAbstractButton* clicked = dialog->button(button))
+				clicked->click();
+			else
+				dialog->done(button);
+			break;
+		}
+	});
 }
 
 } // namespace
@@ -3984,6 +4016,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 		}
 	}
 
+	if (ok && w.m_sceneLoaded) {
+		QTemporaryDir undoTempDir;
+		QString undoOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		if (undoOut.isEmpty())
+			undoOut = undoTempDir.path();
+		const QStringList undoFailures = checkUndoRedo(w, scenePath, undoOut);
+		for (const QString& failure : undoFailures) {
+			ok = false;
+			failures << failure;
+		}
+		if (undoFailures.isEmpty())
+			std::fprintf(stdout, "E2E_EDITOR_UNDO_REDO_OK\n");
+	}
+
 	if (ok) {
 		auto* servicePages = w.findChild<QTabWidget*>("serviceEditorPages");
 		const bool serviceStructure = servicePages && servicePages->count() == 2
@@ -4136,4 +4182,486 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 	std::fprintf(stderr, "E2E_EDITOR_SMOKE_FAIL: %s\n", failures.join(", ").toStdString().c_str());
 	std::fflush(stderr);
 	QCoreApplication::exit(1);
+}
+
+// Undo and Redo on a copy of the scene at scenePath, which is written below outFolder. An edit in each editor adds one step to
+// the history, Undo and Redo walk the scene through the states before and after the steps, and the history keeps its place
+// across Save, a new edit, a failed open and runs, and starts again for another scene. Returns what failed.
+QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& scenePath, const QString& outFolder) {
+	QStringList failures;
+	const auto expect = [&failures](bool condition, const QString& message) {
+		if (!condition)
+			failures << QStringLiteral("undo/redo: ") + message;
+		return condition;
+	};
+	const auto process = []() { QApplication::processEvents(); };
+	const QString previousScenePath = w.m_sceneDir;
+	const auto finish = [&]() {
+		simulation.setNextRunOutputFolder({});
+		if (!previousScenePath.isEmpty() && !w.openSceneDirectory(previousScenePath))
+			failures << QStringLiteral("undo/redo: the scene before the checks did not reopen");
+		return failures;
+	};
+
+	// The Edit menu stands before View and holds the two actions with the keys of the platform. The editor docks carry the
+	// actions too, for the time that a dock floats as a window of its own.
+	{
+		const QList<QAction*> menus = w.menuBar()->actions();
+		const int editMenuIndex = menus.indexOf(w.ui->menuEdit->menuAction());
+		expect(editMenuIndex >= 0 && menus.value(editMenuIndex + 1) == w.ui->menuView->menuAction(),
+			"the Edit menu is not before View");
+		expect(w.ui->menuEdit->actions() == QList<QAction*>({w.m_undoAction, w.m_redoAction}),
+			"the Edit menu does not hold Undo and Redo");
+		expect(w.m_undoAction->shortcut() == QKeySequence(QKeySequence::Undo)
+				&& w.m_redoAction->shortcuts() == QKeySequence::keyBindings(QKeySequence::Redo)
+				&& w.m_undoAction->shortcutContext() == Qt::WindowShortcut
+				&& w.m_redoAction->shortcutContext() == Qt::WindowShortcut,
+			"Undo and Redo do not use the standard keys of the platform");
+		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock, w.m_compositionDock,
+				 w.m_serviceDock, w.m_incidentDock, w.m_passengerDock})
+			expect(dock->actions().contains(w.m_undoAction) && dock->actions().contains(w.m_redoAction),
+				dock->objectName() + " does not carry Undo and Redo");
+	}
+
+	// The scene is a copy, so that Save does not touch the committed scene.
+	const QString copyPath = QDir(outFolder).filePath("editor_smoke_undo_scene");
+	QDir(copyPath).removeRecursively();
+	if (!w.openSceneDirectory(scenePath) || !::saveScene(w.m_sceneModel, copyPath.toStdString()).success()
+		|| !w.openSceneDirectory(copyPath)) {
+		failures << QStringLiteral("undo/redo: the copy of the scene did not open");
+		return finish();
+	}
+	expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_sceneDirty
+			&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
+		"a scene that was just opened has a history to undo");
+
+	// Typing that is not committed is no edit.
+	{
+		const quint64 revision = w.m_sceneRevision;
+		w.m_caseNameEdit->setText("typing that is not committed");
+		process();
+		expect(w.m_history->undoCount() == 0 && w.m_sceneRevision == revision && !w.m_undoAction->isEnabled(),
+			"typing created a step");
+		w.m_caseNameEdit->setText(QString::fromStdString(w.m_sceneModel.name));
+	}
+
+	std::vector<std::string> states{authoredSceneBytes(w.m_sceneModel)};
+	// The scenarios that the window marks as edited, in each state.
+	std::vector<std::set<std::string>> modifiedStates{w.modifiedScenarioIds()};
+	std::size_t position = 0;
+	std::optional<std::size_t> savedState = 0;
+
+	// What the editors show must be the scene, whatever way the scene was reached.
+	const auto editorMismatch = [&w]() -> QString {
+		const SceneModel& model = w.m_sceneModel;
+		const SceneScenario* scenario = w.selectedScenario();
+		const auto count = [](const QListWidget* list) { return static_cast<std::size_t>(list->count()); };
+		if (w.m_caseNameEdit->text().toStdString() != model.name)
+			return QStringLiteral("case settings");
+		if (count(w.m_trainUnitListWidget) != model.trainUnits.size())
+			return QStringLiteral("rolling stock");
+		if (count(w.m_compositionListWidget) != model.compositions.size())
+			return QStringLiteral("composition");
+		if (count(w.m_serviceListWidget) != model.services.size())
+			return QStringLiteral("service");
+		const int serviceRow = w.m_serviceListWidget->currentRow();
+		if (serviceRow >= 0 && serviceRow < w.m_serviceListWidget->count()
+			&& static_cast<std::size_t>(w.m_stopTableWidget->rowCount()) != model.services[static_cast<std::size_t>(serviceRow)].stops.size())
+			return QStringLiteral("timetable");
+		if (count(w.m_scenarioListWidget) != model.scenarios.size())
+			return QStringLiteral("scenario");
+		if (!scenario || count(w.m_incidentListWidget) != scenario->incidents.size())
+			return QStringLiteral("incident");
+		if (count(w.m_entranceDelayListWidget) != scenario->entranceDelays.size())
+			return QStringLiteral("entrance delay");
+		if (count(w.m_passengerListWidget) != model.passengers.size())
+			return QStringLiteral("passenger");
+		const QString facet = w.m_infrastructureFacetCombo->currentData().toString();
+		const std::size_t rows = facet == QLatin1String("tracks") ? model.tracks.size()
+			: facet == QLatin1String("arcs")					  ? model.arcs.size()
+			: facet == QLatin1String("nodes")					  ? model.nodes.size()
+																  : static_cast<std::size_t>(w.m_infrastructureTable->rowCount());
+		if (static_cast<std::size_t>(w.m_infrastructureTable->rowCount()) != rows)
+			return QStringLiteral("infrastructure");
+		return {};
+	};
+	// The validation that the window shows is the validation of the scene it holds.
+	const auto validationCurrent = [&w]() {
+		const std::vector<SceneDiagnostic> shown = w.m_sceneDiagnostics;
+		w.refreshValidationPanel();
+		return shown.size() == w.m_sceneDiagnostics.size() && w.m_validationTable->rowCount() == static_cast<int>(shown.size())
+			&& std::equal(shown.begin(), shown.end(), w.m_sceneDiagnostics.begin(),
+				[](const SceneDiagnostic& a, const SceneDiagnostic& b) {
+					return a.code == b.code && a.path == b.path && a.message == b.message;
+				});
+	};
+	// The scene, the unsaved mark, the run results and the editors after Undo or Redo reached state `at`.
+	const auto checkReached = [&](std::size_t at, const char* how) {
+		const QString where = QStringLiteral("%1 to state %2").arg(QLatin1String(how)).arg(at);
+		const bool dirty = !savedState || *savedState != at;
+		expect(authoredSceneBytes(w.m_sceneModel) == states[at], where + " did not restore the scene");
+		expect(w.m_history->undoCount() == at && w.m_history->redoCount() == states.size() - 1 - at,
+			where + " moved the history to another place");
+		expect(w.m_sceneDirty == dirty && w.isWindowModified() == dirty && w.m_history->isAtSavedPoint() == !dirty,
+			where + " left a wrong unsaved mark");
+		expect(!w.m_resultsAvailable && !w.m_completedRun, where + " kept results of a run");
+		const QString mismatch = editorMismatch();
+		expect(mismatch.isEmpty(), where + " left the " + mismatch + " editor with another scene");
+		expect(validationCurrent(), where + " left the validation of another scene");
+		expect(w.modifiedScenarioIds() == modifiedStates[at], where + " left other scenarios marked as edited");
+		expect(w.m_startOffsetSeconds == baseTimeToSeconds(w.m_sceneModel.baseTime), where + " left the start time of another scene");
+		expect(std::any_of(w.m_sceneModel.scenarios.begin(), w.m_sceneModel.scenarios.end(),
+				   [&w](const SceneScenario& scenario) { return scenario.id == w.m_runSelection.scenarioId(); }),
+			where + " left a scenario selected that the scene does not have");
+		expect(w.m_undoAction->isEnabled() == (at > 0) && w.m_redoAction->isEnabled() == (at + 1 < states.size()),
+			where + " left the actions in a wrong state");
+	};
+	const auto undo = [&]() {
+		if (!expect(w.m_undoAction->isEnabled(), QStringLiteral("Undo is disabled at state %1").arg(position)))
+			return;
+		w.m_undoAction->trigger();
+		process();
+		checkReached(--position, "Undo");
+	};
+	const auto redo = [&]() {
+		if (!expect(w.m_redoAction->isEnabled(), QStringLiteral("Redo is disabled at state %1").arg(position)))
+			return;
+		w.m_redoAction->trigger();
+		process();
+		checkReached(++position, "Redo");
+	};
+	// One edit must add exactly one step, that the scene and the head of the history agree on, and drop what could be redone.
+	const auto step = [&](const char* name, const char* label, const std::function<void()>& edit) {
+		const std::size_t undoBefore = w.m_history->undoCount();
+		const std::string before = authoredSceneBytes(w.m_sceneModel);
+		edit();
+		process();
+		const std::string after = authoredSceneBytes(w.m_sceneModel);
+		const QString what = QLatin1String(name);
+		bool good = expect(after != before, what + " did not change the scene");
+		good = expect(w.m_history->undoCount() == undoBefore + 1, what + " did not add exactly one step") && good;
+		good = expect(!w.m_history->canRedo() && !w.m_redoAction->isEnabled(), what + " left a step to redo") && good;
+		good = expect(authoredSceneBytes(*w.m_history->head()) == after, what + " changed the scene outside the history")
+			&& good;
+		good = expect(w.m_history->undoLabel() == label, what + " is labelled '" + QString::fromStdString(w.m_history->undoLabel()) + "'")
+			&& good;
+		good = expect(w.m_sceneDirty && w.isWindowModified() && w.m_undoAction->isEnabled(), what + " left the scene clean")
+			&& good;
+		if (good) {
+			if (savedState && *savedState > position)
+				savedState.reset();
+			states.resize(position + 1);
+			states.push_back(after);
+			modifiedStates.resize(position + 1);
+			modifiedStates.push_back(w.modifiedScenarioIds());
+			++position;
+		}
+		return good;
+	};
+
+	const auto acceptUnitChoice = [&w](const QString& unitId) {
+		QTimer::singleShot(25, &w, [unitId]() {
+			for (QWidget* widget : QApplication::topLevelWidgets()) {
+				auto* dialog = qobject_cast<QInputDialog*>(widget);
+				if (!dialog || !dialog->isVisible())
+					continue;
+				dialog->setTextValue(unitId);
+				QMetaObject::invokeMethod(dialog, "accept", Qt::DirectConnection);
+				break;
+			}
+		});
+	};
+	// Opens the dialog of a stop, edits it and accepts it or rejects it. Returns whether it was accepted.
+	const auto editStopDialog = [&](int stopRow, bool accept, const std::function<void(QDialog*)>& edit) {
+		bool accepted = false;
+		QTimer timer;
+		timer.setSingleShot(true);
+		QObject::connect(&timer, &QTimer::timeout, &w, [&]() {
+			auto* dialog = w.findChild<QDialog*>("stopEditorDialog");
+			if (!dialog)
+				return;
+			edit(dialog);
+			if (accept) {
+				dialog->findChild<QPushButton*>("stopEditorAcceptButton")->click();
+				accepted = dialog->result() == QDialog::Accepted;
+			}
+			if (!accepted)
+				dialog->reject();
+		});
+		timer.start(0);
+		w.editStop(stopRow);
+		process();
+		return accepted;
+	};
+	const auto selectServiceWithStops = [&](std::size_t stops) {
+		for (std::size_t row = 0; row < w.m_sceneModel.services.size(); ++row) {
+			if (w.m_sceneModel.services[row].stops.size() < stops)
+				continue;
+			w.m_serviceListWidget->setCurrentRow(static_cast<int>(row));
+			process();
+			return true;
+		}
+		return false;
+	};
+
+	// Edits in the case settings and the infrastructure. A run then follows, so that Undo has results to discard.
+	if (!step("a case setting", "Edit", [&] {
+			w.m_caseNameEdit->setText("E2E undo case");
+			w.commitPendingCaseSettings();
+		}))
+		return finish();
+	if (!step("a base time", "Edit", [&] {
+			w.m_caseBaseTimeEdit->setText("09:15:30");
+			w.commitPendingCaseSettings();
+		}))
+		return finish();
+	if (!step("an infrastructure cell", "Edit", [&] {
+			const int arcs = w.m_infrastructureFacetCombo->findData("arcs");
+			if (arcs < 0)
+				return;
+			w.m_infrastructureFacetCombo->setCurrentIndex(arcs);
+			process();
+			if (QTableWidgetItem* cell = w.m_infrastructureTable->item(0, 6))
+				cell->setText("20.5");
+		}))
+		return finish();
+	{
+		simulation.setNextRunOutputFolder(QDir(outFolder).filePath("undo_run_output").toStdString());
+		w.m_runSceneAction->trigger();
+		if (!expect(w.m_worker != nullptr, "the run did not start"))
+			return finish();
+		const quint64 revision = w.m_sceneRevision;
+		w.undoScene();
+		w.redoScene();
+		expect(!w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled() && w.m_sceneRevision == revision,
+			"Undo or Redo worked while a run used the scene");
+		QElapsedTimer waited;
+		waited.start();
+		while ((w.m_worker || !w.m_resultsAvailable) && waited.elapsed() < 60000)
+			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+		if (!expect(!w.m_worker && w.m_resultsAvailable, "the run did not complete"))
+			return finish();
+		expect(w.m_undoAction->isEnabled() && w.m_history->undoCount() == position
+				&& authoredSceneBytes(*w.m_history->head()) == states[position],
+			"a run changed the history");
+		undo();
+		redo();
+	}
+
+	// Edits in the rolling stock, composition, service, timetable, scenario, incident, entrance delay and passenger editors.
+	if (!step("an added rolling stock unit", "Add rolling stock unit", [&] { w.m_trainUnitPanel->addUnit(); }))
+		return finish();
+	// A link to a source file is session state: it stays with a unit that the scene still has and goes with one that it lost.
+	const std::string linkedUnitId = w.m_sceneModel.trainUnits.front().id;
+	const std::string addedUnitId = w.m_sceneModel.trainUnits.back().id;
+	{
+		QFile linkedFile(QDir(outFolder).filePath("undo_link.txt"));
+		if (!linkedFile.open(QIODevice::WriteOnly)) {
+			failures << QStringLiteral("undo/redo: the file for the links was not written");
+			return finish();
+		}
+		linkedFile.close();
+		TrainUnitSourceLinker::Link link;
+		link.dataPath = linkedFile.fileName();
+		for (const std::string& unitId : {linkedUnitId, addedUnitId})
+			w.m_trainUnitSourceLinker->m_links[unitId] = link;
+		w.m_trainUnitSourceLinker->refreshWatches();
+	}
+	if (!step("a duplicated composition", "Add composition", [&] {
+			w.m_compositionListWidget->setCurrentRow(0);
+			w.m_compositionPanel->duplicateComposition();
+		}))
+		return finish();
+	if (!step("a unit added to a composition", "Add composition unit", [&] {
+			w.m_compositionListWidget->setCurrentRow(w.m_compositionListWidget->count() - 1);
+			acceptUnitChoice(QString::fromStdString(w.m_sceneModel.trainUnits.back().id));
+			w.m_compositionPanel->addUnit();
+		}))
+		return finish();
+
+	// Save keeps the history, and the scene is clean at the state that was saved.
+	{
+		const std::size_t steps = w.m_history->undoCount();
+		if (!expect(w.saveSceneToCurrentDir(), "the copy of the scene was not saved"))
+			return finish();
+		savedState = position;
+		modifiedStates[position].clear();
+		expect(!w.m_sceneDirty && !w.isWindowModified() && w.m_history->isAtSavedPoint() && w.m_history->undoCount() == steps
+				&& w.m_undoAction->isEnabled(),
+			"Save did not keep the history or did not mark the scene as saved");
+	}
+
+	std::set<std::string> serviceIdsBefore;
+	for (const SceneService& service : w.m_sceneModel.services)
+		serviceIdsBefore.insert(service.id);
+	if (!step("a duplicated service", "Add service", [&] {
+			w.m_serviceListWidget->setCurrentRow(0);
+			w.m_duplicateServiceButton->click();
+		}))
+		return finish();
+	std::string duplicatedServiceId;
+	for (const SceneService& service : w.m_sceneModel.services) {
+		if (serviceIdsBefore.count(service.id) == 0)
+			duplicatedServiceId = service.id;
+	}
+	if (!step("a service field", "Edit", [&] {
+			w.m_serviceOperatingCodeEdit->setText("1731");
+			w.commitPendingServiceSettings();
+		}))
+		return finish();
+	if (!selectServiceWithStops(2)) {
+		failures << QStringLiteral("undo/redo: no service has two stops to reorder");
+		return finish();
+	}
+	if (!step("a moved stop", "Edit", [&] {
+			w.m_stopTableWidget->setCurrentCell(0, 0);
+			w.m_moveStopDownButton->click();
+		}))
+		return finish();
+	// A stop dialog that is accepted is one step, and one that is cancelled is none.
+	{
+		const std::size_t steps = w.m_history->undoCount();
+		const quint64 revision = w.m_sceneRevision;
+		const bool accepted = editStopDialog(0, false, [](QDialog* dialog) {
+			dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(true);
+			dialog->findChild<QLineEdit*>("stopEditorArrivalEdit")->setText("456");
+		});
+		expect(!accepted && w.m_history->undoCount() == steps && w.m_sceneRevision == revision,
+			"a cancelled stop dialog created a step");
+	}
+	if (!step("an accepted stop dialog", "Edit", [&] {
+			editStopDialog(0, true, [](QDialog* dialog) {
+				dialog->findChild<QCheckBox*>("stopEditorArrivalPresent")->setChecked(true);
+				dialog->findChild<QLineEdit*>("stopEditorArrivalEdit")->setText("123.5");
+			});
+		}))
+		return finish();
+	if (!step("a deleted stop", "Delete stop", [&] {
+			w.m_stopTableWidget->setCurrentCell(0, 0);
+			w.m_removeStopButton->click();
+		}))
+		return finish();
+	if (!step("an added scenario", "Add scenario", [&] { w.m_blankScenarioButton->click(); }))
+		return finish();
+	if (!step("a scenario name", "Edit", [&] {
+			w.m_scenarioNameEdit->setText("E2E scenario");
+			w.commitScenarioNameEdit();
+		}))
+		return finish();
+	if (!step("an added incident", "Add incident", [&] { w.m_addIncidentButton->click(); }))
+		return finish();
+	if (!step("an added entrance delay", "Add entrance delay", [&] { w.m_addEntranceDelayButton->click(); }))
+		return finish();
+	if (!step("an added passenger", "Add passenger", [&] { w.m_addPassengerButton->click(); }))
+		return finish();
+	// The passenger editor still shows the new id when Undo restores the old one, and must not write it back.
+	if (!step("a renamed passenger", "Edit", [&] {
+			w.m_passengerIdEdit->setText("e2e_renamed_passenger");
+			QMetaObject::invokeMethod(w.m_passengerIdEdit, "editingFinished", Qt::DirectConnection);
+		}))
+		return finish();
+	// The duplicate is the service that nothing refers to.
+	if (!step("a deleted service", "Delete service", [&] {
+			for (std::size_t row = 0; row < w.m_sceneModel.services.size(); ++row) {
+				if (w.m_sceneModel.services[row].id == duplicatedServiceId)
+					w.m_serviceListWidget->setCurrentRow(static_cast<int>(row));
+			}
+			answerMessageBox(&w, QMessageBox::Yes);
+			w.m_deleteServiceButton->click();
+		}))
+		return finish();
+	expect(w.m_undoAction->text() == QLatin1String("Undo Delete service") && w.m_redoAction->text() == QLatin1String("Redo"),
+		"the actions do not name the edit that Undo reverts");
+
+	// Undo all the way back and Redo all the way forward. The saved state is the one where the scene is clean.
+	const std::size_t stepCount = position;
+	while (position > 0 && failures.isEmpty())
+		undo();
+	expect(!w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(), "Undo is available before the first edit");
+	expect(w.m_trainUnitSourceLinker->linkOf(linkedUnitId) && !w.m_trainUnitSourceLinker->linkOf(addedUnitId),
+		"Undo dropped the link of a unit that the scene still has, or kept the link of one that it lost");
+	while (position < stepCount && failures.isEmpty())
+		redo();
+	expect(!w.m_redoAction->isEnabled() && w.m_undoAction->text() == QLatin1String("Undo Delete service"),
+		"Redo is available after the last edit");
+	if (!failures.isEmpty())
+		return finish();
+
+	// A new edit after Undo discards what could be redone, and keeps the saved state when that state is still in the history.
+	const auto editDescription = [&](const char* text) {
+		return [&w, text] {
+			w.m_caseDescriptionEdit->setText(text);
+			w.commitPendingCaseSettings();
+		};
+	};
+	undo();
+	undo();
+	if (!step("an edit after Undo", "Edit", editDescription("after Undo")))
+		return finish();
+	expect(savedState.has_value() && !w.m_redoAction->isEnabled(), "an edit after Undo lost the saved state or kept Redo");
+	while (position > *savedState && failures.isEmpty())
+		undo();
+	if (!failures.isEmpty())
+		return finish();
+	// Undo past the saved state and an edit then drop the saved state, so the scene stays unsaved until it is saved again.
+	undo();
+	if (!step("an edit after Undo past the saved state", "Edit", editDescription("again")))
+		return finish();
+	expect(!savedState.has_value() && w.m_sceneDirty, "an edit that dropped the saved state left the scene clean");
+	undo();
+	redo();
+	if (!failures.isEmpty())
+		return finish();
+	{
+		const std::size_t steps = w.m_history->undoCount();
+		if (!expect(w.saveSceneToCurrentDir(), "the copy of the scene was not saved again"))
+			return finish();
+		savedState = position;
+		modifiedStates[position].clear();
+		expect(!w.m_sceneDirty && w.m_history->undoCount() == steps, "Save again did not mark the scene as saved");
+		undo();
+		redo();
+	}
+
+	// A failed open keeps the history. Opening a scene or creating one starts it again.
+	{
+		const std::size_t steps = w.m_history->undoCount();
+		expect(!w.openSceneDirectory(QDir(outFolder).filePath("no_such_scene")), "a scene that is not there opened");
+		expect(w.m_history->undoCount() == steps && w.m_undoAction->isEnabled() && w.m_history->isAtSavedPoint(),
+			"a failed open changed the history");
+		if (!w.openSceneDirectory(copyPath)) {
+			failures << QStringLiteral("undo/redo: the saved copy did not open");
+			return finish();
+		}
+		expect(!w.m_history->canUndo() && !w.m_history->canRedo() && w.m_history->isAtSavedPoint() && !w.m_sceneDirty
+				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
+			"opening a scene kept the history of the one before");
+		answerMessageBox(&w, QMessageBox::Discard);
+		w.newScene();
+		process();
+		expect(w.m_sceneDirty && !w.m_history->canUndo() && !w.m_history->canRedo() && !w.m_history->isAtSavedPoint()
+				&& !w.m_undoAction->isEnabled() && !w.m_redoAction->isEnabled(),
+			"a new scene kept the history of the one before or started clean");
+		const std::string newSceneName = w.m_sceneModel.name;
+		w.m_caseNameEdit->setText("E2E new case");
+		w.commitPendingCaseSettings();
+		process();
+		expect(w.m_history->undoCount() == 1 && w.m_undoAction->isEnabled(), "an edit of a new scene is not one step");
+		// A value that is still being typed is committed as an edit first, and Undo then reverts that edit.
+		w.m_caseNameEdit->setText("typed but not committed");
+		w.m_undoAction->trigger();
+		process();
+		expect(w.m_sceneModel.name == "E2E new case" && w.m_caseNameEdit->text() == "E2E new case" && w.m_history->undoCount() == 1
+				&& w.m_history->redoCount() == 1,
+			"Undo did not revert the value that was still being typed");
+		w.m_redoAction->trigger();
+		process();
+		expect(w.m_sceneModel.name == "typed but not committed", "Redo did not bring back the value that was typed");
+		w.m_undoAction->trigger();
+		w.m_undoAction->trigger();
+		process();
+		expect(w.m_sceneDirty && w.m_sceneModel.name == newSceneName && !w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(),
+			"Undo in a new scene did not return to its first state or marked it clean");
+	}
+	return finish();
 }
