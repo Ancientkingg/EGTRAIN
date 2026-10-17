@@ -2326,7 +2326,8 @@ For scene-format changes, also pack/unpack and validate/export the committed
 scene directories with `build/scene_tool`. For UI or rendering changes, also run
 `tools/e2e/visual_polish_smoke.sh`.
 
-For documentation changes, run `python3 tools/docs/check_docs.py`. It checks
+For documentation changes, run `python3 tools/docs/check_docs.py`; CTest runs it
+as `docs_check` in a Git checkout, and its own tests as `test_check_docs`. It checks
 relative links, heading anchors, image references and alt text, images below
 `docs/` that no document uses, documents below `docs/` that `docs/README.md`
 does not reach through links, the syntax of `bash`, `sh` and `json` examples
