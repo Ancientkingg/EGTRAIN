@@ -62,6 +62,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QGraphicsItem>
+#include <QHeaderView>
 #include <QHelpEvent>
 #include <QIODevice>
 #include <QInputDialog>
@@ -1920,9 +1921,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			hasPlotButton = hasPlotButton || button->text() == "Plot input traction characteristic";
 		const bool hasEditableTrainSources = w.m_trainUnitSourceDataEdit && w.m_trainUnitSourceTractionEdit;
 		const bool hasPlannedArrival = w.m_stopTableWidget && w.m_stopTableWidget->columnCount() == 5
-			&& w.m_stopTableWidget->horizontalHeaderItem(3)->text() == "Planned arrival";
+			&& w.m_stopTableWidget->horizontalHeaderItem(3)->text().simplified() == "Planned arrival";
 		const bool hasPlannedDeparture = w.m_stopTableWidget && w.m_stopTableWidget->columnCount() == 5
-			&& w.m_stopTableWidget->horizontalHeaderItem(4)->text() == "Planned departure";
+			&& w.m_stopTableWidget->horizontalHeaderItem(4)->text().simplified() == "Planned departure";
 		bool axesOk = false;
 		if (w.m_trainUnitListWidget && w.m_trainUnitListWidget->count() > 0) {
 			w.m_trainUnitListWidget->setCurrentRow(0);
@@ -4088,8 +4089,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			&& servicePages->widget(1)->isAncestorOf(w.m_stopTableWidget) && servicePages->widget(1)->isAncestorOf(w.m_stopTimeModeCombo)
 			&& servicePages->widget(1)->isAncestorOf(w.m_addStopButton);
 		// The time mode, the base time sentence, the stop table and its five buttons are whole inside the visible part of
-		// the Services dock when the Timetable tab is open, so no action of the timetable is below the fold. Returns what
-		// is missing, or nothing.
+		// the Services dock when the Timetable tab is open, so no action of the timetable is below the fold, and the five
+		// columns of the table fit it without a horizontal scroll bar. Returns what is missing, or nothing.
 		const auto timetableTabFailure = [&w]() -> QString {
 			QTabWidget* pages = w.m_servicePanel->pages();
 			const int previousTab = pages->currentIndex();
@@ -4104,6 +4105,9 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (!part->isVisible() || !visibleArea->rect().contains(area))
 					failure = QString("%1 is not whole on the Timetable tab").arg(part->objectName());
 			}
+			const QHeaderView* columns = w.m_stopTableWidget->horizontalHeader();
+			if (w.m_stopTableWidget->horizontalScrollBar()->isVisible() || columns->length() > w.m_stopTableWidget->viewport()->width())
+				failure = QString("the columns of %1 need a horizontal scroll bar on the Timetable tab").arg(w.m_stopTableWidget->objectName());
 			pages->setCurrentIndex(previousTab);
 			QApplication::processEvents();
 			return failure;
@@ -4152,6 +4156,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 				if (dock->width() > 750 || dock->height() > 600
 					|| !dock->findChild<QScrollArea*>("editorContentScroll"))
 					facetFailure(ok, "presentation", dock->objectName() + " cannot bound its floating content");
+				else if (dock == w.m_serviceDock) {
+					const QString failure = timetableTabFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
+				}
 				dock->setFloating(false);
 				dock->hide();
 			}

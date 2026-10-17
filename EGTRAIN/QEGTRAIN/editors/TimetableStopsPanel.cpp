@@ -118,14 +118,17 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_table = new QTableWidget(this);
 	m_table->setObjectName("timetableStopTable");
 	m_table->setColumnCount(5);
-	m_table->setHorizontalHeaderLabels({"Timetable stops (station)", "Stop platform", "Minimum dwell (s)", "Planned arrival", "Planned departure"});
+	m_table->setAccessibleName("Timetable stops");
+	// The headers have two lines, so that the five columns fit the width of the dock.
+	m_table->setHorizontalHeaderLabels({"Station", "Stop\nplatform", "Minimum\ndwell (s)", "Planned\narrival", "Planned\ndeparture"});
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setAlternatingRowColors(true);
 	m_table->setTabKeyNavigation(true);
 	m_table->verticalHeader()->setVisible(false);
-	m_table->horizontalHeader()->setStretchLastSection(true);
+	// The station takes the width that the other columns leave.
+	m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	layout->addWidget(m_table);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Stop", this);
@@ -253,7 +256,8 @@ void TimetableStopsPanel::refresh() {
 				}
 			}
 		}
-		m_table->resizeColumnsToContents();
+		for (int column = 1; column < m_table->columnCount(); ++column)
+			m_table->resizeColumnToContents(column);
 		m_table->setEnabled(editorAvailable);
 		if (m_table->rowCount() > 0)
 			m_table->setCurrentCell(std::clamp(previousRow < 0 ? 0 : previousRow, 0, m_table->rowCount() - 1), 0);

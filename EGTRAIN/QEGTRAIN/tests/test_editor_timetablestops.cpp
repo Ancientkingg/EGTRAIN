@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QEventLoop>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPoint>
@@ -251,6 +252,28 @@ int main(int argc, char** argv) {
 		document.setEditable(false);
 		panel.refresh();
 		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not ask for a service while a run uses it");
+	}
+
+	{
+		// the five columns fit a table as wide as the Timetable tab of the Services dock, so the planned times need no scrolling
+		SceneModel scene = lineScene();
+		scene.stations[0].name = longName(95).toStdString();
+		SceneDocument document;
+		TimetableStopsPanel panel;
+		panel.setDocument(&document);
+		document.replace(scene, false);
+		panel.setServiceId("service-1");
+		panel.resize(400, 500);
+		panel.show();
+		QApplication::processEvents();
+		const QTableWidget* table = panel.table();
+		const QHeaderView* header = table->horizontalHeader();
+		bool wholeHeaders = true;
+		for (int index = 0; index < table->columnCount(); ++index)
+			wholeHeaders = wholeHeaders && table->columnWidth(index) >= header->sectionSizeHint(index);
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width() && wholeHeaders,
+			"the five columns fill the table with their whole headers, whatever the length of a station name");
+		ok &= expect(table->item(0, 0)->text() == longName(95), "the cell of a long station name holds the whole name");
 	}
 
 	{
