@@ -57,8 +57,10 @@ def main():
         root = Path(temporary)
         empty, _ = launch(app, root / "empty-settings")
         check_common(empty)
-        assert [row["title"] for row in empty["rows"]][-2:] == [
-            "Recent cases", "No other recent cases to show"], empty
+        # Without a recent case the list has no Recent cases group and no hint row; it ends with the last bundled case.
+        assert not any(row["title"] in ("Recent cases", "No other recent cases to show")
+                       for row in empty["rows"]), empty
+        assert empty["rows"][-1]["enabled"] and empty["rows"][-1]["selectable"], empty
         assert empty["chosenAction"] == "ContinueCurrent" and not empty["accepted"], empty
         assert empty["loadedBefore"] == empty["loadedAfter"], empty
         first = next(row for row in empty["rows"] if row["enabled"])

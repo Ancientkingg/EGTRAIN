@@ -31,10 +31,23 @@ QString displayName(const QString& path) {
 	return fallback.replace(QLatin1Char('_'), QLatin1Char(' '));
 }
 
-void addGroup(QListWidget* list, const QString& title) {
-	auto* item = new QListWidgetItem(title, list);
+// A row that is only a label: it cannot be selected, reached with the arrow keys or opened. A heading is bold and
+// any other label is italic. The font sets that one attribute and takes the rest from the list, so a larger system
+// font still applies.
+QListWidgetItem* addLabelRow(QListWidget* list, const QString& text, bool heading) {
+	auto* item = new QListWidgetItem(text, list);
 	item->setFlags(Qt::NoItemFlags);
-	item->setData(Qt::UserRole, QString());
+	QFont font;
+	if (heading)
+		font.setBold(true);
+	else
+		font.setItalic(true);
+	item->setFont(font);
+	return item;
+}
+
+void addGroup(QListWidget* list, const QString& title) {
+	addLabelRow(list, title, true)->setData(Qt::UserRole, QString());
 }
 
 // Adds a row for the scene unless the same file is already listed.
@@ -87,15 +100,12 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 		if (valid) {
 			addSceneItem(list, seen, path);
 		} else {
-			auto* missing = new QListWidgetItem(QString("Unavailable: %1").arg(displayName(path)), list);
-			missing->setFlags(Qt::NoItemFlags);
-			missing->setToolTip(path.toHtmlEscaped());
+			addLabelRow(list, QString("Unavailable: %1").arg(displayName(path)), false)
+				->setToolTip(path.toHtmlEscaped());
 		}
 	}
-	if (!recentHeader) {
-		addGroup(list, "Recent cases");
-		addGroup(list, "No other recent cases to show");
-	}
+	if (list->count() == 0)
+		addLabelRow(list, "No cases found. Use Other ways to open... below.", false);
 }
 
 } // namespace
@@ -103,6 +113,9 @@ void fillList(QListWidget* list, const QStringList& sceneRoots, const QStringLis
 CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : QDialog(parent) {
 	setWindowTitle("Open a Case");
 	setObjectName("caseChooserDialog");
+	// Set before the footer buttons exist, because a button is styled as soon as it is built and a style that was cached
+	// before the property would miss the rules that name it. DialogLayout::install sets it again.
+	setProperty("dialogPresentation", true);
 	auto* body = new QWidget;
 	auto* bodyLayout = new QVBoxLayout(body);
 	m_list = new QListWidget(body);
@@ -152,7 +165,7 @@ CaseChooserDialog::CaseChooserDialog(const Options& options, QWidget* parent) : 
 	DialogLayout::install(*this, "Open a Case",
 		options.currentCaseName.isEmpty() ? QStringLiteral("Choose a case to open.")
 										  : QString("Current case: %1. Choose another or continue.").arg(options.currentCaseName),
-		body, buttons);
+		body, buttons, options.availableGeometry);
 	for (int row = 0; row < m_list->count(); ++row) {
 		if ((m_list->item(row)->flags() & Qt::ItemIsEnabled)
 			&& !m_list->item(row)->data(Qt::UserRole).toString().isEmpty()) {
