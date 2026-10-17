@@ -62,6 +62,8 @@
 #include "graphics/SignalGeometry.h"
 #include "graphics/AnnotationPlacement.h"
 #include "graphics/VisualPolish.h"
+#include "recovery/RecoveryController.h"
+#include "recovery/RecoveryPrompt.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneCompatibility.h"
 #include "scene/SceneMigration.h"
@@ -728,6 +730,32 @@ bool e2eDialogsSuppressed() {
 		|| mainWindowTestHooks().dialogsSuppressed;
 }
 
+// The folder for recovery copies, or an empty string when this run keeps none. A run that has no user to answer a
+// question keeps copies only in the folder that QEGTRAIN_RECOVERY_DIR names, so that it never meets the copies of a user.
+QString recoveryRoot() {
+	const QString named = qEnvironmentVariable("QEGTRAIN_RECOVERY_DIR");
+	if (!named.isEmpty())
+		return QDir(named).absolutePath();
+	const QString platform = QGuiApplication::platformName();
+	if (e2eDialogsSuppressed() || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
+		return {};
+	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+	return data.isEmpty() ? QString() : QDir(data).filePath(QStringLiteral("Recovery"));
+}
+
+// The scene at path as the source of a recovery copy: a bundle file, or a folder that is judged by its scene.json.
+RecoverySource recoverySourceOf(const QString& path, bool isBundle) {
+	RecoverySource source;
+	source.kind = isBundle ? RecoverySourceKind::Bundle : RecoverySourceKind::Directory;
+	source.path = QFileInfo(path).absoluteFilePath();
+	const QFileInfo file(isBundle ? source.path : QDir(source.path).filePath(QStringLiteral("scene.json")));
+	if (file.isFile()) {
+		source.sizeBytes = file.size();
+		source.modified = file.lastModified().toUTC();
+	}
+	return source;
+}
+
 void showBlockingError(QWidget* parent, const QString& title, const QString& message, bool warningIcon = false) {
 	UserPrompts(e2eDialogsSuppressed).showError(parent, title, message, warningIcon);
 }
@@ -915,6 +943,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->setupUi(this);
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	m_history = std::make_unique<SceneHistory>();
+	startRecovery();
 	connect(m_document, &SceneDocument::changed, this, &MainWindow::sceneDocumentChanged);
 	setupEditMenu();
 	setupUpdateActions();
@@ -2032,6 +2061,9 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 		return;
 	}
 	clearSimulationWorker(true);
+	// The window closes now, so nothing is left to recover: the user saved the scene or discarded it.
+	if (m_recovery)
+		m_recovery->shutdown();
 	QMainWindow::closeEvent(event);
 }
 
@@ -2098,6 +2130,7 @@ void MainWindow::createNewScene(const telemetry::OperationObservation& operation
 	m_savedSceneSha256.clear();
 	m_document->replace(makeNewSceneModel(), true);
 	m_history->reset(m_sceneModel);
+	recoverySceneReplaced(RecoverySource());
 	selectSceneOutputFolder(m_sceneModel.name);
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
@@ -2212,7 +2245,7 @@ bool MainWindow::openSceneDirectory(const QString& dir) {
 	return openSceneDirectory(dir, captureTelemetryOperation());
 }
 
-bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::OperationObservation& operation) {
+bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::OperationObservation& operation, OpenOrigin origin) {
 	const QString scenePath = QFileInfo(dir).absoluteFilePath();
 	const SceneCompatibilityProbeResult compatibility = probeSceneCompatibility(scenePath.toStdString());
 	const auto compatibilityMessage = [&compatibility]() {
@@ -2323,7 +2356,8 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		return false;
 	}
 	const bool sceneIsBundle = compatibility.sourceKind == SceneSourceKind::Bundle;
-	const bool reloadingSameScene = m_sceneLoaded
+	const bool recovered = origin == OpenOrigin::Recovered;
+	const bool reloadingSameScene = !recovered && m_sceneLoaded
 		&& QFileInfo(m_sceneDir).absoluteFilePath() == scenePath;
 	const qint64 loadStarted = startupTimingEnabled() ? startupTimingNowNanoseconds() : 0;
 	auto result = loadScenePath(scenePath.toStdString());
@@ -2352,8 +2386,8 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	m_runSelection.includeAll();
 	m_lastRunSelectedOccurrences = 0;
 	m_lastRunTotalOccurrences = 0;
-	m_sceneDir = scenePath;
-	m_document->replace(result.scene, false);
+	m_sceneDir = recovered ? QString() : scenePath;
+	m_document->replace(result.scene, recovered);
 	selectSceneOutputFolder(m_sceneModel.name);
 	if (m_delayBaseline)
 		m_delayBaselineStatus = QStringLiteral(
@@ -2361,15 +2395,16 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	else
 		m_delayBaselineStatus.clear();
 	m_delayBaseline.reset();
-	m_sceneIsBundle = sceneIsBundle;
-	m_sceneBundleVersion = result.bundleVersion;
-	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
+	m_sceneIsBundle = sceneIsBundle && !recovered;
+	m_sceneBundleVersion = recovered ? std::nullopt : result.bundleVersion;
+	m_savedSceneSha256 = recovered ? std::string() : hashSceneInputSnapshot(result.inputSnapshot);
 	m_runSelection.selectScenario(m_sceneModel.defaultScenarioId);
 	if (m_runSelection.scenarioId().empty() && !m_sceneModel.scenarios.empty()) {
 		m_runSelection.selectScenario(m_sceneModel.scenarios.front().id);
 		m_sceneModel.defaultScenarioId = m_runSelection.scenarioId();
 	}
-	m_history->reset(m_sceneModel, true);
+	m_history->reset(m_sceneModel, !recovered);
+	recoverySceneReplaced(recovered ? RecoverySource() : recoverySourceOf(scenePath, sceneIsBundle));
 	m_runSelection.clearModifiedScenarios();
 	m_sceneDiagnostics.clear();
 	m_passengerPanel->clearImportResult();
@@ -2378,7 +2413,8 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 	updateSceneWindowTitle();
 	updateCaseLayersPanel();
 	updateSceneActions();
-	addRecentScene(scenePath);
+	if (!recovered)
+		addRecentScene(scenePath);
 	refreshIncidentPanel();
 	refreshInfrastructurePanel(!reloadingSameScene);
 	refreshValidationPanel();
@@ -2401,7 +2437,8 @@ bool MainWindow::openSceneDirectory(const QString& dir, const telemetry::Operati
 		m_loadedDataDock->show();
 		m_loadedDataDock->raise();
 	}
-	operation.sceneOpened(sceneIsBundle ? telemetry::SceneKind::Bundled : telemetry::SceneKind::Local);
+	if (!recovered)
+		operation.sceneOpened(sceneIsBundle ? telemetry::SceneKind::Bundled : telemetry::SceneKind::Local);
 	return true;
 }
 
@@ -2469,6 +2506,7 @@ bool MainWindow::finishSceneSave(const SceneSaveResult& result,
 	m_savedSceneSha256 = hashSceneInputSnapshot(result.inputSnapshot);
 	m_history->markSaved();
 	m_document->markSaved();
+	recoverySceneSaved();
 	m_runSelection.clearModifiedScenarios();
 	updateSceneWindowTitle();
 	updateSceneActions();
@@ -2510,7 +2548,7 @@ bool MainWindow::saveSceneAsToBundle(const telemetry::OperationObservation& oper
 		return false;
 	commitPendingEditorValues();
 
-	const QString startPath = dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
+	const QString startPath = saveSceneAsStartPath();
 	QString targetPath = QFileDialog::getSaveFileName(this, "Save Case Study As", startPath,
 		"EGTRAIN Case Study (*.egscene)");
 	if (targetPath.isEmpty())
@@ -2634,6 +2672,103 @@ bool MainWindow::maybeSaveScene() {
 		return saveSceneToCurrentDir();
 	if (response == QMessageBox::Cancel)
 		return false;
+	return true;
+}
+
+QString MainWindow::saveSceneAsStartPath() const {
+	// A recovered scene has no file of its own, so the dialog starts at the file that it is a copy of.
+	if (m_sceneDir.isEmpty() && !m_recoveredSourceHint.isEmpty())
+		return dialog_folders::suggestedPath(QFileInfo(m_recoveredSourceHint).fileName(), m_recoveredSourceHint);
+	return dialog_folders::suggestedPath(m_sceneIsBundle ? QFileInfo(m_sceneDir).fileName() : QString(), m_sceneDir);
+}
+
+void MainWindow::startRecovery() {
+	m_recovery.reset();
+	const QString root = recoveryRoot();
+	if (root.isEmpty())
+		return;
+	m_recovery = std::make_unique<RecoveryController>(root);
+	connect(m_recovery.get(), &RecoveryController::writeFailed, this, [this](const QString& message) {
+		if (m_recoveryFailureShown)
+			return;
+		m_recoveryFailureShown = true;
+		statusBar()->showMessage(QStringLiteral("Autosave unavailable: %1. Save the case study to keep your edits.").arg(message));
+	});
+}
+
+void MainWindow::recoverySceneChanged() {
+	if (!m_recovery)
+		return;
+	if (!m_sceneDirty) {
+		m_recovery->noteClean();
+		return;
+	}
+	RecoverySource source = m_recoverySource;
+	source.displayName = QString::fromStdString(m_sceneModel.name);
+	m_recovery->noteEdited(m_history->head(), source, m_sceneRevision);
+}
+
+void MainWindow::recoverySceneSaved() {
+	m_recoverySource = recoverySourceOf(m_sceneDir, m_sceneIsBundle);
+	m_recoveredSourceHint.clear();
+	if (m_recovery)
+		m_recovery->noteSaved();
+}
+
+void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
+	m_recoverySource = source;
+	m_recoveredSourceHint.clear();
+	m_recoveryFailureShown = false;
+	if (!m_recovery)
+		return;
+	m_recovery->noteReplaced();
+	// A scene that is new or recovered has no saved state, so a copy of it is due.
+	if (m_sceneDirty)
+		recoverySceneChanged();
+}
+
+bool MainWindow::offerRecovery() {
+	if (!m_recovery)
+		return false;
+	RecoveryScan scan = m_recovery->scan();
+	const auto openable = [&scan]() {
+		return std::any_of(scan.candidates.begin(), scan.candidates.end(),
+			[](const RecoveryCandidate& candidate) { return candidate.state == RecoveryCandidateState::Openable; });
+	};
+	// A copy that this version cannot open is listed with the others and never offered alone.
+	while (openable()) {
+		RecoveryPrompt prompt(scan, this);
+		if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
+			dialogShown(prompt, "recoveryPrompt");
+		prompt.exec();
+		const int index = prompt.selectedIndex();
+		if (index < 0 || index >= scan.candidates.size())
+			return false;
+		const RecoveryCandidate candidate = scan.candidates.at(index);
+		if (prompt.result() == RecoveryPrompt::Recover)
+			return openRecoveredScene(candidate);
+		if (prompt.result() != RecoveryPrompt::Discard)
+			return false;
+		if (!m_recovery->discard(candidate).ok)
+			statusBar()->showMessage(QStringLiteral("A recovery copy could not be removed."), 8000);
+		scan.candidates.removeAt(index);
+		scan.removedOverCap = 0;
+	}
+	return false;
+}
+
+bool MainWindow::openRecoveredScene(const RecoveryCandidate& candidate) {
+	// The copy is no file that the user opened, so nothing about it is reported.
+	if (!openSceneDirectory(candidate.bundlePath, telemetry::OperationObservation(), OpenOrigin::Recovered))
+		return false;
+	// The scene stays unsaved and untitled. Its original is not touched until the user saves over it.
+	m_recoverySource = candidate.source;
+	m_recoveredSourceHint = candidate.source.path;
+	// The copy now belongs to this scene, so that a crash right after the recovery loses nothing.
+	if (m_recovery && !m_recovery->adopt(candidate).ok)
+		recoverySceneChanged();
+	statusBar()->showMessage(QStringLiteral("Recovered %1. It is not saved: choose Save As to keep it.")
+			.arg(QString::fromStdString(m_sceneModel.name)));
 	return true;
 }
 
@@ -2938,6 +3073,9 @@ void MainWindow::handleSelfUpdateFinished(bool success, const QString& error) {
 			QStringLiteral("Could not start the update installer. EGTRAIN is unchanged."));
 		return;
 	}
+	// The scene was saved or discarded before the download started, and the progress dialog has kept the window from edits.
+	if (m_recovery)
+		m_recovery->shutdown();
 	QCoreApplication::quit();
 }
 
@@ -3184,6 +3322,7 @@ void MainWindow::markSceneDirty() {
 void MainWindow::sceneDocumentChanged() {
 	m_history->record(m_sceneModel, modifiedScenarioIds());
 	invalidateAfterSceneChange();
+	recoverySceneChanged();
 }
 
 void MainWindow::invalidateAfterSceneChange() {
@@ -3296,6 +3435,7 @@ void MainWindow::restoreSceneFromHistory(const SceneHistoryEntry& entry) {
 	invalidateAfterSceneChange();
 	refreshAllEditorPanels();
 	updateCaseLayersPanel();
+	recoverySceneChanged();
 }
 
 // Shows the scene in every editor, in the order in which openSceneDirectory refreshes them: validation last.
@@ -5221,7 +5361,8 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
 	const auto startup = [this, relay]() {
-		if (!initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
+		const bool recovered = offerRecovery();
+		if (!recovered && !initial_variables.nArgProvided && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		showPrivacySettings(true);
 		startTelemetryAfterInitialConsent();

@@ -319,8 +319,8 @@ add_library(egtrain_openrelay STATIC ${SRC_DIR}/app/OpenRequestRelay.cpp)
 target_link_libraries(egtrain_openrelay PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
 
 # Recovery copies of a scene with unsaved edits, kept below a folder that the caller names, the
-# controller that writes them in the background, and the dialog that offers them. Only the recovery
-# tests link it.
+# controller that writes them in the background, and the dialog that offers them. The application and
+# the recovery tests link it.
 add_library(egtrain_recovery STATIC
     ${SRC_DIR}/recovery/RecoveryController.cpp
     ${SRC_DIR}/recovery/RecoveryPrompt.cpp
@@ -540,6 +540,7 @@ target_link_libraries(QEGTRAIN PRIVATE
     egtrain_update
     egtrain_sceneopen
     egtrain_openrelay
+    egtrain_recovery
     egtrain_rttp
     egtrain_sim
     egtrain_runselection

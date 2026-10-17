@@ -18,6 +18,8 @@
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 #include "graphics/items/HighlightEffect.h"
+#include "recovery/RecoveryController.h"
+#include "recovery/RecoveryStore.h"
 #include "scene/SceneBundle.h"
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneHistory.h"
@@ -44,9 +46,11 @@
 #include <QByteArray>
 #include <QChar>
 #include <QCheckBox>
+#include <QCloseEvent>
 #include <QColor>
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDialog>
 #include <QDir>
 #include <QDockWidget>
@@ -60,6 +64,8 @@
 #include <QGraphicsItem>
 #include <QIODevice>
 #include <QInputDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
@@ -82,11 +88,13 @@
 #include <QSettings>
 #include <QSize>
 #include <QSpinBox>
+#include <QStatusBar>
 #include <QString>
 #include <QStringList>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
+#include <QThread>
 #include <QTimer>
 #include <QToolButton>
 #include <QTreeWidget>
@@ -104,6 +112,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -4295,6 +4304,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			std::fprintf(stdout, "E2E_EDITOR_UNDO_REDO_OK\n");
 	}
 
+	if (ok && w.m_sceneLoaded) {
+		QTemporaryDir recoveryTempDir;
+		QString recoveryOut = qEnvironmentVariable("QEGTRAIN_E2E_OUT");
+		if (recoveryOut.isEmpty())
+			recoveryOut = recoveryTempDir.path();
+		const QStringList recoveryFailures = checkRecovery(w, scenePath, recoveryOut);
+		for (const QString& failure : recoveryFailures) {
+			ok = false;
+			failures << failure;
+		}
+		if (recoveryFailures.isEmpty())
+			std::fprintf(stdout, "E2E_EDITOR_RECOVERY_OK\n");
+	}
+
 	if (ok) {
 		std::fprintf(stdout, "E2E_EDITOR_SMOKE_OK\n");
 		std::fflush(stdout);
@@ -4785,5 +4808,307 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		expect(w.m_sceneDirty && w.m_sceneModel.name == newSceneName && !w.m_undoAction->isEnabled() && w.m_redoAction->isEnabled(),
 			"Undo in a new scene did not return to its first state or marked it clean");
 	}
+	return finish();
+}
+
+// Autosave and recovery on a copy of the scene at scenePath, which is written below outFolder. A scripted run keeps no copies
+// until a folder is named for them. With one, an edit leads to a copy of the scene in that folder after the interval, and
+// Save, Undo to the saved state, a new scene and another scene take the copy away, while a failed open and Cancel keep it. A
+// closed window leaves nothing. A window that ends without closing leaves a copy that the next start offers, and a recovered
+// scene is an unsaved scene without a file of its own. Returns what failed.
+QStringList MainWindowTestAccess::checkRecovery(MainWindow& w, const QString& scenePath, const QString& outFolder) {
+	QStringList failures;
+	const auto expect = [&failures](bool condition, const QString& message) {
+		if (!condition)
+			failures << QStringLiteral("recovery: ") + message;
+		return condition;
+	};
+	const auto process = []() { QApplication::processEvents(); };
+	const QString previousScenePath = w.m_sceneDir;
+	const auto previousDialogShown = mainWindowTestHooks().dialogShown;
+	const QString root = QDir(outFolder).filePath("recovery_root");
+	const QString bundle = QFileInfo(QDir(outFolder).filePath("recovery_source.egscene")).absoluteFilePath();
+	const QString savedBundle = QDir(outFolder).filePath("recovery_saved.egscene");
+	const QString blocker = QDir(outFolder).filePath("recovery_blocker");
+	const auto finish = [&]() {
+		if (w.m_recovery)
+			w.m_recovery->shutdown();
+		qunsetenv("QEGTRAIN_RECOVERY_DIR");
+		qunsetenv("QEGTRAIN_RECOVERY_INTERVAL_MS");
+		mainWindowTestHooks().dialogShown = previousDialogShown;
+		w.startRecovery();
+		expect(!w.m_recovery, "the window keeps copies after the folder is no longer named");
+		QDir(root).removeRecursively();
+		if (!previousScenePath.isEmpty() && !w.openSceneDirectory(previousScenePath))
+			failures << QStringLiteral("recovery: the scene before the checks did not reopen");
+		return failures;
+	};
+
+	const auto waitFor = [](const std::function<bool()>& done) {
+		QElapsedTimer waited;
+		waited.start();
+		while (!done() && waited.elapsed() < 15000) {
+			QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+			QThread::msleep(5);
+		}
+		return done();
+	};
+	// A copy is written or removed once the controller has nothing left to do.
+	const auto settle = [&]() { return expect(waitFor([&w] { return w.m_recovery->isIdle(); }), "the autosave did not finish"); };
+	const auto fileBytes = [](const QString& path) {
+		QFile file(path);
+		return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray("unreadable");
+	};
+	QStringList leftFolders;
+	const auto instanceFolders = [&root]() { return QDir(root).entryList(QDir::Dirs | QDir::NoDotAndDotDot); };
+	const auto recordOf = [&root](const QString& folder) {
+		QFile file(QDir(QDir(root).filePath(folder)).filePath("recovery.json"));
+		return file.open(QIODevice::ReadOnly) ? QJsonDocument::fromJson(file.readAll()).object() : QJsonObject();
+	};
+	// The record of the window's own folder, empty when it holds none.
+	const auto ownRecord = [&]() {
+		QStringList own = instanceFolders();
+		for (const QString& left : leftFolders)
+			own.removeAll(left);
+		return own.size() == 1 ? recordOf(own.first()) : QJsonObject();
+	};
+	const auto editCase = [&w](const char* name) {
+		w.m_caseNameEdit->setText(name);
+		w.commitPendingCaseSettings();
+	};
+	// Leaves the copy of a scene named name, as a window that ended without closing does.
+	const auto leaveCopy = [&](const QString& name) {
+		RecoveryStore crashed(root);
+		SceneModel scene = w.m_sceneModel;
+		scene.name = name.toStdString();
+		RecoverySource source;
+		source.kind = RecoverySourceKind::Bundle;
+		source.path = bundle;
+		source.displayName = name;
+		source.sizeBytes = QFileInfo(bundle).size();
+		source.modified = QFileInfo(bundle).lastModified().toUTC();
+		if (!crashed.open().ok || !crashed.write(scene, source).ok)
+			return QString();
+		return crashed.instanceId();
+	};
+	// Clicks the buttons of the recovery prompt that opens next, in this order.
+	const auto answerPrompt = [](const QStringList& buttons) {
+		mainWindowTestHooks().dialogShown = [buttons](QDialog& dialog, const char* kind) {
+			if (std::strcmp(kind, "recoveryPrompt") != 0)
+				return;
+			QTimer::singleShot(0, &dialog, [&dialog, buttons]() {
+				for (const QString& name : buttons) {
+					if (auto* button = dialog.findChild<QPushButton*>(name))
+						button->click();
+				}
+			});
+		};
+	};
+
+	QDir(root).removeRecursively();
+	QFile::remove(bundle);
+	expect(!w.m_recovery, "the window keeps copies in a scripted run that names no folder");
+	qputenv("QEGTRAIN_RECOVERY_DIR", root.toUtf8());
+	qputenv("QEGTRAIN_RECOVERY_INTERVAL_MS", "50");
+	w.startRecovery();
+	if (!expect(w.m_recovery && w.m_recovery->intervalMs() == 50, "the window keeps no copies in the folder that is named for them"))
+		return finish();
+
+	// An opened bundle is the source of its copies, and a scene without edits has none.
+	if (!w.openSceneDirectory(scenePath) || !saveSceneBundle(w.m_sceneModel, bundle.toStdString()).success() || !w.openSceneDirectory(bundle)) {
+		failures << QStringLiteral("recovery: the bundle for the checks did not open");
+		return finish();
+	}
+	QByteArray originalBytes = fileBytes(bundle);
+	QDateTime originalTime = QFileInfo(bundle).lastModified();
+	expect(!w.m_sceneDirty && w.m_recoverySource.kind == RecoverySourceKind::Bundle && w.m_recoverySource.path == bundle
+			&& w.m_recoverySource.sizeBytes == QFileInfo(bundle).size()
+			&& w.m_recoverySource.modified.toMSecsSinceEpoch() == originalTime.toMSecsSinceEpoch(),
+		"an opened bundle is not the source of its copies");
+	expect(w.m_recovery->isIdle() && instanceFolders().isEmpty(), "a scene without edits has a copy");
+
+	// Three edits lead to one copy, and the file that the scene came from stays as it was.
+	editCase("E2E recovery one");
+	w.m_caseBaseTimeEdit->setText("09:15:30");
+	w.commitPendingCaseSettings();
+	editCase("E2E recovery three");
+	expect(w.m_sceneDirty && !w.m_recovery->isIdle(), "an edit did not start the autosave");
+	if (!settle())
+		return finish();
+	{
+		const QStringList folders = instanceFolders();
+		const QJsonObject record = folders.size() == 1 ? recordOf(folders.first()) : QJsonObject();
+		const QJsonObject source = record.value("source").toObject();
+		expect(record.value("display_name").toString() == "E2E recovery three" && source.value("kind").toString() == "bundle"
+				&& source.value("path").toString() == bundle,
+			"the copy does not name the scene and its source");
+		const QString copyPath = folders.size() == 1
+			? QDir(QDir(root).filePath(folders.first())).filePath(record.value("bundle_file").toString())
+			: QString();
+		const SceneLoadResult copy = loadScenePath(copyPath.toStdString());
+		expect(!copyPath.isEmpty() && !hasErrors(copy.diagnostics) && copy.scene.name == "E2E recovery three"
+				&& copy.scene.baseTime == "09:15:30",
+			"the copy does not hold the edits");
+	}
+	expect(RecoveryStore(root).scan().candidates.isEmpty(), "the copy of a running window is offered");
+	expect(fileBytes(bundle) == originalBytes && QFileInfo(bundle).lastModified() == originalTime, "the autosave changed the scene file");
+
+	// Undo to the saved state takes the copy away, and Redo brings the edits and their copy back.
+	while (w.m_history->canUndo())
+		w.undoScene();
+	process();
+	if (!settle())
+		return finish();
+	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "Undo to the saved state left a copy");
+	while (w.m_history->canRedo())
+		w.redoScene();
+	process();
+	if (!settle())
+		return finish();
+	expect(w.m_sceneDirty && ownRecord().value("display_name").toString() == "E2E recovery three", "Redo from the saved state left no copy");
+
+	// Save takes the copy away and reads the file that it wrote as the new source.
+	if (!expect(w.saveSceneToCurrentDir(), "the bundle was not saved"))
+		return finish();
+	if (!settle())
+		return finish();
+	originalBytes = fileBytes(bundle);
+	originalTime = QFileInfo(bundle).lastModified();
+	expect(!w.m_sceneDirty && ownRecord().isEmpty() && w.m_recoverySource.sizeBytes == QFileInfo(bundle).size()
+			&& w.m_recoverySource.modified.toMSecsSinceEpoch() == originalTime.toMSecsSinceEpoch(),
+		"Save left a copy or did not read the saved file");
+
+	// Opening the same scene again drops its edits and their copy.
+	editCase("E2E recovery four");
+	if (!settle())
+		return finish();
+	expect(!ownRecord().isEmpty(), "an edit after Save has no copy");
+	if (!expect(w.openSceneDirectory(bundle), "the bundle did not open again"))
+		return finish();
+	if (!settle())
+		return finish();
+	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "opening the scene again left the copy of the edits that it dropped");
+
+	// A new scene is recoverable. Discard followed by an open that fails, and Cancel, keep its copy. An open that succeeds takes it.
+	w.newScene();
+	process();
+	if (!settle())
+		return finish();
+	expect(w.m_sceneDirty && w.m_sceneDir.isEmpty()
+			&& ownRecord().value("source").toObject().value("kind").toString() == "untitled",
+		"a new scene has no copy");
+	answerMessageBox(&w, QMessageBox::Discard);
+	expect(!w.requestOpenScene(QDir(outFolder).filePath("no_such_recovery_scene")), "a scene that is not there opened");
+	if (!settle())
+		return finish();
+	expect(w.m_sceneDirty && !ownRecord().isEmpty(), "Discard followed by an open that failed removed the copy");
+	answerMessageBox(&w, QMessageBox::Cancel);
+	expect(!w.requestOpenScene(bundle) && w.m_sceneDirty && !ownRecord().isEmpty(), "Cancel removed the copy");
+	answerMessageBox(&w, QMessageBox::Discard);
+	expect(w.requestOpenScene(bundle), "the bundle did not open after Discard");
+	if (!settle())
+		return finish();
+	expect(!w.m_sceneDirty && ownRecord().isEmpty(), "opening a scene after Discard left the copy of the one that it dropped");
+
+	// Closing the window keeps the copy when the user cancels, and leaves nothing otherwise.
+	editCase("E2E recovery five");
+	if (!settle())
+		return finish();
+	{
+		QCloseEvent cancelled;
+		answerMessageBox(&w, QMessageBox::Cancel);
+		w.closeEvent(&cancelled);
+		expect(!cancelled.isAccepted() && !ownRecord().isEmpty(), "Cancel at close removed the copy");
+		QCloseEvent closing;
+		answerMessageBox(&w, QMessageBox::Discard);
+		w.closeEvent(&closing);
+		expect(closing.isAccepted() && instanceFolders().isEmpty(), "closing the window left a copy");
+	}
+	// The controller of a closed window takes no more copies.
+	w.startRecovery();
+	if (!expect(w.m_recovery != nullptr, "the window keeps no copies after the folder was cleared"))
+		return finish();
+
+	// Decide Later keeps a copy that a window left, and Discard removes it.
+	if (!w.openSceneDirectory(bundle)) {
+		failures << QStringLiteral("recovery: the bundle did not open before the prompt");
+		return finish();
+	}
+	const QStringList recentBefore = QSettings().value("recentScenes").toStringList();
+	const QString laterId = leaveCopy("E2E left copy");
+	leftFolders << laterId;
+	answerPrompt({"recoveryLaterButton"});
+	expect(!laterId.isEmpty() && !w.offerRecovery(), "Decide Later opened a copy");
+	expect(QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_sceneDirty, "Decide Later changed the scene or removed the copy");
+	answerPrompt({"recoveryDiscardButton", "recoveryDiscardButton"});
+	expect(!w.offerRecovery() && !QDir(root).exists(laterId) && w.m_sceneDir == bundle && !w.m_sceneDirty,
+		"Discard did not remove the copy or changed the scene");
+
+	// Recover opens the copy as an unsaved scene without a file, and the original stays as it was until Save As.
+	const QString recoveredId = leaveCopy("E2E recovered case");
+	leftFolders << recoveredId;
+	answerPrompt({"recoveryRecoverButton"});
+	const bool offered = w.offerRecovery();
+	if (!settle())
+		return finish();
+	expect(offered && w.m_sceneDir.isEmpty() && !w.m_sceneIsBundle && w.m_sceneDirty && w.m_sceneModel.name == "E2E recovered case",
+		"the recovered copy is not an unsaved scene without a file");
+	expect(!w.m_history->isAtSavedPoint() && !w.m_history->canUndo(), "the recovered copy has a saved state or a history");
+	expect(w.m_recoveredSourceHint == bundle && QFileInfo(w.saveSceneAsStartPath()).fileName() == QFileInfo(bundle).fileName(),
+		"Save As does not start at the file that the copy came from");
+	expect(QSettings().value("recentScenes").toStringList() == recentBefore, "the recovered copy is a recent scene");
+	expect(w.statusBar()->currentMessage().startsWith("Recovered"), "the window does not say that it opened a recovered copy");
+	expect(fileBytes(bundle) == originalBytes && QFileInfo(bundle).lastModified() == originalTime, "recovering changed the original");
+	leftFolders.removeAll(recoveredId);
+	expect(!QDir(root).exists(recoveredId) && ownRecord().value("display_name").toString() == "E2E recovered case"
+			&& ownRecord().value("source").toObject().value("path").toString() == bundle,
+		"the window did not take over the recovered copy");
+	editCase("E2E recovered edit");
+	if (!settle())
+		return finish();
+	expect(ownRecord().value("display_name").toString() == "E2E recovered edit"
+			&& ownRecord().value("source").toObject().value("path").toString() == bundle,
+		"an edit of a recovered scene has no copy that names the original");
+	// Save As, from the step after the file dialog: the recovered scene becomes a scene with a file, and its copy goes.
+	{
+		const SceneSaveResult saved = saveSceneBundle(w.m_sceneModel, savedBundle.toStdString());
+		w.m_sceneDir = QFileInfo(savedBundle).absoluteFilePath();
+		w.m_sceneIsBundle = true;
+		w.m_sceneBundleVersion = kCurrentSceneBundleVersion;
+		expect(w.finishSceneSave(saved, telemetry::OperationObservation(), telemetry::ExportKind::SceneBundle), "Save As failed");
+		if (!settle())
+			return finish();
+		expect(!w.m_sceneDirty && ownRecord().isEmpty() && w.m_recoveredSourceHint.isEmpty()
+				&& w.m_recoverySource.path == w.m_sceneDir,
+			"Save As left the copy or the hint of a recovered scene");
+		expect(fileBytes(bundle) == originalBytes && QFileInfo(bundle).lastModified() == originalTime, "Save As changed the original");
+	}
+
+	// A folder that cannot be made does not stop the editing, and the window says so once.
+	w.m_recovery->shutdown();
+	QFile blockerFile(blocker);
+	if (!blockerFile.open(QIODevice::WriteOnly)) {
+		failures << QStringLiteral("recovery: the file for the blocked folder was not written");
+		return finish();
+	}
+	blockerFile.close();
+	qputenv("QEGTRAIN_RECOVERY_DIR", QDir(blocker).filePath("recovery").toUtf8());
+	w.startRecovery();
+	if (!w.m_recovery || !w.openSceneDirectory(bundle)) {
+		failures << QStringLiteral("recovery: the window did not start with a folder that cannot be made");
+		return finish();
+	}
+	int unavailable = 0;
+	const QMetaObject::Connection counter = QObject::connect(w.statusBar(), &QStatusBar::messageChanged,
+		[&unavailable](const QString& message) { unavailable += message.startsWith("Autosave unavailable") ? 1 : 0; });
+	const std::size_t steps = w.m_history->undoCount();
+	editCase("E2E unwritable one");
+	settle();
+	editCase("E2E unwritable two");
+	settle();
+	QObject::disconnect(counter);
+	expect(unavailable == 1, "the window reported the failed autosave " + QString::number(unavailable) + " times");
+	expect(w.m_sceneDirty && w.m_history->undoCount() == steps + 2 && w.m_sceneModel.name == "E2E unwritable two",
+		"a failed autosave stopped the editing");
 	return finish();
 }
