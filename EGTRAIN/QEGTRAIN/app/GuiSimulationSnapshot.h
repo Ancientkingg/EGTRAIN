@@ -45,6 +45,12 @@ inline const std::string& guiTrainDisplayIdentifier(const GuiTrainState& train) 
 	return train.operatingCode.empty() ? train.description : train.operatingCode;
 }
 
+// The name that the train list and the Follow status give a train: its description, or its place in the list
+// (counted from 1) when it has none.
+inline std::string followTrainName(const std::string& description, int trainIndex) {
+	return description.empty() || description == "None" ? "Train " + std::to_string(trainIndex + 1) : description;
+}
+
 inline bool guiTrainPublishesOccupiedArcs(const GuiTrainState& train) {
 	return !train.outOfSimulation;
 }

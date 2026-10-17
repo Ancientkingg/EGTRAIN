@@ -138,16 +138,23 @@ InspectorPanel::InspectorPanel(QMainWindow* window, QGraphicsScene* scene, Netwo
 	signallingFormLayout->addRow("Aspect", signallingAspectText);
 	signallingFormLayout->addRow("Protected section", signallingProtectedSectionText);
 	signallingFormLayout->addRow("Next track", signallingNextTrackText);
-	signallingFormLayout->addRow("Signals at location", signallingGroupDetails);
+	// The label has its own row and the box spans the form, so that a narrow dock leaves the box its width.
+	auto* signallingGroupLabel = new QLabel("Signals at location", signallingInfoWidget);
+	signallingGroupLabel->setBuddy(signallingGroupDetails);
+	signallingFormLayout->addRow(signallingGroupLabel);
+	signallingFormLayout->addRow(signallingGroupDetails);
 	signallingInfoWidget->setLayout(signallingFormLayout);
 
 	// train info widget
 	trainInfoWidget = new QWidget();
+	trainNameText = new QLineEdit(trainInfoWidget);
+	trainNameText->setObjectName("trainNameText");
 	trainIDText = new QLineEdit(trainInfoWidget);
 	trainTypeText = new QLineEdit(trainInfoWidget);
 	trainLengthText = new QLineEdit(trainInfoWidget);
 	trainWagonsText = new QLineEdit(trainInfoWidget);
 	auto* trainFormLayout = new QFormLayout();
+	trainFormLayout->addRow("Train", trainNameText);
 	trainFormLayout->addRow("ID", trainIDText);
 	trainFormLayout->addRow("Type", trainTypeText);
 	trainFormLayout->addRow("Length (m)", trainLengthText);
@@ -716,6 +723,7 @@ void InspectorPanel::displayTrainDetails(TrainBodyItem* trainItem, bool changeFo
 		return;
 	handleCloseInfoDockWidget();
 	m_selectedTrainIndex = trainItem->index;
+	trainNameText->setText(QString::fromStdString(followTrainName(groupItem->trainDescription, groupItem->index)));
 	trainIDText->setText(QString::fromStdString(to_string_precision(groupItem->trainId, 0)));
 	trainTypeText->setText(QString::fromStdString(groupItem->trainType));
 	trainLengthText->setText(QString::fromStdString(to_string_precision(groupItem->trainLength, 0)));
