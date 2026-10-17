@@ -3352,7 +3352,8 @@ void MainWindow::refreshAllEditorPanels() {
 	m_caseSettingsPanel->refresh();
 	m_trainUnitPanel->refresh();
 	m_compositionPanel->refresh();
-	refreshServicePanel();
+	m_servicePanel->refresh();
+	m_timetableStopsPanel->refresh();
 	refreshIncidentPanel();
 	refreshInfrastructurePanel();
 	refreshValidationPanel();

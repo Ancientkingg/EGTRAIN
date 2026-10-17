@@ -4389,7 +4389,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 				dialog->reject();
 		});
 		timer.start(0);
-		w.editStop(stopRow);
+		w.m_timetableStopsPanel->editStop(stopRow);
 		process();
 		return accepted;
 	};
@@ -4496,7 +4496,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		serviceIdsBefore.insert(service.id);
 	if (!step("a duplicated service", "Add service", [&] {
 			w.m_serviceListWidget->setCurrentRow(0);
-			w.m_duplicateServiceButton->click();
+			w.m_servicePanel->duplicateService();
 		}))
 		return finish();
 	std::string duplicatedServiceId;
@@ -4506,7 +4506,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 	}
 	if (!step("a service field", "Edit", [&] {
 			w.m_serviceOperatingCodeEdit->setText("1731");
-			w.commitPendingServiceSettings();
+			w.m_servicePanel->commitPendingEditors();
 		}))
 		return finish();
 	if (!selectServiceWithStops(2)) {
@@ -4538,14 +4538,14 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return finish();
 	if (!step("a deleted stop", "Delete stop", [&] {
 			w.m_stopTableWidget->setCurrentCell(0, 0);
-			w.m_removeStopButton->click();
+			w.m_timetableStopsPanel->removeStop();
 		}))
 		return finish();
 	if (!step("an added scenario", "Add scenario", [&] { w.m_blankScenarioButton->click(); }))
 		return finish();
 	if (!step("a scenario name", "Edit", [&] {
 			w.m_scenarioNameEdit->setText("E2E scenario");
-			w.commitScenarioNameEdit();
+			w.m_scenarioPanel->commitNameEdit();
 		}))
 		return finish();
 	if (!step("an added incident", "Add incident", [&] { w.m_addIncidentButton->click(); }))
@@ -4567,7 +4567,7 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 					w.m_serviceListWidget->setCurrentRow(static_cast<int>(row));
 			}
 			answerMessageBox(&w, QMessageBox::Yes);
-			w.m_deleteServiceButton->click();
+			w.m_servicePanel->deleteService();
 		}))
 		return finish();
 	expect(w.m_undoAction->text() == QLatin1String("Undo Delete service") && w.m_redoAction->text() == QLatin1String("Redo"),
