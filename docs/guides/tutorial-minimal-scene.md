@@ -68,7 +68,7 @@ On the tab **Traction**, choose **Add Traction Row** twice and fill the columns 
 | 1 | 0 | 8.611111111111 | 209000 | 0 | 0 |
 | 2 | 8.611111111111 | 36.111111111111 | 324607.2915 | -17671.4923 | 292.9005 |
 
-The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
+A field or cell that you are not editing can show a number rounded, for example `36.1111`; the full value is kept, and it shows when you click the field. The speed intervals must not overlap and must run in order. The source references and the links to files are optional and stay empty.
 
 ## 4. A composition
 
@@ -77,8 +77,8 @@ Open **Editors > Compositions** and choose **Add Composition**. The composition 
 ## 5. A service with two stops
 
 1. Open **Editors > Services** and choose **Add Service**. The service is `new_service`. On the tab **Service**, set **Composition** to `new_composition` and **Route** to `route`. Leave the other fields as they are. A service without an **Entry Time (s)** enters at the planned departure of its first stop.
-2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, set **Station** to `station` and **Compatible platform** to `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
-3. Choose **Add Stop** again. Set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
+2. Open the tab **Timetable** and choose **Add Stop**. In the dialog **Add timetable stop**, leave **Insert position** as proposed, and check that **Station** is `station` and **Compatible platform** is `platform`. Tick **Planned departure** and enter `120`. Leave **Planned arrival** unticked and **Minimum dwell (s)** at 0, and choose **OK**. A blank planned time means that there is none, and the first stop has no arrival.
+3. Choose **Add Stop** again. Leave **Insert position** at the proposed place after stop 1, and set **Station** to `station_2` and **Compatible platform** to `platform_2`. Tick **Planned arrival** and enter `250`. Leave the departure unticked, because the train ends its service here, and choose **OK**.
 
 The planned times are seconds after the base time of the case, 08:00:00 (**Planned time display** is **Elapsed offsets (s)**). The table shows both stops in order. **Cancel** in the dialog leaves the table unchanged.
 
