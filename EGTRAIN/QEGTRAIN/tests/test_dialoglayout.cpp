@@ -619,6 +619,7 @@ bool buttonShowsText(QPushButton* button, const char* where, qreal scale) {
 bool exerciseDefaultButtonWidth(qreal scale) {
 #ifdef Q_OS_WIN
 	// Qt 5.15 crashes with a QMessageBox on the offscreen platform on Windows.
+	Q_UNUSED(scale);
 	return true;
 #else
 	const QFont appFont = qApp->font();
