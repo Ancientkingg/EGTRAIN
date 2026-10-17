@@ -1,9 +1,31 @@
 #include "telemetry/TelemetryOperation.h"
 #include <QAction>
 #include <QDockWidget>
+#include <QEvent>
 #include <QMenu>
 
 namespace telemetry {
+namespace {
+// Keeps the check mark of an editor action at the explicit shown state of its dock. The signal
+// QDockWidget::visibilityChanged is not sent for a dock that is hidden before it was ever shown, so
+// the dock is watched for the events of show() and hide(), which are sent in every case.
+class DockCheckSync : public QObject {
+public:
+	DockCheckSync(QDockWidget* dock, QAction* action) : QObject(action), m_dock(dock), m_action(action) {
+		dock->installEventFilter(this);
+	}
+	bool eventFilter(QObject* watched, QEvent* event) override {
+		if (watched == m_dock && (event->type() == QEvent::ShowToParent || event->type() == QEvent::HideToParent))
+			m_action->setChecked(!m_dock->isHidden());
+		return false;
+	}
+
+private:
+	QDockWidget* m_dock;
+	QAction* m_action;
+};
+} // namespace
+
 void OperationObservation::sceneOpened(SceneKind kind) const noexcept {
 	TelemetryEventInput input;
 	input.name = Name::SceneOpened;
@@ -74,9 +96,7 @@ QAction* registerEditor(QDockWidget* dock, QMenu* menu, const CaptureOperation& 
 	action->setCheckable(true);
 	action->setChecked(!dock->isHidden());
 	menu->addAction(action);
-	QObject::connect(dock, &QDockWidget::visibilityChanged, action, [dock, action](bool) {
-		action->setChecked(!dock->isHidden());
-	});
+	new DockCheckSync(dock, action);
 	QObject::connect(action, &QAction::triggered, dock, [dock, capture](bool checked) {
 		const OperationObservation operation = capture ? capture() : OperationObservation();
 		if (checked) revealEditor(dock, operation);
