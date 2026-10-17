@@ -20,7 +20,7 @@ inline QString text(const QString& path, const QString& error) {
 	QString sentence = QStringLiteral("The file is damaged or is not an EGTRAIN case study.");
 	if (info.isDir()) {
 		sentence = QDir(path).exists(QStringLiteral("scene.json"))
-			? QStringLiteral("The scene.json in the folder is damaged or is not an EGTRAIN scene.")
+			? QStringLiteral("The folder holds a damaged or incomplete EGTRAIN scene.")
 			: QStringLiteral("The folder holds no EGTRAIN scene. A scene folder holds a scene.json file.");
 	}
 	QString message = QStringLiteral("%1 could not be opened.\n%2").arg(name.isEmpty() ? path : name, sentence);

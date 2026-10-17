@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 		"plain could not be opened.\nThe folder holds no EGTRAIN scene. A scene folder holds a scene.json file.\n\nerror x",
 		"text for a folder without scene.json");
 	requireText(cannot_open::text(QDir(temp.path()).filePath("scene"), {}),
-		"scene could not be opened.\nThe scene.json in the folder is damaged or is not an EGTRAIN scene.",
+		"scene could not be opened.\nThe folder holds a damaged or incomplete EGTRAIN scene.",
 		"text for a folder with a damaged scene.json");
 	return 0;
 }
