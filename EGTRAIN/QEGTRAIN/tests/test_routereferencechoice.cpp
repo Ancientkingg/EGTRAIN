@@ -1,5 +1,6 @@
 #include "diagrams/RouteReferenceChoice.h"
 #include "scene/SceneModel.h"
+#include "widgets/PlainToolTip.h"
 
 #include <QApplication>
 #include <QDialogButtonBox>
@@ -167,7 +168,9 @@ int main(int argc, char** argv) {
 			ok &= check(list->selectionMode() == QAbstractItemView::SingleSelection, "single selection");
 			ok &= check(list->count() == 2 && list->currentRow() == 0, "first row is selected by default");
 			ok &= check(dialog.selectedRuntimeIndex() == 5, "default selection returns the first runtime index");
-			ok &= checkText(list->item(1)->toolTip(), twins[1].toolTip, "rows carry their tooltip");
+			ok &= checkText(list->item(1)->toolTip(), plainToolTip(twins[1].toolTip), "rows carry their tooltip");
+			// A row tooltip goes through the plain tooltip helper, so a long identifier can wrap.
+			ok &= check(list->item(1)->toolTip() != twins[1].toolTip, "a row tooltip is plain text that can wrap");
 			list->setCurrentRow(1);
 			ok &= check(dialog.selectedRuntimeIndex() == 9, "second identical row returns its own runtime index");
 		}
