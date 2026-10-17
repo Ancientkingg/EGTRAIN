@@ -121,6 +121,7 @@ class PassengerPanel;
 class ScenarioPanel;
 class ServicePanel;
 class RecoveryController;
+class SceneEditorPanel;
 class SceneHistory;
 struct SceneHistoryEntry;
 class UserPrompts;
@@ -434,6 +435,8 @@ private:
 	bool m_sceneIsBundle = false;
 	std::optional<int> m_sceneBundleVersion;
 	bool m_committingPendingEditorValues = false;
+	// The editor panels, in the order in which commitPendingEditorValues takes their pending edits.
+	std::vector<SceneEditorPanel*> m_editorPanels;
 	QAction* m_saveSceneAction = nullptr;
 	QAction* m_saveSceneAsAction = nullptr;
 	QAction* m_saveSceneAsFolderAction = nullptr;

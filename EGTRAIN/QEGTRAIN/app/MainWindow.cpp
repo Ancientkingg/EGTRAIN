@@ -54,6 +54,7 @@
 #include "editors/InfrastructurePanel.h"
 #include "editors/PassengerPanel.h"
 #include "editors/ScenarioPanel.h"
+#include "editors/SceneEditorPanel.h"
 #include "editors/ServicePanel.h"
 #include "editors/TimetableStopsPanel.h"
 #include "editors/TrainUnitPanel.h"
@@ -1809,6 +1810,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_servicePanel->setDocument(m_document);
 	m_timetableStopsPanel->setDocument(m_document);
 	m_serviceDock->setEnabled(false);
+	m_editorPanels = {m_caseSettingsPanel, m_trainUnitPanel, m_infrastructurePanel, m_passengerPanel, m_compositionPanel,
+		m_servicePanel, m_timetableStopsPanel, m_scenarioPanel, m_incidentPanel, m_entranceDelayPanel};
 
 	// permanent status-bar field for the scene validation summary, so it does
 	// not clobber transient load/save messages
@@ -3313,23 +3316,10 @@ void MainWindow::commitPendingEditorValues() {
 	if (m_committingPendingEditorValues || m_restoringHistory)
 		return;
 	m_committingPendingEditorValues = true;
-
-	m_caseSettingsPanel->commitPendingEditors();
-	m_trainUnitPanel->commitPendingEditors();
-	m_infrastructurePanel->commitPendingEditors();
-	m_passengerPanel->commitPendingEditors();
-	m_compositionPanel->commitPendingEditors();
-	m_servicePanel->commitPendingEditors();
-	// Scenario and incident controls are disabled and cleared during a run.
-	// Their placeholder values are not pending edits.
-	if (m_worker) {
-		m_committingPendingEditorValues = false;
-		return;
-	}
-	m_scenarioPanel->commitPendingEditors();
-	m_incidentPanel->commitPendingEditors();
-	m_entranceDelayPanel->commitPendingEditors();
-
+	// The scenario, incident and entrance delay controls are disabled and cleared during a run, and their panels take
+	// nothing then, because the document is not editable.
+	for (SceneEditorPanel* panel : m_editorPanels)
+		panel->commitPendingEditors();
 	m_committingPendingEditorValues = false;
 }
 
