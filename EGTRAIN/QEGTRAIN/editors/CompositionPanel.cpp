@@ -57,10 +57,13 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_idEdit->setObjectName("compositionIdEdit");
 	detailLayout->addWidget(m_idEdit);
 	detailLayout->addWidget(new QLabel("Rolling stock units (in order)", detailPane));
+	m_unitsEmptyStateLabel = EditorLayout::emptyStateLabel(detailPane);
+	m_unitsEmptyStateLabel->setObjectName("compositionUnitsEmptyStateLabel");
+	detailLayout->addWidget(m_unitsEmptyStateLabel);
 	m_unitsListWidget = new QListWidget(detailPane);
 	m_unitsListWidget->setObjectName("compositionUnitsList");
 	detailLayout->addWidget(m_unitsListWidget);
-	QHBoxLayout* unitButtonLayout = new QHBoxLayout();
+	QGridLayout* unitButtonLayout = new QGridLayout();
 	m_addUnitButton = new QPushButton("Add Unit", detailPane);
 	m_addUnitButton->setObjectName("addCompositionUnitButton");
 	m_removeUnitButton = new QPushButton("Remove Unit", detailPane);
@@ -69,10 +72,10 @@ CompositionPanel::CompositionPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_moveUnitUpButton->setObjectName("moveCompositionUnitUpButton");
 	m_moveUnitDownButton = new QPushButton("Move Down", detailPane);
 	m_moveUnitDownButton->setObjectName("moveCompositionUnitDownButton");
-	unitButtonLayout->addWidget(m_addUnitButton);
-	unitButtonLayout->addWidget(m_removeUnitButton);
-	unitButtonLayout->addWidget(m_moveUnitUpButton);
-	unitButtonLayout->addWidget(m_moveUnitDownButton);
+	unitButtonLayout->addWidget(m_addUnitButton, 0, 0);
+	unitButtonLayout->addWidget(m_removeUnitButton, 0, 1);
+	unitButtonLayout->addWidget(m_moveUnitUpButton, 1, 0);
+	unitButtonLayout->addWidget(m_moveUnitDownButton, 1, 1);
 	detailLayout->addLayout(unitButtonLayout);
 
 	// selected unit: its original sources and the tractive-effort plot
@@ -178,6 +181,13 @@ void CompositionPanel::updateDetail() {
 		}
 		m_unitsListWidget->setEnabled(hasSelection);
 	}
+	QString unitsEmptyState;
+	if (hasSelection && m_unitsListWidget->count() == 0) {
+		unitsEmptyState = m_document->model().trainUnits.empty()
+			? QStringLiteral("This composition has no units. Add a rolling stock unit first.")
+			: QStringLiteral("This composition has no units. Use Add Unit.");
+	}
+	DialogLayout::setHelp(m_unitsEmptyStateLabel, unitsEmptyState);
 	m_duplicateButton->setEnabled(hasSelection);
 	m_deleteButton->setEnabled(hasSelection);
 	m_addUnitButton->setEnabled(hasSelection && !m_document->model().trainUnits.empty());

@@ -128,6 +128,6 @@ The two `validate` commands print nothing for a case without diagnostics and exi
 
 - **Add** is disabled in Blocks, and the text above the table reads "No blocks yet. Add a track first, then add blocks on it.": add a track first. With a track, the filter above the table names it and **Add** works.
 - **Add** in Platforms leaves the table as it is and the status bar reads "Add a station before adding a platform": add the stations first.
-- The dialog **Add timetable stop** shows "(no reachable station here)": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
+- **Add Stop** shows the message "No reachable stop: No station visit is available between any of the current stops. Check the route and stop order before adding a stop.": the route has no sections, or the platform nodes are not on the route. Check the tables Routes and Platforms.
 - A refused edit says "Infrastructure IDs must be non-empty and unique": choose another name.
 - **Run** is disabled: the dock **Case and Layers** names the first error, and the dock **Scene Validation** lists all of them.

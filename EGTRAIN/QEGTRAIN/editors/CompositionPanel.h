@@ -54,6 +54,7 @@ public:
 	QPushButton* moveUnitUpButton() const { return m_moveUnitUpButton; }
 	QPushButton* moveUnitDownButton() const { return m_moveUnitDownButton; }
 	QLabel* emptyStateLabel() const { return m_emptyStateLabel; }
+	QLabel* unitsEmptyStateLabel() const { return m_unitsEmptyStateLabel; }
 	QLabel* unitSourceDataLabel() const { return m_unitSourceDataLabel; }
 	QLabel* unitSourceTractionLabel() const { return m_unitSourceTractionLabel; }
 	QLabel* unitWarningLabel() const { return m_unitWarningLabel; }
@@ -87,6 +88,7 @@ private:
 	QPushButton* m_moveUnitUpButton = nullptr;
 	QPushButton* m_moveUnitDownButton = nullptr;
 	QLabel* m_emptyStateLabel = nullptr;
+	QLabel* m_unitsEmptyStateLabel = nullptr;
 	QLabel* m_unitSourceDataLabel = nullptr;
 	QLabel* m_unitSourceTractionLabel = nullptr;
 	QLabel* m_unitWarningLabel = nullptr;

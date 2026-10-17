@@ -496,6 +496,22 @@ int main(int argc, char** argv) {
 				&& prompts.errorMessage == "Cannot delete tracks 'T1' because it is still referenced by:\n\xE2\x80\xA2 block b1\nRemove or rebind those consumers first."
 				&& document.model().tracks.size() == 3 && events.log.empty(),
 			"an entity that is used cannot be deleted, and the user is told which items use it");
+		// a long list of consumers is cut short
+		{
+			std::vector<std::string> consumers;
+			for (int index = 1; index <= 25; ++index)
+				consumers.push_back("node n" + std::to_string(index));
+			prompts.errorMessage.clear();
+			ok &= expect(!panel.confirmDelete("T1", consumers), "an entity with many consumers cannot be deleted");
+			ok &= expect(prompts.errorMessage.contains("\xE2\x80\xA2 node n10\n") && !prompts.errorMessage.contains("node n11")
+					&& prompts.errorMessage.contains("\nand 15 more\n"),
+				"the message lists the first ten consumers and counts the others");
+			consumers.resize(10);
+			prompts.errorMessage.clear();
+			panel.confirmDelete("T1", consumers);
+			ok &= expect(prompts.errorMessage.contains("node n10\n") && !prompts.errorMessage.contains("more"),
+				"ten consumers are all listed");
+		}
 		panel.table()->setCurrentCell(1, 0);
 		panel.deleteButton()->click();
 		ok &= expect(prompts.confirmCount == 1 && prompts.confirmQuestion == "Delete tracks 'T9'?" && document.model().tracks.size() == 3
@@ -511,6 +527,18 @@ int main(int argc, char** argv) {
 		panel.deleteButton()->click();
 		panel.deleteEntity();
 		ok &= expect(trackFacet->removeCount == removesBefore, "deleting without a selected row asks nothing of the facet");
+		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip() == "Select a row to delete.",
+			"the delete button says why it is off while no row is selected");
+		panel.table()->setCurrentCell(0, 0);
+		ok &= expect(panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip().contains("cannot be deleted"),
+			"choosing a row turns the delete button on");
+		panel.table()->setCurrentCell(-1, -1);
+		document.setEditable(false);
+		panel.refresh();
+		ok &= expect(!panel.deleteButton()->isEnabled() && panel.deleteButton()->toolTip().contains("while a run is in progress"),
+			"the delete button says why it is off while a run uses the scene");
+		document.setEditable(true);
+		panel.refresh();
 		panel.showStatus("Hello", 1500);
 		ok &= expect(events.lastMessage() == std::pair<QString, int>("Hello", 1500), "a facet can show a message in the status line");
 	}

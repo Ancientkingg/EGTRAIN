@@ -323,6 +323,8 @@ static bool testStations() {
 
 	// delete
 	f.select(0);
+	ok &= expect(f.panel.deleteButton()->isEnabled() && f.panel.deleteButton()->toolTip().contains("cannot be deleted"),
+		"the delete button of a station that others use says that such a row cannot be deleted");
 	f.panel.deleteButton()->click();
 	ok &= expect(f.prompts.errorCount == 1 && f.prompts.confirmCount == 0 && f.model().stations.size() == 3 && f.untouched(),
 		"a station that others use cannot be deleted");

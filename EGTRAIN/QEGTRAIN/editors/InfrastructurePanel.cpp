@@ -316,8 +316,6 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 				[&selectedTrack](const SceneTrack& track) { return track.id == selectedTrack; });
 	}
 	m_addButton->setEnabled(canAdd);
-	m_deleteButton->setEnabled(editable && rowToSelect >= 0);
-	m_insertBlockButton->setEnabled(editable && isBlocks && rowToSelect >= 0);
 }
 
 void InfrastructurePanel::updateSelection() {
@@ -326,6 +324,19 @@ void InfrastructurePanel::updateSelection() {
 	const InfrastructureFacet* current = currentFacet();
 	m_selectionId = row >= 0 && current ? current->selectionId(*m_table, row) : QString();
 	emit selectionChanged(key, m_selectionId);
+	const bool hasRow = canEdit() && row >= 0;
+	m_deleteButton->setEnabled(hasRow);
+	m_insertBlockButton->setEnabled(hasRow && key == QStringLiteral("blocks"));
+	QString deleteHint;
+	if (!hasScene())
+		deleteHint = QStringLiteral("Open a case to delete infrastructure.");
+	else if (!canEdit())
+		deleteHint = QStringLiteral("The scene cannot be edited while a run is in progress.");
+	else if (row < 0)
+		deleteHint = QStringLiteral("Select a row to delete.");
+	else
+		deleteHint = QStringLiteral("Delete the selected row. A row that other items refer to cannot be deleted.");
+	m_deleteButton->setToolTip(deleteHint);
 	if (key == QStringLiteral("blocks")) {
 		const int blockRows = static_cast<int>(m_blockRowModelIndices.size());
 		const bool editable = canEdit() && row >= 0 && row < blockRows;
@@ -495,12 +506,17 @@ void InfrastructurePanel::refuseEdit(const QString& message) {
 bool InfrastructurePanel::confirmDelete(const QString& id, const std::vector<std::string>& consumers) {
 	const QString kind = facetTitle().toLower();
 	if (!consumers.empty()) {
+		// A box that lists every consumer of a track or a node can be taller than the screen.
+		constexpr std::size_t kMaxListedConsumers = 10;
 		QStringList lines;
-		for (const std::string& consumer : consumers)
-			lines << QString::fromStdString(consumer);
+		for (std::size_t index = 0; index < consumers.size() && index < kMaxListedConsumers; ++index)
+			lines << QString::fromStdString(consumers[index]);
+		QString list = lines.join("\n• ");
+		if (consumers.size() > kMaxListedConsumers)
+			list += QString("\nand %1 more").arg(static_cast<int>(consumers.size() - kMaxListedConsumers));
 		m_prompts->showError(this, "Cannot Delete Infrastructure Entity",
 			QString("Cannot delete %1 '%2' because it is still referenced by:\n• %3\nRemove or rebind those consumers first.")
-				.arg(kind, id, lines.join("\n• ")),
+				.arg(kind, id, list),
 			true);
 		return false;
 	}

@@ -64,6 +64,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFont>
+#include <QFontMetrics>
 #include <QFormLayout>
 #include <QGraphicsItem>
 #include <QHeaderView>
@@ -98,6 +99,7 @@
 #include <QStatusBar>
 #include <QString>
 #include <QStringList>
+#include <QStyle>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -4156,6 +4158,20 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			const QHeaderView* columns = w.m_stopTableWidget->horizontalHeader();
 			if (w.m_stopTableWidget->horizontalScrollBar()->isVisible() || columns->length() > w.m_stopTableWidget->viewport()->width())
 				failure = QString("the columns of %1 need a horizontal scroll bar on the Timetable tab").arg(w.m_stopTableWidget->objectName());
+			// The planned times as clock times are whole, not elided, in the columns of the table.
+			const int previousMode = w.m_stopTimeModeCombo->currentIndex();
+			w.m_stopTimeModeCombo->setCurrentIndex(w.m_stopTimeModeCombo->findData(true));
+			QApplication::processEvents();
+			const QFontMetrics metrics(w.m_stopTableWidget->font());
+			const int margin = 2 * (w.m_stopTableWidget->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, w.m_stopTableWidget) + 1);
+			for (int row = 0; row < w.m_stopTableWidget->rowCount(); ++row) {
+				for (int column = 3; column < 5; ++column) {
+					const QTableWidgetItem* cell = w.m_stopTableWidget->item(row, column);
+					if (cell && metrics.horizontalAdvance(cell->text()) + margin > w.m_stopTableWidget->columnWidth(column))
+						failure = QString("the clock time '%1' is elided on the Timetable tab").arg(cell->text());
+				}
+			}
+			w.m_stopTimeModeCombo->setCurrentIndex(previousMode);
 			pages->setCurrentIndex(previousTab);
 			QApplication::processEvents();
 			return failure;
@@ -4224,6 +4240,25 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			w.m_infrastructureFacetCombo->setCurrentIndex(w.m_infrastructureFacetCombo->findData(shownFacet));
 			QApplication::processEvents();
 		};
+		// The buttons of the composition editor are whole inside the visible part of the dock, and the dock does not scroll sideways.
+		// A docked dock is first made `dockWidth` pixels wide, narrower than the editor needed when its buttons were in one row.
+		const auto compositionButtonFailure = [&w](int dockWidth = 0) -> QString {
+			if (dockWidth > 0 && !w.m_compositionDock->isFloating())
+				w.resizeDocks({w.m_compositionDock}, {dockWidth}, Qt::Horizontal);
+			auto* scroll = w.m_compositionDock->findChild<QScrollArea*>("editorContentScroll");
+			scroll->verticalScrollBar()->setValue(0);
+			scroll->horizontalScrollBar()->setValue(0);
+			QApplication::processEvents();
+			const CompositionPanel* panel = w.m_compositionPanel;
+			const std::array<const QWidget*, 7> buttons = {panel->addButton(), panel->duplicateButton(), panel->deleteButton(),
+				panel->addUnitButton(), panel->removeUnitButton(), panel->moveUnitUpButton(), panel->moveUnitDownButton()};
+			for (const QWidget* button : buttons) {
+				const QRect placed(button->mapTo(scroll->viewport(), QPoint(0, 0)), button->size());
+				if (placed.left() < 0 || placed.right() >= scroll->viewport()->width())
+					return QString("%1 is cut off at the side of the Compositions dock").arg(button->objectName());
+			}
+			return scroll->horizontalScrollBar()->isVisible() ? QString("the Compositions dock scrolls sideways") : QString();
+		};
 		for (QDockWidget* dock : {w.m_caseSettingsDock, w.m_infrastructureDock, w.m_trainUnitDock,
 				 w.m_compositionDock, w.m_serviceDock, w.m_incidentDock, w.m_passengerDock}) {
 			const QFont normalFont = dock->font();
@@ -4238,6 +4273,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(ok, "presentation", dock->objectName() + " enlarged the main window");
 				if (dock == w.m_serviceDock) {
 					const QString failure = timetableTabFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " at 1280 by 800 pixels");
+				}
+				if (dock == w.m_compositionDock) {
+					const QString failure = compositionButtonFailure(640);
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " at 1280 by 800 pixels");
 				}
@@ -4260,6 +4300,11 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 					facetFailure(ok, "presentation", dock->objectName() + " cannot bound its floating content");
 				else if (dock == w.m_serviceDock) {
 					const QString failure = timetableTabFailure();
+					if (!failure.isEmpty())
+						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
+				}
+				if (dock == w.m_compositionDock) {
+					const QString failure = compositionButtonFailure();
 					if (!failure.isEmpty())
 						facetFailure(ok, "presentation", failure + " in a floating dock of 750 by 600 pixels");
 				}
@@ -4324,6 +4369,21 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			if (!timetableFailure.isEmpty())
 				facetFailure(ok, "presentation", timetableFailure + " at 1280 by 698 pixels");
 			w.m_serviceDock->hide();
+
+			// The Compositions dock at the same size: its buttons are inside the dock, docked and floating.
+			w.m_compositionDock->show();
+			w.m_compositionDock->raise();
+			QApplication::processEvents();
+			const QString docked698 = compositionButtonFailure(640);
+			if (!docked698.isEmpty())
+				facetFailure(ok, "presentation", docked698 + " at 1280 by 698 pixels");
+			w.m_compositionDock->setFloating(true);
+			QApplication::processEvents();
+			const QString floating698 = compositionButtonFailure();
+			if (!floating698.isEmpty())
+				facetFailure(ok, "presentation", floating698 + " in a floating dock at 1280 by 698 pixels");
+			w.m_compositionDock->setFloating(false);
+			w.m_compositionDock->hide();
 
 			// The Incidents dock at the same size: the scenario header sits above the tabs, and the Add button and the
 			// fields of the selected incident are inside the viewport of the dock, also at 1.5 times the font.
