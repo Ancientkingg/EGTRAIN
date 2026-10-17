@@ -128,6 +128,11 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setAccessibleName("Timetable stops");
 	// The headers have two lines, so that the five columns fit the width of the dock.
 	m_table->setHorizontalHeaderLabels({"Station", "Stop\nplatform", "Minimum\ndwell (s)", "Planned\narrival", "Planned\ndeparture"});
+	// A narrow column cuts its header, so each header carries its whole text as a tooltip.
+	for (int column = 0; column < m_table->columnCount(); ++column) {
+		QTableWidgetItem* header = m_table->horizontalHeaderItem(column);
+		header->setToolTip(header->text().replace(QLatin1Char('\n'), QLatin1Char(' ')));
+	}
 	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
