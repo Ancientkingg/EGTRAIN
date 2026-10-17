@@ -699,12 +699,6 @@ private:
 	void commitCaseSettings();
 	// Enables the infrastructure dock and shows the panel again.
 	void refreshInfrastructurePanel(bool resetSelection = false);
-	// The facets of the infrastructure panel that MainWindow implements.
-	class UnmovedInfrastructureFacet;
-	void fillInfrastructureRows(const QString& facet);
-	void commitInfrastructureCell(int row, int column);
-	void addInfrastructureEntity();
-	void deleteInfrastructureEntity();
 	void refreshValidationPanel();
 	void refreshLoadedDataTree();
 	bool advancedDetailsEnabled() const;

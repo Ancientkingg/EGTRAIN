@@ -65,7 +65,7 @@ public:
 
 	void add(InfrastructurePanel& panel) override {
 		SceneModel& model = panel.mutableModel();
-		const std::string id = sceneUniqueInfrastructureId(model, m_noun.toStdString(), m_key.toStdString());
+		const std::string id = sceneUniqueInfrastructureId(model, idBase(), m_key.toStdString());
 		(model.*m_list).push_back(newItem(model, id));
 		panel.setSelectionId(QString::fromStdString(id));
 		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
@@ -87,7 +87,7 @@ public:
 	}
 
 protected:
-	// `comboKey` is the value of the combo, `noun` names one entity and is the base of the ids of new ones.
+	// `comboKey` is the value of the combo, `noun` names one entity in the label of an edit.
 	ListFacet(const char* comboKey, const char* noun, std::vector<Item> SceneModel::* list, QStringList headers)
 		: m_key(QString::fromLatin1(comboKey)), m_noun(QString::fromLatin1(noun)), m_list(list), m_columns(std::move(headers)) {}
 
@@ -97,6 +97,8 @@ protected:
 	virtual Edit editField(Item& item, int column, const QString& value) const = 0;
 	// A new item with this id, as the model is now.
 	virtual Item newItem(const SceneModel& model, const std::string& id) const = 0;
+	// The id that a new item has when no other item has it. The default is the noun.
+	virtual std::string idBase() const { return m_noun.toStdString(); }
 	// What refers to the item that was renamed.
 	virtual void rewriteReferences(SceneModel&, const std::string&, const std::string&) const {}
 

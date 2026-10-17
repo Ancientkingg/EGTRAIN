@@ -59,6 +59,7 @@
 #include "editors/TrainUnitPanel.h"
 #include "editors/TrainUnitSourceLinker.h"
 #include "editors/infrastructure/BlockRouteFacets.h"
+#include "editors/infrastructure/SignalFacets.h"
 #include "editors/infrastructure/StationFacets.h"
 #include "editors/infrastructure/TopologyFacets.h"
 #include "graphics/SignalGeometry.h"
@@ -72,11 +73,8 @@
 #include "scene/SceneWriter.h"
 #include "scene/SceneExporter.h"
 #include "scene/SceneHistory.h"
-#include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
 #include "scene/SceneReferences.h"
-#include "scene/SectionInventory.h"
-#include "scene/SignallingLevelNames.h"
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
@@ -173,16 +171,6 @@ protected:
 			}
 		}
 		QSlider::mousePressEvent(event);
-	}
-};
-
-// A combo box that ignores the mouse wheel, so the wheel scrolls the view behind it.
-class NoWheelComboBox : public QComboBox {
-public:
-	using QComboBox::QComboBox;
-protected:
-	void wheelEvent(QWheelEvent* event) override {
-		event->ignore();
 	}
 };
 
@@ -436,57 +424,6 @@ void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {
 									const QString& path, const char* kind, const std::string& bytes) {
 		return writeRunArtifactWithProvenance(path.toStdString(), kind, bytes, provenance);
 	});
-}
-
-bool sceneHasTrack(const SceneModel& scene, const std::string& trackId) {
-	return std::any_of(scene.tracks.begin(), scene.tracks.end(),
-		[&trackId](const SceneTrack& track) { return track.id == trackId; });
-}
-
-// The signalling systems in level order. A stored level that is no system gets one item on top that stands for it.
-void populateSignallingSystemCombo(QComboBox* combo, int current) {
-	if (!combo)
-		return;
-	combo->clear();
-	if (!isValidSignallingLevel(current)) {
-		const bool unchosen = current == kSignallingLevelUnset;
-		combo->addItem(unchosen ? QStringLiteral("Choose a signalling system")
-								: QString::fromStdString(signallingLevelName(current)),
-			current);
-		combo->setItemData(0,
-			unchosen ? QStringLiteral("No system is chosen yet. Choose the system that governs the sections inside this area.")
-					 : QString::fromStdString(signallingLevelDescription(current)),
-			Qt::ToolTipRole);
-	}
-	for (int level = levelValue(SignallingLevel::Atb); level <= levelValue(SignallingLevel::Bacc); ++level) {
-		combo->addItem(QString::fromStdString(signallingLevelName(level)), level);
-		combo->setItemData(combo->count() - 1, QString::fromStdString(signallingLevelDescription(level)), Qt::ToolTipRole);
-	}
-	combo->setCurrentIndex(combo->findData(current));
-}
-
-// All tracks, then each track of the scene with the extent of its blocks. A track that is no track of the scene
-// gets one item on top.
-void populateSignallingAreaTrackCombo(QComboBox* combo, const SceneModel& scene,
-	const SceneSectionInventory& inventory, const std::string& current) {
-	if (!combo)
-		return;
-	combo->clear();
-	if (!current.empty() && !sceneHasTrack(scene, current))
-		combo->addItem(QStringLiteral("Invalid track: %1").arg(QString::fromStdString(current)),
-			QString::fromStdString(current));
-	combo->addItem(QStringLiteral("(all tracks)"), QString());
-	for (const SceneTrack& track : scene.tracks) {
-		const QString id = QString::fromStdString(track.id);
-		const SceneBlockExtent extent = sceneBlockExtent(inventory, track.id);
-		combo->addItem(extent.found
-				? QStringLiteral("%1 (blocks %2 to %3 km)")
-					  .arg(id, QString::fromStdString(formatSceneSectionCoordinate(extent.startKm)),
-						  QString::fromStdString(formatSceneSectionCoordinate(extent.endKm)))
-				: QStringLiteral("%1 (no blocks)").arg(id),
-			id);
-	}
-	combo->setCurrentIndex(combo->findData(QString::fromStdString(current)));
 }
 
 const QColor kBlockingSwitchColor(240, 210, 40, 180);
@@ -772,39 +709,7 @@ int countTrackLineDirs(const QString& inputDir) {
 	return entries.size();
 }
 
-QStringList directDeleteConsumers(const SceneModel& model, const QString& facet, const std::string& id,
-	const std::string& scope = {}) {
-	QStringList consumers;
-	for (const std::string& consumer : sceneDirectDeleteConsumers(model, facet.toStdString(), id, scope))
-		consumers << QString::fromStdString(consumer);
-	return consumers;
-}
-
-// The headers of the infrastructure table of a facet.
-QStringList infrastructureColumns(const QString& facet) {
-	if (facet == "signals")
-		return {"ID", "Protected section"};
-	return {"ID", "Start km", "End km", "Signalling system", "Track"};
-}
-
 } // namespace
-
-// A facet of the infrastructure panel whose entities the window still lists, edits, adds and deletes itself.
-class MainWindow::UnmovedInfrastructureFacet : public InfrastructureFacet {
-public:
-	UnmovedInfrastructureFacet(MainWindow& window, QString key) : m_window(window), m_key(std::move(key)) {}
-
-	QString key() const override { return m_key; }
-	QStringList columns() const override { return infrastructureColumns(m_key); }
-	void fillRows(InfrastructurePanel&) override { m_window.fillInfrastructureRows(m_key); }
-	void commitCell(InfrastructurePanel&, int row, int column) override { m_window.commitInfrastructureCell(row, column); }
-	void add(InfrastructurePanel&) override { m_window.addInfrastructureEntity(); }
-	void remove(InfrastructurePanel&) override { m_window.deleteInfrastructureEntity(); }
-
-private:
-	MainWindow& m_window;
-	QString m_key;
-};
 
 bool startupTimingEnabled() {
 	return qEnvironmentVariable("QEGTRAIN_STARTUP_TIMING") == QLatin1String("1");
@@ -1587,9 +1492,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		m_infrastructurePanel->setFacet(std::move(facet));
 	for (std::unique_ptr<InfrastructureFacet>& facet : makeStationFacets())
 		m_infrastructurePanel->setFacet(std::move(facet));
-	for (const QString& key : InfrastructurePanel::facetKeys())
-		if (!m_infrastructurePanel->facet(key))
-			m_infrastructurePanel->setFacet(std::make_unique<UnmovedInfrastructureFacet>(*this, key));
+	for (std::unique_ptr<InfrastructureFacet>& facet : makeSignalFacets())
+		m_infrastructurePanel->setFacet(std::move(facet));
 	m_infrastructurePanel->setDocument(m_document);
 	connect(m_infrastructurePanel, &InfrastructurePanel::selectionChanged, this, [this]() {
 		if (m_sceneLoaded && !m_worker && !m_resultsAvailable)
@@ -1599,7 +1503,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	connect(m_infrastructurePanel, &InfrastructurePanel::entitiesChanged, this, [this](const QString& facet) {
 		if (facet == QStringLiteral("stations") || facet == QStringLiteral("platforms") || facet == QStringLiteral("routes"))
 			m_servicePanel->refresh();
-		if (facet == QStringLiteral("blocks"))
+		if (facet == QStringLiteral("blocks") || facet == QStringLiteral("signals"))
 			refreshIncidentPanel();
 	});
 	connect(m_infrastructurePanel, &InfrastructurePanel::statusMessage, this,
@@ -3440,259 +3344,6 @@ void MainWindow::commitCaseSettings() {
 void MainWindow::refreshInfrastructurePanel(bool resetSelection) {
 	m_infrastructureDock->setEnabled(m_sceneLoaded && !m_worker);
 	m_infrastructurePanel->refresh(resetSelection);
-}
-
-void MainWindow::fillInfrastructureRows(const QString& facet) {
-	const auto setCell = [this](int row, int column, const QString& text, bool editable = true) {
-		auto* item = new QTableWidgetItem(text);
-		if (!editable)
-			item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-		m_infrastructureTable->setItem(row, column, item);
-	};
-	const int precision = std::numeric_limits<double>::max_digits10;
-	const SceneSectionInventory sectionInventory = buildSceneSectionInventory(m_sceneModel);
-	if (facet == "signals") {
-		const auto& signalsList = sceneSignals(m_sceneModel);
-		m_infrastructureTable->setRowCount(static_cast<int>(signalsList.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneSignal& signal = signalsList[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(signal.id));
-			QComboBox* combo = new QComboBox(m_infrastructureTable);
-			combo->setObjectName(QStringLiteral("protectedSectionCombo"));
-			combo->setAccessibleName(QStringLiteral("Protected section for %1")
-					.arg(QString::fromStdString(signal.id)));
-			combo->setToolTip(QStringLiteral("Choose the block or switch section protected by this signal"));
-			const QSignalBlocker comboBlocker(combo);
-			InfrastructurePanel::populateSectionCombo(combo, sectionInventory, signal.protectedSection, true,
-				QStringLiteral("(unbound)"));
-			connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-				[this, row, combo](int) {
-					const auto& currentSignals = sceneSignals(m_sceneModel);
-					if (row < 0 || row >= static_cast<int>(currentSignals.size()))
-						return;
-					auto& editableSignals = sceneSignals(m_sceneModel);
-					const std::string protectedSection = combo->currentData().toString().toStdString();
-					if (editableSignals[static_cast<std::size_t>(row)].protectedSection == protectedSection)
-						return;
-					editableSignals[static_cast<std::size_t>(row)].protectedSection = protectedSection;
-					markSceneDirty();
-					refreshValidationPanel();
-				});
-			m_infrastructureTable->setCellWidget(row, 1, combo);
-		}
-	} else if (facet == "signalling_areas") {
-		m_infrastructureTable->setRowCount(static_cast<int>(m_sceneModel.signallingAreas.size()));
-		for (int row = 0; row < m_infrastructureTable->rowCount(); ++row) {
-			const SceneSignallingArea& area = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
-			setCell(row, 0, QString::fromStdString(area.id));
-			setCell(row, 1, QString::number(area.startKm, 'g', precision));
-			setCell(row, 2, QString::number(area.endKm, 'g', precision));
-			const QString areaId = QString::fromStdString(area.id);
-			auto* systemCombo = new NoWheelComboBox(m_infrastructureTable);
-			systemCombo->setObjectName(QStringLiteral("signallingAreaSystemCombo"));
-			systemCombo->setAccessibleName(QStringLiteral("Signalling system for %1").arg(areaId));
-			systemCombo->setToolTip(QStringLiteral("Choose the signalling system of the sections inside this area"));
-			systemCombo->setFocusPolicy(Qt::StrongFocus);
-			populateSignallingSystemCombo(systemCombo, area.level);
-			connect(systemCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-				[this, row, systemCombo](int) {
-					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
-						return;
-					const int level = systemCombo->currentData().toInt();
-					SceneSignallingArea& editableArea = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
-					if (editableArea.level == level)
-						return;
-					editableArea.level = level;
-					{
-						const QSignalBlocker systemBlocker(systemCombo);
-						for (int index = systemCombo->count() - 1; index >= 0; --index)
-							if (!isValidSignallingLevel(systemCombo->itemData(index).toInt()))
-								systemCombo->removeItem(index);
-						systemCombo->setCurrentIndex(systemCombo->findData(level));
-					}
-					markSceneDirty();
-					refreshValidationPanel();
-				});
-			m_infrastructureTable->setCellWidget(row, 3, systemCombo);
-			auto* trackCombo = new NoWheelComboBox(m_infrastructureTable);
-			trackCombo->setObjectName(QStringLiteral("signallingAreaTrackCombo"));
-			trackCombo->setAccessibleName(QStringLiteral("Track for %1").arg(areaId));
-			trackCombo->setToolTip(QStringLiteral("Choose the track this area applies to, or all tracks"));
-			trackCombo->setFocusPolicy(Qt::StrongFocus);
-			populateSignallingAreaTrackCombo(trackCombo, m_sceneModel, sectionInventory, area.trackId);
-			connect(trackCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-				[this, row, trackCombo](int) {
-					if (row < 0 || row >= static_cast<int>(m_sceneModel.signallingAreas.size()))
-						return;
-					const std::string trackId = trackCombo->currentData().toString().toStdString();
-					SceneSignallingArea& editableArea = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
-					if (editableArea.trackId == trackId)
-						return;
-					editableArea.trackId = trackId;
-					{
-						const QSignalBlocker trackBlocker(trackCombo);
-						for (int index = trackCombo->count() - 1; index >= 0; --index) {
-							const std::string itemTrack = trackCombo->itemData(index).toString().toStdString();
-							if (!itemTrack.empty() && !sceneHasTrack(m_sceneModel, itemTrack))
-								trackCombo->removeItem(index);
-						}
-						trackCombo->setCurrentIndex(trackCombo->findData(QString::fromStdString(trackId)));
-					}
-					markSceneDirty();
-					refreshValidationPanel();
-				});
-			m_infrastructureTable->setCellWidget(row, 4, trackCombo);
-		}
-	}
-}
-
-void MainWindow::commitInfrastructureCell(int row, int column) {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo || !m_infrastructureTable || row < 0 || row >= m_infrastructureTable->rowCount())
-		return;
-	const QString facet = m_infrastructureFacetCombo->currentData().toString();
-	const QTableWidgetItem* item = m_infrastructureTable->item(row, column);
-	if (!item)
-		return;
-	const QString value = item->text().trimmed();
-	bool changed = false;
-	const auto idCanReplaceRow = [](int rowIndex, const auto& items, const std::string& id) {
-		if (id.empty())
-			return false;
-		for (int index = 0; index < static_cast<int>(items.size()); ++index)
-			if (index != rowIndex && items[static_cast<std::size_t>(index)].id == id)
-				return false;
-		return true;
-	};
-	const auto rejectUnsafeId = [this]() {
-		statusBar()->showMessage("Infrastructure IDs must be non-empty and unique", 4000);
-		m_infrastructurePanel->refreshTable();
-	};
-	const auto parseNumber = [&](double& target) {
-		bool parsed = false;
-		const double number = value.toDouble(&parsed);
-		if (!parsed || !std::isfinite(number)) {
-			m_infrastructurePanel->refreshTable();
-			return false;
-		}
-		if (target != number) {
-			target = number;
-			changed = true;
-		}
-		return true;
-	};
-	if (facet == "signals") {
-		auto& signalsList = sceneSignals(m_sceneModel);
-		if (row >= static_cast<int>(signalsList.size()) || column != 0)
-			return;
-		SceneSignal& signal = signalsList[static_cast<std::size_t>(row)];
-		const std::string oldId = signal.id;
-		const std::string newId = value.toStdString();
-		if (oldId != newId) {
-			if (!idCanReplaceRow(row, signalsList, newId)) {
-				rejectUnsafeId();
-				return;
-			}
-			signal.id = newId;
-			sceneRewriteSignalReferences(m_sceneModel, oldId, newId);
-			m_infrastructurePanel->setSelectionId(value);
-			changed = true;
-		}
-	} else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size())) {
-		SceneSignallingArea& area = m_sceneModel.signallingAreas[static_cast<std::size_t>(row)];
-		if (column == 0) {
-			const std::string oldId = area.id;
-			const std::string newId = value.toStdString();
-			if (oldId != newId) {
-				if (!idCanReplaceRow(row, m_sceneModel.signallingAreas, newId)) {
-					rejectUnsafeId();
-					return;
-				}
-				area.id = newId;
-				m_infrastructurePanel->setSelectionId(value);
-				changed = true;
-			}
-		} else if (column == 1) {
-			parseNumber(area.startKm);
-		} else if (column == 2) {
-			parseNumber(area.endKm);
-		}
-	}
-	if (!changed)
-		return;
-	markSceneDirty();
-	refreshValidationPanel();
-	if (facet == "signals")
-		refreshIncidentPanel();
-	m_infrastructurePanel->refreshTable();
-}
-
-void MainWindow::addInfrastructureEntity() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo)
-		return;
-	const QString facet = m_infrastructureFacetCombo->currentData().toString();
-	std::string id;
-	int newRow = -1;
-	if (facet == "signals") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "signal", facet.toStdString());
-		sceneSignals(m_sceneModel).push_back({id});
-		newRow = static_cast<int>(sceneSignals(m_sceneModel).size()) - 1;
-	} else if (facet == "signalling_areas") {
-		id = sceneUniqueInfrastructureId(m_sceneModel, "signalling-area", facet.toStdString());
-		const SceneBlockExtent extent = sceneBlockExtent(buildSceneSectionInventory(m_sceneModel), "");
-		m_sceneModel.signallingAreas.push_back({id, extent.startKm, extent.endKm, kSignallingLevelUnset, {}});
-		newRow = static_cast<int>(m_sceneModel.signallingAreas.size()) - 1;
-	}
-	m_infrastructurePanel->setSelectionId(QString::fromStdString(id));
-	markSceneDirty();
-	refreshValidationPanel();
-	if (facet == "signals")
-		refreshIncidentPanel();
-	m_infrastructurePanel->refreshTable();
-	if (m_infrastructureTable && newRow >= 0 && newRow < m_infrastructureTable->rowCount())
-		m_infrastructureTable->setCurrentCell(newRow, 0);
-}
-
-void MainWindow::deleteInfrastructureEntity() {
-	if (!m_sceneLoaded || m_worker || !m_infrastructureFacetCombo || !m_infrastructureTable)
-		return;
-	const QString facet = m_infrastructureFacetCombo->currentData().toString();
-	const int row = m_infrastructureTable->currentRow();
-	if (row < 0)
-		return;
-	const QTableWidgetItem* item = m_infrastructureTable->item(row, 0);
-	if (!item || item->text().isEmpty())
-		return;
-	QString id = item->text();
-	if (facet == "signals" && row < static_cast<int>(sceneSignals(m_sceneModel).size()))
-		id = QString::fromStdString(sceneSignals(m_sceneModel)[static_cast<std::size_t>(row)].id);
-	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
-		id = QString::fromStdString(m_sceneModel.signallingAreas[static_cast<std::size_t>(row)].id);
-	const QStringList consumers = directDeleteConsumers(m_sceneModel, facet, id.toStdString());
-	if (!consumers.isEmpty()) {
-		showBlockingError(this, "Cannot Delete Infrastructure Entity",
-			QString("Cannot delete %1 '%2' because it is still referenced by:\n• %3\nRemove or rebind those consumers first.")
-				.arg(m_infrastructureFacetCombo->currentText().toLower(), id, consumers.join("\n• ")),
-			true);
-		return;
-	}
-	const QMessageBox::StandardButton answer = QMessageBox::question(
-		this, "Delete infrastructure entity",
-		QString("Delete %1 '%2'?").arg(m_infrastructureFacetCombo->currentText().toLower(), id),
-		QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-	if (answer != QMessageBox::Yes)
-		return;
-	if (facet == "signals" && row < static_cast<int>(sceneSignals(m_sceneModel).size()))
-		sceneSignals(m_sceneModel).erase(sceneSignals(m_sceneModel).begin() + row);
-	else if (facet == "signalling_areas" && row < static_cast<int>(m_sceneModel.signallingAreas.size()))
-		m_sceneModel.signallingAreas.erase(m_sceneModel.signallingAreas.begin() + row);
-	else
-		return;
-	m_infrastructurePanel->setSelectionId(QString());
-	markSceneDirty();
-	refreshValidationPanel();
-	if (facet == "signals")
-		refreshIncidentPanel();
-	m_infrastructurePanel->refreshTable();
 }
 
 void MainWindow::updateTrainUnitSourceStatus() {
