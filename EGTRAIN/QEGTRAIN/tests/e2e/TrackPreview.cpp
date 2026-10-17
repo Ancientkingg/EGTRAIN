@@ -215,8 +215,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		const int itemCount = preview.items.size();
 		const QRectF bounds = preview.bounds;
 		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
-		const bool diagnosticsOk = hasDiagnosticCode(w.m_sceneDiagnostics, "scene.trains.none")
-			&& hasDiagnosticCode(w.m_sceneDiagnostics, "scene.services.none")
+		const bool diagnosticsOk = hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.trains.none")
+			&& hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.services.none")
 			&& validationTableHasCode("scene.trains.none") && validationTableHasCode("scene.services.none");
 		if (!diagnosticsOk)
 			fail("open", "semantic diagnostics are missing from the validation panel");
@@ -342,12 +342,12 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		defaultScenarioIncidents(fixed).clear();
 		w.m_document->mutableModel() = fixed;
 		w.refreshValidationPanel();
-		if (hasErrors(w.m_sceneDiagnostics) || !w.m_runSceneAction || !w.m_runSceneAction->isEnabled()
+		if (hasErrors(w.m_session->m_sceneDiagnostics) || !w.m_runSceneAction || !w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || !w.ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 		w.m_document->mutableModel() = incomplete;
 		w.refreshValidationPanel();
-		if (!hasErrors(w.m_sceneDiagnostics) || !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
+		if (!hasErrors(w.m_session->m_sceneDiagnostics) || !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled())
 			runFacetOk = false;
 	}
@@ -386,8 +386,8 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 		} else if (!sameSceneModel(expectedPartial, w.m_document->mutableModel())) {
 			saveReloadOk = false;
 			fail("save/reload", "partial model changed after reload");
-		} else if (!hasDiagnosticCode(w.m_sceneDiagnostics, "scene.trains.none")
-			|| !hasDiagnosticCode(w.m_sceneDiagnostics, "scene.services.none")
+		} else if (!hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.trains.none")
+			|| !hasDiagnosticCode(w.m_session->m_sceneDiagnostics, "scene.services.none")
 			|| !w.m_runSceneAction || w.m_runSceneAction->isEnabled()
 			|| !w.ui->actionSimulationStart || w.ui->actionSimulationStart->isEnabled()) {
 			saveReloadOk = false;
@@ -400,14 +400,14 @@ void MainWindowTestAccess::runTrackPreview(MainWindow& w) {
 	bool structuralOk = saveReloadOk;
 	if (structuralOk) {
 		const SceneModel expectedCurrent = w.m_document->mutableModel();
-		const QString expectedDir = QDir(w.m_sceneDir).absolutePath();
+		const QString expectedDir = QDir(w.m_session->m_sceneDir).absolutePath();
 		const PreviewContentSnapshot expectedContent = snapshotPreviewContent();
 		auto rejectedWithoutReplacement = [&](const QString& candidate, const char* label) {
 			if (w.openSceneDirectory(candidate)) {
 				fail("structural rejection", QString("%1 scene unexpectedly opened").arg(label));
 				return false;
 			}
-			const bool preserved = QDir(w.m_sceneDir).absolutePath() == expectedDir
+			const bool preserved = QDir(w.m_session->m_sceneDir).absolutePath() == expectedDir
 				&& sameSceneModel(w.m_document->mutableModel(), expectedCurrent)
 				&& samePreviewContent(expectedContent, snapshotPreviewContent());
 			if (!preserved)

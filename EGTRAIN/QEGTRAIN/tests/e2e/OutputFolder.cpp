@@ -100,8 +100,8 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	}
 
 	// The start-up scene is saved, so a new case replaces it without asking to save.
-	w.newScene();
-	if (!w.m_sceneDir.isEmpty() || w.m_document->mutableModel().name == startupName) {
+	w.m_session->newScene();
+	if (!w.m_session->m_sceneDir.isEmpty() || w.m_document->mutableModel().name == startupName) {
 		fail(QStringLiteral("the new case was not created"));
 		finish();
 		return;
@@ -150,7 +150,7 @@ void MainWindowTestAccess::runOutputFolder(MainWindow& w) {
 	// The third scene opens once the run has stopped. The folder that was chosen stays in force.
 	const QString thirdFolder = outputFolderOf(run->base, run->thirdName);
 	simulation.setNextRunOutputFolder(run->chosen.toStdString());
-	if (!w.requestOpenScene(run->thirdPath)) {
+	if (!w.m_session->requestOpenScene(run->thirdPath)) {
 		fail(QStringLiteral("the third scene was not accepted"));
 		finish();
 		return;

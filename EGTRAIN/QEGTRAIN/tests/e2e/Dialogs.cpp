@@ -135,7 +135,7 @@ void MainWindowTestAccess::chooserShown(MainWindow& w, CaseChooserDialog& dialog
 	QListWidget* list = dialog.list();
 	QPushButton* openBtn = dialog.openButton();
 	QPushButton* continueBtn = dialog.continueButton();
-	chooserSceneDirBefore = w.m_sceneDir;
+	chooserSceneDirBefore = w.m_session->m_sceneDir;
 	chooserSceneRevisionBefore = w.m_document->revision();
 	chooserContract = QVariantMap();
 	QVariantList rows;
@@ -153,8 +153,8 @@ void MainWindowTestAccess::chooserShown(MainWindow& w, CaseChooserDialog& dialog
 	for (const auto* action : dialog.otherMenu()->actions()) menuTexts.append(action->text());
 	chooserContract.insert("otherActions", menuTexts);
 	QVariantList recentActions;
-	if (w.m_recentScenesMenu) {
-		for (const auto* action : w.m_recentScenesMenu->actions())
+	if (w.m_session->recentScenesMenu()) {
+		for (const auto* action : w.m_session->recentScenesMenu()->actions())
 			recentActions.append(QVariantMap{{"title", action->text()}, {"path", action->data()},
 				{"enabled", action->isEnabled()}, {"tooltip", action->toolTip()}});
 	}
@@ -210,7 +210,7 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 		dialog.outcome() == CaseChooserDialog::Outcome::OpenSelected ? "OpenSelected" : "ContinueCurrent");
 	chooserContract.insert("chosenPath", dialog.chosenPath());
 	chooserContract.insert("accepted", dialog.result() == QDialog::Accepted);
-	chooserContract.insert("loadedAfter", w.m_sceneDir);
+	chooserContract.insert("loadedAfter", w.m_session->m_sceneDir);
 	chooserContract.insert("loaded", w.m_document->isLoaded());
 	printMarker("E2E_STARTUP_CHOOSER_CONTRACT", QString::fromUtf8(QJsonDocument::fromVariant(chooserContract).toJson(QJsonDocument::Compact)));
 	printMarker("E2E_STARTUP_CHOOSER_PROMPT", dialog.findChild<QLabel*>("dialogContext")->text());
@@ -224,7 +224,7 @@ void MainWindowTestAccess::chooserClosed(MainWindow& w, CaseChooserDialog& dialo
 	printMarker("E2E_STARTUP_CHOOSER_READINESS", w.m_caseReadinessLabel ? w.m_caseReadinessLabel->text() : QString());
 	printMarker("E2E_STARTUP_CHOOSER_STATUS", w.statusBar()->currentMessage());
 	printMarker("E2E_STARTUP_CHOOSER_UNCHANGED",
-		w.m_document->isLoaded() && w.m_sceneDir == chooserSceneDirBefore && w.m_document->revision() == chooserSceneRevisionBefore
+		w.m_document->isLoaded() && w.m_session->m_sceneDir == chooserSceneDirBefore && w.m_document->revision() == chooserSceneRevisionBefore
 			? QStringLiteral("yes")
 			: QStringLiteral("no"));
 	std::fflush(stdout);

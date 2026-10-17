@@ -96,20 +96,20 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 
 		const quint64 revisionBeforeValidDrop = w.m_document->revision();
 		deliver({QUrl::fromLocalFile(validPath)}, true, true, true, QString());
-		if (w.m_sceneDir != QFileInfo(validPath).absoluteFilePath()
+		if (w.m_session->m_sceneDir != QFileInfo(validPath).absoluteFilePath()
 			|| w.m_document->mutableModel().name != "Dropped Scene" || w.m_document->revision() != revisionBeforeValidDrop + 1
 			|| !w.scene || w.networkView->scene() != w.scene
 			|| w.scene->items().isEmpty())
 			fail(QStringLiteral("valid dropped scene did not open and render"));
 
-		const QString scenePath = w.m_sceneDir;
+		const QString scenePath = w.m_session->m_sceneDir;
 		const std::string sceneName = w.m_document->mutableModel().name;
 		const quint64 sceneRevision = w.m_document->revision();
 		QGraphicsScene* const renderedScene = w.scene;
 		const QList<QGraphicsItem*> renderedItems = w.scene ? w.scene->items() : QList<QGraphicsItem*>();
 		const auto unchanged = [&](const QString& label) {
 			const QList<QGraphicsItem*> currentItems = w.scene ? w.scene->items() : QList<QGraphicsItem*>();
-			if (w.m_sceneDir != scenePath || w.m_document->mutableModel().name != sceneName
+			if (w.m_session->m_sceneDir != scenePath || w.m_document->mutableModel().name != sceneName
 				|| w.m_document->revision() != sceneRevision || w.scene != renderedScene
 				|| !w.scene || w.networkView->scene() != renderedScene
 				|| currentItems.size() != renderedItems.size()

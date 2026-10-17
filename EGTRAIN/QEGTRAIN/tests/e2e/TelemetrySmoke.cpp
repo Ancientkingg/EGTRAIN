@@ -151,8 +151,8 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 					return smoke->polls.load() > poll;
 				});
 			telemetry_smoke::chooseDirectory(root + "/imported", "Select Scene Destination");
-			w.actionLoad_Network();
-			if (w.m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
+			w.m_session->actionLoad_Network();
+			if (w.m_session->m_sceneDir != QFileInfo(root + "/imported").canonicalFilePath()) {
 				std::fprintf(stderr, "E2E_TELEMETRY_IMPORT_FAILED\n");
 				QCoreApplication::exit(2);
 				return;
@@ -160,7 +160,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			std::fprintf(stdout, "E2E_TELEMETRY_IMPORTED\n");
 		} else if (mode == "late") {
 			// Real actions while disabled must not be reconstructed after enable.
-			w.openSceneDirectory(w.m_sceneDir);
+			w.openSceneDirectory(w.m_session->m_sceneDir);
 			w.m_caseSettingsDock->hide();
 			w.revealEditorDock(w.m_caseSettingsDock);
 			const int poll = smoke->polls.load();
@@ -173,7 +173,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 				}
 				return smoke->polls.load() > poll;
 			});
-			w.openSceneDialog();
+			w.m_session->openSceneDialog();
 		} else if (mode == "revoke") {
 			if (smoke->posts.load() < 1) {
 				later(0, 20);
@@ -211,7 +211,7 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			w.openSceneDirectory(root + "/noninteger-schema.egscene");
 		}
 		telemetry_smoke::chooseFile(QString());
-		w.openSceneDialog();
+		w.m_session->openSceneDialog();
 		for (auto it = w.m_editorActions.cbegin(); it != w.m_editorActions.cend(); ++it) {
 			it.key()->hide();
 			it.value()->trigger();		  // Built-in QAction ordering must not hide the prior state.
@@ -250,19 +250,19 @@ void MainWindowTestAccess::runTelemetrySmoke(MainWindow& w, int stage) {
 			telemetry_smoke::chooseFile(root + "/blocked_table.png");
 			QMetaObject::invokeMethod(&table, "exportPng", Qt::DirectConnection);
 		}
-		w.saveSceneToCurrentDir(); // Directory save has no usage kind.
+		w.m_session->saveSceneToCurrentDir(); // Directory save has no usage kind.
 		QDir(root + "/failed.egscene").removeRecursively();
 		telemetry_smoke::chooseFile(root + "/failed.egscene", {}, [root] {
 			QDir().mkpath(root + "/failed.egscene");
 		});
-		w.saveSceneAsToBundle(); // Failed Save As still requests scene_bundle, not current directory kind.
+		w.m_session->saveSceneAsToBundle(); // Failed Save As still requests scene_bundle, not current directory kind.
 		telemetry_smoke::chooseFile(root + "/saved.egscene");
-		w.saveSceneAsToBundle();
+		w.m_session->saveSceneAsToBundle();
 		telemetry_smoke::chooseFile(QString());
-		w.saveSceneAsToBundle();
+		w.m_session->saveSceneAsToBundle();
 		++w.m_document->mutableModel().schemaVersion;
 		telemetry_smoke::chooseFile(root + "/schema.egscene");
-		w.saveSceneAsToBundle(); // Unsupported schema before staging: diagnostics only.
+		w.m_session->saveSceneAsToBundle(); // Unsupported schema before staging: diagnostics only.
 		--w.m_document->mutableModel().schemaVersion;
 		if (mode == "bundle") w.openSceneDirectory(root + "/saved.egscene");
 		w.openSceneDirectory(scenePath);
