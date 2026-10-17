@@ -1684,6 +1684,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							}
 							if (!sawAccepted || !sawRejected || !sawUnresolved || rejectedCollisionRows < 2)
 								facetFailure(facetOk, "passenger import", "result table did not expose accepted, rejected, and unresolved rows");
+							if (importResults->isHidden() || w.m_passengerPanel->importResultHeading()->isHidden())
+								facetFailure(facetOk, "passenger import", "result table or its heading was hidden after an import");
 							const auto findPassengerRow = [&](const std::string& id) {
 								const auto matches = passengerList->findItems(QString::fromStdString(id), Qt::MatchExactly);
 								return matches.isEmpty() ? -1 : passengerList->row(matches.front());
@@ -1699,9 +1701,14 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 								const ScenePassengerLeg* unresolvedLeg = w.m_passengerPanel->selectedPassengerLeg();
 								const bool invalidOriginVisible = unresolvedJourney
 									&& unresolvedJourney->originStationId == "missing-origin"
-									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin");
+									&& w.m_passengerJourneyOriginCombo->currentText().startsWith("Invalid: missing-origin")
+									&& w.m_passengerJourneyOriginCombo
+										   ->itemData(w.m_passengerJourneyOriginCombo->currentIndex(), Qt::ToolTipRole)
+										   .toString()
+										   .startsWith("Station missing-origin");
 								const bool legStateAccurate = unresolvedLeg
 									? legService->currentText().startsWith("Invalid: missing-service")
+										&& legService->itemData(legService->currentIndex(), Qt::ToolTipRole).toString().startsWith("Service missing-service")
 										&& legOrigin->currentText().startsWith("Invalid:")
 									: legService->currentText() == "Select a leg"
 										&& legOrigin->currentText() == "Select a journey or leg";

@@ -3,8 +3,10 @@
 #include "scene/SceneDiagnostic.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneImporter.h"
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/EditorLayout.h"
 
 #include <QApplication>
 #include <QComboBox>
@@ -33,6 +35,29 @@
 
 namespace {
 
+// Adds the current value of a combo that is not among its choices as an entry marked invalid, with the reason as its
+// tooltip, and returns its index.
+int addInvalidEntry(QComboBox* combo, const std::string& current, const QString& reason) {
+	combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
+								   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
+		QString::fromStdString(current));
+	const int index = combo->count() - 1;
+	combo->setItemData(index, reason, Qt::ToolTipRole);
+	return index;
+}
+
+// Why a station that is not among the choices of a combo is invalid: the scene has no such station, or the service of
+// the leg does not stop there.
+QString invalidStationReason(const SceneModel& sceneModel, const std::string& stationId) {
+	if (stationId.empty())
+		return QStringLiteral("No station is set.");
+	const QString id = QString::fromStdString(stationId);
+	const bool inScene = std::any_of(sceneModel.stations.begin(), sceneModel.stations.end(),
+		[&stationId](const SceneStation& station) { return station.id == stationId; });
+	return inScene ? QStringLiteral("Station %1 is not a stop of the service of this leg.").arg(id)
+				   : QStringLiteral("Station %1 is not in this scene.").arg(id);
+}
+
 // The stations to choose from. `allowed` limits them to a set of station ids; null allows all. A current id that is not
 // among them stays selected as an entry marked invalid.
 void populateStationCombo(QComboBox* combo, const SceneModel& sceneModel, const std::string& current,
@@ -52,12 +77,8 @@ void populateStationCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 		combo->addItem(label, QString::fromStdString(station.id));
 	}
 	int selected = combo->findData(QString::fromStdString(current));
-	if (selected < 0) {
-		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
-			QString::fromStdString(current));
-		selected = combo->count() - 1;
-	}
+	if (selected < 0)
+		selected = addInvalidEntry(combo, current, invalidStationReason(sceneModel, current));
 	combo->setCurrentIndex(selected);
 }
 
@@ -72,10 +93,9 @@ void populateServiceCombo(QComboBox* combo, const SceneModel& sceneModel, const 
 		combo->addItem(QString::fromStdString(service.id), QString::fromStdString(service.id));
 	int selected = combo->findData(QString::fromStdString(current));
 	if (selected < 0) {
-		combo->addItem(current.empty() ? QStringLiteral("Invalid: (empty)")
-									   : QStringLiteral("Invalid: %1").arg(QString::fromStdString(current)),
-			QString::fromStdString(current));
-		selected = combo->count() - 1;
+		selected = addInvalidEntry(combo, current,
+			current.empty() ? QStringLiteral("No service is set.")
+							: QStringLiteral("Service %1 is not in this scene.").arg(QString::fromStdString(current)));
 	}
 	combo->setCurrentIndex(selected);
 }
@@ -166,10 +186,10 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_journeyActivityEdit = new QLineEdit(journeyDetailPane);
 	m_journeyActivityEdit->setObjectName("passengerJourneyActivityEdit");
 	journeyForm->addRow("Activity", m_journeyActivityEdit);
-	m_journeyOriginCombo = new QComboBox(journeyDetailPane);
+	m_journeyOriginCombo = new ChoiceComboBox(journeyDetailPane);
 	m_journeyOriginCombo->setObjectName("passengerJourneyOriginCombo");
 	journeyForm->addRow("Origin station", m_journeyOriginCombo);
-	m_journeyDestinationCombo = new QComboBox(journeyDetailPane);
+	m_journeyDestinationCombo = new ChoiceComboBox(journeyDetailPane);
 	m_journeyDestinationCombo->setObjectName("passengerJourneyDestinationCombo");
 	journeyForm->addRow("Destination station", m_journeyDestinationCombo);
 	const std::array<std::pair<const char*, const char*>, 4> windowFields = {
@@ -221,13 +241,13 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_legIdEdit = new QLineEdit(legDetailPane);
 	m_legIdEdit->setObjectName("passengerLegIdEdit");
 	legForm->addRow("Leg ID", m_legIdEdit);
-	m_legOriginCombo = new QComboBox(legDetailPane);
+	m_legOriginCombo = new ChoiceComboBox(legDetailPane);
 	m_legOriginCombo->setObjectName("passengerLegOriginCombo");
 	legForm->addRow("Origin station", m_legOriginCombo);
-	m_legDestinationCombo = new QComboBox(legDetailPane);
+	m_legDestinationCombo = new ChoiceComboBox(legDetailPane);
 	m_legDestinationCombo->setObjectName("passengerLegDestinationCombo");
 	legForm->addRow("Destination station", m_legDestinationCombo);
-	m_legServiceCombo = new QComboBox(legDetailPane);
+	m_legServiceCombo = new ChoiceComboBox(legDetailPane);
 	m_legServiceCombo->setObjectName("passengerLegServiceCombo");
 	legForm->addRow("Service", m_legServiceCombo);
 	m_legOccurrenceEdit = new QSpinBox(legDetailPane);
@@ -238,6 +258,9 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_tabs->addTab(legsPane, "Legs");
 	passengerDetailLayout->addWidget(m_tabs, 1);
 
+	m_importResultHeading = EditorLayout::sectionHeading("Import results", passengerDetailPane);
+	m_importResultHeading->setObjectName("passengerImportResultHeading");
+	passengerDetailLayout->addWidget(m_importResultHeading);
 	m_importResultTable = new QTableWidget(0, 4, passengerDetailPane);
 	m_importResultTable->setObjectName("passengerImportResultTable");
 	m_importResultTable->setHorizontalHeaderLabels({"Source", "Row", "Status", "Detail"});
@@ -247,9 +270,12 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_importResultTable->horizontalHeader()->setStretchLastSection(true);
 	m_importResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
 	passengerDetailLayout->addWidget(m_importResultTable);
+	m_importResultHeading->hide();
 	m_importResultTable->hide();
 	const auto updateImportVisibility = [this]() {
-		m_importResultTable->setVisible(m_importResultTable->rowCount() > 0);
+		const bool hasRows = m_importResultTable->rowCount() > 0;
+		m_importResultHeading->setVisible(hasRows);
+		m_importResultTable->setVisible(hasRows);
 	};
 	connect(m_importResultTable->model(), &QAbstractItemModel::rowsInserted, m_importResultTable, updateImportVisibility);
 	connect(m_importResultTable->model(), &QAbstractItemModel::rowsRemoved, m_importResultTable, updateImportVisibility);
@@ -429,7 +455,7 @@ void PassengerPanel::updatePassengerDetail() {
 	if (messages.isEmpty()) {
 		DialogLayout::setHelp(m_diagnosticLabel,
 			passenger ? QStringLiteral("No validation messages for this passenger selection.")
-					  : QStringLiteral("Select a passenger or use Add to create one."));
+					  : QStringLiteral("Select a passenger, or use Add to create one or Import to read a legacy passenger folder."));
 		return;
 	}
 	const bool hasError = std::any_of(messages.begin(), messages.end(),

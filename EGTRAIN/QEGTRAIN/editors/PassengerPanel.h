@@ -62,6 +62,7 @@ public:
 	QPushButton* addPassengerButton() const { return m_addPassengerButton; }
 	QPushButton* deletePassengerButton() const { return m_deletePassengerButton; }
 	QPushButton* importButton() const { return m_importButton; }
+	QLabel* importResultHeading() const { return m_importResultHeading; }
 	QTableWidget* importResultTable() const { return m_importResultTable; }
 	QLabel* diagnosticLabel() const { return m_diagnosticLabel; }
 	QTabWidget* tabs() const { return m_tabs; }
@@ -148,6 +149,7 @@ private:
 	QComboBox* m_legDestinationCombo = nullptr;
 	QComboBox* m_legServiceCombo = nullptr;
 	QSpinBox* m_legOccurrenceEdit = nullptr;
+	QLabel* m_importResultHeading = nullptr;
 	QTableWidget* m_importResultTable = nullptr;
 };
 
