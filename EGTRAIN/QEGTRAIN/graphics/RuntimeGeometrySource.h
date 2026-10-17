@@ -24,6 +24,8 @@ public:
 
 	virtual int trackCount() const = 0;
 	virtual BlockSet& track(int index) const = 0;
+	// The region of the track line with this index.
+	virtual int regionOfTrack(int index) const = 0;
 
 	virtual int stationCount() const = 0;
 	virtual Stations& station(int index) const = 0;

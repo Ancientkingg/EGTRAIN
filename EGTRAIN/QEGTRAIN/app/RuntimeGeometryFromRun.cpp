@@ -14,6 +14,7 @@ public:
 
 	int trackCount() const override { return run().infra.numTrackLines; }
 	BlockSet& track(int index) const override { return run().infra.blockSets[index]; }
+	int regionOfTrack(int index) const override { return run().infra.blockSets[index].region; }
 
 	int stationCount() const override { return run().infra.numStations; }
 	Stations& station(int index) const override { return run().infra.stations[index]; }

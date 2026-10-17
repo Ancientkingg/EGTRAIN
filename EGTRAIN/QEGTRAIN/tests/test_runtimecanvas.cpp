@@ -88,6 +88,7 @@ public:
 
 	int trackCount() const override { return static_cast<int>(m_tracks.size()); }
 	BlockSet& track(int index) const override { return m_tracks[static_cast<std::size_t>(index)]; }
+	int regionOfTrack(int index) const override { return m_tracks[static_cast<std::size_t>(index)].region; }
 	int stationCount() const override { return static_cast<int>(m_stations.size()); }
 	Stations& station(int index) const override { return m_stations[static_cast<std::size_t>(index)]; }
 	int connectionCount() const override { return 0; }

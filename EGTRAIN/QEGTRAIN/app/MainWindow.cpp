@@ -3756,7 +3756,7 @@ quint64 MainWindow::loadedSceneRevision() const {
 }
 
 int MainWindow::regionOfTrack(int track) const {
-	return simulation.run().infra.blockSets[track].region;
+	return makeRuntimeGeometryFromRun(simulation)->regionOfTrack(track);
 }
 
 bool MainWindow::passengerGui() const {
