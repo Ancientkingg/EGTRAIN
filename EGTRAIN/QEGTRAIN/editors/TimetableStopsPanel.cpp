@@ -12,6 +12,7 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QEvent>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -24,6 +25,7 @@
 #include <QScrollArea>
 #include <QShortcut>
 #include <QSignalBlocker>
+#include <QStyle>
 #include <QTableWidget>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -37,6 +39,11 @@
 #include <vector>
 
 namespace {
+
+// The number of digits that a platform, a dwell or a planned time is assumed to need at most, and the number that the
+// station column keeps at least. Longer values are elided.
+constexpr int kTypicalValueChars = 10;
+constexpr int kMinimumStationChars = 6;
 
 // What the table shows for a platform or a planned time that a stop does not have: an em dash.
 QString noValueText() {
@@ -126,9 +133,13 @@ TimetableStopsPanel::TimetableStopsPanel(QWidget* parent) : SceneEditorPanel(par
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setAlternatingRowColors(true);
 	m_table->setTabKeyNavigation(true);
+	m_table->setWordWrap(false);
+	m_table->setTextElideMode(Qt::ElideRight);
 	m_table->verticalHeader()->setVisible(false);
-	// The station takes the width that the other columns leave.
-	m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+	// fitColumns sets the widths, so that the station takes the width that the other columns leave.
+	m_table->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+	m_table->viewport()->installEventFilter(this);
+	m_table->horizontalHeader()->installEventFilter(this);
 	layout->addWidget(m_table);
 	QGridLayout* buttonLayout = new QGridLayout();
 	m_addButton = new QPushButton("Add Stop", this);
@@ -253,13 +264,14 @@ void TimetableStopsPanel::refresh() {
 					item->setData(Qt::UserRole, QString::fromStdString(stop.stationId));
 					item->setData(Qt::UserRole + 1, QString::fromStdString(stop.platformId));
 					item->setData(Qt::UserRole + 2, row);
-					item->setToolTip(reason.isEmpty() ? QString("Station %1 [%2]").arg(station, QString::fromStdString(stop.stationId)) : reason);
+					const QString text = column == 0 ? QString("Station %1 [%2]").arg(station, QString::fromStdString(stop.stationId))
+													 : values[static_cast<std::size_t>(column)];
+					item->setToolTip(reason.isEmpty() ? text : reason + QLatin1Char('\n') + text);
 					m_table->setItem(row, column, item);
 				}
 			}
 		}
-		for (int column = 1; column < m_table->columnCount(); ++column)
-			m_table->resizeColumnToContents(column);
+		fitColumns();
 		m_table->setEnabled(editorAvailable);
 		if (m_table->rowCount() > 0)
 			m_table->setCurrentCell(std::clamp(previousRow < 0 ? 0 : previousRow, 0, m_table->rowCount() - 1), 0);
@@ -268,6 +280,45 @@ void TimetableStopsPanel::refresh() {
 	}
 	updateActions();
 	emit timetableRefreshed();
+}
+
+bool TimetableStopsPanel::eventFilter(QObject* watched, QEvent* event) {
+	if ((watched == m_table->viewport() && event->type() == QEvent::Resize) || (watched == m_table->horizontalHeader() && event->type() == QEvent::FontChange))
+		fitColumns();
+	return SceneEditorPanel::eventFilter(watched, event);
+}
+
+void TimetableStopsPanel::fitColumns() {
+	const QHeaderView* header = m_table->horizontalHeader();
+	const QFontMetrics metrics(m_table->font());
+	// The space that a cell keeps around its text.
+	const int margin = 2 * (m_table->style()->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, m_table) + 1);
+	const int minimum = header->minimumSectionSize();
+	const int typicalValue = metrics.horizontalAdvance(QString(kTypicalValueChars, QLatin1Char('0'))) + margin;
+	const int minimumStation = std::max(minimum, metrics.horizontalAdvance(QString(kMinimumStationChars, QLatin1Char('0'))) + margin);
+	std::array<int, 5> widths{};
+	int wanted = 0;
+	for (int column = 1; column < 5; ++column) {
+		int widest = 0;
+		for (int row = 0; row < m_table->rowCount(); ++row) {
+			if (const QTableWidgetItem* item = m_table->item(row, column))
+				widest = std::max(widest, metrics.horizontalAdvance(item->text()) + margin);
+		}
+		widths[static_cast<std::size_t>(column)] = std::max(header->sectionSizeHint(column), std::min(widest, typicalValue));
+		wanted += widths[static_cast<std::size_t>(column)];
+	}
+	const int available = m_table->viewport()->width();
+	const int room = std::max(available - minimumStation, 0);
+	int used = 0;
+	for (int column = 1; column < 5; ++column) {
+		int& width = widths[static_cast<std::size_t>(column)];
+		if (wanted > room)
+			width = std::max(width * room / wanted, minimum);
+		used += width;
+	}
+	widths[0] = std::max(available - used, minimumStation);
+	for (int column = 0; column < 5; ++column)
+		m_table->setColumnWidth(column, widths[static_cast<std::size_t>(column)]);
 }
 
 void TimetableStopsPanel::updateActions() {

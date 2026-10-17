@@ -10,13 +10,16 @@
 #include <string>
 
 class QComboBox;
+class QEvent;
 class QLabel;
 class QPushButton;
 class QTableWidget;
 
 // The timetable of one service: its stops in order, with the station, the platform, the dwell and the planned
 // times, and the buttons that add, remove and move them. A stop is added or edited in a dialog on a copy and enters
-// the service only when the stop still fits the route. The service is the one whose id the panel is given.
+// the service only when the stop still fits the route. The service is the one whose id the panel is given. The five
+// columns always fill the width of the table: the platform and the times take what their header and a typical value need
+// and the station takes the rest. A table narrower than that shortens the columns, and long text is elided.
 class TimetableStopsPanel : public SceneEditorPanel {
 	Q_OBJECT
 
@@ -56,12 +59,16 @@ Q_SIGNALS:
 	void timetableRefreshed();
 
 private:
+	// Fits the columns again when the table is resized or its font changes.
+	bool eventFilter(QObject* watched, QEvent* event) override;
 	bool hasScene() const;
 	// False while a run uses the scene.
 	bool canEdit() const;
 	// The position of the shown service in the model, or -1.
 	int serviceRow() const;
 	void updateActions();
+	// Gives the columns widths that add up to the width of the table, without a horizontal scroll bar.
+	void fitColumns();
 
 	QPointer<SceneDocument> m_document;
 	QMetaObject::Connection m_replacedConnection;

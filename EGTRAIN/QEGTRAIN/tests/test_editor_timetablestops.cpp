@@ -7,6 +7,8 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QEventLoop>
+#include <QFont>
+#include <QFontMetrics>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
@@ -254,26 +256,52 @@ int main(int argc, char** argv) {
 		ok &= expect(panel.emptyStateLabel()->text() == "No services.", "a scene without services does not point to Add Service while a run uses it");
 	}
 
-	{
-		// the five columns fit a table as wide as the Timetable tab of the Services dock, so the planned times need no scrolling
+	for (const double scale : {1.0, 1.25, 1.5}) {
+		// the five columns fill the table without a horizontal scroll bar whatever the font and the width, show their whole
+		// headers when the table is wide enough for them, and elide a long station or platform name
 		SceneModel scene = lineScene();
 		scene.stations[0].name = longName(95).toStdString();
+		scene.services[0].stops[0].platformId = longName(60).toStdString();
 		SceneDocument document;
 		TimetableStopsPanel panel;
+		QFont font = panel.font();
+		font.setPointSizeF(font.pointSizeF() * scale);
+		panel.setFont(font);
 		panel.setDocument(&document);
 		document.replace(scene, false);
 		panel.setServiceId("service-1");
-		panel.resize(400, 500);
-		panel.show();
-		QApplication::processEvents();
 		const QTableWidget* table = panel.table();
 		const QHeaderView* header = table->horizontalHeader();
+		const QFontMetrics body(table->font());
+		int headers = 0;
+		for (int index = 1; index < table->columnCount(); ++index)
+			headers += header->sectionSizeHint(index);
+		// the headers of the four narrow columns, a station column of twelve digits, the frame and the margins of the panel
+		const int wide = headers + body.horizontalAdvance(QString(12, QLatin1Char('0'))) + 2 * table->frameWidth() + 40;
+		panel.setMinimumWidth(wide);
+		panel.resize(wide, 500);
+		panel.show();
+		QApplication::processEvents();
+		const QString label = QString(" at %1 times the font").arg(scale);
 		bool wholeHeaders = true;
 		for (int index = 0; index < table->columnCount(); ++index)
 			wholeHeaders = wholeHeaders && table->columnWidth(index) >= header->sectionSizeHint(index);
-		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width() && wholeHeaders,
-			"the five columns fill the table with their whole headers, whatever the length of a station name");
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
+			qPrintable("the five columns fill the table without a scroll bar" + label));
+		ok &= expect(wholeHeaders, qPrintable("the five columns show their whole headers when the table fits them" + label));
 		ok &= expect(table->item(0, 0)->text() == longName(95), "the cell of a long station name holds the whole name");
+		ok &= expect(table->item(0, 0)->toolTip().contains(longName(95)), "the tooltip of a long station name holds the whole name");
+		ok &= expect(table->item(0, 1)->text() == longName(60) && table->item(0, 1)->toolTip().endsWith(longName(60)),
+			"the cell and the tooltip of a long platform name hold the whole name");
+		ok &= expect(table->columnWidth(1) < body.horizontalAdvance(longName(60)) && table->columnWidth(0) < body.horizontalAdvance(longName(95)),
+			qPrintable("a long station or platform name does not widen its column" + label));
+
+		// a table narrower than the headers shortens the columns instead of scrolling
+		panel.setMinimumWidth(0);
+		panel.table()->setFixedWidth(headers * 2 / 3 + body.horizontalAdvance(QString(8, QLatin1Char('0'))));
+		QApplication::processEvents();
+		ok &= expect(!table->horizontalScrollBar()->isVisible() && header->length() == table->viewport()->width(),
+			qPrintable("a narrow table shortens its columns instead of scrolling" + label));
 	}
 
 	{
@@ -300,7 +328,7 @@ int main(int argc, char** argv) {
 				&& !panel.moveUpButton()->isEnabled() && panel.moveDownButton()->isEnabled(),
 			"the first stop is selected and the buttons follow the selection");
 		ok &= expect(panel.timeBaseLabel()->text() == "Case base 08:00:00; planned times are elapsed seconds from this base"
-				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit"
+				&& panel.table()->item(0, 0)->toolTip() == "Reachable ordered route visit\nStation A [station-a]"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole).toString() == "station-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 1).toString() == "platform-b"
 				&& panel.table()->item(1, 2)->data(Qt::UserRole + 2).toInt() == 1,
@@ -326,7 +354,7 @@ int main(int argc, char** argv) {
 				&& panel.table()->currentRow() == 0 && events.log == editLog && events.kinds == SceneDocument::Services
 				&& document.lastChangeLabel() == "Move timetable stop up" && document.isDirty(),
 			"a stop moves up and stays selected");
-		ok &= expect(panel.table()->item(1, 0)->toolTip() == "Invalid: stop is before or at an already used route visit",
+		ok &= expect(panel.table()->item(1, 0)->toolTip().startsWith("Invalid: stop is before or at an already used route visit\nStation "),
 			"a stop that no longer fits the route order says so");
 		events.log.clear();
 		panel.moveStopUp();
