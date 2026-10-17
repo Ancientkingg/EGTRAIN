@@ -19,6 +19,10 @@ Choose the route that matches your task.
 - [How capacity is analysed](guides/capacity-analysis.md): the train chain window and the capacity by area window, with the choice of scope and period, the completeness rule, the governing resource and a figure reproduced by hand.
 - [Inspecting diagrams](ui/diagram-navigation.md): how to hover, select, zoom and pan in a result diagram, and how the timetable graph, the train-path graph and the blocking-time charts are drawn.
 
+## Tutorials
+
+- [Tutorial: modify a supplied case](guides/tutorial-modify-a-case.md): save a working copy of Paimpol, change a dwell and a performance, validate, save, reopen, run, and compare delays in an incident scenario.
+
 ## Create or edit scenes
 
 - [Using EGTRAIN and authoring scenes](guides/scenes-and-application.md): what the docks and windows show, the rules for editing and validating, and the scene files in a Reference part.
