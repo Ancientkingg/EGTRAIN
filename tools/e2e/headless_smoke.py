@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 RUN_DIR = ROOT / "EGTRAIN/QEGTRAIN"
 SCENE_DIR = RUN_DIR / "Scenes"
 
@@ -106,13 +105,34 @@ def run_command(args, cwd=None, input=None, timeout=None, env=None):
     )
 
 
-def case_command(case_id: int) -> list[str]:
+def build_executable_paths(name: str) -> list[Path]:
+    """Where a build of this platform puts the program `name`."""
+    build = ROOT / "build"
+    if sys.platform == "win32":
+        return [build / f"{name}.exe", build / "Release" / f"{name}.exe"]
+    if sys.platform == "darwin" and name == "QEGTRAIN":
+        return [build / "QEGTRAIN.app/Contents/MacOS/QEGTRAIN"]
+    return [build / name]
+
+
+def find_executable(name: str, env_var: str) -> Path:
+    """The program from the environment variable `env_var`, else the one in the build folder of this platform."""
+    override = os.environ.get(env_var)
+    candidates = [Path(override)] if override else build_executable_paths(name)
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    hint = "" if override else f"; build it or set {env_var}"
+    raise SystemExit(f"{name} not found; tried {', '.join(str(candidate) for candidate in candidates)}{hint}")
+
+
+def case_command(case_id: int, app: Path) -> list[str]:
     try:
         scene_name = SCENES[case_id]
     except KeyError as exc:
         raise ValueError(f"unknown canonical case id: {case_id}") from exc
     # check_no_position_jump reads TEMP/Traj_Train_*.txt, which only --detailed-trajectories writes.
-    return [str(APP), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
+    return [str(app), "--scene", str(SCENE_DIR / scene_name), "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
 
 
 def scene_output_dir(case_id: int, out_base: Path = RUN_DIR) -> Path:
@@ -274,12 +294,13 @@ def services_not_ended(timetable_text: str, trajectory_text: str, duration_secon
 
 
 def run_case(case_id: int, cwd: Path = RUN_DIR, out_base: Path = RUN_DIR) -> None:
+    app = find_executable("QEGTRAIN", "QEGTRAIN_APP")
     log = ROOT / f"tools/e2e/headless_case_{case_id}.log"
     try:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(out_base)
         proc = run_command(
-            case_command(case_id),
+            case_command(case_id, app),
             cwd=cwd,
             # The largest case (Copenhagen, 185 trains x 8000 steps) runs for about
             # five minutes on a fast machine, and slow CI runners have hit the

@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
+import os
 import sys
 import tempfile
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import headless_smoke
 from headless_smoke import (
     NO_ARRIVAL,
     blocking_time_records,
+    build_executable_paths,
     case_command,
     check_blocking_times,
     check_no_position_jump,
     check_scene_matches_netherlands,
     check_scene_structure,
+    find_executable,
     occurrence_errors,
     route_errors,
     run_command,
@@ -84,13 +89,54 @@ def check_position_cases() -> None:
         raise SystemExit("position cases failed:\n" + "\n".join(deviations))
 
 
+def check_executable_lookup() -> None:
+    with tempfile.TemporaryDirectory() as tmp, mock.patch.object(headless_smoke, "ROOT", Path(tmp)):
+        root = Path(tmp)
+        program = root / "program"
+        program.write_text("", encoding="utf-8")
+        with mock.patch.dict(os.environ, {"QEGTRAIN_APP": str(program)}):
+            if find_executable("QEGTRAIN", "QEGTRAIN_APP") != program:
+                raise SystemExit("QEGTRAIN_APP is not used for the application")
+
+        expected = {
+            "darwin": {"QEGTRAIN": ["build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"], "scene_tool": ["build/scene_tool"]},
+            "linux": {"QEGTRAIN": ["build/QEGTRAIN"], "scene_tool": ["build/scene_tool"]},
+            "win32": {"QEGTRAIN": ["build/QEGTRAIN.exe", "build/Release/QEGTRAIN.exe"]},
+        }
+        for platform, programs in expected.items():
+            with mock.patch.object(sys, "platform", platform):
+                for name, relative in programs.items():
+                    if build_executable_paths(name) != [root / path for path in relative]:
+                        raise SystemExit(f"{platform} looks for the wrong paths for {name}: {build_executable_paths(name)}")
+
+        for variable, override, wanted in (
+            ("QEGTRAIN_APP", str(root / "missing"), str(root / "missing")),
+            ("QEGTRAIN_APP", "", str(root / "build/QEGTRAIN")),
+        ):
+            with mock.patch.dict(os.environ, {variable: override}), mock.patch.object(sys, "platform", "linux"):
+                try:
+                    find_executable("QEGTRAIN", variable)
+                except SystemExit as err:
+                    if wanted not in str(err):
+                        raise SystemExit(f"the error for a missing program does not name {wanted}: {err}")
+                else:
+                    raise SystemExit("a missing program was accepted")
+
+        (root / "build").mkdir()
+        (root / "build/QEGTRAIN").write_text("", encoding="utf-8")
+        with mock.patch.dict(os.environ, {"QEGTRAIN_APP": ""}), mock.patch.object(sys, "platform", "linux"):
+            if find_executable("QEGTRAIN", "QEGTRAIN_APP") != root / "build/QEGTRAIN":
+                raise SystemExit("the Linux build is not found without QEGTRAIN_APP")
+
+
 def main() -> None:
     check_position_cases()
+    check_executable_lookup()
     for case_id in range(1, 5):
         check_scene_structure(case_id)
     check_scene_matches_netherlands(7)
 
-    command = case_command(3)
+    command = case_command(3, Path("QEGTRAIN"))
     expected = ["--scene", str(Path(__file__).resolve().parents[2] / "EGTRAIN/QEGTRAIN/Scenes/Copenhagen"),
                 "-g", "0", "-TSM", "0", "-RC", "0", "--detailed-trajectories"]
     if command[1:] != expected:

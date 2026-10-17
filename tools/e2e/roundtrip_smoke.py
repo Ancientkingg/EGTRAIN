@@ -8,11 +8,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from headless_smoke import check_blocking_times
+from headless_smoke import check_blocking_times, find_executable
 
 ROOT = Path(__file__).resolve().parents[2]
-SCENE_TOOL = ROOT / "build/scene_tool"
-APP = ROOT / "build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
 SCENE_DIR = ROOT / "EGTRAIN/QEGTRAIN/Scenes"
 
 CASES_INFO = [
@@ -123,8 +121,8 @@ def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, expor
 
 
 def main() -> None:
-    if not SCENE_TOOL.exists():
-        sys.exit(f"scene_tool not found at {SCENE_TOOL}. Build it first.")
+    scene_tool = find_executable("scene_tool", "QEGTRAIN_SCENE_TOOL")
+    app = find_executable("QEGTRAIN", "QEGTRAIN_APP")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
@@ -134,18 +132,18 @@ def main() -> None:
             exported_dir = tmp_dir / f"exported_{case_id}"
 
             print("Validating committed scene...")
-            subprocess.run([str(SCENE_TOOL), "validate", str(scene_dir)], check=True)
+            subprocess.run([str(scene_tool), "validate", str(scene_dir)], check=True)
 
             print("Exporting committed scene...")
-            subprocess.run([str(SCENE_TOOL), "export", str(scene_dir), str(exported_dir)], check=True)
+            subprocess.run([str(scene_tool), "export", str(scene_dir), str(exported_dir)], check=True)
 
             reimported_dir = tmp_dir / f"reimported_{case_id}"
             print("Reimporting and validating compatibility output...")
             subprocess.run(
-                [str(SCENE_TOOL), "import", str(exported_dir), str(reimported_dir), IMPORT_NAMES.get(case_id, scene_name)],
+                [str(scene_tool), "import", str(exported_dir), str(reimported_dir), IMPORT_NAMES.get(case_id, scene_name)],
                 check=True,
             )
-            subprocess.run([str(SCENE_TOOL), "validate", str(reimported_dir)], check=True)
+            subprocess.run([str(scene_tool), "validate", str(reimported_dir)], check=True)
             expected = scene_counts(scene_dir)
             actual = scene_counts(reimported_dir)
             if expected != actual:
@@ -161,7 +159,7 @@ def main() -> None:
         env = os.environ.copy()
         env["QEGTRAIN_OUTPUT_DIR"] = str(tmp_dir / "run")
         proc = subprocess.run(
-            [str(APP), "--scene", str(reimported_dir), "-g", "0", "-TSM", "0", "-RC", "0"],
+            [str(app), "--scene", str(reimported_dir), "-g", "0", "-TSM", "0", "-RC", "0"],
             cwd=tmp_dir,
             env=env,
             stdout=subprocess.PIPE,
