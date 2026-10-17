@@ -1,6 +1,9 @@
 #include "app/CannotOpenMessage.h"
 
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
 
 #include <cstdlib>
 #include <iostream>
@@ -29,5 +32,24 @@ int main(int argc, char** argv) {
 		std::cerr << "failed: the text shows the folder of the file\n";
 		return 1;
 	}
+
+	// A folder is not a damaged file: the sentence says what a scene folder holds.
+	QTemporaryDir temp;
+	if (!temp.isValid() || !QDir(temp.path()).mkdir("plain") || !QDir(temp.path()).mkdir("scene")) {
+		std::cerr << "failed: the test folders could not be created\n";
+		return 1;
+	}
+	QFile sceneJson(QDir(temp.path()).filePath("scene/scene.json"));
+	if (!sceneJson.open(QIODevice::WriteOnly)) {
+		std::cerr << "failed: scene.json could not be created\n";
+		return 1;
+	}
+	sceneJson.close();
+	requireText(cannot_open::text(QDir(temp.path()).filePath("plain"), "error x"),
+		"plain could not be opened.\nThe folder holds no EGTRAIN scene. A scene folder holds a scene.json file.\n\nerror x",
+		"text for a folder without scene.json");
+	requireText(cannot_open::text(QDir(temp.path()).filePath("scene"), {}),
+		"scene could not be opened.\nThe scene.json in the folder is damaged or is not an EGTRAIN scene.",
+		"text for a folder with a damaged scene.json");
 	return 0;
 }

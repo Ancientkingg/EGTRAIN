@@ -34,8 +34,10 @@ report a scene that does not open:
 - **Cannot Open Case Study**: the version cannot be read, the file is not a
   valid scene or bundle, or loading the scene reports errors. The message gives
   the file name and says that the file is damaged or is not an EGTRAIN case
-  study, and the first problem follows it; keep it. The same message appears
-  when EGTRAIN starts with that file.
+  study, and the first problem follows it; keep it. A folder gets its own
+  sentence: it holds no EGTRAIN scene, which is a `scene.json` file, or the
+  `scene.json` in it is damaged. The same message appears when EGTRAIN starts
+  with that file.
 
 Scenes written by builds before 2026-08-08 use an older layout under the same
 version number. EGTRAIN recognises that draft layout, reports it in the
@@ -68,11 +70,14 @@ Study** names the problem, and the **Open a Case** window follows.
 window comes to the front. No second window starts. First, EGTRAIN deals with
 what is in the way:
 
-- With unsaved changes, EGTRAIN asks **Unsaved Scene** before it opens the file.
-  **Save** saves the open case and **Discard** drops the changes, and the file
-  opens after either. **Cancel** keeps the open case and its changes and does not
-  open the file; the status bar then reads `Open canceled. Current scene
-  retained.`
+- With unsaved changes, EGTRAIN asks about them before it opens the file. On
+  Windows and Linux the box is titled **Unsaved Scene** and its buttons are
+  **Save**, **Discard** and **Cancel**. On macOS it is a sheet without a title
+  whose buttons are **Save**, **Cancel** and **Don't Save**. **Save** saves the
+  open case and **Discard** (**Don't Save** on macOS) drops the changes, and the
+  file opens after either. **Cancel** keeps the open case and its changes and
+  does not open the file; the status bar then reads `Open canceled. Current
+  scene retained.`
 - A simulation that is running stops before the file opens.
 - If the **Open a Case** window is open, it closes. If another dialog is open,
   such as a question at the first start, the file waits until you close it.

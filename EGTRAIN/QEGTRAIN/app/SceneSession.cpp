@@ -37,6 +37,8 @@
 namespace {
 const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
+// The property of a recent scene action that holds its label without the Unavailable prefix.
+const char* kRecentLabelProperty = "recentLabel";
 
 bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection) {
 	if (!mime || !mime->hasUrls() || mime->urls().isEmpty()) {
@@ -69,6 +71,18 @@ bool sceneDropCandidate(const QMimeData* mime, QString* path, QString* rejection
 	return true;
 }
 
+// Whether the recent scene at `path` can still be opened: a bundle file, or a folder that holds a scene.json.
+bool recentSceneExists(const QString& path) {
+	const QFileInfo info(path);
+	return info.isFile()
+		? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
+		: QFileInfo(QDir(path).filePath("scene.json")).exists();
+}
+
+QString unavailableLabel(const QString& label) {
+	return QString("Unavailable: %1").arg(label);
+}
+
 int errorDiagnosticCount(const std::vector<SceneDiagnostic>& diagnostics) {
 	int count = 0;
 	for (const auto& d : diagnostics) {
@@ -92,7 +106,10 @@ QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) 
 
 SceneSession::SceneSession(QMainWindow* window, SceneDocument* document, Host& host)
 	: QObject(window), m_window(window), m_document(document), m_host(host),
-	  m_recentScenesMenu(new QMenu("Recent Scenes", window)) {}
+	  m_recentScenesMenu(new QMenu("Recent Scenes", window)) {
+	// A case can be deleted while the menu is closed, so the entries are checked again as the menu opens.
+	connect(m_recentScenesMenu, &QMenu::aboutToShow, this, &SceneSession::refreshRecentSceneAvailability);
+}
 
 void SceneSession::showError(const QString& title, const QString& message, bool warningIcon) {
 	UserPrompts([this] { return m_host.dialogsSuppressed(); }).showError(m_window, title, message, warningIcon);
@@ -580,12 +597,11 @@ void SceneSession::rebuildRecentScenesMenu() {
 				parent = parent.left(20) + "..." + parent.right(20);
 			label = QString("%1 (%2)").arg(name, parent);
 		}
-		const bool exists = info.isFile()
-			? info.exists() && info.suffix().compare("egscene", Qt::CaseInsensitive) == 0
-			: QFileInfo(QDir(path).filePath("scene.json")).exists();
-		QAction* action = m_recentScenesMenu->addAction(exists ? label : QString("Unavailable: %1").arg(label));
+		const bool exists = recentSceneExists(path);
+		QAction* action = m_recentScenesMenu->addAction(exists ? label : unavailableLabel(label));
 		action->setEnabled(exists);
 		action->setData(path);
+		action->setProperty(kRecentLabelProperty, label);
 		action->setStatusTip(path);
 		action->setToolTip(path);
 		connect(action, &QAction::triggered, this, [this, action]() {
@@ -597,6 +613,18 @@ void SceneSession::rebuildRecentScenesMenu() {
 		emptyAction->setEnabled(false);
 	}
 	m_host.sceneActionsChanged();
+}
+
+void SceneSession::refreshRecentSceneAvailability() {
+	for (QAction* action : m_recentScenesMenu->actions()) {
+		const QString path = action->data().toString();
+		const QString label = action->property(kRecentLabelProperty).toString();
+		if (path.isEmpty() || label.isEmpty())
+			continue;
+		const bool exists = recentSceneExists(path);
+		action->setEnabled(exists);
+		action->setText(exists ? label : unavailableLabel(label));
+	}
 }
 
 void SceneSession::updateSceneWindowTitle() {
@@ -615,6 +643,40 @@ void SceneSession::actionLoad_Network() {
 		return;
 	const QString destinationDir = QFileDialog::getExistingDirectory(m_window, "Select Scene Destination", QDir::homePath());
 	importLegacyCase(sourceDir, destinationDir, operation);
+}
+
+QString SceneSession::legacyImportSummary(const std::vector<SceneDiagnostic>& diagnostics) {
+	constexpr size_t kMaxListed = 4;
+	int errors = 0;
+	int warnings = 0;
+	int notes = 0;
+	for (const auto& d : diagnostics) {
+		if (d.severity == SceneSeverity::Error)
+			++errors;
+		else if (d.severity == SceneSeverity::Warning)
+			++warnings;
+		else
+			++notes;
+	}
+	// The errors come first, so that the lines listed are the ones that the counts call most serious.
+	std::vector<const SceneDiagnostic*> ordered;
+	for (const auto& d : diagnostics)
+		ordered.push_back(&d);
+	std::stable_sort(ordered.begin(), ordered.end(),
+		[](const SceneDiagnostic* a, const SceneDiagnostic* b) { return a->severity > b->severity; });
+
+	QString summary = QString("Import: %1 error(s), %2 warning(s)").arg(errors).arg(warnings);
+	if (notes > 0)
+		summary += QString(", %1 note(s)").arg(notes);
+	for (size_t i = 0; i < ordered.size() && i < kMaxListed; ++i) {
+		QString detail = QString::fromStdString(ordered[i]->message);
+		if (!ordered[i]->file.empty())
+			detail += QString(" [%1]").arg(QString::fromStdString(ordered[i]->file));
+		summary += "\n" + detail;
+	}
+	if (ordered.size() > kMaxListed)
+		summary += QString("\nand %1 more").arg(static_cast<int>(ordered.size() - kMaxListed));
+	return summary;
 }
 
 void SceneSession::importLegacyCase(const QString& sourceDir, const QString& destinationDir,
@@ -640,27 +702,9 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 
 	m_window->statusBar()->showMessage("Importing legacy case...");
 	QApplication::processEvents();
-
-	auto diagnosticSummary = [](const std::vector<SceneDiagnostic>& diagnostics) {
-		int errors = 0;
-		int warnings = 0;
-		QStringList details;
-		for (const auto& d : diagnostics) {
-			if (d.severity == SceneSeverity::Error)
-				++errors;
-			else if (d.severity == SceneSeverity::Warning)
-				++warnings;
-			if (details.size() < 4) {
-				QString detail = QString::fromStdString(d.message);
-				if (!d.file.empty())
-					detail += QString(" [%1]").arg(QString::fromStdString(d.file));
-				details << detail;
-			}
-		}
-		QString summary = QString("Import: %1 error(s), %2 warning(s)").arg(errors).arg(warnings);
-		if (!details.isEmpty())
-			summary += "\n" + details.join("\n");
-		return summary;
+	// Replaces the progress message, which would otherwise stay in the status bar.
+	const auto importFailed = [this] {
+		m_window->statusBar()->showMessage("Legacy import failed. Scene unchanged.", 8000);
 	};
 
 	const QString sceneName = QFileInfo(sourcePath).fileName().isEmpty()
@@ -669,7 +713,8 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	SceneImportResult importResult = importLegacyScene(sourcePath.toStdString(), destinationPath.toStdString(),
 		sceneName.toStdString());
 	if (!importResult.success()) {
-		showError("Cannot Import Legacy Case", diagnosticSummary(importResult.diagnostics));
+		importFailed();
+		showError("Cannot Import Legacy Case", legacyImportSummary(importResult.diagnostics));
 		return;
 	}
 
@@ -677,12 +722,14 @@ void SceneSession::importLegacyCase(const QString& sourceDir, const QString& des
 	std::vector<SceneDiagnostic> diagnostics = importResult.diagnostics;
 	diagnostics.insert(diagnostics.end(), loadResult.diagnostics.begin(), loadResult.diagnostics.end());
 	if (errorDiagnosticCount(loadResult.diagnostics) > 0) {
-		showError("Cannot Open Imported Scene", diagnosticSummary(diagnostics));
+		importFailed();
+		showError("Cannot Open Imported Scene", legacyImportSummary(diagnostics));
 		return;
 	}
 	const auto semanticDiagnostics = validateRunnableScene(loadResult.scene);
 	diagnostics.insert(diagnostics.end(), semanticDiagnostics.begin(), semanticDiagnostics.end());
-	showError("Legacy Import Diagnostics", diagnosticSummary(diagnostics), true);
+	m_window->statusBar()->clearMessage();
+	showError("Legacy Import Diagnostics", legacyImportSummary(diagnostics), true);
 	if (m_host.afterRunStopped([this, destinationPath, operation] { openSceneDirectory(destinationPath, operation); }))
 		return;
 	openSceneDirectory(destinationPath, operation);

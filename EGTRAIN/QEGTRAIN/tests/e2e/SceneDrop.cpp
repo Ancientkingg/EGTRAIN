@@ -3,6 +3,7 @@
 #include "graphics/NetworkScene.h"
 #include "scene/SceneBundle.h"
 #include <QAbstractButton>
+#include <QAction>
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDir>
@@ -12,6 +13,7 @@
 #include <QFileInfo>
 #include <QGraphicsScene>
 #include <QList>
+#include <QMenu>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPoint>
@@ -28,7 +30,8 @@
 
 // Sends drag and drop events to the window over the network view. Only a single local scene bundle may
 // open, a drop that is refused must leave the open scene as it was, and a drop on an unsaved scene must
-// ask first. It prints E2E_SCENE_DROP_OK and exits with 0, or prints the failures and exits with 1.
+// ask first. The Recent Scenes menu must mark a scene that has been deleted as unavailable when it opens.
+// It prints E2E_SCENE_DROP_OK and exits with 0, or prints the failures and exits with 1.
 void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 	bool ok = true;
 	QStringList failures;
@@ -161,6 +164,30 @@ void MainWindowTestAccess::runSceneDrop(MainWindow& w) {
 		deliver({QUrl::fromLocalFile(malformed.fileName())}, true,
 			true, false, QStringLiteral("could not be opened"));
 		unchanged(QStringLiteral("malformed-scene drop"));
+
+		// A recent scene that is deleted must show as unavailable when the menu opens, without another open.
+		const QString recentPath = QFileInfo(temp.filePath(QStringLiteral("recent.egscene"))).absoluteFilePath();
+		QAction* recentAction = nullptr;
+		if (!QFile::copy(validPath, recentPath)) {
+			fail(QStringLiteral("the recent scene fixture could not be created"));
+		} else {
+			w.m_session->addRecentScene(recentPath);
+			for (QAction* action : w.m_session->recentScenesMenu()->actions()) {
+				if (action->data().toString() == recentPath)
+					recentAction = action;
+			}
+		}
+		if (recentAction) {
+			if (!recentAction->isEnabled() || recentAction->text().startsWith(QStringLiteral("Unavailable: ")))
+				fail(QStringLiteral("a recent scene that exists is marked unavailable"));
+			if (!QFile::remove(recentPath))
+				fail(QStringLiteral("the recent scene fixture could not be deleted"));
+			emit w.m_session->recentScenesMenu()->aboutToShow();
+			if (recentAction->isEnabled() || !recentAction->text().startsWith(QStringLiteral("Unavailable: ")))
+				fail(QStringLiteral("a deleted recent scene is not marked unavailable when the menu opens"));
+		} else {
+			fail(QStringLiteral("the recent scene is not in the menu"));
+		}
 	}
 
 	if (ok)
