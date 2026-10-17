@@ -258,7 +258,9 @@ void MainWindowTestAccess::reviewShown(MainWindow& w, QDialog& review) {
 			font.setPointSizeF(widget->objectName() == "dialogHeading" ? 22.5 : 18);
 			widget->setFont(font);
 		}
-		review.resize(qMin(560, review.maximumWidth()), qMin(420, review.maximumHeight()));
+		// A small screen: the dialog keeps this size even when the details grow it.
+		review.setMaximumSize(qMin(560, review.maximumWidth()), qMin(420, review.maximumHeight()));
+		review.resize(review.maximumSize());
 	}
 	QTimer::singleShot(0, &review, [&review, body, buttons, runButton, details, detailsToggle, status, factLabels, factValues]() {
 		// Modal show and disclosure changes post LayoutRequest events in Qt 5.

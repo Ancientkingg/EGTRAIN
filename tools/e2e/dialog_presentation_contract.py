@@ -154,6 +154,11 @@ def check_review(review: dict, scene: Path, advanced: bool, cancellation: str,
             assert geometry["fontPoints"] == 18 and dialog[2] <= 560 and dialog[3] <= 420, geometry
             assert geometry["controlFontPoints"] == [18, 18, 18, 18], geometry
     assert rendered["expandedGeometry"]["footer"] == rendered["scrolledGeometry"]["footer"], rendered
+    collapsed_geometry, expanded_geometry = rendered["collapsedGeometry"], rendered["expandedGeometry"]
+    # Expanding Run details grows the dialog up to its height limit instead of leaving the details below the fold.
+    assert expanded_geometry["dialog"][3] >= collapsed_geometry["dialog"][3], rendered
+    assert (expanded_geometry["scrollMaximum"] == 0
+            or expanded_geometry["dialog"][3] == expanded_geometry["maximum"][1]), rendered
     keyboard = rendered["keyboard"]
     assert keyboard["bodyFocus"] == (["Loaded Data", "Validation"] if advanced else []), keyboard
     assert keyboard["tabReachedFooter"] and keyboard["backtabReturned"], keyboard
