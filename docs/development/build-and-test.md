@@ -581,8 +581,9 @@ label. Set it yourself when you start a GUI test or QEGTRAIN with
 Qt 5.15 crashes when a `QMessageBox` is shown on the offscreen platform on
 Windows: `QMessageBox::showEvent` asks for a native window handle through an
 interface that this platform does not have. `test_scene_drop` needs the
-unsaved-changes prompt and `test_completedrun` closes two messages of the
-capacity dialog, so CTest runs both with `QT_QPA_PLATFORM=windows` there.
+unsaved-changes prompt and `test_completedrun` closes a message box if a
+refusal of the capacity dialog opens one, so CTest runs both with
+`QT_QPA_PLATFORM=windows` there.
 A scripted run that reaches any other message box on the offscreen platform
 fails the same way on Windows.
 

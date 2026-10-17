@@ -5704,9 +5704,9 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 
 	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	const char* titles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance", "Simulated Tractive Effort vs Distance"};
-	const QString title = QString("%1 [%2]").arg(titles[mode], completedRunContext(run->provenance));
+	const QString heading = titles[mode];
 	QChart* chart = new QChart();
-	chart->setTitle(title);
+	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 
 	// one series per contiguous segment; legend distinguishes trains
 	for (const CompletedTrain& train : run->trains) {
@@ -5739,9 +5739,10 @@ void MainWindow::buildPerTrainDiagram(int mode) {
 	if (!chart->axes(Qt::Vertical).isEmpty())
 		chart->axes(Qt::Vertical).first()->setTitleText(yTitles[mode]);
 
-	DiagramWindow* win = new DiagramWindow(title, this);
+	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
 	win->setTrainColors(trainColorsForRun(run->results, m_document->model()));
 	win->setCsvProvider(csvProviderFrom(run, &trajectoryCsvFrom), "trajectory.csv");
 	attachRunProvenance(win, run->provenance);
@@ -5790,8 +5791,8 @@ void MainWindow::showDelayDiagram() {
 
 	const std::shared_ptr<const CompletedRunData> run = m_completedRun;
 	QChart* chart = new QChart();
-	const QString title = QString("Arrival delay along journey (minutes) [%1]").arg(completedRunContext(run->provenance));
-	chart->setTitle(title);
+	const QString heading = QStringLiteral("Arrival delay along journey (minutes)");
+	chart->setTitle(QString("%1 [%2]").arg(heading, completedRunContext(run->provenance)));
 
 	for (const CompletedTrain& train : run->trains) {
 		QLineSeries* series = new QLineSeries();
@@ -5822,9 +5823,10 @@ void MainWindow::showDelayDiagram() {
 		chart->axes(Qt::Vertical).first()->setTitleText("Arrival delay (min)");
 	}
 
-	DiagramWindow* win = new DiagramWindow(title, this);
+	DiagramWindow* win = new DiagramWindow(heading, this);
 	win->setTelemetryCapture([this] { return captureTelemetryOperation(); });
 	win->setChart(chart);
+	win->setPresentation(heading, QString("Run: %1").arg(completedRunContext(run->provenance)), QString());
 	win->setTrainColors(trainColorsForRun(run->results, m_document->model()));
 	win->setCsvProvider(csvProviderFrom(run, &timetableCsvFrom), "timetable.csv");
 	attachRunProvenance(win, run->provenance);

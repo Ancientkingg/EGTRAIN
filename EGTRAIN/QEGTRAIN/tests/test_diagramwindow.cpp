@@ -631,6 +631,32 @@ static bool exerciseButtonDefaults() {
 	return ok;
 }
 
+// A chart of the whole run opens with its name as the window title and the run in the context line. A run identity of
+// 300 characters stays in the capped context line and its tooltip, and the window stays within the screen.
+static bool exerciseRunContext() {
+	const QString chartName = QStringLiteral("Speed vs Distance");
+	const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
+	DiagramWindow window(chartName);
+	QFont large = window.font();
+	large.setPointSizeF(18);
+	window.setFont(large);
+	auto* chart = buttonTestChart();
+	window.setChart(chart);
+	window.setPresentation(chartName, QStringLiteral("Run: ") + run, QString());
+	window.show();
+	QApplication::processEvents();
+	const auto* context = window.findChild<QLabel*>("diagramContext");
+	const auto* warning = window.findChild<QLabel*>("diagramWarning");
+	const QRect screenArea = window.screen()->availableGeometry();
+	bool ok = expect(window.windowTitle() == chartName, "the window title is the name of the chart");
+	ok &= expect(context->isVisible() && context->text() == QStringLiteral("Run: ") + run && context->toolTip().contains(run)
+			&& context->height() <= context->fontMetrics().height() * 3 && warning->isHidden(),
+		"the context line holds the whole run within three lines and no warning strip opens");
+	ok &= expect(window.width() <= screenArea.width() * 9 / 10 && window.height() <= screenArea.height() * 4 / 5,
+		"a long run identity keeps the window within the screen");
+	return ok;
+}
+
 static bool exerciseBlockSections() {
 	bool ok = true;
 	DiagramWindow window("Physical sections");
@@ -1403,6 +1429,7 @@ int main(int argc, char* argv[]) {
 	ok &= exerciseTrainColors();
 	ok &= exerciseNavigationHelp();
 	ok &= exerciseButtonDefaults();
+	ok &= exerciseRunContext();
 	ok &= exerciseBlockSections();
 	if (!ok) return 1;
 	std::cout << "all DiagramWindow tests passed\n";

@@ -1,5 +1,6 @@
 #include "diagrams/BlockingTimeScope.h"
 
+#include "widgets/ChoiceComboBox.h"
 #include "widgets/DialogLayout.h"
 
 #include <QComboBox>
@@ -47,7 +48,8 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	dialog.setWindowTitle("Blocking-time scope");
 	auto* body = new QWidget;
 	auto* form = new QFormLayout(body);
-	auto* routeCombo = new QComboBox(&dialog);
+	form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	auto* routeCombo = new ChoiceComboBox(&dialog);
 	routeCombo->addItem("All routes / all corridors", -1);
 	for (std::size_t routeIndex = 0; routeIndex < choices.routes.size(); ++routeIndex) {
 		const BlockingTimeScopeChoices::Route& route = choices.routes[routeIndex];
@@ -57,8 +59,8 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 		routeCombo->addItem(QString("%1  (%2)").arg(QString::fromStdString(route.id), corridor),
 			static_cast<int>(routeIndex));
 	}
-	auto* firstBlock = new QComboBox(&dialog);
-	auto* lastBlock = new QComboBox(&dialog);
+	auto* firstBlock = new ChoiceComboBox(&dialog);
+	auto* lastBlock = new ChoiceComboBox(&dialog);
 	auto* startTime = new QDoubleSpinBox(&dialog);
 	auto* endTime = new QDoubleSpinBox(&dialog);
 	const double caseEnd = std::max(0.0, choices.caseEndSeconds);
@@ -95,8 +97,12 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 		if (hasBlocks)
 			lastBlock->setCurrentIndex(lastBlock->count() - 1);
 	};
+	// The refill clears the block combos, so the dialog widens again for the blocks of the new route.
 	QObject::connect(routeCombo, qOverload<int>(&QComboBox::currentIndexChanged), &dialog,
-		[refillBlocks](int) { refillBlocks(); });
+		[refillBlocks, &dialog](int) {
+			refillBlocks();
+			DialogLayout::fitWidthToContent(dialog);
+		});
 	refillBlocks();
 
 	form->addRow("Route / corridor:", routeCombo);
@@ -109,6 +115,7 @@ bool chooseBlockingTimeScope(QWidget* parent, const BlockingTimeScopeChoices& ch
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 	DialogLayout::install(dialog, "Blocking-time scope",
 		"Choose the route, blocks and elapsed interval to inspect.", body, buttons);
+	DialogLayout::fitWidthToContent(dialog);
 	if (dialog.exec() != QDialog::Accepted)
 		return false;
 
