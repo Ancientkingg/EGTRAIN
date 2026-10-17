@@ -27,6 +27,8 @@
 
 #include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
+#include "app/ResultViews.h"
+#include "app/RunResultsDock.h"
 #include "app/RunController.h"
 #include "app/RunSelection.h"
 #include "app/SceneSession.h"
@@ -107,9 +109,6 @@ class ValidationPanel;
 namespace telemetry {
 class OperationObservation;
 } // namespace telemetry
-struct BlockingTimeDiagramSegment;
-struct BlockSectionExtent;
-struct CapacityAnalysisResult;
 struct CompletedRunData;
 struct GuiPassengerState;
 struct GuiSimulationSnapshot;
@@ -131,7 +130,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host {
+class MainWindow : public QMainWindow, private NetworkPresenter::FrameHost, private SceneSession::Host, private RunController::Host, private InspectorPanel::Host, private ResultViews::Host, private RunResultsDock::Host {
 	Q_OBJECT
 
 public:
@@ -181,8 +180,6 @@ public slots:
 	void handleHelpAbout();
 	// updates according to simulation
 	void waitForUpdates();
-	// display train path diagrams
-	void displayTrainPathDiagrams();
 	void zoomIn();
 	void zoomOut();
 	void fitToView();
@@ -220,6 +217,9 @@ private:
 	QTableWidget* m_runResultsTable = nullptr;
 	QPushButton* m_setDelayBaselineButton = nullptr;
 	QPushButton* m_compareDelayButton = nullptr;
+	// The windows of the result views, and the dock that opens them. The pointers above are parts of the dock.
+	ResultViews* m_resultViews = nullptr;
+	std::unique_ptr<RunResultsDock> m_runResultsPanel;
 
 	// Set only for the close() that follows a stopped run. The question about unsaved changes
 	// was answered when the close was requested.
@@ -456,7 +456,6 @@ private:
 	int m_replayRequestedTime = 0;
 	bool m_showingTrackPreview = true;
 
-	void buildPerTrainDiagram(int mode); // 0 speed/distance, 1 speed/time, 2 time/distance, 3 simulated effort/distance
 	void refreshFollowTrainChoices();
 	// What followAvailability needs to know about the train of a row of the train list.
 	FollowAvailabilityInput followInput(int row) const;
@@ -630,6 +629,12 @@ private:
 	void signalInspected() override;
 	void followTrain(int trainIndex) override;
 
+	// ResultViews::Host and RunResultsDock::Host: what the result windows and the dock ask of the window. captureTelemetryOperation,
+	// dialogsSuppressed and advancedDetailsEnabled also serve the hosts above.
+	const SceneModel& sceneModel() const override;
+	void resultMessage(const QString& text, int milliseconds) override;
+	void runResultsRefreshed() override;
+
 	// NetworkPresenter::FrameHost: the parts of a frame that the follow camera, the legend and the signal inspector take.
 	bool isTrainOverlayPromoted(int trainIndex) const override;
 	void trainWillUpdate(int trainIndex) override;
@@ -639,6 +644,12 @@ private:
 	void signalsApplied() override;
 	void trainsApplied(bool anyAdded, bool cameraMoved) override;
 
+	// These open a result view, for the scripted runs in tests/e2e.
+	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
+	void buildPerTrainDiagram(int mode);
+	void showDelayDiagram();
+	void showBlockingTimeDiagram();
+
 	void updateViewportOverlays();
 	void updateSignalCues();
 	void updateZoomStatus();
@@ -646,22 +657,6 @@ private:
 	void updateNetworkLegend();
 
 private slots:
-	void showSpeedDistanceDiagram();
-	void showSpeedTimeDiagram();
-	void showTimeDistanceDiagram();
-	void showTractiveEffortDistanceDiagram();
-	void showTimetableGraph();
-	void buildRouteDiagram(const std::shared_ptr<const CompletedRunData>& run, bool timetable, int referenceIndex);
-	void showTimetableTable();
-	void showDelayDiagram();
-	void showDelayAnalysis();
-	void showBlockingTimeDiagram();
-	void showCapacityAnalysis();
-	void showAreaCapacity();
-	void showCompressedBlockingTimeDiagram(const CapacityAnalysisResult& result, const QString& sectionLabel,
-		const std::shared_ptr<const CompletedRunData>& run,
-		const std::vector<BlockingTimeDiagramSegment>& segments, double axisMinKm, double axisMaxKm, const QString& referenceId,
-		const std::vector<BlockSectionExtent>& extents, const std::vector<BlockingTimeDiagramSegment>& unmapped);
 	void focusTrainInScene(const QString& trainId); // centre the network view on a diagram selection
 };
 
