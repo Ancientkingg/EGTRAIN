@@ -70,12 +70,24 @@ int main(int argc, char** argv) {
 	requireFolder(dialog_folders::startFolder("/home/me/cases/x.egscene", "/usr/bin", "/home/me/Documents", "/home/me"),
 		"/home/me/cases", "bundle outside the Linux prefix");
 
+	// The Open dialogs: the folder above the open case, with no case the installed examples, otherwise the home folder.
+	requireFolder(dialog_folders::openStartFolder({}, "/Applications/EGTRAIN.app/Contents/Resources/Scenes", "/Users/me"),
+		"/Applications/EGTRAIN.app/Contents/Resources/Scenes", "open dialog with no case starts in the installed examples");
+	requireFolder(dialog_folders::openStartFolder({}, {}, "/Users/me"), "/Users/me", "open dialog with no installed examples");
+
 	// A relative case path and the working directory of a Start Menu launch, which is the installation folder.
 	QTemporaryDir temp;
 	require(temp.isValid(), "cannot create temporary directory");
 	const QString installation = temp.path() + "/installation";
 	require(QDir().mkpath(installation + "/Scenes/Paimpol"), "cannot create installation");
 	require(QDir().mkpath(temp.path() + "/cases/mine"), "cannot create cases");
+	requireFolder(dialog_folders::installedScenesFolder(installation), QDir::cleanPath(installation + "/Scenes"), "installed examples beside the program");
+	requireFolder(dialog_folders::installedScenesFolder(temp.path() + "/cases"), QString(), "no installed examples");
+	// The Open dialog beside the case, with an absolute case path of this system: on Windows QFileInfo puts a drive in
+	// front of a path without one.
+	const QString caseFolder = QDir::cleanPath(temp.path() + "/cases");
+	requireFolder(dialog_folders::openStartFolder(caseFolder + "/x.egscene", "/Applications/EGTRAIN.app/Contents/Resources/Scenes", "/Users/me"),
+		caseFolder, "open dialog beside the case");
 	const QString before = QDir::currentPath();
 	require(QDir::setCurrent(installation), "cannot change the working directory");
 	requireFolder(dialog_folders::startFolder("Scenes/Paimpol", installation, kDocuments, kHome), kDocuments, "relative installed scene");

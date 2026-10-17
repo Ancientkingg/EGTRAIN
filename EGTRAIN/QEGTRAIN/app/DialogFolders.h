@@ -65,6 +65,36 @@ inline QString startFolder(const QString& casePath = QString()) {
 	return startFolder(casePath, QCoreApplication::applicationDirPath(), QDir(documents).exists() ? documents : QString(), QDir::homePath());
 }
 
+// The folder with the installed example cases, or the empty string when there is none.
+inline QString installedScenesFolder(const QString& applicationDir) {
+	const QDir app(applicationDir);
+	for (const QString& relative : {QStringLiteral("Scenes"), QStringLiteral("../Resources/Scenes"), QStringLiteral("../share/EGTRAIN/Scenes")}) {
+		const QString folder = QDir::cleanPath(app.absoluteFilePath(relative));
+		if (QDir(folder).exists())
+			return folder;
+	}
+	return {};
+}
+
+// The folder in which the Open Case Study and Open Scene Folder dialogs start: the folder above the open case, or
+// with no case open the example cases when `installedScenes` is given, otherwise the home folder. On macOS a native
+// open dialog that started in the home folder made macOS ask for access to Desktop, Documents and Downloads before
+// it could be used; one that starts inside the application bundle asks nothing.
+inline QString openStartFolder(const QString& sceneDir, const QString& installedScenes, const QString& homeDir) {
+	if (!sceneDir.isEmpty())
+		return QFileInfo(sceneDir).absolutePath();
+	return installedScenes.isEmpty() ? homeDir : installedScenes;
+}
+
+inline QString openStartFolder(const QString& sceneDir = QString()) {
+#ifdef Q_OS_MACOS
+	const QString installed = installedScenesFolder(QCoreApplication::applicationDirPath());
+#else
+	const QString installed;
+#endif
+	return openStartFolder(sceneDir, installed, QDir::homePath());
+}
+
 // The start path for a save dialog: the start folder with the suggested file name in it.
 inline QString suggestedPath(const QString& fileName, const QString& casePath = QString()) {
 	const QString folder = startFolder(casePath);
