@@ -1691,7 +1691,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							bool sawUnresolved = false;
 							int rejectedCollisionRows = 0;
 							for (int row = 0; row < importResults->rowCount(); ++row) {
-								const QTableWidgetItem* statusItem = importResults->item(row, 2);
+								const QTableWidgetItem* statusItem = importResults->item(row, 3);
 								if (!statusItem)
 									continue;
 								sawAccepted = sawAccepted || statusItem->text() == "Accepted";
@@ -1752,8 +1752,8 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 							} else {
 								importPassengersFrom(passengerImport, partialFixture.path());
 								if (!samePassengers(passengersBeforeFailedImport, w.m_document->mutableModel().passengers)
-									|| importResults->rowCount() != 1 || !importResults->item(0, 2)
-									|| importResults->item(0, 2)->text() != "Rejected")
+									|| importResults->rowCount() != 1 || !importResults->item(0, 3)
+									|| importResults->item(0, 3)->text() != "Rejected")
 									facetFailure(facetOk, "passenger import", "a failed import changed the scene or hid its rejection");
 							}
 						}

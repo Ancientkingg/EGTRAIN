@@ -6,6 +6,7 @@
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/CompactDoubleSpinBox.h"
 #include "widgets/DialogLayout.h"
+#include "widgets/DisplayPath.h"
 #include "widgets/EditorLayout.h"
 
 #include <QApplication>
@@ -21,6 +22,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -113,6 +115,36 @@ QString firstDiagnosticMessage(const std::vector<SceneDiagnostic>& diagnostics) 
 // The row that stays selected when a list is rebuilt with `count` entries.
 int rowAfterRebuild(int previousRow, int count) {
 	return count == 0 ? -1 : (previousRow < 0 ? 0 : std::min(previousRow, count - 1));
+}
+
+// The most lines of one callout. The rest is counted, and the tooltip of the callout lists all of them.
+constexpr int MaxDiagnosticLines = 5;
+
+// The rows of the import results that the table shows without scrolling.
+constexpr int MinImportResultRows = 8;
+
+QString cappedLines(const QStringList& lines) {
+	if (lines.size() <= MaxDiagnosticLines)
+		return lines.join(QLatin1Char('\n'));
+	return lines.mid(0, MaxDiagnosticLines).join(QLatin1Char('\n'))
+		+ QStringLiteral("\nand %1 more").arg(lines.size() - MaxDiagnosticLines);
+}
+
+// True when the diagnostic is about the passenger, one of its journeys or one of its legs: its path starts with the
+// path of the passenger, or it names one of their ids as an item of the matching kind.
+bool belongsToPassenger(const SceneDiagnostic& diagnostic, const QString& passengerPrefix, const std::string& passengerId,
+	const std::set<std::string>& journeyIds, const std::set<std::string>& legIds) {
+	if (QString::fromStdString(diagnostic.path).startsWith(passengerPrefix))
+		return true;
+	if (diagnostic.itemId.empty())
+		return false;
+	if (diagnostic.itemType == "passenger")
+		return diagnostic.itemId == passengerId;
+	if (diagnostic.itemType == "journey")
+		return journeyIds.count(diagnostic.itemId) > 0;
+	if (diagnostic.itemType == "leg")
+		return legIds.count(diagnostic.itemId) > 0;
+	return false;
 }
 
 } // namespace
@@ -264,12 +296,11 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_importResultHeading = EditorLayout::sectionHeading("Import results", passengerDetailPane);
 	m_importResultHeading->setObjectName("passengerImportResultHeading");
 	passengerDetailLayout->addWidget(m_importResultHeading);
-	m_importResultTable = new QTableWidget(0, 4, passengerDetailPane);
+	m_importResultTable = new QTableWidget(0, 5, passengerDetailPane);
 	m_importResultTable->setObjectName("passengerImportResultTable");
-	m_importResultTable->setHorizontalHeaderLabels({"Source", "Row", "Status", "Detail"});
+	m_importResultTable->setHorizontalHeaderLabels({"Source", "Row", "Passenger", "Status", "Detail"});
 	m_importResultTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_importResultTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_importResultTable->setMaximumHeight(130);
 	m_importResultTable->horizontalHeader()->setStretchLastSection(true);
 	m_importResultTable->setToolTip("Transient results from the most recent passenger import; not persisted.");
 	passengerDetailLayout->addWidget(m_importResultTable);
@@ -277,6 +308,9 @@ PassengerPanel::PassengerPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	m_importResultTable->hide();
 	const auto updateImportVisibility = [this]() {
 		const bool hasRows = m_importResultTable->rowCount() > 0;
+		m_importResultTable->setMinimumHeight(m_importResultTable->horizontalHeader()->sizeHint().height()
+			+ MinImportResultRows * m_importResultTable->verticalHeader()->defaultSectionSize()
+			+ m_importResultTable->horizontalScrollBar()->sizeHint().height() + 2 * m_importResultTable->frameWidth());
 		m_importResultHeading->setVisible(hasRows);
 		m_importResultTable->setVisible(hasRows);
 	};
@@ -430,29 +464,15 @@ void PassengerPanel::updatePassengerDetail() {
 	bool hasWarning = false;
 	if (passenger && m_diagnostics) {
 		const QString passengerPrefix = QStringLiteral("passengers[%1]").arg(passengerRow);
-		const int journeyRow = m_journeyList->currentRow();
-		const int legRow = m_legList->currentRow();
-		const ScenePassengerJourney* journey = selectedPassengerJourney();
-		const ScenePassengerLeg* leg = selectedPassengerLeg();
-		const QString journeyPrefix = journeyRow >= 0
-			? passengerPrefix + QStringLiteral(".journeys[%1]").arg(journeyRow)
-			: QString();
-		const QString legPrefix = journey && legRow >= 0
-			? journeyPrefix + QStringLiteral(".legs[%1]").arg(legRow)
-			: QString();
-		const QString passengerId = QString::fromStdString(passenger->id);
-		const QString journeyId = journey ? QString::fromStdString(journey->id) : QString();
-		const QString legId = leg ? QString::fromStdString(leg->id) : QString();
+		std::set<std::string> journeyIds;
+		std::set<std::string> legIds;
+		for (const auto& journey : passenger->journeys) {
+			journeyIds.insert(journey.id);
+			for (const auto& leg : journey.legs)
+				legIds.insert(leg.id);
+		}
 		for (const auto& diagnostic : *m_diagnostics) {
-			const QString path = QString::fromStdString(diagnostic.path);
-			const QString itemId = QString::fromStdString(diagnostic.itemId);
-			const QString relatedId = QString::fromStdString(diagnostic.relatedId);
-			const bool match = (!legPrefix.isEmpty() && path.startsWith(legPrefix))
-				|| (!journeyPrefix.isEmpty() && path.startsWith(journeyPrefix))
-				|| path.startsWith(passengerPrefix)
-				|| itemId == passengerId || itemId == journeyId || itemId == legId
-				|| relatedId == passengerId || relatedId == journeyId || relatedId == legId;
-			if (!match)
+			if (!belongsToPassenger(diagnostic, passengerPrefix, passenger->id, journeyIds, legIds))
 				continue;
 			const QString line = QString::fromStdString(severityLabel(diagnostic.severity)).toUpper()
 				+ QStringLiteral(": ") + QString::fromStdString(diagnostic.message);
@@ -469,10 +489,12 @@ void PassengerPanel::updatePassengerDetail() {
 			passenger ? QStringLiteral("No validation messages for this passenger selection.")
 					  : QStringLiteral("Select a passenger, or use Add to create one or Import to read a legacy passenger folder."));
 	} else {
-		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, errors.join(QStringLiteral("\n")));
+		DialogLayout::setStatus(m_diagnosticLabel, DialogLayout::Severity::Error, cappedLines(errors));
 	}
+	m_diagnosticLabel->setToolTip(errors.size() > MaxDiagnosticLines ? errors.join(QLatin1Char('\n')) : QString());
 	DialogLayout::setStatus(m_warningLabel, hasWarning ? DialogLayout::Severity::Warning : DialogLayout::Severity::Neutral,
-		notes.join(QStringLiteral("\n")));
+		cappedLines(notes));
+	m_warningLabel->setToolTip(notes.size() > MaxDiagnosticLines ? notes.join(QLatin1Char('\n')) : QString());
 }
 
 void PassengerPanel::updateJourneyDetail() {
@@ -907,20 +929,27 @@ void PassengerPanel::importPassengers() {
 	SceneModel& model = m_document->mutableModel();
 	const ScenePassengerImportResult imported = importLegacyPassengers(sourcePath.toStdString(), model);
 	clearImportResult();
-	const auto addResultRow = [this](const QString& source, int row, const QString& status, const QString& detail) {
+	// The tooltip of the source is the path of the file or folder the row is about, and that of every other cell is its text.
+	const auto addResultRow = [this](const QString& source, const QString& sourcePath, int row, const QString& passengerId,
+								  const QString& status, const QString& detail) {
 		const int target = m_importResultTable->rowCount();
 		m_importResultTable->insertRow(target);
-		m_importResultTable->setItem(target, 0, new QTableWidgetItem(source));
-		m_importResultTable->setItem(target, 1, new QTableWidgetItem(row > 0 ? QString::number(row) : QStringLiteral("-")));
-		m_importResultTable->setItem(target, 2, new QTableWidgetItem(status));
-		m_importResultTable->setItem(target, 3, new QTableWidgetItem(detail));
+		const QStringList texts = {source, row > 0 ? QString::number(row) : QStringLiteral("-"),
+			passengerId.isEmpty() ? QStringLiteral("-") : passengerId, status, detail};
+		for (int column = 0; column < texts.size(); ++column) {
+			auto* item = new QTableWidgetItem(texts[column]);
+			item->setToolTip(column == 0 ? display_path::format(sourcePath) : texts[column]);
+			m_importResultTable->setItem(target, column, item);
+		}
 	};
 	if (!imported.success()) {
-		for (const auto& row : imported.rows)
-			addResultRow(QFileInfo(QString::fromStdString(row.sourceFile)).fileName(), row.row,
+		for (const auto& row : imported.rows) {
+			const QString file = QString::fromStdString(row.sourceFile);
+			addResultRow(QFileInfo(file).fileName(), file, row.row, QString::fromStdString(row.passengerId),
 				QStringLiteral("Rejected"), QString::fromStdString(row.context));
+		}
 		if (imported.rows.empty())
-			addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
+			addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
 				QStringLiteral("The exact DAS and RouteChoice passenger pair could not be read"));
 		QString message = firstDiagnosticMessage(imported.diagnostics);
 		if (message.isEmpty())
@@ -963,8 +992,8 @@ void PassengerPanel::importPassengers() {
 			++rejectedPassengers;
 			if (!passenger.id.empty())
 				rejectedPassengerIds.insert(passenger.id);
-			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), 0,
-				QStringLiteral("Rejected"),
+			addResultRow(QStringLiteral("%1 (batch)").arg(QFileInfo(sourcePath).fileName()), sourcePath, 0,
+				QString::fromStdString(passenger.id), QStringLiteral("Rejected"),
 				QStringLiteral("Passenger, journey, or leg ID collides with existing or earlier imported data"));
 			continue;
 		}
@@ -975,17 +1004,17 @@ void PassengerPanel::importPassengers() {
 		++acceptedPassengers;
 	}
 	for (const auto& row : imported.rows) {
-		const QString source = QFileInfo(QString::fromStdString(row.sourceFile)).fileName();
+		const QString file = QString::fromStdString(row.sourceFile);
 		const bool rejectedByBatch = rejectedPassengerIds.count(row.passengerId) > 0;
 		const QString status = !row.accepted || rejectedByBatch ? QStringLiteral("Rejected")
 																: (row.unresolvedReferences ? QStringLiteral("Unresolved") : QStringLiteral("Accepted"));
 		const QString detail = rejectedByBatch
 			? QStringLiteral("Passenger ID collides with existing or earlier imported data")
 			: QString::fromStdString(row.context);
-		addResultRow(source, row.row, status, detail);
+		addResultRow(QFileInfo(file).fileName(), file, row.row, QString::fromStdString(row.passengerId), status, detail);
 	}
 	if (imported.rows.empty() && imported.diagnostics.empty())
-		addResultRow(QFileInfo(sourcePath).fileName(), 0, QStringLiteral("Rejected"),
+		addResultRow(QFileInfo(sourcePath).fileName(), sourcePath, 0, QString(), QStringLiteral("Rejected"),
 			QStringLiteral("No passenger source rows were found"));
 	for (const auto& report : imported.report)
 		model.importReport.push_back(report);

@@ -8,11 +8,13 @@
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QFile>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QStringList>
 #include <QTabWidget>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -452,6 +454,7 @@ int main(int argc, char** argv) {
 		SceneDiagnostic journeyWarning;
 		journeyWarning.severity = SceneSeverity::Warning;
 		journeyWarning.message = "Journey is odd";
+		journeyWarning.itemType = "journey";
 		journeyWarning.itemId = "J1";
 		SceneDiagnostic otherPassenger;
 		otherPassenger.severity = SceneSeverity::Info;
@@ -571,7 +574,7 @@ int main(int argc, char** argv) {
 		});
 		const std::size_t reportsBefore = document.model().importReport.size();
 		panel.importButton()->click();
-		const auto statusOf = [&](int row) { return panel.importResultTable()->item(row, 2)->text(); };
+		const auto statusOf = [&](int row) { return panel.importResultTable()->item(row, 3)->text(); };
 		std::vector<std::string> rows;
 		for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
 			std::string text;
@@ -580,21 +583,35 @@ int main(int argc, char** argv) {
 			rows.push_back(text);
 		}
 		const std::vector<std::string> fileRows = {
-			"DAS_FrenchCaseStudy.csv | 1 | Accepted | Accepted",
-			"DAS_FrenchCaseStudy.csv | 2 | Rejected | Passenger ID collides with existing or earlier imported data",
-			"DAS_FrenchCaseStudy.csv | 3 | Unresolved | Accepted with unresolved station reference",
-			"DAS_FrenchCaseStudy.csv | 4 | Rejected | Malformed passenger DAS row",
-			"RouteChoiceFC_EQ1.csv | 1 | Accepted | Accepted",
-			"RouteChoiceFC_EQ1.csv | 2 | Rejected | Passenger ID collides with existing or earlier imported data",
-			"RouteChoiceFC_EQ1.csv | 3 | Unresolved | Accepted with unresolved service or station reference",
-			"RouteChoiceFC_EQ1.csv | 4 | Rejected | Malformed passenger route-choice row"};
+			"DAS_FrenchCaseStudy.csv | 1 | imp1 | Accepted | Accepted",
+			"DAS_FrenchCaseStudy.csv | 2 | P2 | Rejected | Passenger ID collides with existing or earlier imported data",
+			"DAS_FrenchCaseStudy.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved station reference",
+			"DAS_FrenchCaseStudy.csv | 4 | - | Rejected | Malformed passenger DAS row",
+			"RouteChoiceFC_EQ1.csv | 1 | imp1 | Accepted | Accepted",
+			"RouteChoiceFC_EQ1.csv | 2 | P2 | Rejected | Passenger ID collides with existing or earlier imported data",
+			"RouteChoiceFC_EQ1.csv | 3 | imp_unresolved | Unresolved | Accepted with unresolved service or station reference",
+			"RouteChoiceFC_EQ1.csv | 4 | - | Rejected | Malformed passenger route-choice row"};
 		ok &= expect(asked == 1 && rows.size() == fileRows.size() + 1
-				&& rows[0].find(" (batch) | - | Rejected | Passenger, journey, or leg ID collides") != std::string::npos
+				&& rows[0].find(" (batch) | - | P2 | Rejected | Passenger, journey, or leg ID collides") != std::string::npos
 				&& std::vector<std::string>(rows.begin() + 1, rows.end()) == fileRows,
 			"the result table lists the rows of both files with their accepted, rejected and unresolved status, after the passenger that collides");
 		ok &= expect(!panel.importResultTable()->isHidden() && !panel.importResultHeading()->isHidden()
 				&& panel.importResultHeading()->text() == "Import results",
 			"the result table appears with the first row, under its heading");
+		bool cellsExplained = true;
+		for (int row = 0; row < panel.importResultTable()->rowCount(); ++row) {
+			for (int column = 0; column < panel.importResultTable()->columnCount(); ++column) {
+				const QTableWidgetItem* item = panel.importResultTable()->item(row, column);
+				cellsExplained = cellsExplained && (column == 0 ? item->toolTip().contains(item->text().section(' ', 0, 0)) && item->toolTip().size() > item->text().section(' ', 0, 0).size() : item->toolTip() == item->text());
+			}
+		}
+		ok &= expect(cellsExplained, "every cell of the result table has its text as tooltip, and the source its path");
+		panel.resize(1000, 1800);
+		panel.show();
+		QApplication::processEvents();
+		QTableWidget* resultTable = panel.importResultTable();
+		ok &= expect(resultTable->viewport()->height() >= 8 * resultTable->verticalHeader()->defaultSectionSize(),
+			"the result table shows at least eight rows");
 		ok &= expect(items(panel.passengerList()) == std::vector<std::string>({"P1", "P2", "imp1", "imp_unresolved"}),
 			"the accepted and the unresolved passengers are appended, and the one that collides is not");
 		ok &= expect(document.model().importReport.size() > reportsBefore && document.isDirty()
@@ -648,6 +665,87 @@ int main(int argc, char** argv) {
 		document.setEditable(false);
 		panel.importButton()->click();
 		ok &= expect(asked == askedBefore, "Import does not ask for a folder while the document is closed for edits");
+	}
+
+	{
+		// the callouts list the messages of the selected passenger only, and at most five lines each
+		SceneDocument document;
+		PassengerPanel panel;
+		panel.setDocument(&document);
+		SceneModel scene = passengerScene();
+		scene.passengers.clear();
+		ScenePassenger first;
+		first.id = "X1";
+		for (int index = 0; index < 8; ++index) {
+			ScenePassengerJourney journey;
+			journey.id = "XJ" + std::to_string(index);
+			journey.originStationId = "A";
+			journey.destinationStationId = "B";
+			first.journeys.push_back(journey);
+		}
+		ScenePassenger second;
+		second.id = "X2";
+		ScenePassengerJourney otherJourney;
+		otherJourney.id = "OJ";
+		otherJourney.originStationId = "A";
+		otherJourney.destinationStationId = "B";
+		second.journeys.push_back(otherJourney);
+		scene.passengers = {first, second};
+		document.replace(scene, false);
+
+		const auto diagnostic = [](SceneSeverity severity, const char* message, const char* type, const char* id, const std::string& path) {
+			SceneDiagnostic value;
+			value.severity = severity;
+			value.message = message;
+			value.itemType = type;
+			value.itemId = id;
+			value.path = path;
+			return value;
+		};
+		std::vector<SceneDiagnostic> diagnostics;
+		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Scene has no duration", "scene", "", ""));
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Scene note", "", "", "settings"));
+		for (int index = 0; index < 8; ++index) {
+			diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Journey has no route-choice legs", "journey",
+				("XJ" + std::to_string(index)).c_str(), "passengers[0].journeys[" + std::to_string(index) + "].legs"));
+		}
+		for (int index = 0; index < 7; ++index)
+			diagnostics.push_back(diagnostic(SceneSeverity::Error, "Journey window is wrong", "", "", "passengers[0].journeys[0].window"));
+		diagnostics.push_back(diagnostic(SceneSeverity::Error, "Other passenger error", "journey", "OJ", "passengers[1].journeys[0]"));
+		diagnostics.push_back(diagnostic(SceneSeverity::Warning, "Other leg note", "leg", "OL", ""));
+		panel.setDiagnostics(&diagnostics);
+		panel.refresh();
+		panel.passengerList()->setCurrentRow(0);
+		ok &= expect(panel.legList()->count() == 0 && panel.journeyList()->currentRow() == 0,
+			"the first journey of the passenger is selected and has no leg");
+		const QStringList errorLines = panel.diagnosticLabel()->text().split('\n');
+		ok &= expect(errorLines.size() == 6 && errorLines.front() == "ERROR: Journey window is wrong" && errorLines.back() == "and 2 more"
+				&& !panel.diagnosticLabel()->text().contains("Scene") && !panel.diagnosticLabel()->text().contains("Other"),
+			"the errors are those of the passenger, five lines and the count of the rest");
+		ok &= expect(panel.diagnosticLabel()->toolTip().split('\n').size() == 7 && !panel.diagnosticLabel()->toolTip().contains("and 2 more"),
+			"the tooltip of the error callout lists all of them");
+		const QStringList noteLines = panel.warningLabel()->text().split('\n');
+		ok &= expect(noteLines.size() == 6 && noteLines.front() == "WARNING: Journey has no route-choice legs" && noteLines.back() == "and 3 more"
+				&& !panel.warningLabel()->text().contains("Scene") && !panel.warningLabel()->text().contains("Other"),
+			"the warnings are those of the passenger, five lines and the count of the rest");
+		ok &= expect(panel.warningLabel()->toolTip().split('\n').size() == 8,
+			"the tooltip of the warning callout lists all of them");
+
+		panel.passengerList()->setCurrentRow(1);
+		ok &= expect(panel.diagnosticLabel()->text() == "ERROR: Other passenger error" && panel.diagnosticLabel()->toolTip().isEmpty()
+				&& panel.warningLabel()->isHidden() && panel.warningLabel()->toolTip().isEmpty(),
+			"another passenger shows only its own message, without a tooltip when all of it is shown");
+
+		// the Legs tab of a journey without a leg offers Add and nothing else
+		ok &= expect(panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled() && !panel.legIdEdit()->isEnabled()
+				&& !panel.legOriginCombo()->isEnabled() && !panel.legServiceCombo()->isEnabled() && !panel.deleteLegButton()->isEnabled(),
+			"a journey without a leg enables Add only");
+		panel.journeyList()->setCurrentRow(-1);
+		ok &= expect(!panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled(),
+			"Add and Occurrence are off while no journey is selected");
+		panel.passengerList()->setCurrentRow(0);
+		ok &= expect(panel.addLegButton()->isEnabled() && !panel.legOccurrenceEdit()->isEnabled(),
+			"a passenger with journeys selects one, and Add is on");
 	}
 
 	{
