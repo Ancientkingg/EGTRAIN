@@ -1427,9 +1427,11 @@ def main() -> None:
     macos_job = job_block(package_only, "package-macos")
     macos_steps = (
         "Test the notarization script",
+        "Test the build path script",
         "Bundle Qt and dependencies into the app",
         "Add scene_tool and the Lebanon guide to the app",
         "Remove unused Qt modules and plugins",
+        "Remove build machine paths",
         "Set the minimum macOS version",
         "Import the signing certificate",
         "Sign the app",
@@ -1500,6 +1502,15 @@ def main() -> None:
         missing.append("macOS package check that requires the cocoa platform plugin, the SVG icon engine and the macOS style")
     if forbidden_macos_files not in macos_verify or not 0 <= macos_verify.find(forbidden_macos_files) < macos_verified:
         missing.append("macOS package check that forbids the virtual keyboard, QML, WebP and TIFF files")
+    # The build machine paths that macdeployqt leaves go before the signature, and the check fails on one in any Mach-O file.
+    if (
+        step_block(macos_job, "Test the build path script").strip().splitlines()[-1].strip() != "run: python3 tools/release/test_macos_build_paths.py"
+        or step_block(macos_job, "Remove build machine paths").strip().splitlines()[-1].strip()
+        != "run: python3 tools/release/macos_build_paths.py fix build/QEGTRAIN.app"
+        or '          python3 tools/release/macos_build_paths.py check "$APP"\n' not in macos_verify
+        or "/opt/homebrew|/usr/local/opt" in macos_verify
+    ):
+        missing.append("macOS package step that removes build machine paths before the signature and a check that fails on one in any Mach-O file")
     macos_start = step_block(macos_job, "Start the package")
     macos_python = next((block for block in macos_job.split("\n      - ") if block.startswith("uses: actions/setup-python@v5\n")), "")
     if (

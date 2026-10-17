@@ -60,6 +60,10 @@ jobs:
         # The script runs here against stand-ins for Apple's tools, so a change to it is tried before a release needs it.
         run: bash tools/release/test_notarize_macos.sh
 
+      - name: Test the build path script
+        # The script runs here against a library built with Homebrew paths, so a change to it is tried before a release needs it.
+        run: python3 tools/release/test_macos_build_paths.py
+
       - name: Bundle Qt and dependencies into the app
         run: |
           set -euxo pipefail
@@ -121,6 +125,12 @@ jobs:
           rm -f "$APP"/Contents/Frameworks/libwebp*.dylib "$APP"/Contents/Frameworks/libsharpyuv*.dylib "$APP"/Contents/Frameworks/libtiff*.dylib \
             "$APP"/Contents/Frameworks/liblzma*.dylib
           report_size "after trimming"
+
+      - name: Remove build machine paths
+        # Some Homebrew libraries keep a run path into the Cellar, and the Qt plugins keep their install names under
+        # /opt/homebrew. Nothing loads through them, but they would let the app load a library from a machine that has
+        # Homebrew. The signature below seals the result, and the check after it fails when a path is left.
+        run: python3 tools/release/macos_build_paths.py fix build/QEGTRAIN.app
 
       - name: Set the minimum macOS version
         # The app is built for the deployment target of the configure step. This key tells Launch Services the same, so an
@@ -194,19 +204,8 @@ jobs:
           test -f "$APP/Contents/Resources/egtrain.icns"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = "egtrain.icns"
           find "$APP" -iname 'libzmq*.dylib' | grep -q . || { echo "ERROR: libzmq not bundled"; exit 1; }
-          # The main executable (no install-id line) and every bundled dylib
-          # (skip the header and their own install-id line) must not reference
-          # a Homebrew path as a dependency.
-          if otool -L "$APP/Contents/MacOS/QEGTRAIN" | tail -n +2 | grep -E '/opt/homebrew|/usr/local/opt'; then
-            echo "ERROR: main executable depends on Homebrew"; exit 1
-          fi
-          leak=0
-          while IFS= read -r f; do
-            if otool -L "$f" | tail -n +3 | grep -E '/opt/homebrew|/usr/local/opt'; then
-              echo "ERROR: Homebrew dependency in $f"; leak=1
-            fi
-          done < <(find "$APP" -type f -name '*.dylib')
-          [ "$leak" = 0 ] || exit 1
+          # No Mach-O file may name a path under /opt/homebrew or /usr/local in its dependencies, install name or run paths.
+          python3 tools/release/macos_build_paths.py check "$APP"
           for plugin in platforms/libqcocoa.dylib iconengines/libqsvgicon.dylib styles/libqmacstyle.dylib; do
             test -f "$APP/Contents/PlugIns/$plugin" || { echo "ERROR: missing $plugin"; exit 1; }
           done
