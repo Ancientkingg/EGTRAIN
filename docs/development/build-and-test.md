@@ -1713,7 +1713,8 @@ application; CTest and the smoke scripts set it themselves.
   version of the executable into the `LSMinimumSystemVersion` key of the property
   list, so the app needs macOS 26 or later. It copies `scene_tool` and the Lebanon
   guide into the app, to `Contents/MacOS/scene_tool` and
-  `Contents/Resources/lebanon-case-study.md`, and removes the virtual keyboard
+  `Contents/Resources/lebanon-case-study.md`, puts `LICENSE` and
+  `THIRD_PARTY_NOTICES.md` in `Contents/Resources`, and removes the virtual keyboard
   input plugin with the Quick and QML frameworks, and the WebP and TIFF plugins
   with their libraries, from the app. All of this comes before the one
   signature, which `tools/release/sign_macos.sh` makes (see

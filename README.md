@@ -102,6 +102,7 @@ EGTRAIN's source code is licensed under the
 [GNU General Public License, version 3 only](LICENSE)
 (`GPL-3.0-only`).
 
-Third-party components retain their own licenses. The code license does not
+Third-party components retain their own licenses, which
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) lists for the libraries in the release packages. The code license does not
 cover case-study datasets or grant rights to third-party assets; their
 respective terms and permissions apply.
