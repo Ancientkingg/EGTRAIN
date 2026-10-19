@@ -157,7 +157,6 @@ QTableWidget* makeTable(QWidget* parent, const char* name, const QStringList& he
 	return table;
 }
 
-// The cells of numericColumns are aligned to the right.
 void fillTable(QTableWidget* table, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
 	table->setRowCount(static_cast<int>(rows.size()));
 	for (int row = 0; row < table->rowCount(); ++row) {
@@ -175,10 +174,6 @@ QLabel* makeHelp(QWidget* parent, const QString& help) {
 	auto* label = new QLabel(parent);
 	DialogLayout::setHelp(label, help);
 	return label;
-}
-
-QLabel* makeCaption(QWidget* parent, const QString& caption) {
-	return EditorLayout::sectionHeading(caption, parent);
 }
 
 QStringList callRow(const DelayEvent& event) {
@@ -555,12 +550,12 @@ DelayAnalysisWindow::DelayAnalysisWindow(DelayRunSnapshot scenario, std::optiona
 	m_baselineTotals->setTextFormat(Qt::PlainText);
 	m_baselineTotals->setWordWrap(true);
 	resultsLayout->addWidget(m_baselineTotals);
-	resultsLayout->addWidget(makeCaption(m_baselineResults, "Occurrences"));
+	resultsLayout->addWidget(EditorLayout::sectionHeading("Occurrences", m_baselineResults));
 	m_baselineOccurrences = makeTable(m_baselineResults, "delayBaselineOccurrences",
 		{"Service", "Occurrence", "Train", "Operating code", "Input delay (primary) [s]", "Input delay at", "Direct incident evidence",
 			"Final station", "Baseline final arrival [s]", "Scenario final arrival [s]", "Additional delay [s]", "Change", "Secondary delay [s]"});
 	resultsLayout->addWidget(m_baselineOccurrences, 1);
-	resultsLayout->addWidget(makeCaption(m_baselineResults, "Calls"));
+	resultsLayout->addWidget(EditorLayout::sectionHeading("Calls", m_baselineResults));
 	const QStringList differenceHeaders = {"Baseline [s]", "Scenario [s]", "Additional delay [s]", "Change"};
 	QStringList callHeaders = {"Service", "Occurrence", "Station", "Journey order", "Call", "Final call"};
 	for (const QString& header : differenceHeaders)

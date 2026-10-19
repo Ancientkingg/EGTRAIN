@@ -101,7 +101,6 @@ QString referenceText(const CapacityAnalysisResult& chain, const std::string& id
 	return QString();
 }
 
-// The cells of numericColumns are aligned to the right.
 QTableWidget* makeTable(QWidget* parent, const QStringList& headers, const std::vector<QStringList>& rows, const QList<int>& numericColumns = {}) {
 	auto* table = new QTableWidget(static_cast<int>(rows.size()), static_cast<int>(headers.size()), parent);
 	table->setHorizontalHeaderLabels(headers);
@@ -125,10 +124,6 @@ QLabel* makeHelp(QWidget* parent, const QString& text) {
 	auto* label = new QLabel(parent);
 	DialogLayout::setHelp(label, text);
 	return label;
-}
-
-QLabel* makeCaption(QWidget* parent, const QString& text) {
-	return EditorLayout::sectionHeading(text, parent);
 }
 
 QWidget* resourcesTab(const AreaCapacityResult& result, QWidget* parent) {
@@ -201,7 +196,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 			secondsText(pair.scheduledHeadway), secondsText(pair.minimumHeadway), secondsText(pair.buffer),
 			evidenceText(pair.governingEvidence),
 			referenceText(chain, pair.leaderIdentity) + " -> " + referenceText(chain, pair.followerIdentity)});
-	layout->addWidget(makeCaption(page, QString("Pairs (%1)").arg(pairRows.size())));
+	layout->addWidget(EditorLayout::sectionHeading(QString("Pairs (%1)").arg(pairRows.size()), page));
 	QTableWidget* pairs = makeTable(page,
 		{"Leader", "Follower", "Leader code", "Follower code", "Scheduled headway [s]", "Minimum headway [s]", "Buffer [s]",
 			"Governing resource evidence", "Reference (leader -> follower)"},
@@ -220,7 +215,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 			secondsText(row.originalReference), secondsText(row.scheduledReference), secondsText(row.compressedReference),
 			secondsText(row.shift), governing.join("; ")});
 	}
-	layout->addWidget(makeCaption(page, QString("Compression (%1)").arg(compressionRows.size())));
+	layout->addWidget(EditorLayout::sectionHeading(QString("Compression (%1)").arg(compressionRows.size()), page));
 	QTableWidget* compression = makeTable(page,
 		{"Identity", "Operating code", "Original reference [s]", "Scheduled reference [s]", "Compressed reference [s]", "Shift [s]",
 			"Governing predecessor / resource evidence"},
@@ -232,7 +227,7 @@ QWidget* chainTab(const AreaCapacityResult& result, QWidget* parent) {
 	for (const CapacityCriticalBlock& critical : chain.criticalBlocks)
 		criticalRows.push_back({QString::fromStdString(critical.leaderIdentity), QString::fromStdString(critical.followerIdentity),
 			QString::fromStdString(critical.leaderBlockId), QString::fromStdString(critical.followerBlockId), secondsText(critical.gap)});
-	layout->addWidget(makeCaption(page, QString("Critical resources (%1)").arg(criticalRows.size())));
+	layout->addWidget(EditorLayout::sectionHeading(QString("Critical resources (%1)").arg(criticalRows.size()), page));
 	QTableWidget* critical = makeTable(page, {"Leader", "Follower", "Leader resource", "Follower resource", "Gap [s]"}, criticalRows, {4});
 	critical->setObjectName("areaCapacityCritical");
 	layout->addWidget(critical, 1);
