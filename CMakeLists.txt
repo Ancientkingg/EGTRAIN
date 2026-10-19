@@ -1798,11 +1798,8 @@ install(TARGETS QEGTRAIN scene_tool
     FRAMEWORK DESTINATION .)
 install(DIRECTORY ${SRC_DIR}/Scenes/ DESTINATION share/EGTRAIN/Scenes)
 
-# Documentation site. `docs` builds the C++ reference with Doxygen and the pages of docs/ with Sphinx into docs/ of the
-# build folder, which opens from disk at docs/index.html. `docs-preview` serves the pages on a local port and rebuilds a
-# page when it changes. The Python packages come from a virtual environment in the build folder, so that their versions
-# are the ones in docs/requirements.txt. Configure does not need the tools: without them, the targets print how to
-# install them.
+# Documentation site targets `docs` and `docs-preview`; see docs/development/build-and-test.md#documentation-site.
+# Without the tools they print how to install them.
 find_package(Doxygen 1.18 QUIET COMPONENTS dot)
 set(egtrain_docs_venv "${CMAKE_BINARY_DIR}/docs-venv")
 if(WIN32)
@@ -1811,7 +1808,7 @@ else()
 	set(egtrain_docs_bin "${egtrain_docs_venv}/bin")
 endif()
 set(egtrain_docs_install "The docs targets need Doxygen 1.18 or newer, Graphviz and the packages of docs/requirements.txt. \
-Install Doxygen and Graphviz, then run: python3 -m venv ${egtrain_docs_venv} and \
+Install Doxygen and Graphviz, then run with Python 3.12 or newer: python3 -m venv ${egtrain_docs_venv} and \
 ${egtrain_docs_bin}/pip install -r ${CMAKE_SOURCE_DIR}/docs/requirements.txt. Then configure again.")
 if(DOXYGEN_FOUND AND EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
 	get_filename_component(egtrain_dot_dir "${DOXYGEN_DOT_EXECUTABLE}" DIRECTORY)

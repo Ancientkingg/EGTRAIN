@@ -86,7 +86,7 @@ def main() -> int:
                 archive.extractall(base_tree, filter="data")
             base_warnings = doxygen_warnings(base_tree, config, scratch / "base-output")
             head_warnings = doxygen_warnings(ROOT, config, scratch / "head-output")
-    except (subprocess.CalledProcessError, OSError) as error:
+    except (subprocess.CalledProcessError, OSError, TypeError) as error:
         print(f"check_undocumented: {error}\n{getattr(error, 'stderr', '') or ''}", file=sys.stderr)
         return 2
     found = new_warnings(base_warnings, head_warnings, changed)
