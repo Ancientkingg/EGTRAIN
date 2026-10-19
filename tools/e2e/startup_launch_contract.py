@@ -95,9 +95,10 @@ def tail(text: str) -> str:
 
 
 # Runs QEGTRAIN to its end with the output and the settings in folders of its own below temp.
-# The result is the exit code and the standard output and error together.
+# answers, when given, is the standard input. The result is the exit code and the standard output and error together.
 def run_app(
-    app: Path, args: list[str], temp: Path, label: str, chooser: bool = False, extra_env: Optional[dict[str, str]] = None
+    app: Path, args: list[str], temp: Path, label: str, chooser: bool = False, extra_env: Optional[dict[str, str]] = None,
+    answers: Optional[str] = None
 ) -> tuple[int, str]:
     env = os.environ.copy()
     env.update(extra_env or {})
@@ -115,6 +116,7 @@ def run_app(
             [str(app), *args],
             cwd=RUN_DIR,
             env=env,
+            input=answers,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -361,6 +363,23 @@ def assert_help_and_unknown_option(app: Path) -> None:
         if returncode == 0 or "Unknown option --bogus" not in output or "--help" not in output:
             raise SystemExit(f"an unknown option exited with {returncode}, or the error did not name --bogus and --help\n{tail(output)}")
         print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
+
+
+# The -TSM and -RC questions are not answered: at the end of the input they read 0.
+def assert_interactive_questions(app: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-interactive-") as root_name:
+        root = Path(root_name)
+        run = root / "run-asked"
+        returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch", answers="2\n0\n")
+        if (returncode != 0 or "Please enter" not in output or "Please insert" not in output
+                or not (run / "out/Output/Paimpol").is_dir()):
+            raise SystemExit(f"--interactive exited with {returncode}, did not ask for -n and -g or did not run Paimpol\n{tail(output)}")
+        run = root / "run-given"
+        returncode, output = run_app(app, ["-interactive", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="2\n")
+        if (returncode != 0 or "Please enter" not in output or "Please insert" in output
+                or not (run / "out/Output/Paimpol").is_dir()):
+            raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
+        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
 
 
 def make_bundles(scene_tool: Path, root: Path) -> tuple[Path, Path, Path]:
@@ -754,6 +773,7 @@ def main() -> None:
 
     assert_launch_reaches_defaults(app, [], "no-argument launch")
     assert_launch_reaches_defaults(app, ["-n", "1", "-g", "1"], "partial-argument launch")
+    assert_interactive_questions(app)
 
 
 if __name__ == "__main__":
