@@ -59,24 +59,13 @@ void closeNote(int fd) {
 #endif
 }
 
-// Whether the text was written. A note that cannot be written is lost, and the process ends as before.
-bool writeText(int fd, const char* text) {
+// A note that cannot be written is lost, and the process ends as before.
+void writeText(int fd, const char* text) {
 #ifdef Q_OS_WIN
-	return _write(fd, text, static_cast<unsigned int>(std::strlen(text))) >= 0;
+	_write(fd, text, static_cast<unsigned int>(std::strlen(text)));
 #else
-	return write(fd, text, std::strlen(text)) >= 0;
+	(void)!write(fd, text, std::strlen(text));
 #endif
-}
-
-void writeNumber(int fd, unsigned long value, unsigned long base) {
-	char digits[24];
-	int position = static_cast<int>(sizeof digits) - 1;
-	digits[position] = '\0';
-	do {
-		digits[--position] = "0123456789ABCDEF"[value % base];
-		value /= base;
-	} while (value != 0 && position > 0);
-	writeText(fd, digits + position);
 }
 
 void writeHeader(int fd) {
@@ -111,9 +100,7 @@ void onSignal(int number) {
 		writeHeader(fd);
 		writeText(fd, "Signal: ");
 		writeText(fd, signalName(number));
-		writeText(fd, " (");
-		writeNumber(fd, static_cast<unsigned long>(number), 10);
-		writeText(fd, ")\n");
+		writeText(fd, "\n");
 #ifndef Q_OS_WIN
 		writeText(fd, "Stack:\n");
 		void* frames[64];
@@ -121,8 +108,11 @@ void onSignal(int number) {
 #endif
 		closeNote(fd);
 	}
-	// The handler is reset as it is called, so the signal now ends the process as it would without the handler.
+	// The handler is reset as it is called, so the signal now ends the process as it would without the handler. On Windows
+	// that would exit quietly with code 3; returning lets abort() go on to the fast-fail report that the system records.
+#ifndef Q_OS_WIN
 	std::raise(number);
+#endif
 }
 
 // Writes the exception and aborts, and the handler of SIGABRT adds the stack.
@@ -149,13 +139,24 @@ void onSignal(int number) {
 }
 
 #ifdef Q_OS_WIN
+void writeHex(int fd, unsigned long value) {
+	char digits[16];
+	int position = static_cast<int>(sizeof digits) - 1;
+	digits[position] = '\0';
+	do {
+		digits[--position] = "0123456789ABCDEF"[value % 16];
+		value /= 16;
+	} while (value != 0 && position > 0);
+	writeText(fd, digits + position);
+}
+
 // Passes the exception on to the filter it replaced, and so to the system, after the note is written.
 LONG WINAPI onException(EXCEPTION_POINTERS* info) {
 	const int fd = openNote();
 	if (fd >= 0) {
 		writeHeader(fd);
 		writeText(fd, "Exception: 0x");
-		writeNumber(fd, static_cast<unsigned long>(info->ExceptionRecord->ExceptionCode), 16);
+		writeHex(fd, static_cast<unsigned long>(info->ExceptionRecord->ExceptionCode));
 		writeText(fd, "\n");
 		closeNote(fd);
 	}

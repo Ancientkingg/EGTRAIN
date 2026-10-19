@@ -50,7 +50,8 @@ bool checkCrash(const char* kind, const char* cause, bool exception) {
 	child.start(QCoreApplication::applicationFilePath(), {QStringLiteral("--child"), QString::fromLatin1(kind), folder.path()});
 	bool ok = expect(child.waitForFinished(120000), name + ": the child did not end");
 #ifdef Q_OS_WIN
-	ok &= expect(child.exitCode() != 0, name + ": the child ended normally");
+	// abort() without its fast-fail report exits quietly with 3.
+	ok &= expect(child.exitCode() != 0 && child.exitCode() != 3, name + ": the child ended normally or quietly");
 #else
 	ok &= expect(child.exitStatus() == QProcess::CrashExit, name + ": the child did not end by its signal");
 #endif
