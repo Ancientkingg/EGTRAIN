@@ -18,14 +18,14 @@ This page describes the code as it is. Function names are given so that a mainta
 - `parseCmdOptions` (`app/main.cpp`) reads both options with `std::atoi`. Any nonzero value switches the channel on. The default is 0.
 - The options are deprecated and kept for one release. When either is nonzero, whether from the command line or from the `--interactive` questions, `parseCmdOptions` prints one line on standard error: `WARNING: -TSM and -RC are legacy options, kept for one release. Use --live <port> for the supported live stream.` Nothing else about the channels changes.
 - The options exist on the command line only. `--interactive` asks for both when the command line leaves them out (see [Command-line options](../guides/command-line.md)). The window has no control for them, but a window run sends when the option was given at the start. The provenance file of exported results records both values as `tsm_mode` and `route_choice_mode`.
-- `-RC 1` needs a usable passenger journey in the prepared run. `DispatchController::prepareScene` rejects the run otherwise, with the diagnostic `scene.route_choice.passengers.none` (`test_route_choice_missing_data`).
+- `-RC 1` needs a usable passenger journey in the prepared run. [`DispatchController::prepareScene`] rejects the run otherwise, with the diagnostic `scene.route_choice.passengers.none` (`test_route_choice_missing_data`).
 - With both options at 0, no socket is created and nothing is bound or sent: `send_external_state` is called only from the two blocks of the step loop that these options guard. The ZeroMQ context is made by the first send, so such a run holds no context either.
 
 ## When it sends
 
 `DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers` (`app/DispatchController.cpp`) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when `-TSM` is on) and before the signalling clean-up of the same step. The traffic-state message goes first.
 
-At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a `RunControl` (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the `SimulationWorker`, which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (`RunController::startSimulation`). In a `-g 0` run it runs on the main thread (`main`).
+At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a [`RunControl`] (`simulation/RunControl.h`), which every run has. At the top of the step, before any train moves, `RunControl::beginStep` applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the [`SimulationWorker`], which forwards the window's requests to it, and `runSimulation` finds it through `SimulationWorker::active()`. A `-g 0` run makes a control for itself. With `--live-commands`, `DispatchController` hands the commands of live clients to that control (see [Commands](#commands)); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread ([`RunController::startSimulation`]). In a `-g 0` run it runs on the main thread (`main`).
 
 Before each send, the XML text of the message is logged in the category `io.zmq` at level `debug`, whether or not the send succeeds. It follows the line `Sending the following Traffic State XML file` or `Sending the following Route Choice XML file`. A reply is logged in the same category and level as `Received from <endpoint>:<reply>`. With the default settings of the logging core these lines go to standard output. The step loop ignores the result of `send_external_state`.
 
@@ -54,7 +54,7 @@ Each message is one ZeroMQ part with UTF-8 JSON text (`nlohmann::json::dump`). I
 
 | Member | Unit | How it is made |
 | --- | --- | --- |
-| `km-point` | km | The head position from `Train::trainXPosition(t)`: the coordinate of the start of the block section that holds the head, plus the distance into that section (minus it on a reversed route), divided by 1000. Rounded up to 0.01 km. It is -1 when the head is in no block section of the route, that is, when the train is not located. |
+| `km-point` | km | The head position from [`Train::trainXPosition(t)`]: the coordinate of the start of the block section that holds the head, plus the distance into that section (minus it on a reversed route), divided by 1000. Rounded up to 0.01 km. It is -1 when the head is in no block section of the route, that is, when the train is not located. |
 | `speed` | km/h | `instant_train_speed[t]` times 3.6, rounded up to 0.01. |
 | `BlockOccupied` | text | The id of the block section in `Train::Bs`. |
 | `lastOccTime` | step number | `Train::ComputeLastOccupationTime_real_time` with the id in `BlockOccupied` and entry time 10. It looks for the first step `p` from 11 up to `t` at which `instant_spatial_position[p]` has reached the start of the block section with that id in the route, and returns `p`. It returns 0 when there is none, so it is never negative. When no block section of the route has the id, it uses the first block section of the route. |
@@ -139,7 +139,7 @@ Each run begins with a new run id, 16 hexadecimal digits from `std::random_devic
 
 | Frame | Sent | Holds |
 | --- | --- | --- |
-| `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the `SceneModel` that `prepareScene` was given, `base_time_s` (`startingSimulationTime` of the settings of the run), `horizon_steps` (`times` of the settings of the run), `step_s` (`timestep`), and one entry for each train of the run, in the order of `SimulationRun::trains`, with its service id, occurrence, operating code and route index |
+| `hello` | at the start of `runSimulation`, after `executionBegan` and before the first step | `scene_name` from the [`SceneModel`] that `prepareScene` was given, `base_time_s` (`startingSimulationTime` of the settings of the run), `horizon_steps` (`times` of the settings of the run), `step_s` (`timestep`), and one entry for each train of the run, in the order of [`SimulationRun::trains`], with its service id, occurrence, operating code and route index |
 | `state` | at the end of each step `t` that is a multiple of the interval, in `publishSimulationSnapshot` | the trains of that step, and the signal list when it is due |
 | `event` `steps_finished` | when the step loop has ended, with the number of steps that ran | nothing else; the positions are final |
 | `event` `run_finished` | at the end of `runSimulation`, just before `executionReturned` is emitted | `status` `completed`, or `cancelled` when a stop was requested |
@@ -330,7 +330,7 @@ A client that sends garbage, a request that is too large or a request with the w
 
 ## Live server
 
-`LiveServer` (`io/LiveServer.h`) is the transport of the live contract. The frames are made by `io/LiveFrame.h` and described in `docs/live/frame-v1.schema.json`; the server carries the text of a frame and neither reads nor changes it. It does not use the legacy channels. A `LiveServer` that is not started holds no thread, no ZeroMQ context and no socket.
+[`LiveServer`] (`io/LiveServer.h`) is the transport of the live contract. The frames are made by `io/LiveFrame.h` and described in `docs/live/frame-v1.schema.json`; the server carries the text of a frame and neither reads nor changes it. It does not use the legacy channels. A `LiveServer` that is not started holds no thread, no ZeroMQ context and no socket.
 
 ### Sockets
 
@@ -411,3 +411,12 @@ After a stop, `start` begins with empty queues, no hello, no command and a drop 
 - No test covers the traffic-state JSON that the step loop builds.
 
 The library `egtrain_rttp` is built from two sources. `io/RttpXml.cpp` holds the two XML builders and the two RTTP readers, which `io/RttpXml.h` declares. `io/ExternalState.cpp` holds the sender, which `io/ExternalState.h` declares as `send_external_state`. The library links `egtrain_pugixml`, `nlohmann_json` and cppzmq. See [Libraries](source-layout.md#libraries). The live server is in `egtrain_live`, which is built from `io/LiveCommand.cpp`, `io/LiveFrame.cpp` and `io/LiveServer.cpp` and links `nlohmann_json`, `egtrain_util` and cppzmq. It does not use Qt. `egtrain_dispatch` links it, and `DispatchController` is its only user in the application.
+
+[`DispatchController::prepareScene`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_dispatch_controller.html
+[`RunControl`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_control.html
+[`SimulationWorker`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_simulation_worker.html
+[`RunController::startSimulation`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_run_controller.html
+[`Train::trainXPosition(t)`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
+[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
+[`SimulationRun::trains`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_simulation_run.html
+[`LiveServer`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_live_server.html

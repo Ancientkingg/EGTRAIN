@@ -56,7 +56,7 @@ An `import_report` row has `category`, `source_count`, `converted_count`,
 counts describe the conversion source, not simulation results.
 
 Counts, GUI switches, output paths, and network feature flags from legacy
-`InitialParameters` are not V1 scene keys. `scene_tool export` stores the base
+[`InitialParameters`] are not V1 scene keys. `scene_tool export` stores the base
 time and the simulation settings in `EGTRAINInitialParameters.json` with the keys
 of `scene.json`, and the legacy import reads that file.
 
@@ -325,7 +325,7 @@ alights, so a stop without passengers lasts exactly its planned dwell, in a
 scene without passengers as well. Otherwise it is a fixed time plus the time of
 the busiest door of the train. A door takes a boarding time and an alighting
 time, both counted per passenger, so a door that nobody uses takes no time
-(`Train::computePaxDependentDwellTimeAtStations`, after Fernandez et al. 2007
+([`Train::computePaxDependentDwellTimeAtStations`], after Fernandez et al. 2007
 and Gibson et al. 1989).
 
 An empty `stops` array means no scheduled calls without requiring `through`.
@@ -532,4 +532,8 @@ it is used when the report exposes ambiguous source relationships.
 
 The reverse exporter remains available for interoperability. It does not make
 legacy files authoritative, and the normal runtime never invokes it. Canonical
-scenario selection and passengers execute directly from `SceneModel`.
+scenario selection and passengers execute directly from [`SceneModel`].
+
+[`InitialParameters`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_initial_parameters.html
+[`Train::computePaxDependentDwellTimeAtStations`]: https://ancientkingg.github.io/EGTRAIN/latest/api/class_train.html
+[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html

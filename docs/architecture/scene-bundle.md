@@ -5,7 +5,7 @@ payload is an ordinary ZIP archive, so external tools may report
 `application/zip`; EGTRAIN does not rely on a registered MIME type. ZIP entries
 use deflate or store compression. Encryption and passwords are not supported.
 The archive is a transport container only: it loads into the existing V1
-`SceneModel` and does not introduce a second scene representation.
+[`SceneModel`] and does not introduce a second scene representation.
 
 The name V2 refers to the container. The container's own number is
 `bundle_version` 1, and the data inside has `schema_version` 1. Which bundles
@@ -90,3 +90,5 @@ timestamps. Source model values are not mutated. The archive is written to a
 sibling staging file and atomically published. An existing regular bundle is
 replaced by the same atomic operation, so a failed publication leaves the old
 path intact. Generated outputs and legacy files are never included.
+
+[`SceneModel`]: https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html
