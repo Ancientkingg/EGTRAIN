@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">
 <polygon fill="#999999" stroke="#666666" points="139,-24.5 0,-24.5 0,-5.5 139,-5.5 139,-24.5"/>
 <text text-anchor="middle" x="69.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::active</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title="A worker without a controller runs the controller of the process, the global simulation.">
 <polygon fill="white" stroke="#666666" points="336,-30 175,-30 175,0 336,0 336,-30"/>
 <text text-anchor="start" x="183" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::Simulation</text>
 <text text-anchor="middle" x="255.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Worker</text>

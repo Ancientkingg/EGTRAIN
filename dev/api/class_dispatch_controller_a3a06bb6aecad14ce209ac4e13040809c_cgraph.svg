@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Ends the live stream, if it runs.">
 <polygon fill="#999999" stroke="#666666" points="122,-189.5 0,-189.5 0,-159.5 122,-159.5 122,-189.5"/>
 <text text-anchor="start" x="8" y="-177.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="61" y="-166.5" font-family="Helvetica,sans-Serif" font-size="10.00">::~DispatchController</text>
@@ -368,7 +368,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="697.5,-457.5 531.5,-457.5 531.5,-427.5 697.5,-427.5 697.5,-457.5"/>
 <text text-anchor="start" x="539.5" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="614.5" y="-434.5" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>
@@ -751,7 +751,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="872.5,-75 802.5,-75 802.5,-56 872.5,-56 872.5,-75"/>
 <text text-anchor="middle" x="837.5" y="-63" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>
@@ -787,7 +787,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title="Empties run.infra, the platforms of the run and its final&#45;station statistics.">
 <polygon fill="white" stroke="#666666" points="684.5,-128.5 544.5,-128.5 544.5,-98.5 684.5,-98.5 684.5,-128.5"/>
 <text text-anchor="start" x="552.5" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeInfrastructure</text>
 <text text-anchor="middle" x="614.5" y="-105.5" font-family="Helvetica,sans-Serif" font-size="10.00">State</text>
@@ -806,7 +806,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="_operations_builder_8cpp.html#aea9297830b5672f714105f48b351dd48" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="_operations_builder_8cpp.html#aea9297830b5672f714105f48b351dd48" target="_top" xlink:title="The reset between scene runs, which is the same as preparing a new run.">
 <polygon fill="white" stroke="#666666" points="690.5,-184 538.5,-184 538.5,-165 690.5,-165 690.5,-184"/>
 <text text-anchor="middle" x="614.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeOperationsState</text>
 </a>
@@ -869,7 +869,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title="Returns every member except the infrastructure to the state of a new run.">
 <polygon fill="white" stroke="#666666" points="1099.5,-256 980.5,-256 980.5,-237 1099.5,-237 1099.5,-256"/>
 <text text-anchor="middle" x="1040" y="-244" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationRun::reset</text>
 </a>
@@ -914,7 +914,7 @@
 <!-- Node36 -->
 <g id="Node000036" class="node">
 <title>Node36</title>
-<g id="a_Node000036"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title=" ">
+<g id="a_Node000036"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ...">
 <polygon fill="white" stroke="#666666" points="1312,-259.5 1206,-259.5 1206,-229.5 1312,-229.5 1312,-259.5"/>
 <text text-anchor="start" x="1214" y="-247.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters::</text>
 <text text-anchor="middle" x="1259" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters</text>

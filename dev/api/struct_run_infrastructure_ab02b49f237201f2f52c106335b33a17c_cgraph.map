@@ -1,5 +1,5 @@
 <map id="RunInfrastructure::reset" name="RunInfrastructure::reset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,148,87"/>
+<area shape="rect" id="Node000001" title="Returns every member to the state of a new object." alt="" coords="5,47,148,87"/>
 <area shape="rect" id="Node000002" href="$class_block_set.html#ae8900f58f7303f7e02a1588e640aeb3f" title=" " alt="" coords="219,5,363,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,48,221,31,223,36,149,54"/>
 <area shape="rect" id="Node000003" href="$class_connections.html#ac88d39f818e8a52e8c630cb388ed520c" title=" " alt="" coords="196,55,387,80"/>

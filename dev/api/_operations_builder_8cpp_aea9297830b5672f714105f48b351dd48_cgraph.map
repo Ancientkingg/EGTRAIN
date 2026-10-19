@@ -1,16 +1,16 @@
 <map id="resetNativeOperationsState" name="resetNativeOperationsState">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,208,137"/>
+<area shape="rect" id="Node000001" title="The reset between scene runs, which is the same as preparing a new run." alt="" coords="5,112,208,137"/>
 <area shape="poly" id="edge10_Node000001_Node000001" title=" " alt="" coords="65,114,56,104,60,94,78,87,107,85,143,89,153,94,157,100,153,103,150,98,142,94,107,91,79,93,64,98,61,103,69,110"/>
 <area shape="rect" id="Node000002" href="$_operations_builder_8cpp.html#ace6c56d9374dcbbf72c1b3ff79719a17" title=" " alt="" coords="256,112,476,137"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,122,243,122,243,127,208,127"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="327,114,319,104,323,94,339,88,366,85,399,89,412,99,409,103,397,94,366,91,341,93,327,98,324,103,331,110"/>
-<area shape="rect" id="Node000003" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title=" " alt="" coords="524,112,683,137"/>
+<area shape="rect" id="Node000003" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="524,112,683,137"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="476,122,510,122,510,127,476,127"/>
 <area shape="rect" id="Node000004" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title=" " alt="" coords="781,5,945,31"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="618,110,666,74,697,55,730,40,767,28,768,33,732,44,699,60,669,79,621,114"/>
 <area shape="rect" id="Node000005" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title=" " alt="" coords="785,55,940,80"/>
 <area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="652,109,730,90,778,80,779,85,731,95,653,114"/>
-<area shape="rect" id="Node000006" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title=" " alt="" coords="792,105,933,145"/>
+<area shape="rect" id="Node000006" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ..." alt="" coords="792,105,933,145"/>
 <area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="683,122,779,122,779,127,683,127"/>
 <area shape="rect" id="Node000008" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="731,169,995,195"/>
 <area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="653,135,731,154,779,164,778,169,730,159,652,140"/>

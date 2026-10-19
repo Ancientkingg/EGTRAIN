@@ -460,7 +460,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_run_control.html#afd134b3571315da26dd79223edaca72f" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_run_control.html#afd134b3571315da26dd79223edaca72f" target="_top" xlink:title="Applies the waiting commands in the order in which they were submitted.">
 <polygon fill="white" stroke="#666666" points="615,-756 418,-756 418,-737 615,-737 615,-756"/>
 <text text-anchor="middle" x="516.5" y="-744" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::applyQueuedCommands</text>
 </a>
@@ -478,7 +478,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title="Makes beginStep wait until requestResume or requestStop.">
 <polygon fill="white" stroke="#666666" points="816.5,-719 674.5,-719 674.5,-700 816.5,-700 816.5,-719"/>
 <text text-anchor="middle" x="745.5" y="-707" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestPause</text>
 </a>
@@ -496,7 +496,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title="Ends a pause.">
 <polygon fill="white" stroke="#666666" points="822,-682 669,-682 669,-663 822,-663 822,-682"/>
 <text text-anchor="middle" x="745.5" y="-670" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestResume</text>
 </a>
@@ -532,7 +532,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title="Sets the wait before each step in milliseconds. 0 means no wait.">
 <polygon fill="white" stroke="#666666" points="812.5,-756 678.5,-756 678.5,-737 812.5,-737 812.5,-756"/>
 <text text-anchor="middle" x="745.5" y="-744" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::setDelayMs</text>
 </a>
@@ -559,7 +559,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="551.5,-640 481.5,-640 481.5,-621 551.5,-621 551.5,-640"/>
 <text text-anchor="middle" x="516.5" y="-628" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>
@@ -1147,7 +1147,7 @@
 <!-- Node48 -->
 <g id="Node000048" class="node">
 <title>Node48</title>
-<g id="a_Node000048"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000048"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="1042,-239.5 876,-239.5 876,-209.5 1042,-209.5 1042,-239.5"/>
 <text text-anchor="start" x="884" y="-227.5" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="959" y="-216.5" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>

@@ -10,13 +10,13 @@
 <area shape="poly" id="edge24_Node000001_Node000016" title=" " alt="" coords="170,503,258,475,309,460,311,465,259,481,171,508"/>
 <area shape="rect" id="Node000017" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="538,463,729,488"/>
 <area shape="poly" id="edge26_Node000001_Node000017" title=" " alt="" coords="210,514,524,483,525,488,211,519"/>
-<area shape="rect" id="Node000018" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title=" " alt="" coords="294,534,445,574"/>
+<area shape="rect" id="Node000018" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title="True when the last run executed every stage, also if a stop arrived after its last check." alt="" coords="294,534,445,574"/>
 <area shape="poly" id="edge27_Node000001_Node000018" title=" " alt="" coords="211,534,281,542,280,547,211,540"/>
 <area shape="rect" id="Node000019" href="$class_dispatch_controller.html#a36418dfc2831a157cf9fe1158307ecdc" title=" " alt="" coords="272,599,467,653"/>
 <area shape="poly" id="edge28_Node000001_Node000019" title=" " alt="" coords="159,544,260,584,280,591,278,596,258,588,157,549"/>
 <area shape="rect" id="Node000022" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="547,671,719,696"/>
 <area shape="poly" id="edge35_Node000001_Node000022" title=" " alt="" coords="126,545,148,573,179,606,217,638,260,662,328,683,400,694,470,696,533,694,534,699,470,702,400,699,327,689,258,667,214,642,176,610,144,576,121,548"/>
-<area shape="rect" id="Node000023" href="$class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" title=" " alt="" coords="282,729,457,769"/>
+<area shape="rect" id="Node000023" href="$class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" title="Drops the replay history of the last run. The thread rule of takeReplayCandidate applies." alt="" coords="282,729,457,769"/>
 <area shape="poly" id="edge34_Node000001_Node000023" title=" " alt="" coords="123,545,176,623,215,669,260,708,282,721,280,725,257,712,211,672,171,627,118,548"/>
 <area shape="rect" id="Node000024" href="$class_dispatch_controller.html#ae26ebb03ac460fe3fc1dcf139eee8328" title=" " alt="" coords="285,793,454,833"/>
 <area shape="poly" id="edge36_Node000001_Node000024" title=" " alt="" coords="118,545,135,593,165,656,206,722,232,752,260,779,274,787,271,792,257,783,228,756,202,725,160,659,130,595,113,547"/>
@@ -55,7 +55,7 @@
 <area shape="rect" id="Node000020" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="562,606,705,646"/>
 <area shape="poly" id="edge29_Node000019_Node000020" title=" " alt="" coords="467,623,548,623,548,629,467,629"/>
 <area shape="poly" id="edge32_Node000019_Node000022" title=" " alt="" coords="467,644,561,665,560,670,466,650"/>
-<area shape="rect" id="Node000021" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title=" " alt="" coords="844,641,937,667"/>
+<area shape="rect" id="Node000021" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="844,641,937,667"/>
 <area shape="poly" id="edge30_Node000020_Node000021" title=" " alt="" coords="705,631,830,645,830,650,705,636"/>
 <area shape="poly" id="edge31_Node000021_Node000021" title=" " alt="" coords="852,643,843,633,848,623,864,617,891,615,924,619,937,628,934,632,922,623,891,620,865,622,851,627,849,632,856,639"/>
 <area shape="poly" id="edge33_Node000022_Node000021" title=" " alt="" coords="719,671,830,658,831,663,720,676"/>

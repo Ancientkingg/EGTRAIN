@@ -129,31 +129,47 @@ Collaboration diagram for SimulationWorker:</div>
 Public Slots</h2></td></tr>
 <tr class="memitem:a8672bbf61be0e0fe558e06080ccfe739" id="r_a8672bbf61be0e0fe558e06080ccfe739"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8672bbf61be0e0fe558e06080ccfe739">run</a> ()</td></tr>
 <tr class="memitem:ad6f299cc4348ee74fa213259db91feea" id="r_ad6f299cc4348ee74fa213259db91feea"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad6f299cc4348ee74fa213259db91feea">requestStop</a> ()</td></tr>
+<tr class="memdesc:ad6f299cc4348ee74fa213259db91feea"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#ad69943f1439178b66728fb189df687be">RunControl::requestStop</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread.  <br /></td></tr>
 <tr class="memitem:a39003cd40cb64e253c8e40921ddb4158" id="r_a39003cd40cb64e253c8e40921ddb4158"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39003cd40cb64e253c8e40921ddb4158">requestPause</a> ()</td></tr>
+<tr class="memdesc:a39003cd40cb64e253c8e40921ddb4158"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" title="Makes beginStep wait until requestResume or requestStop.">RunControl::requestPause</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread.  <br /></td></tr>
 <tr class="memitem:a214f60a91b27d85007c31a979c5b6bae" id="r_a214f60a91b27d85007c31a979c5b6bae"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a214f60a91b27d85007c31a979c5b6bae">requestResume</a> ()</td></tr>
+<tr class="memdesc:a214f60a91b27d85007c31a979c5b6bae"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#af93602ad79e44e20c5880349947ca547" title="Ends a pause.">RunControl::requestResume</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread.  <br /></td></tr>
 <tr class="memitem:abf32eca5453294d94b92dd7dbc13ea70" id="r_abf32eca5453294d94b92dd7dbc13ea70"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#abf32eca5453294d94b92dd7dbc13ea70">setDelayMs</a> (int ms)</td></tr>
+<tr class="memdesc:abf32eca5453294d94b92dd7dbc13ea70"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" title="Sets the wait before each step in milliseconds. 0 means no wait.">RunControl::setDelayMs</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>, in milliseconds. Safe on any thread.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:a8ddd1f6b5278e23ae746ad9de0d16e7d" id="r_a8ddd1f6b5278e23ae746ad9de0d16e7d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8ddd1f6b5278e23ae746ad9de0d16e7d">simulationFinished</a> ()</td></tr>
 <tr class="memitem:ad09e766733a52b80bd0d8397e02d323d" id="r_ad09e766733a52b80bd0d8397e02d323d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad09e766733a52b80bd0d8397e02d323d">simulationStarted</a> ()</td></tr>
+<tr class="memdesc:ad09e766733a52b80bd0d8397e02d323d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted by <a class="el" href="#a8672bbf61be0e0fe558e06080ccfe739">run()</a> on the thread of the run before the simulation starts.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abe9b5b4d358a7737faff62bae0d9dcb8" id="r_abe9b5b4d358a7737faff62bae0d9dcb8"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#abe9b5b4d358a7737faff62bae0d9dcb8">SimulationWorker</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:abe9b5b4d358a7737faff62bae0d9dcb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">A worker without a controller runs the controller of the process, the global simulation.  <br /></td></tr>
 <tr class="memitem:a648bb5cc731ae9923a4582df8dc0c84e" id="r_a648bb5cc731ae9923a4582df8dc0c84e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a648bb5cc731ae9923a4582df8dc0c84e">SimulationWorker</a> (<a class="el" href="class_dispatch_controller.html">DispatchController</a> &amp;controller, QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a648bb5cc731ae9923a4582df8dc0c84e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The controller has to outlive the worker.  <br /></td></tr>
 <tr class="memitem:a533fefc40fb92e4eb07088c849517974" id="r_a533fefc40fb92e4eb07088c849517974"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a533fefc40fb92e4eb07088c849517974">~SimulationWorker</a> () override</td></tr>
+<tr class="memdesc:a533fefc40fb92e4eb07088c849517974"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leaves no active worker when this one is the active worker.  <br /></td></tr>
 <tr class="memitem:a586d0c18d0ee393c2571ef4675659a23" id="r_a586d0c18d0ee393c2571ef4675659a23"><td class="memItemLeft">std::shared_ptr&lt; <a class="el" href="class_run_control.html">RunControl</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control</a> () const</td></tr>
 <tr class="memitem:af98f1ba39401702f116426519fa84ffe" id="r_af98f1ba39401702f116426519fa84ffe"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af98f1ba39401702f116426519fa84ffe">isStopRequested</a> () const</td></tr>
+<tr class="memdesc:af98f1ba39401702f116426519fa84ffe"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#a07c9501a698fd4f45652a8c07865e789" title="True once requestStop has been called. It is never cleared.">RunControl::isStopRequested</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread.  <br /></td></tr>
 <tr class="memitem:ab187e070cf256588d783274018aacd2a" id="r_ab187e070cf256588d783274018aacd2a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab187e070cf256588d783274018aacd2a">wasCancellationRequested</a> () const</td></tr>
+<tr class="memdesc:ab187e070cf256588d783274018aacd2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Observation-only latch; set by <a class="el" href="#ad6f299cc4348ee74fa213259db91feea" title="RunControl::requestStop of control(). Safe on any thread.">requestStop()</a> and never cleared.  <br /></td></tr>
 <tr class="memitem:a6c68649effa69d41a533544e43c51689" id="r_a6c68649effa69d41a533544e43c51689"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6c68649effa69d41a533544e43c51689">isPauseRequested</a> () const</td></tr>
+<tr class="memdesc:a6c68649effa69d41a533544e43c51689"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#ab1227730ff689cd9dccd6da6806babb0" title="True while the run is asked to pause.">RunControl::isPauseRequested</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread.  <br /></td></tr>
 <tr class="memitem:ab9766a5ced153384220f911a9fcf257f" id="r_ab9766a5ced153384220f911a9fcf257f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab9766a5ced153384220f911a9fcf257f">delayMs</a> () const</td></tr>
+<tr class="memdesc:ab9766a5ced153384220f911a9fcf257f"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_run_control.html#a58bbab171f339e347686747af001908f" title="The wait before each step in milliseconds.">RunControl::delayMs</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>, in milliseconds. Safe on any thread.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a8fc8549b387f7df829e0405890df36ef" id="r_a8fc8549b387f7df829e0405890df36ef"><td class="memItemLeft">static <a class="el" href="class_simulation_worker.html">SimulationWorker</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a8fc8549b387f7df829e0405890df36ef">active</a> ()</td></tr>
+<tr class="memdesc:a8fc8549b387f7df829e0405890df36ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The worker constructed last, or nullptr once it is destroyed. A run without a window has none and makes its own control.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Runs one simulation of a <a class="el" href="class_dispatch_controller.html">DispatchController</a> on the thread that the worker lives on, and holds the <a class="el" href="class_run_control.html">RunControl</a> of that run.</p>
+<p>The window makes a new worker for each run, moves it to a new QThread and calls <a class="el" href="#a8672bbf61be0e0fe558e06080ccfe739">run()</a> when the thread starts. The worker constructed last is the active one, through which <a class="el" href="class_dispatch_controller.html#adfb494be209a1122219b5d24128a4ec2">DispatchController::runSimulation</a> finds the control of its run. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="abe9b5b4d358a7737faff62bae0d9dcb8" name="abe9b5b4d358a7737faff62bae0d9dcb8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abe9b5b4d358a7737faff62bae0d9dcb8">&#9670;&#160;</a></span>SimulationWorker() <span class="overload">[1/2]</span></h2>
 
@@ -176,6 +192,8 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A worker without a controller runs the controller of the process, the global simulation. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +229,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The controller has to outlive the worker. </p>
+
 </div>
 </div>
 <a id="a533fefc40fb92e4eb07088c849517974" name="a533fefc40fb92e4eb07088c849517974"></a>
@@ -235,6 +255,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Leaves no active worker when this one is the active worker. </p>
 
 </div>
 </div>
@@ -261,6 +283,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The worker constructed last, or nullptr once it is destroyed. A run without a window has none and makes its own control. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -291,6 +315,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The stop, pause, delay and command queue of the run of this worker. The functions below forward to it. It exists from construction, so a request made before the run starts is kept. </p>
 
 </div>
 </div>
@@ -317,6 +342,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_run_control.html#a58bbab171f339e347686747af001908f" title="The wait before each step in milliseconds.">RunControl::delayMs</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>, in milliseconds. Safe on any thread. </p>
+
 </div>
 </div>
 <a id="a6c68649effa69d41a533544e43c51689" name="a6c68649effa69d41a533544e43c51689"></a>
@@ -341,6 +368,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_run_control.html#ab1227730ff689cd9dccd6da6806babb0" title="True while the run is asked to pause.">RunControl::isPauseRequested</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread. </p>
 
 </div>
 </div>
@@ -367,6 +396,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_run_control.html#a07c9501a698fd4f45652a8c07865e789" title="True once requestStop has been called. It is never cleared.">RunControl::isStopRequested</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread. </p>
+
 </div>
 </div>
 <a id="a39003cd40cb64e253c8e40921ddb4158" name="a39003cd40cb64e253c8e40921ddb4158"></a>
@@ -391,6 +422,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" title="Makes beginStep wait until requestResume or requestStop.">RunControl::requestPause</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread. </p>
 
 </div>
 </div>
@@ -417,6 +450,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_run_control.html#af93602ad79e44e20c5880349947ca547" title="Ends a pause.">RunControl::requestResume</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread. </p>
+
 </div>
 </div>
 <a id="ad6f299cc4348ee74fa213259db91feea" name="ad6f299cc4348ee74fa213259db91feea"></a>
@@ -442,6 +477,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_run_control.html#ad69943f1439178b66728fb189df687be">RunControl::requestStop</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>. Safe on any thread. </p>
+
 </div>
 </div>
 <a id="a8672bbf61be0e0fe558e06080ccfe739" name="a8672bbf61be0e0fe558e06080ccfe739"></a>
@@ -466,6 +503,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Runs the simulation of the controller on the calling thread, from simulationStarted to simulationFinished. The window calls it on the thread of the worker when that thread starts. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -497,6 +535,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" title="Sets the wait before each step in milliseconds. 0 means no wait.">RunControl::setDelayMs</a> of <a class="el" href="#a586d0c18d0ee393c2571ef4675659a23">control()</a>, in milliseconds. Safe on any thread. </p>
+
 </div>
 </div>
 <a id="a8ddd1f6b5278e23ae746ad9de0d16e7d" name="a8ddd1f6b5278e23ae746ad9de0d16e7d"></a>
@@ -521,6 +561,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Emitted by <a class="el" href="#a8672bbf61be0e0fe558e06080ccfe739">run()</a> on the thread of the run when <a class="el" href="class_dispatch_controller.html#adfb494be209a1122219b5d24128a4ec2">DispatchController::runSimulation</a> has returned, also for a run that was stopped or turned down. </p>
 
 </div>
 </div>
@@ -546,6 +587,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Emitted by <a class="el" href="#a8672bbf61be0e0fe558e06080ccfe739">run()</a> on the thread of the run before the simulation starts. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -576,6 +619,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Observation-only latch; set by <a class="el" href="#ad6f299cc4348ee74fa213259db91feea" title="RunControl::requestStop of control(). Safe on any thread.">requestStop()</a> and never cleared. </p>
 
 </div>
 </div>

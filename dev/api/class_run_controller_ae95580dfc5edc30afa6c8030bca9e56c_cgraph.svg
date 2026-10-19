@@ -311,7 +311,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="935,-700 865,-700 865,-681 935,-681 935,-700"/>
 <text text-anchor="middle" x="900" y="-688" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>
@@ -693,7 +693,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="766.5,-1512.5 600.5,-1512.5 600.5,-1482.5 766.5,-1482.5 766.5,-1512.5"/>
 <text text-anchor="start" x="608.5" y="-1500.5" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="683.5" y="-1489.5" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>
@@ -948,7 +948,7 @@
 <!-- Node41 -->
 <g id="Node000041" class="node">
 <title>Node41</title>
-<g id="a_Node000041"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title=" ">
+<g id="a_Node000041"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title="Empties run.infra, the platforms of the run and its final&#45;station statistics.">
 <polygon fill="white" stroke="#666666" points="753.5,-834.5 613.5,-834.5 613.5,-804.5 753.5,-804.5 753.5,-834.5"/>
 <text text-anchor="start" x="621.5" y="-822.5" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeInfrastructure</text>
 <text text-anchor="middle" x="683.5" y="-811.5" font-family="Helvetica,sans-Serif" font-size="10.00">State</text>
@@ -985,7 +985,7 @@
 <!-- Node50 -->
 <g id="Node000050" class="node">
 <title>Node50</title>
-<g id="a_Node000050"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title=" ">
+<g id="a_Node000050"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.">
 <polygon fill="white" stroke="#666666" points="519.5,-85.5 393.5,-85.5 393.5,-55.5 519.5,-55.5 519.5,-85.5"/>
 <text text-anchor="start" x="401.5" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="456.5" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::nextRunOutputFolder</text>
@@ -1031,7 +1031,7 @@
 <!-- Node54 -->
 <g id="Node000054" class="node">
 <title>Node54</title>
-<g id="a_Node000054"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title=" ">
+<g id="a_Node000054"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title="Execution&#45;thread observation: runSimulation starts the run.">
 <polygon fill="white" stroke="#666666" points="510,-219.5 403,-219.5 403,-189.5 510,-189.5 510,-219.5"/>
 <text text-anchor="start" x="411" y="-207.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="456.5" y="-196.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionBegan</text>
@@ -1050,7 +1050,7 @@
 <!-- Node55 -->
 <g id="Node000055" class="node">
 <title>Node55</title>
-<g id="a_Node000055"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title=" ">
+<g id="a_Node000055"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run...">
 <polygon fill="white" stroke="#666666" points="513,-171.5 400,-171.5 400,-141.5 513,-141.5 513,-171.5"/>
 <text text-anchor="start" x="408" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="456.5" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionRejected</text>
@@ -1162,7 +1162,7 @@
 <!-- Node82 -->
 <g id="Node000082" class="node">
 <title>Node82</title>
-<g id="a_Node000082"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title=" ">
+<g id="a_Node000082"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title="A worker without a controller runs the controller of the process, the global simulation.">
 <polygon fill="white" stroke="#666666" points="537,-305.5 376,-305.5 376,-275.5 537,-275.5 537,-305.5"/>
 <text text-anchor="start" x="384" y="-293.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::Simulation</text>
 <text text-anchor="middle" x="456.5" y="-282.5" font-family="Helvetica,sans-Serif" font-size="10.00">Worker</text>

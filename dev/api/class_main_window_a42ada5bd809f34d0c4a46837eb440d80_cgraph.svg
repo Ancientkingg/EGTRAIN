@@ -1125,7 +1125,7 @@
 <!-- Node68 -->
 <g id="Node000068" class="node">
 <title>Node68</title>
-<g id="a_Node000068"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title=" ">
+<g id="a_Node000068"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.">
 <polygon fill="white" stroke="#666666" points="973.5,-757.5 847.5,-757.5 847.5,-727.5 973.5,-727.5 973.5,-757.5"/>
 <text text-anchor="start" x="855.5" y="-745.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="910.5" y="-734.5" font-family="Helvetica,sans-Serif" font-size="10.00">::nextRunOutputFolder</text>
@@ -1180,7 +1180,7 @@
 <!-- Node72 -->
 <g id="Node000072" class="node">
 <title>Node72</title>
-<g id="a_Node000072"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title=" ">
+<g id="a_Node000072"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title="Execution&#45;thread observation: runSimulation starts the run.">
 <polygon fill="white" stroke="#666666" points="964,-709.5 857,-709.5 857,-679.5 964,-679.5 964,-709.5"/>
 <text text-anchor="start" x="865" y="-697.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="910.5" y="-686.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionBegan</text>
@@ -1199,7 +1199,7 @@
 <!-- Node73 -->
 <g id="Node000073" class="node">
 <title>Node73</title>
-<g id="a_Node000073"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title=" ">
+<g id="a_Node000073"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run...">
 <polygon fill="white" stroke="#666666" points="967,-661.5 854,-661.5 854,-631.5 967,-631.5 967,-661.5"/>
 <text text-anchor="start" x="862" y="-649.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="910.5" y="-638.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionRejected</text>

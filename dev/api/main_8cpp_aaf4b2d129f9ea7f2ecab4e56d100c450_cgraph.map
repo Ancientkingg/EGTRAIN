@@ -1,7 +1,7 @@
 <map id="startLiveStream" name="startLiveStream">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,77,132,102"/>
 <area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="31,78,22,68,27,58,42,52,69,50,102,54,114,63,111,68,100,59,69,55,44,57,30,62,27,68,34,75"/>
-<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#afbac0de33112f6ead2aee19517b3f959" title=" " alt="" coords="233,5,376,45"/>
+<area shape="rect" id="Node000002" href="$class_dispatch_controller.html#afbac0de33112f6ead2aee19517b3f959" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the state socket, or empty while the stream is off." alt="" coords="233,5,376,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,74,179,55,219,44,220,49,181,60,113,79"/>
 <area shape="rect" id="Node000003" href="$class_dispatch_controller.html#af6a545f83572bb21a333266cfc00be7b" title=" " alt="" coords="233,69,376,109"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,87,220,87,220,92,133,92"/>

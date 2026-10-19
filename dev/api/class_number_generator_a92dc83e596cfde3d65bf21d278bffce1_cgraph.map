@@ -1,5 +1,5 @@
 <map id="NumberGenerator::getUniformInteger" name="NumberGenerator::getUniformInteger">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,227,45"/>
-<area shape="rect" id="Node000002" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title=" " alt="" coords="275,5,496,45"/>
+<area shape="rect" id="Node000001" title="A uniform integer from inFirst to inLast, both included." alt="" coords="5,5,227,45"/>
+<area shape="rect" id="Node000002" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th..." alt="" coords="275,5,496,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,23,261,23,261,28,227,28"/>
 </map>

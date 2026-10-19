@@ -20,7 +20,7 @@
 <area shape="rect" id="Node000013" href="$class_run_controller.html#a2a96a681e6d790e2ffa4d2885d0133e8" title=" " alt="" coords="235,434,461,459"/>
 <area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="107,250,125,287,152,333,189,380,234,419,246,426,244,431,230,424,185,384,148,336,120,290,102,252"/>
 <area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="456,240,502,245,501,250,455,245"/>
-<area shape="rect" id="Node000010" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title=" " alt="" coords="549,308,717,348"/>
+<area shape="rect" id="Node000010" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="549,308,717,348"/>
 <area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="441,367,535,346,537,351,442,372"/>
 <area shape="rect" id="Node000011" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="551,397,715,422"/>
 <area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="447,394,538,400,537,405,447,399"/>

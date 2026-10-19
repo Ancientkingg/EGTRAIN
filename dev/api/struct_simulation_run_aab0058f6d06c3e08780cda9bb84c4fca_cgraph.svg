@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Returns every member except the infrastructure to the state of a new run.">
 <polygon fill="#999999" stroke="#666666" points="119,-99 0,-99 0,-80 119,-80 119,-99"/>
 <text text-anchor="middle" x="59.5" y="-87" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationRun::reset</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ...">
 <polygon fill="white" stroke="#666666" points="307,-104.5 201,-104.5 201,-74.5 307,-74.5 307,-104.5"/>
 <text text-anchor="start" x="209" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters::</text>
 <text text-anchor="middle" x="254" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters</text>

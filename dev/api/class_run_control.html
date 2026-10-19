@@ -119,21 +119,34 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_run_cont
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad69943f1439178b66728fb189df687be" id="r_ad69943f1439178b66728fb189df687be"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad69943f1439178b66728fb189df687be">requestStop</a> ()</td></tr>
 <tr class="memitem:ac27176214de3727467a1d693ed3f8244" id="r_ac27176214de3727467a1d693ed3f8244"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac27176214de3727467a1d693ed3f8244">requestPause</a> ()</td></tr>
+<tr class="memdesc:ac27176214de3727467a1d693ed3f8244"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes beginStep wait until requestResume or requestStop.  <br /></td></tr>
 <tr class="memitem:af93602ad79e44e20c5880349947ca547" id="r_af93602ad79e44e20c5880349947ca547"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af93602ad79e44e20c5880349947ca547">requestResume</a> ()</td></tr>
+<tr class="memdesc:af93602ad79e44e20c5880349947ca547"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends a pause.  <br /></td></tr>
 <tr class="memitem:a01ceda6941f94f27986a6bce1b7a51b4" id="r_a01ceda6941f94f27986a6bce1b7a51b4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a01ceda6941f94f27986a6bce1b7a51b4">setDelayMs</a> (int ms)</td></tr>
+<tr class="memdesc:a01ceda6941f94f27986a6bce1b7a51b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the wait before each step in milliseconds. 0 means no wait.  <br /></td></tr>
 <tr class="memitem:a07c9501a698fd4f45652a8c07865e789" id="r_a07c9501a698fd4f45652a8c07865e789"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a07c9501a698fd4f45652a8c07865e789">isStopRequested</a> () const</td></tr>
+<tr class="memdesc:a07c9501a698fd4f45652a8c07865e789"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once requestStop has been called. It is never cleared.  <br /></td></tr>
 <tr class="memitem:ac14c84c73f3e05bc337a5cfd64167e87" id="r_ac14c84c73f3e05bc337a5cfd64167e87"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac14c84c73f3e05bc337a5cfd64167e87">wasCancellationRequested</a> () const</td></tr>
+<tr class="memdesc:ac14c84c73f3e05bc337a5cfd64167e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Observation-only latch; set by <a class="el" href="#ad69943f1439178b66728fb189df687be">requestStop()</a> and never cleared.  <br /></td></tr>
 <tr class="memitem:ab1227730ff689cd9dccd6da6806babb0" id="r_ab1227730ff689cd9dccd6da6806babb0"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab1227730ff689cd9dccd6da6806babb0">isPauseRequested</a> () const</td></tr>
+<tr class="memdesc:ab1227730ff689cd9dccd6da6806babb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the run is asked to pause.  <br /></td></tr>
 <tr class="memitem:a58bbab171f339e347686747af001908f" id="r_a58bbab171f339e347686747af001908f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a58bbab171f339e347686747af001908f">delayMs</a> () const</td></tr>
+<tr class="memdesc:a58bbab171f339e347686747af001908f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The wait before each step in milliseconds.  <br /></td></tr>
 <tr class="memitem:ad7f268226b527137b2f288a07ce138ba" id="r_ad7f268226b527137b2f288a07ce138ba"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad7f268226b527137b2f288a07ce138ba">submit</a> (const <a class="el" href="struct_run_command.html">RunCommand</a> &amp;command)</td></tr>
 <tr class="memitem:afd134b3571315da26dd79223edaca72f" id="r_afd134b3571315da26dd79223edaca72f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afd134b3571315da26dd79223edaca72f">applyQueuedCommands</a> ()</td></tr>
+<tr class="memdesc:afd134b3571315da26dd79223edaca72f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the waiting commands in the order in which they were submitted.  <br /></td></tr>
 <tr class="memitem:af0558800cbbc4be025c334a61eba5abe" id="r_af0558800cbbc4be025c334a61eba5abe"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af0558800cbbc4be025c334a61eba5abe">beginStep</a> (const std::function&lt; void()&gt; &amp;fetchCommands={})</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a72de1075ee64917058af5880a0d9d058" id="r_a72de1075ee64917058af5880a0d9d058"><td class="memItemLeft">static constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a72de1075ee64917058af5880a0d9d058">kCommandQueueSize</a> = 16</td></tr>
+<tr class="memdesc:a72de1075ee64917058af5880a0d9d058"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of commands that can wait for the next step.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The stop, pause and step delay of one run, and a bounded queue of commands for them. Every run has one, also a run without a window. No Qt.</p>
+<p>The request functions, the readers and submit can be called from any thread. beginStep and applyQueuedCommands are called by the thread that runs the steps only.</p>
+<p>A command waits in the queue until the run reaches the top of a step. There beginStep takes every waiting command and applies it in the order of the submits, then checks pause, stop and the delay. No command takes effect in the middle of a step. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="afd134b3571315da26dd79223edaca72f" name="afd134b3571315da26dd79223edaca72f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afd134b3571315da26dd79223edaca72f">&#9670;&#160;</a></span>applyQueuedCommands()</h2>
 
@@ -148,6 +161,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Applies the waiting commands in the order in which they were submitted. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -170,6 +185,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The top of a step. Applies the waiting commands, waits while the run is paused (and applies the commands that arrive meanwhile), then sleeps for the step delay. Returns false when the run is to stop; the delay is not waited for then.</p>
+<p>fetchCommands, when it is given, is called before the waiting commands are applied, also after each wait of a pause. It lets the owner of the run submit commands that come from another source, which a paused run could not otherwise take. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -201,6 +218,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The wait before each step in milliseconds. </p>
+
 </div>
 </div>
 <a id="ab1227730ff689cd9dccd6da6806babb0" name="ab1227730ff689cd9dccd6da6806babb0"></a>
@@ -225,6 +244,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True while the run is asked to pause. </p>
 
 </div>
 </div>
@@ -251,6 +272,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True once requestStop has been called. It is never cleared. </p>
+
 </div>
 </div>
 <a id="ac27176214de3727467a1d693ed3f8244" name="ac27176214de3727467a1d693ed3f8244"></a>
@@ -267,6 +290,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Makes beginStep wait until requestResume or requestStop. </p>
 
 </div>
 </div>
@@ -285,6 +310,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Ends a pause. </p>
+
 </div>
 </div>
 <a id="ad69943f1439178b66728fb189df687be" name="ad69943f1439178b66728fb189df687be"></a>
@@ -301,6 +328,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Ends the run at the next step. The stop is also recorded as a cancellation, and lifts a pause so that the thread of the run can see the stop. </p>
 
 </div>
 </div>
@@ -319,6 +347,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Sets the wait before each step in milliseconds. 0 means no wait. </p>
+
 </div>
 </div>
 <a id="ad7f268226b527137b2f288a07ce138ba" name="ad7f268226b527137b2f288a07ce138ba"></a>
@@ -335,6 +365,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Queues a command for the top of the next step. Returns false and queues nothing when kCommandQueueSize commands wait. Never waits for the run. </p>
 
 </div>
 </div>
@@ -361,6 +392,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Observation-only latch; set by <a class="el" href="#ad69943f1439178b66728fb189df687be">requestStop()</a> and never cleared. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -383,6 +416,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Number of commands that can wait for the next step. </p>
 
 </div>
 </div>

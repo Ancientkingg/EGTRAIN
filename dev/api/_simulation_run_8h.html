@@ -143,6 +143,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aaa3241aa86ea71ec8f56eb5329ce542d" id="r_aaa3241aa86ea71ec8f56eb5329ce542d"><td class="memItemLeft"><a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aaa3241aa86ea71ec8f56eb5329ce542d">defaultRun</a> ()</td></tr>
+<tr class="memdesc:aaa3241aa86ea71ec8f56eb5329ce542d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The run of the process. Its address never changes.  <br /></td></tr>
 <tr class="memitem:a938578ee9f036787594cef0d040f6cb6" id="r_a938578ee9f036787594cef0d040f6cb6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a938578ee9f036787594cef0d040f6cb6">trainXPositionOf</a> (const <a class="el" href="class_train.html">Train</a> &amp;train, int t, int wagon=0)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -160,6 +161,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The run of the process. Its address never changes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -191,6 +194,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The X position in kilometres of a point of the train at step t, as <a class="el" href="class_train.html#a30e47997e3c286ecf68dc457f1b99a67">Train::trainXPosition</a> gives it, for a train that is read and not changed. The point lies wagon * train_length / (number_of_wagons + 1) metres behind the head, so wagon 0 is the head and wagon number_of_wagons + 1 the tail. Returns -1 when the point is on no section of the route. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

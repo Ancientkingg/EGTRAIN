@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="373,-30 207,-30 207,0 373,0 373,-30"/>
 <text text-anchor="start" x="215" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="290" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>

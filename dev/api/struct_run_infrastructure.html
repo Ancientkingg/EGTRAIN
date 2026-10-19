@@ -118,33 +118,55 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_run_inf
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab02b49f237201f2f52c106335b33a17c" id="r_ab02b49f237201f2f52c106335b33a17c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab02b49f237201f2f52c106335b33a17c">reset</a> ()</td></tr>
+<tr class="memdesc:ab02b49f237201f2f52c106335b33a17c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every member to the state of a new object.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7388cba275b8a9d0873fb86a474baa97" id="r_a7388cba275b8a9d0873fb86a474baa97"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_block_set.html">BlockSet</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7388cba275b8a9d0873fb86a474baa97">blockSets</a> = std::vector&lt;<a class="el" href="class_block_set.html">BlockSet</a>&gt;(<a class="el" href="_infrastructure_8h.html#af2442dde680e9478090dd86a2d57744a">kMaxTrackLines</a>)</td></tr>
+<tr class="memdesc:a7388cba275b8a9d0873fb86a474baa97"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tracks: kMaxTrackLines elements, of which the first numTrackLines are in use.  <br /></td></tr>
 <tr class="memitem:a210b9ad3456f36654f7db08dfc35c355" id="r_a210b9ad3456f36654f7db08dfc35c355"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_connections.html">Connections</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a210b9ad3456f36654f7db08dfc35c355">connections</a> = std::vector&lt;<a class="el" href="class_connections.html">Connections</a>&gt;(<a class="el" href="_infrastructure_8h.html#a5f3d96dcde4e6535720ee603ca6b452f">kMaxConnections</a>)</td></tr>
+<tr class="memdesc:a210b9ad3456f36654f7db08dfc35c355"><td class="mdescLeft">&#160;</td><td class="mdescRight">The connections between tracks: kMaxConnections elements, of which the first numConnections are in use.  <br /></td></tr>
 <tr class="memitem:a5364f1e44e3bd5ef76df177fe0a7c717" id="r_a5364f1e44e3bd5ef76df177fe0a7c717"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_stations.html">Stations</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5364f1e44e3bd5ef76df177fe0a7c717">stations</a> = std::vector&lt;<a class="el" href="class_stations.html">Stations</a>&gt;(<a class="el" href="_infrastructure_8h.html#a52eed63d46d1afcb96c62cd5085e34f8">kMaxStations</a>)</td></tr>
+<tr class="memdesc:a5364f1e44e3bd5ef76df177fe0a7c717"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stations: kMaxStations elements, of which the first numStations are in use.  <br /></td></tr>
 <tr class="memitem:aa69f2ae0bd40a351ef082b169364ed3d" id="r_aa69f2ae0bd40a351ef082b169364ed3d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aa69f2ae0bd40a351ef082b169364ed3d">numTrackLines</a> = 0</td></tr>
+<tr class="memdesc:aa69f2ae0bd40a351ef082b169364ed3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of tracks in use.  <br /></td></tr>
 <tr class="memitem:afa192fca82add88ed2a3572cd6c16c8d" id="r_afa192fca82add88ed2a3572cd6c16c8d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#afa192fca82add88ed2a3572cd6c16c8d">numConnections</a> = 0</td></tr>
+<tr class="memdesc:afa192fca82add88ed2a3572cd6c16c8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of connections in use.  <br /></td></tr>
 <tr class="memitem:ae2d4e5d638311e8e4aae0692b91a6367" id="r_ae2d4e5d638311e8e4aae0692b91a6367"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae2d4e5d638311e8e4aae0692b91a6367">numStations</a> = 0</td></tr>
+<tr class="memdesc:ae2d4e5d638311e8e4aae0692b91a6367"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of stations in use.  <br /></td></tr>
 <tr class="memitem:adae988434608bc4db91b9e04c11123bd" id="r_adae988434608bc4db91b9e04c11123bd"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_section.html">Section</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adae988434608bc4db91b9e04c11123bd">sections</a></td></tr>
+<tr class="memdesc:adae988434608bc4db91b9e04c11123bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The block sections of the network, sized once per scene by the builder.  <br /></td></tr>
 <tr class="memitem:a64ad319b8e23952c785c262dedcd3a5e" id="r_a64ad319b8e23952c785c262dedcd3a5e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a64ad319b8e23952c785c262dedcd3a5e">numBlocks</a> = 0</td></tr>
+<tr class="memdesc:a64ad319b8e23952c785c262dedcd3a5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of block sections.  <br /></td></tr>
 <tr class="memitem:a2c629868c25cd1060430eaff9cb94832" id="r_a2c629868c25cd1060430eaff9cb94832"><td class="memItemLeft">std::list&lt; <a class="el" href="class_t_d_s.html">TDS</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2c629868c25cd1060430eaff9cb94832">detectionSections</a></td></tr>
+<tr class="memdesc:a2c629868c25cd1060430eaff9cb94832"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track detection sections. The block sections point into this list.  <br /></td></tr>
 <tr class="memitem:ad6e4a268fde25e9db4efbc4ec114816b" id="r_ad6e4a268fde25e9db4efbc4ec114816b"><td class="memItemLeft">std::list&lt; <a class="el" href="class_infra_event.html">InfraEvent</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad6e4a268fde25e9db4efbc4ec114816b">infraEvents</a></td></tr>
+<tr class="memdesc:ad6e4a268fde25e9db4efbc4ec114816b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The recorded events of the infrastructure elements.  <br /></td></tr>
 <tr class="memitem:adf481bb1a15371de519c4759835a432b" id="r_adf481bb1a15371de519c4759835a432b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adf481bb1a15371de519c4759835a432b">derivedSectionsExceedPlan</a> = false</td></tr>
+<tr class="memdesc:adf481bb1a15371de519c4759835a432b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when createBlockConn needs more sections than the builder planned.  <br /></td></tr>
 <tr class="memitem:a1f10e19f97a6364caea2a91f8c04459b" id="r_a1f10e19f97a6364caea2a91f8c04459b"><td class="memItemLeft">std::vector&lt; std::tuple&lt; std::string, std::string, std::string, std::string &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1f10e19f97a6364caea2a91f8c04459b">singleTrackLimits</a></td></tr>
 <tr class="memitem:ac6ac68be509d4713e2cf5e85905a660f" id="r_ac6ac68be509d4713e2cf5e85905a660f"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac6ac68be509d4713e2cf5e85905a660f">singleTrackHeld</a></td></tr>
 <tr class="memitem:a218c547282b77b893c07290baa001304" id="r_a218c547282b77b893c07290baa001304"><td class="memItemLeft">std::vector&lt; std::vector&lt; <a class="el" href="struct_single_track_reservation.html">SingleTrackReservation</a> &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a218c547282b77b893c07290baa001304">singleTrackReservations</a></td></tr>
 <tr class="memitem:abae102d56bc166fa5684b4687f360d6d" id="r_abae102d56bc166fa5684b4687f360d6d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_single_track_zone.html">SingleTrackZone</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abae102d56bc166fa5684b4687f360d6d">singleTrackZones</a></td></tr>
+<tr class="memdesc:abae102d56bc166fa5684b4687f360d6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The zones of the limits on the routes, derived on first use by singleTrackZone. The index is limit * route count + route.  <br /></td></tr>
 <tr class="memitem:a1bc3259514cb8827c7d59a5063e9eeef" id="r_a1bc3259514cb8827c7d59a5063e9eeef"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a1bc3259514cb8827c7d59a5063e9eeef">singleTrackZoneLimits</a> = 0</td></tr>
+<tr class="memdesc:a1bc3259514cb8827c7d59a5063e9eeef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The numbers of limits and of routes for which singleTrackZones was derived. A change in either derives the zones again.  <br /></td></tr>
 <tr class="memitem:a093c89c6fd9229839a16da0ff6a79219" id="r_a093c89c6fd9229839a16da0ff6a79219"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a093c89c6fd9229839a16da0ff6a79219">singleTrackZoneRoutes</a> = 0</td></tr>
 <tr class="memitem:abf5827b15fd5bfed74e574a1c88d1251" id="r_abf5827b15fd5bfed74e574a1c88d1251"><td class="memItemLeft">std::vector&lt; char &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abf5827b15fd5bfed74e574a1c88d1251">singleTrackRouteZone</a></td></tr>
+<tr class="memdesc:abf5827b15fd5bfed74e574a1c88d1251"><td class="mdescLeft">&#160;</td><td class="mdescRight">1 for a route on which any limit has a zone.  <br /></td></tr>
 <tr class="memitem:a3dc8e54cd8a3dbb57b3585ed0650266d" id="r_a3dc8e54cd8a3dbb57b3585ed0650266d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3dc8e54cd8a3dbb57b3585ed0650266d">singleTrackZonesDerived</a> = false</td></tr>
+<tr class="memdesc:a3dc8e54cd8a3dbb57b3585ed0650266d"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once singleTrackZones has been derived.  <br /></td></tr>
 <tr class="memitem:a10fc2f3d7d97a1ac78ec329c5c6e1214" id="r_a10fc2f3d7d97a1ac78ec329c5c6e1214"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_station_boundary_section.html">StationBoundarySection</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a10fc2f3d7d97a1ac78ec329c5c6e1214">stationBoundaries</a></td></tr>
+<tr class="memdesc:a10fc2f3d7d97a1ac78ec329c5c6e1214"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station entrance sections.  <br /></td></tr>
 <tr class="memitem:a0cb8232a9dcda2b336d6e4d630db2d2a" id="r_a0cb8232a9dcda2b336d6e4d630db2d2a"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_route.html">Route</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0cb8232a9dcda2b336d6e4d630db2d2a">routes</a></td></tr>
+<tr class="memdesc:a0cb8232a9dcda2b336d6e4d630db2d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes of the scene, in the order of the scene.  <br /></td></tr>
 <tr class="memitem:adfd0b2d7067ca014bcc1477e97931632" id="r_adfd0b2d7067ca014bcc1477e97931632"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adfd0b2d7067ca014bcc1477e97931632">numRoutes</a> = 0</td></tr>
+<tr class="memdesc:adfd0b2d7067ca014bcc1477e97931632"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of routes.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The infrastructure and the routes that the scene builder makes: the tracks, connections and stations of the network, its block sections and detection sections, the single-track data and the routes of the trains.</p>
+<p>The arrays of tracks, connections and stations have a fixed number of elements that nothing resizes, so the elements of a built infrastructure and the buffers that they hold stay where they are until the infrastructure is reset or replaced. A build that fails puts the earlier infrastructure back as it was. The canvas keeps Node* and Arc* into the tracks and Connections* into the connections, a section keeps TDS* into the detection sections, and the station boundaries keep Section* into the sections. These pointers are valid until the next reset or build, so the window removes its items first. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ab02b49f237201f2f52c106335b33a17c" name="ab02b49f237201f2f52c106335b33a17c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab02b49f237201f2f52c106335b33a17c">&#9670;&#160;</a></span>reset()</h2>
 
@@ -159,6 +181,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Returns every member to the state of a new object. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -180,6 +204,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The tracks: kMaxTrackLines elements, of which the first numTrackLines are in use. </p>
+
 </div>
 </div>
 <a id="a210b9ad3456f36654f7db08dfc35c355" name="a210b9ad3456f36654f7db08dfc35c355"></a>
@@ -193,6 +219,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The connections between tracks: kMaxConnections elements, of which the first numConnections are in use. </p>
 
 </div>
 </div>
@@ -208,6 +236,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Set when createBlockConn needs more sections than the builder planned. </p>
+
 </div>
 </div>
 <a id="a2c629868c25cd1060430eaff9cb94832" name="a2c629868c25cd1060430eaff9cb94832"></a>
@@ -221,6 +251,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The track detection sections. The block sections point into this list. </p>
 
 </div>
 </div>
@@ -236,6 +268,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The recorded events of the infrastructure elements. </p>
+
 </div>
 </div>
 <a id="a64ad319b8e23952c785c262dedcd3a5e" name="a64ad319b8e23952c785c262dedcd3a5e"></a>
@@ -249,6 +283,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of block sections. </p>
 
 </div>
 </div>
@@ -264,6 +300,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of connections in use. </p>
+
 </div>
 </div>
 <a id="adfd0b2d7067ca014bcc1477e97931632" name="adfd0b2d7067ca014bcc1477e97931632"></a>
@@ -277,6 +315,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of routes. </p>
 
 </div>
 </div>
@@ -292,6 +332,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of stations in use. </p>
+
 </div>
 </div>
 <a id="aa69f2ae0bd40a351ef082b169364ed3d" name="aa69f2ae0bd40a351ef082b169364ed3d"></a>
@@ -305,6 +347,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of tracks in use. </p>
 
 </div>
 </div>
@@ -320,6 +364,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The routes of the scene, in the order of the scene. </p>
+
 </div>
 </div>
 <a id="adae988434608bc4db91b9e04c11123bd" name="adae988434608bc4db91b9e04c11123bd"></a>
@@ -334,6 +380,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The block sections of the network, sized once per scene by the builder. </p>
+
 </div>
 </div>
 <a id="ac6ac68be509d4713e2cf5e85905a660f" name="ac6ac68be509d4713e2cf5e85905a660f"></a>
@@ -347,6 +395,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The direction in which a train holds each limit. While a train is in the section of limit l, the section is closed to trains of the opposite direction: singleTrackHeld[l] is +1 when a train on a non-reversed route holds it, -1 for a reversed route, 0 when it is free. Routes against the holder see it as occupied. </p>
 
 </div>
 </div>
@@ -361,6 +410,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The single-track limits (first plain block ID, last plain block ID, protected block ID at the first end, protected block ID at the last end). </p>
 
 </div>
 </div>
@@ -375,6 +425,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The pending reservations of each limit. Pending entries reserve before their last braking opportunity; forward wins simultaneous requests on a free zone. </p>
 
 </div>
 </div>
@@ -390,6 +441,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>1 for a route on which any limit has a zone. </p>
+
 </div>
 </div>
 <a id="a1bc3259514cb8827c7d59a5063e9eeef" name="a1bc3259514cb8827c7d59a5063e9eeef"></a>
@@ -404,6 +457,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The numbers of limits and of routes for which singleTrackZones was derived. A change in either derives the zones again. </p>
+
 </div>
 </div>
 <a id="a093c89c6fd9229839a16da0ff6a79219" name="a093c89c6fd9229839a16da0ff6a79219"></a>
@@ -417,6 +472,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>See singleTrackZoneLimits. </p>
 
 </div>
 </div>
@@ -432,6 +488,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The zones of the limits on the routes, derived on first use by singleTrackZone. The index is limit * route count + route. </p>
+
 </div>
 </div>
 <a id="a3dc8e54cd8a3dbb57b3585ed0650266d" name="a3dc8e54cd8a3dbb57b3585ed0650266d"></a>
@@ -445,6 +503,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True once singleTrackZones has been derived. </p>
 
 </div>
 </div>
@@ -460,6 +520,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The station entrance sections. </p>
+
 </div>
 </div>
 <a id="a5364f1e44e3bd5ef76df177fe0a7c717" name="a5364f1e44e3bd5ef76df177fe0a7c717"></a>
@@ -473,6 +535,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The stations: kMaxStations elements, of which the first numStations are in use. </p>
 
 </div>
 </div>

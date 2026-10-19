@@ -140,6 +140,7 @@ Include dependency graph for InfrastructureBuilder.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:ae3d1cc13495c7aa2588d07ca3b2fbac1" id="r_ae3d1cc13495c7aa2588d07ca3b2fbac1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3d1cc13495c7aa2588d07ca3b2fbac1">setUpRoutesFromScene</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; int &gt; &amp;routeDirections)</td></tr>
 <tr class="memitem:acece69a2692793152ccfceabb15f83d0" id="r_acece69a2692793152ccfceabb15f83d0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acece69a2692793152ccfceabb15f83d0">resetNativeInfrastructureState</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:acece69a2692793152ccfceabb15f83d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empties run.infra, the platforms of the run and its final-station statistics.  <br /></td></tr>
 <tr class="memitem:aaf4e88df903a30051c6625935755d163" id="r_aaf4e88df903a30051c6625935755d163"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaf4e88df903a30051c6625935755d163">buildInfrastructureAndSignallingFromScene</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -161,6 +162,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Builds the infrastructure, signalling and routes of a loaded scene into run.infra and the platforms of the run, and empties its final-station statistics. Reads no file. When the diagnostics hold an error, the run keeps the infrastructure, platforms and final-station statistics that it held before. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -183,6 +185,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Empties run.infra, the platforms of the run and its final-station statistics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -210,10 +214,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>routeDirections</em></span>&#160;)</td>
+          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>routeDirections</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Replaces run.infra.routes by the routes of the scene, built from their block IDs. routeDirections[i] above 0 builds route i forward, below 0 reversed (<a class="el" href="class_route.html#ad90f04173639f6ff6cf1a15a3edb562e">Route::reversed_direction</a>), and 0 or a missing entry builds it forward when it has one block or its first block starts at a lower X than its last. A route that the scene marks as reversed also gets reversed_direction. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="True or false with equal chance.">
 <polygon fill="#999999" stroke="#666666" points="188,-24.5 0,-24.5 0,-5.5 188,-5.5 188,-24.5"/>
 <text text-anchor="middle" x="94" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniformBool</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_number_generator.html#a92dc83e596cfde3d65bf21d278bffce1" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_number_generator.html#a92dc83e596cfde3d65bf21d278bffce1" target="_top" xlink:title="A uniform integer from inFirst to inLast, both included.">
 <polygon fill="white" stroke="#666666" points="390,-30 224,-30 224,0 390,0 390,-30"/>
 <text text-anchor="start" x="232" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="307" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Integer</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="592,-30 426,-30 426,0 592,0 592,-30"/>
 <text text-anchor="start" x="434" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="509" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>

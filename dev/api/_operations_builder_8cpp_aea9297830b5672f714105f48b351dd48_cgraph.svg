@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The reset between scene runs, which is the same as preparing a new run.">
 <polygon fill="#999999" stroke="#666666" points="152,-99 0,-99 0,-80 152,-80 152,-99"/>
 <text text-anchor="middle" x="76" y="-87" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeOperationsState</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title="Returns every member except the infrastructure to the state of a new run.">
 <polygon fill="white" stroke="#666666" points="508,-99 389,-99 389,-80 508,-80 508,-99"/>
 <text text-anchor="middle" x="448.5" y="-87" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationRun::reset</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ...">
 <polygon fill="white" stroke="#666666" points="696,-104.5 590,-104.5 590,-74.5 696,-74.5 696,-104.5"/>
 <text text-anchor="start" x="598" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters::</text>
 <text text-anchor="middle" x="643" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters</text>

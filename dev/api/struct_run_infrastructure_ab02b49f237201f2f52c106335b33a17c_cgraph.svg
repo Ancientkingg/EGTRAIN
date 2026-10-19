@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Returns every member to the state of a new object.">
 <polygon fill="#999999" stroke="#666666" points="107,-61.5 0,-61.5 0,-31.5 107,-31.5 107,-61.5"/>
 <text text-anchor="start" x="8" y="-49.5" font-family="Helvetica,sans-Serif" font-size="10.00">RunInfrastructure::</text>
 <text text-anchor="middle" x="53.5" y="-38.5" font-family="Helvetica,sans-Serif" font-size="10.00">reset</text>

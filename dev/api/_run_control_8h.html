@@ -133,6 +133,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:RunCommand" id="r_RunCommand"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_run_command.html">RunCommand</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A command that <a class="el" href="class_run_control.html#ad7f268226b527137b2f288a07ce138ba">RunControl::submit</a> queues for the top of the next step.  <a href="struct_run_command.html#details">More...</a><br /></td></tr>
 <tr class="memitem:RunControl" id="r_RunControl"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_run_control.html">RunControl</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
@@ -142,6 +143,7 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a6a9687067f1629c08befd855f5af0c73a11a755d598c0c417f9a36758c3da7481">Stop</a>
 , <a class="el" href="#a6a9687067f1629c08befd855f5af0c73a07e92cee0961ac7c1d8774235e4dd510">SetDelayMs</a>
  }</td></tr>
+<tr class="memdesc:a6a9687067f1629c08befd855f5af0c73"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a run can be asked to do at the top of a step.  <a href="#a6a9687067f1629c08befd855f5af0c73">More...</a><br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a6a9687067f1629c08befd855f5af0c73" name="a6a9687067f1629c08befd855f5af0c73"></a>
@@ -163,11 +165,17 @@ Enumerations</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What a run can be asked to do at the top of a step. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a105b296a83f9c105355403f3332af50f" name="a6a9687067f1629c08befd855f5af0c73a105b296a83f9c105355403f3332af50f"></a>Pause&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73af1cefec9e2196c672a622347f1fbc325" name="a6a9687067f1629c08befd855f5af0c73af1cefec9e2196c672a622347f1fbc325"></a>Resume&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a11a755d598c0c417f9a36758c3da7481" name="a6a9687067f1629c08befd855f5af0c73a11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a07e92cee0961ac7c1d8774235e4dd510" name="a6a9687067f1629c08befd855f5af0c73a07e92cee0961ac7c1d8774235e4dd510"></a>SetDelayMs&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a105b296a83f9c105355403f3332af50f" name="a6a9687067f1629c08befd855f5af0c73a105b296a83f9c105355403f3332af50f"></a>Pause&#160;</td><td class="fielddoc"><p>Waits at the top of each step until a resume or a stop. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73af1cefec9e2196c672a622347f1fbc325" name="a6a9687067f1629c08befd855f5af0c73af1cefec9e2196c672a622347f1fbc325"></a>Resume&#160;</td><td class="fielddoc"><p>Ends a pause. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a11a755d598c0c417f9a36758c3da7481" name="a6a9687067f1629c08befd855f5af0c73a11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"><p>Ends the run, as <a class="el" href="class_run_control.html#ad69943f1439178b66728fb189df687be">RunControl::requestStop</a> does. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a6a9687067f1629c08befd855f5af0c73a07e92cee0961ac7c1d8774235e4dd510" name="a6a9687067f1629c08befd855f5af0c73a07e92cee0961ac7c1d8774235e4dd510"></a>SetDelayMs&#160;</td><td class="fielddoc"><p>Sets the wait before each step to <a class="el" href="struct_run_command.html#a26bf5213ff8e8e08818d9ae54106dbf2" title="For SetDelayMs, in milliseconds.">RunCommand::delayMs</a>. </p>
+</td></tr>
 </table>
 
 </div>

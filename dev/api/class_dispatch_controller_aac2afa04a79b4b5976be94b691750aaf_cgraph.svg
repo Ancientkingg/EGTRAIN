@@ -349,7 +349,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" target="_top" xlink:title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th...">
 <polygon fill="white" stroke="#666666" points="539.5,-457.5 373.5,-457.5 373.5,-427.5 539.5,-427.5 539.5,-457.5"/>
 <text text-anchor="start" x="381.5" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">NumberGenerator::getUniform</text>
 <text text-anchor="middle" x="456.5" y="-434.5" font-family="Helvetica,sans-Serif" font-size="10.00">Float</text>
@@ -732,7 +732,7 @@
 <!-- Node29 -->
 <g id="Node000029" class="node">
 <title>Node29</title>
-<g id="a_Node000029"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000029"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="714.5,-75 644.5,-75 644.5,-56 714.5,-56 714.5,-75"/>
 <text text-anchor="middle" x="679.5" y="-63" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>
@@ -768,7 +768,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" target="_top" xlink:title="Empties run.infra, the platforms of the run and its final&#45;station statistics.">
 <polygon fill="white" stroke="#666666" points="526.5,-128.5 386.5,-128.5 386.5,-98.5 526.5,-98.5 526.5,-128.5"/>
 <text text-anchor="start" x="394.5" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeInfrastructure</text>
 <text text-anchor="middle" x="456.5" y="-105.5" font-family="Helvetica,sans-Serif" font-size="10.00">State</text>
@@ -787,7 +787,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="_operations_builder_8cpp.html#aea9297830b5672f714105f48b351dd48" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="_operations_builder_8cpp.html#aea9297830b5672f714105f48b351dd48" target="_top" xlink:title="The reset between scene runs, which is the same as preparing a new run.">
 <polygon fill="white" stroke="#666666" points="532.5,-184 380.5,-184 380.5,-165 532.5,-165 532.5,-184"/>
 <text text-anchor="middle" x="456.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">resetNativeOperationsState</text>
 </a>
@@ -850,7 +850,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" target="_top" xlink:title="Returns every member except the infrastructure to the state of a new run.">
 <polygon fill="white" stroke="#666666" points="941.5,-256 822.5,-256 822.5,-237 941.5,-237 941.5,-256"/>
 <text text-anchor="middle" x="882" y="-244" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationRun::reset</text>
 </a>
@@ -895,7 +895,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ...">
 <polygon fill="white" stroke="#666666" points="1154,-259.5 1048,-259.5 1048,-229.5 1154,-229.5 1154,-259.5"/>
 <text text-anchor="start" x="1056" y="-247.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters::</text>
 <text text-anchor="middle" x="1101" y="-236.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters</text>

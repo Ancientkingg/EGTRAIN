@@ -123,38 +123,66 @@ Collaboration diagram for SimulationRun:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aab0058f6d06c3e08780cda9bb84c4fca" id="r_aab0058f6d06c3e08780cda9bb84c4fca"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab0058f6d06c3e08780cda9bb84c4fca">reset</a> ()</td></tr>
+<tr class="memdesc:aab0058f6d06c3e08780cda9bb84c4fca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns every member except the infrastructure to the state of a new run.  <br /></td></tr>
 <tr class="memitem:af01751101de231c201b00a07de62caf0" id="r_af01751101de231c201b00a07de62caf0"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af01751101de231c201b00a07de62caf0">resetInfrastructure</a> ()</td></tr>
+<tr class="memdesc:af01751101de231c201b00a07de62caf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the infrastructure to the state of a new run.  <br /></td></tr>
 <tr class="memitem:ae2a5df5cc93ca9fd692cc1b43ac8eece" id="r_ae2a5df5cc93ca9fd692cc1b43ac8eece"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae2a5df5cc93ca9fd692cc1b43ac8eece">adopt</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&amp;staged)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af6d9f8972b6a63879e8ce3febf96b073" id="r_af6d9f8972b6a63879e8ce3febf96b073"><td class="memItemLeft"><a class="el" href="class_initial_parameters.html">InitialParameters</a>&#160;</td><td class="memItemRight"><a class="el" href="#af6d9f8972b6a63879e8ce3febf96b073">settings</a> {0}</td></tr>
 <tr class="memitem:a11345f02ca8a96f1da319a27916a3e78" id="r_a11345f02ca8a96f1da319a27916a3e78"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a11345f02ca8a96f1da319a27916a3e78">blocksOccupied</a></td></tr>
+<tr class="memdesc:a11345f02ca8a96f1da319a27916a3e78"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the block sections that trains occupy. The signalling routines fill the list during a step and the step clears it.  <br /></td></tr>
 <tr class="memitem:acfd9c938d2615ea5cc898ef5e2edb9c3" id="r_acfd9c938d2615ea5cc898ef5e2edb9c3"><td class="memItemLeft">std::list&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acfd9c938d2615ea5cc898ef5e2edb9c3">blocksConnected</a></td></tr>
+<tr class="memdesc:acfd9c938d2615ea5cc898ef5e2edb9c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">IDs of the block sections connected to the occupied ones, filled and cleared like blocksOccupied.  <br /></td></tr>
 <tr class="memitem:a5a91fa277f04410abb1fa5d257ae3090" id="r_a5a91fa277f04410abb1fa5d257ae3090"><td class="memItemLeft">std::list&lt; <a class="el" href="class_movement_authority.html">MovementAuthority</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a5a91fa277f04410abb1fa5d257ae3090">etcsMa</a></td></tr>
+<tr class="memdesc:a5a91fa277f04410abb1fa5d257ae3090"><td class="mdescLeft">&#160;</td><td class="mdescRight">Movement authorities of the current step: those of levels 3 and 4, and the failed signals at every level.  <br /></td></tr>
 <tr class="memitem:a15b9440d9d67002cd5c7ad17e8d64495" id="r_a15b9440d9d67002cd5c7ad17e8d64495"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_simulation_incident.html">SimulationIncident</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a15b9440d9d67002cd5c7ad17e8d64495">incidents</a></td></tr>
+<tr class="memdesc:a15b9440d9d67002cd5c7ad17e8d64495"><td class="mdescLeft">&#160;</td><td class="mdescRight">Incidents of the selected scenario.  <br /></td></tr>
 <tr class="memitem:a6900247ff1d449ed1827f74ff557a9a3" id="r_a6900247ff1d449ed1827f74ff557a9a3"><td class="memItemLeft">std::vector&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6900247ff1d449ed1827f74ff557a9a3">vcMsgTimestep</a></td></tr>
+<tr class="memdesc:a6900247ff1d449ed1827f74ff557a9a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Step of each virtual coupling notice of the run, in seconds from the start of the run.  <br /></td></tr>
 <tr class="memitem:a8cb8eab8f4f33c54ec38b3fba8d20ecc" id="r_a8cb8eab8f4f33c54ec38b3fba8d20ecc"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8cb8eab8f4f33c54ec38b3fba8d20ecc">vcMsgTrain</a></td></tr>
+<tr class="memdesc:a8cb8eab8f4f33c54ec38b3fba8d20ecc"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> of each virtual coupling notice.  <br /></td></tr>
 <tr class="memitem:a9f1cf2a12811221fcdae1aec6e3b537e" id="r_a9f1cf2a12811221fcdae1aec6e3b537e"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9f1cf2a12811221fcdae1aec6e3b537e">vcMsgText</a></td></tr>
+<tr class="memdesc:a9f1cf2a12811221fcdae1aec6e3b537e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text of each virtual coupling notice.  <br /></td></tr>
 <tr class="memitem:ad1ad527d5244908944e8c0e7ba418e87" id="r_ad1ad527d5244908944e8c0e7ba418e87"><td class="memItemLeft">std::list&lt; <a class="el" href="class_station_platform.html">StationPlatform</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad1ad527d5244908944e8c0e7ba418e87">platforms</a></td></tr>
+<tr class="memdesc:ad1ad527d5244908944e8c0e7ba418e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platforms of the network.  <br /></td></tr>
 <tr class="memitem:adc132f81dade594bc983b8a8ba642666" id="r_adc132f81dade594bc983b8a8ba642666"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#adc132f81dade594bc983b8a8ba642666">numPlatforms</a> = 0</td></tr>
+<tr class="memdesc:adc132f81dade594bc983b8a8ba642666"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of platforms.  <br /></td></tr>
 <tr class="memitem:a703aa52b2a23bad198cdd0ba45c3470b" id="r_a703aa52b2a23bad198cdd0ba45c3470b"><td class="memItemLeft">std::list&lt; <a class="el" href="class_passenger.html">Passenger</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a703aa52b2a23bad198cdd0ba45c3470b">passengers</a></td></tr>
+<tr class="memdesc:a703aa52b2a23bad198cdd0ba45c3470b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers of the run.  <br /></td></tr>
 <tr class="memitem:aafa9438ee4ba25eec6344024ecce05de" id="r_aafa9438ee4ba25eec6344024ecce05de"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aafa9438ee4ba25eec6344024ecce05de">numPassengers</a> = 0</td></tr>
+<tr class="memdesc:aafa9438ee4ba25eec6344024ecce05de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of passengers.  <br /></td></tr>
 <tr class="memitem:a43dd361d475559b4479a9980c6cc5526" id="r_a43dd361d475559b4479a9980c6cc5526"><td class="memItemLeft"><a class="el" href="class_passenger_index.html">PassengerIndex</a>&#160;</td><td class="memItemRight"><a class="el" href="#a43dd361d475559b4479a9980c6cc5526">passengerIndex</a></td></tr>
 <tr class="memitem:afce9337337bae03e14d1cf509f5a9e3f" id="r_afce9337337bae03e14d1cf509f5a9e3f"><td class="memItemLeft"><a class="el" href="class_platform_index.html">PlatformIndex</a>&#160;</td><td class="memItemRight"><a class="el" href="#afce9337337bae03e14d1cf509f5a9e3f">platformIndex</a></td></tr>
+<tr class="memdesc:afce9337337bae03e14d1cf509f5a9e3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Looks platforms up by ID. The rule of passengerIndex applies.  <br /></td></tr>
 <tr class="memitem:aa9bd82c26794f01ee2366f25d8736c09" id="r_aa9bd82c26794f01ee2366f25d8736c09"><td class="memItemLeft"><a class="el" href="class_stations.html">Stations</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa9bd82c26794f01ee2366f25d8736c09">totalInputDelays</a></td></tr>
+<tr class="memdesc:aa9bd82c26794f01ee2366f25d8736c09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds.  <br /></td></tr>
 <tr class="memitem:adcbb6fa5a060698b2d6975a85610ae90" id="r_adcbb6fa5a060698b2d6975a85610ae90"><td class="memItemLeft"><a class="el" href="class_stations.html">Stations</a>&#160;</td><td class="memItemRight"><a class="el" href="#adcbb6fa5a060698b2d6975a85610ae90">entranceInputDelays</a></td></tr>
+<tr class="memdesc:adcbb6fa5a060698b2d6975a85610ae90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Statistics over the trains of the entrance delay that the scenario sets, in seconds.  <br /></td></tr>
 <tr class="memitem:a40ae39279ee55aed776a982e790f16a2" id="r_a40ae39279ee55aed776a982e790f16a2"><td class="memItemLeft"><a class="el" href="class_stations.html">Stations</a>&#160;</td><td class="memItemRight"><a class="el" href="#a40ae39279ee55aed776a982e790f16a2">disturbanceInput</a></td></tr>
+<tr class="memdesc:a40ae39279ee55aed776a982e790f16a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Statistics over the trains of the station disturbances, in seconds. Nothing sets a disturbance, so they are 0.  <br /></td></tr>
 <tr class="memitem:ab824df88a1c2896452cc4ffa5cadc85f" id="r_ab824df88a1c2896452cc4ffa5cadc85f"><td class="memItemLeft"><a class="el" href="class_stations.html">Stations</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab824df88a1c2896452cc4ffa5cadc85f">finalStation</a></td></tr>
+<tr class="memdesc:ab824df88a1c2896452cc4ffa5cadc85f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delay statistics at the final stop of every train, under the station name "Final_Station".  <br /></td></tr>
 <tr class="memitem:a772713a34d28bc07f0b65d151fde5432" id="r_a772713a34d28bc07f0b65d151fde5432"><td class="memItemLeft">std::vector&lt; <a class="el" href="class_regional.html">Regional</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a772713a34d28bc07f0b65d151fde5432">trains</a></td></tr>
 <tr class="memitem:a8a642519a4c27e61e8efb71214f58ecd" id="r_a8a642519a4c27e61e8efb71214f58ecd"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a642519a4c27e61e8efb71214f58ecd">numTrains</a> = 0</td></tr>
+<tr class="memdesc:a8a642519a4c27e61e8efb71214f58ecd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of trains.  <br /></td></tr>
 <tr class="memitem:ab3523eba3bbf113596f03c00522743d6" id="r_ab3523eba3bbf113596f03c00522743d6"><td class="memItemLeft"><a class="el" href="class_number_generator.html">NumberGenerator</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab3523eba3bbf113596f03c00522743d6">numberGenerator</a> {<a class="el" href="_initial_parameters_8h.html#a1f52f2d2afceb8eab8e2f24b9523a35e">kDefaultRandomSeed</a>}</td></tr>
+<tr class="memdesc:ab3523eba3bbf113596f03c00522743d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The draws of the passenger sampling. The operations builder seeds it from initial_variables.randomSeed.  <br /></td></tr>
 <tr class="memitem:aae989c4bf3721dd9cd29c8bd5ee0d3a1" id="r_aae989c4bf3721dd9cd29c8bd5ee0d3a1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aae989c4bf3721dd9cd29c8bd5ee0d3a1">signallingDelay</a> = 0</td></tr>
 <tr class="memitem:ad02bbaddd777d6efe66125849f63aacc" id="r_ad02bbaddd777d6efe66125849f63aacc"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad02bbaddd777d6efe66125849f63aacc">compTimeEgtrain</a> = 0</td></tr>
+<tr class="memdesc:ad02bbaddd777d6efe66125849f63aacc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time of the steps in seconds as clock() measures it, summed over the run.  <br /></td></tr>
 <tr class="memitem:a4a8ee624088ebd005150c58264a6d8fe" id="r_a4a8ee624088ebd005150c58264a6d8fe"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4a8ee624088ebd005150c58264a6d8fe">compTimeRoma</a> = 0</td></tr>
+<tr class="memdesc:a4a8ee624088ebd005150c58264a6d8fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Written to the computing times file next to compTimeEgtrain. Nothing in the program sets it, so it stays 0.  <br /></td></tr>
 <tr class="memitem:a6adc19a351ad7af5c835d4de1d1c8e45" id="r_a6adc19a351ad7af5c835d4de1d1c8e45"><td class="memItemLeft"><a class="el" href="struct_run_infrastructure.html">RunInfrastructure</a>&#160;</td><td class="memItemRight"><a class="el" href="#a6adc19a351ad7af5c835d4de1d1c8e45">infra</a></td></tr>
+<tr class="memdesc:a6adc19a351ad7af5c835d4de1d1c8e45"><td class="mdescLeft">&#160;</td><td class="mdescRight">The infrastructure and the routes. The scene builder replaces them, and the previous ones stay in place until then.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The state that one simulation run builds up and that the next run must not see.</p>
+<p>The routines of the simulation library take the run that they work on as a parameter, and the member functions of a train reach it through <a class="el" href="class_train.html#adc6e0bb904a48e7d10787cffcd165c19">Train::run_</a>, which the operations builder sets.</p>
+<p>The process has one run, <a class="el" href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes.">defaultRun()</a>. It has a fixed address, so <a class="el" href="#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run.">reset()</a> clears every member in place. The window reads the run through <a class="el" href="class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9">DispatchController::run()</a>, which gives the same run; a test that calls the builders itself passes it <a class="el" href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes.">defaultRun()</a> or a run of its own. <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a> clears it with <a class="el" href="#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run.">reset()</a>, builds a run apart from it and puts the finished run in its place with <a class="el" href="#ae2a5df5cc93ca9fd692cc1b43ac8eece">adopt()</a>. A scene with errors leaves it cleared, the infrastructure included. <a class="el" href="class_dispatch_controller.html#adfb494be209a1122219b5d24128a4ec2">DispatchController::runSimulation</a> then steps the run on the thread of the run and adds the results, which stay until the next scene is prepared. A member that is added here must be cleared in <a class="el" href="#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run.">reset()</a>, or in <a class="el" href="#af01751101de231c201b00a07de62caf0" title="Returns the infrastructure to the state of a new run.">resetInfrastructure()</a> when it belongs to the infrastructure, and a member that points at another member needs a line in <a class="el" href="#ae2a5df5cc93ca9fd692cc1b43ac8eece">adopt()</a>.</p>
+<p>Besides the run, the simulation uses this process-wide state: initial_variables (the options, which the operations builder reads and writes and prepareScene copies into settings), the controller simulation, <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, and the constants timestep (1 s), signalCode1 to signalCode3 and the array sizes kMaxTrackLines, kMaxConnections and kMaxStations of <a class="el" href="_infrastructure_8h.html">Infrastructure.h</a>. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ae2a5df5cc93ca9fd692cc1b43ac8eece" name="ae2a5df5cc93ca9fd692cc1b43ac8eece"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae2a5df5cc93ca9fd692cc1b43ac8eece">&#9670;&#160;</a></span>adopt()</h2>
 
@@ -169,6 +197,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Replaces every member by that of a run that the builders have filled. The lists and vectors move, so their elements stay where they are and the pointers between the elements stay valid. The trains are pointed at this run and the indexes are built again for the lists of this run. The staged run is left without contents and is not used again. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -191,6 +220,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Returns every member except the infrastructure to the state of a new run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -213,6 +244,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Returns the infrastructure to the state of a new run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -234,6 +267,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>IDs of the block sections connected to the occupied ones, filled and cleared like blocksOccupied. </p>
+
 </div>
 </div>
 <a id="a11345f02ca8a96f1da319a27916a3e78" name="a11345f02ca8a96f1da319a27916a3e78"></a>
@@ -247,6 +282,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>IDs of the block sections that trains occupy. The signalling routines fill the list during a step and the step clears it. </p>
 
 </div>
 </div>
@@ -262,6 +299,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Time of the steps in seconds as clock() measures it, summed over the run. </p>
+
 </div>
 </div>
 <a id="a4a8ee624088ebd005150c58264a6d8fe" name="a4a8ee624088ebd005150c58264a6d8fe"></a>
@@ -275,6 +314,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Written to the computing times file next to compTimeEgtrain. Nothing in the program sets it, so it stays 0. </p>
 
 </div>
 </div>
@@ -290,6 +331,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Statistics over the trains of the station disturbances, in seconds. Nothing sets a disturbance, so they are 0. </p>
+
 </div>
 </div>
 <a id="adcbb6fa5a060698b2d6975a85610ae90" name="adcbb6fa5a060698b2d6975a85610ae90"></a>
@@ -303,6 +346,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Statistics over the trains of the entrance delay that the scenario sets, in seconds. </p>
 
 </div>
 </div>
@@ -318,6 +363,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Movement authorities of the current step: those of levels 3 and 4, and the failed signals at every level. </p>
+
 </div>
 </div>
 <a id="ab824df88a1c2896452cc4ffa5cadc85f" name="ab824df88a1c2896452cc4ffa5cadc85f"></a>
@@ -331,6 +378,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Delay statistics at the final stop of every train, under the station name "Final_Station". </p>
 
 </div>
 </div>
@@ -346,6 +395,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Incidents of the selected scenario. </p>
+
 </div>
 </div>
 <a id="a6adc19a351ad7af5c835d4de1d1c8e45" name="a6adc19a351ad7af5c835d4de1d1c8e45"></a>
@@ -359,6 +410,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The infrastructure and the routes. The scene builder replaces them, and the previous ones stay in place until then. </p>
 
 </div>
 </div>
@@ -374,6 +427,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The draws of the passenger sampling. The operations builder seeds it from initial_variables.randomSeed. </p>
+
 </div>
 </div>
 <a id="aafa9438ee4ba25eec6344024ecce05de" name="aafa9438ee4ba25eec6344024ecce05de"></a>
@@ -387,6 +442,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of passengers. </p>
 
 </div>
 </div>
@@ -402,6 +459,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of platforms. </p>
+
 </div>
 </div>
 <a id="a8a642519a4c27e61e8efb71214f58ecd" name="a8a642519a4c27e61e8efb71214f58ecd"></a>
@@ -416,6 +475,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of trains. </p>
+
 </div>
 </div>
 <a id="a43dd361d475559b4479a9980c6cc5526" name="a43dd361d475559b4479a9980c6cc5526"></a>
@@ -429,6 +490,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Looks passengers up by ID. An index describes its list only while the list keeps its elements, so <a class="el" href="#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run.">reset()</a> clears it with the list. </p>
 
 </div>
 </div>
@@ -444,6 +506,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The passengers of the run. </p>
+
 </div>
 </div>
 <a id="afce9337337bae03e14d1cf509f5a9e3f" name="afce9337337bae03e14d1cf509f5a9e3f"></a>
@@ -457,6 +521,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Looks platforms up by ID. The rule of passengerIndex applies. </p>
 
 </div>
 </div>
@@ -472,6 +538,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The platforms of the network. </p>
+
 </div>
 </div>
 <a id="af6d9f8972b6a63879e8ce3febf96b073" name="af6d9f8972b6a63879e8ce3febf96b073"></a>
@@ -485,6 +553,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The settings of the run: a copy of initial_variables that <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a> takes once the scene is built. It holds the output folder and the buffer time and running time recovery of the run. A change to initial_variables after that does not reach the run. </p>
 
 </div>
 </div>
@@ -499,6 +568,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep). The signalling reads the positions of the trains this many whole steps back. Nothing in the program sets it, so a run keeps 0. </p>
 
 </div>
 </div>
@@ -514,6 +584,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Statistics over the trains of the input delay, the entrance delay plus the station disturbances, in seconds. </p>
+
 </div>
 </div>
 <a id="a772713a34d28bc07f0b65d151fde5432" name="a772713a34d28bc07f0b65d151fde5432"></a>
@@ -527,6 +599,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The trains of the scene. The operations builder creates the vector once per build with exactly the trains of the scene, and it does not grow while the trains are live. </p>
 
 </div>
 </div>
@@ -542,6 +615,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Text of each virtual coupling notice. </p>
+
 </div>
 </div>
 <a id="a6900247ff1d449ed1827f74ff557a9a3" name="a6900247ff1d449ed1827f74ff557a9a3"></a>
@@ -556,6 +631,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Step of each virtual coupling notice of the run, in seconds from the start of the run. </p>
+
 </div>
 </div>
 <a id="a8cb8eab8f4f33c54ec38b3fba8d20ecc" name="a8cb8eab8f4f33c54ec38b3fba8d20ecc"></a>
@@ -569,6 +646,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_train.html">Train</a> of each virtual coupling notice. </p>
 
 </div>
 </div>

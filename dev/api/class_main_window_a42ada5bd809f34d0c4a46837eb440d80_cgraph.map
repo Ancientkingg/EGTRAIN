@@ -122,15 +122,15 @@
 <area shape="poly" id="edge67_Node000040_Node000040" title=" " alt="" coords="1181,433,1173,423,1177,413,1193,407,1219,405,1252,409,1265,418,1262,422,1250,414,1219,410,1194,412,1181,417,1178,422,1185,430"/>
 <area shape="poly" id="edge73_Node000058_Node000057" title=" " alt="" coords="1292,615,1370,633,1369,638,1290,620"/>
 <area shape="poly" id="edge75_Node000066_Node000066" title=" " alt="" coords="1181,360,1173,350,1177,340,1193,334,1219,331,1252,335,1265,345,1262,349,1250,340,1219,337,1194,339,1181,344,1178,349,1185,356"/>
-<area shape="rect" id="Node000068" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title=" " alt="" coords="1135,821,1303,861"/>
+<area shape="rect" id="Node000068" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="1135,821,1303,861"/>
 <area shape="poly" id="edge77_Node000067_Node000068" title=" " alt="" coords="1046,806,1122,821,1121,826,1045,812"/>
 <area shape="rect" id="Node000069" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="1137,771,1301,797"/>
 <area shape="poly" id="edge78_Node000067_Node000069" title=" " alt="" coords="1045,786,1124,784,1124,789,1046,791"/>
 <area shape="poly" id="edge79_Node000069_Node000069" title=" " alt="" coords="1181,773,1173,763,1177,753,1193,747,1219,745,1252,749,1265,758,1262,762,1250,754,1219,750,1194,752,1181,757,1178,762,1185,770"/>
 <area shape="poly" id="edge84_Node000071_Node000005" title=" " alt="" coords="1041,912,1058,923,1073,941,1080,958,1084,994,1087,1029,1093,1046,1106,1064,1128,1082,1153,1095,1151,1099,1125,1086,1102,1067,1089,1049,1082,1030,1079,994,1075,960,1068,944,1054,927,1038,916"/>
-<area shape="rect" id="Node000072" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title=" " alt="" coords="1148,885,1291,925"/>
+<area shape="rect" id="Node000072" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="1148,885,1291,925"/>
 <area shape="poly" id="edge81_Node000071_Node000072" title=" " alt="" coords="1056,900,1134,902,1134,907,1056,906"/>
-<area shape="rect" id="Node000073" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title=" " alt="" coords="1144,949,1295,989"/>
+<area shape="rect" id="Node000073" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run..." alt="" coords="1144,949,1295,989"/>
 <area shape="poly" id="edge82_Node000071_Node000073" title=" " alt="" coords="1008,912,1057,923,1134,943,1133,948,1055,928,1007,917"/>
 <area shape="rect" id="Node000074" href="$class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c" title=" " alt="" coords="1143,1013,1295,1053"/>
 <area shape="poly" id="edge83_Node000071_Node000074" title=" " alt="" coords="1036,912,1058,923,1075,942,1083,962,1090,981,1106,999,1132,1014,1129,1018,1102,1004,1085,984,1078,964,1071,945,1054,928,1034,917"/>

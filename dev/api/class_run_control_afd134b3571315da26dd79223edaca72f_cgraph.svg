@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Applies the waiting commands in the order in which they were submitted.">
 <polygon fill="#999999" stroke="#666666" points="197,-74 0,-74 0,-55 197,-55 197,-74"/>
 <text text-anchor="middle" x="98.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::applyQueuedCommands</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title="Makes beginStep wait until requestResume or requestStop.">
 <polygon fill="white" stroke="#666666" points="380.5,-130 238.5,-130 238.5,-111 380.5,-111 380.5,-130"/>
 <text text-anchor="middle" x="309.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestPause</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title="Ends a pause.">
 <polygon fill="white" stroke="#666666" points="386,-93 233,-93 233,-74 386,-74 386,-93"/>
 <text text-anchor="middle" x="309.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestResume</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title="Sets the wait before each step in milliseconds. 0 means no wait.">
 <polygon fill="white" stroke="#666666" points="376.5,-19 242.5,-19 242.5,0 376.5,0 376.5,-19"/>
 <text text-anchor="middle" x="309.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::setDelayMs</text>
 </a>

@@ -112,7 +112,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title="True when the last run executed every stage, also if a stop arrived after its last check.">
 <polygon fill="white" stroke="#666666" points="329.5,-224 216.5,-224 216.5,-194 329.5,-194 329.5,-224"/>
 <text text-anchor="start" x="224.5" y="-212" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="273" y="-201" font-family="Helvetica,sans-Serif" font-size="10.00">::lastRunCompleted</text>
@@ -169,7 +169,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" target="_top" xlink:title="Drops the replay history of the last run. The thread rule of takeReplayCandidate applies.">
 <polygon fill="white" stroke="#666666" points="338.5,-78 207.5,-78 207.5,-48 338.5,-48 338.5,-78"/>
 <text text-anchor="start" x="215.5" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="273" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">::resetReplayCandidate</text>
@@ -525,7 +525,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="699,-143.5 629,-143.5 629,-124.5 699,-124.5 699,-143.5"/>
 <text text-anchor="middle" x="664" y="-131.5" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>

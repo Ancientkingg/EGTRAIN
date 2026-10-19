@@ -340,7 +340,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title="True when the last run executed every stage, also if a stop arrived after its last check.">
 <polygon fill="white" stroke="#666666" points="460,-986.5 347,-986.5 347,-956.5 460,-956.5 460,-986.5"/>
 <text text-anchor="start" x="355" y="-974.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="403.5" y="-963.5" font-family="Helvetica,sans-Serif" font-size="10.00">::lastRunCompleted</text>

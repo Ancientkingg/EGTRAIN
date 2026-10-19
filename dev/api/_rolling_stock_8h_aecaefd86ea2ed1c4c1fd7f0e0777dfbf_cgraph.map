@@ -15,7 +15,7 @@
 <area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="112,511,165,446,204,408,249,376,273,365,275,370,252,380,207,412,168,450,116,515"/>
 <area shape="rect" id="Node000012" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="328,415,452,440"/>
 <area shape="poly" id="edge19_Node000001_Node000012" title=" " alt="" coords="125,511,180,480,250,450,314,434,315,440,252,455,182,485,127,515"/>
-<area shape="rect" id="Node000014" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title=" " alt="" coords="279,465,501,505"/>
+<area shape="rect" id="Node000014" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th..." alt="" coords="279,465,501,505"/>
 <area shape="poly" id="edge23_Node000001_Node000014" title=" " alt="" coords="192,511,265,500,266,505,193,516"/>
 <area shape="rect" id="Node000015" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="349,553,431,579"/>
 <area shape="poly" id="edge24_Node000001_Node000015" title=" " alt="" coords="196,536,336,556,335,561,195,541"/>

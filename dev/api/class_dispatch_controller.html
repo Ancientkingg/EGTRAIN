@@ -128,17 +128,25 @@ Collaboration diagram for DispatchController:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
 <tr class="memitem:ab998809e17e483b75df62cdaf6386e8b" id="r_ab998809e17e483b75df62cdaf6386e8b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab998809e17e483b75df62cdaf6386e8b">iterationFinished</a> (int timestep)</td></tr>
+<tr class="memdesc:ab998809e17e483b75df62cdaf6386e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal.  <br /></td></tr>
 <tr class="memitem:aebe79f141b28e94e15e1d5ce7aa1617a" id="r_aebe79f141b28e94e15e1d5ce7aa1617a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aebe79f141b28e94e15e1d5ce7aa1617a">snapshotAvailable</a> ()</td></tr>
+<tr class="memdesc:aebe79f141b28e94e15e1d5ce7aa1617a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot.  <br /></td></tr>
 <tr class="memitem:ac1303c26373b05425e1a19988da7913c" id="r_ac1303c26373b05425e1a19988da7913c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac1303c26373b05425e1a19988da7913c">simulationFinished</a> ()</td></tr>
+<tr class="memdesc:ac1303c26373b05425e1a19988da7913c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window.  <br /></td></tr>
 <tr class="memitem:a39cb8a5f1b9faddf6fe72fdda874b921" id="r_a39cb8a5f1b9faddf6fe72fdda874b921"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a39cb8a5f1b9faddf6fe72fdda874b921">executionRejected</a> ()</td></tr>
+<tr class="memdesc:a39cb8a5f1b9faddf6fe72fdda874b921"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains.  <br /></td></tr>
 <tr class="memitem:ada5a8643ab4c07569d742a43f4f3200f" id="r_ada5a8643ab4c07569d742a43f4f3200f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ada5a8643ab4c07569d742a43f4f3200f">executionBegan</a> ()</td></tr>
+<tr class="memdesc:ada5a8643ab4c07569d742a43f4f3200f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observation: runSimulation starts the run.  <br /></td></tr>
 <tr class="memitem:af339208c301d01ffd8c807c306f3530c" id="r_af339208c301d01ffd8c807c306f3530c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af339208c301d01ffd8c807c306f3530c">executionReturned</a> (qint64 elapsedMs, bool cancelled)</td></tr>
 <tr class="memitem:a440da7dc0354b8faa126829a204a596a" id="r_a440da7dc0354b8faa126829a204a596a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a440da7dc0354b8faa126829a204a596a">executionPostprocessing</a> ()</td></tr>
+<tr class="memdesc:a440da7dc0354b8faa126829a204a596a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution-thread observation: the steps have ended and the stages after them start.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0b99aeeb2691c72fabf36a7086aec572" id="r_a0b99aeeb2691c72fabf36a7086aec572"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a0b99aeeb2691c72fabf36a7086aec572">DispatchController</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a0b99aeeb2691c72fabf36a7086aec572"><td class="mdescLeft">&#160;</td><td class="mdescRight">A controller without a live stream, with snapshots on.  <br /></td></tr>
 <tr class="memitem:a3a06bb6aecad14ce209ac4e13040809c" id="r_a3a06bb6aecad14ce209ac4e13040809c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3a06bb6aecad14ce209ac4e13040809c">~DispatchController</a> () override</td></tr>
+<tr class="memdesc:a3a06bb6aecad14ce209ac4e13040809c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ends the live stream, if it runs.  <br /></td></tr>
 <tr class="memitem:aac2afa04a79b4b5976be94b691750aaf" id="r_aac2afa04a79b4b5976be94b691750aaf"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aac2afa04a79b4b5976be94b691750aaf">prepareScene</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;selectedScenarioId={}, const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;selectedOccurrences={})</td></tr>
 <tr class="memitem:ae9f55885c0745b66737a45acaf839544" id="r_ae9f55885c0745b66737a45acaf839544"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae9f55885c0745b66737a45acaf839544">resetState</a> ()</td></tr>
 <tr class="memitem:aa8e0c7473475d098b4d91cab37a1c4d9" id="r_aa8e0c7473475d098b4d91cab37a1c4d9"><td class="memItemLeft">const <a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run</a> () const</td></tr>
@@ -150,16 +158,24 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a17f1138c6661bae0d67ecd96e4858054" id="r_a17f1138c6661bae0d67ecd96e4858054"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a17f1138c6661bae0d67ecd96e4858054">takeSimulationSnapshot</a> ()</td></tr>
 <tr class="memitem:acfe9014d13612fcccc58c5b6bd79dacb" id="r_acfe9014d13612fcccc58c5b6bd79dacb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acfe9014d13612fcccc58c5b6bd79dacb">setSnapshotsEnabled</a> (bool enabled)</td></tr>
 <tr class="memitem:a4e932a087dd00e4d2c817e42c77aceb2" id="r_a4e932a087dd00e4d2c817e42c77aceb2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4e932a087dd00e4d2c817e42c77aceb2">resetReplayCandidate</a> ()</td></tr>
+<tr class="memdesc:a4e932a087dd00e4d2c817e42c77aceb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drops the replay history of the last run. The thread rule of takeReplayCandidate applies.  <br /></td></tr>
 <tr class="memitem:ae26ebb03ac460fe3fc1dcf139eee8328" id="r_ae26ebb03ac460fe3fc1dcf139eee8328"><td class="memItemLeft"><a class="el" href="class_gui_replay_history.html">GuiReplayHistory</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae26ebb03ac460fe3fc1dcf139eee8328">takeReplayCandidate</a> ()</td></tr>
 <tr class="memitem:a756ed4264cc4dd25e79a258212a9fb60" id="r_a756ed4264cc4dd25e79a258212a9fb60"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a756ed4264cc4dd25e79a258212a9fb60">lastRunCompleted</a> () const</td></tr>
+<tr class="memdesc:a756ed4264cc4dd25e79a258212a9fb60"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the last run executed every stage, also if a stop arrived after its last check.  <br /></td></tr>
 <tr class="memitem:ad536dc8ce832b340187fc015e846fca1" id="r_ad536dc8ce832b340187fc015e846fca1"><td class="memItemLeft">std::shared_ptr&lt; <a class="el" href="class_run_control.html">RunControl</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad536dc8ce832b340187fc015e846fca1">runControl</a> () const</td></tr>
 <tr class="memitem:af3f0690a12a2103a1e80aca5cc5a8be9" id="r_af3f0690a12a2103a1e80aca5cc5a8be9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af3f0690a12a2103a1e80aca5cc5a8be9">setNextRunOutputFolder</a> (const std::string &amp;folder)</td></tr>
 <tr class="memitem:aa9bdc7665026c5a0ede5246e273d208c" id="r_aa9bdc7665026c5a0ede5246e273d208c"><td class="memItemLeft">const std::string &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa9bdc7665026c5a0ede5246e273d208c">nextRunOutputFolder</a> () const</td></tr>
+<tr class="memdesc:aa9bdc7665026c5a0ede5246e273d208c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.  <br /></td></tr>
 <tr class="memitem:af6a545f83572bb21a333266cfc00be7b" id="r_af6a545f83572bb21a333266cfc00be7b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#af6a545f83572bb21a333266cfc00be7b">startLive</a> (int port, int every, bool commands, const std::filesystem::path &amp;endpointDirectory, std::string *error=nullptr)</td></tr>
 <tr class="memitem:ab1624ac972383e5f2d1aea51544f7699" id="r_ab1624ac972383e5f2d1aea51544f7699"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab1624ac972383e5f2d1aea51544f7699">stopLive</a> ()</td></tr>
+<tr class="memdesc:ab1624ac972383e5f2d1aea51544f7699"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends the frames that are still queued and ends the stream. Call this while no run is going on.  <br /></td></tr>
 <tr class="memitem:afbac0de33112f6ead2aee19517b3f959" id="r_afbac0de33112f6ead2aee19517b3f959"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afbac0de33112f6ead2aee19517b3f959">liveEndpoint</a> () const</td></tr>
+<tr class="memdesc:afbac0de33112f6ead2aee19517b3f959"><td class="mdescLeft">&#160;</td><td class="mdescRight">"tcp://127.0.0.1:&lt;port&gt;" of the state socket, or empty while the stream is off.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Prepares a scene into the run of the process and runs it.</p>
+<p>The process has one controller, the global simulation, and every controller works on <a class="el" href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes.">defaultRun()</a>. prepareScene, resetState, the live stream functions and the reading of the results are called on the GUI thread, or on the main thread of a run without a window, while no run is going on. runSimulation runs on the thread of a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> in the window and on the main thread without a window. The signals of a run are emitted on the thread of the run. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0b99aeeb2691c72fabf36a7086aec572" name="a0b99aeeb2691c72fabf36a7086aec572"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0b99aeeb2691c72fabf36a7086aec572">&#9670;&#160;</a></span>DispatchController()</h2>
 
@@ -182,6 +198,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A controller without a live stream, with snapshots on. </p>
 
 </div>
 </div>
@@ -207,6 +225,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Ends the live stream, if it runs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -239,6 +259,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Execution-thread observation: runSimulation starts the run. </p>
+
 </div>
 </div>
 <a id="a440da7dc0354b8faa126829a204a596a" name="a440da7dc0354b8faa126829a204a596a"></a>
@@ -264,6 +286,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Execution-thread observation: the steps have ended and the stages after them start. </p>
+
 </div>
 </div>
 <a id="a39cb8a5f1b9faddf6fe72fdda874b921" name="a39cb8a5f1b9faddf6fe72fdda874b921"></a>
@@ -288,6 +312,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Execution-thread observations, independent of GUI result availability: runSimulation turns down a run without trains. </p>
 
 </div>
 </div>
@@ -317,6 +343,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Execution-thread observation, emitted once for each run that began: elapsedMs is the time since executionBegan in milliseconds, and cancelled is true for a run that a stop ended. </p>
 
 </div>
 </div>
@@ -343,6 +370,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Nothing emits this signal. </p>
+
 </div>
 </div>
 <a id="a756ed4264cc4dd25e79a258212a9fb60" name="a756ed4264cc4dd25e79a258212a9fb60"></a>
@@ -368,6 +397,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True when the last run executed every stage, also if a stop arrived after its last check. </p>
+
 </div>
 </div>
 <a id="afbac0de33112f6ead2aee19517b3f959" name="afbac0de33112f6ead2aee19517b3f959"></a>
@@ -385,6 +416,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>"tcp://127.0.0.1:&lt;port&gt;" of the state socket, or empty while the stream is off. </p>
+
 </div>
 </div>
 <a id="a027310e296b105e0d388fd96dbca6d63" name="a027310e296b105e0d388fd96dbca6d63"></a>
@@ -401,6 +434,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The same run for the canvas, which writes the positions of the layout into the tracks, stations and connections. The thread rules of <a class="el" href="#aa8e0c7473475d098b4d91cab37a1c4d9">run()</a> apply. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -432,6 +466,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread. </p>
+
 </div>
 </div>
 <a id="aac2afa04a79b4b5976be94b691750aaf" name="aac2afa04a79b4b5976be94b691750aaf"></a>
@@ -457,6 +493,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Builds the run of the scene apart from the run of the controller and puts it in its place when the scene is ready. A scene that is not ready ends the run that was there: the controller then holds a new run.</p>
+<p>selectedScenarioId names the scenario whose incidents and delays apply; empty takes the default scenario of the scene, or its first. selectedOccurrences lists the service occurrences that run; empty runs them all. The run takes a copy of initial_variables as its settings, writes to its output folder, which is made if needed, and starts without the files that a run appends to. Returns the diagnostics of the validation and the builders. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -479,6 +517,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends the service path diagram of each train that departs before the end of the run to TrainTrajectories/TrainServicePathDiagram.txt in the output folder of the run. The window calls it after a run that was not stopped, and main after its run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -510,6 +549,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Drops the replay history of the last run. The thread rule of takeReplayCandidate applies. </p>
+
 </div>
 </div>
 <a id="ae9f55885c0745b66737a45acaf839544" name="ae9f55885c0745b66737a45acaf839544"></a>
@@ -526,6 +567,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns the controller to a new run: the run of the process is cleared, the infrastructure included, and a waiting snapshot is dropped. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -548,6 +590,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The run that prepareScene made, with the results after it has been run. While a <a class="el" href="class_simulation_worker.html">SimulationWorker</a> is running, the thread that steps the run owns its state, and the window reads only what a step does not change (the infrastructure and the layout of the canvas) and sees the rest through the snapshots. Results are read after the worker has joined. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -578,6 +621,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The control of the run that started last, also when it has ended: the control of the window's <a class="el" href="class_simulation_worker.html">SimulationWorker</a>, or the one that a run without a worker made for itself. Call this on the thread that runs the simulation, or after the run has returned. </p>
 
 </div>
 </div>
@@ -595,6 +639,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Runs the prepared run on the calling thread: the steps, then the energy, the timetable points, the delay statistics, the blocking times and the output files. A stop is checked between these stages and ends the run there. A run without trains is not run: it emits executionRejected and logs an error. The control of the run is that of <a class="el" href="class_simulation_worker.html#a8fc8549b387f7df829e0405890df36ef" title="The worker constructed last, or nullptr once it is destroyed. A run without a window has none and mak...">SimulationWorker::active()</a>, or a new one when there is no worker. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -625,6 +670,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Sets the output folder that prepareScene applies to the run it prepares; empty keeps the folder of initial_variables. Call this on the GUI thread; a run keeps the folder it was prepared with. </p>
 
 </div>
 </div>
@@ -650,6 +696,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A run that nothing draws needs no snapshots and no replay history. Off, the run builds neither. Call this before the run starts. </p>
 
 </div>
 </div>
@@ -667,6 +714,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Gives the per-step vectors of every train vec_size entries of 0 and sets their End_Time to vec_size - 1. Nothing in the program calls it; the operations builder sizes the vectors. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -698,6 +746,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Nothing emits this signal. <a class="el" href="class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d">SimulationWorker::simulationFinished</a> marks the end of a run in the window. </p>
+
 </div>
 </div>
 <a id="aebe79f141b28e94e15e1d5ce7aa1617a" name="aebe79f141b28e94e15e1d5ce7aa1617a"></a>
@@ -722,6 +772,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A step has published a snapshot and no earlier one waits to be taken. Fetch it with takeSimulationSnapshot. </p>
 
 </div>
 </div>
@@ -758,6 +810,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts the live stream (see <a class="el" href="_live_server_8h.html">io/LiveServer.h</a>): every run that follows publishes a hello frame, a state frame for every every-th step and the events of its end, and the stream outlives the runs. The endpoint file goes to endpointDirectory. With commands, the commands that clients send (pause, resume, stop and set_delay_ms) are handed to the control of the run at the top of each step, also while the run is paused, and each is reported as an applied or rejected event. Call this before prepareScene and while no run is going on. Returns false with the reason in *error when the server cannot start. A process that never calls it has no server, no thread and no socket, and its runs build nothing for the stream. A port of 0 takes a free port, and an every below 1 counts as 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -780,6 +833,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sends the frames that are still queued and ends the stream. Call this while no run is going on. </p>
 
 </div>
 </div>
@@ -805,6 +860,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Hands over the replay history that the last run recorded and keeps an empty one. Only call this on the GUI thread before launch or after the worker has joined. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -827,6 +883,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Takes the newest snapshot that a step published, or nullptr when none waits. The GUI thread calls it after snapshotAvailable. </p>
 
 </div>
 </div>
@@ -853,6 +910,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The steps of a run, t from 0 while t &lt; settings.times, each in seconds from the start of the run. v1, v2 and v3 go to <a class="el" href="class_train.html#a09e55bf615f21184e4a57367932d4a61">Train::trajectoryComputationIncludingMovingBlock</a>; runSimulation passes signalCode1 to signalCode3, in m/s. Called by runSimulation, which sets the control of the run first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

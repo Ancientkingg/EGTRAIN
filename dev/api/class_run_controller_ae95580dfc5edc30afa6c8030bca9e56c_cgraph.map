@@ -32,7 +32,7 @@
 <area shape="rect" id="Node000005" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="831,1400,1003,1425"/>
 <area shape="poly" id="edge6_Node000003_Node000005" title=" " alt="" coords="439,1404,817,1409,816,1414,438,1410"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="570,1351,561,1341,566,1331,584,1325,614,1323,653,1327,664,1332,667,1338,663,1340,660,1336,652,1332,614,1328,585,1330,569,1335,566,1340,574,1347"/>
-<area shape="rect" id="Node000006" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title=" " alt="" coords="1159,1301,1252,1327"/>
+<area shape="rect" id="Node000006" href="$_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" title="The run of the process. Its address never changes." alt="" coords="1159,1301,1252,1327"/>
 <area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="954,1397,1153,1329,1155,1334,956,1402"/>
 <area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="1159,1303,1149,1293,1154,1283,1173,1277,1205,1275,1247,1279,1258,1284,1262,1290,1257,1293,1255,1288,1246,1284,1205,1280,1174,1282,1158,1287,1154,1292,1163,1299"/>
 <area shape="poly" id="edge11_Node000008_Node000008" title=" " alt="" coords="302,1947,293,1937,297,1927,314,1921,341,1919,376,1923,386,1927,390,1933,385,1936,382,1931,375,1928,341,1924,315,1926,301,1931,298,1936,305,1943"/>
@@ -74,7 +74,7 @@
 <area shape="poly" id="edge39_Node000022_Node000025" title=" " alt="" coords="665,618,699,601,715,589,727,575,736,557,742,535,748,479,744,342,741,271,743,207,753,153,763,132,776,116,799,102,833,93,872,88,915,87,998,95,1032,104,1057,116,1099,153,1133,198,1158,248,1177,301,1190,352,1199,401,1206,475,1201,476,1193,401,1185,353,1172,302,1153,250,1128,201,1095,156,1055,120,1030,109,997,100,915,92,872,93,834,98,801,107,779,120,767,135,758,155,749,207,747,271,749,341,754,479,748,536,741,559,732,578,718,593,702,605,667,622"/>
 <area shape="rect" id="Node000027" href="$_optimisation_8cpp.html#a4a08ef07d098a529cc8289c7ce3a6f8c" title=" " alt="" coords="814,154,1019,194"/>
 <area shape="poly" id="edge40_Node000022_Node000027" title=" " alt="" coords="665,617,699,601,714,589,727,575,742,550,752,526,759,479,755,433,745,387,736,342,734,297,737,274,745,251,757,228,775,204,800,186,803,190,779,208,762,230,750,253,742,275,739,297,741,341,750,386,760,432,765,479,757,528,747,553,731,578,718,593,702,605,667,622"/>
-<area shape="rect" id="Node000029" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title=" " alt="" coords="806,218,1027,258"/>
+<area shape="rect" id="Node000029" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th..." alt="" coords="806,218,1027,258"/>
 <area shape="poly" id="edge43_Node000022_Node000029" title=" " alt="" coords="664,617,699,601,714,589,727,575,749,535,755,496,753,458,746,420,740,382,739,345,749,307,775,268,792,254,796,259,779,272,754,309,744,345,745,382,751,419,758,457,761,496,754,537,732,578,718,593,701,605,666,622"/>
 <area shape="rect" id="Node000030" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="785,283,1049,308"/>
 <area shape="poly" id="edge45_Node000022_Node000030" title=" " alt="" coords="663,617,698,601,727,575,746,542,752,509,751,477,746,445,742,413,742,382,752,350,775,319,781,314,784,318,779,322,757,353,748,383,747,413,751,444,756,476,758,509,751,543,731,578,701,605,665,622"/>
@@ -102,18 +102,18 @@
 <area shape="poly" id="edge56_Node000038_Node000038" title=" " alt="" coords="870,731,860,721,866,711,885,705,917,703,958,707,970,712,973,718,968,721,966,716,957,712,917,708,886,710,869,715,866,720,874,727"/>
 <area shape="poly" id="edge59_Node000039_Node000006" title=" " alt="" coords="976,1232,1156,1294,1154,1299,975,1237"/>
 <area shape="poly" id="edge61_Node000040_Node000039" title=" " alt="" coords="687,1078,710,1086,731,1099,748,1117,756,1136,763,1155,779,1172,805,1187,833,1198,831,1203,802,1192,776,1176,759,1157,751,1138,743,1120,728,1103,707,1091,685,1082"/>
-<area shape="rect" id="Node000041" href="$_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" title=" " alt="" coords="823,1122,1010,1162"/>
+<area shape="rect" id="Node000041" href="$_infrastructure_builder_8cpp.html#acece69a2692793152ccfceabb15f83d0" title="Empties run.infra, the platforms of the run and its final&#45;station statistics." alt="" coords="823,1122,1010,1162"/>
 <area shape="poly" id="edge62_Node000040_Node000041" title=" " alt="" coords="686,1083,821,1116,819,1121,685,1088"/>
 <area shape="poly" id="edge63_Node000041_Node000041" title=" " alt="" coords="864,1123,860,1112,869,1103,888,1097,917,1095,950,1098,968,1105,966,1110,949,1103,917,1101,889,1103,872,1108,865,1113,869,1121"/>
 <area shape="poly" id="edge65_Node000048_Node000048" title=" " alt="" coords="570,1278,561,1268,566,1258,584,1251,614,1249,653,1253,664,1258,667,1264,663,1267,660,1262,652,1259,614,1255,585,1257,569,1262,566,1267,574,1274"/>
-<area shape="rect" id="Node000050" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title=" " alt="" coords="530,2121,698,2161"/>
+<area shape="rect" id="Node000050" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="530,2121,698,2161"/>
 <area shape="poly" id="edge67_Node000049_Node000050" title=" " alt="" coords="440,2127,516,2132,516,2137,440,2132"/>
 <area shape="rect" id="Node000051" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="532,2209,696,2235"/>
 <area shape="poly" id="edge68_Node000049_Node000051" title=" " alt="" coords="415,2141,452,2153,573,2201,571,2206,450,2158,414,2146"/>
 <area shape="poly" id="edge69_Node000051_Node000051" title=" " alt="" coords="570,2211,561,2201,566,2191,584,2185,614,2183,653,2187,664,2192,667,2198,663,2200,660,2196,652,2192,614,2188,585,2190,569,2195,566,2200,574,2207"/>
-<area shape="rect" id="Node000054" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title=" " alt="" coords="543,1942,685,1982"/>
+<area shape="rect" id="Node000054" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="543,1942,685,1982"/>
 <area shape="poly" id="edge71_Node000053_Node000054" title=" " alt="" coords="390,1776,423,1791,453,1813,464,1829,471,1844,476,1873,482,1900,489,1913,500,1927,531,1945,528,1950,497,1931,484,1916,477,1902,471,1874,466,1845,460,1831,449,1817,420,1796,388,1781"/>
-<area shape="rect" id="Node000055" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title=" " alt="" coords="539,2006,689,2046"/>
+<area shape="rect" id="Node000055" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run..." alt="" coords="539,2006,689,2046"/>
 <area shape="poly" id="edge72_Node000053_Node000055" title=" " alt="" coords="394,1776,425,1791,453,1814,468,1838,475,1861,476,1906,477,1950,485,1971,500,1992,527,2010,524,2014,497,1996,480,1973,472,1951,470,1906,470,1862,463,1840,449,1817,423,1796,392,1781"/>
 <area shape="rect" id="Node000056" href="$class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c" title=" " alt="" coords="538,1565,690,1605"/>
 <area shape="poly" id="edge73_Node000053_Node000056" title=" " alt="" coords="350,1751,408,1686,450,1647,497,1614,523,1602,526,1607,500,1619,453,1652,411,1690,354,1755"/>
@@ -125,7 +125,7 @@
 <area shape="poly" id="edge80_Node000053_Node000079" title=" " alt="" coords="410,1751,531,1728,532,1733,411,1756"/>
 <area shape="rect" id="Node000080" href="$class_simulation_worker.html#a8ddd1f6b5278e23ae746ad9de0d16e7d" title=" " alt="" coords="809,1721,1024,1761"/>
 <area shape="poly" id="edge82_Node000053_Node000080" title=" " alt="" coords="451,1759,796,1743,796,1749,451,1764"/>
-<area shape="rect" id="Node000082" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title=" " alt="" coords="507,1827,721,1867"/>
+<area shape="rect" id="Node000082" href="$class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" title="A worker without a controller runs the controller of the process, the global simulation." alt="" coords="507,1827,721,1867"/>
 <area shape="poly" id="edge83_Node000053_Node000082" title=" " alt="" coords="386,1776,534,1821,532,1826,384,1781"/>
 <area shape="rect" id="Node000083" href="$class_run_controller.html#a2890337e28bf728da886d2a4913fb2e6" title=" " alt="" coords="533,1892,695,1917"/>
 <area shape="poly" id="edge85_Node000053_Node000083" title=" " alt="" coords="384,1776,419,1792,452,1813,468,1831,476,1847,485,1863,500,1877,521,1888,519,1892,497,1882,480,1866,471,1850,463,1834,449,1817,416,1796,382,1781"/>

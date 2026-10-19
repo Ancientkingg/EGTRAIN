@@ -115,16 +115,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_infrastructur
 <a href="_infrastructure_builder_internal_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef INFRASTRUCTUREBUILDERINTERNAL_H</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define INFRASTRUCTUREBUILDERINTERNAL_H</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// What the infrastructure builder (InfrastructureBuilder.cpp) shares with Signalling.cpp, where both are defined.</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// What the infrastructure builder (InfrastructureBuilder.cpp) uses from Signalling.cpp, where it is defined.</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">struct </span><a class="code hl_struct" href="struct_simulation_run.html">SimulationRun</a>;</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// Fills the connected block IDs of every section. The legacy Copenhagen dependency is added only for true.</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keywordtype">void</span> <a class="code hl_function" href="_infrastructure_builder_internal_8h.html#aa2ab998deb02213032b69e65e6db2684">setDependenciesBetweenBlocksInternal</a>(<a class="code hl_struct" href="struct_simulation_run.html">SimulationRun</a>&amp; run, <span class="keywordtype">bool</span> includeCopenhagenDependency);</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#endif </span><span class="comment">// INFRASTRUCTUREBUILDERINTERNAL_H</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keywordtype">void</span> <a class="code hl_function" href="_infrastructure_builder_internal_8h.html#aa2ab998deb02213032b69e65e6db2684">setDependenciesBetweenBlocksInternal</a>(<a class="code hl_struct" href="struct_simulation_run.html">SimulationRun</a>&amp; run, <span class="keywordtype">bool</span> includeCopenhagenDependency);</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#endif </span><span class="comment">// INFRASTRUCTUREBUILDERINTERNAL_H</span></div>
 <div class="ttc" id="a_infrastructure_builder_internal_8h_html_aa2ab998deb02213032b69e65e6db2684"><div class="ttname"><a href="_infrastructure_builder_internal_8h.html#aa2ab998deb02213032b69e65e6db2684">setDependenciesBetweenBlocksInternal</a></div><div class="ttdeci">void setDependenciesBetweenBlocksInternal(SimulationRun &amp;run, bool includeCopenhagenDependency)</div><div class="ttdef"><b>Definition</b> Signalling.cpp:780</div></div>
-<div class="ttc" id="astruct_simulation_run_html"><div class="ttname"><a href="struct_simulation_run.html">SimulationRun</a></div><div class="ttdef"><b>Definition</b> SimulationRun.h:77</div></div>
+<div class="ttc" id="astruct_simulation_run_html"><div class="ttname"><a href="struct_simulation_run.html">SimulationRun</a></div><div class="ttdef"><b>Definition</b> SimulationRun.h:94</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

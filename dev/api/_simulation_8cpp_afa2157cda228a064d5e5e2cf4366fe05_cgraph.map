@@ -12,7 +12,7 @@
 <area shape="rect" id="Node000003" href="$class_number_generator.html#a01de1e70e723640940c380d5288c527f" title=" " alt="" coords="507,5,735,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="457,37,493,34,493,39,458,43"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="446,67,547,88,546,94,445,72"/>
-<area shape="rect" id="Node000004" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title=" " alt="" coords="783,5,1004,45"/>
+<area shape="rect" id="Node000004" href="$class_number_generator.html#a64922c08903411a12f7d1cb9d1994204" title="A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when th..." alt="" coords="783,5,1004,45"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="735,23,769,23,769,28,735,28"/>
 <area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="577,96,568,86,573,76,591,69,621,67,659,71,670,76,673,82,669,85,666,80,658,77,621,73,592,75,576,80,573,85,581,92"/>
 <area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="311,220,302,210,306,200,323,194,351,191,387,195,397,200,401,206,396,209,393,204,385,200,351,197,324,199,310,204,307,209,315,216"/>

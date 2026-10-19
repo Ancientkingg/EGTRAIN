@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.">
 <polygon fill="white" stroke="#666666" points="310,-85.5 184,-85.5 184,-55.5 310,-55.5 310,-85.5"/>
 <text text-anchor="start" x="192" y="-73.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="247" y="-62.5" font-family="Helvetica,sans-Serif" font-size="10.00">::nextRunOutputFolder</text>

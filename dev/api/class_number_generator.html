@@ -119,24 +119,40 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_number_g
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab9ff0d6a4b1de6790ad6cdfca2078149" id="r_ab9ff0d6a4b1de6790ad6cdfca2078149"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ab9ff0d6a4b1de6790ad6cdfca2078149">NumberGenerator</a> (unsigned long inSeed)</td></tr>
 <tr class="memitem:a6c2d761abdaad122cf53ad911513d607" id="r_a6c2d761abdaad122cf53ad911513d607"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a6c2d761abdaad122cf53ad911513d607">operator()</a> (unsigned long inValue)</td></tr>
+<tr class="memdesc:a6c2d761abdaad122cf53ad911513d607"><td class="mdescLeft">&#160;</td><td class="mdescRight">A uniform integer from 0 to inValue - 1.  <br /></td></tr>
 <tr class="memitem:a3338d0012dcb138693b96bbb12b232f4" id="r_a3338d0012dcb138693b96bbb12b232f4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3338d0012dcb138693b96bbb12b232f4">getUniformBool</a> (void)</td></tr>
+<tr class="memdesc:a3338d0012dcb138693b96bbb12b232f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">True or false with equal chance.  <br /></td></tr>
 <tr class="memitem:a92dc83e596cfde3d65bf21d278bffce1" id="r_a92dc83e596cfde3d65bf21d278bffce1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a92dc83e596cfde3d65bf21d278bffce1">getUniformInteger</a> (int inFirst, int inLast)</td></tr>
+<tr class="memdesc:a92dc83e596cfde3d65bf21d278bffce1"><td class="mdescLeft">&#160;</td><td class="mdescRight">A uniform integer from inFirst to inLast, both included.  <br /></td></tr>
 <tr class="memitem:a64922c08903411a12f7d1cb9d1994204" id="r_a64922c08903411a12f7d1cb9d1994204"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a64922c08903411a12f7d1cb9d1994204">getUniformFloat</a> (double inFirst=0., double inLast=1.0)</td></tr>
+<tr class="memdesc:a64922c08903411a12f7d1cb9d1994204"><td class="mdescLeft">&#160;</td><td class="mdescRight">A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when the two are equal.  <br /></td></tr>
 <tr class="memitem:a01de1e70e723640940c380d5288c527f" id="r_a01de1e70e723640940c380d5288c527f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a01de1e70e723640940c380d5288c527f">getGaussianFloat</a> (double inMean=0, double inStdDev=1)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:ad7e74a6ca1331369e05d1af1ebe6a66d" id="r_ad7e74a6ca1331369e05d1af1ebe6a66d"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ad7e74a6ca1331369e05d1af1ebe6a66d">kIa</a> = 16807</td></tr>
+<tr class="memdesc:ad7e74a6ca1331369e05d1af1ebe6a66d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiplier of the state.  <br /></td></tr>
 <tr class="memitem:a10026ea90569e16fe562fe0fd98746e7" id="r_a10026ea90569e16fe562fe0fd98746e7"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a> = 2147483647</td></tr>
+<tr class="memdesc:a10026ea90569e16fe562fe0fd98746e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modulus of the state, 2^31 - 1.  <br /></td></tr>
 <tr class="memitem:acc30144790c080c62c4b5d14626dac55" id="r_acc30144790c080c62c4b5d14626dac55"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#acc30144790c080c62c4b5d14626dac55">kAm</a> = 1.0 / <a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a></td></tr>
+<tr class="memdesc:acc30144790c080c62c4b5d14626dac55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns a state into a number on the unit interval.  <br /></td></tr>
 <tr class="memitem:a0bbb1c7b479b1df817ebce14527c7c08" id="r_a0bbb1c7b479b1df817ebce14527c7c08"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a0bbb1c7b479b1df817ebce14527c7c08">kIq</a> = 127773</td></tr>
+<tr class="memdesc:a0bbb1c7b479b1df817ebce14527c7c08"><td class="mdescLeft">&#160;</td><td class="mdescRight">kIm / kIa.  <br /></td></tr>
 <tr class="memitem:a7eab08dfeb44d81013ee4824c0387b4e" id="r_a7eab08dfeb44d81013ee4824c0387b4e"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a7eab08dfeb44d81013ee4824c0387b4e">kIr</a> = 2836</td></tr>
+<tr class="memdesc:a7eab08dfeb44d81013ee4824c0387b4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">kIm % kIa.  <br /></td></tr>
 <tr class="memitem:a6f0e5fdb0885a79a71144eec9d925574" id="r_a6f0e5fdb0885a79a71144eec9d925574"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a> = 32</td></tr>
+<tr class="memdesc:a6f0e5fdb0885a79a71144eec9d925574"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries of the table.  <br /></td></tr>
 <tr class="memitem:af0c821b681640cb5e2dbccd43385e242" id="r_af0c821b681640cb5e2dbccd43385e242"><td class="memItemLeft">static constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#af0c821b681640cb5e2dbccd43385e242">kNdiv</a> = 1 + (<a class="el" href="#a10026ea90569e16fe562fe0fd98746e7">kIm</a> - 1) / <a class="el" href="#a6f0e5fdb0885a79a71144eec9d925574">kNtab</a></td></tr>
+<tr class="memdesc:af0c821b681640cb5e2dbccd43385e242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns the previous result into an index of the table.  <br /></td></tr>
 <tr class="memitem:a1327d017e952c3a366f01c3831bb694a" id="r_a1327d017e952c3a366f01c3831bb694a"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a> = 1.2e-7</td></tr>
+<tr class="memdesc:a1327d017e952c3a366f01c3831bb694a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keeps a draw on the unit interval below 1.  <br /></td></tr>
 <tr class="memitem:a21fbfa632b597c45357793cdd37e059e" id="r_a21fbfa632b597c45357793cdd37e059e"><td class="memItemLeft">static constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a21fbfa632b597c45357793cdd37e059e">kRnmx</a> = 1.0 - <a class="el" href="#a1327d017e952c3a366f01c3831bb694a">kEps</a></td></tr>
+<tr class="memdesc:a21fbfa632b597c45357793cdd37e059e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Largest draw on the unit interval.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The random draws of a run. Each <a class="el" href="struct_simulation_run.html">SimulationRun</a> has one, which the operations builder seeds from initial_variables.randomSeed, so equal seeds give equal draws.</p>
+<p>Park-Miller minimal standard generator with a Bays-Durham shuffle table. kIq and kIr keep the product within 32 bits. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab9ff0d6a4b1de6790ad6cdfca2078149" name="ab9ff0d6a4b1de6790ad6cdfca2078149"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab9ff0d6a4b1de6790ad6cdfca2078149">&#9670;&#160;</a></span>NumberGenerator()</h2>
 
@@ -159,6 +175,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Seeds from 1 to kMaxRandomSeed are valid. 0 and kIm lead to the all-zero state, in which getGaussianFloat does not return. </p>
 
 </div>
 </div>
@@ -181,6 +198,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A normal draw with mean inMean and standard deviation inStdDev. Draws are made in pairs: every second call returns the value kept from the call before. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +229,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True or false with equal chance. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -238,6 +258,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>A uniform number from inFirst up to, but not including, inLast when inLast &gt; inFirst; inFirst when the two are equal. </p>
+
 </div>
 </div>
 <a id="a92dc83e596cfde3d65bf21d278bffce1" name="a92dc83e596cfde3d65bf21d278bffce1"></a>
@@ -258,6 +280,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A uniform integer from inFirst to inLast, both included. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -288,6 +312,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A uniform integer from 0 to inValue - 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -317,6 +343,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Turns a state into a number on the unit interval. </p>
+
 </div>
 </div>
 <a id="a1327d017e952c3a366f01c3831bb694a" name="a1327d017e952c3a366f01c3831bb694a"></a>
@@ -338,6 +366,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Keeps a draw on the unit interval below 1. </p>
 
 </div>
 </div>
@@ -361,6 +391,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Multiplier of the state. </p>
+
 </div>
 </div>
 <a id="a10026ea90569e16fe562fe0fd98746e7" name="a10026ea90569e16fe562fe0fd98746e7"></a>
@@ -382,6 +414,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Modulus of the state, 2^31 - 1. </p>
 
 </div>
 </div>
@@ -405,6 +439,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>kIm / kIa. </p>
+
 </div>
 </div>
 <a id="a7eab08dfeb44d81013ee4824c0387b4e" name="a7eab08dfeb44d81013ee4824c0387b4e"></a>
@@ -426,6 +462,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>kIm % kIa. </p>
 
 </div>
 </div>
@@ -449,6 +487,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Turns the previous result into an index of the table. </p>
+
 </div>
 </div>
 <a id="a6f0e5fdb0885a79a71144eec9d925574" name="a6f0e5fdb0885a79a71144eec9d925574"></a>
@@ -471,6 +511,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Number of entries of the table. </p>
+
 </div>
 </div>
 <a id="a21fbfa632b597c45357793cdd37e059e" name="a21fbfa632b597c45357793cdd37e059e"></a>
@@ -492,6 +534,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Largest draw on the unit interval. </p>
 
 </div>
 </div>

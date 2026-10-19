@@ -27,7 +27,7 @@
 <area shape="poly" id="edge21_Node000001_Node000017" title=" " alt="" coords="45,1233,53,1206,67,1173,88,1138,117,1109,143,1094,146,1099,120,1113,92,1141,72,1175,58,1208,50,1235"/>
 <area shape="rect" id="Node000030" href="$_scene_compatibility_8h.html#a677b2be9af485a73e18c35fd300630fc" title=" " alt="" coords="161,1147,320,1173"/>
 <area shape="poly" id="edge31_Node000001_Node000030" title=" " alt="" coords="54,1232,81,1207,117,1183,147,1172,149,1177,119,1188,85,1211,58,1236"/>
-<area shape="rect" id="Node000031" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title=" " alt="" coords="165,1197,316,1237"/>
+<area shape="rect" id="Node000031" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title="True when the last run executed every stage, also if a stop arrived after its last check." alt="" coords="165,1197,316,1237"/>
 <area shape="poly" id="edge33_Node000001_Node000031" title=" " alt="" coords="70,1240,151,1228,152,1233,71,1245"/>
 <area shape="rect" id="Node000032" href="$class_open_request_relay.html#af552626dfe53bad5fcfb873393307126" title=" " alt="" coords="146,1262,335,1287"/>
 <area shape="poly" id="edge34_Node000001_Node000032" title=" " alt="" coords="71,1248,138,1257,137,1263,70,1253"/>

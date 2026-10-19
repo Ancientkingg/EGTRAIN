@@ -141,6 +141,7 @@ Include dependency graph for OperationsBuilder.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:ace6c56d9374dcbbf72c1b3ff79719a17" id="r_ace6c56d9374dcbbf72c1b3ff79719a17"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ace6c56d9374dcbbf72c1b3ff79719a17">prepareNativeOperationsState</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
 <tr class="memitem:aea9297830b5672f714105f48b351dd48" id="r_aea9297830b5672f714105f48b351dd48"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aea9297830b5672f714105f48b351dd48">resetNativeOperationsState</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run)</td></tr>
+<tr class="memdesc:aea9297830b5672f714105f48b351dd48"><td class="mdescLeft">&#160;</td><td class="mdescRight">The reset between scene runs, which is the same as preparing a new run.  <br /></td></tr>
 <tr class="memitem:a6ee30ce529afc9fd68c0019668c8083e" id="r_a6ee30ce529afc9fd68c0019668c8083e"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6ee30ce529afc9fd68c0019668c8083e">buildOperationsFromScene</a> (<a class="el" href="struct_simulation_run.html">SimulationRun</a> &amp;run, const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;selectedScenarioId, const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;selectedOccurrences)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -163,15 +164,16 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedScenarioId</em></span>, </td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedScenarioId</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedOccurrences</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedOccurrences</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Builds the trains, the timetable, the incidents and entrance delays of the selected scenario, the passenger capacity of the platforms and the passengers of a loaded scene into the run. selectedScenarioId and selectedOccurrences are those of <a class="el" href="class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf">DispatchController::prepareScene</a>. The run's random generator is seeded from initial_variables.randomSeed first. When the diagnostics hold an error, nothing else of the run and nothing of initial_variables changes; otherwise initial_variables takes the name, base time, duration, buffer time, running time recovery and the numbers of tracks and routes of the scene. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -194,6 +196,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Returns the operations state of the run to that of a new run: the trains and their storage, platforms, passengers, incidents and statistics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -216,6 +219,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The reset between scene runs, which is the same as preparing a new run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -203,7 +203,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" target="_top" xlink:title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread.">
 <polygon fill="white" stroke="#666666" points="534,-113.5 408,-113.5 408,-83.5 534,-83.5 534,-113.5"/>
 <text text-anchor="start" x="416" y="-101.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="471" y="-90.5" font-family="Helvetica,sans-Serif" font-size="10.00">::nextRunOutputFolder</text>

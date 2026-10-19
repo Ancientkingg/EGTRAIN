@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Emitted by run() on the thread of the run before the simulation starts.">
 <polygon fill="#999999" stroke="#666666" points="161,-30 0,-30 0,0 161,0 161,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::simulation</text>
 <text text-anchor="middle" x="80.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Started</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title="A worker without a controller runs the controller of the process, the global simulation.">
 <polygon fill="white" stroke="#666666" points="358,-30 197,-30 197,0 358,0 358,-30"/>
 <text text-anchor="start" x="205" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::Simulation</text>
 <text text-anchor="middle" x="277.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Worker</text>

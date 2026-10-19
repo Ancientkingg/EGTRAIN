@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" target="_top" xlink:title="Execution&#45;thread observation: runSimulation starts the run.">
 <polygon fill="white" stroke="#666666" points="330.5,-516.5 223.5,-516.5 223.5,-486.5 330.5,-486.5 330.5,-516.5"/>
 <text text-anchor="start" x="231.5" y="-504.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="277" y="-493.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionBegan</text>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" target="_top" xlink:title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run...">
 <polygon fill="white" stroke="#666666" points="333.5,-468.5 220.5,-468.5 220.5,-438.5 333.5,-438.5 333.5,-468.5"/>
 <text text-anchor="start" x="228.5" y="-456.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="277" y="-445.5" font-family="Helvetica,sans-Serif" font-size="10.00">::executionRejected</text>
@@ -151,7 +151,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="class_simulation_worker.html#abe9b5b4d358a7737faff62bae0d9dcb8" target="_top" xlink:title="A worker without a controller runs the controller of the process, the global simulation.">
 <polygon fill="white" stroke="#666666" points="753,-84.5 592,-84.5 592,-54.5 753,-54.5 753,-84.5"/>
 <text text-anchor="start" x="600" y="-72.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::Simulation</text>
 <text text-anchor="middle" x="672.5" y="-61.5" font-family="Helvetica,sans-Serif" font-size="10.00">Worker</text>
@@ -288,7 +288,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" target="_top" xlink:title="True when the last run executed every stage, also if a stop arrived after its last check.">
 <polygon fill="white" stroke="#666666" points="529.5,-395.5 416.5,-395.5 416.5,-365.5 529.5,-365.5 529.5,-395.5"/>
 <text text-anchor="start" x="424.5" y="-383.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="473" y="-372.5" font-family="Helvetica,sans-Serif" font-size="10.00">::lastRunCompleted</text>
@@ -345,7 +345,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="class_dispatch_controller.html#a4e932a087dd00e4d2c817e42c77aceb2" target="_top" xlink:title="Drops the replay history of the last run. The thread rule of takeReplayCandidate applies.">
 <polygon fill="white" stroke="#666666" points="538.5,-249.5 407.5,-249.5 407.5,-219.5 538.5,-219.5 538.5,-249.5"/>
 <text text-anchor="start" x="415.5" y="-237.5" font-family="Helvetica,sans-Serif" font-size="10.00">DispatchController</text>
 <text text-anchor="middle" x="473" y="-226.5" font-family="Helvetica,sans-Serif" font-size="10.00">::resetReplayCandidate</text>
@@ -701,7 +701,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="_simulation_run_8cpp.html#aaa3241aa86ea71ec8f56eb5329ce542d" target="_top" xlink:title="The run of the process. Its address never changes.">
 <polygon fill="white" stroke="#666666" points="902,-314 832,-314 832,-295 902,-295 902,-314"/>
 <text text-anchor="middle" x="867" y="-302" font-family="Helvetica,sans-Serif" font-size="10.00">defaultRun</text>
 </a>
@@ -784,7 +784,7 @@
 <!-- Node34 -->
 <g id="Node000034" class="node">
 <title>Node34</title>
-<g id="a_Node000034"><a xlink:href="class_simulation_worker.html#ad09e766733a52b80bd0d8397e02d323d" target="_top" xlink:title=" ">
+<g id="a_Node000034"><a xlink:href="class_simulation_worker.html#ad09e766733a52b80bd0d8397e02d323d" target="_top" xlink:title="Emitted by run() on the thread of the run before the simulation starts.">
 <polygon fill="white" stroke="#666666" points="553.5,-105.5 392.5,-105.5 392.5,-75.5 553.5,-75.5 553.5,-105.5"/>
 <text text-anchor="start" x="400.5" y="-93.5" font-family="Helvetica,sans-Serif" font-size="10.00">SimulationWorker::simulation</text>
 <text text-anchor="middle" x="473" y="-82.5" font-family="Helvetica,sans-Serif" font-size="10.00">Started</text>

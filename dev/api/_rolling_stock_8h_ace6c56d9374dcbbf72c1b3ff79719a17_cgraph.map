@@ -1,13 +1,13 @@
 <map id="prepareNativeOperationsState" name="prepareNativeOperationsState">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,112,225,137"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="77,114,68,104,73,94,89,88,115,85,149,89,161,99,158,103,147,94,115,91,90,93,76,98,74,103,81,110"/>
-<area shape="rect" id="Node000002" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title=" " alt="" coords="273,112,432,137"/>
+<area shape="rect" id="Node000002" href="$struct_simulation_run.html#aab0058f6d06c3e08780cda9bb84c4fca" title="Returns every member except the infrastructure to the state of a new run." alt="" coords="273,112,432,137"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="225,122,260,122,260,127,225,127"/>
 <area shape="rect" id="Node000003" href="$class_passenger_index.html#aad565a2ead3849944d78b63abe0102c2" title=" " alt="" coords="530,5,694,31"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="368,110,415,74,446,55,479,40,516,28,518,33,481,44,449,60,418,79,371,114"/>
 <area shape="rect" id="Node000004" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title=" " alt="" coords="535,55,689,80"/>
 <area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="401,109,479,90,528,80,529,85,481,95,402,114"/>
-<area shape="rect" id="Node000005" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title=" " alt="" coords="541,105,683,145"/>
+<area shape="rect" id="Node000005" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ..." alt="" coords="541,105,683,145"/>
 <area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="432,122,528,122,528,127,432,127"/>
 <area shape="rect" id="Node000007" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="480,169,744,195"/>
 <area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="402,135,481,154,529,164,528,169,479,159,401,140"/>

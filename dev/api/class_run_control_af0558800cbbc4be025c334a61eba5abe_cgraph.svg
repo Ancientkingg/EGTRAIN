@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_run_control.html#afd134b3571315da26dd79223edaca72f" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_run_control.html#afd134b3571315da26dd79223edaca72f" target="_top" xlink:title="Applies the waiting commands in the order in which they were submitted.">
 <polygon fill="white" stroke="#666666" points="358,-74 161,-74 161,-55 358,-55 358,-74"/>
 <text text-anchor="middle" x="259.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::applyQueuedCommands</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_run_control.html#ac27176214de3727467a1d693ed3f8244" target="_top" xlink:title="Makes beginStep wait until requestResume or requestStop.">
 <polygon fill="white" stroke="#666666" points="541.5,-130 399.5,-130 399.5,-111 541.5,-111 541.5,-130"/>
 <text text-anchor="middle" x="470.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestPause</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_run_control.html#af93602ad79e44e20c5880349947ca547" target="_top" xlink:title="Ends a pause.">
 <polygon fill="white" stroke="#666666" points="547,-93 394,-93 394,-74 547,-74 547,-93"/>
 <text text-anchor="middle" x="470.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::requestResume</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_run_control.html#a01ceda6941f94f27986a6bce1b7a51b4" target="_top" xlink:title="Sets the wait before each step in milliseconds. 0 means no wait.">
 <polygon fill="white" stroke="#666666" points="537.5,-19 403.5,-19 403.5,0 537.5,0 537.5,-19"/>
 <text text-anchor="middle" x="470.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">RunControl::setDelayMs</text>
 </a>
