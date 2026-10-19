@@ -1019,7 +1019,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     # The Settings window uses the update and telemetry libraries, so it is compiled here and in the application.
     add_executable(test_settingsdialog ${SRC_DIR}/tests/test_settingsdialog.cpp ${SRC_DIR}/widgets/SettingsDialog.cpp)
-    target_link_libraries(test_settingsdialog PRIVATE egtrain_telemetry egtrain_update Qt5::Widgets)
+    target_link_libraries(test_settingsdialog PRIVATE egtrain_telemetry egtrain_update Qt::Widgets)
     add_test(NAME test_settingsdialog COMMAND test_settingsdialog)
     set_tests_properties(test_settingsdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 

@@ -70,7 +70,7 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 		settings.value(kAdvancedDetailsKey, false).toBool());
 
 	QVBoxLayout* updates = addSection(layout, QStringLiteral("Updates and privacy"));
-	m_updateCheckState = readUpdateCheckState(settings);
+	m_openedUpdateCheckState = m_updateCheckState = readUpdateCheckState(settings);
 	m_updateChecks = addCheckBox(updates, QStringLiteral("Automatically check for updates"), "settingsAutomaticUpdateChecks",
 		m_updateCheckState == UpdateCheckState::Enabled);
 	connect(m_updateChecks, &QCheckBox::toggled, this,
@@ -125,7 +125,8 @@ void SettingsDialog::accept() {
 		m_settings.remove(kRecentScenesKey);
 	m_settings.setValue(kShowPassengersKey, m_showPassengers->isChecked());
 	m_settings.setValue(kAdvancedDetailsKey, m_advancedDetails->isChecked());
-	writeUpdateCheckState(m_settings, m_updateCheckState);
+	if (m_updateCheckState != m_openedUpdateCheckState)
+		writeUpdateCheckState(m_settings, m_updateCheckState);
 	m_settings.sync();
 	QDialog::accept();
 }

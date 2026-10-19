@@ -40,4 +40,7 @@ private:
 	QLabel* m_status = nullptr;
 	// Restore Defaults removes the choice about automatic checks, so EGTRAIN asks again at the next start.
 	UpdateCheckState m_updateCheckState{};
+	// The state when the window opened. OK writes the state only when it differs, so it keeps a choice that the update
+	// prompt made while the window was open.
+	UpdateCheckState m_openedUpdateCheckState{};
 };
