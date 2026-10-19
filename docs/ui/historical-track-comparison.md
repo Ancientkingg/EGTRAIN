@@ -157,19 +157,21 @@ matched-extent application captures and manual interaction checks.
 
 ## Evidence
 
-Each pair below shows the same stretch of the network in the reference build
-and in the current build, at the same size in pixels. The windows were 1280x800
-at device pixel ratio 1. Each image is a crop of the network canvas, resized so
-that the two frames of a pair show the same extent. The zoom given for a pair is
-the zoom of the window before the crop, so a frame can show the network larger
-or smaller than the window did, and the sizes in a Fit frame and in a detail
-frame are not in the ratio of their zooms. The reference builds are `472d0b5`
-and, for the Netherlands, `f138134`. The current build is main `037a2e43`. Both
-builds zoom by 1.15 per click. The zoom label of the current build is the ratio
-to its own Fit scale. The reference build has no zoom label, so its zoom is the
-number of zoom-in clicks from Fit. The reference build fits the scene rectangle
-and the current build fits the painted track with 24 px of padding, so the same
-number of clicks from Fit does not show the same extent in both builds.
+Each pair below shows the same stretch of the network in the reference build and
+in the current build, at the same size in pixels. All frames are at device pixel
+ratio 1: the reference frames from 1280x800 windows, the current frames from the
+offscreen platform with the canvas at 1254x566, its size in such a window. Each
+image is a crop of the network canvas, resized so that the two frames of a pair
+show the same extent. The zoom given for a pair is the zoom of the window before
+the crop, so a frame can show the network larger or smaller than the window did,
+and the sizes in a Fit frame and in a detail frame are not in the ratio of their
+zooms. The reference builds are `472d0b5` and, for the Netherlands, `f138134`.
+The current build is main `946ee7eb`. Both builds zoom by 1.15 per click. The
+zoom label of the current build is the ratio to its own Fit scale. The reference
+build has no zoom label, so its zoom is the number of zoom-in clicks from Fit.
+The reference build fits the scene rectangle and the current build fits the
+painted track with 24 px of padding, so the same number of clicks from Fit does
+not show the same extent in both builds.
 
 Under each pair the first paragraph gives the build, the scene, the zoom and the
 landmarks, and the second says what differs inside the pair: the symbols first,
@@ -183,16 +185,16 @@ them.
 
 ![Paimpol at Fit in the current build](images/paimpol-fit-current.png)
 
-Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Reference build `472d0b5` above, current build main `946ee7eb` below. Scene
 Paimpol at Fit in both builds, so the whole line shows, with Guingamp at the left
 end and Paimpol at the right end. The positions of the ten stations agree within
 about 0.5 percent of the frame width.
 
-In the symbols, the current frame draws a pictogram and a readable name for each
-station and hides the name of Pontrieaux_Halte where it overlaps the name of
-Pontrieaux, while the reference frame has no pictogram and names too small to
-read. In the geometry, the siding at Pontrieaux shows in the current frame only,
-as a short second row under the line.
+In the symbols, the current frame draws a light disc with a dark halo and a
+readable name for each station and hides the name of Pontrieaux_Halte where it
+overlaps the name of Pontrieaux, while the reference frame has no station mark
+and names too small to read. In the geometry, the siding at Pontrieaux shows in
+the current frame only, as a short second row under the line.
 
 ### Paimpol at detail
 
@@ -200,12 +202,12 @@ as a short second row under the line.
 
 ![Paimpol at detail in the current build](images/paimpol-detail-current.png)
 
-Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Reference build `472d0b5` above, current build main `946ee7eb` below. Scene
 Paimpol, 16 zoom-in clicks from Fit (zoom label 9.4x in the current build), then
 10 arrow-key presses in both builds. Pontrieaux_Halte and Pontrieaux stand at the
 same x in both frames, and the signals, node dots and station squares line up.
 
-In the symbols, the current frame adds a pictogram above each name, draws the
+In the symbols, the current frame adds a light disc above each name, draws the
 names larger because the minimum name size applies at this zoom, and writes
 Pontrieaux_Halte without the space after the underscore that the reference frame
 draws. In the geometry, the siding below the line at Pontrieaux, with its
@@ -217,12 +219,12 @@ diagonal connection and its signals, is in the current frame only.
 
 ![Copenhagen junction in the current build](images/copenhagen-junction-current.png)
 
-Reference build `472d0b5` above, current build main `037a2e43` below. Scene
+Reference build `472d0b5` above, current build main `946ee7eb` below. Scene
 Copenhagen, 22 zoom-in clicks from Fit (zoom label 21.6x in the current build),
 then 10 arrow-key presses in both builds. Carlsberg, Dybbolsbro, Kobenhavn H and
 Vesterport stand at the same x in both frames, within 3 px.
 
-In the symbols, the current frame adds a pictogram above each name and draws the
+In the symbols, the current frame adds a light disc above each name and draws the
 names larger because the minimum name size applies at this zoom. In the
 geometry, the reference frame draws one line, with signals at more x positions
 than either current row, where the current frame draws two parallel rows joined
@@ -235,17 +237,18 @@ reference line has a signal.
 
 ![Netherlands stretch in the current build](images/netherlands-stretch-current.png)
 
-Reference build `f138134` above, current build main `037a2e43` below. Scene
+Reference build `f138134` above, current build main `946ee7eb` below. Scene
 Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
 The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
-the corner at Blm, which agree within about 20 px in the 500 px frames. This is
+the corner at Brn, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.
 
-In the symbols, the current frame draws a pictogram and a name at each station,
-and the reference frame has no readable station label. In the geometry, the
-current frame draws doubled tracks, stations beside them and crossovers where the
-reference frame draws a single line, with one short extra segment at the corner
-between Hvsm and Hvsp.
+In the symbols, the current frame draws a light disc at each station and a name
+at all but one, at the bend between Hvsm and Hvsp, and the mainline track in grey
+(160,160,160), and the reference frame has no readable station label. In the
+geometry, the current frame draws doubled tracks, stations beside them and
+crossovers where the reference frame draws a single line, with one short extra
+segment at the corner between Hvsm and Hvsp.
 
 ### Assignment corridor
 
@@ -256,18 +259,18 @@ shown.
 
 ![Assignment corridor at detail in the current build](images/assignment-detail-current.png)
 
-Current build main `037a2e43`, scene Assignment_Gvc_Gdg_Ut. The first frame is at
-Fit with the stations Gvc, Gdg and Ut, and the two parallel tracks of the corridor
-read as one band. The second frame is 10 zoom-in clicks from Fit (zoom label 4x),
-around Gdg, and shows the two tracks apart, with a signal on each track at
-regular intervals.
+Current build main `946ee7eb`, scene Assignment_Gvc_Gdg_Ut. The first frame is at
+Fit with the stations Gvc, Gdg and Ut, and the two parallel mainline tracks of the
+corridor, grey (160,160,160), read as one band. The second frame is 10 zoom-in
+clicks from Fit (zoom label 4x), around Gdg, and shows the two tracks apart, with
+a signal on each track at regular intervals.
 
 ### What the captures show and do not show
 
-- The reference frames show the station names and no pictogram, so the
-  pictogram of the current frames has no counterpart in them. At Fit the names in
-  the reference frames are too small to read, where the current build keeps the
-  pictogram at least 24 px and the name at least 12 px high.
+- The reference frames show the station names and no station mark, so the discs
+  of the current frames have no counterpart in them. At Fit the names in the
+  reference frames are too small to read, where the current build keeps the
+  frame of the station mark at least 24 px and the name at least 12 px high.
 - The names are larger in the current detail frames than in the reference frames
   at the same extent. The current build draws a name at least 12 px high.
 - The current frames have the `#101a22` background and its grid, the reference
@@ -276,8 +279,9 @@ regular intervals.
   head, and the opposing head sits on the other side of the line at the same
   offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
   segments. Both builds draw the track with a cosmetic pen of 2 px.
-- No capture shows a running state, so the red and yellow aspects, the unpainted
-  track states and the white repaint of the reference are not shown.
+- No capture shows a running state, so the trains, which keep at least 8 px on
+  screen, the red and yellow aspects, the unpainted track states and the white
+  repaint of the reference are not shown.
 - Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
   pan) and the run, pause, stop and replay states are not shown by these
   captures.
