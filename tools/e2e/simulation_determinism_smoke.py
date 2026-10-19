@@ -16,6 +16,7 @@ SCENE_OUTPUT_FILES = (
     Path("EnergyConsumptionPerTrain.txt"),
 )
 PASSENGER_SCENE = ROOT / "EGTRAIN/QEGTRAIN/Scenes/Paimpol"
+PASSENGER_OUTPUT = Path("output/Output") / json.loads((PASSENGER_SCENE / "scene.json").read_text(encoding="utf-8"))["name"]
 PASSENGER_OUTPUT_FILES = (
     Path("PassengerStatus/JourneyDelays.txt"),
     Path("PassengerStatus/PassengerStatus.txt"),
@@ -45,8 +46,7 @@ def check_seed(app: Path, temp_root: Path) -> None:
         process = run_app(app, PASSENGER_SCENE, run_root, ["--seed", seed])
         if process.returncode != 0:
             raise SystemExit(f"seed run {name} exited with {process.returncode}\n{process.stdout[-4000:]}")
-        scene_name = json.loads((PASSENGER_SCENE / "scene.json").read_text(encoding="utf-8"))["name"]
-        texts[name] = [(run_root / "output" / "Output" / scene_name / path).read_bytes()
+        texts[name] = [(run_root / PASSENGER_OUTPUT / path).read_bytes()
                        for path in PASSENGER_OUTPUT_FILES]
     if texts["first"] != texts["second"]:
         raise SystemExit("equal seeds gave different passenger output")
@@ -56,14 +56,13 @@ def check_seed(app: Path, temp_root: Path) -> None:
 
 
 def check_buffer_and_recovery(app: Path, temp_root: Path) -> None:
-    scene_name = json.loads((PASSENGER_SCENE / "scene.json").read_text(encoding="utf-8"))["name"]
     texts = {}
     for name, extra in (("default", []), ("-b 30", ["-b", "30"]), ("-c 10", ["-c", "10"])):
         run_root = temp_root / f"blocking_{name.replace(' ', '')}"
         process = run_app(app, PASSENGER_SCENE, run_root, extra)
         if process.returncode != 0:
             raise SystemExit(f"blocking time run {name} exited with {process.returncode}\n{process.stdout[-4000:]}")
-        texts[name] = (run_root / "output" / "Output" / scene_name / "TrainTrajectories/BlockingTimes.txt").read_bytes()
+        texts[name] = (run_root / PASSENGER_OUTPUT / "TrainTrajectories/BlockingTimes.txt").read_bytes()
     for name in ("-b 30", "-c 10"):
         if texts[name] == texts["default"]:
             raise SystemExit(f"{name} gave the BlockingTimes.txt of the default run")

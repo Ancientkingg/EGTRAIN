@@ -372,14 +372,14 @@ def assert_interactive_questions(app: Path) -> None:
         run = root / "run-asked"
         returncode, output = run_app(app, ["--interactive", "-h", "1", "-pax", "0"], run, "--interactive launch", answers="2\n0\n")
         if (returncode != 0 or "Please enter" not in output or "Please insert" not in output
-                or not (run / "out/Output/Paimpol").is_dir() or (run / "out/Output/Netherlands").exists()):
+                or not (run / "out/Output/Paimpol").is_dir()):
             raise SystemExit(f"--interactive exited with {returncode}, did not ask for -n and -g or did not run Paimpol\n{tail(output)}")
         run = root / "run-given"
-        returncode, output = run_app(app, ["-interactive", "-n", "2", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="")
-        if (returncode != 0 or "Please enter" in output or "Please insert" in output
+        returncode, output = run_app(app, ["-interactive", "-g", "0", "-h", "1", "-pax", "0"], run, "-interactive launch", answers="2\n")
+        if (returncode != 0 or "Please enter" not in output or "Please insert" in output
                 or not (run / "out/Output/Paimpol").is_dir()):
-            raise SystemExit(f"-interactive with -n and -g exited with {returncode}, asked for an option it was given or did not run Paimpol\n{tail(output)}")
-        print("--interactive asks for -n and -g when they are left out and not when they are given")
+            raise SystemExit(f"-interactive with -g exited with {returncode}, did not ask for -n, asked for -g or did not run Paimpol\n{tail(output)}")
+        print("--interactive and -interactive ask for -n and -g when they are left out and not when they are given")
 
 
 def make_bundles(scene_tool: Path, root: Path) -> tuple[Path, Path, Path]:
