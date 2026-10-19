@@ -8,11 +8,6 @@
 
 #include <algorithm>
 
-namespace {
-// More rows than this are not shown; a longer search narrows them.
-constexpr int kMaxResults = 200;
-} // namespace
-
 FindDialog::FindDialog(QWidget* parent)
 	: QDialog(parent), m_field(new QLineEdit(this)), m_results(new QListWidget(this)) {
 	setObjectName(QStringLiteral("findDialog"));
@@ -55,8 +50,6 @@ void FindDialog::filter(const QString& text) {
 	if (terms.isEmpty())
 		return;
 	for (const QString& label : m_labels) {
-		if (m_results->count() == kMaxResults)
-			break;
 		if (std::all_of(terms.cbegin(), terms.cend(), [&label](const QString& term) { return label.contains(term, Qt::CaseInsensitive); }))
 			m_results->addItem(label);
 	}

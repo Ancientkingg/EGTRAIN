@@ -2281,7 +2281,6 @@ void MainWindow::setupEditMenu() {
 	m_findAction = new QAction(QStringLiteral("Find..."), this);
 	m_findAction->setObjectName(QStringLiteral("actionFind"));
 	m_findAction->setShortcut(QKeySequence::Find);
-	m_findAction->setShortcutContext(Qt::WindowShortcut);
 	ui->menuEdit->addAction(m_findAction);
 	connect(m_findAction, &QAction::triggered, this, &MainWindow::showFind);
 }
