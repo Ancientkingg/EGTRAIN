@@ -18,6 +18,10 @@ QToolBar::separator {
     margin: 5px 7px;
 }
 
+QToolBar QToolButton#qt_toolbar_ext_button {
+    padding: 0;
+}
+
 QLabel#speedSlowerLabel, QLabel#speedFasterLabel {
     color: #5b6871;
     font-size: 11px;

@@ -65,6 +65,7 @@
 #include <QPolygonF>
 #include <QRect>
 #include <QRectF>
+#include <QScreen>
 #include <QScrollArea>
 #include <QSet>
 #include <QSize>
@@ -486,6 +487,17 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		}
 	};
 	w.showNormal();
+	QApplication::processEvents();
+	// The window may be larger than the screen only where its own minimum size is.
+	const QSize restoredLimit = w.screen()->availableSize().expandedTo(w.minimumSizeHint());
+	if (w.width() > restoredLimit.width() || w.height() > restoredLimit.height()) {
+		ok = false;
+		failures << QString("the restored window is %1x%2, larger than the screen area %3x%4")
+						.arg(w.width())
+						.arg(w.height())
+						.arg(restoredLimit.width())
+						.arg(restoredLimit.height());
+	}
 	w.resize(1024, 720);
 	QApplication::processEvents();
 	QStringList expectedTabTraversal{"openCaseButton"};
@@ -630,6 +642,63 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	checkCommandBarAtSize(1024, 720, "QEGTRAIN_E2E_COMMAND_BAR_1024_SCREENSHOT");
 	checkCommandBarAtSize(1200, 800, "QEGTRAIN_E2E_COMMAND_BAR_1200_SCREENSHOT");
 	checkCommandBarAtSize(1440, 900, "QEGTRAIN_E2E_COMMAND_BAR_1440_SCREENSHOT");
+	// A little below the toolbar's own width the group separators keep the size of their hint, and what no longer fits stays
+	// reachable through the extension button, which expands the toolbar to a second row.
+	if (w.m_toolBar) {
+		const int fullToolbarWidth = w.m_toolBar->sizeHint().width();
+		int narrowestWidth = 0;
+		for (int width = fullToolbarWidth + 40; width >= fullToolbarWidth - 160; width -= 8) {
+			w.resize(width, 720);
+			QApplication::processEvents();
+			narrowestWidth = width;
+			for (const char* boundaryName : {"separatorCasePlayback", "separatorPlaybackView"}) {
+				QAction* boundary = w.findChild<QAction*>(boundaryName);
+				QWidget* separator = boundary ? w.m_toolBar->widgetForAction(boundary) : nullptr;
+				if (!separator || !separator->isVisibleTo(w.m_toolBar) || separator->width() != separator->sizeHint().width()) {
+					ok = false;
+					failures << QString("toolbar separator %1 does not keep its size at a window width of %2px")
+									.arg(QString::fromLatin1(boundaryName))
+									.arg(width);
+				}
+			}
+		}
+		auto* extension = w.m_toolBar->findChild<QToolButton*>("qt_toolbar_ext_button");
+		QWidget* fitButton = w.findChild<QWidget*>("actionFitButton");
+		if (!extension || !extension->isVisible() || !fitButton) {
+			ok = false;
+			failures << QString("toolbar has no extension button at a window width of %1px").arg(narrowestWidth);
+		} else {
+			const QImage extensionImage = extension->grab().toImage();
+			int drawnPixels = 0;
+			for (int y = 0; y < extensionImage.height(); ++y)
+				for (int x = 0; x < extensionImage.width(); ++x)
+					if (extensionImage.pixel(x, y) != extensionImage.pixel(0, 0))
+						++drawnPixels;
+			if (drawnPixels < 16) {
+				ok = false;
+				failures << QString("toolbar extension button shows no arrow: %1 drawn pixels").arg(drawnPixels);
+			}
+			const auto fitInToolbar = [&w, fitButton]() {
+				return fitButton->isVisibleTo(w.m_toolBar) && w.m_toolBar->rect().contains(fitButton->geometry());
+			};
+			const int collapsedHeight = w.m_toolBar->height();
+			extension->click();
+			QElapsedTimer expansionWait;
+			expansionWait.start();
+			while (!fitInToolbar() && expansionWait.elapsed() < 1000)
+				QApplication::processEvents(QEventLoop::AllEvents, 20);
+			if (!fitInToolbar()) {
+				ok = false;
+				failures << "the extension button does not bring Fit into the toolbar";
+			}
+			// Collapse the toolbar again and widen the window until the toolbar has settled.
+			extension->click();
+			w.resize(fullToolbarWidth + 40, 720);
+			expansionWait.restart();
+			while ((!fitInToolbar() || w.m_toolBar->height() != collapsedHeight) && expansionWait.elapsed() < 1000)
+				QApplication::processEvents(QEventLoop::AllEvents, 20);
+		}
+	}
 	// The Pause button reads Resume while the run is paused. It keeps its width, so the toolbar does not move and the
 	// zoom buttons stay inside it.
 	if (pauseAction && w.m_toolBar) {
