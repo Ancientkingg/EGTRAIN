@@ -284,7 +284,6 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				}
 
 				// Identifying the last status of the infrastructure element we are computing the blocking time for and the speed of the previous passing train
-				// TEMPLoc.DetermineLastStatusOfInfraElement(this->trainDescription, InfraElementsList);
 				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, run_->infra.infraEvents);
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -404,7 +403,6 @@ void Train::ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int Entr
 				BlockTime[N_BlockSections].EndClearTime = this->End_Time + BlockTime[N_BlockSections].RunTimeMargin;
 			}
 
-			// BlockTime[N_BlockSections].EndRunTime=BlockTime[N_BlockSections].StartRunTime;
 			BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartRunTime;
 			BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndRunTime;
 			// Setting Sight and Reaction Time
@@ -518,7 +516,6 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				}
 
 				// Identifying the last status of the infrastructure element we are computing the blocking time for and the speed of the previous passing train
-				// TEMPLoc.DetermineLastStatusOfInfraElement(this->trainDescription, InfraElementsList);
 				TEMPLoc.checkIfLastInfraElementStatusIsInLineWithTrainNeeds(this->trainDescription, run_->infra.infraEvents);
 
 				// Increase the locations of 1 element if it is not already in the list
@@ -726,7 +723,6 @@ void Train::ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int Inde
 				BlockTime[N_BlockSections].EndClearTime = this->End_Time + BlockTime[N_BlockSections].RunTimeMargin;
 			}
 
-			// BlockTime[N_BlockSections].EndRunTime=BlockTime[N_BlockSections].StartRunTime;
 			BlockTime[N_BlockSections].EndApproachTime = BlockTime[N_BlockSections].StartRunTime;
 			BlockTime[N_BlockSections].StartClearTime = BlockTime[N_BlockSections].EndRunTime;
 			// Setting Sight and Reaction Time
@@ -867,8 +863,6 @@ void Train::ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double 
 			} else if (level == levelValue(SignallingLevel::EtcsLevel2)) { // if Signalling level is 2 apply ETCS Level 2 rules
 				this->ComputeBlockingTimeForSingleLocation(i, "ETCS2", EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::EtcsLevel3)) { // if Signalling Level is 3 Apply ETCS Level 3 rules
-				// ComputeBlockTimeETCS3ForSingleLocation(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, AbsRTSupp, PercRTSupp);
-				// the function below now replaces the function ComputeBlockingTimeETCS3ForSingleLocation
 				this->ComputeBlockTime_ETCSLevel_3_ForSection(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);
 			} else if (level == levelValue(SignallingLevel::VirtualCoupling)) {
 				this->ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(i, EntryTime, SetupTime, ReleaseTime, SightReacTime, SafetyMargin, AbsRTSupp, PercRTSupp);

@@ -489,13 +489,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				GradientExceptionInBraking = false;
 			}
 
-			/*//Cruising Phase
-			else if((instant_spatial_position[i-1]<Braking_Distance)&&(fabs((V_lim-instant_train_speed[i-1]))<2.78*timestep)){
-			instant_train_speed[i]=V_lim;    if (instant_train_speed[i]<0)instant_train_speed[i]=0;
-			instant_spatial_position[i]=instant_spatial_position[i-1]+instant_train_speed[i-1]*timestep;
-			instant_train_power_consumption[i]=total_train_resistances(instant_train_speed[i-1],As.gradient,As.curvature)*instant_train_speed[i-1];    Eq[i]=2;
-			temp=i; stop=i; BX[i]=Braking_Distance;Xob[i]=Xobmin; Vob[i]=Vobmin; counter=0;}*/
-
 			// Braking Phase
 			else if ((mustBrake || infeasibleCandidate)
 				&& (instant_spatial_position[time_seconds - 1] < run_->infra.routes[indexOfRoute].x_of_end_node * 1000)
@@ -507,15 +500,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				} else
 					brakingStep(time_seconds, As, run_->infra.routes[indexOfRoute].sequence_of_block_sections.data(),
 						run_->infra.routes[indexOfRoute].N_Block_Sections);
-
-				// if two braking curves are both restrictive
-				/*if ((Xobj!=Xobmin)||(Vobj!=Vobmin)||((Xobj!=Xobmin)&&(Vobj!=Vobmin))){counter=1;
-				Xobj=Xobmin;   Vobj=Vobmin;   Eq[i]=53;
-				DrawBrakingCurve(instant_train_speed[i-1],Vobj,Xobj,signalling_block_sections,Blocks);
-				for (int t=0;t<BrakStep;t++){
-				if((Vbrak[t]<instant_train_speed[i-1])&&(Sbrak[t]>instant_spatial_position[i-1])){ brakingPoint=t; break;}}
-				instant_train_speed[i]=Vbrak[brakingPoint+counter-1];    if (instant_train_speed[i]<0)instant_train_speed[i]=0;
-				instant_spatial_position[i]=Sbrak[brakingPoint+counter-1];}*/
 
 				if (Eq[time_seconds] == 54) {
 					instant_train_tractive_effort[time_seconds] =
@@ -537,13 +521,6 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				Xob[time_seconds] = Xobmin;
 				Vob[time_seconds] = Vobmin;
 			}
-
-			/*//Brake if the train enters next Arc with a speed higher than the Arc speed limit
-			else if ((instant_train_speed[i-1]>V_lim)){
-			instant_train_speed[i]=instant_train_speed[i-1]+(-brakingEffort((i-temp-1)*timestep)-(gradient_resistances(As.gradient)+curvature_resistances(As.curvature)))/(total_train_mass*massFactor)*timestep;     if (instant_train_speed[i]<0)instant_train_speed[i]=0;
-			instant_spatial_position[i]=instant_spatial_position[i-1]+((total_train_mass*massFactor)/(-brakingEffort((i-temp-1)*timestep)-(gradient_resistances(As.gradient)+curvature_resistances(As.curvature))))*instant_train_speed[i-1]*(instant_train_speed[i]-instant_train_speed[i-1]);
-			instant_train_power_consumption[i]=-(brakingEffort((i-temp-1)*timestep)+gradient_resistances(As.gradient)+curvature_resistances(As.curvature)-total_train_resistances(instant_train_speed[i-1],As.gradient,As.curvature))*instant_train_speed[i-1];   Eq[i]=4;
-			BX[i]=Braking_Distance;Xob[i]=Xobmin; Vob[i]=Vobmin; stop=i; counter=0;}*/
 
 			// Cruising Phase
 			else if (!mustBrake && !accelerating && speed > 0) {
@@ -621,8 +598,8 @@ void Train::trajectoryComputationIncludingMovingBlock(int time_seconds, double s
 				// if the train has outdistanced for more than 30 meters from the EoA of the train ahead, then interrupt the following mode and let the train to go free
 				if (liveLeader && liveLeader->TrainInfo.trainDescription == LeadingTrainInFollowingMode
 					&& leaderHead - head > 30) {
-					IsInUnintentionalDecoupling = true; // Originally I had IsTrainInFollowingMode = false;
-					CounterFollowingMode = 0;			// set also the CounterFollowingMode to 0 again
+					IsInUnintentionalDecoupling = true;
+					CounterFollowingMode = 0; // set also the CounterFollowingMode to 0 again
 
 					EG_LOG(SimEvents, Info) << "At time instant " << time_seconds << " train " << trainDescription << " is unintentionally decoupling from train " << LeadingTrainInFollowingMode << " because it could not reach the same speeds\n";
 
