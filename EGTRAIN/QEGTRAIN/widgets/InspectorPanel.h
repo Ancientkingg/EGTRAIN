@@ -68,7 +68,7 @@ public:
 
 	/// Adds the dock to the right side of the window and hides it. The window owns the panel and the dock. The scene is the
 	/// one that the items are on, and the presenter holds the highlight and the passenger information of the selection.
-	/// The presenter and the host must outlive the panel.
+	/// The presenter and the host must stay valid while the panel handles calls and signals.
 	InspectorPanel(QMainWindow* window, QGraphicsScene* scene, NetworkPresenter& presenter, Host& host);
 
 	/// The dock that holds the forms; owned by the window.
@@ -81,9 +81,9 @@ public:
 	int selectedTrainIndex() const { return m_selectedTrainIndex; }
 	/// True when the overlay belongs to the selected station.
 	bool selectsStationOverlay(const StationOverlayItem* overlay) const;
-	/// Forgets the selected station. The window does so when it clears the canvas.
+	/// Forgets the selected station; the window calls this and clearSelectedTrain when it clears the canvas.
 	void clearSelectedStation();
-	/// Forgets the selected train. The window does so when it clears the canvas.
+	/// Forgets the selected train.
 	void clearSelectedTrain();
 
 	/// Shows the aspect and the signals at the location again for the signal that is shown, when they changed.
@@ -112,7 +112,8 @@ public slots:
 	void displayNodeInfo(NodeItem* el);
 	/// Shows the form of a station node of the run and selects its station.
 	void displayStationNodeInfo(StationNodeItem* re);
-	/// Shows the form of an arc of the run.
+	/// Shows the form of an arc of the run: length in metres, curvature radius in metres, gradient as rise per length and
+	/// speed limit in m/s.
 	void displayArcInfo(TrackLineItem* line);
 	/// Shows the form of a connection of the run, with the positions of its nodes in metres.
 	void displayConnectionInfo(ConnectionItem* line);
@@ -130,7 +131,7 @@ private:
 	friend class MainWindowTestAccess;
 
 	QPointer<QGraphicsScene> m_scene;
-	// Never null. The presenter outlives the panel.
+	// Never null. The presenter stays valid while the panel is in use.
 	NetworkPresenter* m_presenter;
 	Host& m_host;
 

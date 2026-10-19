@@ -22,7 +22,6 @@
 /// buttons, and the inline status and help labels inside them.
 namespace DialogLayout {
 
-/// Helpers of the functions below.
 namespace detail {
 /// The dialog height at which the body of an installed dialog needs no vertical scroll bar when the dialog is
 /// width wide: the whole content and every other visible item of the layout (the heading, the footer and any

@@ -118,8 +118,7 @@ public:
 		return hint;
 	}
 
-	/// Updates the geometry when the layout of the panel changes. That changes the size hint of this area, which a dock
-	/// keeps until told.
+	/// A layout change of the panel changes the size hint of this area, which a dock keeps until told, so it updates the geometry.
 	bool eventFilter(QObject* watched, QEvent* event) override {
 		if (watched == widget() && event->type() == QEvent::LayoutRequest)
 			updateGeometry();
