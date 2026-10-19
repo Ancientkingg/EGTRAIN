@@ -78,7 +78,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 		return button;
 	};
 
-	addSection(tr("Prof. Egidio Quaglietta"), tr("Original EGTRAIN model and research."));
+	addSection(tr("Dr.ir. Egidio Quaglietta"), tr("Original EGTRAIN model and research."));
 	addLink(tr("Research profile (ORCID)"),
 		"https://orcid.org/0000-0002-7936-5832", "aboutResearchProfile");
 	addLink(tr("Original research (doctoral thesis)"),

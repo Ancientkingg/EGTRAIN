@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 			text += label->text() + QLatin1Char('\n');
 		ok &= check(
 			text.contains(QStringLiteral("9.8.7-test"))
-				&& text.contains(QStringLiteral("Prof. Egidio Quaglietta"))
+				&& text.contains(QStringLiteral("Dr.ir. Egidio Quaglietta"))
 				&& text.contains(QStringLiteral("Original EGTRAIN model and research."))
 				&& text.contains(QStringLiteral("Samuel Bruin"))
 				&& text.contains(QStringLiteral("Continued desktop application development and maintenance."))
