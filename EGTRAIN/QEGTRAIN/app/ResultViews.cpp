@@ -48,10 +48,6 @@
 #include <string>
 #include <vector>
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-QT_CHARTS_USE_NAMESPACE
-#endif
-
 namespace {
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {

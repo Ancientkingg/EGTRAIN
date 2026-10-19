@@ -39,10 +39,6 @@
 #include <cmath>
 #include <iostream>
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-QT_CHARTS_USE_NAMESPACE
-#endif
-
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
 	return condition;
