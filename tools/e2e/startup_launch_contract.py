@@ -339,15 +339,28 @@ def assert_option_list_matches_reads() -> None:
     # Every call except the definition must have the form above, or its option would be missed.
     if len(re.findall(r"(?<!char\* )getCmdOption\(", source)) != len(calls):
         raise SystemExit('app/main.cpp: a getCmdOption call is not written as getCmdOption(argv, argv + argc, "-x")')
-    declared = re.search(r"optionsWithValue\s*=\s*\{([^}]*)\}", source)
-    if not read or not declared:
-        raise SystemExit("app/main.cpp: the options read with getCmdOption or the list optionsWithValue were not found")
-    listed = set(re.findall(r'"([^"]+)"', declared.group(1)))
+    # A row of commandLineOptions that names a value: {"-n", "ID", ...}. A row without a value has nullptr there.
+    listed = set(re.findall(r'\{\s*"([^"]+)"\s*,\s*"[^"]*"\s*,', source))
+    if not read or not listed:
+        raise SystemExit("app/main.cpp: the options read with getCmdOption or the rows of commandLineOptions were not found")
     if listed != read:
         raise SystemExit(
-            "app/main.cpp: optionsWithValue differs from the options read with getCmdOption: "
+            "app/main.cpp: the options with a value in commandLineOptions differ from the options read with getCmdOption: "
             f"missing {sorted(read - listed)}, extra {sorted(listed - read)}"
         )
+
+
+def assert_help_and_unknown_option(app: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="qegtrain-help-") as root_name:
+        root = Path(root_name)
+        returncode, output = run_app(app, ["--help"], root / "run-help", "--help launch")
+        if returncode != 0 or "--scene" not in output or "(default: " not in output or "Graphical user interface" in output:
+            raise SystemExit(f"--help exited with {returncode}, or did not list --scene with its default, or started the program\n{tail(output)}")
+        # Qt removes -platform, and a negative number after an option with a value is its value, so only --bogus is unknown.
+        returncode, output = run_app(app, ["-platform", "offscreen", "-b", "-5", "--bogus"], root / "run-unknown", "unknown option launch")
+        if returncode == 0 or "Unknown option --bogus" not in output or "--help" not in output:
+            raise SystemExit(f"an unknown option exited with {returncode}, or the error did not name --bogus and --help\n{tail(output)}")
+        print("--help lists the options and exits with 0; an unknown option exits with an error that names --help")
 
 
 def make_bundles(scene_tool: Path, root: Path) -> tuple[Path, Path, Path]:
@@ -728,6 +741,7 @@ def main() -> None:
         if "fitInView(" in source[start:source.index("\n}\n", start)]:
             raise SystemExit(f"{name} refits the growing startup scene instead of deferring one final fit")
     assert_option_list_matches_reads()
+    assert_help_and_unknown_option(app)
     assert_startup_timing_contract(app)
     assert_no_argument_chooser_continuation(app)
     assert_open_argument_contract(app, scene_tool)
