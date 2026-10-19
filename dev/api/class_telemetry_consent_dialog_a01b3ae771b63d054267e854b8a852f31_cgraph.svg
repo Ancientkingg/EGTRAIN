@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" target="_top" xlink:title="True when diagnostic reports are saved as enabled for this receiver and terms.">
 <polygon fill="white" stroke="#666666" points="352,-171.5 185,-171.5 185,-141.5 352,-141.5 352,-171.5"/>
 <text text-anchor="start" x="193" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConsent::diagnostics</text>
 <text text-anchor="middle" x="268.5" y="-148.5" font-family="Helvetica,sans-Serif" font-size="10.00">Enabled</text>

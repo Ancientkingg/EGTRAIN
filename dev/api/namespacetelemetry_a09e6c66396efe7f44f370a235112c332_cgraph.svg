@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title="True for a valid time in UTC whose wire timestamp is valid.">
 <polygon fill="white" stroke="#666666" points="269.5,-74 159.5,-74 159.5,-55 269.5,-55 269.5,-74"/>
 <text text-anchor="middle" x="214.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUtc</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title="True for a lowercase random UUIDv4 with the RFC variant bits.">
 <polygon fill="white" stroke="#666666" points="272.5,-19 156.5,-19 156.5,0 272.5,0 272.5,-19"/>
 <text text-anchor="middle" x="214.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUuid</text>
 </a>

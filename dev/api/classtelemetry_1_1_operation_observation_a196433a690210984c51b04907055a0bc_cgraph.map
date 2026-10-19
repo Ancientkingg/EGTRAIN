@@ -1,5 +1,5 @@
 <map id="telemetry::OperationObservation::sceneOpened" name="telemetry::OperationObservation::sceneOpened">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,241,45"/>
+<area shape="rect" id="Node000001" title="A scene was opened and installed for use." alt="" coords="5,5,241,45"/>
 <area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036" title=" " alt="" coords="289,5,525,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,23,275,23,275,28,242,28"/>
 </map>

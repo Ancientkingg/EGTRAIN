@@ -121,15 +121,19 @@ Public Types</h2></td></tr>
 , <a class="el" href="#aecb83018dd6ff4b39309cb654905cf44aa149e85a44aeec9140e92733d9ed694e">Cancelled</a>
 , <a class="el" href="#aecb83018dd6ff4b39309cb654905cf44ad7c8c85bf79bbe1b7188497c32c3b0ca">Failed</a>
  }</td></tr>
+<tr class="memdesc:aecb83018dd6ff4b39309cb654905cf44"><td class="mdescLeft">&#160;</td><td class="mdescRight">How a started run ended. Only real handled failures may use Failed. The current engine has none.  <a href="#aecb83018dd6ff4b39309cb654905cf44">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a99258e9adbc9e68ddea2307925c2f991" id="r_a99258e9adbc9e68ddea2307925c2f991"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a99258e9adbc9e68ddea2307925c2f991">SimulationObservation</a> (<a class="el" href="classtelemetry_1_1_operation_observation.html">OperationObservation</a> operation)</td></tr>
+<tr class="memdesc:a99258e9adbc9e68ddea2307925c2f991"><td class="mdescLeft">&#160;</td><td class="mdescRight">operation is the observation captured when the run was requested.  <br /></td></tr>
 <tr class="memitem:ae50e73f2a231963427d50dd53600e9d1" id="r_ae50e73f2a231963427d50dd53600e9d1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae50e73f2a231963427d50dd53600e9d1">begin</a> () noexcept</td></tr>
 <tr class="memitem:ad8aec7c159475132fc43f11a8d3cd6cf" id="r_ad8aec7c159475132fc43f11a8d3cd6cf"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad8aec7c159475132fc43f11a8d3cd6cf">reject</a> (std::optional&lt; <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">Error</a> &gt; error) noexcept</td></tr>
 <tr class="memitem:ae570174c9becf617d8c7992da8ff2049" id="r_ae570174c9becf617d8c7992da8ff2049"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae570174c9becf617d8c7992da8ff2049">finish</a> (<a class="el" href="#aecb83018dd6ff4b39309cb654905cf44">Outcome</a> outcome, qint64 elapsedMs, std::optional&lt; <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">Error</a> &gt; error={}) noexcept</td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The usage events of one simulation run: simulation.started, then at most one completion or failure. A run rejected before it starts yields only a diagnostic. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="aecb83018dd6ff4b39309cb654905cf44" name="aecb83018dd6ff4b39309cb654905cf44"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aecb83018dd6ff4b39309cb654905cf44">&#9670;&#160;</a></span>Outcome</h2>
 
@@ -149,10 +153,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>How a started run ended. Only real handled failures may use Failed. The current engine has none. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f" name="aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f"></a>Completed&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44aa149e85a44aeec9140e92733d9ed694e" name="aecb83018dd6ff4b39309cb654905cf44aa149e85a44aeec9140e92733d9ed694e"></a>Cancelled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44ad7c8c85bf79bbe1b7188497c32c3b0ca" name="aecb83018dd6ff4b39309cb654905cf44ad7c8c85bf79bbe1b7188497c32c3b0ca"></a>Failed&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f" name="aecb83018dd6ff4b39309cb654905cf44a07ca5050e697392c9ed47e6453f1453f"></a>Completed&#160;</td><td class="fielddoc"><p>Normal return after postprocessing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44aa149e85a44aeec9140e92733d9ed694e" name="aecb83018dd6ff4b39309cb654905cf44aa149e85a44aeec9140e92733d9ed694e"></a>Cancelled&#160;</td><td class="fielddoc"><p>Stopped by the user; no event is submitted. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aecb83018dd6ff4b39309cb654905cf44ad7c8c85bf79bbe1b7188497c32c3b0ca" name="aecb83018dd6ff4b39309cb654905cf44ad7c8c85bf79bbe1b7188497c32c3b0ca"></a>Failed&#160;</td><td class="fielddoc"><p>A handled failure after the start. </p>
+</td></tr>
 </table>
 
 </div>
@@ -181,6 +190,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>operation is the observation captured when the run was requested. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -206,6 +217,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The run has started, past the engine's zero-train guard. Submits simulation.started once; ignored after <a class="el" href="#ad8aec7c159475132fc43f11a8d3cd6cf">reject()</a> or <a class="el" href="#ae570174c9becf617d8c7992da8ff2049">finish()</a>. </p>
 
 </div>
 </div>
@@ -240,6 +252,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The started run ended. elapsedMs is the monotonic time in milliseconds from the start to the end. Submits simulation.completed or simulation.failed with its duration bucket, and for Failed also operation.failed with error. Only the first call after <a class="el" href="#ae50e73f2a231963427d50dd53600e9d1">begin()</a> counts. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -270,6 +283,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The run was rejected before it started. Submits operation.failed for the simulation when error has a value; ignored after <a class="el" href="#ae50e73f2a231963427d50dd53600e9d1">begin()</a>. </p>
 
 </div>
 </div>

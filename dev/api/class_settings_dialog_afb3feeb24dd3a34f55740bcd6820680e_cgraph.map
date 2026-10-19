@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,334,118,294,146,243,183,190,206,166,230,145,257,130,260,135,234,150,209,170,187,194,150,246,123,296,106,336"/>
 <area shape="rect" id="Node000005" href="$namespace_dialog_layout.html#a2268772ffb8c91c5faa4f07bb00e16a4" title=" " alt="" coords="979,146,1160,186"/>
 <area shape="poly" id="edge14_Node000001_Node000005" title=" " alt="" coords="103,334,122,300,150,259,186,220,231,189,291,169,372,156,468,148,573,145,786,147,965,156,965,161,786,153,573,150,468,153,373,161,292,174,233,194,190,224,154,263,126,303,108,336"/>
-<area shape="rect" id="Node000008" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title=" " alt="" coords="247,204,455,229"/>
+<area shape="rect" id="Node000008" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="247,204,455,229"/>
 <area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="112,333,162,286,195,261,231,240,252,231,254,236,233,244,198,265,166,290,116,337"/>
-<area shape="rect" id="Node000009" href="$class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" title=" " alt="" coords="240,254,463,294"/>
+<area shape="rect" id="Node000009" href="$class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" title="True when diagnostic reports are saved as enabled for this receiver and terms." alt="" coords="240,254,463,294"/>
 <area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="150,333,231,305,263,295,264,300,233,310,152,338"/>
 <area shape="rect" id="Node000010" href="$namespacedisplay__path.html#aba9b38249ecd028f1f15735be87377a6" title=" " alt="" coords="273,343,430,368"/>
 <area shape="poly" id="edge15_Node000001_Node000010" title=" " alt="" coords="184,353,259,353,259,358,184,358"/>

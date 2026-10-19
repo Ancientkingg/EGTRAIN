@@ -121,7 +121,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" target="_top" xlink:title="Releases owner.lock and drops the events held in memory. The files stay.">
 <polygon fill="white" stroke="#666666" points="1619,-1081.32 1469,-1081.32 1469,-1051.32 1619,-1051.32 1619,-1081.32"/>
 <text text-anchor="start" x="1477" y="-1069.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1544" y="-1058.32" font-family="Helvetica,sans-Serif" font-size="10.00">::close</text>
@@ -223,7 +223,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd" target="_top" xlink:title="An event with a new random ID. occurredAt is taken as given.">
 <polygon fill="white" stroke="#666666" points="1050,-397.82 922,-397.82 922,-378.82 1050,-378.82 1050,-397.82"/>
 <text text-anchor="middle" x="986" y="-385.82" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::createEvent</text>
 </a>
@@ -260,7 +260,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" target="_top" xlink:title="True while this object holds owner.lock and no storage operation has failed.">
 <polygon fill="white" stroke="#666666" points="1619,-411.32 1469,-411.32 1469,-381.32 1619,-381.32 1619,-411.32"/>
 <text text-anchor="start" x="1477" y="-399.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1544" y="-388.32" font-family="Helvetica,sans-Serif" font-size="10.00">::healthy</text>
@@ -335,7 +335,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" target="_top" xlink:title="Removes every event of category.">
 <polygon fill="white" stroke="#666666" points="1433,-170.32 1283,-170.32 1283,-140.32 1433,-140.32 1433,-170.32"/>
 <text text-anchor="start" x="1291" y="-158.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1358" y="-147.32" font-family="Helvetica,sans-Serif" font-size="10.00">::purgeCategory</text>
@@ -354,7 +354,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" target="_top" xlink:title="Removes the events of both categories.">
 <polygon fill="white" stroke="#666666" points="1247,-165.32 1097,-165.32 1097,-135.32 1247,-135.32 1247,-165.32"/>
 <text text-anchor="start" x="1105" y="-153.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1172" y="-142.32" font-family="Helvetica,sans-Serif" font-size="10.00">::purgeEndpointData</text>
@@ -373,7 +373,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a22362d278dca1b6fa99c58051971bcbf" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a22362d278dca1b6fa99c58051971bcbf" target="_top" xlink:title="Stores a diagnostic event under its generation, as enqueueUsage() does.">
 <polygon fill="white" stroke="#666666" points="1061,-284.32 911,-284.32 911,-254.32 1061,-254.32 1061,-284.32"/>
 <text text-anchor="start" x="919" y="-272.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="986" y="-261.32" font-family="Helvetica,sans-Serif" font-size="10.00">::enqueueDiagnostic</text>
@@ -449,7 +449,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a4369d8c6a22afb250ceaa45178bcb9c5" target="_top" xlink:title="The current retry state.">
 <polygon fill="white" stroke="#666666" points="1247,-1362.32 1097,-1362.32 1097,-1332.32 1247,-1332.32 1247,-1362.32"/>
 <text text-anchor="start" x="1105" y="-1350.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1172" y="-1339.32" font-family="Helvetica,sans-Serif" font-size="10.00">::retryState</text>
@@ -604,7 +604,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title="True for a lowercase random UUIDv4 with the RFC variant bits.">
 <polygon fill="white" stroke="#666666" points="1416,-591.82 1300,-591.82 1300,-572.82 1416,-572.82 1416,-591.82"/>
 <text text-anchor="middle" x="1358" y="-579.82" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUuid</text>
 </a>
@@ -667,7 +667,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title="True for a valid time in UTC whose wire timestamp is valid.">
 <polygon fill="white" stroke="#666666" points="1413,-536.82 1303,-536.82 1303,-517.82 1413,-517.82 1413,-536.82"/>
 <text text-anchor="middle" x="1358" y="-524.82" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUtc</text>
 </a>
@@ -875,7 +875,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" target="_top" xlink:title="True when endpoint is on the list of retired endpoints.">
 <polygon fill="white" stroke="#666666" points="1247,-117.32 1097,-117.32 1097,-87.32 1247,-87.32 1247,-117.32"/>
 <text text-anchor="start" x="1105" y="-105.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1172" y="-94.32" font-family="Helvetica,sans-Serif" font-size="10.00">::isRetired</text>
@@ -1313,7 +1313,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a5bbba5b22a9a393304f02535cbfa6b5a" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a5bbba5b22a9a393304f02535cbfa6b5a" target="_top" xlink:title="Validates and stores state, and moves the last time seen forward to now.">
 <polygon fill="white" stroke="#666666" points="1433,-1051.32 1283,-1051.32 1283,-1021.32 1433,-1021.32 1433,-1051.32"/>
 <text text-anchor="start" x="1291" y="-1039.32" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="1358" y="-1028.32" font-family="Helvetica,sans-Serif" font-size="10.00">::commitRetry</text>
@@ -1377,7 +1377,7 @@
 <!-- Node39 -->
 <g id="Node000039" class="node">
 <title>Node39</title>
-<g id="a_Node000039"><a xlink:href="namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835" target="_top" xlink:title=" ">
+<g id="a_Node000039"><a xlink:href="namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" target="_top" xlink:title="True when version, platform and architecture have the forms that the contract allows.">
 <polygon fill="white" stroke="#666666" points="1246.5,-737.82 1097.5,-737.82 1097.5,-718.82 1246.5,-718.82 1246.5,-737.82"/>
 <text text-anchor="middle" x="1172" y="-725.82" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validApplication</text>
 </a>

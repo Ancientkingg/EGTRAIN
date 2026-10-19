@@ -39,7 +39,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" target="_top" xlink:title="True for a lowercase random UUIDv4 with the RFC variant bits.">
 <polygon fill="white" stroke="#666666" points="505,-100.5 389,-100.5 389,-81.5 505,-81.5 505,-100.5"/>
 <text text-anchor="middle" x="447" y="-88.5" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUuid</text>
 </a>
@@ -57,7 +57,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" target="_top" xlink:title="True while this object holds owner.lock and no storage operation has failed.">
 <polygon fill="white" stroke="#666666" points="522,-49 372,-49 372,-19 522,-19 522,-49"/>
 <text text-anchor="start" x="380" y="-37" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="447" y="-26" font-family="Helvetica,sans-Serif" font-size="10.00">::healthy</text>
@@ -122,7 +122,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" target="_top" xlink:title="True for a valid time in UTC whose wire timestamp is valid.">
 <polygon fill="white" stroke="#666666" points="502,-155.5 392,-155.5 392,-136.5 502,-136.5 502,-155.5"/>
 <text text-anchor="middle" x="447" y="-143.5" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validUtc</text>
 </a>

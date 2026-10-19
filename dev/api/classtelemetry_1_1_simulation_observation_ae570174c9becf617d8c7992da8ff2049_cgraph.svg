@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="namespacetelemetry.html#a099700bb2d688eb14684c4f9b72c0f86" target="_top" xlink:title="The bucket of a run duration given in milliseconds.">
 <polygon fill="white" stroke="#666666" points="361,-24.5 218,-24.5 218,-5.5 361,-5.5 361,-24.5"/>
 <text text-anchor="middle" x="289.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::durationBucket</text>
 </a>

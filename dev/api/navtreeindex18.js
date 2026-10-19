@@ -1,6 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7":[0,0,13,14],
 "namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd":[0,0,13,30],
 "namespacetelemetry.html#a7a632c90b64def51977be566377b667d":[0,0,13,22],
 "namespacetelemetry.html#a83945148529fc6f31ffa497e1c3ce85f":[0,0,13,28],
@@ -23,6 +22,7 @@ var NAVTREEINDEX18 =
 "namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012a36b64aad8a26246fe3ad4116a2b6f289":[0,0,13,15,1],
 "namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012ac64518704ce0c0d5501a45763f464276":[0,0,13,15,0],
 "namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd":[0,0,13,23],
+"namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86":[0,0,13,29],
 "namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e":[0,0,13,31],
 "namespacetelemetry__smoke.html":[0,0,14],
 "namespacetelemetry__smoke.html#a18f65fdfc1ed13a429b109490b72224f":[0,0,14,4],

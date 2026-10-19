@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_telemetry_context.html#a7b832eb570509f731161945701073408" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_telemetry_context.html#a7b832eb570509f731161945701073408" target="_top" xlink:title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint.">
 <polygon fill="white" stroke="#666666" points="336.5,-123 188.5,-123 188.5,-104 336.5,-104 336.5,-123"/>
 <text text-anchor="middle" x="262.5" y="-111" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryContext::capable</text>
 </a>
@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" target="_top" xlink:title="True when version, platform and architecture have the forms that the contract allows.">
 <polygon fill="white" stroke="#666666" points="337,-19 188,-19 188,0 337,0 337,-19"/>
 <text text-anchor="middle" x="262.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::validApplication</text>
 </a>

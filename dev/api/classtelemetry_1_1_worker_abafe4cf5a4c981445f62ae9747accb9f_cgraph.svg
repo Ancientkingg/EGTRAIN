@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" target="_top" xlink:title="Releases owner.lock and drops the events held in memory. The files stay.">
 <polygon fill="white" stroke="#666666" points="442,-30 292,-30 292,0 442,0 442,-30"/>
 <text text-anchor="start" x="300" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::TelemetryQueue</text>
 <text text-anchor="middle" x="367" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::close</text>

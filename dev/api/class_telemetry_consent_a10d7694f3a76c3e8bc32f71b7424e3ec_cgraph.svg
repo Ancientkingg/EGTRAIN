@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title="True when the context is capable, so the choices can be asked for and saved.">
 <polygon fill="white" stroke="#666666" points="326,-19 170,-19 170,0 326,0 326,-19"/>
 <text text-anchor="middle" x="248" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConsent::available</text>
 </a>

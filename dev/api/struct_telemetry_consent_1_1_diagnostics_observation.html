@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_telemet
 </div><!--header-->
 <div class="contents">
 
+<p>Diagnostics consent as <a class="el" href="class_telemetry_consent.html#adba1b0987ba4c5f91e73323e5a0ee0eb" title="Reads diagnostics consent under the lock without changing it or emitting a signal.">observeDiagnostics()</a> read it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_telemetry_consent_8h_source.html">telemetry/TelemetryConsent.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,7 +123,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a1dd2a69b914dd18fa7671d885d3d3bd8" id="r_a1dd2a69b914dd18fa7671d885d3d3bd8"><td class="memItemLeft"><a class="el" href="class_telemetry_consent.html#a1dc506c16c4592007ac4207a5333b961">ObservationStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a1dd2a69b914dd18fa7671d885d3d3bd8">status</a></td></tr>
 <tr class="memitem:ae5c9f2e07ca1874c6752d2ce75ef5c4d" id="r_ae5c9f2e07ca1874c6752d2ce75ef5c4d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae5c9f2e07ca1874c6752d2ce75ef5c4d">generation</a> = 0</td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Diagnostics consent as <a class="el" href="class_telemetry_consent.html#adba1b0987ba4c5f91e73323e5a0ee0eb" title="Reads diagnostics consent under the lock without changing it or emitting a signal.">observeDiagnostics()</a> read it. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae5c9f2e07ca1874c6752d2ce75ef5c4d" name="ae5c9f2e07ca1874c6752d2ce75ef5c4d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae5c9f2e07ca1874c6752d2ce75ef5c4d">&#9670;&#160;</a></span>generation</h2>
 
@@ -132,6 +137,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Diagnostics consent generation when status is Enabled, 0 otherwise. It changes whenever earlier diagnostic records must no longer be sent, such as after a revocation, so they stay unsent after a later re-enablement. It is never sent itself. </p>
 
 </div>
 </div>
@@ -146,6 +152,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Result of the observation. </p>
 
 </div>
 </div>

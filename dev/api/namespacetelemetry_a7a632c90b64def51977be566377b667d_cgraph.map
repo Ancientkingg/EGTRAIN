@@ -3,11 +3,11 @@
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="35,131,28,121,32,111,46,105,70,103,99,106,111,115,108,120,97,111,70,108,48,110,36,115,33,120,40,128"/>
 <area shape="rect" id="Node000002" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="196,104,368,129"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="134,132,182,126,183,131,135,137"/>
-<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title=" " alt="" coords="435,29,582,55"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="435,29,582,55"/>
 <area shape="poly" id="edge12_Node000001_Node000004" title=" " alt="" coords="84,127,126,95,153,79,182,66,243,50,306,40,421,35,422,40,306,45,244,55,184,71,155,84,129,99,87,131"/>
-<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title=" " alt="" coords="431,176,586,201"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="431,176,586,201"/>
 <area shape="poly" id="edge13_Node000001_Node000005" title=" " alt="" coords="135,146,418,176,417,182,134,151"/>
-<area shape="rect" id="Node000006" href="$namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835" title=" " alt="" coords="183,229,381,255"/>
+<area shape="rect" id="Node000006" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="183,229,381,255"/>
 <area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="99,152,243,221,241,226,97,157"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="247,106,240,96,244,86,258,80,282,77,311,81,323,90,320,94,309,86,282,83,260,85,248,89,245,95,252,102"/>
 <area shape="rect" id="Node000003" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="429,103,588,128"/>

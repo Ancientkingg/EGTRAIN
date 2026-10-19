@@ -1,16 +1,16 @@
 <map id="telemetry::TelemetryQueue::open" name="telemetry::TelemetryQueue::open">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,99,205,139"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title=" " alt="" coords="253,5,453,45"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="253,5,453,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,96,252,55,274,47,275,52,254,60,153,101"/>
-<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title=" " alt="" coords="253,69,453,109"/>
+<area shape="rect" id="Node000003" href="$classtelemetry_1_1_telemetry_queue.html#a00d63c978d718528a20d0c9fac94fc99" title="True when endpoint is on the list of retired endpoints." alt="" coords="253,69,453,109"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,104,239,100,240,105,206,110"/>
 <area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="501,124,701,164"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,121,488,136,487,141,206,126"/>
-<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title=" " alt="" coords="253,185,453,225"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#ade92495134e6374bd5a29665c294d960" title="Removes the events of both categories." alt="" coords="253,185,453,225"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="164,136,283,178,281,183,163,141"/>
-<area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title=" " alt="" coords="749,156,949,196"/>
+<area shape="rect" id="Node000005" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="749,156,949,196"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="702,154,736,159,735,164,701,160"/>
-<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title=" " alt="" coords="501,188,701,228"/>
+<area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#ad94eec7c1ad72b0269c46409f99cbc56" title="Removes every event of category." alt="" coords="501,188,701,228"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="453,204,488,204,488,209,453,209"/>
 <area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="701,192,735,188,736,193,702,198"/>
 </map>

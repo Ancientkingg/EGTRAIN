@@ -119,13 +119,18 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classtelemetry
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acb600b76dd87c9c99936face6da65424" id="r_acb600b76dd87c9c99936face6da65424"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#acb600b76dd87c9c99936face6da65424">OperationObservation</a> ()=default</td></tr>
 <tr class="memitem:a1fbcf102d04809e8db0b28d075bf6010" id="r_a1fbcf102d04809e8db0b28d075bf6010"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1fbcf102d04809e8db0b28d075bf6010">OperationObservation</a> (<a class="el" href="classtelemetry_1_1_telemetry_sender.html">TelemetrySender</a> *sender) noexcept</td></tr>
+<tr class="memdesc:a1fbcf102d04809e8db0b28d075bf6010"><td class="mdescLeft">&#160;</td><td class="mdescRight">Captures the authorization of sender now. sender is not owned and may be null.  <br /></td></tr>
 <tr class="memitem:a196433a690210984c51b04907055a0bc" id="r_a196433a690210984c51b04907055a0bc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a196433a690210984c51b04907055a0bc">sceneOpened</a> (<a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f">SceneKind</a> kind) const noexcept</td></tr>
+<tr class="memdesc:a196433a690210984c51b04907055a0bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A scene was opened and installed for use.  <br /></td></tr>
 <tr class="memitem:a82f756ccfe5e7c8c2633fc266c37b189" id="r_a82f756ccfe5e7c8c2633fc266c37b189"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a82f756ccfe5e7c8c2633fc266c37b189">editorOpened</a> () const noexcept</td></tr>
+<tr class="memdesc:a82f756ccfe5e7c8c2633fc266c37b189"><td class="mdescLeft">&#160;</td><td class="mdescRight">A hidden or closed editor dock was opened by the user.  <br /></td></tr>
 <tr class="memitem:a2db562cb6e4d6783eb276f421a01dc07" id="r_a2db562cb6e4d6783eb276f421a01dc07"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2db562cb6e4d6783eb276f421a01dc07">failure</a> (<a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636">telemetry::Operation</a> operation, std::optional&lt; <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">Error</a> &gt; error) const noexcept</td></tr>
 <tr class="memitem:afca86c2dc6f1865b2d4fca65f8f70385" id="r_afca86c2dc6f1865b2d4fca65f8f70385"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afca86c2dc6f1865b2d4fca65f8f70385">exportFinished</a> (std::optional&lt; <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">ExportKind</a> &gt; kind, bool success, bool writeAttempted, std::optional&lt; <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">Error</a> &gt; error={}) const noexcept</td></tr>
 <tr class="memitem:a98e1eb66bdf237c2084beed64c189036" id="r_a98e1eb66bdf237c2084beed64c189036"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a98e1eb66bdf237c2084beed64c189036">submit</a> (const <a class="el" href="structtelemetry_1_1_telemetry_event_input.html">TelemetryEventInput</a> &amp;input) const noexcept</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The telemetry authorization of one user operation, captured when the operation starts, and the events it may submit. It only reports: submitting never waits, fails or changes the operation. A default-constructed observation submits nothing. The sender must outlive the operation and any worker join. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="acb600b76dd87c9c99936face6da65424" name="acb600b76dd87c9c99936face6da65424"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acb600b76dd87c9c99936face6da65424">&#9670;&#160;</a></span>OperationObservation() <span class="overload">[1/2]</span></h2>
 
@@ -174,6 +179,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Captures the authorization of sender now. sender is not owned and may be null. </p>
+
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
@@ -199,6 +206,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A hidden or closed editor dock was opened by the user. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -243,6 +252,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The end of an export. Submits export.completed on success and export.failed when a write was attempted and failed, or no usage event when kind is empty. A failure also goes to <a class="el" href="#a2db562cb6e4d6783eb276f421a01dc07">failure()</a> with error. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -277,6 +287,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>A handled failure of operation. Submits operation.failed with error, or nothing when no error code applies. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -307,6 +318,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A scene was opened and installed for use. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -337,6 +350,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Hands input to the sender with the captured authorization. It is dropped when the category was not authorized at capture, consent changed since, or the sender is busy or full. </p>
 
 </div>
 </div>

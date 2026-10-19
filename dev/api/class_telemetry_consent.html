@@ -128,7 +128,9 @@ Collaboration diagram for TelemetryConsent:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:UsageObservation" id="r_UsageObservation"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_telemetry_consent_1_1_usage_observation.html">UsageObservation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Usage consent as <a class="el" href="#a94cc9a58ac5ac8c6967f73ee8e5ff155" title="Reads usage consent under the lock without changing it or emitting a signal.">observeUsage()</a> read it.  <a href="struct_telemetry_consent_1_1_usage_observation.html#details">More...</a><br /></td></tr>
 <tr class="memitem:DiagnosticsObservation" id="r_DiagnosticsObservation"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_telemetry_consent_1_1_diagnostics_observation.html">DiagnosticsObservation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Diagnostics consent as <a class="el" href="#adba1b0987ba4c5f91e73323e5a0ee0eb" title="Reads diagnostics consent under the lock without changing it or emitting a signal.">observeDiagnostics()</a> read it.  <a href="struct_telemetry_consent_1_1_diagnostics_observation.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -141,6 +143,7 @@ Public Types</h2></td></tr>
 &#160;&#160;<a class="el" href="#a1dc506c16c4592007ac4207a5333b961a902b0d55fddef6f8d651fe1035b7d4bd">Error</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a1dc506c16c4592007ac4207a5333b961"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of one observation of a category by the sender's worker.  <a href="#a1dc506c16c4592007ac4207a5333b961">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-signals" class="groupheader"><a id="signals" name="signals"></a>
 Signals</h2></td></tr>
@@ -151,16 +154,24 @@ Signals</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1161805fdedf0ed960795b8c607b2a9a" id="r_a1161805fdedf0ed960795b8c607b2a9a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1161805fdedf0ed960795b8c607b2a9a">TelemetryConsent</a> (QSettings &amp;settings, <a class="el" href="struct_telemetry_context.html">TelemetryContext</a> context, QObject *parent=nullptr)</td></tr>
 <tr class="memitem:a6d46f1ab5ddcb998a52dec6a81a8a1f1" id="r_a6d46f1ab5ddcb998a52dec6a81a8a1f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6d46f1ab5ddcb998a52dec6a81a8a1f1">available</a> () const</td></tr>
+<tr class="memdesc:a6d46f1ab5ddcb998a52dec6a81a8a1f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the context is capable, so the choices can be asked for and saved.  <br /></td></tr>
 <tr class="memitem:a2a83addd5760a40db273657a4eae3bd4" id="r_a2a83addd5760a40db273657a4eae3bd4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2a83addd5760a40db273657a4eae3bd4">promptRequired</a> ()</td></tr>
 <tr class="memitem:a2f45cd3533669ee127bddc15b9bfd85b" id="r_a2f45cd3533669ee127bddc15b9bfd85b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a2f45cd3533669ee127bddc15b9bfd85b">usageEnabled</a> ()</td></tr>
 <tr class="memitem:ae9cf6cf256720b1d6eea3f06c4bfc320" id="r_ae9cf6cf256720b1d6eea3f06c4bfc320"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae9cf6cf256720b1d6eea3f06c4bfc320">diagnosticsEnabled</a> ()</td></tr>
+<tr class="memdesc:ae9cf6cf256720b1d6eea3f06c4bfc320"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when diagnostic reports are saved as enabled for this receiver and terms.  <br /></td></tr>
 <tr class="memitem:a6d148ada94a92e3d3aa358b5ee7bff06" id="r_a6d148ada94a92e3d3aa358b5ee7bff06"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a6d148ada94a92e3d3aa358b5ee7bff06">usageInstallationId</a> ()</td></tr>
 <tr class="memitem:a94cc9a58ac5ac8c6967f73ee8e5ff155" id="r_a94cc9a58ac5ac8c6967f73ee8e5ff155"><td class="memItemLeft"><a class="el" href="struct_telemetry_consent_1_1_usage_observation.html">UsageObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a94cc9a58ac5ac8c6967f73ee8e5ff155">observeUsage</a> ()</td></tr>
+<tr class="memdesc:a94cc9a58ac5ac8c6967f73ee8e5ff155"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads usage consent under the lock without changing it or emitting a signal.  <br /></td></tr>
 <tr class="memitem:adba1b0987ba4c5f91e73323e5a0ee0eb" id="r_adba1b0987ba4c5f91e73323e5a0ee0eb"><td class="memItemLeft"><a class="el" href="struct_telemetry_consent_1_1_diagnostics_observation.html">DiagnosticsObservation</a>&#160;</td><td class="memItemRight"><a class="el" href="#adba1b0987ba4c5f91e73323e5a0ee0eb">observeDiagnostics</a> ()</td></tr>
+<tr class="memdesc:adba1b0987ba4c5f91e73323e5a0ee0eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads diagnostics consent under the lock without changing it or emitting a signal.  <br /></td></tr>
 <tr class="memitem:a10d7694f3a76c3e8bc32f71b7424e3ec" id="r_a10d7694f3a76c3e8bc32f71b7424e3ec"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a10d7694f3a76c3e8bc32f71b7424e3ec">save</a> (bool usage, bool diagnostics)</td></tr>
 <tr class="memitem:a2ff840c96f9c00f8527d8543c0a0ba0d" id="r_a2ff840c96f9c00f8527d8543c0a0ba0d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2ff840c96f9c00f8527d8543c0a0ba0d">dismiss</a> ()</td></tr>
+<tr class="memdesc:a2ff840c96f9c00f8527d8543c0a0ba0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves both choices as disabled, as Not now does on the first prompt.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The saved choices for usage statistics and diagnostic reports, for the receiver and terms of the context. They are one JSON value in the given QSettings, re-read and written under a lock file that is tried for at most 100 ms.</p>
+<p><a class="el" href="#a2a83addd5760a40db273657a4eae3bd4">promptRequired()</a>, <a class="el" href="#a2f45cd3533669ee127bddc15b9bfd85b">usageEnabled()</a>, <a class="el" href="#ae9cf6cf256720b1d6eea3f06c4bfc320" title="True when diagnostic reports are saved as enabled for this receiver and terms.">diagnosticsEnabled()</a>, <a class="el" href="#a6d148ada94a92e3d3aa358b5ee7bff06">usageInstallationId()</a> and <a class="el" href="#a10d7694f3a76c3e8bc32f71b7424e3ec">save()</a> re-read the settings, so they see choices changed by another process. After a lock or storage failure they fail closed and report no choice as enabled. <a class="el" href="#a94cc9a58ac5ac8c6967f73ee8e5ff155" title="Reads usage consent under the lock without changing it or emitting a signal.">observeUsage()</a> and <a class="el" href="#adba1b0987ba4c5f91e73323e5a0ee0eb" title="Reads diagnostics consent under the lock without changing it or emitting a signal.">observeDiagnostics()</a> read the settings again on each call and return Error when the lock or read fails. A saved choice for another endpoint or terms version is reset on the next re-read. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a1dc506c16c4592007ac4207a5333b961" name="a1dc506c16c4592007ac4207a5333b961"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1dc506c16c4592007ac4207a5333b961">&#9670;&#160;</a></span>ObservationStatus</h2>
 
@@ -180,12 +191,19 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Result of one observation of a category by the sender's worker. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a00d23a76e43b46dae9ec7aa9dcbebb32" name="a1dc506c16c4592007ac4207a5333b961a00d23a76e43b46dae9ec7aa9dcbebb32"></a>Enabled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961ab9f5c797ebbf55adccdd8539a65a0241" name="a1dc506c16c4592007ac4207a5333b961ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a5b0a8637935072d1ec30e60bb2cae1e6" name="a1dc506c16c4592007ac4207a5333b961a5b0a8637935072d1ec30e60bb2cae1e6"></a>Mismatch&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a453e6aa38d87b28ccae545967c53004f" name="a1dc506c16c4592007ac4207a5333b961a453e6aa38d87b28ccae545967c53004f"></a>Unavailable&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a902b0d55fddef6f8d651fe1035b7d4bd" name="a1dc506c16c4592007ac4207a5333b961a902b0d55fddef6f8d651fe1035b7d4bd"></a>Error&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a00d23a76e43b46dae9ec7aa9dcbebb32" name="a1dc506c16c4592007ac4207a5333b961a00d23a76e43b46dae9ec7aa9dcbebb32"></a>Enabled&#160;</td><td class="fielddoc"><p>The category is enabled for this receiver and terms. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961ab9f5c797ebbf55adccdd8539a65a0241" name="a1dc506c16c4592007ac4207a5333b961ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"><p>Nothing is saved, or the category is not enabled. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a5b0a8637935072d1ec30e60bb2cae1e6" name="a1dc506c16c4592007ac4207a5333b961a5b0a8637935072d1ec30e60bb2cae1e6"></a>Mismatch&#160;</td><td class="fielddoc"><p>The saved choices belong to another endpoint or terms version. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a453e6aa38d87b28ccae545967c53004f" name="a1dc506c16c4592007ac4207a5333b961a453e6aa38d87b28ccae545967c53004f"></a>Unavailable&#160;</td><td class="fielddoc"><p>The context is not capable. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a1dc506c16c4592007ac4207a5333b961a902b0d55fddef6f8d651fe1035b7d4bd" name="a1dc506c16c4592007ac4207a5333b961a902b0d55fddef6f8d651fe1035b7d4bd"></a>Error&#160;</td><td class="fielddoc"><p>The lock was not taken, or the saved value cannot be read or is malformed. </p>
+</td></tr>
 </table>
 
 </div>
@@ -214,6 +232,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>settings is not owned and must outlive this object. Reads the saved choices once, without the lock. </p>
 
 </div>
 </div>
@@ -233,6 +252,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the context is capable, so the choices can be asked for and saved. </p>
+
 </div>
 </div>
 <a id="ae9cf6cf256720b1d6eea3f06c4bfc320" name="ae9cf6cf256720b1d6eea3f06c4bfc320"></a>
@@ -250,6 +271,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when diagnostic reports are saved as enabled for this receiver and terms. </p>
+
 </div>
 </div>
 <a id="a2ff840c96f9c00f8527d8543c0a0ba0d" name="a2ff840c96f9c00f8527d8543c0a0ba0d"></a>
@@ -266,6 +289,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Saves both choices as disabled, as Not now does on the first prompt. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -289,6 +314,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Reads diagnostics consent under the lock without changing it or emitting a signal. </p>
+
 </div>
 </div>
 <a id="a94cc9a58ac5ac8c6967f73ee8e5ff155" name="a94cc9a58ac5ac8c6967f73ee8e5ff155"></a>
@@ -306,6 +333,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Reads usage consent under the lock without changing it or emitting a signal. </p>
+
 </div>
 </div>
 <a id="a2a83addd5760a40db273657a4eae3bd4" name="a2a83addd5760a40db273657a4eae3bd4"></a>
@@ -322,6 +351,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when the consent dialog should be shown at start-up: no valid choice is saved for this receiver and terms. False when unavailable or after a storage failure. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -352,6 +382,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The saved receiver endpoint, or the terms of a receiver seen before, changed. Emitted right after revoked(true, true). </p>
 
 </div>
 </div>
@@ -381,6 +412,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The named categories may no longer be sent under the consent seen before: a choice was turned off, the installation ID or diagnostics generation changed, the receiver or terms changed, or storage failed (both true). Emitted synchronously after the lock is released. </p>
 
 </div>
 </div>
@@ -402,6 +434,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Saves both choices for this receiver and terms. Enabling usage keeps a valid installation ID or creates a new one; disabling usage removes it. Emits revoked for a choice that is turned off. Returns false when unavailable, when the lock is not taken or when the write fails; no choice is then active in this object. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -424,6 +457,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when usage statistics are saved as enabled for this receiver and terms, with a valid installation ID. </p>
 
 </div>
 </div>
@@ -441,6 +475,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The random UUIDv4 that identifies this installation in usage batches; empty when usage is not enabled. Diagnostics never use it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -65,7 +65,7 @@ var namespacetelemetry =
     [ "readEvent", "namespacetelemetry.html#a09e6c66396efe7f44f370a235112c332", null ],
     [ "registerEditor", "namespacetelemetry.html#a8ec2d53909f0fb677857ec071723bd0b", null ],
     [ "revealEditor", "namespacetelemetry.html#a83945148529fc6f31ffa497e1c3ce85f", null ],
-    [ "validApplication", "namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835", null ],
+    [ "validApplication", "namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86", null ],
     [ "validInput", "namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd", null ],
     [ "validUtc", "namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e", null ],
     [ "validUuid", "namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea", null ]

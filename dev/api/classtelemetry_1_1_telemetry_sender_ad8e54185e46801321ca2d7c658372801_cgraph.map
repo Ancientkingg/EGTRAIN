@@ -17,11 +17,11 @@
 <area shape="rect" id="Node000012" href="$classtelemetry_1_1_telemetry_sender.html#a863f93afda16ffb2bdf5ea474cd3bb65" title=" " alt="" coords="256,444,459,484"/>
 <area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="121,255,142,292,173,337,212,385,258,426,273,436,270,440,254,430,208,388,168,340,137,294,116,258"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="459,126,493,122,493,127,459,131"/>
-<area shape="rect" id="Node000009" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title=" " alt="" coords="509,285,707,310"/>
+<area shape="rect" id="Node000009" href="$struct_telemetry_context.html#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non&#45;empty terms and a valid exact HTTPS endpoint." alt="" coords="509,285,707,310"/>
 <area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="432,373,457,362,471,352,481,341,490,331,505,320,525,312,527,317,508,325,494,335,484,345,475,356,460,366,434,378"/>
 <area shape="rect" id="Node000010" href="$classtelemetry_1_1_sender_thread.html#a5f4f1231c4faf7082ca94f7fce022dde" title=" " alt="" coords="517,335,699,375"/>
 <area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="458,377,503,369,504,375,459,382"/>
-<area shape="rect" id="Node000011" href="$namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835" title=" " alt="" coords="509,423,707,449"/>
+<area shape="rect" id="Node000011" href="$namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86" title="True when version, platform and architecture have the forms that the contract allows." alt="" coords="509,423,707,449"/>
 <area shape="poly" id="edge11_Node000008_Node000011" title=" " alt="" coords="459,410,515,418,514,424,458,415"/>
 <area shape="poly" id="edge12_Node000011_Node000011" title=" " alt="" coords="567,425,559,415,563,405,580,399,608,397,643,401,653,405,657,411,653,414,650,409,642,406,608,402,581,404,567,409,564,414,571,421"/>
 <area shape="rect" id="Node000013" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="529,497,687,522"/>

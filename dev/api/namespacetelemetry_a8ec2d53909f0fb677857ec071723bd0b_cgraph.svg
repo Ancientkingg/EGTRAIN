@@ -48,7 +48,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespacetelemetry.html#a83945148529fc6f31ffa497e1c3ce85f" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespacetelemetry.html#a83945148529fc6f31ffa497e1c3ce85f" target="_top" xlink:title="Shows and raises dock, and submits editor.opened when it was hidden. A null dock is ignored.">
 <polygon fill="white" stroke="#666666" points="325,-24.5 196,-24.5 196,-5.5 325,-5.5 325,-24.5"/>
 <text text-anchor="middle" x="260.5" y="-12.5" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::revealEditor</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189" target="_top" xlink:title="A hidden or closed editor dock was opened by the user.">
 <polygon fill="white" stroke="#666666" points="562,-30 385,-30 385,0 562,0 562,-30"/>
 <text text-anchor="start" x="393" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::OperationObservation</text>
 <text text-anchor="middle" x="473.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::editorOpened</text>

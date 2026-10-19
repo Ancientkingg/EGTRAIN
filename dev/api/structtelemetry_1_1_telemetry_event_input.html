@@ -118,13 +118,21 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structtelemetr
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af80c2ed06d6da2197866bf9014318196" id="r_af80c2ed06d6da2197866bf9014318196"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657">Name</a>&#160;</td><td class="memItemRight"><a class="el" href="#af80c2ed06d6da2197866bf9014318196">name</a> = <a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead">Name::SessionStarted</a></td></tr>
+<tr class="memdesc:af80c2ed06d6da2197866bf9014318196"><td class="mdescLeft">&#160;</td><td class="mdescRight">The event, which also sets its category.  <br /></td></tr>
 <tr class="memitem:a7c174cca65c2cfab1f9555bf64d12fdf" id="r_a7c174cca65c2cfab1f9555bf64d12fdf"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f">SceneKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7c174cca65c2cfab1f9555bf64d12fdf">sceneKind</a> = <a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90">SceneKind::Bundled</a></td></tr>
+<tr class="memdesc:a7c174cca65c2cfab1f9555bf64d12fdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used by SceneOpened.  <br /></td></tr>
 <tr class="memitem:a7d2a781c5f522aa50d3b9acc42ded89f" id="r_a7d2a781c5f522aa50d3b9acc42ded89f"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe">Duration</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7d2a781c5f522aa50d3b9acc42ded89f">duration</a> = <a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18feaaa8fd213644ef7ddd1c50b474f666332">Duration::Under1s</a></td></tr>
+<tr class="memdesc:a7d2a781c5f522aa50d3b9acc42ded89f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used by SimulationCompleted and SimulationFailed.  <br /></td></tr>
 <tr class="memitem:a7b54fdbfa2815da62e2415171f9588f3" id="r_a7b54fdbfa2815da62e2415171f9588f3"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">ExportKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7b54fdbfa2815da62e2415171f9588f3">exportKind</a> = <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a504db8f41efafec3537f62fc00418af0">ExportKind::SceneBundle</a></td></tr>
+<tr class="memdesc:a7b54fdbfa2815da62e2415171f9588f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used by ExportCompleted and ExportFailed.  <br /></td></tr>
 <tr class="memitem:a4fe0041b84786c245c41348fce6e535c" id="r_a4fe0041b84786c245c41348fce6e535c"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636">Operation</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4fe0041b84786c245c41348fce6e535c">operation</a> = <a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a7ef42719436307aabb2c2351062274d2">Operation::SceneOpen</a></td></tr>
+<tr class="memdesc:a4fe0041b84786c245c41348fce6e535c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used by OperationFailed.  <br /></td></tr>
 <tr class="memitem:aa60a217f0555550efdc0f2e2fb8ce212" id="r_aa60a217f0555550efdc0f2e2fb8ce212"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">Error</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa60a217f0555550efdc0f2e2fb8ce212">error</a> = <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad8f78ca9a692a9411afbc7584b69d043">Error::InvalidInput</a></td></tr>
+<tr class="memdesc:aa60a217f0555550efdc0f2e2fb8ce212"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used by OperationFailed.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What a producer reports. The name selects exactly which of these enum properties is meaningful; the others must keep their default values, or <a class="el" href="namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd">validInput()</a> rejects the input. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a7d2a781c5f522aa50d3b9acc42ded89f" name="a7d2a781c5f522aa50d3b9acc42ded89f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7d2a781c5f522aa50d3b9acc42ded89f">&#9670;&#160;</a></span>duration</h2>
 
@@ -136,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Used by SimulationCompleted and SimulationFailed. </p>
 
 </div>
 </div>
@@ -151,6 +161,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Used by OperationFailed. </p>
+
 </div>
 </div>
 <a id="a7b54fdbfa2815da62e2415171f9588f3" name="a7b54fdbfa2815da62e2415171f9588f3"></a>
@@ -164,6 +176,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Used by ExportCompleted and ExportFailed. </p>
 
 </div>
 </div>
@@ -179,6 +193,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The event, which also sets its category. </p>
+
 </div>
 </div>
 <a id="a4fe0041b84786c245c41348fce6e535c" name="a4fe0041b84786c245c41348fce6e535c"></a>
@@ -193,6 +209,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Used by OperationFailed. </p>
+
 </div>
 </div>
 <a id="a7c174cca65c2cfab1f9555bf64d12fdf" name="a7c174cca65c2cfab1f9555bf64d12fdf"></a>
@@ -206,6 +224,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Used by SceneOpened. </p>
 
 </div>
 </div>

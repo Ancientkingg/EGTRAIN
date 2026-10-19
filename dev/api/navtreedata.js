@@ -84,7 +84,7 @@ var NAVTREEINDEX =
 "class_train_badge_item.html#ab33ca36df6597c63eeaa8c504b5a525c",
 "classtelemetry_1_1_sender_thread.html#a680735a863f58194828975921c0fb3c5",
 "functions_vars_c.html",
-"namespacetelemetry.html#a72614ca7f8f9984ba7f8ca9222444bd7",
+"namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd",
 "struct_capacity_critical_block.html#aa38987fe0a92b8e0f24b0da9f89aa26f",
 "struct_infrastructure_guidance_state.html",
 "struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd",

@@ -4,6 +4,6 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,45,186,45,186,50,152,50"/>
 <area shape="rect" id="Node000003" href="$class_http_reply.html#ac22cc86a4e8931a3043901bb0ca22ccc" title=" " alt="" coords="431,5,559,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="347,35,416,26,417,31,347,40"/>
-<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title=" " alt="" coords="395,55,595,95"/>
+<area shape="rect" id="Node000004" href="$classtelemetry_1_1_telemetry_queue.html#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay." alt="" coords="395,55,595,95"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="347,54,382,58,381,64,347,59"/>
 </map>

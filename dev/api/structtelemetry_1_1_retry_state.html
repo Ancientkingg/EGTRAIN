@@ -113,16 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structtelemetr
 </div><!--header-->
 <div class="contents">
 
+<p>Retry state shared by both categories, stored in control.json.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_telemetry_queue_8h_source.html">telemetry/TelemetryQueue.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7ff58ea7cfdfceecf192f38007d14a09" id="r_a7ff58ea7cfdfceecf192f38007d14a09"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7ff58ea7cfdfceecf192f38007d14a09">failures</a> = 0</td></tr>
+<tr class="memdesc:a7ff58ea7cfdfceecf192f38007d14a09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consecutive retryable failures, counting the attempt in progress; 0 to 31.  <br /></td></tr>
 <tr class="memitem:ad9d6e92bffcd24d329f67f46b8d7f12a" id="r_ad9d6e92bffcd24d329f67f46b8d7f12a"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#ad9d6e92bffcd24d329f67f46b8d7f12a">nextEligibleUtc</a></td></tr>
+<tr class="memdesc:ad9d6e92bffcd24d329f67f46b8d7f12a"><td class="mdescLeft">&#160;</td><td class="mdescRight">No batch is sent before this UTC time; invalid when there is no wait.  <br /></td></tr>
 <tr class="memitem:a789f1fc9f5587b31d217440116cb1e40" id="r_a789f1fc9f5587b31d217440116cb1e40"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a789f1fc9f5587b31d217440116cb1e40">usageBatchLimit</a> = 50</td></tr>
+<tr class="memdesc:a789f1fc9f5587b31d217440116cb1e40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most events in one usage batch, 1 to 50. A 413 response lowers it.  <br /></td></tr>
 <tr class="memitem:ade9a4bb92f1c902a47e1bdd47977a09f" id="r_ade9a4bb92f1c902a47e1bdd47977a09f"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ade9a4bb92f1c902a47e1bdd47977a09f">diagnosticsBatchLimit</a> = 50</td></tr>
+<tr class="memdesc:ade9a4bb92f1c902a47e1bdd47977a09f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most events in one diagnostics batch, 1 to 50. A 413 response lowers it.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Retry state shared by both categories, stored in control.json. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ade9a4bb92f1c902a47e1bdd47977a09f" name="ade9a4bb92f1c902a47e1bdd47977a09f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ade9a4bb92f1c902a47e1bdd47977a09f">&#9670;&#160;</a></span>diagnosticsBatchLimit</h2>
 
@@ -134,6 +143,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Most events in one diagnostics batch, 1 to 50. A 413 response lowers it. </p>
 
 </div>
 </div>
@@ -149,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Consecutive retryable failures, counting the attempt in progress; 0 to 31. </p>
+
 </div>
 </div>
 <a id="ad9d6e92bffcd24d329f67f46b8d7f12a" name="ad9d6e92bffcd24d329f67f46b8d7f12a"></a>
@@ -163,6 +176,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>No batch is sent before this UTC time; invalid when there is no wait. </p>
+
 </div>
 </div>
 <a id="a789f1fc9f5587b31d217440116cb1e40" name="a789f1fc9f5587b31d217440116cb1e40"></a>
@@ -176,6 +191,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Most events in one usage batch, 1 to 50. A 413 response lowers it. </p>
 
 </div>
 </div>

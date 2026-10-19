@@ -134,9 +134,13 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:telemetry_3A_3ATelemetryEventInput" id="r_telemetry_3A_3ATelemetryEventInput"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_telemetry_event_input.html">telemetry::TelemetryEventInput</a></td></tr>
 <tr class="memitem:telemetry_3A_3ATelemetryEvent" id="r_telemetry_3A_3ATelemetryEvent"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_telemetry_event.html">telemetry::TelemetryEvent</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One occurrence of an event.  <a href="structtelemetry_1_1_telemetry_event.html#details">More...</a><br /></td></tr>
 <tr class="memitem:telemetry_3A_3AUsageRecord" id="r_telemetry_3A_3AUsageRecord"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_usage_record.html">telemetry::UsageRecord</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A usage event with the installation ID it is sent under.  <a href="structtelemetry_1_1_usage_record.html#details">More...</a><br /></td></tr>
 <tr class="memitem:telemetry_3A_3ADiagnosticRecord" id="r_telemetry_3A_3ADiagnosticRecord"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_diagnostic_record.html">telemetry::DiagnosticRecord</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A diagnostic event with the diagnostics consent generation it was taken in under.  <a href="structtelemetry_1_1_diagnostic_record.html#details">More...</a><br /></td></tr>
 <tr class="memitem:telemetry_3A_3AApplication" id="r_telemetry_3A_3AApplication"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="structtelemetry_1_1_application.html">telemetry::Application</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The application fields of a batch.  <a href="structtelemetry_1_1_application.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-namespaces" class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -147,6 +151,7 @@ Enumerations</h2></td></tr>
 <tr class="memitem:ab776d3e743d0b0244820f935e6a16012" id="r_ab776d3e743d0b0244820f935e6a16012"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">telemetry::Category</a> { <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012ac64518704ce0c0d5501a45763f464276">telemetry::Usage</a>
 , <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012a36b64aad8a26246fe3ad4116a2b6f289">telemetry::Diagnostics</a>
  }</td></tr>
+<tr class="memdesc:ab776d3e743d0b0244820f935e6a16012"><td class="mdescLeft">&#160;</td><td class="mdescRight">The two categories, which are consented to, queued and sent separately.  <a href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">More...</a><br /></td></tr>
 <tr class="memitem:a1c527728e9a305d690ee37700e287657" id="r_a1c527728e9a305d690ee37700e287657"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657">telemetry::Name</a> { <br />
 &#160;&#160;<a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657ae35c9498bfa51f9e0a3b615b97a2cead">telemetry::SessionStarted</a>
 , <a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657a30ad29ecbf8b92b3cc90327caecec1dd">telemetry::SceneOpened</a>
@@ -161,9 +166,11 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657aa244ddc17d9605fe956fca75701b5ac2">telemetry::OperationFailed</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a1c527728e9a305d690ee37700e287657"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event names. The wire name is given for each.  <a href="namespacetelemetry.html#a1c527728e9a305d690ee37700e287657">More...</a><br /></td></tr>
 <tr class="memitem:a9c4a19fee431cf8e3cee072669dc499f" id="r_a9c4a19fee431cf8e3cee072669dc499f"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f">telemetry::SceneKind</a> { <a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa4d4357cc70fa310fee2ff5157bc14a90">telemetry::Bundled</a>
 , <a class="el" href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499fa509820290d57f333403f490dde7316f4">telemetry::Local</a>
  }</td></tr>
+<tr class="memdesc:a9c4a19fee431cf8e3cee072669dc499f"><td class="mdescLeft">&#160;</td><td class="mdescRight">How an opened scene is stored.  <a href="namespacetelemetry.html#a9c4a19fee431cf8e3cee072669dc499f">More...</a><br /></td></tr>
 <tr class="memitem:a3791f17c7b0f059e16f8af1cd61d18fe" id="r_a3791f17c7b0f059e16f8af1cd61d18fe"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe">telemetry::Duration</a> { <br />
 &#160;&#160;<a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18feaaa8fd213644ef7ddd1c50b474f666332">telemetry::Under1s</a>
 , <a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea1af19a759287e51ab5a577227dbe5778">telemetry::From1sTo10s</a>
@@ -173,28 +180,36 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fea0b40b4bfb2f70f2bd007b6e2672069bc">telemetry::TenMinutesOrMore</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a3791f17c7b0f059e16f8af1cd61d18fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elapsed time of a run from its start to its end, in buckets.  <a href="namespacetelemetry.html#a3791f17c7b0f059e16f8af1cd61d18fe">More...</a><br /></td></tr>
 <tr class="memitem:a870a1e25b8f7695ae14123f8c1b37121" id="r_a870a1e25b8f7695ae14123f8c1b37121"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">telemetry::ExportKind</a> { <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a504db8f41efafec3537f62fc00418af0">telemetry::SceneBundle</a>
 , <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121a0cc0a0507cf3d31e5089f420a4cf8b4b">telemetry::Legacy</a>
 , <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121ab20daea8bfacec3891fcf5b7be4adca0">telemetry::Csv</a>
 , <a class="el" href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121af8fd4f1b5b05c6b1cc6a661141fd4f54">telemetry::Png</a>
  }</td></tr>
+<tr class="memdesc:a870a1e25b8f7695ae14123f8c1b37121"><td class="mdescLeft">&#160;</td><td class="mdescRight">What an export writes.  <a href="namespacetelemetry.html#a870a1e25b8f7695ae14123f8c1b37121">More...</a><br /></td></tr>
 <tr class="memitem:ab0d67ac93c3c3ea86e13dcad6b448636" id="r_ab0d67ac93c3c3ea86e13dcad6b448636"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636">telemetry::Operation</a> { <a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a7ef42719436307aabb2c2351062274d2">telemetry::SceneOpen</a>
 , <a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a4f502b57d2835715eaa382c7d4c32e94">telemetry::Simulation</a>
 , <a class="el" href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636a0095a9fa74d1713e43e370a7d7846224">telemetry::Export</a>
  }</td></tr>
+<tr class="memdesc:ab0d67ac93c3c3ea86e13dcad6b448636"><td class="mdescLeft">&#160;</td><td class="mdescRight">The operation that failed in an operation.failed event.  <a href="namespacetelemetry.html#ab0d67ac93c3c3ea86e13dcad6b448636">More...</a><br /></td></tr>
 <tr class="memitem:a1cbd9ac308657821079fff1e459008cb" id="r_a1cbd9ac308657821079fff1e459008cb"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">telemetry::Error</a> { <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad8f78ca9a692a9411afbc7584b69d043">telemetry::InvalidInput</a>
 , <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbac82adc7582667b6bbc1e066757aad182">telemetry::UnsupportedFormat</a>
 , <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbad272d88f548764712769a41765f447f2">telemetry::IoFailure</a>
 , <a class="el" href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cbaa247b21f40c7c83496ed67cc742c2524">telemetry::InternalFailure</a>
  }</td></tr>
+<tr class="memdesc:a1cbd9ac308657821079fff1e459008cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fixed error codes of an operation.failed event. No raw error text is ever sent.  <a href="namespacetelemetry.html#a1cbd9ac308657821079fff1e459008cb">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a8e4c43c2b63bba90df1de14d93ae01ea" id="r_a8e4c43c2b63bba90df1de14d93ae01ea"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea">telemetry::validUuid</a> (const QString &amp;value)</td></tr>
+<tr class="memdesc:a8e4c43c2b63bba90df1de14d93ae01ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a lowercase random UUIDv4 with the RFC variant bits.  <br /></td></tr>
 <tr class="memitem:ae6b7bc723ff0f1e99eac9478e733451e" id="r_ae6b7bc723ff0f1e99eac9478e733451e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e">telemetry::validUtc</a> (const QDateTime &amp;value)</td></tr>
+<tr class="memdesc:ae6b7bc723ff0f1e99eac9478e733451e"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a valid time in UTC whose wire timestamp is valid.  <br /></td></tr>
 <tr class="memitem:a765943f64b2226fc71d0bceb1cc019fd" id="r_a765943f64b2226fc71d0bceb1cc019fd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd">telemetry::validInput</a> (const <a class="el" href="structtelemetry_1_1_telemetry_event_input.html">TelemetryEventInput</a> &amp;input, <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category)</td></tr>
-<tr class="memitem:a68c6d640dc0dd1a7d7b91453f8248835" id="r_a68c6d640dc0dd1a7d7b91453f8248835"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a68c6d640dc0dd1a7d7b91453f8248835">telemetry::validApplication</a> (const <a class="el" href="structtelemetry_1_1_application.html">Application</a> &amp;app)</td></tr>
+<tr class="memitem:ac0ddecaf7929a3bd903923fe0bcb7d86" id="r_ac0ddecaf7929a3bd903923fe0bcb7d86"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#ac0ddecaf7929a3bd903923fe0bcb7d86">telemetry::validApplication</a> (const <a class="el" href="structtelemetry_1_1_application.html">Application</a> &amp;application)</td></tr>
+<tr class="memdesc:ac0ddecaf7929a3bd903923fe0bcb7d86"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when version, platform and architecture have the forms that the contract allows.  <br /></td></tr>
 <tr class="memitem:abe77cde46ed1326a83026d17755087bd" id="r_abe77cde46ed1326a83026d17755087bd"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_telemetry_event.html">TelemetryEvent</a>&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#abe77cde46ed1326a83026d17755087bd">telemetry::createEvent</a> (const <a class="el" href="structtelemetry_1_1_telemetry_event_input.html">TelemetryEventInput</a> &amp;input, const QDateTime &amp;occurredAt)</td></tr>
+<tr class="memdesc:abe77cde46ed1326a83026d17755087bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">An event with a new random ID. occurredAt is taken as given.  <br /></td></tr>
 <tr class="memitem:a848bf491977e98e98bb56dd3542aa73f" id="r_a848bf491977e98e98bb56dd3542aa73f"><td class="memItemLeft">QJsonObject&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f">telemetry::eventObject</a> (const <a class="el" href="structtelemetry_1_1_telemetry_event.html">TelemetryEvent</a> &amp;event, <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category)</td></tr>
 <tr class="memitem:a09e6c66396efe7f44f370a235112c332" id="r_a09e6c66396efe7f44f370a235112c332"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a09e6c66396efe7f44f370a235112c332">telemetry::readEvent</a> (const QJsonObject &amp;object, <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category, <a class="el" href="structtelemetry_1_1_telemetry_event.html">TelemetryEvent</a> *output)</td></tr>
 <tr class="memitem:a7a632c90b64def51977be566377b667d" id="r_a7a632c90b64def51977be566377b667d"><td class="memItemLeft">QByteArray&#160;</td><td class="memItemRight"><a class="el" href="namespacetelemetry.html#a7a632c90b64def51977be566377b667d">telemetry::batch</a> (const QVector&lt; <a class="el" href="structtelemetry_1_1_telemetry_event.html">TelemetryEvent</a> &gt; &amp;events, <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category, const QString &amp;id, const <a class="el" href="structtelemetry_1_1_application.html">Application</a> &amp;app, const QDateTime &amp;sentAt)</td></tr>

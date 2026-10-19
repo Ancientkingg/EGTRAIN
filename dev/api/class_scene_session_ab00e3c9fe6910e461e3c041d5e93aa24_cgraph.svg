@@ -147,7 +147,7 @@
 <!-- Node63 -->
 <g id="Node000063" class="node">
 <title>Node63</title>
-<g id="a_Node000063"><a xlink:href="classtelemetry_1_1_operation_observation.html#a196433a690210984c51b04907055a0bc" target="_top" xlink:title=" ">
+<g id="a_Node000063"><a xlink:href="classtelemetry_1_1_operation_observation.html#a196433a690210984c51b04907055a0bc" target="_top" xlink:title="A scene was opened and installed for use.">
 <polygon fill="white" stroke="#666666" points="406.5,-488.5 229.5,-488.5 229.5,-458.5 406.5,-458.5 406.5,-488.5"/>
 <text text-anchor="start" x="237.5" y="-476.5" font-family="Helvetica,sans-Serif" font-size="10.00">telemetry::OperationObservation</text>
 <text text-anchor="middle" x="318" y="-465.5" font-family="Helvetica,sans-Serif" font-size="10.00">::sceneOpened</text>

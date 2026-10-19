@@ -118,17 +118,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_telemet
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b832eb570509f731161945701073408" id="r_a7b832eb570509f731161945701073408"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7b832eb570509f731161945701073408">capable</a> () const</td></tr>
+<tr class="memdesc:a7b832eb570509f731161945701073408"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when packaged, enabled and interactive, with non-empty terms and a valid exact HTTPS endpoint.  <br /></td></tr>
 <tr class="memitem:a79d77337cb2f2e19a4495a56b6f03941" id="r_a79d77337cb2f2e19a4495a56b6f03941"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a79d77337cb2f2e19a4495a56b6f03941">domain</a> () const</td></tr>
+<tr class="memdesc:a79d77337cb2f2e19a4495a56b6f03941"><td class="mdescLeft">&#160;</td><td class="mdescRight">Host of endpoint, shown as the receiving domain; empty when endpoint has none.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab2a8bbafac371b04d8a23354d36a7e7f" id="r_ab2a8bbafac371b04d8a23354d36a7e7f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab2a8bbafac371b04d8a23354d36a7e7f">packaged</a> = false</td></tr>
+<tr class="memdesc:ab2a8bbafac371b04d8a23354d36a7e7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Built as a distributed package (EGTRAIN_PACKAGED_BUILD).  <br /></td></tr>
 <tr class="memitem:ac4f0cfe4ab3da5c2c734fc6e3f26adc8" id="r_ac4f0cfe4ab3da5c2c734fc6e3f26adc8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac4f0cfe4ab3da5c2c734fc6e3f26adc8">enabled</a> = false</td></tr>
+<tr class="memdesc:ac4f0cfe4ab3da5c2c734fc6e3f26adc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Telemetry compiled in (EGTRAIN_ENABLE_TELEMETRY).  <br /></td></tr>
 <tr class="memitem:a68d388954b092379387e60b27e0064bf" id="r_a68d388954b092379387e60b27e0064bf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a68d388954b092379387e60b27e0064bf">interactive</a> = false</td></tr>
+<tr class="memdesc:a68d388954b092379387e60b27e0064bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">An ordinary interactive GUI run; see <a class="el" href="_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c">telemetryInteractiveEnvironment()</a>.  <br /></td></tr>
 <tr class="memitem:a5894bbae8e49fb30818358966be46aa2" id="r_a5894bbae8e49fb30818358966be46aa2"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a5894bbae8e49fb30818358966be46aa2">endpoint</a></td></tr>
+<tr class="memdesc:a5894bbae8e49fb30818358966be46aa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exact HTTPS URL of the receiver (EGTRAIN_TELEMETRY_URL); empty when none.  <br /></td></tr>
 <tr class="memitem:a22b706866b465ae928bc77acc31f9503" id="r_a22b706866b465ae928bc77acc31f9503"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#a22b706866b465ae928bc77acc31f9503">termsVersion</a> = QStringLiteral(&quot;1&quot;)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What this build and run allow for telemetry. Consent can be asked and events sent only when <a class="el" href="#a7b832eb570509f731161945701073408" title="True when packaged, enabled and interactive, with non-empty terms and a valid exact HTTPS endpoint.">capable()</a> is true. See the consent boundary in docs/telemetry/README.md. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a7b832eb570509f731161945701073408" name="a7b832eb570509f731161945701073408"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7b832eb570509f731161945701073408">&#9670;&#160;</a></span>capable()</h2>
 
@@ -143,6 +151,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when packaged, enabled and interactive, with non-empty terms and a valid exact HTTPS endpoint. </p>
 
 </div>
 </div>
@@ -161,6 +171,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Host of endpoint, shown as the receiving domain; empty when endpoint has none. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -176,6 +188,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Telemetry compiled in (EGTRAIN_ENABLE_TELEMETRY). </p>
+
 </div>
 </div>
 <a id="a5894bbae8e49fb30818358966be46aa2" name="a5894bbae8e49fb30818358966be46aa2"></a>
@@ -189,6 +203,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Exact HTTPS URL of the receiver (EGTRAIN_TELEMETRY_URL); empty when none. </p>
 
 </div>
 </div>
@@ -204,6 +220,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>An ordinary interactive GUI run; see <a class="el" href="_telemetry_consent_8cpp.html#a473b5066033d9c8516ae49ecc58bf15c">telemetryInteractiveEnvironment()</a>. </p>
+
 </div>
 </div>
 <a id="ab2a8bbafac371b04d8a23354d36a7e7f" name="ab2a8bbafac371b04d8a23354d36a7e7f"></a>
@@ -218,6 +236,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Built as a distributed package (EGTRAIN_PACKAGED_BUILD). </p>
+
 </div>
 </div>
 <a id="a22b706866b465ae928bc77acc31f9503" name="a22b706866b465ae928bc77acc31f9503"></a>
@@ -231,6 +251,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Version of the collection terms. A change resets the saved choices. </p>
 
 </div>
 </div>

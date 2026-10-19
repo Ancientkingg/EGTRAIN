@@ -122,29 +122,43 @@ Public Types</h2></td></tr>
 , <a class="el" href="#a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2">Retired</a>
 , <a class="el" href="#a5fdcf89146509911ce754826df9b6c94ab9f5c797ebbf55adccdd8539a65a0241">Disabled</a>
  }</td></tr>
+<tr class="memdesc:a5fdcf89146509911ce754826df9b6c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a>.  <a href="#a5fdcf89146509911ce754826df9b6c94">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0d968b2d86e0554168efb4958cbc1f52" id="r_a0d968b2d86e0554168efb4958cbc1f52"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a0d968b2d86e0554168efb4958cbc1f52">TelemetryQueue</a> ()=default</td></tr>
 <tr class="memitem:ae67e247a0bfe4848d528cd8e6f6b41ba" id="r_ae67e247a0bfe4848d528cd8e6f6b41ba"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae67e247a0bfe4848d528cd8e6f6b41ba">~TelemetryQueue</a> ()</td></tr>
+<tr class="memdesc:ae67e247a0bfe4848d528cd8e6f6b41ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls <a class="el" href="#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay.">close()</a>.  <br /></td></tr>
 <tr class="memitem:ad2e0b52372cacd0ec50134db2b7f8ce5" id="r_ad2e0b52372cacd0ec50134db2b7f8ce5"><td class="memItemLeft"><a class="el" href="#a5fdcf89146509911ce754826df9b6c94">OpenResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open</a> (const QString &amp;privateDirectory, const QString &amp;exactEndpoint, const QString &amp;terms, const QDateTime &amp;now)</td></tr>
 <tr class="memitem:a368475d984ef28abb45dae6fe60cd5a1" id="r_a368475d984ef28abb45dae6fe60cd5a1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a368475d984ef28abb45dae6fe60cd5a1">enqueueUsage</a> (const <a class="el" href="structtelemetry_1_1_usage_record.html">UsageRecord</a> &amp;record, const QDateTime &amp;now)</td></tr>
 <tr class="memitem:a22362d278dca1b6fa99c58051971bcbf" id="r_a22362d278dca1b6fa99c58051971bcbf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a22362d278dca1b6fa99c58051971bcbf">enqueueDiagnostic</a> (const <a class="el" href="structtelemetry_1_1_diagnostic_record.html">DiagnosticRecord</a> &amp;record, const QDateTime &amp;now)</td></tr>
+<tr class="memdesc:a22362d278dca1b6fa99c58051971bcbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores a diagnostic event under its generation, as <a class="el" href="#a368475d984ef28abb45dae6fe60cd5a1">enqueueUsage()</a> does.  <br /></td></tr>
 <tr class="memitem:ad94eec7c1ad72b0269c46409f99cbc56" id="r_ad94eec7c1ad72b0269c46409f99cbc56"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad94eec7c1ad72b0269c46409f99cbc56">purgeCategory</a> (<a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category)</td></tr>
+<tr class="memdesc:ad94eec7c1ad72b0269c46409f99cbc56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes every event of category.  <br /></td></tr>
 <tr class="memitem:a665464812eb23c0319b4b1b95901601a" id="r_a665464812eb23c0319b4b1b95901601a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a665464812eb23c0319b4b1b95901601a">purgeOtherStamps</a> (<a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category, const QString &amp;currentStamp)</td></tr>
 <tr class="memitem:ade92495134e6374bd5a29665c294d960" id="r_ade92495134e6374bd5a29665c294d960"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ade92495134e6374bd5a29665c294d960">purgeEndpointData</a> ()</td></tr>
+<tr class="memdesc:ade92495134e6374bd5a29665c294d960"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the events of both categories.  <br /></td></tr>
 <tr class="memitem:a908033f48f0faf16da8063781514784d" id="r_a908033f48f0faf16da8063781514784d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a908033f48f0faf16da8063781514784d">prune</a> (const QDateTime &amp;now)</td></tr>
 <tr class="memitem:aa33a74e8591a3d54d85b6029a604ffed" id="r_aa33a74e8591a3d54d85b6029a604ffed"><td class="memItemLeft">QDateTime&#160;</td><td class="memItemRight"><a class="el" href="#aa33a74e8591a3d54d85b6029a604ffed">nextExpiryUtc</a> () const</td></tr>
+<tr class="memdesc:aa33a74e8591a3d54d85b6029a604ffed"><td class="mdescLeft">&#160;</td><td class="mdescRight">When the oldest queued event expires; invalid when there is none or the queue is not healthy.  <br /></td></tr>
 <tr class="memitem:a56be34acf9623b6127721dc898964183" id="r_a56be34acf9623b6127721dc898964183"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_prepared_batch.html">PreparedBatch</a>&#160;</td><td class="memItemRight"><a class="el" href="#a56be34acf9623b6127721dc898964183">prepareBatch</a> (<a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a> category, const QString &amp;stamp, const <a class="el" href="structtelemetry_1_1_application.html">Application</a> &amp;application, const QDateTime &amp;now, int maxEvents=50) const</td></tr>
 <tr class="memitem:a3fc3db4ac492fc3ec649ceeed720feed" id="r_a3fc3db4ac492fc3ec649ceeed720feed"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3fc3db4ac492fc3ec649ceeed720feed">discardBatch</a> (const <a class="el" href="structtelemetry_1_1_batch_token.html">BatchToken</a> &amp;token)</td></tr>
 <tr class="memitem:a4369d8c6a22afb250ceaa45178bcb9c5" id="r_a4369d8c6a22afb250ceaa45178bcb9c5"><td class="memItemLeft"><a class="el" href="structtelemetry_1_1_retry_state.html">RetryState</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4369d8c6a22afb250ceaa45178bcb9c5">retryState</a> () const</td></tr>
+<tr class="memdesc:a4369d8c6a22afb250ceaa45178bcb9c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current retry state.  <br /></td></tr>
 <tr class="memitem:a5bbba5b22a9a393304f02535cbfa6b5a" id="r_a5bbba5b22a9a393304f02535cbfa6b5a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5bbba5b22a9a393304f02535cbfa6b5a">commitRetry</a> (const <a class="el" href="structtelemetry_1_1_retry_state.html">RetryState</a> &amp;state, const QDateTime &amp;now)</td></tr>
+<tr class="memdesc:a5bbba5b22a9a393304f02535cbfa6b5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates and stores state, and moves the last time seen forward to now.  <br /></td></tr>
 <tr class="memitem:a4f6bb5e7a6d6cefd0c897a22cfe4f231" id="r_a4f6bb5e7a6d6cefd0c897a22cfe4f231"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4f6bb5e7a6d6cefd0c897a22cfe4f231">retireExactEndpoint</a> (const QString &amp;endpoint)</td></tr>
 <tr class="memitem:a00d63c978d718528a20d0c9fac94fc99" id="r_a00d63c978d718528a20d0c9fac94fc99"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a00d63c978d718528a20d0c9fac94fc99">isRetired</a> (const QString &amp;endpoint) const</td></tr>
+<tr class="memdesc:a00d63c978d718528a20d0c9fac94fc99"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when endpoint is on the list of retired endpoints.  <br /></td></tr>
 <tr class="memitem:a9406c6febb4f2d36dcf387e32cd6548f" id="r_a9406c6febb4f2d36dcf387e32cd6548f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9406c6febb4f2d36dcf387e32cd6548f">healthy</a> () const</td></tr>
+<tr class="memdesc:a9406c6febb4f2d36dcf387e32cd6548f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while this object holds owner.lock and no storage operation has failed.  <br /></td></tr>
 <tr class="memitem:a7fdc5ae8bff7769dc3729d146792c45e" id="r_a7fdc5ae8bff7769dc3729d146792c45e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7fdc5ae8bff7769dc3729d146792c45e">close</a> ()</td></tr>
+<tr class="memdesc:a7fdc5ae8bff7769dc3729d146792c45e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases owner.lock and drops the events held in memory. The files stay.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The persistent queue of usage and diagnostic events for one exact receiver endpoint and terms version, in a private directory (usage.json, diagnostics.json, control.json and owner.lock). Only the process that holds owner.lock uses the files. Each category holds at most 512 events and 192 KiB, one stored event at most 1 KiB, and the directory at most 1 MiB in 32 files. The oldest events give way first when a category is full; going over the directory limit is a storage failure. An event expires seven days after it occurred. All times are UTC.</p>
+<p>One worker owns this object and all methods. An unsuccessful storage operation fails closed; the caller must close ingress and abandon outstanding RAM work. It also tries to leave a disabled marker file, after which every later <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a> that takes owner.lock discards the queued events and returns Disabled. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
 <a id="a5fdcf89146509911ce754826df9b6c94" name="a5fdcf89146509911ce754826df9b6c94"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5fdcf89146509911ce754826df9b6c94">&#9670;&#160;</a></span>OpenResult</h2>
 
@@ -164,11 +178,17 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Result of <a class="el" href="#ad2e0b52372cacd0ec50134db2b7f8ce5">open()</a>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3" name="a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3"></a>Owner&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94a829e620db67faa54c8ca8441f1239d41" name="a5fdcf89146509911ce754826df9b6c94a829e620db67faa54c8ca8441f1239d41"></a>Follower&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2" name="a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2"></a>Retired&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ab9f5c797ebbf55adccdd8539a65a0241" name="a5fdcf89146509911ce754826df9b6c94ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3" name="a5fdcf89146509911ce754826df9b6c94ab6f4a2ec6356bbd56d49f2096bf9d3d3"></a>Owner&#160;</td><td class="fielddoc"><p>This object holds owner.lock and has loaded the queue. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94a829e620db67faa54c8ca8441f1239d41" name="a5fdcf89146509911ce754826df9b6c94a829e620db67faa54c8ca8441f1239d41"></a>Follower&#160;</td><td class="fielddoc"><p>Another process holds owner.lock; nothing is stored here. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2" name="a5fdcf89146509911ce754826df9b6c94ad109ac74df282488efd1dd7621a847d2"></a>Retired&#160;</td><td class="fielddoc"><p>The endpoint was retired after a 410 response; its events are purged. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a5fdcf89146509911ce754826df9b6c94ab9f5c797ebbf55adccdd8539a65a0241" name="a5fdcf89146509911ce754826df9b6c94ab9f5c797ebbf55adccdd8539a65a0241"></a>Disabled&#160;</td><td class="fielddoc"><p>Invalid arguments, an unusable directory, a disabled marker or a storage failure. </p>
+</td></tr>
 </table>
 
 </div>
@@ -218,6 +238,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Calls <a class="el" href="#a7fdc5ae8bff7769dc3729d146792c45e" title="Releases owner.lock and drops the events held in memory. The files stay.">close()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +264,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Releases owner.lock and drops the events held in memory. The files stay. </p>
+
 </div>
 </div>
 <a id="a5bbba5b22a9a393304f02535cbfa6b5a" name="a5bbba5b22a9a393304f02535cbfa6b5a"></a>
@@ -262,6 +286,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Validates and stores state, and moves the last time seen forward to now. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -284,6 +310,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Removes the events of a batch. Refused for a token from an earlier ownership, or with no or more than 50 IDs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -310,6 +337,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores a diagnostic event under its generation, as <a class="el" href="#a368475d984ef28abb45dae6fe60cd5a1">enqueueUsage()</a> does. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -336,6 +365,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Stores a usage event under its installation ID. Returns false for an invalid or duplicate event, one dated after now or seven days or more before it, one over 1 KiB, or a failed write; only <a class="el" href="#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed.">healthy()</a> tells a storage failure apart. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -367,6 +397,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True while this object holds owner.lock and no storage operation has failed. </p>
+
 </div>
 </div>
 <a id="a00d63c978d718528a20d0c9fac94fc99" name="a00d63c978d718528a20d0c9fac94fc99"></a>
@@ -384,6 +416,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when endpoint is on the list of retired endpoints. </p>
+
 </div>
 </div>
 <a id="aa33a74e8591a3d54d85b6029a604ffed" name="aa33a74e8591a3d54d85b6029a604ffed"></a>
@@ -400,6 +434,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>When the oldest queued event expires; invalid when there is none or the queue is not healthy. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,6 +472,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Closes any earlier state, creates privateDirectory (owner-only on macOS and Linux; on Windows it keeps the permissions of its parent folder) and takes owner.lock without waiting. exactEndpoint may have at most 2048 UTF-8 bytes and terms at most 64. Stored events of another endpoint or terms, and their retry state, are dropped; the list of retired endpoints is kept. Expired events are pruned at now. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -477,6 +514,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The wire body of the oldest unexpired events of category stored under stamp, prepared at now. It holds at most maxEvents, 50 and the batch limit of the retry state, and at most 65,536 bytes. For usage stamp is the installation ID sent with the batch. Nothing is removed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -499,6 +537,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Removes expired events and those dated after now. When now is before the last time seen, the clock moved back: every event is removed and no batch is sent for 24 hours. Saves the last time seen when a minute has passed since it was saved. Fails closed when not healthy or now is not UTC. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -521,6 +560,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes every event of category. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -543,6 +584,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Removes the events of both categories. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -569,6 +612,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Removes the events of category stored under another stamp: an installation UUID for usage, a decimal generation for diagnostics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -591,6 +635,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Adds endpoint, which must be the open one, to the persistent list of retired endpoints (at most 16; a full list fails closed) and purges its events. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -621,6 +666,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The current retry state. </p>
 
 </div>
 </div>

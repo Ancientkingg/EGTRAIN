@@ -58,7 +58,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title="True when the context is capable, so the choices can be asked for and saved.">
 <polygon fill="white" stroke="#666666" points="337.5,-307 181.5,-307 181.5,-288 337.5,-288 337.5,-307"/>
 <text text-anchor="middle" x="259.5" y="-295" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConsent::available</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="class_telemetry_consent.html#ae9cf6cf256720b1d6eea3f06c4bfc320" target="_top" xlink:title="True when diagnostic reports are saved as enabled for this receiver and terms.">
 <polygon fill="white" stroke="#666666" points="343,-269.5 176,-269.5 176,-239.5 343,-239.5 343,-269.5"/>
 <text text-anchor="start" x="184" y="-257.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConsent::diagnostics</text>
 <text text-anchor="middle" x="259.5" y="-246.5" font-family="Helvetica,sans-Serif" font-size="10.00">Enabled</text>

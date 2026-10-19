@@ -1,5 +1,5 @@
 <map id="TelemetryConsent::save" name="TelemetryConsent::save">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,184,31"/>
-<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title=" " alt="" coords="232,5,440,31"/>
+<area shape="rect" id="Node000002" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="232,5,440,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,15,218,15,218,21,184,21"/>
 </map>

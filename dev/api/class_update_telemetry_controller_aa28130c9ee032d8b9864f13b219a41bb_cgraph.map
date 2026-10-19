@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,159,204,199"/>
 <area shape="rect" id="Node000002" href="$_telemetry_consent_8cpp.html#a2fea8ce192c8ca8b406f940dbe1e8508" title=" " alt="" coords="252,29,463,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,157,181,115,251,72,289,56,291,61,253,76,184,119,130,161"/>
-<area shape="rect" id="Node000004" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title=" " alt="" coords="526,203,734,228"/>
+<area shape="rect" id="Node000004" href="$class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" title="True when the context is capable, so the choices can be asked for and saved." alt="" coords="526,203,734,228"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="141,157,192,134,251,115,311,104,358,99,405,102,463,115,504,130,543,150,604,192,601,196,540,155,502,135,462,121,404,108,358,105,311,109,253,121,194,139,144,162"/>
 <area shape="rect" id="Node000005" href="$class_update_telemetry_controller.html#aac2b0fdf1128dc0fdd1304a0708d7488" title="The consent that the sender follows, or null while telemetry is off." alt="" coords="258,130,457,170"/>
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="204,165,244,160,245,166,204,170"/>
-<area shape="rect" id="Node000006" href="$struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" title=" " alt="" coords="260,195,455,220"/>
+<area shape="rect" id="Node000006" href="$struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" title="Host of endpoint, shown as the receiving domain; empty when endpoint has none." alt="" coords="260,195,455,220"/>
 <area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="204,188,247,192,246,198,204,193"/>
 <area shape="rect" id="Node000007" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title=" " alt="" coords="270,268,445,293"/>
 <area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="156,197,313,260,311,265,154,202"/>

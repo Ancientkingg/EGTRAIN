@@ -2,16 +2,16 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,187,205,227"/>
 <area shape="rect" id="Node000002" href="$namespacetelemetry.html#a848bf491977e98e98bb56dd3542aa73f" title=" " alt="" coords="267,108,439,133"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,185,302,135,304,140,164,190"/>
-<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title=" " alt="" coords="524,176,679,201"/>
+<area shape="rect" id="Node000005" href="$namespacetelemetry.html#a8e4c43c2b63bba90df1de14d93ae01ea" title="True for a lowercase random UUIDv4 with the RFC variant bits." alt="" coords="524,176,679,201"/>
 <area shape="poly" id="edge12_Node000001_Node000005" title=" " alt="" coords="206,201,510,189,511,195,206,206"/>
-<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title=" " alt="" coords="501,245,701,285"/>
+<area shape="rect" id="Node000006" href="$classtelemetry_1_1_telemetry_queue.html#a9406c6febb4f2d36dcf387e32cd6548f" title="True while this object holds owner.lock and no storage operation has failed." alt="" coords="501,245,701,285"/>
 <area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="206,216,488,249,487,254,206,222"/>
 <area shape="rect" id="Node000007" href="$classtelemetry_1_1_telemetry_queue.html#a908033f48f0faf16da8063781514784d" title=" " alt="" coords="253,270,453,310"/>
 <area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="167,225,280,263,278,268,165,230"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="314,110,305,100,309,90,326,84,353,81,388,85,398,90,402,96,397,99,394,94,387,90,353,87,327,89,313,94,310,99,317,106"/>
 <area shape="rect" id="Node000003" href="$namespacetelemetry.html#a765943f64b2226fc71d0bceb1cc019fd" title=" " alt="" coords="522,29,681,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="385,105,501,63,529,55,531,61,502,69,387,110"/>
-<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title=" " alt="" coords="528,103,675,128"/>
+<area shape="rect" id="Node000004" href="$namespacetelemetry.html#ae6b7bc723ff0f1e99eac9478e733451e" title="True for a valid time in UTC whose wire timestamp is valid." alt="" coords="528,103,675,128"/>
 <area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="439,116,514,115,514,120,439,121"/>
 <area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="402,131,542,170,540,175,400,136"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="562,31,553,21,557,11,574,5,601,3,636,7,646,11,650,17,645,20,642,15,635,12,601,8,575,10,561,15,558,20,565,27"/>

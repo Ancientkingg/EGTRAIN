@@ -39,7 +39,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_telemetry_consent.html#a6d46f1ab5ddcb998a52dec6a81a8a1f1" target="_top" xlink:title="True when the context is capable, so the choices can be asked for and saved.">
 <polygon fill="white" stroke="#666666" points="546.5,-116.5 390.5,-116.5 390.5,-97.5 546.5,-97.5 546.5,-116.5"/>
 <text text-anchor="middle" x="468.5" y="-104.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryConsent::available</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="struct_telemetry_context.html#a79d77337cb2f2e19a4495a56b6f03941" target="_top" xlink:title="Host of endpoint, shown as the receiving domain; empty when endpoint has none.">
 <polygon fill="white" stroke="#666666" points="337,-122.5 191,-122.5 191,-103.5 337,-103.5 337,-122.5"/>
 <text text-anchor="middle" x="264" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">TelemetryContext::domain</text>
 </a>

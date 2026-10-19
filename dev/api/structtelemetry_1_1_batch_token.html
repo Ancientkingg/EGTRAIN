@@ -113,16 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('structtelemetr
 </div><!--header-->
 <div class="contents">
 
+<p>The events of a prepared batch, for discardBatch() once the receiver gave a final answer.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_telemetry_queue_8h_source.html">telemetry/TelemetryQueue.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a16c9fde8e24f874e35a0b3b9f7d3c296" id="r_a16c9fde8e24f874e35a0b3b9f7d3c296"><td class="memItemLeft"><a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012">Category</a>&#160;</td><td class="memItemRight"><a class="el" href="#a16c9fde8e24f874e35a0b3b9f7d3c296">category</a> = <a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012ac64518704ce0c0d5501a45763f464276">Category::Usage</a></td></tr>
+<tr class="memdesc:a16c9fde8e24f874e35a0b3b9f7d3c296"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012" title="The two categories, which are consented to, queued and sent separately.">Category</a> of the batch.  <br /></td></tr>
 <tr class="memitem:afce8a788f6aef56633f50c2b363dbb7b" id="r_afce8a788f6aef56633f50c2b363dbb7b"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#afce8a788f6aef56633f50c2b363dbb7b">stamp</a></td></tr>
+<tr class="memdesc:afce8a788f6aef56633f50c2b363dbb7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Usage UUID, or decimal diagnostics generation; never transmitted for diagnostics.  <br /></td></tr>
 <tr class="memitem:a7b88f5babe2b54f004aae2faee415082" id="r_a7b88f5babe2b54f004aae2faee415082"><td class="memItemLeft">QVector&lt; QString &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a7b88f5babe2b54f004aae2faee415082">ids</a></td></tr>
+<tr class="memdesc:a7b88f5babe2b54f004aae2faee415082"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event IDs in the batch.  <br /></td></tr>
 <tr class="memitem:aa515fd5ca26d24708b162d4a615885d9" id="r_aa515fd5ca26d24708b162d4a615885d9"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#aa515fd5ca26d24708b162d4a615885d9">ownershipId</a></td></tr>
+<tr class="memdesc:aa515fd5ca26d24708b162d4a615885d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changes on every successful ownership acquisition.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The events of a prepared batch, for discardBatch() once the receiver gave a final answer. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a16c9fde8e24f874e35a0b3b9f7d3c296" name="a16c9fde8e24f874e35a0b3b9f7d3c296"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a16c9fde8e24f874e35a0b3b9f7d3c296">&#9670;&#160;</a></span>category</h2>
 
@@ -134,6 +143,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="namespacetelemetry.html#ab776d3e743d0b0244820f935e6a16012" title="The two categories, which are consented to, queued and sent separately.">Category</a> of the batch. </p>
 
 </div>
 </div>
@@ -149,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Event IDs in the batch. </p>
+
 </div>
 </div>
 <a id="aa515fd5ca26d24708b162d4a615885d9" name="aa515fd5ca26d24708b162d4a615885d9"></a>
@@ -163,6 +176,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Changes on every successful ownership acquisition. </p>
+
 </div>
 </div>
 <a id="afce8a788f6aef56633f50c2b363dbb7b" name="afce8a788f6aef56633f50c2b363dbb7b"></a>
@@ -176,6 +191,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Usage UUID, or decimal diagnostics generation; never transmitted for diagnostics. </p>
 
 </div>
 </div>

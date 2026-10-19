@@ -1,7 +1,7 @@
 <map id="telemetry::revealEditor" name="telemetry::revealEditor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,177,55"/>
+<area shape="rect" id="Node000001" title="Shows and raises dock, and submits editor.opened when it was hidden. A null dock is ignored." alt="" coords="5,29,177,55"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="51,31,42,21,46,11,63,5,91,3,127,7,137,11,141,17,136,20,133,15,125,12,91,8,64,10,50,15,47,20,55,27"/>
-<area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189" title=" " alt="" coords="225,22,461,62"/>
+<area shape="rect" id="Node000002" href="$classtelemetry_1_1_operation_observation.html#a82f756ccfe5e7c8c2633fc266c37b189" title="A hidden or closed editor dock was opened by the user." alt="" coords="225,22,461,62"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,39,212,39,212,45,177,45"/>
 <area shape="rect" id="Node000003" href="$classtelemetry_1_1_operation_observation.html#a98e1eb66bdf237c2084beed64c189036" title=" " alt="" coords="509,22,745,62"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,39,495,39,495,45,462,45"/>

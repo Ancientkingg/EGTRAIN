@@ -129,13 +129,17 @@ Collaboration diagram for TelemetryConsentDialog:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a01b3ae771b63d054267e854b8a852f31" id="r_a01b3ae771b63d054267e854b8a852f31"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a01b3ae771b63d054267e854b8a852f31">TelemetryConsentDialog</a> (<a class="el" href="class_telemetry_consent.html">TelemetryConsent</a> &amp;consent, const QString &amp;domain, bool initialPrompt, QWidget *parent=nullptr)</td></tr>
 <tr class="memitem:a4e141756bb87fc5e5521fff69efe86f2" id="r_a4e141756bb87fc5e5521fff69efe86f2"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a4e141756bb87fc5e5521fff69efe86f2">usageCheckBox</a> () const</td></tr>
+<tr class="memdesc:a4e141756bb87fc5e5521fff69efe86f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The usage statistics check box, owned by the dialog.  <br /></td></tr>
 <tr class="memitem:a4dd85c26327b72bcaebf1ea649508728" id="r_a4dd85c26327b72bcaebf1ea649508728"><td class="memItemLeft">QCheckBox *&#160;</td><td class="memItemRight"><a class="el" href="#a4dd85c26327b72bcaebf1ea649508728">diagnosticsCheckBox</a> () const</td></tr>
+<tr class="memdesc:a4dd85c26327b72bcaebf1ea649508728"><td class="mdescLeft">&#160;</td><td class="mdescRight">The diagnostic reports check box, owned by the dialog.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a5365eae4430d169ddd3f795466829747" id="r_a5365eae4430d169ddd3f795466829747"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5365eae4430d169ddd3f795466829747">reject</a> () override</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Modal dialog with the two telemetry choices, usage statistics and diagnostic reports. Save choices writes both through <a class="el" href="class_telemetry_consent.html#a10d7694f3a76c3e8bc32f71b7424e3ec">TelemetryConsent::save</a> and keeps the dialog open with an error when that fails. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a01b3ae771b63d054267e854b8a852f31" name="a01b3ae771b63d054267e854b8a852f31"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a01b3ae771b63d054267e854b8a852f31">&#9670;&#160;</a></span>TelemetryConsentDialog()</h2>
 
@@ -164,6 +168,7 @@ Protected Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>consent is not owned and must outlive the dialog. domain is shown as the receiving domain. On the initial prompt both boxes start checked; otherwise they show the saved choices. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -196,6 +201,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The diagnostic reports check box, owned by the dialog. </p>
+
 </div>
 </div>
 <a id="a5365eae4430d169ddd3f795466829747" name="a5365eae4430d169ddd3f795466829747"></a>
@@ -220,6 +227,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Not now, Escape and closing the window. On the initial prompt it saves both choices as disabled; otherwise it changes nothing. </p>
 
 </div>
 </div>
@@ -245,6 +253,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The usage statistics check box, owned by the dialog. </p>
 
 </div>
 </div>

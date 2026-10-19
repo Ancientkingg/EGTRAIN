@@ -124,6 +124,7 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a63aff60ffeeea563d18ef17a5388b88c" id="r_a63aff60ffeeea563d18ef17a5388b88c"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a63aff60ffeeea563d18ef17a5388b88c">TelemetrySender</a> (<a class="el" href="struct_telemetry_context.html">TelemetryContext</a> context, <a class="el" href="structtelemetry_1_1_application.html">Application</a> application, QString privateDirectory)</td></tr>
 <tr class="memitem:a6612c1bd64f0598bc2ee2ab337527337" id="r_a6612c1bd64f0598bc2ee2ab337527337"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a6612c1bd64f0598bc2ee2ab337527337">~TelemetrySender</a> ()</td></tr>
+<tr class="memdesc:a6612c1bd64f0598bc2ee2ab337527337"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls <a class="el" href="#acb1b449e3a4de6b4c11ef128f35e9beb">stop()</a>. The worker exits by itself; nothing waits for it or for delivery.  <br /></td></tr>
 <tr class="memitem:af8f44967ffcc8ebbe8b06adc759a528e" id="r_af8f44967ffcc8ebbe8b06adc759a528e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#af8f44967ffcc8ebbe8b06adc759a528e">TelemetrySender</a> (const TelemetrySender &amp;)=delete</td></tr>
 <tr class="memitem:ad8e54185e46801321ca2d7c658372801" id="r_ad8e54185e46801321ca2d7c658372801"><td class="memItemLeft"><a class="el" href="#a63aff60ffeeea563d18ef17a5388b88c">TelemetrySender</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad8e54185e46801321ca2d7c658372801">operator=</a> (const <a class="el" href="#a63aff60ffeeea563d18ef17a5388b88c">TelemetrySender</a> &amp;)=delete</td></tr>
 <tr class="memitem:ab541d770d96bd7a8f18623eadb186bbd" id="r_ab541d770d96bd7a8f18623eadb186bbd"><td class="memItemLeft"><a class="el" href="classtelemetry_1_1_telemetry_sender_1_1_operation_token.html">OperationToken</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab541d770d96bd7a8f18623eadb186bbd">captureOperation</a> () noexcept</td></tr>
@@ -135,7 +136,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab04a761b9bbcbecbaa997b1b2001d09c" id="r_ab04a761b9bbcbecbaa997b1b2001d09c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab04a761b9bbcbecbaa997b1b2001d09c">requestConsentRefresh</a> () noexcept</td></tr>
 <tr class="memitem:acb1b449e3a4de6b4c11ef128f35e9beb" id="r_acb1b449e3a4de6b4c11ef128f35e9beb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#acb1b449e3a4de6b4c11ef128f35e9beb">stop</a> () noexcept</td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Sends usage and diagnostic events to the compiled receiver from a worker thread of its own. Producers on any thread hand events to an in-memory ring of 128 entries without waiting. Once a second the worker re-reads consent through its own <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a>, stores events in a <a class="el" href="classtelemetry_1_1_telemetry_queue.html">TelemetryQueue</a> and posts batches over HTTPS, handling each response as the HTTP outcomes of docs/telemetry/README.md say. Only the process that owns the queue sends; in others every event is dropped. A sender whose context is not capable, or whose construction fails, starts no thread and accepts nothing. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a63aff60ffeeea563d18ef17a5388b88c" name="a63aff60ffeeea563d18ef17a5388b88c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63aff60ffeeea563d18ef17a5388b88c">&#9670;&#160;</a></span>TelemetrySender() <span class="overload">[1/2]</span></h2>
 
@@ -159,6 +162,7 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts the worker when context is capable, application is valid once its platform and architecture are replaced by those of this build, privateDirectory is not empty and the endpoint has at most 2048 UTF-8 bytes. privateDirectory is the folder of the queue. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -181,6 +185,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Calls <a class="el" href="#acb1b449e3a4de6b4c11ef128f35e9beb">stop()</a>. The worker exits by itself; nothing waits for it or for delivery. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +248,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The authorization of both categories at the start of an operation. It is invalid when the sender has stopped or its lock is busy, as it never waits. Product observations must carry entry-time authorization, never retry capture. </p>
 
 </div>
 </div>
@@ -271,6 +278,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Closes the named categories at once, drops their waiting events and invalidates tokens taken before; the worker purges their queued events and opens them again after its next consent read. Connected directly to <a class="el" href="class_telemetry_consent.html#aa2a6f614789138e111424c8b482d3b4e">TelemetryConsent::revoked</a>. Never waits. </p>
 
 </div>
 </div>
@@ -296,6 +304,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Invalidates both categories; the worker purges every queued event and sends nothing more in this run. Connected directly to <a class="el" href="class_telemetry_consent.html#a1441ab8158feface13517d832495d246">TelemetryConsent::receiverChanged</a>. Never waits. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -356,6 +365,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Asks the worker to re-read consent at its next tick, within about 50 ms, instead of at its next poll. </p>
 
 </div>
 </div>
@@ -381,6 +391,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Explicit interactive lifetime request, attempted once at first enabled usage: the worker then stores one session.started event. Ignored when the context is not interactive. </p>
 
 </div>
 </div>
@@ -406,6 +417,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Stops taking in events at once. The worker aborts a running request and exits; queued events stay on disk. Never waits. </p>
 
 </div>
 </div>
@@ -431,6 +443,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Takes in input without a token, still only while its category is enabled and the ring has room. Only the sender tests use it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -465,6 +478,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Takes in input, dated now, when its category was authorized in token, consent has not been invalidated since, and the ring has room. Never waits; returns false when input is dropped. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
