@@ -203,7 +203,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ...">
+<g id="a_Node000010"><a xlink:href="class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" target="_top" xlink:title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case.">
 <polygon fill="white" stroke="#666666" points="839,-104.5 733,-104.5 733,-74.5 839,-74.5 839,-104.5"/>
 <text text-anchor="start" x="741" y="-92.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters::</text>
 <text text-anchor="middle" x="786" y="-81.5" font-family="Helvetica,sans-Serif" font-size="10.00">InitialParameters</text>

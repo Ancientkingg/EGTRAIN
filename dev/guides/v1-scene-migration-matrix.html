@@ -432,15 +432,11 @@ without guessing.</p>
 <td><p>derived/output</p></td>
 <td><p>The native GUI derives fallback layout from canonical node and station coordinates when the explicit <code class="docutils literal notranslate"><span class="pre">views.json</span></code> sources are absent. Historical virtual-link and HTML-template files are not a second infrastructure model and are no longer normal runtime input.</p></td>
 </tr>
-<tr class="row-even"><td><p>RailML/XML</p></td>
-<td><p>output/interoperability</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">RttpXml</span></code> serializes traffic state and route choice for exchange; it does not import a V1 scene.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rand1.seed</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rand1.seed</span></code></p></td>
 <td><p>dead/inert</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">NumberGenerator</span></code> does not read or write a seed file. The seed of the random draws is the run setting <code class="docutils literal notranslate"><span class="pre">--seed</span></code>, which defaults to 789350715 and is recorded as <code class="docutils literal notranslate"><span class="pre">random_seed</span></code> in result provenance. It is not case input and not a scene field.</p></td>
 </tr>
-<tr class="row-even"><td><p>unknown-case compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> mapping</p></td>
+<tr class="row-odd"><td><p>unknown-case compiled <code class="docutils literal notranslate"><span class="pre">InitialParameters</span></code> mapping</p></td>
 <td><p>unresolved</p></td>
 <td><p>The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a <code class="docutils literal notranslate"><span class="pre">set_case</span></code> branch. Without an <code class="docutils literal notranslate"><span class="pre">EGTRAINInitialParameters.json</span></code> import leaves them absent and records the unresolved mapping.</p></td>
 </tr>

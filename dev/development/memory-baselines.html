@@ -306,7 +306,7 @@ python3<span class="w"> </span>tools/memory/measure_peak_rss.py<span class="w"> 
 </div>
 <p>The tool runs Copenhagen first and Milano-Brescia second. Both use the same
 executable and the native full headless scenario:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;absolute-scene-directory&gt; -g 0 -TSM 0 -RC 0
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;absolute-scene-directory&gt; -g 0
 </pre></div>
 </div>
 <p>The source metric is macOS <code class="docutils literal notranslate"><span class="pre">/usr/bin/time</span> <span class="pre">-l</span></code>’s <code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">resident</span> <span class="pre">set</span> <span class="pre">size</span></code>,
@@ -433,7 +433,7 @@ Milano-Brescia.</p>
 <p>The idle memory is what the process holds before it has loaded a network. It is
 measured by starting the executable with a scene path that does not exist: the
 process initialises, reports the missing scene and exits.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;path-that-does-not-exist&gt; -g 0 -TSM 0 -RC 0
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/usr/bin/time -l &lt;app&gt; --scene &lt;path-that-does-not-exist&gt; -g 0
 </pre></div>
 </div>
 <p>Three runs of the same executable gave a <code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">resident</span> <span class="pre">set</span> <span class="pre">size</span></code> of

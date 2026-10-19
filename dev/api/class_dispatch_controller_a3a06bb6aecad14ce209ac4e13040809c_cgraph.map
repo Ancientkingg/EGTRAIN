@@ -98,7 +98,7 @@
 <area shape="poly" id="edge59_Node000035_Node000005" title=" " alt="" coords="1400,1026,1664,630,1669,633,1404,1029"/>
 <area shape="poly" id="edge60_Node000035_Node000007" title=" " alt="" coords="1394,1027,1412,957,1445,846,1491,713,1550,581,1577,533,1607,486,1661,414,1666,418,1612,489,1581,535,1554,583,1496,715,1450,848,1417,959,1399,1028"/>
 <area shape="poly" id="edge63_Node000035_Node000020" title=" " alt="" coords="1460,1025,1601,999,1602,1004,1461,1031"/>
-<area shape="rect" id="Node000036" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ..." alt="" coords="1613,1023,1755,1063"/>
+<area shape="rect" id="Node000036" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="1613,1023,1755,1063"/>
 <area shape="poly" id="edge61_Node000035_Node000036" title=" " alt="" coords="1472,1039,1600,1040,1600,1045,1472,1044"/>
 <area shape="rect" id="Node000038" href="$class_stations.html#a4e0f8fc4709bd680154b7be896ca2350" title="Sets the statistics to &#45;1, totalArrivalDelay and the coordinates to 0." alt="" coords="1616,1088,1752,1113"/>
 <area shape="poly" id="edge64_Node000035_Node000038" title=" " alt="" coords="1450,1051,1553,1073,1603,1083,1602,1088,1551,1078,1449,1056"/>

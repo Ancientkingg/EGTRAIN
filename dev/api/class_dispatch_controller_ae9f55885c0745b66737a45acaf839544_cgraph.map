@@ -20,7 +20,7 @@
 <area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="809,196,857,161,887,142,920,126,957,115,959,120,922,131,890,147,859,165,812,201"/>
 <area shape="rect" id="Node000009" href="$class_platform_index.html#ad7fc8710e599a5d0a1cc03a49378f8a6" title="Empties the index." alt="" coords="976,141,1131,167"/>
 <area shape="poly" id="edge11_Node000007_Node000009" title=" " alt="" coords="842,196,921,177,969,167,970,172,922,182,844,201"/>
-<area shape="rect" id="Node000010" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with ..." alt="" coords="983,191,1124,231"/>
+<area shape="rect" id="Node000010" href="$class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f" title="Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case." alt="" coords="983,191,1124,231"/>
 <area shape="poly" id="edge12_Node000007_Node000010" title=" " alt="" coords="873,209,969,209,969,214,873,214"/>
 <area shape="rect" id="Node000012" href="$class_number_generator.html#ab9ff0d6a4b1de6790ad6cdfca2078149" title=" " alt="" coords="921,256,1185,281"/>
 <area shape="poly" id="edge14_Node000007_Node000012" title=" " alt="" coords="844,222,922,241,970,251,969,256,921,246,842,227"/>

@@ -21,10 +21,8 @@ var class_initial_parameters =
     [ "OutputMainFolder", "class_initial_parameters.html#aba98301e71f6d443f7eb331b2f55435d", null ],
     [ "PAX_GUI", "class_initial_parameters.html#a0c8ff8c0bf86bec7fa363ba68dcc3c75", null ],
     [ "randomSeed", "class_initial_parameters.html#ac9495cc1177eb451e6c9980d44419f8b", null ],
-    [ "RChoice", "class_initial_parameters.html#aed326912fee113443cc7e3e4554ecda1", null ],
     [ "recoveryTimeOverride", "class_initial_parameters.html#a8526a0794806fa08ab08d09018bcc18d", null ],
     [ "recoveryTimePercentage", "class_initial_parameters.html#a15da55fd59e27bcc9dc7266a6d6d5086", null ],
     [ "startingSimulationTime", "class_initial_parameters.html#ae87f9cf64954a5c47c91fe06f42c331f", null ],
-    [ "times", "class_initial_parameters.html#a7b8934c1eb300a016b76b123336de56b", null ],
-    [ "TSM", "class_initial_parameters.html#a519f080c43a7b797339cec4a3ba5ec02", null ]
+    [ "times", "class_initial_parameters.html#a7b8934c1eb300a016b76b123336de56b", null ]
 ];

@@ -287,182 +287,17 @@
         <article role="main" id="furo-main-content">
           <section id="external-state-sharing">
 <h1>External state sharing<a class="headerlink" href="#external-state-sharing" title="Link to this heading">¶</a></h1>
-<p>A run shares its state in two ways: over the legacy channels of the options <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code>, which this page describes first, and as the supported <a class="reference internal" href="#live-stream">live stream</a> of <code class="docutils literal notranslate"><span class="pre">--live</span></code>, whose promises are in <a class="reference internal" href="#live-contract-version-1">Live contract version 1</a>. <a class="reference internal" href="../guides/live-sharing.html"><span class="std std-doc">Sharing a live run</span></a> is the guide for a client.</p>
-<p>With the options <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code>, EGTRAIN sends its state to an external module while a simulation runs. Both channels are output only. The receiving module is not part of this repository, and the code does not say what it expects, so this page does not guess. There is no input path: the only thing that comes back is a reply, which is logged and dropped. The messages carry no version and no schema, and no compatibility promise covers them. This is a legacy output channel and not a supported realtime interface.</p>
-<p>The two legacy channels are not the way to build a consumer. Use the live stream.</p>
-<p>This page describes the code as it is. Function names are given so that a maintainer can find them. The live stream and the <a class="reference internal" href="#live-server">live server</a> that carries it are described after the legacy channels.</p>
-<section id="enablement">
-<h2>Enablement<a class="headerlink" href="#enablement" title="Link to this heading">¶</a></h2>
-<div class="table-wrapper colwidths-auto docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Option</p></th>
-<th class="head"><p>Channel</p></th>
-<th class="head"><p>Endpoint</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-TSM</span> <span class="pre">&lt;int&gt;</span></code></p></td>
-<td><p>traffic state</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tcp://127.0.0.1:5555</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">&lt;int&gt;</span></code></p></td>
-<td><p>passenger route choice</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tcp://127.0.0.1:5556</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">parseCmdOptions</span></code> (<code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code>) reads both options with <code class="docutils literal notranslate"><span class="pre">std::atoi</span></code>. Any nonzero value switches the channel on. The default is 0.</p></li>
-<li><p>The options are deprecated and kept for one release. When either is nonzero, whether from the command line or from the <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> questions, <code class="docutils literal notranslate"><span class="pre">parseCmdOptions</span></code> prints one line on standard error: <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">-TSM</span> <span class="pre">and</span> <span class="pre">-RC</span> <span class="pre">are</span> <span class="pre">legacy</span> <span class="pre">options,</span> <span class="pre">kept</span> <span class="pre">for</span> <span class="pre">one</span> <span class="pre">release.</span> <span class="pre">Use</span> <span class="pre">--live</span> <span class="pre">&lt;port&gt;</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">supported</span> <span class="pre">live</span> <span class="pre">stream.</span></code> Nothing else about the channels changes.</p></li>
-<li><p>The options exist on the command line only. <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> asks for both when the command line leaves them out (see <a class="reference internal" href="../guides/command-line.html"><span class="std std-doc">Command-line options</span></a>). The window has no control for them, but a window run sends when the option was given at the start. The provenance file of exported results records both values as <code class="docutils literal notranslate"><span class="pre">tsm_mode</span></code> and <code class="docutils literal notranslate"><span class="pre">route_choice_mode</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">1</span></code> needs a usable passenger journey in the prepared run. <a class="reference external" href="../api/class_dispatch_controller.html"><code class="docutils literal notranslate"><span class="pre">DispatchController::prepareScene</span></code></a> rejects the run otherwise, with the diagnostic <code class="docutils literal notranslate"><span class="pre">scene.route_choice.passengers.none</span></code> (<code class="docutils literal notranslate"><span class="pre">test_route_choice_missing_data</span></code>).</p></li>
-<li><p>With both options at 0, no socket is created and nothing is bound or sent: <code class="docutils literal notranslate"><span class="pre">send_external_state</span></code> is called only from the two blocks of the step loop that these options guard. The ZeroMQ context is made by the first send, so such a run holds no context either.</p></li>
-</ul>
-</section>
-<section id="when-it-sends">
-<h2>When it sends<a class="headerlink" href="#when-it-sends" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>) runs the step loop. In every step it tries to send one message per channel that is on. The messages come after train movement, after train and passenger interaction (which also fills the traffic-state data when <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> is on) and before the signalling clean-up of the same step. The traffic-state message goes first.</p>
-<p>At the top of each step the loop waits while a pause is requested and ends when a stop is requested, so a paused step sends nothing. Pause, stop, the step delay and a bounded queue of 16 commands belong to a <a class="reference external" href="../api/class_run_control.html"><code class="docutils literal notranslate"><span class="pre">RunControl</span></code></a> (<code class="docutils literal notranslate"><span class="pre">simulation/RunControl.h</span></code>), which every run has. At the top of the step, before any train moves, <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code> applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the <a class="reference external" href="../api/class_simulation_worker.html"><code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code></a>, which forwards the window’s requests to it, and <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> finds it through <code class="docutils literal notranslate"><span class="pre">SimulationWorker::active()</span></code>. A <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run makes a control for itself. With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code>, <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> hands the commands of live clients to that control (see <a class="reference internal" href="#commands">Commands</a>); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (<a class="reference external" href="../api/class_run_controller.html"><code class="docutils literal notranslate"><span class="pre">RunController::startSimulation</span></code></a>). In a <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run it runs on the main thread (<code class="docutils literal notranslate"><span class="pre">main</span></code>).</p>
-<p>Before each send, the XML text of the message is logged in the category <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code> at level <code class="docutils literal notranslate"><span class="pre">debug</span></code>, whether or not the send succeeds. It follows the line <code class="docutils literal notranslate"><span class="pre">Sending</span> <span class="pre">the</span> <span class="pre">following</span> <span class="pre">Traffic</span> <span class="pre">State</span> <span class="pre">XML</span> <span class="pre">file</span></code> or <code class="docutils literal notranslate"><span class="pre">Sending</span> <span class="pre">the</span> <span class="pre">following</span> <span class="pre">Route</span> <span class="pre">Choice</span> <span class="pre">XML</span> <span class="pre">file</span></code>. A reply is logged in the same category and level as <code class="docutils literal notranslate"><span class="pre">Received</span> <span class="pre">from</span> <span class="pre">&lt;endpoint&gt;:&lt;reply&gt;</span></code>. With the default settings of the logging core these lines go to standard output. The step loop ignores the result of <code class="docutils literal notranslate"><span class="pre">send_external_state</span></code>.</p>
-</section>
-<section id="transport">
-<h2>Transport<a class="headerlink" href="#transport" title="Link to this heading">¶</a></h2>
-<p>The application connects to the endpoints and does not bind; the module has to bind. The two endpoints are fixed strings in <code class="docutils literal notranslate"><span class="pre">DispatchController.cpp</span></code>, and there is no option for a host or a port.</p>
-<p><code class="docutils literal notranslate"><span class="pre">send_external_state</span></code> (<code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code>) keeps one ZeroMQ REQ socket per endpoint in a map that, like the ZeroMQ context, is a function-local static made by the first send. At exit the sockets are destroyed before the context. A send creates the socket of its endpoint when there is none, with linger 0, immediate 1, and a send and receive timeout of 100 ms (<code class="docutils literal notranslate"><span class="pre">TransportTimeoutMs</span></code>). The send itself uses <code class="docutils literal notranslate"><span class="pre">dontwait</span></code>, so the send timeout is not used. The wait for a reply uses the receive timeout.</p>
-<div class="table-wrapper colwidths-auto docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Situation</p></th>
-<th class="head"><p>What happens</p></th>
-<th class="head"><p>Result</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>No completed connection to a module: no module is running, or the socket was created in this call and its connection is not complete yet</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">immediate</span></code> is 1 and the send uses <code class="docutils literal notranslate"><span class="pre">dontwait</span></code>, so the send fails at once. Nothing is waited for, and the socket is kept.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Connection complete, no reply within 100 ms</p></td>
-<td><p>The receive wait ends after 100 ms. The socket is destroyed, and the next send creates a new one.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Reply</p></td>
-<td><p>The reply is logged and dropped.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Exception</p></td>
-<td><p>The message is logged in the category <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code> at level <code class="docutils literal notranslate"><span class="pre">warning</span></code>, and the socket is destroyed.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The receive wait can take up to 100 ms per channel and step. <code class="docutils literal notranslate"><span class="pre">tests/test_rttp.cpp</span></code> repeats a send up to 20 times, 10 ms apart, until one returns <code class="docutils literal notranslate"><span class="pre">true</span></code>: a first send on a new socket can return <code class="docutils literal notranslate"><span class="pre">false</span></code> although a module is listening.</p>
-</section>
-<section id="the-message">
-<h2>The message<a class="headerlink" href="#the-message" title="Link to this heading">¶</a></h2>
-<p>Each message is one ZeroMQ part with UTF-8 JSON text (<code class="docutils literal notranslate"><span class="pre">nlohmann::json::dump</span></code>). It holds the payload object and one string member <code class="docutils literal notranslate"><span class="pre">xml</span></code> with the XML text of the same message. The members of a JSON object are in the sorted order of their keys.</p>
-<section id="traffic-state">
-<h3>Traffic state<a class="headerlink" href="#traffic-state" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">time</span></code> is the step number <code class="docutils literal notranslate"><span class="pre">t</span></code>. A step is <code class="docutils literal notranslate"><span class="pre">timestep</span></code> seconds long, and <code class="docutils literal notranslate"><span class="pre">timestep</span></code> is the constant 1 (<code class="docutils literal notranslate"><span class="pre">simulation/Infrastructure.h</span></code>). <code class="docutils literal notranslate"><span class="pre">trains</span></code> is an object keyed by the train description, which is the service id, <code class="docutils literal notranslate"><span class="pre">-</span></code> and the occurrence. It holds every train of the run in every message, also a train that is not due yet. Each train has these members:</p>
-<div class="table-wrapper colwidths-auto docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Member</p></th>
-<th class="head"><p>Unit</p></th>
-<th class="head"><p>How it is made</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">km-point</span></code></p></td>
-<td><p>km</p></td>
-<td><p>The head position from <a class="reference external" href="../api/class_train.html"><code class="docutils literal notranslate"><span class="pre">Train::trainXPosition(t)</span></code></a>: the coordinate of the start of the block section that holds the head, plus the distance into that section (minus it on a reversed route), divided by 1000. Rounded up to 0.01 km. It is -1 when the head is in no block section of the route, that is, when the train is not located.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">speed</span></code></p></td>
-<td><p>km/h</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">instant_train_speed[t]</span></code> times 3.6, rounded up to 0.01.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BlockOccupied</span></code></p></td>
-<td><p>text</p></td>
-<td><p>The id of the block section in <code class="docutils literal notranslate"><span class="pre">Train::Bs</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lastOccTime</span></code></p></td>
-<td><p>step number</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Train::ComputeLastOccupationTime_real_time</span></code> with the id in <code class="docutils literal notranslate"><span class="pre">BlockOccupied</span></code> and entry time 10. It looks for the first step <code class="docutils literal notranslate"><span class="pre">p</span></code> from 11 up to <code class="docutils literal notranslate"><span class="pre">t</span></code> at which <code class="docutils literal notranslate"><span class="pre">instant_spatial_position[p]</span></code> has reached the start of the block section with that id in the route, and returns <code class="docutils literal notranslate"><span class="pre">p</span></code>. It returns 0 when there is none, so it is never negative. When no block section of the route has the id, it uses the first block section of the route.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">direction</span></code></p></td>
-<td><p>boolean</p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">reversed_direction</span></code> flag of the route of the train.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">depTime</span></code></p></td>
-<td><p>step number</p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">departure_time</span></code> of the train.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">trackID</span></code></p></td>
-<td><p>text</p></td>
-<td><p>Present only once the train is due (<code class="docutils literal notranslate"><span class="pre">departure_time</span> <span class="pre">&lt;=</span> <span class="pre">t</span></code>). The part of the block section id after its first <code class="docutils literal notranslate"><span class="pre">-</span></code>, without its last character.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">inArea</span></code></p></td>
-<td><p>0 or 1</p></td>
-<td><p>1 from the step the train is due, and it stays 1 after the train has left the network.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="route-choice">
-<h3>Route choice<a class="headerlink" href="#route-choice" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">routeChoicePayload</span></code> (<code class="docutils literal notranslate"><span class="pre">simulation/Passengers.cpp</span></code>) gives <code class="docutils literal notranslate"><span class="pre">time</span></code>, the step number, and <code class="docutils literal notranslate"><span class="pre">passengers</span></code>, an object with one member for each passenger that is in the network and has a current journey. The key is the passenger id followed by <code class="docutils literal notranslate"><span class="pre">--1.0</span></code>. The members are <code class="docutils literal notranslate"><span class="pre">origin</span></code> and <code class="docutils literal notranslate"><span class="pre">destination</span></code>, the ids of the departure and arrival station of the journey, and <code class="docutils literal notranslate"><span class="pre">departure_time</span></code>, the time at which the journey starts, as a whole number of seconds of the day. A passenger starts a journey when the start time of day plus <code class="docutils literal notranslate"><span class="pre">t</span></code> reaches that value.</p>
-</section>
-</section>
-<section id="the-xml">
-<h2>The XML<a class="headerlink" href="#the-xml" title="Link to this heading">¶</a></h2>
-<p>Both builders in <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code> write the XML declaration (version 1.0, encoding UTF-8, standalone yes), then the comment <code class="docutils literal notranslate"><span class="pre">Generated</span> <span class="pre">by</span> <span class="pre">EGTRAIN</span> <span class="pre">on</span></code> followed by the local date and time at which the message is made, then the root element, indented with two spaces.</p>
-<p><code class="docutils literal notranslate"><span class="pre">trafficStateMonitoring_xml</span></code> writes this outline:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>trafficState                  currentTime
-  trainStateInArea            one for each train with inArea 1
-    trainID                   trainNumber
-    trainPosition             trackID travelDirection posOnTrack
-                              currentTrackVacancyDetectionSection lastOccupationTime
-    speed                     text
-  trainStateOutArea           one for each other train
-    trainID                   trainNumber expectedEntranceTime
-</pre></div>
-</div>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">trainNumber</span></code> is the key of the train. The elements of both names stand in one sequence in the sorted order of these keys, not in the order of the timetable.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trackID</span></code> and <code class="docutils literal notranslate"><span class="pre">currentTrackVacancyDetectionSection</span></code> hold <code class="docutils literal notranslate"><span class="pre">trackID</span></code> and <code class="docutils literal notranslate"><span class="pre">BlockOccupied</span></code>. <code class="docutils literal notranslate"><span class="pre">travelDirection</span></code> is <code class="docutils literal notranslate"><span class="pre">1</span></code> when <code class="docutils literal notranslate"><span class="pre">direction</span></code> is false and <code class="docutils literal notranslate"><span class="pre">-1</span></code> when it is true. <code class="docutils literal notranslate"><span class="pre">posOnTrack</span></code> holds <code class="docutils literal notranslate"><span class="pre">km-point</span></code> as JSON text.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lastOccupationTime</span></code> is written when <code class="docutils literal notranslate"><span class="pre">lastOccTime</span></code> is not negative, which is the case for every <code class="docutils literal notranslate"><span class="pre">trainStateInArea</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">speed</span></code> holds the km/h value as text made with <code class="docutils literal notranslate"><span class="pre">std::to_string</span></code> of a double.</p></li>
-<li><p>In <code class="docutils literal notranslate"><span class="pre">trainStateOutArea</span></code> the attribute <code class="docutils literal notranslate"><span class="pre">expectedEntranceTime</span></code> sits on <code class="docutils literal notranslate"><span class="pre">trainID</span></code>.</p></li>
-</ul>
-<p><code class="docutils literal notranslate"><span class="pre">routeChoice_xml</span></code> writes this outline:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>routeChoiceRequest            currentTime
-  person                      person_id trip_id, one for each passenger
-    origin                    text
-    destination               text
-    departure_time            text, a whole number
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">person_id</span></code> is the key of the passenger in the payload, and <code class="docutils literal notranslate"><span class="pre">trip_id</span></code> is always <code class="docutils literal notranslate"><span class="pre">1</span></code>. With no passenger in the payload the root is empty.</p>
-<p><code class="docutils literal notranslate"><span class="pre">currentTime</span></code> is local midnight of the day on which the message is made, plus the start time of day, plus <code class="docutils literal notranslate"><span class="pre">t</span></code> seconds; a sum past 24 hours gives the next day. <code class="docutils literal notranslate"><span class="pre">lastOccupationTime</span></code> and <code class="docutils literal notranslate"><span class="pre">expectedEntranceTime</span></code> are counted the same way, with <code class="docutils literal notranslate"><span class="pre">lastOccTime</span></code> or <code class="docutils literal notranslate"><span class="pre">depTime</span></code> seconds in place of <code class="docutils literal notranslate"><span class="pre">t</span></code>. The start time of day is <code class="docutils literal notranslate"><span class="pre">initial_variables.startingSimulationTime</span></code>, the start time of the scene. Every time is written as <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span> <span class="pre">HH:MM:SS.000</span> <span class="pre">CEST</span></code>, with the literal text <code class="docutils literal notranslate"><span class="pre">CEST</span></code>.</p>
-</section>
-<section id="known-limits">
-<h2>Known limits<a class="headerlink" href="#known-limits" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p>Both builders write the literal <code class="docutils literal notranslate"><span class="pre">CEST</span></code> whatever the time zone of the machine. The date is the date of the machine, not of the scene.</p></li>
-<li><p>The traffic-state JSON object is declared once for the whole step loop and updated in place. A train stays in it after it has left the network, and <code class="docutils literal notranslate"><span class="pre">inArea</span></code> stays 1 because it depends only on <code class="docutils literal notranslate"><span class="pre">departure_time</span> <span class="pre">&lt;=</span> <span class="pre">t</span></code>.</p></li>
-<li><p>When a module does not answer within 100 ms, the socket is destroyed, and the next send goes through a new socket whose connection may not be complete. That send can return <code class="docutils literal notranslate"><span class="pre">false</span></code> at once. The retry loop in <code class="docutils literal notranslate"><span class="pre">tests/test_rttp.cpp</span></code> is the sign that this happens.</p></li>
-</ul>
+<p>A run shares its state as the <a class="reference internal" href="#live-stream">live stream</a> of <code class="docutils literal notranslate"><span class="pre">--live</span></code>, whose promises are in <a class="reference internal" href="#live-contract-version-1">Live contract version 1</a>. <a class="reference internal" href="../guides/live-sharing.html"><span class="std std-doc">Sharing a live run</span></a> is the guide for a client. The options <code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code> are removed: a start that passes either stops with exit code 1 and an error that names <code class="docutils literal notranslate"><span class="pre">--live</span></code>.</p>
+<p>This page describes the code as it is. Function names are given so that a maintainer can find them.</p>
+<section id="the-step-loop">
+<h2>The step loop<a class="headerlink" href="#the-step-loop" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DispatchController::Train_Simulation_Mixed_Signalling_With_Passengers</span></code> (<code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code>) runs the step loop. At the top of each step the loop waits while a pause is requested and ends when a stop is requested. Pause, stop, the step delay and a bounded queue of 16 commands belong to a <a class="reference external" href="../api/class_run_control.html"><code class="docutils literal notranslate"><span class="pre">RunControl</span></code></a> (<code class="docutils literal notranslate"><span class="pre">simulation/RunControl.h</span></code>), which every run has. At the top of the step, before any train moves, <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code> applies the queued commands in the order in which they were submitted, and then checks pause, stop and the delay. In a window run the control belongs to the <a class="reference external" href="../api/class_simulation_worker.html"><code class="docutils literal notranslate"><span class="pre">SimulationWorker</span></code></a>, which forwards the window’s requests to it, and <code class="docutils literal notranslate"><span class="pre">runSimulation</span></code> finds it through <code class="docutils literal notranslate"><span class="pre">SimulationWorker::active()</span></code>. A <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run makes a control for itself. With <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code>, <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> hands the commands of live clients to that control (see <a class="reference internal" href="#commands">Commands</a>); nothing else in the application submits a command to it. In a window run the step loop runs on the worker thread (<a class="reference external" href="../api/class_run_controller.html"><code class="docutils literal notranslate"><span class="pre">RunController::startSimulation</span></code></a>). In a <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span></code> run it runs on the main thread (<code class="docutils literal notranslate"><span class="pre">main</span></code>).</p>
 </section>
 <section id="what-is-not-an-interface">
 <h2>What is not an interface<a class="headerlink" href="#what-is-not-an-interface" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">read_rttp_train_view</span></code> and <code class="docutils literal notranslate"><span class="pre">read_rttp_infra_view</span></code> in <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code> read an RTTP XML text and log what they find in the category <code class="docutils literal notranslate"><span class="pre">io.railml</span></code> at level <code class="docutils literal notranslate"><span class="pre">debug</span></code>. A text that does not parse is logged at level <code class="docutils literal notranslate"><span class="pre">error</span></code>. The application does not call them. Only <code class="docutils literal notranslate"><span class="pre">tests/test_rttp.cpp</span></code> calls <code class="docutils literal notranslate"><span class="pre">read_rttp_train_view</span></code>. Nothing calls <code class="docutils literal notranslate"><span class="pre">read_rttp_infra_view</span></code>.</p></li>
 <li><p>The files written during a run are results and not a protocol, and no code in <code class="docutils literal notranslate"><span class="pre">EGTRAIN/QEGTRAIN</span></code> reads them. <code class="docutils literal notranslate"><span class="pre">printCurrentPassengerStatus</span></code> writes <code class="docutils literal notranslate"><span class="pre">PassengerStatus/PassengerStatus.txt</span></code> once, after the step loop. <code class="docutils literal notranslate"><span class="pre">Train::printTrainArrDepMsg</span></code>, called from <code class="docutils literal notranslate"><span class="pre">Train::checkTrainArrDep</span></code>, appends one line to <code class="docutils literal notranslate"><span class="pre">Rescheduling/EGTRAINOutput.txt</span></code> when a train has stopped at its last station.</p></li>
-<li><p>Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> the application opens no listening socket, local server or named pipe. The legacy ZeroMQ code only connects, and its reply from a module is logged and not used. The live server below binds sockets, and only a start with <code class="docutils literal notranslate"><span class="pre">--live</span></code> creates it. The only reads from standard input are the <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> questions in <code class="docutils literal notranslate"><span class="pre">parseCmdOptions</span></code>.</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">--live</span></code> the application opens no listening socket, local server or named pipe. The live server below binds sockets, and only a start with <code class="docutils literal notranslate"><span class="pre">--live</span></code> creates it. The only reads from standard input are the <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> questions in <code class="docutils literal notranslate"><span class="pre">parseCmdOptions</span></code>.</p></li>
 <li><p>The window controls for pause, stop and speed exist only for a run in the window. A run without a window, or a window run that a client controls, takes the commands of the live stream instead (see <a class="reference internal" href="#commands">Commands</a>).</p></li>
 </ul>
 </section>
@@ -668,15 +503,15 @@
 <li><p>A window run that the test closes at its first displayed step (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_CLOSE_DURING_RUN</span></code>): the client sees <code class="docutils literal notranslate"><span class="pre">steps_finished</span></code> with fewer steps than the horizon and then <code class="docutils literal notranslate"><span class="pre">run_finished</span></code> with <code class="docutils literal notranslate"><span class="pre">cancelled</span></code>.</p></li>
 <li><p>A scripted window run that runs the case twice (<code class="docutils literal notranslate"><span class="pre">QEGTRAIN_E2E_OPERATIONAL_COMPLETION</span></code>), registered on macOS only like the other scripted window runs: the client sees two run ids, each with its hello and its frames.</p></li>
 <li><p>Each option that is not valid, and a port that is in use.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-TSM</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">1</span></code> and the answers of <code class="docutils literal notranslate"><span class="pre">--interactive</span></code>: one line of the notice on standard error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code>: refused with exit code 1 and an error that names <code class="docutils literal notranslate"><span class="pre">--live</span></code>.</p></li>
 </ul>
 </section>
 </section>
 <section id="live-contract-version-1">
 <h2>Live contract version 1<a class="headerlink" href="#live-contract-version-1" title="Link to this heading">¶</a></h2>
 <p>This section is what a consumer of the live stream can rely on. It holds for contract version 1, the value of <code class="docutils literal notranslate"><span class="pre">v</span></code> in every frame, request, reply and in <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code>. The sections around it describe the code that keeps these promises. <a class="reference internal" href="../guides/live-sharing.html"><span class="std std-doc">Sharing a live run</span></a> shows how to start a run with the stream and has a small client.</p>
-<section id="id1">
-<h3>Transport<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<section id="transport">
+<h3>Transport<a class="headerlink" href="#transport" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The run publishes frames on a ZeroMQ PUB socket and, with <code class="docutils literal notranslate"><span class="pre">--live-commands</span></code>, takes requests on a REP socket. Both listen on <code class="docutils literal notranslate"><span class="pre">127.0.0.1</span></code>. There is no host option and no other address, so only programs on the same machine can connect.</p></li>
 <li><p>A client subscribes to the PUB socket, and sends each request through a REQ socket. The addresses and the token of the requests are in <code class="docutils literal notranslate"><span class="pre">live-endpoint.json</span></code> in the output folder of the scene (see <a class="reference internal" href="#sockets">Sockets</a>).</p></li>
@@ -914,7 +749,7 @@
 </section>
 <section id="live-server">
 <h2>Live server<a class="headerlink" href="#live-server" title="Link to this heading">¶</a></h2>
-<p><a class="reference external" href="../api/class_live_server.html"><code class="docutils literal notranslate"><span class="pre">LiveServer</span></code></a> (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.h</span></code>) is the transport of the live contract. The frames are made by <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.h</span></code> and described in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>; the server carries the text of a frame and neither reads nor changes it. It does not use the legacy channels. A <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> that is not started holds no thread, no ZeroMQ context and no socket.</p>
+<p><a class="reference external" href="../api/class_live_server.html"><code class="docutils literal notranslate"><span class="pre">LiveServer</span></code></a> (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.h</span></code>) is the transport of the live contract. The frames are made by <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.h</span></code> and described in <code class="docutils literal notranslate"><span class="pre">docs/live/frame-v1.schema.json</span></code>; the server carries the text of a frame and neither reads nor changes it. A <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> that is not started holds no thread, no ZeroMQ context and no socket.</p>
 <section id="sockets">
 <h3>Sockets<a class="headerlink" href="#sockets" title="Link to this heading">¶</a></h3>
 <div class="table-wrapper colwidths-auto docutils container">
@@ -1039,17 +874,12 @@
 <section id="tests-and-code">
 <h2>Tests and code<a class="headerlink" href="#tests-and-code" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">test_rttp</span></code> (unit) builds both XMLs from a fixed payload and checks the element and attribute names, their nesting and the form of every time, but not the value of a time. It checks that both builders count their time from the same start time of day. It also parses one RTTP train view, checks the parse error text for a broken document, checks that a send without a listener returns <code class="docutils literal notranslate"><span class="pre">false</span></code> in under one second, and checks the JSON envelope (<code class="docutils literal notranslate"><span class="pre">time</span></code> and <code class="docutils literal notranslate"><span class="pre">xml</span></code>) against a REP socket on the loopback address.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_external_sharing_no_listener</span></code> (integration) runs the Paimpol scene with <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">0</span> <span class="pre">-h</span> <span class="pre">1</span> <span class="pre">-TSM</span> <span class="pre">1</span> <span class="pre">-RC</span> <span class="pre">1</span></code> and no listener. It runs one step and expects the run to finish.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_route_choice_missing_data</span></code> (integration) starts the <code class="docutils literal notranslate"><span class="pre">Assignment_Gvc_Gdg_Ut</span></code> scene with <code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">1</span></code> and expects the diagnostic <code class="docutils literal notranslate"><span class="pre">scene.route_choice.passengers.none</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_operationsbuilder</span></code> checks <code class="docutils literal notranslate"><span class="pre">routeChoicePayload</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code> (unit) starts a <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> in the test process and talks to it through ZeroMQ sockets on the loopback address. It covers the endpoint file, the order of frames, the drop policy, a subscriber that never reads, a subscriber that disconnects and one that joins later, restart on the same port, a port in use, malformed, oversized and unauthorised requests, a full command queue, the frames that are sent when the server stops, stopping with clients connected, and producers on four threads. The synthetic producer is the test itself. A new subscriber is made ready by asking for <code class="docutils literal notranslate"><span class="pre">describe</span></code> until the hello arrives, not by waiting.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_livecommand</span></code> (unit) checks <code class="docutils literal notranslate"><span class="pre">parseLiveRequest</span></code> (<code class="docutils literal notranslate"><span class="pre">io/LiveCommand.h</span></code>) on every request that the contract names: each accepted command, each reason, the limits of the size, the id and the delay, the order of the checks, and the id that comes back. It also checks the event frame that reports a command. It uses no socket, thread or run.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code> (integration) plays the commands of the JSON-lines files in <code class="docutils literal notranslate"><span class="pre">tests/live/commands</span></code> against the line fixture in the test process. A <code class="docutils literal notranslate"><span class="pre">LiveServer</span></code> with commands takes the requests, which the test sends through a REQ socket from the thread of the run just before the step each line names, and a reader on another thread follows the stream. The test compares a run that receives <code class="docutils literal notranslate"><span class="pre">pause</span></code>, <code class="docutils literal notranslate"><span class="pre">resume</span></code> and <code class="docutils literal notranslate"><span class="pre">set_delay_ms</span></code> with a run that receives nothing: the same files, standard output and state at each of the 1500 steps. It checks the events with their step numbers, that no state frame comes while the run is paused, a <code class="docutils literal notranslate"><span class="pre">stop</span></code> before step 100 (<code class="docutils literal notranslate"><span class="pre">cancelled</span></code>, 100 steps), a command that arrives before the run (<code class="docutils literal notranslate"><span class="pre">no_active_run</span></code>), a command that arrives after the last step (<code class="docutils literal notranslate"><span class="pre">run_ended</span></code>) and a full control (<code class="docutils literal notranslate"><span class="pre">queue_full</span></code>). It also checks the <code class="docutils literal notranslate"><span class="pre">fetchCommands</span></code> argument of <code class="docutils literal notranslate"><span class="pre">RunControl::beginStep</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code> (integration) runs the application with <code class="docutils literal notranslate"><span class="pre">--live</span></code> and reads the stream with <code class="docutils literal notranslate"><span class="pre">live_client</span></code>; see <a class="reference internal" href="#a-client-and-its-test">A client and its test</a>.</p></li>
-<li><p>No test covers the traffic-state JSON that the step loop builds.</p></li>
 </ul>
-<p>The library <code class="docutils literal notranslate"><span class="pre">egtrain_rttp</span></code> is built from two sources. <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code> holds the two XML builders and the two RTTP readers, which <code class="docutils literal notranslate"><span class="pre">io/RttpXml.h</span></code> declares. <code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code> holds the sender, which <code class="docutils literal notranslate"><span class="pre">io/ExternalState.h</span></code> declares as <code class="docutils literal notranslate"><span class="pre">send_external_state</span></code>. The library links <code class="docutils literal notranslate"><span class="pre">egtrain_pugixml</span></code>, <code class="docutils literal notranslate"><span class="pre">nlohmann_json</span></code> and cppzmq. See <a class="reference internal" href="source-layout.html#libraries"><span class="std std-ref">Libraries</span></a>. The live server is in <code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code>, which is built from <code class="docutils literal notranslate"><span class="pre">io/LiveCommand.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code> and links <code class="docutils literal notranslate"><span class="pre">nlohmann_json</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code> and cppzmq. It does not use Qt. <code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> links it, and <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> is its only user in the application.</p>
+<p>The live server is in <code class="docutils literal notranslate"><span class="pre">egtrain_live</span></code>, which is built from <code class="docutils literal notranslate"><span class="pre">io/LiveCommand.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">io/LiveFrame.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code> and links <code class="docutils literal notranslate"><span class="pre">nlohmann_json</span></code>, <code class="docutils literal notranslate"><span class="pre">egtrain_util</span></code> and cppzmq. It does not use Qt. <code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> links it, and <code class="docutils literal notranslate"><span class="pre">DispatchController</span></code> is its only user in the application.</p>
 </section>
 </section>
 
@@ -1109,16 +939,7 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">External state sharing</a><ul>
-<li><a class="reference internal" href="#enablement">Enablement</a></li>
-<li><a class="reference internal" href="#when-it-sends">When it sends</a></li>
-<li><a class="reference internal" href="#transport">Transport</a></li>
-<li><a class="reference internal" href="#the-message">The message</a><ul>
-<li><a class="reference internal" href="#traffic-state">Traffic state</a></li>
-<li><a class="reference internal" href="#route-choice">Route choice</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#the-xml">The XML</a></li>
-<li><a class="reference internal" href="#known-limits">Known limits</a></li>
+<li><a class="reference internal" href="#the-step-loop">The step loop</a></li>
 <li><a class="reference internal" href="#what-is-not-an-interface">What is not an interface</a></li>
 <li><a class="reference internal" href="#live-stream">Live stream</a><ul>
 <li><a class="reference internal" href="#what-a-run-publishes">What a run publishes</a></li>
@@ -1129,7 +950,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#live-contract-version-1">Live contract version 1</a><ul>
-<li><a class="reference internal" href="#id1">Transport</a></li>
+<li><a class="reference internal" href="#transport">Transport</a></li>
 <li><a class="reference internal" href="#frames">Frames</a></li>
 <li><a class="reference internal" href="#units-and-coordinates">Units and coordinates</a></li>
 <li><a class="reference internal" href="#ordering">Ordering</a></li>

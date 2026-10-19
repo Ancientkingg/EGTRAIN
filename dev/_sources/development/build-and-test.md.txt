@@ -93,9 +93,9 @@ With a multi-config generator, add the configuration:
 
 ### Build structure
 
-The scene, simulation, utility, RTTP XML and live frame and server code is built once as static
-libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util`, `egtrain_rttp`,
-`egtrain_live` and the vendored `egtrain_pugixml`. The Qt code that several targets use is
+The scene, simulation, utility and live frame and server code is built once as static
+libraries: `egtrain_scene`, `egtrain_sim`, `egtrain_util` and
+`egtrain_live`. The Qt code that several targets use is
 built once as well: `egtrain_graphics`, `egtrain_widgets`, `egtrain_http`, `egtrain_update`,
 `egtrain_sceneopen` (`SceneOpenRequest`), `egtrain_openrelay` (`OpenRequestRelay`), `egtrain_telemetry`, `egtrain_dispatch` (`DispatchController`,
 `SimulationWorker` and `RunControl`) and `egtrain_diagrams`. `QEGTRAIN`, `scene_tool` and the
@@ -619,7 +619,7 @@ pipes, such as `tools/e2e/headless_scene_smoke.py`, or from PowerShell with
 $dir = Resolve-Path .\build\Release
 $p = Start-Process -Wait -PassThru -NoNewWindow -WorkingDirectory $dir `
   -FilePath "$dir\QEGTRAIN.exe" `
-  -ArgumentList '--scene','Scenes/Paimpol','-h','300','-g','0','-pax','0','-TSM','0','-RC','0' `
+  -ArgumentList '--scene','Scenes/Paimpol','-h','300','-g','0','-pax','0' `
   -RedirectStandardOutput "$PWD\out.txt" -RedirectStandardError "$PWD\err.txt"
 $p.ExitCode
 ```
@@ -778,7 +778,7 @@ of an executable is also the stack size of every thread that is started without
 one, so it is set for the application only. Measured on macOS: each of the six
 committed scenes runs headless with the stack of the main thread limited to
 128 KB, and none starts with 64 KB. To repeat it, run `ulimit -s 128` in a shell
-and then the application with `--scene <scene folder> -g 0 -TSM 0 -RC 0`.
+and then the application with `--scene <scene folder> -g 0`.
 
 ## Characterization tests
 
@@ -1647,7 +1647,7 @@ most of its checks, so run it locally to read its logs.
 | Files of a run in the application or from `QEGTRAIN` | `<QStandardPaths::AppDataLocation>/Output/<scene>`; the files are in [Run output](../guides/run-output.md) | `QEGTRAIN_OUTPUT_DIR` replaces the base folder, and `File > Set Output Folder...` replaces the folder of every later run in that session ([Output folder](../guides/command-line.md#output-folder)) |
 | Messages of a run | Standard output and error, the **Console Log** dock, and the file named by `EGTRAIN_LOG_FILE` | `EGTRAIN_LOG`, `EGTRAIN_LOG_FILE` ([Log output](../guides/command-line.md#log-output)) |
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
-| Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_external_sharing_no_listener`, `test_scene_drop` and `test_output_folder` write to `build/external-sharing-test`, `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
+| Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_scene_drop` and `test_output_folder` write to `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
 | Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
 | Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes. CTest runs each case as its own test |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |

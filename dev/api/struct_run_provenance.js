@@ -9,9 +9,7 @@ var struct_run_provenance =
     [ "paxMode", "struct_run_provenance.html#aa1ff696b059ce12c3640bab135eb4d52", null ],
     [ "randomSeed", "struct_run_provenance.html#afe1e37956c75886b14deec29ca29bace", null ],
     [ "recoveryPercent", "struct_run_provenance.html#abed073ff714fb95d8ddbbf7db671a04e", null ],
-    [ "routeChoiceMode", "struct_run_provenance.html#a6973d157bf917e87b7506358cceba014", null ],
     [ "sceneSchemaVersion", "struct_run_provenance.html#a552e7546b9b84c7463f41c85462bb2bf", null ],
     [ "selectedOccurrences", "struct_run_provenance.html#ac941e59ff4cb9a9e4310c47aec04b6b0", null ],
-    [ "timestepSeconds", "struct_run_provenance.html#abb8d354b80841109dff2380b17bed88b", null ],
-    [ "tsmMode", "struct_run_provenance.html#a525323aebee835f48741e21e97046d9f", null ]
+    [ "timestepSeconds", "struct_run_provenance.html#abb8d354b80841109dff2380b17bed88b", null ]
 ];

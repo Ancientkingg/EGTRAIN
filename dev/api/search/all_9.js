@@ -69,7 +69,7 @@ var searchData=
   ['infrastructurepanel_2ecpp_66',['InfrastructurePanel.cpp',['../_infrastructure_panel_8cpp.html',1,'']]],
   ['infrastructurepanel_2eh_67',['InfrastructurePanel.h',['../_infrastructure_panel_8h.html',1,'']]],
   ['ininstallation_68',['inInstallation',['../namespacedialog__folders.html#ae19dff647096a30a99da1bb19ea46242',1,'dialog_folders']]],
-  ['initial_5fvariables_69',['initial_variables',['../_rttp_xml_8cpp.html#a0cb1070595eb7517fc0ce8c19e4f6159',1,'initial_variables:&#160;RttpXml.cpp'],['../_infrastructure_8cpp.html#ad986b9d4033549ccac466520eeb32478',1,'initial_variables:&#160;Infrastructure.cpp'],['../_rolling_stock_8h.html#a0cb1070595eb7517fc0ce8c19e4f6159',1,'initial_variables:&#160;RollingStock.h']]],
+  ['initial_5fvariables_69',['initial_variables',['../_infrastructure_8cpp.html#ad986b9d4033549ccac466520eeb32478',1,'initial_variables:&#160;Infrastructure.cpp'],['../_rolling_stock_8h.html#a0cb1070595eb7517fc0ce8c19e4f6159',1,'initial_variables:&#160;RollingStock.h']]],
   ['initialise_5fgibson_5fdwell_5ftime_5fparameters_70',['Initialise_Gibson_Dwell_Time_Parameters',['../class_train.html#a46531a8208482388ffc89a5d56a72e10',1,'Train']]],
   ['initialiseidconnectedblocks_71',['initialiseIdConnectedBlocks',['../class_node.html#a8ef1e7ccc0a087be2e724ccfddf18f90',1,'Node']]],
   ['initialparameters_72',['InitialParameters',['../class_initial_parameters.html',1,'InitialParameters'],['../class_initial_parameters.html#a2f1ff2029f97e3bd69e0d1b4d584a15f',1,'InitialParameters::InitialParameters()']]],

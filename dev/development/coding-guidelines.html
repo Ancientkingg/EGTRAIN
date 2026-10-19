@@ -433,8 +433,8 @@ target that links a library does not get them.</p>
 warning fails the build.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">egtrain_dispatch</span></code> has the flags only. Its own sources are clean, and the warnings in its
 build log come from the simulation headers.</p></li>
-<li><p>These have no flags: the vendored <code class="docutils literal notranslate"><span class="pre">egtrain_pugixml</span></code> and <code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code>, the legacy
-<code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code> and <code class="docutils literal notranslate"><span class="pre">egtrain_rttp</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, and the test executables that use the
+<li><p>These have no flags: the vendored <code class="docutils literal notranslate"><span class="pre">egtrain_miniz</span></code>, the legacy
+<code class="docutils literal notranslate"><span class="pre">egtrain_sim</span></code>, <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, and the test executables that use the
 simulation. A comment next to the calls gives the number of warnings.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">update/SelfUpdater.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">update/UpdateNotices.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/main.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">app/UpdateTelemetryController.cpp</span></code> and
 <code class="docutils literal notranslate"><span class="pre">telemetry/TelemetryConsentDialog.cpp</span></code> build inside <code class="docutils literal notranslate"><span class="pre">QEGTRAIN</span></code>, so they get no flags yet.
@@ -714,8 +714,7 @@ while the blocking times are computed. It uses <code class="docutils literal not
 following mode, arrivals, departures and the failure to write an arrival message,
 <code class="docutils literal notranslate"><span class="pre">sim.step</span></code> at <code class="docutils literal notranslate"><span class="pre">debug</span></code>, which is off by default, for messages written once per step by a
 train in the trajectory code, and <code class="docutils literal notranslate"><span class="pre">sim.pax</span></code> for passengers. The application uses <code class="docutils literal notranslate"><span class="pre">app.run</span></code>
-for the banners and the progress of a run. <code class="docutils literal notranslate"><span class="pre">io/RttpXml.cpp</span></code> uses <code class="docutils literal notranslate"><span class="pre">io.railml</span></code>, and the legacy
-sender (<code class="docutils literal notranslate"><span class="pre">io/ExternalState.cpp</span></code> and the XML that <code class="docutils literal notranslate"><span class="pre">app/DispatchController.cpp</span></code> sends) uses
+for the banners and the progress of a run. The live server (<code class="docutils literal notranslate"><span class="pre">io/LiveServer.cpp</span></code>) uses
 <code class="docutils literal notranslate"><span class="pre">io.zmq</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scene/</span></code>, <code class="docutils literal notranslate"><span class="pre">update/</span></code> and <code class="docutils literal notranslate"><span class="pre">telemetry/</span></code> neither log nor print, apart from their entry points.
 They return the problem, as a <code class="docutils literal notranslate"><span class="pre">SceneDiagnostic</span></code> or an <code class="docutils literal notranslate"><span class="pre">error</span></code> field (<code class="docutils literal notranslate"><span class="pre">UpdateCheckResult</span></code>).</p></li>

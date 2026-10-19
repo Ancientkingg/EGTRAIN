@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_initial_
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2f1ff2029f97e3bd69e0d1b4d584a15f" id="r_a2f1ff2029f97e3bd69e0d1b4d584a15f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2f1ff2029f97e3bd69e0d1b4d584a15f">InitialParameters</a> (int caseStudy)</td></tr>
-<tr class="memdesc:a2f1ff2029f97e3bd69e0d1b4d584a15f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with set_case.  <br /></td></tr>
+<tr class="memdesc:a2f1ff2029f97e3bd69e0d1b4d584a15f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case.  <br /></td></tr>
 <tr class="memitem:af0cffe214c1366a11fab292eaf4fd48d" id="r_af0cffe214c1366a11fab292eaf4fd48d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af0cffe214c1366a11fab292eaf4fd48d">set_case</a> (int caseStudy)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -144,9 +144,6 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a57ddfa48245441990329e8663fe1a569" id="r_a57ddfa48245441990329e8663fe1a569"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a57ddfa48245441990329e8663fe1a569">InputMainFolder</a></td></tr>
 <tr class="memdesc:a57ddfa48245441990329e8663fe1a569"><td class="mdescLeft">&#160;</td><td class="mdescRight">A folder of legacy input files. main clears it before a run, and nothing in the program reads it.  <br /></td></tr>
 <tr class="memitem:aba98301e71f6d443f7eb331b2f55435d" id="r_aba98301e71f6d443f7eb331b2f55435d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aba98301e71f6d443f7eb331b2f55435d">OutputMainFolder</a></td></tr>
-<tr class="memitem:a519f080c43a7b797339cec4a3ba5ec02" id="r_a519f080c43a7b797339cec4a3ba5ec02"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a519f080c43a7b797339cec4a3ba5ec02">TSM</a></td></tr>
-<tr class="memdesc:a519f080c43a7b797339cec4a3ba5ec02"><td class="mdescLeft">&#160;</td><td class="mdescRight">When not 0, the traffic state of every step is sent as JSON, with the XML text in its xml field, to tcp://127.0.0.1:5555 (-TSM, deprecated).  <br /></td></tr>
-<tr class="memitem:aed326912fee113443cc7e3e4554ecda1" id="r_aed326912fee113443cc7e3e4554ecda1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aed326912fee113443cc7e3e4554ecda1">RChoice</a></td></tr>
 <tr class="memitem:a8933ed81323386eba32112f3bbea9f1a" id="r_a8933ed81323386eba32112f3bbea9f1a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8933ed81323386eba32112f3bbea9f1a">nArgProvided</a> = false</td></tr>
 <tr class="memitem:a1fcab8acd974d3fc21a9e50c251b7363" id="r_a1fcab8acd974d3fc21a9e50c251b7363"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1fcab8acd974d3fc21a9e50c251b7363">durationOverride</a> = false</td></tr>
 <tr class="memdesc:a1fcab8acd974d3fc21a9e50c251b7363"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when -h gave times. The operations builder then keeps times instead of the duration of the scene.  <br /></td></tr>
@@ -196,7 +193,7 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Sets the numbers, TSM and RChoice included, to 0 and GUI to true. A caseStudy above 0 is chosen with set_case. </p>
+<p>Sets the numbers to 0 and GUI to true. A caseStudy above 0 is chosen with set_case. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -526,21 +523,6 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="aed326912fee113443cc7e3e4554ecda1" name="aed326912fee113443cc7e3e4554ecda1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed326912fee113443cc7e3e4554ecda1">&#9670;&#160;</a></span>RChoice</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int InitialParameters::RChoice</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>When not 0, the route choice requests of every step are sent as JSON, with the XML text in its xml field, to tcp://127.0.0.1:5556 (-RC, deprecated), and prepareScene refuses a run without a passenger journey. </p>
-
-</div>
-</div>
 <a id="a8526a0794806fa08ab08d09018bcc18d" name="a8526a0794806fa08ab08d09018bcc18d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8526a0794806fa08ab08d09018bcc18d">&#9670;&#160;</a></span>recoveryTimeOverride</h2>
 
@@ -601,22 +583,6 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 <p>Length of the run in seconds. Steps t run from 0 while t &lt; times, so with the step of 1 s it is also the number of steps. It is the value of -h when durationOverride is set, and otherwise the duration of the scene once it is built. </p>
-
-</div>
-</div>
-<a id="a519f080c43a7b797339cec4a3ba5ec02" name="a519f080c43a7b797339cec4a3ba5ec02"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a519f080c43a7b797339cec4a3ba5ec02">&#9670;&#160;</a></span>TSM</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int InitialParameters::TSM</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>When not 0, the traffic state of every step is sent as JSON, with the XML text in its xml field, to tcp://127.0.0.1:5555 (-TSM, deprecated). </p>
 
 </div>
 </div>

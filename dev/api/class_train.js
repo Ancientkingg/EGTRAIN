@@ -25,7 +25,6 @@ var class_train =
     [ "ComputeBlockingTimesInMixedSignallingAreas", "class_train.html#ad6828d6b18fa11657a1d1b9ec96344ba", null ],
     [ "ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved", "class_train.html#a5d3788a334ff231b4e9fa35a96a5cb4a", null ],
     [ "ComputeBlockTime_ETCSLevel_3_ForSection", "class_train.html#a20daa1ddd39245f4bca371639115a2ce", null ],
-    [ "ComputeLastOccupationTime_real_time", "class_train.html#aa23fab8c032ba8c2af145fd17f8406f1", null ],
     [ "computePaxDependentDwellTimeAtStations", "class_train.html#a61823d146d239efabacf79d7e04c2fb7", null ],
     [ "ComputeTimetablingPoints", "class_train.html#a0f2a4c491a15ae2c8f1e4401f58dd5b0", null ],
     [ "ConnectBlockTimesOfSwitchesForTrainCentricSignalling", "class_train.html#a645056dd24bb65948f221b5bbe429c6a", null ],

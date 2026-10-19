@@ -732,7 +732,7 @@
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-n</span></code>, <code class="docutils literal notranslate"><span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">-g</span></code>, <code class="docutils literal notranslate"><span class="pre">--scene</span></code>, <code class="docutils literal notranslate"><span class="pre">--seed</span></code>, a file name</p></td>
 <td><p>tested</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_headless_scene_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_simulation_determinism</span></code>, <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scene_version_run_*</span></code>; manual run, 2026-10-17, Linux (E3): Copenhagen with <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">3</span> <span class="pre">-g</span> <span class="pre">0</span> <span class="pre">-h</span> <span class="pre">300</span> <span class="pre">-TSM</span> <span class="pre">0</span> <span class="pre">-RC</span> <span class="pre">0</span></code> and seed 12345 twice gave identical output apart from <code class="docutils literal notranslate"><span class="pre">Computing_Times.txt</span></code>, and seed 54321 also (no passengers); Paimpol <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">2</span></code> with the same seed gave identical <code class="docutils literal notranslate"><span class="pre">PassengerStatus.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">JourneyDelays.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code>, and with seed 54321 the first two differ</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">test_headless_scene_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_simulation_determinism</span></code>, <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scene_version_run_*</span></code>; manual run, 2026-10-17, Linux (E3): Copenhagen with <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">3</span> <span class="pre">-g</span> <span class="pre">0</span> <span class="pre">-h</span> <span class="pre">300</span></code> and seed 12345 twice gave identical output apart from <code class="docutils literal notranslate"><span class="pre">Computing_Times.txt</span></code>, and seed 54321 also (no passengers); Paimpol <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">2</span></code> with the same seed gave identical <code class="docutils literal notranslate"><span class="pre">PassengerStatus.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">JourneyDelays.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">TimetablePoints.txt</span></code>, and with seed 54321 the first two differ</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-b</span></code> and <code class="docutils literal notranslate"><span class="pre">-c</span></code></p></td>
 <td><p>untested</p></td>
@@ -746,31 +746,27 @@
 <td><p>tested</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_liveframe</span></code>, <code class="docutils literal notranslate"><span class="pre">test_livecommand</span></code>, <code class="docutils literal notranslate"><span class="pre">test_livereplay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_liveserver</span></code>, <code class="docutils literal notranslate"><span class="pre">test_live_stream_smoke</span></code> (macOS only)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-TSM</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span> <span class="pre">1</span></code></p></td>
-<td><p>partial</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">test_external_sharing_no_listener</span></code>, <code class="docutils literal notranslate"><span class="pre">test_route_choice_missing_data</span></code>, <code class="docutils literal notranslate"><span class="pre">test_rttp</span></code>. Tested only without a listener; deprecated</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--interactive</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--interactive</span></code></p></td>
 <td><p>untested</p></td>
 <td><p>No test or run uses the questions (covered after this snapshot by <code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code>, macOS and Linux; the <code class="docutils literal notranslate"><span class="pre">-pax</span></code> question is not tested)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--help</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--help</span></code></p></td>
 <td><p>placeholder</p></td>
 <td><p>The option does not exist. An unknown option is ignored and the window starts (#783, fixed after this snapshot)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> import, pack, unpack, export, validate</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">scene_tool</span></code> import, pack, unpack, export, validate</p></td>
 <td><p>tested</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_scene_tool_diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneimporter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sceneexporter</span></code>, <code class="docutils literal notranslate"><span class="pre">test_scenebundle</span></code>; Release run 39019990227, <code class="docutils literal notranslate"><span class="pre">roundtrip_smoke.py</span></code> and <code class="docutils literal notranslate"><span class="pre">bundle_smoke.py</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Six committed cases</p></td>
+<tr class="row-odd"><td><p>Six committed cases</p></td>
 <td><p>tested</p></td>
 <td><p>Release run 39019990227 (<code class="docutils literal notranslate"><span class="pre">headless_smoke.py</span></code>); manual run, 2026-10-17, macOS (audit item 2): all six open with 0 errors; manual run, 2026-10-16, Windows (row R6) opened the Assignment case; manual run, 2026-10-17, Windows (WIN-E): all six open as folders and as bundles with 0 errors and these warnings: Amsterdam_Hilversum_Student 26, Assignment 0, Copenhagen 509, Milano_Brescia 11, Netherlands 56, Paimpol 371. Every case has one network-wide signalling area at level 0 and no signals</p></td>
 </tr>
-<tr class="row-odd"><td><p>Playback profiler and start-up timing</p></td>
+<tr class="row-even"><td><p>Playback profiler and start-up timing</p></td>
 <td><p>tested</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">test_playbackprofiler</span></code>, <code class="docutils literal notranslate"><span class="pre">test_playback_profile</span></code> (developer tools)</p></td>
 </tr>
-<tr class="row-even"><td><p>Developer setup on Linux</p></td>
+<tr class="row-odd"><td><p>Developer setup on Linux</p></td>
 <td><p>tested</p></td>
 <td><p>manual run, 2026-10-17, Linux (developer setup): install, configure, build and the headless run work. Of 307 tests one failed, <code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code>, in a container whose first process does not reap children; #875 changed the test to count a zombie as exited</p></td>
 </tr>
@@ -849,7 +845,6 @@
 <li><p>No scene has signals. Every committed case has one network-wide signalling area at level 0, so signal-based separation is not exercised by any of them.</p></li>
 <li><p>A case saved by this version cannot be upgraded from an older schema, because there is no older schema. The upgrade flow is code that the shipped application cannot reach.</p></li>
 <li><p>The replay keeps every frame of a run (#460). The scrolling of the canvas, the trackpad and the wheel cannot be proved from tool output, also not on a physical Mac, where the test tool reaches only the accessible controls and the canvas has none; a person has to check them. <code class="docutils literal notranslate"><span class="pre">test_networkview</span></code> and the visual polish smoke cover them in code.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-TSM</span></code> and <code class="docutils literal notranslate"><span class="pre">-RC</span></code> are deprecated and have no supported consumer. The live stream replaces them.</p></li>
 <li><p>The macOS and Windows packages of the release candidates were not signed in the runs that were rehearsed. A signed and notarized build has not been rehearsed (#402 and #404 are closed; the rehearsals used runs that skip signing).</p></li>
 <li><p>Applying a downloaded update on a Windows installed copy is not supported; the release page is the way (#405).</p></li>
 <li><p>The source-backed Assignment case is deferred until the OpenTrack data are available (#181, #182, #228).</p></li>

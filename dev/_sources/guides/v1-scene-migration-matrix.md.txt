@@ -43,7 +43,6 @@ without guessing.
 | normal `Rescheduling`, ROMA, and legacy TMS/TDS input trees | dead/inert or derived | ROMA closed-loop loading is not active in normal setup, and TDS is built from topology. Files remain compatibility passthrough where needed, not canonical fields without a live consumer. |
 | `EGTRAINOutput`, ROMA/TDS artifacts, `FolderEGTRAIN`, `OL_LastEntry`, `ScheduledOrder` | output/interoperability | Simulation and integration code write these artifacts. They are not case-scene input. |
 | Other GUI coordinate/display files | derived/output | The native GUI derives fallback layout from canonical node and station coordinates when the explicit `views.json` sources are absent. Historical virtual-link and HTML-template files are not a second infrastructure model and are no longer normal runtime input. |
-| RailML/XML | output/interoperability | `RttpXml` serializes traffic state and route choice for exchange; it does not import a V1 scene. |
 | `rand1.seed` | dead/inert | `NumberGenerator` does not read or write a seed file. The seed of the random draws is the run setting `--seed`, which defaults to 789350715 and is recorded as `random_seed` in result provenance. It is not case input and not a scene field. |
 | unknown-case compiled `InitialParameters` mapping | unresolved | The four canonical timing fields are known, but a folder/name outside the explicit case table cannot safely select a `set_case` branch. Without an `EGTRAINInitialParameters.json` import leaves them absent and records the unresolved mapping. |
 

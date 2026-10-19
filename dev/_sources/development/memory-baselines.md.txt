@@ -24,7 +24,7 @@ The tool runs Copenhagen first and Milano-Brescia second. Both use the same
 executable and the native full headless scenario:
 
 ```text
-/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0 -TSM 0 -RC 0
+/usr/bin/time -l <app> --scene <absolute-scene-directory> -g 0
 ```
 
 The source metric is macOS `/usr/bin/time -l`'s `maximum resident set size`,
@@ -100,7 +100,7 @@ measured by starting the executable with a scene path that does not exist: the
 process initialises, reports the missing scene and exits.
 
 ```text
-/usr/bin/time -l <app> --scene <path-that-does-not-exist> -g 0 -TSM 0 -RC 0
+/usr/bin/time -l <app> --scene <path-that-does-not-exist> -g 0
 ```
 
 Three runs of the same executable gave a `maximum resident set size` of
