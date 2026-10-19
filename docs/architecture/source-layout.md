@@ -18,7 +18,6 @@ tools/e2e/                Smoke tests and Python tests
 tools/release/            Version, package check, release asset and disk image scripts
 tools/memory/             Peak-memory measurement and the ownership inventory
 tools/performance/        Startup timing and playback profiling scripts
-tools/golden_master/      Token-wise comparison of output files against a baseline directory
 tools/format.py           Checks or applies the code format of the C++ sources
 tools/tidy.py             Runs clang-tidy on the C++ sources outside simulation/
 tools/docs/               Checks the Markdown documentation

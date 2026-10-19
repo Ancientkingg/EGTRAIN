@@ -147,7 +147,6 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 | `scene_tool` import, pack, unpack, export, validate | tested | `test_scene_tool_diagnostics`, `test_sceneimporter`, `test_sceneexporter`, `test_scenebundle`; Release run 39019990227, `roundtrip_smoke.py` and `bundle_smoke.py` |
 | Seven committed cases | tested | Release run 39019990227 (`headless_smoke.py`); manual run, 2026-10-17, macOS (audit item 2): all seven open with 0 errors; manual run, 2026-10-16, Windows (row R6) opened the Assignment case; manual run, 2026-10-17, Windows (WIN-E): all seven open as folders and as bundles with 0 errors and these warnings: Amsterdam_Hilversum_Student 26, Assignment 0, Copenhagen 509, Lebanon 0, Milano_Brescia 11, Netherlands 56, Paimpol 371. Every case has one network-wide signalling area at level 0 and no signals |
 | Playback profiler and start-up timing | tested | `test_playbackprofiler`, `test_playback_profile` (developer tools) |
-| `tools/golden_master/*` | unreachable | Nothing calls the scripts and they assume four cases (#785) |
 | Developer setup on Linux | tested | manual run, 2026-10-17, Linux (developer setup): install, configure, build and the headless run work. Of 307 tests one failed, `test_measure_peak_rss`, in a container whose first process does not reap children; #875 changed the test to count a zombie as exited |
 
 ## Packages, installation and updates
@@ -207,7 +206,7 @@ Each gap links one issue. Issues that were closed later the same day are marked 
 | The Passengers layer does nothing without `-pax 1` | [#782](https://github.com/Ancientkingg/EGTRAIN/issues/782) |
 | No `--help`; unknown options are ignored | [#783](https://github.com/Ancientkingg/EGTRAIN/issues/783) |
 | Packages carry no licence text or third-party notices | [#784](https://github.com/Ancientkingg/EGTRAIN/issues/784) |
-| Unused golden-master scripts | [#785](https://github.com/Ancientkingg/EGTRAIN/issues/785) |
+| Unused golden-master scripts | [#785](https://github.com/Ancientkingg/EGTRAIN/issues/785) (closed on 2026-10-19) |
 | The remaining smokes and the documentation check do not run on pull requests | [#786](https://github.com/Ancientkingg/EGTRAIN/issues/786) |
 | Result views have different names in the Diagrams menu and in Run Results | [#787](https://github.com/Ancientkingg/EGTRAIN/issues/787) |
 | Toolbar separators and window size on Windows, and toolbar commands cut at 1.5 times the text | [#883](https://github.com/Ancientkingg/EGTRAIN/issues/883) |
