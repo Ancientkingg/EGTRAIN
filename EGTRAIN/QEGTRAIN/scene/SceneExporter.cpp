@@ -747,7 +747,7 @@ static void writeViewLayout(const SceneModel& scene, const std::unordered_map<st
 		const std::string name = legacyStationName(scene, view.stationId);
 		if (name.find_first_of("\t\r\n") != std::string::npos) {
 			addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-				"Station " + view.stationId + " has a tab or line break in its name, so its layout was not exported", view.stationId);
+				"Station " + view.stationId + " has a tab or line break in its name, so its layout was not exported", "views.json");
 			continue;
 		}
 		std::string ids, positions, corridors;
@@ -758,7 +758,7 @@ static void writeViewLayout(const SceneModel& scene, const std::unordered_map<st
 		for (const auto& corridor : view.corridors) {
 			if (corridor.empty() || corridor.find_first_of(",\t\r\n") != std::string::npos) {
 				addDiag(SceneSeverity::Warning, "scene.export.compatibility",
-					"A corridor of station " + view.stationId + " is empty or has a comma, tab or line break, so it was not exported", view.stationId);
+					"A corridor of station " + view.stationId + " is empty or has a comma, tab or line break, so it was not exported", "views.json");
 				continue;
 			}
 			corridors += (corridors.empty() ? "" : ",") + corridor;
