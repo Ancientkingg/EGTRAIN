@@ -19,7 +19,6 @@ CASES_INFO = [
     (3, "Copenhagen"),
     (4, "Milano_Brescia"),
     (5, "Assignment_Gvc_Gdg_Ut"),
-    (6, "Lebanon"),
     (7, "Amsterdam_Hilversum_Student"),
 ]
 
@@ -153,7 +152,7 @@ def main() -> None:
                 raise RuntimeError(f"case {case_id} compatibility count mismatch: {differences}")
             check_signalling_areas(case_id, scene_name, scene_dir, exported_dir, reimported_dir)
 
-        # One executable round trip is enough after all seven structural/count checks.
+        # One executable round trip is enough after all six structural/count checks.
         reimported_dir = tmp_dir / "reimported_5"
         print("Running reimported Assignment scene...")
         env = os.environ.copy()

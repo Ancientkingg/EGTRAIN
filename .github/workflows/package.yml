@@ -95,7 +95,7 @@ jobs:
             done < <(find "$frameworks" -maxdepth 1 -type f -name '*.dylib')
           done
 
-      - name: Add scene_tool and the Lebanon guide to the app
+      - name: Add scene_tool and the licence files to the app
         # The disk image holds only the app and the link to /Applications, so these files live in the bundle. The
         # signature below seals them.
         run: |
@@ -103,7 +103,6 @@ jobs:
           APP="build/QEGTRAIN.app"
           cp build/scene_tool "$APP/Contents/MacOS/scene_tool"
           chmod +x "$APP/Contents/MacOS/scene_tool"
-          cp docs/guides/lebanon-case-study.md "$APP/Contents/Resources/lebanon-case-study.md"
           cp LICENSE THIRD_PARTY_NOTICES.md "$APP/Contents/Resources/"
 
       - name: Remove unused Qt modules and plugins
@@ -244,16 +243,15 @@ jobs:
           test -x "$APP/Contents/MacOS/QEGTRAIN"
           test -x "$APP/Contents/MacOS/egtrain_update_helper"
           test -x "$APP/Contents/MacOS/scene_tool"
-          test -f "$APP/Contents/Resources/lebanon-case-study.md"
           test -f "$APP/Contents/Resources/LICENSE"
           test -f "$APP/Contents/Resources/THIRD_PARTY_NOTICES.md"
-          test -f "$APP/Contents/Resources/Scenes/Lebanon/stations.json"
-          test -f "$APP/Contents/Resources/Scenes/Lebanon/scene.json"
-          test -f "$APP/Contents/Resources/Scenes/Lebanon/scenarios.json"
+          test -f "$APP/Contents/Resources/Scenes/Paimpol/stations.json"
+          test -f "$APP/Contents/Resources/Scenes/Paimpol/scene.json"
+          test -f "$APP/Contents/Resources/Scenes/Paimpol/scenarios.json"
           test -d "$APP/Contents/Resources/Scenes/Paimpol"
           # scene_tool uses header-only JSON and vendored miniz, so it runs without Qt.
           set +e
-          validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1)"
+          validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1)"
           validation_status=$?
           set -e
           printf '%s\n' "$validation_output"
@@ -303,7 +301,6 @@ jobs:
             Copenhagen
             Milano_Brescia
             Assignment_Gvc_Gdg_Ut
-            Lebanon
             Amsterdam_Hilversum_Student
           )
           for name in "${scenes[@]}"; do
@@ -424,7 +421,6 @@ jobs:
           test -x "$COPY/QEGTRAIN.app/Contents/MacOS/QEGTRAIN"
           test -x "$COPY/QEGTRAIN.app/Contents/MacOS/egtrain_update_helper"
           test -x "$COPY/QEGTRAIN.app/Contents/MacOS/scene_tool"
-          test -f "$COPY/QEGTRAIN.app/Contents/Resources/lebanon-case-study.md"
           test -f "$COPY/QEGTRAIN.app/Contents/Resources/LICENSE"
           test -f "$COPY/QEGTRAIN.app/Contents/Resources/THIRD_PARTY_NOTICES.md"
           test -d "$COPY/QEGTRAIN.app/Contents/Resources/Scenes/Paimpol"
@@ -525,12 +521,11 @@ jobs:
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --no-translations --no-compiler-runtime --no-opengl-sw --no-angle --no-system-d3d-compiler --no-virtualkeyboard --no-quick-import "$dist/QEGTRAIN.exe"
           # Canonical scenes ship beside the executable for packaged defaults.
           Copy-Item -Recurse EGTRAIN/QEGTRAIN/Scenes "$dist/Scenes"
-          # Presentation package: the command-line tool, the canonical scenes, and
-          # the guide. scene_tool uses header-only JSON and vendored miniz, so it needs no Qt.
+          # Presentation package: the command-line tool and the canonical scenes. scene_tool uses
+          # header-only JSON and vendored miniz, so it needs no Qt.
           $tool = Get-ChildItem -Path build -Recurse -Filter scene_tool.exe | Select-Object -First 1
           if (-not $tool) { throw "scene_tool.exe not found under build/" }
           Copy-Item $tool.FullName "$dist/scene_tool.exe"
-          Copy-Item docs/guides/lebanon-case-study.md "$dist/lebanon-case-study.md"
           # The licence text ships with the installer, which shows it, and with the portable archive.
           Copy-Item LICENSE "$dist/LICENSE"
           Copy-Item THIRD_PARTY_NOTICES.md "$dist/THIRD_PARTY_NOTICES.md"
@@ -576,8 +571,6 @@ jobs:
           if (-not (Get-ChildItem "$dist" -Filter "libzmq*.dll")) { throw "missing libzmq DLL" }
           if (-not (Test-Path "$dist/scene_tool.exe")) { throw "missing scene_tool.exe" }
           if (-not (Test-Path "$dist/Scenes/Paimpol/scene.json")) { throw "missing canonical Paimpol scene" }
-          if (-not (Test-Path "$dist/Scenes/Lebanon/scenarios.json")) { throw "missing canonical Lebanon scene" }
-          if (-not (Test-Path "$dist/lebanon-case-study.md")) { throw "missing Lebanon guide" }
           if (-not (Test-Path "$dist/LICENSE")) { throw "missing LICENSE" }
           if (-not (Test-Path "$dist/THIRD_PARTY_NOTICES.md")) { throw "missing THIRD_PARTY_NOTICES.md" }
           foreach ($name in @("opengl32sw.dll","d3dcompiler_47.dll","libEGL.dll","libGLESv2.dll","Qt5Quick*","Qt5Qml*","*VirtualKeyboard*","vc_redist*")) {
@@ -966,17 +959,13 @@ jobs:
           # Canonical scenes live beside the executable for packaged defaults.
           cp -R EGTRAIN/QEGTRAIN/Scenes "$APPDIR/usr/bin/Scenes"
 
-          # Presentation package: the command-line tool, the Lebanon scene, and
-          # the guide, bundled beside the executable. scene_tool uses
-          # header-only JSON and vendored miniz, so it carries no Qt dependency.
+          # Presentation package: the command-line tool, bundled beside the executable.
+          # scene_tool uses header-only JSON and vendored miniz, so it carries no Qt dependency.
           TOOL="$(find build -type f -perm -111 -name scene_tool | head -n 1)"
           test -n "$TOOL"
           cp "$TOOL" "$APPDIR/usr/bin/scene_tool"
-          cp docs/guides/lebanon-case-study.md "$APPDIR/usr/bin/lebanon-case-study.md"
           test -x "$APPDIR/usr/bin/scene_tool"
           test -f "$APPDIR/usr/bin/Scenes/Paimpol/scene.json"
-          test -f "$APPDIR/usr/bin/Scenes/Lebanon/scenarios.json"
-          test -f "$APPDIR/usr/bin/lebanon-case-study.md"
           mkdir -p "$APPDIR/usr/share/doc/egtrain"
           cp LICENSE THIRD_PARTY_NOTICES.md "$APPDIR/usr/share/doc/egtrain/"
           cp EGTRAIN/QEGTRAIN/resources/app/egtrain-256.png \

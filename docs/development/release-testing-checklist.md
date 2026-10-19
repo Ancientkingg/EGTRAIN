@@ -69,7 +69,6 @@ Expected case-study assets:
 - `Copenhagen.egscene`
 - `Milano_Brescia.egscene`
 - `Assignment_Gvc_Gdg_Ut.egscene`
-- `Lebanon.egscene`
 - `Amsterdam_Hilversum_Student.egscene`
 
 A published release also has `update-manifest.json`. Confirm the workflow
@@ -92,7 +91,7 @@ What the jobs prove today:
   and QML frameworks, and the WebP and TIFF plugins with their libraries, from
   the app before the signature, and fails when one of them is in the app or when
   the cocoa platform plugin, the SVG icon engine or the macOS style is missing.
-  The app holds `scene_tool` and the guide. `scene_tool` validates the Lebanon
+  The app holds `scene_tool`. `scene_tool` validates the Paimpol
   scene of the app, and the app runs Paimpol without the GUI from
   `Contents/Resources/Scenes` to `End of Simulation`. The job starts a copy of
   the app with `tools/release/package_start_smoke.py` (step
@@ -100,7 +99,7 @@ What the jobs prove today:
   a system library or a file inside the app and that every library inside the
   app is loaded by some file.
   The job prints the number of files and bytes of the app before and after the
-  removal in its job summary. It also packs and validates the seven bundles.
+  removal in its job summary. It also packs and validates the six bundles.
   Then it builds `EGTRAIN-<version>-macOS-arm64.dmg` from the signed app,
   mounts the image read-only, checks that the volume holds only `QEGTRAIN.app`,
   the link `Applications` and the hidden Finder layout file `.DS_Store`, which
@@ -113,8 +112,8 @@ What the jobs prove today:
   `egtrain_update_helper.exe`, `Qt5Core.dll`, `Qt5Gui.dll`, `Qt5Widgets.dll`,
   `Qt5Charts.dll`, `Qt5Svg.dll`, `Qt5Network.dll`, `platforms/qwindows.dll`,
   `imageformats/qsvg.dll`, `iconengines/qsvgicon.dll`,
-  `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe`,
-  `Scenes/Paimpol`, `Scenes/Lebanon` and the guide. It fails when the software
+  `styles/qwindowsvistastyle.dll`, a `libzmq` DLL, `scene_tool.exe` and
+  `Scenes/Paimpol`. It fails when the software
   OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual
   keyboard files or `vc_redist.x64.exe` are in the package. It copies the Visual
   C++ runtime DLLs that the program files import next to `QEGTRAIN.exe` and
@@ -214,10 +213,10 @@ Apart from the Rehearse Linux job, none of this shows the GUI student workflow.
 
 | Platform | Download | Holds | Launch |
 | --- | --- | --- | --- |
-| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `lebanon-case-study.md`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (`Contents/Resources`) and the scene folders of the seven cases (`Contents/Resources/Scenes`). It declares `.egscene` as its file type. It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
+| macOS | `EGTRAIN-<version>-macOS-arm64.dmg` | A disk image with the volume name `EGTRAIN` that holds `QEGTRAIN.app` and `Applications`, a link to the Applications folder, and nothing else but the hidden file `.DS_Store` with the Finder window layout. The app holds `scene_tool` (`Contents/MacOS`), `LICENSE` and `THIRD_PARTY_NOTICES.md` (`Contents/Resources`) and the scene folders of the six cases (`Contents/Resources/Scenes`). It declares `.egscene` as its file type. It needs macOS 26 or later. | `QEGTRAIN.app`, copied out of the image |
 | Windows installer | `EGTRAIN-Setup-<version>-x64.exe` | Installs the files of the Windows package for the current user, by default into `%LOCALAPPDATA%\Programs\EGTRAIN`, with the marker file `installed-by-setup.ini` and an uninstaller. Adds the Start Menu entry `EGTRAIN`, an optional desktop shortcut, an entry in the list of installed apps and the `.egscene` file type for the current user. | The Start Menu entry `EGTRAIN` |
-| Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, the Visual C++ runtime DLLs, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe`, `lebanon-case-study.md`, `LICENSE` and `THIRD_PARTY_NOTICES.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
-| Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `lebanon-case-study.md`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (in `usr/share/doc/egtrain`) and the Qt libraries. Mark it executable. | The AppImage file |
+| Windows portable | `EGTRAIN-Portable-<version>-x64.zip` | At the top level of the zip: `QEGTRAIN.exe`, `egtrain_update_helper.exe`, the Qt and ZeroMQ libraries, the Visual C++ runtime DLLs, `platforms/`, `imageformats/`, `Scenes/`, `scene_tool.exe`, `LICENSE` and `THIRD_PARTY_NOTICES.md`. The installed copy holds the same files and, besides them, the marker file and the uninstaller. Unzip into a new empty folder. | `QEGTRAIN.exe` in that folder |
+| Linux | `QEGTRAIN-linux-x86_64.AppImage` | One file. It is built from the application, the update helper, `Scenes`, `scene_tool`, `LICENSE` and `THIRD_PARTY_NOTICES.md` (in `usr/share/doc/egtrain`) and the Qt libraries. Mark it executable. | The AppImage file |
 
 A candidate from a run has the installer and the archive as the artifacts
 `EGTRAIN-windows-x64-installer` and `EGTRAIN-windows-x64-portable`. Unpack the

@@ -196,7 +196,7 @@ The two Python smokes read the application that `QEGTRAIN_APP` names, and otherw
 `build/` for the system: `build/QEGTRAIN.app/Contents/MacOS/QEGTRAIN` on macOS, `build/QEGTRAIN` on
 Linux and `build/QEGTRAIN.exe` or `build/Release/QEGTRAIN.exe` on Windows. They stop and name the paths
 they tried when none exists. `visual_polish_smoke.sh` reads the macOS path, or the path in
-`QEGTRAIN_APP`. `headless_smoke.py` runs the seven committed cases one after the other; name case
+`QEGTRAIN_APP`. `headless_smoke.py` runs the six committed cases one after the other; name case
 numbers to run fewer, for example `python3 tools/e2e/headless_smoke.py 2`, because Copenhagen alone
 takes minutes. On Linux and Windows CTest registers the tests that run there
 ([Platform coverage](build-and-test.md#platform-coverage)).

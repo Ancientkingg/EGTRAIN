@@ -160,7 +160,6 @@ LEGACY_CASE_NAMES = (
     "copenhagen",
     "milano_brescia",
     "assignment_gvc_gdg_ut",
-    "lebanon",
 )
 LEGACY_PATH_PARTS = (
     "legacy/",

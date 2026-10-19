@@ -172,7 +172,6 @@ The size of a state frame depends on the number of trains and on the signal list
 
 | Scene | Trains | Hello | State frame without signals | State frame with signals |
 | --- | ---: | ---: | ---: | ---: |
-| Lebanon | 1 | 269 B | 280 B | 1158 B |
 | Paimpol | 2 | 414 B | 507 B | 22165 B |
 | Amsterdam_Hilversum_Student | 4 | 620 B | 865 B | 107341 B |
 | Assignment_Gvc_Gdg_Ut | 24 | 2187 B | 4256 B | 9246 B |

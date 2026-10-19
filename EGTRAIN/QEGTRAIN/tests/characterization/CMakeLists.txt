@@ -195,17 +195,17 @@ add_test(NAME characterization_repeat_paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-add_test(NAME characterization_repeat_lebanon_milano
+add_test(NAME characterization_repeat_milano_paimpol
 	COMMAND test_characterization --repeat
-		${EGTRAIN_COMMITTED_SCENES}/Lebanon
 		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
-		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 add_test(NAME characterization_repeat_netherlands
 	COMMAND test_characterization --repeat
 		${EGTRAIN_COMMITTED_SCENES}/Netherlands
-		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Netherlands
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -219,12 +219,12 @@ add_test(NAME characterization_repeat_files_paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Assignment_Gvc_Gdg_Ut
 		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-add_test(NAME characterization_repeat_files_lebanon_milano
+add_test(NAME characterization_repeat_files_milano_paimpol
 	COMMAND test_characterization --repeat-files
-		${EGTRAIN_COMMITTED_SCENES}/Lebanon
 		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
-		${EGTRAIN_COMMITTED_SCENES}/Lebanon
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 		${EGTRAIN_COMMITTED_SCENES}/Milano_Brescia
+		${EGTRAIN_COMMITTED_SCENES}/Paimpol
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 add_test(NAME characterization_repeat_files_fixture
 	COMMAND test_characterization --repeat-files
@@ -241,10 +241,10 @@ add_test(NAME characterization_aspects_dutch
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(EGTRAIN_CHARACTERIZATION_SCENE_TESTS
 	characterization_repeat_paimpol
-	characterization_repeat_lebanon_milano
+	characterization_repeat_milano_paimpol
 	characterization_repeat_netherlands
 	characterization_repeat_files_paimpol
-	characterization_repeat_files_lebanon_milano
+	characterization_repeat_files_milano_paimpol
 	characterization_repeat_files_fixture
 	characterization_aspects_dutch)
 

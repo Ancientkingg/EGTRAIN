@@ -473,10 +473,6 @@ static std::string baseTimeForCase(const std::string& sceneName, const fs::path&
 		duration = 10000.0;
 		return "07:00:00";
 	}
-	if (name == "lebanon") {
-		duration = 3600.0;
-		return "06:00:00";
-	}
 	known = false;
 	duration = 0.0;
 	return {};

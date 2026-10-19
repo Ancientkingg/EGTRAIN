@@ -153,7 +153,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 		}
 	} else if (promptForMissingOptions) {
 		int case_study;
-		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Milano-Brescia, 5: Assignment, 6: Lebanon):";
+		std::cout << "Please enter ID number of Case study(1: Netherlands, 2: Paimpol, 3: Copenhagen, 4: Milano-Brescia, 5: Assignment):";
 		std::cin >> case_study;
 		initial_variables.set_case(case_study);
 	} else {
@@ -416,7 +416,7 @@ int main(int argc, char* argv[]) {
 	const std::string defaultName = initial_variables.name;
 	const bool creatorAcceptance = creatorAcceptanceRun();
 	if (!creatorAcceptance && defaultName.empty()) {
-		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut, 6 Lebanon.\n";
+		std::cerr << "ERROR: Unknown case study id. Valid ids: 1 Netherlands, 2 Paimpol, 3 Copenhagen, 4 Milano_Brescia, 5 Assignment_Gvc_Gdg_Ut.\n";
 		return 1;
 	}
 	if (sceneOption)

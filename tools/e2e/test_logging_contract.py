@@ -97,7 +97,7 @@ PRODUCERS = [
     (
         "app/main.cpp",
         'End of Simulation"',
-        "headless_scene_smoke.py, lebanon_scene_smoke.sh, package_start_smoke.py and the package jobs of package.yml",
+        "headless_scene_smoke.py, package_start_smoke.py and the package jobs of package.yml",
         COUT_STATEMENT,
     ),
     ("app/DispatchController.cpp", 'End of Simulation"', "the same line in the console of a run in the window", PRODUCER_STATEMENT),

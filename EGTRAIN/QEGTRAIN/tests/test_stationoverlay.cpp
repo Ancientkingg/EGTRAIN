@@ -200,8 +200,8 @@ int main(int argc, char* argv[]) {
 		"legacy camel-case boundary remains split");
 	ok &= expect(StationOverlayItem::displayName(QStringLiteral("PMBivioAdda")) == QStringLiteral("PM Bivio Adda"),
 		"Italian acronym prefix and camel-case boundary remain split");
-	ok &= expect(StationOverlayItem::displayName(QStringLiteral("NBTCentralStation")) == QStringLiteral("NBT Central Station"),
-		"Lebanon acronym prefix and camel-case boundary remain split");
+	ok &= expect(StationOverlayItem::displayName(QStringLiteral("XYZMainStation")) == QStringLiteral("XYZ Main Station"),
+		"three-letter acronym prefix and camel-case boundary remain split");
 	ok &= expect(StationOverlayItem::displayName(QStringLiteral("FlintholmCH")) == QStringLiteral("Flintholm CH"),
 		"trailing two-letter acronym remains intact");
 	ok &= expect(StationOverlayItem::displayName(QStringLiteral("NyEllebjergAE")) == QStringLiteral("Ny Ellebjerg AE"),

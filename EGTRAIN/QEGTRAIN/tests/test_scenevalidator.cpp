@@ -151,10 +151,10 @@ static SceneModel completeScene() {
 	return scene;
 }
 
-// Rolling stock of the Lebanon scene (lebanon-teaching-unit). The limits are
+// Rolling stock of the Assignment scene (SLT_Sprinter). The limits are
 // 1.09 * 0.75 / 9.81 = 0.08333 for braking and 209000 / (9.81 * 151000) = 0.1411
 // for starting.
-static SceneTrainUnit lebanonUnit() {
+static SceneTrainUnit sprinterUnit() {
 	SceneTrainUnit unit;
 	unit.id = "unit-1";
 	unit.hasPhysical = true;
@@ -185,7 +185,7 @@ static SceneTrainUnit paimpolUnit() {
 // The first block holds arc-1 and the second block arc-2.
 static SceneModel steepGradientScene(double firstGradient, double secondGradient) {
 	SceneModel scene = completeScene();
-	scene.trainUnits = {lebanonUnit()};
+	scene.trainUnits = {sprinterUnit()};
 	scene.arcs[0].gradientPercent = firstGradient;
 	scene.arcs[1].gradientPercent = secondGradient;
 	return scene;
