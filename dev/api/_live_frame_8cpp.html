@@ -126,8 +126,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a5a605f48026d3bb76307ba4510fb745c" id="r_a5a605f48026d3bb76307ba4510fb745c"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5a605f48026d3bb76307ba4510fb745c">makeHelloFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot)</td></tr>
 <tr class="memitem:a781cfae9c064ce1092d656a5149e850d" id="r_a781cfae9c064ce1092d656a5149e850d"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a781cfae9c064ce1092d656a5149e850d">makeStateFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_gui_simulation_snapshot.html">GuiSimulationSnapshot</a> &amp;snapshot, bool includeSignals)</td></tr>
 <tr class="memitem:a882ac0911415cc6b3eeed75659f7ad0c" id="r_a882ac0911415cc6b3eeed75659f7ad0c"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#a882ac0911415cc6b3eeed75659f7ad0c">makeEventFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, <a class="el" href="_live_frame_8h.html#a76abc5d45797d7b6e6b2ab4f6cba4103">LiveEvent</a> event, int step)</td></tr>
+<tr class="memdesc:a882ac0911415cc6b3eeed75659f7ad0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A change in the life of the run. step is the number of steps that have run.  <br /></td></tr>
 <tr class="memitem:ae491e5fb034f9bd49a5ce43a86daa2e5" id="r_ae491e5fb034f9bd49a5ce43a86daa2e5"><td class="memItemLeft"><a class="el" href="_scene_bundle_8cpp.html#ab701e3ac61a85b337ec5c1abaad6742d">json</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae491e5fb034f9bd49a5ce43a86daa2e5">makeCommandEventFrame</a> (const <a class="el" href="struct_live_run_info.html">LiveRunInfo</a> &amp;run, std::uint64_t seq, const <a class="el" href="struct_live_command.html">LiveCommand</a> &amp;command, int step, const char *rejectedBecause)</td></tr>
 <tr class="memitem:a11664abd93bcdb1cdeb71a0323f2315f" id="r_a11664abd93bcdb1cdeb71a0323f2315f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a11664abd93bcdb1cdeb71a0323f2315f">liveSignalsChanged</a> (const std::vector&lt; <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &gt; &amp;previous, const std::vector&lt; <a class="el" href="struct_gui_signal_state.html">GuiSignalState</a> &gt; &amp;current)</td></tr>
+<tr class="memdesc:a11664abd93bcdb1cdeb71a0323f2315f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the signal lists differ in length, order or any value that a frame reports.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a11664abd93bcdb1cdeb71a0323f2315f" name="a11664abd93bcdb1cdeb71a0323f2315f"></a>
@@ -148,6 +150,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the signal lists differ in length, order or any value that a frame reports. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -185,10 +189,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>rejectedBecause</em></span>&#160;)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>rejectedBecause</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The outcome of a command that a client sent, with step as the number of steps that have run. The frame is "applied" when rejectedBecause is null: the run takes the command before its next step. Otherwise it is "rejected" with rejectedBecause as the reason, such as run_ended, no_active_run or queue_full. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -225,6 +230,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A change in the life of the run. step is the number of steps that have run. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -256,6 +263,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The frame that opens a run: its identity, time axis, units and the trains it will report, in the order of snapshot.trains. Only the identity and route index of each train are read. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -292,6 +300,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The state of one step: the step, sim_time_s and clock_s in seconds, and for each train its route position in metres, x in kilometres and speed in m/s, or null where the train has no position. The signal list is part of the frame only when includeSignals is set. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The outcome of checking the text of one request.">
 <polygon fill="#999999" stroke="#666666" points="82,-19 5,-19 5,0 82,0 82,-19"/>
 <text text-anchor="middle" x="43.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">LiveRequest</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_live_command.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_live_command.html" target="_top" xlink:title="A request that passed the checks of the server and waits for the simulation to apply it.">
 <polygon fill="white" stroke="#666666" points="87,-91 0,-91 0,-72 87,-72 87,-91"/>
 <text text-anchor="middle" x="43.5" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">LiveCommand</text>
 </a>

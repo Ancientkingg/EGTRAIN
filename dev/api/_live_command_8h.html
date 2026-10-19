@@ -132,7 +132,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:LiveCommand" id="r_LiveCommand"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_live_command.html">LiveCommand</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A request that passed the checks of the server and waits for the simulation to apply it.  <a href="struct_live_command.html#details">More...</a><br /></td></tr>
 <tr class="memitem:LiveRequest" id="r_LiveRequest"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_live_request.html">LiveRequest</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outcome of checking the text of one request.  <a href="struct_live_request.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -151,9 +153,14 @@ Functions</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:a953375d60d575ea6db714f0983c1b02a" id="r_a953375d60d575ea6db714f0983c1b02a"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a953375d60d575ea6db714f0983c1b02a">kLiveMaxRequestBytes</a> = 4096</td></tr>
 <tr class="memitem:aabe08e4da69a9ee82f41058d4b7d8927" id="r_aabe08e4da69a9ee82f41058d4b7d8927"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aabe08e4da69a9ee82f41058d4b7d8927">kLiveMaxRequestIdBytes</a> = 64</td></tr>
+<tr class="memdesc:aabe08e4da69a9ee82f41058d4b7d8927"><td class="mdescLeft">&#160;</td><td class="mdescRight">Longest request id, in bytes. A longer one is rejected as bad_argument.  <br /></td></tr>
 <tr class="memitem:aeb5ce96c37cdd763fde054d9261d352e" id="r_aeb5ce96c37cdd763fde054d9261d352e"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#aeb5ce96c37cdd763fde054d9261d352e">kLiveMaxDelayMs</a> = 1000</td></tr>
+<tr class="memdesc:aeb5ce96c37cdd763fde054d9261d352e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Largest delay that set_delay_ms accepts, in milliseconds.  <br /></td></tr>
 </table>
-<a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The requests that a client sends to the command socket of the live stream (see <a class="el" href="_live_server_8h.html">io/LiveServer.h</a>) and the checks that decide whether the server accepts one. The functions read text and touch no socket, thread or run, so any thread can call them. No Qt. The requests, replies and reasons are described under Requests in docs/architecture/external-sharing.md.</p>
+<p>The commands are the ones that change the timing of a run or end it: they never change the railway, and a run that receives only pause, resume and set_delay_ms gives the same results as one that receives nothing. </p>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="aa1b5a0cf359e2336dde00e6516258ebf" name="aa1b5a0cf359e2336dde00e6516258ebf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa1b5a0cf359e2336dde00e6516258ebf">&#9670;&#160;</a></span>LiveCommandKind</h2>
 
@@ -173,11 +180,16 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>What a client can ask of a run. The server queues the request and the simulation applies it at the top of a step. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa105b296a83f9c105355403f3332af50f" name="aa1b5a0cf359e2336dde00e6516258ebfa105b296a83f9c105355403f3332af50f"></a>Pause&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfaf1cefec9e2196c672a622347f1fbc325" name="aa1b5a0cf359e2336dde00e6516258ebfaf1cefec9e2196c672a622347f1fbc325"></a>Resume&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa11a755d598c0c417f9a36758c3da7481" name="aa1b5a0cf359e2336dde00e6516258ebfa11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa07e92cee0961ac7c1d8774235e4dd510" name="aa1b5a0cf359e2336dde00e6516258ebfa07e92cee0961ac7c1d8774235e4dd510"></a>SetDelayMs&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa105b296a83f9c105355403f3332af50f" name="aa1b5a0cf359e2336dde00e6516258ebfa105b296a83f9c105355403f3332af50f"></a>Pause&#160;</td><td class="fielddoc"><p>"pause": the run waits at the top of a step until a resume or a stop. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfaf1cefec9e2196c672a622347f1fbc325" name="aa1b5a0cf359e2336dde00e6516258ebfaf1cefec9e2196c672a622347f1fbc325"></a>Resume&#160;</td><td class="fielddoc"><p>"resume": ends a pause; without a pause it changes nothing. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa11a755d598c0c417f9a36758c3da7481" name="aa1b5a0cf359e2336dde00e6516258ebfa11a755d598c0c417f9a36758c3da7481"></a>Stop&#160;</td><td class="fielddoc"><p>"stop": ends the run as cancelled, before its next step. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aa1b5a0cf359e2336dde00e6516258ebfa07e92cee0961ac7c1d8774235e4dd510" name="aa1b5a0cf359e2336dde00e6516258ebfa07e92cee0961ac7c1d8774235e4dd510"></a>SetDelayMs&#160;</td><td class="fielddoc"><p>"set_delay_ms": sets the wait at the top of each step to <a class="el" href="struct_live_command.html#abb387d99f2bd587b9e4040b4354feeaf" title="For SetDelayMs, in milliseconds, 0 to kLiveMaxDelayMs. 0 for the other kinds.">LiveCommand::delayMs</a>. </p>
+</td></tr>
 </table>
 
 </div>
@@ -197,6 +209,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The name of the command in a request and in the events of a run: "pause", "resume", "stop" or "set_delay_ms". An empty string for a value outside the enumeration. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -223,6 +236,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks the text of a request. It has to be at most kLiveMaxRequestBytes long, a JSON object with the contract version, an id of at most kLiveMaxRequestIdBytes, the token and the name of a command. The first check that fails gives the reason: too_large, bad_json, bad_version, bad_argument, bad_token, unknown_command. set_delay_ms also needs args.delay_ms, a whole number from 0 to kLiveMaxDelayMs, or the reason is bad_argument. The token is compared in a time that depends on its length only. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -252,6 +266,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Largest delay that set_delay_ms accepts, in milliseconds. </p>
+
 </div>
 </div>
 <a id="a953375d60d575ea6db714f0983c1b02a" name="a953375d60d575ea6db714f0983c1b02a"></a>
@@ -273,6 +289,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Longest request that is parsed, in bytes: parseLiveRequest rejects a longer one as too_large. The server drops a message over 64 KiB without a reply (docs/architecture/external-sharing.md). </p>
 
 </div>
 </div>
@@ -295,6 +312,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Longest request id, in bytes. A longer one is rejected as bad_argument. </p>
 
 </div>
 </div>

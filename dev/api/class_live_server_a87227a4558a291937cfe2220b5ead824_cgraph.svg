@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" target="_top" xlink:title="A server that is not started: no thread, context or socket.">
 <polygon fill="white" stroke="#666666" points="288,-19 162,-19 162,0 288,0 288,-19"/>
 <text text-anchor="middle" x="225" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::LiveServer</text>
 </a>

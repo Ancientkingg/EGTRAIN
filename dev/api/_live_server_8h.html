@@ -135,17 +135,29 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:LiveServer" id="r_LiveServer"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_live_server.html">LiveServer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The live server of a process. <a class="el" href="class_dispatch_controller.html">DispatchController</a> owns it when the process is started with &ndash;live.  <a href="class_live_server.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a89290d438d90266f7b943b93f6cf910e" id="r_a89290d438d90266f7b943b93f6cf910e"><td class="memItemLeft">constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#a89290d438d90266f7b943b93f6cf910e">kLiveTopicState</a> [] = &quot;state&quot;</td></tr>
+<tr class="memdesc:a89290d438d90266f7b943b93f6cf910e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The topic of a published state frame.  <br /></td></tr>
 <tr class="memitem:a0f8f86cb48dc0da28924e1f78694d7e8" id="r_a0f8f86cb48dc0da28924e1f78694d7e8"><td class="memItemLeft">constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#a0f8f86cb48dc0da28924e1f78694d7e8">kLiveTopicHello</a> [] = &quot;hello&quot;</td></tr>
+<tr class="memdesc:a0f8f86cb48dc0da28924e1f78694d7e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The topic of a published hello frame.  <br /></td></tr>
 <tr class="memitem:a5be293f2c00b18eb2f8a9f2e7a296dc1" id="r_a5be293f2c00b18eb2f8a9f2e7a296dc1"><td class="memItemLeft">constexpr char&#160;</td><td class="memItemRight"><a class="el" href="#a5be293f2c00b18eb2f8a9f2e7a296dc1">kLiveTopicEvent</a> [] = &quot;event&quot;</td></tr>
+<tr class="memdesc:a5be293f2c00b18eb2f8a9f2e7a296dc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The topic of a published event frame.  <br /></td></tr>
 <tr class="memitem:a1780934c09c6c035a759caca749fab6f" id="r_a1780934c09c6c035a759caca749fab6f"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a1780934c09c6c035a759caca749fab6f">kLiveStateQueueSize</a> = 8</td></tr>
+<tr class="memdesc:a1780934c09c6c035a759caca749fab6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of state frames that can wait for the I/O thread.  <br /></td></tr>
 <tr class="memitem:a54a2e83d0a2f9ad539d060bf4062fd81" id="r_a54a2e83d0a2f9ad539d060bf4062fd81"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a54a2e83d0a2f9ad539d060bf4062fd81">kLiveEventQueueSize</a> = 64</td></tr>
+<tr class="memdesc:a54a2e83d0a2f9ad539d060bf4062fd81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of hello and event frames that can wait for the I/O thread.  <br /></td></tr>
 <tr class="memitem:a9786b65a774b54ef4b95c6c67afce4b7" id="r_a9786b65a774b54ef4b95c6c67afce4b7"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a9786b65a774b54ef4b95c6c67afce4b7">kLiveCommandQueueSize</a> = 16</td></tr>
 </table>
-<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The transport of the live contract: a ZeroMQ PUB socket that publishes frames to any number of subscribers on this machine and, when commands are enabled, a REP socket that takes run-control requests. Both sockets listen on 127.0.0.1 only. A server that is not started holds no thread, no context and no socket. No Qt. The sockets, queues and threads are described under Live server in docs/architecture/external-sharing.md.</p>
+<p>The server carries frame text that the caller has made (see <a class="el" href="_live_frame_8h.html">io/LiveFrame.h</a>) and neither reads nor changes it. A published frame is two parts: a topic, then the text.</p>
+<p>One I/O thread, started by start(), creates, uses and closes every ZeroMQ socket, because a socket must not be shared between threads. Every other thread uses the push functions and tryPopCommand. They take a mutex for a few instructions and never wait for the I/O thread, a socket or a subscriber, so a step of the simulation cannot stall on the transport.</p>
+<p>Frames wait in bounded queues until the I/O thread sends them, in the order in which they were pushed. When the state queue is full, the oldest waiting state frame is dropped: a subscriber misses it, and sees the gap in the seq of the frames. Hello and event frames are never dropped; a push that finds their queue full is refused. A subscriber that does not read loses frames at its own high-water mark, without effect on the others.</p>
+<p>start and stop are called from one thread at a time. The other functions can be called from any thread. </p>
+</div><a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
 <a id="a9786b65a774b54ef4b95c6c67afce4b7" name="a9786b65a774b54ef4b95c6c67afce4b7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9786b65a774b54ef4b95c6c67afce4b7">&#9670;&#160;</a></span>kLiveCommandQueueSize</h2>
 
@@ -165,6 +177,7 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Number of accepted commands that can wait for tryPopCommand. A request that finds it full is rejected as queue_full. </p>
 
 </div>
 </div>
@@ -188,6 +201,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Number of hello and event frames that can wait for the I/O thread. </p>
+
 </div>
 </div>
 <a id="a1780934c09c6c035a759caca749fab6f" name="a1780934c09c6c035a759caca749fab6f"></a>
@@ -209,6 +224,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Number of state frames that can wait for the I/O thread. </p>
 
 </div>
 </div>
@@ -232,6 +249,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The topic of a published event frame. </p>
+
 </div>
 </div>
 <a id="a0f8f86cb48dc0da28924e1f78694d7e8" name="a0f8f86cb48dc0da28924e1f78694d7e8"></a>
@@ -254,6 +273,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The topic of a published hello frame. </p>
+
 </div>
 </div>
 <a id="a89290d438d90266f7b943b93f6cf910e" name="a89290d438d90266f7b943b93f6cf910e"></a>
@@ -275,6 +296,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The topic of a published state frame. </p>
 
 </div>
 </div>

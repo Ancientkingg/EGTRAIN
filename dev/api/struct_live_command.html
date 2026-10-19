@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_live_co
 </div><!--header-->
 <div class="contents">
 
+<p>A request that passed the checks of the server and waits for the simulation to apply it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_live_command_8h_source.html">io/LiveCommand.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aafe2fb6a82d45cb110f10626c642d409" id="r_aafe2fb6a82d45cb110f10626c642d409"><td class="memItemLeft"><a class="el" href="_live_command_8h.html#aa1b5a0cf359e2336dde00e6516258ebf">LiveCommandKind</a>&#160;</td><td class="memItemRight"><a class="el" href="#aafe2fb6a82d45cb110f10626c642d409">kind</a> = <a class="el" href="_live_command_8h.html#aa1b5a0cf359e2336dde00e6516258ebfa105b296a83f9c105355403f3332af50f">LiveCommandKind::Pause</a></td></tr>
+<tr class="memdesc:aafe2fb6a82d45cb110f10626c642d409"><td class="mdescLeft">&#160;</td><td class="mdescRight">The command.  <br /></td></tr>
 <tr class="memitem:aca08e5603b7c7c3852db36974e50b099" id="r_aca08e5603b7c7c3852db36974e50b099"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aca08e5603b7c7c3852db36974e50b099">id</a></td></tr>
+<tr class="memdesc:aca08e5603b7c7c3852db36974e50b099"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id that the client gave the request, at most kLiveMaxRequestIdBytes bytes.  <br /></td></tr>
 <tr class="memitem:abb387d99f2bd587b9e4040b4354feeaf" id="r_abb387d99f2bd587b9e4040b4354feeaf"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#abb387d99f2bd587b9e4040b4354feeaf">delayMs</a> = 0</td></tr>
+<tr class="memdesc:abb387d99f2bd587b9e4040b4354feeaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">For SetDelayMs, in milliseconds, 0 to kLiveMaxDelayMs. 0 for the other kinds.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A request that passed the checks of the server and waits for the simulation to apply it. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="abb387d99f2bd587b9e4040b4354feeaf" name="abb387d99f2bd587b9e4040b4354feeaf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abb387d99f2bd587b9e4040b4354feeaf">&#9670;&#160;</a></span>delayMs</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>For SetDelayMs, in milliseconds, 0 to kLiveMaxDelayMs. 0 for the other kinds. </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The id that the client gave the request, at most kLiveMaxRequestIdBytes bytes. </p>
+
 </div>
 </div>
 <a id="aafe2fb6a82d45cb110f10626c642d409" name="aafe2fb6a82d45cb110f10626c642d409"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The command. </p>
 
 </div>
 </div>

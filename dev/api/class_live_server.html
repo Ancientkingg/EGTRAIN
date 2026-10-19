@@ -113,26 +113,38 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_live_ser
 </div><!--header-->
 <div class="contents">
 
+<p>The live server of a process. <a class="el" href="class_dispatch_controller.html">DispatchController</a> owns it when the process is started with &ndash;live.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_live_server_8h_source.html">io/LiveServer.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a06a8b4328f348a62487f2e447bcc406d" id="r_a06a8b4328f348a62487f2e447bcc406d"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a06a8b4328f348a62487f2e447bcc406d">LiveServer</a> ()</td></tr>
+<tr class="memdesc:a06a8b4328f348a62487f2e447bcc406d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A server that is not started: no thread, context or socket.  <br /></td></tr>
 <tr class="memitem:a8b5ec9abd331c7809248247071088282" id="r_a8b5ec9abd331c7809248247071088282"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a8b5ec9abd331c7809248247071088282">~LiveServer</a> ()</td></tr>
+<tr class="memdesc:a8b5ec9abd331c7809248247071088282"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops the server.  <br /></td></tr>
 <tr class="memitem:a87227a4558a291937cfe2220b5ead824" id="r_a87227a4558a291937cfe2220b5ead824"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a87227a4558a291937cfe2220b5ead824">LiveServer</a> (const <a class="el" href="class_live_server.html">LiveServer</a> &amp;)=delete</td></tr>
 <tr class="memitem:acff42ce26c0f1dcd1ef68f444d2cb1d0" id="r_acff42ce26c0f1dcd1ef68f444d2cb1d0"><td class="memItemLeft"><a class="el" href="class_live_server.html">LiveServer</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#acff42ce26c0f1dcd1ef68f444d2cb1d0">operator=</a> (const <a class="el" href="class_live_server.html">LiveServer</a> &amp;)=delete</td></tr>
 <tr class="memitem:a3b58c06cb919e13f4ed704c5396c6427" id="r_a3b58c06cb919e13f4ed704c5396c6427"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3b58c06cb919e13f4ed704c5396c6427">start</a> (int port, bool commandsEnabled, const std::filesystem::path &amp;outputDirectory, std::string *error=nullptr)</td></tr>
 <tr class="memitem:a844b7857a9ba27bc1992e35669ee4f6b" id="r_a844b7857a9ba27bc1992e35669ee4f6b"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a844b7857a9ba27bc1992e35669ee4f6b">stop</a> ()</td></tr>
 <tr class="memitem:a4bd05bc42e4ed5770bfa7535ce607c8b" id="r_a4bd05bc42e4ed5770bfa7535ce607c8b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4bd05bc42e4ed5770bfa7535ce607c8b">running</a> () const</td></tr>
+<tr class="memdesc:a4bd05bc42e4ed5770bfa7535ce607c8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">True from a successful <a class="el" href="#a3b58c06cb919e13f4ed704c5396c6427">start()</a> until <a class="el" href="#a844b7857a9ba27bc1992e35669ee4f6b">stop()</a>, or until the I/O thread ends after an error.  <br /></td></tr>
 <tr class="memitem:a88016109630dd6d39d70a85ca8d85b62" id="r_a88016109630dd6d39d70a85ca8d85b62"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a88016109630dd6d39d70a85ca8d85b62">stateEndpoint</a> () const</td></tr>
+<tr class="memdesc:a88016109630dd6d39d70a85ca8d85b62"><td class="mdescLeft">&#160;</td><td class="mdescRight">"tcp://127.0.0.1:&lt;port&gt;" of the PUB socket, or empty when the server is not running.  <br /></td></tr>
 <tr class="memitem:ae5555bb73bf4666593cc03703a854069" id="r_ae5555bb73bf4666593cc03703a854069"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae5555bb73bf4666593cc03703a854069">commandEndpoint</a> () const</td></tr>
+<tr class="memdesc:ae5555bb73bf4666593cc03703a854069"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same for the REP socket; empty without commands.  <br /></td></tr>
 <tr class="memitem:ac7f0cca626530eaaba8963fda08552cc" id="r_ac7f0cca626530eaaba8963fda08552cc"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac7f0cca626530eaaba8963fda08552cc">pushState</a> (std::shared_ptr&lt; const std::string &gt; frame)</td></tr>
 <tr class="memitem:a305f7127a067fd2712970f05a2f2bf2c" id="r_a305f7127a067fd2712970f05a2f2bf2c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a305f7127a067fd2712970f05a2f2bf2c">pushHello</a> (const std::string &amp;runId, std::shared_ptr&lt; const std::string &gt; frame)</td></tr>
 <tr class="memitem:ae62a2051c5c5dbaba0a2994e6128c326" id="r_ae62a2051c5c5dbaba0a2994e6128c326"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae62a2051c5c5dbaba0a2994e6128c326">pushEvent</a> (std::shared_ptr&lt; const std::string &gt; frame)</td></tr>
 <tr class="memitem:aef7d897d6172207262db8da47ef157e7" id="r_aef7d897d6172207262db8da47ef157e7"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_live_command.html">LiveCommand</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aef7d897d6172207262db8da47ef157e7">tryPopCommand</a> ()</td></tr>
+<tr class="memdesc:aef7d897d6172207262db8da47ef157e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it.  <br /></td></tr>
 <tr class="memitem:ac246026a56da29efd848c433ac872510" id="r_ac246026a56da29efd848c433ac872510"><td class="memItemLeft">std::uint64_t&#160;</td><td class="memItemRight"><a class="el" href="#ac246026a56da29efd848c433ac872510">droppedStates</a> () const</td></tr>
+<tr class="memdesc:ac246026a56da29efd848c433ac872510"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of state frames dropped since the server started.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The live server of a process. <a class="el" href="class_dispatch_controller.html">DispatchController</a> owns it when the process is started with &ndash;live. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a06a8b4328f348a62487f2e447bcc406d" name="a06a8b4328f348a62487f2e447bcc406d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a06a8b4328f348a62487f2e447bcc406d">&#9670;&#160;</a></span>LiveServer() <span class="overload">[1/2]</span></h2>
 
@@ -147,6 +159,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A server that is not started: no thread, context or socket. </p>
 
 </div>
 </div>
@@ -164,6 +178,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stops the server. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -218,6 +234,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The same for the REP socket; empty without commands. </p>
+
 </div>
 </div>
 <a id="ac246026a56da29efd848c433ac872510" name="ac246026a56da29efd848c433ac872510"></a>
@@ -234,6 +252,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of state frames dropped since the server started. </p>
 
 </div>
 </div>
@@ -281,6 +301,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Queues an event frame. Returns false and queues nothing when the server is not running, frame is null or the queue is full. </p>
 
 </div>
 </div>
@@ -302,6 +323,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Queues the hello frame of a run and keeps it, with the id of the run, to publish again when a client sends "describe". The latest hello is kept until the server stops. Returns false and queues nothing when the server is not running, frame is null or the queue is full. </p>
 
 </div>
 </div>
@@ -319,6 +341,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Queues a state frame. Does nothing when the server is not running or frame is null. A full queue drops its oldest state frame first, and <a class="el" href="#ac246026a56da29efd848c433ac872510" title="Number of state frames dropped since the server started.">droppedStates()</a> counts it. </p>
 
 </div>
 </div>
@@ -336,6 +359,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True from a successful <a class="el" href="#a3b58c06cb919e13f4ed704c5396c6427">start()</a> until <a class="el" href="#a844b7857a9ba27bc1992e35669ee4f6b">stop()</a>, or until the I/O thread ends after an error. </p>
 
 </div>
 </div>
@@ -367,6 +392,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts the I/O thread and binds the sockets, and returns once they are bound. port is the port of the PUB socket on 127.0.0.1, 0 to 65535; 0 takes a free port. The REP socket, with commandsEnabled, always takes a free port. The endpoints are written to live-endpoint.json in outputDirectory, which is created when it is missing; with commands, the file also holds the token that every request has to carry, and only its owner can read it where the platform supports that. Returns false with the reason in *error when the server is running already, the port is not valid or in use, or the file cannot be written; error may be null. A server that failed to start holds nothing. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -390,6 +416,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>"tcp://127.0.0.1:&lt;port&gt;" of the PUB socket, or empty when the server is not running. </p>
+
 </div>
 </div>
 <a id="a844b7857a9ba27bc1992e35669ee4f6b" name="a844b7857a9ba27bc1992e35669ee4f6b"></a>
@@ -406,6 +434,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sends the frames that are waiting, closes the sockets, ends the I/O thread and removes live-endpoint.json. The close waits at most half a second for a subscriber that does not read. Does nothing when the server is not running. </p>
 
 </div>
 </div>
@@ -423,6 +452,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it. </p>
 
 </div>
 </div>

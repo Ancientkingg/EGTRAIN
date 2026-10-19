@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_live_server.html#ae5555bb73bf4666593cc03703a854069" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_live_server.html#ae5555bb73bf4666593cc03703a854069" target="_top" xlink:title="The same for the REP socket; empty without commands.">
 <polygon fill="white" stroke="#666666" points="326,-393 160,-393 160,-374 326,-374 326,-393"/>
 <text text-anchor="middle" x="243" y="-381" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::commandEndpoint</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_live_server.html#ac246026a56da29efd848c433ac872510" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_live_server.html#ac246026a56da29efd848c433ac872510" target="_top" xlink:title="Number of state frames dropped since the server started.">
 <polygon fill="white" stroke="#666666" points="315.5,-356 170.5,-356 170.5,-337 315.5,-337 315.5,-356"/>
 <text text-anchor="middle" x="243" y="-344" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::droppedStates</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" target="_top" xlink:title="A server that is not started: no thread, context or socket.">
 <polygon fill="white" stroke="#666666" points="306,-319 180,-319 180,-300 306,-300 306,-319"/>
 <text text-anchor="middle" x="243" y="-307" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::LiveServer</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title="True from a successful start() until stop(), or until the I/O thread ends after an error.">
 <polygon fill="white" stroke="#666666" points="473,-150 362,-150 362,-131 473,-131 473,-150"/>
 <text text-anchor="middle" x="417.5" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::running</text>
 </a>
@@ -182,7 +182,7 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" target="_top" xlink:title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running.">
 <polygon fill="white" stroke="#666666" points="314,-56 172,-56 172,-37 314,-37 314,-56"/>
 <text text-anchor="middle" x="243" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::stateEndpoint</text>
 </a>
@@ -200,7 +200,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_live_server.html#aef7d897d6172207262db8da47ef157e7" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_live_server.html#aef7d897d6172207262db8da47ef157e7" target="_top" xlink:title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it.">
 <polygon fill="white" stroke="#666666" points="321,-19 165,-19 165,0 321,0 321,-19"/>
 <text text-anchor="middle" x="243" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::tryPopCommand</text>
 </a>

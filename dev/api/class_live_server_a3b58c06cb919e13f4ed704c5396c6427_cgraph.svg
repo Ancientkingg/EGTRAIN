@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title="True from a successful start() until stop(), or until the I/O thread ends after an error.">
 <polygon fill="white" stroke="#666666" points="244,-56 133,-56 133,-37 244,-37 244,-56"/>
 <text text-anchor="middle" x="188.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::running</text>
 </a>

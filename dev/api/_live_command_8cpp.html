@@ -141,6 +141,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The name of the command in a request and in the events of a run: "pause", "resume", "stop" or "set_delay_ms". An empty string for a value outside the enumeration. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -167,6 +168,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Checks the text of a request. It has to be at most kLiveMaxRequestBytes long, a JSON object with the contract version, an id of at most kLiveMaxRequestIdBytes, the token and the name of a command. The first check that fails gives the reason: too_large, bad_json, bad_version, bad_argument, bad_token, unknown_command. set_delay_ms also needs args.delay_ms, a whole number from 0 to kLiveMaxDelayMs, or the reason is bad_argument. The token is compared in a time that depends on its length only. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

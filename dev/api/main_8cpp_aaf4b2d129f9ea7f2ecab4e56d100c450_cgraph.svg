@@ -103,7 +103,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" target="_top" xlink:title="True from a successful start() until stop(), or until the I/O thread ends after an error.">
 <polygon fill="white" stroke="#666666" points="598,-99 487,-99 487,-80 598,-80 598,-99"/>
 <text text-anchor="middle" x="542.5" y="-87" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer::running</text>
 </a>

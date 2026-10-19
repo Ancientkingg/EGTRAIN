@@ -9,7 +9,7 @@
 <area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="107,100,255,151,253,156,106,105"/>
 <area shape="rect" id="Node000004" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="477,77,607,102"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="376,87,464,87,464,92,376,92"/>
-<area shape="rect" id="Node000005" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title=" " alt="" coords="655,51,803,77"/>
+<area shape="rect" id="Node000005" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="655,51,803,77"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="607,78,641,73,641,79,608,83"/>
 <area shape="rect" id="Node000006" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="665,101,792,126"/>
 <area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="608,95,652,101,651,106,607,100"/>

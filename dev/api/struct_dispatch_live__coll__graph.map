@@ -1,7 +1,7 @@
 <map id="DispatchLive" name="DispatchLive">
 <area shape="rect" id="Node000001" title=" " alt="" coords="56,101,163,127"/>
-<area shape="rect" id="Node000002" href="$class_live_server.html" title=" " alt="" coords="5,5,96,31"/>
+<area shape="rect" id="Node000002" href="$class_live_server.html" title="The live server of a process. DispatchController owns it when the process is started with –live." alt="" coords="5,5,96,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,41,104,100,100,103,63,44"/>
-<area shape="rect" id="Node000003" href="$struct_live_run_info.html" title=" " alt="" coords="120,5,219,31"/>
+<area shape="rect" id="Node000003" href="$struct_live_run_info.html" title="What identifies a run and sets the time axis of its frames." alt="" coords="120,5,219,31"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,45,142,79,123,103,119,99,138,76,157,42"/>
 </map>

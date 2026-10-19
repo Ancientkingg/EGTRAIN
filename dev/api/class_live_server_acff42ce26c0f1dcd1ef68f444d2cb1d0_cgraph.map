@@ -1,10 +1,10 @@
 <map id="LiveServer::operator=" name="LiveServer::operator=">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,252,171,277"/>
-<area shape="rect" id="Node000002" href="$class_live_server.html#ae5555bb73bf4666593cc03703a854069" title=" " alt="" coords="219,5,440,31"/>
+<area shape="rect" id="Node000002" href="$class_live_server.html#ae5555bb73bf4666593cc03703a854069" title="The same for the REP socket; empty without commands." alt="" coords="219,5,440,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,251,104,209,129,152,166,91,190,64,217,40,225,35,228,39,220,44,194,67,171,94,134,154,109,211,95,252"/>
-<area shape="rect" id="Node000003" href="$class_live_server.html#ac246026a56da29efd848c433ac872510" title=" " alt="" coords="233,55,426,80"/>
+<area shape="rect" id="Node000003" href="$class_live_server.html#ac246026a56da29efd848c433ac872510" title="Number of state frames dropped since the server started." alt="" coords="233,55,426,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="93,251,109,217,136,173,172,128,217,89,228,83,230,88,220,94,176,131,140,176,114,220,97,253"/>
-<area shape="rect" id="Node000004" href="$class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" title=" " alt="" coords="245,104,413,129"/>
+<area shape="rect" id="Node000004" href="$class_live_server.html#a06a8b4328f348a62487f2e447bcc406d" title="A server that is not started: no thread, context or socket." alt="" coords="245,104,413,129"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="97,250,144,195,178,164,217,138,232,131,234,136,220,143,182,169,148,199,101,254"/>
 <area shape="rect" id="Node000005" href="$class_live_server.html#ae62a2051c5c5dbaba0a2994e6128c326" title=" " alt="" coords="246,153,413,179"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="106,250,155,219,218,188,241,180,242,185,220,192,157,223,109,254"/>
@@ -12,15 +12,15 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="150,249,253,228,254,233,151,255"/>
 <area shape="rect" id="Node000007" href="$class_live_server.html#ac7f0cca626530eaaba8963fda08552cc" title=" " alt="" coords="247,252,411,277"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="171,262,234,262,234,267,171,267"/>
-<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title=" " alt="" coords="488,329,636,355"/>
+<area shape="rect" id="Node000008" href="$class_live_server.html#a4bd05bc42e4ed5770bfa7535ce607c8b" title="True from a successful start() until stop(), or until the I/O thread ends after an error." alt="" coords="488,329,636,355"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="156,275,219,286,475,327,474,332,218,291,155,280"/>
 <area shape="rect" id="Node000009" href="$class_live_server.html#a3b58c06cb919e13f4ed704c5396c6427" title=" " alt="" coords="265,353,394,379"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="112,275,160,303,220,332,265,347,263,352,218,336,158,308,109,280"/>
 <area shape="rect" id="Node000010" href="$class_live_server.html#a844b7857a9ba27bc1992e35669ee4f6b" title=" " alt="" coords="499,379,625,404"/>
 <area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="100,276,118,302,145,334,179,365,220,389,253,400,289,408,361,414,430,411,490,404,491,409,431,417,361,419,288,413,252,405,218,394,176,370,141,338,114,305,95,279"/>
-<area shape="rect" id="Node000011" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title=" " alt="" coords="235,455,424,480"/>
+<area shape="rect" id="Node000011" href="$class_live_server.html#a88016109630dd6d39d70a85ca8d85b62" title="&quot;tcp://127.0.0.1:&lt;port&gt;&quot; of the PUB socket, or empty when the server is not running." alt="" coords="235,455,424,480"/>
 <area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="98,276,115,308,142,351,177,395,220,433,248,448,246,452,217,438,173,399,137,354,110,311,93,279"/>
-<area shape="rect" id="Node000012" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title=" " alt="" coords="225,504,433,529"/>
+<area shape="rect" id="Node000012" href="$class_live_server.html#aef7d897d6172207262db8da47ef157e7" title="The oldest accepted command, or nothing. Never waits. The thread that runs the steps calls it." alt="" coords="225,504,433,529"/>
 <area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="95,277,108,319,133,377,170,439,193,467,220,491,228,496,225,500,217,495,189,470,166,442,128,379,103,320,90,278"/>
 <area shape="poly" id="edge9_Node000009_Node000008" title=" " alt="" coords="394,357,474,348,475,354,394,362"/>
 <area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="394,370,485,380,485,386,394,376"/>

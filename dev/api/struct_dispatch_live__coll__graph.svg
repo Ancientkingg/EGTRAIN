@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_live_server.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_live_server.html" target="_top" xlink:title="The live server of a process. DispatchController owns it when the process is started with –live.">
 <polygon fill="white" stroke="#666666" points="68,-91 0,-91 0,-72 68,-72 68,-91"/>
 <text text-anchor="middle" x="34" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">LiveServer</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="struct_live_run_info.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="struct_live_run_info.html" target="_top" xlink:title="What identifies a run and sets the time axis of its frames.">
 <polygon fill="white" stroke="#666666" points="160,-91 86,-91 86,-72 160,-72 160,-91"/>
 <text text-anchor="middle" x="123" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">LiveRunInfo</text>
 </a>

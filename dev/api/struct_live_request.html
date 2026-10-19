@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_live_re
 </div><!--header-->
 <div class="contents">
 
+<p>The outcome of checking the text of one request.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_live_command_8h_source.html">io/LiveCommand.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for LiveRequest:</div>
@@ -125,9 +128,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a43b13d9e5dbc8c7e9af1819086a429a0" id="r_a43b13d9e5dbc8c7e9af1819086a429a0"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a43b13d9e5dbc8c7e9af1819086a429a0">reason</a> = nullptr</td></tr>
 <tr class="memitem:ab04d98ce908f29b1797dcb2bb49296d3" id="r_ab04d98ce908f29b1797dcb2bb49296d3"><td class="memItemLeft">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab04d98ce908f29b1797dcb2bb49296d3">id</a></td></tr>
 <tr class="memitem:a77c67175b9578dd822b416296bbefb9d" id="r_a77c67175b9578dd822b416296bbefb9d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a77c67175b9578dd822b416296bbefb9d">describe</a> = false</td></tr>
+<tr class="memdesc:a77c67175b9578dd822b416296bbefb9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the request asks to describe the run. Otherwise an accepted request holds a command.  <br /></td></tr>
 <tr class="memitem:a6325a8e88947d0e4c898e1aa5ab7a9cc" id="r_a6325a8e88947d0e4c898e1aa5ab7a9cc"><td class="memItemLeft"><a class="el" href="struct_live_command.html">LiveCommand</a>&#160;</td><td class="memItemRight"><a class="el" href="#a6325a8e88947d0e4c898e1aa5ab7a9cc">command</a></td></tr>
+<tr class="memdesc:a6325a8e88947d0e4c898e1aa5ab7a9cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The command of an accepted request that is not describe. Its id is the id of the request.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The outcome of checking the text of one request. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a6325a8e88947d0e4c898e1aa5ab7a9cc" name="a6325a8e88947d0e4c898e1aa5ab7a9cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6325a8e88947d0e4c898e1aa5ab7a9cc">&#9670;&#160;</a></span>command</h2>
 
@@ -139,6 +146,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The command of an accepted request that is not describe. Its id is the id of the request. </p>
 
 </div>
 </div>
@@ -154,6 +163,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the request asks to describe the run. Otherwise an accepted request holds a command. </p>
+
 </div>
 </div>
 <a id="ab04d98ce908f29b1797dcb2bb49296d3" name="ab04d98ce908f29b1797dcb2bb49296d3"></a>
@@ -167,6 +178,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The id of the request, once it is known to be a valid id, or no value before that. The reply repeats it, and sends null when it has no value. </p>
 
 </div>
 </div>
@@ -181,6 +193,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Why the request is rejected, one of the reasons of the contract, or null when it is accepted. Points to a string literal. </p>
 
 </div>
 </div>
