@@ -43,12 +43,13 @@ int main(int argc, char** argv) {
 	if (historicalPassenger.isNull() || historicalPassenger.size() != QSize(1200, 1200)
 		|| !historicalPassenger.hasAlphaChannel())
 		return 1;
-	const std::array<const char*, 5> command_icons{
+	const std::array<const char*, 6> command_icons{
 		":/icons/run.svg",
 		":/icons/pause.svg",
 		":/icons/stop.svg",
 		":/icons/zoom-in.svg",
 		":/icons/zoom-out.svg",
+		":/icons/follow.svg",
 	};
 	for (const char* path : command_icons) {
 		const QImage image(path);

@@ -929,6 +929,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_followAction = new QAction("Follow", this);
 	m_followAction->setObjectName("actionFollow");
 	m_followAction->setCheckable(true);
+	m_followAction->setIcon(QIcon(":/icons/follow.svg"));
 	// One sentence in the status bar says whether the selected train is followed, and why not.
 	m_followStatusLabel = new ElidedLabel(this);
 	m_followStatusLabel->setObjectName("followStatusLabel");
@@ -1044,7 +1045,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	ui->actionZoomIn->setProperty("toolbarGroup", "View");
 	ui->actionZoomOut->setProperty("toolbarGroup", "View");
 	ui->actionFitView->setProperty("toolbarGroup", "View");
-	addToolbarButton(m_followAction, "actionFollowButton", Qt::ToolButtonTextOnly);
+	addToolbarButton(m_followAction, "actionFollowButton", Qt::ToolButtonTextBesideIcon);
 	m_followTrainCombo->setFixedWidth(180);
 	m_followTrainCombo->setFixedHeight(32);
 	m_followTrainCombo->setAccessibleName("Train to follow");
@@ -4010,5 +4011,5 @@ void MainWindow::updateSignalCues() {
 
 void MainWindow::updateZoomStatus() {
 	if (m_zoomStatusLabel && networkView)
-		m_zoomStatusLabel->setText(networkView->zoomLabel());
+		m_zoomStatusLabel->setText(QStringLiteral("Zoom: %1").arg(networkView->zoomLabel()));
 }

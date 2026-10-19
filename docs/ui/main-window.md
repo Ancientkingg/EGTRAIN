@@ -6,6 +6,14 @@ The speed slider in the toolbar sets how fast a run plays; right is faster. The 
 
 The readout next to the slider shows the current speed as **Fastest** or as a factor of real time such as **4.0x** or **100x**. Its width fits the longest text, so the toolbar does not move while the slider is dragged. The slider has no Slower and Faster words beside it: with them the toolbar needs about 1070 px and no longer shows every control in a 1024 px window.
 
+## Toolbar buttons and Follow
+
+Every toolbar button has a white fill and a `#7b8b96` outline. A disabled button, such as Pause and Stop before a run, has a grey `#e4e8eb` fill, a light `#c9d3db` outline and grey text. Under the pointer and with keyboard focus a button turns `#e4eaee` with a `#315a70` outline. **Open Case** keeps its own darker fill and lighter outline.
+
+**Follow** shows a crosshair icon beside its text. While Follow is on, the button has a light `#d3e3ec` fill, a `#315a70` outline and dark text; under the pointer or with focus the fill turns `#bcd2df` and the outline `#24313a`.
+
+The status bar shows the zoom of the network view as **Zoom: Fit** for the whole network and as a factor such as **Zoom: 2x** otherwise.
+
 ## Run results header
 
 The dialog **Run simulation** shows the duration of the run as H:MM:SS, the format of the **Travel time** column of Run Results, followed by the clock time at which the run ends, as in `2:30:00 (ends near 09:40:40)`.

@@ -67,9 +67,30 @@ QToolButton:disabled {
     color: #64717a;
 }
 
-QToolButton:checked {
+QToolBar QToolButton {
+    background: #ffffff;
+    border-color: #7b8b96;
+}
+
+QToolBar QToolButton:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+}
+
+QToolButton:checked, QToolBar QToolButton:checked {
     background: #315a70;
     color: #ffffff;
+}
+
+QToolButton#actionFollowButton:checked {
+    background: #d3e3ec;
+    border-color: #315a70;
+    color: #24313a;
+}
+
+QToolButton#actionFollowButton:checked:hover, QToolButton#actionFollowButton:checked:focus {
+    background: #bcd2df;
+    border-color: #24313a;
 }
 
 QDockWidget {
