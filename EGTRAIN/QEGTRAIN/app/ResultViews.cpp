@@ -48,8 +48,6 @@
 #include <string>
 #include <vector>
 
-QT_CHARTS_USE_NAMESPACE
-
 namespace {
 
 void attachRunProvenance(DiagramWindow* window, RunProvenance provenance) {

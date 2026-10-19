@@ -64,11 +64,13 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
 
 CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
 one CI uses. CMake searches a folder in `CMAKE_PREFIX_PATH` before the system folders, so the examples
-above use Qt 5 even when Qt 6 is installed elsewhere. The sources do not compile with Qt 6 yet. To try Qt
-6, configure a separate build folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example
-`~/Qt/6.8.3/macos`. When one prefix holds both versions, such as `/usr` on Ubuntu, add
-`-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5` to choose Qt 5. `QT_DIR` in `build/CMakeCache.txt` shows
-which Qt a build folder uses.
+above use Qt 5 even when Qt 6 is installed elsewhere. The application and the tests also compile with
+Qt 6.8 on macOS when warnings are not errors, but CI does not build Qt 6 yet and some tests fail with it. To try Qt 6, configure a separate build
+folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example `~/Qt/6.8.3/macos`. With Homebrew, add
+the keg folders of the other libraries, such as `/opt/homebrew/opt/zeromq`, not `/opt/homebrew`: the
+headers of a linked `qt@5` there would hide those of Qt 6. When one prefix holds both versions, such as
+`/usr` on Ubuntu, add `-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5` to choose Qt 5. `QT_DIR` in
+`build/CMakeCache.txt` shows which Qt a build folder uses.
 
 The Visual Studio generator is multi-config: choose the configuration when
 building and testing, as in the next two sections.

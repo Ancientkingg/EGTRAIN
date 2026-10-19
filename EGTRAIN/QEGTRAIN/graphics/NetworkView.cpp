@@ -254,7 +254,11 @@ bool NetworkView::viewportEvent(QEvent* event) {
 	if (event->type() == QEvent::NativeGesture) {
 		auto* gesture = static_cast<QNativeGestureEvent*>(event);
 		if (gesture->gestureType() == Qt::ZoomNativeGesture) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			zoomBy(1.0 + gesture->value(), gesture->position());
+#else
 			zoomBy(1.0 + gesture->value(), gesture->localPos());
+#endif
 			event->accept();
 			return true;
 		}

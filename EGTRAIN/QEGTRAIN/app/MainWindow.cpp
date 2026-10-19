@@ -73,7 +73,6 @@
 #include <sstream>
 #include <tuple>
 #include <unordered_map>
-QT_CHARTS_USE_NAMESPACE
 #include "util/TimeFormat.h"
 #include "util/SpeedFormat.h"
 #include "widgets/ConsoleWidget.h"

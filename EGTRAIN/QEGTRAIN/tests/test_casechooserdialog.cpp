@@ -62,7 +62,7 @@ void sendKey(QWidget* widget, Qt::Key key) {
 }
 
 void sendMouse(QWidget* widget, QEvent::Type type, const QPoint& point) {
-	QMouseEvent event(type, QPointF(point), Qt::LeftButton,
+	QMouseEvent event(type, QPointF(point), QPointF(widget->mapToGlobal(point)), Qt::LeftButton,
 		type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
 	QApplication::sendEvent(widget, &event);
 }

@@ -185,3 +185,15 @@ included.
    jobs, `util/QtMsvcCompat.h` and the Qt 5 notes. Rehearse a release on all three platforms.
 7. **Decide on Qt Charts.** Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
    Quick runtime in the decision.
+
+Status on 2026-10-19: steps 1 and 2 are done. With Qt 6.8.3 on macOS the application and all tests build. On the
+offscreen platform these tests fail:
+
+- `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` and `test_editor_smoke` pass their checks, then
+  the application crashes when `MainWindow` deletes the infrastructure panel: a `destroyed` connection of a line
+  edit in its table runs on freed memory.
+- `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
+- `test_visual_polish_smoke_stations` fails at `QT_SCALE_FACTOR=2`: the station artwork pixmap no longer has the
+  station size, and a click on a painted pixel does not find the station picture.
+- `test_startup_launch_contract` looks for non-ASCII recent cases in the settings file as `\xe9` escapes; Qt 6
+  writes INI files in UTF-8.

@@ -488,7 +488,7 @@ public:
 					return;
 				}
 			}
-			const int reduced = std::max(1, std::min(limit - 1, active.token.ids.size() / 2));
+			const int reduced = std::max(1, std::min(limit - 1, static_cast<int>(active.token.ids.size() / 2)));
 			reserve(30000, 0, index ? -1 : reduced, index ? reduced : -1);
 		} else if (status == 429 || (status >= 500 && status <= 599) || status == 0) {
 			// Preflight already counted this attempt. Completion must not count it twice.

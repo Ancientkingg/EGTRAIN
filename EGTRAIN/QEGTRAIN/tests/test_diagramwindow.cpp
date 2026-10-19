@@ -39,8 +39,6 @@
 #include <cmath>
 #include <iostream>
 
-QT_CHARTS_USE_NAMESPACE
-
 static bool expect(bool condition, const char* message) {
 	if (!condition) std::cerr << "failed: " << message << "\n";
 	return condition;
@@ -48,7 +46,7 @@ static bool expect(bool condition, const char* message) {
 
 static void moveTo(QChartView* view, const QPointF& value, QAbstractSeries* series) {
 	const QPoint position = view->mapFromScene(view->chart()->mapToScene(view->chart()->mapToPosition(value, series)));
-	QMouseEvent event(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	QMouseEvent event(QEvent::MouseMove, position, view->viewport()->mapToGlobal(position), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(view->viewport(), &event);
 }
 
@@ -79,8 +77,8 @@ static QRect checkBoxRect(const QListWidget* list, const QListWidgetItem* item) 
 }
 
 static void clickAt(QListWidget* list, const QPoint& point) {
-	QMouseEvent press(QEvent::MouseButtonPress, point, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-	QMouseEvent release(QEvent::MouseButtonRelease, point, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QMouseEvent press(QEvent::MouseButtonPress, point, list->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, point, list->viewport()->mapToGlobal(point), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(list->viewport(), &press);
 	QApplication::sendEvent(list->viewport(), &release);
 }
@@ -318,6 +316,8 @@ static bool exerciseTrainFilterKeysInWindow() {
 			&& filter->visibleTrainIds() == QStringList({"B", "C"}),
 		"Space in the open filter hides the first train of the diagram");
 	menu->hide();
+	// The offscreen platform of Qt 6 leaves no window active when the popup closes.
+	window.activateWindow();
 	QApplication::processEvents();
 
 	view->setFocus();
@@ -428,8 +428,8 @@ static bool exerciseTrainColors() {
 		// Pin train A by clicking its solid line, then clear the pin.
 		const QPoint sample = view->mapFromScene(built.chart->mapToScene(
 			built.chart->mapToPosition(QPointF(10, 10), built.solid[0])));
-		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(view->viewport(), &press);
 		QApplication::sendEvent(view->viewport(), &release);
 		ok &= expect(built.solid[0]->pen().widthF() > 3.0 && built.solid[0]->pen().color() == green
@@ -591,8 +591,8 @@ static bool exerciseButtonDefaults() {
 	ok &= expect(csv->isVisible() && csv->isEnabled(), "diagram window shows Export CSV with a provider");
 	const auto clickTrain = [&] {
 		const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), chart->series().first())));
-		QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(view->viewport(), &press);
 		QApplication::sendEvent(view->viewport(), &release);
 	};
@@ -721,7 +721,7 @@ static bool exerciseBlockSections() {
 	};
 	const auto hover = [&](const QPointF& point) {
 		const QPoint position = view->mapFromScene(chart->mapToScene(point));
-		QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent move(QEvent::MouseMove, position, view->viewport()->mapToGlobal(position), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(view->viewport(), &move);
 		return position;
 	};
@@ -733,8 +733,8 @@ static bool exerciseBlockSections() {
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
 	const auto click = [&](const QPoint& position) {
-		QMouseEvent press(QEvent::MouseButtonPress, position, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-		QMouseEvent release(QEvent::MouseButtonRelease, position, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+		QMouseEvent press(QEvent::MouseButtonPress, position, view->viewport()->mapToGlobal(position), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+		QMouseEvent release(QEvent::MouseButtonRelease, position, view->viewport()->mapToGlobal(position), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 		QApplication::sendEvent(view->viewport(), &press);
 		QApplication::sendEvent(view->viewport(), &release);
 	};
@@ -1162,7 +1162,7 @@ static bool exerciseLongAxisTitle() {
 		if (const auto* text = qgraphicsitem_cast<QGraphicsTextItem*>(item); text && text->toPlainText() == shown)
 			centre = text->mapToScene(text->boundingRect().center());
 	const QPoint position = view->mapFromScene(centre);
-	QMouseEvent move(QEvent::MouseMove, position, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	QMouseEvent move(QEvent::MouseMove, position, view->viewport()->mapToGlobal(position), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(view->viewport(), &move);
 	const auto* tooltip = window.findChild<QLabel*>("diagramTooltip");
 	ok &= expect(tooltip->isVisible() && tooltip->text().contains(id), "the tooltip of a shortened title holds the whole id");
@@ -1265,8 +1265,13 @@ int main(int argc, char* argv[]) {
 	wheel(view, {}, QPoint(0, 120), Qt::ShiftModifier);
 	ok &= expect(x->min() < beforeShift, "Shift wheel pans horizontally");
 	const QPoint center = view->mapFromScene(chart->mapToScene(chart->plotArea().center()));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, QPointingDevice::primaryPointingDevice(), 2, center, center,
+		view->viewport()->mapToGlobal(center), 0.2, QPointF(), 0);
+#else
 	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, nullptr, center, center,
 		view->viewport()->mapToGlobal(center), 0.2, 0, 0);
+#endif
 	const double beforeNative = x->max() - x->min();
 	QApplication::sendEvent(view->viewport(), &gesture);
 	ok &= expect(std::abs((x->max() - x->min()) - beforeNative / 1.2) < 1e-8,
@@ -1308,8 +1313,8 @@ int main(int argc, char* argv[]) {
 	QString selected;
 	QObject::connect(&window, &DiagramWindow::trainSelected, [&selected](const QString& id) { selected = id; });
 	const QPoint sample = view->mapFromScene(chart->mapToScene(chart->mapToPosition(QPointF(20, 30), series)));
-	QMouseEvent press(QEvent::MouseButtonPress, sample, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-	QMouseEvent release(QEvent::MouseButtonRelease, sample, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QMouseEvent press(QEvent::MouseButtonPress, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent release(QEvent::MouseButtonRelease, sample, view->viewport()->mapToGlobal(sample), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 	QApplication::sendEvent(view->viewport(), &press);
 	QApplication::sendEvent(view->viewport(), &release);
 	ok &= expect(selected == "A", "actual click retains train linkage");
@@ -1438,8 +1443,10 @@ int main(int argc, char* argv[]) {
 	ok &= expect(!emptyTooltip->isVisible(), "fully clipped line cannot be inspected inside plot");
 	const QPoint clippedClick = emptyView->mapFromScene(emptyChart->mapToScene(
 		emptyChart->mapToPosition(QPointF(40, 2), clipped)));
-	QMouseEvent clippedPress(QEvent::MouseButtonPress, clippedClick, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-	QMouseEvent clippedRelease(QEvent::MouseButtonRelease, clippedClick, Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+	QMouseEvent clippedPress(QEvent::MouseButtonPress, clippedClick, emptyView->viewport()->mapToGlobal(clippedClick),
+		Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+	QMouseEvent clippedRelease(QEvent::MouseButtonRelease, clippedClick, emptyView->viewport()->mapToGlobal(clippedClick),
+		Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
 	QString clippedSelection;
 	QObject::connect(&empty, &DiagramWindow::trainSelected, [&clippedSelection](const QString& id) { clippedSelection = id; });
 	QApplication::sendEvent(emptyView->viewport(), &clippedPress);

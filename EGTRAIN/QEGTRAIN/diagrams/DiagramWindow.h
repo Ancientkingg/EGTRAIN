@@ -22,7 +22,9 @@
 #include <functional>
 #include <vector>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QT_CHARTS_USE_NAMESPACE
+#endif
 
 class QGraphicsObject;
 class QLabel;
