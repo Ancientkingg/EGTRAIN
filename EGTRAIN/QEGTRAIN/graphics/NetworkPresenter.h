@@ -269,6 +269,8 @@ public:
 	bool m_trainSpeedLabelsVisible = true;
 	bool m_signalLayerVisible = true;
 	bool m_passengerLayerVisible = true;
+	// A platform bar shows with the stations and with the passengers.
+	bool platformBarsVisible() const { return m_stationLayerVisible && m_passengerLayerVisible; }
 
 private:
 	QPointer<QGraphicsScene> m_scene;

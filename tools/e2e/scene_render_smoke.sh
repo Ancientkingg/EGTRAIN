@@ -18,7 +18,11 @@ else
 fi
 
 rm -f "$SHOT"
+# The check turns Show Passengers on and off, which the program remembers in its settings.
+SETTINGS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/qegtrain-scene-render-settings.XXXXXX")"
+trap 'rm -rf "$SETTINGS_DIR"' EXIT
 cd "$ROOT/EGTRAIN/QEGTRAIN"
+QEGTRAIN_E2E_SETTINGS_DIR="$SETTINGS_DIR" \
 QEGTRAIN_E2E_SCENE_RUN=1 \
 QEGTRAIN_E2E_SCENE="$SCENE" \
 QEGTRAIN_E2E_SCREENSHOT="$SHOT" \
@@ -54,5 +58,15 @@ if [[ $# -gt 0 ]]; then
 else
 	grep -q "E2E_FOLLOW_NO_RUN_OK" "$OUT" || fail_render "E2E_FOLLOW_NO_RUN_OK is missing"
 fi
+# Show Passengers is disabled for a case without passengers, and turns the passenger display off and on for one with passengers.
+if [[ -f "$SCENE/passengers.json" ]]; then
+	grep -q "E2E_PASSENGERS_TOGGLE_OK" "$OUT" || fail_render "E2E_PASSENGERS_TOGGLE_OK is missing"
+else
+	grep -q "E2E_PASSENGERS_DISABLED_OK" "$OUT" || fail_render "E2E_PASSENGERS_DISABLED_OK is missing"
+fi
 test -s "$SHOT" || fail_render "no screenshot at $SHOT"
 echo "scene render e2e passed: $SHOT"
+# The default scene has no passengers; the one with passengers runs next.
+if [[ $# -eq 0 ]]; then
+	bash "$ROOT/tools/e2e/scene_render_smoke.sh" "$ROOT/EGTRAIN/QEGTRAIN/Scenes/Paimpol"
+fi

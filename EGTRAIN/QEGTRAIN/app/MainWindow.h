@@ -170,6 +170,9 @@ public:
 	QMenu* editorsMenu();
 	void showStartupChooser();
 
+	// The last choice of View > Show Passengers, which the start uses when -pax is not given.
+	static bool savedShowPassengers();
+
 protected:
 	void showEvent(QShowEvent* e) override;
 	void closeEvent(QCloseEvent* event) override;
@@ -442,6 +445,7 @@ private:
 	QCheckBox* m_signalLayerCheck = nullptr;
 	QCheckBox* m_passengerLayerCheck = nullptr;
 	QAction* m_showMapKeyAction = nullptr;
+	QAction* m_showPassengersAction = nullptr;
 	NetworkLegendWidget* m_networkLegendWidget = nullptr;
 	std::shared_ptr<const GuiSimulationSnapshot> m_snapshot;
 	GuiReplayHistory m_completedReplay;

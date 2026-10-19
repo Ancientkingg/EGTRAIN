@@ -140,7 +140,7 @@ void parseCmdOptions(int argc, char* argv[]) {
 			std::cout << "You have not selected if you want to use the Passenger GUI. Please insert your choice [1: Pax GUI on, 0: Pax GUI off]: ";
 			std::cin >> initial_variables.PAX_GUI;
 		} else {
-			initial_variables.PAX_GUI = 0;
+			initial_variables.PAX_GUI = MainWindow::savedShowPassengers();
 		}
 	}
 

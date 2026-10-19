@@ -147,6 +147,8 @@ public:
 
 	// The settings of the process that the window reads through the controller.
 	bool passengerGui() const;
+	// The next run starts with the passenger display on or off.
+	void setPassengerGui(bool on);
 	// The duration that the command line gave, which replaces the duration of the scene.
 	std::optional<double> durationOverride() const;
 	// A case was named when the program started or was opened by the system, so no case chooser opens.
