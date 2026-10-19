@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"struct_scene_passenger_journey.html#ab8fe6e429fc23fc3a026674e22294734":[1,0,208,8],
 "struct_scene_passenger_leg.html":[1,0,209],
 "struct_scene_passenger_leg.html#a667339de415bfacd68596945fed3596c":[1,0,209,3],
 "struct_scene_passenger_leg.html#a8db6d2f5f8cb8487540d7d0ee45bc2f2":[1,0,209,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "struct_semantic_version.html#a696a693c67ca5b49587b31a338085842":[1,0,253,1],
 "struct_semantic_version.html#a6c640996696df580379571765c4f6152":[1,0,253,3],
 "struct_semantic_version.html#a90c066f9f48830f405bb4ab5e935f902":[1,0,253,5],
-"struct_semantic_version.html#a93cde3356ba2054a7942337258ea1a49":[1,0,253,0],
-"struct_semantic_version.html#acc7f0d89cd7c77355fee24571fe48dbc":[1,0,253,2]
+"struct_semantic_version.html#a93cde3356ba2054a7942337258ea1a49":[1,0,253,0]
 };

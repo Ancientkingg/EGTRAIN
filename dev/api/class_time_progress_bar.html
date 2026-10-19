@@ -130,6 +130,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a203db15ba1769e7868a4505f0f57afbe" id="r_a203db15ba1769e7868a4505f0f57afbe"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a203db15ba1769e7868a4505f0f57afbe">TimeProgressBar</a> (QWidget *parent=nullptr)</td></tr>
 <tr class="memitem:a3bd46aab70d9411d1ff44ca425f6bc8f" id="r_a3bd46aab70d9411d1ff44ca425f6bc8f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3bd46aab70d9411d1ff44ca425f6bc8f">~TimeProgressBar</a> () override</td></tr>
 <tr class="memitem:a56ba7072d1a5f2dfae6f6b19ab6a8308" id="r_a56ba7072d1a5f2dfae6f6b19ab6a8308"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a56ba7072d1a5f2dfae6f6b19ab6a8308">setProgress</a> (int timestep, int totalSteps, long long startOffsetSeconds)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a232f0e0910a4203d374fe25d0c722ecb" id="r_a232f0e0910a4203d374fe25d0c722ecb"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a232f0e0910a4203d374fe25d0c722ecb">paintEvent</a> (QPaintEvent *event) override</td></tr>
+<tr class="memdesc:a232f0e0910a4203d374fe25d0c722ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draws the bar, then the filled part again with its text in the highlighted text colour.  <br /></td></tr>
 </table>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a203db15ba1769e7868a4505f0f57afbe" name="a203db15ba1769e7868a4505f0f57afbe"></a>
@@ -175,6 +180,33 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a232f0e0910a4203d374fe25d0c722ecb" name="a232f0e0910a4203d374fe25d0c722ecb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a232f0e0910a4203d374fe25d0c722ecb">&#9670;&#160;</a></span>paintEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TimeProgressBar::paintEvent </td>
+          <td>(</td>
+          <td class="paramtype">QPaintEvent *</td>          <td class="paramname"><span class="paramname"><em>event</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel protected">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Draws the bar, then the filled part again with its text in the highlighted text colour. </p>
+
+</div>
+</div>
 <a id="a56ba7072d1a5f2dfae6f6b19ab6a8308" name="a56ba7072d1a5f2dfae6f6b19ab6a8308"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a56ba7072d1a5f2dfae6f6b19ab6a8308">&#9670;&#160;</a></span>setProgress()</h2>
 

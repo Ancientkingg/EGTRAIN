@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"struct_infrastructure_guidance_state.html":[1,0,97],
 "struct_infrastructure_guidance_state.html#a141149e014fae8ab95f2288306798350":[1,0,97,3],
 "struct_infrastructure_guidance_state.html#a355d353d7e6c330042c893bb52524247":[1,0,97,0],
 "struct_infrastructure_guidance_state.html#a8b2b927ecbb38e41040b7a24c9b9c0e9":[1,0,97,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "struct_run_infrastructure.html#abae102d56bc166fa5684b4687f360d6d":[1,0,161,19],
 "struct_run_infrastructure.html#abf5827b15fd5bfed74e574a1c88d1251":[1,0,161,16],
 "struct_run_infrastructure.html#ac6ac68be509d4713e2cf5e85905a660f":[1,0,161,13],
-"struct_run_infrastructure.html#ad6e4a268fde25e9db4efbc4ec114816b":[1,0,161,5],
-"struct_run_infrastructure.html#adae988434608bc4db91b9e04c11123bd":[1,0,161,12]
+"struct_run_infrastructure.html#ad6e4a268fde25e9db4efbc4ec114816b":[1,0,161,5]
 };

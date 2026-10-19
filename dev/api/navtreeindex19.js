@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"struct_capacity_critical_block.html#aa38987fe0a92b8e0f24b0da9f89aa26f":[1,0,35,0],
 "struct_capacity_critical_block.html#ac2fa393e8cde127b7e539d207351b21b":[1,0,35,1],
 "struct_capacity_headway_evidence.html":[1,0,36],
 "struct_capacity_headway_evidence.html#a04ad614dac0072a6b2d9f44b9ee7493b":[1,0,36,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "struct_http_request.html#aa89ff76ceb327d151813cb15e7e42fe6":[1,0,89,5],
 "struct_http_request.html#aba2682ce2aea7134c5f4abb814a55f0e":[1,0,89,0],
 "struct_http_request.html#ac9aef12c754fef64308bc6013c4765a1":[1,0,89,3],
-"struct_http_request.html#af35a04593c232981d9c308565786a123":[1,0,89,4],
-"struct_infrastructure_guidance_state.html":[1,0,97]
+"struct_http_request.html#af35a04593c232981d9c308565786a123":[1,0,89,4]
 };
