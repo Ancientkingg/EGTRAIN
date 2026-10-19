@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include "app/CannotOpenMessage.h"
+#include "app/CrashNote.h"
 #include "app/DispatchController.h"
 #include "app/MainWindow.h"
 #include "app/OpenRequestRelay.h"
@@ -410,6 +411,7 @@ int main(int argc, char* argv[]) {
 
 	if (gui) {
 		QApplication application(argc, argv);
+		installCrashHandler(crashNoteFolder());
 		if (!onlyKnownOptions(argc, argv))
 			return 1;
 		if (!updatesSuppressedByEnvironment()) {

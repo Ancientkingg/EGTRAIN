@@ -1,5 +1,6 @@
 #include "app/MainWindow.h"
 #include "app/CannotOpenMessage.h"
+#include "app/CrashNote.h"
 #include "app/DispatchController.h"
 #include "app/FollowAvailability.h"
 #include "app/GuiReplayHistory.h"
@@ -26,6 +27,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QColor>
+#include <QDesktopServices>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -344,17 +346,23 @@ bool e2eDialogsSuppressed() {
 		|| mainWindowTestHooks().dialogsSuppressed;
 }
 
-// The folder for recovery copies, or an empty string when this run keeps none. A run that has no user to answer a
-// question keeps copies only in the folder that QEGTRAIN_RECOVERY_DIR names, so that it never meets the copies of a user.
-QString recoveryRoot() {
-	const QString named = qEnvironmentVariable("QEGTRAIN_RECOVERY_DIR");
+// The folder that the environment variable names, else the subfolder name of AppLocalDataLocation, or an empty string
+// when this run keeps none. A run that has no user to answer a question keeps files only in the folder that the variable
+// names, so that it never meets the files of a user.
+QString runDataFolder(const char* variable, const char* name) {
+	const QString named = qEnvironmentVariable(variable);
 	if (!named.isEmpty())
 		return QDir(named).absolutePath();
 	const QString platform = QGuiApplication::platformName();
 	if (e2eDialogsSuppressed() || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
 		return {};
 	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	return data.isEmpty() ? QString() : QDir(data).filePath(QStringLiteral("Recovery"));
+	return data.isEmpty() ? QString() : QDir(data).filePath(QLatin1String(name));
+}
+
+// The folder for recovery copies, or an empty string when this run keeps none.
+QString recoveryRoot() {
+	return runDataFolder("QEGTRAIN_RECOVERY_DIR", "Recovery");
 }
 
 // The scene at path as the source of a recovery copy: a bundle file, or a folder that is judged by its scene.json.
@@ -399,6 +407,10 @@ int countTrackLineDirs(const QString& inputDir) {
 }
 
 } // namespace
+
+QString crashNoteFolder() {
+	return runDataFolder("QEGTRAIN_CRASH_DIR", "Crashes");
+}
 
 bool startupTimingEnabled() {
 	return qEnvironmentVariable("QEGTRAIN_STARTUP_TIMING") == QLatin1String("1");
@@ -2120,17 +2132,32 @@ void MainWindow::recoverySceneReplaced(const RecoverySource& source) {
 		recoverySceneChanged();
 }
 
-bool MainWindow::offerRecovery() {
-	if (!m_recovery)
-		return false;
-	RecoveryScan scan = m_recovery->scan();
+bool MainWindow::offerRecovery(const QString& crashNote) {
+	RecoveryScan scan = m_recovery ? m_recovery->scan() : RecoveryScan();
 	const auto openable = [&scan]() {
 		return std::any_of(scan.candidates.begin(), scan.candidates.end(),
 			[](const RecoveryCandidate& candidate) { return candidate.state == RecoveryCandidateState::Openable; });
 	};
+	if (!crashNote.isEmpty()) {
+		EG_LOG(AppUi, Warning) << "EGTRAIN closed unexpectedly the last time it ran. Crash note: " << crashNote.toStdString() << '\n';
+		// Without a copy to offer, the note has a notice of its own.
+		if (!openable()) {
+			QMessageBox notice(QMessageBox::Warning, QStringLiteral("EGTRAIN Closed Unexpectedly"),
+				QStringLiteral("EGTRAIN closed unexpectedly the last time it ran. A crash note was saved to:\n%1")
+					.arg(QDir::toNativeSeparators(crashNote)),
+				QMessageBox::Ok, this);
+			notice.setObjectName(QStringLiteral("crashNotice"));
+			notice.setInformativeText(QStringLiteral("Attach it when you report the problem."));
+			notice.setTextInteractionFlags(Qt::TextSelectableByMouse);
+			const QPushButton* showNote = notice.addButton(QStringLiteral("Show Crash Note"), QMessageBox::ActionRole);
+			notice.exec();
+			if (notice.clickedButton() == showNote)
+				QDesktopServices::openUrl(QUrl::fromLocalFile(crashNote));
+		}
+	}
 	// A copy that this version cannot open is listed with the others and never offered alone.
 	while (openable()) {
-		RecoveryPrompt prompt(scan, this);
+		RecoveryPrompt prompt(scan, this, QRect(), crashNote);
 		if (const auto& dialogShown = mainWindowTestHooks().dialogShown)
 			dialogShown(prompt, "recoveryPrompt");
 		prompt.exec();
@@ -3291,7 +3318,7 @@ void MainWindow::showEvent(QShowEvent* e) {
 	// Keep update consent behind the startup chooser. Scripted launches have no
 	// chooser, so the same queued callback runs after the initial window shows.
 	const auto startup = [this, relay]() {
-		const bool recovered = offerRecovery();
+		const bool recovered = offerRecovery(takeCrashNote(crashNoteFolder()));
 		if (!recovered && !m_runController->caseNamedAtStartup() && !(relay && relay->hasPendingRequest()))
 			showStartupChooser();
 		m_updateTelemetry->showPrivacySettings(true);

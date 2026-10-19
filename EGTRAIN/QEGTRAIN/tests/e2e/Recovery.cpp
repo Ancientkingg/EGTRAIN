@@ -12,17 +12,22 @@
 #include <QEventLoop>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QObject>
+#include <QPushButton>
 #include <QStatusBar>
 #include <QString>
 #include <QThread>
 #include <QTimer>
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <memory>
+#include <stdexcept>
+#include <thread>
 
 namespace {
 
@@ -51,6 +56,26 @@ void printLine(const QString& text) {
 [[noreturn]] void crash() {
 	printLine(QStringLiteral("E2E_RECOVERY_CRASH"));
 	std::_Exit(137);
+}
+
+// Prints and closes what the start shows about a crash of the last run: the notice, or the recovery prompt with the crash
+// note when QEGTRAIN_E2E_RECOVERY_ANSWER leaves the prompt open. The line printed ends with the path of the note, or none
+// for a prompt without one.
+void closeCrashDialogs() {
+	for (QWidget* widget : QApplication::topLevelWidgets()) {
+		if (!widget->isVisible())
+			continue;
+		auto* notice = qobject_cast<QMessageBox*>(widget);
+		if (notice && notice->objectName() == QLatin1String("crashNotice")) {
+			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTICE ") + notice->text().section(QLatin1Char('\n'), 1, 1));
+			notice->button(QMessageBox::Ok)->click();
+		} else if (widget->objectName() == QLatin1String("recoveryPrompt")) {
+			const auto* note = widget->findChild<QLabel*>(QStringLiteral("recoveryCrashNote"));
+			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTE ") + (note ? note->text().section(QLatin1Char('\n'), 1, 1) : QStringLiteral("none")));
+			if (auto* later = widget->findChild<QPushButton*>(QStringLiteral("recoveryLaterButton")))
+				later->click();
+		}
+	}
 }
 
 // Clicks the button of the message box that opens in the next moments.
@@ -96,8 +121,8 @@ void acceptFileDialog(QObject* context, const QString& path, const std::shared_p
 
 } // namespace
 
-// The crash and recovery runs. QEGTRAIN_E2E_RECOVERY names the script: edit-then-crash, new-then-crash, close-after-discard,
-// start-again or fail-to-autosave. QEGTRAIN_RECOVERY_DIR names the folder for the copies, and the script of
+// The crash and recovery runs. QEGTRAIN_E2E_RECOVERY names the script: edit-then-crash, edit-then-throw, new-then-crash,
+// open-then-segv, close-after-discard, start-again or fail-to-autosave. QEGTRAIN_RECOVERY_DIR names the folder for the copies, and the script of
 // tools/e2e/recovery_smoke.py that starts the runs decides their order. A script that ends normally prints E2E_RECOVERY_OK and
 // exits with 0; one that finds something wrong prints E2E_RECOVERY_FAIL and exits with 2.
 void MainWindowTestAccess::runRecovery(MainWindow& w) {
@@ -120,7 +145,7 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	};
 
 	// The window ends with edits that its autosave has written, as a crash would leave it.
-	const auto crashAfterEdits = [&](bool newCase) -> QString {
+	const auto crashAfterEdits = [&](bool newCase, bool uncaught) -> QString {
 		if (newCase) {
 			w.m_session->newScene();
 			if (!w.m_document->isDirty() || !w.m_session->m_sceneDir.isEmpty())
@@ -132,6 +157,9 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 		if (!flushAutosave())
 			return QStringLiteral("the autosave did not write the copy");
 		printLine(QStringLiteral("E2E_RECOVERY_WRITTEN"));
+		// An exception that nothing catches, thrown on another thread as a failed run would throw it.
+		if (uncaught)
+			std::thread([] { throw std::runtime_error("injected crash"); }).join();
 		crash();
 	};
 
@@ -150,7 +178,9 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	// What the window holds after the start, and Save As of a recovered scene when QEGTRAIN_E2E_RECOVERY_SAVE_AS names a file.
 	// The window closes at the end, which it can only do without a question when the scene is saved.
 	const auto startAgain = [&]() -> QString {
-		// A prompt that opened has been answered before the script runs.
+		// A prompt that opened has been answered before the script runs when QEGTRAIN_E2E_RECOVERY_ANSWER is set; otherwise
+		// closeCrashDialogs closes it.
+		closeCrashDialogs();
 		waitFor([] { return QApplication::activeModalWidget() == nullptr; });
 		const bool opened = w.m_session->m_sceneDir.isEmpty() && w.m_document->isDirty() && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();
 		printLine(QStringLiteral("E2E_RECOVERY_STATE prompted=%1|opened=%2|name=%3|description=%4|base_time=%5|hint=%6")
@@ -208,9 +238,13 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	if (!w.m_recovery)
 		failure = QStringLiteral("the window keeps no copies; QEGTRAIN_RECOVERY_DIR is missing");
 	else if (script == QLatin1String("edit-then-crash"))
-		failure = crashAfterEdits(false);
+		failure = crashAfterEdits(false, false);
+	else if (script == QLatin1String("edit-then-throw"))
+		failure = crashAfterEdits(false, true);
 	else if (script == QLatin1String("new-then-crash"))
-		failure = crashAfterEdits(true);
+		failure = crashAfterEdits(true, false);
+	else if (script == QLatin1String("open-then-segv"))
+		std::raise(SIGSEGV);
 	else if (script == QLatin1String("close-after-discard"))
 		failure = closeAfterDiscard();
 	else if (script == QLatin1String("start-again"))

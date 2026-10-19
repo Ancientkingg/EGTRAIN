@@ -15,6 +15,7 @@ Short recipes for the common tasks. Each says what you need, what to do and what
 - [Results and exports](#results-and-exports)
 - [Convert a legacy case and write legacy files](#convert-a-legacy-case-and-write-legacy-files)
 - [Close, start a new case or open another during a run](#close-start-a-new-case-or-open-another-during-a-run)
+- [If EGTRAIN closes unexpectedly](#if-egtrain-closes-unexpectedly)
 - [Why a command is disabled](#why-a-command-is-disabled)
 
 ## Open a case
@@ -201,6 +202,18 @@ Closing the window, **New Case Study...**, the open commands and **Load Legacy C
 - **Updates and privacy**: **Automatically check for updates**, the same as the Help entry, and the two choices of **Help > Privacy & diagnostics...**. A build that collects nothing shows them disabled.
 
 **OK** saves the changes, and the menu entries show them at once. **Restore Defaults** clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with **OK**. The settings of the open case, such as its base time and duration, are in **Case Settings**.
+
+## If EGTRAIN closes unexpectedly
+
+When EGTRAIN crashes, it saves a short crash note with the version, the cause and, on macOS and Linux, where in the program it stopped. The system may show its own crash message as well. At the next start EGTRAIN says that it closed unexpectedly and where the note is: in **Recover Unsaved Work** when it has unsaved edits to offer, otherwise in the notice **EGTRAIN Closed Unexpectedly**, whose **Show Crash Note** opens the note. Each note is reported once. Attach it when you report the problem; EGTRAIN does not send it anywhere.
+
+| System | Crash notes folder |
+| --- | --- |
+| macOS | `~/Library/Application Support/EGTRAIN/EGTRAIN/Crashes` |
+| Windows | `%LOCALAPPDATA%\EGTRAIN\EGTRAIN\Crashes` |
+| Linux | `~/.local/share/EGTRAIN/EGTRAIN/Crashes` |
+
+EGTRAIN keeps the 10 newest notes that it has reported.
 
 ## Why a command is disabled
 

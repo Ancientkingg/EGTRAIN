@@ -36,8 +36,10 @@ public:
 
 	/// The scan names the copies and how many older ones the store removed over its limit.
 	/// availableGeometry bounds the size of the dialog; the screen of the dialog is used when it is
-	/// invalid.
-	explicit RecoveryPrompt(const RecoveryScan& scan, QWidget* parent = nullptr, const QRect& availableGeometry = QRect());
+	/// invalid. A crashNote path says above the copies that EGTRAIN closed unexpectedly and where the
+	/// crash note is.
+	explicit RecoveryPrompt(const RecoveryScan& scan, QWidget* parent = nullptr, const QRect& availableGeometry = QRect(),
+		const QString& crashNote = QString());
 
 	/// The row that Recover and Discard act on, as an index into scan.candidates; -1 without rows.
 	int selectedIndex() const { return m_selected; }

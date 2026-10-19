@@ -120,6 +120,10 @@ struct UpdateCheckResult;
 using namespace std;
 
 /// Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".
+/// The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any
+/// run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the
+/// notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists.
+QString crashNoteFolder();
 bool startupTimingEnabled();
 /// Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.
 void beginStartupTiming();
@@ -602,8 +606,9 @@ private:
 	void recoverySceneChanged();
 	void recoverySceneSaved();
 	void recoverySceneReplaced(const RecoverySource& source);
-	// Offers the copies that an earlier run left behind. Returns whether the user opened one.
-	bool offerRecovery();
+	// Offers the copies that an earlier run left behind. Returns whether the user opened one. A crash note of the last run
+	// is named in the offer, or in a notice of its own when there is no copy to offer.
+	bool offerRecovery(const QString& crashNote = QString());
 	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
 
