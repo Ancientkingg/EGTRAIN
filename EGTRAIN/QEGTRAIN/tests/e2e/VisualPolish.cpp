@@ -1752,7 +1752,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const QString clipboardBeforeStaleTrigger = QApplication::clipboard()
 			? QApplication::clipboard()->text()
 			: QString();
-		SignalItem* staleSignal = temporarySignal;
+		// The presenter must not keep the deleted signal: a frame drawn during processEvents() below would update it.
+		w.m_presenter->allSignals.removeOne(temporarySignal);
 		w.scene->removeItem(temporarySignal);
 		delete temporarySignal;
 		if (copy)
@@ -1762,7 +1763,6 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			ok = false;
 			failures << "stale signal context action changed the clipboard";
 		}
-		w.m_presenter->allSignals.removeOne(staleSignal);
 		closeContextMenu();
 	}
 
