@@ -224,10 +224,8 @@ enum class DelayDiagnosticKind {
 	TimestepDiffers,		   ///< The runs have other timesteps
 	BaselineHasIncidents,	   ///< The scenario of the baseline has an incident
 	BaselineHasEntranceDelays, ///< The scenario of the baseline has an entrance delay
-	/// The occurrence is in the baseline run only.
-	OccurrenceOnlyInBaseline,
-	/// The occurrence is in the scenario run only.
-	OccurrenceOnlyInScenario,
+	OccurrenceOnlyInBaseline,  ///< The occurrence is in the baseline run only
+	OccurrenceOnlyInScenario,  ///< The occurrence is in the scenario run only
 	/// The occurrence has other calls (station, journey order or call number) in the two runs.
 	CallsDiffer
 };

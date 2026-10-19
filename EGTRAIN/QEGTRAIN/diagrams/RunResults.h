@@ -8,9 +8,6 @@
 
 class Train;
 
-// Results and provenance of a completed run. Times are seconds from the start of the run unless a name or comment
-// says otherwise, and energies are kWh.
-
 /// One train of the run in the provenance sidecar.
 struct RunOccurrenceProvenance {
 	std::string serviceId;	   ///< Scene service of the train
@@ -85,7 +82,8 @@ struct TrainRunResult {
 	bool hasConfiguredMaximumSpeed = false; ///< True when the service sets a maximum speed
 	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h; meaningful only when hasConfiguredMaximumSpeed
 	double compositionMaximumSpeedMs = 0.0; ///< Maximum speed of the composition in m/s
-	/// Maximum speed the train runs at in m/s: the lower of the two above, times performancePercent / 100.
+	/// Maximum speed the train runs at in m/s: compositionMaximumSpeedMs, or the lower of it and the configured speed when
+	/// hasConfiguredMaximumSpeed, times performancePercent / 100.
 	double appliedMaximumSpeedMs = 0.0;
 	double appliedMaximumSpeedKmh = 0.0;		///< appliedMaximumSpeedMs in km/h
 	RunResultValue startSeconds;				///< First valid position sample, in seconds of the run

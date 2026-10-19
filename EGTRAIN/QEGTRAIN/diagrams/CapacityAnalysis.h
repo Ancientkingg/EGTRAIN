@@ -41,14 +41,13 @@ struct CapacityPairRow {
 	std::string followerOperatingCode; ///< Operating code of the follower
 	/// Follower's planned reference minus the leader's; -1.0 when a profile reference is not available.
 	double scheduledHeadway = -1.0;
-	/// Largest candidate headway, at least 0; -1.0 without a shared resource.
+	/// Largest candidate headway, at least 0; -1.0 without a shared resource or a valid profile reference.
 	double minimumHeadway = -1.0;
-	/// scheduledHeadway minus minimumHeadway; -1.0 without a shared resource. A computed buffer can be negative.
+	/// scheduledHeadway minus minimumHeadway; -1.0 without a shared resource or a valid profile reference. A computed buffer can be negative.
 	double buffer = -1.0;
-	bool hasSharedConstraint = false; ///< True when the two trains occupy a shared resource
+	bool hasSharedConstraint = false; ///< True when the two trains occupy a shared resource and both profile references are valid
 	bool adjacent = false;			  ///< True when the follower comes right after the leader in the chain
-	/// The occupation pairs whose candidate headway is within kBlockingTimeToleranceSeconds of the largest candidate;
-	/// minimumHeadway is that candidate clamped at 0.
+	/// The occupation pairs whose candidate headway is within kBlockingTimeToleranceSeconds of the largest.
 	std::vector<CapacityHeadwayEvidence> governingEvidence;
 };
 

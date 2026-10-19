@@ -18,9 +18,6 @@ struct SimulationRun;
 
 // A finished run as plain values. It holds nothing of the simulation, so a window can show and export it
 // after another run has replaced the simulation state. Only captureCompletedRun reads the simulation.
-//
-// A sample index is a step of the run. Times are seconds from the start of the run (sample index times
-// timestepSeconds) unless a name or comment says otherwise.
 
 /// The time frame of the run.
 struct CompletedRunSettings {
@@ -38,7 +35,7 @@ struct CompletedRunSettings {
 struct CompletedTrajectory {
 	static constexpr std::uint32_t kNoBlock = 0xFFFFFFFFu; ///< What blockAt returns for a sample with no recorded block entry
 
-	int firstSample = 0;					 ///< Sample index of the first element of every series
+	int firstSample = 0;					 ///< Sample index (step of the run) of the first element of every series
 	std::vector<double> position;			 ///< Head position along the route of the train, in m
 	std::vector<double> speed;				 ///< m/s
 	std::vector<double> power;				 ///< W
