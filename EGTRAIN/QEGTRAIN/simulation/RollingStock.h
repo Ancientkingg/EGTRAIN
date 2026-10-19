@@ -55,11 +55,11 @@ void prepareNativeOperationsState(SimulationRun& run);
 /// The reset between scene runs, which is the same as preparing a new run.
 void resetNativeOperationsState(SimulationRun& run);
 
-// Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
+/// Passenger capacity of a train: 300 for the traction unit and 300 for each wagon.
 int trainPassengerCapacity(double numberOfWagons);
 
-// Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or
-// negative) gives 0, so it never counts as congested.
+/// Occupancy as a ratio of passengers to capacity. An unknown capacity (zero or
+/// negative) gives 0, so it never counts as congested.
 double passengerOccupancyRatio(int passengers, int capacity);
 
 
@@ -118,7 +118,7 @@ public:
 	/// Sets the times, durations and positions to -1, the IDs to "None" and IsComplete to true.
 	BlockingTimes();
 
-	/// Copies every member.
+	/// Copies every member of obj2, except that sightReacTime takes the setupTime of obj2.
 	BlockingTimes& operator=(const BlockingTimes& obj2);
 
 	/// Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets
@@ -172,9 +172,11 @@ inline constexpr int Max_N_Reg = RuntimeLimits::kMaxExpandedTrains;
 // hold-back position is at the stop: it is neither short of it nor past it.
 inline constexpr double kStopHoldbackM = 0.0001;
 inline constexpr double kStopHoldbackToleranceM = 1e-6;
+/// True when position (m) is short of the hold-back position before brakingPoint (m), beyond the tolerance.
 inline bool isShortOfBrakingPoint(double position, double brakingPoint) {
 	return position < brakingPoint - kStopHoldbackM - kStopHoldbackToleranceM;
 }
+/// True when position (m) is past the hold-back position before stoppingPoint (m), beyond the tolerance.
 inline bool isPastStopHoldback(double position, double stoppingPoint) {
 	return position > stoppingPoint - kStopHoldbackM + kStopHoldbackToleranceM;
 }
@@ -385,9 +387,8 @@ public:
 
 	/// Sets the default values. The vectors stay empty until setTrainVectorSizesFromInput.
 	Train();
-	/// Pre-compute the (block section, Arc) index for each station Node.
-	/// Called after Stations or route changes; eliminates the O(N_BS*total_arcs*numStations)
-	/// triple scan from the per-timestep hot path.
+	/// Fills stationBlockSection and stationArc: for each stop, the index of the route section and of the arc whose end node is the
+	/// station, or -1. Called after Stations or the route change, so that a step does not search the route for the stations.
 	void cacheStationPositions();
 
 
@@ -426,21 +427,22 @@ public:
 	/// train_energy_consumption().
 	void sanitizeTerminalPowerSample();
 
-	/// Function to calculate Total Energy Consumed with and without regenrative braking (the inputs are the Eta of the
-	/// Substation and the Eta of the regenerative braking)
+	/// Sets the energy totals of the train (MJ) from its samples between departure_time and End_Time: the energy consumed plus 10 % for
+	/// auxiliaries, the energy requested from the substation (divided by EtaSubst), and both again with the braking power regenerated
+	/// at the factor EtaRegBrak.
 	void TotalEnergyConsumptionWithAndWithoutRegBraking(double EtaSubst, double EtaRegBrak);
 
 	/// True when letting a train enter at origin in this step could close a crossover ahead of a train that can no longer
 	/// brake for it.
 	bool entryConflictsWithCrossover(int step, const Section& origin) const;
 
-	/// Check the entrance possibility: sets CanEnter when the step i has reached departure_time and the first section BS[0]
-	/// allows entry.
+	/// Lets the waiting train enter its route BS in step i (s): CanEnter becomes true once i >= departure_time and the first section
+	/// allows it. Where the first section has a level, the entering train occupies it at once. The rules are under "Route entry" in
+	/// docs/architecture/signalling-levels.md.
 	void checkEntrance(int i, Section* BS);
 
-	/// Function to compute dwell times based on the interaction with passengers
-	/// By default the dwell time is computed based on the microscopic dwell time model by Fernandez et al. (2007) which
-	/// extends the model by Gibson et al. (1989)
+	/// Passenger-dependent dwell time (s) by the Fernandez et al. (2007) extension of Gibson et al. (1989), with passengers spread over
+	/// the doors at random; 0 when nobody boards or alights.
 	double computePaxDependentDwellTimeAtStations(int N_BoardPax, int N_AlightPax, double PlatformOccupancyRate, float beta0, float beta1, float beta2, float beta3, float beta4, float beta5, float beta6, float beta7);
 
 	/// True when the aspect of the block section is restrictive: red, or red-red at level 5.
@@ -457,24 +459,27 @@ public:
 	/// Position in metres of the authority on the route of this train, for an authority on section.
 	inline double authorityRoutePosition(const MovementAuthority& authority, const Section& section) const;
 
-	/// Resolve only the selected, currently published forward Tale within the EVC's existing scope.
+	/// The "TrainEnd" "Tale" authority of this step that matches Last_Received_MA, on a level 4 section from the one at head (m) to
+	/// eight sections further, and lies ahead of head; nullptr when there is none. leaderHead receives its route position (m).
 	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
 
-	/// Validate before current target selection so an invalid old hold cannot clear new metadata.
+	/// Keeps IsTrainStoppedForEoA only while the train stands (speed 0) on section, the section of the authority it stopped at, with
+	/// its head (m) less than 4 m before it, and that authority is still in run.etcsMa; otherwise clears it and BrakingForEoA. Called
+	/// before a new target is chosen, so that an old hold cannot clear the new one.
 	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section);
 
 	/// A leader that reports no movement authority any more cannot be followed. Its last one would keep
 	/// this train in following mode, with the leader's last speed and acceleration as its target.
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
-	/// Function to compute the braking distance in a faster way using the closed formula and average gradient and
-	/// curvature values (This function has shown the best match to simulated braking curves)
-	/// V1 and X1 are the current train speed and position while X2 and V2 are the target position and speed, BS and
-	/// N_BS are the list of Block Sections and the number of Block Sections along the train route
+	/// Braking distance (m) from speed V1 to V2 (m/s) by the closed formula (V1^2 - V2^2) / (2 a), where a is max_train_decelaration
+	/// plus the resistance at the mean speed, on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m), divided by
+	/// total_train_mass * massFactor.
 	virtual double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
-	/// Function to quickly compute the time in seconds to accelerate between two speeds; -99999 when the resistances exceed
-	/// the tractive effort. Arguments as in BrakingDistanceFastComputation.
+	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
+	/// (X1, X2] (m), summed over 200 speed steps. When the train cannot accelerate there it is taken on a flat gradient, and when it
+	/// cannot accelerate on that either the result is -99999.
 	virtual double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Finds the arc of the route under a head position in metres, continuing from the previous lookup.
@@ -496,58 +501,60 @@ public:
 	/// The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.
 	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const;
 
-	/// Every curve step samples force at the actual start and uses the right endpoint for distance.
+	/// The speed (m/s) after one full braking step from speed (m/s) on arc: the full deceleration plus the resistances at that speed,
+	/// over one timestep, not below 0. Every curve step samples force at the actual start and uses the right endpoint for distance.
 	double brakingCurveSpeed(double speed, const Arc& arc) {
 		return std::max(0.0, speed - (max_train_decelaration + total_train_resistances(speed, arc.gradient, arc.curvature) / (total_train_mass * massFactor)) * timestep);
 	}
 
-	/// Strahl and Sauthoff resistance are quadratic in speed. Invert only the increasing
-	/// branch of v - dt*a(v), connected to the ordinary small-dt solution. The other
-	/// quadratic root lies beyond the fold and is not a unique inverse flow.
-	/// For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the
-	/// entire saturated preimage of max(0, q(v)); smaller terminal speeds are valid forward states.
+	/// The state one full braking step before nextHead (m) and nextSpeed (m/s); head and speed receive it. The resistance is
+	/// quadratic in speed, and only the root on the increasing branch of v - dt a(v) counts, so false when there is no unique one.
 	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed);
 
-	/// Predict complete full-force continuation after a phase-specific first step.
-	/// Optional vectors store only a successfully evaluated plan, in driving order.
+	/// Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m).
+	/// False when that takes 1999 steps or more or leaves the arcs of the sections. positions and speeds, when given, receive every
+	/// state in driving order.
 	bool predictBraking(double head, double speed, double targetSpeed, Section* sections, int count,
 		double& end, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr);
 
-	/// Fixed-length forward prefix for a positive target whose native plan may dip
-	/// below the target and recover. Crossing below the target is not completion.
+	/// Runs steps full braking steps from head (m) and speed (m/s), even below a positive target; end and endSpeed receive the last
+	/// state. False when the steps leave the arcs of the sections. positions and speeds as for predictBraking.
 	bool predictBrakingPrefix(double head, double speed, int steps, Section* sections, int count,
 		double& end, double& endSpeed, std::vector<double>* positions = nullptr, std::vector<double>* speeds = nullptr);
 
-	/// Upper end of the reachable terminal-coordinate interval at a positive ceiling.
+	/// The furthest head (m) that one step from head and speed (m/s) reaches with at most full traction and a speed capped at ceiling
+	/// (m/s); upper receives it. False when no arc holds head.
 	bool brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper);
 
-	/// Select a new terminal control within the actual-state force interval and ceiling.
-	/// Rounded addition need not be exactly inverted by subtraction and division.
+	/// The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above
+	/// ceiling; terminal receives it. False when the step cannot end at anchor up to rounding.
 	bool constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal);
 
 	/// Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.
 	bool planPositiveBraking(double head, double speed, const Arc& arc, Section* sections, int count, int suggested);
 
-	/// Returns an actual-start braking point. Linear interpolation of inverse X/V
-	/// samples is not a solution of the nonlinear forward flow.
+	/// The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m).
+	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks);
 
-	/// Request before the next movement can consume the last opportunity to brake for the entry. The movement
-	/// bound uses the same force/resistance model and starting-effort bound as acceleration and virtual coupling.
+	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
+	/// movement could pass the last point where it can still brake for the entry.
 	bool needsSingleTrackReservation(double head, double speed, double entry, Section* sections, int count);
 
-	/// A cached successor is a proposal only from its exact actual state and historical target.
+	/// The index in Sbrak and Vbrak of the next state of the stored braking plan, when the train is exactly at a state of it in
+	/// step previousInstant with the same target (target m, targetSpeed m/s) and that next step is feasible on arc; -1 otherwise.
 	int cachedBrakingSuccessor(int previousInstant, const Arc& arc, double target, double targetSpeed);
 
-	/// This Function simulate the capacity of the train driver to react to the first most severe service limit (i.e. it
-	/// calculates the braking distance and the braking point for satisfying the most severe running operation limit)
+	/// The route position (m) where the train at S (m) and V (m/s) has to start braking for the most restrictive target ahead, or a very
+	/// large value when there is none. Sets Xobmin and Vobmin to that target; continueCached is true when the stored braking plan goes on.
 	double europeanVitalComputerWithListsImproved(double S, double V, int PreviousInstant, Section* BS, int Blocks, bool& continueCached);
 
-	/// Native inverse plan shares the exact actual-start step with BrakDist_Block.
+	/// Stores in Sbrak, Vbrak and BrakStep the full braking curve from V1 down to V2 (m/s) that ends 0.002 m before X0 (m), built
+	/// backwards with inverseBrakingStep. False, with BrakStep -1, when V1 is not above V2 or no curve is found in 2000 steps.
 	virtual bool DrawBrakingCurve(double V1, double V2, double X0, Section* BS, int Blocks);
 
-	/// Establish a first speed within the actual force range, then predict every
-	/// subsequent full model step. No linear fractional phase is carried forward.
+	/// Plans braking from head (m) and speed (m/s) to Vobmin 0.002 m before Xobmin (m): a first speed within the actual force range,
+	/// then full braking steps. On success Sbrak, Vbrak and BrakStep hold the plan.
 	bool planBraking(double head, double speed, const Arc& arc, Section* sections, int count);
 
 	/// One braking step at time_seconds on arc As: follows the stored plan, makes a new one, or brakes with full force.
@@ -560,10 +567,11 @@ public:
 	/// The new speed is not below zero and the train advances by the mean of the old and the new speed.
 	void fullBrakingStep(int time_seconds, const Arc& As);
 
-	/// Function for printing Train Trajectory Data
+	/// Writes Traj_Train_<trainDescription>.txt to the TEMP folder of the output: for every valid step the time (s), speed (m/s), head
+	/// and tail position (m), power (kW), braking point (m), energy (kWh) and section. A reversed route writes original coordinates.
 	virtual void PrintTrajectory();
 
-	// Class Destructor
+	/// Does nothing.
 	virtual ~Train() {}
 
 	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
@@ -580,89 +588,107 @@ public:
 	/// Records the incident behind a signal failure authority.
 	void recordDirectSignalFailure(const MovementAuthority& authority, double timeSeconds);
 
-	/// The speed limit candidate in m/s, lowered to the speed cap of an active breakdown of this train at the step.
+	/// The lower of candidate (m/s) and the reduced speed of an active breakdown of this train in step timestepIndex. A cap that applies
+	/// is recorded as a direct incident.
 	double effectiveIncidentSpeedLimit(double candidate, int timestepIndex);
 
-	/// Function to Simulate the Train Trajectory: computes step time_seconds from step time_seconds - 1.
+	/// Computes step time_seconds of the train from step time_seconds - 1; Eq[time_seconds] labels the branch taken. signalCode1,
+	/// signalCode2 and signalCode3 are not read.
 	virtual void trajectoryComputationIncludingMovingBlock(int time_seconds, double signalCode1, double signalCode2, double signalCode3);
 
-	/// Function to compute the arrival and departure of a train from a location with a specific position expressed in [m]
+	/// Finds the steps in which the head reaches and leaves the route position LocationPosition (m) and writes them to PassingPoint as
+	/// Time and Time2 (s), with Position in the coordinates of the original direction. Nothing is written when the train never gets
+	/// there, and Time2 is left when it does not leave.
 	void computeArrivalAndDepartureAtLocation(double LocationPosition, TrainEvent& PassingPoint);
 
-	/// Function to compute the passing time of a train over each timetable point (i.e. stations, junctions and or relevant signals)
+	/// Fills TimetablePoints, when it is empty, with the arrival and departure at every arc end node of the route that has a station
+	/// name (stations and junctions), in route order. The first node of the route is not included.
 	void ComputeTimetablingPoints();
 
-	/// Function to Determine which Block Section is Occupied by the train
+	/// Adds the sections that the train covers from tail to head in step i to run.blocksOccupied, with its double switches and
+	/// diverging switches, and releases its last section when it has left the route. BS holds the Blocks sections of its route.
 	virtual void Det_Section_Occupied_By_Train(int i, Section* BS, int Blocks);
 
-	/// Function to Report Train Position to RBC (the ETCS3 Safety Margin must be given in m)
+	/// Adds the ends of authority of the train in step i on the level 3 and 4 sections of its route to run.etcsMa: the tail less
+	/// ETCS3SafetyMargin (m) as "Tale", the head plus the margin as "Front", and the locks of the switches it covers.
 	void ReportPositionToRBC(int i, Section* BS, int N_BS, double ETCS3SafetyMargin);
 
-	/// Function to Compute Blocking Times for a single Block Section. This Function allows us to compute blocking time in area with mixed signalling system
-	/** IndexCurrentBS is the index of the Block Section in the route of the train. SignallingType is "Conventional" or "ETCS2".*/
+	/// Appends the blocking time of route section IndexCurrentBS at a fixed-block level; SignallingType "Conventional" or "ETCS2" picks
+	/// the approach rule. Times are simulation steps (s) found by searching from step EntryTime + 1; setup, release and sight and
+	/// reaction times are seconds. AbsoluteRTSupplement (s) or PercentageRTSupplement (%) is the running time supplement.
 	void ComputeBlockingTimeForSingleLocation(int IndexCurrentBS, std::string SignallingType, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double AbsoluteRTSupplement, double PercentageRTSupplement);
 
 	/// Function to Compute the Blocking Times in ETCS level 3 (EntryTime is the time the train actually enters the network in the simulation)
 	void ComputeBlockTime_ETCSLevel_3_ForSection(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 
-	/// Function to Compute the Blocking Times in Virtual Coupling (EntryTime is the time the train actually enters the network in the simulation)
-	/** This function uses a principle of max capacity where trains travel at a minimum safety distance from each other over the entire shared route, splitting apart by an absolute braking distance only at those junctions where they diverge or converge*/
+	/// Appends a level 4 (virtual coupling) blocking time for each infrastructure element of section IndexCurrentBS, with trains at the
+	/// minimum safety distance SafetyMargin (m) except at diverging or converging junctions; the other arguments are those of
+	/// ComputeBlockingTimeForSingleLocation.
 	void ComputeBlockTime_ETCSLevel4_ForSection_MaxCapacity_Improved(int IndexCurrentBS, int EntryTime, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsoluteRTSupplement, double PercentRTSupplement);
 
-	/// Function to Connect the Blocking Times of edges of diverging switches for ETCS Level 3 and Virtual Coupling. In
-	/// this case the diverging switch needs to be considered as a single block section, that is why blocking times of
-	/// connected edges need to be accordingly modified
+	/// Gives the two edges of each diverging switch at level 3 or 4 one blocking time, from the start of occupation of the first edge to
+	/// the end of the second, so that the switch counts as one block section.
 	void ConnectBlockTimesOfSwitchesForTrainCentricSignalling();
 
-	/// Function to Compute the Blocking times in mixed signalling areas
+	/// Computes the blocking times of the route section by section with the rule of the section's level: per section at levels 0
+	/// ("Conventional") and 2 ("ETCS2"), per infrastructure element at levels 3 and 4. Sections at level 1, level 5 or no level get
+	/// none. The search starts at Det_Run_Start_Time; the arguments are those of ComputeBlockingTimeForSingleLocation, SafetyMargin in m.
 	void ComputeBlockingTimesInMixedSignallingAreas(double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, double AbsRTSupp, double PercRTSupp);
 
-	/// Function to evaluate the time instant in which for the first time the train Starts to accelerate (It's the time
-	/// corresponding to the first non-zero speed value)
+	/// Sets RunStartTime to the step before the first nonzero speed and returns it in seconds. When the train does not move before
+	/// End_Time, RunStartTime keeps its value.
 	double Det_Run_Start_Time();
 
 	/// The timetable point of a stop of this train, or nullptr if there is none. A station served more than
 	/// once has one timetable point per call, in the order of the stops.
 	const TrainEvent* timetablePointOfStop(int stopIndex) const;
 
-	/// Function to setup the station arrivals of the trains from the arrival at their timetable points.
+	/// Sets the station arrivals from the arrivals at the timetable points.
 	/// That is the arrival the timetable results report, so the delay statistics use the same event. A stop
 	/// whose timetable point has no arrival (the train did not get there) has no arrival. The positions
 	/// recorded during the run only serve a stop that has no timetable point at all.
 	void Determine_Actual_Station_Arrivals();
 
-	/// Function compute Arrival delays at stations for a train
+	/// Sets StationDelay, the arrival less the planned arrival, and StationConsecDelay, that delay less the entrance delay and the dwell
+	/// disturbances of the earlier stops, for every stop with an arrival and a planned arrival (s); negative values become 0. Also sums
+	/// TotalInputDelays.
 	void computeArrivalDelaysAtStations();
 
-	/// Function to calculate train delays taking into account both the positive and negative (arrival ahead the schedule) delays
+	/// Like computeArrivalDelaysAtStations, but an early arrival keeps its negative delay, and TotalInputDelays is not changed.
 	void Compute_Pos_And_Neg_Arrival_Delays_At_Stations();
 
-	/// Records time_seconds as the arrival at the current stop when that stop has no arrival yet.
+	/// Records time_seconds * timestep as the arrival (s) at the first stop named CurrentServiceStop that has none yet.
 	void recordCurrentServiceStopArrival(int time_seconds);
 
 	/// True when stop stationIndex lies on the route, on one of allowedBlockIds when that list is not empty.
 	bool stationIsOnRoute(int stationIndex, const std::vector<std::string>& allowedBlockIds = {}) const;
 
-	/// Route position in metres of stop stationIndex; -1 when it is not on the route.
+	/// The route position (m) of stop stationIndex from its geographic position, or -1 when the stop is not on the route. When no
+	/// section holds that position, the geographic position in metres.
 	double stationRoutePositionMeters(int stationIndex) const;
 
-	/// Records time_seconds as the arrival at each stop without an arrival that the head passed in this step, within 5 m.
+	/// Records time_seconds * timestep as the arrival (s) at each stop without an arrival whose route position lies within 5 m of the
+	/// head's movement in this step.
 	void recordStationPassagesAtTime(int time_seconds);
 
 	/// Name of stop stationIndex for the arrival statistics; "None" for an index outside the stops.
 	std::string stationNameForArrivalStats(int stationIndex) const;
 
-	/// check train arrival/departure at/from destination/origin
+	/// In step t, logs the arrival of the train at its last stop and its departure from its first stop. An arrival is also appended to
+	/// EGTRAINOutput.txt in the Rescheduling output folder (printTrainArrDepMsg). A first or last stop with X 0 takes its X from
+	/// run.infra.stations.
 	void checkTrainArrDep(int trainIdx, int t);
 
-	/// print train service path diagram to file
+	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
+	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1; a train without
+	/// an earlier service (prevIntendedDepTime 0) takes that route first when it runs in the same direction on another corridor.
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
 
-	/// print train arrival at terminal station (append to file)
+	/// Appends "egtrain,<stationName>,<msgType>,<dispLineID>,<trainIdx>,<t>" to FolderName/EGTRAINOutput.txt and then waits 5 ms.
 	void printTrainArrDepMsg(std::string stationName, std::string msgType, int trainIdx, int t, std::string FolderName);
 
-	/// computes train X position in kilometres (works with routes acrossing different regions); -1 when that point is on no section
-	/** wagon = 0 by default to return head position*/
+	/// The geographic position (km) in step t of the head, or of the point wagon * train_length / (number_of_wagons + 1) behind it;
+	/// -1 when it is on no section of the route. Works on routes that cross regions.
 	double trainXPosition(int t, int wagon = 0);
 
 	/// instantaneous speed in km/h at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples
@@ -672,14 +698,14 @@ public:
 		return instant_train_speed[t] * 3.6; // m/s to km/h
 	}
 
-	/// position in km at GUI time t, mirroring trainXPosition index mapping; 0 outside the samples
+	/// Route position of the head in step t in km; 0 outside the samples.
 	double positionKmAt(int t) const {
 		if (t < 0 || t >= static_cast<int>(instant_spatial_position.size()))
 			return 0.0;
 		return instant_spatial_position[t] / 1000.0;
 	}
 
-	/// number of trajectory samples available
+	/// Number of trajectory samples, one per step.
 	int trajectorySize() const {
 		return static_cast<int>(instant_train_speed.size());
 	}
@@ -689,7 +715,7 @@ public:
 		earliestActiveTrajectoryIndex = recordEarliestTrajectoryIndex(earliestActiveTrajectoryIndex, index, CanEnter);
 	}
 
-	/// set vector sizes with length of simulation from user input: vec_size samples, and End_Time to the last
+	/// Sizes every per-step vector to vec_size samples of 0 and sets End_Time to the last step.
 	void setTrainVectorSizesFromInput(int vec_size);
 };
 
@@ -700,15 +726,16 @@ public:
 	/// Sets the default rolling stock values, which the operations builder replaces.
 	Regional();
 
-	// Regional Destructor
+	/// Does nothing.
 	~Regional() {
 		/*PrintTrajectory();*/
 	}
 
 	// moved PrintTrajectory to simulation code because here destructor automatically deletes vectors before print function
 
-	/// Copies the rolling stock data and the service and incident fields of another train. The traction curve, the
-	/// resistance coefficient, the timetable and the trajectory are not copied.
+	/// Copies the wagons, masses, mass factor, deceleration, maximum speed, g, frontal area, jerk and length, the service identity and
+	/// performance, the speed caps and the incident record of ob2, and sets the passenger capacity from the wagons. The traction curve,
+	/// resistanceCoefficient, route, timetable and trajectory are not copied.
 	Regional& operator=(const Regional& ob2);
 };
 
@@ -716,22 +743,31 @@ public:
 // so both types must have the same size.
 static_assert(sizeof(Regional) == sizeof(Train), "Regional must not add members to Train");
 
-// Function to Determine for each Route the Block Sections that are occupied by trains (This Function Fill in the list BlocksOccupied)
+/// Fills run.blocksOccupied and run.blocksConnected for step i with the sections that every train covers
+/// (Det_Section_Occupied_By_Train), then updates the single-track locks. See "What happens in a step" in
+/// docs/architecture/signalling-levels.md.
 void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);
 
-// Function to report the position of the trains in ETCS Level 3
+/// Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m).
 void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin);
 
-// Function to Print out the blocking times of all the Trains
+/// Writes MainFolder/BlockingTimes.txt: for each train its description, then rows of the block or element IDs, the start and end
+/// positions (m, GeoPosStart and GeoPosEnd) and the start and end of occupation (s) of the first N_BlockTimeComplete entries of
+/// BlockTime.
 void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
 
-// Function to Print out the blocking times of all the Trains
+/// Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions
+/// (twice), the arrival times and the departure times of its timetable points.
 void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
 
-// Function to compute Blocking Times of trains in mixed signalling areas
+/// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas) and writes BlockingTimes.txt to
+/// OutputFolder. Setup, release and sight and reaction times and AbsRTSupplement are seconds, SafetyMargin metres, PercRTSupplement
+/// percent.
 void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
-// function to protect all station areas
+/// Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections
+/// ahead of its head, StationBoundarySection::protectEntrance runs for it. A platform is booked only for trains whose last stop is
+/// "Alm", "Asd" or "Asdz". It does not run when the entrance is two sections ahead and the section between is occupied.
 void protectStationAreas(SimulationRun& run, int i);
 
 #endif

@@ -39,9 +39,18 @@ struct SimulationIncident {
 	bool hasEndSeconds = false;					 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
 };
 
+/// True while a train_breakdown incident without a reduced speed holds the train trainDesc ("<service>-<occurrence>") in step
+/// timestepIndex.
 bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
+/// The train_breakdown incident of run.incidents that applies to the train trainDesc in step timestepIndex, from its start second up to
+/// its end second, or nullptr. A breakdown that stops the train comes first; of the speed caps the lowest reducedSpeedKmh wins.
 const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
+/// Applies the signal_failure incidents of step timestepIndex: each failed section joins run.blocksOccupied, and every route that
+/// contains it gets an end of authority in front of it. In the step after a failure ends, its sections go to run.blocksConnected to
+/// be released. See "Common behaviour" in docs/architecture/signalling-levels.md.
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex);
+/// Gives every route against the direction that holds a single-track zone an end of authority in front of each stretch of the zone on
+/// that route, at levels 0 to 5. The authorities last for the current step.
 void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 
 /// A record of a train at a place and time. It serves as the passage of a train at an infrastructure element
@@ -65,6 +74,7 @@ public:
 	double Acceleration;		  ///< Acceleration of the train in m/s2 when it made a movement authority.
 	std::string InfraElemStatus;  ///< Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.
 
+	/// Sets the times, the position and the acceleration to -10000, the speed to -1 and the IDs and the status to "None".
 	TrainEvent();
 
 	/// Copies every member.
@@ -83,7 +93,8 @@ public:
 	}
 };
 
-// Order trains in a list when time events are also equal
+/// Sorts the events by Time, earliest first, with non-finite times last. The sort is stable, so events with equal times keep their
+/// order.
 void orderListOfTrainEvents(std::list<TrainEvent>& OutputList);
 
 /// The passages of trains at one infrastructure element, which the blocking times use to find the switch position a
@@ -93,6 +104,7 @@ public:
 	InfraElement ElementInfo;			 ///< The element.
 	std::list<TrainEvent> RecordedEvent; ///< One event per train passage, sorted by time after the run.
 
+	/// Sets the coordinates of the element to -1, its IDs and station name to "None" and its flags to false; no events.
 	InfraEvent();
 
 	/// Copies the element and the events.
@@ -110,11 +122,12 @@ public:
 	}
 };
 
-// Update status of an infrastructure element along a train route given the list of infrastructure elements,
-// current time t, train positions at t and t-1, train speed at t-1, and train description
+/// Records in run.infra.infraEvents a passage of the train TrainName over each element of RouteInfrastructureElements that its head
+/// passed in step t, from route position Xt_1 to Xt (m). The event has the time t - 1 (s), the speed Vt_1 (m/s), the next element of
+/// the route, and for a switch the position "Straight" or "Diverging".
 void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<InfraElement>& RouteInfrastructureElements, int t, double Xt_1, double Xt, double Vt_1, const std::string& TrainName);
 
-// Order all recorded infrastructure element events chronologically
+/// Sorts the recorded events of every element with orderListOfTrainEvents.
 void SortRecordedEventsForAllInfrastructureElements(std::list<InfraEvent>& ListOfAllInfraEvents);
 
 /// A track detection section: a part of a block section. createTds makes them, and RunInfrastructure::detectionSections
@@ -183,6 +196,8 @@ public:
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
+	/// An empty section with code 270, state Green and no signalling level (kSignallingLevelUnset). The track line IDs and
+	/// the ETCS3 braking points are -1.
 	Section();
 
 	/// Copies every member; the node list stays shared.
@@ -270,31 +285,39 @@ public:
 	friend void SetBlockSpeed();
 };
 
-// Generate block sections connected by switches (updated, supports custom switch speed limits)
+/// When N1 lies before N2, makes BS3 the section over a switch: BS1 up to node N1, a switch arc from N1 to N2 with the speed limit of
+/// the matching connection, and BS2 after N2. Its ID is "<BS1>-<N1>/<BS2>-<N2>" with the node coordinates in km.
 void generateConnectBlock(SimulationRun& run, Section BS1, Section BS2, Node N1, Node N2, Section& BS3);
 
-// Create connected block sections at connection nodes
+/// Appends to run.infra.sections the section over connection n_conn of node Nb of BS1 (generateConnectBlock), when the connection
+/// leads to a higher coordinate and none of the first Temp_Blocks sections has that ID in either direction. When the planned array is
+/// full it sets run.infra.derivedSectionsExceedPlan instead.
 void createBlockConn(SimulationRun& run, Node Nb, Section BS1, int Temp_Blocks, int n_conn);
 
-// Automatically create block sections connected by switches
+/// Makes the section over every connection of every node of the sections in run.infra.sections (createBlockConn).
 void setAllConnections(SimulationRun& run);
 
-// Create list of sections whose ID contains "input"
+/// Appends to BSConnected a copy of every section of run.infra.sections whose ID contains input.
 void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnected);
 
-// Set dependencies between block sections connected by switches
+/// Gives every section the IDs of the other sections whose ID contains its own (IDConnectedBS, at most 10). This entry point also adds
+/// the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (Node::IDConnectedBlocks).
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
-// Check if two block sections are overlapping
+/// True when the two sections overlap: their coordinate ranges overlap and their IDs share a block. It tests overlap, not connection;
+/// blockSets is the second section.
 bool areBlocksConnected(Section A, Section blockSets);
 
-// Set TDS boundaries and geo coordinates at switches and stations
+/// Gives the switch and station nodes of the N_BlockSections sections of BS a track detection border ID (tdsbId) and geographic
+/// coordinates in metres (tdsbGeoCoordX and tdsbGeoCoordY, the node X and Y times 1000).
 void setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations(Section* BS, int N_BlockSections);
 
-// Create track detection sections
+/// Splits each of the N_Blocks sections of Blocks into track detection sections and appends them to ALL_TDS, which owns them; the
+/// TDS_in_block list of the section points into ALL_TDS. A section without a diverging switch gets N_TDS_On_Straight_Blocks of equal
+/// length (at most 20).
 void createTds(Section* Blocks, int N_Blocks, int N_TDS_On_Straight_Blocks, std::list<TDS>& ALL_TDS);
 
-// Set geo coordinates for all block sections
+/// Sets GeoXBegNode and GeoXEndNode of the N_BS sections of BS to the X of their start and end node in metres.
 void setGeoCoordinates(Section* BS, int N_BS);
 
 
@@ -318,12 +341,16 @@ public:
 	std::pair<double, double> diffRegionsJumpX;
 	std::pair<double, double> diffRegionsJumpX2; ///< Set to {0, 0} and never given another value.
 
+	/// An empty route with ID "None" on corridor "A"; OriginalRefReversedRoute is -1.
 	Route();
 
-	/// Initialize infrastructure element list for route; each element includes its block section ID
+	/// Appends the infrastructure elements of section BS to InfrastructureElements: its TDS borders, stations and switches, with their
+	/// route position in metres and the ID of BS. An element with the ID or position of one already listed is left out; a
+	/// diverging switch edge only when its ID, switch name and connected point all match.
 	void setListInfrastructureElementsForRoute(Section BS);
 
-	/// Identify ending edges of diverging switches that are also start of another diverging switch
+	/// Marks with isEndOfDivSwitchStartOfADivSwitch each diverging switch edge of the list that has the position and switch name of
+	/// another edge with a different connected point: the end of one diverging switch that is the start of the next.
 	void identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(std::list<InfraElement>& RouteInfrastructureElements);
 
 	/// Build route from canonical scene block ids. A positive direction keeps their order, a negative one reverses the
@@ -341,7 +368,8 @@ public:
 void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std::vector<int>& routeDirections = {});
 
 
-// --- InfraElementsList: set up list of infrastructure element events ---
+/// Fills run.infra.infraEvents with one entry for each distinct infrastructure element of all routes, without the "VirtualTDSB"
+/// borders. A diverging switch edge is listed under its switch name.
 void setListAllInfrastructureElementsFromRoutes(SimulationRun& run);
 
 /// An end of authority for levels 3 and 4, and for a failed signal at every level. SimulationRun::etcsMa holds the
@@ -365,6 +393,7 @@ public:
 	double EoA_Dist_From_BSID_Beg;
 	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
 
+	/// Sets BSID, type and typePart to "None" and the positions to -1.
 	MovementAuthority();
 
 	/// Copies every member.
@@ -383,74 +412,103 @@ public:
 
 // --- Signalling System Functions ---
 
-// Occupy a block section and all connected blocks
+/// Adds BLS and its connected sections to run.blocksOccupied, and puts BLSPrev and its connected sections in run.blocksConnected
+/// (releaseLastBlockAndConnected). S_i and S_i_1 are the tail positions (route, m) of this step and the step before.
 void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Section& BLSPrev, double S_i, double S_i_1);
 
-// Occupy a double switch
+/// Occupies the two halves BLS and BLSPrev of a double switch: each half with its connected sections, and the two block sections
+/// named in its ID with theirs, go to run.blocksOccupied; the two block sections also go to run.blocksConnected. Does nothing when an
+/// ID does not name two sections of run.infra.sections.
 void occupyDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
 
-// Release a double switch
+/// Releases the two halves BLS and BLSPrev of a double switch: each half and its connected sections go to run.blocksConnected, and
+/// for a half with a diverging switch also the two block sections named in its ID with theirs. Does nothing when an ID does not name
+/// two sections of run.infra.sections.
 void releaseDoubleSwitch(SimulationRun& run, const Section& BLS, const Section& BLSPrev);
 
-// Unlock double switches (prevents trains getting stuck in the middle)
+/// Frees the double switches that would hold a train in their middle; see "Double switches" under "Common behaviour" in
+/// docs/architecture/signalling-levels.md.
 void unlockDoubleSwitches(SimulationRun& run);
 
-// Activate blocks connected to block sections with diverging switches
+/// For a train with its tail at route position S (m) on the level 3 or 4 section BS with a diverging switch: puts the block sections
+/// named in the ID of BS in run.blocksOccupied: the first while S is before the switch, both while it is on the switch, and the second
+/// after it, when both also go to run.blocksConnected. The two swap when TrackLineIDPrevBS is the track line of the second.
 void activateBlocksWithSwitchesDiv(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
-// Activate blocks connected to block sections with diverging switches (fixed block variant)
+/// The fixed-block form of activateBlocksWithSwitchesDiv: both block sections named in the ID of BS go to run.blocksOccupied and
+/// run.blocksConnected. S is not read.
 void activateBlocksWithSwitchesDivFixedBlock(SimulationRun& run, const Section& BS, int TrackLineIDPrevBS, double S);
 
-// Release last block section and connected blocks when train exits simulation
+/// Puts BLS, its connected sections and, for a section with a diverging switch, the two block sections named in its ID in
+/// run.blocksConnected, so that releaseMixedSignallingSystem clears them.
 void releaseLastBlockAndConnected(SimulationRun& run, const Section& BLS);
 
-// Generate MAs on connected block sections when train crosses a connection node
+/// While the train spans a switch node of BS (FrontEndPos at or past it and BackEndPos at or before it, m), adds to run.etcsMa
+/// "DivergingSwitchOccupied" ends of authority at the switch on BS and at both edges of every section over that switch, except
+/// IDSectionToExclude ("None" excludes nothing). V_i (m/s) and Acc_i (m/s2) are the speed and acceleration of the train.
 void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, bool IsRouteReversed, const std::string& IDSectionToExclude);
 
-// Process train position and compute Movement Authorities
+/// Adds to run.etcsMa an end of authority of the given type and typePart for the train at route position S_i (m) on BLS, with its
+/// speed V_i (m/s) and acceleration Acc_i (m/s2), unless the train has one on the same section within 1 mm. A position before the
+/// route is moved to the start of its first section; on a reversed route AbsPosEoA is in the coordinates of the original direction.
 void elaborateRbcMas(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BLS, const std::string& CurrentSectionID, const std::string& NextSectionID, const std::string& trainDescription, const Route& TrainRoute, bool IsRouteReversed, const std::string& type, const std::string& typePart);
 
-// Elaborate MAs on block sections with diverging switches
+/// The form of elaborateRbcMas for the section BS with a diverging switch: adds "TrainEnd" ends of authority at S_i (m) on BS and on
+/// the block sections named in its ID that S_i covers, the first before the switch, both on it and the second after it.
 void elaborateMaOnBlockSectionsWithSwitchDiv(SimulationRun& run, double S_i, double V_i, double Acc_i, const Section& BS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
 
-// Lock switches while trains traverse in diverging position
+/// While the train spans the diverging switch of BLS (FrontEndPos at or past its start and BackEndPos at or before its end, m), adds
+/// "DivergingSwitchOccupied" ends of authority at both switch edges, on BLS and on the two block sections named in its ID, and locks
+/// the switches that connect to those (lockSwitchesOnAllConnectedSections, 10 m on either side of each edge).
 void lockSwitchesWhileTrainTraverses(SimulationRun& run, double FrontEndPos, double BackEndPos, double V_i, double Acc_i, const Section& BLS, const std::string& trainDescription, const Route& TrainRoute, const std::string& typePart);
 
 // --- Mixed Signalling: multi-system signalling areas ---
-// Set infrastructure speed limits (from infrastructure, not signalling)
+/// Sets speedInBraking of every arc of the Blocks route sections BS to the speed limit of the next arc (m/s). The last arc of the
+/// route takes its own limit.
 void setInfraSpeedLimits(Section* BS, int Blocks);
 
 // --- ETCS L3 Mixed Signalling (levels 3 and 4) ---
-// occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied.
+/// Gives the occupied sections of levels 3 and 4 code 0 and the end speed of their last arc as exit speed, so that the routines of the
+/// other levels see them. occupied has one flag per section of the route, nonzero when the section is in BlocksOccupied.
 void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied);
 
+/// Sets the end speed (speedInBraking of the last arc, m/s) of every level 3 and 4 section of the route: 0 before an occupied section
+/// of another level, otherwise the lower of the speed limit and the signal speed limit at the start of the next section.
 void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
 
 // --- Release Blocks in Mixed Signalling ---
-// connected has one flag per section of the route, nonzero when the section is in BlocksConnected.
+/// Clears each route section flagged in connected and the sections behind it (one flag per route section, nonzero when in
+/// BlocksConnected).
+/// See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md.
 void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected);
 
-// Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or
-// with a number that is no level, sets no bit.
+/// Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or
+/// with a number that is no level, sets no bit.
 unsigned routeLevelMask(const Route& route);
 
-// Activate mixed signalling areas
+/// Writes the codes, states and speed limits of every route for the next step from run.blocksOccupied, with the routine of each level
+/// the route has. See "What happens in a step" in docs/architecture/signalling-levels.md.
 void activateMixedSignallingSystem(SimulationRun& run);
-// The same with other red speeds, the limits that the fixed-block levels write behind an occupied section. The call above passes
-// signalCode1 and signalCode2.
+/// The same with other red speeds (m/s), the limits that the fixed-block levels write behind an occupied section: redSpeed1 on the red
+/// section of levels 0 and 5, redSpeed2 on the double red section of level 5. The call above passes signalCode1 and signalCode2.
 void activateMixedSignallingSystem(SimulationRun& run, double redSpeed1, double redSpeed2);
 
-// Release all block sections in mixed signalling areas
+/// Clears every route behind the sections in run.blocksConnected (releaseBlocksMixedSignalling), so that the activation can write the
+/// aspects again.
 void releaseMixedSignallingSystem(SimulationRun& run);
 
-// Release last block section in mixed signalling
+/// Releases section blockID when a train leaves its route there; see "Codes and what they do to a following train" in
+/// docs/architecture/signalling-levels.md.
 void relLastSectionMixedSignalling(SimulationRun& run, std::string blockID);
 
 
-// Set mid-signals of double switches as virtual signals
+/// Marks the middle of each double switch as a virtual signal: in a track line of three arcs that is 30 m long, the section that
+/// starts at the start of the track line gets a virtual signal at its end node, any other at its start node, and so do the sections
+/// connected to it.
 void setVirtualSignals(SimulationRun& run);
 
-// Set virtual signals on routes from original block sections (info lost during route creation)
+/// Copies the virtual signals of run.infra.sections to the section copies of every route, with start and end swapped on a reversed
+/// route.
 void setRouteVirtualSignals(SimulationRun& run);
 
 /// A train that holds or waits for the direction of a single-track limit.
@@ -476,15 +534,16 @@ struct SingleTrackZone {
 	std::vector<std::pair<double, double>> intervals; ///< Intervals [from, to) of route position in metres.
 	std::vector<std::string> sectionIDs;			  ///< IDs of the zone sections in route order.
 };
-// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
+/// Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
 void resetSingleTrackLocks(SimulationRun& run);
-// The zone of limit l on route routeIndex. The zones of all limits and routes are derived on first use.
+/// The zone of limit l on route routeIndex, or an empty zone for an index out of range. The zones of all limits and routes are
+/// derived on first use.
 const SingleTrackZone& singleTrackZone(SimulationRun& run, std::size_t l, int routeIndex);
-// True when the zone of any limit has a section on the route.
+/// True when the zone of any limit has a section on the route.
 bool singleTrackRouteHasZone(SimulationRun& run, int routeIndex);
-// Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
+/// Appends the zone sections that the route has to treat as occupied to BlocksOccupied and returns how many were added.
 std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex);
-// Updates occupancy and pending entry reservations. Every changed zone is released (RollingStock.cpp).
+/// Updates occupancy and pending entry reservations from the positions of step `step`. Every changed zone is released (RollingStock.cpp).
 void updateSingleTrackLocks(SimulationRun& run, int step);
 
 /// The entrance of a station area, which is held while a section of the area ahead is occupied. The pointers point into

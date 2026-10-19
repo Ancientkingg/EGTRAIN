@@ -5,59 +5,74 @@
 #include "simulation/Passengers.h"
 #include <vector>
 
-// Function to Compute the Arrival and Departure times of at all the timetabling points along their own route
+/// Computes the timetable points of the first numTrains trains of Trains (Train::ComputeTimetablingPoints).
 void Compute_TimetablingPoints_For_All_Trains(Regional* Trains, int numTrains);
 
-// Updated Function to Calculate the arrival delay at each station for each train
+/// Sets the actual station arrivals and the arrival delays of every train (Train::Determine_Actual_Station_Arrivals and
+/// Train::computeArrivalDelaysAtStations).
 void calculateArrivalDelayAllTrains(SimulationRun& run);
 
-// Function to calculate positive an negative delays of trains for all the trains considered in the simulation
+/// Sets the arrival delays of every train again, with an early arrival as a negative delay
+/// (Train::Compute_Pos_And_Neg_Arrival_Delays_At_Stations).
 void calculatePosAndNegArrivalDelayAllTrains(SimulationRun& run);
 
-// Function to calculate the train delay statistics for a single station instant_spatial_position
+/// Fills the delay statistics of station S from the trains with an arrival delay there, in seconds; the average and standard
+/// deviation count only delayed trains, and the 3 and 5 minute counts compare with 180 and 300 s. The station "Final_Station" takes
+/// the last stop of every train.
 void calculateDelayStatsAtStation(SimulationRun& run, Stations& S);
 
-// Function to Calculate the positive and negative delays stats at station instant_spatial_position
+/// The same as calculateDelayStatsAtStation with early arrivals: every train with an arrival and a planned arrival there counts, and
+/// the average and standard deviation include delays of 0 and below.
 void calculatePosAndNegDelayStatsAtStation(SimulationRun& run, Stations& S);
 
-// Function to Compute the amount of Disturbances set as input: Entrance delays, Cumulative disturbances to dwell times and Total delays (sum of entrance delays and disturbances to dwell times)
+/// Fills run.totalInputDelays, run.entranceInputDelays and run.disturbanceInput with the statistics of the input delays of all trains
+/// (s): the total, the entrance delay, and the dwell disturbances (the total less the entrance delay).
 void Compute_Input_Delays(SimulationRun& run);
 
-// Function to calculate the train delay statistics for all the station considered in the network
+/// calculateDelayStatsAtStation for every station of run.infra.stations.
 void calculateDelayStatsForAllStations(SimulationRun& run);
 
-// Function to calculate positive and negative train delay statistics for all stations
+/// calculatePosAndNegDelayStatsAtStation for every station of run.infra.stations.
 void calculatePosAndNegDelayStatsForAllStations(SimulationRun& run);
 
-// Function to print the files with the computing time of ROMA and EGTRAIN for each combination RI-PH
+/// Writes FolderName/Computing_Times.txt with run.compTimeEgtrain (processor time of the steps, s), run.compTimeRoma and their sum.
+/// Nothing outside the tests sets compTimeRoma, so its column is 0.
 void Print_Computing_Times(const SimulationRun& run, std::string FolderName);
 
 
-// Function to Print all the trajectories
+/// Writes FolderName/TrainPathDiagram.txt: a row of the step times (s), then for each of the N_S trains of S a row of its head
+/// position (m, original coordinates) in every step, -9999 where it does not run.
 void PrintTrainPathDiagram(const SimulationRun& run, Regional* S, int N_S, std::string FolderName);
 
-// Function to compute Energy consumption for all the trains in the network
+/// Sets the energy totals (MJ) of each of the numTrains trains whose energy samples are complete, with a substation efficiency of 0.8
+/// and a regeneration factor of 0.7 (Train::TotalEnergyConsumptionWithAndWithoutRegBraking). The totals of the other trains are 0.
 void ComputeEnergyConsumptionForAllTrains(Train* Trains, int numTrains);
 
-// Function to Compute the Energy Consumption for the Timetable
+/// Writes EnergyConsumptionPerTrain.txt and TotalEnergyConsumption.txt to OutputFolder: the energy totals of each train and of all
+/// trains, converted from MJ to kWh.
 void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, std::string OutputFolder);
 
+/// Lets every passenger of SIMUL_PAX whose next journey starts by t + StartingSimulationTime (seconds since midnight) enter the
+/// network (Passenger::checkJourneyStart).
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, std::list<Passenger>& SIMUL_PAX);
 
-// The passengers waiting at one platform: how many they are and, for each of them, a pair of the passenger ID and the actual
-// departure time of the trip the passenger waits for. The pairs are in chronological order of the departure time, and in the
-// order of the passenger list for equal times.
+/// The passengers waiting at one platform: how many they are and, for each of them, a pair of the passenger ID and the actual
+/// departure time of the trip the passenger waits for. The pairs are in chronological order of the departure time, and in the
+/// order of the passenger list for equal times.
 struct WaitingAtPlatform {
-	int count = 0;
-	std::list<std::pair<std::string, double>> passengers;
+	int count = 0;										  ///< Number of waiting passengers.
+	std::list<std::pair<std::string, double>> passengers; ///< Passenger ID and departure time (s since midnight) of the awaited trip.
 };
 
-// The passengers waiting at the platform with these IDs. No platform is modified.
+/// The passengers waiting at the platform with these IDs. No platform is modified.
 WaitingAtPlatform passengersWaitingAtPlatform(const std::string& stationId, const std::string& platformId, const std::list<Passenger>& ALL_PAX);
 
-// Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.
+/// Sets the number and the list of the waiting passengers of every platform, in one pass over the passengers.
 void Update_List_Passengers_Waiting_At_ALL_Platforms(std::list<StationPlatform>& ALL_PLAT, const std::list<Passenger>& ALL_PAX);
 
+/// At a service stop of train T in step t: the passengers whose trip ends there alight and transfer or leave the network, then the
+/// passengers waiting for T board in the order of the platform while T has room. In the first step of the stop, the
+/// passenger-dependent dwell replaces the stop time when it is longer. Passenger times are t + SimulationStartingTime (s since midnight).
 void Simulate_Train_Passenger_Interactions(SimulationRun& run, int t, int SimulationStartingTime, Train& T, std::list<Passenger>& ALLPAX, const std::list<StationPlatform>& ALLPLATFORMS);
 
 #endif
