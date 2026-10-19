@@ -438,19 +438,21 @@ matched-extent application captures and manual interaction checks.</p>
 </section>
 <section id="evidence">
 <h2>Evidence<a class="headerlink" href="#evidence" title="Link to this heading">¶</a></h2>
-<p>Each pair below shows the same stretch of the network in the reference build
-and in the current build, at the same size in pixels. The windows were 1280x800
-at device pixel ratio 1. Each image is a crop of the network canvas, resized so
-that the two frames of a pair show the same extent. The zoom given for a pair is
-the zoom of the window before the crop, so a frame can show the network larger
-or smaller than the window did, and the sizes in a Fit frame and in a detail
-frame are not in the ratio of their zooms. The reference builds are <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code>
-and, for the Netherlands, <code class="docutils literal notranslate"><span class="pre">f138134</span></code>. The current build is main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code>. Both
-builds zoom by 1.15 per click. The zoom label of the current build is the ratio
-to its own Fit scale. The reference build has no zoom label, so its zoom is the
-number of zoom-in clicks from Fit. The reference build fits the scene rectangle
-and the current build fits the painted track with 24 px of padding, so the same
-number of clicks from Fit does not show the same extent in both builds.</p>
+<p>Each pair below shows the same stretch of the network in the reference build and
+in the current build, at the same size in pixels. All frames are at device pixel
+ratio 1: the reference frames from 1280x800 windows, the current frames from the
+offscreen platform with the canvas at 1254x566, its size in such a window. Each
+image is a crop of the network canvas, resized so that the two frames of a pair
+show the same extent. The zoom given for a pair is the zoom of the window before
+the crop, so a frame can show the network larger or smaller than the window did,
+and the sizes in a Fit frame and in a detail frame are not in the ratio of their
+zooms. The reference builds are <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> and, for the Netherlands, <code class="docutils literal notranslate"><span class="pre">f138134</span></code>.
+The current build is main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code>. Both builds zoom by 1.15 per click. The
+zoom label of the current build is the ratio to its own Fit scale. The reference
+build has no zoom label, so its zoom is the number of zoom-in clicks from Fit.
+The reference build fits the scene rectangle and the current build fits the
+painted track with 24 px of padding, so the same number of clicks from Fit does
+not show the same extent in both builds.</p>
 <p>Under each pair the first paragraph gives the build, the scene, the zoom and the
 landmarks, and the second says what differs inside the pair: the symbols first,
 then the geometry. The geometry differences come from the scenes, not from the
@@ -460,25 +462,25 @@ them.</p>
 <h3>Paimpol at Fit<a class="headerlink" href="#paimpol-at-fit" title="Link to this heading">¶</a></h3>
 <p><img alt="Paimpol at Fit in the reference build" src="../_images/paimpol-fit-historical.png" /></p>
 <p><img alt="Paimpol at Fit in the current build" src="../_images/paimpol-fit-current.png" /></p>
-<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code> below. Scene
+<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code> below. Scene
 Paimpol at Fit in both builds, so the whole line shows, with Guingamp at the left
 end and Paimpol at the right end. The positions of the ten stations agree within
 about 0.5 percent of the frame width.</p>
-<p>In the symbols, the current frame draws a pictogram and a readable name for each
-station and hides the name of Pontrieaux_Halte where it overlaps the name of
-Pontrieaux, while the reference frame has no pictogram and names too small to
-read. In the geometry, the siding at Pontrieaux shows in the current frame only,
-as a short second row under the line.</p>
+<p>In the symbols, the current frame draws a light disc with a dark halo and a
+readable name for each station and hides the name of Pontrieaux_Halte where it
+overlaps the name of Pontrieaux, while the reference frame has no station mark
+and names too small to read. In the geometry, the siding at Pontrieaux shows in
+the current frame only, as a short second row under the line.</p>
 </section>
 <section id="paimpol-at-detail">
 <h3>Paimpol at detail<a class="headerlink" href="#paimpol-at-detail" title="Link to this heading">¶</a></h3>
 <p><img alt="Paimpol at detail in the reference build" src="../_images/paimpol-detail-historical.png" /></p>
 <p><img alt="Paimpol at detail in the current build" src="../_images/paimpol-detail-current.png" /></p>
-<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code> below. Scene
+<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code> below. Scene
 Paimpol, 16 zoom-in clicks from Fit (zoom label 9.4x in the current build), then
 10 arrow-key presses in both builds. Pontrieaux_Halte and Pontrieaux stand at the
 same x in both frames, and the signals, node dots and station squares line up.</p>
-<p>In the symbols, the current frame adds a pictogram above each name, draws the
+<p>In the symbols, the current frame adds a light disc above each name, draws the
 names larger because the minimum name size applies at this zoom, and writes
 Pontrieaux_Halte without the space after the underscore that the reference frame
 draws. In the geometry, the siding below the line at Pontrieaux, with its
@@ -488,11 +490,11 @@ diagonal connection and its signals, is in the current frame only.</p>
 <h3>Copenhagen junction<a class="headerlink" href="#copenhagen-junction" title="Link to this heading">¶</a></h3>
 <p><img alt="Copenhagen in the reference build" src="../_images/copenhagen-junction-historical.png" /></p>
 <p><img alt="Copenhagen junction in the current build" src="../_images/copenhagen-junction-current.png" /></p>
-<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code> below. Scene
+<p>Reference build <code class="docutils literal notranslate"><span class="pre">472d0b5</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code> below. Scene
 Copenhagen, 22 zoom-in clicks from Fit (zoom label 21.6x in the current build),
 then 10 arrow-key presses in both builds. Carlsberg, Dybbolsbro, Kobenhavn H and
 Vesterport stand at the same x in both frames, within 3 px.</p>
-<p>In the symbols, the current frame adds a pictogram above each name and draws the
+<p>In the symbols, the current frame adds a light disc above each name and draws the
 names larger because the minimum name size applies at this zoom. In the
 geometry, the reference frame draws one line, with signals at more x positions
 than either current row, where the current frame draws two parallel rows joined
@@ -503,16 +505,17 @@ reference line has a signal.</p>
 <h3>Netherlands stretch<a class="headerlink" href="#netherlands-stretch" title="Link to this heading">¶</a></h3>
 <p><img alt="Netherlands stretch in the reference build" src="../_images/netherlands-stretch-historical.png" /></p>
 <p><img alt="Netherlands stretch in the current build" src="../_images/netherlands-stretch-current.png" /></p>
-<p>Reference build <code class="docutils literal notranslate"><span class="pre">f138134</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code> below. Scene
+<p>Reference build <code class="docutils literal notranslate"><span class="pre">f138134</span></code> above, current build main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code> below. Scene
 Netherlands, 6 zoom-in clicks from Fit (zoom label 2.3x in the current build).
 The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
-the corner at Blm, which agree within about 20 px in the 500 px frames. This is
+the corner at Brn, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.</p>
-<p>In the symbols, the current frame draws a pictogram and a name at each station,
-and the reference frame has no readable station label. In the geometry, the
-current frame draws doubled tracks, stations beside them and crossovers where the
-reference frame draws a single line, with one short extra segment at the corner
-between Hvsm and Hvsp.</p>
+<p>In the symbols, the current frame draws a light disc at each station and a name
+at all but one, at the bend between Hvsm and Hvsp, and the mainline track in grey
+(160,160,160), and the reference frame has no readable station label. In the
+geometry, the current frame draws doubled tracks, stations beside them and
+crossovers where the reference frame draws a single line, with one short extra
+segment at the corner between Hvsm and Hvsp.</p>
 </section>
 <section id="assignment-corridor">
 <h3>Assignment corridor<a class="headerlink" href="#assignment-corridor" title="Link to this heading">¶</a></h3>
@@ -520,19 +523,19 @@ between Hvsm and Hvsp.</p>
 shown.</p>
 <p><img alt="Assignment corridor at Fit in the current build" src="../_images/assignment-corridor-current.png" /></p>
 <p><img alt="Assignment corridor at detail in the current build" src="../_images/assignment-detail-current.png" /></p>
-<p>Current build main <code class="docutils literal notranslate"><span class="pre">037a2e43</span></code>, scene Assignment_Gvc_Gdg_Ut. The first frame is at
-Fit with the stations Gvc, Gdg and Ut, and the two parallel tracks of the corridor
-read as one band. The second frame is 10 zoom-in clicks from Fit (zoom label 4x),
-around Gdg, and shows the two tracks apart, with a signal on each track at
-regular intervals.</p>
+<p>Current build main <code class="docutils literal notranslate"><span class="pre">946ee7eb</span></code>, scene Assignment_Gvc_Gdg_Ut. The first frame is at
+Fit with the stations Gvc, Gdg and Ut, and the two parallel mainline tracks of the
+corridor, grey (160,160,160), read as one band. The second frame is 10 zoom-in
+clicks from Fit (zoom label 4x), around Gdg, and shows the two tracks apart, with
+a signal on each track at regular intervals.</p>
 </section>
 <section id="what-the-captures-show-and-do-not-show">
 <h3>What the captures show and do not show<a class="headerlink" href="#what-the-captures-show-and-do-not-show" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p>The reference frames show the station names and no pictogram, so the
-pictogram of the current frames has no counterpart in them. At Fit the names in
-the reference frames are too small to read, where the current build keeps the
-pictogram at least 24 px and the name at least 12 px high.</p></li>
+<li><p>The reference frames show the station names and no station mark, so the discs
+of the current frames have no counterpart in them. At Fit the names in the
+reference frames are too small to read, where the current build keeps the
+frame of the station mark at least 24 px and the name at least 12 px high.</p></li>
 <li><p>The names are larger in the current detail frames than in the reference frames
 at the same extent. The current build draws a name at least 12 px high.</p></li>
 <li><p>The current frames have the <code class="docutils literal notranslate"><span class="pre">#101a22</span></code> background and its grid, the reference
@@ -541,8 +544,9 @@ frames a black background.</p></li>
 head, and the opposing head sits on the other side of the line at the same
 offsets. Node dots are light gray (192,192,192) and sit at the ends of the track
 segments. Both builds draw the track with a cosmetic pen of 2 px.</p></li>
-<li><p>No capture shows a running state, so the red and yellow aspects, the unpainted
-track states and the white repaint of the reference are not shown.</p></li>
+<li><p>No capture shows a running state, so the trains, which keep at least 8 px on
+screen, the red and yellow aspects, the unpainted track states and the white
+repaint of the reference are not shown.</p></li>
 <li><p>Interaction (hit testing, signal inspection, layer toggles, Follow, zoom and
 pan) and the run, pause, stop and replay states are not shown by these
 captures.</p></li>
