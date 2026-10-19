@@ -1235,29 +1235,18 @@ bool MainWindowTestAccess::checkReplayWholeRun(MainWindow& w, int middle, QStrin
 		return fail(QStringLiteral("a whole run says '%1' and '%2' for the frame at %3 s")
 				.arg(w.m_replayLabel->text(), w.m_replayCoverageLabel->text())
 				.arg(shown->timestep));
-	// At Fit the first visible train is at least the minimum size on screen, in the first frame that draws a train.
-	int running = -1;
-	for (int time = 0; time <= last && running < 0; time += GuiReplayHistory::cadenceSeconds) {
-		const auto frame = w.m_completedReplay.atOrBefore(time);
-		for (const auto& state : frame->trains) {
-			QPolygonF polygon;
-			if (guiReplayTrainHasPosition(state, frame->timestep))
-				w.m_presenter->getTrainPolygon(&polygon, 0, state);
-			if (!polygon.isEmpty()) {
-				running = frame->timestep;
-				break;
-			}
-		}
-	}
-	const QString sceneName = QString::fromStdString(w.m_document->model().name);
-	if (running < 0)
-		return fail(QStringLiteral("%1: no frame of the run draws a train").arg(sceneName));
-	w.seekReplay(running);
+	// At Fit the first visible train is at least the minimum size on screen, in the first frame that shows a train.
+	const auto firstVisible = [&w] {
+		return std::find_if(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
+			[](const TrainItemGroup* item) { return item && item->isVisible() && item->trainPolygonItemList; });
+	};
+	for (int time = 0; time <= last && firstVisible() == w.m_presenter->allTrains.cend(); time += GuiReplayHistory::cadenceSeconds)
+		w.seekReplay(time);
 	w.fitView();
-	const auto train = std::find_if(w.m_presenter->allTrains.cbegin(), w.m_presenter->allTrains.cend(),
-		[](const TrainItemGroup* item) { return item && item->isVisible() && item->trainPolygonItemList; });
+	const QString sceneName = QString::fromStdString(w.m_document->model().name);
+	const auto train = firstVisible();
 	if (train == w.m_presenter->allTrains.cend())
-		return fail(QStringLiteral("%1: no train is visible at Fit at %2 s").arg(sceneName).arg(running));
+		return fail(QStringLiteral("%1: no train is visible at Fit in any frame").arg(sceneName));
 	for (const TrainBodyItem* body : *(*train)->trainPolygonItemList) {
 		if (!body || body->polygon().isEmpty())
 			continue;
