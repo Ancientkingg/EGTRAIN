@@ -158,21 +158,20 @@ matched-extent application captures and manual interaction checks.
 ## Evidence
 
 Each pair below shows the same stretch of the network in the reference build and
-in the current build, at the same size in pixels. The reference frames come from
-windows of 1280x800 at device pixel ratio 1. The current frames come from the
-offscreen platform at device pixel ratio 1, with the network canvas at 1254 by
-566 px, its size in a 1280x800 window. Each image is a crop of the network
-canvas, resized so that the two frames of a pair show the same extent. The zoom
-given for a pair is the zoom of the window before the crop, so a frame can show
-the network larger or smaller than the window did, and the sizes in a Fit frame
-and in a detail frame are not in the ratio of their zooms. The reference builds
-are `472d0b5` and, for the Netherlands, `f138134`. The current build is main
-`946ee7eb`. Both builds zoom by 1.15 per click. The zoom label of the current
-build is the ratio to its own Fit scale. The reference build has no zoom label,
-so its zoom is the number of zoom-in clicks from Fit. The reference build fits
-the scene rectangle and the current build fits the painted track with 24 px of
-padding, so the same number of clicks from Fit does not show the same extent in
-both builds.
+in the current build, at the same size in pixels. All frames are at device pixel
+ratio 1: the reference frames from 1280x800 windows, the current frames from the
+offscreen platform with the canvas at 1254x566, its size in such a window. Each
+image is a crop of the network canvas, resized so that the two frames of a pair
+show the same extent. The zoom given for a pair is the zoom of the window before
+the crop, so a frame can show the network larger or smaller than the window did,
+and the sizes in a Fit frame and in a detail frame are not in the ratio of their
+zooms. The reference builds are `472d0b5` and, for the Netherlands, `f138134`.
+The current build is main `946ee7eb`. Both builds zoom by 1.15 per click. The
+zoom label of the current build is the ratio to its own Fit scale. The reference
+build has no zoom label, so its zoom is the number of zoom-in clicks from Fit.
+The reference build fits the scene rectangle and the current build fits the
+painted track with 24 px of padding, so the same number of clicks from Fit does
+not show the same extent in both builds.
 
 Under each pair the first paragraph gives the build, the scene, the zoom and the
 landmarks, and the second says what differs inside the pair: the symbols first,
@@ -244,11 +243,12 @@ The landmarks are the track corner at Ndb, the corner between Hvsm and Hvsp and
 the corner at Blm, which agree within about 20 px in the 500 px frames. This is
 the loosest match of the pairs, because the current case has doubled tracks.
 
-In the symbols, the current frame draws a light disc and a name at each station
-and the mainline track in grey (160,160,160), and the reference frame has no
-readable station label. In the geometry, the current frame draws doubled tracks,
-stations beside them and crossovers where the reference frame draws a single
-line, with one short extra segment at the corner between Hvsm and Hvsp.
+In the symbols, the current frame draws a light disc at each station and a name
+at all but one, at the bend between Hvsm and Hvsp, and the mainline track in grey
+(160,160,160), and the reference frame has no readable station label. In the
+geometry, the current frame draws doubled tracks, stations beside them and
+crossovers where the reference frame draws a single line, with one short extra
+segment at the corner between Hvsm and Hvsp.
 
 ### Assignment corridor
 
@@ -270,7 +270,7 @@ a signal on each track at regular intervals.
 - The reference frames show the station names and no station mark, so the discs
   of the current frames have no counterpart in them. At Fit the names in the
   reference frames are too small to read, where the current build keeps the
-  station mark at least 24 px and the name at least 12 px high.
+  frame of the station mark at least 24 px and the name at least 12 px high.
 - The names are larger in the current detail frames than in the reference frames
   at the same extent. The current build draws a name at least 12 px high.
 - The current frames have the `#101a22` background and its grid, the reference
