@@ -110,7 +110,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" target="_top" xlink:title="The preview of the visible tracks of the scene, before normalization.">
 <polygon fill="white" stroke="#666666" points="355,-915.5 253,-915.5 253,-896.5 355,-896.5 355,-915.5"/>
 <text text-anchor="middle" x="304" y="-903.5" font-family="Helvetica,sans-Serif" font-size="10.00">loadTrackPreview</text>
 </a>
@@ -527,7 +527,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="804,-915.5 636,-915.5 636,-896.5 804,-896.5 804,-915.5"/>
 <text text-anchor="middle" x="720" y="-903.5" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
@@ -714,7 +714,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" target="_top" xlink:title="The point of the line at the node. Returns false when the line has none.">
 <polygon fill="white" stroke="#666666" points="587,-633.5 446,-633.5 446,-614.5 587,-614.5 587,-633.5"/>
 <text text-anchor="middle" x="516.5" y="-621.5" font-family="Helvetica,sans-Serif" font-size="10.00">trackPreviewPointAtNode</text>
 </a>

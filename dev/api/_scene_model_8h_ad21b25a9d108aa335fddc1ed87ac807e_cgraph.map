@@ -1,10 +1,10 @@
 <map id="defaultScenarioIncidents" name="defaultScenarioIncidents">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,188,55"/>
+<area shape="rect" id="Node000001" title="The incidents of defaultScenario(scene)." alt="" coords="5,29,188,55"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="64,31,57,21,60,11,74,5,97,3,125,6,136,16,132,20,122,11,97,8,75,10,64,15,62,20,68,28"/>
 <area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="236,29,360,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,39,223,39,223,45,188,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="266,31,259,21,263,11,276,5,298,3,325,6,336,15,333,19,323,11,298,8,277,10,266,15,264,20,270,28"/>
-<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title=" " alt="" coords="408,29,579,55"/>
+<area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="408,29,579,55"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="360,39,394,39,394,45,360,45"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="461,31,454,21,458,11,471,5,493,3,520,6,531,15,528,19,518,11,493,8,473,10,462,15,460,20,465,28"/>
 </map>

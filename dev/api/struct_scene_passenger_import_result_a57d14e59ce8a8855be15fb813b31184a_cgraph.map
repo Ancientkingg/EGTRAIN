@@ -1,6 +1,6 @@
 <map id="ScenePassengerImportResult::success" name="ScenePassengerImportResult::success">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,22,216,62"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title=" " alt="" coords="264,29,347,55"/>
+<area shape="rect" id="Node000001" title="True when no diagnostic is an error." alt="" coords="5,22,216,62"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="264,29,347,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,39,250,39,250,45,216,45"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="273,31,266,21,270,11,283,5,305,3,332,6,343,15,340,19,330,11,305,8,285,10,274,15,272,20,277,28"/>
 </map>

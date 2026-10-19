@@ -3,7 +3,7 @@
 <area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="64,30,61,20,69,10,86,5,111,3,141,6,157,13,155,18,139,11,111,8,87,10,72,15,67,21,69,28"/>
 <area shape="rect" id="Node000002" href="$class_node.html#a8ef1e7ccc0a087be2e724ccfddf18f90" title=" " alt="" coords="265,29,467,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,47,252,47,252,52,217,52"/>
-<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="515,37,739,62"/>
+<area shape="rect" id="Node000003" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="515,37,739,62"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="467,47,501,47,501,52,467,52"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="585,38,576,28,580,18,598,12,627,10,663,14,673,19,677,24,673,27,670,23,662,19,627,15,599,17,584,22,581,28,589,35"/>
 </map>

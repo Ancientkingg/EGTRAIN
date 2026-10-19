@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="241,-382.5 179,-382.5 179,-363.5 241,-363.5 241,-382.5"/>
 <text text-anchor="middle" x="210" y="-370.5" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title="Validates the references, ids, values, timetables and incidents of the loaded model.">
 <polygon fill="white" stroke="#666666" points="253,-272.5 167,-272.5 167,-253.5 253,-253.5 253,-272.5"/>
 <text text-anchor="middle" x="210" y="-260.5" font-family="Helvetica,sans-Serif" font-size="10.00">validateScene</text>
 </a>
@@ -264,7 +264,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="839,-150.5 711,-150.5 711,-131.5 839,-131.5 839,-150.5"/>
 <text text-anchor="middle" x="775" y="-138.5" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -282,7 +282,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="412,-67.5 328,-67.5 328,-48.5 412,-48.5 412,-67.5"/>
 <text text-anchor="middle" x="370" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -300,7 +300,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title="Rebuilds loadedData from the model and sourceFiles.">
 <polygon fill="white" stroke="#666666" points="448.5,-122.5 291.5,-122.5 291.5,-103.5 448.5,-103.5 448.5,-122.5"/>
 <text text-anchor="middle" x="370" y="-110.5" font-family="Helvetica,sans-Serif" font-size="10.00">refreshLoadedDataSummary</text>
 </a>

@@ -1,7 +1,7 @@
 <map id="encodeSignalling" name="encodeSignalling">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,139,55"/>
+<area shape="rect" id="Node000001" title="The content of signalling.json." alt="" coords="5,29,139,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="40,31,33,21,37,11,50,5,72,3,99,6,110,15,107,19,97,11,72,8,51,10,40,15,38,20,44,28"/>
-<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a365e1207efc8426c85c8332a74c4dadd" title=" " alt="" coords="187,29,349,55"/>
+<area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a365e1207efc8426c85c8332a74c4dadd" title="A signalling area as signalling.json holds it." alt="" coords="187,29,349,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="139,39,173,39,173,45,139,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="236,31,229,21,233,11,246,5,268,3,295,6,306,15,303,19,293,11,268,8,247,10,236,15,234,20,240,28"/>
 </map>

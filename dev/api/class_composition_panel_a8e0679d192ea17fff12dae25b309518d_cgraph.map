@@ -1,6 +1,6 @@
 <map id="CompositionPanel::refreshUnitDetails" name="CompositionPanel::refreshUnitDetails">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,95,199,135"/>
-<area shape="rect" id="Node000002" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title=" " alt="" coords="273,29,420,55"/>
+<area shape="rect" id="Node000002" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="273,29,420,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,93,246,63,276,55,277,61,247,69,159,98"/>
 <area shape="rect" id="Node000003" href="$namespace_dialog_layout.html#a66a7d42bda10000c79c85ab652f8805e" title=" " alt="" coords="258,103,435,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="199,113,244,113,244,118,199,118"/>

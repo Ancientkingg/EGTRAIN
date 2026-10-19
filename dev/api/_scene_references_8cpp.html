@@ -125,20 +125,33 @@ Include dependency graph for SceneReferences.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:afd2c3e61a4aab31cc52d4e37e6e2ecbb" id="r_afd2c3e61a4aab31cc52d4e37e6e2ecbb"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#afd2c3e61a4aab31cc52d4e37e6e2ecbb">sceneBlockReferenceComponents</a> (const std::string &amp;reference)</td></tr>
 <tr class="memitem:ac653c3e3cff67cb72ec8dff713a44a2b" id="r_ac653c3e3cff67cb72ec8dff713a44a2b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac653c3e3cff67cb72ec8dff713a44a2b">sceneRewriteBlockReference</a> (const std::string &amp;reference, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:ac653c3e3cff67cb72ec8dff713a44a2b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><span class="tt">reference</span> with every component <span class="tt">oldId</span> replaced by <span class="tt">newId</span>.  <br /></td></tr>
 <tr class="memitem:a08f3f60ca755346a82a46d9013729e12" id="r_a08f3f60ca755346a82a46d9013729e12"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a08f3f60ca755346a82a46d9013729e12">sceneDirectDeleteConsumers</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;facet, const std::string &amp;id, const std::string &amp;scope)</td></tr>
 <tr class="memitem:a79aa26c9a4ff69308e393a6646dca883" id="r_a79aa26c9a4ff69308e393a6646dca883"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a79aa26c9a4ff69308e393a6646dca883">sceneRewriteTrackReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a79aa26c9a4ff69308e393a6646dca883"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the track id in the nodes, arcs, blocks and signalling areas that sit on the track.  <br /></td></tr>
 <tr class="memitem:a6c48c1098962058d97f6f35630513298" id="r_a6c48c1098962058d97f6f35630513298"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6c48c1098962058d97f6f35630513298">sceneRewriteNodeReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a6c48c1098962058d97f6f35630513298"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the node id in arc and connection endpoints and platform nodes.  <br /></td></tr>
 <tr class="memitem:adde6815e1c28ebbab011e9cdf6c866fd" id="r_adde6815e1c28ebbab011e9cdf6c866fd"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adde6815e1c28ebbab011e9cdf6c866fd">sceneRewriteBlockReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
 <tr class="memitem:accb2358a0d6ea1461a5fcbfab09d0e0a" id="r_accb2358a0d6ea1461a5fcbfab09d0e0a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#accb2358a0d6ea1461a5fcbfab09d0e0a">sceneRewriteStationReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:accb2358a0d6ea1461a5fcbfab09d0e0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the station id in stops, entrance delays and passenger journeys and legs.  <br /></td></tr>
 <tr class="memitem:adf6e0805c5544b1fb853c9bd06b9c738" id="r_adf6e0805c5544b1fb853c9bd06b9c738"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adf6e0805c5544b1fb853c9bd06b9c738">sceneRewritePlatformReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;stationId, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:adf6e0805c5544b1fb853c9bd06b9c738"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the platform id in the stops at the platform of that station.  <br /></td></tr>
 <tr class="memitem:a5158b741b5992144ccd037a0c3b4127e" id="r_a5158b741b5992144ccd037a0c3b4127e"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5158b741b5992144ccd037a0c3b4127e">sceneMovePlatformReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;platformId, const std::string &amp;fromStationId, const std::string &amp;toStationId)</td></tr>
+<tr class="memdesc:a5158b741b5992144ccd037a0c3b4127e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops at the platform move with it when the platform moves to another station.  <br /></td></tr>
 <tr class="memitem:a3dee6c583e3550726a32ccb6efc9f226" id="r_a3dee6c583e3550726a32ccb6efc9f226"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a3dee6c583e3550726a32ccb6efc9f226">sceneRewriteSignalReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a3dee6c583e3550726a32ccb6efc9f226"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the signal id in signal-failure incident targets.  <br /></td></tr>
 <tr class="memitem:a8231871713a8ff2d7a36e05ccd2be2d4" id="r_a8231871713a8ff2d7a36e05ccd2be2d4"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a8231871713a8ff2d7a36e05ccd2be2d4">sceneRewriteRouteReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a8231871713a8ff2d7a36e05ccd2be2d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the route id in the route of services.  <br /></td></tr>
 <tr class="memitem:adfaa0c66a925f5ca8a89a8b2ada74472" id="r_adfaa0c66a925f5ca8a89a8b2ada74472"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#adfaa0c66a925f5ca8a89a8b2ada74472">sceneRewriteTrainUnitReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:adfaa0c66a925f5ca8a89a8b2ada74472"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the train unit id in the units of compositions.  <br /></td></tr>
 <tr class="memitem:afacc26ec6e0b9ea07191c641632e8805" id="r_afacc26ec6e0b9ea07191c641632e8805"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afacc26ec6e0b9ea07191c641632e8805">sceneRewriteCompositionReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:afacc26ec6e0b9ea07191c641632e8805"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the composition id in the composition of services.  <br /></td></tr>
 <tr class="memitem:a87333c70e4338a37d53f1958b925864f" id="r_a87333c70e4338a37d53f1958b925864f"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a87333c70e4338a37d53f1958b925864f">sceneRewriteServiceReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a87333c70e4338a37d53f1958b925864f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the service id in entrance delays, train-breakdown incident targets and passenger legs.  <br /></td></tr>
 <tr class="memitem:a15b7add0357cd569d4a7402d09b528aa" id="r_a15b7add0357cd569d4a7402d09b528aa"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a15b7add0357cd569d4a7402d09b528aa">sceneRewriteScenarioReferences</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;oldId, const std::string &amp;newId)</td></tr>
+<tr class="memdesc:a15b7add0357cd569d4a7402d09b528aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the scenario id in defaultScenarioId.  <br /></td></tr>
 <tr class="memitem:a257e9fde53955a300370901e81fc7024" id="r_a257e9fde53955a300370901e81fc7024"><td class="memItemLeft">const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a257e9fde53955a300370901e81fc7024">sceneTrainUnitById</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;model, const std::string &amp;id)</td></tr>
+<tr class="memdesc:a257e9fde53955a300370901e81fc7024"><td class="mdescLeft">&#160;</td><td class="mdescRight">The train unit with this id, or null. The pointer points into the model.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="afd2c3e61a4aab31cc52d4e37e6e2ecbb" name="afd2c3e61a4aab31cc52d4e37e6e2ecbb"></a>
@@ -155,6 +168,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A section reference names one block or connection, optionally wrapped as <span class="tt">@id@...</span>, or several of them joined by '/'. This returns the ids in it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -187,10 +201,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span>&#160;)</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>scope</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>One description per use of the entity <span class="tt">id</span>, in the order found, for the message that blocks a delete. Empty when nothing uses it. <span class="tt">facet</span> is an infrastructure table ("tracks", "nodes", "blocks", "connections", "stations", "platforms", "signals", "routes") or one of "train_unit", "composition" and "service". The other infrastructure tables are not used by anything. <span class="tt">scope</span> is the id of the station that holds a platform. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -227,6 +242,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stops at the platform move with it when the platform moves to another station. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -258,6 +275,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><span class="tt">reference</span> with every component <span class="tt">oldId</span> replaced by <span class="tt">newId</span>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -289,6 +308,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Rewrites the block id in routes, block dependencies, single-track restrictions, station boundaries, signal-failure incident targets and protected sections of signals. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -320,6 +340,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the composition id in the composition of services. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -351,6 +373,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the node id in arc and connection endpoints and platform nodes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -387,6 +411,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the platform id in the stops at the platform of that station. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -418,6 +444,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the route id in the route of services. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -449,6 +477,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the scenario id in defaultScenarioId. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -480,6 +510,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the service id in entrance delays, train-breakdown incident targets and passenger legs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -511,6 +543,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the signal id in signal-failure incident targets. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -542,6 +576,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the station id in stops, entrance delays and passenger journeys and legs. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -573,6 +609,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the track id in the nodes, arcs, blocks and signalling areas that sit on the track. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -604,6 +642,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rewrites the train unit id in the units of compositions. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -630,6 +670,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The train unit with this id, or null. The pointer points into the model. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

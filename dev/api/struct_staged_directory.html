@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_staged_
 </div><!--header-->
 <div class="contents">
 
+<p>A directory that is removed when the object goes out of scope. <a class="el" href="#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it.">release()</a> keeps it, for a caller that has renamed it.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -122,12 +125,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a034909ede7df4a39006d4907c7d4af33" id="r_a034909ede7df4a39006d4907c7d4af33"><td class="memItemLeft"><a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a034909ede7df4a39006d4907c7d4af33">operator=</a> (const <a class="el" href="struct_staged_directory.html">StagedDirectory</a> &amp;)=delete</td></tr>
 <tr class="memitem:a43df4b27ab75445e031340ee49ebe644" id="r_a43df4b27ab75445e031340ee49ebe644"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a43df4b27ab75445e031340ee49ebe644">~StagedDirectory</a> ()</td></tr>
 <tr class="memitem:ad0a5616c02408535475b86fe139e1f77" id="r_ad0a5616c02408535475b86fe139e1f77"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad0a5616c02408535475b86fe139e1f77">release</a> ()</td></tr>
+<tr class="memdesc:ad0a5616c02408535475b86fe139e1f77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Keeps the directory: the destructor no longer removes it.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa1ee687c83e02d4230fcaa84fea4caf1" id="r_aa1ee687c83e02d4230fcaa84fea4caf1"><td class="memItemLeft">std::filesystem::path&#160;</td><td class="memItemRight"><a class="el" href="#aa1ee687c83e02d4230fcaa84fea4caf1">path</a></td></tr>
+<tr class="memdesc:aa1ee687c83e02d4230fcaa84fea4caf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The directory; empty when there is none or after <a class="el" href="#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it.">release()</a>.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A directory that is removed when the object goes out of scope. <a class="el" href="#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it.">release()</a> keeps it, for a caller that has renamed it. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a3f77bd71f21bb11d5fb8ebc8799e23b9" name="a3f77bd71f21bb11d5fb8ebc8799e23b9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3f77bd71f21bb11d5fb8ebc8799e23b9">&#9670;&#160;</a></span>StagedDirectory() <span class="overload">[1/2]</span></h2>
 
@@ -262,6 +269,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Keeps the directory: the destructor no longer removes it. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -276,6 +285,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The directory; empty when there is none or after <a class="el" href="#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it.">release()</a>. </p>
 
 </div>
 </div>

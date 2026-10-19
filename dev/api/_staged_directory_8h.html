@@ -133,7 +133,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:StagedDirectory" id="r_StagedDirectory"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_staged_directory.html">StagedDirectory</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A directory that is removed when the object goes out of scope. <a class="el" href="struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it.">release()</a> keeps it, for a caller that has renamed it.  <a href="struct_staged_directory.html#details">More...</a><br /></td></tr>
 <tr class="memitem:StagedPublishResult" id="r_StagedPublishResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_staged_publish_result.html">StagedPublishResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The outcome of publishStagedDirectory.  <a href="struct_staged_publish_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -141,6 +143,7 @@ Enumerations</h2></td></tr>
 , <a class="el" href="#a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f">MoveToBackup</a>
 , <a class="el" href="#a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50">Rename</a>
  }</td></tr>
+<tr class="memdesc:a26c0867a7cae8d3d23a5cd02ea2cc421"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step of publishStagedDirectory that failed, or Published.  <a href="#a26c0867a7cae8d3d23a5cd02ea2cc421">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -168,10 +171,15 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The step of publishStagedDirectory that failed, or Published. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5" name="a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5"></a>Published&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f" name="a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f"></a>MoveToBackup&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50" name="a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50"></a>Rename&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5" name="a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5"></a>Published&#160;</td><td class="fielddoc"><p>The directory was renamed into place. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f" name="a26c0867a7cae8d3d23a5cd02ea2cc421ab3d927c4b4ea3c173719f03f5596fe5f"></a>MoveToBackup&#160;</td><td class="fielddoc"><p>Moving the old destination to the backup name failed. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50" name="a26c0867a7cae8d3d23a5cd02ea2cc421a904a8304056d77e4547744781b7ceb50"></a>Rename&#160;</td><td class="fielddoc"><p>Renaming the staged directory to the destination failed. </p>
+</td></tr>
 </table>
 
 </div>
@@ -213,6 +221,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Creates an empty directory in parent, named like uniqueSiblingPath names a path, and sets staged.path to it. With ownerOnly the directory is limited to its owner. The staged directory becomes the published scene directory, so its mode is part of the result: the writer asks for owner-only, the importer keeps the default mode. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -252,6 +261,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or Rename staged still owns its directory, so the caller can just return and let the destructor remove it. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -291,6 +301,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Finds a name that is free in parent: the prefix (UTF-8), a time stamp and an attempt number. A name that is a dangling symlink is taken. Fails with file_exists when 100 names are taken, and with the error of the filesystem when it cannot tell. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

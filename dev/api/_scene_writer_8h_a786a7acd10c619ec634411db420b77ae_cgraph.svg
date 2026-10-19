@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Writes one scenario as a standalone scenario file, replacing the file at filePath.">
 <polygon fill="#999999" stroke="#666666" points="102,-130 0,-130 0,-111 102,-111 102,-130"/>
 <text text-anchor="middle" x="51" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">saveScenarioJson</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="525,-196 441,-196 441,-177 525,-177 525,-196"/>
 <text text-anchor="middle" x="483" y="-184" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>

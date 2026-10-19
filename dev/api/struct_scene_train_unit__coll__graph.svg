@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="A train unit: its physical data and its tractive effort curve.">
 <polygon fill="#999999" stroke="#666666" points="99.5,-19 10.5,-19 10.5,0 99.5,0 99.5,-19"/>
 <text text-anchor="middle" x="55" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainUnit</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_scene_train_physical.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_scene_train_physical.html" target="_top" xlink:title="The physical data of a train unit, in the units their names state.">
 <polygon fill="white" stroke="#666666" points="110,-91 0,-91 0,-72 110,-72 110,-91"/>
 <text text-anchor="middle" x="55" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainPhysical</text>
 </a>

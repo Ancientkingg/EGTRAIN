@@ -137,9 +137,11 @@ Include dependency graph for SceneValidator.cpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a0eee08089f81c48a21350f20a545d393" id="r_a0eee08089f81c48a21350f20a545d393"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0eee08089f81c48a21350f20a545d393">validateSceneStructure</a> (const std::string &amp;sceneDir)</td></tr>
 <tr class="memitem:a60e75574768ca4f881fc7b88926e6b46" id="r_a60e75574768ca4f881fc7b88926e6b46"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a60e75574768ca4f881fc7b88926e6b46">validateScene</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a60e75574768ca4f881fc7b88926e6b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates the references, ids, values, timetables and incidents of the loaded model.  <br /></td></tr>
 <tr class="memitem:a50b98f3db178a5c612ae70c047ec72a5" id="r_a50b98f3db178a5c612ae70c047ec72a5"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a50b98f3db178a5c612ae70c047ec72a5">validateRunnableScene</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;selectedOccurrences, std::optional&lt; double &gt; effectiveDurationOverride)</td></tr>
 <tr class="memitem:afa668470cb59002722633f2e95922d26" id="r_afa668470cb59002722633f2e95922d26"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#afa668470cb59002722633f2e95922d26">validateSceneDirectory</a> (const std::string &amp;sceneDir)</td></tr>
 <tr class="memitem:aafa5268de31127adac05c4984f06ea6c" id="r_aafa5268de31127adac05c4984f06ea6c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aafa5268de31127adac05c4984f06ea6c">validateRunnableSceneDirectory</a> (const std::string &amp;sceneDir)</td></tr>
+<tr class="memdesc:aafa5268de31127adac05c4984f06ea6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads, then validates with validateRunnableScene only if loading produced no Error diagnostics.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a50b98f3db178a5c612ae70c047ec72a5" name="a50b98f3db178a5c612ae70c047ec72a5"></a>
@@ -156,15 +158,16 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedOccurrences</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selectedOccurrences</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::optional&lt; double &gt;</td>          <td class="paramname"><span class="paramname"><em>effectiveDurationOverride</em></span>&#160;)</td>
+          <td class="paramtype">std::optional&lt; double &gt;</td>          <td class="paramname"><span class="paramname"><em>effectiveDurationOverride</em></span><span class="paramdefsep"> = </span><span class="paramdefval">std::nullopt</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Validates the model as validateScene does, plus the minimum complete model needed by a runnable simulation and the capacities of the runtime. A non-empty selectedOccurrences counts only those occurrences against the train capacity. effectiveDurationOverride, in seconds, replaces the duration of the scene settings. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -187,6 +190,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Loads, then validates with validateRunnableScene only if loading produced no Error diagnostics. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -209,6 +214,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Validates the references, ids, values, timetables and incidents of the loaded model. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -231,6 +238,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Loads, then validates with validateScene only if loading produced no Error diagnostics. Structural errors must be fixed first to avoid semantic cascades from a partial model. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -253,6 +261,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Validates only the scene files and JSON shape: the diagnostics of loadScene. No cross-file semantic checks are performed, so callers can show useful parse diagnostics for an incomplete historical scene without a cascade of reference errors. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

@@ -113,16 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_mi
 </div><!--header-->
 <div class="contents">
 
+<p>The migration steps a migration may chain.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_migration_8h_source.html">scene/SceneMigration.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a401d4ab16a96ba64c50f19fa780e628a" id="r_a401d4ab16a96ba64c50f19fa780e628a"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a401d4ab16a96ba64c50f19fa780e628a">addSchemaStep</a> (<a class="el" href="struct_scene_migration_step.html">SceneMigrationStep</a> step)</td></tr>
+<tr class="memdesc:a401d4ab16a96ba64c50f19fa780e628a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a schema step. A step that does not raise the version or has no operation is ignored.  <br /></td></tr>
 <tr class="memitem:ad3d05fe3477cd156a4ae34d6ec7a69ae" id="r_ad3d05fe3477cd156a4ae34d6ec7a69ae"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad3d05fe3477cd156a4ae34d6ec7a69ae">addBundleStep</a> (<a class="el" href="struct_scene_migration_step.html">SceneMigrationStep</a> step)</td></tr>
+<tr class="memdesc:ad3d05fe3477cd156a4ae34d6ec7a69ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a bundle step. A step that does not raise the version or has no operation is ignored.  <br /></td></tr>
 <tr class="memitem:a1df802d3b8af0d01b2f41ca358964279" id="r_a1df802d3b8af0d01b2f41ca358964279"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_migration_step.html">SceneMigrationStep</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a1df802d3b8af0d01b2f41ca358964279">schemaSteps</a> () const</td></tr>
+<tr class="memdesc:a1df802d3b8af0d01b2f41ca358964279"><td class="mdescLeft">&#160;</td><td class="mdescRight">The schema steps added.  <br /></td></tr>
 <tr class="memitem:adda904941452a0b3fc9aaa5be661a2ab" id="r_adda904941452a0b3fc9aaa5be661a2ab"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_migration_step.html">SceneMigrationStep</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#adda904941452a0b3fc9aaa5be661a2ab">bundleSteps</a> () const</td></tr>
+<tr class="memdesc:adda904941452a0b3fc9aaa5be661a2ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bundle steps added.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The migration steps a migration may chain. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ad3d05fe3477cd156a4ae34d6ec7a69ae" name="ad3d05fe3477cd156a4ae34d6ec7a69ae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3d05fe3477cd156a4ae34d6ec7a69ae">&#9670;&#160;</a></span>addBundleStep()</h2>
 
@@ -137,6 +146,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds a bundle step. A step that does not raise the version or has no operation is ignored. </p>
 
 </div>
 </div>
@@ -154,6 +165,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Adds a schema step. A step that does not raise the version or has no operation is ignored. </p>
 
 </div>
 </div>
@@ -180,6 +193,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>The bundle steps added. </p>
+
 </div>
 </div>
 <a id="a1df802d3b8af0d01b2f41ca358964279" name="a1df802d3b8af0d01b2f41ca358964279"></a>
@@ -204,6 +219,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The schema steps added. </p>
 
 </div>
 </div>

@@ -171,7 +171,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title="The train unit with this id, or null. The pointer points into the model.">
 <polygon fill="white" stroke="#666666" points="622.5,-67.5 512.5,-67.5 512.5,-48.5 622.5,-48.5 622.5,-67.5"/>
 <text text-anchor="middle" x="567.5" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">sceneTrainUnitById</text>
 </a>
@@ -227,7 +227,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" target="_top" xlink:title="True when error is empty.">
 <polygon fill="white" stroke="#666666" points="639,-437 496,-437 496,-407 639,-407 639,-437"/>
 <text text-anchor="start" x="504" y="-425" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainPhysicalSource</text>
 <text text-anchor="middle" x="567.5" y="-414" font-family="Helvetica,sans-Serif" font-size="10.00">Result::success</text>
@@ -246,7 +246,7 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" target="_top" xlink:title=" ">
+<g id="a_Node000021"><a xlink:href="struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" target="_top" xlink:title="True when error is empty.">
 <polygon fill="white" stroke="#666666" points="637.5,-389 497.5,-389 497.5,-359 637.5,-359 637.5,-389"/>
 <text text-anchor="start" x="505.5" y="-377" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainTractionSource</text>
 <text text-anchor="middle" x="567.5" y="-366" font-family="Helvetica,sans-Serif" font-size="10.00">Result::success</text>
@@ -292,7 +292,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="786,-311.5 702,-311.5 702,-292.5 786,-292.5 786,-311.5"/>
 <text text-anchor="middle" x="744" y="-299.5" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>

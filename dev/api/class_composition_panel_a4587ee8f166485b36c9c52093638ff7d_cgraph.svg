@@ -76,7 +76,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title="A free composition id.">
 <polygon fill="white" stroke="#666666" points="351,-19 201,-19 201,0 351,0 351,-19"/>
 <text text-anchor="middle" x="276" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueCompositionId</text>
 </a>

@@ -58,7 +58,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" target="_top" xlink:title="Rewrites the composition id in the composition of services.">
 <polygon fill="white" stroke="#666666" points="383,-74 184,-74 184,-55 383,-55 383,-74"/>
 <text text-anchor="middle" x="283.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteCompositionReferences</text>
 </a>
@@ -76,7 +76,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title="A free composition id.">
 <polygon fill="white" stroke="#666666" points="358.5,-19 208.5,-19 208.5,0 358.5,0 358.5,-19"/>
 <text text-anchor="middle" x="283.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueCompositionId</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The incidents of defaultScenario(scene); an empty list when the scene has no scenario.">
 <polygon fill="#999999" stroke="#666666" points="137,-47 0,-47 0,-28 137,-28 137,-47"/>
 <text text-anchor="middle" x="68.5" y="-35" font-family="Helvetica,sans-Serif" font-size="10.00">defaultScenarioIncidents</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_scene_model_8cpp.html#ad21b25a9d108aa335fddc1ed87ac807e" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_scene_model_8cpp.html#ad21b25a9d108aa335fddc1ed87ac807e" target="_top" xlink:title="The incidents of defaultScenario(scene).">
 <polygon fill="white" stroke="#666666" points="310,-19 173,-19 173,0 310,0 310,-19"/>
 <text text-anchor="middle" x="241.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">defaultScenarioIncidents</text>
 </a>
@@ -65,7 +65,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="603,-47 475,-47 475,-28 603,-28 603,-47"/>
 <text text-anchor="middle" x="539" y="-35" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>

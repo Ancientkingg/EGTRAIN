@@ -129,7 +129,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title="The number of diagnostics of each severity.">
 <polygon fill="white" stroke="#666666" points="501.5,-115 400.5,-115 400.5,-96 501.5,-96 501.5,-115"/>
 <text text-anchor="middle" x="451" y="-103" font-family="Helvetica,sans-Serif" font-size="10.00">countDiagnostics</text>
 </a>
@@ -165,7 +165,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title="Rebuilds loadedData from the model and sourceFiles.">
 <polygon fill="white" stroke="#666666" points="729,-211 572,-211 572,-192 729,-192 729,-211"/>
 <text text-anchor="middle" x="650.5" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">refreshLoadedDataSummary</text>
 </a>
@@ -246,7 +246,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="1022,-211 894,-211 894,-192 1022,-192 1022,-211"/>
 <text text-anchor="middle" x="958" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>

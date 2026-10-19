@@ -133,10 +133,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneImportResult" id="r_SceneImportResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_import_result.html">SceneImportResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of importing a legacy case.  <a href="struct_scene_import_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:ScenePassengerImportRow" id="r_ScenePassengerImportRow"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_passenger_import_row.html">ScenePassengerImportRow</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What happened to one row of a legacy passenger file.  <a href="struct_scene_passenger_import_row.html#details">More...</a><br /></td></tr>
 <tr class="memitem:ScenePassengerImportResult" id="r_ScenePassengerImportResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_passenger_import_result.html">ScenePassengerImportResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers read from a legacy passenger file pair, with an account of every row.  <a href="struct_scene_passenger_import_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneTrainPhysicalSourceResult" id="r_SceneTrainPhysicalSourceResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_train_physical_source_result.html">SceneTrainPhysicalSourceResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The physical data read from a legacy vehicle data file.  <a href="struct_scene_train_physical_source_result.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneTrainTractionSourceResult" id="r_SceneTrainTractionSourceResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_train_traction_source_result.html">SceneTrainTractionSourceResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tractive effort curve read from a legacy traction file.  <a href="struct_scene_train_traction_source_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -164,6 +169,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the legacy passenger files DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv from a case directory or its Passengers directory, resolving stations and services against scene. Both files are required. The scene is not changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -195,6 +201,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Converts the legacy case in legacyDir into a scene directory at sceneDir, written in a private directory and then renamed into place. sceneName becomes the scene name and selects the settings of a known case. Skipped and unresolved records are counted in import_report. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -217,6 +224,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a vehicle data file of exactly nine finite numbers in the order of kSceneTrainPhysicalFields, with values the simulation can use. The editor reloads linked files with it. Unlike importLegacyScene, which skips bad rows, it refuses an incomplete file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -239,6 +247,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a traction file of rows of five finite numbers, each with v_lower below v_upper, in ascending speed order. Like parseTrainPhysicalSourceFile it refuses an incomplete file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

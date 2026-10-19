@@ -118,10 +118,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_b
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a5cb631b4d78930c2bf1dae719dbd1343" id="r_a5cb631b4d78930c2bf1dae719dbd1343"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5cb631b4d78930c2bf1dae719dbd1343">id</a></td></tr>
+<tr class="memdesc:a5cb631b4d78930c2bf1dae719dbd1343"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the block. It cannot contain '/'.  <br /></td></tr>
 <tr class="memitem:a52db5b3d733ecaab313dd443b6ed57cb" id="r_a52db5b3d733ecaab313dd443b6ed57cb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a52db5b3d733ecaab313dd443b6ed57cb">trackId</a></td></tr>
+<tr class="memdesc:a52db5b3d733ecaab313dd443b6ed57cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track the block lies on.  <br /></td></tr>
 <tr class="memitem:ae66b305cf95256a4a2584dd0e0393cf2" id="r_ae66b305cf95256a4a2584dd0e0393cf2"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae66b305cf95256a4a2584dd0e0393cf2">lengthKm</a> = 0.0</td></tr>
+<tr class="memdesc:ae66b305cf95256a4a2584dd0e0393cf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length along the chainage of the track in kilometres.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A block of a track. The blocks of a track follow each other in file order from the first node of the track, each as long as lengthKm. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5cb631b4d78930c2bf1dae719dbd1343" name="a5cb631b4d78930c2bf1dae719dbd1343"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5cb631b4d78930c2bf1dae719dbd1343">&#9670;&#160;</a></span>id</h2>
 
@@ -133,6 +138,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Unique id of the block. It cannot contain '/'. </p>
 
 </div>
 </div>
@@ -148,6 +155,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length along the chainage of the track in kilometres. </p>
+
 </div>
 </div>
 <a id="a52db5b3d733ecaab313dd443b6ed57cb" name="a52db5b3d733ecaab313dd443b6ed57cb"></a>
@@ -161,6 +170,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The track the block lies on. </p>
 
 </div>
 </div>

@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_t
 </div><!--header-->
 <div class="contents">
 
+<p>The physical data read from a legacy vehicle data file.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SceneTrainPhysicalSourceResult:</div>
@@ -123,13 +126,18 @@ Collaboration diagram for SceneTrainPhysicalSourceResult:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3c12f001584cfcfc0c2570646e3e7199" id="r_a3c12f001584cfcfc0c2570646e3e7199"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3c12f001584cfcfc0c2570646e3e7199">success</a> () const</td></tr>
+<tr class="memdesc:a3c12f001584cfcfc0c2570646e3e7199"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when error is empty.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a02b64f4b3593b86e784259693b21436c" id="r_a02b64f4b3593b86e784259693b21436c"><td class="memItemLeft"><a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a>&#160;</td><td class="memItemRight"><a class="el" href="#a02b64f4b3593b86e784259693b21436c">physical</a></td></tr>
+<tr class="memdesc:a02b64f4b3593b86e784259693b21436c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nine values, in the order of kSceneTrainPhysicalFields.  <br /></td></tr>
 <tr class="memitem:a5b04c72117f3dcd144a41943cdf04dc2" id="r_a5b04c72117f3dcd144a41943cdf04dc2"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5b04c72117f3dcd144a41943cdf04dc2">error</a></td></tr>
+<tr class="memdesc:a5b04c72117f3dcd144a41943cdf04dc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the file was refused; empty on success.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The physical data read from a legacy vehicle data file. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a3c12f001584cfcfc0c2570646e3e7199" name="a3c12f001584cfcfc0c2570646e3e7199"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3c12f001584cfcfc0c2570646e3e7199">&#9670;&#160;</a></span>success()</h2>
 
@@ -153,6 +161,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True when error is empty. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -168,6 +178,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Why the file was refused; empty on success. </p>
+
 </div>
 </div>
 <a id="a02b64f4b3593b86e784259693b21436c" name="a02b64f4b3593b86e784259693b21436c"></a>
@@ -181,6 +193,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The nine values, in the order of kSceneTrainPhysicalFields. </p>
 
 </div>
 </div>

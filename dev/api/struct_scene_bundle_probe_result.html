@@ -113,17 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_b
 </div><!--header-->
 <div class="contents">
 
+<p>What the manifest of an .egscene bundle says, read without extracting the bundle.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_bundle_8h_source.html">scene/SceneBundle.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a719828cb1696080c37b94486e1f73fb6" id="r_a719828cb1696080c37b94486e1f73fb6"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a719828cb1696080c37b94486e1f73fb6">schemaVersion</a> = 0</td></tr>
+<tr class="memdesc:a719828cb1696080c37b94486e1f73fb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">schema_version of the manifest; 0 when not read.  <br /></td></tr>
 <tr class="memitem:a8adf83bfeaac3b2311f8ad65a9add8e2" id="r_a8adf83bfeaac3b2311f8ad65a9add8e2"><td class="memItemLeft">std::optional&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a8adf83bfeaac3b2311f8ad65a9add8e2">bundleVersion</a></td></tr>
+<tr class="memdesc:a8adf83bfeaac3b2311f8ad65a9add8e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">bundle_version of the manifest; empty when not read.  <br /></td></tr>
 <tr class="memitem:ae7dac273999795524e30e0000d1e0f3f" id="r_ae7dac273999795524e30e0000d1e0f3f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae7dac273999795524e30e0000d1e0f3f">savedWithAppVersion</a></td></tr>
+<tr class="memdesc:ae7dac273999795524e30e0000d1e0f3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Version of the application that saved the bundle; empty when not recorded.  <br /></td></tr>
 <tr class="memitem:aebb34f4fb77c5c5f9ef46695e8a70e25" id="r_aebb34f4fb77c5c5f9ef46695e8a70e25"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aebb34f4fb77c5c5f9ef46695e8a70e25">structurallyValid</a> = false</td></tr>
+<tr class="memdesc:aebb34f4fb77c5c5f9ef46695e8a70e25"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the archive and its manifest passed the checks.  <br /></td></tr>
 <tr class="memitem:a137e598ba0a2ea3c75f27abc1c0cdd3d" id="r_a137e598ba0a2ea3c75f27abc1c0cdd3d"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a137e598ba0a2ea3c75f27abc1c0cdd3d">diagnostics</a></td></tr>
+<tr class="memdesc:a137e598ba0a2ea3c75f27abc1c0cdd3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Problems found.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the manifest of an .egscene bundle says, read without extracting the bundle. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a8adf83bfeaac3b2311f8ad65a9add8e2" name="a8adf83bfeaac3b2311f8ad65a9add8e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8adf83bfeaac3b2311f8ad65a9add8e2">&#9670;&#160;</a></span>bundleVersion</h2>
 
@@ -135,6 +145,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>bundle_version of the manifest; empty when not read. </p>
 
 </div>
 </div>
@@ -150,6 +162,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Problems found. </p>
+
 </div>
 </div>
 <a id="ae7dac273999795524e30e0000d1e0f3f" name="ae7dac273999795524e30e0000d1e0f3f"></a>
@@ -163,6 +177,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Version of the application that saved the bundle; empty when not recorded. </p>
 
 </div>
 </div>
@@ -178,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>schema_version of the manifest; 0 when not read. </p>
+
 </div>
 </div>
 <a id="aebb34f4fb77c5c5f9ef46695e8a70e25" name="aebb34f4fb77c5c5f9ef46695e8a70e25"></a>
@@ -191,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the archive and its manifest passed the checks. </p>
 
 </div>
 </div>

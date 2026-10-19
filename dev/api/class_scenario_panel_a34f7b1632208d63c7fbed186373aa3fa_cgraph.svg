@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" target="_top" xlink:title="Writes one scenario as a standalone scenario file, replacing the file at filePath.">
 <polygon fill="white" stroke="#666666" points="333,-237 231,-237 231,-218 333,-218 333,-237"/>
 <text text-anchor="middle" x="282" y="-225" font-family="Helvetica,sans-Serif" font-size="10.00">saveScenarioJson</text>
 </a>
@@ -74,7 +74,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title="True when wroteAll is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="354.5,-163 209.5,-163 209.5,-144 354.5,-144 354.5,-163"/>
 <text text-anchor="middle" x="282" y="-151" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSaveResult::success</text>
 </a>
@@ -128,7 +128,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="886,-356 802,-356 802,-337 886,-337 886,-356"/>
 <text text-anchor="middle" x="844" y="-344" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -335,7 +335,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="503,-163 441,-163 441,-144 503,-144 503,-163"/>
 <text text-anchor="middle" x="472" y="-151" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>

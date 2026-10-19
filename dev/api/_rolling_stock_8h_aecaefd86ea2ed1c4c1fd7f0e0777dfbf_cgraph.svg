@@ -83,7 +83,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title="The station visits of the route, building the section inventory first.">
 <polygon fill="white" stroke="#666666" points="360,-655 217,-655 217,-636 360,-636 360,-655"/>
 <text text-anchor="middle" x="288.5" y="-643" font-family="Helvetica,sans-Serif" font-size="10.00">buildSceneRouteTraversal</text>
 </a>
@@ -175,7 +175,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="319.5,-391 257.5,-391 257.5,-372 319.5,-372 319.5,-391"/>
 <text text-anchor="middle" x="288.5" y="-379" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -393,7 +393,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="785,-636 617,-636 617,-617 785,-617 785,-636"/>
 <text text-anchor="middle" x="701" y="-624" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
@@ -465,7 +465,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="569,-495 441,-495 441,-476 569,-476 569,-495"/>
 <text text-anchor="middle" x="505" y="-483" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -501,7 +501,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title="True when more than one section matches the reference as a runtime id or base&#45;block alias.">
 <polygon fill="white" stroke="#666666" points="569,-340.5 441,-340.5 441,-310.5 569,-310.5 569,-340.5"/>
 <text text-anchor="start" x="449" y="-328.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="505" y="-317.5" font-family="Helvetica,sans-Serif" font-size="10.00">::ambiguous</text>
@@ -520,7 +520,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title="The one section with this runtime id; null when none or several have it.">
 <polygon fill="white" stroke="#666666" points="569,-292.5 441,-292.5 441,-262.5 569,-262.5 569,-292.5"/>
 <text text-anchor="start" x="449" y="-280.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="505" y="-269.5" font-family="Helvetica,sans-Serif" font-size="10.00">::exact</text>

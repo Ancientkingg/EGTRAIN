@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title="The number stored for a level.">
 <polygon fill="white" stroke="#666666" points="666,-190 598,-190 598,-171 666,-171 666,-190"/>
 <text text-anchor="middle" x="632" y="-178" font-family="Helvetica,sans-Serif" font-size="10.00">levelValue</text>
 </a>
@@ -228,7 +228,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" target="_top" xlink:title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level.">
 <polygon fill="white" stroke="#666666" points="562,-102 439,-102 439,-83 562,-83 562,-102"/>
 <text text-anchor="middle" x="500.5" y="-90" font-family="Helvetica,sans-Serif" font-size="10.00">isValidSignallingLevel</text>
 </a>

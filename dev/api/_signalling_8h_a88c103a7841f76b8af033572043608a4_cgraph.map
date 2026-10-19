@@ -1,7 +1,7 @@
 <map id="createBlockConn" name="createBlockConn">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,137,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="39,31,32,21,35,11,49,5,71,3,98,6,110,15,106,19,96,11,71,8,50,10,39,15,37,20,43,28"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="403,29,627,55"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="403,29,627,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="137,31,185,27,270,25,355,27,389,29,389,34,355,33,270,30,185,33,138,37"/>
 <area shape="rect" id="Node000003" href="$_signalling_8cpp.html#ac4a294eef644fcf6b45b6ab8f60da05b" title=" " alt="" coords="185,67,355,92"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="138,52,189,61,188,67,137,57"/>

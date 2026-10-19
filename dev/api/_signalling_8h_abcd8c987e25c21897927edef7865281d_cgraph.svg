@@ -138,7 +138,7 @@
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title=" ">
+<g id="a_Node000018"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title="The number stored for a level.">
 <polygon fill="white" stroke="#666666" points="489,-142 421,-142 421,-123 489,-123 489,-142"/>
 <text text-anchor="middle" x="455" y="-130" font-family="Helvetica,sans-Serif" font-size="10.00">levelValue</text>
 </a>

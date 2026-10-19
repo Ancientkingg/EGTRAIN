@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The same, against the migration steps of registry.">
 <polygon fill="#999999" stroke="#666666" points="140,-79.5 0,-79.5 0,-60.5 140,-60.5 140,-79.5"/>
 <text text-anchor="middle" x="70" y="-67.5" font-family="Helvetica,sans-Serif" font-size="10.00">probeSceneCompatibility</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="466,-110.5 382,-110.5 382,-91.5 466,-91.5 466,-110.5"/>
 <text text-anchor="middle" x="424" y="-98.5" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>

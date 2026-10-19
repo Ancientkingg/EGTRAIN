@@ -113,17 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>A stretch of chainage with one signalling level.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac7995a6ad87cd37135759b53c5a129ae" id="r_ac7995a6ad87cd37135759b53c5a129ae"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ac7995a6ad87cd37135759b53c5a129ae">id</a></td></tr>
+<tr class="memdesc:ac7995a6ad87cd37135759b53c5a129ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the area.  <br /></td></tr>
 <tr class="memitem:abb737b0e56cd434334bbf0c5fb702628" id="r_abb737b0e56cd434334bbf0c5fb702628"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#abb737b0e56cd434334bbf0c5fb702628">startKm</a> = 0.0</td></tr>
+<tr class="memdesc:abb737b0e56cd434334bbf0c5fb702628"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start of the stretch in kilometres of chainage.  <br /></td></tr>
 <tr class="memitem:a43afd6690c82b2831db6314091416160" id="r_a43afd6690c82b2831db6314091416160"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a43afd6690c82b2831db6314091416160">endKm</a> = 0.0</td></tr>
 <tr class="memitem:ab70a763f02f27f65152576f70adce10b" id="r_ab70a763f02f27f65152576f70adce10b"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ab70a763f02f27f65152576f70adce10b">level</a> = 0</td></tr>
+<tr class="memdesc:ab70a763f02f27f65152576f70adce10b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signalling level 0 to 5 (<a class="el" href="_signalling_level_8h.html#a54b7d64327a4a83cf45836f9c8e487d1">SignallingLevel</a>), or kSignallingLevelUnset for an area without a chosen system.  <br /></td></tr>
 <tr class="memitem:af29e13021955d6ca1944b3a7e1663dbb" id="r_af29e13021955d6ca1944b3a7e1663dbb"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af29e13021955d6ca1944b3a7e1663dbb">trackId</a></td></tr>
+<tr class="memdesc:af29e13021955d6ca1944b3a7e1663dbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track the area applies to. Empty means network-wide.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A stretch of chainage with one signalling level. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a43afd6690c82b2831db6314091416160" name="a43afd6690c82b2831db6314091416160"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a43afd6690c82b2831db6314091416160">&#9670;&#160;</a></span>endKm</h2>
 
@@ -135,6 +144,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>End of the stretch in kilometres of chainage. </p>
 
 </div>
 </div>
@@ -150,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique id of the area. </p>
+
 </div>
 </div>
 <a id="ab70a763f02f27f65152576f70adce10b" name="ab70a763f02f27f65152576f70adce10b"></a>
@@ -163,6 +175,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Signalling level 0 to 5 (<a class="el" href="_signalling_level_8h.html#a54b7d64327a4a83cf45836f9c8e487d1">SignallingLevel</a>), or kSignallingLevelUnset for an area without a chosen system. </p>
 
 </div>
 </div>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Start of the stretch in kilometres of chainage. </p>
+
 </div>
 </div>
 <a id="af29e13021955d6ca1944b3a7e1663dbb" name="af29e13021955d6ca1944b3a7e1663dbb"></a>
@@ -191,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The track the area applies to. Empty means network-wide. </p>
 
 </div>
 </div>

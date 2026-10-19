@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title="The number stored for a level.">
 <polygon fill="white" stroke="#666666" points="849,-206 781,-206 781,-187 849,-187 849,-206"/>
 <text text-anchor="middle" x="815" y="-194" font-family="Helvetica,sans-Serif" font-size="10.00">levelValue</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_signalling_level_8h.html#a045a14e0cace859e62e5d6af40ea41d5" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_signalling_level_8h.html#a045a14e0cace859e62e5d6af40ea41d5" target="_top" xlink:title="Whether a stored number is a fixed&#45;block level, where signal aspects separate the trains.">
 <polygon fill="white" stroke="#666666" points="484.5,-243 380.5,-243 380.5,-224 484.5,-224 484.5,-243"/>
 <text text-anchor="middle" x="432.5" y="-231" font-family="Helvetica,sans-Serif" font-size="10.00">isFixedBlockLevel</text>
 </a>
@@ -201,7 +201,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" target="_top" xlink:title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level.">
 <polygon fill="white" stroke="#666666" points="690,-243 567,-243 567,-224 690,-224 690,-243"/>
 <text text-anchor="middle" x="628.5" y="-231" font-family="Helvetica,sans-Serif" font-size="10.00">isValidSignallingLevel</text>
 </a>

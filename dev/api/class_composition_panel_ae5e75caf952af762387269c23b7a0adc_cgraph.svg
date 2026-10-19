@@ -326,7 +326,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" target="_top" xlink:title="A free composition id.">
 <polygon fill="white" stroke="#666666" points="608.5,-579 458.5,-579 458.5,-560 608.5,-560 608.5,-579"/>
 <text text-anchor="middle" x="533.5" y="-567" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueCompositionId</text>
 </a>
@@ -425,7 +425,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" target="_top" xlink:title="Rewrites the composition id in the composition of services.">
 <polygon fill="white" stroke="#666666" points="633,-634 434,-634 434,-615 633,-615 633,-634"/>
 <text text-anchor="middle" x="533.5" y="-622" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteCompositionReferences</text>
 </a>
@@ -570,7 +570,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="1056,-537 888,-537 888,-518 1056,-518 1056,-537"/>
 <text text-anchor="middle" x="972" y="-525" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
@@ -597,7 +597,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title="True when more than one section matches the reference as a runtime id or base&#45;block alias.">
 <polygon fill="white" stroke="#666666" points="1036,-451.5 908,-451.5 908,-421.5 1036,-421.5 1036,-451.5"/>
 <text text-anchor="start" x="916" y="-439.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="972" y="-428.5" font-family="Helvetica,sans-Serif" font-size="10.00">::ambiguous</text>
@@ -616,7 +616,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title="The one section with this runtime id; null when none or several have it.">
 <polygon fill="white" stroke="#666666" points="1036,-499.5 908,-499.5 908,-469.5 1036,-469.5 1036,-499.5"/>
 <text text-anchor="start" x="916" y="-487.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="972" y="-476.5" font-family="Helvetica,sans-Serif" font-size="10.00">::exact</text>
@@ -836,7 +836,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title="The train unit with this id, or null. The pointer points into the model.">
 <polygon fill="white" stroke="#666666" points="588.5,-125 478.5,-125 478.5,-106 588.5,-106 588.5,-125"/>
 <text text-anchor="middle" x="533.5" y="-113" font-family="Helvetica,sans-Serif" font-size="10.00">sceneTrainUnitById</text>
 </a>

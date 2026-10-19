@@ -10,7 +10,7 @@
 <area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="231,80,265,77,265,82,231,85"/>
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="598,47,795,72"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,183,485,165,526,140,541,125,549,111,558,96,575,82,590,75,592,79,577,87,562,100,554,114,545,129,530,144,487,170,445,188"/>
-<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" title=" " alt="" coords="576,185,817,211"/>
+<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" title="Rewrites the train unit id in the units of compositions." alt="" coords="576,185,817,211"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="509,195,562,195,562,201,509,201"/>
 <area shape="rect" id="Node000005" href="$class_train_unit_panel.html#ad92b14ab276828fc66c1b0806a4d3520" title=" " alt="" coords="603,235,790,275"/>
 <area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="470,208,590,232,589,237,469,213"/>

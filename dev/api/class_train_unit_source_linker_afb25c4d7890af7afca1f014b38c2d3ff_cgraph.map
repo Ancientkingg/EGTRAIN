@@ -12,20 +12,20 @@
 <area shape="poly" id="edge26_Node000002_Node000014" title=" " alt="" coords="327,378,373,351,426,325,448,316,450,321,428,330,375,356,330,383"/>
 <area shape="rect" id="Node000015" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="462,339,625,379"/>
 <area shape="poly" id="edge27_Node000002_Node000015" title=" " alt="" coords="378,384,448,373,449,378,379,390"/>
-<area shape="rect" id="Node000016" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title=" " alt="" coords="470,428,617,453"/>
+<area shape="rect" id="Node000016" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="470,428,617,453"/>
 <area shape="poly" id="edge28_Node000002_Node000016" title=" " alt="" coords="379,411,457,424,456,429,378,416"/>
 <area shape="rect" id="Node000017" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title=" " alt="" coords="462,478,625,518"/>
 <area shape="poly" id="edge30_Node000002_Node000017" title=" " alt="" coords="335,419,379,442,428,464,450,471,448,476,426,468,376,446,332,423"/>
 <area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title=" " alt="" coords="462,542,625,582"/>
 <area shape="poly" id="edge31_Node000002_Node000018" title=" " alt="" coords="315,419,362,474,393,503,428,528,450,538,447,543,425,532,390,507,358,477,311,423"/>
-<area shape="rect" id="Node000019" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title=" " alt="" coords="448,606,639,646"/>
+<area shape="rect" id="Node000019" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="448,606,639,646"/>
 <area shape="poly" id="edge32_Node000002_Node000019" title=" " alt="" coords="309,420,326,457,351,504,386,551,428,592,437,597,434,602,425,596,381,555,347,507,321,460,304,422"/>
-<area shape="rect" id="Node000020" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title=" " alt="" coords="450,670,637,710"/>
+<area shape="rect" id="Node000020" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title="True when error is empty." alt="" coords="450,670,637,710"/>
 <area shape="poly" id="edge33_Node000002_Node000020" title=" " alt="" coords="305,420,318,469,342,532,378,599,401,630,428,656,439,664,436,668,425,660,397,633,374,602,337,535,313,470,300,422"/>
 <area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="505,227,497,217,501,207,517,201,543,199,576,203,589,212,586,216,574,207,543,204,518,206,505,211,502,216,509,223"/>
 <area shape="rect" id="Node000005" href="$_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f" title=" " alt="" coords="708,299,849,324"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="612,248,661,261,738,291,736,296,659,266,611,253"/>
-<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="723,103,835,128"/>
+<area shape="rect" id="Node000006" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="723,103,835,128"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="585,223,622,208,658,188,673,176,682,164,691,151,706,138,720,131,722,136,710,143,695,155,686,167,677,179,662,192,624,213,587,228"/>
 <area shape="rect" id="Node000007" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="741,152,816,177"/>
 <area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="584,223,727,178,729,183,586,228"/>

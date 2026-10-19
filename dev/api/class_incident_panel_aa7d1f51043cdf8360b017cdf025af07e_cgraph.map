@@ -37,7 +37,7 @@
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="551,312,748,337"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,652,488,640,502,625,510,611,518,582,523,549,535,510,585,419,630,347,634,350,589,422,540,512,528,550,524,583,515,613,506,629,491,644,472,656"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="439,651,569,625,570,631,440,656"/>
-<area shape="rect" id="Node000015" href="$_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" title=" " alt="" coords="564,547,735,572"/>
+<area shape="rect" id="Node000015" href="$_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" title="An incident id that is free across all scenarios." alt="" coords="564,547,735,572"/>
 <area shape="poly" id="edge21_Node000002_Node000015" title=" " alt="" coords="463,651,488,640,503,628,511,614,520,600,536,586,561,574,563,579,539,591,524,604,516,617,507,631,491,644,465,656"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="727,597,760,582,803,548,841,508,871,467,892,433,897,436,875,471,845,511,807,552,763,587,729,602"/>
 <area shape="rect" id="Node000006" href="$class_incident_panel.html#a860d558ebb39a1e5ec74067f697786ec" title=" " alt="" coords="1059,397,1269,423"/>

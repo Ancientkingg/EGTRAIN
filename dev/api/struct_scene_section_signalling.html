@@ -113,21 +113,32 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>What the signalling areas make of one runtime section.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab665d287dfae30a81df99cbe58dbf270" id="r_ab665d287dfae30a81df99cbe58dbf270"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab665d287dfae30a81df99cbe58dbf270">sectionId</a></td></tr>
+<tr class="memdesc:ab665d287dfae30a81df99cbe58dbf270"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime id of the section.  <br /></td></tr>
 <tr class="memitem:ae362a18748784196a3a9ff8b5c000e3c" id="r_ae362a18748784196a3a9ff8b5c000e3c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae362a18748784196a3a9ff8b5c000e3c">level</a> = <a class="el" href="_signalling_level_8h.html#a01e41bda97a116ec6c3332bc628395ea">kSignallingLevelUnset</a></td></tr>
+<tr class="memdesc:ae362a18748784196a3a9ff8b5c000e3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The level the deciding area gives; kSignallingLevelUnset when none.  <br /></td></tr>
 <tr class="memitem:a60f621c0f3433c7632f771ef6ac6bb66" id="r_a60f621c0f3433c7632f771ef6ac6bb66"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a60f621c0f3433c7632f771ef6ac6bb66">decidingArea</a> = <a class="el" href="#ae74c4b2223aa4aba366a0f51f8f7279b">kNoArea</a></td></tr>
+<tr class="memdesc:a60f621c0f3433c7632f771ef6ac6bb66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a>, kNoArea when none covers it.  <br /></td></tr>
 <tr class="memitem:ac2b5463141f6daf6efe77bee48a5ec29" id="r_ac2b5463141f6daf6efe77bee48a5ec29"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac2b5463141f6daf6efe77bee48a5ec29">onRoute</a> = false</td></tr>
+<tr class="memdesc:ac2b5463141f6daf6efe77bee48a5ec29"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a route contains the section.  <br /></td></tr>
 <tr class="memitem:af1904d487194651e5cdafb8d2169122c" id="r_af1904d487194651e5cdafb8d2169122c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signalling_area_conflict.html">SceneSignallingAreaConflict</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af1904d487194651e5cdafb8d2169122c">conflicts</a></td></tr>
+<tr class="memdesc:af1904d487194651e5cdafb8d2169122c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Network-wide scope first.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:ae74c4b2223aa4aba366a0f51f8f7279b" id="r_ae74c4b2223aa4aba366a0f51f8f7279b"><td class="memItemLeft">static constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#ae74c4b2223aa4aba366a0f51f8f7279b">kNoArea</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
+<tr class="memdesc:ae74c4b2223aa4aba366a0f51f8f7279b"><td class="mdescLeft">&#160;</td><td class="mdescRight">No area.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the signalling areas make of one runtime section. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="af1904d487194651e5cdafb8d2169122c" name="af1904d487194651e5cdafb8d2169122c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af1904d487194651e5cdafb8d2169122c">&#9670;&#160;</a></span>conflicts</h2>
 
@@ -139,6 +150,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Network-wide scope first. </p>
 
 </div>
 </div>
@@ -153,6 +166,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Index into <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a>, kNoArea when none covers it. </p>
 
 </div>
 </div>
@@ -176,6 +191,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>No area. </p>
+
 </div>
 </div>
 <a id="ae362a18748784196a3a9ff8b5c000e3c" name="ae362a18748784196a3a9ff8b5c000e3c"></a>
@@ -189,6 +206,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The level the deciding area gives; kSignallingLevelUnset when none. </p>
 
 </div>
 </div>
@@ -204,6 +223,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when a route contains the section. </p>
+
 </div>
 </div>
 <a id="ab665d287dfae30a81df99cbe58dbf270" name="ab665d287dfae30a81df99cbe58dbf270"></a>
@@ -217,6 +238,8 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Runtime id of the section. </p>
 
 </div>
 </div>

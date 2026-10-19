@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title="The station visits of the route, building the section inventory first.">
 <polygon fill="white" stroke="#666666" points="304,-19 161,-19 161,0 304,0 304,-19"/>
 <text text-anchor="middle" x="232.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">buildSceneRouteTraversal</text>
 </a>
@@ -83,7 +83,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="696,-19 528,-19 528,0 696,0 696,-19"/>
 <text text-anchor="middle" x="612" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>

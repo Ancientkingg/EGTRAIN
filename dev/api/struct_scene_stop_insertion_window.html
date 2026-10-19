@@ -125,13 +125,17 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a842c0c37b68dfbd28a3536a93b18d06f" id="r_a842c0c37b68dfbd28a3536a93b18d06f"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a842c0c37b68dfbd28a3536a93b18d06f">ok</a> = false</td></tr>
 <tr class="memitem:a99847a51304c702a35dff5625c391e3e" id="r_a99847a51304c702a35dff5625c391e3e"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a99847a51304c702a35dff5625c391e3e">blockingStop</a> = <a class="el" href="#a850899dceda162a25e5c913db29004db">kNoStop</a></td></tr>
 <tr class="memitem:ab6010d67e4c6c18d8bff94ac12e5122b" id="r_ab6010d67e4c6c18d8bff94ac12e5122b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab6010d67e4c6c18d8bff94ac12e5122b">problem</a></td></tr>
+<tr class="memdesc:ab6010d67e4c6c18d8bff94ac12e5122b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text for the user when <span class="tt"><a class="el" href="#a842c0c37b68dfbd28a3536a93b18d06f">ok</a></span> is false.  <br /></td></tr>
 <tr class="memitem:a4eafb4930a0ebe96cddff71b3c4028c6" id="r_a4eafb4930a0ebe96cddff71b3c4028c6"><td class="memItemLeft"><a class="el" href="struct_scene_route_traversal.html">SceneRouteTraversal</a>&#160;</td><td class="memItemRight"><a class="el" href="#a4eafb4930a0ebe96cddff71b3c4028c6">visits</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a850899dceda162a25e5c913db29004db" id="r_a850899dceda162a25e5c913db29004db"><td class="memItemLeft">static constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a850899dceda162a25e5c913db29004db">kNoStop</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
+<tr class="memdesc:a850899dceda162a25e5c913db29004db"><td class="mdescLeft">&#160;</td><td class="mdescRight">No stop index.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The route visits at which a new stop can be inserted at one position of a timetable. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a99847a51304c702a35dff5625c391e3e" name="a99847a51304c702a35dff5625c391e3e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a99847a51304c702a35dff5625c391e3e">&#9670;&#160;</a></span>blockingStop</h2>
 
@@ -143,6 +147,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Zero-based index of the stop that prevents the window, or kNoStop when another cause applies (an unresolved route, a position past the end). </p>
 
 </div>
 </div>
@@ -166,6 +171,8 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>No stop index. </p>
+
 </div>
 </div>
 <a id="a842c0c37b68dfbd28a3536a93b18d06f" name="a842c0c37b68dfbd28a3536a93b18d06f"></a>
@@ -179,6 +186,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>False when no window can be computed. A true value with no visits is a window that offers nothing. </p>
 
 </div>
 </div>
@@ -194,6 +202,8 @@ Static Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Text for the user when <span class="tt"><a class="el" href="#a842c0c37b68dfbd28a3536a93b18d06f">ok</a></span> is false. </p>
+
 </div>
 </div>
 <a id="a4eafb4930a0ebe96cddff71b3c4028c6" name="a4eafb4930a0ebe96cddff71b3c4028c6"></a>
@@ -207,6 +217,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Only the visits strictly between the neighbouring stops. The stations of these visits, and the platforms of one station among them, are the choices for the new stop. </p>
 
 </div>
 </div>

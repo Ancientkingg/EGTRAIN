@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="An object with every field of the diagnostic, the severity as its label, for tools and tests.">
 <polygon fill="#999999" stroke="#666666" points="47,-19 0,-19 0,0 47,0 47,-19"/>
 <text text-anchor="middle" x="23.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">toJson</text>
 </a>

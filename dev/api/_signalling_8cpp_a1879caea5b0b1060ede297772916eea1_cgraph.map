@@ -1,7 +1,7 @@
 <map id="relLastSectionMixedSignalling" name="relLastSectionMixedSignalling">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,67,223,92"/>
 <area shape="poly" id="edge5_Node000001_Node000001" title=" " alt="" coords="71,68,61,58,66,48,84,42,114,40,153,44,163,49,167,55,162,58,160,53,151,49,114,45,85,47,69,52,66,58,74,65"/>
-<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="339,29,429,55"/>
+<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="339,29,429,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,64,325,47,326,53,207,69"/>
 <area shape="rect" id="Node000003" href="$_signalling_8cpp.html#ae8e290910dab299b27108b5b6cf61fe9" title=" " alt="" coords="271,103,497,128"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="210,89,275,98,275,103,209,95"/>

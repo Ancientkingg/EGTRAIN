@@ -134,6 +134,7 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:SceneStopInsertionWindow" id="r_SceneStopInsertionWindow"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_stop_insertion_window.html">SceneStopInsertionWindow</a></td></tr>
 <tr class="memitem:SceneStopInsertionResult" id="r_SceneStopInsertionResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_stop_insertion_result.html">SceneStopInsertionResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of insertSceneStop.  <a href="struct_scene_stop_insertion_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -171,6 +172,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Inserts <span class="tt">stop</span> at <span class="tt">insertIndex</span> only when the new stop resolves and every stop that resolved before still resolves at the same route visit. Otherwise <span class="tt">service</span> is left unchanged and the result names the stops concerned. No field of an existing stop is changed and the planned times of <span class="tt">stop</span> are kept as given.</p>
+<p>Callers choose positions and stations with sceneStopInsertionWindow. This function alone does not reject a position whose preceding stop does not resolve.</p>
+<p>The matching of stops to route visits is sequential: a stop binds to the first matching visit after the previous resolved stop. Two stops with the same station and platform therefore bind to its visits in order, and the new stop must bind before the visit of the next resolved stop. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -202,6 +206,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The route visits after the last stop that resolves before <span class="tt">stopIndex</span>. A stop before <span class="tt">stopIndex</span> whose status is neither Resolved nor OffRouteContext leaves no visits. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -228,6 +233,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The traversal of the route a service runs on, or an unresolved traversal when the service has no route in the model. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -259,6 +265,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><span class="tt">insertIndex</span> 0 inserts before the first stop and <span class="tt">stops.size()</span> after the last. The lower bound is the visit after the last resolved stop before <span class="tt">insertIndex</span>; the upper bound is the visit of the first resolved stop at or after it, resolved over the whole current timetable. Stops that resolve as OffRouteContext do not bound the window. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

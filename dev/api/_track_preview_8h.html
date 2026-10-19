@@ -131,15 +131,22 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:TrackPreviewPoint" id="r_TrackPreviewPoint"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_point.html">TrackPreviewPoint</a></td></tr>
 <tr class="memitem:TrackPreviewLine" id="r_TrackPreviewLine"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview of one visible track.  <a href="struct_track_preview_line.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrackPreviewConnection" id="r_TrackPreviewConnection"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_connection.html">TrackPreviewConnection</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A connection between two visible tracks.  <a href="struct_track_preview_connection.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrackPreviewStation" id="r_TrackPreviewStation"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_station.html">TrackPreviewStation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A station on the preview.  <a href="struct_track_preview_station.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrackPreviewSignal" id="r_TrackPreviewSignal"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_signal.html">TrackPreviewSignal</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A signal on the preview, at the start of a block section.  <a href="struct_track_preview_signal.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrackPreviewResult" id="r_TrackPreviewResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">What the network preview draws of a scene.  <a href="struct_track_preview_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a66c00d5638f8954afa4aa3f392d279a6" id="r_a66c00d5638f8954afa4aa3f392d279a6"><td class="memItemLeft"><a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a66c00d5638f8954afa4aa3f392d279a6">loadTrackPreview</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a66c00d5638f8954afa4aa3f392d279a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The preview of the visible tracks of the scene, before normalization.  <br /></td></tr>
 <tr class="memitem:afffdadc091e55387ebe6a8b6d1c3cc87" id="r_afffdadc091e55387ebe6a8b6d1c3cc87"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afffdadc091e55387ebe6a8b6d1c3cc87">trackPreviewPointAtNode</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, const std::string &amp;nodeId, <a class="el" href="struct_track_preview_point.html">TrackPreviewPoint</a> &amp;point)</td></tr>
+<tr class="memdesc:afffdadc091e55387ebe6a8b6d1c3cc87"><td class="mdescLeft">&#160;</td><td class="mdescRight">The point of the line at the node. Returns false when the line has none.  <br /></td></tr>
 <tr class="memitem:ae50bd6f47b6bc4c01a62fdd13daa0ea7" id="r_ae50bd6f47b6bc4c01a62fdd13daa0ea7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae50bd6f47b6bc4c01a62fdd13daa0ea7">trackPreviewPointAtX</a> (const <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &amp;line, double rawX, <a class="el" href="struct_track_preview_point.html">TrackPreviewPoint</a> &amp;point)</td></tr>
 <tr class="memitem:a409628b58940d3e2e3bb6e8f9dea9788" id="r_a409628b58940d3e2e3bb6e8f9dea9788"><td class="memItemLeft"><a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a409628b58940d3e2e3bb6e8f9dea9788">normalizeTrackPreview</a> (const <a class="el" href="struct_track_preview_result.html">TrackPreviewResult</a> &amp;preview)</td></tr>
 </table>
@@ -158,6 +165,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The preview of the visible tracks of the scene, before normalization. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -180,6 +189,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The preview scaled so that its larger extent equals the longest chainage span of a line in metres. A normalized preview is returned unchanged. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -211,6 +221,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The point of the line at the node. Returns false when the line has none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,6 +254,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The point of the line at chainage rawX in kilometres, interpolated between the points around it, or the closest point when rawX lies outside the line. Returns false for an empty line or a non-finite result. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

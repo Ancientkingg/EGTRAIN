@@ -166,7 +166,7 @@
 <!-- Node94 -->
 <g id="Node000094" class="node">
 <title>Node94</title>
-<g id="a_Node000094"><a xlink:href="struct_scene_import_result.html#a9848e0b36b8807c64adb0cf0031b629f" target="_top" xlink:title=" ">
+<g id="a_Node000094"><a xlink:href="struct_scene_import_result.html#a9848e0b36b8807c64adb0cf0031b629f" target="_top" xlink:title="True when wroteScene is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="546.5,-465.5 431.5,-465.5 431.5,-435.5 546.5,-435.5 546.5,-465.5"/>
 <text text-anchor="start" x="439.5" y="-453.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneImportResult::</text>
 <text text-anchor="middle" x="489" y="-442.5" font-family="Helvetica,sans-Serif" font-size="10.00">success</text>
@@ -374,7 +374,7 @@
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000017"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="943.5,-1502 859.5,-1502 859.5,-1483 943.5,-1483 943.5,-1502"/>
 <text text-anchor="middle" x="901.5" y="-1490" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -448,7 +448,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="_scene_writer_8cpp.html#acb13735e78ea2d1590bc29fbdcbde1a4" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="_scene_writer_8cpp.html#acb13735e78ea2d1590bc29fbdcbde1a4" target="_top" xlink:title="The content of infrastructure.json.">
 <polygon fill="white" stroke="#666666" points="758.5,-777 640.5,-777 640.5,-758 758.5,-758 758.5,-777"/>
 <text text-anchor="middle" x="699.5" y="-765" font-family="Helvetica,sans-Serif" font-size="10.00">encodeInfrastructure</text>
 </a>
@@ -466,7 +466,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147" target="_top" xlink:title="The content of passengers.json. A journey without an activity leaves the key out.">
 <polygon fill="white" stroke="#666666" points="753,-722 646,-722 646,-703 753,-703 753,-722"/>
 <text text-anchor="middle" x="699.5" y="-710" font-family="Helvetica,sans-Serif" font-size="10.00">encodePassengers</text>
 </a>
@@ -484,7 +484,7 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314" target="_top" xlink:title=" ">
+<g id="a_Node000025"><a xlink:href="_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314" target="_top" xlink:title="The content of rolling_stock.json.">
 <polygon fill="#fff0f0" stroke="red" points="756,-667 643,-667 643,-648 756,-648 756,-667"/>
 <text text-anchor="middle" x="699.5" y="-655" font-family="Helvetica,sans-Serif" font-size="10.00">encodeRollingStock</text>
 </a>
@@ -502,7 +502,7 @@
 <!-- Node27 -->
 <g id="Node000027" class="node">
 <title>Node27</title>
-<g id="a_Node000027"><a xlink:href="_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17" target="_top" xlink:title=" ">
+<g id="a_Node000027"><a xlink:href="_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17" target="_top" xlink:title="The content of scenarios.json.">
 <polygon fill="#fff0f0" stroke="red" points="749,-1783 650,-1783 650,-1764 749,-1764 749,-1783"/>
 <text text-anchor="middle" x="699.5" y="-1771" font-family="Helvetica,sans-Serif" font-size="10.00">encodeScenarios</text>
 </a>
@@ -520,7 +520,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="965.5,-1822 837.5,-1822 837.5,-1803 965.5,-1803 965.5,-1822"/>
 <text text-anchor="middle" x="901.5" y="-1810" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -538,7 +538,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de" target="_top" xlink:title="The content of scene.json.">
 <polygon fill="white" stroke="#666666" points="763.5,-535 635.5,-535 635.5,-516 763.5,-516 763.5,-535"/>
 <text text-anchor="middle" x="699.5" y="-523" font-family="Helvetica,sans-Serif" font-size="10.00">encodeSceneMetadata</text>
 </a>
@@ -556,7 +556,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486" target="_top" xlink:title="The content of services.json.">
 <polygon fill="#fff0f0" stroke="red" points="746,-480 653,-480 653,-461 746,-461 746,-480"/>
 <text text-anchor="middle" x="699.5" y="-468" font-family="Helvetica,sans-Serif" font-size="10.00">encodeServices</text>
 </a>
@@ -574,7 +574,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc" target="_top" xlink:title="The content of signalling.json.">
 <polygon fill="#fff0f0" stroke="red" points="749.5,-425 649.5,-425 649.5,-406 749.5,-406 749.5,-425"/>
 <text text-anchor="middle" x="699.5" y="-413" font-family="Helvetica,sans-Serif" font-size="10.00">encodeSignalling</text>
 </a>
@@ -592,7 +592,7 @@
 <!-- Node35 -->
 <g id="Node000035" class="node">
 <title>Node35</title>
-<g id="a_Node000035"><a xlink:href="_scene_writer_8cpp.html#ac8fb536b94b4e2cf2b6a0e3d8299e19c" target="_top" xlink:title=" ">
+<g id="a_Node000035"><a xlink:href="_scene_writer_8cpp.html#ac8fb536b94b4e2cf2b6a0e3d8299e19c" target="_top" xlink:title="The content of stations.json.">
 <polygon fill="white" stroke="#666666" points="745.5,-370 653.5,-370 653.5,-351 745.5,-351 745.5,-370"/>
 <text text-anchor="middle" x="699.5" y="-358" font-family="Helvetica,sans-Serif" font-size="10.00">encodeStations</text>
 </a>
@@ -610,7 +610,7 @@
 <!-- Node36 -->
 <g id="Node000036" class="node">
 <title>Node36</title>
-<g id="a_Node000036"><a xlink:href="_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12" target="_top" xlink:title=" ">
+<g id="a_Node000036"><a xlink:href="_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12" target="_top" xlink:title="The content of views.json.">
 <polygon fill="white" stroke="#666666" points="740,-315 659,-315 659,-296 740,-296 740,-315"/>
 <text text-anchor="middle" x="699.5" y="-303" font-family="Helvetica,sans-Serif" font-size="10.00">encodeViews</text>
 </a>
@@ -646,7 +646,7 @@
 <!-- Node38 -->
 <g id="Node000038" class="node">
 <title>Node38</title>
-<g id="a_Node000038"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000038"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="730.5,-19 668.5,-19 668.5,0 730.5,0 730.5,-19"/>
 <text text-anchor="middle" x="699.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>

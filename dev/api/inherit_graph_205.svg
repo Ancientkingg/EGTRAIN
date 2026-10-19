@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_scene_service_occurrence.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="struct_scene_service_occurrence.html" target="_top" xlink:title="One run of a service: the service id with a 1&#45;based occurrence number.">
 <polygon fill="white" stroke="#666666" points="137,-19 0,-19 0,0 137,0 137,-19"/>
 <text text-anchor="middle" x="68.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneServiceOccurrence</text>
 </a>

@@ -113,24 +113,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_m
 </div><!--header-->
 <div class="contents">
 
+<p>One step that upgrades a staged copy of a scene from one version to a higher one.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_migration_8h_source.html">scene/SceneMigration.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ad73255d60373cb63a9d9c828376e219f" id="r_ad73255d60373cb63a9d9c828376e219f"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#ad73255d60373cb63a9d9c828376e219f">Transform</a></td></tr>
+<tr class="memdesc:ad73255d60373cb63a9d9c828376e219f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewrites the scene directory stagedScene in place. Returns false on failure and may add diagnostics.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abfb970244c309742920e5e45d961d486" id="r_abfb970244c309742920e5e45d961d486"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#abfb970244c309742920e5e45d961d486">SceneMigrationStep</a> (int from, int to, <a class="el" href="#ad73255d60373cb63a9d9c828376e219f">Transform</a> operation, std::string stepId={})</td></tr>
+<tr class="memdesc:abfb970244c309742920e5e45d961d486"><td class="mdescLeft">&#160;</td><td class="mdescRight">A step from version from to version to.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a8a0aa594f3f9a96e2e3f50fd2e407c37" id="r_a8a0aa594f3f9a96e2e3f50fd2e407c37"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a0aa594f3f9a96e2e3f50fd2e407c37">fromVersion</a></td></tr>
+<tr class="memdesc:a8a0aa594f3f9a96e2e3f50fd2e407c37"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version it reads.  <br /></td></tr>
 <tr class="memitem:a5d0bf03e0249e06ee3b15d5c9edbf4ce" id="r_a5d0bf03e0249e06ee3b15d5c9edbf4ce"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5d0bf03e0249e06ee3b15d5c9edbf4ce">toVersion</a></td></tr>
+<tr class="memdesc:a5d0bf03e0249e06ee3b15d5c9edbf4ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version it writes.  <br /></td></tr>
 <tr class="memitem:a02e098364c47e9b93272531f7bba4812" id="r_a02e098364c47e9b93272531f7bba4812"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a02e098364c47e9b93272531f7bba4812">id</a></td></tr>
+<tr class="memdesc:a02e098364c47e9b93272531f7bba4812"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name used in diagnostics; may be empty.  <br /></td></tr>
 <tr class="memitem:af886341c4795c2cb251153a7c4be05ea" id="r_af886341c4795c2cb251153a7c4be05ea"><td class="memItemLeft"><a class="el" href="#ad73255d60373cb63a9d9c828376e219f">Transform</a>&#160;</td><td class="memItemRight"><a class="el" href="#af886341c4795c2cb251153a7c4be05ea">transform</a></td></tr>
+<tr class="memdesc:af886341c4795c2cb251153a7c4be05ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The operation.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One step that upgrades a staged copy of a scene from one version to a higher one. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="ad73255d60373cb63a9d9c828376e219f" name="ad73255d60373cb63a9d9c828376e219f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad73255d60373cb63a9d9c828376e219f">&#9670;&#160;</a></span>Transform</h2>
 
@@ -145,6 +156,8 @@ Public Attributes</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">std::function&lt;bool(<span class="keyword">const</span> std::filesystem::path&amp; stagedScene,</div>
 <div class="line">       std::vector&lt;SceneDiagnostic&gt;&amp; diagnostics)&gt;</div>
 </div><!-- fragment -->
+<p>Rewrites the scene directory stagedScene in place. Returns false on failure and may add diagnostics. </p>
+
 </div>
 </div>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
@@ -185,6 +198,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>A step from version from to version to. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -200,6 +215,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The version it reads. </p>
+
 </div>
 </div>
 <a id="a02e098364c47e9b93272531f7bba4812" name="a02e098364c47e9b93272531f7bba4812"></a>
@@ -213,6 +230,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Name used in diagnostics; may be empty. </p>
 
 </div>
 </div>
@@ -228,6 +247,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The version it writes. </p>
+
 </div>
 </div>
 <a id="af886341c4795c2cb251153a7c4be05ea" name="af886341c4795c2cb251153a7c4be05ea"></a>
@@ -241,6 +262,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The operation. </p>
 
 </div>
 </div>

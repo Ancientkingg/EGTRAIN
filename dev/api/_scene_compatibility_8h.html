@@ -132,12 +132,14 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneCompatibilityProbeResult" id="r_SceneCompatibilityProbeResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_compatibility_probe_result.html">SceneCompatibilityProbeResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The version of a scene and what it means for opening it.  <a href="struct_scene_compatibility_probe_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a11c94f442a5af2e28be0a4c9d60481f7" id="r_a11c94f442a5af2e28be0a4c9d60481f7"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a11c94f442a5af2e28be0a4c9d60481f7">SceneSourceKind</a> { <a class="el" href="#a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494">Directory</a>
 , <a class="el" href="#a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8">Bundle</a>
  }</td></tr>
+<tr class="memdesc:a11c94f442a5af2e28be0a4c9d60481f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The form in which a scene is stored.  <a href="#a11c94f442a5af2e28be0a4c9d60481f7">More...</a><br /></td></tr>
 <tr class="memitem:aca6c0ad7a6d9f3c7fcdf30a5a57ff79f" id="r_aca6c0ad7a6d9f3c7fcdf30a5a57ff79f"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">SceneCompatibilityClass</a> { <br />
 &#160;&#160;<a class="el" href="#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5">Current</a>
 , <a class="el" href="#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa19f9d22a04a703e73edc7b141ae20ebe">OlderMigratable</a>
@@ -147,12 +149,14 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="#aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5">Malformed</a>
 <br />
  }</td></tr>
+<tr class="memdesc:aca6c0ad7a6d9f3c7fcdf30a5a57ff79f"><td class="mdescLeft">&#160;</td><td class="mdescRight">How the version of a scene relates to the versions this application reads.  <a href="#aca6c0ad7a6d9f3c7fcdf30a5a57ff79f">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a677b2be9af485a73e18c35fd300630fc" id="r_a677b2be9af485a73e18c35fd300630fc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a677b2be9af485a73e18c35fd300630fc">isRejectedForVersion</a> (const <a class="el" href="struct_scene_compatibility_probe_result.html">SceneCompatibilityProbeResult</a> &amp;probe)</td></tr>
 <tr class="memitem:ac1955238f3fae287668574b442b6b074" id="r_ac1955238f3fae287668574b442b6b074"><td class="memItemLeft"><a class="el" href="struct_scene_compatibility_probe_result.html">SceneCompatibilityProbeResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac1955238f3fae287668574b442b6b074">probeSceneCompatibility</a> (const std::string &amp;path)</td></tr>
 <tr class="memitem:ae8a99b564ae137c7f81f100ce6f48db8" id="r_ae8a99b564ae137c7f81f100ce6f48db8"><td class="memItemLeft"><a class="el" href="struct_scene_compatibility_probe_result.html">SceneCompatibilityProbeResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae8a99b564ae137c7f81f100ce6f48db8">probeSceneCompatibility</a> (const std::string &amp;path, const <a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a> &amp;registry)</td></tr>
+<tr class="memdesc:ae8a99b564ae137c7f81f100ce6f48db8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The same, against the migration steps of registry.  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79f" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79f"></a>
@@ -174,12 +178,19 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>How the version of a scene relates to the versions this application reads. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5"></a>Current&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa19f9d22a04a703e73edc7b141ae20ebe" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa19f9d22a04a703e73edc7b141ae20ebe"></a>OlderMigratable&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa106b40fc1c944c62d0042c69db7c0584" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa106b40fc1c944c62d0042c69db7c0584"></a>OlderUnsupported&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa236c7642a79eeb1b4154eb4712bd4068" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa236c7642a79eeb1b4154eb4712bd4068"></a>Newer&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5"></a>Malformed&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa222a267cc5778206b253be35ee3ddab5"></a>Current&#160;</td><td class="fielddoc"><p>The current schema and, for a bundle, the current bundle layout. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa19f9d22a04a703e73edc7b141ae20ebe" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa19f9d22a04a703e73edc7b141ae20ebe"></a>OlderMigratable&#160;</td><td class="fielddoc"><p>Older, and the migration registry has a path to the current version. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa106b40fc1c944c62d0042c69db7c0584" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa106b40fc1c944c62d0042c69db7c0584"></a>OlderUnsupported&#160;</td><td class="fielddoc"><p>Older without a migration path, or in the unsupported draft layout. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa236c7642a79eeb1b4154eb4712bd4068" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa236c7642a79eeb1b4154eb4712bd4068"></a>Newer&#160;</td><td class="fielddoc"><p>A newer schema or bundle layout. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5" name="aca6c0ad7a6d9f3c7fcdf30a5a57ff79fa0dc7301026e66d38061d7eaba481c9a5"></a>Malformed&#160;</td><td class="fielddoc"><p>The version could not be read. </p>
+</td></tr>
 </table>
 
 </div>
@@ -203,9 +214,13 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The form in which a scene is stored. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494" name="a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494"></a>Directory&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8" name="a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494" name="a11c94f442a5af2e28be0a4c9d60481f7ae73cda510e8bb947f7e61089e5581494"></a>Directory&#160;</td><td class="fielddoc"><p>A directory of scene files. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8" name="a11c94f442a5af2e28be0a4c9d60481f7a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"><p>An .egscene bundle. </p>
+</td></tr>
 </table>
 
 </div>
@@ -233,6 +248,7 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>True for a scene that this application does not open because of its version or layout. The diagnostics of the probe then name the reason. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -255,6 +271,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the version of the scene directory or bundle at path and classifies it against the shipped migration registry, without loading the scene. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -281,6 +298,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The same, against the migration steps of registry. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

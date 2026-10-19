@@ -118,11 +118,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_track_p
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ae499c02de775764cdd91fd2db40808f4" id="r_ae499c02de775764cdd91fd2db40808f4"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae499c02de775764cdd91fd2db40808f4">x</a> = 0.0</td></tr>
+<tr class="memdesc:ae499c02de775764cdd91fd2db40808f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Horizontal preview coordinate.  <br /></td></tr>
 <tr class="memitem:a286c5579d26233c2435c3c6bfb603a3f" id="r_a286c5579d26233c2435c3c6bfb603a3f"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a286c5579d26233c2435c3c6bfb603a3f">y</a> = 0.0</td></tr>
+<tr class="memdesc:a286c5579d26233c2435c3c6bfb603a3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertical preview coordinate.  <br /></td></tr>
 <tr class="memitem:ab1909304dcb55f1192ab429ba33ad320" id="r_ab1909304dcb55f1192ab429ba33ad320"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab1909304dcb55f1192ab429ba33ad320">nodeId</a></td></tr>
+<tr class="memdesc:ab1909304dcb55f1192ab429ba33ad320"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node; empty for an interpolated point.  <br /></td></tr>
 <tr class="memitem:a478b2200a9011e896c1024ebf1de0994" id="r_a478b2200a9011e896c1024ebf1de0994"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a478b2200a9011e896c1024ebf1de0994">rawX</a> = 0.0</td></tr>
+<tr class="memdesc:a478b2200a9011e896c1024ebf1de0994"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chainage of the node in kilometres; source x for position-only station lookup.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A point of a preview line. x and y start as the node coordinates in kilometres; a projection from the station views and normalizeTrackPreview replace them with scene coordinates. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ab1909304dcb55f1192ab429ba33ad320" name="ab1909304dcb55f1192ab429ba33ad320"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab1909304dcb55f1192ab429ba33ad320">&#9670;&#160;</a></span>nodeId</h2>
 
@@ -134,6 +140,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The node; empty for an interpolated point. </p>
 
 </div>
 </div>
@@ -149,6 +157,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Chainage of the node in kilometres; source x for position-only station lookup. </p>
+
 </div>
 </div>
 <a id="ae499c02de775764cdd91fd2db40808f4" name="ae499c02de775764cdd91fd2db40808f4"></a>
@@ -163,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Horizontal preview coordinate. </p>
+
 </div>
 </div>
 <a id="a286c5579d26233c2435c3c6bfb603a3f" name="a286c5579d26233c2435c3c6bfb603a3f"></a>
@@ -176,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Vertical preview coordinate. </p>
 
 </div>
 </div>

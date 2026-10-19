@@ -38,7 +38,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="558.5,-1688 496.5,-1688 496.5,-1669 558.5,-1669 558.5,-1688"/>
 <text text-anchor="middle" x="527.5" y="-1676" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -200,7 +200,7 @@
 <!-- Node299 -->
 <g id="Node000299" class="node">
 <title>Node299</title>
-<g id="a_Node000299"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title=" ">
+<g id="a_Node000299"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title="True when wroteAll is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="398,-1612 253,-1612 253,-1593 398,-1593 398,-1612"/>
 <text text-anchor="middle" x="325.5" y="-1600" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSaveResult::success</text>
 </a>
@@ -236,7 +236,7 @@
 <!-- Node301 -->
 <g id="Node000301" class="node">
 <title>Node301</title>
-<g id="a_Node000301"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title=" ">
+<g id="a_Node000301"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title="Validates the references, ids, values, timetables and incidents of the loaded model.">
 <polygon fill="white" stroke="#666666" points="180.5,-537 94.5,-537 94.5,-518 180.5,-518 180.5,-537"/>
 <text text-anchor="middle" x="137.5" y="-525" font-family="Helvetica,sans-Serif" font-size="10.00">validateScene</text>
 </a>
@@ -371,7 +371,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_scene_model_8cpp.html#ad21b25a9d108aa335fddc1ed87ac807e" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_scene_model_8cpp.html#ad21b25a9d108aa335fddc1ed87ac807e" target="_top" xlink:title="The incidents of defaultScenario(scene).">
 <polygon fill="#fff0f0" stroke="red" points="394,-223 257,-223 257,-204 394,-204 394,-223"/>
 <text text-anchor="middle" x="325.5" y="-211" font-family="Helvetica,sans-Serif" font-size="10.00">defaultScenarioIncidents</text>
 </a>
@@ -443,7 +443,7 @@
 <!-- Node33 -->
 <g id="Node000033" class="node">
 <title>Node33</title>
-<g id="a_Node000033"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000033"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="765.5,-708 681.5,-708 681.5,-689 765.5,-689 765.5,-708"/>
 <text text-anchor="middle" x="723.5" y="-696" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -534,7 +534,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="struct_scene_export_result.html#a874f0d3360c108406cc82db69acc3de3" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="struct_scene_export_result.html#a874f0d3360c108406cc82db69acc3de3" target="_top" xlink:title="True when wroteAll is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="382.5,-1364.5 268.5,-1364.5 268.5,-1334.5 382.5,-1334.5 382.5,-1364.5"/>
 <text text-anchor="start" x="276.5" y="-1352.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneExportResult::</text>
 <text text-anchor="middle" x="325.5" y="-1341.5" font-family="Helvetica,sans-Serif" font-size="10.00">success</text>
@@ -1048,7 +1048,7 @@
 <!-- Node56 -->
 <g id="Node000056" class="node">
 <title>Node56</title>
-<g id="a_Node000056"><a xlink:href="_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de" target="_top" xlink:title=" ">
+<g id="a_Node000056"><a xlink:href="_scene_writer_8cpp.html#a93ac17d499c50c71eb39d0af50eec0de" target="_top" xlink:title="The content of scene.json.">
 <polygon fill="white" stroke="#666666" points="591.5,-746 463.5,-746 463.5,-727 591.5,-727 591.5,-746"/>
 <text text-anchor="middle" x="527.5" y="-734" font-family="Helvetica,sans-Serif" font-size="10.00">encodeSceneMetadata</text>
 </a>
@@ -1228,7 +1228,7 @@
 <!-- Node64 -->
 <g id="Node000064" class="node">
 <title>Node64</title>
-<g id="a_Node000064"><a xlink:href="_scene_writer_8cpp.html#acb13735e78ea2d1590bc29fbdcbde1a4" target="_top" xlink:title=" ">
+<g id="a_Node000064"><a xlink:href="_scene_writer_8cpp.html#acb13735e78ea2d1590bc29fbdcbde1a4" target="_top" xlink:title="The content of infrastructure.json.">
 <polygon fill="white" stroke="#666666" points="586.5,-1241 468.5,-1241 468.5,-1222 586.5,-1222 586.5,-1241"/>
 <text text-anchor="middle" x="527.5" y="-1229" font-family="Helvetica,sans-Serif" font-size="10.00">encodeInfrastructure</text>
 </a>
@@ -1246,7 +1246,7 @@
 <!-- Node65 -->
 <g id="Node000065" class="node">
 <title>Node65</title>
-<g id="a_Node000065"><a xlink:href="_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147" target="_top" xlink:title=" ">
+<g id="a_Node000065"><a xlink:href="_scene_writer_8cpp.html#a87b4476d1e9437d209f8fa999f072147" target="_top" xlink:title="The content of passengers.json. A journey without an activity leaves the key out.">
 <polygon fill="white" stroke="#666666" points="581,-1186 474,-1186 474,-1167 581,-1167 581,-1186"/>
 <text text-anchor="middle" x="527.5" y="-1174" font-family="Helvetica,sans-Serif" font-size="10.00">encodePassengers</text>
 </a>
@@ -1264,7 +1264,7 @@
 <!-- Node66 -->
 <g id="Node000066" class="node">
 <title>Node66</title>
-<g id="a_Node000066"><a xlink:href="_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314" target="_top" xlink:title=" ">
+<g id="a_Node000066"><a xlink:href="_scene_writer_8cpp.html#aa991bd13455e2c17db3bf3158458a314" target="_top" xlink:title="The content of rolling_stock.json.">
 <polygon fill="#fff0f0" stroke="red" points="584,-1131 471,-1131 471,-1112 584,-1112 584,-1131"/>
 <text text-anchor="middle" x="527.5" y="-1119" font-family="Helvetica,sans-Serif" font-size="10.00">encodeRollingStock</text>
 </a>
@@ -1282,7 +1282,7 @@
 <!-- Node68 -->
 <g id="Node000068" class="node">
 <title>Node68</title>
-<g id="a_Node000068"><a xlink:href="_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17" target="_top" xlink:title=" ">
+<g id="a_Node000068"><a xlink:href="_scene_writer_8cpp.html#a919e28b811a875d48d8780b0d6854e17" target="_top" xlink:title="The content of scenarios.json.">
 <polygon fill="#fff0f0" stroke="red" points="577,-1076 478,-1076 478,-1057 577,-1057 577,-1076"/>
 <text text-anchor="middle" x="527.5" y="-1064" font-family="Helvetica,sans-Serif" font-size="10.00">encodeScenarios</text>
 </a>
@@ -1300,7 +1300,7 @@
 <!-- Node70 -->
 <g id="Node000070" class="node">
 <title>Node70</title>
-<g id="a_Node000070"><a xlink:href="_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486" target="_top" xlink:title=" ">
+<g id="a_Node000070"><a xlink:href="_scene_writer_8cpp.html#a772b83bc7a3193ec001bf98d5dea1486" target="_top" xlink:title="The content of services.json.">
 <polygon fill="#fff0f0" stroke="red" points="574,-1021 481,-1021 481,-1002 574,-1002 574,-1021"/>
 <text text-anchor="middle" x="527.5" y="-1009" font-family="Helvetica,sans-Serif" font-size="10.00">encodeServices</text>
 </a>
@@ -1318,7 +1318,7 @@
 <!-- Node72 -->
 <g id="Node000072" class="node">
 <title>Node72</title>
-<g id="a_Node000072"><a xlink:href="_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc" target="_top" xlink:title=" ">
+<g id="a_Node000072"><a xlink:href="_scene_writer_8cpp.html#aa960d62fe16b682ecc914124c6027dcc" target="_top" xlink:title="The content of signalling.json.">
 <polygon fill="#fff0f0" stroke="red" points="577.5,-966 477.5,-966 477.5,-947 577.5,-947 577.5,-966"/>
 <text text-anchor="middle" x="527.5" y="-954" font-family="Helvetica,sans-Serif" font-size="10.00">encodeSignalling</text>
 </a>
@@ -1336,7 +1336,7 @@
 <!-- Node73 -->
 <g id="Node000073" class="node">
 <title>Node73</title>
-<g id="a_Node000073"><a xlink:href="_scene_writer_8cpp.html#ac8fb536b94b4e2cf2b6a0e3d8299e19c" target="_top" xlink:title=" ">
+<g id="a_Node000073"><a xlink:href="_scene_writer_8cpp.html#ac8fb536b94b4e2cf2b6a0e3d8299e19c" target="_top" xlink:title="The content of stations.json.">
 <polygon fill="white" stroke="#666666" points="573.5,-911 481.5,-911 481.5,-892 573.5,-892 573.5,-911"/>
 <text text-anchor="middle" x="527.5" y="-899" font-family="Helvetica,sans-Serif" font-size="10.00">encodeStations</text>
 </a>
@@ -1354,7 +1354,7 @@
 <!-- Node74 -->
 <g id="Node000074" class="node">
 <title>Node74</title>
-<g id="a_Node000074"><a xlink:href="_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12" target="_top" xlink:title=" ">
+<g id="a_Node000074"><a xlink:href="_scene_writer_8cpp.html#a2f031775c507830e59189837b8e5cd12" target="_top" xlink:title="The content of views.json.">
 <polygon fill="white" stroke="#666666" points="568,-1480 487,-1480 487,-1461 568,-1461 568,-1480"/>
 <text text-anchor="middle" x="527.5" y="-1468" font-family="Helvetica,sans-Serif" font-size="10.00">encodeViews</text>
 </a>

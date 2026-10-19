@@ -113,18 +113,28 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>Where a stop of a service binds on its route.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a164436a06308079af066f890bdf4b1ce" id="r_a164436a06308079af066f890bdf4b1ce"><td class="memItemLeft"><a class="el" href="_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399">SceneStopResolutionStatus</a>&#160;</td><td class="memItemRight"><a class="el" href="#a164436a06308079af066f890bdf4b1ce">status</a> = <a class="el" href="_section_inventory_8h.html#a6cda0819c0daa4700ff8d1ae6418f399ae3f1ad4830e6189a87e2cce0c239d9e6">SceneStopResolutionStatus::UnresolvedRoute</a></td></tr>
 <tr class="memitem:aff8e24149fd51d530d534167ed87bcdd" id="r_aff8e24149fd51d530d534167ed87bcdd"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aff8e24149fd51d530d534167ed87bcdd">visitIndex</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
+<tr class="memdesc:aff8e24149fd51d530d534167ed87bcdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_scene_route_traversal.html#ad7a0bd02b85a15b2ca7a0d12eb184cd4" title="The visits in travel order.">SceneRouteTraversal::visits</a>; the maximum value unless Resolved.  <br /></td></tr>
 <tr class="memitem:ada33a75ce259e2c3b463440007c1e3d8" id="r_ada33a75ce259e2c3b463440007c1e3d8"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#ada33a75ce259e2c3b463440007c1e3d8">sectionIndex</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
+<tr class="memdesc:ada33a75ce259e2c3b463440007c1e3d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section; the maximum value unless Resolved.  <br /></td></tr>
 <tr class="memitem:a22abaf71b0a908b8e8cb558a03f8bd46" id="r_a22abaf71b0a908b8e8cb558a03f8bd46"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a22abaf71b0a908b8e8cb558a03f8bd46">candidatePlatformIds</a></td></tr>
+<tr class="memdesc:a22abaf71b0a908b8e8cb558a03f8bd46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Platforms of the station on the rest of the route.  <br /></td></tr>
 <tr class="memitem:a9966005232dfb46ac205dff4e973b24a" id="r_a9966005232dfb46ac205dff4e973b24a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9966005232dfb46ac205dff4e973b24a">nodeId</a></td></tr>
+<tr class="memdesc:a9966005232dfb46ac205dff4e973b24a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node of the visit; empty unless Resolved.  <br /></td></tr>
 <tr class="memitem:ab4d7af59b7a32874266e59f79908491d" id="r_ab4d7af59b7a32874266e59f79908491d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ab4d7af59b7a32874266e59f79908491d">sectionId</a></td></tr>
+<tr class="memdesc:ab4d7af59b7a32874266e59f79908491d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime id of the section of the visit; empty unless Resolved.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Where a stop of a service binds on its route. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a22abaf71b0a908b8e8cb558a03f8bd46" name="a22abaf71b0a908b8e8cb558a03f8bd46"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22abaf71b0a908b8e8cb558a03f8bd46">&#9670;&#160;</a></span>candidatePlatformIds</h2>
 
@@ -136,6 +146,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Platforms of the station on the rest of the route. </p>
 
 </div>
 </div>
@@ -151,6 +163,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The node of the visit; empty unless Resolved. </p>
+
 </div>
 </div>
 <a id="ab4d7af59b7a32874266e59f79908491d" name="ab4d7af59b7a32874266e59f79908491d"></a>
@@ -164,6 +178,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Runtime id of the section of the visit; empty unless Resolved. </p>
 
 </div>
 </div>
@@ -179,6 +195,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section; the maximum value unless Resolved. </p>
+
 </div>
 </div>
 <a id="a164436a06308079af066f890bdf4b1ce" name="a164436a06308079af066f890bdf4b1ce"></a>
@@ -192,6 +210,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The outcome. </p>
 
 </div>
 </div>
@@ -206,6 +225,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Index into <a class="el" href="struct_scene_route_traversal.html#ad7a0bd02b85a15b2ca7a0d12eb184cd4" title="The visits in travel order.">SceneRouteTraversal::visits</a>; the maximum value unless Resolved. </p>
 
 </div>
 </div>

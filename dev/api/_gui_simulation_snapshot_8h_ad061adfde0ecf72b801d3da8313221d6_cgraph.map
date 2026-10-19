@@ -22,10 +22,10 @@
 <area shape="rect" id="Node000009" href="$_gui_simulation_snapshot_8h.html#af060009e2c033c17dfc8996f308a6c69" title=" " alt="" coords="531,277,683,302"/>
 <area shape="poly" id="edge14_Node000005_Node000009" title=" " alt="" coords="443,261,517,273,516,278,442,266"/>
 <area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="573,205,566,195,569,185,583,179,607,177,635,180,647,189,643,194,633,185,607,182,585,184,573,189,571,194,577,202"/>
-<area shape="rect" id="Node000007" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title=" " alt="" coords="731,203,895,229"/>
+<area shape="rect" id="Node000007" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="731,203,895,229"/>
 <area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="679,213,717,213,717,219,679,219"/>
 <area shape="poly" id="edge11_Node000007_Node000007" title=" " alt="" coords="784,205,778,195,781,185,793,179,813,177,837,180,847,189,843,193,834,185,813,182,794,184,785,189,783,194,788,202"/>
-<area shape="rect" id="Node000008" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="943,203,1033,229"/>
+<area shape="rect" id="Node000008" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="943,203,1033,229"/>
 <area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="895,213,929,213,929,219,895,219"/>
 <area shape="poly" id="edge13_Node000008_Node000008" title=" " alt="" coords="959,205,953,195,956,185,968,179,988,177,1012,180,1022,189,1018,193,1010,185,988,182,970,184,960,189,958,194,964,202"/>
 <area shape="poly" id="edge15_Node000009_Node000009" title=" " alt="" coords="573,278,566,268,569,258,583,252,607,250,635,254,647,263,643,267,633,259,607,255,585,257,573,262,571,268,577,275"/>

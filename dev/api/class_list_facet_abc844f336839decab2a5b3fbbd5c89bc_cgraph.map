@@ -66,12 +66,12 @@
 <area shape="rect" id="Node000028" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="453,1039,697,1065"/>
 <area shape="poly" id="edge41_Node000022_Node000028" title=" " alt="" coords="357,981,406,993,527,1032,525,1037,405,999,356,986"/>
 <area shape="poly" id="edge35_Node000023_Node000023" title=" " alt="" coords="531,902,521,892,526,882,544,876,575,874,616,878,626,883,630,890,625,892,623,887,614,883,575,879,545,881,529,886,526,892,534,899"/>
-<area shape="rect" id="Node000024" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="745,901,969,926"/>
+<area shape="rect" id="Node000024" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="745,901,969,926"/>
 <area shape="poly" id="edge36_Node000023_Node000024" title=" " alt="" coords="677,911,732,911,732,916,677,916"/>
 <area shape="poly" id="edge37_Node000024_Node000024" title=" " alt="" coords="820,902,811,892,816,882,831,876,857,874,890,878,902,887,899,892,888,883,857,879,832,881,819,886,817,892,824,899"/>
-<area shape="rect" id="Node000026" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title=" " alt="" coords="772,1015,943,1055"/>
+<area shape="rect" id="Node000026" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="772,1015,943,1055"/>
 <area shape="poly" id="edge39_Node000025_Node000026" title=" " alt="" coords="661,987,760,1010,758,1015,660,993"/>
-<area shape="rect" id="Node000027" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title=" " alt="" coords="772,951,943,991"/>
+<area shape="rect" id="Node000027" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="772,951,943,991"/>
 <area shape="poly" id="edge40_Node000025_Node000027" title=" " alt="" coords="661,968,759,968,759,973,661,973"/>
 <area shape="poly" id="edge42_Node000028_Node000028" title=" " alt="" coords="531,1041,521,1031,526,1021,544,1015,575,1013,616,1017,626,1022,630,1028,625,1031,623,1026,614,1022,575,1018,545,1020,529,1025,526,1030,534,1037"/>
 </map>

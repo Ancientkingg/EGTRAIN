@@ -10,7 +10,7 @@
 <area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="120,785,122,696,128,629,140,554,160,474,189,396,230,323,256,290,285,260,310,245,338,236,339,242,312,249,288,264,260,293,235,326,194,398,165,476,145,555,133,630,127,696,126,785"/>
 <area shape="rect" id="Node000006" href="$_selection_cue_item_8h.html#a5142e94c12ed77db36a0e5458bc76b82" title=" " alt="" coords="336,299,485,324"/>
 <area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="121,785,127,707,135,649,149,584,169,516,198,449,236,387,259,359,285,333,302,322,321,314,323,319,305,326,288,337,263,362,240,390,202,451,174,518,154,585,140,650,132,707,126,785"/>
-<area shape="rect" id="Node000007" href="$_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" title=" " alt="" coords="343,372,479,397"/>
+<area shape="rect" id="Node000007" href="$_track_preview_8cpp.html#a66c00d5638f8954afa4aa3f392d279a6" title="The preview of the visible tracks of the scene, before normalization." alt="" coords="343,372,479,397"/>
 <area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="122,785,132,717,158,614,179,557,206,502,242,450,285,407,306,394,328,386,330,391,308,399,288,411,246,454,211,504,184,559,163,616,137,718,127,785"/>
 <area shape="rect" id="Node000010" href="$class_node_item.html#a02a6034483be79559c0356c2e8e777d5" title=" " alt="" coords="331,421,490,447"/>
 <area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="123,785,135,725,164,635,185,586,212,538,245,494,285,456,317,440,319,444,288,460,249,497,217,541,190,588,169,637,141,726,128,786"/>
@@ -56,7 +56,7 @@
 <area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="593,372,795,397"/>
 <area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="479,382,579,382,579,387,479,387"/>
 <area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="651,374,641,364,646,354,664,347,694,345,733,349,743,354,747,360,742,363,740,358,731,355,694,351,665,353,649,358,646,363,654,370"/>
-<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="853,372,1077,397"/>
+<area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="853,372,1077,397"/>
 <area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="795,382,840,382,840,387,795,387"/>
 <area shape="poly" id="edge14_Node000009_Node000009" title=" " alt="" coords="928,374,920,364,925,354,940,348,965,345,997,349,1009,359,1006,363,995,354,965,351,941,353,928,358,926,363,932,370"/>
 <area shape="poly" id="edge18_Node000011_Node000011" title=" " alt="" coords="365,497,355,486,360,476,379,470,411,468,452,472,463,477,466,484,461,486,459,481,450,477,411,473,380,475,364,480,361,486,369,493"/>
@@ -76,7 +76,7 @@
 <area shape="rect" id="Node000019" href="$class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" title=" " alt="" coords="891,741,1040,781"/>
 <area shape="poly" id="edge27_Node000015_Node000019" title=" " alt="" coords="725,649,783,688,854,726,878,736,876,741,852,731,780,693,722,654"/>
 <area shape="poly" id="edge31_Node000022_Node000022" title=" " alt="" coords="365,750,355,740,360,730,379,723,411,721,452,726,463,731,466,737,461,739,459,735,450,731,411,727,380,729,364,734,361,739,369,746"/>
-<area shape="rect" id="Node000023" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title=" " alt="" coords="600,748,788,773"/>
+<area shape="rect" id="Node000023" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title="The point of the line at the node. Returns false when the line has none." alt="" coords="600,748,788,773"/>
 <area shape="poly" id="edge32_Node000022_Node000023" title=" " alt="" coords="488,758,586,758,586,763,488,763"/>
 <area shape="poly" id="edge33_Node000023_Node000023" title=" " alt="" coords="651,750,641,740,646,730,664,723,694,721,733,725,743,730,747,736,742,739,740,734,731,731,694,727,665,729,649,734,646,739,654,746"/>
 <area shape="poly" id="edge35_Node000024_Node000024" title=" " alt="" coords="365,823,355,813,360,803,379,797,411,795,452,799,463,804,466,810,461,813,459,808,450,804,411,800,380,802,364,807,361,812,369,819"/>

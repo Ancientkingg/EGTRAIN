@@ -118,10 +118,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_r
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab94a98bacf5d5b1985cd0df52aaa6d42" id="r_ab94a98bacf5d5b1985cd0df52aaa6d42"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab94a98bacf5d5b1985cd0df52aaa6d42">resolved</a> = false</td></tr>
+<tr class="memdesc:ab94a98bacf5d5b1985cd0df52aaa6d42"><td class="mdescLeft">&#160;</td><td class="mdescRight">As <a class="el" href="struct_scene_route_traversal.html#ac764fb0bbf92eadeae84745cc5ee53e8" title="True when every section resolves and the direction is known.">SceneRouteTraversal::resolved</a>.  <br /></td></tr>
 <tr class="memitem:a63b76f6c22045b15a55b240aa626e127" id="r_a63b76f6c22045b15a55b240aa626e127"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a63b76f6c22045b15a55b240aa626e127">direction</a> = 0</td></tr>
+<tr class="memdesc:a63b76f6c22045b15a55b240aa626e127"><td class="mdescLeft">&#160;</td><td class="mdescRight">As <a class="el" href="struct_scene_route_traversal.html#ac5c7d09b6caeb69479136968e69e008c" title="1 = native forward, -1 = native reverse, 0 = unresolved.">SceneRouteTraversal::direction</a>.  <br /></td></tr>
 <tr class="memitem:aa5f53413ed1da02fe92428c6cc432fe5" id="r_aa5f53413ed1da02fe92428c6cc432fe5"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa5f53413ed1da02fe92428c6cc432fe5">stationIds</a></td></tr>
+<tr class="memdesc:aa5f53413ed1da02fe92428c6cc432fe5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stations in travel order.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The stations a route passes in travel order. Consecutive visits of the same station count once; a station visited again later is listed again. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a63b76f6c22045b15a55b240aa626e127" name="a63b76f6c22045b15a55b240aa626e127"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63b76f6c22045b15a55b240aa626e127">&#9670;&#160;</a></span>direction</h2>
 
@@ -133,6 +138,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>As <a class="el" href="struct_scene_route_traversal.html#ac5c7d09b6caeb69479136968e69e008c" title="1 = native forward, -1 = native reverse, 0 = unresolved.">SceneRouteTraversal::direction</a>. </p>
 
 </div>
 </div>
@@ -148,6 +155,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>As <a class="el" href="struct_scene_route_traversal.html#ac764fb0bbf92eadeae84745cc5ee53e8" title="True when every section resolves and the direction is known.">SceneRouteTraversal::resolved</a>. </p>
+
 </div>
 </div>
 <a id="aa5f53413ed1da02fe92428c6cc432fe5" name="aa5f53413ed1da02fe92428c6cc432fe5"></a>
@@ -161,6 +170,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The stations in travel order. </p>
 
 </div>
 </div>

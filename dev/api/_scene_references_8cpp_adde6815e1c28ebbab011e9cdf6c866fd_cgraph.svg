@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_references_8cpp.html#ac653c3e3cff67cb72ec8dff713a44a2b" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_references_8cpp.html#ac653c3e3cff67cb72ec8dff713a44a2b" target="_top" xlink:title="reference with every component oldId replaced by newId.">
 <polygon fill="white" stroke="#666666" points="359,-19 200,-19 200,0 359,0 359,-19"/>
 <text text-anchor="middle" x="279.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteBlockReference</text>
 </a>

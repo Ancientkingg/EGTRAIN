@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,94,189,66,250,41,284,31,285,36,252,46,192,71,140,99"/>
 <area shape="rect" id="Node000003" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="270,55,497,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,99,256,91,257,97,203,105"/>
-<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title=" " alt="" coords="251,144,516,169"/>
+<area shape="rect" id="Node000004" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title="Rewrites the composition id in the composition of services." alt="" coords="251,144,516,169"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,128,281,139,280,145,202,133"/>
-<area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title=" " alt="" coords="283,217,483,243"/>
+<area shape="rect" id="Node000005" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="283,217,483,243"/>
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="151,134,252,178,334,210,332,215,250,183,149,139"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="339,146,329,136,334,126,352,119,383,117,424,122,434,127,438,133,433,135,431,131,422,127,383,123,353,125,337,130,334,135,342,142"/>
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="339,219,329,209,334,199,352,193,383,191,424,195,434,200,438,206,433,209,431,204,422,200,383,196,353,198,337,203,334,208,342,215"/>

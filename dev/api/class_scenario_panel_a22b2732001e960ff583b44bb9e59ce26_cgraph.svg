@@ -102,7 +102,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" target="_top" xlink:title="Rewrites the scenario id in defaultScenarioId.">
 <polygon fill="white" stroke="#666666" points="621,-137.5 442,-137.5 442,-118.5 621,-118.5 621,-137.5"/>
 <text text-anchor="middle" x="531.5" y="-125.5" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteScenarioReferences</text>
 </a>
@@ -120,7 +120,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title="A free scenario id. An empty baseId stands for &quot;scenario&quot;.">
 <polygon fill="white" stroke="#666666" points="597,-82.5 466,-82.5 466,-63.5 597,-63.5 597,-82.5"/>
 <text text-anchor="middle" x="531.5" y="-70.5" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueScenarioId</text>
 </a>

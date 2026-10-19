@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" target="_top" xlink:title="An incident id that is free across all scenarios.">
 <polygon fill="white" stroke="#666666" points="301.5,-74 173.5,-74 173.5,-55 301.5,-55 301.5,-74"/>
 <text text-anchor="middle" x="237.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueIncidentId</text>
 </a>
@@ -39,7 +39,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title="A free scenario id. An empty baseId stands for &quot;scenario&quot;.">
 <polygon fill="white" stroke="#666666" points="303,-19 172,-19 172,0 303,0 303,-19"/>
 <text text-anchor="middle" x="237.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueScenarioId</text>
 </a>

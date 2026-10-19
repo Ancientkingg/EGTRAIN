@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_m
 </div><!--header-->
 <div class="contents">
 
+<p>The whole scene: the content of the scene files and the summaries derived from them.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SceneModel:</div>
@@ -123,36 +126,65 @@ Collaboration diagram for SceneModel:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7e02348aab332da4f8d785f5a3a4b8b2" id="r_a7e02348aab332da4f8d785f5a3a4b8b2"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a7e02348aab332da4f8d785f5a3a4b8b2">schemaVersion</a> = 0</td></tr>
+<tr class="memdesc:a7e02348aab332da4f8d785f5a3a4b8b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">schema_version of scene.json; 0 when not read.  <br /></td></tr>
 <tr class="memitem:af302feab06da59ad089ef2c4145bb37c" id="r_af302feab06da59ad089ef2c4145bb37c"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af302feab06da59ad089ef2c4145bb37c">savedWithAppVersion</a></td></tr>
+<tr class="memdesc:af302feab06da59ad089ef2c4145bb37c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Version of the application that saved the scene; empty when not recorded.  <br /></td></tr>
 <tr class="memitem:a9e5a66f50070f2b1960b58820c6d6b83" id="r_a9e5a66f50070f2b1960b58820c6d6b83"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9e5a66f50070f2b1960b58820c6d6b83">name</a></td></tr>
+<tr class="memdesc:a9e5a66f50070f2b1960b58820c6d6b83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the scene.  <br /></td></tr>
 <tr class="memitem:a3baca7cbee781c52cb522d3caa593f11" id="r_a3baca7cbee781c52cb522d3caa593f11"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3baca7cbee781c52cb522d3caa593f11">description</a></td></tr>
 <tr class="memitem:a9bab23f39b243d82e151b0cefa9a3068" id="r_a9bab23f39b243d82e151b0cefa9a3068"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9bab23f39b243d82e151b0cefa9a3068">baseTime</a></td></tr>
+<tr class="memdesc:a9bab23f39b243d82e151b0cefa9a3068"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock time "HH:MM:SS" at which a run starts. Times of services and incidents count from it.  <br /></td></tr>
 <tr class="memitem:a8b50930887f041d37eae6b4a84e373a1" id="r_a8b50930887f041d37eae6b4a84e373a1"><td class="memItemLeft"><a class="el" href="struct_scene_simulation_settings.html">SceneSimulationSettings</a>&#160;</td><td class="memItemRight"><a class="el" href="#a8b50930887f041d37eae6b4a84e373a1">settings</a></td></tr>
+<tr class="memdesc:a8b50930887f041d37eae6b4a84e373a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The simulation settings.  <br /></td></tr>
 <tr class="memitem:acd60dd12f6f936cc7c28a077c4fa83fe" id="r_acd60dd12f6f936cc7c28a077c4fa83fe"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_loaded_data.html">SceneLoadedData</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#acd60dd12f6f936cc7c28a077c4fa83fe">loadedData</a></td></tr>
+<tr class="memdesc:acd60dd12f6f936cc7c28a077c4fa83fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loaded Data summary; derived, not saved.  <br /></td></tr>
 <tr class="memitem:ae47a9a18a26ab0decdd0dbafd7ff5bf2" id="r_ae47a9a18a26ab0decdd0dbafd7ff5bf2"><td class="memItemLeft">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae47a9a18a26ab0decdd0dbafd7ff5bf2">sourceFiles</a></td></tr>
+<tr class="memdesc:ae47a9a18a26ab0decdd0dbafd7ff5bf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Names of the scene files present at load or save; derived.  <br /></td></tr>
 <tr class="memitem:a85d76e461292b9408d235aec9562b1c7" id="r_a85d76e461292b9408d235aec9562b1c7"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_import_report_row.html">SceneImportReportRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a85d76e461292b9408d235aec9562b1c7">importReport</a></td></tr>
+<tr class="memdesc:a85d76e461292b9408d235aec9562b1c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rows of import_report.  <br /></td></tr>
 <tr class="memitem:aace0884b11a124a94cf94badf65d8057" id="r_aace0884b11a124a94cf94badf65d8057"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_track.html">SceneTrack</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aace0884b11a124a94cf94badf65d8057">tracks</a></td></tr>
+<tr class="memdesc:aace0884b11a124a94cf94badf65d8057"><td class="mdescLeft">&#160;</td><td class="mdescRight">infrastructure.json tracks.  <br /></td></tr>
 <tr class="memitem:a87d0231b272e2b11ed71647148402b67" id="r_a87d0231b272e2b11ed71647148402b67"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_track_view.html">SceneTrackView</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a87d0231b272e2b11ed71647148402b67">trackViews</a></td></tr>
+<tr class="memdesc:a87d0231b272e2b11ed71647148402b67"><td class="mdescLeft">&#160;</td><td class="mdescRight">views.json tracks.  <br /></td></tr>
 <tr class="memitem:ad40a7ef540f0ddb31b4aed04e63a8491" id="r_ad40a7ef540f0ddb31b4aed04e63a8491"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_node.html">SceneNode</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad40a7ef540f0ddb31b4aed04e63a8491">nodes</a></td></tr>
+<tr class="memdesc:ad40a7ef540f0ddb31b4aed04e63a8491"><td class="mdescLeft">&#160;</td><td class="mdescRight">infrastructure.json nodes.  <br /></td></tr>
 <tr class="memitem:aadf421098851c5a24b6564f8842ca53c" id="r_aadf421098851c5a24b6564f8842ca53c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_arc.html">SceneArc</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aadf421098851c5a24b6564f8842ca53c">arcs</a></td></tr>
+<tr class="memdesc:aadf421098851c5a24b6564f8842ca53c"><td class="mdescLeft">&#160;</td><td class="mdescRight">infrastructure.json arcs.  <br /></td></tr>
 <tr class="memitem:a2620df79d4231a7d3642b3983f7c2a5c" id="r_a2620df79d4231a7d3642b3983f7c2a5c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_block.html">SceneBlock</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2620df79d4231a7d3642b3983f7c2a5c">blocks</a></td></tr>
+<tr class="memdesc:a2620df79d4231a7d3642b3983f7c2a5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">infrastructure.json blocks.  <br /></td></tr>
 <tr class="memitem:a961d6d35071c39a2cad1366baf8bd026" id="r_a961d6d35071c39a2cad1366baf8bd026"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_connection.html">SceneConnection</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a961d6d35071c39a2cad1366baf8bd026">connections</a></td></tr>
+<tr class="memdesc:a961d6d35071c39a2cad1366baf8bd026"><td class="mdescLeft">&#160;</td><td class="mdescRight">infrastructure.json connections.  <br /></td></tr>
 <tr class="memitem:a99292c07213fec4662c997d1d518ed94" id="r_a99292c07213fec4662c997d1d518ed94"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_station.html">SceneStation</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a99292c07213fec4662c997d1d518ed94">stations</a></td></tr>
+<tr class="memdesc:a99292c07213fec4662c997d1d518ed94"><td class="mdescLeft">&#160;</td><td class="mdescRight">stations.json stations.  <br /></td></tr>
 <tr class="memitem:a51a736ad3c0f2db35d47b50764a406c3" id="r_a51a736ad3c0f2db35d47b50764a406c3"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_station_view.html">SceneStationView</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a51a736ad3c0f2db35d47b50764a406c3">stationViews</a></td></tr>
 <tr class="memitem:a10b4bd4dd9ab677ebb14378e4a4346d4" id="r_a10b4bd4dd9ab677ebb14378e4a4346d4"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a10b4bd4dd9ab677ebb14378e4a4346d4">signals</a></td></tr>
+<tr class="memdesc:a10b4bd4dd9ab677ebb14378e4a4346d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json signals. Code that includes Qt reads them through <a class="el" href="_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303">sceneSignals()</a>.  <br /></td></tr>
 <tr class="memitem:aae0e07f3967ead762e33619b2a928c48" id="r_aae0e07f3967ead762e33619b2a928c48"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signalling_area.html">SceneSignallingArea</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aae0e07f3967ead762e33619b2a928c48">signallingAreas</a></td></tr>
+<tr class="memdesc:aae0e07f3967ead762e33619b2a928c48"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json signalling_areas.  <br /></td></tr>
 <tr class="memitem:aaefbc97115e223a3658631643e60c58f" id="r_aaefbc97115e223a3658631643e60c58f"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_route.html">SceneRoute</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aaefbc97115e223a3658631643e60c58f">routes</a></td></tr>
+<tr class="memdesc:aaefbc97115e223a3658631643e60c58f"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json routes.  <br /></td></tr>
 <tr class="memitem:ae5a551f40b3931a7b85d2745c4bf0688" id="r_ae5a551f40b3931a7b85d2745c4bf0688"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_block_dependency.html">SceneBlockDependency</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ae5a551f40b3931a7b85d2745c4bf0688">blockDependencies</a></td></tr>
+<tr class="memdesc:ae5a551f40b3931a7b85d2745c4bf0688"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json block_dependencies.  <br /></td></tr>
 <tr class="memitem:a87cd6213db3c9b4f3d970fdd4b2f620a" id="r_a87cd6213db3c9b4f3d970fdd4b2f620a"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_single_track_restriction.html">SceneSingleTrackRestriction</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a87cd6213db3c9b4f3d970fdd4b2f620a">singleTrackRestrictions</a></td></tr>
+<tr class="memdesc:a87cd6213db3c9b4f3d970fdd4b2f620a"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json single_track_restrictions.  <br /></td></tr>
 <tr class="memitem:a64c128355e286b41d0cf1bacdd0abc76" id="r_a64c128355e286b41d0cf1bacdd0abc76"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_station_boundary.html">SceneStationBoundary</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a64c128355e286b41d0cf1bacdd0abc76">stationBoundaries</a></td></tr>
+<tr class="memdesc:a64c128355e286b41d0cf1bacdd0abc76"><td class="mdescLeft">&#160;</td><td class="mdescRight">signalling.json station_boundaries.  <br /></td></tr>
 <tr class="memitem:ab71e6892a68f916e1a0e86f24d8e5719" id="r_ab71e6892a68f916e1a0e86f24d8e5719"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab71e6892a68f916e1a0e86f24d8e5719">trainUnits</a></td></tr>
+<tr class="memdesc:ab71e6892a68f916e1a0e86f24d8e5719"><td class="mdescLeft">&#160;</td><td class="mdescRight">rolling_stock.json train_units.  <br /></td></tr>
 <tr class="memitem:a6c2ece64e9492ddff4ee4e1678cc8224" id="r_a6c2ece64e9492ddff4ee4e1678cc8224"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_composition.html">SceneComposition</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6c2ece64e9492ddff4ee4e1678cc8224">compositions</a></td></tr>
+<tr class="memdesc:a6c2ece64e9492ddff4ee4e1678cc8224"><td class="mdescLeft">&#160;</td><td class="mdescRight">rolling_stock.json compositions.  <br /></td></tr>
 <tr class="memitem:ac063a65f1d4874243604f78bf587c7c3" id="r_ac063a65f1d4874243604f78bf587c7c3"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_service.html">SceneService</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac063a65f1d4874243604f78bf587c7c3">services</a></td></tr>
+<tr class="memdesc:ac063a65f1d4874243604f78bf587c7c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">services.json services.  <br /></td></tr>
 <tr class="memitem:afd13c78a47d5300d63ee4af8c7d65815" id="r_afd13c78a47d5300d63ee4af8c7d65815"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#afd13c78a47d5300d63ee4af8c7d65815">defaultScenarioId</a></td></tr>
+<tr class="memdesc:afd13c78a47d5300d63ee4af8c7d65815"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the scenario a run uses.  <br /></td></tr>
 <tr class="memitem:a4091085ea9f5efb214382b4408491dd9" id="r_a4091085ea9f5efb214382b4408491dd9"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_scenario.html">SceneScenario</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4091085ea9f5efb214382b4408491dd9">scenarios</a></td></tr>
+<tr class="memdesc:a4091085ea9f5efb214382b4408491dd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">scenarios.json scenarios.  <br /></td></tr>
 <tr class="memitem:a9ae01ec7800ad2f8dd67333350b3012c" id="r_a9ae01ec7800ad2f8dd67333350b3012c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9ae01ec7800ad2f8dd67333350b3012c">passengers</a></td></tr>
+<tr class="memdesc:a9ae01ec7800ad2f8dd67333350b3012c"><td class="mdescLeft">&#160;</td><td class="mdescRight">passengers.json passengers.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The whole scene: the content of the scene files and the summaries derived from them. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aadf421098851c5a24b6564f8842ca53c" name="aadf421098851c5a24b6564f8842ca53c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aadf421098851c5a24b6564f8842ca53c">&#9670;&#160;</a></span>arcs</h2>
 
@@ -164,6 +196,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>infrastructure.json arcs. </p>
 
 </div>
 </div>
@@ -179,6 +213,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Clock time "HH:MM:SS" at which a run starts. Times of services and incidents count from it. </p>
+
 </div>
 </div>
 <a id="ae5a551f40b3931a7b85d2745c4bf0688" name="ae5a551f40b3931a7b85d2745c4bf0688"></a>
@@ -192,6 +228,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>signalling.json block_dependencies. </p>
 
 </div>
 </div>
@@ -207,6 +245,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>infrastructure.json blocks. </p>
+
 </div>
 </div>
 <a id="a6c2ece64e9492ddff4ee4e1678cc8224" name="a6c2ece64e9492ddff4ee4e1678cc8224"></a>
@@ -220,6 +260,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>rolling_stock.json compositions. </p>
 
 </div>
 </div>
@@ -235,6 +277,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>infrastructure.json connections. </p>
+
 </div>
 </div>
 <a id="afd13c78a47d5300d63ee4af8c7d65815" name="afd13c78a47d5300d63ee4af8c7d65815"></a>
@@ -249,6 +293,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Id of the scenario a run uses. </p>
+
 </div>
 </div>
 <a id="a3baca7cbee781c52cb522d3caa593f11" name="a3baca7cbee781c52cb522d3caa593f11"></a>
@@ -262,6 +308,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Free text; empty when none. </p>
 
 </div>
 </div>
@@ -277,6 +324,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Rows of import_report. </p>
+
 </div>
 </div>
 <a id="acd60dd12f6f936cc7c28a077c4fa83fe" name="acd60dd12f6f936cc7c28a077c4fa83fe"></a>
@@ -290,6 +339,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Loaded Data summary; derived, not saved. </p>
 
 </div>
 </div>
@@ -305,6 +356,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the scene. </p>
+
 </div>
 </div>
 <a id="ad40a7ef540f0ddb31b4aed04e63a8491" name="ad40a7ef540f0ddb31b4aed04e63a8491"></a>
@@ -318,6 +371,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>infrastructure.json nodes. </p>
 
 </div>
 </div>
@@ -333,6 +388,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>passengers.json passengers. </p>
+
 </div>
 </div>
 <a id="aaefbc97115e223a3658631643e60c58f" name="aaefbc97115e223a3658631643e60c58f"></a>
@@ -346,6 +403,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>signalling.json routes. </p>
 
 </div>
 </div>
@@ -361,6 +420,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Version of the application that saved the scene; empty when not recorded. </p>
+
 </div>
 </div>
 <a id="a4091085ea9f5efb214382b4408491dd9" name="a4091085ea9f5efb214382b4408491dd9"></a>
@@ -374,6 +435,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>scenarios.json scenarios. </p>
 
 </div>
 </div>
@@ -389,6 +452,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>schema_version of scene.json; 0 when not read. </p>
+
 </div>
 </div>
 <a id="ac063a65f1d4874243604f78bf587c7c3" name="ac063a65f1d4874243604f78bf587c7c3"></a>
@@ -402,6 +467,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>services.json services. </p>
 
 </div>
 </div>
@@ -417,6 +484,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The simulation settings. </p>
+
 </div>
 </div>
 <a id="aae0e07f3967ead762e33619b2a928c48" name="aae0e07f3967ead762e33619b2a928c48"></a>
@@ -430,6 +499,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>signalling.json signalling_areas. </p>
 
 </div>
 </div>
@@ -445,6 +516,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>signalling.json signals. Code that includes Qt reads them through <a class="el" href="_scene_model_8cpp.html#a765f734ddc8d717d03dfb08048237303">sceneSignals()</a>. </p>
+
 </div>
 </div>
 <a id="a87cd6213db3c9b4f3d970fdd4b2f620a" name="a87cd6213db3c9b4f3d970fdd4b2f620a"></a>
@@ -458,6 +531,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>signalling.json single_track_restrictions. </p>
 
 </div>
 </div>
@@ -473,6 +548,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Names of the scene files present at load or save; derived. </p>
+
 </div>
 </div>
 <a id="a64c128355e286b41d0cf1bacdd0abc76" name="a64c128355e286b41d0cf1bacdd0abc76"></a>
@@ -486,6 +563,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>signalling.json station_boundaries. </p>
 
 </div>
 </div>
@@ -501,6 +580,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>stations.json stations. </p>
+
 </div>
 </div>
 <a id="a51a736ad3c0f2db35d47b50764a406c3" name="a51a736ad3c0f2db35d47b50764a406c3"></a>
@@ -514,6 +595,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>views.json stations. </p>
 
 </div>
 </div>
@@ -529,6 +611,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>infrastructure.json tracks. </p>
+
 </div>
 </div>
 <a id="a87d0231b272e2b11ed71647148402b67" name="a87d0231b272e2b11ed71647148402b67"></a>
@@ -543,6 +627,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>views.json tracks. </p>
+
 </div>
 </div>
 <a id="ab71e6892a68f916e1a0e86f24d8e5719" name="ab71e6892a68f916e1a0e86f24d8e5719"></a>
@@ -556,6 +642,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>rolling_stock.json train_units. </p>
 
 </div>
 </div>

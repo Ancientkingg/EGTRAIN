@@ -1,7 +1,7 @@
 <map id="sceneMigrationAvailable" name="sceneMigrationAvailable">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,188,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,31,49,21,53,11,70,5,97,3,131,7,141,11,144,17,140,20,137,15,130,12,97,8,71,10,57,15,54,20,61,27"/>
-<area shape="rect" id="Node000002" href="$_scene_migration_8cpp.html#ac1981c9f5875eb133e6ee43f3e1adc99" title=" " alt="" coords="236,29,447,55"/>
+<area shape="rect" id="Node000002" href="$_scene_migration_8cpp.html#ac1981c9f5875eb133e6ee43f3e1adc99" title="True when steps of this kind chain from fromVersion up to toVersion, which must be higher." alt="" coords="236,29,447,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="188,39,222,39,222,45,188,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="302,31,293,21,298,11,314,5,341,3,376,7,385,11,389,17,385,20,382,15,374,12,341,8,315,10,301,15,299,20,306,27"/>
 </map>

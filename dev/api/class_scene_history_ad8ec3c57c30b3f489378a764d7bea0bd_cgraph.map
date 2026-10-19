@@ -1,5 +1,5 @@
 <map id="SceneHistory::undoLabel" name="SceneHistory::undoLabel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,188,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" title=" " alt="" coords="236,5,408,31"/>
+<area shape="rect" id="Node000001" title="The label of the edit that Undo reverts; empty when there is none." alt="" coords="5,5,188,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" title="True when there is an entry before the position." alt="" coords="236,5,408,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,15,222,15,222,21,189,21"/>
 </map>

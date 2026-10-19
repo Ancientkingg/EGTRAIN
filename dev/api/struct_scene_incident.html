@@ -113,23 +113,36 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_i
 </div><!--header-->
 <div class="contents">
 
+<p>An incident of a scenario. Times are seconds after the base time of the scene.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a4b7d501118595f68adf150f386d14581" id="r_a4b7d501118595f68adf150f386d14581"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4b7d501118595f68adf150f386d14581">id</a></td></tr>
+<tr class="memdesc:a4b7d501118595f68adf150f386d14581"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the incident.  <br /></td></tr>
 <tr class="memitem:ae80276f3ea8302ec9be5986f9d699134" id="r_ae80276f3ea8302ec9be5986f9d699134"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae80276f3ea8302ec9be5986f9d699134">type</a></td></tr>
 <tr class="memitem:ad0ed045062e3c514d45f80d3f25f9b93" id="r_ad0ed045062e3c514d45f80d3f25f9b93"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad0ed045062e3c514d45f80d3f25f9b93">target</a></td></tr>
+<tr class="memdesc:ad0ed045062e3c514d45f80d3f25f9b93"><td class="mdescLeft">&#160;</td><td class="mdescRight">A signal id or section reference for a signal failure, a service id for a breakdown.  <br /></td></tr>
 <tr class="memitem:ab2bcf18c05294173d2ad9f49be7723e0" id="r_ab2bcf18c05294173d2ad9f49be7723e0"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab2bcf18c05294173d2ad9f49be7723e0">startSeconds</a> = 0.0</td></tr>
 <tr class="memitem:a9495252a9befe965eebd64cc8877c78b" id="r_a9495252a9befe965eebd64cc8877c78b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9495252a9befe965eebd64cc8877c78b">endSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a9495252a9befe965eebd64cc8877c78b"><td class="mdescLeft">&#160;</td><td class="mdescRight">End in seconds after the base time; the incident lasts from startSeconds up to it.  <br /></td></tr>
 <tr class="memitem:a9231d2dc4268b04d496091a0b1a87745" id="r_a9231d2dc4268b04d496091a0b1a87745"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9231d2dc4268b04d496091a0b1a87745">hasOccurrence</a> = false</td></tr>
+<tr class="memdesc:a9231d2dc4268b04d496091a0b1a87745"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when occurrence is given. An occurrence other than 1 also counts; otherwise every occurrence is targeted.  <br /></td></tr>
 <tr class="memitem:ad435ea1b65fef9f4c13b03682777d629" id="r_ad435ea1b65fef9f4c13b03682777d629"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ad435ea1b65fef9f4c13b03682777d629">occurrence</a> = 1</td></tr>
+<tr class="memdesc:ad435ea1b65fef9f4c13b03682777d629"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrence of the target service, counted from 1.  <br /></td></tr>
 <tr class="memitem:a8d35b8370e2480f014a3babc71ea2153" id="r_a8d35b8370e2480f014a3babc71ea2153"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8d35b8370e2480f014a3babc71ea2153">hasReducedSpeed</a> = false</td></tr>
 <tr class="memitem:a41ea8d740189ca4edc10d24e8065bf6c" id="r_a41ea8d740189ca4edc10d24e8065bf6c"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a41ea8d740189ca4edc10d24e8065bf6c">reducedSpeedKmh</a> = 0.0</td></tr>
+<tr class="memdesc:a41ea8d740189ca4edc10d24e8065bf6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed cap in km/h during a breakdown, instead of a hold. Without an end it lasts to the route end.  <br /></td></tr>
 <tr class="memitem:ae7b1e0101cd6893fbdffe1768f3ca4ad" id="r_ae7b1e0101cd6893fbdffe1768f3ca4ad"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae7b1e0101cd6893fbdffe1768f3ca4ad">terminateAtDestination</a> = false</td></tr>
+<tr class="memdesc:ae7b1e0101cd6893fbdffe1768f3ca4ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the train is to end its run at its route end.  <br /></td></tr>
 <tr class="memitem:a5c9b3145836f37e71cd50207b703d483" id="r_a5c9b3145836f37e71cd50207b703d483"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5c9b3145836f37e71cd50207b703d483">hasEndSeconds</a> = false</td></tr>
+<tr class="memdesc:a5c9b3145836f37e71cd50207b703d483"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when end_seconds is given. A nonzero endSeconds also counts as an end.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>An incident of a scenario. Times are seconds after the base time of the scene. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a9495252a9befe965eebd64cc8877c78b" name="a9495252a9befe965eebd64cc8877c78b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9495252a9befe965eebd64cc8877c78b">&#9670;&#160;</a></span>endSeconds</h2>
 
@@ -141,6 +154,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>End in seconds after the base time; the incident lasts from startSeconds up to it. </p>
 
 </div>
 </div>
@@ -156,6 +171,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when end_seconds is given. A nonzero endSeconds also counts as an end. </p>
+
 </div>
 </div>
 <a id="a9231d2dc4268b04d496091a0b1a87745" name="a9231d2dc4268b04d496091a0b1a87745"></a>
@@ -170,6 +187,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when occurrence is given. An occurrence other than 1 also counts; otherwise every occurrence is targeted. </p>
+
 </div>
 </div>
 <a id="a8d35b8370e2480f014a3babc71ea2153" name="a8d35b8370e2480f014a3babc71ea2153"></a>
@@ -183,6 +202,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when reduced_speed_kmh is given. A nonzero reducedSpeedKmh also counts. </p>
 
 </div>
 </div>
@@ -198,6 +218,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique id of the incident. </p>
+
 </div>
 </div>
 <a id="ad435ea1b65fef9f4c13b03682777d629" name="ad435ea1b65fef9f4c13b03682777d629"></a>
@@ -211,6 +233,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The occurrence of the target service, counted from 1. </p>
 
 </div>
 </div>
@@ -226,6 +250,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Speed cap in km/h during a breakdown, instead of a hold. Without an end it lasts to the route end. </p>
+
 </div>
 </div>
 <a id="ab2bcf18c05294173d2ad9f49be7723e0" name="ab2bcf18c05294173d2ad9f49be7723e0"></a>
@@ -239,6 +265,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Start in seconds after the base time. </p>
 
 </div>
 </div>
@@ -254,6 +281,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>A signal id or section reference for a signal failure, a service id for a breakdown. </p>
+
 </div>
 </div>
 <a id="ae7b1e0101cd6893fbdffe1768f3ca4ad" name="ae7b1e0101cd6893fbdffe1768f3ca4ad"></a>
@@ -268,6 +297,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the train is to end its run at its route end. </p>
+
 </div>
 </div>
 <a id="ae80276f3ea8302ec9be5986f9d699134" name="ae80276f3ea8302ec9be5986f9d699134"></a>
@@ -281,6 +312,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>"signal_failure" or "train_breakdown". </p>
 
 </div>
 </div>

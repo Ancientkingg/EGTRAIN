@@ -134,19 +134,24 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SceneMigrationStep" id="r_SceneMigrationStep"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_migration_step.html">SceneMigrationStep</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One step that upgrades a staged copy of a scene from one version to a higher one.  <a href="struct_scene_migration_step.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneMigrationRegistry" id="r_SceneMigrationRegistry"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The migration steps a migration may chain.  <a href="class_scene_migration_registry.html#details">More...</a><br /></td></tr>
 <tr class="memitem:SceneMigrationResult" id="r_SceneMigrationResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scene_migration_result.html">SceneMigrationResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of migrateSceneCopy.  <a href="struct_scene_migration_result.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:a21ae7eeb465e1f66e0420c7434dcb479" id="r_a21ae7eeb465e1f66e0420c7434dcb479"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a21ae7eeb465e1f66e0420c7434dcb479">SceneMigrationStepKind</a> { <a class="el" href="#a21ae7eeb465e1f66e0420c7434dcb479a7146a60667b422e69fd050fe1df6859a">Schema</a>
 , <a class="el" href="#a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8">Bundle</a>
  }</td></tr>
+<tr class="memdesc:a21ae7eeb465e1f66e0420c7434dcb479"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a migration step upgrades.  <a href="#a21ae7eeb465e1f66e0420c7434dcb479">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a34c152459f18cd16c84e714e1fbb3385" id="r_a34c152459f18cd16c84e714e1fbb3385"><td class="memItemLeft">const <a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a34c152459f18cd16c84e714e1fbb3385">productionSceneMigrationRegistry</a> ()</td></tr>
 <tr class="memitem:ac1981c9f5875eb133e6ee43f3e1adc99" id="r_ac1981c9f5875eb133e6ee43f3e1adc99"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac1981c9f5875eb133e6ee43f3e1adc99">sceneMigrationPathAvailable</a> (const <a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a> &amp;registry, <a class="el" href="#a21ae7eeb465e1f66e0420c7434dcb479">SceneMigrationStepKind</a> kind, int fromVersion, int toVersion)</td></tr>
+<tr class="memdesc:ac1981c9f5875eb133e6ee43f3e1adc99"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when steps of this kind chain from fromVersion up to toVersion, which must be higher.  <br /></td></tr>
 <tr class="memitem:afc43811d3be9e997918ede5ad89bbf6a" id="r_afc43811d3be9e997918ede5ad89bbf6a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc43811d3be9e997918ede5ad89bbf6a">applySceneMigrationChain</a> (const <a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a> &amp;registry, <a class="el" href="#a21ae7eeb465e1f66e0420c7434dcb479">SceneMigrationStepKind</a> kind, int fromVersion, int toVersion, const std::filesystem::path &amp;stagedScene, std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:a71cd7e83531cde2a830d47121432cfef" id="r_a71cd7e83531cde2a830d47121432cfef"><td class="memItemLeft"><a class="el" href="struct_scene_migration_result.html">SceneMigrationResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a71cd7e83531cde2a830d47121432cfef">migrateSceneCopy</a> (const std::string &amp;sourcePath, const std::string &amp;destinationPath, const <a class="el" href="class_scene_migration_registry.html">SceneMigrationRegistry</a> &amp;registry=<a class="el" href="#a34c152459f18cd16c84e714e1fbb3385">productionSceneMigrationRegistry</a>())</td></tr>
 </table>
@@ -170,9 +175,13 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>What a migration step upgrades. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a21ae7eeb465e1f66e0420c7434dcb479a7146a60667b422e69fd050fe1df6859a" name="a21ae7eeb465e1f66e0420c7434dcb479a7146a60667b422e69fd050fe1df6859a"></a>Schema&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8" name="a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a21ae7eeb465e1f66e0420c7434dcb479a7146a60667b422e69fd050fe1df6859a" name="a21ae7eeb465e1f66e0420c7434dcb479a7146a60667b422e69fd050fe1df6859a"></a>Schema&#160;</td><td class="fielddoc"><p>The schema_version of the scene files. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8" name="a21ae7eeb465e1f66e0420c7434dcb479a94c51f19c37f96ed231f5a0ae512b2a8"></a>Bundle&#160;</td><td class="fielddoc"><p>The bundle_version of an .egscene layout. </p>
+</td></tr>
 </table>
 
 </div>
@@ -216,6 +225,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Runs the chain of steps of this kind from fromVersion to toVersion on the staged scene directory. Equal versions do nothing. Returns false, with a diagnostic, for a downgrade, a missing path or a failed step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -247,6 +257,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Upgrades a copy of an older scene directory or bundle at sourcePath and writes it to destinationPath, as a bundle when that path ends in .egscene. The source is not changed. The copy is written only when the upgraded scene loads and validates without errors. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -269,6 +280,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The shipped registry. It is empty until a product migration is reviewed and registered. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -305,6 +317,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when steps of this kind chain from fromVersion up to toVersion, which must be higher. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

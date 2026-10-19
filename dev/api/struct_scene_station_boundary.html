@@ -118,11 +118,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0746ad04d75d8273d981198416d87f13" id="r_a0746ad04d75d8273d981198416d87f13"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a0746ad04d75d8273d981198416d87f13">entranceBlock</a></td></tr>
+<tr class="memdesc:a0746ad04d75d8273d981198416d87f13"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_section.html">Section</a> reference of the entrance section.  <br /></td></tr>
 <tr class="memitem:a35dfa18af8b3c851ab20f042aaac9f6b" id="r_a35dfa18af8b3c851ab20f042aaac9f6b"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a35dfa18af8b3c851ab20f042aaac9f6b">hasExitBlock</a> = false</td></tr>
+<tr class="memdesc:a35dfa18af8b3c851ab20f042aaac9f6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when exit_block is given.  <br /></td></tr>
 <tr class="memitem:a88cfad991732106c76978421e52c97a9" id="r_a88cfad991732106c76978421e52c97a9"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a88cfad991732106c76978421e52c97a9">exitBlock</a></td></tr>
 <tr class="memitem:a4796479a409d59680374556b74d3b543" id="r_a4796479a409d59680374556b74d3b543"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a4796479a409d59680374556b74d3b543">direction</a> = false</td></tr>
+<tr class="memdesc:a4796479a409d59680374556b74d3b543"><td class="mdescLeft">&#160;</td><td class="mdescRight">The routes it applies to: true for routes driven in reverse, false for routes driven forward.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The entrance of a station area. For a train that approaches it on a route of the given direction, the entrance is held occupied while a section after it, up to the exit, is occupied. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a4796479a409d59680374556b74d3b543" name="a4796479a409d59680374556b74d3b543"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4796479a409d59680374556b74d3b543">&#9670;&#160;</a></span>direction</h2>
 
@@ -134,6 +139,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The routes it applies to: true for routes driven in reverse, false for routes driven forward. </p>
 
 </div>
 </div>
@@ -149,6 +156,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_section.html">Section</a> reference of the entrance section. </p>
+
 </div>
 </div>
 <a id="a88cfad991732106c76978421e52c97a9" name="a88cfad991732106c76978421e52c97a9"></a>
@@ -162,6 +171,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="class_section.html">Section</a> reference of the last section checked; without it, to the route end. </p>
 
 </div>
 </div>
@@ -176,6 +186,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when exit_block is given. </p>
 
 </div>
 </div>

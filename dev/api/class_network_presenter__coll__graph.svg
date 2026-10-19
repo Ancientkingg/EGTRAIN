@@ -131,7 +131,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="struct_track_preview_result.html" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="struct_track_preview_result.html" target="_top" xlink:title="What the network preview draws of a scene.">
 <polygon fill="white" stroke="#666666" points="483,-91 371,-91 371,-72 483,-72 483,-91"/>
 <text text-anchor="middle" x="427" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">TrackPreviewResult</text>
 </a>

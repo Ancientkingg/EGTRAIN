@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,185,268,164,269,169,166,191"/>
 <area shape="rect" id="Node000003" href="$class_incident_panel.html#a7d2279576ce8ac1a108dfe82c00cef19" title=" " alt="" coords="264,188,427,213"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,198,250,198,250,203,199,203"/>
-<area shape="rect" id="Node000014" href="$_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" title=" " alt="" coords="260,261,431,287"/>
+<area shape="rect" id="Node000014" href="$_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" title="An incident id that is free across all scenarios." alt="" coords="260,261,431,287"/>
 <area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="146,211,290,255,288,260,144,216"/>
 <area shape="rect" id="Node000004" href="$class_incident_panel.html#a27864144425ae1421eed85bf89b78b99" title=" " alt="" coords="492,188,693,213"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="427,198,478,198,478,203,427,203"/>

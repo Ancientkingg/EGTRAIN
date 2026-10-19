@@ -113,16 +113,25 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_staged_
 </div><!--header-->
 <div class="contents">
 
+<p>The outcome of publishStagedDirectory.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_staged_directory_8h_source.html">scene/StagedDirectory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a78b4c5b62205dadb12c214bf0608a622" id="r_a78b4c5b62205dadb12c214bf0608a622"><td class="memItemLeft"><a class="el" href="_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421">StagedPublishStep</a>&#160;</td><td class="memItemRight"><a class="el" href="#a78b4c5b62205dadb12c214bf0608a622">step</a> = <a class="el" href="_staged_directory_8h.html#a26c0867a7cae8d3d23a5cd02ea2cc421a9b9d8a976b42e0bd66381797644943d5">StagedPublishStep::Published</a></td></tr>
+<tr class="memdesc:a78b4c5b62205dadb12c214bf0608a622"><td class="mdescLeft">&#160;</td><td class="mdescRight">The step that failed, or Published.  <br /></td></tr>
 <tr class="memitem:aaff9e3815f98c93e5a2f2e4436c3644b" id="r_aaff9e3815f98c93e5a2f2e4436c3644b"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#aaff9e3815f98c93e5a2f2e4436c3644b">error</a> {}</td></tr>
+<tr class="memdesc:aaff9e3815f98c93e5a2f2e4436c3644b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The error of that step.  <br /></td></tr>
 <tr class="memitem:a1589b93c3e59f22a2273b83190c5e5c5" id="r_a1589b93c3e59f22a2273b83190c5e5c5"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a1589b93c3e59f22a2273b83190c5e5c5">restoreError</a> {}</td></tr>
+<tr class="memdesc:a1589b93c3e59f22a2273b83190c5e5c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when Rename failed and the old destination could not be moved back.  <br /></td></tr>
 <tr class="memitem:a7d4556fb3b900684414d60361150a7cf" id="r_a7d4556fb3b900684414d60361150a7cf"><td class="memItemLeft">std::error_code&#160;</td><td class="memItemRight"><a class="el" href="#a7d4556fb3b900684414d60361150a7cf">removeBackupError</a> {}</td></tr>
+<tr class="memdesc:a7d4556fb3b900684414d60361150a7cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set when the directory was published and the backup could not be removed.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The outcome of publishStagedDirectory. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aaff9e3815f98c93e5a2f2e4436c3644b" name="aaff9e3815f98c93e5a2f2e4436c3644b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaff9e3815f98c93e5a2f2e4436c3644b">&#9670;&#160;</a></span>error</h2>
 
@@ -134,6 +143,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The error of that step. </p>
 
 </div>
 </div>
@@ -149,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Set when the directory was published and the backup could not be removed. </p>
+
 </div>
 </div>
 <a id="a1589b93c3e59f22a2273b83190c5e5c5" name="a1589b93c3e59f22a2273b83190c5e5c5"></a>
@@ -163,6 +176,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Set when Rename failed and the old destination could not be moved back. </p>
+
 </div>
 </div>
 <a id="a78b4c5b62205dadb12c214bf0608a622" name="a78b4c5b62205dadb12c214bf0608a622"></a>
@@ -176,6 +191,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The step that failed, or Published. </p>
 
 </div>
 </div>

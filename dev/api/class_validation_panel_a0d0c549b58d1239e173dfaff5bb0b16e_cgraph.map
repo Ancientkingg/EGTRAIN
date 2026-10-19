@@ -1,6 +1,6 @@
 <map id="ValidationPanel::updateStatus" name="ValidationPanel::updateStatus">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,221,80"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title=" " alt="" coords="315,29,450,55"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="315,29,450,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,55,301,47,302,52,222,60"/>
 <area shape="rect" id="Node000003" href="$class_validation_panel.html#a4979c0251d3df4697453be10900c5c51" title=" " alt="" coords="269,79,496,104"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="222,74,256,77,256,83,221,80"/>

@@ -123,10 +123,14 @@ Collaboration diagram for SceneCompositionRuntime:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a9d783023506016fa016832fe27f23286" id="r_a9d783023506016fa016832fe27f23286"><td class="memItemLeft"><a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9d783023506016fa016832fe27f23286">physical</a></td></tr>
+<tr class="memdesc:a9d783023506016fa016832fe27f23286"><td class="mdescLeft">&#160;</td><td class="mdescRight">The combined physical data, as buildSceneComposition makes it.  <br /></td></tr>
 <tr class="memitem:aa7d8599b20db51fa0b6bebbcb9ae127e" id="r_aa7d8599b20db51fa0b6bebbcb9ae127e"><td class="memItemLeft">std::vector&lt; std::array&lt; double, 5 &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa7d8599b20db51fa0b6bebbcb9ae127e">tractionCurve</a></td></tr>
 <tr class="memitem:a9249d2bf1b0fa1dc8bf7e855689adf1f" id="r_a9249d2bf1b0fa1dc8bf7e855689adf1f"><td class="memItemLeft">std::vector&lt; const <a class="el" href="struct_scene_train_unit.html">SceneTrainUnit</a> * &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9249d2bf1b0fa1dc8bf7e855689adf1f">units</a></td></tr>
+<tr class="memdesc:a9249d2bf1b0fa1dc8bf7e855689adf1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The units of the composition in order. They point into the source scene, which owns them.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Runtime-ready composition data shared by the native operations builder and the legacy compatibility exporter. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a9d783023506016fa016832fe27f23286" name="a9d783023506016fa016832fe27f23286"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9d783023506016fa016832fe27f23286">&#9670;&#160;</a></span>physical</h2>
 
@@ -138,6 +142,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The combined physical data, as buildSceneComposition makes it. </p>
 
 </div>
 </div>
@@ -152,6 +158,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The combined curve, in the form of <a class="el" href="struct_scene_train_unit.html#a33cbdfc20ab203e0451865ffd9650530">SceneTrainUnit::tractionCurve</a>. </p>
 
 </div>
 </div>
@@ -166,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The units of the composition in order. They point into the source scene, which owns them. </p>
 
 </div>
 </div>

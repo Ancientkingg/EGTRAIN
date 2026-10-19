@@ -113,20 +113,30 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_p
 </div><!--header-->
 <div class="contents">
 
+<p>The passengers read from a legacy passenger file pair, with an account of every row.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a57d14e59ce8a8855be15fb813b31184a" id="r_a57d14e59ce8a8855be15fb813b31184a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a57d14e59ce8a8855be15fb813b31184a">success</a> () const</td></tr>
+<tr class="memdesc:a57d14e59ce8a8855be15fb813b31184a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when no diagnostic is an error.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:abfeb773c88cf36042103a557c405c475" id="r_abfeb773c88cf36042103a557c405c475"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_passenger.html">ScenePassenger</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abfeb773c88cf36042103a557c405c475">passengers</a></td></tr>
+<tr class="memdesc:abfeb773c88cf36042103a557c405c475"><td class="mdescLeft">&#160;</td><td class="mdescRight">The passengers converted.  <br /></td></tr>
 <tr class="memitem:a07d2a2f167c125488b25aedeb800da7b" id="r_a07d2a2f167c125488b25aedeb800da7b"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_passenger_import_row.html">ScenePassengerImportRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a07d2a2f167c125488b25aedeb800da7b">rows</a></td></tr>
+<tr class="memdesc:a07d2a2f167c125488b25aedeb800da7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">One entry per data row of both files.  <br /></td></tr>
 <tr class="memitem:a16974103541a41257c552f35cf36b1ee" id="r_a16974103541a41257c552f35cf36b1ee"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_import_report_row.html">SceneImportReportRow</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a16974103541a41257c552f35cf36b1ee">report</a></td></tr>
+<tr class="memdesc:a16974103541a41257c552f35cf36b1ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts per file, in the form of import_report.  <br /></td></tr>
 <tr class="memitem:aa380007beb7a580a155b0248415aa19c" id="r_aa380007beb7a580a155b0248415aa19c"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa380007beb7a580a155b0248415aa19c">diagnostics</a></td></tr>
+<tr class="memdesc:aa380007beb7a580a155b0248415aa19c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Problems found.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The passengers read from a legacy passenger file pair, with an account of every row. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a57d14e59ce8a8855be15fb813b31184a" name="a57d14e59ce8a8855be15fb813b31184a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a57d14e59ce8a8855be15fb813b31184a">&#9670;&#160;</a></span>success()</h2>
 
@@ -141,6 +151,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when no diagnostic is an error. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -162,6 +174,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Problems found. </p>
+
 </div>
 </div>
 <a id="abfeb773c88cf36042103a557c405c475" name="abfeb773c88cf36042103a557c405c475"></a>
@@ -175,6 +189,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The passengers converted. </p>
 
 </div>
 </div>
@@ -190,6 +206,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Counts per file, in the form of import_report. </p>
+
 </div>
 </div>
 <a id="a07d2a2f167c125488b25aedeb800da7b" name="a07d2a2f167c125488b25aedeb800da7b"></a>
@@ -203,6 +221,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One entry per data row of both files. </p>
 
 </div>
 </div>

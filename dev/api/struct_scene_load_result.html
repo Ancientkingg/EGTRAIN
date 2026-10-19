@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_l
 </div><!--header-->
 <div class="contents">
 
+<p>The result of loading a scene directory or bundle.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SceneLoadResult:</div>
@@ -123,11 +126,15 @@ Collaboration diagram for SceneLoadResult:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a11593734a799f852018297658cde0cea" id="r_a11593734a799f852018297658cde0cea"><td class="memItemLeft"><a class="el" href="struct_scene_model.html">SceneModel</a>&#160;</td><td class="memItemRight"><a class="el" href="#a11593734a799f852018297658cde0cea">scene</a></td></tr>
+<tr class="memdesc:a11593734a799f852018297658cde0cea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene; partial on structural failure.  <br /></td></tr>
 <tr class="memitem:aecc357b7f51f5a0ef97afb70acda69b3" id="r_aecc357b7f51f5a0ef97afb70acda69b3"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aecc357b7f51f5a0ef97afb70acda69b3">diagnostics</a></td></tr>
 <tr class="memitem:a66f645646cbee7a8ec7c033bc0fa0bc0" id="r_a66f645646cbee7a8ec7c033bc0fa0bc0"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a66f645646cbee7a8ec7c033bc0fa0bc0">inputSnapshot</a></td></tr>
 <tr class="memitem:a6ab74fb5d3e94dba81c5387db5013ffe" id="r_a6ab74fb5d3e94dba81c5387db5013ffe"><td class="memItemLeft">std::optional&lt; int &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a6ab74fb5d3e94dba81c5387db5013ffe">bundleVersion</a></td></tr>
+<tr class="memdesc:a6ab74fb5d3e94dba81c5387db5013ffe"><td class="mdescLeft">&#160;</td><td class="mdescRight">bundle_version of a bundle; empty for a directory.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The result of loading a scene directory or bundle. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a6ab74fb5d3e94dba81c5387db5013ffe" name="a6ab74fb5d3e94dba81c5387db5013ffe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6ab74fb5d3e94dba81c5387db5013ffe">&#9670;&#160;</a></span>bundleVersion</h2>
 
@@ -139,6 +146,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>bundle_version of a bundle; empty for a directory. </p>
 
 </div>
 </div>
@@ -153,6 +162,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Problems found while loading. </p>
 
 </div>
 </div>
@@ -167,6 +177,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The bytes read: for a directory its scene files as buildSceneDirectorySnapshot encodes them, for a bundle the bundle file. </p>
 
 </div>
 </div>
@@ -181,6 +192,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scene; partial on structural failure. </p>
 
 </div>
 </div>

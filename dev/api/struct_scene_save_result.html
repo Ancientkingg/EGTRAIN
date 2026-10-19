@@ -113,20 +113,28 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>The result of writing a scene directory, a bundle or a scenario file.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_writer_8h_source.html">scene/SceneWriter.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a72cff264d8caa502733c0148ccba6f32" id="r_a72cff264d8caa502733c0148ccba6f32"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a72cff264d8caa502733c0148ccba6f32">success</a> () const</td></tr>
+<tr class="memdesc:a72cff264d8caa502733c0148ccba6f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when wroteAll is set and no diagnostic is an error.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a958e74be4b43572b8534e6b68e58904a" id="r_a958e74be4b43572b8534e6b68e58904a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a958e74be4b43572b8534e6b68e58904a">wroteAll</a> = false</td></tr>
 <tr class="memitem:add6b405b8e071f2f6778a324ab64cb87" id="r_add6b405b8e071f2f6778a324ab64cb87"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#add6b405b8e071f2f6778a324ab64cb87">writeAttempted</a> = false</td></tr>
+<tr class="memdesc:add6b405b8e071f2f6778a324ab64cb87"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once the filesystem was changed or a change was tried, private staging included.  <br /></td></tr>
 <tr class="memitem:adfdf1d833da7aaedc4072d2f25208a0f" id="r_adfdf1d833da7aaedc4072d2f25208a0f"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#adfdf1d833da7aaedc4072d2f25208a0f">diagnostics</a></td></tr>
 <tr class="memitem:a52d9b4253c3fad7cd38fecdb0d70e7f8" id="r_a52d9b4253c3fad7cd38fecdb0d70e7f8"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a52d9b4253c3fad7cd38fecdb0d70e7f8">inputSnapshot</a></td></tr>
+<tr class="memdesc:a52d9b4253c3fad7cd38fecdb0d70e7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The bytes written, in the form of <a class="el" href="struct_scene_load_result.html#a66f645646cbee7a8ec7c033bc0fa0bc0">SceneLoadResult::inputSnapshot</a>; empty unless the write succeeded.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The result of writing a scene directory, a bundle or a scenario file. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a72cff264d8caa502733c0148ccba6f32" name="a72cff264d8caa502733c0148ccba6f32"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a72cff264d8caa502733c0148ccba6f32">&#9670;&#160;</a></span>success()</h2>
 
@@ -141,6 +149,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when wroteAll is set and no diagnostic is an error. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -161,6 +171,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Problems found while writing. </p>
 
 </div>
 </div>
@@ -176,6 +187,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The bytes written, in the form of <a class="el" href="struct_scene_load_result.html#a66f645646cbee7a8ec7c033bc0fa0bc0">SceneLoadResult::inputSnapshot</a>; empty unless the write succeeded. </p>
+
 </div>
 </div>
 <a id="add6b405b8e071f2f6778a324ab64cb87" name="add6b405b8e071f2f6778a324ab64cb87"></a>
@@ -190,6 +203,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True once the filesystem was changed or a change was tried, private staging included. </p>
+
 </div>
 </div>
 <a id="a958e74be4b43572b8534e6b68e58904a" name="a958e74be4b43572b8534e6b68e58904a"></a>
@@ -203,6 +218,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when every file was written and published. </p>
 
 </div>
 </div>

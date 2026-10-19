@@ -1,7 +1,7 @@
 <map id="printDiags" name="printDiags">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,95,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="25,31,20,21,23,11,33,5,50,3,70,6,79,15,75,18,68,11,50,8,35,10,27,15,25,20,30,28"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title=" " alt="" coords="143,29,253,55"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix." alt="" coords="143,29,253,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="95,39,129,39,129,45,95,45"/>
 <area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="173,31,168,21,171,11,181,5,198,3,218,6,227,15,223,18,216,11,198,8,183,10,175,15,173,20,178,28"/>
 <area shape="rect" id="Node000003" href="$_scene_diagnostic_8cpp.html#a8d88ff4b3062ad07eacd7e35c5be6426" title=" " alt="" coords="301,29,412,55"/>

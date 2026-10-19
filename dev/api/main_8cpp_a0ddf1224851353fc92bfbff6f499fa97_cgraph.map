@@ -21,7 +21,7 @@
 <area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="42,1234,48,1161,62,1054,84,948,98,906,116,877,133,864,136,868,120,880,103,908,89,949,67,1055,54,1161,48,1234"/>
 <area shape="rect" id="Node000015" href="$main_8cpp.html#ad67d0fafd84cbab0a316225edcb45757" title=" " alt="" coords="474,605,590,630"/>
 <area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="41,1234,42,1129,49,965,58,880,71,801,90,736,102,711,117,691,160,678,250,660,459,625,460,631,251,665,161,683,120,696,107,713,95,738,77,802,63,880,54,966,47,1129,47,1234"/>
-<area shape="rect" id="Node000016" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title=" " alt="" coords="490,869,573,894"/>
+<area shape="rect" id="Node000016" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="490,869,573,894"/>
 <area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="43,1233,49,1167,63,1073,85,981,99,945,116,921,143,905,181,894,279,880,385,876,476,877,476,882,385,881,279,885,183,899,145,910,120,925,104,947,90,982,68,1074,54,1168,48,1234"/>
 <area shape="rect" id="Node000017" href="$_console_widget_8cpp.html#a3f4089ffb80010e70e820230cd44b6e7" title=" " alt="" coords="158,1074,323,1099"/>
 <area shape="poly" id="edge21_Node000001_Node000017" title=" " alt="" coords="45,1233,53,1206,67,1173,88,1138,117,1109,143,1094,146,1099,120,1113,92,1141,72,1175,58,1208,50,1235"/>
@@ -53,7 +53,7 @@
 <area shape="poly" id="edge88_Node000001_Node000099" title=" " alt="" coords="48,1259,53,1332,66,1440,88,1547,103,1588,120,1616,148,1639,175,1653,202,1659,229,1661,289,1659,324,1661,363,1667,465,1691,464,1696,362,1672,324,1666,289,1665,229,1666,201,1665,173,1658,145,1643,116,1619,98,1590,83,1548,61,1441,48,1333,42,1260"/>
 <area shape="rect" id="Node000100" href="$main_8cpp.html#a35a15b86b10c598868367a9f2c9ead2f" title=" " alt="" coords="157,1901,324,1926"/>
 <area shape="poly" id="edge64_Node000001_Node000100" title=" " alt="" coords="47,1260,48,1372,56,1550,65,1645,79,1732,97,1805,108,1834,120,1856,143,1878,172,1893,169,1898,140,1882,116,1859,103,1836,92,1807,73,1733,60,1645,51,1551,43,1372,41,1260"/>
-<area shape="rect" id="Node000101" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title=" " alt="" coords="476,1863,587,1889"/>
+<area shape="rect" id="Node000101" href="$_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix." alt="" coords="476,1863,587,1889"/>
 <area shape="poly" id="edge101_Node000001_Node000101" title=" " alt="" coords="47,1259,46,1367,53,1534,62,1622,75,1702,94,1768,106,1793,120,1811,136,1820,167,1828,258,1844,463,1868,463,1873,258,1850,166,1834,134,1825,117,1815,102,1796,89,1770,70,1704,56,1623,48,1535,41,1367,41,1259"/>
 <area shape="rect" id="Node000103" href="$_scene_compatibility_8cpp.html#ac1955238f3fae287668574b442b6b074" title=" " alt="" coords="147,1974,334,1999"/>
 <area shape="poly" id="edge68_Node000001_Node000103" title=" " alt="" coords="48,1260,55,1396,70,1611,92,1820,106,1895,120,1936,139,1954,162,1967,160,1971,136,1958,116,1939,101,1896,87,1821,65,1612,50,1396,42,1260"/>
@@ -110,7 +110,7 @@
 <area shape="poly" id="edge44_Node000033_Node000033" title=" " alt="" coords="208,1337,201,1327,204,1317,218,1311,240,1309,267,1312,279,1321,275,1325,265,1317,240,1314,219,1316,208,1321,206,1326,212,1334"/>
 <area shape="rect" id="Node000034" href="$_scene_model_8cpp.html#aa2c6c115f657599ea4028c2b7a4bcbca" title=" " alt="" coords="781,1361,870,1386"/>
 <area shape="poly" id="edge36_Node000033_Node000034" title=" " alt="" coords="299,1348,767,1368,767,1374,299,1353"/>
-<area shape="rect" id="Node000050" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="998,1361,1110,1386"/>
+<area shape="rect" id="Node000050" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="998,1361,1110,1386"/>
 <area shape="poly" id="edge45_Node000033_Node000050" title=" " alt="" coords="299,1334,419,1315,581,1299,672,1296,766,1297,860,1305,951,1321,989,1334,1022,1351,1020,1356,987,1339,950,1327,859,1311,766,1303,672,1301,582,1304,419,1320,299,1339"/>
 <area shape="rect" id="Node000054" href="$_scene_bundle_8cpp.html#a36c60af5fda676bf6e4e405e9e9d4cc1" title=" " alt="" coords="464,1411,599,1437"/>
 <area shape="poly" id="edge40_Node000033_Node000054" title=" " alt="" coords="300,1356,363,1369,481,1404,479,1410,362,1375,298,1361"/>

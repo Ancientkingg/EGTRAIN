@@ -23,13 +23,13 @@
 <area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="510,178,501,168,506,158,522,152,549,149,582,153,595,163,592,167,580,158,549,155,523,157,509,162,507,167,514,174"/>
 <area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="510,251,501,241,506,231,522,225,549,223,582,227,595,236,592,240,580,231,549,228,523,230,509,235,507,240,514,247"/>
 <area shape="poly" id="edge17_Node000007_Node000007" title=" " alt="" coords="510,324,501,314,506,304,522,298,549,296,582,300,595,309,592,314,580,305,549,301,523,303,509,308,507,314,514,321"/>
-<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title=" " alt="" coords="693,319,884,344"/>
+<area shape="rect" id="Node000008" href="$_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" title="The station visits of the route, building the section inventory first." alt="" coords="693,319,884,344"/>
 <area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="632,331,679,330,679,336,632,337"/>
 <area shape="poly" id="edge12_Node000008_Node000008" title=" " alt="" coords="750,320,741,310,746,300,762,294,789,292,822,296,835,305,832,310,820,301,789,297,763,299,749,304,747,310,754,317"/>
 <area shape="rect" id="Node000009" href="$_section_inventory_8cpp.html#a0a493a67878c96b3c90d791a1fa68552" title=" " alt="" coords="932,319,1135,344"/>
 <area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="884,329,918,329,918,334,884,334"/>
 <area shape="poly" id="edge14_Node000009_Node000009" title=" " alt="" coords="994,320,985,310,990,300,1006,294,1033,292,1068,296,1077,301,1081,306,1077,309,1074,305,1066,301,1033,297,1007,299,993,304,991,310,998,317"/>
-<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="1183,319,1407,344"/>
+<area shape="rect" id="Node000010" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1183,319,1407,344"/>
 <area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="1135,329,1169,329,1169,334,1135,334"/>
 <area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="1252,320,1243,310,1248,300,1265,294,1295,292,1332,296,1342,301,1346,307,1341,310,1339,305,1331,301,1295,297,1267,299,1252,304,1249,310,1256,317"/>
 <area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="510,398,501,388,506,378,522,372,549,369,582,373,595,383,592,387,580,378,549,375,523,377,509,382,507,387,514,394"/>

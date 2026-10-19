@@ -42,7 +42,7 @@
 <area shape="rect" id="Node000015" href="$class_station_overlay_item.html#abafa8cc89d7c8f0520ab6c33a291a1bb" title=" " alt="" coords="903,291,1053,331"/>
 <area shape="poly" id="edge18_Node000011_Node000015" title=" " alt="" coords="791,331,890,319,890,324,791,336"/>
 <area shape="poly" id="edge21_Node000016_Node000016" title=" " alt="" coords="373,445,362,435,368,425,387,419,419,417,461,421,473,426,476,432,471,435,469,430,460,426,419,422,388,424,371,429,368,434,376,441"/>
-<area shape="rect" id="Node000017" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title=" " alt="" coords="618,475,806,501"/>
+<area shape="rect" id="Node000017" href="$_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" title="The point of the line at the node. Returns false when the line has none." alt="" coords="618,475,806,501"/>
 <area shape="poly" id="edge22_Node000016_Node000017" title=" " alt="" coords="497,462,605,474,604,479,497,467"/>
 <area shape="poly" id="edge23_Node000017_Node000017" title=" " alt="" coords="669,477,660,467,665,457,683,451,712,449,750,453,760,458,764,464,759,466,757,462,748,458,712,454,684,456,668,461,665,466,673,473"/>
 <area shape="poly" id="edge25_Node000018_Node000018" title=" " alt="" coords="373,535,362,524,368,514,387,508,419,506,461,510,473,515,476,522,471,524,469,519,460,515,419,511,388,513,371,518,368,524,376,531"/>

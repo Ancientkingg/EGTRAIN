@@ -118,23 +118,39 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_scene_hi
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad36b6025595e942629a3972f9bf64ec6" id="r_ad36b6025595e942629a3972f9bf64ec6"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad36b6025595e942629a3972f9bf64ec6">SceneHistory</a> (<a class="el" href="struct_scene_history_limits.html">SceneHistoryLimits</a> limits={})</td></tr>
+<tr class="memdesc:ad36b6025595e942629a3972f9bf64ec6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A history with an empty scene as its root and these limits.  <br /></td></tr>
 <tr class="memitem:a91d087a4d05a0e6beafb4b0975364690" id="r_a91d087a4d05a0e6beafb4b0975364690"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a91d087a4d05a0e6beafb4b0975364690">reset</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;root, bool saved=false)</td></tr>
 <tr class="memitem:ad3e998b2aa300b3fb7a1a011c19805e6" id="r_ad3e998b2aa300b3fb7a1a011c19805e6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ad3e998b2aa300b3fb7a1a011c19805e6">record</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;after, std::set&lt; std::string &gt; modifiedScenarioIds={})</td></tr>
 <tr class="memitem:a003b55c3ebb496d09cd76f6f1ee51441" id="r_a003b55c3ebb496d09cd76f6f1ee51441"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a003b55c3ebb496d09cd76f6f1ee51441">canUndo</a> () const</td></tr>
+<tr class="memdesc:a003b55c3ebb496d09cd76f6f1ee51441"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when there is an entry before the position.  <br /></td></tr>
 <tr class="memitem:ad3c3ffece529b010fe4336271b3f0b39" id="r_ad3c3ffece529b010fe4336271b3f0b39"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad3c3ffece529b010fe4336271b3f0b39">canRedo</a> () const</td></tr>
 <tr class="memitem:ad8ec3c57c30b3f489378a764d7bea0bd" id="r_ad8ec3c57c30b3f489378a764d7bea0bd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad8ec3c57c30b3f489378a764d7bea0bd">undoLabel</a> () const</td></tr>
+<tr class="memdesc:ad8ec3c57c30b3f489378a764d7bea0bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the edit that Undo reverts; empty when there is none.  <br /></td></tr>
 <tr class="memitem:a4a9c1e0197a7165987271150aa189825" id="r_a4a9c1e0197a7165987271150aa189825"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4a9c1e0197a7165987271150aa189825">redoLabel</a> () const</td></tr>
+<tr class="memdesc:a4a9c1e0197a7165987271150aa189825"><td class="mdescLeft">&#160;</td><td class="mdescRight">The label of the edit that Redo repeats; empty when there is none.  <br /></td></tr>
 <tr class="memitem:a1451b2c7a58c259526a0bac550ac72e5" id="r_a1451b2c7a58c259526a0bac550ac72e5"><td class="memItemLeft">const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a1451b2c7a58c259526a0bac550ac72e5">undo</a> ()</td></tr>
 <tr class="memitem:a129d082c58aacf648aec343443934425" id="r_a129d082c58aacf648aec343443934425"><td class="memItemLeft">const <a class="el" href="struct_scene_history_entry.html">SceneHistoryEntry</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a129d082c58aacf648aec343443934425">redo</a> ()</td></tr>
+<tr class="memdesc:a129d082c58aacf648aec343443934425"><td class="mdescLeft">&#160;</td><td class="mdescRight">As <a class="el" href="#a1451b2c7a58c259526a0bac550ac72e5">undo()</a>, but moves one entry forward.  <br /></td></tr>
 <tr class="memitem:a2ae4318a0344c67a5002bed3da043be4" id="r_a2ae4318a0344c67a5002bed3da043be4"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_scene_model.html">SceneModel</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2ae4318a0344c67a5002bed3da043be4">head</a> () const</td></tr>
+<tr class="memdesc:a2ae4318a0344c67a5002bed3da043be4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The live scene.  <br /></td></tr>
 <tr class="memitem:a73adb86d78f9f0fa6a7e0f433e3c0656" id="r_a73adb86d78f9f0fa6a7e0f433e3c0656"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a73adb86d78f9f0fa6a7e0f433e3c0656">markSaved</a> ()</td></tr>
+<tr class="memdesc:a73adb86d78f9f0fa6a7e0f433e3c0656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Marks the live state as saved and clears its modified scenarios.  <br /></td></tr>
 <tr class="memitem:a12ffe5763b84e5ce9ff1285aaafe64f6" id="r_a12ffe5763b84e5ce9ff1285aaafe64f6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a12ffe5763b84e5ce9ff1285aaafe64f6">isAtSavedPoint</a> () const</td></tr>
+<tr class="memdesc:a12ffe5763b84e5ce9ff1285aaafe64f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the position is the saved one.  <br /></td></tr>
 <tr class="memitem:aedeecdfd1db6987cde4b13efdb7dca28" id="r_aedeecdfd1db6987cde4b13efdb7dca28"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aedeecdfd1db6987cde4b13efdb7dca28">undoCount</a> () const</td></tr>
+<tr class="memdesc:aedeecdfd1db6987cde4b13efdb7dca28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries before the position.  <br /></td></tr>
 <tr class="memitem:af9ff460724684b4380238d2af2d5c0d6" id="r_af9ff460724684b4380238d2af2d5c0d6"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#af9ff460724684b4380238d2af2d5c0d6">redoCount</a> () const</td></tr>
+<tr class="memdesc:af9ff460724684b4380238d2af2d5c0d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries after the position.  <br /></td></tr>
 <tr class="memitem:a124029b31793fbd0d1100f0b8f41bd85" id="r_a124029b31793fbd0d1100f0b8f41bd85"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a124029b31793fbd0d1100f0b8f41bd85">bytes</a> () const</td></tr>
+<tr class="memdesc:a124029b31793fbd0d1100f0b8f41bd85"><td class="mdescLeft">&#160;</td><td class="mdescRight">The estimate of all entries, in bytes.  <br /></td></tr>
 <tr class="memitem:aeb95604a81a0c03866d4358311192af0" id="r_aeb95604a81a0c03866d4358311192af0"><td class="memItemLeft">const <a class="el" href="struct_scene_history_limits.html">SceneHistoryLimits</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aeb95604a81a0c03866d4358311192af0">limits</a> () const</td></tr>
+<tr class="memdesc:aeb95604a81a0c03866d4358311192af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The limits of this history.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Undo and Redo as a position in a list of whole-scene snapshots. The entry at the position is the live scene. Recording an edit appends a copy and drops the entries after the position, so an edit after Undo abandons the Redo branch. When either limit is exceeded, the oldest entries are dropped; the entry at the position never is.</p>
+<p>One position can be marked as saved. The scene is clean exactly when the position is the saved one. Dropping the saved entry, by an edit after undoing past it or by a limit, leaves no saved position, and the scene stays dirty until the next save.</p>
+<p>A history always has a root. A new history holds an empty scene as its root until reset. The class has no Qt dependency and is used by one thread at a time; the scenes that it returns are immutable and may be read from other threads. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad36b6025595e942629a3972f9bf64ec6" name="ad36b6025595e942629a3972f9bf64ec6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad36b6025595e942629a3972f9bf64ec6">&#9670;&#160;</a></span>SceneHistory()</h2>
 
@@ -157,6 +173,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>A history with an empty scene as its root and these limits. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -181,6 +199,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The estimate of all entries, in bytes. </p>
+
 </div>
 </div>
 <a id="ad3c3ffece529b010fe4336271b3f0b39" name="ad3c3ffece529b010fe4336271b3f0b39"></a>
@@ -197,6 +217,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when there is an entry after the position. </p>
 
 </div>
 </div>
@@ -215,6 +236,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>True when there is an entry before the position. </p>
+
 </div>
 </div>
 <a id="a2ae4318a0344c67a5002bed3da043be4" name="a2ae4318a0344c67a5002bed3da043be4"></a>
@@ -232,6 +255,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>The live scene. </p>
+
 </div>
 </div>
 <a id="a12ffe5763b84e5ce9ff1285aaafe64f6" name="a12ffe5763b84e5ce9ff1285aaafe64f6"></a>
@@ -248,6 +273,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the position is the saved one. </p>
 
 </div>
 </div>
@@ -274,6 +301,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>The limits of this history. </p>
+
 </div>
 </div>
 <a id="a73adb86d78f9f0fa6a7e0f433e3c0656" name="a73adb86d78f9f0fa6a7e0f433e3c0656"></a>
@@ -290,6 +319,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Marks the live state as saved and clears its modified scenarios. </p>
 
 </div>
 </div>
@@ -311,6 +342,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Appends a copy of the scene after an edit. The label is derived from what the edit added or removed. <span class="tt">modifiedScenarioIds</span> is the set that the live scene has after the edit. </p>
 
 </div>
 </div>
@@ -328,6 +360,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>As <a class="el" href="#a1451b2c7a58c259526a0bac550ac72e5">undo()</a>, but moves one entry forward. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -351,6 +385,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of entries after the position. </p>
+
 </div>
 </div>
 <a id="a4a9c1e0197a7165987271150aa189825" name="a4a9c1e0197a7165987271150aa189825"></a>
@@ -367,6 +403,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The label of the edit that Redo repeats; empty when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -393,6 +431,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts over with <span class="tt">root</span> as the only entry. <span class="tt">saved</span> marks it as the saved state, as for a scene that was just opened; a new scene or a recovered one is not saved. </p>
 
 </div>
 </div>
@@ -410,6 +449,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Moves the position one entry back and returns the entry that is now live, or null when there is no such entry. The pointer is valid until the history is changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -433,6 +473,8 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
+<p>Number of entries before the position. </p>
+
 </div>
 </div>
 <a id="ad8ec3c57c30b3f489378a764d7bea0bd" name="ad8ec3c57c30b3f489378a764d7bea0bd"></a>
@@ -449,6 +491,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The label of the edit that Undo reverts; empty when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

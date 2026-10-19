@@ -1,13 +1,13 @@
 <map id="refreshSavedSceneMetadata" name="refreshSavedSceneMetadata">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,215,55"/>
+<area shape="rect" id="Node000001" title="Sets sourceFiles to the files that a save writes and rebuilds loadedData." alt="" coords="5,29,215,55"/>
 <area shape="poly" id="edge7_Node000001_Node000001" title=" " alt="" coords="69,31,60,21,64,11,81,5,110,3,146,7,156,11,160,17,156,20,153,15,145,12,110,8,82,10,68,15,65,20,72,27"/>
-<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title=" " alt="" coords="263,29,472,55"/>
+<area shape="rect" id="Node000002" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title="Rebuilds loadedData from the model and sourceFiles." alt="" coords="263,29,472,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,39,249,39,249,45,215,45"/>
 <area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="332,31,325,21,329,11,343,5,367,3,397,6,409,15,406,20,395,11,367,8,345,10,333,15,330,20,337,28"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="520,29,644,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="472,39,506,39,506,45,472,45"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="550,31,543,21,547,11,560,5,582,3,609,6,620,15,617,19,607,11,582,8,561,10,550,15,548,20,554,28"/>
-<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title=" " alt="" coords="692,29,863,55"/>
+<area shape="rect" id="Node000004" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="692,29,863,55"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="644,39,678,39,678,45,644,45"/>
 <area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="745,31,738,21,742,11,755,5,777,3,804,6,815,15,812,19,802,11,777,8,757,10,746,15,744,20,749,28"/>
 </map>

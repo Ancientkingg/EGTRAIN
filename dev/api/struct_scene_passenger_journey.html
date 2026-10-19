@@ -113,21 +113,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_p
 </div><!--header-->
 <div class="contents">
 
+<p>A journey of a passenger. Its times are seconds since midnight, not since the base time.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a11e3c97955a1ca87188ded3f2d069d0a" id="r_a11e3c97955a1ca87188ded3f2d069d0a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a11e3c97955a1ca87188ded3f2d069d0a">id</a></td></tr>
+<tr class="memdesc:a11e3c97955a1ca87188ded3f2d069d0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the journey, unique across all passengers.  <br /></td></tr>
 <tr class="memitem:a88783708eef3ceb16e397032a158bc7b" id="r_a88783708eef3ceb16e397032a158bc7b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a88783708eef3ceb16e397032a158bc7b">activity</a></td></tr>
+<tr class="memdesc:a88783708eef3ceb16e397032a158bc7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Activity label; empty when none.  <br /></td></tr>
 <tr class="memitem:a30693fdee0552644b7eaf7a9f8d04cbf" id="r_a30693fdee0552644b7eaf7a9f8d04cbf"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a30693fdee0552644b7eaf7a9f8d04cbf">originStationId</a></td></tr>
+<tr class="memdesc:a30693fdee0552644b7eaf7a9f8d04cbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">First station of the journey.  <br /></td></tr>
 <tr class="memitem:a055eb4d27eb5e16902e7d10398d7eb45" id="r_a055eb4d27eb5e16902e7d10398d7eb45"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a055eb4d27eb5e16902e7d10398d7eb45">destinationStationId</a></td></tr>
+<tr class="memdesc:a055eb4d27eb5e16902e7d10398d7eb45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Last station of the journey.  <br /></td></tr>
 <tr class="memitem:ab8fe6e429fc23fc3a026674e22294734" id="r_ab8fe6e429fc23fc3a026674e22294734"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab8fe6e429fc23fc3a026674e22294734">plannedDepartureStartSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:ab8fe6e429fc23fc3a026674e22294734"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start of the planned departure window, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:a2fe49ae8eeea7813d7953fe46f855903" id="r_a2fe49ae8eeea7813d7953fe46f855903"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2fe49ae8eeea7813d7953fe46f855903">plannedDepartureEndSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a2fe49ae8eeea7813d7953fe46f855903"><td class="mdescLeft">&#160;</td><td class="mdescRight">End of the planned departure window, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:ab2580eb26ba3cae662fc54112ecce2ea" id="r_ab2580eb26ba3cae662fc54112ecce2ea"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ab2580eb26ba3cae662fc54112ecce2ea">plannedArrivalStartSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:ab2580eb26ba3cae662fc54112ecce2ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start of the planned arrival window, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:a93501f7c4c15ff096bdca3f40cbc52d5" id="r_a93501f7c4c15ff096bdca3f40cbc52d5"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a93501f7c4c15ff096bdca3f40cbc52d5">plannedArrivalEndSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a93501f7c4c15ff096bdca3f40cbc52d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">End of the planned arrival window, in seconds since midnight.  <br /></td></tr>
 <tr class="memitem:a4b5cb89dc91f6ac4c90d88ae60827e63" id="r_a4b5cb89dc91f6ac4c90d88ae60827e63"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_passenger_leg.html">ScenePassengerLeg</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a4b5cb89dc91f6ac4c90d88ae60827e63">legs</a></td></tr>
+<tr class="memdesc:a4b5cb89dc91f6ac4c90d88ae60827e63"><td class="mdescLeft">&#160;</td><td class="mdescRight">The legs in order; may be empty.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A journey of a passenger. Its times are seconds since midnight, not since the base time. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a88783708eef3ceb16e397032a158bc7b" name="a88783708eef3ceb16e397032a158bc7b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a88783708eef3ceb16e397032a158bc7b">&#9670;&#160;</a></span>activity</h2>
 
@@ -139,6 +153,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Activity label; empty when none. </p>
 
 </div>
 </div>
@@ -154,6 +170,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Last station of the journey. </p>
+
 </div>
 </div>
 <a id="a11e3c97955a1ca87188ded3f2d069d0a" name="a11e3c97955a1ca87188ded3f2d069d0a"></a>
@@ -167,6 +185,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Id of the journey, unique across all passengers. </p>
 
 </div>
 </div>
@@ -182,6 +202,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The legs in order; may be empty. </p>
+
 </div>
 </div>
 <a id="a30693fdee0552644b7eaf7a9f8d04cbf" name="a30693fdee0552644b7eaf7a9f8d04cbf"></a>
@@ -195,6 +217,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>First station of the journey. </p>
 
 </div>
 </div>
@@ -210,6 +234,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>End of the planned arrival window, in seconds since midnight. </p>
+
 </div>
 </div>
 <a id="ab2580eb26ba3cae662fc54112ecce2ea" name="ab2580eb26ba3cae662fc54112ecce2ea"></a>
@@ -223,6 +249,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Start of the planned arrival window, in seconds since midnight. </p>
 
 </div>
 </div>
@@ -238,6 +266,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>End of the planned departure window, in seconds since midnight. </p>
+
 </div>
 </div>
 <a id="ab8fe6e429fc23fc3a026674e22294734" name="ab8fe6e429fc23fc3a026674e22294734"></a>
@@ -251,6 +281,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Start of the planned departure window, in seconds since midnight. </p>
 
 </div>
 </div>

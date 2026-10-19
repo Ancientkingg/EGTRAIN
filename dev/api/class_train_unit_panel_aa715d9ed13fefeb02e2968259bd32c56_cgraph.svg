@@ -460,7 +460,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_scene_ids_8cpp.html#af917b70dc5917f8e912eb1c3dfd3563b" target="_top" xlink:title="A free train unit id.">
 <polygon fill="white" stroke="#666666" points="553.5,-941 421.5,-941 421.5,-922 553.5,-922 553.5,-941"/>
 <text text-anchor="middle" x="487.5" y="-929" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueTrainUnitId</text>
 </a>
@@ -551,7 +551,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" target="_top" xlink:title="Rewrites the train unit id in the units of compositions.">
 <polygon fill="white" stroke="#666666" points="578,-671 397,-671 397,-652 578,-652 578,-671"/>
 <text text-anchor="middle" x="487.5" y="-659" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteTrainUnitReferences</text>
 </a>
@@ -796,7 +796,7 @@
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000020"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="1001,-843 833,-843 833,-824 1001,-824 1001,-843"/>
 <text text-anchor="middle" x="917" y="-831" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
@@ -823,7 +823,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title="True when more than one section matches the reference as a runtime id or base&#45;block alias.">
 <polygon fill="white" stroke="#666666" points="981,-757.5 853,-757.5 853,-727.5 981,-727.5 981,-757.5"/>
 <text text-anchor="start" x="861" y="-745.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="917" y="-734.5" font-family="Helvetica,sans-Serif" font-size="10.00">::ambiguous</text>
@@ -842,7 +842,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title="The one section with this runtime id; null when none or several have it.">
 <polygon fill="white" stroke="#666666" points="981,-805.5 853,-805.5 853,-775.5 981,-775.5 981,-805.5"/>
 <text text-anchor="start" x="861" y="-793.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="917" y="-782.5" font-family="Helvetica,sans-Serif" font-size="10.00">::exact</text>

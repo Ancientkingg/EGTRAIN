@@ -113,21 +113,34 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_t
 </div><!--header-->
 <div class="contents">
 
+<p>The physical data of a train unit, in the units their names state.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0772ae9f2246a3d96d8206dd392d10b8" id="r_a0772ae9f2246a3d96d8206dd392d10b8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a0772ae9f2246a3d96d8206dd392d10b8">mass_of_traction_unit_kg</a> = 0.0</td></tr>
+<tr class="memdesc:a0772ae9f2246a3d96d8206dd392d10b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mass of the traction unit in kg.  <br /></td></tr>
 <tr class="memitem:a5886fe504ba7e6d4dd78da61e0287da8" id="r_a5886fe504ba7e6d4dd78da61e0287da8"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5886fe504ba7e6d4dd78da61e0287da8">mass_of_a_wagon_kg</a> = 0.0</td></tr>
+<tr class="memdesc:a5886fe504ba7e6d4dd78da61e0287da8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mass of one wagon in kg.  <br /></td></tr>
 <tr class="memitem:a508a656ade78a58cd518ae889d14a366" id="r_a508a656ade78a58cd518ae889d14a366"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a508a656ade78a58cd518ae889d14a366">number_of_wagons</a> = 0.0</td></tr>
+<tr class="memdesc:a508a656ade78a58cd518ae889d14a366"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of wagons.  <br /></td></tr>
 <tr class="memitem:a4b0ba7249032650243c12dc34679ec70" id="r_a4b0ba7249032650243c12dc34679ec70"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a4b0ba7249032650243c12dc34679ec70">max_speed_ms</a> = 0.0</td></tr>
+<tr class="memdesc:a4b0ba7249032650243c12dc34679ec70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum speed in m/s.  <br /></td></tr>
 <tr class="memitem:a3b1a88e0652b9efad5fb01e3888b3283" id="r_a3b1a88e0652b9efad5fb01e3888b3283"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a3b1a88e0652b9efad5fb01e3888b3283">max_deceleration_ms2</a> = 0.0</td></tr>
+<tr class="memdesc:a3b1a88e0652b9efad5fb01e3888b3283"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum braking deceleration in m/s².  <br /></td></tr>
 <tr class="memitem:a9ff9445696e925913f49bbd5e136a9f6" id="r_a9ff9445696e925913f49bbd5e136a9f6"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a9ff9445696e925913f49bbd5e136a9f6">frontal_area_m2</a> = 0.0</td></tr>
 <tr class="memitem:a8e835e93d11d14d0d6f074aac60b6977" id="r_a8e835e93d11d14d0d6f074aac60b6977"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a8e835e93d11d14d0d6f074aac60b6977">resistance_coefficient</a> = 0.0</td></tr>
+<tr class="memdesc:a8e835e93d11d14d0d6f074aac60b6977"><td class="mdescLeft">&#160;</td><td class="mdescRight">Factor of the speed term of the wagon resistance. The simulation multiplies it by the speed in km/h.  <br /></td></tr>
 <tr class="memitem:a19b094f92f5dd3bab2396d21dda8238b" id="r_a19b094f92f5dd3bab2396d21dda8238b"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a19b094f92f5dd3bab2396d21dda8238b">jerk_ms3</a> = 0.0</td></tr>
+<tr class="memdesc:a19b094f92f5dd3bab2396d21dda8238b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rate of change of the braking deceleration in m/s³.  <br /></td></tr>
 <tr class="memitem:ad5d88ab033c191f8918e38a2b255ec63" id="r_ad5d88ab033c191f8918e38a2b255ec63"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ad5d88ab033c191f8918e38a2b255ec63">length_m</a> = 0.0</td></tr>
+<tr class="memdesc:ad5d88ab033c191f8918e38a2b255ec63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the unit in metres.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The physical data of a train unit, in the units their names state. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a9ff9445696e925913f49bbd5e136a9f6" name="a9ff9445696e925913f49bbd5e136a9f6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9ff9445696e925913f49bbd5e136a9f6">&#9670;&#160;</a></span>frontal_area_m2</h2>
 
@@ -139,6 +152,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Frontal area in m², used in the wagon resistance. </p>
 
 </div>
 </div>
@@ -154,6 +168,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Rate of change of the braking deceleration in m/s³. </p>
+
 </div>
 </div>
 <a id="ad5d88ab033c191f8918e38a2b255ec63" name="ad5d88ab033c191f8918e38a2b255ec63"></a>
@@ -167,6 +183,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Length of the unit in metres. </p>
 
 </div>
 </div>
@@ -182,6 +200,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Mass of one wagon in kg. </p>
+
 </div>
 </div>
 <a id="a0772ae9f2246a3d96d8206dd392d10b8" name="a0772ae9f2246a3d96d8206dd392d10b8"></a>
@@ -195,6 +215,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Mass of the traction unit in kg. </p>
 
 </div>
 </div>
@@ -210,6 +232,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Maximum braking deceleration in m/s². </p>
+
 </div>
 </div>
 <a id="a4b0ba7249032650243c12dc34679ec70" name="a4b0ba7249032650243c12dc34679ec70"></a>
@@ -223,6 +247,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Maximum speed in m/s. </p>
 
 </div>
 </div>
@@ -238,6 +264,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of wagons. </p>
+
 </div>
 </div>
 <a id="a8e835e93d11d14d0d6f074aac60b6977" name="a8e835e93d11d14d0d6f074aac60b6977"></a>
@@ -251,6 +279,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Factor of the speed term of the wagon resistance. The simulation multiplies it by the speed in km/h. </p>
 
 </div>
 </div>

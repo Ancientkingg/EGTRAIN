@@ -1,7 +1,7 @@
 <map id="setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations" name="setTrackDetectionSectionBoundariesAndGeoCoordAtSwitchesAndStations">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,261,84"/>
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="78,29,78,19,88,10,106,5,133,3,166,6,184,14,182,19,164,11,133,8,107,10,91,15,83,21,83,29"/>
-<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="309,44,533,69"/>
+<area shape="rect" id="Node000002" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="309,44,533,69"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="261,54,296,54,296,59,261,59"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="375,46,365,36,370,26,389,19,421,17,463,22,474,27,478,33,473,35,471,31,462,27,421,23,390,25,374,30,370,35,379,42"/>
 </map>

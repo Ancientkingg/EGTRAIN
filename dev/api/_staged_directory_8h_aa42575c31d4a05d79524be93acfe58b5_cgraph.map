@@ -1,6 +1,6 @@
 <map id="publishStagedDirectory" name="publishStagedDirectory">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,180,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="56,31,48,21,52,11,67,5,93,3,125,7,137,16,133,20,123,11,93,8,68,10,56,15,53,20,60,27"/>
-<area shape="rect" id="Node000002" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title=" " alt="" coords="228,29,411,55"/>
+<area shape="rect" id="Node000002" href="$struct_staged_directory.html#ad0a5616c02408535475b86fe139e1f77" title="Keeps the directory: the destructor no longer removes it." alt="" coords="228,29,411,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="181,39,214,39,214,45,181,45"/>
 </map>

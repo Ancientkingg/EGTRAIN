@@ -3,7 +3,7 @@
 <area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="74,154,66,144,70,134,86,128,111,125,142,129,154,139,151,143,140,134,111,131,87,133,74,138,71,143,78,150"/>
 <area shape="rect" id="Node000002" href="$_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f" title=" " alt="" coords="264,29,405,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,149,186,108,263,64,278,57,280,62,265,68,189,113,130,154"/>
-<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="279,103,391,128"/>
+<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="279,103,391,128"/>
 <area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="168,149,265,128,266,133,170,155"/>
 <area shape="rect" id="Node000004" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="297,152,372,177"/>
 <area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="216,162,283,162,283,167,216,167"/>

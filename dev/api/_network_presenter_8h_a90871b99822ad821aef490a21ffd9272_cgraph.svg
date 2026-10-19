@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_track_preview_8cpp.html#afffdadc091e55387ebe6a8b6d1c3cc87" target="_top" xlink:title="The point of the line at the node. Returns false when the line has none.">
 <polygon fill="white" stroke="#666666" points="293,-19 152,-19 152,0 293,0 293,-19"/>
 <text text-anchor="middle" x="222.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">trackPreviewPointAtNode</text>
 </a>

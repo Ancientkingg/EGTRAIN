@@ -77,7 +77,7 @@
 <area shape="poly" id="edge42_Node000018_Node000023" title=" " alt="" coords="1011,288,1076,224,1122,185,1172,149,1243,104,1300,72,1361,47,1442,26,1506,12,1558,4,1609,7,1670,26,1702,44,1729,67,1771,116,1767,119,1726,71,1699,48,1668,31,1608,12,1558,9,1507,17,1443,31,1363,52,1302,76,1245,109,1175,154,1126,189,1080,228,1014,291"/>
 <area shape="rect" id="Node000028" href="$class_train.html#a0d15f6d3dc453d6aba319e852f21714e" title=" " alt="" coords="1717,239,1864,264"/>
 <area shape="poly" id="edge43_Node000018_Node000028" title=" " alt="" coords="1126,300,1377,295,1524,287,1669,273,1721,264,1722,270,1670,278,1524,292,1377,300,1126,306"/>
-<area shape="rect" id="Node000034" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="1239,364,1329,390"/>
+<area shape="rect" id="Node000034" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="1239,364,1329,390"/>
 <area shape="poly" id="edge40_Node000018_Node000034" title=" " alt="" coords="1055,312,1126,330,1226,358,1225,363,1125,335,1053,318"/>
 <area shape="rect" id="Node000020" href="$class_train.html#a8845fd02024c04e5f02f9f87e352c57d" title=" " alt="" coords="1453,190,1659,215"/>
 <area shape="poly" id="edge28_Node000019_Node000020" title=" " alt="" coords="1365,182,1440,189,1439,194,1364,187"/>

@@ -113,19 +113,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_a
 </div><!--header-->
 <div class="contents">
 
+<p>The stretch of a track between two nodes, with its geometry and speed limit.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a4ea82e066fc5cb142df89c6a8765b583" id="r_a4ea82e066fc5cb142df89c6a8765b583"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a4ea82e066fc5cb142df89c6a8765b583">id</a></td></tr>
+<tr class="memdesc:a4ea82e066fc5cb142df89c6a8765b583"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the arc.  <br /></td></tr>
 <tr class="memitem:a1c7d8fe14000dd3a37347fd1cc7fcf9d" id="r_a1c7d8fe14000dd3a37347fd1cc7fcf9d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1c7d8fe14000dd3a37347fd1cc7fcf9d">trackId</a></td></tr>
+<tr class="memdesc:a1c7d8fe14000dd3a37347fd1cc7fcf9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The track the arc lies on.  <br /></td></tr>
 <tr class="memitem:a54120fcd4cc2bf4d4c4a0587748b669b" id="r_a54120fcd4cc2bf4d4c4a0587748b669b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a54120fcd4cc2bf4d4c4a0587748b669b">fromNodeId</a></td></tr>
+<tr class="memdesc:a54120fcd4cc2bf4d4c4a0587748b669b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_node.html">Node</a> at the start, in the direction of the track.  <br /></td></tr>
 <tr class="memitem:a2d88b96c9c4f33042ecf7a30fcd2b448" id="r_a2d88b96c9c4f33042ecf7a30fcd2b448"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2d88b96c9c4f33042ecf7a30fcd2b448">toNodeId</a></td></tr>
+<tr class="memdesc:a2d88b96c9c4f33042ecf7a30fcd2b448"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_node.html">Node</a> at the end, in the direction of the track.  <br /></td></tr>
 <tr class="memitem:a41083882cd3d8f6f34fd735a2c19c293" id="r_a41083882cd3d8f6f34fd735a2c19c293"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a41083882cd3d8f6f34fd735a2c19c293">curvatureRadiusM</a> = 0.0</td></tr>
 <tr class="memitem:adfb1e440a94c313c229f2464d4f77835" id="r_adfb1e440a94c313c229f2464d4f77835"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#adfb1e440a94c313c229f2464d4f77835">gradientPercent</a> = 0.0</td></tr>
 <tr class="memitem:a6bea178f940d5b5b550341d20d827f83" id="r_a6bea178f940d5b5b550341d20d827f83"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a6bea178f940d5b5b550341d20d827f83">speedLimitMs</a> = 0.0</td></tr>
+<tr class="memdesc:a6bea178f940d5b5b550341d20d827f83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Speed limit in m/s.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The stretch of a track between two nodes, with its geometry and speed limit. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a41083882cd3d8f6f34fd735a2c19c293" name="a41083882cd3d8f6f34fd735a2c19c293"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a41083882cd3d8f6f34fd735a2c19c293">&#9670;&#160;</a></span>curvatureRadiusM</h2>
 
@@ -137,6 +147,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Radius of curvature in metres; 0 means straight. </p>
 
 </div>
 </div>
@@ -152,6 +163,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_node.html">Node</a> at the start, in the direction of the track. </p>
+
 </div>
 </div>
 <a id="adfb1e440a94c313c229f2464d4f77835" name="adfb1e440a94c313c229f2464d4f77835"></a>
@@ -165,6 +178,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Rise per length, so 0.01 is a 1 % slope, despite the name and the key gradient_percent. The value is stored and simulated unchanged; a route driven against the track direction sees the opposite sign. </p>
 
 </div>
 </div>
@@ -180,6 +194,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique id of the arc. </p>
+
 </div>
 </div>
 <a id="a6bea178f940d5b5b550341d20d827f83" name="a6bea178f940d5b5b550341d20d827f83"></a>
@@ -193,6 +209,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Speed limit in m/s. </p>
 
 </div>
 </div>
@@ -208,6 +226,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_node.html">Node</a> at the end, in the direction of the track. </p>
+
 </div>
 </div>
 <a id="a1c7d8fe14000dd3a37347fd1cc7fcf9d" name="a1c7d8fe14000dd3a37347fd1cc7fcf9d"></a>
@@ -221,6 +241,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The track the arc lies on. </p>
 
 </div>
 </div>

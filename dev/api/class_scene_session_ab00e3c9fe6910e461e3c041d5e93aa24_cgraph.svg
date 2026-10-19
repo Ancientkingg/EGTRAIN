@@ -166,7 +166,7 @@
 <!-- Node64 -->
 <g id="Node000064" class="node">
 <title>Node64</title>
-<g id="a_Node000064"><a xlink:href="struct_scene_migration_result.html#a438101607756f45d1e12fa8ae1a2771e" target="_top" xlink:title=" ">
+<g id="a_Node000064"><a xlink:href="struct_scene_migration_result.html#a438101607756f45d1e12fa8ae1a2771e" target="_top" xlink:title="True when migrated is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="795,-1247.5 672,-1247.5 672,-1217.5 795,-1217.5 795,-1247.5"/>
 <text text-anchor="start" x="680" y="-1235.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneMigrationResult</text>
 <text text-anchor="middle" x="733.5" y="-1224.5" font-family="Helvetica,sans-Serif" font-size="10.00">::success</text>
@@ -239,7 +239,7 @@
 <!-- Node70 -->
 <g id="Node000070" class="node">
 <title>Node70</title>
-<g id="a_Node000070"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title=" ">
+<g id="a_Node000070"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix.">
 <polygon fill="white" stroke="#666666" points="359.5,-209 276.5,-209 276.5,-190 359.5,-190 359.5,-209"/>
 <text text-anchor="middle" x="318" y="-197" font-family="Helvetica,sans-Serif" font-size="10.00">toDisplayText</text>
 </a>
@@ -339,7 +339,7 @@
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000009"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="1166,-1123 1104,-1123 1104,-1104 1166,-1104 1166,-1123"/>
 <text text-anchor="middle" x="1135" y="-1111" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -357,7 +357,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="1177,-640 1093,-640 1093,-621 1177,-621 1177,-640"/>
 <text text-anchor="middle" x="1135" y="-628" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -438,7 +438,7 @@
 <!-- Node59 -->
 <g id="Node000059" class="node">
 <title>Node59</title>
-<g id="a_Node000059"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title=" ">
+<g id="a_Node000059"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title="True when wroteAll is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="806,-1199 661,-1199 661,-1180 806,-1180 806,-1199"/>
 <text text-anchor="middle" x="733.5" y="-1187" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSaveResult::success</text>
 </a>
@@ -456,7 +456,7 @@
 <!-- Node60 -->
 <g id="Node000060" class="node">
 <title>Node60</title>
-<g id="a_Node000060"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title=" ">
+<g id="a_Node000060"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title="Validates the references, ids, values, timetables and incidents of the loaded model.">
 <polygon fill="white" stroke="#666666" points="579.5,-1186 493.5,-1186 493.5,-1167 579.5,-1167 579.5,-1186"/>
 <text text-anchor="middle" x="536.5" y="-1174" font-family="Helvetica,sans-Serif" font-size="10.00">validateScene</text>
 </a>
@@ -691,7 +691,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="1199,-19 1071,-19 1071,0 1199,0 1199,-19"/>
 <text text-anchor="middle" x="1135" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -727,7 +727,7 @@
 <!-- Node27 -->
 <g id="Node000027" class="node">
 <title>Node27</title>
-<g id="a_Node000027"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title=" ">
+<g id="a_Node000027"><a xlink:href="_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" target="_top" xlink:title="Rebuilds loadedData from the model and sourceFiles.">
 <polygon fill="#fff0f0" stroke="red" points="1213.5,-530 1056.5,-530 1056.5,-511 1213.5,-511 1213.5,-530"/>
 <text text-anchor="middle" x="1135" y="-518" font-family="Helvetica,sans-Serif" font-size="10.00">refreshLoadedDataSummary</text>
 </a>

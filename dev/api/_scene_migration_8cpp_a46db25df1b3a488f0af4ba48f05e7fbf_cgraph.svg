@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_migration_8cpp.html#ac1981c9f5875eb133e6ee43f3e1adc99" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_migration_8cpp.html#ac1981c9f5875eb133e6ee43f3e1adc99" target="_top" xlink:title="True when steps of this kind chain from fromVersion up to toVersion, which must be higher.">
 <polygon fill="white" stroke="#666666" points="331,-19 173,-19 173,0 331,0 331,-19"/>
 <text text-anchor="middle" x="252" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneMigrationPathAvailable</text>
 </a>

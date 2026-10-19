@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title="The number of diagnostics of each severity.">
 <polygon fill="white" stroke="#666666" points="352,-74 251,-74 251,-55 352,-55 352,-74"/>
 <text text-anchor="middle" x="301.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">countDiagnostics</text>
 </a>

@@ -1,7 +1,7 @@
 <map id="isValidSignallingLevel" name="isValidSignallingLevel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,55"/>
+<area shape="rect" id="Node000001" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="5,29,169,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,31,52,21,56,11,68,5,87,3,111,6,121,15,118,19,109,11,87,8,69,10,60,15,58,20,63,28"/>
-<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="217,29,308,55"/>
+<area shape="rect" id="Node000002" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="217,29,308,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="169,39,204,39,204,45,169,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="234,31,228,21,231,11,243,5,263,3,287,6,297,15,293,19,284,11,263,8,244,10,235,15,233,20,238,28"/>
 </map>

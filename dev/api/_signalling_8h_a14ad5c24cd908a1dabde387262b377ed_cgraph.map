@@ -30,10 +30,10 @@
 <area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="520,388,597,378,598,383,520,393"/>
 <area shape="poly" id="edge17_Node000009_Node000009" title=" " alt="" coords="376,393,366,382,371,372,390,366,422,364,463,368,474,373,478,380,473,382,471,377,462,373,422,369,391,371,375,376,371,382,380,389"/>
 <area shape="poly" id="edge23_Node000010_Node000010" title=" " alt="" coords="376,466,366,456,371,446,390,439,422,437,463,442,474,447,478,453,473,455,471,451,462,447,422,443,391,445,375,450,371,455,380,462"/>
-<area shape="rect" id="Node000011" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title=" " alt="" coords="627,464,791,489"/>
+<area shape="rect" id="Node000011" href="$_signalling_level_8h.html#a5b63c8badbe1faee2151f54cffa1d4fe" title="Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level." alt="" coords="627,464,791,489"/>
 <area shape="poly" id="edge19_Node000010_Node000011" title=" " alt="" coords="485,474,614,474,614,479,485,479"/>
 <area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="676,465,669,456,673,446,687,440,709,437,737,441,748,450,745,454,735,446,709,443,688,445,677,449,675,455,681,462"/>
-<area shape="rect" id="Node000012" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title=" " alt="" coords="865,464,956,489"/>
+<area shape="rect" id="Node000012" href="$_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" title="The number stored for a level." alt="" coords="865,464,956,489"/>
 <area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="791,474,851,474,851,479,791,479"/>
 <area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="878,465,871,456,874,446,888,440,911,437,939,441,950,450,946,454,936,446,911,443,889,445,878,449,876,455,882,462"/>
 <area shape="poly" id="edge25_Node000013_Node000013" title=" " alt="" coords="376,539,366,529,371,519,390,513,422,511,463,515,474,520,478,526,473,529,471,524,462,520,422,516,391,518,375,523,371,528,380,535"/>

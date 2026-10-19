@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_d
 </div><!--header-->
 <div class="contents">
 
+<p>One finding of loading, validation, saving, import, export or migration. Empty text fields do not apply.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_diagnostic_8h_source.html">scene/SceneDiagnostic.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
@@ -120,14 +123,23 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ad664986323731525603765aee6a6bab6" id="r_ad664986323731525603765aee6a6bab6"><td class="memItemLeft"><a class="el" href="_scene_diagnostic_8h.html#ad54a3c52947445d98edbf5629d80a29d">SceneSeverity</a>&#160;</td><td class="memItemRight"><a class="el" href="#ad664986323731525603765aee6a6bab6">severity</a> = <a class="el" href="_scene_diagnostic_8h.html#ad54a3c52947445d98edbf5629d80a29da902b0d55fddef6f8d651fe1035b7d4bd">SceneSeverity::Error</a></td></tr>
 <tr class="memitem:af71ca1f3e7bd46b63f2f728111a5e0c1" id="r_af71ca1f3e7bd46b63f2f728111a5e0c1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af71ca1f3e7bd46b63f2f728111a5e0c1">code</a></td></tr>
 <tr class="memitem:aba9bf404d65ffc4fd96549a9ebd7bae8" id="r_aba9bf404d65ffc4fd96549a9ebd7bae8"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aba9bf404d65ffc4fd96549a9ebd7bae8">message</a></td></tr>
+<tr class="memdesc:aba9bf404d65ffc4fd96549a9ebd7bae8"><td class="mdescLeft">&#160;</td><td class="mdescRight">One sentence that names the item.  <br /></td></tr>
 <tr class="memitem:a41e83da5cb7b94283049faec82185af3" id="r_a41e83da5cb7b94283049faec82185af3"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a41e83da5cb7b94283049faec82185af3">file</a></td></tr>
+<tr class="memdesc:a41e83da5cb7b94283049faec82185af3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scene file it concerns, such as "services.json"; empty if scene-wide.  <br /></td></tr>
 <tr class="memitem:a348e9a26f09de9a1085ab7ae475197ee" id="r_a348e9a26f09de9a1085ab7ae475197ee"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a348e9a26f09de9a1085ab7ae475197ee">itemType</a></td></tr>
+<tr class="memdesc:a348e9a26f09de9a1085ab7ae475197ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kind of item: "service", "station", "stop", "incident" and so on; empty if none.  <br /></td></tr>
 <tr class="memitem:a64c53ec3aa3d61dd220239c8080d7066" id="r_a64c53ec3aa3d61dd220239c8080d7066"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a64c53ec3aa3d61dd220239c8080d7066">itemId</a></td></tr>
+<tr class="memdesc:a64c53ec3aa3d61dd220239c8080d7066"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the affected item; empty if none.  <br /></td></tr>
 <tr class="memitem:a2a48613f3617b8113488ae7b6193bb4a" id="r_a2a48613f3617b8113488ae7b6193bb4a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2a48613f3617b8113488ae7b6193bb4a">path</a></td></tr>
+<tr class="memdesc:a2a48613f3617b8113488ae7b6193bb4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place inside the file, such as "services[svc.a1].stops[2].departure_seconds"; empty if none.  <br /></td></tr>
 <tr class="memitem:a613790f4ced425f6ec765b16e428884a" id="r_a613790f4ced425f6ec765b16e428884a"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a613790f4ced425f6ec765b16e428884a">relatedId</a></td></tr>
+<tr class="memdesc:a613790f4ced425f6ec765b16e428884a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Other item involved, such as the unresolved target id or the duplicate; empty if none.  <br /></td></tr>
 <tr class="memitem:ad0c2388990097e626ecd2d6b79db5597" id="r_ad0c2388990097e626ecd2d6b79db5597"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad0c2388990097e626ecd2d6b79db5597">suggestedFix</a></td></tr>
+<tr class="memdesc:ad0c2388990097e626ecd2d6b79db5597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Smallest fix; empty if unknown.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One finding of loading, validation, saving, import, export or migration. Empty text fields do not apply. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="af71ca1f3e7bd46b63f2f728111a5e0c1" name="af71ca1f3e7bd46b63f2f728111a5e0c1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af71ca1f3e7bd46b63f2f728111a5e0c1">&#9670;&#160;</a></span>code</h2>
 
@@ -139,6 +151,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Stable id "scene.&lt;area&gt;.&lt;problem&gt;", lower case with dots, such as "scene.ref.unresolved". Areas include import, export, bundle, migration, compatibility and native (runtime builder). Tests match on codes. </p>
 
 </div>
 </div>
@@ -154,6 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scene file it concerns, such as "services.json"; empty if scene-wide. </p>
+
 </div>
 </div>
 <a id="a64c53ec3aa3d61dd220239c8080d7066" name="a64c53ec3aa3d61dd220239c8080d7066"></a>
@@ -167,6 +182,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Id of the affected item; empty if none. </p>
 
 </div>
 </div>
@@ -182,6 +199,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Kind of item: "service", "station", "stop", "incident" and so on; empty if none. </p>
+
 </div>
 </div>
 <a id="aba9bf404d65ffc4fd96549a9ebd7bae8" name="aba9bf404d65ffc4fd96549a9ebd7bae8"></a>
@@ -195,6 +214,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>One sentence that names the item. </p>
 
 </div>
 </div>
@@ -210,6 +231,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Place inside the file, such as "services[svc.a1].stops[2].departure_seconds"; empty if none. </p>
+
 </div>
 </div>
 <a id="a613790f4ced425f6ec765b16e428884a" name="a613790f4ced425f6ec765b16e428884a"></a>
@@ -224,6 +247,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Other item involved, such as the unresolved target id or the duplicate; empty if none. </p>
+
 </div>
 </div>
 <a id="ad664986323731525603765aee6a6bab6" name="ad664986323731525603765aee6a6bab6"></a>
@@ -237,6 +262,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>How serious it is. </p>
 
 </div>
 </div>
@@ -251,6 +277,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Smallest fix; empty if unknown. </p>
 
 </div>
 </div>

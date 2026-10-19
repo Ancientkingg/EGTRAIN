@@ -40,7 +40,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" target="_top" xlink:title="The train unit with this id, or null. The pointer points into the model.">
 <polygon fill="white" stroke="#666666" points="274,-67.5 164,-67.5 164,-48.5 274,-48.5 274,-67.5"/>
 <text text-anchor="middle" x="219" y="-55.5" font-family="Helvetica,sans-Serif" font-size="10.00">sceneTrainUnitById</text>
 </a>

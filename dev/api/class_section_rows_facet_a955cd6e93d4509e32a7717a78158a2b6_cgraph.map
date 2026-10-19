@@ -14,8 +14,8 @@
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="453,139,501,132,501,137,454,144"/>
 <area shape="rect" id="Node000009" href="$class_infrastructure_panel.html#a152aa7021d1d9e2b6a353b317bcde4b0" title=" " alt="" coords="527,165,673,205"/>
 <area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="454,163,514,171,513,176,453,168"/>
-<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title=" " alt="" coords="747,69,917,109"/>
+<area shape="rect" id="Node000007" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="747,69,917,109"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="685,107,733,100,734,106,686,112"/>
-<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title=" " alt="" coords="747,133,917,173"/>
+<area shape="rect" id="Node000008" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="747,133,917,173"/>
 <area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="686,130,734,137,733,142,685,136"/>
 </map>

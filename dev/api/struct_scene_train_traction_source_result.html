@@ -113,18 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_t
 </div><!--header-->
 <div class="contents">
 
+<p>The tractive effort curve read from a legacy traction file.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_importer_8h_source.html">scene/SceneImporter.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9265b8b5448ed6c262eb0b99b1460f81" id="r_a9265b8b5448ed6c262eb0b99b1460f81"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a9265b8b5448ed6c262eb0b99b1460f81">success</a> () const</td></tr>
+<tr class="memdesc:a9265b8b5448ed6c262eb0b99b1460f81"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when error is empty.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1f93b51c379e5c404bc7e62082531fa9" id="r_a1f93b51c379e5c404bc7e62082531fa9"><td class="memItemLeft">std::vector&lt; std::array&lt; double, 5 &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1f93b51c379e5c404bc7e62082531fa9">tractionCurve</a></td></tr>
+<tr class="memdesc:a1f93b51c379e5c404bc7e62082531fa9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rows, in the form of <a class="el" href="struct_scene_train_unit.html#a33cbdfc20ab203e0451865ffd9650530">SceneTrainUnit::tractionCurve</a>.  <br /></td></tr>
 <tr class="memitem:a1fcb1ab750f928aa09c43c2ba5bc6132" id="r_a1fcb1ab750f928aa09c43c2ba5bc6132"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a1fcb1ab750f928aa09c43c2ba5bc6132">error</a></td></tr>
+<tr class="memdesc:a1fcb1ab750f928aa09c43c2ba5bc6132"><td class="mdescLeft">&#160;</td><td class="mdescRight">Why the file was refused; empty on success.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The tractive effort curve read from a legacy traction file. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a9265b8b5448ed6c262eb0b99b1460f81" name="a9265b8b5448ed6c262eb0b99b1460f81"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9265b8b5448ed6c262eb0b99b1460f81">&#9670;&#160;</a></span>success()</h2>
 
@@ -148,6 +156,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True when error is empty. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -163,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Why the file was refused; empty on success. </p>
+
 </div>
 </div>
 <a id="a1f93b51c379e5c404bc7e62082531fa9" name="a1f93b51c379e5c404bc7e62082531fa9"></a>
@@ -176,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The rows, in the form of <a class="el" href="struct_scene_train_unit.html#a33cbdfc20ab203e0451865ffd9650530">SceneTrainUnit::tractionCurve</a>. </p>
 
 </div>
 </div>

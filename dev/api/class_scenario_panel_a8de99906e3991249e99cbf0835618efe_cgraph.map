@@ -14,7 +14,7 @@
 <area shape="rect" id="Node000009" href="$class_scenario_panel.html#a93b9ded73a07ec40693f62c3ca6286c3" title=" " alt="" coords="552,79,800,104"/>
 <area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="471,88,538,88,538,93,471,93"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="633,31,624,21,628,11,646,5,676,3,714,7,725,12,728,18,724,20,721,16,713,12,676,8,647,10,632,15,629,20,637,27"/>
-<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title=" " alt="" coords="859,29,1030,55"/>
+<area shape="rect" id="Node000005" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="859,29,1030,55"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="738,39,845,39,845,45,738,45"/>
 <area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="902,31,892,21,897,11,915,5,945,3,983,7,993,12,997,18,992,20,990,16,981,12,945,8,916,10,901,15,898,20,905,27"/>
 <area shape="rect" id="Node000007" href="$class_scenario_panel.html#ad46effab46a47abd2d4939afe375c79f" title=" " alt="" coords="848,79,1041,104"/>

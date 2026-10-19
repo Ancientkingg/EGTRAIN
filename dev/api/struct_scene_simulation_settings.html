@@ -113,18 +113,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>The simulation_settings of scene.json. Each value counts only when its has* flag is set.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab43cea2a6dfbe3975373ce11943c937e" id="r_ab43cea2a6dfbe3975373ce11943c937e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab43cea2a6dfbe3975373ce11943c937e">hasDuration</a> = false</td></tr>
+<tr class="memdesc:ab43cea2a6dfbe3975373ce11943c937e"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when duration_seconds is given.  <br /></td></tr>
 <tr class="memitem:a10c320e6d9fba22071e14ec06956c9ea" id="r_a10c320e6d9fba22071e14ec06956c9ea"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a10c320e6d9fba22071e14ec06956c9ea">durationSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:a10c320e6d9fba22071e14ec06956c9ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of a run in seconds, counted from the base time.  <br /></td></tr>
 <tr class="memitem:a57dea5efac73af78c1c3f988fda50da7" id="r_a57dea5efac73af78c1c3f988fda50da7"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a57dea5efac73af78c1c3f988fda50da7">hasBufferTime</a> = false</td></tr>
+<tr class="memdesc:a57dea5efac73af78c1c3f988fda50da7"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when buffer_time_seconds is given.  <br /></td></tr>
 <tr class="memitem:aef3d7b081937d08bf0eef303ebc77bdf" id="r_aef3d7b081937d08bf0eef303ebc77bdf"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aef3d7b081937d08bf0eef303ebc77bdf">bufferTimeSeconds</a> = 0.0</td></tr>
+<tr class="memdesc:aef3d7b081937d08bf0eef303ebc77bdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Buffer time in seconds, rounded to whole seconds for the blocking times.  <br /></td></tr>
 <tr class="memitem:a622e61eba29689dceb6c42af05e08e04" id="r_a622e61eba29689dceb6c42af05e08e04"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a622e61eba29689dceb6c42af05e08e04">hasRecoveryTime</a> = false</td></tr>
+<tr class="memdesc:a622e61eba29689dceb6c42af05e08e04"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when recovery_time_percent is given.  <br /></td></tr>
 <tr class="memitem:af4877e95d3f036fd5c84bcab6a3fa097" id="r_af4877e95d3f036fd5c84bcab6a3fa097"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af4877e95d3f036fd5c84bcab6a3fa097">recoveryTimePercent</a> = 0.0</td></tr>
+<tr class="memdesc:af4877e95d3f036fd5c84bcab6a3fa097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recovery time in percent, rounded to a whole percent for the blocking times.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The simulation_settings of scene.json. Each value counts only when its has* flag is set. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aef3d7b081937d08bf0eef303ebc77bdf" name="aef3d7b081937d08bf0eef303ebc77bdf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef3d7b081937d08bf0eef303ebc77bdf">&#9670;&#160;</a></span>bufferTimeSeconds</h2>
 
@@ -136,6 +147,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Buffer time in seconds, rounded to whole seconds for the blocking times. </p>
 
 </div>
 </div>
@@ -151,6 +164,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length of a run in seconds, counted from the base time. </p>
+
 </div>
 </div>
 <a id="a57dea5efac73af78c1c3f988fda50da7" name="a57dea5efac73af78c1c3f988fda50da7"></a>
@@ -164,6 +179,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when buffer_time_seconds is given. </p>
 
 </div>
 </div>
@@ -179,6 +196,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when duration_seconds is given. </p>
+
 </div>
 </div>
 <a id="a622e61eba29689dceb6c42af05e08e04" name="a622e61eba29689dceb6c42af05e08e04"></a>
@@ -193,6 +212,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when recovery_time_percent is given. </p>
+
 </div>
 </div>
 <a id="af4877e95d3f036fd5c84bcab6a3fa097" name="af4877e95d3f036fd5c84bcab6a3fa097"></a>
@@ -206,6 +227,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Recovery time in percent, rounded to a whole percent for the blocking times. </p>
 
 </div>
 </div>

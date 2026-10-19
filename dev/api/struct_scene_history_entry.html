@@ -118,11 +118,16 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_h
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac07946cd88f9d6ed39c6d6702cbfcba6" id="r_ac07946cd88f9d6ed39c6d6702cbfcba6"><td class="memItemLeft">std::shared_ptr&lt; const <a class="el" href="struct_scene_model.html">SceneModel</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac07946cd88f9d6ed39c6d6702cbfcba6">scene</a></td></tr>
+<tr class="memdesc:ac07946cd88f9d6ed39c6d6702cbfcba6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scene in this state, shared and immutable.  <br /></td></tr>
 <tr class="memitem:a2ed50000e6ccf040e9037b5ebd04868d" id="r_a2ed50000e6ccf040e9037b5ebd04868d"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2ed50000e6ccf040e9037b5ebd04868d">label</a></td></tr>
+<tr class="memdesc:a2ed50000e6ccf040e9037b5ebd04868d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the edit that produced it; empty for the root.  <br /></td></tr>
 <tr class="memitem:a5afd0190514f8d2176ab86238c875250" id="r_a5afd0190514f8d2176ab86238c875250"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a5afd0190514f8d2176ab86238c875250">bytes</a> = 0</td></tr>
 <tr class="memitem:abaf1b912a17144af2fee23c4200fe025" id="r_abaf1b912a17144af2fee23c4200fe025"><td class="memItemLeft">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#abaf1b912a17144af2fee23c4200fe025">modifiedScenarioIds</a></td></tr>
+<tr class="memdesc:abaf1b912a17144af2fee23c4200fe025"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scenarios that differ from the saved scene, as of this state.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One state of the scene. The label names the edit that produced the state from the one before; the root has none. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5afd0190514f8d2176ab86238c875250" name="a5afd0190514f8d2176ab86238c875250"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5afd0190514f8d2176ab86238c875250">&#9670;&#160;</a></span>bytes</h2>
 
@@ -134,6 +139,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>estimateSceneModelBytes of the scene, in bytes. </p>
 
 </div>
 </div>
@@ -149,6 +155,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the edit that produced it; empty for the root. </p>
+
 </div>
 </div>
 <a id="abaf1b912a17144af2fee23c4200fe025" name="abaf1b912a17144af2fee23c4200fe025"></a>
@@ -163,6 +171,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scenarios that differ from the saved scene, as of this state. </p>
+
 </div>
 </div>
 <a id="ac07946cd88f9d6ed39c6d6702cbfcba6" name="ac07946cd88f9d6ed39c6d6702cbfcba6"></a>
@@ -176,6 +186,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scene in this state, shared and immutable. </p>
 
 </div>
 </div>

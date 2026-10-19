@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title="The station visits of the route, building the section inventory first.">
 <polygon fill="white" stroke="#666666" points="322,-202 179,-202 179,-183 322,-183 322,-202"/>
 <text text-anchor="middle" x="250.5" y="-190" font-family="Helvetica,sans-Serif" font-size="10.00">buildSceneRouteTraversal</text>
 </a>
@@ -75,7 +75,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" target="_top" xlink:title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc...">
 <polygon fill="white" stroke="#666666" points="313,-19 188,-19 188,0 313,0 313,-19"/>
 <text text-anchor="middle" x="250.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">sceneSectionsOverlap</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="728,-214 560,-214 560,-195 728,-195 728,-214"/>
 <text text-anchor="middle" x="644" y="-202" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
@@ -156,7 +156,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" target="_top" xlink:title="True when more than one section matches the reference as a runtime id or base&#45;block alias.">
 <polygon fill="white" stroke="#666666" points="505,-176.5 377,-176.5 377,-146.5 505,-146.5 505,-176.5"/>
 <text text-anchor="start" x="385" y="-164.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="441" y="-153.5" font-family="Helvetica,sans-Serif" font-size="10.00">::ambiguous</text>
@@ -175,7 +175,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" target="_top" xlink:title="The one section with this runtime id; null when none or several have it.">
 <polygon fill="white" stroke="#666666" points="505,-128.5 377,-128.5 377,-98.5 505,-98.5 505,-128.5"/>
 <text text-anchor="start" x="385" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSectionInventory</text>
 <text text-anchor="middle" x="441" y="-105.5" font-family="Helvetica,sans-Serif" font-size="10.00">::exact</text>

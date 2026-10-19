@@ -688,7 +688,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title="The number of diagnostics of each severity.">
 <polygon fill="white" stroke="#666666" points="756.5,-652 655.5,-652 655.5,-633 756.5,-633 756.5,-652"/>
 <text text-anchor="middle" x="706" y="-640" font-family="Helvetica,sans-Serif" font-size="10.00">countDiagnostics</text>
 </a>
@@ -742,7 +742,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="1117.5,-975 1055.5,-975 1055.5,-956 1117.5,-956 1117.5,-975"/>
 <text text-anchor="middle" x="1086.5" y="-963" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -906,7 +906,7 @@
 <!-- Node30 -->
 <g id="Node000030" class="node">
 <title>Node30</title>
-<g id="a_Node000030"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000030"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="1304,-1138 1176,-1138 1176,-1119 1304,-1119 1304,-1138"/>
 <text text-anchor="middle" x="1240" y="-1126" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>

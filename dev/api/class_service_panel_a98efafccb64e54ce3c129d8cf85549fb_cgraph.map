@@ -63,7 +63,7 @@
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="583,477,781,502"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="413,997,462,971,486,954,507,933,546,880,578,823,605,762,627,703,658,593,674,515,679,516,664,595,633,704,610,764,583,825,550,883,511,936,490,958,465,976,416,1001"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="465,1022,510,1033,534,1044,558,1055,593,1064,592,1070,556,1060,532,1049,508,1039,464,1027"/>
-<area shape="rect" id="Node000023" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title=" " alt="" coords="599,955,765,981"/>
+<area shape="rect" id="Node000023" href="$_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" title="A free service id." alt="" coords="599,955,765,981"/>
 <area shape="poly" id="edge21_Node000002_Node000023" title=" " alt="" coords="467,997,584,979,585,985,467,1002"/>
 <area shape="rect" id="Node000005" href="$class_service_panel.html#abb04a680a10c17d91c623056dd91f4ba" title=" " alt="" coords="855,596,1087,636"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="761,1076,784,1068,805,1055,848,1010,882,958,909,901,930,843,945,786,955,733,965,649,970,650,960,733,950,787,935,845,914,903,887,961,852,1014,808,1059,787,1073,763,1081"/>
@@ -126,7 +126,7 @@
 <area shape="poly" id="edge62_Node000040_Node000005" title=" " alt="" coords="478,1249,508,1235,524,1219,531,1201,539,1181,556,1163,591,1145,624,1137,655,1136,686,1138,715,1139,745,1137,774,1126,805,1105,830,1071,855,1021,879,959,901,891,937,753,960,649,965,650,942,755,906,892,884,961,860,1023,835,1074,809,1109,777,1131,746,1142,716,1145,685,1143,655,1141,624,1142,592,1150,559,1167,543,1184,536,1203,528,1222,511,1239,481,1254"/>
 <area shape="poly" id="edge66_Node000040_Node000018" title=" " alt="" coords="479,1248,854,1207,1126,1188,1126,1193,855,1212,480,1253"/>
 <area shape="poly" id="edge65_Node000040_Node000023" title=" " alt="" coords="478,1254,508,1235,528,1206,536,1177,536,1147,531,1116,526,1085,525,1053,534,1022,555,991,584,973,587,978,559,995,539,1024,531,1054,531,1084,536,1115,541,1146,542,1178,533,1209,511,1239,481,1258"/>
-<area shape="rect" id="Node000041" href="$_scene_references_8cpp.html#a87333c70e4338a37d53f1958b925864f" title=" " alt="" coords="567,1297,797,1322"/>
+<area shape="rect" id="Node000041" href="$_scene_references_8cpp.html#a87333c70e4338a37d53f1958b925864f" title="Rewrites the service id in entrance delays, train&#45;breakdown incident targets and passenger legs." alt="" coords="567,1297,797,1322"/>
 <area shape="poly" id="edge63_Node000040_Node000041" title=" " alt="" coords="463,1273,586,1292,585,1297,462,1278"/>
 <area shape="rect" id="Node000042" href="$class_service_panel.html#a4593da10a1c4c7b2454290e3abbb7105" title=" " alt="" coords="571,1346,793,1371"/>
 <area shape="poly" id="edge67_Node000040_Node000042" title=" " alt="" coords="409,1273,476,1302,558,1331,595,1340,594,1346,557,1336,474,1307,407,1278"/>

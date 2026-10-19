@@ -1,5 +1,5 @@
 <map id="SceneTrainPhysicalSourceResult" name="SceneTrainPhysicalSourceResult">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,196,141"/>
-<area shape="rect" id="Node000002" href="$struct_scene_train_physical.html" title=" " alt="" coords="27,5,174,31"/>
+<area shape="rect" id="Node000001" title="The physical data read from a legacy vehicle data file." alt="" coords="5,101,196,141"/>
+<area shape="rect" id="Node000002" href="$struct_scene_train_physical.html" title="The physical data of a train unit, in the units their names state." alt="" coords="27,5,174,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,45,103,101,98,101,98,45"/>
 </map>

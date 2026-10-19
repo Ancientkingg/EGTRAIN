@@ -113,17 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>A station with its platforms.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:accf6aa17463ec3250c60d8702da4c1fe" id="r_accf6aa17463ec3250c60d8702da4c1fe"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#accf6aa17463ec3250c60d8702da4c1fe">id</a></td></tr>
+<tr class="memdesc:accf6aa17463ec3250c60d8702da4c1fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the station.  <br /></td></tr>
 <tr class="memitem:a6a42b8873cca8aa3591b199d6463c83f" id="r_a6a42b8873cca8aa3591b199d6463c83f"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6a42b8873cca8aa3591b199d6463c83f">name</a></td></tr>
+<tr class="memdesc:a6a42b8873cca8aa3591b199d6463c83f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display name; the id is shown when it is empty.  <br /></td></tr>
 <tr class="memitem:a82f48f50178e56407913ffb8ed6110fa" id="r_a82f48f50178e56407913ffb8ed6110fa"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a82f48f50178e56407913ffb8ed6110fa">hasPosition</a> = false</td></tr>
 <tr class="memitem:af42850bbbf8f5bc1241279a9a2f88119" id="r_af42850bbbf8f5bc1241279a9a2f88119"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#af42850bbbf8f5bc1241279a9a2f88119">positionKm</a> = 0.0</td></tr>
+<tr class="memdesc:af42850bbbf8f5bc1241279a9a2f88119"><td class="mdescLeft">&#160;</td><td class="mdescRight">Chainage in kilometres. A station without platforms binds to the nodes at this chainage.  <br /></td></tr>
 <tr class="memitem:ac11d377e4993a5644ec3ad8920f39ca7" id="r_ac11d377e4993a5644ec3ad8920f39ca7"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_platform.html">ScenePlatform</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ac11d377e4993a5644ec3ad8920f39ca7">platforms</a></td></tr>
+<tr class="memdesc:ac11d377e4993a5644ec3ad8920f39ca7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platforms, in file order.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A station with its platforms. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a82f48f50178e56407913ffb8ed6110fa" name="a82f48f50178e56407913ffb8ed6110fa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a82f48f50178e56407913ffb8ed6110fa">&#9670;&#160;</a></span>hasPosition</h2>
 
@@ -135,6 +144,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when position_km is given. </p>
 
 </div>
 </div>
@@ -150,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique id of the station. </p>
+
 </div>
 </div>
 <a id="a6a42b8873cca8aa3591b199d6463c83f" name="a6a42b8873cca8aa3591b199d6463c83f"></a>
@@ -163,6 +175,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Display name; the id is shown when it is empty. </p>
 
 </div>
 </div>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The platforms, in file order. </p>
+
 </div>
 </div>
 <a id="af42850bbbf8f5bc1241279a9a2f88119" name="af42850bbbf8f5bc1241279a9a2f88119"></a>
@@ -191,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Chainage in kilometres. A station without platforms binds to the nodes at this chainage. </p>
 
 </div>
 </div>

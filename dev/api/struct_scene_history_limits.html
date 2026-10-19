@@ -118,9 +118,13 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_h
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a8ab3015a43831d0014e9886d7a6c5d2f" id="r_a8ab3015a43831d0014e9886d7a6c5d2f"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a8ab3015a43831d0014e9886d7a6c5d2f">maxSteps</a> = 100</td></tr>
+<tr class="memdesc:a8ab3015a43831d0014e9886d7a6c5d2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most undo steps kept.  <br /></td></tr>
 <tr class="memitem:abfb8ad9be0bf34b343c4052b64c8d86c" id="r_abfb8ad9be0bf34b343c4052b64c8d86c"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#abfb8ad9be0bf34b343c4052b64c8d86c">maxBytes</a> = 128 * 1024 * 1024</td></tr>
+<tr class="memdesc:abfb8ad9be0bf34b343c4052b64c8d86c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Most estimated bytes of all snapshots.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The retained history is bounded by the number of undo steps and by the estimated memory of its snapshots. The estimate is a bound for the history, not a measurement of the process. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="abfb8ad9be0bf34b343c4052b64c8d86c" name="abfb8ad9be0bf34b343c4052b64c8d86c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abfb8ad9be0bf34b343c4052b64c8d86c">&#9670;&#160;</a></span>maxBytes</h2>
 
@@ -132,6 +136,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Most estimated bytes of all snapshots. </p>
 
 </div>
 </div>
@@ -146,6 +152,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Most undo steps kept. </p>
 
 </div>
 </div>

@@ -113,19 +113,27 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>The sections the native builder makes from a scene.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a03c3b41fd7859a36164db37bc7784fb8" id="r_a03c3b41fd7859a36164db37bc7784fb8"><td class="memItemLeft">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a03c3b41fd7859a36164db37bc7784fb8">resolve</a> (const std::string &amp;reference) const</td></tr>
 <tr class="memitem:a95c83f397166f222b5c63ed83a40d37c" id="r_a95c83f397166f222b5c63ed83a40d37c"><td class="memItemLeft">const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a95c83f397166f222b5c63ed83a40d37c">exact</a> (const std::string &amp;runtimeId) const</td></tr>
+<tr class="memdesc:a95c83f397166f222b5c63ed83a40d37c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The one section with this runtime id; null when none or several have it.  <br /></td></tr>
 <tr class="memitem:a7382b5e4bfec42586b09983a6398fc48" id="r_a7382b5e4bfec42586b09983a6398fc48"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7382b5e4bfec42586b09983a6398fc48">ambiguous</a> (const std::string &amp;reference) const</td></tr>
+<tr class="memdesc:a7382b5e4bfec42586b09983a6398fc48"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when more than one section matches the reference as a runtime id or base-block alias.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a0ad8dff11cc0dc4e8966b2aebefe3020" id="r_a0ad8dff11cc0dc4e8966b2aebefe3020"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a0ad8dff11cc0dc4e8966b2aebefe3020">sections</a></td></tr>
+<tr class="memdesc:a0ad8dff11cc0dc4e8966b2aebefe3020"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block sections by track, then switch sections.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The sections the native builder makes from a scene. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a7382b5e4bfec42586b09983a6398fc48" name="a7382b5e4bfec42586b09983a6398fc48"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7382b5e4bfec42586b09983a6398fc48">&#9670;&#160;</a></span>ambiguous()</h2>
 
@@ -140,6 +148,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when more than one section matches the reference as a runtime id or base-block alias. </p>
 
 </div>
 </div>
@@ -158,6 +168,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The one section with this runtime id; null when none or several have it. </p>
+
 </div>
 </div>
 <a id="a03c3b41fd7859a36164db37bc7784fb8" name="a03c3b41fd7859a36164db37bc7784fb8"></a>
@@ -174,6 +186,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Resolve one exact runtime ID or an unwrapped base-block alias. Compound references are accepted only when they are exact catalog IDs. Null when nothing or more than one section matches. The pointer points into sections. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -194,6 +207,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Block sections by track, then switch sections. </p>
 
 </div>
 </div>

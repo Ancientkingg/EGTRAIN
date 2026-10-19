@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" target="_top" xlink:title="True when there is an entry before the position.">
 <polygon fill="white" stroke="#666666" points="275,-19 146,-19 146,0 275,0 275,-19"/>
 <text text-anchor="middle" x="210.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneHistory::canUndo</text>
 </a>

@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_track_preview_signal.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="struct_track_preview_signal.html" target="_top" xlink:title="A signal on the preview, at the start of a block section.">
 <polygon fill="white" stroke="#666666" points="111,-19 0,-19 0,0 111,0 111,-19"/>
 <text text-anchor="middle" x="55.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">TrackPreviewSignal</text>
 </a>

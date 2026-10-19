@@ -175,7 +175,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title="The number stored for a level.">
 <polygon fill="white" stroke="#666666" points="475,-223 407,-223 407,-204 475,-204 475,-223"/>
 <text text-anchor="middle" x="441" y="-211" font-family="Helvetica,sans-Serif" font-size="10.00">levelValue</text>
 </a>

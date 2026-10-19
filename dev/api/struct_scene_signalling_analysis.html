@@ -113,19 +113,28 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>What the signalling areas of a scene make of its runtime sections.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aef8372d30e1832d5c41d0a17c17a4bd6" id="r_aef8372d30e1832d5c41d0a17c17a4bd6"><td class="memItemLeft">const <a class="el" href="struct_scene_section_signalling.html">SceneSectionSignalling</a> *&#160;</td><td class="memItemRight"><a class="el" href="#aef8372d30e1832d5c41d0a17c17a4bd6">section</a> (const std::string &amp;sectionId) const</td></tr>
+<tr class="memdesc:aef8372d30e1832d5c41d0a17c17a4bd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The entry of the section with this runtime id; null when there is none.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a12b328fc85734a245830a18ef5a84924" id="r_a12b328fc85734a245830a18ef5a84924"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_section_signalling.html">SceneSectionSignalling</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a12b328fc85734a245830a18ef5a84924">sections</a></td></tr>
+<tr class="memdesc:a12b328fc85734a245830a18ef5a84924"><td class="mdescLeft">&#160;</td><td class="mdescRight">In inventory order, one per section ID.  <br /></td></tr>
 <tr class="memitem:a173b032dbc2e6904bff9567fb83d11b2" id="r_a173b032dbc2e6904bff9567fb83d11b2"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_area_signalling.html">SceneAreaSignalling</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a173b032dbc2e6904bff9567fb83d11b2">areas</a></td></tr>
+<tr class="memdesc:a173b032dbc2e6904bff9567fb83d11b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">One per <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a> entry.  <br /></td></tr>
 <tr class="memitem:a1951ce92e7c53b3bd36efdc576804638" id="r_a1951ce92e7c53b3bd36efdc576804638"><td class="memItemLeft">std::unordered_map&lt; std::string, std::size_t &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a1951ce92e7c53b3bd36efdc576804638">sectionIndex</a></td></tr>
+<tr class="memdesc:a1951ce92e7c53b3bd36efdc576804638"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_section.html">Section</a> ID to its place in sections.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the signalling areas of a scene make of its runtime sections. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="aef8372d30e1832d5c41d0a17c17a4bd6" name="aef8372d30e1832d5c41d0a17c17a4bd6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef8372d30e1832d5c41d0a17c17a4bd6">&#9670;&#160;</a></span>section()</h2>
 
@@ -140,6 +149,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The entry of the section with this runtime id; null when there is none. </p>
 
 </div>
 </div>
@@ -156,6 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>One per <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a> entry. </p>
+
 </div>
 </div>
 <a id="a1951ce92e7c53b3bd36efdc576804638" name="a1951ce92e7c53b3bd36efdc576804638"></a>
@@ -170,6 +183,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_section.html">Section</a> ID to its place in sections. </p>
+
 </div>
 </div>
 <a id="a12b328fc85734a245830a18ef5a84924" name="a12b328fc85734a245830a18ef5a84924"></a>
@@ -183,6 +198,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>In inventory order, one per section ID. </p>
 
 </div>
 </div>

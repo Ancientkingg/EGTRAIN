@@ -113,20 +113,30 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_track_p
 </div><!--header-->
 <div class="contents">
 
+<p>What the network preview draws of a scene.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_track_preview_8h_source.html">scene/TrackPreview.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ae386374c7beea789cfc6d0285e82e712" id="r_ae386374c7beea789cfc6d0285e82e712"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae386374c7beea789cfc6d0285e82e712">normalized</a> = false</td></tr>
+<tr class="memdesc:ae386374c7beea789cfc6d0285e82e712"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set by normalizeTrackPreview. Normalization is idempotent; reload after scene edits.  <br /></td></tr>
 <tr class="memitem:aefab11d3318d02f2bd6852abdc42f201" id="r_aefab11d3318d02f2bd6852abdc42f201"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aefab11d3318d02f2bd6852abdc42f201">normalizationScale</a> = 1.0</td></tr>
 <tr class="memitem:a5c148ba2a204ee25d337c03a6671afc1" id="r_a5c148ba2a204ee25d337c03a6671afc1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5c148ba2a204ee25d337c03a6671afc1">presentationScale</a> = 1.0</td></tr>
 <tr class="memitem:a59e7876cb379102399bbb8497897ebae" id="r_a59e7876cb379102399bbb8497897ebae"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_track_preview_line.html">TrackPreviewLine</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a59e7876cb379102399bbb8497897ebae">lines</a></td></tr>
+<tr class="memdesc:a59e7876cb379102399bbb8497897ebae"><td class="mdescLeft">&#160;</td><td class="mdescRight">The visible tracks with at least two nodes.  <br /></td></tr>
 <tr class="memitem:a725315ea23131aab1e2bbc25cc9e36d9" id="r_a725315ea23131aab1e2bbc25cc9e36d9"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_track_preview_connection.html">TrackPreviewConnection</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a725315ea23131aab1e2bbc25cc9e36d9">connections</a></td></tr>
+<tr class="memdesc:a725315ea23131aab1e2bbc25cc9e36d9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_connections.html">Connections</a> between visible tracks.  <br /></td></tr>
 <tr class="memitem:ab097deae88cca472a3b8be39cd77d789" id="r_ab097deae88cca472a3b8be39cd77d789"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_track_preview_station.html">TrackPreviewStation</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ab097deae88cca472a3b8be39cd77d789">stations</a></td></tr>
 <tr class="memitem:a64323e4d70c108d4a81ca459d7aea8b5" id="r_a64323e4d70c108d4a81ca459d7aea8b5"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_track_preview_signal.html">TrackPreviewSignal</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a64323e4d70c108d4a81ca459d7aea8b5">previewSignals</a></td></tr>
+<tr class="memdesc:a64323e4d70c108d4a81ca459d7aea8b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block section starts of the visible tracks, without the first section of each track.  <br /></td></tr>
 <tr class="memitem:a2afbed622ec81e596169a0b912936d3d" id="r_a2afbed622ec81e596169a0b912936d3d"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a2afbed622ec81e596169a0b912936d3d">warnings</a></td></tr>
+<tr class="memdesc:a2afbed622ec81e596169a0b912936d3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">What could not be drawn as authored, as text.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What the network preview draws of a scene. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a725315ea23131aab1e2bbc25cc9e36d9" name="a725315ea23131aab1e2bbc25cc9e36d9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a725315ea23131aab1e2bbc25cc9e36d9">&#9670;&#160;</a></span>connections</h2>
 
@@ -138,6 +148,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_connections.html">Connections</a> between visible tracks. </p>
 
 </div>
 </div>
@@ -153,6 +165,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The visible tracks with at least two nodes. </p>
+
 </div>
 </div>
 <a id="aefab11d3318d02f2bd6852abdc42f201" name="aefab11d3318d02f2bd6852abdc42f201"></a>
@@ -166,6 +180,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Projected coordinates to normalized scene coordinates. </p>
 
 </div>
 </div>
@@ -181,6 +196,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Set by normalizeTrackPreview. Normalization is idempotent; reload after scene edits. </p>
+
 </div>
 </div>
 <a id="a5c148ba2a204ee25d337c03a6671afc1" name="a5c148ba2a204ee25d337c03a6671afc1"></a>
@@ -194,6 +211,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Historical presentation distances to scene coordinates. Degree-derived conversion requires successful authored projection on every visible nonempty line; raw/mixed/invalid or degenerate scenes retain one. </p>
 
 </div>
 </div>
@@ -209,6 +227,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Block section starts of the visible tracks, without the first section of each track. </p>
+
 </div>
 </div>
 <a id="ab097deae88cca472a3b8be39cd77d789" name="ab097deae88cca472a3b8be39cd77d789"></a>
@@ -222,6 +242,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="class_stations.html">Stations</a> on a visible track or with a position. </p>
 
 </div>
 </div>
@@ -236,6 +257,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>What could not be drawn as authored, as text. </p>
 
 </div>
 </div>

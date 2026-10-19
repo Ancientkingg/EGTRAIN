@@ -75,7 +75,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" target="_top" xlink:title="The number of diagnostics of each severity.">
 <polygon fill="white" stroke="#666666" points="302.5,-217 201.5,-217 201.5,-198 302.5,-198 302.5,-217"/>
 <text text-anchor="middle" x="252" y="-205" font-family="Helvetica,sans-Serif" font-size="10.00">countDiagnostics</text>
 </a>
@@ -165,7 +165,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="714.5,-964 652.5,-964 652.5,-945 714.5,-945 714.5,-964"/>
 <text text-anchor="middle" x="683.5" y="-952" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -356,7 +356,7 @@
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="964,-1654 836,-1654 836,-1635 964,-1635 964,-1654"/>
 <text text-anchor="middle" x="900" y="-1642" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -638,7 +638,7 @@
 <!-- Node24 -->
 <g id="Node000024" class="node">
 <title>Node24</title>
-<g id="a_Node000024"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title=" ">
+<g id="a_Node000024"><a xlink:href="_section_inventory_8cpp.html#a767aeebb22fd91d15658526e6bd5acbd" target="_top" xlink:title="The station visits of the route, building the section inventory first.">
 <polygon fill="white" stroke="#666666" points="755,-1019 612,-1019 612,-1000 755,-1000 755,-1019"/>
 <text text-anchor="middle" x="683.5" y="-1007" font-family="Helvetica,sans-Serif" font-size="10.00">buildSceneRouteTraversal</text>
 </a>

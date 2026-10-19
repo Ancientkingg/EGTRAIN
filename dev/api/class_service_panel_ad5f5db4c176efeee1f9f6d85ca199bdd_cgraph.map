@@ -44,7 +44,7 @@
 <area shape="rect" id="Node000017" href="$namespace_dialog_layout.html#a7c0f80509740d24f8a6e1bcc1353129e" title=" " alt="" coords="803,615,970,640"/>
 <area shape="poly" id="edge29_Node000013_Node000017" title=" " alt="" coords="643,527,842,607,840,612,641,532"/>
 <area shape="poly" id="edge25_Node000014_Node000014" title=" " alt="" coords="842,478,832,468,837,458,856,451,887,449,927,454,938,459,941,465,936,467,934,463,926,459,887,455,857,457,841,462,838,467,846,474"/>
-<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="1075,476,1299,501"/>
+<area shape="rect" id="Node000015" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1075,476,1299,501"/>
 <area shape="poly" id="edge26_Node000014_Node000015" title=" " alt="" coords="988,486,1061,486,1061,491,988,491"/>
 <area shape="poly" id="edge27_Node000015_Node000015" title=" " alt="" coords="1140,478,1129,468,1135,458,1154,451,1187,449,1231,454,1242,459,1245,466,1240,468,1238,463,1229,459,1187,455,1155,457,1138,462,1135,467,1143,474"/>
 <area shape="poly" id="edge30_Node000017_Node000017" title=" " alt="" coords="842,616,832,606,837,596,856,590,887,588,927,592,938,597,941,604,936,606,934,601,926,597,887,593,857,595,841,600,838,606,846,613"/>

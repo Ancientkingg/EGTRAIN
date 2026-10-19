@@ -136,9 +136,12 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ab55140853be4bacb2be37b8533aa5ce7" id="r_ab55140853be4bacb2be37b8533aa5ce7"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ab55140853be4bacb2be37b8533aa5ce7">levelValue</a> (<a class="el" href="#a54b7d64327a4a83cf45836f9c8e487d1">SignallingLevel</a> level)</td></tr>
+<tr class="memdesc:ab55140853be4bacb2be37b8533aa5ce7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number stored for a level.  <br /></td></tr>
 <tr class="memitem:a5b63c8badbe1faee2151f54cffa1d4fe" id="r_a5b63c8badbe1faee2151f54cffa1d4fe"><td class="memItemLeft">constexpr bool&#160;</td><td class="memItemRight"><a class="el" href="#a5b63c8badbe1faee2151f54cffa1d4fe">isValidSignallingLevel</a> (int level)</td></tr>
+<tr class="memdesc:a5b63c8badbe1faee2151f54cffa1d4fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level.  <br /></td></tr>
 <tr class="memitem:ab08ef98cad36a5df962e8d6d677a2c9a" id="r_ab08ef98cad36a5df962e8d6d677a2c9a"><td class="memItemLeft">constexpr bool&#160;</td><td class="memItemRight"><a class="el" href="#ab08ef98cad36a5df962e8d6d677a2c9a">isMovingBlockLevel</a> (int level)</td></tr>
 <tr class="memitem:a045a14e0cace859e62e5d6af40ea41d5" id="r_a045a14e0cace859e62e5d6af40ea41d5"><td class="memItemLeft">constexpr bool&#160;</td><td class="memItemRight"><a class="el" href="#a045a14e0cace859e62e5d6af40ea41d5">isFixedBlockLevel</a> (int level)</td></tr>
+<tr class="memdesc:a045a14e0cace859e62e5d6af40ea41d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a stored number is a fixed-block level, where signal aspects separate the trains.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -164,13 +167,20 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The signalling levels. The numbers are the values stored in signalling.json and in <a class="el" href="class_section.html#a4e6995dd49ac78126dc9f146494e157a">Section::SignallingLevel</a>. Their display labels are in <a class="el" href="_signalling_level_names_8h.html">scene/SignallingLevelNames.h</a>. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1aa83a48285baa24e1f8b3b4e7b613d2d6" name="a54b7d64327a4a83cf45836f9c8e487d1aa83a48285baa24e1f8b3b4e7b613d2d6"></a>Atb&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a2df357ed7b9706c554944bd3369630bd" name="a54b7d64327a4a83cf45836f9c8e487d1a2df357ed7b9706c554944bd3369630bd"></a>EtcsLevel1&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a761df2037ae397d160f409ec70ad6ae6" name="a54b7d64327a4a83cf45836f9c8e487d1a761df2037ae397d160f409ec70ad6ae6"></a>EtcsLevel2&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a0eac0945c489c61d7144a0c2e00b027e" name="a54b7d64327a4a83cf45836f9c8e487d1a0eac0945c489c61d7144a0c2e00b027e"></a>EtcsLevel3&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1afdfe4566e9767a40655b8d5ecb36a80b" name="a54b7d64327a4a83cf45836f9c8e487d1afdfe4566e9767a40655b8d5ecb36a80b"></a>VirtualCoupling&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a150b265806af93adc21c2aa86a99adc4" name="a54b7d64327a4a83cf45836f9c8e487d1a150b265806af93adc21c2aa86a99adc4"></a>Bacc&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1aa83a48285baa24e1f8b3b4e7b613d2d6" name="a54b7d64327a4a83cf45836f9c8e487d1aa83a48285baa24e1f8b3b4e7b613d2d6"></a>Atb&#160;</td><td class="fielddoc"><p>Level 0, fixed block, labelled ATB. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a2df357ed7b9706c554944bd3369630bd" name="a54b7d64327a4a83cf45836f9c8e487d1a2df357ed7b9706c554944bd3369630bd"></a>EtcsLevel1&#160;</td><td class="fielddoc"><p>Level 1, fixed block, labelled ETCS Level 1. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a761df2037ae397d160f409ec70ad6ae6" name="a54b7d64327a4a83cf45836f9c8e487d1a761df2037ae397d160f409ec70ad6ae6"></a>EtcsLevel2&#160;</td><td class="fielddoc"><p>Level 2, fixed block, labelled ETCS Level 2. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a0eac0945c489c61d7144a0c2e00b027e" name="a54b7d64327a4a83cf45836f9c8e487d1a0eac0945c489c61d7144a0c2e00b027e"></a>EtcsLevel3&#160;</td><td class="fielddoc"><p>Level 3, moving block, labelled ETCS Level 3. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1afdfe4566e9767a40655b8d5ecb36a80b" name="a54b7d64327a4a83cf45836f9c8e487d1afdfe4566e9767a40655b8d5ecb36a80b"></a>VirtualCoupling&#160;</td><td class="fielddoc"><p>Level 4, moving block in which a train can follow the train ahead. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a54b7d64327a4a83cf45836f9c8e487d1a150b265806af93adc21c2aa86a99adc4" name="a54b7d64327a4a83cf45836f9c8e487d1a150b265806af93adc21c2aa86a99adc4"></a>Bacc&#160;</td><td class="fielddoc"><p>Level 5, fixed block, labelled BACC. </p>
+</td></tr>
 </table>
 
 </div>
@@ -198,6 +208,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether a stored number is a fixed-block level, where signal aspects separate the trains. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -228,6 +240,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Whether a stored number is a moving-block level. There the movement authority of a train ends behind the train ahead, not at a signal. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -258,6 +271,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether a stored number is a signalling level. kSignallingLevelUnset is not a valid level. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -288,6 +303,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The number stored for a level. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -316,6 +333,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The level of a runtime section that no signalling area covers. The editor also stores it as the level of an area whose signalling system is not chosen yet. </p>
 
 </div>
 </div>

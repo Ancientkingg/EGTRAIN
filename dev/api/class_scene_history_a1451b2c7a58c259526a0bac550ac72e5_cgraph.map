@@ -1,5 +1,5 @@
 <map id="SceneHistory::undo" name="SceneHistory::undo">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,152,31"/>
-<area shape="rect" id="Node000002" href="$class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" title=" " alt="" coords="200,5,372,31"/>
+<area shape="rect" id="Node000002" href="$class_scene_history.html#a003b55c3ebb496d09cd76f6f1ee51441" title="True when there is an entry before the position." alt="" coords="200,5,372,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,15,186,15,186,21,152,21"/>
 </map>

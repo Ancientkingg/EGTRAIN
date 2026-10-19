@@ -113,20 +113,30 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>One run of a service: the service id with a 1-based occurrence number.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a401f6e1ba540def5655233009f0ab0db" id="r_a401f6e1ba540def5655233009f0ab0db"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a401f6e1ba540def5655233009f0ab0db">operator==</a> (const <a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a> &amp;other) const</td></tr>
+<tr class="memdesc:a401f6e1ba540def5655233009f0ab0db"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when both members are equal.  <br /></td></tr>
 <tr class="memitem:a52c62936c72672dd9452b3a67818eb66" id="r_a52c62936c72672dd9452b3a67818eb66"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a52c62936c72672dd9452b3a67818eb66">operator!=</a> (const <a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a> &amp;other) const</td></tr>
+<tr class="memdesc:a52c62936c72672dd9452b3a67818eb66"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when a member differs.  <br /></td></tr>
 <tr class="memitem:ab1cf1646bf1b428ff10754a25eefde3a" id="r_ab1cf1646bf1b428ff10754a25eefde3a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ab1cf1646bf1b428ff10754a25eefde3a">operator&lt;</a> (const <a class="el" href="struct_scene_service_occurrence.html">SceneServiceOccurrence</a> &amp;other) const</td></tr>
+<tr class="memdesc:ab1cf1646bf1b428ff10754a25eefde3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orders by service id, then by occurrence.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa381b356bfa62f1f4b815b27cc29f1cd" id="r_aa381b356bfa62f1f4b815b27cc29f1cd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa381b356bfa62f1f4b815b27cc29f1cd">serviceId</a></td></tr>
+<tr class="memdesc:aa381b356bfa62f1f4b815b27cc29f1cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The service.  <br /></td></tr>
 <tr class="memitem:aee8c8ebe672b9e87c05ba624d9aec479" id="r_aee8c8ebe672b9e87c05ba624d9aec479"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aee8c8ebe672b9e87c05ba624d9aec479">occurrence</a> = 1</td></tr>
+<tr class="memdesc:aee8c8ebe672b9e87c05ba624d9aec479"><td class="mdescLeft">&#160;</td><td class="mdescRight">The occurrence, counted from 1.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One run of a service: the service id with a 1-based occurrence number. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a52c62936c72672dd9452b3a67818eb66" name="a52c62936c72672dd9452b3a67818eb66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a52c62936c72672dd9452b3a67818eb66">&#9670;&#160;</a></span>operator!=()</h2>
 
@@ -149,6 +159,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when a member differs. </p>
 
 </div>
 </div>
@@ -175,6 +187,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Orders by service id, then by occurrence. </p>
+
 </div>
 </div>
 <a id="a401f6e1ba540def5655233009f0ab0db" name="a401f6e1ba540def5655233009f0ab0db"></a>
@@ -200,6 +214,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True when both members are equal. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -215,6 +231,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The occurrence, counted from 1. </p>
+
 </div>
 </div>
 <a id="aa381b356bfa62f1f4b815b27cc29f1cd" name="aa381b356bfa62f1f4b815b27cc29f1cd"></a>
@@ -228,6 +246,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The service. </p>
 
 </div>
 </div>

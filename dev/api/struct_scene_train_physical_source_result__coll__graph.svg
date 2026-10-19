@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The physical data read from a legacy vehicle data file.">
 <polygon fill="#999999" stroke="#666666" points="143,-30 0,-30 0,0 143,0 143,-30"/>
 <text text-anchor="start" x="8" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainPhysicalSource</text>
 <text text-anchor="middle" x="71.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Result</text>
@@ -21,7 +21,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_scene_train_physical.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_scene_train_physical.html" target="_top" xlink:title="The physical data of a train unit, in the units their names state.">
 <polygon fill="white" stroke="#666666" points="126.5,-102 16.5,-102 16.5,-83 126.5,-83 126.5,-102"/>
 <text text-anchor="middle" x="71.5" y="-90" font-family="Helvetica,sans-Serif" font-size="10.00">SceneTrainPhysical</text>
 </a>

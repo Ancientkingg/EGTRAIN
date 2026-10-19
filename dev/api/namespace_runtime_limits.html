@@ -112,21 +112,35 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespace_runt
   <div class="headertitle"><div class="title">RuntimeLimits Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>What a scene must fit into: the scene validator and the builders check against the same values.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a3ee76c4b7bc258b52656ebb9e1e9d80b" id="r_a3ee76c4b7bc258b52656ebb9e1e9d80b"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a3ee76c4b7bc258b52656ebb9e1e9d80b">kMaxExpandedTrains</a> = 700</td></tr>
+<tr class="memdesc:a3ee76c4b7bc258b52656ebb9e1e9d80b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_train.html">Train</a> occurrences in one run, over all services.  <br /></td></tr>
 <tr class="memitem:ac76e7126b610c9001450a7ee56ccff15" id="r_ac76e7126b610c9001450a7ee56ccff15"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#ac76e7126b610c9001450a7ee56ccff15">kMaxTimetableStops</a> = 40</td></tr>
+<tr class="memdesc:ac76e7126b610c9001450a7ee56ccff15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops of one service.  <br /></td></tr>
 <tr class="memitem:aca92641f8d049e4350fd1055f6b9be5b" id="r_aca92641f8d049e4350fd1055f6b9be5b"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#aca92641f8d049e4350fd1055f6b9be5b">kNativeMaxTracks</a> = 268</td></tr>
+<tr class="memdesc:aca92641f8d049e4350fd1055f6b9be5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tracks of a scene.  <br /></td></tr>
 <tr class="memitem:a8f41359436d72209c69a3e58e16a73b8" id="r_a8f41359436d72209c69a3e58e16a73b8"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a8f41359436d72209c69a3e58e16a73b8">kNativeMaxConnections</a> = 708</td></tr>
+<tr class="memdesc:a8f41359436d72209c69a3e58e16a73b8"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_connections.html">Connections</a> of a scene.  <br /></td></tr>
 <tr class="memitem:a0304a10581d6a40196185bdc8263e4ea" id="r_a0304a10581d6a40196185bdc8263e4ea"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a0304a10581d6a40196185bdc8263e4ea">kNativeMaxStations</a> = 95</td></tr>
+<tr class="memdesc:a0304a10581d6a40196185bdc8263e4ea"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_stations.html">Stations</a> of a scene.  <br /></td></tr>
 <tr class="memitem:a4c8960d87822bec0edaa89d7838a4a75" id="r_a4c8960d87822bec0edaa89d7838a4a75"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a4c8960d87822bec0edaa89d7838a4a75">kNativeMaxRouteBlocks</a> = 600</td></tr>
+<tr class="memdesc:a4c8960d87822bec0edaa89d7838a4a75"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_section.html">Section</a> references of one route.  <br /></td></tr>
 <tr class="memitem:ac759707d25263e14f8680473fa336a86" id="r_ac759707d25263e14f8680473fa336a86"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#ac759707d25263e14f8680473fa336a86">kNativeMaxNodeConnections</a> = 6</td></tr>
+<tr class="memdesc:ac759707d25263e14f8680473fa336a86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Connection ends at one node.  <br /></td></tr>
 <tr class="memitem:a34582c35d3eb1e7cb9579ba6b12224fd" id="r_a34582c35d3eb1e7cb9579ba6b12224fd"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a34582c35d3eb1e7cb9579ba6b12224fd">kNativeMaxDependencies</a> = 10</td></tr>
+<tr class="memdesc:a34582c35d3eb1e7cb9579ba6b12224fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switch sections and block dependencies of one section.  <br /></td></tr>
 <tr class="memitem:a432a9ed44b097ac42198d2d36f2c0987" id="r_a432a9ed44b097ac42198d2d36f2c0987"><td class="memItemLeft">constexpr std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a432a9ed44b097ac42198d2d36f2c0987">kNativeMaxSectionArcs</a> = 20</td></tr>
 <tr class="memitem:a45756d4bc9b1493f1d408684ef67aad6" id="r_a45756d4bc9b1493f1d408684ef67aad6"><td class="memItemLeft">constexpr double&#160;</td><td class="memItemRight"><a class="el" href="#a45756d4bc9b1493f1d408684ef67aad6">kNativeCoordinateTolerance</a> = 1e-8</td></tr>
+<tr class="memdesc:a45756d4bc9b1493f1d408684ef67aad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Two kilometre positions that differ by no more than this many kilometres are the same position.  <br /></td></tr>
 </table>
-<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>What a scene must fit into: the scene validator and the builders check against the same values. </p>
+</div><a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
 <a id="a3ee76c4b7bc258b52656ebb9e1e9d80b" name="a3ee76c4b7bc258b52656ebb9e1e9d80b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3ee76c4b7bc258b52656ebb9e1e9d80b">&#9670;&#160;</a></span>kMaxExpandedTrains</h2>
 
@@ -146,6 +160,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="class_train.html">Train</a> occurrences in one run, over all services. </p>
 
 </div>
 </div>
@@ -169,6 +185,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Stops of one service. </p>
+
 </div>
 </div>
 <a id="a45756d4bc9b1493f1d408684ef67aad6" name="a45756d4bc9b1493f1d408684ef67aad6"></a>
@@ -190,6 +208,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Two kilometre positions that differ by no more than this many kilometres are the same position. </p>
 
 </div>
 </div>
@@ -213,6 +233,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_connections.html">Connections</a> of a scene. </p>
+
 </div>
 </div>
 <a id="a34582c35d3eb1e7cb9579ba6b12224fd" name="a34582c35d3eb1e7cb9579ba6b12224fd"></a>
@@ -234,6 +256,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Switch sections and block dependencies of one section. </p>
 
 </div>
 </div>
@@ -257,6 +281,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Connection ends at one node. </p>
+
 </div>
 </div>
 <a id="a4c8960d87822bec0edaa89d7838a4a75" name="a4c8960d87822bec0edaa89d7838a4a75"></a>
@@ -279,6 +305,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_section.html">Section</a> references of one route. </p>
+
 </div>
 </div>
 <a id="a432a9ed44b097ac42198d2d36f2c0987" name="a432a9ed44b097ac42198d2d36f2c0987"></a>
@@ -300,6 +328,7 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Arcs of one runtime section. </p>
 
 </div>
 </div>
@@ -323,6 +352,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p><a class="el" href="class_stations.html">Stations</a> of a scene. </p>
+
 </div>
 </div>
 <a id="aca92641f8d049e4350fd1055f6b9be5b" name="aca92641f8d049e4350fd1055f6b9be5b"></a>
@@ -344,6 +375,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Tracks of a scene. </p>
 
 </div>
 </div>

@@ -146,7 +146,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="768.5,-131 640.5,-131 640.5,-112 768.5,-112 768.5,-131"/>
 <text text-anchor="middle" x="704.5" y="-119" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>

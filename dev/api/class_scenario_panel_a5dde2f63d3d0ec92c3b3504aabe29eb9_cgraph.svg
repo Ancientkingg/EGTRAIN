@@ -220,7 +220,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" target="_top" xlink:title="A free scenario id. An empty baseId stands for &quot;scenario&quot;.">
 <polygon fill="white" stroke="#666666" points="589,-621 458,-621 458,-602 589,-602 589,-621"/>
 <text text-anchor="middle" x="523.5" y="-609" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueScenarioId</text>
 </a>
@@ -283,7 +283,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" target="_top" xlink:title="Rewrites the scenario id in defaultScenarioId.">
 <polygon fill="white" stroke="#666666" points="613,-676 434,-676 434,-657 613,-657 613,-676"/>
 <text text-anchor="middle" x="523.5" y="-664" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteScenarioReferences</text>
 </a>
@@ -473,7 +473,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" target="_top" xlink:title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays.">
 <polygon fill="white" stroke="#666666" points="1012.5,-945 884.5,-945 884.5,-926 1012.5,-926 1012.5,-945"/>
 <text text-anchor="middle" x="948.5" y="-933" font-family="Helvetica,sans-Serif" font-size="10.00">makeBaselineScenario</text>
 </a>
@@ -527,7 +527,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="_scene_ids_8cpp.html#a9edceb40d40b19920be98bc154705dee" target="_top" xlink:title="An incident id that is free across all scenarios.">
 <polygon fill="white" stroke="#666666" points="587.5,-566 459.5,-566 459.5,-547 587.5,-547 587.5,-566"/>
 <text text-anchor="middle" x="523.5" y="-554" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueIncidentId</text>
 </a>
@@ -572,7 +572,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="_scene_writer_8cpp.html#a786a7acd10c619ec634411db420b77ae" target="_top" xlink:title="Writes one scenario as a standalone scenario file, replacing the file at filePath.">
 <polygon fill="white" stroke="#666666" points="574.5,-168 472.5,-168 472.5,-149 574.5,-149 574.5,-168"/>
 <text text-anchor="middle" x="523.5" y="-156" font-family="Helvetica,sans-Serif" font-size="10.00">saveScenarioJson</text>
 </a>
@@ -608,7 +608,7 @@
 <!-- Node31 -->
 <g id="Node000031" class="node">
 <title>Node31</title>
-<g id="a_Node000031"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title=" ">
+<g id="a_Node000031"><a xlink:href="struct_scene_save_result.html#a72cff264d8caa502733c0148ccba6f32" target="_top" xlink:title="True when wroteAll is set and no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="596,-278 451,-278 451,-259 596,-259 596,-278"/>
 <text text-anchor="middle" x="523.5" y="-266" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSaveResult::success</text>
 </a>
@@ -662,7 +662,7 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title=" ">
+<g id="a_Node000023"><a xlink:href="_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" target="_top" xlink:title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,...">
 <polygon fill="white" stroke="#666666" points="1189.5,-224 1105.5,-224 1105.5,-205 1189.5,-205 1189.5,-224"/>
 <text text-anchor="middle" x="1147.5" y="-212" font-family="Helvetica,sans-Serif" font-size="10.00">pathFromUtf8</text>
 </a>
@@ -869,7 +869,7 @@
 <!-- Node32 -->
 <g id="Node000032" class="node">
 <title>Node32</title>
-<g id="a_Node000032"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000032"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="773,-317 711,-317 711,-298 773,-298 773,-317"/>
 <text text-anchor="middle" x="742" y="-305" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -1022,7 +1022,7 @@
 <!-- Node43 -->
 <g id="Node000043" class="node">
 <title>Node43</title>
-<g id="a_Node000043"><a xlink:href="_scene_writer_8cpp.html#aae8bfdfec6055624487397a2e164e593" target="_top" xlink:title=" ">
+<g id="a_Node000043"><a xlink:href="_scene_writer_8cpp.html#aae8bfdfec6055624487397a2e164e593" target="_top" xlink:title="Reads one scenario from a standalone scenario file.">
 <polygon fill="white" stroke="#666666" points="573.5,-511 473.5,-511 473.5,-492 573.5,-492 573.5,-511"/>
 <text text-anchor="middle" x="523.5" y="-499" font-family="Helvetica,sans-Serif" font-size="10.00">loadScenarioJson</text>
 </a>
@@ -1040,7 +1040,7 @@
 <!-- Node56 -->
 <g id="Node000056" class="node">
 <title>Node56</title>
-<g id="a_Node000056"><a xlink:href="struct_scenario_load_result.html#a57ff51fbc1c1473c062f06fdb264c7ee" target="_top" xlink:title=" ">
+<g id="a_Node000056"><a xlink:href="struct_scenario_load_result.html#a57ff51fbc1c1473c062f06fdb264c7ee" target="_top" xlink:title="True when no diagnostic is an error.">
 <polygon fill="white" stroke="#666666" points="580,-418.5 467,-418.5 467,-388.5 580,-388.5 580,-418.5"/>
 <text text-anchor="start" x="475" y="-406.5" font-family="Helvetica,sans-Serif" font-size="10.00">ScenarioLoadResult</text>
 <text text-anchor="middle" x="523.5" y="-395.5" font-family="Helvetica,sans-Serif" font-size="10.00">::success</text>
@@ -1059,7 +1059,7 @@
 <!-- Node57 -->
 <g id="Node000057" class="node">
 <title>Node57</title>
-<g id="a_Node000057"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title=" ">
+<g id="a_Node000057"><a xlink:href="_scene_validator_8cpp.html#a60e75574768ca4f881fc7b88926e6b46" target="_top" xlink:title="Validates the references, ids, values, timetables and incidents of the loaded model.">
 <polygon fill="white" stroke="#666666" points="566.5,-456 480.5,-456 480.5,-437 566.5,-437 566.5,-456"/>
 <text text-anchor="middle" x="523.5" y="-444" font-family="Helvetica,sans-Serif" font-size="10.00">validateScene</text>
 </a>

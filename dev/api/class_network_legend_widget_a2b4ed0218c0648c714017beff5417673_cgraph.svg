@@ -286,7 +286,7 @@
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title=" ">
+<g id="a_Node000019"><a xlink:href="_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" target="_top" xlink:title="True when a diagnostic has severity Error.">
 <polygon fill="white" stroke="#666666" points="653,-1227 591,-1227 591,-1208 653,-1208 653,-1227"/>
 <text text-anchor="middle" x="622" y="-1215" font-family="Helvetica,sans-Serif" font-size="10.00">hasErrors</text>
 </a>
@@ -578,7 +578,7 @@
 <!-- Node104 -->
 <g id="Node000104" class="node">
 <title>Node104</title>
-<g id="a_Node000104"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title=" ">
+<g id="a_Node000104"><a xlink:href="_scene_diagnostic_8cpp.html#a610ae58f0e5af2938f73ae86e01c9eec" target="_top" xlink:title="One line for the log and the UI list: severity, code, file, item, path, message and suggested fix.">
 <polygon fill="#fff0f0" stroke="red" points="663.5,-487 580.5,-487 580.5,-468 663.5,-468 663.5,-487"/>
 <text text-anchor="middle" x="622" y="-475" font-family="Helvetica,sans-Serif" font-size="10.00">toDisplayText</text>
 </a>

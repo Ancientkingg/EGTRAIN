@@ -113,18 +113,29 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_p
 </div><!--header-->
 <div class="contents">
 
+<p>A platform of a station.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aabc956cab821c642284aeaa56475f412" id="r_aabc956cab821c642284aeaa56475f412"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aabc956cab821c642284aeaa56475f412">id</a></td></tr>
+<tr class="memdesc:aabc956cab821c642284aeaa56475f412"><td class="mdescLeft">&#160;</td><td class="mdescRight">Id of the platform, unique within its station.  <br /></td></tr>
 <tr class="memitem:a25c1dddd2bec670c77dfa58dbd1fba7e" id="r_a25c1dddd2bec670c77dfa58dbd1fba7e"><td class="memItemLeft">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a25c1dddd2bec670c77dfa58dbd1fba7e">nodeIds</a></td></tr>
+<tr class="memdesc:a25c1dddd2bec670c77dfa58dbd1fba7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nodes at which trains stop at this platform.  <br /></td></tr>
 <tr class="memitem:aae2d7da0f13a0c84ca2f09fbdbde1c35" id="r_aae2d7da0f13a0c84ca2f09fbdbde1c35"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aae2d7da0f13a0c84ca2f09fbdbde1c35">hasLength</a> = false</td></tr>
+<tr class="memdesc:aae2d7da0f13a0c84ca2f09fbdbde1c35"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when length_m is given.  <br /></td></tr>
 <tr class="memitem:a41f7162103acc669fd2f5234e0082714" id="r_a41f7162103acc669fd2f5234e0082714"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a41f7162103acc669fd2f5234e0082714">lengthM</a> = <a class="el" href="_scene_model_8h.html#ae5fc684ef6fbebe5d0cc8a95d979bd79">kDefaultPlatformLengthM</a></td></tr>
+<tr class="memdesc:a41f7162103acc669fd2f5234e0082714"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length in metres.  <br /></td></tr>
 <tr class="memitem:afc11e59e9bcdb5899a3fdc8de3390af6" id="r_afc11e59e9bcdb5899a3fdc8de3390af6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc11e59e9bcdb5899a3fdc8de3390af6">hasWidth</a> = false</td></tr>
+<tr class="memdesc:afc11e59e9bcdb5899a3fdc8de3390af6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when width_m is given.  <br /></td></tr>
 <tr class="memitem:aec2ff76b5264a4a135a37347f00c1732" id="r_aec2ff76b5264a4a135a37347f00c1732"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aec2ff76b5264a4a135a37347f00c1732">widthM</a> = <a class="el" href="_scene_model_8h.html#ad132147496247c482e942adece81c530">kDefaultPlatformWidthM</a></td></tr>
+<tr class="memdesc:aec2ff76b5264a4a135a37347f00c1732"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width in metres.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A platform of a station. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aae2d7da0f13a0c84ca2f09fbdbde1c35" name="aae2d7da0f13a0c84ca2f09fbdbde1c35"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aae2d7da0f13a0c84ca2f09fbdbde1c35">&#9670;&#160;</a></span>hasLength</h2>
 
@@ -136,6 +147,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when length_m is given. </p>
 
 </div>
 </div>
@@ -151,6 +164,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when width_m is given. </p>
+
 </div>
 </div>
 <a id="aabc956cab821c642284aeaa56475f412" name="aabc956cab821c642284aeaa56475f412"></a>
@@ -164,6 +179,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Id of the platform, unique within its station. </p>
 
 </div>
 </div>
@@ -179,6 +196,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length in metres. </p>
+
 </div>
 </div>
 <a id="a25c1dddd2bec670c77dfa58dbd1fba7e" name="a25c1dddd2bec670c77dfa58dbd1fba7e"></a>
@@ -193,6 +212,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The nodes at which trains stop at this platform. </p>
+
 </div>
 </div>
 <a id="aec2ff76b5264a4a135a37347f00c1732" name="aec2ff76b5264a4a135a37347f00c1732"></a>
@@ -206,6 +227,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Width in metres. </p>
 
 </div>
 </div>

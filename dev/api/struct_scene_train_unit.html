@@ -113,6 +113,9 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_t
 </div><!--header-->
 <div class="contents">
 
+<p>A train unit: its physical data and its tractive effort curve.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_scene_model_8h_source.html">scene/SceneModel.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SceneTrainUnit:</div>
@@ -123,13 +126,19 @@ Collaboration diagram for SceneTrainUnit:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a9e86542becf5385f5668be7573274b34" id="r_a9e86542becf5385f5668be7573274b34"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a9e86542becf5385f5668be7573274b34">id</a></td></tr>
+<tr class="memdesc:a9e86542becf5385f5668be7573274b34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique id of the unit.  <br /></td></tr>
 <tr class="memitem:ac58a5a0bc689b17187cd8f8de5e97aa2" id="r_ac58a5a0bc689b17187cd8f8de5e97aa2"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac58a5a0bc689b17187cd8f8de5e97aa2">hasPhysical</a> = false</td></tr>
+<tr class="memdesc:ac58a5a0bc689b17187cd8f8de5e97aa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the physical object is given.  <br /></td></tr>
 <tr class="memitem:ae9a59d15baeae504dcd808e9ec7c7401" id="r_ae9a59d15baeae504dcd808e9ec7c7401"><td class="memItemLeft"><a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a>&#160;</td><td class="memItemRight"><a class="el" href="#ae9a59d15baeae504dcd808e9ec7c7401">physical</a></td></tr>
 <tr class="memitem:a33cbdfc20ab203e0451865ffd9650530" id="r_a33cbdfc20ab203e0451865ffd9650530"><td class="memItemLeft">std::vector&lt; std::array&lt; double, 5 &gt; &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a33cbdfc20ab203e0451865ffd9650530">tractionCurve</a></td></tr>
 <tr class="memitem:a6385a0cc4cc38092158d2963b5e17852" id="r_a6385a0cc4cc38092158d2963b5e17852"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a6385a0cc4cc38092158d2963b5e17852">sourceDataFile</a></td></tr>
+<tr class="memdesc:a6385a0cc4cc38092158d2963b5e17852"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path of the vehicle data file the editor reads the physical data from; empty when none.  <br /></td></tr>
 <tr class="memitem:a2d5171838ee49071dee44628fb2d25a8" id="r_a2d5171838ee49071dee44628fb2d25a8"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2d5171838ee49071dee44628fb2d25a8">sourceTractionFile</a></td></tr>
+<tr class="memdesc:a2d5171838ee49071dee44628fb2d25a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path of the traction file the editor reads the curve from; empty when none.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A train unit: its physical data and its tractive effort curve. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ac58a5a0bc689b17187cd8f8de5e97aa2" name="ac58a5a0bc689b17187cd8f8de5e97aa2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac58a5a0bc689b17187cd8f8de5e97aa2">&#9670;&#160;</a></span>hasPhysical</h2>
 
@@ -141,6 +150,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the physical object is given. </p>
 
 </div>
 </div>
@@ -156,6 +167,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique id of the unit. </p>
+
 </div>
 </div>
 <a id="ae9a59d15baeae504dcd808e9ec7c7401" name="ae9a59d15baeae504dcd808e9ec7c7401"></a>
@@ -169,6 +182,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The physical data; meaningful only when hasPhysical is set. </p>
 
 </div>
 </div>
@@ -184,6 +198,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Path of the vehicle data file the editor reads the physical data from; empty when none. </p>
+
 </div>
 </div>
 <a id="a2d5171838ee49071dee44628fb2d25a8" name="a2d5171838ee49071dee44628fb2d25a8"></a>
@@ -198,6 +214,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Path of the traction file the editor reads the curve from; empty when none. </p>
+
 </div>
 </div>
 <a id="a33cbdfc20ab203e0451865ffd9650530" name="a33cbdfc20ab203e0451865ffd9650530"></a>
@@ -211,6 +229,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Rows of [v_lower, v_upper, c0, c1, c2]: the tractive effort in N is c0 + c1 v + c2 v² for a speed v from v_lower up to v_upper. The simulation compares the bounds with speeds in m/s. </p>
 
 </div>
 </div>

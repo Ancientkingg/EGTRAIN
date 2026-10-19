@@ -16,20 +16,20 @@
 <area shape="poly" id="edge27_Node000003_Node000015" title=" " alt="" coords="598,388,668,405,667,410,597,393"/>
 <area shape="rect" id="Node000016" href="$class_train_unit_source_linker.html#a7f8c7b0786c8a294cfa526e7ad9b407b" title=" " alt="" coords="681,473,843,513"/>
 <area shape="poly" id="edge28_Node000003_Node000016" title=" " alt="" coords="542,390,589,425,647,459,669,468,667,473,644,464,586,430,539,394"/>
-<area shape="rect" id="Node000017" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title=" " alt="" coords="689,562,835,587"/>
+<area shape="rect" id="Node000017" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="689,562,835,587"/>
 <area shape="poly" id="edge29_Node000003_Node000017" title=" " alt="" coords="532,390,578,455,610,491,647,523,676,541,706,555,704,560,673,546,644,527,607,495,574,458,527,394"/>
 <area shape="rect" id="Node000018" href="$class_train_unit_source_linker.html#afff27b427b5d6a1c116a8b362b85fdf6" title=" " alt="" coords="681,612,843,652"/>
 <area shape="poly" id="edge31_Node000003_Node000018" title=" " alt="" coords="533,391,600,500,612,530,619,554,628,576,647,598,670,612,667,617,644,602,623,579,614,556,607,531,595,503,528,394"/>
 <area shape="rect" id="Node000019" href="$class_train_unit_source_linker.html#ac19717cc1626f87ada89b940e2a61dd4" title=" " alt="" coords="681,5,843,45"/>
 <area shape="poly" id="edge32_Node000003_Node000019" title=" " alt="" coords="517,352,527,293,548,214,565,171,586,129,612,90,644,55,666,41,669,45,647,59,616,93,590,131,569,173,553,215,532,295,522,352"/>
-<area shape="rect" id="Node000020" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title=" " alt="" coords="667,69,857,109"/>
+<area shape="rect" id="Node000020" href="$struct_scene_train_physical_source_result.html#a3c12f001584cfcfc0c2570646e3e7199" title="True when error is empty." alt="" coords="667,69,857,109"/>
 <area shape="poly" id="edge33_Node000003_Node000020" title=" " alt="" coords="519,351,533,304,557,241,593,176,617,145,644,119,653,112,656,117,647,123,620,149,598,179,562,243,538,305,524,353"/>
-<area shape="rect" id="Node000021" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title=" " alt="" coords="669,133,855,173"/>
+<area shape="rect" id="Node000021" href="$struct_scene_train_traction_source_result.html#a9265b8b5448ed6c262eb0b99b1460f81" title="True when error is empty." alt="" coords="669,133,855,173"/>
 <area shape="poly" id="edge34_Node000003_Node000021" title=" " alt="" coords="523,351,540,314,566,269,601,223,644,183,655,176,658,181,647,187,605,226,571,272,545,317,528,353"/>
 <area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="724,361,716,351,720,341,736,335,762,333,795,337,808,346,804,350,793,341,762,338,737,340,723,345,721,350,728,357"/>
 <area shape="rect" id="Node000006" href="$_scene_importer_8cpp.html#ad66c68ae1f900984a81ddd2d932f298f" title=" " alt="" coords="927,433,1068,458"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="831,382,879,395,957,425,955,430,878,400,830,387"/>
-<area shape="rect" id="Node000007" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="941,237,1053,262"/>
+<area shape="rect" id="Node000007" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="941,237,1053,262"/>
 <area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="804,357,841,342,877,322,891,310,900,298,910,285,925,272,938,265,941,270,928,277,914,289,905,301,895,313,880,326,843,347,806,362"/>
 <area shape="rect" id="Node000008" href="$_scene_importer_8cpp.html#ade7e37ac73a4aaa31469db5376843898" title=" " alt="" coords="960,286,1035,311"/>
 <area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="803,357,946,312,947,317,805,362"/>

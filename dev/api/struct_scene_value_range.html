@@ -118,11 +118,17 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_v
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa3db1319f196a15151b777c6826ff580" id="r_aa3db1319f196a15151b777c6826ff580"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aa3db1319f196a15151b777c6826ff580">min</a></td></tr>
+<tr class="memdesc:aa3db1319f196a15151b777c6826ff580"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lowest number the editor accepts.  <br /></td></tr>
 <tr class="memitem:aab2bf9b52904f13f99d162856ea6f275" id="r_aab2bf9b52904f13f99d162856ea6f275"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aab2bf9b52904f13f99d162856ea6f275">max</a></td></tr>
+<tr class="memdesc:aab2bf9b52904f13f99d162856ea6f275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Highest number the editor accepts.  <br /></td></tr>
 <tr class="memitem:a1d56bebfe6050c186365c30059086e5e" id="r_a1d56bebfe6050c186365c30059086e5e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a1d56bebfe6050c186365c30059086e5e">plausibleMin</a></td></tr>
+<tr class="memdesc:a1d56bebfe6050c186365c30059086e5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lowest number validation accepts without a warning.  <br /></td></tr>
 <tr class="memitem:ac4435d641fc6c08aec291f301786d730" id="r_ac4435d641fc6c08aec291f301786d730"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ac4435d641fc6c08aec291f301786d730">plausibleMax</a></td></tr>
+<tr class="memdesc:ac4435d641fc6c08aec291f301786d730"><td class="mdescLeft">&#160;</td><td class="mdescRight">Highest number validation accepts without a warning.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The range of a number of a train unit, in the unit of that number. The editor refuses a number outside [min, max]. Validation warns about a number outside [plausibleMin, plausibleMax], which lies inside the first range. Both are guards against input that no rail vehicle has, not data of a vehicle. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aab2bf9b52904f13f99d162856ea6f275" name="aab2bf9b52904f13f99d162856ea6f275"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aab2bf9b52904f13f99d162856ea6f275">&#9670;&#160;</a></span>max</h2>
 
@@ -134,6 +140,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Highest number the editor accepts. </p>
 
 </div>
 </div>
@@ -149,6 +157,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Lowest number the editor accepts. </p>
+
 </div>
 </div>
 <a id="ac4435d641fc6c08aec291f301786d730" name="ac4435d641fc6c08aec291f301786d730"></a>
@@ -163,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Highest number validation accepts without a warning. </p>
+
 </div>
 </div>
 <a id="a1d56bebfe6050c186365c30059086e5e" name="a1d56bebfe6050c186365c30059086e5e"></a>
@@ -176,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Lowest number validation accepts without a warning. </p>
 
 </div>
 </div>

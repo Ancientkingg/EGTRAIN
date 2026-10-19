@@ -950,7 +950,7 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title=" ">
+<g id="a_Node000028"><a xlink:href="_signalling_level_8h.html#ab55140853be4bacb2be37b8533aa5ce7" target="_top" xlink:title="The number stored for a level.">
 <polygon fill="white" stroke="#666666" points="1143,-304.5 1075,-304.5 1075,-285.5 1143,-285.5 1143,-304.5"/>
 <text text-anchor="middle" x="1109" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">levelValue</text>
 </a>
@@ -1022,7 +1022,7 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="_signalling_level_8h.html#a045a14e0cace859e62e5d6af40ea41d5" target="_top" xlink:title=" ">
+<g id="a_Node000026"><a xlink:href="_signalling_level_8h.html#a045a14e0cace859e62e5d6af40ea41d5" target="_top" xlink:title="Whether a stored number is a fixed&#45;block level, where signal aspects separate the trains.">
 <polygon fill="#fff0f0" stroke="red" points="751.5,-342.5 647.5,-342.5 647.5,-323.5 751.5,-323.5 751.5,-342.5"/>
 <text text-anchor="middle" x="699.5" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">isFixedBlockLevel</text>
 </a>

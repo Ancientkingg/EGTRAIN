@@ -183,6 +183,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Migration uses the same hostile-archive checks and extracts a safe older layout into a caller-owned staging directory for an explicit migration step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -205,6 +206,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extracts a bundle of the current bundle and schema version to a temporary directory and loads it. inputSnapshot holds the bytes of the bundle file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -227,6 +229,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Loads a directory, or a missing path without the .egscene extension, with loadScene, and any other path with loadSceneBundle. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -249,6 +252,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads only ZIP metadata and the bounded scene.json manifest. Unknown newer layouts are never extracted; v1 allowlist checks happen in the same shared inspection path used by the normal loader. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -275,6 +279,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes a scene of the current schema version as an .egscene bundle, checks the archive, and then moves it to bundlePath, replacing a regular file there. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -301,6 +306,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extracts a bundle of the current bundle and schema version into destinationDirectory, which must not exist yet, after the extracted scene loads without errors. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

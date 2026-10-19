@@ -33,7 +33,7 @@
 <area shape="rect" id="Node000004" href="$class_composition_panel.html#adeb9f8522bb9e61cdd217ad39c7e001e" title=" " alt="" coords="603,153,830,193"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="502,140,590,152,589,158,501,145"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="520,141,538,153,555,175,563,198,564,221,563,244,561,266,562,288,570,309,586,329,608,344,605,349,582,333,565,311,557,289,556,266,557,243,559,221,558,199,550,178,534,157,517,145"/>
-<area shape="rect" id="Node000007" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title=" " alt="" coords="617,103,817,128"/>
+<area shape="rect" id="Node000007" href="$_scene_ids_8cpp.html#ac444ba4ef25dd8dc3ab769421761c1f4" title="A free composition id." alt="" coords="617,103,817,128"/>
 <area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="536,121,603,118,603,123,536,127"/>
 <area shape="rect" id="Node000006" href="$_scene_editor_panel_8h.html#a24357fc7a22bbf4aac051aa82a1ef016" title=" " alt="" coords="972,371,1067,396"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="814,363,959,376,958,381,813,369"/>
@@ -44,7 +44,7 @@
 <area shape="poly" id="edge13_Node000009_Node000003" title=" " alt="" coords="510,84,538,103,554,125,562,147,562,192,563,235,570,256,586,276,607,290,604,295,582,280,565,258,557,236,557,192,557,148,550,127,534,107,507,89"/>
 <area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="507,90,537,102,562,120,585,137,607,146,605,151,583,142,558,124,535,107,505,95"/>
 <area shape="poly" id="edge17_Node000009_Node000007" title=" " alt="" coords="509,84,611,98,611,103,508,89"/>
-<area shape="rect" id="Node000010" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title=" " alt="" coords="584,29,849,55"/>
+<area shape="rect" id="Node000010" href="$_scene_references_8cpp.html#afacc26ec6e0b9ea07191c641632e8805" title="Rewrites the composition id in the composition of services." alt="" coords="584,29,849,55"/>
 <area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="508,60,576,53,576,59,509,65"/>
 <area shape="poly" id="edge16_Node000010_Node000010" title=" " alt="" coords="668,31,658,21,663,11,683,5,717,3,761,7,772,13,775,19,771,21,769,16,760,12,717,8,684,10,667,15,663,20,672,27"/>
 <area shape="poly" id="edge19_Node000011_Node000003" title=" " alt="" coords="504,266,633,290,632,295,503,271"/>
@@ -60,12 +60,12 @@
 <area shape="rect" id="Node000018" href="$_scene_references_8cpp.html#afd2c3e61a4aab31cc52d4e37e6e2ecbb" title=" " alt="" coords="897,297,1141,323"/>
 <area shape="poly" id="edge30_Node000012_Node000018" title=" " alt="" coords="787,264,937,292,936,297,786,269"/>
 <area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="974,160,964,150,970,140,988,134,1019,132,1060,136,1071,141,1074,148,1069,150,1067,145,1059,141,1019,137,989,139,973,144,970,150,978,157"/>
-<area shape="rect" id="Node000014" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title=" " alt="" coords="1189,159,1413,184"/>
+<area shape="rect" id="Node000014" href="$_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids." alt="" coords="1189,159,1413,184"/>
 <area shape="poly" id="edge25_Node000013_Node000014" title=" " alt="" coords="1121,169,1176,169,1176,174,1121,174"/>
 <area shape="poly" id="edge26_Node000014_Node000014" title=" " alt="" coords="1263,160,1255,150,1259,140,1275,134,1301,132,1334,136,1347,145,1344,150,1332,141,1301,137,1276,139,1263,144,1260,150,1267,157"/>
-<area shape="rect" id="Node000016" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title=" " alt="" coords="1216,273,1387,313"/>
+<area shape="rect" id="Node000016" href="$struct_scene_section_inventory.html#a7382b5e4bfec42586b09983a6398fc48" title="True when more than one section matches the reference as a runtime id or base&#45;block alias." alt="" coords="1216,273,1387,313"/>
 <area shape="poly" id="edge28_Node000015_Node000016" title=" " alt="" coords="1105,245,1204,268,1202,273,1104,251"/>
-<area shape="rect" id="Node000017" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title=" " alt="" coords="1216,209,1387,249"/>
+<area shape="rect" id="Node000017" href="$struct_scene_section_inventory.html#a95c83f397166f222b5c63ed83a40d37c" title="The one section with this runtime id; null when none or several have it." alt="" coords="1216,209,1387,249"/>
 <area shape="poly" id="edge29_Node000015_Node000017" title=" " alt="" coords="1105,226,1203,226,1203,231,1105,231"/>
 <area shape="poly" id="edge31_Node000018_Node000018" title=" " alt="" coords="974,299,964,289,970,279,988,273,1019,271,1060,275,1071,280,1074,286,1069,289,1067,284,1059,280,1019,276,989,278,973,283,970,288,978,295"/>
 <area shape="poly" id="edge34_Node000019_Node000003" title=" " alt="" coords="514,205,538,217,554,232,562,248,570,262,585,276,610,288,608,293,583,280,566,266,558,250,549,235,534,222,512,210"/>
@@ -89,7 +89,7 @@
 <area shape="poly" id="edge50_Node000025_Node000005" title=" " alt="" coords="485,441,535,429,610,402,675,374,677,379,612,407,537,434,486,447"/>
 <area shape="poly" id="edge52_Node000026_Node000003" title=" " alt="" coords="487,343,625,320,626,325,488,348"/>
 <area shape="poly" id="edge53_Node000026_Node000005" title=" " alt="" coords="524,355,606,355,606,361,524,361"/>
-<area shape="rect" id="Node000028" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title=" " alt="" coords="643,708,790,733"/>
+<area shape="rect" id="Node000028" href="$_scene_references_8cpp.html#a257e9fde53955a300370901e81fc7024" title="The train unit with this id, or null. The pointer points into the model." alt="" coords="643,708,790,733"/>
 <area shape="poly" id="edge55_Node000027_Node000028" title=" " alt="" coords="524,715,629,717,629,722,524,721"/>
 <area shape="rect" id="Node000029" href="$class_composition_panel.html#a980deac83d7950c40aa900f4eda2e2c8" title=" " alt="" coords="618,758,815,798"/>
 <area shape="poly" id="edge57_Node000027_Node000029" title=" " alt="" coords="511,734,605,753,604,758,510,739"/>

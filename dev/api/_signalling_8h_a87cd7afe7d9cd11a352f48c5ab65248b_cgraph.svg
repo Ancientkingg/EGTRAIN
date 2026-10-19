@@ -103,7 +103,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="_section_inventory_8cpp.html#a27f18250734df7f228d6cc0fdb9b6ad6" target="_top" xlink:title="True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a bloc...">
 <polygon fill="white" stroke="#666666" points="447.5,-159 322.5,-159 322.5,-140 447.5,-140 447.5,-159"/>
 <text text-anchor="middle" x="385" y="-147" font-family="Helvetica,sans-Serif" font-size="10.00">sceneSectionsOverlap</text>
 </a>
@@ -223,7 +223,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="1100,-66 932,-66 932,-47 1100,-47 1100,-66"/>
 <text text-anchor="middle" x="1016" y="-54" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>

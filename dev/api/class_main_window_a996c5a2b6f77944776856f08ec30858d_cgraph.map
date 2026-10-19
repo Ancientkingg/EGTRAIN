@@ -84,7 +84,7 @@
 <area shape="poly" id="edge37_Node000031_Node000033" title=" " alt="" coords="688,914,749,839,795,794,848,754,860,748,862,753,851,759,799,798,753,842,692,917"/>
 <area shape="rect" id="Node000037" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title=" " alt="" coords="861,769,1056,795"/>
 <area shape="poly" id="edge38_Node000031_Node000037" title=" " alt="" coords="693,914,757,860,801,829,848,804,867,796,869,801,850,808,803,834,760,864,697,918"/>
-<area shape="rect" id="Node000038" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title=" " alt="" coords="891,843,1026,868"/>
+<area shape="rect" id="Node000038" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="891,843,1026,868"/>
 <area shape="poly" id="edge39_Node000031_Node000038" title=" " alt="" coords="721,913,849,877,883,868,884,874,850,882,723,919"/>
 <area shape="rect" id="Node000039" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="897,916,1021,941"/>
 <area shape="poly" id="edge41_Node000031_Node000039" title=" " alt="" coords="769,926,883,926,883,931,769,931"/>
@@ -92,7 +92,7 @@
 <area shape="poly" id="edge43_Node000031_Node000041" title=" " alt="" coords="753,939,873,960,872,965,752,944"/>
 <area shape="rect" id="Node000042" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="871,1039,1046,1064"/>
 <area shape="poly" id="edge45_Node000031_Node000042" title=" " alt="" coords="728,939,803,968,827,983,851,1000,915,1031,912,1036,848,1004,824,988,800,972,727,944"/>
-<area shape="rect" id="Node000043" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title=" " alt="" coords="1170,1117,1253,1143"/>
+<area shape="rect" id="Node000043" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="1170,1117,1253,1143"/>
 <area shape="poly" id="edge47_Node000031_Node000043" title=" " alt="" coords="750,939,778,951,803,968,815,982,822,996,827,1023,832,1050,839,1062,851,1073,874,1085,906,1095,988,1111,1078,1120,1157,1125,1156,1131,1078,1126,987,1116,904,1101,871,1090,848,1077,835,1065,827,1052,822,1025,817,998,810,985,800,972,775,955,748,944"/>
 <area shape="rect" id="Node000044" href="$class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf" title=" " alt="" coords="887,1139,1030,1179"/>
 <area shape="poly" id="edge50_Node000031_Node000044" title=" " alt="" coords="754,939,780,951,803,968,818,988,825,1007,828,1045,831,1082,838,1100,851,1119,877,1137,873,1141,847,1123,833,1103,826,1083,823,1045,820,1008,813,990,799,972,777,955,752,944"/>

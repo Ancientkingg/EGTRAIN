@@ -113,17 +113,26 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_r
 </div><!--header-->
 <div class="contents">
 
+<p>A node of a route at which a station lies.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a5f44779527c1f50fded3bcaa08454659" id="r_a5f44779527c1f50fded3bcaa08454659"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a5f44779527c1f50fded3bcaa08454659">sectionId</a></td></tr>
+<tr class="memdesc:a5f44779527c1f50fded3bcaa08454659"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime id of the section that holds the node.  <br /></td></tr>
 <tr class="memitem:ae45755a94e740f08cf73a9c0ede20154" id="r_ae45755a94e740f08cf73a9c0ede20154"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ae45755a94e740f08cf73a9c0ede20154">nodeId</a></td></tr>
+<tr class="memdesc:ae45755a94e740f08cf73a9c0ede20154"><td class="mdescLeft">&#160;</td><td class="mdescRight">The node.  <br /></td></tr>
 <tr class="memitem:a2b570a79086ce518adb1a4a4042ed177" id="r_a2b570a79086ce518adb1a4a4042ed177"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a2b570a79086ce518adb1a4a4042ed177">stationId</a></td></tr>
+<tr class="memdesc:a2b570a79086ce518adb1a4a4042ed177"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station.  <br /></td></tr>
 <tr class="memitem:a82136bbba8a1cf8627468ff2e8086e85" id="r_a82136bbba8a1cf8627468ff2e8086e85"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a82136bbba8a1cf8627468ff2e8086e85">platformId</a></td></tr>
 <tr class="memitem:ab9d7ddad6b6cbfa85da1fc9b7dfc5533" id="r_ab9d7ddad6b6cbfa85da1fc9b7dfc5533"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#ab9d7ddad6b6cbfa85da1fc9b7dfc5533">sectionIndex</a> = std::numeric_limits&lt;std::size_t&gt;::max()</td></tr>
+<tr class="memdesc:ab9d7ddad6b6cbfa85da1fc9b7dfc5533"><td class="mdescLeft">&#160;</td><td class="mdescRight">Index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section; the maximum value when not set.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A node of a route at which a station lies. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae45755a94e740f08cf73a9c0ede20154" name="ae45755a94e740f08cf73a9c0ede20154"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae45755a94e740f08cf73a9c0ede20154">&#9670;&#160;</a></span>nodeId</h2>
 
@@ -135,6 +144,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The node. </p>
 
 </div>
 </div>
@@ -149,6 +160,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The platform at the node; empty for a station bound by its position. </p>
 
 </div>
 </div>
@@ -164,6 +176,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Runtime id of the section that holds the node. </p>
+
 </div>
 </div>
 <a id="ab9d7ddad6b6cbfa85da1fc9b7dfc5533" name="ab9d7ddad6b6cbfa85da1fc9b7dfc5533"></a>
@@ -178,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Index into <a class="el" href="struct_scene_route.html#a4f041d5160784ae07f00fda35a0c67ed" title="Section references in travel order.">SceneRoute::blocks</a> of the section; the maximum value when not set. </p>
+
 </div>
 </div>
 <a id="a2b570a79086ce518adb1a4a4042ed177" name="a2b570a79086ce518adb1a4a4042ed177"></a>
@@ -191,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The station. </p>
 
 </div>
 </div>

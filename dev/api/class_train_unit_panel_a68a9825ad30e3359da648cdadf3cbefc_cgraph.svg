@@ -111,7 +111,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="_scene_references_8cpp.html#adfaa0c66a925f5ca8a89a8b2ada74472" target="_top" xlink:title="Rewrites the train unit id in the units of compositions.">
 <polygon fill="white" stroke="#666666" points="609,-105 428,-105 428,-86 609,-86 609,-105"/>
 <text text-anchor="middle" x="518.5" y="-93" font-family="Helvetica,sans-Serif" font-size="10.00">sceneRewriteTrainUnitReferences</text>
 </a>

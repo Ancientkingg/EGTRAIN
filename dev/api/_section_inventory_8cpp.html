@@ -129,14 +129,19 @@ Include dependency graph for SectionInventory.cpp:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a38867ed655babc4f9d2a81b27deff310" id="r_a38867ed655babc4f9d2a81b27deff310"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a38867ed655babc4f9d2a81b27deff310">formatSceneSectionCoordinate</a> (double coordinate)</td></tr>
+<tr class="memdesc:a38867ed655babc4f9d2a81b27deff310"><td class="mdescLeft">&#160;</td><td class="mdescRight">A chainage in kilometres as printf "%f" writes it, the form used in switch section ids.  <br /></td></tr>
 <tr class="memitem:a9cb3de6815c38bfd0cf14a022a187786" id="r_a9cb3de6815c38bfd0cf14a022a187786"><td class="memItemLeft"><a class="el" href="struct_scene_section_transition.html">SceneSectionTransition</a>&#160;</td><td class="memItemRight"><a class="el" href="#a9cb3de6815c38bfd0cf14a022a187786">classifySceneSectionTransition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;left, const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> &amp;right)</td></tr>
 <tr class="memitem:a0a493a67878c96b3c90d791a1fa68552" id="r_a0a493a67878c96b3c90d791a1fa68552"><td class="memItemLeft"><a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0a493a67878c96b3c90d791a1fa68552">buildSceneSectionInventory</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a70ff699bacfd05e1892bd3e5d5378c50" id="r_a70ff699bacfd05e1892bd3e5d5378c50"><td class="memItemLeft"><a class="el" href="struct_scene_block_extent.html">SceneBlockExtent</a>&#160;</td><td class="memItemRight"><a class="el" href="#a70ff699bacfd05e1892bd3e5d5378c50">sceneBlockExtent</a> (const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory, const std::string &amp;trackId)</td></tr>
+<tr class="memdesc:a70ff699bacfd05e1892bd3e5d5378c50"><td class="mdescLeft">&#160;</td><td class="mdescRight">The extent of the block sections of the track, or of all tracks when trackId is empty.  <br /></td></tr>
 <tr class="memitem:a27f18250734df7f228d6cc0fdb9b6ad6" id="r_a27f18250734df7f228d6cc0fdb9b6ad6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a27f18250734df7f228d6cc0fdb9b6ad6">sceneSectionsOverlap</a> (const std::string &amp;leftId, double leftStart, double leftEnd, const std::string &amp;rightId, double rightStart, double rightEnd)</td></tr>
+<tr class="memdesc:a27f18250734df7f228d6cc0fdb9b6ad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a block.  <br /></td></tr>
 <tr class="memitem:ae4f9207213b44d11e550fd70a54d3fde" id="r_ae4f9207213b44d11e550fd70a54d3fde"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae4f9207213b44d11e550fd70a54d3fde">sceneRouteDirection</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; const <a class="el" href="struct_scene_section_descriptor.html">SceneSectionDescriptor</a> * &gt; &amp;sections)</td></tr>
 <tr class="memitem:a767aeebb22fd91d15658526e6bd5acbd" id="r_a767aeebb22fd91d15658526e6bd5acbd"><td class="memItemLeft"><a class="el" href="struct_scene_route_traversal.html">SceneRouteTraversal</a>&#160;</td><td class="memItemRight"><a class="el" href="#a767aeebb22fd91d15658526e6bd5acbd">buildSceneRouteTraversal</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_route.html">SceneRoute</a> &amp;route)</td></tr>
+<tr class="memdesc:a767aeebb22fd91d15658526e6bd5acbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The station visits of the route, building the section inventory first.  <br /></td></tr>
 <tr class="memitem:a2147b834777a02bb54e37deeedd9a4fb" id="r_a2147b834777a02bb54e37deeedd9a4fb"><td class="memItemLeft"><a class="el" href="struct_scene_route_traversal.html">SceneRouteTraversal</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2147b834777a02bb54e37deeedd9a4fb">buildSceneRouteTraversal</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_route.html">SceneRoute</a> &amp;route, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory)</td></tr>
 <tr class="memitem:a976f8f27d55432ea7c8062522a7ebb4a" id="r_a976f8f27d55432ea7c8062522a7ebb4a"><td class="memItemLeft"><a class="el" href="struct_scene_route_stations.html">SceneRouteStations</a>&#160;</td><td class="memItemRight"><a class="el" href="#a976f8f27d55432ea7c8062522a7ebb4a">sceneRouteStations</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_route.html">SceneRoute</a> &amp;route, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory)</td></tr>
+<tr class="memdesc:a976f8f27d55432ea7c8062522a7ebb4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stations of the route in travel order, from its traversal.  <br /></td></tr>
 <tr class="memitem:af454f6ad805e4782da5b9ee9d8a43dbe" id="r_af454f6ad805e4782da5b9ee9d8a43dbe"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_stop_resolution.html">SceneStopResolution</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af454f6ad805e4782da5b9ee9d8a43dbe">resolveSceneServiceStops</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service, const <a class="el" href="struct_scene_route_traversal.html">SceneRouteTraversal</a> &amp;traversal)</td></tr>
 <tr class="memitem:a980f3c9bdc48de47b7a80afd938f8ec6" id="r_a980f3c9bdc48de47b7a80afd938f8ec6"><td class="memItemLeft"><a class="el" href="struct_scene_signalling_analysis.html">SceneSignallingAnalysis</a>&#160;</td><td class="memItemRight"><a class="el" href="#a980f3c9bdc48de47b7a80afd938f8ec6">analyzeSignallingAreas</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const <a class="el" href="struct_scene_section_inventory.html">SceneSectionInventory</a> &amp;inventory)</td></tr>
 </table>
@@ -159,6 +164,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Which signalling area decides the level of each section. A section belongs to an area when it lies completely inside the area's range on its own track chainage; a track-scoped area applies to the sections of its track and overrides the network-wide areas. When areas of one scope disagree, the first of them decides and the others are listed as conflicts. Areas with a non-finite or empty range or a level outside 0 to 5 take no part. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -185,6 +191,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The station visits of the route, building the section inventory first. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -216,6 +224,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The station visits of the route: the platform nodes and the positions of stations without platforms that it passes, in travel order. Unresolved when a section reference does not resolve or the direction is unknown. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -238,6 +247,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The sections the native builder makes from the scene: the blocks of each track one after the other from its first node, then one switch section for each connection and each pair of blocks that hold its two nodes. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -269,6 +279,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>How the section right, which follows left on a route, joins it: at the same chainage of one track, or through a connection or a shared switch block. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -291,6 +302,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>A chainage in kilometres as printf "%f" writes it, the form used in switch section ids. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -322,6 +335,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>One resolution per stop of the service, in order. A stop binds to the first matching visit after the previous bound stop. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -348,6 +362,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The extent of the block sections of the track, or of all tracks when trackId is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -374,6 +390,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The direction of a route through these sections in order: 1 forward, -1 reverse, 0 when the joins contradict each other or a pair does not join. A region jump is allowed only in a scene imported from a legacy case. A single section is forward; without joins the chainages of the first and last section decide. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -405,6 +422,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The stations of the route in travel order, from its traversal. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -451,6 +470,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the chainage ranges [start, end) in kilometres overlap and the two section ids share a block. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

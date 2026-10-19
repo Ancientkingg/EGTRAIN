@@ -1,6 +1,6 @@
 <map id="probeSceneCompatibility" name="probeSceneCompatibility">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,192,96"/>
-<area shape="rect" id="Node000002" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="515,29,627,55"/>
+<area shape="rect" id="Node000001" title="The same, against the migration steps of registry." alt="" coords="5,71,192,96"/>
+<area shape="rect" id="Node000002" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="515,29,627,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,68,178,48,240,31,309,24,379,22,501,30,501,35,379,28,309,29,240,37,180,53,128,73"/>
 <area shape="rect" id="Node000003" href="$_scene_bundle_8cpp.html#ae44fef9899084d2a4bc99b351d7095af" title=" " alt="" coords="262,71,405,96"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="192,81,248,81,248,86,192,86"/>

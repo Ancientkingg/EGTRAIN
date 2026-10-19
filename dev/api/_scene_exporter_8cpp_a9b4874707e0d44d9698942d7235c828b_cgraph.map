@@ -3,9 +3,9 @@
 <area shape="poly" id="edge10_Node000001_Node000001" title=" " alt="" coords="65,119,57,109,61,99,77,93,102,91,134,95,146,104,143,108,132,99,102,96,78,98,65,103,62,108,69,115"/>
 <area shape="rect" id="Node000002" href="$_staged_directory_8h.html#a02b12c62b2c00769ab23d290931b6f98" title=" " alt="" coords="247,29,415,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,115,246,72,283,57,285,62,248,76,137,120"/>
-<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="463,55,575,80"/>
+<area shape="rect" id="Node000003" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="463,55,575,80"/>
 <area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="187,115,448,75,449,80,188,120"/>
-<area shape="rect" id="Node000004" href="$_scene_writer_8cpp.html#a365e1207efc8426c85c8332a74c4dadd" title=" " alt="" coords="249,155,412,180"/>
+<area shape="rect" id="Node000004" href="$_scene_writer_8cpp.html#a365e1207efc8426c85c8332a74c4dadd" title="A signalling area as signalling.json holds it." alt="" coords="249,155,412,180"/>
 <area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="181,140,240,150,239,155,180,145"/>
 <area shape="rect" id="Node000005" href="$_scene_exporter_8cpp.html#ae8c3edf6f68db27b367866bdc45f8441" title=" " alt="" coords="271,228,390,253"/>
 <area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="130,140,292,220,290,224,128,145"/>

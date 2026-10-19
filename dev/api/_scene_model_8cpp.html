@@ -146,19 +146,26 @@ Functions</h2></td></tr>
 <tr class="memitem:aa13611c525609dd4cdde39d34766b51b" id="r_aa13611c525609dd4cdde39d34766b51b"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa13611c525609dd4cdde39d34766b51b">sceneServiceOccurrenceOperatingCode</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service, int occurrence)</td></tr>
 <tr class="memitem:a542427b235c1ce700a1b79692704626c" id="r_a542427b235c1ce700a1b79692704626c"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a542427b235c1ce700a1b79692704626c">resolveScenePassengerLegStops</a> (const <a class="el" href="struct_scene_service.html">SceneService</a> &amp;service, const <a class="el" href="struct_scene_passenger_leg.html">ScenePassengerLeg</a> &amp;leg, <a class="el" href="struct_scene_service_stop_pair.html">SceneServiceStopPair</a> &amp;result)</td></tr>
 <tr class="memitem:a2f2bd3d29dc4bdb1f84a048068fd7823" id="r_a2f2bd3d29dc4bdb1f84a048068fd7823"><td class="memItemLeft"><a class="el" href="struct_scene_scenario.html">SceneScenario</a>&#160;</td><td class="memItemRight"><a class="el" href="#a2f2bd3d29dc4bdb1f84a048068fd7823">makeBaselineScenario</a> ()</td></tr>
+<tr class="memdesc:a2f2bd3d29dc4bdb1f84a048068fd7823"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario of a case that stores none: id "baseline", no incidents and no entrance delays.  <br /></td></tr>
 <tr class="memitem:ae4bfb9afb6e2e3f0a21b349b907bdb1e" id="r_ae4bfb9afb6e2e3f0a21b349b907bdb1e"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#ae4bfb9afb6e2e3f0a21b349b907bdb1e">scenePlatformCapacity</a> (double lengthM, double widthM)</td></tr>
 <tr class="memitem:a0219e27a2e17a2f4ae3ba1e1a4de311d" id="r_a0219e27a2e17a2f4ae3ba1e1a4de311d"><td class="memItemLeft"><a class="el" href="struct_scene_model.html">SceneModel</a>&#160;</td><td class="memItemRight"><a class="el" href="#a0219e27a2e17a2f4ae3ba1e1a4de311d">makeNewSceneModel</a> ()</td></tr>
 <tr class="memitem:a2240a72ac2c6d7a498b61aa550751e79" id="r_a2240a72ac2c6d7a498b61aa550751e79"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a2240a72ac2c6d7a498b61aa550751e79">sceneTrainMassFactor</a> (const <a class="el" href="struct_scene_train_physical.html">SceneTrainPhysical</a> &amp;physical)</td></tr>
 <tr class="memitem:a7418be61af0a9727c27e9fa61338e4f1" id="r_a7418be61af0a9727c27e9fa61338e4f1"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a7418be61af0a9727c27e9fa61338e4f1">buildSceneComposition</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::string &amp;compositionId, <a class="el" href="struct_scene_composition_runtime.html">SceneCompositionRuntime</a> &amp;result, std::string &amp;diagnostic)</td></tr>
 <tr class="memitem:a39ad93f62654bff8be543d068944da66" id="r_a39ad93f62654bff8be543d068944da66"><td class="memItemLeft"><a class="el" href="struct_scene_scenario.html">SceneScenario</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a39ad93f62654bff8be543d068944da66">defaultScenario</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a317b1e12cc4ba5e512895f95047a81b5" id="r_a317b1e12cc4ba5e512895f95047a81b5"><td class="memItemLeft">const <a class="el" href="struct_scene_scenario.html">SceneScenario</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a317b1e12cc4ba5e512895f95047a81b5">defaultScenario</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a317b1e12cc4ba5e512895f95047a81b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The scenario that defaultScenarioId names, or the first one when it names none; null when there is none.  <br /></td></tr>
 <tr class="memitem:ad21b25a9d108aa335fddc1ed87ac807e" id="r_ad21b25a9d108aa335fddc1ed87ac807e"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_incident.html">SceneIncident</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad21b25a9d108aa335fddc1ed87ac807e">defaultScenarioIncidents</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:ad21b25a9d108aa335fddc1ed87ac807e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The incidents of defaultScenario(scene).  <br /></td></tr>
 <tr class="memitem:a7d56b4000d5a003692532f673ca5e86b" id="r_a7d56b4000d5a003692532f673ca5e86b"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_incident.html">SceneIncident</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a7d56b4000d5a003692532f673ca5e86b">defaultScenarioIncidents</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a7d56b4000d5a003692532f673ca5e86b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The incidents of defaultScenario(scene); an empty list when the scene has no scenario.  <br /></td></tr>
 <tr class="memitem:a765f734ddc8d717d03dfb08048237303" id="r_a765f734ddc8d717d03dfb08048237303"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a765f734ddc8d717d03dfb08048237303">sceneSignals</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
 <tr class="memitem:a47ec40739fdcf8b8b023d48cc1e371a4" id="r_a47ec40739fdcf8b8b023d48cc1e371a4"><td class="memItemLeft">const std::vector&lt; <a class="el" href="struct_scene_signal.html">SceneSignal</a> &gt; &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a47ec40739fdcf8b8b023d48cc1e371a4">sceneSignals</a> (const <a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a47ec40739fdcf8b8b023d48cc1e371a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The signals of the scene, read-only.  <br /></td></tr>
 <tr class="memitem:a0718b83b572768e7db46382d1ff2a3ce" id="r_a0718b83b572768e7db46382d1ff2a3ce"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a0718b83b572768e7db46382d1ff2a3ce">refreshLoadedDataSummary</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:a0718b83b572768e7db46382d1ff2a3ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rebuilds loadedData from the model and sourceFiles.  <br /></td></tr>
 <tr class="memitem:af50f126ec84573bc40322ddf0a48140d" id="r_af50f126ec84573bc40322ddf0a48140d"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af50f126ec84573bc40322ddf0a48140d">refreshLoadedDataDiagnostics</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene, const std::vector&lt; <a class="el" href="struct_scene_diagnostic.html">SceneDiagnostic</a> &gt; &amp;diagnostics)</td></tr>
 <tr class="memitem:ae3ce8bbd695e81b69906adede3343951" id="r_ae3ce8bbd695e81b69906adede3343951"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae3ce8bbd695e81b69906adede3343951">refreshSavedSceneMetadata</a> (<a class="el" href="struct_scene_model.html">SceneModel</a> &amp;scene)</td></tr>
+<tr class="memdesc:ae3ce8bbd695e81b69906adede3343951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets sourceFiles to the files that a save writes and rebuilds loadedData.  <br /></td></tr>
 <tr class="memitem:aa2c6c115f657599ea4028c2b7a4bcbca" id="r_aa2c6c115f657599ea4028c2b7a4bcbca"><td class="memItemLeft"><a class="el" href="struct_scene_load_result.html">SceneLoadResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#aa2c6c115f657599ea4028c2b7a4bcbca">loadScene</a> (const std::string &amp;sceneDir)</td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
@@ -190,6 +197,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Resolves the ordered, possibly repeated, unit references of a composition. A single unit is copied. Two or more are combined: traction unit masses, wagon counts and lengths add up, the wagon mass becomes the mean per wagon, the resistance coefficient the mass-weighted mean, the lowest speed, deceleration and jerk apply, the first frontal area is kept, and the traction curves add up per speed band. Returns false and sets diagnostic on failure. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -212,6 +220,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Encodes pairs of a file name and its content, sorted by name, as "name length:name:content length:content" one after the other. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -234,6 +243,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scenario that defaultScenarioId names, or the first one when it names none; null when there is none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -256,6 +267,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The scenario that defaultScenarioId names, or the first one when it names none. Adds the baseline scenario when the scene has none, and sets defaultScenarioId when it is empty. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -278,6 +290,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The incidents of defaultScenario(scene); an empty list when the scene has no scenario. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -300,6 +314,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The incidents of defaultScenario(scene). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -322,6 +338,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a scene directory. The diagnostics cover files, JSON shape and field types; validateScene checks the rest. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -344,6 +361,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The scenario of a case that stores none: id "baseline", no incidents and no entrance delays. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,6 +385,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>A new scene: current schema, base time 08:00:00, a duration of 3600 s, zero buffer and recovery time, and the baseline scenario. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -388,6 +408,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the six required scene files and the optional scenarios, incidents, passengers and views files of a directory into a snapshot. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -414,6 +435,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Adds a validation row with the diagnostic counts below each top row of loadedData and marks the rows with errors or warnings. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,6 +458,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Rebuilds loadedData from the model and sourceFiles. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -458,6 +482,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets sourceFiles to the files that a save writes and rebuilds loadedData. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -489,6 +515,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Finds the first stop at the leg origin and the first later stop at its destination. Returns false, leaving result unchanged, when there is no such pair. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -511,6 +538,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The scene name as one component of an output path, or "scene" when the name is not a valid file name on Windows. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -533,20 +561,21 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>red</em></span>, </td>
+          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>red</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>green</em></span>, </td>
+          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>green</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>blue</em></span>&#160;)</td>
+          <td class="paramtype">int *</td>          <td class="paramname"><span class="paramname"><em>blue</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Accepts exactly "#" followed by six hexadecimal digits in either case, and then sets each given channel to 0 to 255. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -573,6 +602,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><a class="el" href="class_passenger.html">Passenger</a> capacity of a platform of this length and width in metres, before it is rounded to the integer the runtime stores: the area divided by pi times 0.8 squared, times 0.8. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -600,10 +630,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selection</em></span>&#160;)</td>
+          <td class="paramtype">const <a class="el" href="_scene_model_8h.html#ad9ed02f1c27b585001ed98c686bc3761">SceneRunSelection</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>selection</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Number of occurrences whose entry lies in [0, durationSeconds). A non-empty selection counts only the selected occurrences of this service. 0 when the duration is not positive. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -630,6 +661,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Number of occurrences in a run of this many seconds: 1 without repeat, the repeat count when given, otherwise the duration divided by the headway, rounded up, and at least 1. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -656,6 +688,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Operating code of an occurrence: the code plus the step per occurrence when a step is set, "code-occurrence" for another repeated service, the code itself otherwise. Empty when it cannot be made. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -678,10 +711,11 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>occurrence</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>occurrence</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Entry time of an occurrence in seconds after the base time: entry_time_seconds, else the planned departure of the first stop, else 0, plus (occurrence - 1) headways when the service repeats. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -708,6 +742,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The visualization_color text of the service with this id; empty when the service has none or the id is unknown. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -730,6 +765,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The signals of the scene, read-only. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -752,6 +789,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The signals of the scene. Code that includes Qt reads them here, because Qt defines signals as a keyword and so <a class="el" href="struct_scene_model.html#a10b4bd4dd9ab677ebb14378e4a4346d4" title="signalling.json signals. Code that includes Qt reads them through sceneSignals().">SceneModel::signals</a> does not compile there. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -774,6 +812,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Factor on the total train mass in the equation of motion: 1.09 on the traction unit mass and 1.06 on the wagon mass, divided by the total mass. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

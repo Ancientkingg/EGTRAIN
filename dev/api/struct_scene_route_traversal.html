@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_r
 </div><!--header-->
 <div class="contents">
 
+<p>The station visits of a route in travel order.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac5c7d09b6caeb69479136968e69e008c" id="r_ac5c7d09b6caeb69479136968e69e008c"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac5c7d09b6caeb69479136968e69e008c">direction</a> = 0</td></tr>
+<tr class="memdesc:ac5c7d09b6caeb69479136968e69e008c"><td class="mdescLeft">&#160;</td><td class="mdescRight">1 = native forward, -1 = native reverse, 0 = unresolved.  <br /></td></tr>
 <tr class="memitem:ac764fb0bbf92eadeae84745cc5ee53e8" id="r_ac764fb0bbf92eadeae84745cc5ee53e8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ac764fb0bbf92eadeae84745cc5ee53e8">resolved</a> = false</td></tr>
+<tr class="memdesc:ac764fb0bbf92eadeae84745cc5ee53e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when every section resolves and the direction is known.  <br /></td></tr>
 <tr class="memitem:ad7a0bd02b85a15b2ca7a0d12eb184cd4" id="r_ad7a0bd02b85a15b2ca7a0d12eb184cd4"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_scene_route_visit.html">SceneRouteVisit</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad7a0bd02b85a15b2ca7a0d12eb184cd4">visits</a></td></tr>
+<tr class="memdesc:ad7a0bd02b85a15b2ca7a0d12eb184cd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The visits in travel order.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The station visits of a route in travel order. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ac5c7d09b6caeb69479136968e69e008c" name="ac5c7d09b6caeb69479136968e69e008c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac5c7d09b6caeb69479136968e69e008c">&#9670;&#160;</a></span>direction</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>1 = native forward, -1 = native reverse, 0 = unresolved. </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when every section resolves and the direction is known. </p>
+
 </div>
 </div>
 <a id="ad7a0bd02b85a15b2ca7a0d12eb184cd4" name="ad7a0bd02b85a15b2ca7a0d12eb184cd4"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The visits in travel order. </p>
 
 </div>
 </div>

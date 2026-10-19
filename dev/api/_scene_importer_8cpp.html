@@ -341,6 +341,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads the legacy passenger files DAS_FrenchCaseStudy.csv and RouteChoiceFC_EQ1.csv from a case directory or its Passengers directory, resolving stations and services against scene. Both files are required. The scene is not changed. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -372,6 +373,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Converts the legacy case in legacyDir into a scene directory at sceneDir, written in a private directory and then renamed into place. sceneName becomes the scene name and selects the settings of a known case. Skipped and unresolved records are counted in import_report. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -681,6 +683,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a vehicle data file of exactly nine finite numbers in the order of kSceneTrainPhysicalFields, with values the simulation can use. The editor reloads linked files with it. Unlike importLegacyScene, which skips bad rows, it refuses an incomplete file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -703,6 +706,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a traction file of rows of five finite numbers, each with v_lower below v_upper, in ascending speed order. Like parseTrainPhysicalSourceFile it refuses an incomplete file. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

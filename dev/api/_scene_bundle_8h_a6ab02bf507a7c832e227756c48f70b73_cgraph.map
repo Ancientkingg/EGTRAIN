@@ -1,11 +1,11 @@
 <map id="unpackSceneBundle" name="unpackSceneBundle">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,442,159,467"/>
 <area shape="poly" id="edge55_Node000001_Node000001" title=" " alt="" coords="54,443,48,434,51,424,63,418,82,415,105,419,115,427,111,431,103,424,82,421,64,423,55,427,53,433,58,440"/>
-<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title=" " alt="" coords="210,369,293,394"/>
+<area shape="rect" id="Node000002" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="210,369,293,394"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,439,207,397,209,402,113,444"/>
 <area shape="rect" id="Node000003" href="$_scene_model_8cpp.html#aa2c6c115f657599ea4028c2b7a4bcbca" title=" " alt="" coords="207,442,296,467"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="159,452,193,452,193,457,159,457"/>
-<area shape="rect" id="Node000019" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="396,814,508,839"/>
+<area shape="rect" id="Node000019" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="396,814,508,839"/>
 <area shape="poly" id="edge54_Node000001_Node000019" title=" " alt="" coords="93,466,126,521,183,603,258,694,300,738,346,777,371,793,399,806,397,811,369,798,342,781,297,742,254,698,179,606,122,524,88,469"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="223,370,217,360,220,351,232,344,251,342,274,345,284,354,281,358,272,350,251,347,234,349,225,354,223,360,228,367"/>
 <area shape="poly" id="edge41_Node000003_Node000003" title=" " alt="" coords="223,443,217,434,220,424,232,418,251,415,274,419,284,427,281,431,272,424,251,421,234,423,225,427,223,433,228,440"/>
@@ -27,10 +27,10 @@
 <area shape="poly" id="edge34_Node000003_Node000016" title=" " alt="" coords="263,440,296,409,343,378,360,370,362,375,345,382,300,413,266,444"/>
 <area shape="rect" id="Node000017" href="$_scene_field_reader_8cpp.html#afa561e7999f935d64f6df4a47ee2122b" title=" " alt="" coords="365,615,539,641"/>
 <area shape="poly" id="edge39_Node000003_Node000017" title=" " alt="" coords="262,466,294,519,318,549,346,577,372,594,400,608,398,613,369,599,342,581,314,553,289,522,257,469"/>
-<area shape="rect" id="Node000018" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title=" " alt="" coords="907,703,1077,729"/>
+<area shape="rect" id="Node000018" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="907,703,1077,729"/>
 <area shape="poly" id="edge42_Node000003_Node000018" title=" " alt="" coords="257,467,264,505,279,555,306,608,324,631,345,650,367,656,415,663,561,679,893,706,893,712,561,684,414,668,366,661,343,654,320,634,301,610,275,557,259,506,252,468"/>
 <area shape="poly" id="edge44_Node000003_Node000019" title=" " alt="" coords="258,467,299,634,326,727,346,777,365,794,388,806,386,811,362,798,342,780,321,728,294,636,253,468"/>
-<area shape="rect" id="Node000020" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title=" " alt="" coords="347,741,557,766"/>
+<area shape="rect" id="Node000020" href="$_scene_model_8cpp.html#a0718b83b572768e7db46382d1ff2a3ce" title="Rebuilds loadedData from the model and sourceFiles." alt="" coords="347,741,557,766"/>
 <area shape="poly" id="edge47_Node000003_Node000020" title=" " alt="" coords="257,467,264,509,280,569,306,636,324,667,346,696,371,717,400,733,397,738,368,721,342,699,320,670,302,638,275,571,259,510,252,468"/>
 <area shape="rect" id="Node000022" href="$class_scene_field_reader.html#ac22d8fb2929d5c9591c13c725c109d08" title=" " alt="" coords="344,5,560,45"/>
 <area shape="poly" id="edge52_Node000003_Node000022" title=" " alt="" coords="266,440,281,424,294,404,310,355,314,310,311,268,305,227,301,188,302,148,314,106,342,62,353,51,357,55,346,66,319,108,307,148,306,187,310,227,316,267,320,310,315,356,298,406,285,427,270,444"/>

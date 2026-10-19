@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="struct_scene_simulation_settings.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="struct_scene_simulation_settings.html" target="_top" xlink:title="The simulation_settings of scene.json. Each value counts only when its has* flag is set.">
 <polygon fill="white" stroke="#666666" points="138,-19 0,-19 0,0 138,0 138,-19"/>
 <text text-anchor="middle" x="69" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SceneSimulationSettings</text>
 </a>

@@ -1,11 +1,11 @@
 <map id="loadScenarioJson" name="loadScenarioJson">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,139,133"/>
+<area shape="rect" id="Node000001" title="Reads one scenario from a standalone scenario file." alt="" coords="5,107,139,133"/>
 <area shape="poly" id="edge32_Node000001_Node000001" title=" " alt="" coords="39,109,32,99,36,89,49,83,72,81,100,85,111,94,108,98,98,89,72,86,51,88,40,93,37,98,43,106"/>
 <area shape="rect" id="Node000002" href="$_scene_writer_8cpp.html#a0d95d7fbe1dd369cbfaea884c7937a1d" title=" " alt="" coords="187,34,357,59"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,105,186,70,211,61,213,66,188,75,102,110"/>
 <area shape="rect" id="Node000003" href="$_scene_field_reader_8cpp.html#a8b8d830ca64530da4f75e9cb213ecee0" title=" " alt="" coords="198,107,346,133"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="139,117,184,117,184,123,139,123"/>
-<area shape="rect" id="Node000014" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title=" " alt="" coords="216,181,328,206"/>
+<area shape="rect" id="Node000014" href="$_utf8_path_8h.html#aa28d517b064104a23e126d75a9817b36" title="The path for a UTF&#45;8 name. Text that cannot be converted as UTF&#45;8 is read in the system code page,..." alt="" coords="216,181,328,206"/>
 <area shape="poly" id="edge33_Node000001_Node000014" title=" " alt="" coords="109,130,224,173,223,178,107,135"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="239,36,232,26,236,16,249,10,272,7,300,11,311,20,308,24,298,16,272,13,251,15,240,20,237,25,243,32"/>
 <area shape="poly" id="edge28_Node000003_Node000003" title=" " alt="" coords="239,109,232,99,236,89,249,83,272,81,300,85,311,94,308,98,298,89,272,86,251,88,240,93,237,98,243,106"/>

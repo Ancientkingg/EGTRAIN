@@ -113,15 +113,23 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_scene_s
 </div><!--header-->
 <div class="contents">
 
+<p>Two signalling areas of one scope that give one section different levels.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_section_inventory_8h_source.html">scene/SectionInventory.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ade89fcf0bd3fb393d629f793a3d6175a" id="r_ade89fcf0bd3fb393d629f793a3d6175a"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#ade89fcf0bd3fb393d629f793a3d6175a">firstArea</a> = 0</td></tr>
+<tr class="memdesc:ade89fcf0bd3fb393d629f793a3d6175a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area of that scope that decides, as an index into <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a>.  <br /></td></tr>
 <tr class="memitem:a060c4613bfdb20f4073b2de51ddbce4f" id="r_a060c4613bfdb20f4073b2de51ddbce4f"><td class="memItemLeft">std::size_t&#160;</td><td class="memItemRight"><a class="el" href="#a060c4613bfdb20f4073b2de51ddbce4f">area</a> = 0</td></tr>
+<tr class="memdesc:a060c4613bfdb20f4073b2de51ddbce4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area whose level differs from it.  <br /></td></tr>
 <tr class="memitem:a3e6915c933da2713af7595dcaa4c4824" id="r_a3e6915c933da2713af7595dcaa4c4824"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3e6915c933da2713af7595dcaa4c4824">trackScoped</a> = false</td></tr>
+<tr class="memdesc:a3e6915c933da2713af7595dcaa4c4824"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for track-scoped areas, false for network-wide ones.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Two signalling areas of one scope that give one section different levels. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a060c4613bfdb20f4073b2de51ddbce4f" name="a060c4613bfdb20f4073b2de51ddbce4f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a060c4613bfdb20f4073b2de51ddbce4f">&#9670;&#160;</a></span>area</h2>
 
@@ -133,6 +141,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The area whose level differs from it. </p>
 
 </div>
 </div>
@@ -148,6 +158,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>The area of that scope that decides, as an index into <a class="el" href="struct_scene_model.html#aae0e07f3967ead762e33619b2a928c48" title="signalling.json signalling_areas.">SceneModel::signallingAreas</a>. </p>
+
 </div>
 </div>
 <a id="a3e6915c933da2713af7595dcaa4c4824" name="a3e6915c933da2713af7595dcaa4c4824"></a>
@@ -161,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True for track-scoped areas, false for network-wide ones. </p>
 
 </div>
 </div>

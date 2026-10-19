@@ -9,9 +9,9 @@
 <area shape="rect" id="Node000003" href="$class_scene_editor_panel.html#ab57b6ba8b04710b122cf09ac57e34b52" title=" " alt="" coords="615,17,813,43"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="547,21,602,23,601,28,547,26"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="509,101,546,89,559,80,569,71,579,61,593,52,612,44,614,49,596,56,582,65,573,75,563,84,548,94,511,106"/>
-<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" title=" " alt="" coords="595,91,833,116"/>
+<area shape="rect" id="Node000005" href="$_scene_references_8cpp.html#a15b7add0357cd569d4a7402d09b528aa" title="Rewrites the scenario id in defaultScenarioId." alt="" coords="595,91,833,116"/>
 <area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="515,109,581,107,581,112,516,115"/>
-<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title=" " alt="" coords="627,164,801,189"/>
+<area shape="rect" id="Node000006" href="$_scene_ids_8cpp.html#ac8f3d56b23a6b6e89ac13f9653747219" title="A free scenario id. An empty baseId stands for &quot;scenario&quot;." alt="" coords="627,164,801,189"/>
 <area shape="poly" id="edge7_Node000004_Node000006" title=" " alt="" coords="477,127,636,159,635,164,476,132"/>
 <area shape="rect" id="Node000007" href="$class_scenario_panel.html#a858854f50371f61585fdc7b305aeab8b" title=" " alt="" coords="611,213,817,239"/>
 <area shape="poly" id="edge9_Node000004_Node000007" title=" " alt="" coords="437,127,507,163,596,199,624,208,622,213,594,205,504,168,434,132"/>

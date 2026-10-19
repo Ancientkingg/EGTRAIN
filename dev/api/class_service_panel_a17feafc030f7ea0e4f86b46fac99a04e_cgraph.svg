@@ -56,7 +56,7 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" target="_top" xlink:title=" ">
+<g id="a_Node000022"><a xlink:href="_scene_ids_8cpp.html#a7a637b5dc7e2e3f393970f7c5ce7b79f" target="_top" xlink:title="A free service id.">
 <polygon fill="white" stroke="#666666" points="311.5,-155.5 186.5,-155.5 186.5,-136.5 311.5,-136.5 311.5,-155.5"/>
 <text text-anchor="middle" x="249" y="-143.5" font-family="Helvetica,sans-Serif" font-size="10.00">sceneUniqueServiceId</text>
 </a>
@@ -438,7 +438,7 @@
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title=" ">
+<g id="a_Node000016"><a xlink:href="_section_inventory_8cpp.html#a38867ed655babc4f9d2a81b27deff310" target="_top" xlink:title="A chainage in kilometres as printf &quot;%f&quot; writes it, the form used in switch section ids.">
 <polygon fill="white" stroke="#666666" points="963.5,-128.5 795.5,-128.5 795.5,-109.5 963.5,-109.5 963.5,-128.5"/>
 <text text-anchor="middle" x="879.5" y="-116.5" font-family="Helvetica,sans-Serif" font-size="10.00">formatSceneSectionCoordinate</text>
 </a>
