@@ -138,6 +138,7 @@ void ManualWindow::open(QWidget* parent, const QString& section) {
 		QDesktopServices::openUrl(QUrl(QStringLiteral("https://ancientkingg.github.io/EGTRAIN/latest/") + pageOf(section)));
 		return;
 	}
+	window->setWindowState(window->windowState() & ~Qt::WindowMinimized);
 	window->show();
 	window->raise();
 	window->activateWindow();
