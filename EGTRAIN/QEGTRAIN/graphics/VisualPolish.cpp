@@ -1,5 +1,9 @@
 #include "graphics/VisualPolish.h"
 
+#include <QPainter>
+#include <QPainterPath>
+#include <QPixmap>
+
 #include <algorithm>
 #include <cctype>
 #include <initializer_list>
@@ -143,10 +147,47 @@ SignalVisual classifySignalAspect(int code) {
 
 StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 	if (connectionCount >= 3)
-		return {QColor(80, 120, 210), QColor(30, 60, 130), ":/icons/station.svg"};
+		return {QColor(80, 120, 210), QColor(30, 60, 130), StationClass::Major};
 	if (hasPlatformId)
-		return {QColor(70, 70, 70), QColor(30, 30, 30), ":/icons/station.svg"};
-	return {QColor(120, 120, 120), QColor(70, 70, 70), ":/icons/station.svg"};
+		return {QColor(70, 70, 70), QColor(30, 30, 30), StationClass::Station};
+	return {QColor(120, 120, 120), QColor(70, 70, 70), StationClass::Halt};
+}
+
+void paintStationMark(QPainter* painter, const QRectF& frame, StationClass cls, const QColor& fill,
+	const QColor& halo, qreal haloWidth) {
+	const qreal side = std::min(frame.width(), frame.height());
+	const QPointF centre = frame.center();
+	QPainterPath mark;
+	if (cls == StationClass::Major) {
+		QRectF bar(0.0, 0.0, 0.32 * side, 0.8 * side);
+		bar.moveCenter(centre);
+		mark.addRoundedRect(bar, bar.width() / 3.0, bar.width() / 3.0);
+	} else {
+		const qreal radius = 0.35 * side;
+		mark.addEllipse(centre, radius, radius);
+		if (cls == StationClass::Halt) {
+			const qreal hole = radius - std::max(0.16 * side, haloWidth);
+			mark.addEllipse(centre, hole, hole);
+		}
+	}
+	painter->save();
+	painter->setRenderHint(QPainter::Antialiasing);
+	painter->strokePath(mark, QPen(halo, 2.0 * haloWidth));
+	painter->fillPath(mark, fill);
+	painter->restore();
+}
+
+QIcon stationMarkIcon(StationClass cls) {
+	QIcon icon;
+	for (const int size : {16, 32}) {
+		QPixmap pixmap(size, size);
+		pixmap.fill(Qt::transparent);
+		QPainter painter(&pixmap);
+		paintStationMark(&painter, QRectF(0.0, 0.0, size, size), cls, QColor(16, 26, 34), Qt::white, size / 16.0);
+		painter.end();
+		icon.addPixmap(pixmap);
+	}
+	return icon;
 }
 
 // One simulated second renders every delayMs, so the nominal playback factor

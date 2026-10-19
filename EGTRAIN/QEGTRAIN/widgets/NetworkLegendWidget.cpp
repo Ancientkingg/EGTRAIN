@@ -76,9 +76,7 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			const QPixmap icon(m_entry.iconResource);
-			if (!icon.isNull())
-				painter.drawPixmap(QRect(15, 1, 16, 16), icon);
+			stationMarkIcon(m_entry.stationClass).paint(&painter, QRect(15, 1, 16, 16));
 			return;
 		}
 
@@ -129,10 +127,6 @@ protected:
 private:
 	NetworkLegendEntry m_entry;
 };
-
-QString stationLabel() {
-	return "Station";
-}
 
 NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state) {
 	NetworkLegendEntry entry;
@@ -245,12 +239,11 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 	return entries;
 }
 
-NetworkLegendEntry stationEntry(const StationVisual& visual) {
+NetworkLegendEntry stationEntry(const QString& label, StationClass cls) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
-	entry.label = stationLabel();
-	entry.color = visual.fill;
-	entry.iconResource = ":/icons/station-dark.svg";
+	entry.label = label;
+	entry.stationClass = cls;
 	return entry;
 }
 
@@ -331,8 +324,16 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 
 	m_entries += trainEntries(content.trains);
 
-	if (!content.stationVisuals.isEmpty())
-		m_entries << stationEntry(content.stationVisuals.first());
+	const auto hasStationClass = [&content](StationClass cls) {
+		return std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
+			[cls](const StationVisual& visual) { return visual.cls == cls; });
+	};
+	if (hasStationClass(StationClass::Major))
+		m_entries << stationEntry("Major station", StationClass::Major);
+	if (hasStationClass(StationClass::Station))
+		m_entries << stationEntry("Station", StationClass::Station);
+	if (hasStationClass(StationClass::Halt))
+		m_entries << stationEntry("Halt", StationClass::Halt);
 
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)

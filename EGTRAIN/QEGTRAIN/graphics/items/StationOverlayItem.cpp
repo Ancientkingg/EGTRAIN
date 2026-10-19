@@ -18,6 +18,10 @@ constexpr qreal kNameCollisionGap = 2.0;
 // A name meets the pictogram of a neighbour at the same height along the artwork line.
 // It covers that pictogram only when they share more than this many pixels both ways.
 constexpr qreal kPictogramOverlapPixels = 2.0;
+// The station mark is light with a dark halo of this many logical pixels.
+const QColor kMarkFill(232, 238, 242);
+const QColor kMarkHalo(16, 26, 34);
+constexpr qreal kMarkHaloPixels = 2.0;
 
 // Enlarges item by factor about pivot in one change. The item transform acts after the
 // item scale, so pivot is in the coordinates of the scaled item (its parent without pos).
@@ -42,6 +46,25 @@ QList<QPointF> fitCollisionCandidates() {
 		QPointF(0.0, -2.0 * kFitCollisionStep),
 	};
 }
+}
+
+StationMarkItem::StationMarkItem(StationClass cls, int size, QGraphicsItem* parent)
+	: QGraphicsPixmapItem(parent), m_class(cls) {
+	QPixmap frame(size, size);
+	frame.fill(Qt::transparent);
+	setPixmap(frame);
+	// The default shape follows opaque pixels, and the pixmap has none.
+	setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
+}
+
+void StationMarkItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+	Q_UNUSED(option);
+	Q_UNUSED(widget);
+	const qreal pixelsPerUnit = QStyleOptionGraphicsItem::levelOfDetailFromTransform(painter->worldTransform());
+	if (pixelsPerUnit <= 0.0)
+		return;
+	paintStationMark(painter, QRectF(offset(), QSizeF(pixmap().size())), m_class, kMarkFill, kMarkHalo,
+		kMarkHaloPixels / pixelsPerUnit);
 }
 
 StationOverlayItem::StationOverlayItem(const QString& stationName, const QPointF& stableAnchor,
@@ -297,20 +320,9 @@ void StationOverlayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 		return;
 	painter->save();
 	painter->translate(m_viewportOffset);
-	const QColor markerColor(210, 215, 220);
-	if (m_fitSymbolVisible) {
-		painter->save();
-		painter->translate(m_fitCollisionOffset);
-		const QPixmap historicalSymbol(m_visual.iconResource);
-		if (!historicalSymbol.isNull())
-			painter->drawPixmap(m_symbolRect.toRect(), historicalSymbol);
-		else {
-			painter->setPen(QPen(markerColor, m_visualScale));
-			painter->setBrush(markerColor);
-			painter->drawEllipse(m_symbolRect);
-		}
-		painter->restore();
-	}
+	if (m_fitSymbolVisible)
+		paintStationMark(painter, m_symbolRect.translated(m_fitCollisionOffset), m_visual.cls, kMarkFill, kMarkHalo,
+			kMarkHaloPixels);
 	if (isLabelVisible()) {
 		painter->setPen(Qt::white);
 		painter->setFont(m_labelFont);

@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="icons/station.svg">../resources/icons/station.svg</file>
-        <file alias="icons/station-dark.svg">../resources/icons/station-dark.svg</file>
         <file alias="icons/passenger.svg">../resources/icons/passenger.svg</file>
         <file alias="icons/pax_icon.png">../resources/icons/pax_icon.png</file>
         <file alias="icons/train-passenger.svg">../resources/icons/train-passenger.svg</file>

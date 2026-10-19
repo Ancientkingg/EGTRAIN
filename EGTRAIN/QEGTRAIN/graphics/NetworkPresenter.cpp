@@ -68,7 +68,6 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
-#include <QIcon>
 #include <QPainterPath>
 #include <QVariantAnimation>
 
@@ -91,6 +90,15 @@ constexpr double kPi = 3.14159265;
 
 // The zoom of the view from which the labels of the platforms are legible.
 constexpr qreal kDenseDetailZoom = 3.0;
+
+// The class of the mark of a station: the connections at its node and its platforms.
+StationVisual stationMarkVisual(const SceneModel& sceneModel, const std::string& nodeId, int platformCount) {
+	int connections = 0;
+	if (!nodeId.empty())
+		for (const auto& connection : sceneModel.connections)
+			connections += (connection.fromNodeId == nodeId ? 1 : 0) + (connection.toNodeId == nodeId ? 1 : 0);
+	return classifyStation(platformCount > 0, connections);
+}
 
 // The host of a presenter that has none: nothing is selected or followed.
 class NoFrameHost final : public NetworkPresenter::FrameHost {
@@ -502,9 +510,10 @@ NetworkPresenter::PreviewOutcome NetworkPresenter::showPreview(const SceneModel&
 			}
 			const auto sceneStation = std::find_if(sceneModel.stations.cbegin(), sceneModel.stations.cend(),
 				[&station](const SceneStation& candidate) { return candidate.id == station.id; });
-			paintStationOverlay(anchor, classifyStation(), station.name, presentationScale(),
-				stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale(),
-				sceneStation == sceneModel.stations.cend() ? 0 : static_cast<int>(sceneStation->platforms.size()));
+			const int platformCount = sceneStation == sceneModel.stations.cend() ? 0 : static_cast<int>(sceneStation->platforms.size());
+			paintStationOverlay(anchor, stationMarkVisual(sceneModel, station.nodeId, platformCount), station.name,
+				presentationScale(), stationDecorationOffset(sceneModel.stationViews, station.id, station.name) * presentationScale(),
+				platformCount);
 			auto* overlay = m_stationOverlays.back();
 			tagPreviewItem(overlay, "station", station.id);
 			const auto bind = [&](QGraphicsItem* decoration, bool artwork) {
@@ -659,19 +668,14 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 
 	// Keep picking/source identity at coord; only artwork and text move.
 	const QPointF artworkCoord = coord + decorationOffset;
-	const int symbolSize = station_size;
-	const QPixmap symbol = QIcon(visual.iconResource).pixmap(symbolSize, symbolSize);
-	if (!symbol.isNull()) {
-		auto* picture = scene->addPixmap(symbol);
-		picture->setScale(scale);
-		picture->setPos(artworkCoord.x() - symbolSize * scale / 2.0,
-			artworkCoord.y() - (station_size + symbolSize) * scale / 2.0);
-		picture->setTransformationMode(Qt::SmoothTransformation);
-		picture->setAcceptedMouseButtons(Qt::NoButton);
-		m_stationDecorations.push_back(picture);
-		m_stationPictures.insert(overlay, picture);
-		picture->setVisible(m_stationLayerVisible);
-	}
+	auto* picture = new StationMarkItem(visual.cls, station_size);
+	scene->addItem(picture);
+	picture->setScale(scale);
+	picture->setPos(artworkCoord.x() - station_size * scale / 2.0, artworkCoord.y() - station_size * scale);
+	picture->setAcceptedMouseButtons(Qt::NoButton);
+	m_stationDecorations.push_back(picture);
+	m_stationPictures.insert(overlay, picture);
+	picture->setVisible(m_stationLayerVisible);
 	QFont font;
 	font.setPixelSize(station_size / 5);
 	auto* label = scene->addText(StationOverlayItem::displayName(sname), font);
@@ -682,7 +686,7 @@ void NetworkPresenter::paintStationOverlay(QPointF coord, const StationVisual& v
 	label->setAcceptedMouseButtons(Qt::NoButton);
 	m_stationLabels.push_back(label);
 	label->setVisible(m_stationLayerVisible && m_stationNamesVisible);
-	overlay->attachArtwork(m_stationPictures.value(overlay, nullptr), label, platformCount);
+	overlay->attachArtwork(picture, label, platformCount);
 }
 
 void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
@@ -742,7 +746,8 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 	// calculate screen coordinates and shifts for each station (graphical levels)
 	calculateStationCoordAndShift();
 	const bool hasSharedPreview = !m_cachedTrackPreview.lines.empty();
-	const auto sharedStationPoint = [this, &sceneModel, hasSharedPreview](int stationIndex, QPointF& point) {
+	const auto sharedStationPoint = [this, &sceneModel, hasSharedPreview](int stationIndex, QPointF& point,
+										std::string& nodeId) {
 		if (!hasSharedPreview || stationIndex < 0
 			|| stationIndex >= static_cast<int>(sceneModel.stations.size()))
 			return false;
@@ -754,6 +759,7 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			});
 		if (station == m_cachedTrackPreview.stations.end())
 			return false;
+		nodeId = station->nodeId;
 		for (const auto& line : m_cachedTrackPreview.lines) {
 			if (!station->nodeId.empty()) {
 				if (previewPointAtNode(line, station->nodeId,
@@ -783,15 +789,17 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 			continue;
 		}
 		QPointF sharedPoint;
-		if (sharedStationPoint(i, sharedPoint)) {
+		std::string sharedNodeId;
+		if (sharedStationPoint(i, sharedPoint, sharedNodeId)) {
+			const int platformCount = static_cast<int>(sceneModel.stations[static_cast<std::size_t>(i)].platforms.size());
 			paintStationOverlay(sharedPoint,
-				classifyStation(),
+				stationMarkVisual(sceneModel, sharedNodeId, platformCount),
 				legacyStation.stationName, presentationScale(),
 				stationDecorationOffset(sceneModel.stationViews,
 					sceneModel.stations[static_cast<std::size_t>(i)].id,
 					legacyStation.stationName)
 					* presentationScale(),
-				static_cast<int>(sceneModel.stations[static_cast<std::size_t>(i)].platforms.size()));
+				platformCount);
 			continue;
 		}
 
@@ -812,12 +820,11 @@ void NetworkPresenter::showRuntime(const SceneModel& sceneModel) {
 		const QPointF decorationOffset = averageShift * (station_name_graphID * track_separation)
 			+ QPointF(0.0, stationNamedYOffset(legacyStation.stationName));
 
-		paintStationOverlay(pt,
-			classifyStation(),
-			legacyStation.stationName, 1.0, decorationOffset,
-			i < static_cast<int>(sceneModel.stations.size())
-				? static_cast<int>(sceneModel.stations[static_cast<std::size_t>(i)].platforms.size())
-				: 0);
+		const int platformCount = i < static_cast<int>(sceneModel.stations.size())
+			? static_cast<int>(sceneModel.stations[static_cast<std::size_t>(i)].platforms.size())
+			: 0;
+		paintStationOverlay(pt, classifyStation(platformCount > 0), legacyStation.stationName, 1.0, decorationOffset,
+			platformCount);
 	}
 
 	// draw connections

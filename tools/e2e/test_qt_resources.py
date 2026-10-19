@@ -8,8 +8,6 @@ from test_ci_workflow import release_pipeline_text
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "EGTRAIN/QEGTRAIN"
 ENTITY_ASSETS = {
-    "icons/station.svg": "resources/icons/station.svg",
-    "icons/station-dark.svg": "resources/icons/station-dark.svg",
     "icons/passenger.svg": "resources/icons/passenger.svg",
     "icons/train-passenger.svg": "resources/icons/train-passenger.svg",
     "icons/train-sprinter.svg": "resources/icons/train-sprinter.svg",
@@ -46,7 +44,7 @@ def main() -> None:
             raise SystemExit(f"missing resource asset: {relative_path}")
         if qrc_entries.get(alias) != f"../{relative_path}":
             raise SystemExit(f"missing Qt resource entry: {alias}")
-        if f'":/{alias}"' not in source_text and alias != "icons/station.svg":
+        if f'":/{alias}"' not in source_text:
             raise SystemExit(f"application and graphics source do not reference :/{alias}")
 
     stylesheet = (SOURCE_ROOT / "resources/styles/egtrain.qss").read_text(encoding="utf-8")

@@ -285,18 +285,7 @@ void MainWindowTestAccess::runStationOverlay(MainWindow& w) {
 			auto* target = picture ? qgraphicsitem_cast<StationNodeItem*>(picture->parentItem()) : nullptr;
 			if (!target || !target->node || !picture->isVisible())
 				continue;
-			const QImage image = picture->pixmap().toImage();
-			QPoint opaquePixel(-1, -1);
-			for (int y = 0; y < image.height() && opaquePixel.x() < 0; ++y)
-				for (int x = 0; x < image.width(); ++x)
-					if (image.pixelColor(x, y).alpha() == 255) {
-						opaquePixel = QPoint(x, y);
-						break;
-					}
-			if (opaquePixel.x() < 0)
-				continue;
-			const QPointF point = picture->mapToScene(picture->offset()
-				+ (QPointF(opaquePixel) + QPointF(0.5, 0.5)) / picture->pixmap().devicePixelRatio());
+			const QPointF point = picture->mapToScene(picture->boundingRect().center());
 			for (QGraphicsItem* hit : w.scene->items(point, Qt::IntersectsItemShape, Qt::DescendingOrder,
 					 w.networkView->viewportTransform())) {
 				if (hit == picture || (hit && hit->parentItem() == target)) {

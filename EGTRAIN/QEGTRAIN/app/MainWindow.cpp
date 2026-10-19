@@ -2931,7 +2931,7 @@ void MainWindow::showSceneContextMenu(QGraphicsItem* item, const QPointF& /*scen
 		const int track = station->track;
 		menu->setTitle("Station");
 		QAction* details = menu->addAction("Show details");
-		details->setIcon(QIcon(":/icons/station-dark.svg"));
+		details->setIcon(stationMarkIcon(StationClass::Station));
 		connect(details, &QAction::triggered, this, [this, nodeId, track]() {
 			if (auto* current = resolveStationNodeItem(nodeId, track))
 				m_inspector->displayStationNodeInfo(current);

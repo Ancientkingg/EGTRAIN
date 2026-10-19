@@ -28,6 +28,7 @@ struct NetworkLegendEntry {
 	TrackOperationalState trackState = TrackOperationalState::Free;
 	SignalCueKind signalCue = SignalCueKind::Neutral;
 	NetworkLegendSignalLook signalLook = NetworkLegendSignalLook::Lamp;
+	StationClass stationClass = StationClass::Station;
 	QString iconResource;
 };
 
