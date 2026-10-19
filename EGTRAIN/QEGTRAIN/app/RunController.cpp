@@ -5,6 +5,7 @@
 #include "app/MainWindowSupport.h"
 #include "app/MainWindowTestHooks.h"
 #include "app/PathMessages.h"
+#include "app/RunResultsDock.h"
 #include "app/SceneOutputDirectory.h"
 #include "app/UpdateTelemetryController.h"
 #include "diagrams/DelayAnalysisWindow.h"
@@ -267,8 +268,8 @@ bool RunController::showRunReview() {
 	addFact(0, "Selected in period", QString::number(selectedInPeriod));
 	addFact(1, "Start clock", QString::fromStdString(formatSimTime(0, baseSeconds)));
 	addFact(2, "Duration",
-		QString("%1 s elapsed (ends near %2)")
-			.arg(QString::number(duration, 'g', 12),
+		QString("%1 (ends near %2)")
+			.arg(RunResultsDock::durationText(static_cast<long long>(duration)),
 				QString::fromStdString(formatSimTime(static_cast<long long>(duration), baseSeconds))));
 	addFact(3, "Active incidents", QString::number(static_cast<int>(m_host.selectedScenarioIncidents().size())));
 	layout->addLayout(facts);

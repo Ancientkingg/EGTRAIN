@@ -49,7 +49,7 @@ Run 1 alone at 100 % performance.
 
 1. On **Run occurrences**, click **Select none**, then tick **Include** in the first row, service code `IC_ASD_HVS_DEMO-1`. The text above the table contains "Selected: 1" and "Selected in period: 1". Highlighting a row is not enough; the box must be ticked. **Run** refuses to start while no run is selected.
 2. Click **Run** in the toolbar. The dialog **Run simulation** shows **Selected in period**, **Start clock**, **Duration** and **Active incidents**; **Run details** shows more. Check that **Selected in period** is 1, then click **Run simulation**.
-3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the line at its top contains "Status: Completed".
+3. Move the speed slider to the right to shorten the wait. Do not click **Stop**: a run you stop before it ends leaves no results. When the run has ended, the dock **Run Results** appears and the lines at its top include "Status: Completed".
 4. In the dock, click **Open result view...** and choose **Timetable**. The window lists, for each stop of the run, the planned and simulated arrival and departure and the arrival and departure delay. Click **Export CSV...** in that window and save `baseline-timetable.csv` in your own folder. Close the window.
 5. Choose **Open result view...** > **Speed / distance**, click **Export PNG...** in that window and save `baseline-speed-distance.png`. Close the window.
 6. Click **Export CSV...** in the dock and save `baseline-run-summary.csv`. The two export buttons of the dock write the summary table only; every result window has its own **Export CSV...** and **Export PNG...**.
