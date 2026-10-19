@@ -4888,16 +4888,21 @@ QStringList MainWindowTestAccess::checkUndoRedo(MainWindow& w, const QString& sc
 		return failures;
 	};
 
-	// The Edit menu stands before View and holds the two actions with the keys of the platform, and Find after them. The
-	// editor docks carry Undo and Redo too, for the time that a dock floats as a window of its own.
+	// The Edit menu stands before View and holds the two actions with the keys of the platform, Find after them and
+	// Preferences last, which macOS shows in the application menu. The editor docks carry Undo and Redo too, for the time
+	// that a dock floats as a window of its own.
 	{
 		const QList<QAction*> menus = w.menuBar()->actions();
 		const int editMenuIndex = menus.indexOf(w.ui->menuEdit->menuAction());
 		expect(editMenuIndex >= 0 && menus.value(editMenuIndex + 1) == w.ui->menuView->menuAction(),
 			"the Edit menu is not before View");
-		expect(w.ui->menuEdit->actions().mid(0, 2) == QList<QAction*>({w.m_undoAction, w.m_redoAction})
-				&& w.ui->menuEdit->actions().last() == w.m_findAction,
+		const QList<QAction*> editActions = w.ui->menuEdit->actions();
+		expect(editActions.mid(0, 2) == QList<QAction*>({w.m_undoAction, w.m_redoAction}) && editActions.contains(w.m_findAction),
 			"the Edit menu does not hold Undo, Redo and Find");
+		const QAction* preferences = editActions.last();
+		expect(preferences->objectName() == QStringLiteral("actionSettings") && preferences->menuRole() == QAction::PreferencesRole
+				&& preferences->shortcut() == QKeySequence(QKeySequence::Preferences),
+			"the Edit menu does not end with Preferences");
 		expect(w.m_undoAction->shortcut() == QKeySequence(QKeySequence::Undo)
 				&& w.m_redoAction->shortcuts() == QKeySequence::keyBindings(QKeySequence::Redo)
 				&& w.m_undoAction->shortcutContext() == Qt::WindowShortcut

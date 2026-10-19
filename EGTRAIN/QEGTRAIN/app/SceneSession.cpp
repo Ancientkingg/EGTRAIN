@@ -14,6 +14,7 @@
 #include "scene/SceneWriter.h"
 #include "widgets/CaseChooserDialog.h"
 #include "widgets/DisplayPath.h"
+#include "widgets/SettingsDialog.h"
 #include "widgets/UserPrompts.h"
 #include <QAction>
 #include <QApplication>
@@ -38,7 +39,6 @@
 #include <iterator>
 
 namespace {
-const char* kRecentScenesKey = "recentScenes";
 const int kMaxRecentScenes = 8;
 // The property of a recent scene action that holds its label without the Unavailable prefix.
 const char* kRecentLabelProperty = "recentLabel";
