@@ -219,7 +219,8 @@ public:
 	double resistanceCoefficient = 0.0; ///< Coefficient of the wagon resistance (Sauthoff formula) that multiplies the speed in km/h.
 	/// Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_spatial_position;
-	/// ID of the section of the head at each step; "-" before the train enters and after it has left; empty on a step held by a breakdown.
+	/// ID of the section of the head at each step; "-" before the train enters and from End_Time + 2 on; empty at End_Time + 1
+	/// and on a step held by a breakdown.
 	std::vector<std::string> instant_block_section_occupied;
 	std::vector<double> instant_train_power_consumption; ///< Power at each step in W; -9999 at the step after End_Time and 0 after that.
 	/// Branch-applied wheel effort [N], aligned with trajectory samples; -9999 at the step after End_Time and 0 after that.
@@ -347,7 +348,8 @@ public:
 	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
 	/// Label of the branch of the step that produced each sample: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell,
 	/// 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and
-	/// 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader.
+	/// 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader; 0 on other steps before entry and from
+	/// End_Time + 2 on.
 	std::vector<int> Eq;
 	int RunStartTime;			///< Step before the first step with a speed above 0 (Det_Run_Start_Time); 0 until computed.
 	BlockingTimeList BlockTime; ///< Blocking times of the train, N_BlockSections of them, which the stage after the steps computes.
@@ -355,7 +357,8 @@ public:
 	int N_BlockTimeComplete;	///< Number of entries of BlockTime that are complete.
 	int numOverlaps;			///< Set to 0 and never changed.
 	double Final_Delay;			///< Set to 0 and never changed.
-	/// Last step of the train: the step before it passed the end of its route, or the last step of the run while it has not.
+	/// Last step of the train: the first step at which its head is at or past the end of its route, or the last step of the
+	/// run while it has not reached it.
 	int End_Time;
 	int earliestActiveTrajectoryIndex = -1;	  ///< First simulation sample in the active run; -1 until the train enters.
 	std::list<Location> LocationNames;		  ///< Not filled by the simulation, so empty.
@@ -466,8 +469,7 @@ public:
 	virtual double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Function to quickly compute the time in seconds to accelerate between two speeds; -99999 when the resistances exceed
-	/// the tractive effort. V1 and X1 are the current train speed and position while X2 and V2 are the target position
-	/// and speed, BS and N_BS are the list of Block Sections and the number of Block Sections along the train route
+	/// the tractive effort. Arguments as in BrakingDistanceFastComputation.
 	virtual double AccelerationTimeFollowingMode(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Finds the arc of the route under a head position in metres, continuing from the previous lookup.
@@ -556,7 +558,7 @@ public:
 	/// Function for printing Train Trajectory Data
 	virtual void PrintTrajectory();
 
-	/// Class Destructor
+	// Class Destructor
 	virtual ~Train() {}
 
 	/// ID of the track detection section of Bs under the head at step timeinstant; empty when there is none.
@@ -696,7 +698,7 @@ public:
 	/// Sets the default rolling stock values, which the operations builder replaces.
 	Regional();
 
-	/// Regional Destructor
+	// Regional Destructor
 	~Regional() {
 		/*PrintTrajectory();*/
 	}

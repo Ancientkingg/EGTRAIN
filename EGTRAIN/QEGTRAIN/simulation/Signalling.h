@@ -63,7 +63,6 @@ public:
 	double Acceleration;		  ///< Acceleration of the train in m/s2 when it made a movement authority.
 	std::string InfraElemStatus;  ///< Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.
 
-	/// Sets the numbers to -10000, TrainSpeed to -1 and the strings to "None".
 	TrainEvent();
 
 	/// Copies every member.
@@ -92,7 +91,6 @@ public:
 	InfraElement ElementInfo;			 ///< The element.
 	std::list<TrainEvent> RecordedEvent; ///< One event per train passage, sorted by time after the run.
 
-	/// Sets the flags of ElementInfo to false.
 	InfraEvent();
 
 	/// Copies the element and the events.
@@ -183,7 +181,6 @@ public:
 	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
 	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
-	/// A green section (code 270) without arcs, track or level.
 	Section();
 
 	/// Copies every member; the node list stays shared.
@@ -319,7 +316,6 @@ public:
 	std::pair<double, double> diffRegionsJumpX;
 	std::pair<double, double> diffRegionsJumpX2; ///< Set to {0, 0} and never given another value.
 
-	/// An empty route with ID "None".
 	Route();
 
 	/// Initialize infrastructure element list for route; each element includes its block section ID
@@ -367,7 +363,6 @@ public:
 	double EoA_Dist_From_BSID_Beg;
 	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
 
-	/// Sets the IDs to "None" and the positions to -1.
 	MovementAuthority();
 
 	/// Copies every member.

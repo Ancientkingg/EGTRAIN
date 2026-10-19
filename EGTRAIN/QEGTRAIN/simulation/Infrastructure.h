@@ -252,7 +252,6 @@ public:
 	/// Not set by the builders; -1 by default.
 	double firstSwitchX, lastSwitchX; ///< Not set by the builders; DBL_MAX by default.
 
-	/// Sets the numbers to 0, graphID and firstSwitchX to -1 and lastSwitchX to DBL_MAX.
 	BlockSet();
 };
 

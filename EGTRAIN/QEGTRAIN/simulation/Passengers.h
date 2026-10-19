@@ -38,7 +38,6 @@ public:
 	/// True once the passenger waits for this leg.
 	bool IsTripStarted, IsTripCompleted; ///< True once the passenger has alighted at the arrival station.
 
-	/// Sets the strings to "None", the times to -9999 and the flags to false.
 	Trip() {
 		this->TripID = Dep_Station_ID = Arr_Station_ID = Trip_Activity_Type = TrainServiceDescription = "None";
 		this->Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
@@ -79,7 +78,6 @@ public:
 	double Waitingtime;						   ///< Total waiting time on platforms in seconds.
 	int totalJourneyArrivalDelay;			   ///< Arrival delay of the last leg in seconds; 0 until the journey is completed.
 
-	/// Sets the strings to "None", the times to -9999, the totals to 0 and the flags to false.
 	Journey() {
 		ID = Dep_Station_ID = Arr_Station_ID = Journey_Activity_Type = "None";
 		Dep_Station_Platform_ID = Arr_Station_Platform_ID = "None";
@@ -131,7 +129,6 @@ public:
 	/// seconds after leaving the network
 	std::string PlatformExitedTheNetworkID;
 
-	/// Sets the strings to "None", IsIntheNetwork to false and TimeExitedTheNetwork to -9999.
 	Passenger() {
 		ID = passenger_category = current_location_ID = current_TripID = current_JourneyID = StationExitedTheNetworkID = PlatformExitedTheNetworkID = "None";
 		CurrentStatus = "None";
