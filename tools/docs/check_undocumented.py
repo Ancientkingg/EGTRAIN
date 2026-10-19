@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Fails when a change adds undocumented C++ classes or members to the files it changes.
 
-  python3 tools/docs/check_undocumented.py BASE    compare the working tree with the Git revision BASE
+  check_undocumented.py BASE    compare the working tree with the commit where HEAD forked from the revision BASE
 
 Doxygen runs with docs/Doxyfile and EXTRACT_ALL set to NO, once on the working tree and once on a copy of
 BASE, and reports its "is not documented" warnings. Private members are not reported. A warning in a file
-that changed since BASE is new when the file has more of it than in BASE. Line numbers are ignored, so
-moved code is not new, and a renamed file is compared with its old name.
+that changed since BASE is new when the file has more of it than in BASE. Line numbers and argument lists
+are ignored, so moved code and a changed signature are not new, and a renamed file is compared with its
+old name.
 
 Each new warning is printed as path: text, followed by a summary line. The exit code is 0 when no warning
 is new, 1 when there are new warnings and 2 when the check cannot run.
@@ -23,6 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WARNING = re.compile(r"^(.+?):\d+: warning: (.+ is not documented\.)$")
+ARGUMENTS = re.compile(r"^(Member [^(]+)\(.*\)[^()]*( \([a-z ]+\) of )")
 CHECK_SETTINGS = "\nEXTRACT_ALL = NO\nGENERATE_HTML = NO\nHAVE_DOT = NO\nOUTPUT_DIRECTORY = {output}\nWARN_LOGFILE = {log}\n"
 
 
@@ -33,7 +35,7 @@ def parse_warnings(text: str, tree: str) -> Counter:
         match = WARNING.match(line)
         if match:
             path = Path(os.path.relpath(match.group(1), tree)).as_posix()
-            found[(path, match.group(2))] += 1
+            found[(path, ARGUMENTS.sub(r"\1\2", match.group(2)))] += 1
     return found
 
 
@@ -45,7 +47,7 @@ def new_warnings(base: Counter, head: Counter, changed: dict) -> list:
     for (path, text), count in base.items():
         renamed[(new_names.get(path, path), text)] += count
     extra = head - renamed
-    return sorted(f"{path}: {text}" for (path, text), count in extra.items() if path in changed for _ in range(count))
+    return sorted(f"{path}: {text}" for path, text in extra.elements() if path in changed)
 
 
 def git(*arguments, **options):
@@ -68,15 +70,14 @@ def doxygen_warnings(tree: Path, config: str, output: Path) -> Counter:
     return parse_warnings(log.read_text(encoding="utf-8"), str(tree))
 
 
-def main(argv=None) -> int:
-    arguments = sys.argv[1:] if argv is None else argv
-    if len(arguments) != 1:
-        print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("usage: check_undocumented.py BASE", file=sys.stderr)
         return 2
-    base = arguments[0]
     config = (ROOT / "docs/Doxyfile").read_text(encoding="utf-8")
     inputs = re.search(r"^INPUT\s*=(.*)$", config, re.MULTILINE).group(1).split()
     try:
+        base = git("merge-base", sys.argv[1], "HEAD", text=True).strip()
         changed = changed_files(base)
         with tempfile.TemporaryDirectory() as directory:
             scratch = Path(directory).resolve()
@@ -85,16 +86,13 @@ def main(argv=None) -> int:
                 archive.extractall(base_tree, filter="data")
             base_warnings = doxygen_warnings(base_tree, config, scratch / "base-output")
             head_warnings = doxygen_warnings(ROOT, config, scratch / "head-output")
-    except subprocess.CalledProcessError as error:
-        print(f"check_undocumented: {error}\n{error.stderr}", file=sys.stderr)
-        return 2
-    except OSError as error:
-        print(f"check_undocumented: {error}", file=sys.stderr)
+    except (subprocess.CalledProcessError, OSError) as error:
+        print(f"check_undocumented: {error}\n{getattr(error, 'stderr', '') or ''}", file=sys.stderr)
         return 2
     found = new_warnings(base_warnings, head_warnings, changed)
     for warning in found:
         print(warning)
-    print(f"{len(found)} new undocumented " + ("entity" if len(found) == 1 else "entities") + f" since {base}")
+    print(f"{len(found)} new undocumented " + ("entity" if len(found) == 1 else "entities") + f" since {sys.argv[1]}")
     return 1 if found else 0
 
 
