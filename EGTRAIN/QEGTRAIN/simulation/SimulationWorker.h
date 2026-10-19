@@ -16,9 +16,9 @@ class DispatchController;
 class SimulationWorker : public QObject {
 	Q_OBJECT
 public:
-	/// A worker without a controller runs the controller of the process, the global simulation. It becomes the active worker.
+	/// A worker without a controller runs the controller of the process, the global simulation.
 	explicit SimulationWorker(QObject* parent = nullptr);
-	/// The controller has to outlive the worker. The worker becomes the active worker.
+	/// The controller has to outlive the worker.
 	explicit SimulationWorker(DispatchController& controller, QObject* parent = nullptr);
 	/// Leaves no active worker when this one is the active worker.
 	~SimulationWorker() override;

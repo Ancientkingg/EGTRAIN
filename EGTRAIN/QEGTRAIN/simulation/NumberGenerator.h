@@ -4,10 +4,7 @@
 /// The random draws of a run. Each SimulationRun has one, which the operations builder seeds from initial_variables.randomSeed,
 /// so equal seeds give equal draws.
 ///
-/// The state advances by multiplying with kIa modulo kIm. kIq is kIm / kIa and kIr is kIm % kIa, so that the
-/// product needs no larger type. The next result is taken from a table of kNtab entries, from the entry that
-/// the previous result selects through kNdiv. getUniformFloat limits the draw on the unit interval to kRnmx
-/// before it scales it to the requested interval.
+/// Park-Miller minimal standard generator with a Bays-Durham shuffle table. kIq and kIr keep the product within 32 bits.
 class NumberGenerator {
 public:
 	static constexpr int kIa = 16807;					///< Multiplier of the state.

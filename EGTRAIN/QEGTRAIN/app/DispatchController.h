@@ -21,7 +21,6 @@
 #endif
 #include "scene/SceneModel.h"
 #ifdef EGTRAIN_RESTORE_SIGNALS_KEYWORD
-/// The Qt keyword, defined again after SceneModel.h.
 #define signals Q_SIGNALS
 #undef EGTRAIN_RESTORE_SIGNALS_KEYWORD
 #endif
@@ -94,8 +93,7 @@ public:
 	/// A run that nothing draws needs no snapshots and no replay history. Off, the
 	/// run builds neither. Call this before the run starts.
 	void setSnapshotsEnabled(bool enabled) { snapshotsEnabled_ = enabled; }
-	/// Drops the replay history that the last run recorded. Only call this on the GUI thread before launch or after the worker
-	/// has joined.
+	/// Drops the replay history of the last run. The thread rule of takeReplayCandidate applies.
 	void resetReplayCandidate() { replayCandidate_.clear(); }
 	/// Hands over the replay history that the last run recorded and keeps an empty one. Only call this on the GUI thread before
 	/// launch or after the worker has joined.

@@ -99,8 +99,7 @@ struct SimulationRun {
 
 	/// IDs of the block sections that trains occupy. The signalling routines fill the list during a step and the step clears it.
 	std::list<std::string> blocksOccupied;
-	/// IDs of the block sections connected to the occupied ones. The signalling routines fill the list during a step and the step
-	/// clears it.
+	/// IDs of the block sections connected to the occupied ones, filled and cleared like blocksOccupied.
 	std::list<std::string> blocksConnected;
 	/// Movement authorities of the current step: those of levels 3 and 4, and the failed signals at every level.
 	std::list<MovementAuthority> etcsMa;
@@ -150,7 +149,7 @@ struct SimulationRun {
 	/// Signalling system delay in seconds (set to x-1 to get x seconds delay, accounting for timestep). The signalling reads the
 	/// positions of the trains this many whole steps back. Nothing in the program sets it, so a run keeps 0.
 	double signallingDelay = 0;
-	/// Processor time of the steps in seconds, summed over the run.
+	/// Time of the steps in seconds as clock() measures it, summed over the run.
 	double compTimeEgtrain = 0;
 	/// Written to the computing times file next to compTimeEgtrain. Nothing in the program sets it, so it stays 0.
 	double compTimeRoma = 0;
