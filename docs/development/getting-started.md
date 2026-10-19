@@ -46,6 +46,21 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH=/opt/homebrew/o
 cmake --build build --parallel 4
 ```
 
+Homebrew deprecated `qt@5` on 2026-05-19 and disables it on 2027-05-19
+([formula](https://formulae.brew.sh/formula/qt@5)). After that date, install Qt 5.15 another way and point
+`CMAKE_PREFIX_PATH` at it, for example Qt 5.15.2 from the Qt online installer or from
+[aqtinstall](https://aqtinstall.readthedocs.io/en/latest/getting_started.html). On an Intel Mac:
+
+```bash
+aqt install-qt mac desktop 5.15.2 clang_64 -m qtcharts -O "$HOME/Qt"
+cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON -DCMAKE_PREFIX_PATH="$HOME/Qt/5.15.2/clang_64"
+```
+
+The macOS binaries of Qt 5.15.2 are for Intel only. On Apple silicon they need an Intel build with
+`-DCMAKE_OSX_ARCHITECTURES=x86_64` and an Intel build of ZeroMQ, and run under Rosetta;
+building Qt 5.15 from source is the other way. The [Qt 6 migration study](qt6-migration-study.md) describes the
+move to Qt 6, which removes the need for `qt@5`.
+
 On Ubuntu and Windows, take the install and configure lines from
 [Configure](build-and-test.md#configure); the Ubuntu line installs `git` and `python3` too. The build, test and run commands below use the macOS and
 Linux form. With a multi-config generator such as Visual Studio, add `--config Release` to
