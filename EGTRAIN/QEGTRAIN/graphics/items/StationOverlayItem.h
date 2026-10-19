@@ -15,6 +15,19 @@
 
 #include "graphics/VisualPolish.h"
 
+// The scene-space mark of a station. The transparent pixmap only gives the size and anchor
+// that StationOverlayItem enlarges; paint draws the mark of the station class over it.
+class StationMarkItem : public QGraphicsPixmapItem {
+public:
+	StationMarkItem(StationClass cls, int size, QGraphicsItem* parent = nullptr);
+
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+	StationClass stationClass() const { return m_class; }
+
+private:
+	StationClass m_class;
+};
+
 class StationOverlayItem : public QGraphicsItem {
 public:
 	enum class LabelSide { Right,

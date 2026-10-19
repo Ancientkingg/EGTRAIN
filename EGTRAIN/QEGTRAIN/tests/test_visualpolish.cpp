@@ -170,8 +170,31 @@ int main(int argc, char* argv[]) {
 	ok &= expect(intercity.shape != sprinter.shape && intercity.shape != freight.shape && sprinter.shape != freight.shape,
 		"train category silhouettes");
 
-	const StationVisual station = classifyStation();
-	ok &= expect(station.iconResource == ":/icons/station.svg", "station uses the shared building pictogram");
+	ok &= expect(classifyStation(false, 3).cls == StationClass::Major && classifyStation(true, 0).cls == StationClass::Station
+			&& classifyStation(false, 0).cls == StationClass::Halt,
+		"three connections make a major station, a platform a station, neither a halt");
+	// In a 24 px frame the bar is 7.7 px wide, the disc and the ring 16.8 px across, the hole of the ring 9.1 px.
+	struct MarkProbe {
+		StationClass cls;
+		bool centreFilled;
+		bool sideFilled;
+		int haloX;
+	};
+	for (const MarkProbe& probe : {MarkProbe{StationClass::Major, true, false, 16}, MarkProbe{StationClass::Station, true, true, 21},
+			 MarkProbe{StationClass::Halt, false, true, 21}}) {
+		QImage mark(24, 24, QImage::Format_ARGB32_Premultiplied);
+		mark.fill(Qt::transparent);
+		{
+			QPainter painter(&mark);
+			paintStationMark(&painter, QRectF(0.0, 0.0, 24.0, 24.0), probe.cls, Qt::white, Qt::black, 2.0);
+		}
+		const auto filled = [&mark](int x) { return mark.pixelColor(x, 12).alpha() == 255 && mark.pixelColor(x, 12).lightness() > 200; };
+		const auto empty = [&mark](int x) { return mark.pixelColor(x, 12).alpha() == 0; };
+		const QColor halo = mark.pixelColor(probe.haloX, 12);
+		ok &= expect((probe.centreFilled ? filled(12) : empty(12)) && (probe.sideFilled ? filled(19) : empty(19))
+				&& halo.alpha() == 255 && halo.lightness() < 50,
+			"each station class has its own mark with a dark halo");
+	}
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 

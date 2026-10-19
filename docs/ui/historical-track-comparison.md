@@ -8,9 +8,9 @@ The visual reference is the initial imported renderer `472d0b5`, particularly
 primitive next to the way it is drawn now.
 
 Canonical authored geometry and Fit padding remain in use, so comparisons must
-distinguish geometry from symbol presentation. Station artwork uses a
-station-building SVG while retaining the historical scene-space anchor, offset
-and parent. Its size on screen is at least 24 px for the pictogram and 12 px for
+distinguish geometry from symbol presentation. Station artwork uses a mark per
+station class while retaining the historical scene-space anchor, offset and
+parent. Its size on screen is at least 24 px for the pictogram and 12 px for
 the name, so stations stay locatable at Fit; above that the scene size applies.
 Overlapping names are hidden by priority and pictograms are never hidden. The
 historical passenger PNG is restored as a separate resource. Train polygons keep
@@ -24,11 +24,13 @@ These are the only intentional differences from the reference renderer. A
 difference that is not listed here is not intended. The numbers are the pull
 requests that made the change, or the issue where none did.
 
-- Station pictogram and its size on screen (#579). A white station-building SVG
-  replaces the raster `station_pixmap`. At every zoom the pictogram is at least
-  24 px high and the name at least 12 px, and names that overlap are hidden by
-  rank. Where the scene size is larger than that, the scene size applies, as in
-  the reference.
+- Station pictogram and its size on screen (#579, #822). A light mark with a
+  dark halo replaces the raster `station_pixmap`: a bar for a station with three
+  or more connections, a disc for one with a platform and a ring for one without
+  a platform. A run without the shared preview draws no bar. At every zoom the
+  pictogram is at least 24 px high and the name at least 12 px, and names that
+  overlap are hidden by rank. Where the scene size is larger than that, the
+  scene size applies, as in the reference.
 - Canvas (#509). The background `#101a22` with a faint `#182832` grid replaces
   the solid black background.
 - Selection (#606). A ring in the cue colour (61,214,255) marks the selected

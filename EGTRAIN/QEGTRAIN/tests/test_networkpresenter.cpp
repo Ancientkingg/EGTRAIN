@@ -198,7 +198,7 @@ static bool pointersNull(const NetworkPresenter& presenter) {
 int main(int argc, char* argv[]) {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
-	// The station icons are resources of the application, which this test does not have.
+	// The entity icons are resources of the application, which this test does not have.
 	QLoggingCategory::setFilterRules(QStringLiteral("qt.svg.warning=false"));
 	bool ok = true;
 
@@ -281,6 +281,27 @@ int main(int argc, char* argv[]) {
 			ok &= expect(registriesEmpty(presenter) && pointersNull(presenter) && scene.items().isEmpty(),
 				"clear after a preview with options leaves the registries empty and the scene as empty as a new scene");
 		}
+
+		// Ut gets three connection ends, and a station placed by position has no platform.
+		SceneModel classes = model;
+		classes.connections.push_back({"switch.8", "B0.Ut", "B1.Gdg", false, 0.0});
+		classes.connections.push_back({"switch.9", "B0.Ut", "B1.Gvc", false, 0.0});
+		SceneStation halt;
+		halt.id = halt.name = "Hlt";
+		halt.hasPosition = true;
+		halt.positionKm = 10.0;
+		classes.stations.push_back(halt);
+		presenter.showPreview(classes);
+		QStringList marks;
+		for (StationOverlayItem* overlay : presenter.m_stationOverlays) {
+			const auto* picture = static_cast<const StationMarkItem*>(presenter.m_stationPictures.value(overlay, nullptr));
+			if (picture && picture->stationClass() == overlay->visual().cls)
+				marks << overlay->stationName() + "=" + QString::number(static_cast<int>(overlay->visual().cls));
+		}
+		marks.sort();
+		ok &= expect(marks == QStringList({"Gdg=1", "Gvc=1", "Hlt=0", "Ut=2"}),
+			"a station gets the mark of its class from its connections and platforms");
+		presenter.clear();
 
 		const NetworkPresenter::PreviewOutcome empty = presenter.showPreview(SceneModel());
 		ok &= expect(!empty.available && !empty.fitted && scene.items().isEmpty() && registriesEmpty(presenter),

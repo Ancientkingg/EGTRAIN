@@ -45,9 +45,9 @@ int main(int argc, char* argv[]) {
 		{defaultTrainFill(), defaultTrainOutline(), QString()},
 		{defaultTrainFill(), defaultTrainOutline(), QString()}};
 	content.stationVisuals = {
-		classifyStation(),
-		classifyStation(),
-		classifyStation()};
+		classifyStation(true),
+		classifyStation(true),
+		classifyStation(true)};
 	content.hasSignals = true;
 	content.hasPassengers = true;
 
@@ -125,9 +125,8 @@ int main(int argc, char* argv[]) {
 		}
 		if (entry.kind == NetworkLegendEntryKind::Station) {
 			++stationCount;
-			ok &= expect(entry.iconResource == ":/icons/station-dark.svg"
-					&& classifyStation().iconResource == ":/icons/station.svg",
-				"station entry uses the light-surface variant of the shared pictogram");
+			ok &= expect(entry.stationClass == StationClass::Station && entry.label == "Station",
+				"station entry shows the mark of its class");
 		}
 		if (entry.signalCue == SignalCueKind::Stop) {
 			stopSignalFound = true;
@@ -163,7 +162,7 @@ int main(int argc, char* argv[]) {
 	previewContent.hasTracks = true;
 	previewContent.showOperationalTrackStates = false;
 	previewContent.hasSelectedTrack = true;
-	previewContent.stationVisuals = {classifyStation()};
+	previewContent.stationVisuals = {classifyStation(true)};
 	previewContent.hasSignals = true;
 	legend.setCaseContent(previewContent);
 	const QVector<NetworkLegendEntry> previewEntries = legend.entries();
@@ -182,6 +181,15 @@ int main(int argc, char* argv[]) {
 	ok &= expect(previewEntries.at(3).color == kSelectionCueColor
 			&& previewEntries.at(3).lineWidth == 4,
 		"preview selected-track key matches the highlighted path");
+
+	NetworkLegendWidget stationLegend;
+	NetworkLegendContent stationContent;
+	stationContent.stationVisuals = {classifyStation(), classifyStation(true), classifyStation(false, 3), classifyStation()};
+	stationLegend.setCaseContent(stationContent);
+	ok &= expect(stationLegend.entryLabels() == QStringList({"Major station", "Station", "Halt"})
+			&& stationLegend.entries().at(0).stationClass == StationClass::Major
+			&& stationLegend.entries().at(2).stationClass == StationClass::Halt,
+		"the map key has one row for each station class on the canvas");
 
 	// Train rows: one "Train" row for the default colour, then one row per other colour.
 	const auto trainRows = [](const NetworkLegendWidget& widget) {

@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -76,9 +77,7 @@ protected:
 		}
 
 		if (m_entry.kind == NetworkLegendEntryKind::Station) {
-			const QPixmap icon(m_entry.iconResource);
-			if (!icon.isNull())
-				painter.drawPixmap(QRect(15, 1, 16, 16), icon);
+			paintStationMark(&painter, QRectF(15.0, 1.0, 16.0, 16.0), m_entry.stationClass, QColor(16, 26, 34), Qt::white, 1.0);
 			return;
 		}
 
@@ -129,10 +128,6 @@ protected:
 private:
 	NetworkLegendEntry m_entry;
 };
-
-QString stationLabel() {
-	return "Station";
-}
 
 NetworkLegendEntry trackEntry(const QString& label, TrackOperationalState state) {
 	NetworkLegendEntry entry;
@@ -245,12 +240,11 @@ QVector<NetworkLegendEntry> trainEntries(const QVector<NetworkLegendTrain>& trai
 	return entries;
 }
 
-NetworkLegendEntry stationEntry(const StationVisual& visual) {
+NetworkLegendEntry stationEntry(const QString& label, StationClass cls) {
 	NetworkLegendEntry entry;
 	entry.kind = NetworkLegendEntryKind::Station;
-	entry.label = stationLabel();
-	entry.color = visual.fill;
-	entry.iconResource = ":/icons/station-dark.svg";
+	entry.label = label;
+	entry.stationClass = cls;
 	return entry;
 }
 
@@ -331,8 +325,12 @@ void NetworkLegendWidget::setCaseContent(const NetworkLegendContent& content) {
 
 	m_entries += trainEntries(content.trains);
 
-	if (!content.stationVisuals.isEmpty())
-		m_entries << stationEntry(content.stationVisuals.first());
+	for (const auto& row : {std::make_pair(StationClass::Major, "Major station"), std::make_pair(StationClass::Station, "Station"),
+			 std::make_pair(StationClass::Halt, "Halt")}) {
+		if (std::any_of(content.stationVisuals.cbegin(), content.stationVisuals.cend(),
+				[&row](const StationVisual& visual) { return visual.cls == row.first; }))
+			m_entries << stationEntry(row.second, row.first);
+	}
 
 	if (content.hasSignals) {
 		m_entries << signalEntry("Stop signal", 0)
