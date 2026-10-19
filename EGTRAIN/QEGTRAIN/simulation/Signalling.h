@@ -304,8 +304,7 @@ void setList(SimulationRun& run, std::string input, std::list<Section>& BSConnec
 /// the fixed legacy dependency of section "@5-B6@" and copies the IDs to the switch nodes (Node::IDConnectedBlocks).
 void setDependenciesBetweenBlocks(SimulationRun& run);
 
-/// True when the two sections overlap: their coordinate ranges overlap and their IDs share a block. It tests overlap, not connection;
-/// blockSets is the second section.
+/// True when the two sections overlap (not connect): their coordinate ranges overlap and their IDs share a block.
 bool areBlocksConnected(Section A, Section blockSets);
 
 /// Gives the switch and station nodes of the N_BlockSections sections of BS a track detection border ID (tdsbId) and geographic

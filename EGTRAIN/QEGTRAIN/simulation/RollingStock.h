@@ -473,9 +473,8 @@ public:
 	/// this train in following mode, with the leader's last speed and acceleration as its target.
 	void leaveFollowingModeWhenLeaderIsGone(int time_seconds);
 
-	/// Braking distance (m) from speed V1 to V2 (m/s) by the closed formula (V1^2 - V2^2) / (2 a), where a is max_train_decelaration
-	/// plus the resistance at the mean speed, on the mean gradient and curvature of the arcs of BS that end in (X1, X2] (m), divided by
-	/// total_train_mass * massFactor.
+	/// Braking distance (m) from V1 to V2 (m/s) by the closed formula, on the mean gradient and curvature of the arcs of BS that end in
+	/// (X1, X2] (m).
 	virtual double BrakingDistanceFastComputation(double V1, double V2, double X1, double X2, Section* BS, int N_BS);
 
 	/// Time (s) to accelerate from V1 to V2 (m/s, V2 above V1) on the mean gradient and curvature of the arcs of BS that end in
@@ -510,6 +509,8 @@ public:
 
 	/// The state one full braking step before nextHead (m) and nextSpeed (m/s); head and speed receive it. The resistance is
 	/// quadratic in speed, and only the root on the increasing branch of v - dt a(v) counts, so false when there is no unique one.
+	/// For nextSpeed == 0, q(v) == 0 selects the stopping threshold, not the entire saturated preimage of max(0, q(v)); smaller terminal
+	/// speeds are valid forward states.
 	bool inverseBrakingStep(double nextHead, double nextSpeed, Section* sections, int count, double& head, double& speed);
 
 	/// Runs full braking steps from head (m) and speed (m/s) until the speed is at most targetSpeed; end receives the last head (m).
@@ -528,7 +529,8 @@ public:
 	bool brakingTerminalUpper(double head, double speed, double ceiling, Section* sections, int count, double& upper);
 
 	/// The speed (m/s) of one step from head and speed that ends at anchor (m), between full braking and full traction and not above
-	/// ceiling; terminal receives it. False when the step cannot end at anchor up to rounding.
+	/// ceiling; terminal receives it. False when the step cannot end at anchor up to rounding. Rounded addition need not be exactly
+	/// inverted by subtraction and division.
 	bool constructBrakingTerminal(double head, double speed, double anchor, double ceiling, Section* sections, int count, double& terminal);
 
 	/// Plans braking to a positive target speed Vobmin at Xobmin into Sbrak and Vbrak, trying plan lengths around suggested.
@@ -536,6 +538,7 @@ public:
 
 	/// The route position (m) where a train at speed V1 (m/s) has to start full braking to reach V2 (m/s) 0.002 m before X0 (m).
 	/// X0 when V1 is not above V2, a position before the route when braking has to start there, and -1 when no position is found.
+	/// Linear interpolation of inverse X/V samples is not a solution of the nonlinear forward flow.
 	virtual double BrakDist_Block(double V1, double V2, double X0, Section* BS, int Blocks);
 
 	/// True when the train at head (m) and speed (m/s) must request the single-track zone starting at entry (m) now, because its next
@@ -681,8 +684,7 @@ public:
 	void checkTrainArrDep(int trainIdx, int t);
 
 	/// Appends a row to FolderName/TrainServicePathDiagram.txt: the train, dispLineID, direction, corridor and its head position (m,
-	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1; a train without
-	/// an earlier service (prevIntendedDepTime 0) takes that route first when it runs in the same direction on another corridor.
+	/// original coordinates) in every step, empty where it does not run. nextServiceRouteID is a route index or -1.
 	void printTrainServicePathDiagram(std::string FolderName, int nextServiceRouteID);
 
 	/// Appends "egtrain,<stationName>,<msgType>,<dispLineID>,<trainIdx>,<t>" to FolderName/EGTRAINOutput.txt and then waits 5 ms.
@@ -747,9 +749,8 @@ void Occupy_Block_Sections_Of_Route(SimulationRun& run, int i);
 /// Adds the ends of authority of every train in step i to run.etcsMa (ReportPositionToRBC), with the margin ETCS3SafetyMargin (m).
 void ReportAllTrainPositionsToRBC(SimulationRun& run, int i, double ETCS3SafetyMargin);
 
-/// Writes MainFolder/BlockingTimes.txt: for each train its description, then rows of the block or element IDs, the start and end
-/// positions (m, GeoPosStart and GeoPosEnd) and the start and end of occupation (s) of the first N_BlockTimeComplete entries of
-/// BlockTime.
+/// Writes MainFolder/BlockingTimes.txt: per train, its description and its first N_BlockTimeComplete blocking times (positions m,
+/// times s).
 void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
 
 /// Writes MainFolder/TimetablePoints.txt: for each train its description and type, then rows of the location names, the positions

@@ -56,12 +56,12 @@ void ComputeTimetableEnergyConsumption(Regional* Trains, int numTrains, std::str
 /// network (Passenger::checkJourneyStart).
 void checkJourneyStartForAllPassengers(int t, int StartingSimulationTime, std::list<Passenger>& SIMUL_PAX);
 
-/// The passengers waiting at one platform: how many they are and, for each of them, a pair of the passenger ID and the actual
-/// departure time of the trip the passenger waits for. The pairs are in chronological order of the departure time, and in the
-/// order of the passenger list for equal times.
+// The passengers waiting at one platform: how many they are and, for each of them, a pair of the passenger ID and the actual
+// departure time of the trip the passenger waits for. The pairs are in chronological order of the departure time, and in the
+// order of the passenger list for equal times.
 struct WaitingAtPlatform {
-	int count = 0;										  ///< Number of waiting passengers.
-	std::list<std::pair<std::string, double>> passengers; ///< Passenger ID and departure time (s since midnight) of the awaited trip.
+	int count = 0;
+	std::list<std::pair<std::string, double>> passengers;
 };
 
 /// The passengers waiting at the platform with these IDs. No platform is modified.
