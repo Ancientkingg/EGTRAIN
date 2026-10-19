@@ -96,7 +96,10 @@ bool OpenRequestRelay::forward(const QString& serverName, const QString& applica
 		out << applicationDir << path;
 	}
 	socket.write(request);
-	if (!socket.waitForBytesWritten(timeoutMs) || !socket.waitForReadyRead(timeoutMs))
+	// The answer comes after the request, so waiting for it covers the write too. waitForBytesWritten would not do: with
+	// Qt 6 on Windows a write to a pipe usually finishes at once, and the call then returns false.
+	socket.flush();
+	if (!socket.waitForReadyRead(timeoutMs))
 		return false;
 	return socket.readAll() == QByteArray(1, kAccepted);
 }
