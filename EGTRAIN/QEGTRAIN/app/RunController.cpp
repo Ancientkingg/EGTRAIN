@@ -21,9 +21,7 @@
 #include <QGridLayout>
 #include <QGuiApplication>
 #include <QHBoxLayout>
-#include <QInputDialog>
 #include <QLabel>
-#include <QLineEdit>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMessageBox>
@@ -712,23 +710,6 @@ void RunController::chooseOutputFolder() {
 	QDir().mkpath(dir);
 	simulation.setNextRunOutputFolder(dir.toStdString());
 	m_window->statusBar()->showMessage(path_message::outputFolder(dir), 4000);
-}
-
-void RunController::setStartTime() {
-	bool ok = false;
-	QString current = QString::fromStdString(formatSimTime(0, m_startOffsetSeconds)).left(5);
-	QString text = QInputDialog::getText(m_window, "Start Time",
-		"Simulation start time (HH:MM):", QLineEdit::Normal, current, &ok);
-	if (!ok)
-		return;
-	long long secs = parseClockToSeconds(text.toStdString());
-	if (secs < 0) {
-		QMessageBox::warning(m_window, "Invalid Time", "Please enter the time as HH:MM, for example 08:30.");
-		return;
-	}
-	m_host.setStartOffset(secs);
-	m_host.caseLayersChanged();
-	m_window->statusBar()->showMessage(QString("Start time set to %1").arg(text), 3000);
 }
 
 void RunController::runScene() {

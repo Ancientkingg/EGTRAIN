@@ -66,7 +66,7 @@ You need an open case with no validation error. [Getting started](getting-starte
 
 The trains move on the network view, and the status bar reads `Running scene: <case name>`. **Pause** and **Stop** are in the toolbar.
 
-The command **Simulation > Start Time** opens a dialog for the start clock, but a run takes its start clock from the base time of the case, so the command does not change the run.
+A run starts its clock at the **Base time** in **Editors > Case Settings**.
 
 ## Fix validation errors
 
