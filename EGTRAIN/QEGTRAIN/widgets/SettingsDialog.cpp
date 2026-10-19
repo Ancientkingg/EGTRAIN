@@ -52,7 +52,7 @@ SettingsDialog::SettingsDialog(QSettings& settings, TelemetryConsent& consent, Q
 	m_recentCases = new QListWidget;
 	m_recentCases->setObjectName(QStringLiteral("settingsRecentCases"));
 	m_recentCases->setSelectionMode(QAbstractItemView::NoSelection);
-	m_recentCases->setMaximumHeight(6 * fontMetrics().height());
+	m_recentCases->setMaximumHeight(5 * fontMetrics().height());
 	for (const QString& path : settings.value(kRecentScenesKey).toStringList())
 		m_recentCases->addItem(display_path::format(path));
 	general->addWidget(m_recentCases);
