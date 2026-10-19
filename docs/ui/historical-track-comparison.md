@@ -27,9 +27,10 @@ requests that made the change, or the issue where none did.
 - Station pictogram and its size on screen (#579, #822). A light mark with a
   dark halo replaces the raster `station_pixmap`: a bar for a station with three
   or more connections, a disc for one with a platform and a ring for one without
-  a platform. At every zoom the pictogram is at least 24 px high and the name at
-  least 12 px, and names that overlap are hidden by rank. Where the scene size is
-  larger than that, the scene size applies, as in the reference.
+  a platform. A run without the shared preview draws no bar. At every zoom the
+  pictogram is at least 24 px high and the name at least 12 px, and names that
+  overlap are hidden by rank. Where the scene size is larger than that, the
+  scene size applies, as in the reference.
 - Canvas (#509). The background `#101a22` with a faint `#182832` grid replaces
   the solid black background.
 - Selection (#606). A ring in the cue colour (61,214,255) marks the selected
