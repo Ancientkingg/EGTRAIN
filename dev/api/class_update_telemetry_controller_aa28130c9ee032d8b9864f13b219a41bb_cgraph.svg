@@ -57,7 +57,7 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_update_telemetry_controller.html#aac2b0fdf1128dc0fdd1304a0708d7488" target="_top" xlink:title=" ">
+<g id="a_Node000005"><a xlink:href="class_update_telemetry_controller.html#aac2b0fdf1128dc0fdd1304a0708d7488" target="_top" xlink:title="The consent that the sender follows, or null while telemetry is off.">
 <polygon fill="white" stroke="#666666" points="338.5,-171 189.5,-171 189.5,-141 338.5,-141 338.5,-171"/>
 <text text-anchor="start" x="197.5" y="-159" font-family="Helvetica,sans-Serif" font-size="10.00">UpdateTelemetryController</text>
 <text text-anchor="middle" x="264" y="-148" font-family="Helvetica,sans-Serif" font-size="10.00">::consent</text>

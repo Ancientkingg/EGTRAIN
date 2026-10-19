@@ -128,10 +128,14 @@ Collaboration diagram for SettingsDialog:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afb3feeb24dd3a34f55740bcd6820680e" id="r_afb3feeb24dd3a34f55740bcd6820680e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#afb3feeb24dd3a34f55740bcd6820680e">SettingsDialog</a> (QSettings &amp;settings, <a class="el" href="class_telemetry_consent.html">TelemetryConsent</a> &amp;consent, QWidget *parent=nullptr)</td></tr>
+<tr class="memdesc:afb3feeb24dd3a34f55740bcd6820680e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds the window from the current values in <span class="tt">settings</span> and <span class="tt">consent</span>. Both must outlive the window.  <br /></td></tr>
 <tr class="memitem:a82b474f63399b5150af200c4c0ad9955" id="r_a82b474f63399b5150af200c4c0ad9955"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a82b474f63399b5150af200c4c0ad9955">accept</a> () override</td></tr>
 <tr class="memitem:ae1189358d589b3652bf92dfd81e08696" id="r_ae1189358d589b3652bf92dfd81e08696"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ae1189358d589b3652bf92dfd81e08696">restoreDefaults</a> ()</td></tr>
+<tr class="memdesc:ae1189358d589b3652bf92dfd81e08696"><td class="mdescLeft">&#160;</td><td class="mdescRight">Puts every control at its default: no recent cases, every switch off and the update check choice unset.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The Settings window: every application setting in one place. Settings that belong to a case are in Case Settings. The window reads the settings when it opens and writes them when OK is pressed; the caller then updates the menu entries. Restore Defaults puts every control at its default and writes nothing until OK. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="afb3feeb24dd3a34f55740bcd6820680e" name="afb3feeb24dd3a34f55740bcd6820680e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afb3feeb24dd3a34f55740bcd6820680e">&#9670;&#160;</a></span>SettingsDialog()</h2>
 
@@ -155,6 +159,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Builds the window from the current values in <span class="tt">settings</span> and <span class="tt">consent</span>. Both must outlive the window. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -186,6 +192,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Saves the privacy choices first; when that fails, shows the error and keeps the window open. Otherwise writes every other setting and closes the window. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -208,6 +215,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Puts every control at its default: no recent cases, every switch off and the update check choice unset. </p>
 
 </div>
 </div>
