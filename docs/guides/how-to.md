@@ -162,23 +162,7 @@ Train, station and signal selections stay across seeks. A train that has no posi
 You need a run that reached its end. Until then the result commands are disabled and read `Run a simulation to enable this diagram`.
 
 1. The dock **Run Results** opens when the run ends. If you closed it, choose **View > Run Results**.
-2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. The entries are:
-
-| **Open result view...** | **Diagrams** |
-| --- | --- |
-| Timetable | Timetable table (planned vs simulated)... |
-| Timetable graph (planned vs simulated stops) | Timetable graph (planned vs simulated stops)... |
-| Delays | Train delays... |
-| Delay analysis | Delay analysis... |
-| Speed / distance | Speed / Distance (per train)... |
-| Speed / time | Speed / Time (per train)... |
-| Time / distance | Time / Distance (per train)... |
-| Tractive effort / distance | Simulated tractive effort / Distance (per train)... |
-| Train paths (simulated movement) | Train paths (simulated movement)... |
-| Blocking time | Blocking-time overlay... |
-| Capacity | Capacity analysis... |
-| Capacity by area | Capacity by area... |
-
+2. Click **Open result view...** and choose an entry, or use the menu **Diagrams**. Both menus use the same names: Timetable, Timetable graph, Delays, Delay analysis, Speed / distance, Speed / time, Time / distance, Tractive effort / distance, Train paths, Blocking time, Capacity and Capacity by area. An entry in **Diagrams** that asks for more input ends in an ellipsis.
 3. **Timetable graph** and **Train paths** first ask for a reference route, and **Blocking time** asks for its scope. **Capacity** needs at least two trains that share the entry of a section: choose a route and a first block that both trains pass.
 4. In a chart window, the button **Trains** filters the trains, **Reset zoom** returns to the full chart, and **Export CSV...** and **Export PNG...** save the data and the picture of the visible trains. Hover, click, zoom and pan are described in [Inspecting diagrams](../ui/diagram-navigation.md).
 

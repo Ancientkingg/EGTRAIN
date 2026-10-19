@@ -1290,7 +1290,7 @@ void testScopeDialog() {
 bool askCapacityScope(const CompletedRunData& run, CapacityAnalysisScope& scope, const std::function<void(QDialog&)>& answer) {
 	QTimer::singleShot(0, [&answer]() {
 		auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
-		check(dialog && dialog->windowTitle() == "Capacity analysis", "the capacity dialog opens");
+		check(dialog && dialog->windowTitle() == "Capacity", "the capacity dialog opens");
 		if (!dialog)
 			return;
 		answer(*dialog);

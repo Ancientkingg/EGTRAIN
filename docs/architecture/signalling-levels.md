@@ -652,7 +652,7 @@ import still reports the historical TXT file and converts none of its rows.
 This preserves canonical assignments exported by EGTRAIN without interpreting
 ambiguous historical signalling/capacity rows or creating capacity areas.
 
-The Capacity analysis window uses a route and a block range as its scope, not
+The Capacity window uses a route and a block range as its scope, not
 signalling areas; [How capacity is analysed](../guides/capacity-analysis.md)
 describes the scope and the area calculation that older versions had.
 

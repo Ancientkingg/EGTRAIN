@@ -303,7 +303,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 				}
 				auto* dialog = qobject_cast<QDialog*>(widget);
 				if (!dialog || !dialog->isVisible() || !dialog->isModal()
-					|| dialog->windowTitle() != QStringLiteral("Capacity analysis"))
+					|| dialog->windowTitle() != QStringLiteral("Capacity"))
 					continue;
 				QComboBox* cycleEnd = nullptr;
 				for (QComboBox* combo : dialog->findChildren<QComboBox*>())
@@ -1682,7 +1682,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		process();
 		for (QWidget* widget : QApplication::topLevelWidgets()) {
 			if (auto* diagram = qobject_cast<DiagramWindow*>(widget))
-				if (diagram->windowTitle() == QStringLiteral("Time vs Distance"))
+				if (diagram->windowTitle() == QStringLiteral("Time / distance"))
 					creatorAcceptance.baselineDiagram = diagram;
 		}
 		if (!creatorAcceptance.baselineDiagram) {
@@ -1947,7 +1947,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		speedButton->trigger();
 		process();
-		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed vs Distance"));
+		DiagramWindow* speedDiagram = findDiagram(QStringLiteral("Speed / distance"));
 		if (!speedDiagram
 			|| !exportButton(speedDiagram, QStringLiteral("Export CSV..."), path("trajectory.csv"))
 			|| !exportButton(speedDiagram, QStringLiteral("Export PNG..."), path("trajectory.png"))) {
@@ -1967,7 +1967,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		}
 		tractiveButton->trigger();
 		process();
-		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Simulated Tractive Effort vs Distance"));
+		DiagramWindow* tractiveDiagram = findDiagram(QStringLiteral("Tractive effort / distance"));
 		if (!tractiveDiagram
 			|| !exportButton(tractiveDiagram, QStringLiteral("Export CSV..."), path("tractive_effort.csv"))
 			|| !exportButton(tractiveDiagram, QStringLiteral("Export PNG..."), path("tractive_effort.png"))) {
@@ -1989,8 +1989,8 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 			longRun->provenance.appliedScenario = std::string(300, 's');
 			w.m_runController->m_completedRun = longRun;
 			const QString run = QString(300, QLatin1Char('c')) + QStringLiteral(" / ") + QString(300, QLatin1Char('s'));
-			const char* const chartTitles[] = {"Speed vs Distance", "Speed vs Time", "Time vs Distance",
-				"Simulated Tractive Effort vs Distance", "Arrival delay along journey (minutes)"};
+			const char* const chartTitles[] = {"Speed / distance", "Speed / time", "Time / distance",
+				"Tractive effort / distance", "Delays"};
 			QString problem;
 			for (int chart = 0; chart < 5 && problem.isEmpty(); ++chart) {
 				if (chart < 4)
@@ -2050,7 +2050,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		acceptMessageBox();
 		blockingButton->trigger();
 		process();
-		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time:"));
+		DiagramWindow* blocking = findDiagram(QStringLiteral("Blocking time"));
 		if (!blocking
 			|| !exportButton(blocking, QStringLiteral("Export CSV..."), path("blocking_time.csv"))
 			|| !exportButton(blocking, QStringLiteral("Export PNG..."), path("blocking_time.png"))) {
@@ -2150,7 +2150,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		QDialog* capacity = nullptr;
 		for (QWidget* widget : QApplication::topLevelWidgets())
 			if (auto* dialog = qobject_cast<QDialog*>(widget))
-				if (!dialog->isModal() && dialog->windowTitle().contains(QStringLiteral("Capacity analysis")))
+				if (!dialog->isModal() && dialog->windowTitle() == QStringLiteral("Capacity"))
 					capacity = dialog;
 		QPushButton* capacityExport = nullptr;
 		if (capacity)
@@ -2236,7 +2236,7 @@ void MainWindowTestAccess::runCreatorAcceptance(MainWindow& w) {
 		QAction* delayAnalysisResult = findResultAction(QStringLiteral("Delay analysis"));
 		QAction* delayAnalysisMenu = nullptr;
 		for (QAction* action : w.m_diagramsMenu->actions())
-			if (action->text() == QStringLiteral("Delay analysis..."))
+			if (action->text() == QStringLiteral("Delay analysis"))
 				delayAnalysisMenu = action;
 		if (!compareButton || !delayAnalysisResult || !delayAnalysisMenu || !delayAnalysisMenu->isEnabled()) {
 			fail(QStringLiteral("delay analysis result controls are unavailable"));

@@ -165,7 +165,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 	if (run.routes.empty())
 		return false;
 	QDialog dialog(parent);
-	dialog.setWindowTitle("Capacity analysis");
+	dialog.setWindowTitle("Capacity");
 	auto* body = new QWidget;
 	auto* layout = new QVBoxLayout(body);
 	auto* form = new QFormLayout();
@@ -343,7 +343,7 @@ bool chooseCapacityAnalysisScope(QWidget* parent, const CompletedRunData& run, C
 		dialog.accept();
 	});
 	QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	bodyScroll = DialogLayout::install(dialog, "Capacity analysis",
+	bodyScroll = DialogLayout::install(dialog, "Capacity",
 		"Choose a route section and ordered service occurrences.", body, buttons);
 	DialogLayout::fitWidthToContent(dialog);
 	return dialog.exec() == QDialog::Accepted;

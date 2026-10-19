@@ -2,19 +2,19 @@
 
 ## What this guide covers
 
-This guide states what the two capacity windows compute: the Capacity analysis window, which works on a chain of trains, and the Capacity by area window, which works on the resources of an area. It gives their inputs, formulas and units. It also states what they do not compute, and what the area calculation of older versions did. It describes the program as it is, including its limits.
+This guide states what the two capacity windows compute: the Capacity window, which works on a chain of trains, and the Capacity by area window, which works on the resources of an area. It gives their inputs, formulas and units. It also states what they do not compute, and what the area calculation of older versions did. It describes the program as it is, including its limits.
 
 | Place | Where to find it |
 | --- | --- |
-| The Capacity analysis window | Diagrams > Capacity analysis... and Run Results > Open result view > Capacity. Both need a completed run. A chooser titled "Capacity analysis" asks for Route / corridor, First block, Last block, Analysis period, Cycle-closing occurrence and the checked occurrences. The result window then opens with the header "Selected train chain: cycle X s, Y% of period; not network capacity" (one decimal) and the tabs Pairs, Compression and Critical blocks. Each tab title ends with its row count |
+| The Capacity window | Diagrams > Capacity... and Run Results > Open result view > Capacity. Both need a completed run. A chooser titled "Capacity" asks for Route / corridor, First block, Last block, Analysis period, Cycle-closing occurrence and the checked occurrences. The result window then opens with the header "Selected train chain: cycle X s, Y% of period; not network capacity" (one decimal) and the tabs Pairs, Compression and Critical blocks. Each tab title ends with its row count |
 | The Capacity by area window | Diagrams > Capacity by area... and Run Results > Open result view > Capacity by area. [Capacity by area](#capacity-by-area) describes it, its CSV `area_capacity.csv` and its options |
 | The CSV | The button **Export capacity CSV...** asks for a path and suggests the name `capacity_analysis.csv`. It writes a provenance file beside the CSV, named like the CSV with `.provenance.json` added |
 | The compressed diagram | The button **Open compressed blocking-time diagram**. The diagram window has its own **Export CSV...** (suggested name `capacity_compressed_blocking_time.csv`) and **Export PNG...** |
-| The input | The occupations: Diagrams > Blocking-time overlay... and Run Results > Open result view > Blocking time, and `BlockingTimes.txt` in the `TrainTrajectories` folder of the run output |
+| The input | The occupations: Diagrams > Blocking time... and Run Results > Open result view > Blocking time, and `BlockingTimes.txt` in the `TrainTrajectories` folder of the run output |
 
-The program computes no capacity of a line or a network. The percentage in the header of the Capacity analysis window belongs to the chain of occurrences that the user selected. The Capacity by area window reports the occupation of the resources of an area by the trains that the user selected, and the figures are lower bounds when it says "partial traffic". It states no trains per hour, and parity with the legacy tool is not established ([Limits](#limits)). The area calculation of older versions is not in the program ([The area calculation the program no longer contains](#the-area-calculation-the-program-no-longer-contains)).
+The program computes no capacity of a line or a network. The percentage in the header of the Capacity window belongs to the chain of occurrences that the user selected. The Capacity by area window reports the occupation of the resources of an area by the trains that the user selected, and the figures are lower bounds when it says "partial traffic". It states no trains per hour, and parity with the legacy tool is not established ([Limits](#limits)). The area calculation of older versions is not in the program ([The area calculation the program no longer contains](#the-area-calculation-the-program-no-longer-contains)).
 
-The [Assignment workflow](../product/assignment-workflow.md) uses the Capacity analysis window in steps 14 to 18. The [signalling levels page](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) has a section that separates signalling areas, block sections and the scope of this window.
+The [Assignment workflow](../product/assignment-workflow.md) uses the Capacity window in steps 14 to 18. The [signalling levels page](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) has a section that separates signalling areas, block sections and the scope of this window.
 
 ## Terms and units
 
@@ -24,7 +24,7 @@ All times are seconds on the time axis of the run. One simulation step is one se
 | --- | --- |
 | Occupation | The blocking time of one train on one block, from `StartOccTime` to `EndOccTime`. It starts at the start of the approach minus the setup time and the sight reaction time. It ends at the end of clearing plus the release time and the run-time margin. The blocking-time paragraph of [Using EGTRAIN and authoring scenes](scenes-and-application.md#timetable-graphs-and-train-paths) says the same. [Inputs](#inputs) gives the values |
 | Resource | A block. Two occupations share a resource when a component of their block ids is equal. An id is split at "@" and its first and third non-empty parts are compared. An id without "@" is compared whole. An id has no direction of travel (`shareBlockingTimeResource`) |
-| Scope | In the Capacity analysis window, one route of the run, a first and a last block chosen from the blocks of that route, in either order, and every block between them. The first selected block is the one that comes first in the route, whichever of the two lists it was chosen in. The corridor name of a route is a label only. There is no corridor or network scope. The Capacity by area window has an area instead |
+| Scope | In the Capacity window, one route of the run, a first and a last block chosen from the blocks of that route, in either order, and every block between them. The first selected block is the one that comes first in the route, whichever of the two lists it was chosen in. The corridor name of a route is a label only. There is no corridor or network scope. The Capacity by area window has an area instead |
 | Area | In the Capacity by area window, the blocks of a range of one route and, optionally, of a range of a second route. It is a list of resources of one analysis, not a signalling area, and it is not stored ([Choosing the scope and the period](#choosing-the-scope-and-the-period)) |
 | Occurrence | A train of the run, named by its runtime id. It is listed when it has a valid occupation on the first selected block with a usable `StartRunTime`, on any route ([step 1](#the-calculation)). An entry of the list reads "runtime id \| operating code \| reference source" |
 | Order | The order of the checked rows of the list. The user can drag rows. The first order is the order in which the run holds its trains, not the order of time. The program never sorts |
@@ -43,7 +43,7 @@ All times are seconds on the time axis of the run. One simulation step is one se
 
    The case setting **Buffer (s)** (`buffer_time_seconds`, rounded to a whole number of seconds) is the buffer time of the release time. It is not the Buffer [s] column of the result. The case setting **Recovery (%)** (`recovery_time_percent`, rounded to a whole number) is the recovery percentage. The command-line options `-b` and `-c` replace the two settings ([command-line options](command-line.md)). The routines of levels 3 and 4 are separate functions, and this guide gives no formula for them.
 4. `BlockingTimes.txt` holds, for each train, its name and then five lines: the block ids, `GeoPosStart`, `GeoPosEnd`, `StartOccTime` and `EndOccTime` of its first N records. N is the number of blocking times that the run counted as complete (`PrintTrainBlockingTimes`). The window tests the complete flag of each record instead, so the two differ only when an incomplete record comes before a complete one. The file has no `StartRunTime`, so the analysis cannot be redone from the file.
-5. Not inputs: a stored analysis area and a timetable window. The Capacity analysis window takes no description of the other traffic. The Capacity by area window reads the other trains of the run itself and reports those in the area as unselected traffic.
+5. Not inputs: a stored analysis area and a timetable window. The Capacity window takes no description of the other traffic. The Capacity by area window reads the other trains of the run itself and reports those in the area as unselected traffic.
 
 ## The calculation
 
@@ -100,7 +100,7 @@ The unit test `tests/test_capacityanalysis.cpp` has a second example with four t
 | Incomplete occupations | Left out without a message. A train without a valid occupation on the first selected block is not listed. A train that lacks occupations on other selected blocks is listed. Its pairs use the resources it has, and nothing reports the missing ones |
 | A repeated block | A train with two occupations that share a resource, other than the entry resource of the scope (next row): both are used, every pair of occupations is a candidate, the largest governs, and both move by the same shift |
 | A scope that names an occurrence the analysis cannot tell apart | The box "Capacity scope unavailable" gives the reason, and there is no result window and no CSV. The calculation matches occupations by resource id, so the window refuses a scope when a resource of the selected range also occurs in a route section outside the range, when the entry resource occurs in a second section of the range, or when a selected train has several valid records for the entry resource. It never picks one occurrence. Repeated sections that the scope does not touch do not block it |
-| Opposing trains | The Capacity analysis window has no check of direction ([the Capacity by area window has one](#cases-the-area-window-handles)). A train in the opposite direction whose records carry the same block ids is listed and, when checked, enters the pair and compression calculation like a following train. In `tests/characterization/expected/sf-reverse-level-0.txt` the trains run the line in the opposite direction and their records carry the ids `@7-B0@` to `@0-B0@`. These are the ids that the trains of `follow-level-0.txt` carry, in reverse order |
+| Opposing trains | The Capacity window has no check of direction ([the Capacity by area window has one](#cases-the-area-window-handles)). A train in the opposite direction whose records carry the same block ids is listed and, when checked, enters the pair and compression calculation like a following train. In `tests/characterization/expected/sf-reverse-level-0.txt` the trains run the line in the opposite direction and their records carry the ids `@7-B0@` to `@0-B0@`. These are the ids that the trains of `follow-level-0.txt` carry, in reverse order |
 | A period of zero, negative or not finite | The chooser accepts 0.001 s and more, so the window cannot start with such a period. `analyzeCapacity` reports a period that is negative or not finite as unavailable (-1) and keeps a period of 0. In both cases it gives no percentage |
 | No shared resource for an adjacent pair, or an overlap after compression | The box "The selected occurrences do not form a valid shared-resource chain. ..." appears, followed by a hint to choose a common entry or to analyze the route in separate sections. There is no result window and no CSV |
 | A percentage above 100 | Shown as computed |
@@ -117,7 +117,7 @@ The Capacity by area window reports, for an area that the user chooses and a per
 | The header | "Selected chain: cycle X s, Y% of period \| complete traffic" or "\| partial traffic" (one decimal). Without a cycle it reads "Selected chain: no cycle-closing train", and when the chain cannot be analysed "Selected chain: not available". The context lines name the area, the governing resource, the kind of traffic and the run |
 | The tabs | Resources, Chain, Excluded traffic and Notes. The last two titles end with their row count. A line above the tabs lists every status that occurs, with its count ("Statuses: Unselected traffic (1)") |
 | The CSV | The button **Export area capacity CSV...** asks for a path and suggests the name `area_capacity.csv`. It writes a provenance file beside the CSV, named like the CSV with `.provenance.json` added. The button is disabled when the area has no resource |
-| The input | The occupations of the run, as for the Capacity analysis window ([Inputs](#inputs)) |
+| The input | The occupations of the run, as for the Capacity window ([Inputs](#inputs)) |
 
 ### Choosing the scope and the period
 
@@ -153,7 +153,7 @@ All times are seconds. Percentages are percent of the period. For each resource 
 Two more results come with them.
 
 - **Legacy envelope (comparison only).** The latest `EndOccTime` minus the earliest `StartOccTime` over all usable occupations of the selected trains in the area, idle time between trains included, and that value / period x 100. It applies the formula of the removed program ([Formulas](#formulas)) to the selected trains of the area. It is shown only for comparison with older work and is not a capacity.
-- **The chain.** The selected trains that run in the direction of the first selected train, in the order of the list, go through the steps 2 to 8 of [The calculation](#the-calculation), with the usable occupations of the area as their occupations. The Chain tab holds three tables, Pairs, Compression and Critical resources, with the columns of the tabs of the Capacity analysis window. Its first line gives the cycle, its percentage of the period, and the start and end of the cycle. A cycle exists only when a cycle-closing occurrence was chosen, it is a row of the chain after the first, and the chain can be analysed.
+- **The chain.** The selected trains that run in the direction of the first selected train, in the order of the list, go through the steps 2 to 8 of [The calculation](#the-calculation), with the usable occupations of the area as their occupations. The Chain tab holds three tables, Pairs, Compression and Critical resources, with the columns of the tabs of the Capacity window. Its first line gives the cycle, its percentage of the period, and the start and end of the cycle. A cycle exists only when a cycle-closing occurrence was chosen, it is a row of the chain after the first, and the chain can be analysed.
 
 The direction of a train is the direction of the route it runs on (`reversed_direction` of the route in the run). The run records it, so the window does not infer it from the block ids.
 
@@ -217,7 +217,7 @@ The file `area_capacity.csv` has one header and these record types. Every record
 | `pair` | One for each pair of adjacent trains of the chain: scheduled headway, minimum headway, buffer and the governing resource evidence |
 | `note` | One for each status, with the train, the other train, the resource and the meaning |
 
-The CSV is empty, and not written, when the area has no resource. `capacity_analysis.csv` of the Capacity analysis window is a different file and has not changed.
+The CSV is empty, and not written, when the area has no resource. `capacity_analysis.csv` of the Capacity window is a different file and has not changed.
 
 ### Cases the area window handles
 
@@ -257,7 +257,7 @@ On `@0-B0@` the same rules give 87 + 87 = 174 s, 4.83 %, with a union of 174 s b
 
 The [section of the signalling levels page](../architecture/signalling-levels.md#signalling-areas-block-sections-and-capacity-areas) on areas and block sections already separates signalling areas, block sections and the scope of this window. Its table is not repeated here. The table below adds the area of the Capacity by area window and the area of the removed program.
 
-|  | Signalling area (scene) | Scope of the Capacity analysis window | Area of the Capacity by area window | Area of the removed program |
+|  | Signalling area (scene) | Scope of the Capacity window | Area of the Capacity by area window | Area of the removed program |
 | --- | --- | --- | --- | --- |
 | What it is | `id`, start km, end km, level 0 to 5 and an optional track | One route and a block range, chosen for one analysis | One route and a block range and, optionally, a block range of a second route, chosen for one analysis | One row of `TrackLines/AreasCaseStudy.txt`: name, start, end, signalling level and an optional track line number |
 | Where it is stored | `signalling.json` | Not stored | Not stored | The case input folder |
@@ -342,14 +342,14 @@ The removed code carries the label "UIC code 406" for the compression, in commen
 
 ## Limits
 
-1. The percentage of the Capacity analysis window covers the chain only. Trains that are not checked, or that have no valid occupation on the first selected block, are not part of the figure, and the window does not say whether they use the same blocks. The Capacity by area window lists the trains of the run that use the area and are not checked.
+1. The percentage of the Capacity window covers the chain only. Trains that are not checked, or that have no valid occupation on the first selected block, are not part of the figure, and the window does not say whether they use the same blocks. The Capacity by area window lists the trains of the run that use the area and are not checked.
 2. The compression depends on the order the user gives. The first order is the order of the run, not the order of time, and the program never sorts.
 3. No buffer or supplement is added after the compression. The Buffer column is the scheduled headway minus the minimum headway, and the scheduled reference of a later train does not enter the compression.
 4. The program compares the percentage with no threshold and makes no recommendation. It can exceed 100.
 5. Occupations exist only at levels 0, 2, 3 and 4 ([Inputs](#inputs)).
 6. The setup, sight reaction and release times and the margin are fixed by the run, not by the window. The figures depend on them.
-7. The Capacity analysis window does not examine the direction of a train ([Special cases](#special-cases)). The Capacity by area window leaves a train of the other direction out of the chain only.
-8. The Capacity analysis window does not report a missing occupation on a selected block ([Special cases](#special-cases)). The Capacity by area window reports an unusable occupation but not a missing one.
+7. The Capacity window does not examine the direction of a train ([Special cases](#special-cases)). The Capacity by area window leaves a train of the other direction out of the chain only.
+8. The Capacity window does not report a missing occupation on a selected block ([Special cases](#special-cases)). The Capacity by area window reports an unusable occupation but not a missing one.
 9. One analysis covers one route section. The [Assignment workflow](../product/assignment-workflow.md#calculation-boundaries) handles a change of train order by separate sections.
 10. The period is independent of the length of the run and of the timetable.
 11. Parity with the legacy tool is not established. No output of the removed calculation exists in the repository, and the two answer different questions ([hand check](#a-hand-check-of-the-envelope)). The legacy envelope of the Capacity by area window differs from the removed formula in what belongs to the area and in the denominator, and the program computes no trains per hour. Network-wide validity is not claimed: the program has no rule for which traffic a result must include.

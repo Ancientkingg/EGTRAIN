@@ -847,8 +847,8 @@ class Rehearsal:
 
     def step7(self) -> str:
         opened = []
-        self.choose("Timetable table (planned vs simulated)...", modal=True)
-        timetable = self.wait_window(pattern=r"^Timetable: planned vs simulated")
+        self.choose("Timetable", modal=True)
+        timetable = self.wait_window(pattern=r"^Timetable")
         table = wait_until(lambda: find_first(timetable, "table", max_depth=4, showing=True), UI_TIMEOUT_SECONDS,
                            "the timetable table")
         headers, cells = table_texts(table)
@@ -857,13 +857,13 @@ class Rehearsal:
             raise StepFailed("the timetable table lacks " + ", ".join(problems))
         opened.append(name_of(timetable))
         self.screenshot("timetable")
-        views = (("Train delays...", r"^Arrival delay along journey", "delay"),
-                 ("Speed / Time (per train)...", r"^Speed vs Time", "speed"))
+        views = (("Delays", r"^Delays", "delay"),
+                 ("Speed / time", r"^Speed / time", "speed"))
         for menu, pattern, label in views:
             self.choose(menu, modal=True)
             opened.append(name_of(self.wait_window(pattern=pattern)))
             self.screenshot(label)
-        self.choose("Blocking-time overlay...", modal=True)
+        self.choose("Blocking time...", modal=True)
         scope = self.wait_window("Blocking-time scope")
         self.press(self.button(scope, "OK"))
         opened.append(name_of(self.wait_window(pattern=r"^Blocking time")))

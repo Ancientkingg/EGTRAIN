@@ -1548,21 +1548,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	// Diagrams menu
 	m_diagramsMenu = menuBar()->addMenu("Diagrams");
-	m_diagramsMenu->addAction("Speed / Distance (per train)...", m_resultViews, &ResultViews::showSpeedDistanceDiagram);
-	m_diagramsMenu->addAction("Speed / Time (per train)...", m_resultViews, &ResultViews::showSpeedTimeDiagram);
-	m_diagramsMenu->addAction("Time / Distance (per train)...", m_resultViews, &ResultViews::showTimeDistanceDiagram);
-	m_diagramsMenu->addAction("Simulated tractive effort / Distance (per train)...", m_resultViews, &ResultViews::showTractiveEffortDistanceDiagram);
+	// An entry that asks for more input in a dialog ends in an ellipsis.
+	const auto addDiagram = [this](const char* name, auto slot, bool asksInput = false) {
+		m_diagramsMenu->addAction(asksInput ? QString(name) + "..." : QString(name), m_resultViews, slot);
+	};
+	addDiagram(ResultViewName::kSpeedDistance, &ResultViews::showSpeedDistanceDiagram);
+	addDiagram(ResultViewName::kSpeedTime, &ResultViews::showSpeedTimeDiagram);
+	addDiagram(ResultViewName::kTimeDistance, &ResultViews::showTimeDistanceDiagram);
+	addDiagram(ResultViewName::kTractiveEffortDistance, &ResultViews::showTractiveEffortDistanceDiagram);
 	m_diagramsMenu->addSeparator();
-	m_diagramsMenu->addAction("Timetable graph (planned vs simulated stops)...", m_resultViews, &ResultViews::showTimetableGraph);
-	m_diagramsMenu->addAction("Blocking-time overlay...", m_resultViews, &ResultViews::showBlockingTimeDiagram);
-	m_diagramsMenu->addAction("Capacity analysis...", m_resultViews, &ResultViews::showCapacityAnalysis);
-	m_diagramsMenu->addAction("Capacity by area...", m_resultViews, &ResultViews::showAreaCapacity);
-	m_diagramsMenu->addAction("Timetable table (planned vs simulated)...", m_resultViews, &ResultViews::showTimetableTable);
-	m_diagramsMenu->addAction("Train delays...", m_resultViews, &ResultViews::showDelayDiagram);
-	m_diagramsMenu->addAction("Delay analysis...", m_resultViews, &ResultViews::showDelayAnalysis);
+	addDiagram(ResultViewName::kTimetableGraph, &ResultViews::showTimetableGraph, true);
+	addDiagram(ResultViewName::kBlockingTime, &ResultViews::showBlockingTimeDiagram, true);
+	addDiagram(ResultViewName::kCapacity, &ResultViews::showCapacityAnalysis, true);
+	addDiagram(ResultViewName::kCapacityByArea, &ResultViews::showAreaCapacity, true);
+	addDiagram(ResultViewName::kTimetable, &ResultViews::showTimetableTable);
+	addDiagram(ResultViewName::kDelays, &ResultViews::showDelayDiagram);
+	addDiagram(ResultViewName::kDelayAnalysis, &ResultViews::showDelayAnalysis);
 	// Train paths belongs with the other charts; retire the one-entry Tools menu.
 	m_diagramsMenu->addSeparator();
-	ui->displayTrainPathDiagrams->setText("Train paths (simulated movement)...");
+	ui->displayTrainPathDiagrams->setText(QString(ResultViewName::kTrainPaths) + "...");
 	m_diagramsMenu->addAction(ui->displayTrainPathDiagrams);
 	if (ui->menuTools)
 		menuBar()->removeAction(ui->menuTools->menuAction());
