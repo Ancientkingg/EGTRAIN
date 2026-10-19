@@ -40,6 +40,8 @@ TrainFilterButton::TrainFilterButton(QWidget* parent)
 	m_list = new QListWidget(panel);
 	m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_list->setMinimumSize(240, 320);
+	// Fit the 16 px check box of egtrain.qss (14 px and a 1 px border); with the small Qt 6 font on Linux a row is 14 px.
+	m_list->setStyleSheet(QStringLiteral("QListView::item { min-height: 16px; }"));
 	connect(m_list, &QListWidget::itemChanged, this, [this](QListWidgetItem*) {
 		if (m_updating)
 			return;
