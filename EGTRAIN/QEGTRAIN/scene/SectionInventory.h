@@ -30,7 +30,9 @@ struct SceneSectionDescriptor {
 	double secondConnectionKm = 0.0;  ///< Chainage in kilometres of the higher connection node of a switch section.
 	std::vector<std::string> nodeIds; ///< The nodes of the section in order along it.
 	std::size_t arcCount = 0;		  ///< Number of arcs in the section.
-	bool layoutOverflow = false;	  ///< True when the block runs past the end of its track and is not clipped to it.
+	/// True when the block runs past the end of its track and is not the last block starting before that end, an
+	/// error for the builder. endKm is still capped at the track end.
+	bool layoutOverflow = false;
 	/// True when the last block ends before the end of its track and is extended to it.
 	bool trackCoverageGap = false;
 	bool clippedToTrackEnd = false; ///< True when the last block runs past the end of its track and is cut there.
