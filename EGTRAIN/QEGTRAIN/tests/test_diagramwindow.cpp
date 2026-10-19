@@ -1268,7 +1268,7 @@ int main(int argc, char* argv[]) {
 	ok &= expect(x->min() < beforeShift, "Shift wheel pans horizontally");
 	const QPoint center = view->mapFromScene(chart->mapToScene(chart->plotArea().center()));
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, nullptr, 2, center, center,
+	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, QPointingDevice::primaryPointingDevice(), 2, center, center,
 		view->viewport()->mapToGlobal(center), 0.2, QPointF(), 0);
 #else
 	QNativeGestureEvent gesture(Qt::ZoomNativeGesture, nullptr, center, center,

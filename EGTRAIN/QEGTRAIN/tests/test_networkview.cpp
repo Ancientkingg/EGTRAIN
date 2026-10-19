@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 	view.fitToTopology();
 	updates = 0;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, 2, wheelPos, wheelPos,
+	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, QPointingDevice::primaryPointingDevice(), 2, wheelPos, wheelPos,
 		view.viewport()->mapToGlobal(wheelPos), 0.05, QPointF(), 1);
 #else
 	QNativeGestureEvent pinch(Qt::ZoomNativeGesture, nullptr, wheelPos, wheelPos,
