@@ -16,7 +16,8 @@
 /// and a run that receives only pause, resume and set_delay_ms gives the same results as one that
 /// receives nothing.
 
-/// Longest request that is parsed, in bytes. A longer one is rejected as too_large.
+/// Longest request that is parsed, in bytes: parseLiveRequest rejects a longer one as too_large. The server drops a
+/// message over 64 KiB without a reply (docs/architecture/external-sharing.md).
 constexpr std::size_t kLiveMaxRequestBytes = 4096;
 /// Longest request id, in bytes. A longer one is rejected as bad_argument.
 constexpr std::size_t kLiveMaxRequestIdBytes = 64;
@@ -48,8 +49,8 @@ struct LiveRequest {
 	/// Why the request is rejected, one of the reasons of the contract, or null when it is accepted.
 	/// Points to a string literal.
 	const char* reason = nullptr;
-	/// The id of the request, once it is known to be a valid id, or empty before that. The reply repeats
-	/// it, and sends null when it is empty.
+	/// The id of the request, once it is known to be a valid id, or no value before that. The reply repeats
+	/// it, and sends null when it has no value.
 	std::optional<std::string> id;
 	/// True when the request asks to describe the run. Otherwise an accepted request holds a command.
 	bool describe = false;
@@ -62,7 +63,6 @@ struct LiveRequest {
 /// first check that fails gives the reason: too_large, bad_json, bad_version, bad_argument, bad_token,
 /// unknown_command. set_delay_ms also needs args.delay_ms, a whole number from 0 to kLiveMaxDelayMs, or
 /// the reason is bad_argument. The token is compared in a time that depends on its length only.
-/// LiveServer calls it on its I/O thread.
 LiveRequest parseLiveRequest(std::string_view text, const std::string& token);
 
 #endif // LIVECOMMAND_H
