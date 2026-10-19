@@ -722,7 +722,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 				*withoutCue += isCue(without.pixelColor(x, y)) ? 1 : 0;
 			}
 		}
-		const QRect inside = imageWindow(with, sceneRect, 0);
+		// The ring lies outside the item. The window rounds to whole pixels and a train mark has round corners,
+		// so two pixels at each edge are left out.
+		const QRect inside = imageWindow(with, sceneRect, -2);
 		bool untouched = true;
 		for (int y = inside.top(); y <= inside.bottom(); ++y)
 			for (int x = inside.left(); x <= inside.right(); ++x)

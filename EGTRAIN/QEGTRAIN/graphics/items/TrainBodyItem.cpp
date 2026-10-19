@@ -24,16 +24,17 @@ void TrainBodyItem::setViewScale(qreal viewScale) {
 }
 
 QRectF TrainBodyItem::boundingRect() const {
-	const QRectF rect = QGraphicsPolygonItem::boundingRect();
 	if (m_minWidth <= 0.0 || polygon().isEmpty())
-		return rect;
-	return rect.adjusted(-m_minWidth / 2.0, -m_minWidth / 2.0, m_minWidth / 2.0, m_minWidth / 2.0);
+		return QGraphicsPolygonItem::boundingRect();
+	// The round stroke is wider than the pen, so it alone sets the bounds.
+	const qreal half = m_minWidth / 2.0;
+	return polygon().boundingRect().adjusted(-half, -half, half, half);
 }
 
 QPainterPath TrainBodyItem::shape() const {
-	QPainterPath path = QGraphicsPolygonItem::shape();
 	if (m_minWidth <= 0.0 || polygon().isEmpty())
-		return path;
+		return QGraphicsPolygonItem::shape();
+	// The polygon with the stroke that paint() draws around it, as Qt builds the shape of a shape item.
 	QPainterPath outline;
 	outline.addPolygon(polygon());
 	outline.closeSubpath();
@@ -41,8 +42,8 @@ QPainterPath TrainBodyItem::shape() const {
 	stroker.setWidth(m_minWidth);
 	stroker.setCapStyle(Qt::RoundCap);
 	stroker.setJoinStyle(Qt::RoundJoin);
-	path.setFillRule(Qt::WindingFill);
-	path.addPath(stroker.createStroke(outline));
+	QPainterPath path = stroker.createStroke(outline);
+	path.addPath(outline);
 	return path;
 }
 

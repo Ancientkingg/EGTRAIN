@@ -55,10 +55,10 @@ requests that made the change, or the issue where none did.
   (3.99:1). The new grey has 6.73:1. The other track colours are unchanged.
 - Train size on screen (#822). A train body is at least 8 logical px wide and
   high, so a running train stays visible at Fit. A body that the view shows
-  smaller is stroked to 8 px in its fill colour, with round ends, and a click on
-  the mark selects the train. Shape, fill and outline stay as in the reference,
-  and above the zoom where the body is larger than that the scene size applies.
-  Signal heads keep their 6 px rule.
+  smaller is stroked to 8 px in its fill colour, with round corners, and a
+  click on the mark selects the train. Shape, fill and outline stay as in the
+  reference, and above the zoom where the body is larger than that the scene
+  size applies. Signal heads keep their 6 px rule.
 - Station name spacing (issue #387). `StationOverlayItem::displayName` puts a
   space before a capital that follows a lowercase letter and before the capital
   that starts a word after an acronym. The reference put a space before every
