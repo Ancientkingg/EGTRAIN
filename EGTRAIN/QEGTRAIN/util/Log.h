@@ -22,12 +22,14 @@ namespace eglog {
 enum class Category {
 	SimSetup,  ///< "sim.setup": the set-up of a run, and problems in the scene data or the model.
 	SimStep,   ///< "sim.step": messages that a train writes once per step in the trajectory code.
-	SimEvents, ///< "sim.events": coupling and following mode, arrivals and departures.
+	SimEvents, ///< "sim.events": coupling and following mode, arrivals and departures, and problems in the
+			   ///< acceleration and braking calculation.
 	SimPax,	   ///< "sim.pax": passengers.
 	IoRailml,  ///< "io.railml": the messages of io/RttpXml.cpp.
-	IoZmq,	   ///< "io.zmq": the legacy sender of the -TSM and -RC channels.
+	IoZmq,	   ///< "io.zmq": the ZeroMQ transports, which are the legacy sender of the -TSM and -RC channels
+			   ///< and the live server.
 	AppRun,	   ///< "app.run": the banners and the progress of a run.
-	AppUi,	   ///< "app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical).
+	AppUi,	   ///< "app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical, qFatal).
 	Update,	   ///< "update": no product code logs in this category.
 };
 /// The severity of a message. levelName() gives the name that the rules of configure() use.
@@ -44,11 +46,10 @@ constexpr int kCategoryCount = static_cast<int>(Category::Update) + 1;
 constexpr int kLevelCount = static_cast<int>(Level::Error) + 1;
 static_assert(kCategoryCount * kLevelCount <= 64, "the enabled state of all pairs is one 64-bit mask");
 
-/// "sim.setup", "sim.step", "sim.events", "sim.pax", "io.railml", "io.zmq", "app.run", "app.ui"
-/// and "update".
+/// The rule name of \p category, given at each enumerator of Category.
 const char* categoryName(Category category);
 
-/// "debug", "info", "warning" and "error".
+/// The rule name of \p level, given at each enumerator of Level.
 const char* levelName(Level level);
 
 /// Tells whether a message of the pair is delivered. Every pair is enabled by default except
@@ -112,7 +113,6 @@ private:
 
 } // namespace eglog
 
-/// Writes one message as a stream expression: `EG_LOG(SimSetup, Warning) << "text\n";`.
 /// The category and the level are enumerator names without a scope. A disabled message evaluates
 /// none of its arguments. The `if ... else` form keeps an `else` after a statement that is the
 /// body of an `if` paired with the `if` of the caller.

@@ -47,9 +47,10 @@ public:
 	class Scope {
 	public:
 		/// Starts the timer. \p path names the measured path, such as "worker/playback_step/compute",
-		/// \p lane its thread ("worker", "gui" or "render"), and \p parent the path of the enclosing
-		/// scope, or "" for a root scope. A child is timed only when \p parent is the innermost open
-		/// scope of the thread. The texts are not copied and must stay valid until the root scope ends.
+		/// \p lane the label of the timed work ("worker", "gui" or "render"), and \p parent the path
+		/// of the enclosing scope, or "" for a root scope. A child is timed only when \p parent is the
+		/// innermost open scope of the thread. The texts are not copied and must stay valid until the
+		/// root scope ends.
 		Scope(const char* path, const char* lane, const char* parent);
 		/// Stops the timer and records the time.
 		~Scope();
@@ -88,7 +89,7 @@ public:
 	/// Ends the window. \p timestep is the step of the run shown last, in seconds from its start, or
 	/// -1 when none is shown. Returns false when no window was running.
 	bool freeze(int timestep);
-	/// True after freeze() has ended a window.
+	/// True after freeze() has ended a window, until beginAfterPaint() starts another.
 	bool frozen() const { return m_frozen.load(std::memory_order_relaxed); }
 	/// True while the window runs.
 	bool measuring() const { return m_measuring.load(std::memory_order_relaxed); }
@@ -104,9 +105,10 @@ public:
 	void noteRenderedUpdate();
 	/// Counts one completed paint of the view while measuring.
 	void notePaint();
-	/// Writes the "run" record, one "aggregate" record per path sorted by path, and the "completion"
-	/// record, then flushes standard output. Only the first call of the process can write, and it
-	/// writes nothing unless freeze() has ended a window. \p cleanStop is written as clean_stop.
+	/// Writes the "run" record, one "aggregate" record per lane and path sorted by path, and the
+	/// "completion" record, then flushes standard output. Only the first call of the process can
+	/// write, and it writes nothing unless freeze() has ended a window. \p cleanStop is written as
+	/// clean_stop.
 	void emitRecords(bool cleanStop);
 
 private:

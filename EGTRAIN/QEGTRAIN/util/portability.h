@@ -17,7 +17,6 @@
 #include <direct.h> // _mkdir
 #include <ctime>	// localtime_s
 
-// POSIX terminal check -> MSVC equivalents.
 /// POSIX isatty() as the MSVC _isatty().
 #define isatty _isatty
 /// POSIX file descriptor of standard input as _fileno(stdin).
