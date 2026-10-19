@@ -205,7 +205,7 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 	}
 	// The overlay of a station of the preview is drawn at a fixed size on the screen, so its anchor is its place.
 	for (StationOverlayItem* overlay : m_stationOverlays) {
-		if (!overlay || overlay->data(PreviewGraphics::Kind).toString() != QLatin1String("station"))
+		if (!m_stationLayerVisible || !overlay || overlay->data(PreviewGraphics::Kind).toString() != QLatin1String("station"))
 			continue;
 		const QString id = overlay->data(PreviewGraphics::Id).toString();
 		const QString name = overlay->stationName();
@@ -219,7 +219,7 @@ QList<NetworkPresenter::FindTarget> NetworkPresenter::findTargets() const {
 			authoredIds[source.protectedSection].append(QString::fromStdString(source.id));
 	for (QGraphicsItem* item : m_signalDecorations) {
 		auto* signal = qgraphicsitem_cast<SignalItem*>(item);
-		if (!signal)
+		if (!m_signalLayerVisible || !signal)
 			continue;
 		QString identity = signal->inspectionIdentity();
 		const auto ids = signal->sectionAheadId.empty() ? authoredIds.end() : authoredIds.find(signal->sectionAheadId);
