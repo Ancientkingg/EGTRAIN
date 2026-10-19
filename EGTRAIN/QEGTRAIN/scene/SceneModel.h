@@ -279,9 +279,10 @@ struct SceneIncident {
 	double endSeconds = 0.0;
 	// The optional breakdown fields follow the first five members, so an aggregate initializer of those
 	// five gives a breakdown that holds the train until endSeconds.
-	bool hasOccurrence = false;	  ///< True when occurrence is given; otherwise every occurrence is targeted.
+	/// True when occurrence is given. An occurrence other than 1 also counts; otherwise every occurrence is targeted.
+	bool hasOccurrence = false;
 	int occurrence = 1;			  ///< The occurrence of the target service, counted from 1.
-	bool hasReducedSpeed = false; ///< True when reduced_speed_kmh is given.
+	bool hasReducedSpeed = false; ///< True when reduced_speed_kmh is given. A nonzero reducedSpeedKmh also counts.
 	/// Speed cap in km/h during a breakdown, instead of a hold. Without an end it lasts to the route end.
 	double reducedSpeedKmh = 0.0;
 	bool terminateAtDestination = false; ///< True when the train is to end its run at its route end.
@@ -341,9 +342,11 @@ struct SceneServiceStopPair {
 
 /// A row of the Loaded Data summary. It is derived from the model and never saved.
 struct SceneLoadedData {
-	std::string category;	///< What the row counts, such as "infrastructure", "nodes" or "validation".
-	std::string sourceFile; ///< The scene file the row comes from.
-	int parsedCount = 0;	///< Number of objects counted.
+	std::string category; ///< What the row counts, such as "infrastructure", "nodes" or "validation".
+	/// The file the row counts: a scene file, or the legacy source for import and provenance rows;
+	/// empty when none.
+	std::string sourceFile;
+	int parsedCount = 0; ///< Number of objects counted.
 	/// "Parsed", "Loaded", "Ready", "Warning", "Invalid" or "Missing optional".
 	std::string status;
 	/// What activating the row opens, such as "network", "service" or "validation"; empty for nothing.
@@ -432,9 +435,10 @@ std::string sceneServiceOccurrenceOperatingCode(const SceneService& service, int
 bool resolveScenePassengerLegStops(const SceneService& service, const ScenePassengerLeg& leg,
 	SceneServiceStopPair& result);
 
-/// Resolves the ordered, possibly repeated, unit references of a composition and combines the units:
-/// masses, wagons and lengths add up, the lowest speed, deceleration and jerk apply, the first frontal area
-/// is kept, and the traction curves add up per speed band. Returns false and sets diagnostic on failure.
+/// Resolves the ordered, possibly repeated, unit references of a composition. A single unit is copied. Two or more
+/// are combined: traction unit masses, wagon counts and lengths add up, the wagon mass becomes the mean per wagon,
+/// the resistance coefficient the mass-weighted mean, the lowest speed, deceleration and jerk apply, the first
+/// frontal area is kept, and the traction curves add up per speed band. Returns false and sets diagnostic on failure.
 bool buildSceneComposition(const SceneModel& scene, const std::string& compositionId,
 	SceneCompositionRuntime& result, std::string& diagnostic);
 

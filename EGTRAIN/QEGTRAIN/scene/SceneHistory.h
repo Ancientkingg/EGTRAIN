@@ -70,8 +70,7 @@ public:
 	/// Moves the position one entry back and returns the entry that is now live, or null when there
 	/// is no such entry. The pointer is valid until the history is changed.
 	const SceneHistoryEntry* undo();
-	/// Moves the position one entry forward and returns the entry that is now live, or null when there
-	/// is no such entry. The pointer is valid until the history is changed.
+	/// As undo(), but moves one entry forward.
 	const SceneHistoryEntry* redo();
 
 	/// The live scene.

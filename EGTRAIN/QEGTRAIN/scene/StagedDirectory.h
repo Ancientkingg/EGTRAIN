@@ -90,13 +90,12 @@ enum class StagedPublishStep {
 	Rename		  ///< Renaming the staged directory to the destination failed.
 };
 
-/// error is the error of the step that failed. restoreError is set when Rename failed and the old destination could not
-/// be moved back. removeBackupError is set when the directory was published and the backup could not be removed.
+/// The outcome of publishStagedDirectory.
 struct StagedPublishResult {
 	StagedPublishStep step = StagedPublishStep::Published; ///< The step that failed, or Published.
 	std::error_code error{};							   ///< The error of that step.
-	std::error_code restoreError{};						   ///< The error of moving the old destination back.
-	std::error_code removeBackupError{};				   ///< The error of removing the backup.
+	std::error_code restoreError{};						   ///< Set when Rename failed and the old destination could not be moved back.
+	std::error_code removeBackupError{};				   ///< Set when the directory was published and the backup could not be removed.
 };
 
 /// Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from

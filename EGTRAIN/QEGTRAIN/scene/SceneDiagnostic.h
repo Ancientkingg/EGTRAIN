@@ -14,9 +14,8 @@ enum class SceneSeverity { Info, ///< Notes what an import or export did.
 /// One finding of loading, validation, saving, import, export or migration. Empty text fields do not apply.
 struct SceneDiagnostic {
 	SceneSeverity severity = SceneSeverity::Error; ///< How serious it is.
-	/// Stable id "scene.<area>.<problem>", lower case with dots, such as "scene.ref.unresolved". Import, export,
-	/// bundle, migration, compatibility and runtime-builder checks use the areas import, export, bundle,
-	/// migration, compatibility and native. Tests match on codes.
+	/// Stable id "scene.<area>.<problem>", lower case with dots, such as "scene.ref.unresolved". Areas include import,
+	/// export, bundle, migration, compatibility and native (runtime builder). Tests match on codes.
 	std::string code;
 	std::string message;	  ///< One sentence that names the item.
 	std::string file;		  ///< Scene file it concerns, such as "services.json"; empty if scene-wide.
