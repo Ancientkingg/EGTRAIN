@@ -17,59 +17,66 @@
 // and the part about Follow last, so that a status area that is too narrow elides the part
 // about Follow first.
 
+/// Where the selected train stands, as far as Follow is concerned.
 enum class FollowPhase {
-	NoServices,	   // the case defines no services
-	NoRun,		   // the case has services but has not been run yet
-	NotEntered,	   // the train has not entered the network at the displayed time
-	Running,	   // the train is in the network and can be drawn
-	Finished,	   // the train has left the network
-	HiddenByLayer, // the train is in the network but the Trains layer is off
-	NotDrawable	   // the train is in the network but has no position on the map
+	NoServices,	   ///< the case defines no services
+	NoRun,		   ///< the case has services but has not been run yet
+	NotEntered,	   ///< the train has not entered the network at the displayed time
+	Running,	   ///< the train is in the network and can be drawn
+	Finished,	   ///< the train has left the network
+	HiddenByLayer, ///< the train is in the network but the Trains layer is off
+	NotDrawable	   ///< the train is in the network but has no position on the map
 };
 
+/// What the window knows about the selected train and the displayed frame.
 struct FollowAvailabilityInput {
+	/// The case defines at least one service.
 	bool sceneHasServices = false;
-	// A run has been prepared, so its trains are known.
+	/// A run has been prepared, so its trains are known.
 	bool hasRun = false;
-	// The displayed frame comes from a completed run, so the user can go back in time.
+	/// The displayed frame comes from a completed run, so the user can go back in time.
 	bool replay = false;
-	// Follow is switched on for this train.
+	/// Follow is switched on for this train.
 	bool followOn = false;
-	// Last time of the completed run that is displayed, in seconds since simulation start, or -1 when there is none.
+	/// Last time of the completed run that is displayed, in seconds since simulation start, or -1 when there is none.
 	int replayEndTime = -1;
-	// The chosen train in the displayed snapshot, or null when it is not there.
+	/// The chosen train in the displayed snapshot, or null when it is not there.
 	const GuiTrainState* train = nullptr;
-	// Time of the displayed snapshot, in seconds since simulation start.
+	/// Time of the displayed snapshot, in seconds since simulation start.
 	int timestep = 0;
-	// Simulation start, seconds since midnight (the offset formatSimTime takes).
+	/// Simulation start, seconds since midnight (the offset formatSimTime takes).
 	long long clockOffsetSeconds = 0;
+	/// The Trains layer of the canvas is switched on.
 	bool trainsLayerVisible = true;
-	// The train has a geometry that is drawn on the map.
+	/// The train has a geometry that is drawn on the map.
 	bool drawable = false;
-	// Display name of the train, as in the list.
+	/// Display name of the train, as in the list.
 	std::string name;
 };
 
+/// What the window offers and shows for Follow of the selected train.
 struct FollowAvailability {
-	FollowPhase phase = FollowPhase::NoServices;
-	// Text of the list entry. It does not depend on the state of Follow.
+	FollowPhase phase = FollowPhase::NoServices; ///< Where the train stands.
+	/// Text of the list entry. It does not depend on the state of Follow.
 	std::string entryText;
-	// Sentence for the status area, worded for the state of Follow.
+	/// Sentence for the status area, worded for the state of Follow.
 	std::string statusText;
-	// The Follow control is offered. It is not when there is nothing to follow yet.
+	/// The Follow control is offered. It is not when there is nothing to follow yet.
 	bool controlEnabled = false;
-	// Follow can be switched on for this train in this state. A train that has
-	// finished is refused in a live run and accepted in a replay, which can go back.
+	/// Follow can be switched on for this train in this state. A train that has
+	/// finished is refused in a live run and accepted in a replay, which can go back.
 	bool canArm = false;
-	// Follow is on and cannot stay on for this train.
+	/// Follow is on and cannot stay on for this train.
 	bool switchOff = false;
-	// Follow is on and the view moves to the train now.
+	/// Follow is on and the view moves to the train now.
 	bool canAct = false;
-	// The view glides to the train. A live run delivers a position every step, so the view can
-	// move between them. A replay holds a frame every few seconds, so the view cuts to the train.
+	/// The view glides to the train. A live run delivers a position every step, so the view can
+	/// move between them. A replay holds a frame every few seconds, so the view cuts to the train.
 	bool glide = false;
 };
 
+/// Where the train of `in` stands. A train that is in the network but has no position at the displayed time counts as
+/// not entered.
 inline FollowPhase followPhase(const FollowAvailabilityInput& in) {
 	if (!in.sceneHasServices)
 		return FollowPhase::NoServices;
@@ -86,6 +93,7 @@ inline FollowPhase followPhase(const FollowAvailabilityInput& in) {
 	return in.drawable ? FollowPhase::Running : FollowPhase::NotDrawable;
 }
 
+/// What the window offers and shows for Follow of the train of `in`.
 inline FollowAvailability followAvailability(const FollowAvailabilityInput& in) {
 	FollowAvailability out;
 	out.phase = followPhase(in);

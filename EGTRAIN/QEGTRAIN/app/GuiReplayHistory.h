@@ -11,53 +11,68 @@
 #include <unordered_map>
 #include <vector>
 
-// The frames of a completed run, kept for replay.
-//
-// What is the same for the whole run (identity and static data of trains, signal and section
-// ids, platforms) is stored once in a layout. A frame stores only flat arrays of the values that
-// change. Strings that vary (passengers, virtual coupling messages) are stored once in a string
-// table and referred to by number. atOrBefore() rebuilds an ordinary snapshot from the compact
-// form. A frame that is still in use, and the last one handed out, is not rebuilt.
-//
-// Accounted payload bounds include vector and string capacities, but not allocator
-// bookkeeping, shared_ptr control blocks or container-node overhead. This is not RSS. When the
-// budget is reached the oldest frames are dropped; firstTime() and lastTime() tell what is kept.
-//
-// record() is called on the simulation thread. The history is read on the GUI thread after it
-// has been moved out of the producer, so no member is shared between threads.
+/// The frames of a completed run, kept for replay.
+///
+/// What is the same for the whole run (identity and static data of trains, signal and section
+/// ids, platforms) is stored once in a layout. A frame stores only flat arrays of the values that
+/// change. Strings that vary (passengers, virtual coupling messages) are stored once in a string
+/// table and referred to by number. atOrBefore() rebuilds an ordinary snapshot from the compact
+/// form. A frame that is still in use, and the last one handed out, is not rebuilt.
+///
+/// Accounted payload bounds include vector and string capacities, but not allocator
+/// bookkeeping, shared_ptr control blocks or container-node overhead. This is not RSS. When the
+/// budget is reached the oldest frames are dropped; firstTime() and lastTime() tell what is kept.
+///
+/// record() is called on the simulation thread. The history is read on the GUI thread after it
+/// has been moved out of the producer, so no member is shared between threads.
 class GuiReplayHistory {
 public:
+	/// The interval between two kept frames, in seconds of simulated time. The first frame and the last step of the run
+	/// are kept as well.
 	static constexpr int cadenceSeconds = 5;
-	// Default budget of accounted payload bytes.
+	/// Default budget of accounted payload, in bytes (128 MiB).
 	static constexpr std::size_t payloadLimit = 128u * 1024u * 1024u;
 
+	/// An empty history that keeps at most `budgetBytes` bytes of accounted payload.
 	explicit GuiReplayHistory(std::size_t budgetBytes = payloadLimit) : budget_(budgetBytes) {}
-	// The string table keys point into the table of the same object, so a copy would dangle.
+	/// The string table keys point into the table of the same object, so a copy would dangle.
 	GuiReplayHistory(const GuiReplayHistory&) = delete;
+	/// Deleted, as the copy constructor.
 	GuiReplayHistory& operator=(const GuiReplayHistory&) = delete;
-	// Not noexcept: the move of std::unordered_map may allocate in some standard libraries.
-	GuiReplayHistory(GuiReplayHistory&&) = default;			   // NOLINT(performance-noexcept-move-constructor)
+	/// Not noexcept: the move of std::unordered_map may allocate in some standard libraries.
+	GuiReplayHistory(GuiReplayHistory&&) = default; // NOLINT(performance-noexcept-move-constructor)
+	/// Not noexcept, as the move constructor.
 	GuiReplayHistory& operator=(GuiReplayHistory&&) = default; // NOLINT(performance-noexcept-move-constructor)
 
+	/// Drops every frame and resets the truncated and oversize flags. The budget stays.
 	void clear();
+	/// Keeps `frame` when it is the first, falls on a multiple of cadenceSeconds or is the last step of the run, and
+	/// its step is not the step of the frame kept last. Drops the oldest frames to stay within the budget. Ignores null
+	/// and every frame after the history became oversize.
 	void record(const std::shared_ptr<const GuiSimulationSnapshot>& frame);
 
+	/// No frame is kept.
 	bool empty() const { return frames_.empty(); }
+	/// One frame did not fit in the budget on its own. The history was cleared and records nothing more until clear().
 	bool oversize() const { return oversize_; }
-	// True when frames were dropped to stay within the budget.
+	/// True when frames were dropped to stay within the budget.
 	bool truncated() const { return truncated_; }
+	/// The number of frames kept.
 	std::size_t size() const { return frames_.size(); }
-	// Frames, layouts and string table.
+	/// Accounted payload of the frames, layouts and string table, in bytes.
 	std::size_t payloadBytes() const { return bytes_ + layoutBytes_ + stringBytes_; }
+	/// The budget of accounted payload, in bytes.
 	std::size_t budgetBytes() const { return budget_; }
-	// Number of layouts in use. It stays 1 while the static data of a run does not change.
+	/// Number of layouts in use. It stays 1 while the static data of a run does not change.
 	std::size_t layoutCount() const { return layouts_.size(); }
+	/// The step of the oldest frame kept, in seconds from the start of the run. 0 when the history is empty.
 	int firstTime() const { return frames_.empty() ? 0 : frames_.front().timestep; }
+	/// The step of the newest frame kept, in seconds from the start of the run. 0 when the history is empty.
 	int lastTime() const { return frames_.empty() ? 0 : frames_.back().timestep; }
-	// Frames before this time were dropped, or 0 when none were.
+	/// Frames before this step, in seconds from the start of the run, were dropped, or 0 when none were.
 	int evictedBeforeTime() const { return truncated_ ? firstTime() : 0; }
-	// The last frame at or before the time, or the first frame when the time is earlier. Asking
-	// again for the same frame returns the same object while the caller or the history holds it.
+	/// The last frame at or before the step `time`, or the first frame when the time is earlier. Null when the history
+	/// is empty. Asking again for the same frame returns the same object while the caller or the history holds it.
 	std::shared_ptr<const GuiSimulationSnapshot> atOrBefore(int time) const;
 
 private:
