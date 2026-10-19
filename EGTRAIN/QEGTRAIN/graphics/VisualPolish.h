@@ -10,8 +10,9 @@
 
 class QPainter;
 
-/// The kind of a train, from the words of its type and description. It chooses the icon and the badge shape.
-enum class TrainVisualKind { Passenger, ///< None of the words below.
+/// The kind of a train, from substrings of its type and description, tested in the order Freight, HighSpeed,
+/// Sprinter, Intercity; the first match wins. It chooses the icon and the badge shape.
+enum class TrainVisualKind { Passenger, ///< None of the substrings below.
 	Sprinter,							///< "sprinter" or "spr".
 	Intercity,							///< "intercity", " ic" or "ic ".
 	HighSpeed,							///< "ice", "hst", "highspeed" or "high speed".
@@ -85,8 +86,8 @@ int trackStatePriority(TrackOperationalState state);
 QColor defaultTrainFill();
 /// The outline of a train without a service colour: RGB (110, 90, 20).
 QColor defaultTrainOutline();
-/// The kind, badge shape and icon of a train from the words of its type and description, ignoring case, with
-/// the default colours.
+/// The kind, badge shape and icon of a train from substrings of its type and description, ignoring case and
+/// tested in the order that the TrainVisualKind comment gives, with the default colours.
 TrainVisual classifyTrainType(const std::string& type, const std::string& description);
 /// classifyTrainType(), with the fill set to serviceColor and the outline to a shade of it half as bright
 /// when serviceColor is valid.

@@ -51,13 +51,13 @@ public:
 		return m_presentation == Presentation::Detailed && m_speedVisible && !m_speedText.isEmpty();
 	}
 
-	/// The fill of a badge.
+	/// The fill a badge would have; unused, because the badge paints nothing.
 	static QColor badgeSurfaceColor() { return QColor("#26313B"); }
-	/// The colour of the identifier.
+	/// The colour of the identifier; unused, because the badge paints nothing.
 	static QColor badgePrimaryTextColor() { return QColor("#F2F5F7"); }
-	/// The colour of the speed.
+	/// The colour of the speed; unused, because the badge paints nothing.
 	static QColor badgeSecondaryTextColor() { return QColor("#C5D0D6"); }
-	/// The border of the badge of a promoted train.
+	/// The border of the badge of a promoted train; unused, because the badge paints nothing.
 	static QColor promotedBorderColor() { return QColor("#315A70"); }
 	/// The size of the Overview marker in logical pixels.
 	static QSizeF markerSize() { return QSizeF(18.0, 16.0); }
