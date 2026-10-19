@@ -602,8 +602,9 @@ private:
 	void recoverySceneChanged();
 	void recoverySceneSaved();
 	void recoverySceneReplaced(const RecoverySource& source);
-	// Offers the copies that an earlier run left behind. Returns whether the user opened one.
-	bool offerRecovery();
+	// Offers the copies that an earlier run left behind. Returns whether the user opened one. A crash note of the last run
+	// is named in the offer, or in a notice of its own when there is no copy to offer.
+	bool offerRecovery(const QString& crashNote = QString());
 	bool openRecoveredScene(const RecoveryCandidate& candidate);
 	std::set<std::string> modifiedScenarioIds() const;
 

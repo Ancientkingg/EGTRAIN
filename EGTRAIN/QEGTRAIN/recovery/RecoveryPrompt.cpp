@@ -74,7 +74,7 @@ QString removedText(int removed) {
 
 } // namespace
 
-RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const QRect& availableGeometry)
+RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const QRect& availableGeometry, const QString& crashNote)
 	: QDialog(parent), m_candidates(scan.candidates) {
 	setObjectName(QStringLiteral("recoveryPrompt"));
 	setWindowTitle(QStringLiteral("Recover Unsaved Work"));
@@ -87,6 +87,15 @@ RecoveryPrompt::RecoveryPrompt(const RecoveryScan& scan, QWidget* parent, const 
 	auto* column = new QVBoxLayout(body);
 	column->setContentsMargins(0, 0, 0, 0);
 	column->setSpacing(qMax(8, lineHeight / 2));
+
+	if (!crashNote.isEmpty()) {
+		auto* crash = new QLabel(body);
+		crash->setObjectName(QStringLiteral("recoveryCrashNote"));
+		DialogLayout::setStatus(crash, DialogLayout::Severity::Warning,
+			QStringLiteral("EGTRAIN closed unexpectedly. A crash note was saved to:\n%1").arg(QDir::toNativeSeparators(crashNote)));
+		crash->setTextInteractionFlags(Qt::TextSelectableByMouse);
+		column->addWidget(crash);
+	}
 
 	if (scan.removedOverCap > 0) {
 		auto* removed = new QLabel(body);

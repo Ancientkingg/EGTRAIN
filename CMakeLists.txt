@@ -425,6 +425,7 @@ egtrain_target_warnings(egtrain_dispatch)
 
 # --- Sources ---
 set(EGTRAIN_SOURCES
+    ${SRC_DIR}/app/CrashNote.cpp
     ${SRC_DIR}/app/main.cpp
     ${SRC_DIR}/app/MainWindow.cpp
     ${SRC_DIR}/app/ResultViews.cpp
@@ -447,6 +448,7 @@ set(EGTRAIN_HEADERS
     ${SRC_DIR}/widgets/UserPrompts.h
     ${SRC_DIR}/simulation/Infrastructure.h
     ${SRC_DIR}/simulation/InitialParameters.h
+    ${SRC_DIR}/app/CrashNote.h
     ${SRC_DIR}/app/MainWindow.h
     ${SRC_DIR}/app/MainWindowTestHooks.h
     ${SRC_DIR}/app/ResultViews.h
@@ -804,6 +806,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_recoverycontroller PRIVATE egtrain_recovery Qt::Core)
     add_test(NAME test_recoverycontroller COMMAND test_recoverycontroller)
     set_tests_properties(test_recoverycontroller PROPERTIES TIMEOUT 120)
+
+    # Starts itself as a child that crashes on purpose; the system may keep a crash report of each child.
+    add_executable(test_crashnote ${SRC_DIR}/tests/test_crashnote.cpp ${SRC_DIR}/app/CrashNote.cpp)
+    target_link_libraries(test_crashnote PRIVATE Qt::Core Qt::Gui Threads::Threads)
+    add_test(NAME test_crashnote COMMAND test_crashnote)
+    set_tests_properties(test_crashnote PROPERTIES TIMEOUT 300)
 
     add_executable(test_recoveryprompt ${SRC_DIR}/tests/test_recoveryprompt.cpp)
     target_link_libraries(test_recoveryprompt PRIVATE egtrain_recovery Qt::Core Qt::Gui Qt::Widgets)
@@ -1625,7 +1633,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_telemetryconsent test_telemetryqueue test_telemetrysender test_telemetryoperations
 			test_telemetrynetwork test_updatechecker test_updatestaging test_updaterecord test_recoverystore
 			test_distribution
-			test_recoverycontroller test_recoveryprompt test_trackpreview test_routestations test_scenevalidator test_stopinsertion
+			test_recoverycontroller test_recoveryprompt test_crashnote test_trackpreview test_routestations test_scenevalidator test_stopinsertion
 			test_scenereferences test_scenedocument test_runselection
 			test_sceneimporter test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_pathmessages test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory
 			test_scenecompatibility test_sceneopenrequest test_openrequestrelay
@@ -1677,7 +1685,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_installer_script
 		test_ownership_inventory test_measure_peak_rss test_pe_image_size test_pe_imports test_package_start_smoke test_linux_rehearsal test_make_dmg test_macos_build_paths)
 	egtrain_label_tests(integration
-		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_openrequestrelay
+		test_telemetrynetwork_reject test_telemetrynetwork_trusted test_updatehelper test_recoverystore_process test_crashnote test_openrequestrelay
 		test_httptransport test_selfupdater test_updatetransport_https test_updatetransport_https_cases
 		test_livereplay test_live_stream_smoke test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder

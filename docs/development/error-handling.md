@@ -5,8 +5,8 @@ How EGTRAIN handles failure on `main` at 946ee7eb (2026-10-19): which exceptions
 ## In short
 
 - Nothing catches an exception at the top. `main()` (`app/main.cpp`) has no `try`, `QApplication::notify` is not overridden, `SimulationWorker::run()` (`simulation/SimulationWorker.cpp:21-28`) has no `try`, and `scene_tool`'s `main()` (`scene/SceneTool.cpp:48`) has none either.
-- No `std::set_terminate` handler and no signal handler is installed. The only handler is `qInstallMessageHandler(qtMessageToLog)` (`widgets/ConsoleWidget.cpp:310`), which routes Qt messages to the log.
-- So an exception that leaves a slot, an event handler, the startup code or the simulation thread ends in `std::terminate` and `abort()`. On macOS the user sees "QEGTRAIN quit unexpectedly". The app shows no message, logs nothing and leaves no note for the next start. Unsaved edits survive only if an autosave copy exists.
+- The window build installs a crash handler (`app/CrashNote.cpp`, see [Crash notes](#crash-notes)): `std::set_terminate`, and signal handlers for SIGSEGV, SIGBUS, SIGILL, SIGFPE and SIGABRT. Headless runs and `scene_tool` have none. The other handler is `qInstallMessageHandler(qtMessageToLog)` (`widgets/ConsoleWidget.cpp:310`), which routes Qt messages to the log.
+- So an exception that leaves a slot, an event handler, the startup code or the simulation thread ends in `std::terminate` and `abort()`. On macOS the user sees "QEGTRAIN quit unexpectedly". The app shows no message at the time and logs nothing, but the window build leaves a crash note that the next start reports. Unsaved edits survive only if an autosave copy exists.
 - The exceptions that escape today all come from `std::filesystem` calls that take no `std::error_code`.
 
 ## Exceptions
@@ -42,7 +42,7 @@ These calls throw `std::filesystem::filesystem_error` whenever `stat` or `mkdir`
 | --- | --- |
 | A slot or event handler on the GUI thread | `std::terminate` at the throw, because the unwinder finds no handler. `QApplication::notify` is on the stack, so an override of it would catch these. |
 | Startup, before `application.exec()` | `std::terminate` before the window shows. |
-| The simulation `QThread` | Qt's thread start calls `std::terminate`. The crash report shows only `std::terminate` <- QtCore <- `_pthread_start`, so the throw site is lost. `SimulationWorker::simulationFinished` is never emitted. `QApplication::notify` is not on this stack (`QThread::started` calls `SimulationWorker::run` directly), so a `notify` override cannot catch it. |
+| The simulation `QThread` | Qt's thread start calls `std::terminate`. The crash report shows only `std::terminate` <- QtCore <- `_pthread_start`, so the throw site is lost; the crash note keeps the text of the exception. `SimulationWorker::simulationFinished` is never emitted. `QApplication::notify` is not on this stack (`QThread::started` calls `SimulationWorker::run` directly), so a `notify` override cannot catch it. |
 | `scene_tool` | `std::terminate`; exit code 134. |
 
 The only text is the `libc++abi: terminating due to uncaught exception` line on standard error, which a user who starts the app from Finder never sees.
@@ -106,10 +106,22 @@ The visual polish smoke had a use after free: it added a temporary `SignalItem` 
 
 | Net | What it does | Limits |
 | --- | --- | --- |
-| Autosave and recovery copies (#858, `recovery/`) | Every 30 s with unsaved edits, writes a copy under `AppLocalDataLocation/Recovery/<instance>` (or `QEGTRAIN_RECOVERY_DIR`), held by a lock file. At the next start `RecoveryStore::scan()` offers the copies whose lock is free, and `RecoveryPrompt` says "EGTRAIN closed before this case was saved". A clean close removes the folder. | Off in offscreen and suppressed runs unless `QEGTRAIN_RECOVERY_DIR` is set. Nothing is written before the first autosave, and `scan()` deletes a folder without a copy, so a crash with a saved case or before the first autosave leaves no trace. The prompt does not say the app crashed. |
+| Autosave and recovery copies (#858, `recovery/`) | Every 30 s with unsaved edits, writes a copy under `AppLocalDataLocation/Recovery/<instance>` (or `QEGTRAIN_RECOVERY_DIR`), held by a lock file. At the next start `RecoveryStore::scan()` offers the copies whose lock is free, and `RecoveryPrompt` says "EGTRAIN closed before this case was saved". A clean close removes the folder. | Off in offscreen and suppressed runs unless `QEGTRAIN_RECOVERY_DIR` is set. Nothing is written before the first autosave, and `scan()` deletes a folder without a copy, so a crash with a saved case or before the first autosave leaves no copy. The prompt says that the app crashed only when a crash note exists. |
+| Crash note (`app/CrashNote.cpp`) | A fatal signal or an uncaught exception in the window build writes a note, and the next start reports it. See [Crash notes](#crash-notes). | No note for headless runs, `scene_tool`, a forced quit or a power loss. No stack on Windows. |
 | Diagnostics consent (`telemetry/`) | With consent, sends enum-only events such as `operation.failed` with an operation (`scene_open`, `simulation`, `export`) and an error code (`invalid_input`, `unsupported_format`, `io_failure`, `internal_failure`). | The consent text promises no native crash dumps and no raw error messages. Schema version 1 has no name for a crash, and new names need a new schema version (`docs/telemetry/README.md`). `SimulationObservation::Outcome::Failed` exists but is never used. |
 | Logging core (`util/Log.h`) | Categories, levels and one sink | No log file unless `EGTRAIN_LOG_FILE` is set. |
-| Startup notice of the previous run | `reportRolledBackUpdate` (`update/UpdateNotices.cpp:10-32`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only; it is the pattern a crash notice can follow. |
+| Startup notice of the previous run | `reportRolledBackUpdate` (`update/UpdateNotices.cpp:10-32`) reads `update-record.txt` left by the previous process and shows a box at the next start. | Covers updates only. |
+
+### Crash notes
+
+`main` calls `installCrashHandler(crashNoteFolder(...))` once the `QApplication` exists. The folder is `QEGTRAIN_CRASH_DIR` when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses `AppLocalDataLocation/Crashes`. At install time the handler formats the note path, `crash-<UTC start time>-<pid>.txt`, and a header with the version, Qt, the system and the executable.
+
+- A fatal signal appends the header, `Signal: <name> (<number>)` and, on macOS and Linux, `Stack:` with the frames of `backtrace_symbols_fd`. The handler uses only calls that are safe in a signal handler and runs on an alternate stack on the main thread. It then raises the signal again with the default action, so the system still writes its own crash report and shows its own message.
+- `std::terminate` appends the header and `Uncaught exception: <what()>`, then calls `abort()`, whose SIGABRT handler adds the stack.
+- On Windows an unhandled exception filter writes `Exception: 0x<code>` and lets the system go on; there is no stack.
+- At the next start `takeCrashNotes` renames each `crash-*.txt` to `reported-crash-*.txt` and keeps the newest 10 reported notes. The newest note is named in **Recover Unsaved Work** when copies can be recovered, otherwise in the notice "EGTRAIN Closed Unexpectedly" with **Show Crash Note**, and in a warning of the category `app.ui`.
+
+No crash event is sent: schema version 1 of the diagnostics has no name for one, so the consent text ("no native crash dumps") stays true. `tests/test_crashnote.cpp` and `tools/e2e/recovery_smoke.py` crash child processes on purpose, so the system keeps crash reports of them.
 
 ## Crashes seen on 2026-10-19
 
