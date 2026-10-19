@@ -22,10 +22,9 @@ QToolBar QToolButton#qt_toolbar_ext_button {
     padding: 0;
 }
 
-QLabel#speedSlowerLabel, QLabel#speedFasterLabel {
-    color: #5b6871;
-    font-size: 11px;
-    padding: 0;
+QLabel#speedModeLabel {
+    color: #24313a;
+    font-weight: 600;
 }
 
 QToolButton {
@@ -340,16 +339,34 @@ QDialog[dialogPresentation="true"] QLineEdit[readOnly="true"]:focus {
 }
 
 QSlider::groove:horizontal {
-    height: 4px;
-    background: #c8ced2;
+    height: 6px;
+    border-radius: 3px;
+    background: #7b8b96;
+}
+
+QSlider::sub-page:horizontal {
+    border-radius: 3px;
+    background: #315a70;
 }
 
 QSlider::handle:horizontal {
     width: 12px;
     margin: -5px 0;
-    border: 2px solid #315a70;
-    border-radius: 7px;
-    background: #ffffff;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    background: #315a70;
+}
+
+QSlider::handle:horizontal:hover, QSlider::handle:horizontal:pressed {
+    background: #26495c;
+}
+
+QSlider::handle:horizontal:focus {
+    border-color: #24313a;
+}
+
+QSlider::sub-page:horizontal:disabled, QSlider::handle:horizontal:disabled {
+    background: #9aa5ab;
 }
 
 QProgressBar {

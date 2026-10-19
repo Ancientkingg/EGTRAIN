@@ -175,9 +175,9 @@ int main(int argc, char* argv[]) {
 	ok &= expect(classifyStation(true, 0).fill == QColor(70, 70, 70), "platform station square");
 	ok &= expect(classifyStation(false, 3).fill == QColor(80, 120, 210), "interchange station square");
 
-	ok &= expect(simulationSpeedLabel(0) == "Speed: fastest", "fastest speed label");
-	ok &= expect(simulationSpeedLabel(250) == "Speed: 4.0x", "delayed speed label");
-	ok &= expect(simulationSpeedLabel(10) == "Speed: 100x", "fast factor speed label");
+	ok &= expect(simulationSpeedLabel(0) == "Fastest", "fastest speed label");
+	ok &= expect(simulationSpeedLabel(250) == "4.0x", "delayed speed label");
+	ok &= expect(simulationSpeedLabel(10) == "100x", "fast factor speed label");
 	ok &= expect(simulationSpeedMode(0) == "Fastest", "fastest speed mode");
 	ok &= expect(simulationSpeedMode(500) == "2.0x real time", "slowed speed mode");
 
