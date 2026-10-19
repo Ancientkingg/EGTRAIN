@@ -299,11 +299,9 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 						}
 					} else {
 						EG_LOG(SimSetup, Warning) << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
-						// CutSection.XEndSwitch = CuttingAbscissa;
 					}
 				} else {
 					EG_LOG(SimSetup, Warning) << "Warning: Block Section: " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XEndSwitch edge of the switch, please consider repositioning the final edge of this switch or the starting edge of the switch of the next block section in the route\n";
-					// CutSection.withSwitchDiv = false;
 				}
 			}
 			// Setting The arcs
@@ -387,7 +385,6 @@ void Section::CutBlockSection(string CutPart, double CuttingAbscissa) {
 					}
 				} else {
 					EG_LOG(SimSetup, Warning) << "Warning: Block Section : " << this->ID << " has a diverging switch and it is being cut at a progressive which cuts out the XStartSwitch edge of the switch, please consider repositioning the starting edge of this switch or the final edge of the switch of the previous block section in the route\n";
-					// CutSection.withSwitchDiv = false;
 				}
 			}
 			// Setting The arcs
@@ -1685,8 +1682,6 @@ void Route::setListInfrastructureElementsForRoute(Section BS) {
 				if (t->withSwitchDiv == 1) { // if this is an edge of a diverging switch find the other one and connect their name reciprocally
 					for (list<InfraElement>::iterator u = TEMP_ElementList.begin(); u != TEMP_ElementList.end(); u++) {
 						if ((u->withSwitchDiv == 1) && (u->ID != t->ID)) { // if u is the edge of a diverging switch and it is different from the other edge t, then assign the connect point of t to u and of u to t
-							// u->ConnectedPoint = t->ID;
-							// u->XConnectedPoint = t->XCoordinate;
 							t->ConnectedPoint = u->ID;
 							t->XConnectedPoint = u->XCoordinate;
 						}
@@ -1968,9 +1963,6 @@ void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Secti
 		if ((S_i_1 <= BLSPrev.end_node.X * 1000) && (S_i > BLSPrev.end_node.X * 1000)) {
 			int N_BLSPrev_Conn = BLSPrev.N_ConnectedBS;
 
-			// add previous signalling_block_sections
-			////IDToFree[0] = BLSPrev.ID; IsInBlocksConnected[0] = false;
-
 			for (int h = 0; h < N_BLSPrev_Conn; h++) {
 				IDToFree[h] = BLSPrev.IDConnectedBS[h];
 				IsInBlocksConnected[h] = false;
@@ -1989,14 +1981,6 @@ void occupyBlockAndConnected(SimulationRun& run, const Section& BLS, const Secti
 			}
 		}
 	}
-	// fill only with previous signalling_block_sections
-	/*else {
-		IDToFree[0] = BLSPrev.ID; IsInBlocksConnected[0] = false;
-		for (list<string>::iterator it = BlocksConnected.begin(); it != BlocksConnected.end(); it++) {
-			if (*it == IDToFree[0]) { IsInBlocksConnected[0] = true; break; }
-		}
-		if (IsInBlocksConnected[0] == 0) BlocksConnected.push_back(IDToFree[0]);
-	}*/
 
 	// release previously occupied signalling_block_sections TESTE!!!
 	releaseLastBlockAndConnected(run, BLSPrev);
@@ -2443,8 +2427,6 @@ void lockSwitchesOnAllConnectedSections(SimulationRun& run, double FrontEndPos, 
 				MA1.TrainInfo.NextSectionID = NextSectionID;
 				MA1.type = "DivergingSwitchOccupied";
 				MA1.TrainInfo.Acceleration = Acc_i;
-				// Defining MA2 on BlockID2
-				// MA2.BSID = BlockID2; MA2.AbsPosEoA = SwitchEndPos * 1000; MA2.ReversedDirection = false; MA2.TrainInfo.trainDescription = trainDescription; MA2.TrainInfo.TrainSpeed = V_i;
 				// Defining MA3 on Connected Block With Switch Div
 				MA2.BSID = *h;
 				MA2.AbsPosEoA = SwitchStartPos * 1000;
