@@ -235,7 +235,7 @@ enum class DelayDiagnosticKind {
 /// One reason why two runs cannot be compared.
 struct DelayDiagnostic {
 	DelayDiagnosticKind kind = DelayDiagnosticKind::ScenarioIdMissing; ///< The reason
-	/// Service of the occurrence for the occurrence kinds, else empty.
+	/// Service of the occurrence for the occurrence kinds, or the train id when the run has no service id; else empty.
 	std::string serviceId;
 	int occurrence = 0; ///< Occurrence of the service, from 1; 0 for the other kinds
 };

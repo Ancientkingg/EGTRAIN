@@ -83,7 +83,7 @@ struct TrainRunResult {
 	int occurrence = 1;						///< Occurrence of the service, from 1
 	double performancePercent = 100.0;		///< Share of the tractive effort and maximum speed the service uses, in percent
 	bool hasConfiguredMaximumSpeed = false; ///< True when the service sets a maximum speed
-	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h, 0 when it sets none
+	double configuredMaximumSpeedKmh = 0.0; ///< Maximum speed of the service in km/h; meaningful only when hasConfiguredMaximumSpeed
 	double compositionMaximumSpeedMs = 0.0; ///< Maximum speed of the composition in m/s
 	/// Maximum speed the train runs at in m/s: the lower of the two above, times performancePercent / 100.
 	double appliedMaximumSpeedMs = 0.0;

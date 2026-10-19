@@ -36,7 +36,7 @@ struct CompletedRunSettings {
 /// The samples of one train over its active range. A series holds the samples from firstSample on and ends where
 /// the train's own series ended, so a sample the train did not record is absent, not zero.
 struct CompletedTrajectory {
-	static constexpr std::uint32_t kNoBlock = 0xFFFFFFFFu; ///< Value of block for a sample on no block
+	static constexpr std::uint32_t kNoBlock = 0xFFFFFFFFu; ///< What blockAt returns for a sample with no recorded block entry
 
 	int firstSample = 0;					 ///< Sample index of the first element of every series
 	std::vector<double> position;			 ///< Head position along the route of the train, in m
@@ -121,11 +121,9 @@ struct CompletedRunData {
 	bool hasRoute(int routeIndex) const { return routeIndex >= 0 && routeIndex < static_cast<int>(routes.size()); }
 };
 
-/// The route as the nodes of its path, with the stations of the scene when it is given. It reads the simulation route
-/// and serves the capture.
+/// The route as the nodes of its path, with the stations of the scene when it is given.
 RouteDiagramPath routeDiagramPath(const Route& route, const SceneModel* scene);
-/// The block sections of the route in route order, with their ends in km. It reads the simulation route and serves the
-/// capture.
+/// The block sections of the route in route order, with their ends in km.
 std::vector<BlockSectionInput> blockSectionInputsForRoute(const Route& route);
 
 /// Copies the finished run out of the simulation. The scene gives the route nodes their station names and may be null.

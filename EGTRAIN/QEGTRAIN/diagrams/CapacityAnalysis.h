@@ -47,7 +47,8 @@ struct CapacityPairRow {
 	double buffer = -1.0;
 	bool hasSharedConstraint = false; ///< True when the two trains occupy a shared resource
 	bool adjacent = false;			  ///< True when the follower comes right after the leader in the chain
-	/// The occupation pairs whose candidate headway equals minimumHeadway, within kBlockingTimeToleranceSeconds.
+	/// The occupation pairs whose candidate headway is within kBlockingTimeToleranceSeconds of the largest candidate;
+	/// minimumHeadway is that candidate clamped at 0.
 	std::vector<CapacityHeadwayEvidence> governingEvidence;
 };
 
@@ -55,7 +56,7 @@ struct CapacityPairRow {
 struct CapacityCompressionEvidence {
 	std::string predecessorIdentity;						///< runtimeId of the earlier train
 	double minimumHeadway = 0.0;							///< Minimum headway of the pair
-	std::vector<CapacityHeadwayEvidence> governingEvidence; ///< The occupation pairs that give that headway
+	std::vector<CapacityHeadwayEvidence> governingEvidence; ///< The governing pairs (see CapacityPairRow::governingEvidence)
 };
 
 /// One train of the compressed chain.
