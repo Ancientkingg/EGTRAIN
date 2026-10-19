@@ -118,7 +118,7 @@ public:
 	/// Sets the times, durations and positions to -1, the IDs to "None" and IsComplete to true.
 	BlockingTimes();
 
-	/// Copies every member of obj2, except that sightReacTime takes the setupTime of obj2.
+	/// Copies every member of obj2.
 	BlockingTimes& operator=(const BlockingTimes& obj2);
 
 	/// Check that the last recorded status of the infrastructure element is in line with what the train needs, and sets
