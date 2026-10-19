@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QFontDatabase>
+#include <QImage>
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <iostream>
@@ -49,6 +50,21 @@ int main(int argc, char** argv) {
 		Qt::NoButton, Qt::NoModifier, Qt::ScrollUpdate, false);
 	QApplication::sendEvent(&bar, &wheel);
 	ok &= expect(bar.value() == beforeInput, "mouse and wheel input do not scrub the timeline");
+
+	// On a full bar the whole text lies on the fill, which is as dark as the text colour: the text is drawn light.
+	TimeProgressBar full;
+	full.setStyleSheet("QProgressBar { border: 0; color: #000000; selection-color: #ffffff; }"
+					   "QProgressBar::chunk { background: #000000; }");
+	full.resize(400, 28);
+	full.setProgress(7999, 8000, startOffset);
+	full.show();
+	QApplication::processEvents();
+	const QImage image = full.grab().toImage();
+	int lightPixels = 0;
+	for (int y = 0; y < image.height(); ++y)
+		for (int x = 0; x < image.width(); ++x)
+			lightPixels += qGray(image.pixel(x, y)) > 200 ? 1 : 0;
+	ok &= expect(lightPixels > 50, "the text on the fill is drawn in the light text colour");
 
 	return ok ? 0 : 1;
 }

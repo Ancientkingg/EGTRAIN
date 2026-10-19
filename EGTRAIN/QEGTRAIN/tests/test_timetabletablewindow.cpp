@@ -18,6 +18,8 @@
 #include <QTextDocument>
 #include <QToolTip>
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 
 static bool expect(bool condition, const char* message) {
@@ -119,6 +121,38 @@ static bool exerciseButtonDefaults() {
 	return ok;
 }
 
+// WCAG contrast ratio of two colours.
+static double contrastRatio(const QColor& first, const QColor& second) {
+	const auto luminance = [](const QColor& color) {
+		const auto channel = [](double c) { return c <= 0.03928 ? c / 12.92 : std::pow((c + 0.055) / 1.055, 2.4); };
+		return 0.2126 * channel(color.redF()) + 0.7152 * channel(color.greenF()) + 0.0722 * channel(color.blueF());
+	};
+	const double a = luminance(first);
+	const double b = luminance(second);
+	return (std::max(a, b) + 0.05) / (std::min(a, b) + 0.05);
+}
+
+// A late, a slightly late and an early delay each read at 4.5:1 or more on both row colours of the table.
+static bool exerciseDelayColors() {
+	std::vector<TimetableResultRow> rows(3);
+	const double delays[] = {90.0, 30.0, -10.0};
+	for (std::size_t index = 0; index < rows.size(); ++index) {
+		rows[index].trainId = "train-a";
+		rows[index].journeyIndex = static_cast<int>(index);
+		rows[index].arrivalDelaySeconds = {true, delays[index]};
+	}
+	TimetableTableWindow window(std::move(rows), 0, {});
+	const auto* table = window.findChild<QTableWidget*>();
+	bool ok = expect(table && table->rowCount() == 3, "the delay table has three rows");
+	for (int row = 0; ok && row < table->rowCount(); ++row) {
+		const QColor ink = table->item(row, 7)->foreground().color();
+		ok &= expect(contrastRatio(ink, table->palette().color(QPalette::Base)) >= 4.5
+				&& contrastRatio(ink, table->palette().color(QPalette::AlternateBase)) >= 4.5,
+			qPrintable(QString("the delay %1 reads on both row colours").arg(table->item(row, 7)->text())));
+	}
+	return ok;
+}
+
 // The text that the tooltip of `widget` shows once the pointer rests on it.
 static QString shownTip(QWidget* widget) {
 	const QPoint point(4, 4);
@@ -175,6 +209,7 @@ int main(int argc, char** argv) {
 		"a train of a coloured service has its swatch and another train has none");
 	ok &= exerciseTrainColorsForRun();
 	ok &= exerciseButtonDefaults();
+	ok &= exerciseDelayColors();
 	for (const QString& text : {QStringLiteral("Case A & B | Scenario C"), QStringLiteral("Train <b>1</b> & <i>2</i>"),
 			 QStringLiteral("Id &lt;x&gt; &amp; <not a tag>")}) {
 		window.setPresentation("Timetable", text);

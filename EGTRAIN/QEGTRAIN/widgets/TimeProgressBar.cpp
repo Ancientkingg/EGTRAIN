@@ -2,6 +2,8 @@
 #include "util/TimeFormat.h"
 
 #include <QFontDatabase>
+#include <QStyleOptionProgressBar>
+#include <QStylePainter>
 
 TimeProgressBar::TimeProgressBar(QWidget* parent)
 	: QProgressBar(parent) {
@@ -41,4 +43,20 @@ void TimeProgressBar::setProgress(int timestep, int totalSteps, long long startO
 			.arg(displayedStepText)
 			.arg(stepCount)
 			.arg(QString::fromStdString(formatSimTime(safeTotalSteps, startOffsetSeconds))));
+}
+
+// Draws the bar, then draws it again over the filled part with the text in the highlighted text colour,
+// so the text reads on the fill and on the empty part of the bar.
+void TimeProgressBar::paintEvent(QPaintEvent* event) {
+	QProgressBar::paintEvent(event);
+	QStyleOptionProgressBar option;
+	initStyleOption(&option);
+	const QRect contents = style()->subElementRect(QStyle::SE_ProgressBarContents, &option, this);
+	const int fillWidth = QStyle::sliderPositionFromValue(minimum(), maximum(), value(), contents.width());
+	if (fillWidth <= 0)
+		return;
+	option.palette.setColor(QPalette::Text, option.palette.color(QPalette::HighlightedText));
+	QStylePainter painter(this);
+	painter.setClipRect(contents.x(), contents.y(), fillWidth, contents.height());
+	painter.drawControl(QStyle::CE_ProgressBar, option);
 }

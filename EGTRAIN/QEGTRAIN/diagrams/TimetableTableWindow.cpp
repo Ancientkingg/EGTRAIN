@@ -175,11 +175,11 @@ void TimetableTableWindow::fillTable() {
 		if (!value.available)
 			return;
 		if (value.value > 60.0)
-			item->setForeground(QBrush(Qt::red));
+			item->setForeground(QBrush(QColor(160, 30, 30)));
 		else if (value.value > 0.0)
-			item->setForeground(QBrush(Qt::darkYellow));
+			item->setForeground(QBrush(QColor(125, 85, 0)));
 		else
-			item->setForeground(QBrush(Qt::darkGreen));
+			item->setForeground(QBrush(QColor(0, 100, 0)));
 	};
 
 	m_table->setSortingEnabled(false);
