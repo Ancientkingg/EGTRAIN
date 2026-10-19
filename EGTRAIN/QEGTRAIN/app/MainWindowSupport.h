@@ -44,12 +44,10 @@ inline int baseTimeToSeconds(const std::string& hhmmss) {
 	return h * 3600 + m * 60 + s;
 }
 
-/// The longest delay between two steps of a run, in milliseconds, which is the value of the slow end of the speed
-/// slider.
+/// The longest delay between two steps of a run, in milliseconds: the delay at the slow end of the speed slider, whose
+/// range is 0 to this value.
 constexpr int kMaxStepDelayMs = 500;
-/// The delay between two steps, in milliseconds, for the value of the speed slider.
-/// The speed slider reads left-to-right as slow-to-fast; the worker wants a
-/// per-step delay, so the delay is the distance from the fast end.
+/// The delay between two steps, in milliseconds: how far `sliderValue` is from the fast end of the speed slider.
 inline int stepDelayForSlider(int sliderValue) {
 	return kMaxStepDelayMs - sliderValue;
 }
