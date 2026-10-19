@@ -475,8 +475,8 @@ static BrakingRun brakingRun(Train& train, std::vector<Section>& route, double p
 }
 
 // The braking phase of a train whose braking curve does not reach its speed. The train has the values of
-// brakingTrain(1.0) from the braking-point tests, a timestep of one second and the speed and target speed of the
-// Lebanon trace (36.1111 and 16.67 m/s).
+// brakingTrain(1.0) from the braking-point tests, a timestep of one second, a speed of 36.1111 m/s and a target
+// speed of 16.67 m/s.
 static bool brakingCurveTests() {
 	bool ok = true;
 	const auto at = [](double value, double expected) { return std::fabs(value - expected) <= 1e-6; };
@@ -504,7 +504,7 @@ static bool brakingCurveTests() {
 		int steps;
 		bool fallsBelowTarget;
 	};
-	// The first case has the shape of the Lebanon trace: the target at 1673 m lies on an arc with a gradient of
+	// In the first case the target at 1673 m lies on an arc with a gradient of
 	// -9.62, so the curve runs forward and leaves the route, while the train is on a flat arc before it and runs
 	// onto the steep arc during the steps. In the second case the target lies 100 m after the start of a flat
 	// route: the curve needs more than 500 m, so the braking point lies before the route. In the third case the
@@ -3107,7 +3107,7 @@ static bool runRollingStockMessageChecks() {
 	parameters.set_case(2);
 	shows(capture.take(), {{Category::SimSetup, Level::Info, "\nSelected Case study: 2\n"}}, "a selected case study");
 	ok &= expect(!parameters.name.empty(), "a selected case study has a name");
-	parameters.set_case(99);
+	parameters.set_case(6);
 	shows(capture.take(), {{Category::SimSetup, Level::Warning, "No case selected"}}, "a case number that selects nothing");
 	ok &= expect(parameters.name.empty(), "a case number that selects nothing clears the name");
 

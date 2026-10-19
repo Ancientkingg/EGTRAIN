@@ -471,7 +471,7 @@ platform, and `partly` that it is registered and only some of its checks run the
 
 | Test | macOS | Linux | Windows | Reason |
 | --- | --- | --- | --- | --- |
-| `test_csv_export_smoke`, `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
+| `test_csv_export_smoke`, `test_creator_acceptance_smoke`, `test_dialog_presentation_contract` | yes | yes | no | Bash scripts that use `awk`, `mktemp` and `/dev/stderr`; Windows has no bash on `PATH` that can be relied on. |
 | `test_editor_smoke` | yes | yes | no | A Bash script; Windows has no bash on `PATH` that can be relied on. |
 | `test_recovery_smoke` | yes | yes | no | A Python script that ends the application with `_Exit` and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under `if(UNIX)` until they are. |
 | `test_scene_render_smoke`, `test_track_preview_smoke`, `test_legacy_import_smoke`, `test_route_diagram_smoke` | yes | yes | no | The first three are Bash scripts, and Windows has no bash on `PATH` that can be relied on. `test_route_diagram_smoke` is registered with them under `if(UNIX)`, so Windows does not register it either. |
@@ -503,7 +503,7 @@ reports itself as skipped there.
 
 Every Bash smoke in the table except `test_package_contents_smoke` reads the
 application path from `QEGTRAIN_APP`; `visual_polish_smoke.sh` passes it on to
-the two scripts that its `scripts` phase runs. `test_lebanon_scene_smoke`, `test_creator_acceptance_smoke`
+the two scripts that its `scripts` phase runs. `test_creator_acceptance_smoke`
 and `test_dialog_presentation_contract` also read the `scene_tool` path from
 `QEGTRAIN_SCENE_TOOL`. CTest sets these variables from the build targets. Run by
 hand without them, the scripts use the macOS paths under `build/`.
@@ -867,8 +867,8 @@ a case name the scene runs as committed.
 
 Three more entries run committed scenes this way: `characterization_repeat_paimpol`
 (Paimpol twice, then Assignment, then Paimpol again),
-`characterization_repeat_lebanon_milano` (Lebanon and Milano-Brescia, alternating)
-and `characterization_repeat_netherlands` (Netherlands, Lebanon, Netherlands, labelled
+`characterization_repeat_milano_paimpol` (Milano-Brescia and Paimpol, alternating)
+and `characterization_repeat_netherlands` (Netherlands, Paimpol, Netherlands, labelled
 `slow`). They fail when a run leaves state behind that changes a later run of the
 same scene, which is what a change to the arrays of the run can cause.
 
@@ -898,8 +898,8 @@ build/EGTRAIN/QEGTRAIN/tests/characterization/test_characterization \
 ```
 
 Three entries run this way. `characterization_repeat_files_paimpol` (labelled
-`slow`) and `characterization_repeat_files_lebanon_milano` run the sequences of
-`characterization_repeat_paimpol` and `characterization_repeat_lebanon_milano`.
+`slow`) and `characterization_repeat_files_milano_paimpol` run the sequences of
+`characterization_repeat_paimpol` and `characterization_repeat_milano_paimpol`.
 `characterization_repeat_files_fixture` runs `sf-forward-level-3` twice,
 `single-track-level-4`, and `sf-forward-level-3` again on the line fixture,
 which gives an incident and a single-track restriction that no committed scene
@@ -1148,7 +1148,7 @@ tools/e2e/headless_smoke.py
 ```
 
 The smoke test runs Netherlands (`-n 1`), Paimpol (`-n 2`), Copenhagen
-(`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), Lebanon (`-n 6`), and
+(`-n 3`), Brescia (`-n 4`), Assignment (`-n 5`), and
 Amsterdam_Hilversum_Student, which has no `-n` number and is case 7 of the
 script. It checks clean native execution and the available trajectory/station
 evidence. For every scene it also requires that no train moves farther in one
@@ -1157,10 +1157,8 @@ that no train steps against the direction of its route by more than 0.1 m. The
 direction comes from the flag in the train's row in
 `TrainTrajectories/TrainServicePathDiagram.txt`. The script starts every run with
 `--detailed-trajectories`, because those checks read `TEMP/Traj_Train_*.txt`.
-For Lebanon it also requires that its train reaches every stop of the route: a
-stop that is not reached has the arrival `-10000` in `TimetablePoints.txt`.
 Every scene run must also write section records to `BlockingTimes.txt`.
-CTest runs the position checks and the stop check in `test_headless_smoke_decode`
+CTest runs the position checks in `test_headless_smoke_decode`
 on trajectory and timetable files that the test writes.
 
 The script runs the application that `QEGTRAIN_APP` names. Without that variable it uses
@@ -1195,9 +1193,9 @@ or double free. It has three parts:
   when it prints no `End of Simulation`. All scenes run before the script fails, so one start lists
   every failing scene.
 - CTest runs `characterization_repeatable`, `characterization_repeat_paimpol`,
-  `characterization_repeat_lebanon_milano` and `characterization_repeat_netherlands`. Each builds
+  `characterization_repeat_milano_paimpol` and `characterization_repeat_netherlands`. Each builds
   and runs scenes one after the other in one process (see [Characterization tests](#characterization-tests)),
-  which is the scene reload. They cover the line fixture, Paimpol, Assignment, Lebanon,
+  which is the scene reload. They cover the line fixture, Paimpol, Assignment,
   Milano-Brescia and Netherlands. Copenhagen and Amsterdam_Hilversum_Student run headless once and are
   not reloaded.
 - CTest runs `test_networkpresenter` and `test_runtimecanvas` on the offscreen platform. They draw the
@@ -1226,7 +1224,7 @@ tools/e2e/roundtrip_smoke.py
 ```
 
 The roundtrip smoke validates, exports, reimports, and compares high-value
-entity counts for all seven canonical scenes, then runs the small Assignment
+entity counts for all six canonical scenes, then runs the small Assignment
 reimport. It checks the compatibility rows in `TrackLines/AreasCaseStudy.txt`
 and requires the ordered signalling areas, with their exported track scopes,
 to survive through `TrackLines/EGTRAINSignallingAreas.json`. The import report
@@ -1330,7 +1328,6 @@ committed scenes have one.
 
 | Scene | Frames | Covers (s) | Accounted | As complete snapshots |
 |---|---|---|---|---|
-| Lebanon | 721 | 0-3599 | 0.6 MiB | 10.8 MiB |
 | Assignment_Gvc_Gdg_Ut | 2001 | 0-9999 | 4.7 MiB | 32.5 MiB |
 | Paimpol | 1801 | 0-8999 | 12.1 MiB | 155 MiB |
 | Milano_Brescia | 801 | 0-3999 | 13.1 MiB | 68.8 MiB |
@@ -1470,11 +1467,11 @@ tests that can run side by side, and `ctest --test-dir build -R test_visual_poli
 | | `color` | A copy of Copenhagen in which the first service has a colour |
 | | `dpr2` | The live run of Copenhagen at a device pixel ratio of 2 |
 | `test_visual_polish_smoke_replay` | `completion` | The Assignment run to its end: the replay row and the Follow checks of the replay |
-| | `replay` | The whole-run replay of Lebanon, Assignment, Paimpol, Milano_Brescia and Netherlands |
+| | `replay` | The whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands |
 | | `discard` | The preview legend after a discarded run |
-| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other five scenes together |
+| `test_visual_polish_smoke_replay_copenhagen` | `replay-copenhagen` | The whole-run replay of Copenhagen, which takes as long as the other four scenes together |
 | `test_visual_polish_smoke_signals` | `signals` | The signal head checks |
-| `test_visual_polish_smoke_stations` | `stations` | The station overlays of the six scenes, and of Copenhagen at a device pixel ratio of 2 |
+| `test_visual_polish_smoke_stations` | `stations` | The station overlays of the five scenes, and of Copenhagen at a device pixel ratio of 2 |
 | none | `scripts` | `scene_render_smoke.sh` and `legacy_import_smoke.sh`, which are tests of their own |
 
 The script without arguments runs all phases in the order of the table. The other GUI smokes are CTest tests of
@@ -1498,7 +1495,7 @@ snapshot; a run with pause steps waits 2 ms after every step, so that it cannot
 end before a pause takes effect. After the run the final frame and every replay second, backwards and
 forwards, are checked. The marker is `E2E_SIGNAL_HEADS_OK mode=<name>`. The script
 makes three line scenes from `tests/fixtures/scenes/line` (levels, failure,
-none) and also runs Paimpol, Assignment and Lebanon.
+none) and also runs Paimpol and Assignment.
 
 The replay row is checked in the Assignment run of the script, in the same window code as
 the other replay checks. `E2E_REPLAY_ROW_WHOLE_OK`: the slider covers 0 to the last time, the
@@ -1632,7 +1629,7 @@ most of its checks, so run it locally to read its logs.
 | User settings of a test that starts the window | `build/settings/<test>` | `QEGTRAIN_E2E_SETTINGS_DIR`, set by CMake |
 | Run output of the scene render, track preview, legacy import, route diagram and visual polish tests | `build/output/<test>`. `test_external_sharing_no_listener`, `test_scene_drop` and `test_output_folder` write to `build/external-sharing-test`, `build/scene-drop-test` and `build/output-folder-test` | `QEGTRAIN_OUTPUT_DIR`, set by CMake |
 | Logs and screenshots of the Bash smokes | `${TMPDIR:-/tmp}`, for example `qegtrain-visual-polish-e2e.log`; see [Smoke artifacts](#smoke-artifacts) | `TMPDIR` (`TEMP` and `TMP` on Windows) |
-| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all seven, and Copenhagen alone takes minutes |
+| Output of `tools/e2e/headless_smoke.py` | `EGTRAIN/QEGTRAIN/Output/<scene>` and `tools/e2e/headless_case_<n>.log`. Git ignores both. The script sets `QEGTRAIN_OUTPUT_DIR` itself | The case numbers on the command line; none runs all six, and Copenhagen alone takes minutes |
 | Files of `tools/e2e/roundtrip_smoke.py` | A temporary folder that the script removes when it ends | |
 | Unsaved-work copies that the window keeps | A `Recovery` folder in the local application data folder | `QEGTRAIN_RECOVERY_DIR` ([Scene editor flow](../architecture/scene-editor-flow.md#window-flow)) |
 
@@ -1713,15 +1710,14 @@ application; CTest and the smoke scripts set it themselves.
   signed. The macOS package job builds for
   macOS 26 (`-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0`) and writes the minimum system
   version of the executable into the `LSMinimumSystemVersion` key of the property
-  list, so the app needs macOS 26 or later. It copies `scene_tool` and the Lebanon
-  guide into the app, to `Contents/MacOS/scene_tool` and
-  `Contents/Resources/lebanon-case-study.md`, puts `LICENSE` and
+  list, so the app needs macOS 26 or later. It copies `scene_tool` into the app, to
+  `Contents/MacOS/scene_tool`, puts `LICENSE` and
   `THIRD_PARTY_NOTICES.md` in `Contents/Resources`, and removes the virtual keyboard
   input plugin with the Quick and QML frameworks, and the WebP and TIFF plugins
   with their libraries, from the app. All of this comes before the one
   signature, which `tools/release/sign_macos.sh` makes (see
   [macOS signing script](#macos-signing-script)). After the signature the job fails when one of the removed files is in
-  the app, runs `scene_tool` on the Lebanon scene of the app and Paimpol without
+  the app, runs `scene_tool` on the Paimpol scene of the app without
   the GUI, starts a copy of the app with the same script, and prints the number
   of files and bytes of the app before and after the removal in its job summary.
   In a push to `production` or a `v*` tag it then notarizes and staples the app

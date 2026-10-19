@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # Assemble the macOS app as the release holds it from the build outputs and
-# rehearse the Lebanon path: the app holds scene_tool, the complete canonical
-# Lebanon scene, and the guide; scene_tool validates and exports the packaged
-# scene; and the app opens and renders it under a clean HOME with exports
-# written outside the bundle.
+# rehearse the Assignment path: the app holds scene_tool and the complete canonical
+# Assignment scene; scene_tool validates and exports the packaged scene; and the app
+# opens and renders it under a clean HOME with exports written outside the bundle.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 APP_BUNDLE="$ROOT/build/QEGTRAIN.app"
 SCENE_TOOL="$ROOT/build/scene_tool"
-GUIDE_SRC="$ROOT/docs/guides/lebanon-case-study.md"
 
 if [[ ! -d "$APP_BUNDLE" ]]; then
 	echo "app bundle not found: $APP_BUNDLE (build QEGTRAIN first)" >&2
@@ -30,8 +28,7 @@ mkdir -p "$HOME_DIR" "$OUT_DIR"
 # Assemble the packaged app.
 cp -R "$APP_BUNDLE" "$APP"
 cp "$SCENE_TOOL" "$APP/Contents/MacOS/scene_tool"
-cp "$GUIDE_SRC" "$APP/Contents/Resources/lebanon-case-study.md"
-SCENE="$APP/Contents/Resources/Scenes/Lebanon"
+SCENE="$APP/Contents/Resources/Scenes/Assignment_Gvc_Gdg_Ut"
 
 # Content check: every required item must be present.
 require() {
@@ -75,7 +72,6 @@ require "$APP/Contents/MacOS/scene_tool"
 require "$SCENE/stations.json"
 require "$SCENE/scene.json"
 require "$SCENE/scenarios.json"
-require "$APP/Contents/Resources/lebanon-case-study.md"
 # Note: the release workflow deploys and verifies the bundled Qt runtime. A local
 # build links the system Qt, so the runtime check runs in CI, not here.
 
@@ -110,13 +106,13 @@ for marker in E2E_TRACK_PREVIEW_OPEN_OK E2E_TRACK_PREVIEW_RUN_GATED_OK E2E_TRACK
 	grep -q "$marker" "$LOG" || { echo "packaged app missing marker $marker; see $LOG" >&2; exit 1; }
 done
 
-# The supplied Lebanon scene in the app must stay unchanged; the user edits the
+# The supplied Assignment scene in the app must stay unchanged; the user edits the
 # copy that lives outside the app.
 changed="$(find "$SCENE" -newer "$MARKER" -type f 2>/dev/null)"
 if [[ -n "$changed" ]]; then
-	echo "the packaged Lebanon scene was modified during the run:" >&2
+	echo "the packaged Assignment scene was modified during the run:" >&2
 	echo "$changed" >&2
 	exit 1
 fi
 
-echo "package contents smoke passed: app, scene_tool, Lebanon scene, and guide present; scene validated, exported, opened, and reloaded from the app"
+echo "package contents smoke passed: app, scene_tool, and Assignment scene present; scene validated, exported, opened, and reloaded from the app"

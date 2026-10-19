@@ -42,7 +42,6 @@ The manual links only to the manual. So the four developer pages that the guides
 | `updates.md` | 72 | same | Keep | |
 | `delay-analysis.md` | 291 | same | Keep | |
 | `capacity-analysis.md` | 358 | same | Keep | |
-| `lebanon-case-study.md` | 169 | none | Delete | Removed in a separate change, together with its copy in the packages. |
 | `amsterdam-hilversum-student-case.md` | 124 | same | Keep | |
 | `v1-scene-migration-matrix.md` | 84 | same | Keep | |
 | `v1-scene-properties.md` | 317 | `scene-schema.md` | Merge | Same files and keys as the schema. |

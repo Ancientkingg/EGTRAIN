@@ -1424,9 +1424,6 @@ if(EGTRAIN_BUILD_TESTS)
 		add_test(NAME test_csv_export_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/csv_export_smoke.sh)
 		set_tests_properties(test_csv_export_smoke PROPERTIES TIMEOUT 240)
-		add_test(NAME test_lebanon_scene_smoke
-			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/lebanon_scene_smoke.sh)
-		set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)
 		add_test(NAME test_creator_acceptance_smoke
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh)
 		set_tests_properties(test_creator_acceptance_smoke PROPERTIES TIMEOUT 240)
@@ -1441,10 +1438,10 @@ if(EGTRAIN_BUILD_TESTS)
 			COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/e2e/creator_acceptance_smoke.sh --dialog-contract)
 		set_tests_properties(test_dialog_presentation_contract PROPERTIES TIMEOUT 600)
 		# The scripts get the built application, scene_tool and a platform plugin that needs no display.
-		set_tests_properties(test_csv_export_smoke test_lebanon_scene_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
+		set_tests_properties(test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_dialog_presentation_contract
 			PROPERTIES ENVIRONMENT "QEGTRAIN_APP=$<TARGET_FILE:QEGTRAIN>;QEGTRAIN_SCENE_TOOL=$<TARGET_FILE:scene_tool>;QT_QPA_PLATFORM=offscreen")
 	else()
-		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_lebanon_scene_smoke, test_creator_acceptance_smoke, test_editor_smoke, test_dialog_presentation_contract)")
+		message(STATUS "Windows: skipping bash smoke tests (test_csv_export_smoke, test_creator_acceptance_smoke, test_editor_smoke, test_dialog_presentation_contract)")
 	endif()
 	# The scripted scenarios of the release workflow and the route diagram run. A build with sanitizers
 	# does not register them: the sanitizer job of the release workflow runs all of CTest on an
@@ -1679,7 +1676,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_route_choice_missing_data test_external_sharing_no_listener test_livereplay test_live_stream_smoke test_scene_tool_diagnostics
 		test_startup_launch_contract test_case_chooser_contract test_scene_drop test_output_folder
 		test_native_startup_without_legacy test_runtime_memory_safety test_simulation_determinism test_station_departure
-		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke test_lebanon_scene_smoke
+		test_gui_autostart_smoke test_close_during_run_smoke test_csv_export_smoke
 		test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract test_package_contents_smoke test_headless_scene_smoke
 		test_scene_render_smoke test_track_preview_smoke test_legacy_import_smoke test_route_diagram_smoke ${egtrain_visual_polish_smokes}
 		test_scene_version_run_main-82.1 test_scene_version_run_production-107.1 test_scene_version_run_v1.0.2 test_scene_version_run_main-81.1

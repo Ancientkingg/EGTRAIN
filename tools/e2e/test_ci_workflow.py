@@ -373,8 +373,6 @@ def main() -> None:
         missing.append("leak check logs uploaded after a failure")
     if "set_tests_properties(test_gui_autostart_smoke PROPERTIES TIMEOUT 420)" not in cmake:
         missing.append("GUI smoke CTest timeout")
-    if "set_tests_properties(test_lebanon_scene_smoke PROPERTIES TIMEOUT 360)" not in cmake:
-        missing.append("Lebanon smoke CTest timeout")
     if "set_tests_properties(test_package_contents_smoke PROPERTIES TIMEOUT 420)" not in cmake:
         missing.append("package smoke CTest timeout")
     if "DEFAULT_HORIZON = 200" not in gui_smoke:
@@ -546,20 +544,19 @@ def main() -> None:
     macos_package_verification = step_block(job_block(package_only, "package-macos"), "Verify the packaged app")
     required_macos_validation = (
         "set +e",
-        'validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1)"',
+        'validation_output="$("$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1)"',
         "validation_status=$?",
         "set -e",
         '[ "$validation_status" -eq 0 ]',
     )
     if (
         any(check not in macos_package_verification for check in required_macos_validation)
-        or '"$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Lebanon" 2>&1 | grep' in macos_package_verification
+        or '"$APP/Contents/MacOS/scene_tool" validate "$APP/Contents/Resources/Scenes/Paimpol" 2>&1 | grep' in macos_package_verification
     ):
         missing.append("macOS scene validation status handling")
     required_macos_package_checks = (
         'APP="$PWD/build/QEGTRAIN.app"',
         'test -x "$APP/Contents/MacOS/scene_tool"',
-        'test -f "$APP/Contents/Resources/lebanon-case-study.md"',
         'test -d "$APP/Contents/Resources/Scenes/Paimpol"',
         'RUN_DIR="$RUNNER_TEMP/qegtrain-paimpol"',
         'rm -rf "$RUN_DIR"',
@@ -588,7 +585,6 @@ def main() -> None:
         "Copenhagen",
         "Milano_Brescia",
         "Assignment_Gvc_Gdg_Ut",
-        "Lebanon",
         "Amsterdam_Hilversum_Student",
     )
     if any(f"            {name}\n" not in release_workflow for name in scene_names) or any(
@@ -599,7 +595,7 @@ def main() -> None:
             "name: EGTRAIN-scenes",
         )
     ):
-        missing.append("seven deterministic release scene bundles")
+        missing.append("six deterministic release scene bundles")
     # The macOS package job packs the bundles that the release script reads, and the release job publishes every file
     # that the script wrote, failing when the glob matches none.
     scene_bundle_step = step_block(job_block(package_only, "package-macos"), "Generate scene bundles")
@@ -613,8 +609,8 @@ def main() -> None:
         or "          fail_on_unmatched_files: true\n" not in prepare_step
     ):
         missing.append("release published from the files of the output directory, failing when none matches")
-    if "python3 tools/e2e/headless_smoke.py 1 2 3 4 5 6 7" not in release_workflow:
-        missing.append("production headless smoke of all seven canonical scenes")
+    if "python3 tools/e2e/headless_smoke.py 1 2 3 4 5 7" not in release_workflow:
+        missing.append("production headless smoke of all six canonical scenes")
     if '"$APP/Contents/Frameworks/QtNetwork.framework"' not in release_workflow:
         missing.append("macOS Qt Network package verification")
     if '"Qt5Network.dll"' not in release_workflow:
@@ -1414,13 +1410,13 @@ def main() -> None:
     # The application loads no QML, WebP or TIFF file and takes keyboard input from the system. The macOS package job removes
     # the virtual keyboard plugin with the Quick and QML frameworks and the WebP and TIFF plugins with their libraries after
     # macdeployqt and before the signature, fails when one of them is in the app, and starts a copy of the app. The
-    # app holds scene_tool and the Lebanon guide, and the disk image is built from it after the one signature.
+    # app holds scene_tool and the licence files, and the disk image is built from it after the one signature.
     macos_job = job_block(package_only, "package-macos")
     macos_steps = (
         "Test the notarization script",
         "Test the build path script",
         "Bundle Qt and dependencies into the app",
-        "Add scene_tool and the Lebanon guide to the app",
+        "Add scene_tool and the licence files to the app",
         "Remove unused Qt modules and plugins",
         "Remove build machine paths",
         "Set the minimum macOS version",
@@ -1513,14 +1509,14 @@ def main() -> None:
         or not 0 <= macos_job.find("uses: actions/setup-python@v5") < macos_job.find("name: Start the package")
     ):
         missing.append("macOS package start of a copy under RUNNER_TEMP with Python set up")
-    # scene_tool and the guide go into the app before the signature, which seals them, and not into a folder beside it. The
+    # scene_tool and the licence files go into the app before the signature, which seals them, and not into a folder beside it. The
     # app is built for macOS 26 and says so in its property list, in the same step order.
-    add_step = step_block(macos_job, "Add scene_tool and the Lebanon guide to the app")
+    add_step = step_block(macos_job, "Add scene_tool and the licence files to the app")
     if (
         '          cp build/scene_tool "$APP/Contents/MacOS/scene_tool"\n' not in add_step
-        or '          cp docs/guides/lebanon-case-study.md "$APP/Contents/Resources/lebanon-case-study.md"\n' not in add_step
+        or '          cp LICENSE THIRD_PARTY_NOTICES.md "$APP/Contents/Resources/"\n' not in add_step
     ):
-        missing.append("macOS package step that copies scene_tool and the Lebanon guide into the app")
+        missing.append("macOS package step that copies scene_tool and the licence files into the app")
     if "          -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0\n" not in step_block(macos_job, "Configure"):
         missing.append("macOS package configure for the deployment target macOS 26")
     minimum_step = step_block(macos_job, "Set the minimum macOS version")
@@ -1532,7 +1528,7 @@ def main() -> None:
     # The image is the macOS package and the only macOS artifact. The script builds it after every step that runs or changes
     # the app, and no step after it uses build/QEGTRAIN.app: the image is mounted read-only and detached on every path, and
     # the app is checked as the copy that ditto takes out of it.
-    if "zip" in macos_job.lower() or "build/dist" in macos_job or "QEGTRAIN-Lebanon" in release_workflow:
+    if "zip" in macos_job.lower() or "build/dist" in macos_job:
         missing.append("macOS package without a folder of the presentation package and without an archive")
     image_step = step_block(macos_job, "Build the disk image")
     if not image_step.strip().endswith('run: python3 tools/release/make_dmg.py --version "${{ inputs.version }}" --app build/QEGTRAIN.app --output build/dmg --layout'):
@@ -1587,8 +1583,8 @@ def main() -> None:
         missing.append("macOS disk image check of the .egscene document type and its type declaration in the property list of the mounted app")
     if any(
         f'test -x "$COPY/QEGTRAIN.app/Contents/MacOS/{program}"\n' not in image_verify for program in ("QEGTRAIN", "egtrain_update_helper", "scene_tool")
-    ) or 'test -f "$COPY/QEGTRAIN.app/Contents/Resources/lebanon-case-study.md"\n' not in image_verify:
-        missing.append("macOS disk image check of the programs and the guide in the copy of the app")
+    ):
+        missing.append("macOS disk image check of the programs in the copy of the app")
     if step_block(macos_job, "Upload artifact") != (
         "name: Upload artifact\n"
         "        uses: actions/upload-artifact@v4\n"

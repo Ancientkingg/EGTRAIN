@@ -12,11 +12,11 @@ artifact name, one directory per artifact:
   EGTRAIN-windows-x64-installer/EGTRAIN-Setup-X.Y.Z-x64.exe
   QEGTRAIN-macos-arm64/EGTRAIN-X.Y.Z-macOS-arm64.dmg
   QEGTRAIN-linux-x86_64/QEGTRAIN-linux-x86_64.AppImage
-  EGTRAIN-scenes/                                     the seven .egscene files
+  EGTRAIN-scenes/                                     the six .egscene files
 
 Other directories there are ignored. --output must not exist or must be an empty
 directory. The script writes only there, and the directory holds exactly the files
-of a release afterwards: the four packages, the seven scene bundles and
+of a release afterwards: the four packages, the six scene bundles and
 update-manifest.json. The packages and the bundles are copies.
 
 The portable archive is written by the second form, which the Windows finalize job
@@ -69,7 +69,6 @@ SCENES = (
     "Copenhagen",
     "Milano_Brescia",
     "Assignment_Gvc_Gdg_Ut",
-    "Lebanon",
     "Amsterdam_Hilversum_Student",
 )
 SCENE_SUFFIX = ".egscene"

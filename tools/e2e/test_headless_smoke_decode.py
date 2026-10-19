@@ -23,7 +23,6 @@ from headless_smoke import (
     run_command,
     scene_output_dir,
     services_not_ended,
-    unreached_stops,
 )
 
 
@@ -220,17 +219,6 @@ def main() -> None:
         errors = services_not_ended(judged_none, ended, 8000)
         if errors != ["no train reached its last stop with time to spare"]:
             raise SystemExit(f"a run without a judged train was reported as {errors}")
-
-    stations = ["A", "B"]
-    for sample, expected in (
-        (timetable_sample(("T-1", stations, [100, 200], [160, 200])), []),
-        (timetable_sample(("T-1", stations, [100, NO_ARRIVAL], [160, NO_ARRIVAL])), ["T-1 did not reach B"]),
-        (timetable_sample(("T-1", stations, [100], [160])), ["T-1 has 1 arrival times for 2 stations"]),
-        ("", ["no train has timetable points"]),
-    ):
-        errors = unreached_stops(sample)
-        if errors != expected:
-            raise SystemExit(f"unreached stops of {sample!r} were {errors}, expected {expected}")
 
     # BlockingTimes.txt holds six lines per train. One record is one section id.
     def blocking_sample(*sections: list[str]) -> str:

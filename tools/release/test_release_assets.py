@@ -18,7 +18,7 @@ import build_release_assets
 import make_dmg
 
 SCRIPT = Path(__file__).resolve().with_name("build_release_assets.py")
-SCENES = ("Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut", "Lebanon",
+SCENES = ("Netherlands", "Paimpol", "Copenhagen", "Milano_Brescia", "Assignment_Gvc_Gdg_Ut",
           "Amsterdam_Hilversum_Student")
 MACOS, LINUX = "EGTRAIN-1.2.3-macOS-arm64.dmg", "QEGTRAIN-linux-x86_64.AppImage"
 PORTABLE, INSTALLER = "EGTRAIN-Portable-1.2.3-x64.zip", "EGTRAIN-Setup-1.2.3-x64.exe"
@@ -189,10 +189,10 @@ class ReleaseAssetsTests(unittest.TestCase):
         write(self.linux.with_name("notes.txt"), b"x")
         self.assertRejected("unexpected notes.txt")
 
-    def test_scene_set_must_be_exactly_the_seven(self):
-        (self.scenes / "Lebanon.egscene").unlink()
-        self.assertRejected("missing file " + str(self.scenes / "Lebanon.egscene"))
-        write(self.scenes / "Lebanon.egscene", b"x")
+    def test_scene_set_must_be_exactly_the_six(self):
+        (self.scenes / "Paimpol.egscene").unlink()
+        self.assertRejected("missing file " + str(self.scenes / "Paimpol.egscene"))
+        write(self.scenes / "Paimpol.egscene", b"x")
         write(self.scenes / "Extra.egscene", b"x")
         self.assertRejected("unexpected Extra.egscene")
 
@@ -299,7 +299,7 @@ class ReleaseAssetsTests(unittest.TestCase):
             cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stdout)
         lines = result.stdout.splitlines()
-        self.assertTrue(lines[-1].startswith("OK: 12 release assets"), lines[-1])
+        self.assertTrue(lines[-1].startswith("OK: 11 release assets"), lines[-1])
         self.assertEqual(len(lines), len(EXPECTED_NAMES) + 1)
         self.assertIsNone(re.search(r"[0-9a-f]{64}", result.stdout))
 

@@ -314,7 +314,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/leak-check"
           ctest --test-dir build --parallel 2 --no-tests=error --output-on-failure \
             --output-log "$RUNNER_TEMP/leak-check/ctest-reload.log" \
-            -R '^(characterization_repeatable|characterization_repeat_paimpol|characterization_repeat_lebanon_milano|characterization_repeat_netherlands)$'
+            -R '^(characterization_repeatable|characterization_repeat_paimpol|characterization_repeat_milano_paimpol|characterization_repeat_netherlands)$'
 
       # The canvas is drawn, filled with the steps of a run and of its replay, and cleared again and again in one process.
       - name: Rebuild the canvas in one process

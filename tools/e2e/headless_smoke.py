@@ -17,7 +17,6 @@ SCENES = {
     3: "Copenhagen",
     4: "Milano_Brescia",
     5: "Assignment_Gvc_Gdg_Ut",
-    6: "Lebanon",
     7: "Amsterdam_Hilversum_Student",
 }
 
@@ -25,10 +24,8 @@ ASSERT_MOVEMENT = {1, 2, 3, 4, 5, 7}
 # The Netherlands scene has no planned arrival at any stop, so no station has an arrival delay.
 ASSERT_STATION_ARRIVALS = {2, 3, 4, 5, 7}
 ASSERT_NO_STATION_DELAYS = {1}
-# Cases whose trains all reach every stop of their route within the run.
-ASSERT_EVERY_STOP_REACHED = {6}
 # Cases whose committed scene gives every route section a signalling level.
-SIGNALLING_COVERED = {1, 2, 3, 4, 5, 6, 7}
+SIGNALLING_COVERED = {1, 2, 3, 4, 5, 7}
 # Cases whose services end at their last stop: the train leaves the network after its dwell there.
 ASSERT_SERVICES_END = {1}
 # A train that reaches its last stop this long before the end of the run has left the network by the end. In the
@@ -227,26 +224,6 @@ def occurrence_errors(timetable_text: str, duration_seconds: float, service_id: 
         if earlier_arrival is not None and not arrival > earlier_arrival:
             errors.append(f"{train} arrives at Hvs at {arrival}, not after the arrival {earlier_arrival} of the run before")
         previous_arrival = arrival
-    return errors
-
-
-def unreached_stops(timetable_text: str) -> list[str]:
-    """Name every stop that a train did not reach.
-
-    TimetablePoints.txt holds six lines per train: the train and its type, the
-    station ids, two position lines, the arrival times and the departure times.
-    A stop that was not reached has the arrival NO_ARRIVAL.
-    """
-    lines = timetable_text.splitlines()
-    if len(lines) < 6:
-        return ["no train has timetable points"]
-    errors = []
-    for index in range(0, len(lines) - 5, 6):
-        train = lines[index].split()[0]
-        stations, arrivals = lines[index + 1].split(), lines[index + 4].split()
-        if len(arrivals) != len(stations):
-            errors.append(f"{train} has {len(arrivals)} arrival times for {len(stations)} stations")
-        errors += [f"{train} did not reach {station}" for station, arrival in zip(stations, arrivals) if float(arrival) == NO_ARRIVAL]
     return errors
 
 
@@ -526,14 +503,6 @@ def check_amsterdam_hilversum_occurrences(case_id: int, out_base: Path = RUN_DIR
     print(f"PASS case {case_id} all {count} occurrences of {service['id']} reach Hvs in order")
 
 
-def check_every_stop_reached(case_id: int, out_base: Path = RUN_DIR) -> None:
-    timetable = scene_output_dir(case_id, out_base) / "TrainTrajectories/TimetablePoints.txt"
-    errors = unreached_stops(timetable.read_text(encoding="utf-8", errors="replace"))
-    if errors:
-        raise SystemExit(f"case {case_id} did not reach every stop: " + "; ".join(errors))
-    print(f"PASS case {case_id} reaches every stop of its route")
-
-
 def check_services_end_at_last_stop(case_id: int, out_base: Path = RUN_DIR) -> None:
     """Every train that reached its last stop in time leaves it and then the network."""
     scene_dir = SCENE_DIR / SCENES[case_id]
@@ -620,7 +589,7 @@ def check_original_case_runtime(case_id: int, out_base: Path = RUN_DIR) -> None:
 
 
 def main() -> None:
-    selected = [int(arg) for arg in sys.argv[1:]] or [1, 2, 3, 4, 5, 6, 7]
+    selected = [int(arg) for arg in sys.argv[1:]] or list(SCENES)
     for case_id in selected:
         if case_id in ORIGINAL_CASE_PARITY:
             check_scene_structure(case_id)
@@ -631,8 +600,6 @@ def main() -> None:
         if case_id in ASSERT_MOVEMENT:
             check_movement(case_id)
         check_no_position_jump(case_id)
-        if case_id in ASSERT_EVERY_STOP_REACHED:
-            check_every_stop_reached(case_id)
         if case_id == 7:
             check_amsterdam_hilversum_occurrences(case_id)
         if case_id in ASSERT_SERVICES_END:

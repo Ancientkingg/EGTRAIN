@@ -31,7 +31,7 @@ The loaded network of Milano_Brescia in the main window before a run.
 - **Open a case study.** Double-click an `.egscene` file in Finder to open it in EGTRAIN, or Control-click it and choose **Open With** and `QEGTRAIN`. When EGTRAIN is open, the file opens in its window. [Open by double-click](docs/guides/opening-a-case-study.md#open-by-double-click) has the details.
 - **Update.** For a copy outside the image, **Help > Check for Updates...** offers **Update and Restart** when a newer release exists.
 - **Remove.** Quit EGTRAIN and drag `QEGTRAIN.app` to the Trash. Your case studies, your exported files and the settings of EGTRAIN stay.
-- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes`, the Lebanon guide is `Contents/Resources/lebanon-case-study.md` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](docs/guides/command-line.md)). The image shows no other file.
+- **Inside the app.** The case studies are in `QEGTRAIN.app/Contents/Resources/Scenes` and the command-line tool is `Contents/MacOS/scene_tool` (see [Command-line options and scene_tool](docs/guides/command-line.md)). The image shows no other file.
 
 ### Windows installer and portable archive
 
@@ -64,7 +64,6 @@ The Speed / distance result window of Milano_Brescia (baseline, 47 trains) after
 | Copenhagen | `Copenhagen.egscene` | 168 | 94 | 24 | Copenhagen, Denmark. |
 | Milano_Brescia | `Milano_Brescia.egscene` | 38 | 29 | 62 | Milan to Brescia, Italy. The gradients are stored as rise per length; their unit was inferred as per mille and their source is not recorded. |
 | Assignment Gvc-Gdg-Ut | `Assignment_Gvc_Gdg_Ut.egscene` | 2 | 3 | 4 | Synthetic two-track fixture, not a distributable TU Delft case. |
-| Lebanon | `Lebanon.egscene` | 8 | 34 | 1 | Teaching baseline; the train parameters are not Lebanon rolling-stock data. The gradients are stored as rise per length; their unit was inferred as per mille and their source is not recorded. |
 | Amsterdam_Hilversum_Student | `Amsterdam_Hilversum_Student.egscene` | 268 | 41 | 1 | Fictional teaching timetable on the Netherlands network, added after release v1.0.2. See the [student case guide](docs/guides/amsterdam-hilversum-student-case.md). |
 
 The counts are the numbers of entries in `infrastructure.json` (tracks), `stations.json` (stations) and `services.json` (services), so they can differ from the number of trains in a result window. The scene folders are in `EGTRAIN/QEGTRAIN/Scenes` in the repository and inside the application packages.

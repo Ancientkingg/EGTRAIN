@@ -6,8 +6,8 @@
 #   color              a copy of Copenhagen in which the first service has a colour
 #   dpr2               the live run of Copenhagen at a device pixel ratio of 2
 #   completion         the Assignment run to its end: the replay row and the Follow checks of the replay
-#   replay             the whole-run replay of Lebanon, Assignment, Paimpol, Milano_Brescia and Netherlands
-#   replay-copenhagen  the whole-run replay of Copenhagen, which takes as long as the other five scenes together
+#   replay             the whole-run replay of Assignment, Paimpol, Milano_Brescia and Netherlands
+#   replay-copenhagen  the whole-run replay of Copenhagen, which takes as long as the other four scenes together
 #   signals            the signal heads
 #   discard            the preview legend after a discarded run
 #   stations           the station overlays
@@ -223,7 +223,7 @@ phase_completion() {
 }
 
 # A committed scene run to its end keeps every frame, however large it is: the replay row covers the
-# whole run. The scenes go from Lebanon, with the smallest frames, to Copenhagen, with the largest.
+# whole run. Copenhagen, with the largest frames, runs in a phase of its own.
 replay_whole_run() {
 	local scene whole_out
 	for scene in "$@"; do
@@ -241,7 +241,7 @@ replay_whole_run() {
 }
 
 phase_replay() {
-	replay_whole_run Lebanon Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands
+	replay_whole_run Assignment_Gvc_Gdg_Ut Paimpol Milano_Brescia Netherlands
 }
 
 phase_replay_copenhagen() {
@@ -285,9 +285,9 @@ PY
 	QEGTRAIN_E2E_PAUSE_STEPS=100,300,500 \
 		"$APP" --scene "$SCENE_ROOT/Paimpol" -h 1200 -g 1 -pax 0 -TSM 0 -RC 0 >"$signal_heads_out" 2>&1
 	grep -q "E2E_SIGNAL_HEADS_OK mode=levels" "$signal_heads_out"
-	# Assignment and Lebanon have a level 0 area and heads that no route reaches. A
+	# Assignment has a level 0 area and heads that no route reaches. A
 	# scene without any signalling area is the "none" copy of the line fixture above.
-	for signal_case in Assignment_Gvc_Gdg_Ut:any Lebanon:any; do
+	for signal_case in Assignment_Gvc_Gdg_Ut:any; do
 		QT_QPA_PLATFORM=offscreen \
 		QEGTRAIN_AUTOSTART=1 \
 		QEGTRAIN_E2E_SIGNAL_HEADS="${signal_case#*:}" \
@@ -309,9 +309,9 @@ phase_discard() {
 }
 
 phase_stations() {
-	local scene_names=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut Lebanon)
+	local scene_names=(Netherlands Paimpol Copenhagen Milano_Brescia Assignment_Gvc_Gdg_Ut)
 	local case scene_name scene_path station_out shot_base
-	for case in 1 2 3 4 5 6; do
+	for case in 1 2 3 4 5; do
 		scene_name="${scene_names[$((case - 1))]}"
 		scene_path="$SCENE_ROOT/$scene_name"
 		station_out="${STATION_OUT_BASE}-${case}.log"
