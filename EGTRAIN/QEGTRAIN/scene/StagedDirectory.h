@@ -10,9 +10,9 @@
 // A scene directory is filled in a private directory next to its destination and then renamed into place, so that a
 // failure leaves the previous scene as it was. The functions here are shared by the scene writer and the legacy importer.
 
-// A directory that is removed when the object goes out of scope. release() keeps it, for a caller that has renamed it.
+/// A directory that is removed when the object goes out of scope. release() keeps it, for a caller that has renamed it.
 struct StagedDirectory {
-	std::filesystem::path path;
+	std::filesystem::path path; ///< The directory; empty when there is none or after release().
 
 	StagedDirectory() = default;
 	StagedDirectory(const StagedDirectory&) = delete;
@@ -25,12 +25,12 @@ struct StagedDirectory {
 		std::filesystem::remove_all(path, ec);
 	}
 
-	void release() { path.clear(); }
+	void release() { path.clear(); } ///< Keeps the directory: the destructor no longer removes it.
 };
 
-// Finds a name that is free in parent: the prefix (UTF-8), a time stamp and an attempt number. A name that is a dangling
-// symlink is taken. Fails with file_exists when 100 names are taken, and with the error of the filesystem when it cannot
-// tell.
+/// Finds a name that is free in parent: the prefix (UTF-8), a time stamp and an attempt number. A name that is a dangling
+/// symlink is taken. Fails with file_exists when 100 names are taken, and with the error of the filesystem when it cannot
+/// tell.
 inline std::error_code uniqueSiblingPath(const std::filesystem::path& parent, const std::string& prefix,
 	std::filesystem::path& result) {
 	std::error_code ec;
@@ -53,9 +53,9 @@ inline std::error_code uniqueSiblingPath(const std::filesystem::path& parent, co
 	return std::make_error_code(std::errc::file_exists);
 }
 
-// Creates an empty directory in parent, named like uniqueSiblingPath names a path, and sets staged.path to it. With
-// ownerOnly the directory is limited to its owner. The staged directory becomes the published scene directory, so its
-// mode is part of the result: the writer asks for owner-only, the importer keeps the default mode.
+/// Creates an empty directory in parent, named like uniqueSiblingPath names a path, and sets staged.path to it. With
+/// ownerOnly the directory is limited to its owner. The staged directory becomes the published scene directory, so its
+/// mode is part of the result: the writer asks for owner-only, the importer keeps the default mode.
 inline std::error_code createStagedDirectory(const std::filesystem::path& parent, const std::string& prefix,
 	bool ownerOnly, StagedDirectory& staged) {
 	std::error_code ec;
@@ -83,26 +83,26 @@ inline std::error_code createStagedDirectory(const std::filesystem::path& parent
 	return std::make_error_code(std::errc::file_exists);
 }
 
-// The step of publishStagedDirectory that failed, or Published.
+/// The step of publishStagedDirectory that failed, or Published.
 enum class StagedPublishStep {
-	Published,
-	MoveToBackup,
-	Rename
+	Published,	  ///< The directory was renamed into place.
+	MoveToBackup, ///< Moving the old destination to the backup name failed.
+	Rename		  ///< Renaming the staged directory to the destination failed.
 };
 
-// error is the error of the step that failed. restoreError is set when Rename failed and the old destination could not
-// be moved back. removeBackupError is set when the directory was published and the backup could not be removed.
+/// error is the error of the step that failed. restoreError is set when Rename failed and the old destination could not
+/// be moved back. removeBackupError is set when the directory was published and the backup could not be removed.
 struct StagedPublishResult {
-	StagedPublishStep step = StagedPublishStep::Published;
-	std::error_code error{};
-	std::error_code restoreError{};
-	std::error_code removeBackupError{};
+	StagedPublishStep step = StagedPublishStep::Published; ///< The step that failed, or Published.
+	std::error_code error{};							   ///< The error of that step.
+	std::error_code restoreError{};						   ///< The error of moving the old destination back.
+	std::error_code removeBackupError{};				   ///< The error of removing the backup.
 };
 
-// Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from
-// uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old
-// destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or
-// Rename staged still owns its directory, so the caller can just return and let the destructor remove it.
+/// Renames staged.path to destination. backup is empty when there is no destination, otherwise a free name from
+/// uniqueSiblingPath. A rename of a directory over an existing directory fails on Windows, which is why the old
+/// destination is moved aside first and moved back when the rename into place fails. When the step is MoveToBackup or
+/// Rename staged still owns its directory, so the caller can just return and let the destructor remove it.
 inline StagedPublishResult publishStagedDirectory(StagedDirectory& staged, const std::filesystem::path& destination,
 	const std::filesystem::path& backup) {
 	StagedPublishResult result;
