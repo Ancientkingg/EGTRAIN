@@ -7,14 +7,14 @@ application itself from `EGTRAIN/QEGTRAIN` so relative scene paths resolve.
 
 - CMake 3.16 or newer
 - C++17 compiler
-- Qt 5 Core, Gui, Widgets, Charts, and Svg
+- Qt 5.15 Core, Gui, Widgets, Charts, and Svg
 - ZeroMQ, cppzmq, and nlohmann-json
 - Python 3.9 or newer, found by `find_package(Python3)` at configure time;
   CTest runs its Python tests with that interpreter. On Windows, set
   `PYTHONUTF8=1` for local runs so scripts read program output as UTF-8.
 
-`Qt5::Svg` is required by the application and must be available with the
-other Qt 5 modules.
+Qt Svg is required by the application and must be available with the
+other Qt modules.
 
 Supported toolchains, as used by CI:
 
@@ -61,6 +61,14 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
   -DVCPKG_TARGET_TRIPLET=x64-windows `
   -DCMAKE_PREFIX_PATH="C:/Qt/5.15.2/msvc2019_64"
 ```
+
+CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
+one CI uses. CMake searches a folder in `CMAKE_PREFIX_PATH` before the system folders, so the examples
+above use Qt 5 even when Qt 6 is installed elsewhere. The sources do not compile with Qt 6 yet. To try Qt
+6, configure a separate build folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example
+`~/Qt/6.8.3/macos`. When one prefix holds both versions, such as `/usr` on Ubuntu, add
+`-DQT_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5` to choose Qt 5. `QT_DIR` in `build/CMakeCache.txt` shows
+which Qt a build folder uses.
 
 The Visual Studio generator is multi-config: choose the configuration when
 building and testing, as in the next two sections.
@@ -225,14 +233,14 @@ directory; EGTRAIN then writes `<override>/Output/<scene>`.
 ## Common setup failures
 
 Configure and build problems that have come up, with the text CMake or the tool prints. The wording
-of CMake and CTest messages varies with the CMake version. The Qt5 message, the wrong-source-directory
+of CMake and CTest messages varies with the CMake version. The Qt message, the wrong-source-directory
 message, `No tests were found!!!` and the missing-target error were reproduced on macOS. The other
 rows were checked against `CMakeLists.txt` and the scripts but not run, and the Windows rows were not
 run on Windows.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Could not find a package configuration file provided by "Qt5"`, or on macOS `The imported target "Qt5::Core" references the file ... but this file does not exist` | CMake does not look in the folder of Qt 5. Homebrew `qt@5` is not on the default search path | Add `-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5` (the Qt 5.15 `msvc2019_64` folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
+| `Could not find a package configuration file provided by "QT"`, or on macOS `The imported target "Qt5::Core" references the file ... but this file does not exist` | CMake does not look in the folder of Qt 5. Homebrew `qt@5` is not on the default search path | Add `-DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5` (the Qt 5.15 `msvc2019_64` folder on Windows). CMake keeps the Qt it found first, so after a wrong first configure delete the `build` folder and configure again |
 | `Could not find a package configuration file provided by "Qt5Charts"` (or `Qt5Svg`) | The module is not installed | `libqt5charts5-dev libqt5svg5-dev` on Ubuntu; the `qtcharts` module of the Qt installer on Windows |
 | `Could not find a package configuration file provided by "cppzmq"` or `"nlohmann_json"` | The package is not installed, or on Windows vcpkg is not given to CMake | Install it as in [Configure](#configure). On Windows pass `CMAKE_TOOLCHAIN_FILE` and `VCPKG_TARGET_TRIPLET=x64-windows` |
 | `Could NOT find Python3` | No Python 3.9 or newer was found: it is missing from `PATH`, or the one found is older (CMake then names the version it found). Only a configure with `-DEGTRAIN_BUILD_TESTS=ON` looks for it | Install Python 3.9 or newer, or pass `-DPython3_EXECUTABLE=<path>` |

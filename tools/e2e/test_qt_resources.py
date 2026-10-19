@@ -57,10 +57,10 @@ def main() -> None:
     if not any(f'":/{alias}"' in source_text for alias in ENTITY_ASSETS):
         raise SystemExit("application and graphics source do not reference an SVG resource")
 
-    if not re.search(r"find_package\(Qt5 REQUIRED COMPONENTS [^)]*\bSvg\b", cmake):
-        raise SystemExit("CMake does not require Qt5 Svg")
-    if "Qt5::Svg" not in cmake:
-        raise SystemExit("CMake does not link Qt5::Svg")
+    if not re.search(r"find_package\(Qt\$\{QT_VERSION_MAJOR\} REQUIRED COMPONENTS [^)]*\bSvg\b", cmake):
+        raise SystemExit("CMake does not require Qt Svg")
+    if "Qt::Svg" not in cmake:
+        raise SystemExit("CMake does not link Qt::Svg")
 
     release = release_pipeline_text()
     if re.search(r"^\s*modules:.*\bqtsvg\b", release, re.MULTILINE):
