@@ -97,7 +97,8 @@ def expected_review(scene: Path) -> tuple:
               "Incidents": len(scenario["incidents"])}
     start = datetime.strptime(manifest["base_time"], "%H:%M:%S")
     summary = {"Selected in period": str(in_period), "Start clock": start.strftime("%H:%M:%S"),
-               "Duration": f"{duration:g} s elapsed (ends near {(start + timedelta(seconds=duration)):%H:%M:%S})",
+               "Duration": f"{int(duration) // 3600}:{int(duration) % 3600 // 60:02}:{int(duration) % 60:02}"
+                           f" (ends near {(start + timedelta(seconds=duration)):%H:%M:%S})",
                "Active incidents": str(counts["Incidents"])}
     details = {"Case study": manifest["name"], "Scenario": scenario["id"],
                **{label: str(value) for label, value in counts.items()},

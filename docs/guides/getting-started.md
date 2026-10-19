@@ -58,7 +58,7 @@ To see the findings, choose **View > Scene Validation** (Ctrl+Shift+V). The tabl
 ## 4. Run the simulation
 
 1. Click **Run** in the toolbar, or choose **Simulation > Run** (Ctrl+R) or **File > Run Scene**. The three do the same.
-2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Selected in period** (2: both services enter during the run), **Start clock** (07:10:40), **Duration** (9000 s elapsed, ending near 09:40:40) and **Active incidents** (0). It says `Ready to run.` when nothing needs your attention. **Run details** shows more.
+2. The dialog **Run simulation** reviews the run before it starts. Under the name of the case and the scenario (`Paimpol / baseline`) it shows **Selected in period** (2: both services enter during the run), **Start clock** (07:10:40), **Duration** (2:30:00, ending near 09:40:40) and **Active incidents** (0). It says `Ready to run.` when nothing needs your attention. **Run details** shows more.
 
    ![The Run simulation dialog for Paimpol / baseline: 2 selected in period, start clock 07:10:40, duration 9000 s, 0 active incidents and the message Ready to run, with Cancel and Run simulation buttons.](../images/guide-run-simulation.png)
 3. Click **Run simulation**. **Cancel** returns to the window without a run.
@@ -80,7 +80,7 @@ The **Replay** row has **Start**, **Play**, **End**, a slider and a label such a
 
 ## 6. Read the results
 
-The dock **Run Results** names the run in its title and in the line at its top, for example `Run: Paimpol / baseline | Occurrences: 2/2 selected | Status: Completed`. When some ticked occurrences enter outside the run period, the line also gives the number inside it, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
+The dock **Run Results** names the run in its title and in the lines at its top, for example `Run: Paimpol / baseline`, `Occurrences: 2/2 selected` and `Status: Completed`. When some ticked occurrences enter outside the run period, the line `Occurrences` also gives the number inside it, as in `Occurrences: 196/196 selected, 185 in the run period`; that number is the **Selected in period** of the dialog **Run simulation**. Its table has one row for each train and a last row, **Network total**. The trains of Paimpol are `Guin-Paim-ALL-STOPS-1-1` and `Guin-Paim-EXPRESS-1-1`. The columns are **Train**, **Operating code**, **Performance (%)**, **Maximum speed (km/h)**, **Start time (hh:mm:ss)**, **End time (hh:mm:ss)**, **Travel time (h:mm:ss)** and four energy columns in kWh.
 
 To open a result window, click **Open result view...** in the dock and choose an entry, or use the menu **Diagrams**. Two to try first:
 

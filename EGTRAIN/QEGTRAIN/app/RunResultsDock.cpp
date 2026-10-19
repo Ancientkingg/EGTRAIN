@@ -173,14 +173,8 @@ void RunResultsDock::refresh() {
 			? QString::fromStdString(formatSimTime(static_cast<long long>(value.value), run->settings.startOffsetSeconds))
 			: QStringLiteral("-");
 	};
-	const auto durationText = [](const RunResultValue& value) {
-		if (!value.available)
-			return QStringLiteral("-");
-		const long long total = static_cast<long long>(value.value);
-		return QString("%1:%2:%3")
-			.arg(total / 3600)
-			.arg((total % 3600) / 60, 2, 10, QChar('0'))
-			.arg(total % 60, 2, 10, QChar('0'));
+	const auto runDurationText = [](const RunResultValue& value) {
+		return value.available ? durationText(static_cast<long long>(value.value)) : QStringLiteral("-");
 	};
 	const auto energyText = [](const RunResultValue& value) {
 		return value.available ? QString::number(value.value, 'f', 1) : QStringLiteral("-");
@@ -195,7 +189,7 @@ void RunResultsDock::refresh() {
 			new QTableWidgetItem(QString::number(result.appliedMaximumSpeedKmh, 'f', 1)));
 		m_table->setItem(row, 4, new QTableWidgetItem(clockText(result.startSeconds)));
 		m_table->setItem(row, 5, new QTableWidgetItem(clockText(result.endSeconds)));
-		m_table->setItem(row, 6, new QTableWidgetItem(durationText(result.travelSeconds)));
+		m_table->setItem(row, 6, new QTableWidgetItem(runDurationText(result.travelSeconds)));
 		m_table->setItem(row, 7, new QTableWidgetItem(energyText(result.energyConsumedKWh)));
 		m_table->setItem(row, 8, new QTableWidgetItem(energyText(result.energyWithRegenKWh)));
 		m_table->setItem(row, 9, new QTableWidgetItem(energyText(result.substationKWh)));
@@ -209,7 +203,7 @@ void RunResultsDock::refresh() {
 	m_table->setItem(totalRow, 3, new QTableWidgetItem(QStringLiteral("-")));
 	m_table->setItem(totalRow, 4, new QTableWidgetItem(clockText(results.networkStartSeconds)));
 	m_table->setItem(totalRow, 5, new QTableWidgetItem(clockText(results.networkEndSeconds)));
-	m_table->setItem(totalRow, 6, new QTableWidgetItem(durationText(results.networkTravelSeconds)));
+	m_table->setItem(totalRow, 6, new QTableWidgetItem(runDurationText(results.networkTravelSeconds)));
 	m_table->setItem(totalRow, 7, new QTableWidgetItem(energyText(results.energyConsumedKWh)));
 	m_table->setItem(totalRow, 8, new QTableWidgetItem(energyText(results.energyWithRegenKWh)));
 	m_table->setItem(totalRow, 9, new QTableWidgetItem(energyText(results.substationKWh)));
@@ -220,7 +214,7 @@ void RunResultsDock::refresh() {
 	m_dock->raise();
 	if (openingResults && !m_dock->isFloating()
 		&& m_window->dockWidgetArea(m_dock) == Qt::BottomDockWidgetArea)
-		m_window->resizeDocks({m_dock}, {m_window->height() / 2}, Qt::Vertical);
+		m_window->resizeDocks({m_dock}, {m_window->height() / 3}, Qt::Vertical);
 	m_host.runResultsRefreshed();
 }
 
@@ -232,18 +226,22 @@ void RunResultsDock::refreshSummary() {
 		if (result.destinationTerminated)
 			++destinationTerminationCount;
 	}
-	QString summary = QString("Run: %1 | Occurrences: %2 | Status: Completed")
+	QString summary = QString("Run: %1\nOccurrences: %2\nStatus: Completed")
 						  .arg(completedRunContext(m_runController->completedRun()->provenance),
 							  QString::fromStdString(runOccurrencesText(m_runController->lastRunSelectedOccurrences(),
 								  m_runController->lastRunTotalOccurrences(), m_runController->lastRunSelectedInPeriodOccurrences())));
 	if (m_host.advancedDetailsEnabled()) {
-		summary += QString(" | %1 | Destination terminations: %2")
+		summary += QString("\n%1\nDestination terminations: %2")
 					   .arg(QString::fromStdString(directIncidentEvidenceText(m_runController->completedRun()->results)))
 					   .arg(destinationTerminationCount);
 	}
 	if (const auto& baseline = m_runController->delayBaseline())
 		summary += QString("\nDelay baseline: %1").arg(completedRunContext(baseline->provenance));
 	m_summaryLabel->setText(summary);
+}
+
+QString RunResultsDock::durationText(long long seconds) {
+	return QString("%1:%2:%3").arg(seconds / 3600).arg((seconds % 3600) / 60, 2, 10, QChar('0')).arg(seconds % 60, 2, 10, QChar('0'));
 }
 
 void RunResultsDock::clear(const QString& summary, const QString& title) {
