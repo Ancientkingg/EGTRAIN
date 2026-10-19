@@ -28,7 +28,7 @@ public:
 	bool getUniformBool(void) { return getUniformInteger(0, 1); }
 	/// A uniform integer from inFirst to inLast, both included.
 	int getUniformInteger(int inFirst, int inLast);
-	/// A uniform number between inFirst and inLast that never reaches inLast.
+	/// A uniform number from inFirst up to, but not including, inLast when inLast > inFirst; inFirst when the two are equal.
 	double getUniformFloat(double inFirst = 0., double inLast = 1.0);
 	/// A normal draw with mean inMean and standard deviation inStdDev. Draws are made in pairs: every second call
 	/// returns the value kept from the call before.
