@@ -192,6 +192,16 @@ The window cannot write legacy files. `scene_tool export path/to/scene path/to/l
 
 Closing the window, **New Case Study...**, the open commands and **Load Legacy Case...** first ask for the unsaved changes question if the case has edits. They then ask the running simulation to stop. The status bar shows `Stopping simulation...` and the window stays usable. The command goes on when the run has stopped, and the current case is replaced only then, so an open that fails leaves it in place. A stopped run leaves no results.
 
+## Change the application settings
+
+**Edit > Preferences...** opens the window **Settings**. On macOS the entry is **EGTRAIN > Preferences...** (Cmd+,). The window holds the settings that apply to every case:
+
+- **General**: the recent cases that **File > Recent Scenes** and **Open a Case** offer, and **Clear Recent Cases**.
+- **Display**: **Show passengers**, the same switch as **View > Show Passengers**, and **Advanced / Developer details**, the same as the View entry.
+- **Updates and privacy**: **Automatically check for updates**, the same as the Help entry, and the two choices of **Help > Privacy & diagnostics...**. A build that collects nothing shows them disabled.
+
+**OK** saves the changes, and the menu entries show them at once. **Restore Defaults** clears the recent cases and turns every switch off; EGTRAIN then asks about automatic update checks again at the next start. It too takes effect with **OK**. The settings of the open case, such as its base time and duration, are in **Case Settings**.
+
 ## Why a command is disabled
 
 | Command | It is disabled when | What to do |

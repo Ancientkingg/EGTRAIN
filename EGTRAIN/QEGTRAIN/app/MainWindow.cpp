@@ -89,6 +89,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "widgets/FocusWheel.h"
 #include "widgets/InfoDockWidget.h"
 #include "widgets/NetworkLegendWidget.h"
+#include "widgets/SettingsDialog.h"
 #include "widgets/TimeProgressBar.h"
 #include "graphics/FollowCamera.h"
 #include "graphics/NetworkPresenter.h"
@@ -152,7 +153,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "scene/StopInsertion.h"
 #include "scene/TrackPreview.h"
 #include "simulation/Passengers.h"
+#include "telemetry/TelemetryConsent.h"
+#include "telemetry/TelemetrySender.h"
 #include "update/UpdateNotices.h"
+#include "update/UpdateSettings.h"
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QDir>
@@ -471,9 +475,33 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	if (ui->menuHelp) {
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy && diagnostics..."));
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
-		privacy->setShortcut(QKeySequence::Preferences);
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
 	}
+	// On macOS the role puts the entry in the application menu, under the name that Qt gives it.
+	auto* settingsAction = new QAction(QStringLiteral("Preferences..."), this);
+	settingsAction->setObjectName(QStringLiteral("actionSettings"));
+	settingsAction->setMenuRole(QAction::PreferencesRole);
+	settingsAction->setShortcut(QKeySequence::Preferences);
+	ui->menuEdit->addSeparator();
+	ui->menuEdit->addAction(settingsAction);
+	connect(settingsAction, &QAction::triggered, this, [this] {
+		QSettings settings;
+		TelemetryConsent consent(settings, applicationTelemetryContext());
+		SettingsDialog dialog(settings, consent, this);
+		if (dialog.exec() != QDialog::Accepted)
+			return;
+		// The menu entries take the saved values; their own handlers apply them to the window.
+		m_showPassengersAction->setChecked(savedShowPassengers());
+		m_advancedDetailsAction->setChecked(settings.value(kAdvancedDetailsKey, false).toBool());
+		if (auto* updateChecks = findChild<QAction*>(QStringLiteral("actionAutomaticallyCheckForUpdates"))) {
+			const QSignalBlocker blocker(updateChecks);
+			updateChecks->setChecked(readUpdateCheckState(settings) == UpdateCheckState::Enabled);
+		}
+		if (m_updateTelemetry->sender())
+			m_updateTelemetry->sender()->requestConsentRefresh();
+		m_session->rebuildRecentScenesMenu();
+		updateSceneActions();
+	});
 
 	EG_LOG(AppRun, Info) << "\n...PREPARING GUI...\n\n";
 

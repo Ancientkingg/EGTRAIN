@@ -425,9 +425,10 @@ egtrain_target_warnings(egtrain_dispatch)
 #   QEGTRAIN                        98 warning lines, 41 of them in app/MainWindow.cpp and the rest
 #                                   from the simulation headers, until the window is split up;
 #                                   app/main.cpp, app/UpdateTelemetryController.cpp, update/SelfUpdater.cpp,
-#                                   update/UpdateNotices.cpp and telemetry/TelemetryConsentDialog.cpp
-#                                   build here too; test_selfupdater builds SelfUpdater.cpp with the flags and
-#                                   test_updatetelemetrycontroller builds UpdateTelemetryController.cpp with them
+#                                   update/UpdateNotices.cpp, telemetry/TelemetryConsentDialog.cpp and
+#                                   widgets/SettingsDialog.cpp build here too; test_selfupdater builds SelfUpdater.cpp
+#                                   with the flags, test_updatetelemetrycontroller builds UpdateTelemetryController.cpp
+#                                   with them and test_settingsdialog builds SettingsDialog.cpp with them
 # A test executable that uses the simulation has no flags either.
 
 # --- Sources ---
@@ -444,6 +445,7 @@ set(EGTRAIN_SOURCES
     ${SRC_DIR}/telemetry/TelemetryConsentDialog.cpp
     ${SRC_DIR}/update/SelfUpdater.cpp
     ${SRC_DIR}/update/UpdateNotices.cpp
+    ${SRC_DIR}/widgets/SettingsDialog.cpp
 )
 
 set(EGTRAIN_HEADERS
@@ -1014,6 +1016,12 @@ if(EGTRAIN_BUILD_TESTS)
     target_link_libraries(test_aboutdialog PRIVATE egtrain_widgets Qt5::Core Qt5::Gui Qt5::Widgets)
     add_test(NAME test_aboutdialog COMMAND test_aboutdialog)
     set_tests_properties(test_aboutdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    # The Settings window uses the update and telemetry libraries, so it is compiled here and in the application.
+    add_executable(test_settingsdialog ${SRC_DIR}/tests/test_settingsdialog.cpp ${SRC_DIR}/widgets/SettingsDialog.cpp)
+    target_link_libraries(test_settingsdialog PRIVATE egtrain_telemetry egtrain_update Qt5::Widgets)
+    add_test(NAME test_settingsdialog COMMAND test_settingsdialog)
+    set_tests_properties(test_settingsdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
     add_executable(test_dialoglayout
         ${SRC_DIR}/tests/test_dialoglayout.cpp)
@@ -1651,7 +1659,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_delayanalysis test_delayanalysiswindow test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog
+			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog
 			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_livecommand test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
@@ -1685,7 +1693,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_check_docs docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_pathmessages test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
@@ -1710,7 +1718,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas
-		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel
+		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract

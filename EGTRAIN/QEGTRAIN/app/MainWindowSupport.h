@@ -8,6 +8,7 @@
 #include "graphics/items/SignalItem.h"
 #include "scene/TrackPreview.h"
 #include "util/CsvWriter.h"
+#include "widgets/SettingsDialog.h"
 #include <QAbstractItemModel>
 #include <QComboBox>
 #include <QList>
@@ -29,10 +30,6 @@ constexpr int kFollowNameRole = Qt::UserRole + 1;
 // Widest the status sentence about Follow gets. It shows the state of a train with a name of 25
 // characters and its scheduled time, and the start of the part about Follow. Longer text is elided.
 constexpr int kFollowStatusMaxWidth = 640;
-// The key of the setting behind the Advanced Details switch.
-constexpr const char* kAdvancedDetailsKey = "advancedDetails";
-// The key of the setting that remembers View > Show Passengers.
-constexpr const char* kShowPassengersKey = "showPassengers";
 
 // Seconds since midnight of an "hh:mm:ss" base time; 0 when the text is empty or not a time of day.
 inline int baseTimeToSeconds(const std::string& hhmmss) {
