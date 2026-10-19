@@ -193,7 +193,5 @@ offscreen platform these tests fail:
   the application crashes when `MainWindow` deletes the infrastructure panel: a `destroyed` connection of a line
   edit in its table runs on freed memory.
 - `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
-- `test_visual_polish_smoke_stations` fails at `QT_SCALE_FACTOR=2`: the station artwork pixmap no longer has the
-  station size, and a click on a painted pixel does not find the station picture.
 - `test_startup_launch_contract` looks for non-ASCII recent cases in the settings file as `\xe9` escapes; Qt 6
   writes INI files in UTF-8.

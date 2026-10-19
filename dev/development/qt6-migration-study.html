@@ -614,8 +614,6 @@ offscreen platform these tests fail:</p>
 the application crashes when <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> deletes the infrastructure panel: a <code class="docutils literal notranslate"><span class="pre">destroyed</span></code> connection of a line
 edit in its table runs on freed memory.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code> crashes while the network view paints, in the BSP index of the scene.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_stations</span></code> fails at <code class="docutils literal notranslate"><span class="pre">QT_SCALE_FACTOR=2</span></code>: the station artwork pixmap no longer has the
-station size, and a click on a painted pixel does not find the station picture.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code> looks for non-ASCII recent cases in the settings file as <code class="docutils literal notranslate"><span class="pre">\xe9</span></code> escapes; Qt 6
 writes INI files in UTF-8.</p></li>
 </ul>
