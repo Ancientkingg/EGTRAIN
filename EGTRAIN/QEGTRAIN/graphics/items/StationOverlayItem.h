@@ -22,6 +22,7 @@ public:
 	StationMarkItem(StationClass cls, int size, QGraphicsItem* parent = nullptr);
 
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+	StationClass stationClass() const { return m_class; }
 
 private:
 	StationClass m_class;
