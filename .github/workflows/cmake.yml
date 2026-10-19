@@ -305,7 +305,7 @@ jobs:
       # The same files as the Windows release package, started with only the operating
       # system directories on PATH: a DLL or plugin missing from the package fails here.
       # The runner has the Visual C++ runtime installed, so the import check of the package workflow
-      # finds a runtime DLL missing from the package, not this step. The packages are built with Qt 5 only.
+      # finds a runtime DLL missing from the package, not this step. The release packages are built with Qt 5.
       - name: Start an assembled Windows package
         if: needs.changes.outputs.build == 'true' && runner.os == 'Windows' && matrix.qt != 6
         shell: pwsh

@@ -1,6 +1,6 @@
 # Third-party notices
 
-EGTRAIN is licensed under the GNU General Public License, version 3 only (see `LICENSE`). The release packages bundle the libraries below, each under its own licence. The Linux AppImage also holds the copyright file of every system library under `usr/share/doc/<package>/copyright`. The table says where the source of each library is available.
+EGTRAIN is licensed under the GNU General Public License, version 3 only (see `LICENSE`). The release packages bundle the libraries below, each under its own licence. They are built with Qt 5.15; the packages built with Qt 6.8 bundle the Qt 6 rows in place of the Qt 5 rows. The Linux AppImage also holds the copyright file of every system library under `usr/share/doc/<package>/copyright`. The table says where the source of each library is available.
 
 | Library | macOS | Windows | Linux | Licence | Source |
 | --- | :-: | :-: | :-: | --- | --- |
@@ -9,6 +9,10 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | SQLite, inside the Qt SQLite plugin | yes | yes | yes | public domain | https://sqlite.org |
 | Qt 5.15 DBus (macOS, Linux), PrintSupport (macOS) | yes | | yes | LGPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
 | Qt Charts 5.15 | yes | yes | yes | GPL-3.0 | https://download.qt.io/archive/qt/5.15/ |
+| Qt 6.8 Core, Gui, Widgets, Network, Svg, OpenGL, OpenGL Widgets and plugins | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
+| Qt 6.8 Help and Sql with its SQLite plugin, for the manual | yes | yes | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
+| Qt 6.8 DBus (Linux) | | | yes | LGPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
+| Qt Charts 6.8 | yes | yes | yes | GPL-3.0 | https://download.qt.io/archive/qt/6.8/ |
 | ZeroMQ (libzmq) | yes | yes | yes | MPL-2.0 | https://github.com/zeromq/libzmq |
 | libsodium | yes | | yes | ISC | https://github.com/jedisct1/libsodium |
 | OpenPGM (libpgm) | | | yes | LGPL-2.1 | https://github.com/steve-o/openpgm |
@@ -36,6 +40,6 @@ EGTRAIN is licensed under the GNU General Public License, version 3 only (see `L
 | nlohmann/json | yes | yes | yes | MIT | https://github.com/nlohmann/json |
 | cppzmq | yes | yes | yes | MIT | https://github.com/zeromq/cppzmq |
 
-miniz is compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Windows Qt libraries also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz.
+miniz is compiled into the program from `EGTRAIN/QEGTRAIN/io/third_party`. nlohmann/json and cppzmq are header-only libraries compiled into the program. The Windows Qt libraries, and the Qt 6 libraries on every platform, also contain Qt's own copies of third-party code such as PCRE2, double-conversion and HarfBuzz, listed at https://doc.qt.io/qt-6/licenses-used-in-qt.html.
 
 The case studies have their own sources and terms, listed in `DATA.md` of the source repository, https://github.com/Ancientkingg/EGTRAIN.

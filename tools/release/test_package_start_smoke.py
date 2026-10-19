@@ -174,6 +174,21 @@ class BundleClosureTests(unittest.TestCase):
                 self.loads["libsecond.dylib"] = (["@rpath/libthird.dylib"], rpaths)
                 self.assertIn("Contents/Frameworks/libsecond.dylib: @rpath/libthird.dylib does not exist inside the app", self.failure())
 
+    def test_rpath_that_only_the_program_resolves(self):
+        # A Qt 6 plugin keeps its run path to the lib folder of the Qt installation and finds the frameworks through the
+        # run path of the program.
+        for program_rpaths, passes in (([], False), (["@executable_path/../Frameworks"], True)):
+            with self.subTest(program_rpaths=program_rpaths):
+                self.add_closed_bundle()
+                self.loads["libqcocoa.dylib"][0][0] = "@rpath/QtCore.framework/Versions/5/QtCore"
+                self.loads["libqcocoa.dylib"][1].append("@loader_path/../../lib")
+                self.loads["QEGTRAIN"][1].extend(program_rpaths)
+                if passes:
+                    self.assertIn("6 Mach-O files", self.run_check())
+                else:
+                    self.assertIn("Contents/PlugIns/platforms/libqcocoa.dylib: @rpath/QtCore.framework/Versions/5/QtCore"
+                                  " does not exist inside the app", self.failure())
+
     def test_path_that_leaves_the_app_fails(self):
         (self.root / "outside.dylib").write_bytes(MACHO_MAGIC + bytes(28))
         for name in ("@executable_path/../../../outside.dylib", "@loader_path/../../../../outside.dylib"):
@@ -396,6 +411,11 @@ class LinuxLibrariesTests(unittest.TestCase):
         self.add_closed_app_dir()
         self.libraries["libqxcb.so"][0] = ("libQt5XcbQpa.so.5", None)
         self.assertIn("usr/plugins/platforms/libqxcb.so: libQt5XcbQpa.so.5 is not found", self.failure())
+
+    def test_qt6_library_that_is_not_found_fails(self):
+        self.add_closed_app_dir()
+        self.libraries["libqxcb.so"][0] = ("libQt6XcbQpa.so.6", None)
+        self.assertIn("usr/plugins/platforms/libqxcb.so: libQt6XcbQpa.so.6 is not found", self.failure())
 
     def test_zeromq_outside_the_package_fails(self):
         self.add_closed_app_dir()

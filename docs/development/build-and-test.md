@@ -63,8 +63,8 @@ cmake -S . -B build -DEGTRAIN_BUILD_TESTS=ON `
 ```
 
 CMake looks for Qt 6 first and uses Qt 5.15 when it finds no Qt 6. Qt 5.15 is the supported build and the
-one the packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request must
-pass those jobs too.
+one the release packages use. CI also builds and tests with Qt 6.8.3 on all three platforms, and a pull request
+must pass those jobs too. The package check builds the packages with Qt 6.8.3 as well.
 CMake searches a folder in `CMAKE_PREFIX_PATH` before the system folders, so the examples above use Qt 5
 even when Qt 6 is installed elsewhere. To try Qt 6, configure a separate build
 folder with `CMAKE_PREFIX_PATH` set to the Qt 6 folder, for example `~/Qt/6.8.3/macos`. With Homebrew, add
@@ -1706,7 +1706,9 @@ application; CTest and the smoke scripts set it themselves.
   and can be started by hand, which covers changes that reach the packages
   through other files, such as the root `CMakeLists.txt`. The check selects the version as a release run that does not publish does (the CMake
   baseline, through `tools/release/version.py`) and calls the reusable workflow
-  `package.yml`. A green check proves that the macOS, Windows and Linux packages
+  `package.yml` twice: with `qt: '5'`, as the release workflow does, and with `qt: '6'` in the job
+  `Qt 6 packages (not required)`, whose artifact names end in `-qt6` and which
+  `Package check result` does not wait for. A green check proves that the macOS, Windows and Linux packages
   build, pass the completeness checks of their jobs and are uploaded as
   artifacts of the run. The Windows package job also fails when the software
   OpenGL, ANGLE or Direct3D compiler libraries, Qt Quick, QML or virtual

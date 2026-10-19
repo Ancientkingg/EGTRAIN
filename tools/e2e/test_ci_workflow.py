@@ -89,8 +89,22 @@ def workflow_text(name: str) -> str:
     return (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
 
 
+# The package workflow builds with Qt 5 or Qt 6. The steps of one version run under one of these conditions, and a Qt 6
+# build adds the suffix to each artifact name.
+QT5_STEP = "        if: inputs.qt != '6'\n"
+QT6_STEP = "        if: inputs.qt == '6'\n"
+ARTIFACT_SUFFIX = "${{ env.ARTIFACT_SUFFIX }}"
+
+
+def qt5_package_text() -> str:
+    """The package workflow as a Qt 5 build runs it: without the Qt 6 steps, the conditions of the Qt 5 steps and the
+    artifact name suffix."""
+    steps = workflow_text("package.yml").replace(ARTIFACT_SUFFIX, "").replace("${{ inputs.qt }}", "5").split("\n      - ")
+    return "\n      - ".join(step.replace(QT5_STEP, "") for step in steps if QT6_STEP not in step)
+
+
 def release_pipeline_text() -> str:
-    return workflow_text("release.yml") + "\n" + workflow_text("package.yml")
+    return workflow_text("release.yml") + "\n" + qt5_package_text()
 
 
 def trigger_block(text: str) -> str:
@@ -104,7 +118,7 @@ def trigger_events(text: str) -> list[str]:
 
 def job_ids(text: str) -> list[str]:
     jobs = text.split("\njobs:\n", 1)[-1]
-    return re.findall(r"^  ([a-z][a-z-]*):\n", jobs, re.MULTILINE)
+    return re.findall(r"^  ([a-z][a-z0-9-]*):\n", jobs, re.MULTILINE)
 
 
 def job_block(text: str, job: str) -> str:
@@ -158,8 +172,12 @@ def selects(branches: list[tuple[str, str]], files: list[str], action: str) -> b
     return False
 
 
+# Jobs that no result job waits for, because they are not required yet.
+NOT_REQUIRED_JOBS = ("package-qt6",)
+
+
 def result_job_problems(text: str, name: str) -> list[str]:
-    """The last job of a pull request workflow reports the result of all other jobs under a fixed name."""
+    """The last job of a pull request workflow reports the result of all other required jobs under a fixed name."""
     ids = job_ids(text)
     job = job_block(text, "result")
     needs = re.findall(r"^    needs: \[(.+)\]$", job, re.MULTILINE)
@@ -170,8 +188,8 @@ def result_job_problems(text: str, name: str) -> list[str]:
         problems.append(f"{name} as the last job")
     if f"    name: {name}\n" not in job or "    if: always()\n" not in job:
         problems.append(f"{name} that always runs")
-    if len(needs) != 1 or needs[0].split(", ") != ids[:-1]:
-        problems.append(f"{name} that needs every other job")
+    if len(needs) != 1 or needs[0].split(", ") != [job for job in ids[:-1] if job not in NOT_REQUIRED_JOBS]:
+        problems.append(f"{name} that needs every other required job")
     if (
         steps != ["Fail when a job failed or was cancelled"]
         or "        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')\n" not in fail_step
@@ -284,7 +302,8 @@ def main() -> None:
     gui_smoke = (ROOT / "tools/e2e/gui_autostart_smoke.py").read_text(encoding="utf-8")
     release_workflow = release_pipeline_text()
     release_only = workflow_text("release.yml")
-    package_only = workflow_text("package.yml")
+    package_only = qt5_package_text()
+    package_text = workflow_text("package.yml")
     package_check = workflow_text("package-check.yml")
     format_workflow = (ROOT / ".github/workflows/format.yml").read_text(encoding="utf-8")
     format_script = (ROOT / "tools/format.py").read_text(encoding="utf-8")
@@ -895,6 +914,7 @@ def main() -> None:
         "      contents: read\n"
         "    with:\n"
         "      version: ${{ needs.version.outputs.version }}\n"
+        "      qt: '5'\n"
     )
     signing_token_call = "    secrets:\n      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}\n"
     if (
@@ -922,9 +942,10 @@ def main() -> None:
         missing.append("release workflow whose only credential is the signing token that it passes by name to the package workflow")
     if trigger_block(package_only) != (
         "  workflow_call:\n    inputs:\n      version:\n        required: true\n        type: string\n"
+        "      qt:\n        required: false\n        type: string\n        default: '5'\n"
         "    secrets:\n      SIGNPATH_API_TOKEN:\n        required: false\n"
     ):
-        missing.append("package workflow starts only by call, with the version as its only input and an optional signing token")
+        missing.append("package workflow starts only by call, with the version and the Qt version, 5 by default, and an optional signing token")
     if (
         "\npermissions:\n  contents: read\n\njobs:\n" not in package_only
         or package_only.count("permissions:") != 3
@@ -1754,18 +1775,18 @@ def main() -> None:
         missing.append("package check with one nightly run off the hour and a manual start without inputs")
     if (
         "\npermissions:\n  contents: read\n" not in package_check
-        or package_check.count("permissions:") != 2
+        or package_check.count("permissions:") != 3
         or re.search(r":\s*write", package_check)
     ):
-        missing.append("package check with read permission only, and the block of its package job")
+        missing.append("package check with read permission only, and the blocks of its two package jobs")
     if (
         "\nconcurrency:\n"
         "  group: package-check-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}\n"
         "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n" not in package_check
     ):
         missing.append("package check replaces only the older run of the same pull request")
-    if job_ids(package_check) != ["changes", "version", "package", "release-assets", "result"]:
-        missing.append("package check jobs: changes, version, package, release-assets, result")
+    if job_ids(package_check) != ["changes", "version", "package", "package-qt6", "release-assets", "result"]:
+        missing.append("package check jobs: changes, version, package, package-qt6, release-assets, result")
     # The version job is the one of the release workflow. It waits for the changes job and skips with it, and the package and
     # release assets jobs skip with the version job.
     version_gate = "    needs: changes\n    if: needs.changes.outputs.package == 'true'\n"
@@ -1777,6 +1798,23 @@ def main() -> None:
         missing.append("package check selects the version with the script and job of the release workflow")
     if job_block(package_check, "package") != "  package:\n" + package_call:
         missing.append("package check calls the package workflow with the selected version and the two read permissions, and no token")
+    # The package check builds the packages with Qt 6 as well, in a job that the result job does not wait for. The Qt 6 steps
+    # name Qt 6 files and windeployqt options only, and every artifact of a Qt 6 build has a name of its own.
+    qt6_steps = "".join(step for step in package_text.split("\n      - ") if QT6_STEP in step)
+    qt6_names = ('"Qt6Network.dll"', "styles/qmodernwindowsstyle.dll", '"dxcompiler.dll"', "--no-system-dxc-compiler",
+                 '"$dist/LICENSE"', '"$dist/THIRD_PARTY_NOTICES.md"', '"Qt6Help.dll"', '"$dist/EGTRAIN.qch"',
+                 "-DCMAKE_PREFIX_PATH=\"$QT_ROOT_DIR", "version: '6.8.3'")
+    if (
+        job_block(package_check, "package-qt6")
+        != "  package-qt6:\n    name: Qt 6 packages (not required)\n" + package_call.replace("qt: '5'", "qt: '6'")
+        or "package-qt6" in job_block(package_check, "result")
+        or "\nenv:\n  ARTIFACT_SUFFIX: ${{ inputs.qt == '6' && '-qt6' || '' }}\n" not in package_text
+        or any(not line.endswith(ARTIFACT_SUFFIX) for line in re.findall(r"^          name: .*$", package_text, re.MULTILINE))
+        or any(name not in qt6_steps for name in qt6_names)
+        or "libQt${{ inputs.qt }}Network.so*" not in package_text
+        or re.search(r"qt@5|Qt5|libqt5|--no-angle|--no-virtualkeyboard|qwindowsvistastyle", qt6_steps)
+    ):
+        missing.append("Qt 6 packages in the package check, not required, with Qt 6 file names and artifact names of their own")
     # The release assets job runs the script that builds the files of a release on the artifacts of the package
     # jobs. It uploads and publishes nothing, and it has the permissions of the workflow. Its download and script steps
     # are those of the release job, so the package check runs what a release runs.

@@ -606,10 +606,11 @@ class MutationTests(unittest.TestCase):
         workflow = read_repository_file(PACKAGE_WORKFLOW).decode("utf-8")
         copy = LICENSE_COPY.search(workflow).group(0).strip()
         check = LICENSE_CHECK.search(workflow).group(0).strip()
+        # The Qt 5 and the Qt 6 steps of the job each copy and check the file, so a case changes both.
         cases = (
-            ("copy", workflow.replace(copy, "", 1), "copy"),
-            ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md"), 1), "copy"),
-            ("check", workflow.replace(check, "", 1), "check"),
+            ("copy", workflow.replace(copy, ""), "copy"),
+            ("copy", workflow.replace(copy, copy.replace("LICENSE", "README.md")), "copy"),
+            ("check", workflow.replace(check, ""), "check"),
             ("job", workflow.replace("  package-windows:", "  package-other:", 1), "not found"),
         )
         for name, changed, part in cases:
@@ -617,7 +618,7 @@ class MutationTests(unittest.TestCase):
                 self.assertReported("license", self.text, part, stand_in({PACKAGE_WORKFLOW: changed.encode("utf-8")}))
         self.assertReported("license", self.text, "not found", stand_in({PACKAGE_WORKFLOW: None}))
         # A copy in another job does not count.
-        macos = workflow.replace(copy, "", 1).replace("  package-macos:\n", "  package-macos:\n      " + copy + "\n", 1)
+        macos = workflow.replace(copy, "").replace("  package-macos:\n", "  package-macos:\n      " + copy + "\n", 1)
         self.assertReported("license", self.text, "copy", stand_in({PACKAGE_WORKFLOW: macos.encode("utf-8")}))
 
     def test_payload_entry(self):
