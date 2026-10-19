@@ -1,5 +1,6 @@
 #include "editors/TrainUnitPanel.h"
 
+#include "scene/SceneFields.h"
 #include "scene/SceneIds.h"
 #include "scene/SceneReferences.h"
 #include "widgets/CompactDoubleSpinBox.h"
@@ -28,6 +29,9 @@
 #include <vector>
 
 namespace {
+
+static_assert(static_cast<std::size_t>(TrainUnitPanel::PhysicalFieldCount) == kSceneTrainPhysicalFields.size(),
+	"one range for each physical field");
 
 bool hasEditorFocus(const QWidget* editor) {
 	const QWidget* focus = QApplication::focusWidget();
@@ -154,7 +158,8 @@ TrainUnitPanel::TrainUnitPanel(QWidget* parent) : SceneEditorPanel(parent) {
 	for (int i = 0; i < PhysicalFieldCount; ++i) {
 		auto* edit = new CompactDoubleSpinBox(physicalPage);
 		edit->setObjectName(QString("trainUnitPhysicalEdit%1").arg(i));
-		edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+		const SceneValueRange& range = kSceneTrainPhysicalFields[static_cast<std::size_t>(i)].range;
+		edit->setRange(range.min, range.max);
 		edit->setDecimals(std::numeric_limits<double>::max_digits10);
 		edit->setSingleStep(i == 2 ? 1.0 : 0.1);
 		edit->setKeyboardTracking(false);
@@ -314,7 +319,8 @@ void TrainUnitPanel::refreshTractionTable() {
 		m_tractionTable->insertRow(row);
 		for (int column = 0; column < 5; ++column) {
 			auto* edit = new CompactDoubleSpinBox(m_tractionTable);
-			edit->setRange(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+			const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
+			edit->setRange(range.min, range.max);
 			edit->setDecimals(std::numeric_limits<double>::max_digits10);
 			edit->setSingleStep(0.1);
 			edit->setKeyboardTracking(false);
@@ -514,7 +520,9 @@ void TrainUnitPanel::commitPhysical(int fieldIndex) {
 		&physical.max_speed_ms, &physical.max_deceleration_ms2, &physical.frontal_area_m2,
 		&physical.resistance_coefficient, &physical.jerk_ms3, &physical.length_m};
 	const double value = m_physicalEdits[static_cast<std::size_t>(fieldIndex)]->value();
-	if (*values[fieldIndex] == value && unit.hasPhysical)
+	// A stored value outside the range is shown at the nearest limit. Showing it is not an edit.
+	const SceneValueRange& range = kSceneTrainPhysicalFields[static_cast<std::size_t>(fieldIndex)].range;
+	if (std::clamp(*values[fieldIndex], range.min, range.max) == value && unit.hasPhysical)
 		return;
 	*values[fieldIndex] = value;
 	unit.hasPhysical = true;
@@ -561,7 +569,10 @@ void TrainUnitPanel::commitTractionCell(int row, int column, double value) {
 	if (unitRow < 0 || row < 0 || column < 0 || column >= 5)
 		return;
 	std::vector<std::array<double, 5>>& curve = m_document->mutableModel().trainUnits[static_cast<std::size_t>(unitRow)].tractionCurve;
-	if (row >= static_cast<int>(curve.size()) || curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] == value)
+	if (row >= static_cast<int>(curve.size()))
+		return;
+	const SceneValueRange& range = kSceneTractionColumns[static_cast<std::size_t>(column)].range;
+	if (std::clamp(curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)], range.min, range.max) == value)
 		return;
 	curve[static_cast<std::size_t>(row)][static_cast<std::size_t>(column)] = value;
 

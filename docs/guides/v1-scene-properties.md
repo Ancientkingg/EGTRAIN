@@ -108,6 +108,31 @@ Each traction row is `[v_lower, v_upper, c0, c1, c2]`. `source` contains the
 independent optional paths `data_file` and `traction_file`; do not infer a
 traction path from `LITRA`, `T_`, or any other filename convention.
 
+The rolling stock editor refuses a number outside the hard limit of its field.
+Validation warns about a number outside the warning bound
+(`scene.train.value.implausible`, one warning for each number; it does not block
+Run). A file that holds a number beyond a hard limit keeps it: the editor shows
+the nearest limit and leaves the stored number as it is until you type another
+one. The limits guard against nonsense input and are not data of a vehicle.
+
+| Field | Unit | Hard limit | Warning bound |
+| --- | --- | --- | --- |
+| `mass_of_traction_unit_kg` | kg | 0 to 5e6 | 0 to 5e5 |
+| `mass_of_a_wagon_kg` | kg | 0 to 1e6 | 0 to 2e5 |
+| `number_of_wagons` | wagons | 0 to 1000 | 0 to 200 |
+| `max_speed_ms` | m/s | 0 to 200 | 0 to 120 |
+| `max_deceleration_ms2` | m/s² | 0 to 10 | 0 to 3 |
+| `frontal_area_m2` | m² | 0 to 1000 | 0 to 50 |
+| `resistance_coefficient` | per km/h | 0 to 1 | 0 to 0.1 |
+| `jerk_ms3` | m/s³ | 0 to 100 | 0 to 10 |
+| `length_m` | m | 0 to 3000 | 0 to 1500 |
+| `v_lower`, `v_upper` | m/s | 0 to 200 | 0 to 120 |
+| `c0` | N | -1e9 to 1e9 | -5e6 to 5e6 |
+| `c1` | N s/m | -1e9 to 1e9 | -1e6 to 1e6 |
+| `c2` | N s²/m² | -1e9 to 1e9 | -5e6 to 5e6 |
+
+The editor and the validator read the same table, in `scene/SceneFields.h`.
+
 Each `compositions[]` item has an `id` and a non-empty `units` array of train
 unit IDs. Services refer to the composition ID, not directly to a source file.
 

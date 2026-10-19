@@ -3,6 +3,7 @@
 #include "scene/SceneValidator.h"
 #include "scene/SignallingLevel.h"
 #include "scene/RuntimeLimits.h"
+#include "scene/SceneFields.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1373,6 +1374,29 @@ int main(int argc, char** argv) {
 	unknownRoute.routes[0].blocks = {"missing-block"};
 	ok &= expect(steepGradientWarningCount(unknownRoute) == 0,
 		"a route without resolvable sections gets no gradient warning");
+
+	// every number of a rolling stock unit is plausible up to its bound and gets one warning beyond it, above or below
+	const auto implausible = [](const SceneModel& scene) { return findAll(validateScene(scene), "scene.train.value.implausible"); };
+	const auto checkRange = [&](const SceneModel& scene, double& value, const SceneValueRange& range, const std::string& path) {
+		value = range.plausibleMax;
+		ok &= expect(implausible(scene).empty(), ("the upper bound is plausible at " + path).c_str());
+		for (const double beyond : {range.plausibleMax * 2.0 + 1.0, range.plausibleMin - 1.0}) {
+			value = beyond;
+			const auto found = implausible(scene);
+			ok &= expect(found.size() == 1 && found[0].severity == SceneSeverity::Warning && found[0].path == path,
+				("a value beyond the bound gets one warning at " + path).c_str());
+		}
+	};
+	for (const SceneTrainPhysicalField& field : kSceneTrainPhysicalFields) {
+		SceneModel scene = clean;
+		checkRange(scene, scene.trainUnits[0].physical.*field.member, field.range,
+			std::string("train_units[0].physical.") + field.key);
+	}
+	for (std::size_t column = 0; column < kSceneTractionColumns.size(); ++column) {
+		SceneModel scene = clean;
+		checkRange(scene, scene.trainUnits[0].tractionCurve[0][column], kSceneTractionColumns[column].range,
+			"train_units[0].traction_curve[0][" + std::to_string(column) + "]");
+	}
 
 	SceneModel longRoute = clean;
 	longRoute.nodes.clear();
