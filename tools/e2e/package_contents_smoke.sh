@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Assemble the macOS app as the release holds it from the build outputs and
-# rehearse the Paimpol path: the app holds scene_tool and the complete canonical
-# Paimpol scene; scene_tool validates and exports the packaged scene; and the app
+# rehearse the Assignment path: the app holds scene_tool and the complete canonical
+# Assignment scene; scene_tool validates and exports the packaged scene; and the app
 # opens and renders it under a clean HOME with exports written outside the bundle.
 set -euo pipefail
 
@@ -28,7 +28,7 @@ mkdir -p "$HOME_DIR" "$OUT_DIR"
 # Assemble the packaged app.
 cp -R "$APP_BUNDLE" "$APP"
 cp "$SCENE_TOOL" "$APP/Contents/MacOS/scene_tool"
-SCENE="$APP/Contents/Resources/Scenes/Paimpol"
+SCENE="$APP/Contents/Resources/Scenes/Assignment_Gvc_Gdg_Ut"
 
 # Content check: every required item must be present.
 require() {
@@ -106,13 +106,13 @@ for marker in E2E_TRACK_PREVIEW_OPEN_OK E2E_TRACK_PREVIEW_RUN_GATED_OK E2E_TRACK
 	grep -q "$marker" "$LOG" || { echo "packaged app missing marker $marker; see $LOG" >&2; exit 1; }
 done
 
-# The supplied Paimpol scene in the app must stay unchanged; the user edits the
+# The supplied Assignment scene in the app must stay unchanged; the user edits the
 # copy that lives outside the app.
 changed="$(find "$SCENE" -newer "$MARKER" -type f 2>/dev/null)"
 if [[ -n "$changed" ]]; then
-	echo "the packaged Paimpol scene was modified during the run:" >&2
+	echo "the packaged Assignment scene was modified during the run:" >&2
 	echo "$changed" >&2
 	exit 1
 fi
 
-echo "package contents smoke passed: app, scene_tool, and Paimpol scene present; scene validated, exported, opened, and reloaded from the app"
+echo "package contents smoke passed: app, scene_tool, and Assignment scene present; scene validated, exported, opened, and reloaded from the app"
