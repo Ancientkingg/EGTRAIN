@@ -791,81 +791,87 @@ platform, and <code class="docutils literal notranslate"><span class="pre">partl
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
-<td><p>A Python script that ends the application with <code class="docutils literal notranslate"><span class="pre">_Exit</span></code> and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under <code class="docutils literal notranslate"><span class="pre">if(UNIX)</span></code> until they are.</p></td>
+<td><p>A Python script that ends the application with <code class="docutils literal notranslate"><span class="pre">_Exit</span></code> and starts it again. The lock files of the recovery copies are not checked after a crash on Windows, so the test is registered under <code class="docutils literal notranslate"><span class="pre">if(UNIX)</span></code> until they are. Two of its scenarios crash the application on purpose to check the crash note.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_scene_render_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_track_preview_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_legacy_import_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_route_diagram_smoke</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_crashnote</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>yes</p></td>
+<td><p>partly</p></td>
+<td><p>Starts copies of itself that crash on purpose and reads their crash notes. On Windows it runs the signal and exception cases on the main thread only, and the notes have no stack. Every child leaves a system crash report.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_scene_render_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_track_preview_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_legacy_import_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_route_diagram_smoke</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>The first three are Bash scripts, and Windows has no bash on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> that can be relied on. <code class="docutils literal notranslate"><span class="pre">test_route_diagram_smoke</span></code> is registered with them under <code class="docutils literal notranslate"><span class="pre">if(UNIX)</span></code>, so Windows does not register it either.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay_copenhagen</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_signals</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_stations</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_replay_copenhagen</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_signals</span></code>, <code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_stations</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>Phases of a Bash script, registered on macOS only.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_case_chooser_contract</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>Compares backslash paths with the forward-slash paths the application reports, writes them into a <code class="docutils literal notranslate"><span class="pre">QSettings</span></code> INI file where backslash is an escape, and creates a directory symlink.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_package_contents_smoke</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>Checks the <code class="docutils literal notranslate"><span class="pre">.app</span></code> bundle layout with macOS tools, and the <code class="docutils literal notranslate"><span class="pre">.egscene</span></code> document type that its <code class="docutils literal notranslate"><span class="pre">Info.plist</span></code> declares.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_measure_peak_rss</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>Tests the parser, the commands and the process handling of the macOS <code class="docutils literal notranslate"><span class="pre">/usr/bin/time</span> <span class="pre">-l</span></code> collector. It does not need that tool.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_image_size</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Reads the PE header of <code class="docutils literal notranslate"><span class="pre">QEGTRAIN.exe</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_windows_default_stack</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Reads the PE header of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_win32_configure_rejected</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Configures for 32-bit Windows with the Visual Studio generator and expects the message that only x64 is supported. A Ninja build tree, such as the Windows CI leg, runs it with the default generator, which is Visual Studio on Windows.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_verify_signatures</span></code></p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>
 <td><p>yes</p></td>
 <td><p>Signs copies of <code class="docutils literal notranslate"><span class="pre">scene_tool.exe</span></code> with a throwaway self-signed certificate through <code class="docutils literal notranslate"><span class="pre">New-SelfSignedCertificate</span></code> and <code class="docutils literal notranslate"><span class="pre">Set-AuthenticodeSignature</span></code>, and runs <code class="docutils literal notranslate"><span class="pre">tools/release/verify_signatures.ps1</span></code> on them. It is not registered when no PowerShell is found.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>The two pseudo-terminal launches, the two <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> launches, the window launch with a bundle argument, the open events and the file launches while a window runs run only on macOS and Linux. A bundle with a non-ASCII file name is launched without a window on all three systems.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_updatepreparation</span></code></p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The checks that stage a disk image and a zip package run on macOS only and need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code>, <code class="docutils literal notranslate"><span class="pre">codesign</span></code> and <code class="docutils literal notranslate"><span class="pre">python3</span></code>. The AppImage check runs on Linux only.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_make_dmg</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>partly</p></td>
 <td><p>partly</p></td>
 <td><p>The image, mount and signature checks need <code class="docutils literal notranslate"><span class="pre">hdiutil</span></code>, <code class="docutils literal notranslate"><span class="pre">ditto</span></code> and <code class="docutils literal notranslate"><span class="pre">codesign</span></code>. Elsewhere the test checks the file name, the input rules, the message for a missing tool, the command lines and the handling of a failing or timed-out command.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_sign_macos</span></code></p></td>
 <td><p>yes</p></td>
 <td><p>no</p></td>
 <td><p>no</p></td>

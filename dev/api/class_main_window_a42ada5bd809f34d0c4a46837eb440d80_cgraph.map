@@ -1,145 +1,147 @@
 <map id="MainWindow::showEvent" name="MainWindow::showEvent">
-<area shape="rect" id="Node000001" title="On the first show: offers recovery and the case chooser, then the privacy and update questions." alt="" coords="5,1013,189,1038"/>
-<area shape="rect" id="Node000002" href="$_scene_open_request_8cpp.html#a9ce4988f309ab7313aaef26374b9e975" title=" " alt="" coords="295,481,435,506"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,1012,112,915,141,765,160,687,183,615,208,556,235,517,256,503,280,494,282,499,259,507,239,521,212,559,188,617,166,688,146,766,118,916,103,1013"/>
-<area shape="rect" id="Node000003" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="853,55,1040,81"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="101,1012,118,970,147,912,186,847,236,788,272,762,338,727,516,638,692,547,755,510,787,482,802,457,812,431,819,382,815,335,805,288,796,242,794,195,797,171,805,147,817,123,835,98,850,85,854,89,839,102,822,126,810,149,802,173,799,196,801,241,810,287,820,334,825,383,817,433,807,459,791,486,758,514,695,552,519,643,340,732,275,767,239,791,190,850,151,914,123,973,106,1014"/>
-<area shape="rect" id="Node000005" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="1132,1102,1307,1127"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="190,1023,353,1025,568,1032,812,1048,1056,1075,1160,1096,1159,1101,1056,1080,811,1053,568,1038,352,1030,190,1028"/>
-<area shape="rect" id="Node000006" href="$class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" title="A file was asked to be opened. path is as the request named it." alt="" coords="237,1113,492,1138"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="119,1036,172,1067,238,1098,269,1107,268,1112,236,1103,169,1072,117,1041"/>
-<area shape="rect" id="Node000007" href="$_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" title=" " alt="" coords="284,1630,445,1655"/>
-<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="106,1037,158,1174,240,1374,303,1512,353,1617,349,1619,298,1514,235,1376,153,1176,101,1039"/>
-<area shape="rect" id="Node000015" href="$_update_notices_8cpp.html#afdbe4ab164415bf902444dd4c6947405" title=" " alt="" coords="274,1337,455,1362"/>
-<area shape="poly" id="edge25_Node000001_Node000015" title=" " alt="" coords="111,1037,346,1324,342,1328,107,1040"/>
-<area shape="rect" id="Node000020" href="$class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" title="Runs the scene that the window holds, if it is not running already." alt="" coords="271,802,459,827"/>
-<area shape="poly" id="edge41_Node000001_Node000020" title=" " alt="" coords="113,1011,335,834,339,838,116,1015"/>
-<area shape="rect" id="Node000102" href="$class_main_window.html#ab6e67c46255d672001ef7fd04724892f" title="Shows the case chooser with the bundled and the recent scenes, and acts on the choice." alt="" coords="241,1063,488,1089"/>
-<area shape="poly" id="edge87_Node000001_Node000102" title=" " alt="" coords="166,1036,284,1058,283,1063,165,1041"/>
-<area shape="rect" id="Node000105" href="$class_playback_profiler.html#a4c45b15e83fd8fee07ab9651292fc60d" title=" " alt="" coords="274,531,455,571"/>
-<area shape="poly" id="edge92_Node000001_Node000105" title=" " alt="" coords="96,1012,100,939,107,886,118,826,136,762,160,699,193,640,236,588,260,570,263,574,239,591,197,643,165,701,141,764,124,827,112,887,106,940,101,1013"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,483,312,473,317,462,335,456,365,454,403,458,413,463,417,469,412,472,410,467,401,463,365,459,336,462,321,466,318,472,325,479"/>
-<area shape="rect" id="Node000004" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="1124,22,1315,47"/>
-<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="1040,54,1110,45,1111,51,1040,59"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="1181,1104,1173,1094,1177,1084,1193,1078,1219,1075,1252,1079,1265,1089,1262,1093,1250,1084,1219,1081,1194,1083,1181,1088,1178,1093,1185,1100"/>
-<area shape="poly" id="edge15_Node000007_Node000007" title=" " alt="" coords="322,1632,312,1622,317,1612,335,1606,365,1603,403,1608,413,1613,417,1619,412,1621,410,1617,401,1613,365,1609,336,1611,321,1616,318,1621,325,1628"/>
-<area shape="rect" id="Node000008" href="$_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" title="Compares the installed version with the version that the record names." alt="" coords="585,1630,744,1655"/>
-<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="446,1640,572,1640,572,1645,446,1645"/>
-<area shape="rect" id="Node000009" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="859,1410,1034,1435"/>
-<area shape="poly" id="edge11_Node000007_Node000009" title=" " alt="" coords="399,1653,473,1677,521,1688,573,1696,628,1700,684,1697,738,1687,788,1666,818,1645,845,1619,868,1590,888,1559,918,1497,936,1448,941,1450,923,1500,892,1562,872,1593,849,1623,822,1649,791,1671,739,1692,684,1703,628,1705,573,1702,520,1693,472,1682,397,1658"/>
-<area shape="rect" id="Node000010" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="1146,1515,1293,1541"/>
-<area shape="poly" id="edge13_Node000007_Node000010" title=" " alt="" coords="393,1653,459,1681,499,1694,541,1704,610,1715,665,1720,720,1716,789,1704,847,1690,906,1672,1017,1628,1113,1583,1183,1545,1185,1550,1116,1587,1020,1633,907,1677,849,1695,790,1709,720,1721,665,1725,609,1721,539,1709,498,1699,457,1686,391,1658"/>
-<area shape="rect" id="Node000011" href="$_update_record_8cpp.html#a3e5786865937c50b538cb477c2c306b6" title=" " alt="" coords="591,1806,739,1831"/>
-<area shape="poly" id="edge16_Node000007_Node000011" title=" " alt="" coords="384,1654,451,1703,541,1760,620,1798,617,1803,539,1765,448,1707,381,1658"/>
-<area shape="rect" id="Node000013" href="$_update_record_8cpp.html#a9310fdab574108ed07cc653140b5daad" title=" " alt="" coords="595,1557,735,1582"/>
-<area shape="poly" id="edge21_Node000007_Node000013" title=" " alt="" coords="408,1628,539,1592,583,1582,585,1588,541,1597,410,1633"/>
-<area shape="rect" id="Node000014" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="540,1483,789,1509"/>
-<area shape="poly" id="edge23_Node000007_Node000014" title=" " alt="" coords="378,1628,444,1575,490,1545,539,1519,565,1510,566,1515,541,1524,493,1549,448,1579,382,1632"/>
-<area shape="poly" id="edge10_Node000008_Node000008" title=" " alt="" coords="620,1632,610,1622,615,1612,633,1606,665,1603,705,1608,716,1613,720,1619,715,1622,712,1617,704,1613,665,1609,634,1611,618,1616,615,1621,623,1628"/>
-<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="903,1412,893,1402,898,1392,916,1386,947,1383,986,1388,996,1393,1000,1399,995,1401,993,1397,984,1393,947,1389,917,1391,902,1396,899,1401,907,1408"/>
-<area shape="poly" id="edge14_Node000010_Node000010" title=" " alt="" coords="1181,1517,1173,1507,1177,1497,1193,1491,1219,1489,1252,1493,1265,1502,1262,1506,1250,1498,1219,1494,1194,1496,1181,1501,1178,1506,1185,1514"/>
-<area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="620,1808,610,1798,615,1788,633,1782,665,1779,705,1784,716,1789,720,1795,715,1798,712,1793,704,1789,665,1785,634,1787,618,1792,615,1797,623,1804"/>
-<area shape="rect" id="Node000012" href="$_update_record_8cpp.html#ad99a7b4b4b002f2f73bb94f3bbf9f841" title=" " alt="" coords="869,1806,1025,1831"/>
-<area shape="poly" id="edge17_Node000011_Node000012" title=" " alt="" coords="739,1816,855,1816,855,1821,739,1821"/>
-<area shape="poly" id="edge19_Node000012_Node000010" title=" " alt="" coords="982,1804,1018,1786,1054,1761,1104,1708,1147,1650,1181,1595,1204,1552,1208,1554,1185,1598,1151,1653,1108,1712,1058,1765,1021,1790,984,1808"/>
-<area shape="poly" id="edge18_Node000012_Node000012" title=" " alt="" coords="903,1808,893,1798,898,1788,916,1782,947,1779,986,1784,996,1789,1000,1795,995,1797,993,1793,984,1789,947,1785,917,1787,902,1792,899,1797,907,1804"/>
-<area shape="poly" id="edge22_Node000013_Node000013" title=" " alt="" coords="620,1559,610,1549,615,1538,633,1532,665,1530,705,1534,716,1540,720,1546,715,1548,712,1543,704,1540,665,1535,634,1538,618,1543,615,1548,623,1555"/>
-<area shape="poly" id="edge24_Node000014_Node000014" title=" " alt="" coords="620,1485,610,1475,615,1465,633,1459,665,1457,705,1461,716,1466,720,1473,715,1475,712,1470,704,1466,665,1462,634,1464,618,1469,615,1474,623,1481"/>
-<area shape="poly" id="edge29_Node000015_Node000010" title=" " alt="" coords="377,1335,403,1309,442,1278,488,1247,539,1224,589,1213,653,1206,726,1204,803,1206,880,1212,951,1223,1012,1239,1057,1261,1089,1286,1118,1316,1142,1348,1163,1383,1194,1449,1213,1501,1208,1503,1189,1451,1158,1385,1137,1351,1113,1319,1086,1290,1055,1265,1010,1244,950,1228,879,1217,803,1211,726,1209,654,1212,590,1218,541,1229,490,1252,445,1282,407,1313,380,1338"/>
-<area shape="poly" id="edge36_Node000015_Node000013" title=" " alt="" coords="378,1361,442,1434,489,1479,541,1519,573,1536,606,1550,604,1555,571,1541,539,1524,486,1483,438,1438,374,1364"/>
-<area shape="poly" id="edge37_Node000015_Node000014" title=" " alt="" coords="388,1360,455,1400,541,1446,615,1476,613,1481,539,1451,452,1405,385,1365"/>
-<area shape="poly" id="edge30_Node000015_Node000015" title=" " alt="" coords="322,1339,312,1329,317,1318,335,1312,365,1310,403,1314,413,1319,417,1325,412,1328,410,1323,401,1319,365,1315,336,1318,321,1322,318,1328,325,1335"/>
-<area shape="rect" id="Node000016" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title="The text that tells the user about record." alt="" coords="580,1410,749,1435"/>
-<area shape="poly" id="edge26_Node000015_Node000016" title=" " alt="" coords="418,1360,599,1404,598,1409,417,1365"/>
-<area shape="rect" id="Node000017" href="$_update_record_8cpp.html#ac296b13c3c8e3c075481fe8a8d65a1f7" title=" " alt="" coords="593,1263,736,1289"/>
-<area shape="poly" id="edge31_Node000015_Node000017" title=" " alt="" coords="407,1334,539,1298,579,1289,581,1294,541,1303,408,1339"/>
-<area shape="rect" id="Node000019" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;." alt="" coords="571,1337,759,1362"/>
-<area shape="poly" id="edge38_Node000015_Node000019" title=" " alt="" coords="456,1347,557,1347,557,1352,456,1352"/>
-<area shape="poly" id="edge28_Node000016_Node000009" title=" " alt="" coords="749,1420,845,1420,845,1425,749,1425"/>
-<area shape="poly" id="edge27_Node000016_Node000016" title=" " alt="" coords="620,1412,610,1402,615,1392,633,1386,665,1383,705,1388,716,1393,720,1399,715,1402,712,1397,704,1393,665,1389,634,1391,618,1396,615,1401,623,1408"/>
-<area shape="poly" id="edge35_Node000017_Node000017" title=" " alt="" coords="620,1265,610,1255,615,1245,633,1239,665,1237,705,1241,716,1246,720,1253,715,1255,712,1250,704,1246,665,1242,634,1244,618,1249,615,1254,623,1261"/>
-<area shape="rect" id="Node000018" href="$_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b" title=" " alt="" coords="871,1299,1022,1325"/>
-<area shape="poly" id="edge32_Node000017_Node000018" title=" " alt="" coords="736,1283,858,1298,857,1304,736,1288"/>
-<area shape="poly" id="edge33_Node000018_Node000010" title=" " alt="" coords="975,1323,1015,1345,1058,1373,1138,1442,1199,1503,1195,1507,1134,1445,1054,1377,1012,1349,973,1327"/>
-<area shape="poly" id="edge34_Node000018_Node000018" title=" " alt="" coords="903,1301,893,1291,898,1281,916,1275,947,1273,986,1277,996,1282,1000,1288,995,1291,993,1286,984,1282,947,1278,917,1280,902,1285,899,1290,907,1297"/>
-<area shape="poly" id="edge39_Node000019_Node000009" title=" " alt="" coords="735,1360,790,1372,895,1403,894,1408,789,1377,734,1365"/>
-<area shape="poly" id="edge40_Node000019_Node000019" title=" " alt="" coords="620,1339,610,1329,615,1318,633,1312,665,1310,705,1314,716,1320,720,1326,715,1328,712,1323,704,1320,665,1315,634,1318,618,1323,615,1328,623,1335"/>
-<area shape="rect" id="Node000021" href="$class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" title="Asks to review the run, prepares the scene, builds the canvas and starts the simulation." alt="" coords="575,646,754,671"/>
-<area shape="poly" id="edge42_Node000020_Node000021" title=" " alt="" coords="389,800,626,676,628,680,392,804"/>
-<area shape="poly" id="edge56_Node000021_Node000003" title=" " alt="" coords="753,648,772,638,787,625,799,606,808,582,816,519,816,445,811,364,807,283,806,208,814,145,823,119,835,98,849,86,853,90,839,102,828,121,820,146,812,208,812,283,817,364,821,445,821,520,813,583,804,608,791,629,775,643,756,652"/>
-<area shape="poly" id="edge61_Node000021_Node000004" title=" " alt="" coords="753,648,772,638,787,625,809,595,823,565,831,535,833,505,826,445,810,386,794,326,787,265,790,234,798,204,813,173,835,142,860,120,886,108,911,103,937,103,992,104,1023,100,1055,90,1078,73,1103,56,1124,49,1126,54,1105,61,1081,78,1057,95,1024,106,993,110,937,108,912,108,887,113,863,124,839,146,817,176,803,206,795,235,792,265,799,325,815,384,831,444,839,505,836,536,828,567,814,598,791,629,775,643,756,652"/>
-<area shape="rect" id="Node000022" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="869,721,1024,746"/>
-<area shape="poly" id="edge43_Node000021_Node000022" title=" " alt="" coords="715,669,885,715,884,720,713,674"/>
-<area shape="rect" id="Node000023" href="$class_run_controller.html#a1f2fdb868a1b68a63228e818164fb66f" title=" " alt="" coords="850,156,1043,196"/>
-<area shape="poly" id="edge45_Node000021_Node000023" title=" " alt="" coords="753,647,772,638,787,625,807,599,819,573,826,547,829,522,824,470,812,419,799,367,794,314,796,287,803,261,816,234,835,206,838,204,842,207,839,210,821,236,808,262,801,288,799,314,804,366,817,418,829,470,834,522,832,548,824,575,811,602,791,629,775,643,756,652"/>
-<area shape="rect" id="Node000027" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled()." alt="" coords="849,835,1044,861"/>
-<area shape="poly" id="edge49_Node000021_Node000027" title=" " alt="" coords="678,670,740,742,786,785,839,821,856,829,854,833,836,825,783,789,736,746,674,674"/>
-<area shape="rect" id="Node000028" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="879,962,1014,987"/>
-<area shape="poly" id="edge50_Node000021_Node000028" title=" " alt="" coords="674,671,694,717,730,784,778,858,807,892,839,923,864,941,892,955,890,959,862,946,836,928,803,896,774,861,725,787,689,719,669,673"/>
-<area shape="rect" id="Node000029" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="1392,314,1516,339"/>
-<area shape="poly" id="edge52_Node000021_Node000029" title=" " alt="" coords="753,645,772,637,788,625,802,608,810,591,815,556,818,518,824,498,835,476,861,440,886,411,936,370,990,332,1054,280,1076,252,1086,241,1103,231,1166,210,1219,203,1272,211,1336,231,1365,245,1392,263,1434,302,1431,306,1389,267,1362,249,1334,236,1271,216,1219,209,1167,215,1105,236,1090,245,1080,256,1058,283,993,337,939,374,890,415,865,443,840,479,829,500,824,519,821,556,815,592,807,611,791,629,774,641,756,650"/>
-<area shape="rect" id="Node000031" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="859,245,1034,270"/>
-<area shape="poly" id="edge57_Node000021_Node000031" title=" " alt="" coords="753,647,772,638,787,625,803,604,814,584,823,542,820,501,811,459,803,417,800,375,808,331,819,310,835,288,850,275,854,279,839,291,824,312,814,333,805,375,808,416,817,458,825,500,828,543,819,586,808,607,791,629,775,643,755,652"/>
-<area shape="rect" id="Node000032" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="1413,531,1495,557"/>
-<area shape="poly" id="edge59_Node000021_Node000032" title=" " alt="" coords="755,659,897,662,1064,661,1222,652,1286,643,1334,631,1362,618,1388,601,1430,565,1433,569,1391,605,1364,623,1336,636,1287,648,1222,657,1064,666,897,667,754,665"/>
-<area shape="rect" id="Node000033" href="$class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf" title=" " alt="" coords="875,489,1018,529"/>
-<area shape="poly" id="edge62_Node000021_Node000033" title=" " alt="" coords="747,644,788,625,804,609,812,593,820,575,836,557,873,533,876,538,839,561,824,578,816,595,808,612,791,629,750,648"/>
-<area shape="rect" id="Node000067" href="$class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" title="The next run writes to the folder of the scene sceneName, unless the user chose a folder." alt="" coords="848,771,1045,811"/>
-<area shape="poly" id="edge76_Node000021_Node000067" title=" " alt="" coords="686,669,752,710,838,755,861,764,859,769,836,760,749,715,683,674"/>
-<area shape="rect" id="Node000071" href="$class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" title="Starts the run on a worker thread. The scene has to be prepared." alt="" coords="837,889,1056,914"/>
-<area shape="poly" id="edge80_Node000021_Node000071" title=" " alt="" coords="675,670,697,710,733,764,781,821,809,847,839,870,862,882,859,886,836,874,805,851,777,825,729,767,693,712,670,673"/>
-<area shape="rect" id="Node000101" href="$_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631" title=" " alt="" coords="853,595,1040,621"/>
-<area shape="poly" id="edge85_Node000021_Node000101" title=" " alt="" coords="736,643,861,621,862,626,737,649"/>
-<area shape="poly" id="edge44_Node000022_Node000022" title=" " alt="" coords="903,723,893,713,898,702,916,696,947,694,986,698,996,703,1000,709,995,712,993,707,984,703,947,699,917,702,902,706,899,712,907,719"/>
-<area shape="rect" id="Node000024" href="$_run_results_8cpp.html#ae2eaf2c8b52f181d956ca69372bce036" title=" " alt="" coords="1147,145,1291,170"/>
-<area shape="poly" id="edge46_Node000023_Node000024" title=" " alt="" coords="1043,167,1134,161,1134,166,1044,172"/>
-<area shape="rect" id="Node000025" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="1133,71,1305,97"/>
-<area shape="poly" id="edge48_Node000023_Node000025" title=" " alt="" coords="1010,154,1055,135,1078,120,1103,106,1126,98,1127,103,1105,111,1081,125,1057,140,1012,158"/>
-<area shape="poly" id="edge47_Node000024_Node000024" title=" " alt="" coords="1181,146,1173,137,1177,126,1193,120,1219,118,1252,122,1265,131,1262,136,1250,127,1219,123,1194,126,1181,130,1178,136,1185,143"/>
-<area shape="poly" id="edge51_Node000028_Node000028" title=" " alt="" coords="903,964,893,954,898,944,916,938,947,935,986,940,996,945,1000,951,995,953,993,949,984,945,947,941,917,943,902,948,899,953,907,960"/>
-<area shape="poly" id="edge53_Node000029_Node000029" title=" " alt="" coords="1421,316,1414,306,1417,296,1431,290,1454,287,1482,291,1494,300,1490,304,1480,296,1454,293,1432,295,1421,300,1419,305,1425,312"/>
-<area shape="rect" id="Node000030" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="1573,314,1744,339"/>
-<area shape="poly" id="edge54_Node000029_Node000030" title=" " alt="" coords="1516,324,1560,324,1560,329,1516,329"/>
-<area shape="poly" id="edge55_Node000030_Node000030" title=" " alt="" coords="1625,316,1618,306,1622,296,1636,290,1659,287,1687,291,1698,300,1695,304,1685,296,1659,293,1637,295,1626,300,1623,305,1630,312"/>
-<area shape="poly" id="edge58_Node000031_Node000031" title=" " alt="" coords="903,247,893,237,898,226,916,220,947,218,986,222,996,227,1000,233,995,236,993,231,984,227,947,223,917,226,902,230,899,236,907,243"/>
-<area shape="poly" id="edge60_Node000032_Node000032" title=" " alt="" coords="1421,533,1414,523,1417,513,1431,507,1454,505,1482,509,1494,518,1490,522,1480,513,1454,510,1432,512,1421,517,1419,522,1425,530"/>
-<area shape="poly" id="edge70_Node000033_Node000032" title=" " alt="" coords="1018,512,1399,538,1399,543,1018,517"/>
-<area shape="rect" id="Node000034" href="$struct_simulation_run.html#ae2a5df5cc93ca9fd692cc1b43ac8eece" title=" " alt="" coords="1138,481,1301,506"/>
-<area shape="poly" id="edge63_Node000033_Node000034" title=" " alt="" coords="1018,503,1124,496,1124,502,1018,508"/>
-<area shape="rect" id="Node000039" href="$_infrastructure_builder_8cpp.html#aaf4e88df903a30051c6625935755d163" title=" " alt="" coords="1104,269,1335,309"/>
-<area shape="poly" id="edge64_Node000033_Node000039" title=" " alt="" coords="957,488,979,451,1012,406,1054,359,1102,319,1113,313,1116,318,1106,324,1057,363,1016,409,984,454,961,490"/>
-<area shape="rect" id="Node000040" href="$_operations_builder_8cpp.html#a6ee30ce529afc9fd68c0019668c8083e" title=" " alt="" coords="1121,431,1318,457"/>
-<area shape="poly" id="edge66_Node000033_Node000040" title=" " alt="" coords="1017,488,1103,466,1141,457,1142,462,1105,471,1019,493"/>
-<area shape="rect" id="Node000057" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="1383,635,1525,675"/>
-<area shape="poly" id="edge71_Node000033_Node000057" title=" " alt="" coords="1009,527,1034,540,1058,557,1074,577,1081,597,1089,616,1106,631,1136,647,1170,658,1239,670,1307,672,1369,667,1369,673,1307,677,1238,675,1168,663,1134,651,1102,636,1084,619,1076,599,1069,580,1054,561,1031,545,1006,532"/>
-<area shape="rect" id="Node000058" href="$class_dispatch_controller.html#ae9f55885c0745b66737a45acaf839544" title=" " alt="" coords="1148,581,1291,621"/>
-<area shape="poly" id="edge72_Node000033_Node000058" title=" " alt="" coords="1007,527,1105,560,1147,575,1145,580,1103,565,1006,532"/>
-<area shape="rect" id="Node000066" href="$_scene_validator_8cpp.html#a50b98f3db178a5c612ae70c047ec72a5" title=" " alt="" coords="1132,358,1307,383"/>
-<area shape="poly" id="edge74_Node000033_Node000066" title=" " alt="" coords="968,487,1026,439,1063,414,1103,392,1122,385,1124,390,1105,397,1066,418,1029,443,971,491"/>
-<area shape="poly" id="edge65_Node000039_Node000039" title=" " alt="" coords="1176,270,1173,260,1180,251,1196,245,1219,243,1247,246,1262,253,1259,258,1245,251,1219,248,1197,250,1183,255,1178,261,1181,268"/>
-<area shape="poly" id="edge68_Node000040_Node000029" title=" " alt="" coords="1252,429,1333,392,1419,345,1421,349,1336,397,1254,434"/>
-<area shape="poly" id="edge69_Node000040_Node000032" title=" " alt="" coords="1301,454,1336,466,1386,492,1428,521,1425,525,1383,497,1334,471,1299,459"/>
-<area shape="poly" id="edge67_Node000040_Node000040" title=" " alt="" coords="1181,433,1173,423,1177,413,1193,407,1219,405,1252,409,1265,418,1262,422,1250,414,1219,410,1194,412,1181,417,1178,422,1185,430"/>
-<area shape="poly" id="edge73_Node000058_Node000057" title=" " alt="" coords="1292,615,1370,633,1369,638,1290,620"/>
-<area shape="poly" id="edge75_Node000066_Node000066" title=" " alt="" coords="1181,360,1173,350,1177,340,1193,334,1219,331,1252,335,1265,345,1262,349,1250,340,1219,337,1194,339,1181,344,1178,349,1185,356"/>
-<area shape="rect" id="Node000068" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="1135,821,1303,861"/>
-<area shape="poly" id="edge77_Node000067_Node000068" title=" " alt="" coords="1046,806,1122,821,1121,826,1045,812"/>
-<area shape="rect" id="Node000069" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="1137,771,1301,797"/>
-<area shape="poly" id="edge78_Node000067_Node000069" title=" " alt="" coords="1045,786,1124,784,1124,789,1046,791"/>
-<area shape="poly" id="edge79_Node000069_Node000069" title=" " alt="" coords="1181,773,1173,763,1177,753,1193,747,1219,745,1252,749,1265,758,1262,762,1250,754,1219,750,1194,752,1181,757,1178,762,1185,770"/>
-<area shape="poly" id="edge84_Node000071_Node000005" title=" " alt="" coords="1041,912,1058,923,1073,941,1080,958,1084,994,1087,1029,1093,1046,1106,1064,1128,1082,1153,1095,1151,1099,1125,1086,1102,1067,1089,1049,1082,1030,1079,994,1075,960,1068,944,1054,927,1038,916"/>
-<area shape="rect" id="Node000072" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="1148,885,1291,925"/>
-<area shape="poly" id="edge81_Node000071_Node000072" title=" " alt="" coords="1056,900,1134,902,1134,907,1056,906"/>
-<area shape="rect" id="Node000073" href="$class_dispatch_controller.html#a39cb8a5f1b9faddf6fe72fdda874b921" title="Execution&#45;thread observations, independent of GUI result availability: runSimulation turns down a run..." alt="" coords="1144,949,1295,989"/>
-<area shape="poly" id="edge82_Node000071_Node000073" title=" " alt="" coords="1008,912,1057,923,1134,943,1133,948,1055,928,1007,917"/>
-<area shape="rect" id="Node000074" href="$class_dispatch_controller.html#af339208c301d01ffd8c807c306f3530c" title=" " alt="" coords="1143,1013,1295,1053"/>
-<area shape="poly" id="edge83_Node000071_Node000074" title=" " alt="" coords="1036,912,1058,923,1075,942,1083,962,1090,981,1106,999,1132,1014,1129,1018,1102,1004,1085,984,1078,964,1071,945,1054,928,1034,917"/>
-<area shape="poly" id="edge86_Node000101_Node000101" title=" " alt="" coords="903,597,893,587,898,577,916,571,947,569,986,573,996,578,1000,584,995,587,993,582,984,578,947,574,917,576,902,581,899,586,907,593"/>
-<area shape="poly" id="edge88_Node000102_Node000005" title=" " alt="" coords="488,1076,749,1084,1056,1099,1119,1103,1118,1109,1056,1104,749,1090,488,1082"/>
-<area shape="rect" id="Node000103" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="561,1126,768,1151"/>
-<area shape="poly" id="edge89_Node000102_Node000103" title=" " alt="" coords="436,1086,493,1098,597,1120,595,1126,491,1103,435,1092"/>
-<area shape="rect" id="Node000104" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="893,1138,1000,1163"/>
-<area shape="poly" id="edge90_Node000103_Node000104" title=" " alt="" coords="768,1141,880,1145,879,1151,768,1146"/>
-<area shape="poly" id="edge91_Node000104_Node000104" title=" " alt="" coords="903,1140,893,1130,898,1120,916,1114,947,1111,986,1116,996,1121,1000,1127,995,1129,993,1125,984,1121,947,1117,917,1119,902,1124,899,1129,907,1136"/>
-<area shape="poly" id="edge93_Node000105_Node000004" title=" " alt="" coords="454,533,491,515,527,487,557,458,582,428,602,397,632,333,656,269,681,206,714,146,736,117,763,90,796,64,836,40,875,24,917,12,960,6,1003,3,1084,7,1153,17,1152,22,1084,12,1003,9,960,11,918,18,877,29,839,45,799,69,767,94,740,121,718,149,686,208,661,271,637,335,607,399,586,431,561,462,531,491,493,520,457,538"/>
+<area shape="rect" id="Node000001" title="On the first show: offers recovery and the case chooser, then the privacy and update questions." alt="" coords="5,925,189,951"/>
+<area shape="rect" id="Node000002" href="$_scene_open_request_8cpp.html#a9ce4988f309ab7313aaef26374b9e975" title=" " alt="" coords="295,357,435,383"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,925,111,821,139,660,158,575,180,498,206,435,220,410,236,392,256,378,280,370,282,375,259,383,239,396,225,413,211,437,185,500,163,577,144,661,116,822,103,925"/>
+<area shape="rect" id="Node000003" href="$_main_window_8cpp.html#ad28abff3e25f7649067ca48baa355c3f" title=" " alt="" coords="301,431,429,456"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="95,925,96,846,101,787,111,722,128,653,153,585,188,521,210,493,236,467,259,451,286,443,288,448,262,456,239,471,214,496,193,524,158,587,133,654,117,723,107,788,102,846,101,925"/>
+<area shape="rect" id="Node000004" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="853,45,1040,71"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="103,924,152,841,190,788,236,740,273,715,339,679,517,588,692,495,755,457,787,430,801,407,809,385,817,341,814,299,806,258,799,217,798,175,808,133,819,111,835,89,853,75,856,79,839,93,824,114,813,135,803,176,804,216,811,257,819,299,822,341,815,386,805,409,791,433,758,462,695,500,519,593,341,684,276,720,239,744,194,792,156,844,107,926"/>
+<area shape="rect" id="Node000006" href="$_main_window_test_hooks_8h.html#a1c57415b4e8cb2033ad89cb592bb4d28" title="The one set of hooks of the process: free functions read it, and main builds one MainWindow." alt="" coords="1132,1049,1307,1075"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="189,925,355,914,459,911,573,912,693,919,816,931,938,952,1057,982,1082,995,1105,1010,1174,1042,1172,1046,1103,1015,1079,999,1055,987,937,957,815,937,693,924,573,918,459,917,355,919,190,931"/>
+<area shape="rect" id="Node000007" href="$class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" title="A file was asked to be opened. path is as the request named it." alt="" coords="237,1025,492,1051"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="119,948,172,980,238,1010,269,1020,268,1025,236,1015,169,984,117,953"/>
+<area shape="rect" id="Node000008" href="$_update_notices_8cpp.html#a3739c7b22182424aa05e456e2d6222a2" title=" " alt="" coords="284,1499,445,1524"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="106,950,157,1084,196,1181,240,1279,300,1396,351,1485,346,1488,295,1398,235,1282,191,1183,152,1086,101,952"/>
+<area shape="rect" id="Node000016" href="$_update_notices_8cpp.html#afdbe4ab164415bf902444dd4c6947405" title=" " alt="" coords="274,1243,455,1268"/>
+<area shape="poly" id="edge27_Node000001_Node000016" title=" " alt="" coords="111,949,346,1230,342,1234,107,952"/>
+<area shape="rect" id="Node000021" href="$class_run_controller.html#a2f3f550f14d769ca77cdefdb21fdc034" title="Runs the scene that the window holds, if it is not running already." alt="" coords="271,755,459,780"/>
+<area shape="poly" id="edge43_Node000001_Node000021" title=" " alt="" coords="117,923,331,785,334,790,120,927"/>
+<area shape="rect" id="Node000103" href="$class_main_window.html#ab6e67c46255d672001ef7fd04724892f" title="Shows the case chooser with the bundled and the recent scenes, and acts on the choice." alt="" coords="241,976,488,1001"/>
+<area shape="poly" id="edge87_Node000001_Node000103" title=" " alt="" coords="166,948,284,971,283,976,165,953"/>
+<area shape="rect" id="Node000106" href="$class_playback_profiler.html#a4c45b15e83fd8fee07ab9651292fc60d" title=" " alt="" coords="274,481,455,521"/>
+<area shape="poly" id="edge92_Node000001_Node000106" title=" " alt="" coords="96,925,103,857,123,753,140,696,164,638,196,585,236,537,260,520,263,525,239,541,200,588,169,641,145,697,128,755,108,858,102,925"/>
+<area shape="rect" id="Node000107" href="$_crash_note_8cpp.html#a77f69751f1aa39addab9d8033e1231c4" title=" " alt="" coords="305,1572,424,1597"/>
+<area shape="poly" id="edge94_Node000001_Node000107" title=" " alt="" coords="103,950,116,1062,144,1238,163,1330,185,1416,211,1487,225,1514,239,1535,264,1555,293,1568,291,1573,261,1559,235,1538,220,1517,206,1489,180,1418,158,1332,139,1239,111,1063,97,951"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="322,359,312,349,317,339,335,333,365,331,403,335,413,340,417,346,412,348,410,344,401,340,365,336,336,338,321,343,318,348,325,355"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="322,432,312,422,317,412,335,406,365,404,403,408,413,413,417,419,412,422,410,417,401,413,365,409,336,411,321,416,318,421,325,429"/>
+<area shape="rect" id="Node000005" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="1124,45,1315,71"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="1040,55,1110,55,1110,61,1040,61"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="1181,1051,1173,1041,1177,1031,1193,1025,1219,1023,1252,1026,1265,1036,1262,1040,1250,1031,1219,1028,1194,1030,1181,1035,1178,1040,1185,1047"/>
+<area shape="poly" id="edge17_Node000008_Node000008" title=" " alt="" coords="322,1500,312,1490,317,1480,335,1474,365,1472,403,1476,413,1481,417,1487,412,1490,410,1485,401,1481,365,1477,336,1479,321,1484,318,1489,325,1497"/>
+<area shape="rect" id="Node000009" href="$_update_record_8cpp.html#aedd39575c06eb90ceb03d502cb20b062" title="Compares the installed version with the version that the record names." alt="" coords="585,1536,744,1561"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="446,1519,572,1534,571,1540,445,1524"/>
+<area shape="rect" id="Node000010" href="$_release_info_8cpp.html#a284d503287f8e232b3bbbf652c4ee71d" title="The version as &quot;X.Y.Z&quot;." alt="" coords="859,1316,1034,1341"/>
+<area shape="poly" id="edge13_Node000008_Node000010" title=" " alt="" coords="447,1519,493,1534,508,1544,518,1554,527,1564,541,1572,610,1594,668,1605,695,1604,723,1599,754,1588,788,1572,818,1551,845,1525,868,1496,888,1465,918,1403,936,1354,941,1355,923,1405,892,1467,872,1499,849,1529,822,1555,791,1576,756,1593,725,1604,696,1610,667,1610,609,1599,539,1576,524,1568,514,1558,505,1548,491,1539,445,1524"/>
+<area shape="rect" id="Node000011" href="$_version_8cpp.html#aa20cfcba4dcc840dfe167778f8ced44f" title=" " alt="" coords="1146,1423,1293,1448"/>
+<area shape="poly" id="edge15_Node000008_Node000011" title=" " alt="" coords="447,1515,471,1522,494,1535,511,1554,518,1575,525,1594,542,1610,575,1626,605,1636,633,1639,660,1638,718,1627,789,1610,847,1596,906,1578,1017,1534,1113,1489,1183,1452,1185,1457,1116,1494,1020,1539,907,1583,849,1601,790,1615,719,1632,661,1643,633,1644,604,1641,573,1631,538,1615,520,1597,513,1577,506,1557,490,1539,469,1527,445,1520"/>
+<area shape="rect" id="Node000012" href="$_update_record_8cpp.html#a3e5786865937c50b538cb477c2c306b6" title=" " alt="" coords="591,1712,739,1737"/>
+<area shape="poly" id="edge18_Node000008_Node000012" title=" " alt="" coords="446,1512,471,1521,494,1535,508,1551,516,1567,520,1600,524,1634,530,1650,542,1667,569,1689,601,1704,598,1709,566,1693,538,1670,525,1653,519,1635,515,1601,511,1569,504,1554,490,1539,469,1525,445,1517"/>
+<area shape="rect" id="Node000014" href="$_update_record_8cpp.html#a9310fdab574108ed07cc653140b5daad" title=" " alt="" coords="595,1389,735,1415"/>
+<area shape="poly" id="edge23_Node000008_Node000014" title=" " alt="" coords="387,1496,453,1461,539,1425,580,1413,582,1419,541,1430,456,1466,389,1501"/>
+<area shape="rect" id="Node000015" href="$_update_settings_8cpp.html#a841edd1014624f82e68d783dce07a809" title=" " alt="" coords="540,1463,789,1488"/>
+<area shape="poly" id="edge25_Node000008_Node000015" title=" " alt="" coords="445,1499,544,1487,545,1492,446,1504"/>
+<area shape="poly" id="edge12_Node000009_Node000009" title=" " alt="" coords="620,1538,610,1528,615,1518,633,1511,665,1509,705,1514,716,1519,720,1525,715,1527,712,1523,704,1519,665,1515,634,1517,618,1522,615,1527,623,1534"/>
+<area shape="poly" id="edge14_Node000010_Node000010" title=" " alt="" coords="903,1318,893,1308,898,1298,916,1291,947,1289,986,1293,996,1298,1000,1304,995,1307,993,1302,984,1299,947,1295,917,1297,902,1302,899,1307,907,1314"/>
+<area shape="poly" id="edge16_Node000011_Node000011" title=" " alt="" coords="1181,1424,1173,1414,1177,1404,1193,1398,1219,1396,1252,1400,1265,1409,1262,1413,1250,1405,1219,1401,1194,1403,1181,1408,1178,1414,1185,1421"/>
+<area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="620,1714,610,1704,615,1694,633,1687,665,1685,705,1690,716,1695,720,1701,715,1703,712,1699,704,1695,665,1691,634,1693,618,1698,615,1703,623,1710"/>
+<area shape="rect" id="Node000013" href="$_update_record_8cpp.html#ad99a7b4b4b002f2f73bb94f3bbf9f841" title=" " alt="" coords="869,1712,1025,1737"/>
+<area shape="poly" id="edge19_Node000012_Node000013" title=" " alt="" coords="739,1722,855,1722,855,1727,739,1727"/>
+<area shape="poly" id="edge21_Node000013_Node000011" title=" " alt="" coords="981,1710,1018,1692,1054,1667,1104,1614,1147,1557,1180,1502,1204,1459,1208,1461,1185,1505,1151,1560,1108,1618,1058,1671,1021,1696,983,1714"/>
+<area shape="poly" id="edge20_Node000013_Node000013" title=" " alt="" coords="903,1714,893,1704,898,1694,916,1687,947,1685,986,1689,996,1694,1000,1700,995,1703,993,1698,984,1695,947,1691,917,1693,902,1698,899,1703,907,1710"/>
+<area shape="poly" id="edge24_Node000014_Node000014" title=" " alt="" coords="620,1391,610,1381,615,1371,633,1365,665,1363,705,1367,716,1372,720,1378,715,1381,712,1376,704,1372,665,1368,634,1370,618,1375,615,1380,623,1387"/>
+<area shape="poly" id="edge26_Node000015_Node000015" title=" " alt="" coords="620,1464,610,1454,615,1444,633,1438,665,1436,705,1440,716,1445,720,1452,715,1454,712,1449,704,1445,665,1441,634,1443,618,1448,615,1453,623,1461"/>
+<area shape="poly" id="edge31_Node000016_Node000011" title=" " alt="" coords="377,1240,403,1215,442,1183,488,1153,539,1130,589,1119,653,1113,726,1111,803,1113,880,1120,951,1132,1012,1149,1057,1170,1089,1195,1117,1225,1162,1291,1193,1356,1213,1408,1208,1410,1189,1359,1157,1294,1113,1228,1085,1199,1055,1175,1010,1154,950,1137,879,1126,803,1118,726,1116,654,1118,590,1124,541,1135,490,1158,445,1188,407,1219,380,1244"/>
+<area shape="poly" id="edge38_Node000016_Node000014" title=" " alt="" coords="388,1266,455,1306,541,1352,615,1382,613,1387,539,1356,452,1311,385,1270"/>
+<area shape="poly" id="edge39_Node000016_Node000015" title=" " alt="" coords="378,1267,442,1340,489,1385,541,1425,573,1442,606,1456,604,1461,571,1447,539,1430,486,1389,438,1344,374,1270"/>
+<area shape="poly" id="edge32_Node000016_Node000016" title=" " alt="" coords="322,1244,312,1234,317,1224,335,1218,365,1216,403,1220,413,1225,417,1231,412,1234,410,1229,401,1225,365,1221,336,1223,321,1228,318,1233,325,1241"/>
+<area shape="rect" id="Node000017" href="$_update_record_8cpp.html#a0b07cefc60dd36435751649c1a50876c" title="The text that tells the user about record." alt="" coords="580,1316,749,1341"/>
+<area shape="poly" id="edge28_Node000016_Node000017" title=" " alt="" coords="418,1265,599,1310,598,1315,417,1271"/>
+<area shape="rect" id="Node000018" href="$_update_record_8cpp.html#ac296b13c3c8e3c075481fe8a8d65a1f7" title=" " alt="" coords="593,1169,736,1195"/>
+<area shape="poly" id="edge33_Node000016_Node000018" title=" " alt="" coords="407,1240,539,1203,579,1195,581,1200,541,1209,408,1245"/>
+<area shape="rect" id="Node000020" href="$_update_settings_8cpp.html#afaf79ec184ce30c95c89b5b057b25789" title="Stores version as &quot;X.Y.Z&quot; under &quot;updates/failedVersion&quot;." alt="" coords="571,1243,759,1268"/>
+<area shape="poly" id="edge40_Node000016_Node000020" title=" " alt="" coords="456,1253,557,1253,557,1258,456,1258"/>
+<area shape="poly" id="edge30_Node000017_Node000010" title=" " alt="" coords="749,1326,845,1326,845,1331,749,1331"/>
+<area shape="poly" id="edge29_Node000017_Node000017" title=" " alt="" coords="620,1318,610,1308,615,1298,633,1291,665,1289,705,1294,716,1299,720,1305,715,1307,712,1303,704,1299,665,1295,634,1297,618,1302,615,1307,623,1314"/>
+<area shape="poly" id="edge37_Node000018_Node000018" title=" " alt="" coords="620,1171,610,1161,615,1151,633,1145,665,1143,705,1147,716,1152,720,1158,715,1161,712,1156,704,1152,665,1148,634,1150,618,1155,615,1160,623,1167"/>
+<area shape="rect" id="Node000019" href="$_update_record_8cpp.html#aeb3e3274de628c0b4e506b6de187a33b" title=" " alt="" coords="871,1209,1022,1235"/>
+<area shape="poly" id="edge34_Node000018_Node000019" title=" " alt="" coords="737,1189,858,1207,857,1212,736,1195"/>
+<area shape="poly" id="edge35_Node000019_Node000011" title=" " alt="" coords="978,1232,1016,1252,1058,1278,1099,1312,1139,1348,1200,1410,1196,1414,1135,1352,1096,1316,1054,1283,1014,1257,975,1237"/>
+<area shape="poly" id="edge36_Node000019_Node000019" title=" " alt="" coords="903,1211,893,1201,898,1191,916,1185,947,1183,986,1187,996,1192,1000,1198,995,1200,993,1196,984,1192,947,1188,917,1190,902,1195,899,1200,907,1207"/>
+<area shape="poly" id="edge41_Node000020_Node000010" title=" " alt="" coords="735,1265,790,1278,895,1309,894,1314,789,1283,734,1271"/>
+<area shape="poly" id="edge42_Node000020_Node000020" title=" " alt="" coords="620,1244,610,1234,615,1224,633,1218,665,1216,705,1220,716,1225,720,1232,715,1234,712,1229,704,1225,665,1221,634,1223,618,1228,615,1233,623,1241"/>
+<area shape="rect" id="Node000022" href="$class_run_controller.html#ae95580dfc5edc30afa6c8030bca9e56c" title="Asks to review the run, prepares the scene, builds the canvas and starts the simulation." alt="" coords="575,596,754,621"/>
+<area shape="poly" id="edge44_Node000021_Node000022" title=" " alt="" coords="389,752,626,625,629,630,391,757"/>
+<area shape="poly" id="edge58_Node000022_Node000004" title=" " alt="" coords="753,597,772,588,787,575,809,544,824,514,832,484,834,455,827,395,812,335,796,275,789,214,791,183,799,151,813,120,835,88,849,76,853,80,839,92,818,123,804,153,796,183,794,213,801,274,817,334,833,394,840,454,837,485,829,516,814,547,791,578,775,593,756,602"/>
+<area shape="poly" id="edge63_Node000022_Node000005" title=" " alt="" coords="753,597,772,588,787,575,807,547,821,520,828,492,830,465,824,410,809,355,795,299,789,244,792,216,800,188,814,160,836,132,871,120,946,104,1129,70,1130,76,947,109,872,125,839,136,818,163,805,190,797,217,794,244,800,298,814,353,829,409,835,465,833,493,826,522,812,550,791,578,775,593,756,602"/>
+<area shape="rect" id="Node000023" href="$_main_window_support_8h.html#aba8e868798ce4e4828665e22e21f766a" title="Seconds since midnight of an &quot;hh:mm:ss&quot; base time; 0 when the text is empty or not a time of day." alt="" coords="869,637,1024,663"/>
+<area shape="poly" id="edge45_Node000022_Node000023" title=" " alt="" coords="752,619,856,634,855,639,751,624"/>
+<area shape="rect" id="Node000024" href="$class_run_controller.html#a1f2fdb868a1b68a63228e818164fb66f" title=" " alt="" coords="850,146,1043,186"/>
+<area shape="poly" id="edge47_Node000022_Node000024" title=" " alt="" coords="753,597,772,588,787,575,805,551,817,528,823,505,826,482,822,435,812,389,801,341,797,294,799,269,806,245,818,221,835,196,838,193,842,196,839,200,822,223,811,247,804,270,802,294,806,341,817,387,827,435,831,482,829,506,822,530,809,554,791,578,775,592,755,602"/>
+<area shape="rect" id="Node000028" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled()." alt="" coords="849,752,1044,777"/>
+<area shape="poly" id="edge51_Node000022_Node000028" title=" " alt="" coords="681,620,745,677,790,709,838,737,860,745,858,750,836,742,787,714,742,681,677,624"/>
+<area shape="rect" id="Node000029" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="879,875,1014,900"/>
+<area shape="poly" id="edge52_Node000022_Node000029" title=" " alt="" coords="675,621,698,661,734,718,782,780,839,836,865,853,894,867,891,872,863,858,836,840,778,784,730,721,693,664,670,623"/>
+<area shape="rect" id="Node000030" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="1392,295,1516,320"/>
+<area shape="poly" id="edge54_Node000022_Node000030" title=" " alt="" coords="753,596,772,587,787,575,804,553,811,531,812,509,810,486,809,463,810,439,818,416,835,393,864,368,896,347,964,314,1038,292,1114,280,1189,276,1260,278,1379,290,1378,296,1260,283,1189,282,1114,286,1039,298,966,319,899,351,868,373,839,397,823,419,816,440,814,463,816,486,817,509,816,532,808,556,791,578,774,591,756,600"/>
+<area shape="rect" id="Node000032" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title="The message of the first error among the diagnostics, else of the first diagnostic,..." alt="" coords="859,235,1034,260"/>
+<area shape="poly" id="edge59_Node000022_Node000032" title=" " alt="" coords="753,597,772,588,787,575,811,538,820,502,818,466,811,429,804,392,803,354,811,316,835,278,851,264,854,269,839,281,816,318,808,354,810,391,817,428,823,465,825,503,816,541,791,578,775,592,756,601"/>
+<area shape="rect" id="Node000033" href="$_scene_diagnostic_8cpp.html#a371a00fbe71f997f368bf0c4e90b61f6" title="True when a diagnostic has severity Error." alt="" coords="1413,393,1495,419"/>
+<area shape="poly" id="edge61_Node000022_Node000033" title=" " alt="" coords="753,594,788,575,800,561,806,548,812,520,817,490,823,475,835,460,868,431,898,409,928,393,957,382,1022,368,1104,354,1168,343,1219,339,1271,343,1335,354,1379,367,1418,384,1416,389,1377,372,1334,359,1270,348,1219,345,1169,348,1104,359,1023,373,959,387,930,398,901,413,871,435,839,464,828,478,822,492,817,521,811,550,804,564,791,579,756,599"/>
+<area shape="rect" id="Node000034" href="$class_dispatch_controller.html#aac2afa04a79b4b5976be94b691750aaf" title=" " alt="" coords="875,549,1018,589"/>
+<area shape="poly" id="edge64_Node000022_Node000034" title=" " alt="" coords="754,593,862,578,862,583,755,599"/>
+<area shape="rect" id="Node000068" href="$class_run_controller.html#ae934e2964634ce14e9405bbeec4931d7" title="The next run writes to the folder of the scene sceneName, unless the user chose a folder." alt="" coords="848,687,1045,727"/>
+<area shape="poly" id="edge78_Node000022_Node000068" title=" " alt="" coords="699,619,838,671,865,680,864,685,836,676,697,624"/>
+<area shape="rect" id="Node000072" href="$class_run_controller.html#a9d280ab444f391dd8b84cbcf9a4c2b51" title="Starts the run on a worker thread. The scene has to be prepared." alt="" coords="837,801,1056,827"/>
+<area shape="poly" id="edge82_Node000022_Node000072" title=" " alt="" coords="676,620,700,654,737,699,784,747,839,786,855,794,853,799,836,791,781,751,733,703,696,657,672,623"/>
+<area shape="rect" id="Node000102" href="$_update_telemetry_controller_8cpp.html#a6f709333026cc3310b5e305f05f00631" title=" " alt="" coords="853,499,1040,524"/>
+<area shape="poly" id="edge85_Node000022_Node000102" title=" " alt="" coords="736,593,788,574,802,565,811,555,821,544,836,534,857,526,859,531,839,539,825,548,815,558,806,569,791,579,738,598"/>
+<area shape="poly" id="edge46_Node000023_Node000023" title=" " alt="" coords="903,639,893,629,898,619,916,613,947,611,986,615,996,620,1000,626,995,628,993,624,984,620,947,616,917,618,902,623,899,628,907,635"/>
+<area shape="rect" id="Node000025" href="$_run_results_8cpp.html#ae2eaf2c8b52f181d956ca69372bce036" title=" " alt="" coords="1147,184,1291,209"/>
+<area shape="poly" id="edge48_Node000024_Node000025" title=" " alt="" coords="1044,174,1134,184,1134,190,1043,179"/>
+<area shape="rect" id="Node000026" href="$class_dispatch_controller.html#aa8e0c7473475d098b4d91cab37a1c4d9" title=" " alt="" coords="1133,111,1305,136"/>
+<area shape="poly" id="edge50_Node000024_Node000026" title=" " alt="" coords="1043,148,1124,135,1125,141,1044,153"/>
+<area shape="poly" id="edge49_Node000025_Node000025" title=" " alt="" coords="1181,186,1173,176,1177,166,1193,159,1219,157,1252,161,1265,171,1262,175,1250,166,1219,163,1194,165,1181,170,1178,175,1185,182"/>
+<area shape="poly" id="edge53_Node000029_Node000029" title=" " alt="" coords="903,876,893,866,898,856,916,850,947,848,986,852,996,857,1000,863,995,866,993,861,984,857,947,853,917,855,902,860,899,865,907,873"/>
+<area shape="poly" id="edge55_Node000030_Node000030" title=" " alt="" coords="1421,296,1414,286,1417,276,1431,270,1454,268,1482,272,1494,281,1490,285,1480,277,1454,273,1432,275,1421,280,1419,286,1425,293"/>
+<area shape="rect" id="Node000031" href="$_scene_model_8cpp.html#a2f2bd3d29dc4bdb1f84a048068fd7823" title="The scenario of a case that stores none: id &quot;baseline&quot;, no incidents and no entrance delays." alt="" coords="1573,295,1744,320"/>
+<area shape="poly" id="edge56_Node000030_Node000031" title=" " alt="" coords="1516,305,1560,305,1560,310,1516,310"/>
+<area shape="poly" id="edge57_Node000031_Node000031" title=" " alt="" coords="1625,296,1618,286,1622,276,1636,270,1659,268,1687,272,1698,281,1695,285,1685,277,1659,273,1637,275,1626,280,1623,286,1630,293"/>
+<area shape="poly" id="edge60_Node000032_Node000032" title=" " alt="" coords="903,236,893,226,898,216,916,210,947,208,986,212,996,217,1000,223,995,226,993,221,984,217,947,213,917,215,902,220,899,225,907,233"/>
+<area shape="poly" id="edge62_Node000033_Node000033" title=" " alt="" coords="1421,395,1414,385,1417,375,1431,369,1454,367,1482,370,1494,379,1490,384,1480,375,1454,372,1432,374,1421,379,1419,384,1425,392"/>
+<area shape="poly" id="edge72_Node000034_Node000033" title=" " alt="" coords="1019,579,1101,592,1193,602,1276,603,1309,599,1333,590,1355,575,1374,557,1406,514,1429,469,1443,431,1448,433,1433,471,1411,517,1378,561,1359,580,1336,595,1311,604,1277,608,1193,607,1101,597,1018,584"/>
+<area shape="rect" id="Node000035" href="$struct_simulation_run.html#ae2a5df5cc93ca9fd692cc1b43ac8eece" title=" " alt="" coords="1138,657,1301,683"/>
+<area shape="poly" id="edge65_Node000034_Node000035" title=" " alt="" coords="1019,583,1057,598,1082,617,1105,636,1144,651,1142,656,1103,640,1078,621,1055,603,1017,588"/>
+<area shape="rect" id="Node000040" href="$_infrastructure_builder_8cpp.html#aaf4e88df903a30051c6625935755d163" title=" " alt="" coords="1104,467,1335,507"/>
+<area shape="poly" id="edge66_Node000034_Node000040" title=" " alt="" coords="1013,546,1055,533,1103,517,1130,509,1132,514,1105,522,1057,538,1015,551"/>
+<area shape="rect" id="Node000041" href="$_operations_builder_8cpp.html#a6ee30ce529afc9fd68c0019668c8083e" title=" " alt="" coords="1121,393,1318,419"/>
+<area shape="poly" id="edge68_Node000034_Node000041" title=" " alt="" coords="1017,554,1037,545,1054,533,1065,521,1072,509,1077,482,1083,455,1090,442,1102,429,1111,423,1114,427,1106,433,1094,445,1088,457,1082,483,1077,510,1070,524,1058,537,1039,550,1019,559"/>
+<area shape="rect" id="Node000058" href="$class_dispatch_controller.html#a027310e296b105e0d388fd96dbca6d63" title=" " alt="" coords="1383,735,1525,775"/>
+<area shape="poly" id="edge73_Node000034_Node000058" title=" " alt="" coords="1019,576,1040,585,1058,599,1073,619,1080,641,1080,683,1079,703,1081,723,1089,741,1106,757,1137,776,1171,788,1207,795,1244,797,1317,791,1381,777,1382,782,1318,796,1244,802,1207,800,1170,793,1135,780,1102,761,1085,743,1076,724,1074,704,1075,683,1075,642,1068,622,1054,603,1037,590,1017,581"/>
+<area shape="rect" id="Node000059" href="$class_dispatch_controller.html#ae9f55885c0745b66737a45acaf839544" title=" " alt="" coords="1148,707,1291,747"/>
+<area shape="poly" id="edge74_Node000034_Node000059" title=" " alt="" coords="1019,578,1039,587,1058,599,1076,622,1083,647,1089,670,1106,692,1136,710,1134,714,1102,696,1084,672,1077,648,1071,625,1054,603,1037,591,1017,583"/>
+<area shape="rect" id="Node000067" href="$_scene_validator_8cpp.html#a50b98f3db178a5c612ae70c047ec72a5" title=" " alt="" coords="1132,556,1307,581"/>
+<area shape="poly" id="edge76_Node000034_Node000067" title=" " alt="" coords="1018,566,1118,566,1118,571,1018,571"/>
+<area shape="poly" id="edge67_Node000040_Node000040" title=" " alt="" coords="1176,468,1173,458,1180,448,1196,443,1219,441,1247,443,1262,451,1259,456,1245,449,1219,446,1197,448,1183,453,1178,459,1181,466"/>
+<area shape="poly" id="edge70_Node000041_Node000030" title=" " alt="" coords="1249,391,1409,323,1411,328,1252,396"/>
+<area shape="poly" id="edge71_Node000041_Node000033" title=" " alt="" coords="1318,403,1399,403,1399,409,1318,409"/>
+<area shape="poly" id="edge69_Node000041_Node000041" title=" " alt="" coords="1181,395,1173,385,1177,375,1193,369,1219,367,1252,370,1265,380,1262,384,1250,375,1219,372,1194,374,1181,379,1178,384,1185,391"/>
+<area shape="poly" id="edge75_Node000059_Node000058" title=" " alt="" coords="1291,733,1369,743,1368,748,1291,738"/>
+<area shape="poly" id="edge77_Node000067_Node000067" title=" " alt="" coords="1181,558,1173,548,1177,538,1193,531,1219,529,1252,533,1265,543,1262,547,1250,538,1219,535,1194,537,1181,542,1178,547,1185,554"/>
+<area shape="rect" id="Node000069" href="$class_dispatch_controller.html#aa9bdc7665026c5a0ede5246e273d208c" title="The output folder that prepareScene applies to the next run, or empty. Call this on the GUI thread." alt="" coords="1135,897,1303,937"/>
+<area shape="poly" id="edge79_Node000068_Node000069" title=" " alt="" coords="1042,725,1058,737,1072,756,1080,774,1083,811,1085,847,1092,864,1106,881,1124,895,1121,899,1102,885,1088,867,1080,848,1077,812,1075,776,1068,758,1054,741,1038,729"/>
+<area shape="rect" id="Node000070" href="$_scene_output_directory_8cpp.html#a1c4e3b762a10f0303754963cdff5eb93" title=" " alt="" coords="1137,847,1301,872"/>
+<area shape="poly" id="edge80_Node000068_Node000070" title=" " alt="" coords="1036,725,1058,737,1074,753,1083,769,1091,785,1106,801,1137,822,1170,839,1168,844,1134,827,1102,805,1087,788,1078,772,1070,756,1054,741,1033,730"/>
+<area shape="poly" id="edge81_Node000070_Node000070" title=" " alt="" coords="1181,848,1173,838,1177,828,1193,822,1219,820,1252,824,1265,833,1262,837,1250,829,1219,825,1194,827,1181,832,1178,838,1185,845"/>
+<area shape="poly" id="edge84_Node000072_Node000006" title=" " alt="" coords="1042,824,1058,836,1075,858,1083,880,1085,923,1085,967,1092,989,1106,1011,1127,1029,1152,1042,1149,1047,1124,1033,1102,1014,1087,991,1080,968,1079,923,1078,881,1070,860,1054,840,1039,829"/>
+<area shape="rect" id="Node000073" href="$class_dispatch_controller.html#ada5a8643ab4c07569d742a43f4f3200f" title="Execution&#45;thread observation: runSimulation starts the run." alt="" coords="1148,961,1291,1001"/>
+<area shape="poly" id="edge83_Node000072_Node000073" title=" " alt="" coords="1039,824,1058,836,1070,850,1078,864,1083,892,1088,920,1094,934,1106,947,1136,964,1133,969,1102,951,1090,937,1083,922,1078,893,1073,866,1066,853,1054,840,1036,829"/>
+<area shape="poly" id="edge86_Node000102_Node000102" title=" " alt="" coords="903,500,893,490,898,480,916,474,947,472,986,476,996,481,1000,487,995,490,993,485,984,481,947,477,917,479,902,484,899,489,907,497"/>
+<area shape="poly" id="edge88_Node000103_Node000006" title=" " alt="" coords="488,981,608,980,751,983,904,993,1056,1011,1117,1025,1172,1042,1170,1047,1116,1030,1056,1017,904,998,750,988,608,985,488,987"/>
+<area shape="rect" id="Node000104" href="$class_scene_session.html#a5336ae6de75c60c4fbc9d2207d89d2fc" title="The paths of the recent scenes as the settings keep them, newest first. Spellings of one path appear ..." alt="" coords="561,1032,768,1057"/>
+<area shape="poly" id="edge89_Node000103_Node000104" title=" " alt="" coords="434,999,583,1027,582,1032,433,1004"/>
+<area shape="rect" id="Node000105" href="$_case_chooser_dialog_8cpp.html#ad36e4ed5512f6a4760bb55ff7741ed66" title=" " alt="" coords="893,1051,1000,1076"/>
+<area shape="poly" id="edge90_Node000104_Node000105" title=" " alt="" coords="768,1049,880,1056,879,1062,768,1054"/>
+<area shape="poly" id="edge91_Node000105_Node000105" title=" " alt="" coords="903,1052,893,1042,898,1032,916,1026,947,1024,986,1028,996,1033,1000,1039,995,1042,993,1037,984,1033,947,1029,917,1031,902,1036,899,1041,907,1049"/>
+<area shape="poly" id="edge93_Node000106_Node000005" title=" " alt="" coords="455,482,491,465,526,439,555,412,600,356,631,298,656,238,683,180,717,125,739,99,765,74,798,51,836,30,879,14,925,5,972,3,1018,5,1104,19,1172,38,1171,43,1102,24,1017,10,972,8,926,11,881,19,838,35,801,56,769,79,743,103,721,128,687,183,661,241,636,300,604,359,559,416,529,443,493,470,457,487"/>
+<area shape="poly" id="edge95_Node000107_Node000107" title=" " alt="" coords="322,1574,312,1564,317,1554,335,1547,365,1545,403,1549,413,1554,417,1560,412,1563,410,1558,401,1555,365,1551,336,1553,321,1558,318,1563,325,1570"/>
 </map>

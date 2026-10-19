@@ -5,6 +5,6 @@ var class_recovery_prompt =
       [ "Recover", "class_recovery_prompt.html#a669c765d197b7c8584246832f371b18ba6a4c8eaa10613f02ab59b8da2168f20f", null ],
       [ "Discard", "class_recovery_prompt.html#a669c765d197b7c8584246832f371b18ba3c0611de762f5a443794b8896da22733", null ]
     ] ],
-    [ "RecoveryPrompt", "class_recovery_prompt.html#aa4f26edf9525843d8bb58e22b2f8d30f", null ],
+    [ "RecoveryPrompt", "class_recovery_prompt.html#ad1ac30d050f78f158b8f9bef2fa780e2", null ],
     [ "selectedIndex", "class_recovery_prompt.html#a119f7fa1e00fbf7d62b8c03fe452bf99", null ]
 ];

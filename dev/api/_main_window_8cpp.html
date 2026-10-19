@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="_main_window_8h_source.html">app/MainWindow.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cannot_open_message_8h_source.html">app/CannotOpenMessage.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_crash_note_8h_source.html">app/CrashNote.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_dispatch_controller_8h_source.html">app/DispatchController.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_follow_availability_8h_source.html">app/FollowAvailability.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_gui_replay_history_8h_source.html">app/GuiReplayHistory.h</a>&quot;</code><br />
@@ -140,6 +141,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 <code>#include &lt;QCheckBox&gt;</code><br />
 <code>#include &lt;QClipboard&gt;</code><br />
 <code>#include &lt;QColor&gt;</code><br />
+<code>#include &lt;QDesktopServices&gt;</code><br />
 <code>#include &lt;QDockWidget&gt;</code><br />
 <code>#include &lt;QDoubleSpinBox&gt;</code><br />
 <code>#include &lt;QFileDialog&gt;</code><br />
@@ -323,8 +325,8 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_main_window_8
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ad28abff3e25f7649067ca48baa355c3f" id="r_ad28abff3e25f7649067ca48baa355c3f"><td class="memItemLeft">QString&#160;</td><td class="memItemRight"><a class="el" href="#ad28abff3e25f7649067ca48baa355c3f">crashNoteFolder</a> ()</td></tr>
 <tr class="memitem:afc4b99469fe5a5e382be0216b6184cdd" id="r_afc4b99469fe5a5e382be0216b6184cdd"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#afc4b99469fe5a5e382be0216b6184cdd">startupTimingEnabled</a> ()</td></tr>
-<tr class="memdesc:afc4b99469fe5a5e382be0216b6184cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1".  <br /></td></tr>
 <tr class="memitem:a83e0ad346d67e58fe51907c04f72f66c" id="r_a83e0ad346d67e58fe51907c04f72f66c"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a83e0ad346d67e58fe51907c04f72f66c">beginStartupTiming</a> ()</td></tr>
 <tr class="memdesc:a83e0ad346d67e58fe51907c04f72f66c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the clock of startup timing and forgets the expected scene. Does nothing when startup timing is off.  <br /></td></tr>
 <tr class="memitem:a63d91ad96a8a23ba52cc91ea2b8912f9" id="r_a63d91ad96a8a23ba52cc91ea2b8912f9"><td class="memItemLeft">qint64&#160;</td><td class="memItemRight"><a class="el" href="#a63d91ad96a8a23ba52cc91ea2b8912f9">startupTimingNowNanoseconds</a> ()</td></tr>
@@ -353,6 +355,29 @@ Functions</h2></td></tr>
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8cpp_a83e0ad346d67e58fe51907c04f72f66c_cgraph.svg" width="375" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad28abff3e25f7649067ca48baa355c3f" name="ad28abff3e25f7649067ca48baa355c3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad28abff3e25f7649067ca48baa355c3f">&#9670;&#160;</a></span>crashNoteFolder()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString crashNoteFolder </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1". The folder for crash notes, or an empty string when this run keeps none. QEGTRAIN_CRASH_DIR names a folder for any run. Otherwise a scripted run and a run on the offscreen or minimal platform keep none, so that they never meet the notes of a user, and a normal run keeps them in AppLocalDataLocation/Crashes. Call it once the application exists. </p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="_main_window_8cpp_ad28abff3e25f7649067ca48baa355c3f_cgraph.svg" width="139" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -455,8 +480,6 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is "1". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

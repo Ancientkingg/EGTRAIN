@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title="Startup timing is on: the environment variable QEGTRAIN_STARTUP_TIMING is &quot;1&quot;.">
+<g id="a_Node000002"><a xlink:href="_main_window_8cpp.html#afc4b99469fe5a5e382be0216b6184cdd" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="276,-19 152,-19 152,0 276,0 276,-19"/>
 <text text-anchor="middle" x="214" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">startupTimingEnabled</text>
 </a>

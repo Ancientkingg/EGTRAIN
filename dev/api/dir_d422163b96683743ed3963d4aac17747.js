@@ -1,6 +1,8 @@
 var dir_d422163b96683743ed3963d4aac17747 =
 [
     [ "CannotOpenMessage.h", "_cannot_open_message_8h.html", "_cannot_open_message_8h" ],
+    [ "CrashNote.cpp", "_crash_note_8cpp.html", "_crash_note_8cpp" ],
+    [ "CrashNote.h", "_crash_note_8h.html", "_crash_note_8h" ],
     [ "DialogFolders.h", "_dialog_folders_8h.html", "_dialog_folders_8h" ],
     [ "DispatchController.cpp", "_dispatch_controller_8cpp.html", "_dispatch_controller_8cpp" ],
     [ "DispatchController.h", "_dispatch_controller_8h.html", "_dispatch_controller_8h" ],

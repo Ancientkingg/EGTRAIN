@@ -179,6 +179,13 @@ var NAVTREEINDEX0 =
 "_console_widget_8h.html#aa670fd7ba3a956a2b5030ed840074cb9":[2,0,11,9,2],
 "_console_widget_8h.html#ac98ae5ca7d9cc3c7300f572fa0383950":[2,0,11,9,3],
 "_console_widget_8h_source.html":[2,0,11,9],
+"_crash_note_8cpp.html":[2,0,0,1],
+"_crash_note_8cpp.html#a77f69751f1aa39addab9d8033e1231c4":[2,0,0,1,1],
+"_crash_note_8cpp.html#aef42e2fbead16ff85145ce2cd9008c88":[2,0,0,1,0],
+"_crash_note_8h.html":[2,0,0,2],
+"_crash_note_8h.html#a77f69751f1aa39addab9d8033e1231c4":[2,0,0,2,1],
+"_crash_note_8h.html#aef42e2fbead16ff85145ce2cd9008c88":[2,0,0,2,0],
+"_crash_note_8h_source.html":[2,0,0,2],
 "_csv_writer_8cpp.html":[2,0,10,0],
 "_csv_writer_8h.html":[2,0,10,1],
 "_csv_writer_8h_source.html":[2,0,10,1],
@@ -242,12 +249,5 @@ var NAVTREEINDEX0 =
 "_diagram_window_8cpp.html":[2,0,1,18],
 "_diagram_window_8h.html":[2,0,1,19],
 "_diagram_window_8h_source.html":[2,0,1,19],
-"_dialog_folders_8h.html":[2,0,0,1],
-"_dialog_folders_8h_source.html":[2,0,0,1],
-"_dialog_layout_8h.html":[2,0,11,10],
-"_dialog_layout_8h_source.html":[2,0,11,10],
-"_dispatch_controller_8cpp.html":[2,0,0,2],
-"_dispatch_controller_8cpp.html#ab5a73897d68e014911ec849ff5222366":[2,0,0,2,2],
-"_dispatch_controller_8cpp.html#ad061adfde0ecf72b801d3da8313221d6":[2,0,0,2,1],
-"_dispatch_controller_8h.html":[2,0,0,3]
+"_dialog_folders_8h.html":[2,0,0,3]
 };

@@ -1,5 +1,14 @@
 var NAVTREEINDEX19 =
 {
+"struct_capacity_pair_row.html#a729ab0b3cb2352f014c74ee86c62629b":[1,0,37,3],
+"struct_capacity_pair_row.html#a8e2698240030b1f2f8036f2d0dad047c":[1,0,37,2],
+"struct_capacity_pair_row.html#a94e27693f8fe65ef077c57723e3c644c":[1,0,37,0],
+"struct_capacity_pair_row.html#a95711ae34c58a1578f6854f6a3267ad6":[1,0,37,8],
+"struct_capacity_pair_row.html#aa2dd6cad91e321f347323c456d2aaefa":[1,0,37,4],
+"struct_capacity_pair_row.html#aeb3254007c59432c5adcea78c54ea1f0":[1,0,37,7],
+"struct_case_chooser_dialog_1_1_options.html":[1,0,38,0],
+"struct_case_chooser_dialog_1_1_options.html#a63464bb952e1aedbc0c05aa1358c40b7":[1,0,38,0,0],
+"struct_case_chooser_dialog_1_1_options.html#a717d7a14f73af415a3170b32cdd82a52":[1,0,38,0,1],
 "struct_case_chooser_dialog_1_1_options.html#a877d0ff6822c93b80917d03e394bd851":[1,0,38,0,2],
 "struct_case_chooser_dialog_1_1_options.html#abd33b5f0ea54d4801b2c4dfa83065f57":[1,0,38,0,3],
 "struct_command_line_option.html":[1,0,42],
@@ -240,14 +249,5 @@ var NAVTREEINDEX19 =
 "struct_installer_record.html#adc8d0c19bf6d8828fe6adf2f5a4b2fd1":[1,0,101,2],
 "struct_legacy_passenger_parse_result.html":[1,0,103],
 "struct_legacy_passenger_parse_result.html#a34ac821723a1602fed83ece51c2e91bc":[1,0,103,1],
-"struct_legacy_passenger_parse_result.html#a5fb7e4732652dbfa476d3c2eea006cb6":[1,0,103,0],
-"struct_legacy_passenger_parse_result.html#a9ea70ef15cb4839ac9c9a15417f44c84":[1,0,103,3],
-"struct_legacy_passenger_parse_result.html#aabe89f4d1a59fe3e11c368b3763c51d7":[1,0,103,4],
-"struct_legacy_passenger_parse_result.html#ae1baa88034bb8e929e34d7034693f781":[1,0,103,2],
-"struct_legacy_passenger_sources.html":[1,0,104],
-"struct_legacy_passenger_sources.html#a4e1097f4ecb50e881e6488505806fdf9":[1,0,104,1],
-"struct_legacy_passenger_sources.html#a7826dd24ab9056c679be37839a449a8f":[1,0,104,5],
-"struct_legacy_passenger_sources.html#aa2f272451cfd2a7d32daea450cc01f37":[1,0,104,3],
-"struct_legacy_passenger_sources.html#ac814a86125cb641af254ccd949935883":[1,0,104,0],
-"struct_legacy_passenger_sources.html#ad4c7cf41a120dd38ff4f2c856b98d9c3":[1,0,104,2]
+"struct_legacy_passenger_parse_result.html#a5fb7e4732652dbfa476d3c2eea006cb6":[1,0,103,0]
 };

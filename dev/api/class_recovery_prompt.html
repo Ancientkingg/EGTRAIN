@@ -135,7 +135,7 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa4f26edf9525843d8bb58e22b2f8d30f" id="r_aa4f26edf9525843d8bb58e22b2f8d30f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa4f26edf9525843d8bb58e22b2f8d30f">RecoveryPrompt</a> (const <a class="el" href="struct_recovery_scan.html">RecoveryScan</a> &amp;scan, QWidget *parent=nullptr, const QRect &amp;availableGeometry=QRect())</td></tr>
+<tr class="memitem:ad1ac30d050f78f158b8f9bef2fa780e2" id="r_ad1ac30d050f78f158b8f9bef2fa780e2"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad1ac30d050f78f158b8f9bef2fa780e2">RecoveryPrompt</a> (const <a class="el" href="struct_recovery_scan.html">RecoveryScan</a> &amp;scan, QWidget *parent=nullptr, const QRect &amp;availableGeometry=QRect(), const QString &amp;crashNote=QString())</td></tr>
 <tr class="memitem:a119f7fa1e00fbf7d62b8c03fe452bf99" id="r_a119f7fa1e00fbf7d62b8c03fe452bf99"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a119f7fa1e00fbf7d62b8c03fe452bf99">selectedIndex</a> () const</td></tr>
 <tr class="memdesc:a119f7fa1e00fbf7d62b8c03fe452bf99"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row that Recover and Discard act on, as an index into scan.candidates; -1 without rows.  <br /></td></tr>
 </table>
@@ -169,8 +169,8 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa4f26edf9525843d8bb58e22b2f8d30f" name="aa4f26edf9525843d8bb58e22b2f8d30f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4f26edf9525843d8bb58e22b2f8d30f">&#9670;&#160;</a></span>RecoveryPrompt()</h2>
+<a id="ad1ac30d050f78f158b8f9bef2fa780e2" name="ad1ac30d050f78f158b8f9bef2fa780e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1ac30d050f78f158b8f9bef2fa780e2">&#9670;&#160;</a></span>RecoveryPrompt()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -191,7 +191,12 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const QRect &amp;</td>          <td class="paramname"><span class="paramname"><em>availableGeometry</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QRect()</span>&#160;)</td>
+          <td class="paramtype">const QRect &amp;</td>          <td class="paramname"><span class="paramname"><em>availableGeometry</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QRect()</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;</td>          <td class="paramname"><span class="paramname"><em>crashNote</em></span><span class="paramdefsep"> = </span><span class="paramdefval">QString()</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -200,11 +205,11 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>The scan names the copies and how many older ones the store removed over its limit. availableGeometry bounds the size of the dialog; the screen of the dialog is used when it is invalid. </p>
+<p>The scan names the copies and how many older ones the store removed over its limit. availableGeometry bounds the size of the dialog; the screen of the dialog is used when it is invalid. A crashNote path says above the copies that EGTRAIN closed unexpectedly and where the crash note is. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_recovery_prompt_aa4f26edf9525843d8bb58e22b2f8d30f_cgraph.svg" width="1082" height="306"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_recovery_prompt_ad1ac30d050f78f158b8f9bef2fa780e2_cgraph.svg" width="1082" height="306"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
