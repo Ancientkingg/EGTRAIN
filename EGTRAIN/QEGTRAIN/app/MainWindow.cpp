@@ -50,6 +50,7 @@
 #include <QPen>
 #include <QPixmap>
 #include <QPushButton>
+#include <QScreen>
 #include <QSet>
 #include <QSizePolicy>
 #include <QSlider>
@@ -705,7 +706,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	m_toolBar->setIconSize(QSize(16, 16));
 	m_toolBar->setFocusPolicy(Qt::NoFocus);
-	m_toolBar->setFixedHeight(36);
 	ui->actionSimulationStart->setText("Run");
 	ui->actionSimulationStart->setObjectName("actionRun");
 	ui->actionSimulationStart->setIcon(QIcon(":/icons/run.svg"));
@@ -975,6 +975,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	};
 	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
 		QAction* separator = m_toolBar->addSeparator();
+		if (QWidget* widget = m_toolBar->widgetForAction(separator))
+			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		separator->setObjectName(objectName);
 		separator->setProperty("toolbarGroupBoundary", true);
 		separator->setToolTip(QString::fromLatin1(description));
@@ -3164,6 +3166,9 @@ void MainWindow::handleStartupTimingPaint(const QString& kind, int generation,
 
 // open GUI
 void MainWindow::openGUI() {
+	// The restored window fits the screen. Eight ninths of it leaves room for the window frame, which is not known yet.
+	resize(size().boundedTo(screen()->availableSize() * 8 / 9));
+
 	// display window maximized
 	showMaximized();
 
