@@ -22,20 +22,21 @@ std::vector<SceneDiagnostic> buildInfrastructureAndSignallingFromScene(Simulatio
 /// Empties run.infra, the platforms of the run and its final-station statistics.
 void resetNativeInfrastructureState(SimulationRun& run);
 
-// --- Incidents: Disruption events ---
+/// An incident of the selected scenario, as the scene gives it. Times are seconds from the start of the run, compared
+/// with the step index.
 struct SimulationIncident {
-	std::string type;
-	std::string target;
-	double startSeconds = 0.0;
-	double endSeconds = 0.0;
-	std::vector<std::string> resolvedSectionIDs; // Resolved section IDs for signal_failure
-	std::string id;
-	bool hasOccurrence = false;
-	int occurrence = 1;
-	bool hasReducedSpeed = false;
-	double reducedSpeedKmh = 0.0;
-	bool terminateAtDestination = false;
-	bool hasEndSeconds = false;
+	std::string type;							 ///< "signal_failure" or "train_breakdown".
+	std::string target;							 ///< Signal or section ID of a signal failure; service ID of a breakdown.
+	double startSeconds = 0.0;					 ///< Start of the incident.
+	double endSeconds = 0.0;					 ///< End of the incident; meaningful when hasEndSeconds is true.
+	std::vector<std::string> resolvedSectionIDs; ///< Runtime section IDs that a signal failure affects.
+	std::string id;								 ///< ID of the incident.
+	bool hasOccurrence = false;					 ///< True when the breakdown applies to one occurrence of the service only.
+	int occurrence = 1;							 ///< 1-based occurrence of the service when hasOccurrence is true.
+	bool hasReducedSpeed = false;				 ///< True when the breakdown caps the speed instead of holding the train.
+	double reducedSpeedKmh = 0.0;				 ///< Speed cap of the breakdown in km/h.
+	bool terminateAtDestination = false;		 ///< True when the broken-down train is marked as terminated at the end of its route.
+	bool hasEndSeconds = false;					 ///< True when the incident has an end; without one a speed cap lasts to the end of the route.
 };
 
 bool Incident_Holds_Train(const SimulationRun& run, const std::string& trainDesc, int timestepIndex);
@@ -43,22 +44,30 @@ const SimulationIncident* Active_Train_Breakdown(const SimulationRun& run, const
 void Apply_Signal_Failures_Mixed_Signalling(SimulationRun& run, int timestepIndex);
 void Apply_Single_Track_Authorities_Mixed_Signalling(SimulationRun& run);
 
-// --- TrainEvent: ordered train events (departures, arrivals, etc.) ---
+/// A record of a train at a place and time. It serves as the passage of a train at an infrastructure element
+/// (InfraEvent), as a timetable point of a train (Train::TimetablePoints) and as the train data of a movement authority.
+/// Times are seconds from the start of the run, positions metres and speeds m/s. Numbers are -10000 and strings "None"
+/// until set, and TrainSpeed is -1.
 class TrainEvent {
 public:
+	/// trainDescription of the train; for a signal failure authority "signal_failure:" and the incident ID (its target
+	/// when it has none); for a held single-track section "single_track:" and the limit ID.
 	std::string trainDescription;
-	double Time;
-	double Time2; // Additional time for recording a different event time
+	double Time;  ///< Time of the event: the passage, or the arrival at a timetable point.
+	double Time2; ///< Departure from a timetable point; unset when the train did not leave it.
+	/// Position in metres: the route position of a passage, the scene position of an authority or a timetable point. A
+	/// timetable point the train never reached keeps the X of its node in kilometres.
 	double Position;
-	std::string SuccessorID;
-	std::string CurrentSectionID;
-	std::string NextSectionID;
-	double TrainSpeed;			 // Train speed at the position given by Position
-	double Acceleration;		 // Train acceleration (or equation number used by the train)
-	std::string InfraElemStatus; // Status of a signal or switch at train passage
+	std::string SuccessorID;	  ///< ID of the next infrastructure element of the route; for a timetable point the name of its station.
+	std::string CurrentSectionID; ///< Section of the train when it made a movement authority.
+	std::string NextSectionID;	  ///< Next section on the route of the train; "None" at the end of the route.
+	double TrainSpeed;			  ///< Train speed at the position given by Position
+	double Acceleration;		  ///< Acceleration of the train in m/s2 when it made a movement authority.
+	std::string InfraElemStatus;  ///< Position of a switch at the passage: "Straight" or "Diverging"; "None" for other elements.
 
 	TrainEvent();
 
+	/// Copies every member.
 	TrainEvent& operator=(const TrainEvent& ob2) {
 		this->trainDescription = ob2.trainDescription;
 		this->Time = ob2.Time;
@@ -77,14 +86,16 @@ public:
 // Order trains in a list when time events are also equal
 void orderListOfTrainEvents(std::list<TrainEvent>& OutputList);
 
-// --- InfraEvent: infrastructure element events (switch position changes, station occupation times, TDS borders) ---
+/// The passages of trains at one infrastructure element, which the blocking times use to find the switch position a
+/// train left behind.
 class InfraEvent {
 public:
-	InfraElement ElementInfo;
-	std::list<TrainEvent> RecordedEvent;
+	InfraElement ElementInfo;			 ///< The element.
+	std::list<TrainEvent> RecordedEvent; ///< One event per train passage, sorted by time after the run.
 
 	InfraEvent();
 
+	/// Copies the element and the events.
 	InfraEvent& operator=(const InfraEvent& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -106,65 +117,75 @@ void UpdateInfrastructureElementStatus(SimulationRun& run, const std::list<Infra
 // Order all recorded infrastructure element events chronologically
 void SortRecordedEventsForAllInfrastructureElements(std::list<InfraEvent>& ListOfAllInfraEvents);
 
-// --- TDS: Track Detection Sections ---
+/// A track detection section: a part of a block section. createTds makes them, and RunInfrastructure::detectionSections
+/// holds them.
 class TDS {
 public:
-	std::string blocksection_ID; // Block section this TDS belongs to (fictional in diverging blocks)
-	std::string ID;				 // TDS identifier
-	int TracklineID;			 // Track line identifier
-	double length;				 // TDS length
-	Node start_node;			 // Starting node
-	Node end_node;				 // End node
-	Node connection_node;		 // Switch node
-	Node node_on_switch;		 // Third node for switches (replaces third_node)
+	std::string blocksection_ID; ///< Not set by createTds; empty.
+	std::string ID;				 ///< ID such as `TDS_1@` followed by the block section ID.
+	int TracklineID;			 ///< Slot of the track; -1 until set.
+	double length;				 ///< Length in kilometres, the difference of the X of the end nodes; -1 until set.
+	Node start_node;			 ///< Start node.
+	Node end_node;				 ///< End node.
+	Node connection_node;		 ///< Switch node of a section with a diverging switch; X is -1 otherwise.
+	Node node_on_switch;		 ///< Node halfway along a diverging switch, where its two detection sections meet; X is -1 otherwise.
 
-	bool occupied;
+	bool occupied; ///< Never set to true.
 
+	/// Sets the numbers and the X of connection_node and node_on_switch to -1.
 	TDS();
 };
 
-// Main signal aspect of a block section.
+/// Main signal aspect of a block section. The codes that go with each state are in docs/architecture/signalling-levels.md.
 enum class SignalState : unsigned char {
-	Green,
-	Yellow,
-	Red,
-	RedRed
+	Green,	///< Code 270; the default.
+	Yellow, ///< Code 180.
+	Red,	///< Code 75.
+	RedRed	///< Code 751, level 5 only.
 };
 
-// --- Section: Block Section ---
+/// A block section. RunInfrastructure::sections holds the sections of the scene and the sections derived at switches, and
+/// a Route holds copies of them, reversed for a reversed route. X values are kilometres.
 class Section {
 public:
-	std::string ID;
-	int trackLineId;						  // Track line ID this block belongs to
-	int FirstConnectedTrackLineID;			  // First track line connected by diverging switch (when withSwitchDiv=true)
-	int SecondConnectedTrackLineID;			  // Second track line connected by diverging switch (when withSwitchDiv=true)
-	Arc arcs_in_signalling_block_section[20]; // Arcs composing the block section
-	Node start_node, end_node;				  // Start and end nodes
-	// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
+	std::string ID;							  ///< ID of the section.
+	int trackLineId;						  ///< Slot of the track the section lies on; -1 for a section derived at a switch.
+	int FirstConnectedTrackLineID;			  ///< First track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	int SecondConnectedTrackLineID;			  ///< Second track line connected by diverging switch (when withSwitchDiv=true); -1 otherwise.
+	Arc arcs_in_signalling_block_section[20]; ///< Arcs of the section, total_arcs of them; at most 20 (RuntimeLimits::kNativeMaxSectionArcs).
+	/// Start node.
+	Node start_node, end_node; ///< End node.
+	/// Nodes composing the block section, shared by every copy of the section; empty for a default section and a reversed route section
 	std::shared_ptr<const std::vector<Node>> nodelist_of_nodes_in_signalling_section;
-	int total_nodes;   // Number of nodes in the block section
-	int total_arcs;	   // Number of arcs in the block section
-	double length;	   // Block section length
-	double exit_speed; // Exit speed controlled by signalling system
+	int total_nodes;   ///< Number of nodes in the block section
+	int total_arcs;	   ///< Number of arcs in the block section
+	double length;	   ///< Length in kilometres, the difference of the X of the end nodes.
+	double exit_speed; ///< speedInBraking (m/s) of the last arc, set when an aspect pass marks the section occupied; 0 by default. Only copied and compared.
+	/// Aspect code: 270 green, 180 yellow, 75 red, 751 red-red, 0 on an occupied or failed section. 270 by default.
 	double code;
-	double XStartSwitch;					   // Abscissa where train starts diverging switch (nonzero only when withSwitchDiv=true)
-	double XEndSwitch;						   // Final abscissa of diverging switch (nonzero only when withSwitchDiv=true)
-	double GeoXBegNode;						   // Geographic X coordinate of start node
-	double GeoXEndNode;						   // Geographic X coordinate of end node
-	int SignallingLevel;					   // Signalling level 0 to 5 (enum SignallingLevel in scene/SignallingLevel.h); kSignallingLevelUnset means no level (default)
-	double ETCS3BrakingPoints[40];			   // ETCS L3 braking points (max 2 per train, up to 40 = 20 trains simultaneous)
-	std::string ETCS3BrakingPointsTrainID[40]; // Train IDs for each ETCS3 braking point
-	int N_ETCS3BrakingPoints;				   // Number of ETCS3 braking points on this section
-	SignalState state;						   // Main signal aspect
-	bool Occupied;							   // Block section occupied by a train
-	bool Occup_By_Train;					   // Distinguishes train-on-section (true) from switch-occupied (false)
-	bool withSwitchDiv;						   // Block section contains a diverging switch
-	std::string IDConnectedBS[10];			   // IDs of block sections connected by switches
-	int N_ConnectedBS;						   // Number of connected block sections
-	std::list<TDS*> TDS_in_block;
+	double XStartSwitch; ///< X where the diverging switch starts (nonzero only when withSwitchDiv=true)
+	double XEndSwitch;	 ///< X where the diverging switch ends (nonzero only when withSwitchDiv=true)
+	double GeoXBegNode;	 ///< Position of the start node in metres in scene coordinates, which a reversed copy keeps.
+	double GeoXEndNode;	 ///< Position of the end node in metres in scene coordinates, which a reversed copy keeps.
+	/// Signalling level 0 to 5 (enum SignallingLevel in scene/SignallingLevel.h); kSignallingLevelUnset (-99999999)
+	/// means no level (default)
+	int SignallingLevel;
+	double ETCS3BrakingPoints[40];			   ///< Set to -1 by the constructor and never given another value.
+	std::string ETCS3BrakingPointsTrainID[40]; ///< Set to "None" by the constructor and never given another value.
+	int N_ETCS3BrakingPoints;				   ///< Set to 0 by the constructor and never given another value.
+	SignalState state;						   ///< Main signal aspect; Green by default.
+	bool Occupied;							   ///< Block section occupied by a train
+	bool Occup_By_Train;					   ///< Set to false by the constructor and never given another value.
+	bool withSwitchDiv;						   ///< Block section contains a diverging switch
+	/// IDs of the sections that depend on this one, which are occupied and released with it: at most 10
+	/// (RuntimeLimits::kNativeMaxDependencies).
+	std::string IDConnectedBS[10];
+	int N_ConnectedBS;			  ///< Number of used entries of IDConnectedBS.
+	std::list<TDS*> TDS_in_block; ///< Track detection sections of the section; they point into RunInfrastructure::detectionSections.
 
 	Section();
 
+	/// Copies every member; the node list stays shared.
 	Section& operator=(const Section& ob2) {
 		if (this == &ob2)
 			return *this;
@@ -214,7 +235,7 @@ public:
 		return *this;
 	}
 
-	// Equality operator for block sections
+	/// True when the ID, the size, the length, the start node, the shared node list, the arcs, exit_speed, code and state are equal.
 	bool operator==(const Section& ob2) {
 		bool AreArcsEqual = true;
 		for (int i = 0; i < total_arcs && i < ob2.total_arcs; i++) {
@@ -237,14 +258,15 @@ public:
 			return false;
 	}
 
-	// Cut block section: CutPart="CutEnd" removes from CuttingAbscissa to end;
-	// "CutBegin" removes from start to CuttingAbscissa
+	/// Cut block section: CutPart="CutEnd" removes from CuttingAbscissa to end;
+	/// "CutBegin" removes from start to CuttingAbscissa. CuttingAbscissa is an X in kilometres.
 	void CutBlockSection(std::string CutPart, double CuttingAbscissa);
 
-	// Reverse block section direction
+	/// Makes this section the reverse of the section passed as blockSets, with X measured back from RouteLength in kilometres.
 	void reverseBlockSection(Section blockSets, double RouteLength);
 
 
+	/// Names a function that does not exist.
 	friend void SetBlockSpeed();
 };
 
@@ -276,34 +298,40 @@ void createTds(Section* Blocks, int N_Blocks, int N_TDS_On_Straight_Blocks, std:
 void setGeoCoordinates(Section* BS, int N_BS);
 
 
-// --- Route: train route as sequence of block sections ---
-
+/// The route of a train: a sequence of copies of block sections. Positions on a route are X in kilometres along the
+/// sections of the route; a train position in metres is X * 1000.
 class Route {
 public:
-	std::string ID;
-	int N_Block_Sections;							 // Number of block sections composing the route
-	std::vector<Section> sequence_of_block_sections; // Sequence of block sections, N_Block_Sections elements once the route is built
-	double x_of_start_node;							 // Start abscissa (initial node of route)
-	double x_of_end_node;							 // End abscissa (final node of route)
-	bool reversed_direction;						 // True when train runs opposite to route definition direction;
-													 // instant_spatial_position = TotalRouteLength - instant_spatial_position for reversed trains
-	double OriginalRefReversedRoute;				 // Original end_node abscissa of last block (non-reversed); used to shift abscissas on reversed routes
-	std::list<InfraElement> InfrastructureElements;	 // Infrastructure elements along the route (switches, station stop boards, TDS borders)
-	std::string corridor;							 // Corridor identifier (for multi-region, up to 2 corridors)
-	std::pair<double, double> diffRegionsJumpX;		 // (jump length, jump lower bound) across regions
-	std::pair<double, double> diffRegionsJumpX2;	 // Second connection point across regions
+	std::string ID;									 ///< ID of the scene route; "None" until built.
+	int N_Block_Sections;							 ///< Number of block sections composing the route
+	std::vector<Section> sequence_of_block_sections; ///< Sequence of block sections, N_Block_Sections elements once the route is built
+	double x_of_start_node;							 ///< X in kilometres of the start node of the route.
+	double x_of_end_node;							 ///< X in kilometres of the end node of the route.
+	/// True when the train runs against the direction in which the route is defined. The sections are then reversed copies,
+	/// and positions are measured from the other end: an output position is OriginalRefReversedRoute minus the route position.
+	bool reversed_direction;
+	double OriginalRefReversedRoute;				///< For a reversed route, the scene X in metres from which route positions are measured back; -1 otherwise.
+	std::list<InfraElement> InfrastructureElements; ///< Infrastructure elements along the route (switches, station stop boards, TDS borders)
+	std::string corridor;							///< Corridor of the scene route; "A" when it has none.
+	/// Where the route jumps between display regions, which have different kilometre references: the length of the jump in
+	/// kilometres, and the X at which it happens. {0, 0} when there is no jump.
+	std::pair<double, double> diffRegionsJumpX;
+	std::pair<double, double> diffRegionsJumpX2; ///< Set to {0, 0} and never given another value.
+
 	Route();
 
-	// Initialize infrastructure element list for route; each element includes its block section ID
+	/// Initialize infrastructure element list for route; each element includes its block section ID
 	void setListInfrastructureElementsForRoute(Section BS);
 
-	// Identify ending edges of diverging switches that are also start of another diverging switch
+	/// Identify ending edges of diverging switches that are also start of another diverging switch
 	void identifyEndingEdgeOfDivSwitchesWhichAreStartingOfADivSwitch(std::list<InfraElement>& RouteInfrastructureElements);
 
-	// Build route from canonical scene block ids.
+	/// Build route from canonical scene block ids. A positive direction keeps their order, a negative one reverses the
+	/// route, and 0 reverses it when the first section lies after the last.
 	void createRouteFromBlockIds(SimulationRun& run, const std::vector<std::string>& blockIds, int direction = 0);
 
-	// Adjust route across different regions (different km references)
+	/// Moves the sections after a jump between display regions onto the kilometre reference of the sections before it and
+	/// records the jump in diffRegionsJumpX.
 	void adjustRouteAcrossDiffRegions();
 };
 
@@ -316,21 +344,30 @@ void setUpRoutesFromScene(SimulationRun& run, const SceneModel& scene, const std
 // --- InfraElementsList: set up list of infrastructure element events ---
 void setListAllInfrastructureElementsFromRoutes(SimulationRun& run);
 
-// --- MovementAuthority: end of authority for levels 3 and 4, and for a failed signal at every level ---
+/// An end of authority for levels 3 and 4, and for a failed signal at every level. SimulationRun::etcsMa holds the
+/// authorities of the current step. Positions are metres.
 class MovementAuthority {
 public:
-	std::string BSID;			   // Block section ID
-	std::string type;			   // MA type: locked switch, train, or other element
-	std::string typePart;		   // MA refers to Front or Tail of train
-	bool ReversedDirection;		   // Train traverses block sections opposite to specification direction
-	double AbsPosEoA;			   // Absolute X position of End of Authority
-	double RelativePosEoA;		   // Relative EoA position on train route
-	double EoA_Dist_From_BSID_Beg; // Distance of EoA from BSID start node in train's direction of travel.
-								   // If reversed: measured from BSID end node. If forward: from BSID start node.
-	TrainEvent TrainInfo;		   // Train info for this EoA: position, speed, description
+	std::string BSID; ///< ID of the block section of the end of authority; "None" by default.
+	/// What the authority stands for: "TrainEnd" (an end of a train), "DivergingSwitchOccupied" (a diverging switch a train
+	/// is on) or "SignalFailure" (a failed signal or a held single-track section). "None" by default.
+	std::string type;
+	/// Which end of the train it is: "Front" or "Tale" (the code spells the rear end this way). A signal failure has
+	/// "Front". "None" by default.
+	std::string typePart;
+	bool ReversedDirection; ///< True when the route of the train that made it runs against the direction of the sections.
+	/// Position of the end of authority in scene coordinates, which do not depend on the direction of the route; -1 by default.
+	double AbsPosEoA;
+	/// Position of the end of authority on the route of the train that received it, which the braking routine sets; -1 by default.
+	double RelativePosEoA;
+	/// Distance of EoA from BSID start node in train's direction of travel.
+	/// If reversed: measured from BSID end node. If forward: from BSID start node. -1 by default.
+	double EoA_Dist_From_BSID_Beg;
+	TrainEvent TrainInfo; ///< Train info for this EoA: position, speed, description
 
 	MovementAuthority();
 
+	/// Copies every member.
 	MovementAuthority& operator=(const MovementAuthority& MA2) {
 		BSID = MA2.BSID;
 		type = MA2.type;
@@ -416,21 +453,28 @@ void setVirtualSignals(SimulationRun& run);
 // Set virtual signals on routes from original block sections (info lost during route creation)
 void setRouteVirtualSignals(SimulationRun& run);
 
-// Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted
-// train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears.
+/// A train that holds or waits for the direction of a single-track limit.
+///
+/// Pending entries keep a direction reserved through temporary stops. The identity prevents a removed or retargeted
+/// train from leaving a phantom reservation. Several same-direction trains may have committed before a leader clears.
 struct SingleTrackReservation {
-	int trainIndex, routeIndex;
-	std::string trainDescription;
-	double departureTime, origin, destination;
-	std::pair<double, double> interval;
+	/// Index of the train in SimulationRun::trains.
+	int trainIndex, routeIndex;	  ///< Index of the route of the train.
+	std::string trainDescription; ///< trainDescription of the train.
+	/// departure_time of the train in seconds.
+	double departureTime, origin, destination; ///< X in kilometres of the end of the route.
+	/// \var SingleTrackReservation::origin
+	/// X in kilometres of the start of the route, Train::Start_Node_X.
+
+	std::pair<double, double> interval; ///< The zone interval [from, to) in metres on the route that the reservation is for.
 };
 
-// Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
-// neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
-// between its first and last plain section on a route that has both, plus the two protected sections.
+/// Where the zone of one limit lies on one route: the intervals of route position [from, to) in metres, with
+/// neighbouring sections merged, and the IDs of its sections in route order. The zone of a limit is every section
+/// between its first and last plain section on a route that has both, plus the two protected sections.
 struct SingleTrackZone {
-	std::vector<std::pair<double, double>> intervals;
-	std::vector<std::string> sectionIDs;
+	std::vector<std::pair<double, double>> intervals; ///< Intervals [from, to) of route position in metres.
+	std::vector<std::string> sectionIDs;			  ///< IDs of the zone sections in route order.
 };
 // Forgets the held directions and the derived zones. Call it whenever the limits or the routes change.
 void resetSingleTrackLocks(SimulationRun& run);
@@ -443,17 +487,21 @@ std::size_t occupySingleTrackForRoute(SimulationRun& run, int routeIndex);
 // Updates occupancy and pending entry reservations. Every changed zone is released (RollingStock.cpp).
 void updateSingleTrackLocks(SimulationRun& run, int step);
 
-// --- StationBoundarySection: protects entrance of main stations ---
+/// The entrance of a station area, which is held while a section of the area ahead is occupied. The pointers point into
+/// RunInfrastructure::sections and are not owned.
 class StationBoundarySection {
 public:
+	/// Stores the three values.
 	StationBoundarySection(Section* entrance, bool direction, Section* exit);
 
-	// Protect station interlocking area
+	/// Protect station interlocking area: marks section sectionIndex of route routeIndex occupied when platformBooked is true,
+	/// or when it is the entrance, the route has the protected direction and a section ahead up to the exit is occupied.
+	/// Otherwise releases it.
 	void protectEntrance(SimulationRun& run, int sectionIndex, int routeIndex, bool platformBooked);
 
-	Section* entrance; // Entrance section
-	bool direction;	   // Direction to observe
-	Section* exit;	   // Exit section (unused at end of lines)
+	Section* entrance; ///< Entrance section
+	bool direction;	   ///< Routes whose reversed_direction equals this value are protected.
+	Section* exit;	   ///< Exit section; null at the end of a line, where the area runs to the end of the route.
 };
 
 #endif
