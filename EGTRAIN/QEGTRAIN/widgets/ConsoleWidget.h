@@ -16,31 +16,41 @@
 #include <memory>
 #include <string>
 
-// Thread-safe streambuf that captures stdout/stderr and forwards to a callback
+/// Stream buffer that takes the place of the buffers of std::cout and std::cerr while it is installed. Text written to
+/// either stream reaches the original stream, and each complete line is passed to the callback on the thread that wrote
+/// it. Thread-safe.
 class ConsoleStreambuf : public std::streambuf {
 public:
-	// Receives a message of the logging core with its category and level, in the order of the
-	// text that reaches the plain callback.
+	/// Receives a message of the logging core with its category and level, in the order of the
+	/// text that reaches the plain callback.
 	using MessageCallback = std::function<void(eglog::Category, eglog::Level, QString)>;
 
+	/// A buffer that passes the lines of text to callback. It is not installed yet.
 	explicit ConsoleStreambuf(std::function<void(QString)> callback);
 	~ConsoleStreambuf() override;
 
-	// Set before install().
+	/// Sets the callback that deliver() uses. Set it before install().
 	void setMessageCallback(MessageCallback callback);
 
+	/// Puts this buffer in place of the buffers of std::cout and std::cerr and makes it the one that deliver() writes to.
+	/// Does nothing when it is installed already.
 	void install();
+	/// Puts the original buffers back and passes an unfinished last line to the callback. Does nothing when it is not
+	/// installed. The destructor calls it.
 	void restore();
 
-	// Hands a message of the logging core to the installed instance and returns true, or returns
-	// false when none is installed. The text reaches the original std::cout exactly as given.
-	// An instance with a message callback passes the message to it and not to the plain callback;
-	// one without writes the text as std::cout would.
+	/// Hands a message of the logging core to the installed instance and returns true, or returns
+	/// false when none is installed. The text reaches the original std::cout exactly as given.
+	/// An instance with a message callback passes the message to it and not to the plain callback;
+	/// one without writes the text as std::cout would.
 	static bool deliver(eglog::Category category, eglog::Level level, const std::string& text);
 
 protected:
+	/// Writes one character as std::cout would.
 	int_type overflow(int_type c) override;
+	/// Writes n characters as std::cout would.
 	std::streamsize xsputn(const char* s, std::streamsize n) override;
+	/// Flushes the original std::cout and passes an unfinished line to the callback.
 	int sync() override;
 
 private:
@@ -83,10 +93,12 @@ private:
 	void writeMessage(eglog::Category category, eglog::Level level, const std::string& text);
 };
 
-// Dock widget that displays captured console output
+/// The "Console Log" dock. It installs a ConsoleStreambuf for its lifetime and shows what is written to std::cout and
+/// std::cerr and the messages of the logging core, on the GUI thread. It keeps the last 10,000 lines.
 class ConsoleWidget : public QDockWidget {
 	Q_OBJECT
 public:
+	/// Creates the dock and installs its stream buffer.
 	explicit ConsoleWidget(QWidget* parent = nullptr);
 	~ConsoleWidget() override;
 
@@ -98,30 +110,30 @@ private:
 	void appendMessage(eglog::Category category, eglog::Level level, const QString& text);
 };
 
-// The text of a message as the dock and the log file show it: the level and the category in
-// front of the first character that is not a line break ("warning app.ui: text"). The rest of
-// the text is unchanged, and a text of line breaks only is returned as it is.
+/// The text of a message as the dock and the log file show it: the level and the category in
+/// front of the first character that is not a line break ("warning app.ui: text"). The rest of
+/// the text is unchanged, and a text of line breaks only is returned as it is.
 QString consoleMessageText(eglog::Category category, eglog::Level level, const QString& text);
 
-// The sink of the application. It passes the message to the installed ConsoleStreambuf, which
-// writes the text to the original std::cout and shows it in the dock with level and category.
-// Without one (a run without a window, or a window without the dock) it writes the text as given
-// to std::cerr for app.ui and to std::cout for every other category. The same text, with level
-// and category in front, is appended to the log file when installConsoleLogging opened one; the
-// file, like the dock, starts a message on a line of its own.
+/// The sink of the application. It passes the message to the installed ConsoleStreambuf, which
+/// writes the text to the original std::cout and shows it in the dock with level and category.
+/// Without one (a run without a window, or a window without the dock) it writes the text as given
+/// to std::cerr for app.ui and to std::cout for every other category. The same text, with level
+/// and category in front, is appended to the log file when installConsoleLogging opened one; the
+/// file, like the dock, starts a message on a line of its own.
 void consoleLogSink(eglog::Category category, eglog::Level level, const std::string& text);
 
-// The Qt message handler of the application: passes the message of Qt to the logging core as
-// app.ui, at the level of its type, with the text Qt's own handler prints (qFormatLogMessage).
-// EGTRAIN_LOG can switch a level of app.ui off, except for qFatal, which always passes and is
-// flushed. Qt ends the program after the handler returns.
+/// The Qt message handler of the application: passes the message of Qt to the logging core as
+/// app.ui, at the level of its type, with the text Qt's own handler prints (qFormatLogMessage).
+/// EGTRAIN_LOG can switch a level of app.ui off, except for qFatal, which always passes and is
+/// flushed. Qt ends the program after the handler returns.
 void qtMessageToLog(QtMsgType type, const QMessageLogContext& context, const QString& message);
 
-// Installs consoleLogSink and qtMessageToLog, configures the logging core from EGTRAIN_LOG and
-// opens the file named by EGTRAIN_LOG_FILE, or closes the file of an earlier call when the
-// variable is unset. Call it once, before other threads log. Returns the lines to print on
-// std::cerr for a malformed rule in EGTRAIN_LOG or a log file that cannot be opened, and an
-// empty string when both are fine.
+/// Installs consoleLogSink and qtMessageToLog, configures the logging core from EGTRAIN_LOG and
+/// opens the file named by EGTRAIN_LOG_FILE, or closes the file of an earlier call when the
+/// variable is unset. Call it once, before other threads log. Returns the lines to print on
+/// std::cerr for a malformed rule in EGTRAIN_LOG or a log file that cannot be opened, and an
+/// empty string when both are fine.
 std::string installConsoleLogging();
 
 #endif // CONSOLEWIDGET_H
