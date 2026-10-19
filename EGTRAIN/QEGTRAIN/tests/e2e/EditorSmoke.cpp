@@ -4453,6 +4453,24 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			}
 			dock->setFont(normalFont);
 		}
+		{
+			// Once a dock has been resized, Qt opens a dock at the width that its side of the window had last. The Rolling stock
+			// dock that opens after a narrow Incidents dock is still as wide as its own size hint.
+			w.m_caseLayersDock->show();
+			w.m_incidentDock->show();
+			QApplication::processEvents();
+			w.resizeDocks({w.m_incidentDock}, {300}, Qt::Horizontal);
+			QApplication::processEvents();
+			w.m_incidentDock->hide();
+			w.m_trainUnitDock->show();
+			QApplication::processEvents();
+			const QString failure = trainUnitButtonFailure();
+			if (!failure.isEmpty())
+				facetFailure(ok, "presentation", failure + " when it opens after a narrower dock at 1280 by 800 pixels");
+			w.m_trainUnitDock->hide();
+			w.m_caseLayersDock->hide();
+			QApplication::processEvents();
+		}
 		if (ok) {
 			// A window of 1280 by 698 pixels with Loaded Data below the network: the Case and Layers rail is too short for its
 			// content and scrolls, and a long case name without spaces and the first layer toggle stay whole.

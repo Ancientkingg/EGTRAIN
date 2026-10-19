@@ -24,6 +24,8 @@ When Run Results first opens at the bottom of the window it takes a third of the
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
 
+An editor dock, such as Rolling stock units, opens at least as wide as its size hint, also after another dock has been dragged narrower, so its fields do not scroll sideways.
+
 ## Tables and progress bar
 
 Every table and list has a light header: `#e3eaee` sections with `#24313a` semibold text, padding of 4 by 6 px and a `#c9d3db` line on the right and below each section. The corner button of a table has the same face. Alternate rows are `#f4f7f9` between the `#eef2f5` rows; the colour is set in the stylesheet, so a dark system theme does not darken them under the dark text. Column widths and header texts are unchanged.
