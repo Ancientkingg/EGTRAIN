@@ -72,7 +72,7 @@ void closeCrashDialogs() {
 			continue;
 		auto* notice = qobject_cast<QMessageBox*>(widget);
 		if (notice && notice->objectName() == QLatin1String("crashNotice")) {
-			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTICE ") + notice->informativeText().section(QLatin1Char('\n'), 1, 1));
+			printLine(QStringLiteral("E2E_RECOVERY_CRASH_NOTICE ") + notice->text().section(QLatin1Char('\n'), 1, 1));
 			notice->button(QMessageBox::Ok)->click();
 		} else if (widget->objectName() == QLatin1String("recoveryPrompt")) {
 			const auto* note = widget->findChild<QLabel*>(QStringLiteral("recoveryCrashNote"));
@@ -182,7 +182,8 @@ void MainWindowTestAccess::runRecovery(MainWindow& w) {
 	// What the window holds after the start, and Save As of a recovered scene when QEGTRAIN_E2E_RECOVERY_SAVE_AS names a file.
 	// The window closes at the end, which it can only do without a question when the scene is saved.
 	const auto startAgain = [&]() -> QString {
-		// A prompt that opened has been answered before the script runs, unless it names a crash note.
+		// A prompt that opened has been answered before the script runs when QEGTRAIN_E2E_RECOVERY_ANSWER is set; otherwise
+		// closeCrashDialogs closes it.
 		closeCrashDialogs();
 		waitFor([] { return QApplication::activeModalWidget() == nullptr; });
 		const bool opened = w.m_session->m_sceneDir.isEmpty() && w.m_document->isDirty() && !w.m_history->isAtSavedPoint() && !w.m_history->canUndo();

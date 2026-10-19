@@ -4,8 +4,6 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
-#include <QGuiApplication>
-#include <QStandardPaths>
 #include <QSysInfo>
 
 #include <csignal>
@@ -37,8 +35,13 @@ char g_notePath[4096];
 #endif
 char g_header[2048];
 volatile std::sig_atomic_t g_headerWritten = 0;
+#ifdef Q_OS_WIN
+// The filter of the C++ runtime, which turns an uncaught C++ exception into std::terminate.
+LPTOP_LEVEL_EXCEPTION_FILTER g_previousFilter = nullptr;
+#endif
 
-// The handlers below call only functions that are safe in a signal handler; onTerminate also reads the current exception.
+// The handlers below do not allocate. backtrace is not on the POSIX list of calls that are safe in a signal handler, so a
+// corrupted heap can leave a partial note; onTerminate also reads the current exception.
 int openNote() {
 #ifdef Q_OS_WIN
 	int fd = -1;
@@ -119,7 +122,6 @@ void onSignal(int number) {
 		closeNote(fd);
 	}
 	// The handler is reset as it is called, so the signal now ends the process as it would without the handler.
-	std::signal(number, SIG_DFL);
 	std::raise(number);
 }
 
@@ -147,7 +149,7 @@ void onSignal(int number) {
 }
 
 #ifdef Q_OS_WIN
-// Lets the system report the exception after the note is written.
+// Passes the exception on to the filter it replaced, and so to the system, after the note is written.
 LONG WINAPI onException(EXCEPTION_POINTERS* info) {
 	const int fd = openNote();
 	if (fd >= 0) {
@@ -157,22 +159,11 @@ LONG WINAPI onException(EXCEPTION_POINTERS* info) {
 		writeText(fd, "\n");
 		closeNote(fd);
 	}
-	return EXCEPTION_CONTINUE_SEARCH;
+	return g_previousFilter ? g_previousFilter(info) : EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
 
 } // namespace
-
-QString crashNoteFolder(bool scripted) {
-	const QString named = qEnvironmentVariable("QEGTRAIN_CRASH_DIR");
-	if (!named.isEmpty())
-		return QDir(named).absolutePath();
-	const QString platform = QGuiApplication::platformName();
-	if (scripted || platform == QLatin1String("offscreen") || platform == QLatin1String("minimal"))
-		return {};
-	const QString data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
-	return data.isEmpty() ? QString() : QDir(data).filePath(QStringLiteral("Crashes"));
-}
 
 void installCrashHandler(const QString& folder) {
 	if (folder.isEmpty() || !QDir().mkpath(folder))
@@ -201,7 +192,7 @@ void installCrashHandler(const QString& folder) {
 
 	std::set_terminate(onTerminate);
 #ifdef Q_OS_WIN
-	SetUnhandledExceptionFilter(onException);
+	g_previousFilter = SetUnhandledExceptionFilter(onException);
 	std::signal(SIGABRT, onSignal);
 #else
 	// backtrace loads a library the first time; the handler must not.
@@ -222,15 +213,15 @@ void installCrashHandler(const QString& folder) {
 #endif
 }
 
-QStringList takeCrashNotes(const QString& folder) {
+QString takeCrashNote(const QString& folder) {
 	if (folder.isEmpty())
 		return {};
 	const QDir dir(folder);
-	QStringList taken;
+	QString taken;
 	for (const QString& name : dir.entryList({QStringLiteral("crash-*.txt")}, QDir::Files, QDir::Name)) {
 		const QString reported = dir.filePath(QStringLiteral("reported-") + name);
 		if (QFile::rename(dir.filePath(name), reported))
-			taken.append(reported);
+			taken = reported;
 	}
 	const QStringList kept = dir.entryList({QStringLiteral("reported-crash-*.txt")}, QDir::Files, QDir::Name);
 	for (int index = 0; index < kept.size() - kKeptReportedNotes; ++index)

@@ -114,12 +114,12 @@ The visual polish smoke had a use after free: it added a temporary `SignalItem` 
 
 ### Crash notes
 
-`main` calls `installCrashHandler(crashNoteFolder(...))` once the `QApplication` exists. The folder is `QEGTRAIN_CRASH_DIR` when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses `AppLocalDataLocation/Crashes`. At install time the handler formats the note path, `crash-<UTC start time>-<pid>.txt`, and a header with the version, Qt, the system and the executable.
+`main` calls `installCrashHandler(crashNoteFolder())` once the `QApplication` exists. The folder is `QEGTRAIN_CRASH_DIR` when it is set; otherwise scripted runs and the offscreen and minimal platforms keep no notes, and a normal run uses `AppLocalDataLocation/Crashes`. At install time the handler formats the note path, `crash-<UTC start time>-<pid>.txt`, and a header with the version, Qt, the system and the executable.
 
-- A fatal signal appends the header, `Signal: <name> (<number>)` and, on macOS and Linux, `Stack:` with the frames of `backtrace_symbols_fd`. The handler uses only calls that are safe in a signal handler and runs on an alternate stack on the main thread. It then raises the signal again with the default action, so the system still writes its own crash report and shows its own message.
+- A fatal signal appends the header, `Signal: <name> (<number>)` and, on macOS and Linux, `Stack:` with the frames of `backtrace_symbols_fd`. The handler does not allocate and runs on an alternate stack on the main thread. `backtrace` is called once at install so that the handler loads nothing, but it is not on the POSIX list of calls that are safe in a signal handler, so a corrupted heap can leave a partial note. It then raises the signal again with the default action, so the system still writes its own crash report and shows its own message.
 - `std::terminate` appends the header and `Uncaught exception: <what()>`, then calls `abort()`, whose SIGABRT handler adds the stack.
-- On Windows an unhandled exception filter writes `Exception: 0x<code>` and lets the system go on; there is no stack.
-- At the next start `takeCrashNotes` renames each `crash-*.txt` to `reported-crash-*.txt` and keeps the newest 10 reported notes. The newest note is named in **Recover Unsaved Work** when copies can be recovered, otherwise in the notice "EGTRAIN Closed Unexpectedly" with **Show Crash Note**, and in a warning of the category `app.ui`.
+- On Windows an unhandled exception filter writes `Exception: 0x<code>` and passes the exception on to the filter it replaced: the C++ runtime turns an uncaught C++ exception into `std::terminate`, and the system reports any other. There is no stack.
+- At the next start `takeCrashNote` renames each `crash-*.txt` to `reported-crash-*.txt` and keeps the newest 10 reported notes. The newest note is named in **Recover Unsaved Work** when copies can be recovered, otherwise in the notice "EGTRAIN Closed Unexpectedly" with **Show Crash Note**, and in a warning of the category `app.ui`.
 
 No crash event is sent: schema version 1 of the diagnostics has no name for one, so the consent text ("no native crash dumps") stays true. `tests/test_crashnote.cpp` and `tools/e2e/recovery_smoke.py` crash child processes on purpose, so the system keeps crash reports of them.
 

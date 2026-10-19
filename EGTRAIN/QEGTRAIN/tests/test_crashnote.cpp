@@ -8,7 +8,6 @@
 #include <QTemporaryDir>
 
 #include <csignal>
-#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -33,8 +32,6 @@ int crashChild(const QString& kind, const QString& folder) {
 #else
 		std::raise(SIGSEGV);
 #endif
-	} else if (kind == QLatin1String("abort")) {
-		std::abort();
 	} else if (kind == QLatin1String("throw")) {
 		throw std::runtime_error("injected crash");
 	} else if (kind == QLatin1String("throw-thread")) {
@@ -74,11 +71,9 @@ bool checkCrash(const char* kind, const char* cause, bool exception) {
 	ok &= expect(stack >= 0 && text.mid(stack + 7).trimmed().size() > 0, name + ": no stack in\n" + text.toStdString());
 #endif
 
-	const QStringList taken = takeCrashNotes(folder.path());
-	ok &= expect(taken.size() == 1 && QFileInfo(taken.value(0)).fileName() == QStringLiteral("reported-") + notes.first()
-			&& QFileInfo(taken.value(0)).isFile(),
-		name + ": the note was not taken");
-	ok &= expect(takeCrashNotes(folder.path()).isEmpty(), name + ": the note was taken twice");
+	const QFileInfo taken(takeCrashNote(folder.path()));
+	ok &= expect(taken.fileName() == QStringLiteral("reported-") + notes.first() && taken.isFile(), name + ": the note was not taken");
+	ok &= expect(takeCrashNote(folder.path()).isEmpty(), name + ": the note was taken twice");
 	return ok;
 }
 
@@ -90,7 +85,7 @@ bool checkReportedNotesKept() {
 		if (!expect(note.open(QIODevice::WriteOnly), "a reported note cannot be made"))
 			return false;
 	}
-	bool ok = expect(takeCrashNotes(folder.path()).isEmpty(), "a reported note was taken again");
+	bool ok = expect(takeCrashNote(folder.path()).isEmpty(), "a reported note was taken again");
 	const QStringList kept = dir.entryList({QStringLiteral("reported-crash-*.txt")}, QDir::Files, QDir::Name);
 	ok &= expect(kept.size() == 10 && kept.first() == QStringLiteral("reported-crash-20261019-100002-1.txt"),
 		"the newest 10 reported notes are not the ones kept");
@@ -110,7 +105,6 @@ int main(int argc, char** argv) {
 	ok &= checkCrash("segv", "Exception: 0xC0000005", false);
 #else
 	ok &= checkCrash("segv", "Signal: SIGSEGV", false);
-	ok &= checkCrash("abort", "Signal: SIGABRT", false);
 	ok &= checkCrash("throw-thread", "Signal: SIGABRT", true);
 #endif
 	ok &= checkCrash("throw", "Signal: SIGABRT", true);

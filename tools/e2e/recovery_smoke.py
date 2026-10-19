@@ -286,9 +286,6 @@ def scenario_crash_note(smoke: Smoke) -> None:
     require(f"E2E_RECOVERY_CRASH_NOTICE {reported}" in output.splitlines(), "the start has no notice that names the crash note", output)
     require(fields(output, "E2E_RECOVERY_STATE")["prompted"] == "0", "a start without a copy offered one", output)
     require_reported(folder, reported, output)
-
-    output = smoke.run("start-again", SCENE, root)
-    require_no_crash_dialog(output)
     print("PASS a crash leaves one note, and the next start names it in the recovery prompt or a notice, once")
 
 

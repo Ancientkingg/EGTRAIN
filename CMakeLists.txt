@@ -809,7 +809,7 @@ if(EGTRAIN_BUILD_TESTS)
 
     # Starts itself as a child that crashes on purpose; the system may keep a crash report of each child.
     add_executable(test_crashnote ${SRC_DIR}/tests/test_crashnote.cpp ${SRC_DIR}/app/CrashNote.cpp)
-    target_link_libraries(test_crashnote PRIVATE Qt::Core Qt::Gui Threads::Threads)
+    target_link_libraries(test_crashnote PRIVATE Qt::Core Threads::Threads)
     add_test(NAME test_crashnote COMMAND test_crashnote)
     set_tests_properties(test_crashnote PROPERTIES TIMEOUT 300)
 
