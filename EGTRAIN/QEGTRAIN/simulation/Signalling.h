@@ -477,9 +477,8 @@ void rbcSendsMasToRouteMixedSignalling(Route& R, const char* occupied);
 void manageEtcs3TransitionsToOtherSignalling(Section* BS, int Blocks);
 
 // --- Release Blocks in Mixed Signalling ---
-/// Clears each route section flagged in connected and the sections behind it (one flag per route section, nonzero when in
-/// BlocksConnected).
-/// See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md.
+/// Clears each route section flagged in connected (one flag per route section, nonzero when in BlocksConnected) and the sections
+/// behind it. See "Codes and what they do to a following train" in docs/architecture/signalling-levels.md.
 void releaseBlocksMixedSignalling(Section* BS, int Blocks, const char* connected);
 
 /// Bit n of the result is set when a section of the route has signalling level n (0 to 5). A section without a level, or

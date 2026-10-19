@@ -463,9 +463,10 @@ public:
 	/// eight sections further, and lies ahead of head; nullptr when there is none. leaderHead receives its route position (m).
 	const MovementAuthority* currentFollowingAuthority(double head, double& leaderHead) const;
 
-	/// Keeps IsTrainStoppedForEoA only while the train stands (speed 0) on section, the section of the authority it stopped at, with
-	/// its head (m) less than 4 m before it, and that authority is still in run.etcsMa; otherwise clears it and BrakingForEoA. Called
-	/// before a new target is chosen, so that an old hold cannot clear the new one.
+	/// When IsTrainStoppedForEoA is set, keeps it only while the train stands (speed 0) on section, the section of the authority it
+	/// stopped at, with its head (m) less than 4 m before it, and that authority still applies to this train and is still in
+	/// run.etcsMa; otherwise clears it and BrakingForEoA. Does nothing when IsTrainStoppedForEoA is false. Called before a new
+	/// target is chosen, so that an old hold cannot clear the new one.
 	void checkIfMovementAuthorityStillValid(double speed, double head, const Section& section);
 
 	/// A leader that reports no movement authority any more cannot be followed. Its last one would keep
@@ -501,8 +502,8 @@ public:
 	/// The arc under head in metres on the given sections, or null; a fresh BrakingArcCursor lookup.
 	const Arc* brakingArc(double head, Section* sections, int count, double* safeUpper = nullptr) const;
 
-	/// The speed (m/s) after one full braking step from speed (m/s) on arc: the full deceleration plus the resistances at that speed,
-	/// over one timestep, not below 0. Every curve step samples force at the actual start and uses the right endpoint for distance.
+	/// Speed (m/s) after one full braking step from speed (m/s) on arc. Every curve step samples force at the actual start and uses
+	/// the right endpoint for distance.
 	double brakingCurveSpeed(double speed, const Arc& arc) {
 		return std::max(0.0, speed - (max_train_decelaration + total_train_resistances(speed, arc.gradient, arc.curvature) / (total_train_mass * massFactor)) * timestep);
 	}
@@ -727,15 +728,10 @@ public:
 	Regional();
 
 	/// Does nothing.
-	~Regional() {
-		/*PrintTrajectory();*/
-	}
+	~Regional() {}
 
-	// moved PrintTrajectory to simulation code because here destructor automatically deletes vectors before print function
-
-	/// Copies the wagons, masses, mass factor, deceleration, maximum speed, g, frontal area, jerk and length, the service identity and
-	/// performance, the speed caps and the incident record of ob2, and sets the passenger capacity from the wagons. The traction curve,
-	/// resistanceCoefficient, route, timetable and trajectory are not copied.
+	/// Copies the rolling stock data and the service and incident fields of ob2, and sets the passenger capacity from the wagons. The
+	/// traction curve, resistanceCoefficient, route, timetable and trajectory are not copied.
 	Regional& operator=(const Regional& ob2);
 };
 
@@ -760,9 +756,8 @@ void PrintTrainBlockingTimes(SimulationRun& run, std::string MainFolder);
 /// (twice), the arrival times and the departure times of its timetable points.
 void PrintTimetablePoints(SimulationRun& run, std::string MainFolder);
 
-/// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas) and writes BlockingTimes.txt to
-/// OutputFolder. Setup, release and sight and reaction times and AbsRTSupplement are seconds, SafetyMargin metres, PercRTSupplement
-/// percent.
+/// Computes the blocking times of every train (Train::ComputeBlockingTimesInMixedSignallingAreas, same arguments) and writes
+/// BlockingTimes.txt to OutputFolder.
 void ComputeBlockingTimesInMixedSignallingForAllTrains(SimulationRun& run, double SetupTime, double ReleaseTime, double SightReacTime, double SafetyMargin, std::string OutputFolder, double AbsRTSupplement, double PercRTSupplement);
 
 /// Lets every running train protect the station area ahead in step i: when the entrance of a station boundary is one or two sections
