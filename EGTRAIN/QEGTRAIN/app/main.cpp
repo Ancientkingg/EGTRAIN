@@ -353,8 +353,7 @@ int main(int argc, char* argv[]) {
 		printHelp();
 		return 0;
 	}
-	// The removed -TSM and -RC stop the start before the questions of --interactive and before their value
-	// counts as a file name.
+	// Before --interactive asks anything and before the value can count as a file name.
 	if (cmdOptionEntered(argv, argv + argc, "-TSM") || cmdOptionEntered(argv, argv + argc, "-RC")) {
 		std::cerr << "ERROR: -TSM and -RC were removed. Use --live <port> for the live stream.\n";
 		return 1;
