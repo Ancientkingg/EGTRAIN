@@ -566,7 +566,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_speedSlider->setObjectName("speedSlider");
 	m_speedLabel = new QLabel(simulationSpeedLabel(stepDelayForSlider(m_speedSlider->value())), this);
 	m_speedLabel->setObjectName("speedModeLabel");
-	m_speedLabel->hide();
 
 	// create container of items to show on display area
 	scene = new NetworkScene(networkView);
@@ -963,16 +962,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 				button->setFixedWidth(34);
 		}
 	};
-	const auto addToolbarLabel = [this](const char* text, const char* objectName) {
-		auto* label = new QLabel(QString::fromLatin1(text), m_toolBar);
-		label->setObjectName(objectName);
-		label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-		label->setFocusPolicy(Qt::NoFocus);
-		label->setFixedHeight(24);
-		label->setAccessibleName(QString::fromLatin1(text));
-		m_toolBar->addWidget(label);
-		return label;
-	};
 	const auto addToolbarGroupSeparator = [this](const char* objectName, const char* description) {
 		QAction* separator = m_toolBar->addSeparator();
 		if (QWidget* widget = m_toolBar->widgetForAction(separator))
@@ -1003,17 +992,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		pauseToolButton->setFixedWidth(widestText);
 	}
 	addToolbarButton(ui->actionSimulationStop, "actionStopButton", Qt::ToolButtonTextBesideIcon);
-	QLabel* slowerLabel = addToolbarLabel("Slower", "speedSlowerLabel");
-	slowerLabel->setProperty("toolbarGroup", "Playback");
 	m_speedSlider->setFixedWidth(80);
-	m_speedSlider->setFixedHeight(24);
+	m_speedSlider->setFixedHeight(32);
 	m_speedSlider->setProperty("toolbarGroup", "Playback");
 	m_speedSlider->setAccessibleName("Simulation speed");
 	m_speedSlider->setAccessibleDescription("Adjust simulation speed; right is faster");
 	m_speedSlider->setFocusPolicy(Qt::StrongFocus);
 	m_toolBar->addWidget(m_speedSlider);
-	QLabel* fasterLabel = addToolbarLabel("Faster", "speedFasterLabel");
-	fasterLabel->setProperty("toolbarGroup", "Playback");
+	// The readout fits its widest text, so the toolbar does not move while the slider is dragged.
+	m_speedLabel->ensurePolished();
+	m_speedLabel->setFixedWidth(qMax(m_speedLabel->fontMetrics().horizontalAdvance("Fastest"),
+		m_speedLabel->fontMetrics().horizontalAdvance("1000x")));
+	m_speedLabel->setFixedHeight(24);
+	m_speedLabel->setProperty("toolbarGroup", "Playback");
+	m_toolBar->addWidget(m_speedLabel);
 	addToolbarGroupSeparator("separatorPlaybackView", "Playback commands / view commands");
 	m_followAction->setProperty("toolbarGroup", "View");
 	ui->actionZoomIn->setProperty("toolbarGroup", "View");

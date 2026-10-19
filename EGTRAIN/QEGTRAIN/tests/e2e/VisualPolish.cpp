@@ -333,7 +333,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 	if (w.m_toolBar) {
 		const QStringList expectedToolbarObjects{
 			"openCaseButton", "separatorCasePlayback", "actionRunButton", "actionPauseButton", "actionStopButton",
-			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "separatorPlaybackView", "actionFollowButton",
+			"speedSlider", "speedModeLabel", "separatorPlaybackView", "actionFollowButton",
 			"followTrainCombo", "actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
 		QStringList toolbarObjects;
 		for (QAction* action : w.m_toolBar->actions()) {
@@ -365,10 +365,10 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		const int playbackViewBoundary = boundaryIndex("separatorPlaybackView");
 		const int openCaseIndex = boundaryIndex("openCaseButton");
 		const int runIndex = boundaryIndex("actionRunButton");
-		const int fasterIndex = boundaryIndex("speedFasterLabel");
+		const int readoutIndex = boundaryIndex("speedModeLabel");
 		const int followIndex = boundaryIndex("actionFollowButton");
 		if (casePlaybackBoundary <= openCaseIndex || playbackViewBoundary <= casePlaybackBoundary
-			|| runIndex <= casePlaybackBoundary || fasterIndex >= playbackViewBoundary || followIndex <= playbackViewBoundary) {
+			|| runIndex <= casePlaybackBoundary || readoutIndex >= playbackViewBoundary || followIndex <= playbackViewBoundary) {
 			ok = false;
 			failures << "command-bar Case, Playback, and View ranges are not separated in order";
 		}
@@ -424,11 +424,9 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			failures << "the Simulation menu has a Start Time entry";
 		}
 	}
-	QLabel* slowerLabel = w.findChild<QLabel*>("speedSlowerLabel");
-	QLabel* fasterLabel = w.findChild<QLabel*>("speedFasterLabel");
-	if (!w.m_speedSlider || !slowerLabel || !fasterLabel || slowerLabel->text() != "Slower" || fasterLabel->text() != "Faster") {
+	if (!w.m_speedSlider || !w.m_speedSlider->accessibleDescription().contains("right is faster")) {
 		ok = false;
-		failures << "speed controls do not expose Slower, slider, and Faster";
+		failures << "speed slider does not describe its direction";
 	} else {
 		w.m_speedSlider->setValue(w.m_speedSlider->minimum());
 		const int slowDelay = stepDelayForSlider(w.m_speedSlider->value());
@@ -564,8 +562,8 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 			return;
 		}
 		const QStringList requiredWidgetNames{
-			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlowerLabel", "speedSlider",
-			"speedFasterLabel", "actionFollowButton", "followTrainCombo",
+			"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton", "speedSlider",
+			"speedModeLabel", "actionFollowButton", "followTrainCombo",
 			"actionZoomInButton", "actionZoomOutButton", "actionFitButton"};
 		if (w.m_toolBar->height() < 44) {
 			ok = false;
@@ -705,7 +703,7 @@ void MainWindowTestAccess::runVisualPolish(MainWindow& w) {
 		w.resize(1024, 720);
 		QApplication::processEvents();
 		const QStringList toolbarControlNames{"openCaseButton", "actionRunButton", "actionPauseButton", "actionStopButton",
-			"speedSlowerLabel", "speedSlider", "speedFasterLabel", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
+			"speedSlider", "speedModeLabel", "actionFollowButton", "followTrainCombo", "actionZoomInButton",
 			"actionZoomOutButton", "actionFitButton"};
 		const QString pauseText = pauseAction->text();
 		const auto controlGeometries = [&w, &toolbarControlNames]() {

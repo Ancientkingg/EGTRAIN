@@ -153,11 +153,11 @@ StationVisual classifyStation(bool hasPlatformId, int connectionCount) {
 // against real time is 1000 / delayMs; zero delay runs unthrottled.
 QString simulationSpeedLabel(int delayMs) {
 	if (delayMs <= 0)
-		return "Speed: fastest";
+		return "Fastest";
 	const double factor = 1000.0 / delayMs;
 	if (factor >= 10.0)
-		return QString("Speed: %1x").arg(qRound(factor));
-	return QString("Speed: %1x").arg(factor, 0, 'f', 1);
+		return QString("%1x").arg(qRound(factor));
+	return QString("%1x").arg(factor, 0, 'f', 1);
 }
 
 QString simulationSpeedMode(int delayMs) {
