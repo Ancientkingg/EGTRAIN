@@ -3121,9 +3121,9 @@ void MainWindowTestAccess::visualPolishFrame(MainWindow& w, bool historical) {
 		runVisualPolish(w);
 }
 
-// Finds a station, a signal and, with expectTrain, a train with the keyboard alone: Ctrl+F or the Edit menu action, the
-// kind typed into the field, Down to the second match, and Enter. The view must then show that item at the detail zoom
-// and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
+// Finds a station, a signal and, with expectTrain, a train: Ctrl+F or the Edit menu action, the kind set in the field,
+// Down to the second match, and Enter in the field or, for the signal, in the result list. The view must then show that
+// item at the detail zoom and the item must carry the selection ring. Esc closes the dialog. The view is fitted and nothing is selected or followed after.
 bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& failure) {
 	const auto key = [](QObject* receiver, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifier) {
 		QKeyEvent press(QEvent::KeyPress, code, modifiers);
@@ -3167,7 +3167,7 @@ bool MainWindowTestAccess::checkFind(MainWindow& w, bool expectTrain, QString& f
 			return false;
 		}
 		const QString label = results->currentItem()->text();
-		key(field, Qt::Key_Return);
+		key(kind == QStringLiteral("Signal: ") ? static_cast<QObject*>(results) : field, Qt::Key_Return);
 		const NetworkPresenter::FindTarget shown = targetLabelled(label);
 		const QRectF visible = w.networkView->mapToScene(w.networkView->viewport()->rect()).boundingRect();
 		// The ring of a train is on its group.

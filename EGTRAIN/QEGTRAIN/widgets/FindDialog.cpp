@@ -15,6 +15,7 @@ FindDialog::FindDialog(QWidget* parent)
 	m_field->setPlaceholderText(tr("Station, signal or train"));
 	m_field->setClearButtonEnabled(true);
 	m_field->installEventFilter(this);
+	m_results->installEventFilter(this);
 	m_results->setAccessibleName(tr("Results"));
 	auto* column = new QVBoxLayout(this);
 	column->addWidget(m_field);
@@ -34,10 +35,15 @@ void FindDialog::setLabels(const QStringList& labels) {
 }
 
 bool FindDialog::eventFilter(QObject* watched, QEvent* event) {
-	if (watched == m_field && event->type() == QEvent::KeyPress) {
+	if (event->type() == QEvent::KeyPress) {
 		const int key = static_cast<QKeyEvent*>(event)->key();
-		if (key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_PageUp || key == Qt::Key_PageDown) {
+		if (watched == m_field && (key == Qt::Key_Up || key == Qt::Key_Down)) {
 			QApplication::sendEvent(m_results, event);
+			return true;
+		}
+		// On macOS the list does not activate its item on Enter.
+		if (watched == m_results && (key == Qt::Key_Return || key == Qt::Key_Enter)) {
+			choose();
 			return true;
 		}
 	}
