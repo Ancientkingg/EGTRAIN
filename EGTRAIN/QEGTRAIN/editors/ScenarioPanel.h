@@ -18,79 +18,102 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 
-// The scenarios of the scene: a list to pick one, the buttons that add, copy, delete, import and export them, and the
-// id, name and description of the selected one. The selected scenario is kept in the run selection, because the next
-// run uses it and the incident and entrance delay editors show its entries. Renaming a scenario rewrites what refers
-// to it, and the default scenario cannot be deleted.
+/// The scenarios of the scene: a list to pick one, the buttons that add, copy, delete, import and export them, and the
+/// id, name and description of the selected one. The selected scenario is kept in the run selection, because the next
+/// run uses it and the incident and entrance delay editors show its entries. Renaming a scenario rewrites what refers
+/// to it, and the default scenario cannot be deleted.
 class ScenarioPanel : public SceneEditorPanel {
 	Q_OBJECT
 
 public:
-	// Called when a scenario file cannot be written, with what the writer reports.
+	/// Called when a scenario file cannot be written, with what the writer reports.
 	using ExportFailureReport = std::function<void(const std::vector<SceneDiagnostic>&)>;
 
+	/// Makes the widgets, empty until a loaded document is set.
 	explicit ScenarioPanel(QWidget* parent = nullptr);
 
-	// Refreshes when the document is replaced, and writes the labels of the list again when scenarios are edited.
+	/// Refreshes when the document is replaced, and writes the labels of the list again when scenarios are edited.
 	void setDocument(SceneDocument* document) override;
-	// The messages and questions go through these prompts. The panel uses its own until it is given others; null
-	// brings its own back. The prompts must outlive the panel.
+	/// The messages and questions go through these prompts. The panel uses its own until it is given others; null
+	/// brings its own back. The prompts must outlive the panel.
 	void setPrompts(UserPrompts* prompts);
-	// The selected scenario and the scenarios that are edited are kept here. The panel uses its own until it is given
-	// another; null brings its own back. The selection must outlive the panel.
+	/// The selected scenario and the scenarios that are edited are kept here. The panel uses its own until it is given
+	/// another; null brings its own back. The selection must outlive the panel.
 	void setRunSelection(RunSelection* selection);
-	// The validation messages that the list shows as the state of each scenario. The vector must outlive the panel or be
-	// replaced first; null shows none. Call updatePresentation() after the diagnostics have changed.
+	/// The validation messages that the list shows as the state of each scenario. The vector must outlive the panel or be
+	/// replaced first; null shows none. Call updatePresentation() after the diagnostics have changed.
 	void setDiagnostics(const std::vector<SceneDiagnostic>* diagnostics);
-	// Tells whether the list gives the details of each scenario. Without it the list is short.
+	/// Tells whether the list gives the details of each scenario. Without it the list is short.
 	void setAdvancedDetails(std::function<bool()> enabled);
-	// Gives the file that Import reads, or the file that Export writes, for which it gets the name that the dialog
-	// suggests; an empty path cancels. Without a chooser the panel asks with a file dialog.
+	/// Gives the file that Import reads; an empty path cancels. Without a chooser the panel asks with a file dialog.
 	void setImportFileChooser(std::function<QString()> chooser);
+	/// Gives the file that Export writes, for which it gets the name that the dialog suggests; an empty path cancels.
+	/// Without a chooser the panel asks with a file dialog.
 	void setExportFileChooser(std::function<QString(const QString& suggestedName)> chooser);
-	// Called when an export starts, before the user names the file. The report it returns is called when the file
-	// cannot be written.
+	/// Called when an export starts, before the user names the file. The report it returns is called when the file
+	/// cannot be written.
 	void setExportObserver(std::function<ExportFailureReport()> begin);
+	/// Lists the scenarios again and shows the selected one.
 	void refresh() override;
-	// Takes the id, the name and the description that are being edited into the document.
+	/// Takes the id, the name and the description that are being edited into the document.
 	void commitPendingEditors() override;
-	// Writes the label of each scenario in the list again.
+	/// Writes the label of each scenario in the list again.
 	void updatePresentation();
-	// Shows the fields of the selected scenario again.
+	/// Shows the fields of the selected scenario again.
 	void updateDetail();
-	// One line that names the selected scenario, for a header over the editors that work on its entries.
+	/// One line that names the selected scenario, for a header over the editors that work on its entries, such as
+	/// "Scenario: id (name)" or "No scenario selected".
 	QString headerText() const;
 
-	// Selects the scenario at this position of the scene; the list follows when it is refreshed.
+	/// Selects the scenario at this position of the scene; the list follows when it is refreshed.
 	void selectScenario(int row);
+	/// Appends a scenario "New scenario" without incidents or delays, with a new unique id, and selects it.
 	void addBlankScenario();
+	/// Appends a copy of the selected scenario, named "Copy of" its name, with new unique ids for it and its incidents,
+	/// and selects it.
 	void duplicateScenario();
+	/// Deletes the selected scenario after the user has confirmed it and selects the default one. The default scenario
+	/// cannot be deleted, nor any while the scene has no valid default.
 	void deleteScenario();
+	/// Reads a scenario JSON file and appends it; an id that the scene already has, of the scenario or of an incident,
+	/// is made unique.
 	void importScenario();
+	/// Writes the selected scenario to a scenario JSON file.
 	void exportScenario();
-	// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
+	/// Takes the id from the field. An empty or used id is dropped and the field shows the old id again.
 	void commitIdEdit();
+	/// Takes the name from its field.
 	void commitNameEdit();
+	/// Takes the description from its field.
 	void commitDescriptionEdit();
 
+	/// The scenarios of the scene, one row each.
 	QListWidget* listWidget() const { return m_listWidget; }
+	/// The field of the id of the selected scenario.
 	QLineEdit* idEdit() const { return m_idEdit; }
+	/// The field of the name of the selected scenario.
 	QLineEdit* nameEdit() const { return m_nameEdit; }
+	/// The field of the description of the selected scenario.
 	QLineEdit* descriptionEdit() const { return m_descriptionEdit; }
+	/// The button of addBlankScenario().
 	QPushButton* blankButton() const { return m_blankButton; }
+	/// The button of duplicateScenario().
 	QPushButton* duplicateButton() const { return m_duplicateButton; }
+	/// The button of deleteScenario().
 	QPushButton* deleteButton() const { return m_deleteButton; }
+	/// The button of importScenario().
 	QPushButton* importButton() const { return m_importButton; }
+	/// The button of exportScenario().
 	QPushButton* exportButton() const { return m_exportButton; }
 
 Q_SIGNALS:
-	// Another scenario is selected, by the user or because an edit has added or removed one. Its incidents and entrance
-	// delays are to be shown, and what a run showed no longer applies to the selection. Emitted after the run selection
-	// is updated and, for an edit, after the document is marked changed.
+	/// Another scenario is selected, by the user or because an edit has added or removed one. Its incidents and entrance
+	/// delays are to be shown, and what a run showed no longer applies to the selection. Emitted after the run selection
+	/// is updated and, for an edit, after the document is marked changed.
 	void scenarioSelected(const QString& id);
-	// The selected scenario or its id or name has changed, or the document is replaced; the argument is headerText().
+	/// The selected scenario or its id or name has changed, or the document is replaced; the argument is headerText().
 	void headerTextChanged(const QString& text);
-	// A message for the status bar.
+	/// A message for the status bar, shown for `timeoutMs` milliseconds.
 	void statusMessage(const QString& text, int timeoutMs);
 
 private:

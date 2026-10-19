@@ -15,15 +15,18 @@
 #include <utility>
 #include <vector>
 
-// A facet over one list of the model, whose items have an id and are listed in the order of the list. The column of the
-// id is the first. Renaming an item rewrites what refers to it, and an item that others use cannot be deleted
-// (sceneDirectDeleteConsumers).
+/// A facet over one list of the model, whose items have an id and are listed in the order of the list. The column of the
+/// id is the first. Renaming an item rewrites what refers to it, and an item that others use cannot be deleted
+/// (sceneDirectDeleteConsumers). `Item` is the type of the items, which has a `std::string id`.
 template <typename Item>
 class ListFacet : public InfrastructureFacet {
 public:
+	/// The combo key given to the constructor.
 	QString key() const override { return m_key; }
+	/// The headers given to the constructor.
 	QStringList columns() const override { return m_columns; }
 
+	/// One row for each item, filled by fillRow().
 	void fillRows(InfrastructurePanel& panel) override {
 		const std::vector<Item>& items = panel.model().*m_list;
 		QTableWidget& table = *panel.table();
@@ -32,6 +35,8 @@ public:
 			fillRow(table, row, items[static_cast<std::size_t>(row)]);
 	}
 
+	/// Takes the trimmed text of the cell into the item. A new id must be unique in the list and not empty, and renames the
+	/// item and what refers to it; another column goes to editField().
 	void commitCell(InfrastructurePanel& panel, int row, int column) override {
 		std::vector<Item>& items = panel.mutableModel().*m_list;
 		if (row >= static_cast<int>(items.size()))
@@ -63,6 +68,7 @@ public:
 			panel.refuseEdit();
 	}
 
+	/// Appends newItem() with an id made unique from idBase(), and selects it.
 	void add(InfrastructurePanel& panel) override {
 		SceneModel& model = panel.mutableModel();
 		const std::string id = sceneUniqueInfrastructureId(model, idBase(), m_key.toStdString());
@@ -71,6 +77,7 @@ public:
 		panel.entityChanged(QStringLiteral("Add %1").arg(m_noun));
 	}
 
+	/// Deletes the selected item when the user confirms it and nothing uses it. An item with an empty id is kept.
 	void remove(InfrastructurePanel& panel) override {
 		std::vector<Item>& items = panel.mutableModel().*m_list;
 		const int row = panel.table()->currentRow();
@@ -87,19 +94,21 @@ public:
 	}
 
 protected:
-	// `comboKey` is the value of the combo, `noun` names one entity in the label of an edit.
+	/// `comboKey` is the value of the combo, `noun` names one entity in the label of an edit, `list` is the member of the
+	/// model that holds the items and `headers` are the columns, the id first.
 	ListFacet(const char* comboKey, const char* noun, std::vector<Item> SceneModel::* list, QStringList headers)
 		: m_key(QString::fromLatin1(comboKey)), m_noun(QString::fromLatin1(noun)), m_list(list), m_columns(std::move(headers)) {}
 
-	// Puts the cells of the entity in `row`.
+	/// Puts the cells of the entity in `row`.
 	virtual void fillRow(QTableWidget& table, int row, const Item& item) const = 0;
-	// Takes the text of a cell other than the id into the item.
+	/// Takes the trimmed text of a cell other than the id into the item.
 	virtual Edit editField(Item& item, int column, const QString& value) const = 0;
-	// A new item with this id, as the model is now.
+	/// A new item with this id, as the model is now.
 	virtual Item newItem(const SceneModel& model, const std::string& id) const = 0;
-	// The id that a new item has when no other item has it. The default is the noun.
+	/// The id that a new item has when no other item has it. The default is the noun.
 	virtual std::string idBase() const { return m_noun.toStdString(); }
-	// What refers to the item that was renamed.
+	/// Rewrites what refers to the item that was renamed from the second argument to the third. The default rewrites
+	/// nothing.
 	virtual void rewriteReferences(SceneModel&, const std::string&, const std::string&) const {}
 
 private:
