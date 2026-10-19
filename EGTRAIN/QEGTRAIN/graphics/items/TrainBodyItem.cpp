@@ -1,7 +1,7 @@
 #include "graphics/items/TrainBodyItem.h"
 
+#include <QLineF>
 #include <QPainterPathStroker>
-#include <cmath>
 
 TrainBodyItem::TrainBodyItem(const QPolygonF& polygon, QGraphicsItem* parent)
 	: QGraphicsPolygonItem(polygon, parent) {
@@ -14,32 +14,39 @@ TrainBodyItem::~TrainBodyItem() {
 }
 
 void TrainBodyItem::setViewScale(qreal viewScale) {
-	viewScale = std::abs(viewScale);
-	const qreal needed = viewScale > 0.0 ? MinPixels / viewScale : 0.0;
-	const qreal minWidth = needed > pen().widthF() ? needed : 0.0;
-	if (minWidth == m_minWidth)
-		return;
-	prepareGeometryChange();
-	m_minWidth = minWidth;
+	if (markWidth(viewScale) != markWidth(m_viewScale))
+		prepareGeometryChange();
+	m_viewScale = viewScale;
+}
+
+qreal TrainBodyItem::markWidth(qreal viewScale) const {
+	if (viewScale <= 0.0 || polygon().size() < 2)
+		return 0.0;
+	// The first and the last point are the two corners of one end of the body.
+	const qreal thickness = QLineF(polygon().first(), polygon().last()).length();
+	const qreal width = MinPixels / viewScale - thickness;
+	return width > pen().widthF() ? width : 0.0;
 }
 
 QRectF TrainBodyItem::boundingRect() const {
-	if (m_minWidth <= 0.0 || polygon().isEmpty())
+	const qreal width = markWidth(m_viewScale);
+	if (width <= 0.0)
 		return QGraphicsPolygonItem::boundingRect();
 	// The round stroke is wider than the pen, so it alone sets the bounds.
-	const qreal half = m_minWidth / 2.0;
+	const qreal half = width / 2.0;
 	return polygon().boundingRect().adjusted(-half, -half, half, half);
 }
 
 QPainterPath TrainBodyItem::shape() const {
-	if (m_minWidth <= 0.0 || polygon().isEmpty())
+	const qreal width = markWidth(m_viewScale);
+	if (width <= 0.0)
 		return QGraphicsPolygonItem::shape();
 	// The polygon with the stroke that paint() draws around it, as Qt builds the shape of a shape item.
 	QPainterPath outline;
 	outline.addPolygon(polygon());
 	outline.closeSubpath();
 	QPainterPathStroker stroker;
-	stroker.setWidth(m_minWidth);
+	stroker.setWidth(width);
 	stroker.setCapStyle(Qt::RoundCap);
 	stroker.setJoinStyle(Qt::RoundJoin);
 	QPainterPath path = stroker.createStroke(outline);
@@ -52,8 +59,9 @@ void TrainBodyItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
 	Q_UNUSED(widget);
 
 	painter->setBrush(brush());
-	if (m_minWidth > 0.0) {
-		painter->setPen(QPen(brush().color(), m_minWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	const qreal width = markWidth(m_viewScale);
+	if (width > 0.0) {
+		painter->setPen(QPen(brush().color(), width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 		painter->drawPolygon(polygon());
 	}
 	painter->setPen(pen());

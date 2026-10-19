@@ -18,9 +18,9 @@ public:
 	// Narrowest on-screen size, in logical pixels, of a body that is still drawn as a mark.
 	static constexpr qreal MinPixels = 8.0;
 
-	// A body keeps its shape and fill at every zoom. When the view shows it smaller than MinPixels, it is
-	// stroked in its fill colour to that size, and the stroke is part of the bounding rect and the shape
-	// that a click hits. viewScale is the pixels per scene unit of the view.
+	// A body keeps its shape and fill at every zoom. When the view shows it, with its outline, thinner than
+	// MinPixels, it is stroked in its fill colour to that thickness, and the stroke is part of the bounding
+	// rect and the shape that a click hits. viewScale is the pixels per scene unit of the view.
 	void setViewScale(qreal viewScale);
 
 	// reimplemented functions
@@ -39,8 +39,10 @@ public:
 	}
 
 private:
-	// width in scene units of the stroke that enlarges the body, 0 when the body is large enough
-	qreal m_minWidth = 0.0;
+	// Width in scene units of the stroke that enlarges the body at viewScale, 0 when the body is thick enough.
+	qreal markWidth(qreal viewScale) const;
+
+	qreal m_viewScale = 0.0;
 };
 
 #endif // TRAINBODYITEM_H

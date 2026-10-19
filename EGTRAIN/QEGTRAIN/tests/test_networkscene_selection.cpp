@@ -440,7 +440,8 @@ int main(int argc, char* argv[]) {
 		QGraphicsView view(&scene);
 		view.scale(0.05, 0.05);
 		TrainItemGroup group;
-		auto* body = new TrainBodyItem(QPolygonF(QRectF(-20.0, -6.0, 40.0, 12.0)));
+		// Points in the order of NetworkPresenter::getTrainPolygon: along one side, then back along the other.
+		auto* body = new TrainBodyItem(QPolygonF({{-20.0, -6.0}, {20.0, -6.0}, {20.0, 6.0}, {-20.0, 6.0}}));
 		body->setPen(QPen(Qt::black, 3.0));
 		group.addToGroup(body);
 		group.trainPolygonItemList = new QList<TrainBodyItem*>{body};
@@ -457,8 +458,8 @@ int main(int argc, char* argv[]) {
 		ok &= expect(clicked == body, "click beside a train mark at Fit selects the train");
 		ok &= expect(view.viewportTransform().mapRect(body->boundingRect()).height() >= TrainBodyItem::MinPixels,
 			"train mark is at least the minimum size on screen");
-		group.applyViewScale(5.0);
-		ok &= expect(body->boundingRect() == unscaled, "train body keeps its own size when zoomed in");
+		group.applyViewScale(1.0); // the body is 15 pixels thick, its outline 3
+		ok &= expect(body->boundingRect() == unscaled, "train body thicker than the minimum keeps its own size");
 	}
 
 	{
