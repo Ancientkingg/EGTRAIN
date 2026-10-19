@@ -48,8 +48,7 @@ public:
 };
 
 /// A journey of a passenger from an origin to a destination: a list of legs (trips) with transfers between them. Times
-/// are seconds since midnight and durations seconds. Station "IDs" hold the station name, or the ID of a station without a
-/// name. Strings are "None" and times -9999 until set.
+/// and station IDs as in Trip; durations are seconds. Strings are "None" and times -9999 until set.
 class Journey {
 public:
 	/// ID of the journey in the scene.

@@ -216,12 +216,13 @@ public:
 	/// \var Train::C1
 	/// See C0.
 
-	double resistanceCoefficient = 0.0;			  ///< Coefficient of the wagon resistance (Sauthoff formula) that multiplies the speed in km/h.
-	std::vector<double> instant_spatial_position; ///< Head position on the route in metres at each step; -9999 after the train has left.
-	/// ID of the section of the head at each step; "-" at step 0 and empty before the train enters.
+	double resistanceCoefficient = 0.0; ///< Coefficient of the wagon resistance (Sauthoff formula) that multiplies the speed in km/h.
+	/// Head position on the route in metres at each step; -9999 at the step after End_Time and 0 after that.
+	std::vector<double> instant_spatial_position;
+	/// ID of the section of the head at each step; "-" before the train enters and after it has left; empty on a step held by a breakdown.
 	std::vector<std::string> instant_block_section_occupied;
-	std::vector<double> instant_train_power_consumption; ///< Power at each step in W; -9999 after the train has left.
-	/// Branch-applied wheel effort [N], aligned with trajectory samples; -9999 after the train has left.
+	std::vector<double> instant_train_power_consumption; ///< Power at each step in W; -9999 at the step after End_Time and 0 after that.
+	/// Branch-applied wheel effort [N], aligned with trajectory samples; -9999 at the step after End_Time and 0 after that.
 	std::vector<double> instant_train_tractive_effort;
 	std::vector<double> instant_train_energy_consumption; ///< Energy used up to each step in MJ; negative power counts as zero.
 	/// Energy in MJ used without regenerative braking, including EnergyForAuxiliaries.
@@ -236,7 +237,8 @@ public:
 
 	double EnergyForAuxiliaries = 0.0; ///< Energy for auxiliaries in MJ: 10 % of the traction energy.
 	/// Step from which the train may enter, in seconds from the start of the run. The builder sets it to
-	/// scheduled_departure_time, and runSimulation sets it back to that value before the first step.
+	/// scheduled_departure_time and then spreads the trains over one hour per direction
+	/// (changeTrainDepartureTimesForHourlyTimetabling); runSimulation sets it back to scheduled_departure_time before the first step.
 	double departure_time = 0.0;
 	int brakingPoint;					   ///< Index in Sbrak and Vbrak used by the last braking step. Nothing reads it.
 	double scheduled_departure_time = 0.0; ///< Entry time of the train in the timetable, in seconds from the start of the run.
@@ -286,9 +288,12 @@ public:
 	/// Index of the arc of each stop within its section; -1 when not on the route.
 	int stationArc[kMaxTimetableStations] = {};
 	bool StoppedForServiceStop = false; ///< True while the train stands at a stop for its dwell.
-	/// Name of the station of the stop while StoppedForServiceStop is true; "None" otherwise.
+	/// Name of the station of the stop while StoppedForServiceStop is true; empty before the first stop and "None" after
+	/// the train has left a stop.
 	std::string CurrentServiceStop;
-	std::string CurrentServiceStopPlatform; ///< Platform ID of that stop; "None" otherwise.
+	/// Platform ID of that stop; "None" before the first stop and after the train has left a stop, except at a node with
+	/// respectOrder, where it keeps the last platform.
+	std::string CurrentServiceStopPlatform;
 
 	/// Arrival at each stop in seconds from the start of the run; -1 when the train did not arrive there.
 	double StationArrivals[kMaxTimetableStations];
@@ -335,16 +340,11 @@ public:
 
 	/// Index of the last entry of the stored braking plan; -1 when there is none.
 	int BrakStep;
-	/// When this is true it means that the train is braking because of an ETCS End of Authority on the route
-	bool BrakingForEoA = false;
-	/// This is the Movement Authority where the train is predicted to virtually couple to a train ahead
-	MovementAuthority Predicted_MA_To_CoupleAt;
-	/// This is the last movement authority applied to the train
-	MovementAuthority Last_Received_MA;
-	/// this is the last movement authority the train has stopped at
-	MovementAuthority Last_MA_StoppedAt;
-	/// This is the movement authority where the train is predicted to decouple from the train ahead
-	MovementAuthority Predicted_MA_To_DecoupleAt;
+	bool BrakingForEoA = false;					  ///< True while the train brakes for an ETCS end of authority on the route.
+	MovementAuthority Predicted_MA_To_CoupleAt;	  ///< Authority where the train is predicted to couple virtually to the train ahead.
+	MovementAuthority Last_Received_MA;			  ///< Last movement authority applied to the train.
+	MovementAuthority Last_MA_StoppedAt;		  ///< Last movement authority the train has stopped at.
+	MovementAuthority Predicted_MA_To_DecoupleAt; ///< Authority where the train is predicted to decouple from the train ahead.
 	/// Label of the branch of the step that produced each sample: 1 accelerate, 12 cruise, 5 breakdown hold or station dwell,
 	/// 6 at a signal, 52, 53 and 55 braking from a stored or a new plan, 54 full braking, 323 hold at an authority, 532 and
 	/// 534 checkpoint release and hold, 958 zero speed limit, 1002 following a leader.

@@ -160,7 +160,7 @@ public:
 	int total_nodes;   ///< Number of nodes in the block section
 	int total_arcs;	   ///< Number of arcs in the block section
 	double length;	   ///< Length in kilometres, the difference of the X of the end nodes.
-	double exit_speed; ///< Set to 0 by the constructor and never given another value; it is only copied and compared.
+	double exit_speed; ///< speedInBraking (m/s) of the last arc, set when an aspect pass marks the section occupied; 0 by default. Only copied and compared.
 	/// Aspect code: 270 green, 180 yellow, 75 red, 751 red-red, 0 on an occupied or failed section. 270 by default.
 	double code;
 	double XStartSwitch; ///< X where the diverging switch starts (nonzero only when withSwitchDiv=true)
