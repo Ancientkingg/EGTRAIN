@@ -28,7 +28,7 @@ def run_app(app: Path, scene: Path, run_root: Path, extra: list[str]) -> subproc
     output.mkdir(parents=True)
     env = os.environ.copy()
     env.update({"QT_QPA_PLATFORM": "offscreen", "QEGTRAIN_OUTPUT_DIR": str(output)})
-    command = [str(app), "--scene", str(scene), "-g", "0", "-TSM", "0", "-RC", "0", *extra]
+    command = [str(app), "--scene", str(scene), "-g", "0", *extra]
     return subprocess.run(command, cwd=run_root, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           text=True, encoding="utf-8", errors="replace", timeout=RUN_TIMEOUT)
 
@@ -53,6 +53,21 @@ def check_seed(app: Path, temp_root: Path) -> None:
     if texts["first"] == texts["other"]:
         raise SystemExit("different seeds gave equal passenger output")
     print("PASS equal seeds give equal passenger output, different seeds do not")
+
+
+def check_buffer_and_recovery(app: Path, temp_root: Path) -> None:
+    scene_name = json.loads((PASSENGER_SCENE / "scene.json").read_text(encoding="utf-8"))["name"]
+    texts = {}
+    for name, extra in (("default", []), ("-b 30", ["-b", "30"]), ("-c 10", ["-c", "10"])):
+        run_root = temp_root / f"blocking_{name.replace(' ', '')}"
+        process = run_app(app, PASSENGER_SCENE, run_root, extra)
+        if process.returncode != 0:
+            raise SystemExit(f"blocking time run {name} exited with {process.returncode}\n{process.stdout[-4000:]}")
+        texts[name] = (run_root / "output" / "Output" / scene_name / "TrainTrajectories/BlockingTimes.txt").read_bytes()
+    for name in ("-b 30", "-c 10"):
+        if texts[name] == texts["default"]:
+            raise SystemExit(f"{name} gave the BlockingTimes.txt of the default run")
+    print("PASS -b 30 and -c 10 each change BlockingTimes.txt")
 
 
 def main() -> None:
@@ -137,6 +152,7 @@ def main() -> None:
             print(f"PASS identical output: {relative_path}")
 
         check_seed(app, temp_root)
+        check_buffer_and_recovery(app, temp_root)
 
 
 if __name__ == "__main__":

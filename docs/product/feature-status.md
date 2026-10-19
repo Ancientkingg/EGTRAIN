@@ -137,11 +137,11 @@ The editors are panels in `editors/`. They are docks under View or Editors.
 | Feature | Verdict | Evidence |
 | --- | --- | --- |
 | `-n`, `-h`, `-g`, `--scene`, `--seed`, a file name | tested | `test_headless_scene_smoke`, `test_simulation_determinism`, `test_startup_launch_contract`, `test_scene_version_run_*`; manual run, 2026-10-17, Linux (E3): Copenhagen with `-n 3 -g 0 -h 300 -TSM 0 -RC 0` and seed 12345 twice gave identical output apart from `Computing_Times.txt`, and seed 54321 also (no passengers); Paimpol `-n 2` with the same seed gave identical `PassengerStatus.txt`, `JourneyDelays.txt` and `TimetablePoints.txt`, and with seed 54321 the first two differ |
-| `-b` and `-c` | untested | No test or run sets them |
+| `-b` and `-c` | untested | No test or run sets them (covered after this snapshot by `test_simulation_determinism`: Paimpol with `-b 30` and with `-c 10` each give a `BlockingTimes.txt` that differs from the default run) |
 | `-pax 1` in the window | tested | `test_creator_acceptance_smoke` |
 | `--live`, `--live-every`, `--live-commands` | tested | `test_liveframe`, `test_livecommand`, `test_livereplay`, `test_liveserver`, `test_live_stream_smoke` (macOS only) |
 | `-TSM 1` and `-RC 1` | partial | `test_external_sharing_no_listener`, `test_route_choice_missing_data`, `test_rttp`. Tested only without a listener; deprecated |
-| `--interactive` | untested | No test or run uses the questions |
+| `--interactive` | untested | No test or run uses the questions (covered after this snapshot by `test_startup_launch_contract` on macOS and Linux: the `-n` and `-g` questions with scripted standard input, and no question for an option that is given; no test answers the `-pax` question, which is asked only with a window) |
 | `--help` | placeholder | The option does not exist. An unknown option is ignored and the window starts (#783, fixed after this snapshot) |
 | `scene_tool` import, pack, unpack, export, validate | tested | `test_scene_tool_diagnostics`, `test_sceneimporter`, `test_sceneexporter`, `test_scenebundle`; Release run 39019990227, `roundtrip_smoke.py` and `bundle_smoke.py` |
 | Six committed cases | tested | Release run 39019990227 (`headless_smoke.py`); manual run, 2026-10-17, macOS (audit item 2): all six open with 0 errors; manual run, 2026-10-16, Windows (row R6) opened the Assignment case; manual run, 2026-10-17, Windows (WIN-E): all six open as folders and as bundles with 0 errors and these warnings: Amsterdam_Hilversum_Student 26, Assignment 0, Copenhagen 509, Milano_Brescia 11, Netherlands 56, Paimpol 371. Every case has one network-wide signalling area at level 0 and no signals |
