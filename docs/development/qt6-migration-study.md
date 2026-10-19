@@ -194,3 +194,5 @@ Qt 6 jobs leave them out:
   then crashed when `MainWindow` deleted the infrastructure panel: refilling the table after a facet switch let the
   table open an editor it lost track of. Fixed on 2026-10-20: no editor opens while the table is refilled.
 - `test_visual_polish_smoke_live` crashes while the network view paints, in the BSP index of the scene.
+- On Windows, `test_openrequestrelay` finds that a second launch no longer hands its requests to the running
+  instance after the first few.
