@@ -748,5 +748,37 @@ int main(int argc, char** argv) {
 			"the table takes the room of the sections again");
 	}
 
+	// Another facet is chosen while a field in a cell has the focus, and the panel is closed with a cell editor open
+	{
+		SceneDocument document;
+		InfrastructurePanel panel;
+		panel.setFacet(std::make_unique<ListFacet>(ListFacet::Kind::Tracks));
+		panel.setFacet(std::make_unique<ListFacet>(ListFacet::Kind::Nodes));
+		panel.setDocument(&document);
+		document.replace(infrastructureScene(), false);
+		panel.refresh();
+		panel.show();
+		panel.activateWindow();
+		QTableWidget* table = panel.table();
+		auto* field = new QComboBox();
+		table->setCellWidget(0, 0, field);
+		field->setFocus();
+		QApplication::processEvents();
+		ok &= expect(field->hasFocus(), "a field in a cell has the focus");
+
+		chooseFacet(panel, "nodes");
+		QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		const QWidget* editor = table->indexWidget(table->currentIndex());
+		int strayEditors = 0;
+		for (const QWidget* child : table->viewport()->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
+			strayEditors += !child->isHidden() && child != editor ? 1 : 0;
+		ok &= expect(strayEditors == 0, "the table of the other facet shows no editor besides the one of its current cell");
+
+		// The panel is destroyed at the end of the block with this editor open, which must not crash.
+		table->setCurrentCell(1, 0);
+		QApplication::processEvents();
+		ok &= expect(table->indexWidget(table->currentIndex()) != nullptr, "the current cell has an editor");
+	}
+
 	return ok ? 0 : 1;
 }

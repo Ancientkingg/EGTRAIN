@@ -264,6 +264,9 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 	const QStringList headers = current ? current->columns() : QStringList();
 
 	const QSignalBlocker blocker(m_table);
+	// Clearing the table hides a field in a cell that has the focus, and the focus goes to the table. The table would
+	// then open an editor on its first cell and lose track of it, so no editor opens while the rows are filled again.
+	m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	m_table->clearContents();
 	m_table->setColumnCount(headers.size());
 	m_table->setHorizontalHeaderLabels(headers);
@@ -271,6 +274,7 @@ void InfrastructurePanel::refreshTable(bool resetSelection) {
 		current->fillRows(*this);
 	else
 		m_table->setRowCount(0);
+	m_table->setEditTriggers(QAbstractItemView::AllEditTriggers);
 	const bool editable = canEdit();
 	m_table->setEnabled(editable);
 
