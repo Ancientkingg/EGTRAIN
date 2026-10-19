@@ -1,10 +1,10 @@
 <map id="buildRouteDiagramCsv" name="buildRouteDiagramCsv">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,177,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="57,31,49,21,53,11,68,5,91,3,121,6,132,15,129,20,119,11,91,8,69,10,57,15,55,20,61,28"/>
-<area shape="rect" id="Node000002" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title=" " alt="" coords="225,29,380,55"/>
+<area shape="rect" id="Node000002" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="225,29,380,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="178,39,212,39,212,45,178,45"/>
 <area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="273,31,266,21,270,11,282,5,303,3,328,6,338,15,335,19,325,11,303,8,284,10,274,15,271,20,277,28"/>
-<area shape="rect" id="Node000003" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title=" " alt="" coords="428,29,543,55"/>
+<area shape="rect" id="Node000003" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="428,29,543,55"/>
 <area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="380,39,414,39,414,45,380,45"/>
 <area shape="poly" id="edge7_Node000003_Node000003" title=" " alt="" coords="457,31,451,21,454,11,466,5,485,3,508,6,518,15,515,19,506,11,485,8,468,10,459,15,457,20,462,28"/>
 <area shape="rect" id="Node000004" href="$namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21" title=" " alt="" coords="591,29,719,55"/>

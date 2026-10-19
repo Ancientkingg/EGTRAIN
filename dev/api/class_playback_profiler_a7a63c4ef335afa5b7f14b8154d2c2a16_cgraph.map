@@ -1,5 +1,5 @@
 <map id="PlaybackProfiler::enabled" name="PlaybackProfiler::enabled">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,192,31"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="240,5,431,31"/>
+<area shape="rect" id="Node000001" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="5,5,192,31"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="240,5,431,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,15,226,15,226,21,192,21"/>
 </map>

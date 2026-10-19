@@ -75,7 +75,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" target="_top" xlink:title="Stores the settings of the run and its window length. Does nothing unless enabled().">
 <polygon fill="white" stroke="#666666" points="502,-268 356,-268 356,-249 502,-249 502,-268"/>
 <text text-anchor="middle" x="429" y="-256" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::configure</text>
 </a>
@@ -129,7 +129,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" target="_top" xlink:title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created.">
 <polygon fill="white" stroke="#666666" points="930.5,-511 790.5,-511 790.5,-492 930.5,-492 930.5,-511"/>
 <text text-anchor="middle" x="860.5" y="-499" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::enabled</text>
 </a>
@@ -147,7 +147,7 @@
 <!-- Node13 -->
 <g id="Node000013" class="node">
 <title>Node13</title>
-<g id="a_Node000013"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title=" ">
+<g id="a_Node000013"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title="The profiler of the process, created at the first call.">
 <polygon fill="white" stroke="#666666" points="1148.5,-549 1005.5,-549 1005.5,-530 1148.5,-530 1148.5,-549"/>
 <text text-anchor="middle" x="1077" y="-537" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::instance</text>
 </a>

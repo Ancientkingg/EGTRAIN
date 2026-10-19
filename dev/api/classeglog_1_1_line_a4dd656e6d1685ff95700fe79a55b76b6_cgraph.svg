@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="classeglog_1_1_line.html#a62a5d1ab8a5e29f6deb2c2051f5d14fa" target="_top" xlink:title="Starts an empty message of the category and the level.">
 <polygon fill="white" stroke="#666666" points="257,-19 161,-19 161,0 257,0 257,-19"/>
 <text text-anchor="middle" x="209" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::Line::Line</text>
 </a>

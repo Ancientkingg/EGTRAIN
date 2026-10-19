@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="struct_semantic_version.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="struct_semantic_version.html" target="_top" xlink:title="A release version without a prerelease or build part.">
 <polygon fill="white" stroke="#666666" points="98,-91 0,-91 0,-72 98,-72 98,-91"/>
 <text text-anchor="middle" x="49" y="-79" font-family="Helvetica,sans-Serif" font-size="10.00">SemanticVersion</text>
 </a>

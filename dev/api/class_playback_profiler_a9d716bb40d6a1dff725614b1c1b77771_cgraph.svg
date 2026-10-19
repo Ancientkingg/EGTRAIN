@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title="True while the window runs.">
 <polygon fill="white" stroke="#666666" points="358,-19 205,-19 205,0 358,0 358,-19"/>
 <text text-anchor="middle" x="281.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::measuring</text>
 </a>

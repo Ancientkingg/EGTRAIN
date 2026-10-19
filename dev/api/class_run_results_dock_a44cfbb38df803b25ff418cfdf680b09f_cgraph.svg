@@ -489,7 +489,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" target="_top" xlink:title="Build a full document from a header row followed by data rows, each ended by kLineEnding.">
 <polygon fill="#fff0f0" stroke="red" points="988,-1651 872,-1651 872,-1632 988,-1632 988,-1651"/>
 <text text-anchor="middle" x="930" y="-1639" font-family="Helvetica,sans-Serif" font-size="10.00">csv::makeDocument</text>
 </a>

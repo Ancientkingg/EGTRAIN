@@ -114,7 +114,10 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_qt_msvc_compa
 <div class="contents">
 
 <p><a href="_qt_msvc_compat_8h_source.html">Go to the source code of this file.</a></p>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Forced include for MSVC builds (see the root CMakeLists.txt).</p>
+<p>QList and QVector in Qt 5.15 pass stdext::make_checked_array_iterator to standard algorithms on MSVC. The standard library of Visual Studio 2026 no longer has it. With every other compiler Qt passes the plain pointer, and the macros below select that for MSVC as well. </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
 <div id="page-nav-resize-handle"></div>

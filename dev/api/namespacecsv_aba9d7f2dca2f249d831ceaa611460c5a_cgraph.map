@@ -1,7 +1,7 @@
 <map id="csv::makeDocument" name="csv::makeDocument">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,160,55"/>
+<area shape="rect" id="Node000001" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="5,29,160,55"/>
 <area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,31,46,21,50,11,62,5,83,3,108,6,118,15,115,19,105,11,83,8,64,10,54,15,51,20,57,28"/>
-<area shape="rect" id="Node000002" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title=" " alt="" coords="208,29,323,55"/>
+<area shape="rect" id="Node000002" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="208,29,323,55"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="160,39,194,39,194,45,160,45"/>
 <area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="237,31,231,21,234,11,246,5,265,3,288,6,298,15,295,19,286,11,265,8,248,10,239,15,237,20,242,28"/>
 <area shape="rect" id="Node000003" href="$namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21" title=" " alt="" coords="371,29,499,55"/>

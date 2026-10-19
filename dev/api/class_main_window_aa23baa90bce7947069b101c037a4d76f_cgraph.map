@@ -87,7 +87,7 @@
 <area shape="poly" id="edge48_Node000167_Node000036" title=" " alt="" coords="489,983,509,974,526,961,539,945,548,929,556,896,553,861,546,827,540,792,539,757,548,724,559,708,574,693,597,681,627,672,703,666,779,672,810,681,832,693,856,721,865,751,865,782,859,814,854,846,852,877,860,906,880,935,893,942,918,949,990,962,1165,984,1164,990,989,968,916,954,891,946,877,939,855,909,847,877,848,845,854,813,860,782,860,752,851,724,829,697,808,686,778,678,703,671,628,678,599,686,578,697,563,712,553,727,544,758,545,791,552,826,559,861,561,896,553,931,544,948,530,965,512,979,491,987"/>
 <area shape="rect" id="Node000168" href="$_scene_open_request_8cpp.html#a9ce4988f309ab7313aaef26374b9e975" title=" " alt="" coords="633,781,773,807"/>
 <area shape="poly" id="edge44_Node000167_Node000168" title=" " alt="" coords="489,981,509,973,526,961,540,945,547,927,549,890,551,853,559,834,574,816,595,803,619,794,620,799,597,807,578,820,564,837,557,854,555,891,552,929,545,947,530,965,511,978,491,986"/>
-<area shape="rect" id="Node000169" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title=" " alt="" coords="610,1141,797,1167"/>
+<area shape="rect" id="Node000169" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="610,1141,797,1167"/>
 <area shape="poly" id="edge46_Node000167_Node000169" title=" " alt="" coords="413,1000,479,1061,526,1097,577,1126,600,1135,598,1140,575,1131,523,1101,475,1065,409,1003"/>
 <area shape="rect" id="Node000171" href="$class_open_request_relay.html#ad24f00538d0c643f1ef370c54e040147" title=" " alt="" coords="576,831,831,856"/>
 <area shape="poly" id="edge49_Node000167_Node000171" title=" " alt="" coords="489,979,509,972,526,961,537,950,544,939,549,915,555,889,562,877,574,865,581,860,584,865,578,869,567,880,560,891,555,916,549,941,542,954,530,965,511,977,491,984"/>
@@ -101,7 +101,7 @@
 <area shape="rect" id="Node000268" href="$class_playback_profiler.html#a4c45b15e83fd8fee07ab9651292fc60d" title=" " alt="" coords="613,1077,794,1117"/>
 <area shape="poly" id="edge58_Node000167_Node000268" title=" " alt="" coords="427,999,495,1029,577,1061,607,1070,606,1075,575,1066,493,1034,425,1004"/>
 <area shape="poly" id="edge45_Node000168_Node000168" title=" " alt="" coords="656,783,645,773,651,763,670,757,703,755,747,759,758,765,761,771,756,773,754,768,745,764,703,760,671,762,654,767,651,772,659,779"/>
-<area shape="rect" id="Node000170" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="904,1141,1095,1167"/>
+<area shape="rect" id="Node000170" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="904,1141,1095,1167"/>
 <area shape="poly" id="edge47_Node000169_Node000170" title=" " alt="" coords="797,1151,890,1151,890,1157,797,1157"/>
 <area shape="poly" id="edge51_Node000172_Node000172" title=" " alt="" coords="656,906,645,896,651,886,670,879,703,877,747,882,758,887,761,894,756,896,754,891,745,887,703,883,671,885,654,890,651,895,659,902"/>
 <area shape="poly" id="edge53_Node000180_Node000180" title=" " alt="" coords="656,979,645,969,651,959,670,953,703,951,747,955,758,961,761,967,756,969,754,964,745,960,703,956,671,958,654,963,651,968,659,975"/>
@@ -115,9 +115,9 @@
 <area shape="poly" id="edge66_Node000270_Node000170" title=" " alt="" coords="505,1180,659,1182,830,1175,912,1166,912,1171,831,1181,659,1187,505,1186"/>
 <area shape="rect" id="Node000271" href="$class_playback_profiler.html#afed8f868778eccff3de3bd1e3ae23087" title=" " alt="" coords="623,1243,784,1268"/>
 <area shape="poly" id="edge64_Node000270_Node000271" title=" " alt="" coords="476,1189,529,1202,577,1221,633,1237,632,1242,575,1226,527,1207,475,1195"/>
-<area shape="rect" id="Node000272" href="$class_playback_profiler.html#a58123c889c587536ff8d39eef87e43c8" title=" " alt="" coords="594,1292,813,1317"/>
+<area shape="rect" id="Node000272" href="$class_playback_profiler.html#a58123c889c587536ff8d39eef87e43c8" title="Counts one snapshot delivered to the main window while measuring." alt="" coords="594,1292,813,1317"/>
 <area shape="poly" id="edge68_Node000270_Node000272" title=" " alt="" coords="505,1190,530,1203,547,1221,555,1241,562,1260,578,1277,590,1284,587,1289,574,1281,557,1263,550,1243,542,1224,526,1207,502,1194"/>
-<area shape="rect" id="Node000274" href="$class_playback_profiler.html#aafa690c1cf4dd383f8ab8f9f9ca4bdf2" title=" " alt="" coords="590,1342,817,1382"/>
+<area shape="rect" id="Node000274" href="$class_playback_profiler.html#aafa690c1cf4dd383f8ab8f9f9ca4bdf2" title="Counts one delivered snapshot that the main window renders while measuring." alt="" coords="590,1342,817,1382"/>
 <area shape="poly" id="edge69_Node000270_Node000274" title=" " alt="" coords="507,1189,530,1203,543,1218,551,1234,555,1266,559,1297,565,1312,578,1327,585,1332,582,1337,574,1331,561,1315,554,1299,550,1266,546,1235,539,1221,526,1207,505,1193"/>
 <area shape="rect" id="Node000251" href="$class_dispatch_controller.html#a17f1138c6661bae0d67ecd96e4858054" title=" " alt="" coords="609,1406,797,1446"/>
 <area shape="poly" id="edge70_Node000270_Node000251" title=" " alt="" coords="507,1187,530,1203,548,1226,556,1250,557,1275,555,1299,553,1323,554,1346,561,1369,578,1392,598,1407,595,1411,574,1396,557,1372,549,1347,548,1323,550,1298,552,1275,551,1251,543,1229,526,1207,504,1192"/>

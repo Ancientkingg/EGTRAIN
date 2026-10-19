@@ -113,17 +113,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classeglog_1_1
 </div><!--header-->
 <div class="contents">
 
+<p>One message, which EG_LOG creates. It does not check <a class="el" href="namespaceeglog.html#a76521db7407e7d068112c45f2b3e604e">enabled()</a>: the macro does.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_log_8h_source.html">util/Log.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a62a5d1ab8a5e29f6deb2c2051f5d14fa" id="r_a62a5d1ab8a5e29f6deb2c2051f5d14fa"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a62a5d1ab8a5e29f6deb2c2051f5d14fa">Line</a> (<a class="el" href="namespaceeglog.html#af50b68f37a214c9770969a2aa4c810b6">Category</a> category, <a class="el" href="namespaceeglog.html#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a> level)</td></tr>
+<tr class="memdesc:a62a5d1ab8a5e29f6deb2c2051f5d14fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts an empty message of the category and the level.  <br /></td></tr>
 <tr class="memitem:ad9d4174a53815fc21a53e87ab5d22305" id="r_ad9d4174a53815fc21a53e87ab5d22305"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ad9d4174a53815fc21a53e87ab5d22305">Line</a> (const Line &amp;)=delete</td></tr>
 <tr class="memitem:a4dd656e6d1685ff95700fe79a55b76b6" id="r_a4dd656e6d1685ff95700fe79a55b76b6"><td class="memItemLeft"><a class="el" href="#a62a5d1ab8a5e29f6deb2c2051f5d14fa">Line</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a4dd656e6d1685ff95700fe79a55b76b6">operator=</a> (const <a class="el" href="#a62a5d1ab8a5e29f6deb2c2051f5d14fa">Line</a> &amp;)=delete</td></tr>
 <tr class="memitem:a5231f8d426fd21a84e2d656d550722b4" id="r_a5231f8d426fd21a84e2d656d550722b4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a5231f8d426fd21a84e2d656d550722b4">~Line</a> ()</td></tr>
 <tr class="memitem:ab044c5aca783c2417d259f96057bcbdf" id="r_ab044c5aca783c2417d259f96057bcbdf"><td class="memItemLeft">std::ostream &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ab044c5aca783c2417d259f96057bcbdf">stream</a> ()</td></tr>
+<tr class="memdesc:ab044c5aca783c2417d259f96057bcbdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stream that collects the text of the message.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>One message, which EG_LOG creates. It does not check <a class="el" href="namespaceeglog.html#a76521db7407e7d068112c45f2b3e604e">enabled()</a>: the macro does. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a62a5d1ab8a5e29f6deb2c2051f5d14fa" name="a62a5d1ab8a5e29f6deb2c2051f5d14fa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a62a5d1ab8a5e29f6deb2c2051f5d14fa">&#9670;&#160;</a></span>Line() <span class="overload">[1/2]</span></h2>
 
@@ -142,6 +149,8 @@ Public Member Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Starts an empty message of the category and the level. </p>
 
 </div>
 </div>
@@ -189,6 +198,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Passes the collected text to the sink unless it is empty. When an argument of the stream expression throws, the text streamed before it is still passed. </p>
 
 </div>
 </div>
@@ -245,6 +255,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The stream that collects the text of the message. </p>
 
 </div>
 </div>

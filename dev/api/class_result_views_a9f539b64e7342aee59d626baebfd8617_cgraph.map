@@ -66,13 +66,13 @@
 <area shape="poly" id="edge20_Node000011_Node000011" title=" " alt="" coords="329,230,320,220,325,210,343,204,372,202,410,206,420,211,424,217,419,220,417,215,408,211,372,207,344,209,328,214,325,220,333,227"/>
 <area shape="poly" id="edge21_Node000011_Node000012" title=" " alt="" coords="432,251,591,286,590,291,431,257"/>
 <area shape="poly" id="edge25_Node000011_Node000013" title=" " alt="" coords="450,236,608,236,700,242,791,252,859,267,920,285,918,290,858,272,790,257,699,247,608,242,450,241"/>
-<area shape="rect" id="Node000014" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title=" " alt="" coords="587,166,741,191"/>
+<area shape="rect" id="Node000014" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="587,166,741,191"/>
 <area shape="poly" id="edge26_Node000011_Node000014" title=" " alt="" coords="431,226,590,192,591,197,432,231"/>
 <area shape="poly" id="edge22_Node000012_Node000012" title=" " alt="" coords="617,293,607,283,612,273,632,267,664,265,706,269,717,274,721,280,716,283,714,278,705,274,664,270,633,272,616,277,612,282,621,289"/>
 <area shape="poly" id="edge23_Node000012_Node000013" title=" " alt="" coords="745,301,884,301,884,307,745,307"/>
 <area shape="poly" id="edge24_Node000013_Node000013" title=" " alt="" coords="922,293,911,283,917,273,936,267,969,265,1011,269,1022,274,1026,280,1021,283,1019,278,1010,274,969,270,937,272,920,277,917,282,925,289"/>
 <area shape="poly" id="edge27_Node000014_Node000014" title=" " alt="" coords="617,168,607,158,612,148,632,142,664,139,706,144,717,149,721,155,716,158,714,153,705,149,664,145,633,147,616,152,612,157,621,164"/>
-<area shape="rect" id="Node000015" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title=" " alt="" coords="911,211,1026,237"/>
+<area shape="rect" id="Node000015" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="911,211,1026,237"/>
 <area shape="poly" id="edge28_Node000014_Node000015" title=" " alt="" coords="742,188,898,211,897,216,741,193"/>
 <area shape="poly" id="edge29_Node000015_Node000015" title=" " alt="" coords="922,213,911,203,917,193,936,187,969,185,1011,189,1022,194,1026,200,1021,203,1019,198,1010,194,969,190,937,192,920,197,917,202,925,209"/>
 <area shape="poly" id="edge36_Node000017_Node000017" title=" " alt="" coords="617,419,607,408,612,398,632,392,664,390,706,394,717,399,721,406,716,408,714,403,705,399,664,395,633,397,616,402,612,408,621,415"/>

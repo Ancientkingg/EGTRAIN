@@ -129,6 +129,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:TrajectorySegment" id="r_TrajectorySegment"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_trajectory_segment.html">TrajectorySegment</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A run of consecutive valid samples, both ends included.  <a href="struct_trajectory_segment.html#details">More...</a><br /></td></tr>
 <tr class="memitem:TrajectoryEndTimeOverride" id="r_TrajectoryEndTimeOverride"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_trajectory_end_time_override.html">TrajectoryEndTimeOverride</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -139,9 +140,12 @@ Functions</h2></td></tr>
 <tr class="memitem:af8648524d51980f35011c12928a9f4b8" id="r_af8648524d51980f35011c12928a9f4b8"><td class="memItemLeft">std::vector&lt; double &gt;&#160;</td><td class="memItemRight"><a class="el" href="#af8648524d51980f35011c12928a9f4b8">shiftedTrajectoryExportCells</a> (const std::vector&lt; double &gt; &amp;values, int activeFirst, int activeLast, int departureTime, int outputFirst, int outputLast)</td></tr>
 <tr class="memitem:a8246f40a4eb2cb98fd00dba80648d5ea" id="r_a8246f40a4eb2cb98fd00dba80648d5ea"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8246f40a4eb2cb98fd00dba80648d5ea">recordEarliestTrajectoryIndex</a> (int currentIndex, int candidateIndex, bool canEnter)</td></tr>
 <tr class="memitem:a8a4b9e1d1d02be7e17c2945638c49e87" id="r_a8a4b9e1d1d02be7e17c2945638c49e87"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a8a4b9e1d1d02be7e17c2945638c49e87">replicatedEarliestTrajectoryIndex</a> (int sourceIndex, int offset)</td></tr>
+<tr class="memdesc:a8a4b9e1d1d02be7e17c2945638c49e87"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code class="param">sourceIndex</code> moved by <code class="param">offset</code> steps, or -1 when <code class="param">sourceIndex</code> is negative.  <br /></td></tr>
 <tr class="memitem:a3628a4e34ea58c9a4584537a7a605751" id="r_a3628a4e34ea58c9a4584537a7a605751"><td class="memItemLeft">std::vector&lt; <a class="el" href="struct_trajectory_segment.html">TrajectorySegment</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a3628a4e34ea58c9a4584537a7a605751">validTrajectorySegments</a> (const std::vector&lt; double &gt; &amp;positionsMeters, int activeFirst, int activeLast)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Helpers for the position series of a train. A series has one sample per step of the run, its index is the step in seconds from the start of the run, and a position is the head position in metres along the route. -9999 marks a sample without a position, such as after the train has left. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="afe4ec1b3791e49b8d8c64a911abe693d" name="afe4ec1b3791e49b8d8c64a911abe693d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afe4ec1b3791e49b8d8c64a911abe693d">&#9670;&#160;</a></span>isValidTrajectorySample()</h2>
 
@@ -175,6 +179,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>True when <code class="param">index</code> lies in [0, <code class="param">sampleCount</code>) and in [<code class="param">activeFirst</code>, <code class="param">activeLast</code>], and <code class="param">positionMeters</code> is finite and not -9999. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -206,6 +211,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The first active sample index of a train: <code class="param">candidateIndex</code> when none is recorded yet (<code class="param">currentIndex</code> is negative) and <code class="param">canEnter</code> is true, otherwise <code class="param">currentIndex</code>. -1 means none. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -232,6 +238,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><code class="param">sourceIndex</code> moved by <code class="param">offset</code> steps, or -1 when <code class="param">sourceIndex</code> is negative. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -278,6 +286,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The cells of <a class="el" href="#a0af1ce98130e2167e36a106ae1fef2de">trajectoryExportCells()</a> moved in time: one cell per step from <code class="param">outputFirst</code> to <code class="param">outputLast</code>, both included, in which the sample <code class="param">activeFirst</code> falls on <code class="param">departureTime</code>. Steps are seconds from the start of the run. A cell without a valid sample is -9999. Returns an empty vector when <code class="param">outputFirst</code> is after <code class="param">outputLast</code>, and only -9999 when <code class="param">activeFirst</code> is negative. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -309,6 +318,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The positions in metres, as long as <code class="param">positionsMeters</code>, with -9999 in every cell outside the segments of <a class="el" href="#a3628a4e34ea58c9a4584537a7a605751">validTrajectorySegments()</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -335,6 +345,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Simulation time in seconds for a sample index: <code class="param">index</code> times <code class="param">timestep</code>, the length of a step in seconds. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,6 +377,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The runs of valid samples (<a class="el" href="#afe4ec1b3791e49b8d8c64a911abe693d">isValidTrajectorySample()</a>) between <code class="param">activeFirst</code> and <code class="param">activeLast</code>, limited to the vector. Empty when the vector is empty, <code class="param">activeFirst</code> is -1 (the train was never active) or <code class="param">activeFirst</code> is after <code class="param">activeLast</code>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

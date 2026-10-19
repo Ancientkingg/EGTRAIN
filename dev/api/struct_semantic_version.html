@@ -113,21 +113,32 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_semanti
 </div><!--header-->
 <div class="contents">
 
+<p>A release version without a prerelease or build part.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_version_8h_source.html">util/Version.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acc7f0d89cd7c77355fee24571fe48dbc" id="r_acc7f0d89cd7c77355fee24571fe48dbc"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#acc7f0d89cd7c77355fee24571fe48dbc">operator==</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;other) const</td></tr>
+<tr class="memdesc:acc7f0d89cd7c77355fee24571fe48dbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when all three numbers are equal.  <br /></td></tr>
 <tr class="memitem:a93cde3356ba2054a7942337258ea1a49" id="r_a93cde3356ba2054a7942337258ea1a49"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a93cde3356ba2054a7942337258ea1a49">operator!=</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;other) const</td></tr>
+<tr class="memdesc:a93cde3356ba2054a7942337258ea1a49"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when any of the three numbers differs.  <br /></td></tr>
 <tr class="memitem:a696a693c67ca5b49587b31a338085842" id="r_a696a693c67ca5b49587b31a338085842"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a696a693c67ca5b49587b31a338085842">operator&lt;</a> (const <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &amp;other) const</td></tr>
+<tr class="memdesc:a696a693c67ca5b49587b31a338085842"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orders by major, then minor, then patch number.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a6c640996696df580379571765c4f6152" id="r_a6c640996696df580379571765c4f6152"><td class="memItemLeft">unsigned int&#160;</td><td class="memItemRight"><a class="el" href="#a6c640996696df580379571765c4f6152">major</a> = 0</td></tr>
+<tr class="memdesc:a6c640996696df580379571765c4f6152"><td class="mdescLeft">&#160;</td><td class="mdescRight">Major number.  <br /></td></tr>
 <tr class="memitem:a363dc8163219b4e5634e4eae71853d2a" id="r_a363dc8163219b4e5634e4eae71853d2a"><td class="memItemLeft">unsigned int&#160;</td><td class="memItemRight"><a class="el" href="#a363dc8163219b4e5634e4eae71853d2a">minor</a> = 0</td></tr>
+<tr class="memdesc:a363dc8163219b4e5634e4eae71853d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minor number.  <br /></td></tr>
 <tr class="memitem:a90c066f9f48830f405bb4ab5e935f902" id="r_a90c066f9f48830f405bb4ab5e935f902"><td class="memItemLeft">unsigned int&#160;</td><td class="memItemRight"><a class="el" href="#a90c066f9f48830f405bb4ab5e935f902">patch</a> = 0</td></tr>
+<tr class="memdesc:a90c066f9f48830f405bb4ab5e935f902"><td class="mdescLeft">&#160;</td><td class="mdescRight">Patch number.  <br /></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A release version without a prerelease or build part. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="a93cde3356ba2054a7942337258ea1a49" name="a93cde3356ba2054a7942337258ea1a49"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a93cde3356ba2054a7942337258ea1a49">&#9670;&#160;</a></span>operator!=()</h2>
 
@@ -150,6 +161,8 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when any of the three numbers differs. </p>
 
 </div>
 </div>
@@ -176,6 +189,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Orders by major, then minor, then patch number. </p>
+
 </div>
 </div>
 <a id="acc7f0d89cd7c77355fee24571fe48dbc" name="acc7f0d89cd7c77355fee24571fe48dbc"></a>
@@ -201,6 +216,8 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True when all three numbers are equal. </p>
+
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
@@ -216,6 +233,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Major number. </p>
+
 </div>
 </div>
 <a id="a363dc8163219b4e5634e4eae71853d2a" name="a363dc8163219b4e5634e4eae71853d2a"></a>
@@ -230,6 +249,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Minor number. </p>
+
 </div>
 </div>
 <a id="a90c066f9f48830f405bb4ab5e935f902" name="a90c066f9f48830f405bb4ab5e935f902"></a>
@@ -243,6 +264,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Patch number. </p>
 
 </div>
 </div>

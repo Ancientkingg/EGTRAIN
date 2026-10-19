@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title="The profiler of the process, created at the first call.">
 <polygon fill="white" stroke="#666666" points="346.5,-191 203.5,-191 203.5,-172 346.5,-172 346.5,-191"/>
 <text text-anchor="middle" x="275" y="-179" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::instance</text>
 </a>

@@ -118,28 +118,39 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('class_playback
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:RunConfig" id="r_RunConfig"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_playback_profiler_1_1_run_config.html">RunConfig</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The settings of a run, written unchanged into the "run" record.  <a href="struct_playback_profiler_1_1_run_config.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Scope" id="r_Scope"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_playback_profiler_1_1_scope.html">Scope</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a69bbe0b342bbbed8410b944d8d7d9e39" id="r_a69bbe0b342bbbed8410b944d8d7d9e39"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a69bbe0b342bbbed8410b944d8d7d9e39">configure</a> (const <a class="el" href="struct_playback_profiler_1_1_run_config.html">RunConfig</a> &amp;config)</td></tr>
+<tr class="memdesc:a69bbe0b342bbbed8410b944d8d7d9e39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the settings of the run and its window length. Does nothing unless <a class="el" href="#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created.">enabled()</a>.  <br /></td></tr>
 <tr class="memitem:afed8f868778eccff3de3bd1e3ae23087" id="r_afed8f868778eccff3de3bd1e3ae23087"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#afed8f868778eccff3de3bd1e3ae23087">arm</a> (int timestep)</td></tr>
 <tr class="memitem:a6c312830a58e1ba8573832d6762ea863" id="r_a6c312830a58e1ba8573832d6762ea863"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a6c312830a58e1ba8573832d6762ea863">armed</a> () const</td></tr>
+<tr class="memdesc:a6c312830a58e1ba8573832d6762ea863"><td class="mdescLeft">&#160;</td><td class="mdescRight">True between <a class="el" href="#afed8f868778eccff3de3bd1e3ae23087">arm()</a> and the <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> that starts the window.  <br /></td></tr>
 <tr class="memitem:adf955008f81da71288cdd2e76ca7fccf" id="r_adf955008f81da71288cdd2e76ca7fccf"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint</a> (double actualZoom)</td></tr>
 <tr class="memitem:a5c1ff48751dd9df4c6a230d604f16976" id="r_a5c1ff48751dd9df4c6a230d604f16976"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a5c1ff48751dd9df4c6a230d604f16976">freeze</a> (int timestep)</td></tr>
 <tr class="memitem:a13cb93afc333b3136d5a889bf34f9467" id="r_a13cb93afc333b3136d5a889bf34f9467"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a13cb93afc333b3136d5a889bf34f9467">frozen</a> () const</td></tr>
+<tr class="memdesc:a13cb93afc333b3136d5a889bf34f9467"><td class="mdescLeft">&#160;</td><td class="mdescRight">True after <a class="el" href="#a5c1ff48751dd9df4c6a230d604f16976">freeze()</a> has ended a window, until <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> starts another.  <br /></td></tr>
 <tr class="memitem:ad823dc711cee47b9b58be2325675eed6" id="r_ad823dc711cee47b9b58be2325675eed6"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad823dc711cee47b9b58be2325675eed6">measuring</a> () const</td></tr>
+<tr class="memdesc:ad823dc711cee47b9b58be2325675eed6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True while the window runs.  <br /></td></tr>
 <tr class="memitem:a9507d3592eee5beb703acc164572dde1" id="r_a9507d3592eee5beb703acc164572dde1"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a9507d3592eee5beb703acc164572dde1">durationMs</a> () const</td></tr>
+<tr class="memdesc:a9507d3592eee5beb703acc164572dde1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the window from <a class="el" href="#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled().">configure()</a>, in milliseconds.  <br /></td></tr>
 <tr class="memitem:a9d716bb40d6a1dff725614b1c1b77771" id="r_a9d716bb40d6a1dff725614b1c1b77771"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a9d716bb40d6a1dff725614b1c1b77771">noteTimestep</a> (int timestep)</td></tr>
 <tr class="memitem:a58123c889c587536ff8d39eef87e43c8" id="r_a58123c889c587536ff8d39eef87e43c8"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a58123c889c587536ff8d39eef87e43c8">noteDelivery</a> ()</td></tr>
+<tr class="memdesc:a58123c889c587536ff8d39eef87e43c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts one snapshot delivered to the main window while measuring.  <br /></td></tr>
 <tr class="memitem:aafa690c1cf4dd383f8ab8f9f9ca4bdf2" id="r_aafa690c1cf4dd383f8ab8f9f9ca4bdf2"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aafa690c1cf4dd383f8ab8f9f9ca4bdf2">noteRenderedUpdate</a> ()</td></tr>
+<tr class="memdesc:aafa690c1cf4dd383f8ab8f9f9ca4bdf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts one delivered snapshot that the main window renders while measuring.  <br /></td></tr>
 <tr class="memitem:af57c49df67417d5c8c3462afefd8e298" id="r_af57c49df67417d5c8c3462afefd8e298"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af57c49df67417d5c8c3462afefd8e298">notePaint</a> ()</td></tr>
+<tr class="memdesc:af57c49df67417d5c8c3462afefd8e298"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts one completed paint of the view while measuring.  <br /></td></tr>
 <tr class="memitem:a661afe92bbd8a1ed34e064b1e364b5d3" id="r_a661afe92bbd8a1ed34e064b1e364b5d3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a661afe92bbd8a1ed34e064b1e364b5d3">emitRecords</a> (bool cleanStop)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a582260c42b5de976fdf76d10bc0c3d10" id="r_a582260c42b5de976fdf76d10bc0c3d10"><td class="memItemLeft">static <a class="el" href="class_playback_profiler.html">PlaybackProfiler</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a582260c42b5de976fdf76d10bc0c3d10">instance</a> ()</td></tr>
+<tr class="memdesc:a582260c42b5de976fdf76d10bc0c3d10"><td class="mdescLeft">&#160;</td><td class="mdescRight">The profiler of the process, created at the first call.  <br /></td></tr>
 <tr class="memitem:a7a63c4ef335afa5b7f14b8154d2c2a16" id="r_a7a63c4ef335afa5b7f14b8154d2c2a16"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a7a63c4ef335afa5b7f14b8154d2c2a16">enabled</a> ()</td></tr>
+<tr class="memdesc:a7a63c4ef335afa5b7f14b8154d2c2a16"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when QEGTRAIN_PLAYBACK_PROFILE was "1" when the profiler was created.  <br /></td></tr>
 <tr class="memitem:a4c45b15e83fd8fee07ab9651292fc60d" id="r_a4c45b15e83fd8fee07ab9651292fc60d"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a4c45b15e83fd8fee07ab9651292fc60d">startupTimingConflict</a> ()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
@@ -147,7 +158,9 @@ Friends</h2></td></tr>
 <tr class="memitem:a921193447f6e42f596ac0a7694b02830" id="r_a921193447f6e42f596ac0a7694b02830"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a921193447f6e42f596ac0a7694b02830">Scope</a></td></tr>
 <tr class="memitem:a225312ac12a6f362b630e2590d983484" id="r_a225312ac12a6f362b630e2590d983484"><td class="memItemLeft">class&#160;</td><td class="memItemRight"><a class="el" href="#a225312ac12a6f362b630e2590d983484">PlaybackProfilerTestAccess</a></td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Opt-in timing of GUI playback, described in docs/development/playback-profiling.md. It works only when the environment variable QEGTRAIN_PLAYBACK_PROFILE is "1". It times named scopes during one measurement window and writes the results to standard output as lines that start with "QEGTRAIN_PLAYBACK_PROFILE " followed by a JSON record. Durations are steady_clock nanoseconds. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="afed8f868778eccff3de3bd1e3ae23087" name="afed8f868778eccff3de3bd1e3ae23087"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afed8f868778eccff3de3bd1e3ae23087">&#9670;&#160;</a></span>arm()</h2>
 
@@ -162,6 +175,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Lets the next <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> start the window. <code class="param">timestep</code> is the step of the run, in seconds from its start, written as start_timestep. </p>
 
 </div>
 </div>
@@ -188,6 +202,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>True between <a class="el" href="#afed8f868778eccff3de3bd1e3ae23087">arm()</a> and the <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> that starts the window. </p>
+
 </div>
 </div>
 <a id="adf955008f81da71288cdd2e76ca7fccf" name="adf955008f81da71288cdd2e76ca7fccf"></a>
@@ -204,6 +220,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Starts the window after a completed paint of the view when the profiler is armed: clears the totals and counters and stores <code class="param">actualZoom</code>, the zoom ratio of the view. Returns true when it started the window. </p>
 
 </div>
 </div>
@@ -221,6 +238,8 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Stores the settings of the run and its window length. Does nothing unless <a class="el" href="#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created.">enabled()</a>. </p>
 
 </div>
 </div>
@@ -247,6 +266,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Length of the window from <a class="el" href="#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled().">configure()</a>, in milliseconds. </p>
+
 </div>
 </div>
 <a id="a661afe92bbd8a1ed34e064b1e364b5d3" name="a661afe92bbd8a1ed34e064b1e364b5d3"></a>
@@ -263,6 +284,7 @@ Friends</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Writes the "run" record, one "aggregate" record per lane and path sorted by path, and the "completion" record, then flushes standard output. Only the first call of the process can write, and it writes nothing unless <a class="el" href="#a5c1ff48751dd9df4c6a230d604f16976">freeze()</a> has ended a window. <code class="param">cleanStop</code> is written as clean_stop. </p>
 
 </div>
 </div>
@@ -288,6 +310,8 @@ Friends</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>True when QEGTRAIN_PLAYBACK_PROFILE was "1" when the profiler was created. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -310,6 +334,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Ends the window. <code class="param">timestep</code> is the step of the run shown last, in seconds from its start, or -1 when none is shown. Returns false when no window was running. </p>
 
 </div>
 </div>
@@ -336,6 +361,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True after <a class="el" href="#a5c1ff48751dd9df4c6a230d604f16976">freeze()</a> has ended a window, until <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> starts another. </p>
+
 </div>
 </div>
 <a id="a582260c42b5de976fdf76d10bc0c3d10" name="a582260c42b5de976fdf76d10bc0c3d10"></a>
@@ -360,6 +387,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The profiler of the process, created at the first call. </p>
 
 </div>
 </div>
@@ -386,6 +415,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>True while the window runs. </p>
+
 </div>
 </div>
 <a id="a58123c889c587536ff8d39eef87e43c8" name="a58123c889c587536ff8d39eef87e43c8"></a>
@@ -402,6 +433,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Counts one snapshot delivered to the main window while measuring. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -424,6 +457,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Counts one completed paint of the view while measuring. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -446,6 +481,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Counts one delivered snapshot that the main window renders while measuring. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -468,6 +505,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Counts one computed step while measuring and keeps <code class="param">timestep</code>, in seconds from the start of the run, as the last step. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -498,6 +536,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>True when profiling is enabled and QEGTRAIN_STARTUP_TIMING or QEGTRAIN_STARTUP_NATIVE_DETAIL is "1". Then <a class="el" href="#afed8f868778eccff3de3bd1e3ae23087">arm()</a> and <a class="el" href="#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a> do nothing, so no window is measured. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

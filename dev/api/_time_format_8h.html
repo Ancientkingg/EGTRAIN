@@ -133,7 +133,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a86608817aff70e0c77e5c14512c9ca29" id="r_a86608817aff70e0c77e5c14512c9ca29"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a86608817aff70e0c77e5c14512c9ca29">formatPlannedTime</a> (std::optional&lt; double &gt; value, bool clock, long long baseOffsetSeconds)</td></tr>
 <tr class="memitem:ae37221af5c7e50cf7e842f24fd601c04" id="r_ae37221af5c7e50cf7e842f24fd601c04"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae37221af5c7e50cf7e842f24fd601c04">parsePlannedTime</a> (const std::string &amp;text, bool clock, long long baseOffsetSeconds, std::optional&lt; double &gt; &amp;value)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Text forms of simulation and planned times. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a86608817aff70e0c77e5c14512c9ca29" name="a86608817aff70e0c77e5c14512c9ca29"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a86608817aff70e0c77e5c14512c9ca29">&#9670;&#160;</a></span>formatPlannedTime()</h2>
 
@@ -157,6 +159,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Formats a planned time, <code class="param">value</code> seconds after the base time <code class="param">baseOffsetSeconds</code> (seconds since midnight). An empty <code class="param">value</code> gives "". A non-finite <code class="param">value</code>, or a base outside [0, 86400), gives "Invalid". When <code class="param">clock</code> is false the result is <code class="param">value</code> in seconds; when it is true, the time of day "HH:MM:SS" of base plus <code class="param">value</code>, preceded by "+Nd " or "-Nd " on another day than the base. Seconds keep their fraction at full precision without trailing zeros, and the decimal point does not depend on the locale. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -183,6 +186,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Formats a simulation time as a time of day "HH:MM:SS". <code class="param">simSeconds</code> is seconds since the start of the run, and <code class="param">baseOffsetSeconds</code> the start of the run in seconds since midnight. A negative sum gives "00:00:00", and the result wraps at 24 h. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -219,6 +223,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a planned time in the form of <a class="el" href="#a86608817aff70e0c77e5c14512c9ca29">formatPlannedTime()</a> into <code class="param">value</code>, in seconds after the base. Empty <code class="param">text</code> clears <code class="param">value</code>. The clock form accepts an optional "+Nd " prefix but no negative day, hours up to 23, minutes up to 59 and seconds below 60. When <code class="param">text</code> equals the form of the current <code class="param">value</code>, <code class="param">value</code> keeps its exact stored value. Returns false and leaves <code class="param">value</code> unchanged when the text is malformed, the result is negative or the base is outside [0, 86400). </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

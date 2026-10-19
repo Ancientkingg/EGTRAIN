@@ -13,7 +13,7 @@
 <area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="103,714,111,648,132,547,151,491,176,436,208,385,249,341,264,331,267,335,252,345,212,389,181,439,156,493,138,548,116,648,109,715"/>
 <area shape="rect" id="Node000016" href="$class_inspector_panel.html#a213e1873baec2f8501fe85ac610f69d2" title=" " alt="" coords="288,355,473,395"/>
 <area shape="poly" id="edge14_Node000001_Node000016" title=" " alt="" coords="105,714,117,659,143,577,162,533,186,489,214,448,249,412,274,396,277,400,252,416,219,451,190,492,167,535,148,579,122,660,110,715"/>
-<area shape="rect" id="Node000022" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="1116,580,1307,605"/>
+<area shape="rect" id="Node000022" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="1116,580,1307,605"/>
 <area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="105,714,117,663,143,591,162,552,186,515,215,482,249,456,285,437,318,424,349,416,379,415,409,418,441,427,512,456,529,469,537,485,545,500,560,513,1103,578,1102,583,558,518,541,503,533,487,525,472,509,460,439,432,408,424,379,420,349,422,319,429,287,441,252,460,218,486,190,518,166,555,148,593,122,665,110,715"/>
 <area shape="rect" id="Node000023" href="$class_network_view.html#a56b38d1a10617499bcbed678d3feb7ff" title=" " alt="" coords="287,470,474,510"/>
 <area shape="poly" id="edge23_Node000001_Node000023" title=" " alt="" coords="108,713,126,675,156,622,197,567,222,542,249,520,273,507,276,511,252,524,225,546,201,570,160,625,131,677,113,715"/>
@@ -82,13 +82,13 @@
 <area shape="poly" id="edge35_Node000031_Node000032" title=" " alt="" coords="684,915,704,871,739,810,787,745,816,716,848,690,867,680,869,685,851,695,819,720,791,749,743,813,709,874,689,917"/>
 <area shape="rect" id="Node000033" href="$class_run_controller.html#a1f2fdb868a1b68a63228e818164fb66f" title=" " alt="" coords="862,705,1055,745"/>
 <area shape="poly" id="edge37_Node000031_Node000033" title=" " alt="" coords="688,914,749,839,795,794,848,754,860,748,862,753,851,759,799,798,753,842,692,917"/>
-<area shape="rect" id="Node000037" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title=" " alt="" coords="861,769,1056,795"/>
+<area shape="rect" id="Node000037" href="$class_playback_profiler.html#a69bbe0b342bbbed8410b944d8d7d9e39" title="Stores the settings of the run and its window length. Does nothing unless enabled()." alt="" coords="861,769,1056,795"/>
 <area shape="poly" id="edge38_Node000031_Node000037" title=" " alt="" coords="693,914,757,860,801,829,848,804,867,796,869,801,850,808,803,834,760,864,697,918"/>
 <area shape="rect" id="Node000038" href="$_scene_diagnostic_8cpp.html#a55d945265c11d83d18049f47613929b4" title="The number of diagnostics of each severity." alt="" coords="891,843,1026,868"/>
 <area shape="poly" id="edge39_Node000031_Node000038" title=" " alt="" coords="721,913,849,877,883,868,884,874,850,882,723,919"/>
 <area shape="rect" id="Node000039" href="$_scene_model_8cpp.html#a39ad93f62654bff8be543d068944da66" title=" " alt="" coords="897,916,1021,941"/>
 <area shape="poly" id="edge41_Node000031_Node000039" title=" " alt="" coords="769,926,883,926,883,931,769,931"/>
-<area shape="rect" id="Node000041" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title=" " alt="" coords="865,965,1052,991"/>
+<area shape="rect" id="Node000041" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="865,965,1052,991"/>
 <area shape="poly" id="edge43_Node000031_Node000041" title=" " alt="" coords="753,939,873,960,872,965,752,944"/>
 <area shape="rect" id="Node000042" href="$_scene_session_8cpp.html#ac5f732a66f1e3e5d7e37a6bb7d18621a" title=" " alt="" coords="871,1039,1046,1064"/>
 <area shape="poly" id="edge45_Node000031_Node000042" title=" " alt="" coords="728,939,803,968,827,983,851,1000,915,1031,912,1036,848,1004,824,988,800,972,727,944"/>

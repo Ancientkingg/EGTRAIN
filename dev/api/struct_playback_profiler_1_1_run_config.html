@@ -113,31 +113,55 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('struct_playbac
 </div><!--header-->
 <div class="contents">
 
+<p>The settings of a run, written unchanged into the "run" record.  
+ <a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="_playback_profiler_8h_source.html">util/PlaybackProfiler.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac69fe2110ac1a26dfaf7908295d3eda8" id="r_ac69fe2110ac1a26dfaf7908295d3eda8"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ac69fe2110ac1a26dfaf7908295d3eda8">trial</a> = 0</td></tr>
+<tr class="memdesc:ac69fe2110ac1a26dfaf7908295d3eda8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trial number of the harness (QEGTRAIN_PLAYBACK_PROFILE_TRIAL).  <br /></td></tr>
 <tr class="memitem:a18b62424db404a889a81279c3e79a936" id="r_a18b62424db404a889a81279c3e79a936"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a18b62424db404a889a81279c3e79a936">view</a></td></tr>
+<tr class="memdesc:a18b62424db404a889a81279c3e79a936"><td class="mdescLeft">&#160;</td><td class="mdescRight">Requested view, "fit" or "dense" (QEGTRAIN_PLAYBACK_PROFILE_VIEW).  <br /></td></tr>
 <tr class="memitem:ad84d6c551663fb663477729ff5e898bf" id="r_ad84d6c551663fb663477729ff5e898bf"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad84d6c551663fb663477729ff5e898bf">platform</a></td></tr>
+<tr class="memdesc:ad84d6c551663fb663477729ff5e898bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating system: "macOS", "Windows" or "Linux".  <br /></td></tr>
 <tr class="memitem:ad8cb9cf7cb1c8c6bea5a1371e49e1b94" id="r_ad8cb9cf7cb1c8c6bea5a1371e49e1b94"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad8cb9cf7cb1c8c6bea5a1371e49e1b94">architecture</a></td></tr>
+<tr class="memdesc:ad8cb9cf7cb1c8c6bea5a1371e49e1b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">CPU architecture as Qt names it.  <br /></td></tr>
 <tr class="memitem:a7c0ddda9581a971029f1372250ac00b6" id="r_a7c0ddda9581a971029f1372250ac00b6"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a7c0ddda9581a971029f1372250ac00b6">qtPlatform</a></td></tr>
+<tr class="memdesc:a7c0ddda9581a971029f1372250ac00b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the Qt platform plugin, such as "cocoa" or "offscreen".  <br /></td></tr>
 <tr class="memitem:a3c7c05bb8dba4cc43c431f767fdc26a1" id="r_a3c7c05bb8dba4cc43c431f767fdc26a1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a3c7c05bb8dba4cc43c431f767fdc26a1">buildType</a></td></tr>
+<tr class="memdesc:a3c7c05bb8dba4cc43c431f767fdc26a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">CMake build type of the application.  <br /></td></tr>
 <tr class="memitem:af010dbcb32eba70e002f530cf3bcadfd" id="r_af010dbcb32eba70e002f530cf3bcadfd"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#af010dbcb32eba70e002f530cf3bcadfd">caseName</a></td></tr>
+<tr class="memdesc:af010dbcb32eba70e002f530cf3bcadfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the scene.  <br /></td></tr>
 <tr class="memitem:a930f9fac9758388831f30299c1ad324e" id="r_a930f9fac9758388831f30299c1ad324e"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a930f9fac9758388831f30299c1ad324e">requestedScenario</a></td></tr>
+<tr class="memdesc:a930f9fac9758388831f30299c1ad324e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scenario ID asked for (QEGTRAIN_PLAYBACK_PROFILE_SCENARIO).  <br /></td></tr>
 <tr class="memitem:aa50b70bae5e4289f1a90cd9861f85fad" id="r_aa50b70bae5e4289f1a90cd9861f85fad"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#aa50b70bae5e4289f1a90cd9861f85fad">scenario</a></td></tr>
+<tr class="memdesc:aa50b70bae5e4289f1a90cd9861f85fad"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the scenario that the run applies.  <br /></td></tr>
 <tr class="memitem:a17ae947d5989a3f681cc2feeb79a7833" id="r_a17ae947d5989a3f681cc2feeb79a7833"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#a17ae947d5989a3f681cc2feeb79a7833">defaultScenario</a></td></tr>
+<tr class="memdesc:a17ae947d5989a3f681cc2feeb79a7833"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the default scenario of the scene.  <br /></td></tr>
 <tr class="memitem:aea63ce4447ec9b16d30921581fc82bdd" id="r_aea63ce4447ec9b16d30921581fc82bdd"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#aea63ce4447ec9b16d30921581fc82bdd">targetZoom</a> = 1.0</td></tr>
+<tr class="memdesc:aea63ce4447ec9b16d30921581fc82bdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zoom ratio that the view asks for: 3 for "dense", 1 otherwise.  <br /></td></tr>
 <tr class="memitem:a5ca704cfc1bc242b50e195d650c23ee1" id="r_a5ca704cfc1bc242b50e195d650c23ee1"><td class="memItemLeft">double&#160;</td><td class="memItemRight"><a class="el" href="#a5ca704cfc1bc242b50e195d650c23ee1">actualZoom</a> = 1.0</td></tr>
+<tr class="memdesc:a5ca704cfc1bc242b50e195d650c23ee1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zoom ratio of the view when measuring began, set by <a class="el" href="class_playback_profiler.html#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a>.  <br /></td></tr>
 <tr class="memitem:aac651decb85dd6860d6a5ac1e125e676" id="r_aac651decb85dd6860d6a5ac1e125e676"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#aac651decb85dd6860d6a5ac1e125e676">durationMs</a> = 0</td></tr>
+<tr class="memdesc:aac651decb85dd6860d6a5ac1e125e676"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the measurement window, in milliseconds.  <br /></td></tr>
 <tr class="memitem:ae3d07c3d58de3cf5ecb22de5f4aff116" id="r_ae3d07c3d58de3cf5ecb22de5f4aff116"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#ae3d07c3d58de3cf5ecb22de5f4aff116">delayMs</a> = 0</td></tr>
+<tr class="memdesc:ae3d07c3d58de3cf5ecb22de5f4aff116"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delay between simulation steps, in milliseconds.  <br /></td></tr>
 <tr class="memitem:a411c66097fe1ce4072cfdb26403bc231" id="r_a411c66097fe1ce4072cfdb26403bc231"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a411c66097fe1ce4072cfdb26403bc231">passengerGui</a> = false</td></tr>
+<tr class="memdesc:a411c66097fe1ce4072cfdb26403bc231"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the main window shows passengers.  <br /></td></tr>
 <tr class="memitem:ae8e185d795e422505064032db58d6215" id="r_ae8e185d795e422505064032db58d6215"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ae8e185d795e422505064032db58d6215">tsm</a> = false</td></tr>
+<tr class="memdesc:ae8e185d795e422505064032db58d6215"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the traffic-state channel (-TSM) is on.  <br /></td></tr>
 <tr class="memitem:a3ba4fa8e44a142f9091dbdfdb1c00f06" id="r_a3ba4fa8e44a142f9091dbdfdb1c00f06"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a3ba4fa8e44a142f9091dbdfdb1c00f06">routeChoice</a> = false</td></tr>
+<tr class="memdesc:a3ba4fa8e44a142f9091dbdfdb1c00f06"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when the route-choice channel (-RC) is on.  <br /></td></tr>
 <tr class="memitem:a93939c5473081b4399f85c0e40c8396e" id="r_a93939c5473081b4399f85c0e40c8396e"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a93939c5473081b4399f85c0e40c8396e">horizon</a> = 0</td></tr>
+<tr class="memdesc:a93939c5473081b4399f85c0e40c8396e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the run in steps of 1 s of simulation time.  <br /></td></tr>
 <tr class="memitem:ad427c900791a9dfda6eb312c8b2a221d" id="r_ad427c900791a9dfda6eb312c8b2a221d"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#ad427c900791a9dfda6eb312c8b2a221d">structural</a> = false</td></tr>
+<tr class="memdesc:ad427c900791a9dfda6eb312c8b2a221d"><td class="mdescLeft">&#160;</td><td class="mdescRight">True for a structural test, whose records have mode "structural".  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The settings of a run, written unchanged into the "run" record. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5ca704cfc1bc242b50e195d650c23ee1" name="a5ca704cfc1bc242b50e195d650c23ee1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ca704cfc1bc242b50e195d650c23ee1">&#9670;&#160;</a></span>actualZoom</h2>
 
@@ -149,6 +173,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Zoom ratio of the view when measuring began, set by <a class="el" href="class_playback_profiler.html#adf955008f81da71288cdd2e76ca7fccf">beginAfterPaint()</a>. </p>
 
 </div>
 </div>
@@ -164,6 +190,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>CPU architecture as Qt names it. </p>
+
 </div>
 </div>
 <a id="a3c7c05bb8dba4cc43c431f767fdc26a1" name="a3c7c05bb8dba4cc43c431f767fdc26a1"></a>
@@ -177,6 +205,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>CMake build type of the application. </p>
 
 </div>
 </div>
@@ -192,6 +222,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Name of the scene. </p>
+
 </div>
 </div>
 <a id="a17ae947d5989a3f681cc2feeb79a7833" name="a17ae947d5989a3f681cc2feeb79a7833"></a>
@@ -205,6 +237,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ID of the default scenario of the scene. </p>
 
 </div>
 </div>
@@ -220,6 +254,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Delay between simulation steps, in milliseconds. </p>
+
 </div>
 </div>
 <a id="aac651decb85dd6860d6a5ac1e125e676" name="aac651decb85dd6860d6a5ac1e125e676"></a>
@@ -233,6 +269,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Length of the measurement window, in milliseconds. </p>
 
 </div>
 </div>
@@ -248,6 +286,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Length of the run in steps of 1 s of simulation time. </p>
+
 </div>
 </div>
 <a id="a411c66097fe1ce4072cfdb26403bc231" name="a411c66097fe1ce4072cfdb26403bc231"></a>
@@ -261,6 +301,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the main window shows passengers. </p>
 
 </div>
 </div>
@@ -276,6 +318,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Operating system: "macOS", "Windows" or "Linux". </p>
+
 </div>
 </div>
 <a id="a7c0ddda9581a971029f1372250ac00b6" name="a7c0ddda9581a971029f1372250ac00b6"></a>
@@ -289,6 +333,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Name of the Qt platform plugin, such as "cocoa" or "offscreen". </p>
 
 </div>
 </div>
@@ -304,6 +350,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Scenario ID asked for (QEGTRAIN_PLAYBACK_PROFILE_SCENARIO). </p>
+
 </div>
 </div>
 <a id="a3ba4fa8e44a142f9091dbdfdb1c00f06" name="a3ba4fa8e44a142f9091dbdfdb1c00f06"></a>
@@ -317,6 +365,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when the route-choice channel (-RC) is on. </p>
 
 </div>
 </div>
@@ -332,6 +382,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>ID of the scenario that the run applies. </p>
+
 </div>
 </div>
 <a id="ad427c900791a9dfda6eb312c8b2a221d" name="ad427c900791a9dfda6eb312c8b2a221d"></a>
@@ -345,6 +397,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True for a structural test, whose records have mode "structural". </p>
 
 </div>
 </div>
@@ -360,6 +414,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Zoom ratio that the view asks for: 3 for "dense", 1 otherwise. </p>
+
 </div>
 </div>
 <a id="ac69fe2110ac1a26dfaf7908295d3eda8" name="ac69fe2110ac1a26dfaf7908295d3eda8"></a>
@@ -373,6 +429,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Trial number of the harness (QEGTRAIN_PLAYBACK_PROFILE_TRIAL). </p>
 
 </div>
 </div>
@@ -388,6 +446,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when the traffic-state channel (-TSM) is on. </p>
+
 </div>
 </div>
 <a id="a18b62424db404a889a81279c3e79a936" name="a18b62424db404a889a81279c3e79a936"></a>
@@ -401,6 +461,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Requested view, "fit" or "dense" (QEGTRAIN_PLAYBACK_PROFILE_VIEW). </p>
 
 </div>
 </div>

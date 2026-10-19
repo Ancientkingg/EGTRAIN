@@ -7,14 +7,14 @@
 <area shape="poly" id="edge8_Node000001_Node000003" title=" " alt="" coords="144,116,380,78,381,83,144,122"/>
 <area shape="rect" id="Node000004" href="$_delay_analysis_window_8cpp.html#ac2e80583b573f9ae72959bef697a0259" title=" " alt="" coords="202,155,337,180"/>
 <area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="142,140,190,149,189,155,141,145"/>
-<area shape="rect" id="Node000005" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title=" " alt="" coords="192,228,347,253"/>
+<area shape="rect" id="Node000005" href="$namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" title="Build a full document from a header row followed by data rows, each ended by kLineEnding." alt="" coords="192,228,347,253"/>
 <area shape="poly" id="edge9_Node000001_Node000005" title=" " alt="" coords="99,140,235,219,232,223,97,145"/>
 <area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="237,31,230,21,234,11,247,5,269,3,296,6,307,15,304,19,294,11,269,8,249,10,238,15,236,20,241,28"/>
 <area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="310,44,381,54,381,59,309,50"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="435,56,429,46,432,37,445,30,465,28,490,32,501,40,497,44,488,36,465,33,446,35,436,40,434,46,440,53"/>
 <area shape="poly" id="edge7_Node000004_Node000004" title=" " alt="" coords="237,156,230,146,234,136,247,130,269,128,296,132,307,140,304,145,294,136,269,133,249,135,238,140,236,146,241,153"/>
 <area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="237,229,230,220,234,210,247,204,269,201,296,205,307,214,304,218,294,210,269,207,249,209,238,213,236,219,241,226"/>
-<area shape="rect" id="Node000006" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title=" " alt="" coords="408,228,523,253"/>
+<area shape="rect" id="Node000006" href="$namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" title="Join fields into one record, escaping each field. The record has no line terminator." alt="" coords="408,228,523,253"/>
 <area shape="poly" id="edge11_Node000005_Node000006" title=" " alt="" coords="347,238,394,238,394,243,347,243"/>
 <area shape="poly" id="edge14_Node000006_Node000006" title=" " alt="" coords="435,229,429,220,432,210,445,204,465,201,490,205,501,214,497,218,488,210,465,207,446,209,436,213,434,219,440,226"/>
 <area shape="rect" id="Node000007" href="$namespacecsv.html#ac42a140daf21e33ead22383e2cc7cc21" title=" " alt="" coords="584,228,712,253"/>

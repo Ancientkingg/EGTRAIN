@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" target="_top" xlink:title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created.">
 <polygon fill="white" stroke="#666666" points="352,-246.5 212,-246.5 212,-227.5 352,-227.5 352,-246.5"/>
 <text text-anchor="middle" x="282" y="-234.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::enabled</text>
 </a>
@@ -56,7 +56,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" target="_top" xlink:title="The profiler of the process, created at the first call.">
 <polygon fill="white" stroke="#666666" points="551,-227.5 408,-227.5 408,-208.5 551,-208.5 551,-227.5"/>
 <text text-anchor="middle" x="479.5" y="-215.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::instance</text>
 </a>
@@ -92,7 +92,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_playback_profiler.html#a58123c889c587536ff8d39eef87e43c8" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="class_playback_profiler.html#a58123c889c587536ff8d39eef87e43c8" target="_top" xlink:title="Counts one snapshot delivered to the main window while measuring.">
 <polygon fill="white" stroke="#666666" points="364,-115.5 200,-115.5 200,-96.5 364,-96.5 364,-115.5"/>
 <text text-anchor="middle" x="282" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::noteDelivery</text>
 </a>
@@ -110,7 +110,7 @@
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="class_playback_profiler.html#aafa690c1cf4dd383f8ab8f9f9ca4bdf2" target="_top" xlink:title=" ">
+<g id="a_Node000008"><a xlink:href="class_playback_profiler.html#aafa690c1cf4dd383f8ab8f9f9ca4bdf2" target="_top" xlink:title="Counts one delivered snapshot that the main window renders while measuring.">
 <polygon fill="white" stroke="#666666" points="367,-78 197,-78 197,-48 367,-48 367,-78"/>
 <text text-anchor="start" x="205" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::noteRendered</text>
 <text text-anchor="middle" x="282" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">Update</text>
@@ -166,7 +166,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title="True while the window runs.">
 <polygon fill="white" stroke="#666666" points="556,-94.5 403,-94.5 403,-75.5 556,-75.5 556,-94.5"/>
 <text text-anchor="middle" x="479.5" y="-82.5" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::measuring</text>
 </a>

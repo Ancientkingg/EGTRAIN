@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespaceeglog
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:Line" id="r_Line"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classeglog_1_1_line.html">Line</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One message, which EG_LOG creates. It does not check <a class="el" href="#a76521db7407e7d068112c45f2b3e604e">enabled()</a>: the macro does.  <a href="classeglog_1_1_line.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -137,16 +138,20 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6">Update</a>
 <br />
  }</td></tr>
+<tr class="memdesc:af50b68f37a214c9770969a2aa4c810b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The area a message comes from. <a class="el" href="#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category.">categoryName()</a> gives the name that the rules of <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> use.  <a href="#af50b68f37a214c9770969a2aa4c810b6">More...</a><br /></td></tr>
 <tr class="memitem:a0a4c7b4df88ad4decf7baa410a30ac53" id="r_a0a4c7b4df88ad4decf7baa410a30ac53"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a> { <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53aa603905470e2a5b8c13e96b579ef0dba">Debug</a>
 , <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a4059b0251f66a18cb56f544728796875">Info</a>
 , <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a0eaadb4fcb48a0a0ed7bc9868be9fbaa">Warning</a>
 , <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd">Error</a>
  }</td></tr>
+<tr class="memdesc:a0a4c7b4df88ad4decf7baa410a30ac53"><td class="mdescLeft">&#160;</td><td class="mdescRight">The severity of a message. <a class="el" href="#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level.">levelName()</a> gives the name that the rules of <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> use.  <a href="#a0a4c7b4df88ad4decf7baa410a30ac53">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a06d2146976a5f10f5555abbafe6f75aa" id="r_a06d2146976a5f10f5555abbafe6f75aa"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a06d2146976a5f10f5555abbafe6f75aa">categoryName</a> (<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6">Category</a> category)</td></tr>
+<tr class="memdesc:a06d2146976a5f10f5555abbafe6f75aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rule name of <code class="param">category</code>, given at each enumerator of <a class="el" href="#af50b68f37a214c9770969a2aa4c810b6" title="The area a message comes from. categoryName() gives the name that the rules of configure() use.">Category</a>.  <br /></td></tr>
 <tr class="memitem:a9049f9796908e1734524b758f1e39da2" id="r_a9049f9796908e1734524b758f1e39da2"><td class="memItemLeft">const char *&#160;</td><td class="memItemRight"><a class="el" href="#a9049f9796908e1734524b758f1e39da2">levelName</a> (<a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a> level)</td></tr>
+<tr class="memdesc:a9049f9796908e1734524b758f1e39da2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The rule name of <code class="param">level</code>, given at each enumerator of <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53" title="The severity of a message. levelName() gives the name that the rules of configure() use.">Level</a>.  <br /></td></tr>
 <tr class="memitem:a76521db7407e7d068112c45f2b3e604e" id="r_a76521db7407e7d068112c45f2b3e604e"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a76521db7407e7d068112c45f2b3e604e">enabled</a> (<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6">Category</a> category, <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53">Level</a> level)</td></tr>
 <tr class="memitem:aab1ea918a840b308b64aa22920907937" id="r_aab1ea918a840b308b64aa22920907937"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aab1ea918a840b308b64aa22920907937">setSink</a> (<a class="el" href="#a364a6eebe42676b735ab49f0c4e2949a">Sink</a> sink)</td></tr>
 <tr class="memitem:a8df481e2bab2777140253886a71a67c8" id="r_a8df481e2bab2777140253886a71a67c8"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure</a> (const std::string &amp;rules)</td></tr>
@@ -156,9 +161,14 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a46eac22085fd13cb08eeeefce73c5a03" id="r_a46eac22085fd13cb08eeeefce73c5a03"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a46eac22085fd13cb08eeeefce73c5a03">kCategoryCount</a> = static_cast&lt;int&gt;(<a class="el" href="#af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6">Category::Update</a>) + 1</td></tr>
+<tr class="memdesc:a46eac22085fd13cb08eeeefce73c5a03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of categories: Update is the last.  <br /></td></tr>
 <tr class="memitem:a4048925c177ea3aaae74637911e56594" id="r_a4048925c177ea3aaae74637911e56594"><td class="memItemLeft">constexpr int&#160;</td><td class="memItemRight"><a class="el" href="#a4048925c177ea3aaae74637911e56594">kLevelCount</a> = static_cast&lt;int&gt;(<a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd">Level::Error</a>) + 1</td></tr>
+<tr class="memdesc:a4048925c177ea3aaae74637911e56594"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of levels: Error is the last.  <br /></td></tr>
 </table>
-<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Categorised console output without Qt. A message has a category and a level. The rules given to <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> switch each pair on or off, and the sink receives the text of every enabled message. EG_LOG writes one message as a stream expression: </p><pre class="fragment">EG_LOG(SimSetup, Warning) &lt;&lt; "Train " &lt;&lt; name &lt;&lt; " has no route\n";
+</pre><p>The text reaches the sink as streamed: the caller writes the newline. </p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
 <a id="a364a6eebe42676b735ab49f0c4e2949a" name="a364a6eebe42676b735ab49f0c4e2949a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a364a6eebe42676b735ab49f0c4e2949a">&#9670;&#160;</a></span>Sink</h2>
 
@@ -170,6 +180,7 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Receives the text of an enabled message. It is called with a mutex held, so the texts of different threads do not interleave. A sink must not call the logging core or throw. </p>
 
 </div>
 </div>
@@ -193,16 +204,27 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The area a message comes from. <a class="el" href="#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category.">categoryName()</a> gives the name that the rules of <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> use. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6ac4148ae9fb9818be853bfd183027b063" name="af50b68f37a214c9770969a2aa4c810b6ac4148ae9fb9818be853bfd183027b063"></a>SimSetup&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6af379b148e84e5e9b4546d1e3f3102be6" name="af50b68f37a214c9770969a2aa4c810b6af379b148e84e5e9b4546d1e3f3102be6"></a>SimStep&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a0e336a3db70be9616045f205a7a0dcc6" name="af50b68f37a214c9770969a2aa4c810b6a0e336a3db70be9616045f205a7a0dcc6"></a>SimEvents&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6af0b75028bc1b43581b628381e9624a81" name="af50b68f37a214c9770969a2aa4c810b6af0b75028bc1b43581b628381e9624a81"></a>SimPax&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a4d9c8da3f5824e82a978d9e78ad67220" name="af50b68f37a214c9770969a2aa4c810b6a4d9c8da3f5824e82a978d9e78ad67220"></a>IoRailml&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8" name="af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8"></a>IoZmq&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a678059d44933d594b6b2374868b410b5" name="af50b68f37a214c9770969a2aa4c810b6a678059d44933d594b6b2374868b410b5"></a>AppRun&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7" name="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7"></a>AppUi&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6" name="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6"></a>Update&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6ac4148ae9fb9818be853bfd183027b063" name="af50b68f37a214c9770969a2aa4c810b6ac4148ae9fb9818be853bfd183027b063"></a>SimSetup&#160;</td><td class="fielddoc"><p>"sim.setup": the set-up of a run, and problems in the scene data or the model. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6af379b148e84e5e9b4546d1e3f3102be6" name="af50b68f37a214c9770969a2aa4c810b6af379b148e84e5e9b4546d1e3f3102be6"></a>SimStep&#160;</td><td class="fielddoc"><p>"sim.step": messages that a train writes once per step in the trajectory code. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a0e336a3db70be9616045f205a7a0dcc6" name="af50b68f37a214c9770969a2aa4c810b6a0e336a3db70be9616045f205a7a0dcc6"></a>SimEvents&#160;</td><td class="fielddoc"><p>"sim.events": coupling and following mode, arrivals and departures, and problems in the acceleration and braking calculation. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6af0b75028bc1b43581b628381e9624a81" name="af50b68f37a214c9770969a2aa4c810b6af0b75028bc1b43581b628381e9624a81"></a>SimPax&#160;</td><td class="fielddoc"><p>"sim.pax": passengers. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a4d9c8da3f5824e82a978d9e78ad67220" name="af50b68f37a214c9770969a2aa4c810b6a4d9c8da3f5824e82a978d9e78ad67220"></a>IoRailml&#160;</td><td class="fielddoc"><p>"io.railml": the messages of <a class="el" href="_rttp_xml_8cpp.html">io/RttpXml.cpp</a>. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8" name="af50b68f37a214c9770969a2aa4c810b6a177f1b58948c8937aefb3e1dc766eaf8"></a>IoZmq&#160;</td><td class="fielddoc"><p>"io.zmq": the ZeroMQ transports, which are the legacy sender of the -TSM and -RC channels and the live server. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a678059d44933d594b6b2374868b410b5" name="af50b68f37a214c9770969a2aa4c810b6a678059d44933d594b6b2374868b410b5"></a>AppRun&#160;</td><td class="fielddoc"><p>"app.run": the banners and the progress of a run. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7" name="af50b68f37a214c9770969a2aa4c810b6a4c4c28109f1ad10c79a95034616ffae7"></a>AppUi&#160;</td><td class="fielddoc"><p>"app.ui": the messages of Qt (qDebug, qInfo, qWarning, qCritical, qFatal). </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6" name="af50b68f37a214c9770969a2aa4c810b6a06933067aafd48425d67bcb01bba5cb6"></a>Update&#160;</td><td class="fielddoc"><p>"update": no product code logs in this category. </p>
+</td></tr>
 </table>
 
 </div>
@@ -226,11 +248,17 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>The severity of a message. <a class="el" href="#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level.">levelName()</a> gives the name that the rules of <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> use. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53aa603905470e2a5b8c13e96b579ef0dba" name="a0a4c7b4df88ad4decf7baa410a30ac53aa603905470e2a5b8c13e96b579ef0dba"></a>Debug&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a4059b0251f66a18cb56f544728796875" name="a0a4c7b4df88ad4decf7baa410a30ac53a4059b0251f66a18cb56f544728796875"></a>Info&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a0eaadb4fcb48a0a0ed7bc9868be9fbaa" name="a0a4c7b4df88ad4decf7baa410a30ac53a0eaadb4fcb48a0a0ed7bc9868be9fbaa"></a>Warning&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd" name="a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd"></a>Error&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53aa603905470e2a5b8c13e96b579ef0dba" name="a0a4c7b4df88ad4decf7baa410a30ac53aa603905470e2a5b8c13e96b579ef0dba"></a>Debug&#160;</td><td class="fielddoc"><p>"debug" </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a4059b0251f66a18cb56f544728796875" name="a0a4c7b4df88ad4decf7baa410a30ac53a4059b0251f66a18cb56f544728796875"></a>Info&#160;</td><td class="fielddoc"><p>"info" </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a0eaadb4fcb48a0a0ed7bc9868be9fbaa" name="a0a4c7b4df88ad4decf7baa410a30ac53a0eaadb4fcb48a0a0ed7bc9868be9fbaa"></a>Warning&#160;</td><td class="fielddoc"><p>"warning" </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd" name="a0a4c7b4df88ad4decf7baa410a30ac53a902b0d55fddef6f8d651fe1035b7d4bd"></a>Error&#160;</td><td class="fielddoc"><p>"error" </p>
+</td></tr>
 </table>
 
 </div>
@@ -250,6 +278,8 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The rule name of <code class="param">category</code>, given at each enumerator of <a class="el" href="#af50b68f37a214c9770969a2aa4c810b6" title="The area a message comes from. categoryName() gives the name that the rules of configure() use.">Category</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -272,6 +302,14 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sets the enabled pairs: the defaults, then the rules in order, and the later rule wins. The rules use the syntax of QT_LOGGING_RULES, limited to this grammar:</p><ul>
+<li>Rules are separated by ';' or a newline. Blanks (space, tab, carriage return) around a rule, a name and a value are ignored. An empty rule is skipped.</li>
+<li>A rule is split at its first '=' and is <span class="tt">pattern=true</span> or <span class="tt">pattern=false</span>, in lower case.</li>
+<li>A pattern is a name pattern with an optional level suffix <span class="tt">.debug</span>, <span class="tt">.info</span>, <span class="tt">.warning</span> or <span class="tt">.error</span>. The suffix is the text after the last '.' when it is a level name. Without a suffix the rule applies to all four levels.</li>
+<li>A name pattern is <span class="tt">*</span>, a category name, or a name with a '<em>' at the start, at the end or at both ends: `sim.</em><span class="tt">, </span>*.run<span class="tt">, </span>*step*`. A '*' anywhere else is malformed.</li>
+<li>A pattern that matches no category is well formed and changes nothing.</li>
+</ul>
+<p>A malformed rule is skipped and the others still apply. Returns false when any rule is malformed. configure("") restores the defaults. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -294,6 +332,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Calls <a class="el" href="#a8df481e2bab2777140253886a71a67c8">configure()</a> with the value of the environment variable EGTRAIN_LOG, or with an empty string when it is not set. The caller reports a false result: this code never prints. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -320,6 +359,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Tells whether a message of the pair is delivered. Every pair is enabled by default except sim.step at debug level. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -342,6 +382,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Flushes std::cout and std::cerr, which the default sink and the sink of the application write without a flush. A caller that ends the process without leaving <a class="el" href="main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97">main()</a>, with std::abort(), calls it after its last message. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -364,6 +405,8 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The rule name of <code class="param">level</code>, given at each enumerator of <a class="el" href="#a0a4c7b4df88ad4decf7baa410a30ac53" title="The severity of a message. levelName() gives the name that the rules of configure() use.">Level</a>. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -386,6 +429,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Replaces the sink. An empty sink restores the default sink, which writes the text unchanged to std::cout, for every category and level, without a prefix, a newline or a flush. It is std::cout and not the C stdout, because the console dock replaces the stream buffer of std::cout. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -415,6 +459,8 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
+<p>Number of categories: Update is the last. </p>
+
 </div>
 </div>
 <a id="a4048925c177ea3aaae74637911e56594" name="a4048925c177ea3aaae74637911e56594"></a>
@@ -436,6 +482,8 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Number of levels: Error is the last. </p>
 
 </div>
 </div>

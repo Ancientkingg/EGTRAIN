@@ -191,7 +191,7 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" target="_top" xlink:title=" ">
+<g id="a_Node000006"><a xlink:href="namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" target="_top" xlink:title="The rule name of category, given at each enumerator of Category.">
 <polygon fill="white" stroke="#666666" points="682,-230 560,-230 560,-211 682,-211 682,-230"/>
 <text text-anchor="middle" x="621" y="-218" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::categoryName</text>
 </a>
@@ -209,7 +209,7 @@
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" target="_top" xlink:title=" ">
+<g id="a_Node000007"><a xlink:href="namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" target="_top" xlink:title="The rule name of level, given at each enumerator of Level.">
 <polygon fill="white" stroke="#666666" points="672.5,-175 569.5,-175 569.5,-156 672.5,-156 672.5,-175"/>
 <text text-anchor="middle" x="621" y="-163" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::levelName</text>
 </a>
@@ -290,7 +290,7 @@
 <!-- Node12 -->
 <g id="Node000012" class="node">
 <title>Node12</title>
-<g id="a_Node000012"><a xlink:href="classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" target="_top" xlink:title=" ">
+<g id="a_Node000012"><a xlink:href="classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" target="_top" xlink:title="The stream that collects the text of the message.">
 <polygon fill="white" stroke="#666666" points="506,-19 396,-19 396,0 506,0 506,-19"/>
 <text text-anchor="middle" x="451" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::Line::stream</text>
 </a>

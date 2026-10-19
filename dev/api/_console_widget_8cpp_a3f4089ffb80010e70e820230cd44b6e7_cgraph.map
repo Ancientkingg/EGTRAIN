@@ -19,9 +19,9 @@
 <area shape="rect" id="Node000008" href="$class_console_streambuf.html#ac487dbb4d9f8f856ddee7c5b9dae7921" title=" " alt="" coords="509,152,704,177"/>
 <area shape="poly" id="edge13_Node000004_Node000008" title=" " alt="" coords="402,162,495,162,495,167,402,167"/>
 <area shape="poly" id="edge10_Node000005_Node000005" title=" " alt="" coords="570,104,562,94,566,84,581,78,607,76,639,80,651,89,647,93,637,85,607,81,582,83,570,88,567,94,574,101"/>
-<area shape="rect" id="Node000006" href="$namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" title=" " alt="" coords="752,67,915,92"/>
+<area shape="rect" id="Node000006" href="$namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" title="The rule name of category, given at each enumerator of Category." alt="" coords="752,67,915,92"/>
 <area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="685,100,739,92,740,97,686,105"/>
-<area shape="rect" id="Node000007" href="$namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" title=" " alt="" coords="765,140,902,165"/>
+<area shape="rect" id="Node000007" href="$namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" title="The rule name of level, given at each enumerator of Level." alt="" coords="765,140,902,165"/>
 <area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="685,125,752,137,751,142,684,131"/>
 <area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="796,68,788,58,793,48,808,42,833,40,865,44,877,53,874,57,863,49,833,45,809,47,796,52,794,58,800,65"/>
 <area shape="poly" id="edge12_Node000007_Node000007" title=" " alt="" coords="796,142,788,132,793,122,808,116,833,113,865,117,877,127,874,131,863,122,833,119,809,121,796,126,794,131,800,138"/>
@@ -30,7 +30,7 @@
 <area shape="poly" id="edge16_Node000009_Node000010" title=" " alt="" coords="406,235,533,235,533,241,406,241"/>
 <area shape="rect" id="Node000011" href="$namespaceeglog.html#a8032c116a7ea7ca91e8378e4e5105e8f" title=" " alt="" coords="558,299,655,324"/>
 <area shape="poly" id="edge18_Node000009_Node000011" title=" " alt="" coords="406,247,462,259,560,291,559,296,461,265,405,252"/>
-<area shape="rect" id="Node000012" href="$classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" title=" " alt="" coords="533,348,680,373"/>
+<area shape="rect" id="Node000012" href="$classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" title="The stream that collects the text of the message." alt="" coords="533,348,680,373"/>
 <area shape="poly" id="edge21_Node000009_Node000012" title=" " alt="" coords="406,239,435,246,463,260,480,278,488,297,495,316,511,333,522,340,519,345,508,337,491,319,483,299,476,281,460,264,434,251,405,244"/>
 <area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="570,227,562,217,566,207,581,201,607,199,639,203,651,212,647,216,637,207,607,204,582,206,570,211,567,216,574,223"/>
 <area shape="poly" id="edge19_Node000011_Node000011" title=" " alt="" coords="570,300,562,290,566,280,581,274,607,272,639,276,651,285,647,289,637,281,607,277,582,279,570,284,567,290,574,297"/>

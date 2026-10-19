@@ -130,13 +130,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:SemanticVersion" id="r_SemanticVersion"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_semantic_version.html">SemanticVersion</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A release version without a prerelease or build part.  <a href="struct_semantic_version.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa20cfcba4dcc840dfe167778f8ced44f" id="r_aa20cfcba4dcc840dfe167778f8ced44f"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#aa20cfcba4dcc840dfe167778f8ced44f">parseStableVersion</a> (const std::string &amp;value)</td></tr>
 <tr class="memitem:a137f71e5b980c1049d67bc615992834b" id="r_a137f71e5b980c1049d67bc615992834b"><td class="memItemLeft">std::optional&lt; <a class="el" href="struct_semantic_version.html">SemanticVersion</a> &gt;&#160;</td><td class="memItemRight"><a class="el" href="#a137f71e5b980c1049d67bc615992834b">parseStableTag</a> (const std::string &amp;tag)</td></tr>
 </table>
-<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Release version numbers of the form MAJOR.MINOR.PATCH. </p>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a137f71e5b980c1049d67bc615992834b" name="a137f71e5b980c1049d67bc615992834b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a137f71e5b980c1049d67bc615992834b">&#9670;&#160;</a></span>parseStableTag()</h2>
 
@@ -151,6 +154,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads a release tag: "v" followed by a version that <a class="el" href="#aa20cfcba4dcc840dfe167778f8ced44f">parseStableVersion()</a> accepts, such as "v1.2.3". </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -173,6 +177,7 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Reads "MAJOR.MINOR.PATCH": three decimal numbers that fit an unsigned int, without a sign or a leading zero. Stable versions intentionally exclude prerelease and build metadata, so any other text gives no value. </p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

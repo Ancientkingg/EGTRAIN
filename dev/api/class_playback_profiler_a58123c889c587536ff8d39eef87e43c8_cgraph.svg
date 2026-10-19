@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Counts one snapshot delivered to the main window while measuring.">
 <polygon fill="#999999" stroke="#666666" points="164,-19 0,-19 0,0 164,0 164,-19"/>
 <text text-anchor="middle" x="82" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::noteDelivery</text>
 </a>
@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" target="_top" xlink:title="True while the window runs.">
 <polygon fill="white" stroke="#666666" points="353,-19 200,-19 200,0 353,0 353,-19"/>
 <text text-anchor="middle" x="276.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PlaybackProfiler::measuring</text>
 </a>

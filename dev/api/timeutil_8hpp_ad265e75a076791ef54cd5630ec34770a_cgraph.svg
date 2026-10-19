@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="The current local date and time in the form of formatDateTimeFilename(), &quot;1900_01_01_12_00_00&quot;.">
 <polygon fill="#999999" stroke="#666666" points="139,-19 0,-19 0,0 139,0 139,-19"/>
 <text text-anchor="middle" x="69.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">getDateTimeFilenameStr</text>
 </a>
@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="timeutil_8hpp.html#a7e50cdbb92fc52410f369821ad241484" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="timeutil_8hpp.html#a7e50cdbb92fc52410f369821ad241484" target="_top" xlink:title="tm in a form safe for file names, &quot;1900_01_01_12_00_00&quot;. The hour has no leading zero.">
 <polygon fill="white" stroke="#666666" points="318,-19 175,-19 175,0 318,0 318,-19"/>
 <text text-anchor="middle" x="246.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">formatDateTimeFilename</text>
 </a>

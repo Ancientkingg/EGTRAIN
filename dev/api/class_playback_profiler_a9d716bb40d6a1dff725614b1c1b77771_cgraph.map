@@ -1,5 +1,5 @@
 <map id="PlaybackProfiler::noteTimestep" name="PlaybackProfiler::noteTimestep">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,231,31"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" title=" " alt="" coords="279,5,483,31"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#ad823dc711cee47b9b58be2325675eed6" title="True while the window runs." alt="" coords="279,5,483,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,15,265,15,265,21,231,21"/>
 </map>

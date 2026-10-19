@@ -6,9 +6,9 @@
 <area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="121,504,176,438,214,401,257,369,269,363,272,367,260,374,218,405,180,441,125,507"/>
 <area shape="rect" id="Node000015" href="$class_playback_profiler.html#a661afe92bbd8a1ed34e064b1e364b5d3" title=" " alt="" coords="261,384,478,409"/>
 <area shape="poly" id="edge23_Node000001_Node000015" title=" " alt="" coords="130,504,186,460,221,437,258,418,277,411,279,416,260,423,223,442,189,465,134,508"/>
-<area shape="rect" id="Node000016" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title=" " alt="" coords="276,433,463,459"/>
+<area shape="rect" id="Node000016" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="276,433,463,459"/>
 <area shape="poly" id="edge24_Node000001_Node000016" title=" " alt="" coords="170,503,258,475,309,460,311,465,259,481,171,508"/>
-<area shape="rect" id="Node000017" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="538,463,729,488"/>
+<area shape="rect" id="Node000017" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="538,463,729,488"/>
 <area shape="poly" id="edge26_Node000001_Node000017" title=" " alt="" coords="210,514,524,483,525,488,211,519"/>
 <area shape="rect" id="Node000018" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title=" " alt="" coords="294,534,445,574"/>
 <area shape="poly" id="edge27_Node000001_Node000018" title=" " alt="" coords="211,534,281,542,280,547,211,540"/>

@@ -1,6 +1,6 @@
 <map id="NetworkView::viewportEvent" name="NetworkView::viewportEvent">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,127,216,152"/>
-<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="277,5,467,31"/>
+<area shape="rect" id="Node000002" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="277,5,467,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,124,185,83,223,61,263,41,288,32,290,37,265,46,225,65,188,88,130,129"/>
 <area shape="rect" id="Node000003" href="$class_network_view.html#ab2f867c313f3f70dceb0f60a9072ba8a" title=" " alt="" coords="264,55,480,95"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,124,276,96,277,101,164,129"/>

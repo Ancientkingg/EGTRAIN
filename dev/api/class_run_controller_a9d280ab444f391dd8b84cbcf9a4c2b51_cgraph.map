@@ -25,9 +25,9 @@
 <area shape="poly" id="edge26_Node000006_Node000017" title=" " alt="" coords="460,637,475,624,496,593,503,561,503,530,498,499,494,467,493,435,502,402,523,370,527,366,530,370,527,373,507,404,499,435,499,466,503,498,508,530,509,562,500,595,479,628,463,641"/>
 <area shape="rect" id="Node000020" href="$class_playback_profiler.html#a661afe92bbd8a1ed34e064b1e364b5d3" title=" " alt="" coords="527,384,745,409"/>
 <area shape="poly" id="edge29_Node000006_Node000020" title=" " alt="" coords="459,637,475,624,492,599,500,574,500,548,497,522,495,496,496,470,504,444,523,419,527,416,531,419,527,422,509,447,501,471,500,496,503,522,505,548,505,574,497,601,479,628,463,641"/>
-<area shape="rect" id="Node000021" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title=" " alt="" coords="543,433,729,459"/>
+<area shape="rect" id="Node000021" href="$class_playback_profiler.html#a7a63c4ef335afa5b7f14b8154d2c2a16" title="True when QEGTRAIN_PLAYBACK_PROFILE was &quot;1&quot; when the profiler was created." alt="" coords="543,433,729,459"/>
 <area shape="poly" id="edge30_Node000006_Node000021" title=" " alt="" coords="458,637,475,624,489,606,496,588,498,552,501,514,509,495,523,476,542,463,545,467,527,480,513,498,506,515,504,552,501,590,494,609,479,628,462,641"/>
-<area shape="rect" id="Node000022" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title=" " alt="" coords="807,463,997,488"/>
+<area shape="rect" id="Node000022" href="$class_playback_profiler.html#a582260c42b5de976fdf76d10bc0c3d10" title="The profiler of the process, created at the first call." alt="" coords="807,463,997,488"/>
 <area shape="poly" id="edge32_Node000006_Node000022" title=" " alt="" coords="456,637,476,624,486,612,493,599,498,572,503,545,511,532,524,520,544,509,570,500,638,487,716,479,793,475,793,480,717,484,639,492,572,505,546,514,527,524,515,535,508,547,503,573,498,601,491,615,479,628,459,641"/>
 <area shape="rect" id="Node000023" href="$class_dispatch_controller.html#a756ed4264cc4dd25e79a258212a9fb60" title=" " alt="" coords="561,534,711,574"/>
 <area shape="poly" id="edge33_Node000006_Node000023" title=" " alt="" coords="447,637,476,624,490,614,499,604,509,594,524,584,546,574,548,578,527,588,513,598,503,608,493,618,479,628,449,642"/>

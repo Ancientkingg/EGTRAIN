@@ -65,7 +65,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="classeglog_1_1_line.html#ab044c5aca783c2417d259f96057bcbdf" target="_top" xlink:title="The stream that collects the text of the message.">
 <polygon fill="white" stroke="#666666" points="244,-19 134,-19 134,0 244,0 244,-19"/>
 <text text-anchor="middle" x="189" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::Line::stream</text>
 </a>

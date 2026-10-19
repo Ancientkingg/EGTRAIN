@@ -620,7 +620,7 @@
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" target="_top" xlink:title=" ">
+<g id="a_Node000014"><a xlink:href="namespacecsv.html#aba9d7f2dca2f249d831ceaa611460c5a" target="_top" xlink:title="Build a full document from a header row followed by data rows, each ended by kLineEnding.">
 <polygon fill="white" stroke="#666666" points="552,-1047 436,-1047 436,-1028 552,-1028 552,-1047"/>
 <text text-anchor="middle" x="494" y="-1035" font-family="Helvetica,sans-Serif" font-size="10.00">csv::makeDocument</text>
 </a>
@@ -674,7 +674,7 @@
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" target="_top" xlink:title=" ">
+<g id="a_Node000015"><a xlink:href="namespacecsv.html#acd91ce7525c4a083534a804c9fcc18c9" target="_top" xlink:title="Join fields into one record, escaping each field. The record has no line terminator.">
 <polygon fill="#fff0f0" stroke="red" points="765.5,-1013 679.5,-1013 679.5,-994 765.5,-994 765.5,-1013"/>
 <text text-anchor="middle" x="722.5" y="-1001" font-family="Helvetica,sans-Serif" font-size="10.00">csv::makeRow</text>
 </a>

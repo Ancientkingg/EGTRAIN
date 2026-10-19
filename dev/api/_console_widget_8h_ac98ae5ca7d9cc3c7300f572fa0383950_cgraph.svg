@@ -29,7 +29,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="namespaceeglog.html#a06d2146976a5f10f5555abbafe6f75aa" target="_top" xlink:title="The rule name of category, given at each enumerator of Category.">
 <polygon fill="white" stroke="#666666" points="276,-74 154,-74 154,-55 276,-55 276,-74"/>
 <text text-anchor="middle" x="215" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::categoryName</text>
 </a>
@@ -47,7 +47,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="namespaceeglog.html#a9049f9796908e1734524b758f1e39da2" target="_top" xlink:title="The rule name of level, given at each enumerator of Level.">
 <polygon fill="white" stroke="#666666" points="266.5,-19 163.5,-19 163.5,0 266.5,0 266.5,-19"/>
 <text text-anchor="middle" x="215" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">eglog::levelName</text>
 </a>

@@ -132,8 +132,11 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a9b37cf30e1f38d212eb8771a3d5d630c" id="r_a9b37cf30e1f38d212eb8771a3d5d630c"><td class="memItemLeft">#define&#160;</td><td class="memItemRight"><a class="el" href="#a9b37cf30e1f38d212eb8771a3d5d630c">_mkdir</a>(path)</td></tr>
+<tr class="memdesc:a9b37cf30e1f38d212eb8771a3d5d630c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#a9b37cf30e1f38d212eb8771a3d5d630c" title="_mkdir(path) -&gt; mkdir(path, 0777) (POSIX needs a mode argument)">_mkdir(path)</a> -&gt; mkdir(path, 0777) (POSIX needs a mode argument)  <br /></td></tr>
 </table>
-<a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Cross-platform portability shims for EGTRAIN. The codebase mixes MSVC names (_s functions, _mkdir) and POSIX names (localtime_r, unistd.h). This header maps whichever set is missing on the current compiler onto the one that is available. </p>
+</div><a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="a9b37cf30e1f38d212eb8771a3d5d630c" name="a9b37cf30e1f38d212eb8771a3d5d630c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b37cf30e1f38d212eb8771a3d5d630c">&#9670;&#160;</a></span>_mkdir</h2>
 
@@ -150,6 +153,8 @@ Macros</h2></td></tr>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">mkdir(path, 0777)</div>
 </div><!-- fragment -->
+<p><a class="el" href="#a9b37cf30e1f38d212eb8771a3d5d630c" title="_mkdir(path) -&gt; mkdir(path, 0777) (POSIX needs a mode argument)">_mkdir(path)</a> -&gt; mkdir(path, 0777) (POSIX needs a mode argument) </p>
+
 </div>
 </div>
 </div><!-- contents -->
