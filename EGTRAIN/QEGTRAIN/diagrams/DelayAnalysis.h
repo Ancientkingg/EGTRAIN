@@ -32,210 +32,230 @@
 //    occurrence in the scenario run. An occurrence without evidence is not
 //    shown to be delayed by propagation.
 
+/// Which time of a call an event is.
 enum class DelayEventKind {
-	Arrival,
-	Departure
+	Arrival,  ///< The arrival at the stop
+	Departure ///< The departure from the stop
 };
 
+/// The sign of the delay of an event.
 enum class DelayClass {
-	Unavailable,
-	Early,
-	OnTime,
-	Late
+	Unavailable, ///< The event has no delay
+	Early,		 ///< Delay below 0
+	OnTime,		 ///< Delay exactly 0
+	Late		 ///< Delay above 0
 };
 
+/// The arrival or the departure of one call, with its delay against the authored plan.
 struct DelayEvent {
-	std::string trainId;
-	std::string operatingCode;
-	std::string serviceId;
-	int occurrence = 1;
-	std::string stationId;
-	int journeyIndex = 0;
-	int callIndex = 0;
-	DelayEventKind kind = DelayEventKind::Arrival;
-	// The authored planned time.
+	std::string trainId;						   ///< Name of the train in the run
+	std::string operatingCode;					   ///< Operating code of the service
+	std::string serviceId;						   ///< Scene service of the train
+	int occurrence = 1;							   ///< Occurrence of the service, from 1
+	std::string stationId;						   ///< TimetableResultRow::stationId
+	int journeyIndex = 0;						   ///< TimetableResultRow::journeyIndex, from 1
+	int callIndex = 0;							   ///< TimetableResultRow::callIndex, from 1
+	DelayEventKind kind = DelayEventKind::Arrival; ///< Arrival or departure
+	/// The authored planned time, in seconds of the run.
 	RunResultValue plannedSeconds;
-	RunResultValue simulatedSeconds;
-	// Simulated minus planned. Available only with TimetableValueStatus::Available.
+	RunResultValue simulatedSeconds; ///< In seconds of the run
+	/// Simulated minus planned. Available only with TimetableValueStatus::Available.
 	RunResultValue delaySeconds;
+	/// Which of the planned and simulated times exist.
 	TimetableValueStatus status = TimetableValueStatus::NoPlanAndNotReached;
-	DelayClass delayClass = DelayClass::Unavailable;
+	DelayClass delayClass = DelayClass::Unavailable; ///< The sign of delaySeconds
 };
 
-// Two events per row, the arrival first. `run` supplies the entrance delay of each
-// occurrence; an occurrence that `run` does not list keeps the planned times of its rows.
+/// Two events per row, the arrival first. `run` supplies the entrance delay of each
+/// occurrence; an occurrence that `run` does not list keeps the planned times of its rows.
 std::vector<DelayEvent> buildDelayEvents(const std::vector<TimetableResultRow>& rows, const RunResults& run);
 
+/// One occurrence of a service, as the filter selects it.
 struct DelayOccurrence {
-	// The service id, or the train id when the run has no service id.
+	/// The service id, or the train id when the run has no service id.
 	std::string serviceId;
-	int occurrence = 1;
+	int occurrence = 1; ///< Occurrence of the service, from 1
 };
 
+/// The events that a summary counts.
 struct DelayFilter {
-	// Empty selects every occurrence.
+	/// Empty selects every occurrence.
 	std::vector<DelayOccurrence> occurrences;
-	// Empty selects every station.
+	/// Empty selects every station.
 	std::vector<std::string> stations;
-	DelayEventKind kind = DelayEventKind::Arrival;
+	DelayEventKind kind = DelayEventKind::Arrival; ///< Only events of this kind
 };
 
-// The thresholds of the summary: 0, 60, 180 and 300 s. An event is later than a
-// threshold only when its delay is strictly greater.
+/// The thresholds of the summary: 0, 60, 180 and 300 s. An event is later than a
+/// threshold only when its delay is strictly greater.
 std::vector<double> defaultDelayThresholdsSeconds();
 
+/// The share of the available events that are later than one threshold.
 struct DelayShare {
-	double thresholdSeconds = 0.0;
-	// Available events later than the threshold.
+	double thresholdSeconds = 0.0; ///< Threshold in seconds
+	/// Available events later than the threshold.
 	int later = 0;
-	// Available events.
+	/// Available events.
 	int denominator = 0;
-	// later / denominator * 100. Unavailable when the denominator is 0.
+	/// later / denominator * 100. Unavailable when the denominator is 0.
 	RunResultValue percent;
 };
 
+/// Counts and figures of a set of events.
 struct DelayStatistics {
-	// Events that the filter selects. The next four counts add up to it, one count for each status.
+	/// Events that the filter selects. The next four counts add up to it, one count for each status.
 	int calls = 0;
-	int available = 0;
-	int noPlan = 0;
-	int notReached = 0;
-	int noPlanAndNotReached = 0;
-	// The next three counts add up to `available`.
+	int available = 0;			 ///< Events with TimetableValueStatus::Available
+	int noPlan = 0;				 ///< Events with TimetableValueStatus::NoPlan
+	int notReached = 0;			 ///< Events with TimetableValueStatus::NotReached
+	int noPlanAndNotReached = 0; ///< Events with TimetableValueStatus::NoPlanAndNotReached
+	/// Events with a delay below 0. It, onTime and late add up to `available`.
 	int early = 0;
-	int onTime = 0;
-	int late = 0;
-	// All four are over the available events and unavailable when there are none.
+	int onTime = 0; ///< Events with a delay of exactly 0
+	int late = 0;	///< Events with a delay above 0
+	/// Sum of the delays in seconds. It and the next three are over the available events and unavailable when there
+	/// are none.
 	RunResultValue sumSeconds;
-	RunResultValue meanSeconds;
-	RunResultValue minimumSeconds;
-	RunResultValue maximumSeconds;
-	// One entry for each finite threshold, in the order given.
+	RunResultValue meanSeconds;	   ///< sumSeconds / available
+	RunResultValue minimumSeconds; ///< Smallest delay in seconds
+	RunResultValue maximumSeconds; ///< Largest delay in seconds
+	/// One entry for each finite threshold, in the order given.
 	std::vector<DelayShare> shares;
 };
 
+/// The statistics of the events at one station.
 struct StationDelaySummary {
-	std::string stationId;
-	DelayStatistics statistics;
+	std::string stationId;		///< TimetableResultRow::stationId
+	DelayStatistics statistics; ///< Over the selected events at the station
 };
 
+/// The statistics of the selected events, for each station and for the network.
 struct DelaySummary {
-	// In the order of first appearance in the events. Every call of a repeated station counts for the same station.
+	/// In the order of first appearance in the events. Every call of a repeated station counts for the same station.
 	std::vector<StationDelaySummary> stations;
-	// All selected events together; it is not a mean of the station means.
+	/// All selected events together; it is not a mean of the station means.
 	DelayStatistics network;
 };
 
+/// The statistics of the events that the filter selects, with one share for each finite threshold in seconds.
 DelaySummary summarizeDelays(const std::vector<DelayEvent>& events, const DelayFilter& filter,
 	const std::vector<double>& thresholdsSeconds = defaultDelayThresholdsSeconds());
 
+/// The sign of an additional delay.
 enum class DelayChange {
-	NotAvailable,
-	Earlier,
-	Same,
-	Later
+	NotAvailable, ///< One of the two times is missing
+	Earlier,	  ///< Additional delay below 0
+	Same,		  ///< Additional delay exactly 0
+	Later		  ///< Additional delay above 0
 };
 
+/// The simulated time of one event in the baseline and in the scenario run.
 struct DelayDifference {
-	RunResultValue baselineSeconds;
-	RunResultValue scenarioSeconds;
-	// Scenario minus baseline. Unavailable unless both times are.
+	RunResultValue baselineSeconds; ///< Simulated time in the baseline run, in seconds of the run
+	RunResultValue scenarioSeconds; ///< Simulated time in the scenario run, in seconds of the run
+	/// Scenario minus baseline. Unavailable unless both times are.
 	RunResultValue additionalSeconds;
-	DelayChange change = DelayChange::NotAvailable;
+	DelayChange change = DelayChange::NotAvailable; ///< The sign of additionalSeconds
 };
 
-// One call of one occurrence in both runs.
+/// One call of one occurrence in both runs.
 struct BaselineCall {
-	std::string trainId;
-	std::string serviceId;
-	int occurrence = 1;
-	std::string stationId;
-	int journeyIndex = 0;
-	int callIndex = 0;
-	// The last call of the occurrence.
+	std::string trainId;   ///< Name of the train in the scenario run
+	std::string serviceId; ///< Scene service of the train
+	int occurrence = 1;	   ///< Occurrence of the service, from 1
+	std::string stationId; ///< TimetableResultRow::stationId
+	int journeyIndex = 0;  ///< TimetableResultRow::journeyIndex, from 1
+	int callIndex = 0;	   ///< TimetableResultRow::callIndex, from 1
+	/// The last call of the occurrence.
 	bool finalCall = false;
-	DelayDifference arrival;
-	DelayDifference departure;
+	DelayDifference arrival;   ///< The simulated arrivals of the two runs
+	DelayDifference departure; ///< The simulated departures of the two runs
 };
 
+/// One occurrence in both runs, judged at its final arrival.
 struct BaselineOccurrence {
-	std::string trainId;
-	std::string operatingCode;
-	std::string serviceId;
-	int occurrence = 1;
-	// The entrance delay of the scenario run: 0 when it applied none. A known input, not a measurement.
+	std::string trainId;	   ///< Name of the train in the scenario run
+	std::string operatingCode; ///< Operating code of the service
+	std::string serviceId;	   ///< Scene service of the train
+	int occurrence = 1;		   ///< Occurrence of the service, from 1
+	/// The entrance delay of the scenario run: 0 when it applied none. A known input, not a measurement.
 	double inputDelaySeconds = 0.0;
-	// Empty when no entrance delay applied.
+	/// Empty when no entrance delay applied.
 	std::string inputDelayStationId;
-	bool hasDirectEvidence = false;
-	std::vector<std::string> incidentIds;
-	// The final call. Empty and 0 when the occurrence has no call in the runs.
+	bool hasDirectEvidence = false;		  ///< True when the scenario run recorded a direct incident effect on it
+	std::vector<std::string> incidentIds; ///< The incidents of that evidence, TrainRunResult::directIncidentIds
+	/// Station of the final call. It and the two indices below are empty and 0 when the occurrence has no call in
+	/// the runs.
 	std::string finalStationId;
-	int finalJourneyIndex = 0;
-	int finalCallIndex = 0;
-	// The arrival difference at the final call; NotAvailable without a call.
+	int finalJourneyIndex = 0; ///< TimetableResultRow::journeyIndex of the final call
+	int finalCallIndex = 0;	   ///< TimetableResultRow::callIndex of the final call
+	/// The arrival difference at the final call; NotAvailable without a call.
 	DelayDifference finalArrival;
-	// See "secondary delay" above. Unavailable when finalArrival is.
+	/// See "secondary delay" above. Unavailable when finalArrival is.
 	RunResultValue secondarySeconds;
 };
 
-// The totals are over the final arrival of each occurrence.
+/// The totals are over the final arrival of each occurrence.
 struct BaselineTotals {
-	int occurrences = 0;
-	int later = 0;
-	int same = 0;
-	int earlier = 0;
-	int notAvailable = 0;
-	// Sum of the positive additional delays and of all additional delays. Unavailable when no
-	// occurrence has a difference. They leave out the occurrences that have none.
+	int occurrences = 0;  ///< Occurrences compared
+	int later = 0;		  ///< Occurrences with DelayChange::Later
+	int same = 0;		  ///< Occurrences with DelayChange::Same
+	int earlier = 0;	  ///< Occurrences with DelayChange::Earlier
+	int notAvailable = 0; ///< Occurrences with DelayChange::NotAvailable
+	/// Sum of the positive additional delays in seconds. It and netSeconds are unavailable when no occurrence has a
+	/// difference, and they leave out the occurrences that have none.
 	RunResultValue positiveSeconds;
-	RunResultValue netSeconds;
-	// True when there is an occurrence and every one has a difference.
+	RunResultValue netSeconds; ///< Sum of all additional delays, in seconds
+	/// True when there is an occurrence and every one has a difference.
 	bool complete = false;
 };
 
-// The totals over the final arrival of each of the occurrences.
+/// The totals over the final arrival of each of the occurrences.
 BaselineTotals baselineTotals(const std::vector<BaselineOccurrence>& occurrences);
 
+/// Why two runs cannot be compared.
 enum class DelayDiagnosticKind {
-	// A scenario id is empty.
+	/// A scenario id is empty.
 	ScenarioIdMissing,
-	ScenarioIdsEqual,
-	SceneRevisionDiffers,
-	BaseTimeDiffers,
-	DurationDiffers,
-	TimestepDiffers,
-	BaselineHasIncidents,
-	BaselineHasEntranceDelays,
-	// The occurrence is in the baseline run only, or in the scenario run only.
+	ScenarioIdsEqual,		   ///< Both runs applied the same scenario
+	SceneRevisionDiffers,	   ///< The runs used other revisions of the scene
+	BaseTimeDiffers,		   ///< The runs have other base times
+	DurationDiffers,		   ///< The runs have other lengths
+	TimestepDiffers,		   ///< The runs have other timesteps
+	BaselineHasIncidents,	   ///< The scenario of the baseline has an incident
+	BaselineHasEntranceDelays, ///< The scenario of the baseline has an entrance delay
+	/// The occurrence is in the baseline run only.
 	OccurrenceOnlyInBaseline,
+	/// The occurrence is in the scenario run only.
 	OccurrenceOnlyInScenario,
-	// The occurrence has other calls (station, journey order or call number) in the two runs.
+	/// The occurrence has other calls (station, journey order or call number) in the two runs.
 	CallsDiffer
 };
 
+/// One reason why two runs cannot be compared.
 struct DelayDiagnostic {
-	DelayDiagnosticKind kind = DelayDiagnosticKind::ScenarioIdMissing;
-	// Set for the occurrence kinds, else empty and 0.
+	DelayDiagnosticKind kind = DelayDiagnosticKind::ScenarioIdMissing; ///< The reason
+	/// Service of the occurrence for the occurrence kinds, else empty.
 	std::string serviceId;
-	int occurrence = 0;
+	int occurrence = 0; ///< Occurrence of the service, from 1; 0 for the other kinds
 };
 
+/// The comparison of a scenario run with a baseline run.
 struct DelayBaselineComparison {
-	// True when `diagnostics` is empty. Otherwise `occurrences` and `calls` are empty and the totals are unavailable.
+	/// True when `diagnostics` is empty. Otherwise `occurrences` and `calls` are empty and the totals are unavailable.
 	bool compatible = false;
-	// Every incompatibility, in a fixed order.
+	/// Every incompatibility, in a fixed order.
 	std::vector<DelayDiagnostic> diagnostics;
-	// In the order of the scenario run.
+	/// In the order of the scenario run.
 	std::vector<BaselineOccurrence> occurrences;
-	// An occurrence after another, each in journey order.
+	/// An occurrence after another, each in journey order.
 	std::vector<BaselineCall> calls;
-	BaselineTotals totals;
+	BaselineTotals totals; ///< Over the final arrivals of the occurrences
 };
 
-// Compares two completed runs of the same case. The baseline has no incident and no entrance delay.
-// The scenario may have either.
+/// Compares two completed runs of the same case. The baseline has no incident and no entrance delay.
+/// The scenario may have either.
 DelayBaselineComparison compareAgainstBaseline(const DelayRunSnapshot& baseline, const DelayRunSnapshot& scenario);
 
-// A fixed identifier of the kind, such as "scene_revision_differs".
+/// A fixed identifier of the kind, such as "scene_revision_differs".
 const char* delayDiagnosticCode(DelayDiagnosticKind kind);

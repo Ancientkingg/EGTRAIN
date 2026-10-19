@@ -29,82 +29,92 @@ class QLabel;
 class QPushButton;
 class TrainFilterButton;
 
-// A station along the distance axis of a route chart: its position on that axis and the plain-text labels it can
-// have, from the longest to the shortest.
+/// A station along the distance axis of a route chart: its position on that axis and the plain-text labels it can
+/// have, from the longest to the shortest.
 struct StationTick {
-	double position = 0.0;
-	QStringList spellings;
+	double position = 0.0; ///< On the distance axis, in the unit of that axis
+	QStringList spellings; ///< Plain-text labels, longest first
 };
 
-// Reusable non-modal window that shows a chart with a train visibility
-// dropdown, hover and click identification, rubber-band zoom with reset,
-// PNG export, and optional CSV export.
-//
-// Series are grouped by the dynamic property "trainId" when the caller sets it
-// (the same train can own several series, such as planned and simulated lines);
-// series without that property are grouped by their own name.
-// Optional inspection metadata: "inspectionPoints" is a QStringList with one
-// plain-text context entry per appended point (including empty entries).
-// "inspectionInterval" is plain-text context shared by a line segment;
-// "inspectionFilled" explicitly opts a closed QLineSeries into interior hits.
-// A line hit always reports its nearest actual plotted sample, not an
-// interpolated value at the cursor.
+/// Reusable non-modal window that shows a chart with a train visibility
+/// dropdown, hover and click identification, rubber-band zoom with reset,
+/// PNG export, and optional CSV export.
+///
+/// Series are grouped by the dynamic property "trainId" when the caller sets it
+/// (the same train can own several series, such as planned and simulated lines);
+/// series without that property are grouped by their own name.
+/// Optional inspection metadata: "inspectionPoints" is a QStringList with one
+/// plain-text context entry per appended point (including empty entries).
+/// "inspectionInterval" is plain-text context shared by a line segment;
+/// "inspectionFilled" explicitly opts a closed QLineSeries into interior hits.
+/// A line hit always reports its nearest actual plotted sample, not an
+/// interpolated value at the cursor.
 class DiagramWindow : public QDialog {
 	Q_OBJECT
 public:
+	/// An empty window with the given title.
 	explicit DiagramWindow(const QString& title, QWidget* parent = nullptr);
-	// The navigation help is built from the series the chart has when it is set.
-	void setChart(QChart* chart); // takes ownership
-	// Presentation only: concise warning separate from bounded subject/run context.
+	/// Shows the chart and takes ownership of it. The navigation help is built from the series the chart has when it
+	/// is set.
+	void setChart(QChart* chart);
+	/// Sets the window title to `heading` and shows `context` and `warning` in labels of their own; an empty text hides
+	/// its label.
 	void setPresentation(const QString& heading, const QString& context,
 		const QString& warning = QString());
+	/// True for a chart of rolling stock input, which has no trains: hides the train filter and the selection.
 	void setRollingStockSubject(bool on);
-	// Paints the series of each listed train in its colour: the pen colour of a
-	// line series, the brush colour (alpha kept) and pen colour of an area series.
-	// Width and dash pattern stay as the chart builder set them. Train ids are the
-	// group ids (the "trainId" property, or the series name); a train that is not
-	// listed, or has an invalid colour, keeps its chart colours. The colours become
-	// the base look of the series, so selecting and clearing a train keeps them,
-	// and the train filter swatch shows them. Set before or after setChart. A later
-	// call does not undo colours an earlier call applied and resets the train
-	// filter to all trains visible.
+	/// Paints the series of each listed train in its colour: the pen colour of a
+	/// line series, the brush colour (alpha kept) and pen colour of an area series.
+	/// Width and dash pattern stay as the chart builder set them. Train ids are the
+	/// group ids (the "trainId" property, or the series name); a train that is not
+	/// listed, or has an invalid colour, keeps its chart colours. The colours become
+	/// the base look of the series, so selecting and clearing a train keeps them,
+	/// and the train filter swatch shows them. Set before or after setChart. A later
+	/// call does not undo colours an earlier call applied and resets the train
+	/// filter to all trains visible.
 	void setTrainColors(const QHash<QString, QColor>& colors);
-	// Shows the colour of each listed train in the train filter only and leaves
-	// the series as the chart builder painted them, for a chart whose series
-	// colours have a meaning of their own.
+	/// Shows the colour of each listed train in the train filter only and leaves
+	/// the series as the chart builder painted them, for a chart whose series
+	/// colours have a meaning of their own.
 	void setTrainListColors(const QHash<QString, QColor>& colors);
-	// Format one axis as HH:MM:SS with an offset; true selects X or Y, false
-	// restores numeric formatting. Set before or after setChart. Bounds and
-	// reversal come from the caller; reset restores the bounds at setChart.
+	/// Labels the Y axis as clock time HH:MM:SS: the axis value in seconds plus `startOffsetSeconds`, the clock time
+	/// of second 0 in seconds since midnight. False restores numeric labels. Set before or after setChart. Bounds and
+	/// reversal come from the caller; reset restores the bounds at setChart.
 	void setTimeAxisY(bool on, long long startOffsetSeconds = 0);
+	/// As setTimeAxisY, for the X axis.
 	void setTimeAxisX(bool on, long long startOffsetSeconds = 0);
 
-	// Supply raw source data for CSV export. The provider receives the ids of the
-	// trains currently visible so it can export only what the user is looking at.
-	// Optional captured train ids include real trains with only unplottable CSV rows.
-	// An empty return means there is nothing to export. The CSV button is shown only while a provider is set.
+	/// Supply raw source data for CSV export. The provider receives the ids of the
+	/// trains currently visible so it can export only what the user is looking at.
+	/// `trainIds` adds to the train filter the trains that have CSV rows but no plotted series.
+	/// An empty return means there is nothing to export. The CSV button is shown only while a provider is set.
 	void setCsvProvider(std::function<std::string(const QStringList& visibleTrainIds)> provider,
 		const QString& suggestedFileName, const QStringList& trainIds = {});
-	// Set after setChart. A chart-owned physical layer, not train series. Chart replacement clears it.
+	/// Draws the block sections of the reference route over the chart, with positions in km. Set after setChart. A
+	/// chart-owned physical layer, not train series. Chart replacement clears it.
 	void setBlockSections(std::vector<BlockSectionExtent> sections, const QString& referenceRouteId);
-	// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
-	// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
-	// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
-	// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped.
+	/// Set after setChart. `axis` is a category axis of the chart that runs along the distance axis and has its own
+	/// range. The window gives it the stations that are in its range and whose labels fit above the plot side by
+	/// side, each with the longest spelling that fits, so the chart never has to shorten a label. A resize or a
+	/// zoom chooses again. The labels are plain text; the chart reads them as rich text, so they are escaped.
 	void setStationAxis(QCategoryAxis* axis, std::vector<StationTick> stations);
-	// The same provider/filter snapshot that Export CSV writes, without opening a file dialog.
+	/// The same provider/filter snapshot that Export CSV writes, without opening a file dialog.
 	std::string csvContent() const;
+	/// Sets the function that writes an export and its provenance sidecar; `artifactKind` is "png" or "csv". Without
+	/// it the export is written alone.
 	void setProvenanceWriter(std::function<bool(const QString& artifactPath,
 			const char* artifactKind, const std::string& artifactBytes)>
 			writer);
 
 signals:
-	void trainSelected(const QString& trainId); // scene linkage on click
+	void trainSelected(const QString& trainId); ///< A click on a series selected this train
 
 protected:
-	bool eventFilter(QObject* obj, QEvent* ev) override; // track mouse for hover
+	/// Hover, click selection, wheel and pinch zoom, and wheel pan on the chart view.
+	bool eventFilter(QObject* obj, QEvent* ev) override;
 
 public:
+	/// Sets the function that gives the telemetry observation of an export; empty for none.
 	void setTelemetryCapture(telemetry::CaptureOperation capture) { m_telemetryCapture = std::move(capture); }
 
 private slots:
