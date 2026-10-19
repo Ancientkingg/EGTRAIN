@@ -79,7 +79,7 @@ The original EGTRAIN case-study inputs for the SORTEDMOBILITY research project a
 
 ## How to cite
 
-To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repository](https://github.com/Ancientkingg/EGTRAIN). It is built from [`CITATION.cff`](CITATION.cff) and offers APA and BibTeX.
+To cite EGTRAIN, use **Cite this repository** in the sidebar of the [GitHub repository](https://github.com/Ancientkingg/EGTRAIN). It is built from [`CITATION.cff`](CITATION.cff).
 
 ## Documentation and development
 
