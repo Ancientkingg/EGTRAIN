@@ -26,6 +26,9 @@ QGraphicsItem* itemOf(const QGraphicsEffect* effect) {
 
 HighlightEffect::HighlightEffect(const QColor&, qreal, QObject* parent)
 	: QGraphicsEffect(parent) {
+	// Qt rounds the bounds of an item with an enabled effect to device pixels of the view, so they would change with
+	// zoom and scroll without the scene index being told. The index would then keep the item in places it has left.
+	setEnabled(false);
 }
 
 HighlightEffect::~HighlightEffect() {
