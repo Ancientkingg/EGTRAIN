@@ -12,6 +12,9 @@ public:
 
 	// updates bar and time
 	void setProgress(int timestep, int totalSteps, long long startOffsetSeconds);
+
+protected:
+	void paintEvent(QPaintEvent* event) override;
 };
 
 #endif // TIMEPROGRESSBAR_H

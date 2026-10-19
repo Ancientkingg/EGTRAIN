@@ -15,3 +15,13 @@ The text at the top of Run Results puts each entry on a line of its own: `Run: <
 When Run Results first opens at the bottom of the window it takes a third of the window height, or the height that its content needs when that is more, so the network and the replay row keep the rest. A height that the user drags is kept while the dock stays open; a new run that opens the closed dock sets a third again.
 
 The Case and Layers dock opens at the width of its widest layer toggle, **Stations and platforms**, plus the vertical scroll bar. A case name up to that width fits on one line, and a longer one wraps. The user can drag the dock wider.
+
+## Tables and progress bar
+
+Every table and list has a light header: `#e3eaee` sections with `#24313a` semibold text, padding of 4 by 6 px and a `#c9d3db` line on the right and below each section. The corner button of a table has the same face. Alternate rows are `#f4f7f9` between the `#eef2f5` rows; the colour is set in the stylesheet, so a dark system theme does not darken them under the dark text. Column widths and header texts are unchanged.
+
+The timetable table colours a delay above 60 s (160,30,30), a delay above 0 s (125,85,0) and any other delay (0,100,0). Each has a contrast of at least 5.8:1 on both row colours.
+
+The progress bar of a run fills in `#315a70`. Its text is `#24313a` on the empty part, 11.4:1 on `#eceeec`, and white on the fill, 7.4:1: `TimeProgressBar` draws the bar a second time over the fill with the stylesheet's `selection-color` as the text colour.
+
+In Run Results the **Open result view...** button has the white face, grey border and padding of the **Export CSV...** and **Export PNG...** buttons beside it, the same `#315a70` border under the pointer or with focus, and the same grey face when disabled.

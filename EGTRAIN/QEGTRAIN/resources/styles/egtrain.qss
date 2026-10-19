@@ -203,6 +203,21 @@ QPushButton:pressed {
     background: #d8e1e5;
 }
 
+QToolButton#runResultsViewsButton {
+    background: #ffffff;
+    border-color: #c8ced2;
+    padding: 5px 7px;
+}
+
+QToolButton#runResultsViewsButton:hover, QToolButton#runResultsViewsButton:focus {
+    border-color: #315a70;
+}
+
+QToolButton#runResultsViewsButton:disabled {
+    background: #e4e8eb;
+    border-color: #c9d3db;
+}
+
 QDialog#runReviewDialog, QDialog[dialogPresentation="true"] {
     background: #f8fafb;
 }
@@ -374,11 +389,33 @@ QProgressBar {
     border-radius: 2px;
     background: #eceeec;
     color: #24313a;
+    selection-color: #ffffff;
     text-align: right;
 }
 
 QProgressBar::chunk {
     background: #315a70;
+}
+
+QHeaderView::section {
+    background: #e3eaee;
+    color: #24313a;
+    border: 0;
+    border-right: 1px solid #c9d3db;
+    border-bottom: 1px solid #c9d3db;
+    padding: 4px 6px;
+    font-weight: 600;
+}
+
+QTableView QTableCornerButton::section {
+    background: #e3eaee;
+    border: 0;
+    border-right: 1px solid #c9d3db;
+    border-bottom: 1px solid #c9d3db;
+}
+
+QAbstractItemView {
+    alternate-background-color: #f4f7f9;
 }
 
 QPlainTextEdit {
