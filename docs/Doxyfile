@@ -1,0 +1,32 @@
+# Doxygen configuration of the C++ reference. Run it from the repository root: the reference goes
+# to build/docs/api/, next to the pages of the documentation site. The docs target of CMake sets
+# the output folder to the docs folder of its build folder.
+
+PROJECT_NAME           = EGTRAIN
+PROJECT_BRIEF          = "C++ reference"
+OUTPUT_DIRECTORY       = build/docs
+HTML_OUTPUT            = api
+GENERATE_LATEX         = NO
+QUIET                  = YES
+
+INPUT                  = EGTRAIN/QEGTRAIN
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.hpp *.cpp
+EXCLUDE                = EGTRAIN/QEGTRAIN/tests EGTRAIN/QEGTRAIN/io/third_party
+EXCLUDE_PATTERNS       = */moc_* */ui_* */qrc_* */*_autogen/*
+STRIP_FROM_PATH        = EGTRAIN/QEGTRAIN
+STRIP_FROM_INC_PATH    = EGTRAIN/QEGTRAIN
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = QT_CHARTS_USE_NAMESPACE=
+
+# Undocumented classes, files and members are listed too. tools/docs/check_undocumented.py sets
+# EXTRACT_ALL to NO to find them.
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+# The page names are the same on every system: SceneModel is on struct_scene_model.html.
+CASE_SENSE_NAMES       = NO
+
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+DOT_IMAGE_FORMAT       = svg

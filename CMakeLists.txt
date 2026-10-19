@@ -1795,3 +1795,41 @@ install(TARGETS QEGTRAIN scene_tool
     BUNDLE DESTINATION .
     FRAMEWORK DESTINATION .)
 install(DIRECTORY ${SRC_DIR}/Scenes/ DESTINATION share/EGTRAIN/Scenes)
+
+# Documentation site. `docs` builds the C++ reference with Doxygen and the pages of docs/ with Sphinx into docs/ of the
+# build folder, which opens from disk at docs/index.html. `docs-preview` serves the pages on a local port and rebuilds a
+# page when it changes. The Python packages come from a virtual environment in the build folder, so that their versions
+# are the ones in docs/requirements.txt. Configure does not need the tools: without them, the targets print how to
+# install them.
+find_package(Doxygen 1.18 QUIET COMPONENTS dot)
+set(egtrain_docs_venv "${CMAKE_BINARY_DIR}/docs-venv")
+if(WIN32)
+	set(egtrain_docs_bin "${egtrain_docs_venv}/Scripts")
+else()
+	set(egtrain_docs_bin "${egtrain_docs_venv}/bin")
+endif()
+set(egtrain_docs_install "The docs targets need Doxygen 1.18 or newer, Graphviz and the packages of docs/requirements.txt. \
+Install Doxygen and Graphviz, then run: python3 -m venv ${egtrain_docs_venv} and \
+${egtrain_docs_bin}/pip install -r ${CMAKE_SOURCE_DIR}/docs/requirements.txt. Then configure again.")
+if(DOXYGEN_FOUND AND EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
+	get_filename_component(egtrain_dot_dir "${DOXYGEN_DOT_EXECUTABLE}" DIRECTORY)
+	file(WRITE "${CMAKE_BINARY_DIR}/Doxyfile"
+		"@INCLUDE = \"${CMAKE_SOURCE_DIR}/docs/Doxyfile\"\nOUTPUT_DIRECTORY = \"${CMAKE_BINARY_DIR}/docs\"\nDOT_PATH = \"${egtrain_dot_dir}\"\n")
+	add_custom_target(docs
+		COMMAND Doxygen::doxygen "${CMAKE_BINARY_DIR}/Doxyfile"
+		COMMAND "${egtrain_docs_bin}/sphinx-build" -W -b html "${CMAKE_SOURCE_DIR}/docs" "${CMAKE_BINARY_DIR}/docs"
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		COMMENT "Building the documentation site in ${CMAKE_BINARY_DIR}/docs"
+		VERBATIM)
+	add_custom_target(docs-preview
+		COMMAND "${egtrain_docs_bin}/sphinx-autobuild" --port 8000 "${CMAKE_SOURCE_DIR}/docs" "${CMAKE_BINARY_DIR}/docs"
+		USES_TERMINAL
+		VERBATIM)
+else()
+	foreach(egtrain_docs_target IN ITEMS docs docs-preview)
+		add_custom_target(${egtrain_docs_target}
+			COMMAND "${CMAKE_COMMAND}" -E echo "${egtrain_docs_install}"
+			COMMAND "${CMAKE_COMMAND}" -E false
+			VERBATIM)
+	endforeach()
+endif()
