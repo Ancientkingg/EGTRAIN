@@ -1231,8 +1231,10 @@ reimport. It checks the compatibility rows in `TrackLines/AreasCaseStudy.txt`
 and requires the ordered signalling areas, with their exported track scopes,
 to survive through `TrackLines/EGTRAINSignallingAreas.json`. The import report
 must account for every area. The importer warns about historical area files
-without this sidecar and does not convert their rows. Normal runs load the
-canonical source directory directly.
+without this sidecar and does not convert their rows. For each scene with
+`views.json` it also compares the station and track views, the base time and
+the simulation settings of the reimported scene with the source. Normal runs
+load the canonical source directory directly.
 The reimported Assignment run must report no route section without a
 signalling level and must write section records to `BlockingTimes.txt`.
 The script finds the application and `scene_tool` as the headless smoke finds the application, with

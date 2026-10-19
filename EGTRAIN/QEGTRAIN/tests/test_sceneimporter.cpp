@@ -368,6 +368,8 @@ int main() {
 			"Paimpol full name\t1\t0.2\t2\t1.0\tfixture-corridor\n");
 		writeText(legacy / "GUI/singleTrackLimits.txt", "@0-B0@\t@0-B1@\t@0-B0@\t@0-B1@\n");
 		writeText(legacy / "GUI/stationBoundarySections.txt", "@0-B0@\t@0-B1@\t1\n");
+		writeText(legacy / "EGTRAINInitialParameters.json",
+			R"({"format_version":1,"base_time":"08:15:00","simulation_settings":{"duration_seconds":1234,"buffer_time_seconds":0,"recovery_time_percent":0}})");
 		writeText(legacy / "trainNames.txt", "fixture.txt\nfixture-duplicate.txt\n");
 		writeText(legacy / "Trains/fixture.txt",
 			"FixtureService 0 99999999 0 /vehicle.dat /effort-curve.dat /TimeTable/fixture.txt\n");
@@ -400,9 +402,9 @@ int main() {
 			ok &= expect(readJson(fs::path(output.dir) / "signalling.json", signalling), "Synthetic signalling readable");
 			ok &= expect(readJson(fs::path(output.dir) / "scenarios.json", scenarios), "Synthetic scenarios readable");
 			ok &= expect(readJson(fs::path(output.dir) / "views.json", views), "Synthetic views readable");
-			ok &= expect(scene["base_time"] == "07:10:40"
-					&& scene["simulation_settings"]["duration_seconds"] == 9000.0,
-				"Known settings imported");
+			ok &= expect(scene["base_time"] == "08:15:00"
+					&& scene["simulation_settings"]["duration_seconds"] == 1234.0,
+				"Settings of the sidecar are imported before the compiled ones");
 			ok &= expect(scene["schema_version"] == kCurrentSceneSchemaVersion
 					&& scene["saved_with_app_version"] == EGTRAIN_APP_VERSION,
 				"Legacy import records the creating application version");
@@ -712,6 +714,13 @@ int main() {
 			fs::permissions(locked, fs::perms::owner_all, fs::perm_options::replace, lockedModeError);
 #endif
 		}
+		writeText(legacy / "EGTRAINInitialParameters.json", "{\"format_version\":2}\n");
+		TempDir malformedOutput;
+		const auto malformedResult = importLegacyScene(legacyDir.dir, malformedOutput.dir, "Paimpol");
+		json malformedScene;
+		ok &= expect(malformedResult.success() && hasDiag(malformedResult.diagnostics, "scene.import.settings", SceneSeverity::Warning)
+				&& readJson(fs::path(malformedOutput.dir) / "scene.json", malformedScene) && malformedScene["base_time"] == "07:10:40",
+			"An unsupported settings file is reported and the compiled mapping is used");
 		fs::remove(legacy / "Passengers/RouteChoiceFC_EQ1.csv");
 		const auto partialResult = importLegacyScene(legacyDir.dir, partialOutput.dir, "Paimpol");
 		ok &= expect(partialResult.success()

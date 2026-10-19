@@ -234,6 +234,37 @@ static void synthesizeSignallingAreas(const SceneModel& scene, const std::unorde
 	if (!out || ec) writeError(sidecar);
 }
 
+// The legacy format has no file for the base time and the simulation settings, so they go in a sidecar with the keys of scene.json.
+static void writeInitialParameters(const SceneModel& scene, const std::string& outDir, SceneExportResult& result) {
+	const nlohmann::json metadata = encodeSceneMetadata(scene);
+	nlohmann::json parameters = {{"format_version", 1}};
+	for (const char* key : {"base_time", "simulation_settings"})
+		if (metadata.contains(key))
+			parameters[key] = metadata[key];
+
+	const fs::path file = pathFromUtf8(outDir) / "EGTRAINInitialParameters.json";
+	bool written = true;
+	if (parameters.size() == 1) {
+		std::error_code ec;
+		fs::remove(file, ec);
+		written = !ec;
+	} else {
+		std::ofstream out(file);
+		out << parameters.dump(4) << "\n";
+		out.close();
+		written = static_cast<bool>(out);
+	}
+	if (!written) {
+		SceneDiagnostic diagnostic;
+		diagnostic.severity = SceneSeverity::Error;
+		diagnostic.code = "scene.export.write";
+		diagnostic.message = "Failed to write EGTRAINInitialParameters.json";
+		diagnostic.file = file.u8string();
+		result.diagnostics.push_back(diagnostic);
+		result.wroteAll = false;
+	}
+}
+
 static void synthesizeCanonicalInfrastructure(const SceneModel& scene, const std::string& outDir,
 	const std::unordered_map<std::string, std::string>& outputTracks, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
@@ -699,7 +730,71 @@ static void synthesizeCanonicalCompatibility(const SceneModel& scene, const std:
 		} }, true);
 }
 
-static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& result) {
+// The GUI text files hold every field of views.json except a tab, line break or comma inside a name.
+static void writeViewLayout(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
+	const std::string& outDir, SceneExportResult& result) {
+	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
+		SceneDiagnostic d;
+		d.severity = sev;
+		d.code = code;
+		d.message = msg;
+		d.file = file;
+		result.diagnostics.push_back(d);
+	};
+
+	std::ostringstream stations, tracks, hidden;
+	for (const auto& view : scene.stationViews) {
+		const std::string name = legacyStationName(scene, view.stationId);
+		if (name.find_first_of("\t\r\n") != std::string::npos) {
+			addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+				"Station " + view.stationId + " has a tab or line break in its name, so its layout was not exported", view.stationId);
+			continue;
+		}
+		std::string ids, positions, corridors;
+		for (const auto& [id, positionKm] : view.regions) {
+			ids += (ids.empty() ? "" : ",") + std::to_string(id);
+			positions += (positions.empty() ? "" : ",") + formatNumber(positionKm);
+		}
+		for (const auto& corridor : view.corridors) {
+			if (corridor.empty() || corridor.find_first_of(",\t\r\n") != std::string::npos) {
+				addDiag(SceneSeverity::Warning, "scene.export.compatibility",
+					"A corridor of station " + view.stationId + " is empty or has a comma, tab or line break, so it was not exported", view.stationId);
+				continue;
+			}
+			corridors += (corridors.empty() ? "" : ",") + corridor;
+		}
+		stations << name << "\t" << formatNumber(view.latitude) << "\t" << formatNumber(view.longitude) << "\t" << ids << "\t" << positions;
+		if (!corridors.empty())
+			stations << "\t" << corridors;
+		stations << "\n";
+	}
+	for (const auto& view : scene.trackViews) {
+		const std::string number = legacyTrackIds.at(view.trackId).substr(1);
+		tracks << number << "\t" << view.level << "\t" << view.region << "\n";
+		if (!view.visible)
+			hidden << number << "\n";
+	}
+
+	const fs::path gui = pathFromUtf8(outDir) / "GUI";
+	std::error_code ec;
+	fs::create_directories(gui, ec);
+	const auto write = [&](const char* name, const std::ostringstream& text) {
+		std::ofstream out(gui / name);
+		out << text.str();
+		out.close();
+		if (!out) {
+			addDiag(SceneSeverity::Error, "scene.export.write", std::string("Failed to write GUI/") + name);
+			result.wroteAll = false;
+		}
+	};
+	write("StationsCoord.txt", stations);
+	write("caseStudyTrackData.txt", tracks);
+	if (!hidden.str().empty())
+		write("unusedTracks.txt", hidden);
+}
+
+static void synthesizeGuiLayout(const SceneModel& scene, const std::unordered_map<std::string, std::string>& legacyTrackIds,
+	const std::string& outDir, SceneExportResult& result) {
 	auto addDiag = [&](SceneSeverity sev, const std::string& code, const std::string& msg, const std::string& file = "") {
 		SceneDiagnostic d;
 		d.severity = sev;
@@ -715,6 +810,10 @@ static void synthesizeGuiLayout(const std::string& outDir, SceneExportResult& re
 	fs::path providedTd = pathFromUtf8(outDir) / "GUI" / "caseStudyTrackData.txt";
 	if (fs::exists(providedSc) || fs::exists(providedTd)) {
 		addDiag(SceneSeverity::Info, "scene.export.info", "scene-provided GUI layout is used");
+		return;
+	}
+	if (!scene.stationViews.empty() || !scene.trackViews.empty()) {
+		writeViewLayout(scene, legacyTrackIds, outDir, result);
 		return;
 	}
 
@@ -1371,7 +1470,7 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 					relStr = "TimeTable";
 			}
 
-			if (lower(relStr) == "tracklines/egtrainsignallingareas.json"
+			if (lower(relStr) == "tracklines/egtrainsignallingareas.json" || lower(relStr) == "egtraininitialparameters.json"
 				|| (scene.signallingAreas.empty() && lower(relStr) == "tracklines/areascasestudy.txt")) return;
 
 			fs::path dstPath = outputDir / pathFromUtf8(relStr);
@@ -1403,7 +1502,8 @@ SceneExportResult exportLegacyScene(const std::string& sceneDir, const std::stri
 	synthesizeCanonicalCompatibility(scene, outDir, routeIndices, legacyBlockIds, result);
 
 	if (result.success()) {
-		synthesizeGuiLayout(outDir, result);
+		synthesizeGuiLayout(scene, legacyTrackIds, outDir, result);
+		writeInitialParameters(scene, outDir, result);
 		if (result.success() && admitOutputTracks()) synthesizeSignallingAreas(scene, legacyTrackIds, outDir, result);
 	}
 

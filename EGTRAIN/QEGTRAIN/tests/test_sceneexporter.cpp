@@ -823,6 +823,36 @@ int main() {
 			"legacy data with a Unicode name is copied");
 	}
 
+	// The layout and the settings of a scene with views come from the scene, not from the track lines.
+	{
+		TempDir sceneDir, outDir;
+		const fs::path scene(sceneDir.dir), out(outDir.dir);
+		writeAreaScene(scene, "");
+		const std::string settings = R"("base_time":"07:10:40","simulation_settings":{"duration_seconds":9000,"buffer_time_seconds":0,"recovery_time_percent":0})";
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Layout Export",)" << settings << "}\n";
+		std::ofstream(scene / "stations.json") << R"({"stations":[{"id":"st","name":"Station","platforms":[]}]})" << "\n";
+		std::ofstream(scene / "views.json")
+			<< R"({"tracks":[{"track":"main","level":2,"region":3},{"track":"B7","level":1,"region":0,"visible":false}],"stations":[{"station":"st","latitude":52.5,"longitude":0.125,"regions":[{"id":3,"position_km":1.5},{"id":4,"position_km":2}],"corridors":["A","B,C"]}]})"
+			<< "\n";
+		const auto res = exportLegacyScene(sceneDir.dir, outDir.dir);
+		ok &= expect(res.success(), "Export of a scene with views succeeds");
+		ok &= expect(readText(out / "GUI/StationsCoord.txt") == "Station\t52.5\t0.125\t3,4\t1.5,2\tA\n",
+			"Station layout is written from the views with latitude, regions and corridors");
+		ok &= expect(readText(out / "GUI/caseStudyTrackData.txt") == "0\t2\t3\n7\t1\t0\n", "Track level and region are written from the views");
+		ok &= expect(readText(out / "GUI/unusedTracks.txt") == "7\n", "Hidden tracks are listed");
+		ok &= expect(std::count_if(res.diagnostics.begin(), res.diagnostics.end(),
+						 [](const SceneDiagnostic& d) { return d.code == "scene.export.compatibility" && d.severity == SceneSeverity::Warning; })
+				== 1,
+			"A corridor that the text file cannot hold is reported once");
+		ok &= expect(nlohmann::json::parse(readText(out / "EGTRAINInitialParameters.json"), nullptr, false)
+				== nlohmann::json::parse(R"({"format_version":1,)" + settings + "}"),
+			"Base time and simulation settings are written to the sidecar");
+
+		std::ofstream(scene / "scene.json") << R"({"schema_version":1,"name":"Layout Export"})" << "\n";
+		ok &= expect(exportLegacyScene(sceneDir.dir, outDir.dir).success() && !fs::exists(out / "EGTRAINInitialParameters.json"),
+			"A scene without settings removes a stale sidecar");
+	}
+
 	if (!ok)
 		return 1;
 	std::cout << "all SceneExporter tests passed\n";

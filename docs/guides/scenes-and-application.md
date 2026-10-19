@@ -168,7 +168,12 @@ timetables, and supported passenger CSVs from canonical data. It reports an
 error when a canonical passenger window cannot be represented by the legacy
 half-hour bucket format instead of silently changing it. The signalling areas of
 the scene are exported to `TrackLines/AreasCaseStudy.txt`; an edit of that file
-does not flow back.
+does not flow back. A scene with `views.json` has its station and track layout
+written to `GUI/StationsCoord.txt`, `GUI/caseStudyTrackData.txt` and
+`GUI/unusedTracks.txt`, and its base time and simulation settings to
+`EGTRAINInitialParameters.json`. The export warns (`scene.export.compatibility`)
+about a station name with a tab or line break, and about an empty corridor name
+or one with a comma, tab or line break, because the text files cannot hold them.
 
 ## Scenario library and student loop
 

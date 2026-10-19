@@ -953,21 +953,52 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 	SceneModel scene;
 
+	// An export carries the base time and the settings in a sidecar. Otherwise
 	// InitialParameters is compiled into the current runtime, not stored in
-	// the legacy case directory. Only these known case/name pairs are safe to
+	// the legacy case directory. Only the known case/name pairs are safe to
 	// convert; unknown cases remain importable without guessed defaults.
-	double durationSeconds = 0.0;
+	std::string baseTime;
+	SceneSimulationSettings settings;
 	bool knownSettings = false;
-	const std::string baseTime = baseTimeForCase(sceneName, legacyPath, durationSeconds, knownSettings);
+	std::string settingsSource = "compiled InitialParameters";
+	const fs::path settingsSidecar = findChild(legacyPath, "EGTRAINInitialParameters.json");
+	if (!settingsSidecar.empty()) {
+		std::string content;
+		const json sidecar = readFile(settingsSidecar, content) ? json::parse(content, nullptr, false) : json();
+		const json noSettings = json::object();
+		const json& values = sidecar.is_object() && sidecar.contains("simulation_settings") ? sidecar["simulation_settings"] : noSettings;
+		knownSettings = sidecar.is_object() && sidecar.contains("format_version") && sidecar["format_version"] == 1 && values.is_object();
+		if (knownSettings) {
+			std::vector<SceneDiagnostic> problems;
+			const SceneFieldReader reader("EGTRAINInitialParameters.json", kSceneFileFieldCodes, problems);
+			reader.stringField(sidecar, "base_time", "", baseTime, false);
+			settings.hasDuration = reader.numberField(values, "duration_seconds", "simulation_settings", settings.durationSeconds, false);
+			settings.hasBufferTime = reader.numberField(values, "buffer_time_seconds", "simulation_settings", settings.bufferTimeSeconds, false);
+			settings.hasRecoveryTime = reader.numberField(values, "recovery_time_percent", "simulation_settings", settings.recoveryTimePercent, false);
+			knownSettings = problems.empty();
+		}
+		if (knownSettings) {
+			settingsSource = settingsSidecar.u8string();
+		} else {
+			baseTime.clear();
+			settings = SceneSimulationSettings();
+			addDiag(SceneSeverity::Warning, "scene.import.settings", "Malformed or unsupported settings file ignored",
+				settingsSidecar.u8string(), "simulation_settings");
+		}
+	}
+	if (!knownSettings) {
+		baseTime = baseTimeForCase(sceneName, legacyPath, settings.durationSeconds, knownSettings);
+		settings.hasDuration = settings.hasBufferTime = settings.hasRecoveryTime = knownSettings;
+	}
 	const bool paimpolSource = lowerCopy(sceneName) == "paimpol"
 		|| lowerCopy(legacyPath.filename().u8string()).rfind("input_egtrain_paimpol", 0) == 0;
 	if (knownSettings) {
-		report.source("simulation_settings", "compiled InitialParameters");
-		report.converted("simulation_settings", "compiled InitialParameters");
+		report.source("simulation_settings", settingsSource);
+		report.converted("simulation_settings", settingsSource);
 	} else {
-		report.source("simulation_settings", "compiled InitialParameters");
-		report.skipped("simulation_settings", "compiled InitialParameters");
-		report.unresolved("simulation_settings", "compiled InitialParameters");
+		report.source("simulation_settings", settingsSource);
+		report.skipped("simulation_settings", settingsSource);
+		report.unresolved("simulation_settings", settingsSource);
 		addDiag(SceneSeverity::Warning, "scene.import.settings",
 			"No concrete InitialParameters mapping for case " + sceneName + "; simulation settings omitted",
 			sceneName, "simulation_settings");
@@ -2237,7 +2268,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		for (SceneIncident& incident : scenario.incidents)
 			incident.id = scenarioId + "." + incident.id;
 		std::size_t valueIndex = 0;
-		if (!knownSettings) {
+		if (!settings.hasDuration) {
 			const int valuesCount = static_cast<int>(values.size());
 			auto& row = report.row("scenarios.rollouts", source);
 			row.sourceCount += valuesCount;
@@ -2250,7 +2281,7 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 		for (const auto& relation : relations) {
 			int occurrences = 1;
 			if (relation.hasRepeat && relation.headway > 0.0)
-				occurrences = std::max(1, static_cast<int>(std::ceil(durationSeconds / relation.headway)));
+				occurrences = std::max(1, static_cast<int>(std::ceil(settings.durationSeconds / relation.headway)));
 			for (int occurrence = 1; occurrence <= occurrences; ++occurrence) {
 				report.source("scenarios.rollouts", source);
 				if (valueIndex >= values.size()) {
@@ -2308,13 +2339,8 @@ SceneImportResult importLegacyScene(const std::string& legacyDir,
 
 	scene.schemaVersion = kCurrentSceneSchemaVersion;
 	scene.name = sceneName;
-	if (knownSettings) {
-		scene.baseTime = baseTime;
-		scene.settings.hasDuration = true;
-		scene.settings.durationSeconds = durationSeconds;
-		scene.settings.hasBufferTime = true;
-		scene.settings.hasRecoveryTime = true;
-	}
+	scene.baseTime = baseTime;
+	scene.settings = settings;
 	scene.importReport = report.rows;
 	scene.passengers = passengerImport.passengers;
 

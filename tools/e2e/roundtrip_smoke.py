@@ -57,11 +57,10 @@ def scene_counts(scene_dir: Path) -> dict[str, int]:
     }
 
 
-def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, exported_dir: Path, reimported_dir: Path) -> None:
-    """The sidecar preserves the canonical assignment under the exported track mapping."""
-    label = f"case {case_id} ({scene_name}) signalling area mismatch"
-    areas = json.loads((scene_dir / "signalling.json").read_text()).get("signalling_areas", [])
+def legacy_track_ids(scene_dir: Path) -> dict[str, str]:
+    """The export id (B<n>) of every track of the scene."""
     tracks = json.loads((scene_dir / "infrastructure.json").read_text()).get("tracks", [])
+
     def is_legacy_id(track_id: str) -> bool:
         return len(track_id) > 1 and track_id[0] == "B" and all("0" <= c <= "9" for c in track_id[1:])
 
@@ -78,6 +77,46 @@ def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, expor
             fallback += 1
             used.add(mapped)
         track_ids[track_id] = mapped
+    return track_ids
+
+
+def check_layout(case_id: int, scene_name: str, scene_dir: Path, reimported_dir: Path) -> None:
+    """The station and track views, the base time and the simulation settings survive the legacy format."""
+    if not (scene_dir / "views.json").exists():
+        return
+    label = f"case {case_id} ({scene_name}) layout mismatch"
+    track_ids = legacy_track_ids(scene_dir)
+
+    def stations(views_dir: Path) -> list:
+        rows = json.loads((views_dir / "views.json").read_text()).get("stations", [])
+        return sorted(({**row, "corridors": row.get("corridors", [])} for row in rows), key=lambda row: row["station"])
+
+    def tracks(views_dir: Path) -> list:
+        rows = json.loads((views_dir / "views.json").read_text()).get("tracks", [])
+        return sorted(
+            (
+                {"track": track_ids.get(row["track"], row["track"]), "level": row["level"], "region": row["region"], "visible": row.get("visible", True)}
+                for row in rows
+            ),
+            key=lambda row: row["track"],
+        )
+
+    if stations(scene_dir) != stations(reimported_dir):
+        raise RuntimeError(f"{label}: reimported station views differ from the source")
+    if tracks(scene_dir) != tracks(reimported_dir):
+        raise RuntimeError(f"{label}: reimported track views differ from the source")
+    source_scene = json.loads((scene_dir / "scene.json").read_text())
+    reimported_scene = json.loads((reimported_dir / "scene.json").read_text())
+    for key in ("base_time", "simulation_settings"):
+        if source_scene.get(key) != reimported_scene.get(key):
+            raise RuntimeError(f"{label}: {key} {source_scene.get(key)} became {reimported_scene.get(key)}")
+
+
+def check_signalling_areas(case_id: int, scene_name: str, scene_dir: Path, exported_dir: Path, reimported_dir: Path) -> None:
+    """The sidecar preserves the canonical assignment under the exported track mapping."""
+    label = f"case {case_id} ({scene_name}) signalling area mismatch"
+    areas = json.loads((scene_dir / "signalling.json").read_text()).get("signalling_areas", [])
+    track_ids = legacy_track_ids(scene_dir)
     expected = [dict(area) for area in areas]
     for area in expected:
         if area.get("track"):
@@ -152,6 +191,7 @@ def main() -> None:
                 )
                 raise RuntimeError(f"case {case_id} compatibility count mismatch: {differences}")
             check_signalling_areas(case_id, scene_name, scene_dir, exported_dir, reimported_dir)
+            check_layout(case_id, scene_name, scene_dir, reimported_dir)
 
         # One executable round trip is enough after all seven structural/count checks.
         reimported_dir = tmp_dir / "reimported_5"
