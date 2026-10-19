@@ -113,6 +113,10 @@ include_directories(${SRC_DIR})
 # --- Dependencies ---
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network Help)
+# Qt 6 defines the qhelpgenerator target in its tools package, Qt 5 in its Help package.
+if(QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS ToolsTools)
+endif()
 # With Qt 5, _HAS_STD_BYTE=0 resolves the std::byte vs SDK byte ambiguity (std::byte unused). Qt 6 needs std::byte.
 if(MSVC AND QT_VERSION_MAJOR EQUAL 5)
     add_compile_definitions(_HAS_STD_BYTE=0)
