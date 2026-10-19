@@ -7,12 +7,14 @@
 #include <QString>
 #include <QStringList>
 
-// The staged Windows installation is assembled exclusively from the extracted
-// release package: the release owns its runtime files and shipped canonical
-// Scenes. Nothing is carried over from the installation being replaced, so a
-// released package always produces the same result as a fresh installation.
+/// The staged Windows installation is assembled exclusively from the extracted
+/// release package: the release owns its runtime files and shipped canonical
+/// Scenes. Nothing is carried over from the installation being replaced, so a
+/// released package always produces the same result as a fresh installation.
 namespace WindowsStaging {
 
+/// Copies the folder sourcePath and everything below it to destinationPath, replacing files there.
+/// Returns false at the first symbolic link, entry that is no file or folder, or failed copy.
 inline bool copyTree(const QString& sourcePath, const QString& destinationPath) {
 	const QFileInfo source(sourcePath);
 	if (!source.isDir() || source.isSymLink())
@@ -41,9 +43,9 @@ inline bool copyTree(const QString& sourcePath, const QString& destinationPath) 
 	return true;
 }
 
-// Files every Windows release package must contain, kept in step with the
-// package verification of the Windows job in the release workflow. The
-// libzmq DLL carries its version in the name and is matched separately.
+/// Files every Windows release package must contain, kept in step with the
+/// package verification of the Windows job in the release workflow. The
+/// libzmq DLL carries its version in the name and is matched separately.
 inline QStringList requiredRuntimeFiles() {
 	return {
 		QStringLiteral("QEGTRAIN.exe"),
@@ -58,9 +60,9 @@ inline QStringList requiredRuntimeFiles() {
 		QStringLiteral("imageformats/qsvg.dll")};
 }
 
-// True when the directory holds the required runtime files, the Scenes
-// directory and every file named in manifestFiles. When it does not, missing
-// receives the first absent entry.
+/// True when the directory holds the required runtime files, the Scenes
+/// directory and every file named in manifestFiles. When it does not, missing
+/// receives the first absent entry.
 inline bool completeWindowsRuntime(const QString& directory, const QStringList& manifestFiles,
 	QString* missing = nullptr) {
 	const QDir root(directory);
@@ -84,10 +86,10 @@ inline bool completeWindowsRuntime(const QString& directory, const QStringList& 
 	return true;
 }
 
-// Builds the staged installation at stagePath as an exact copy of the
-// extracted release package at extractPath. The stage path must not exist so
-// staging can never merge new content into old installation leftovers.
-// manifestFiles lists the package files the release manifest promises.
+/// Builds the staged installation at stagePath as an exact copy of the
+/// extracted release package at extractPath. The stage path must not exist so
+/// staging can never merge new content into old installation leftovers.
+/// manifestFiles lists the package files the release manifest promises.
 inline bool buildStage(const QString& extractPath, const QString& stagePath,
 	const QStringList& manifestFiles, QString* error = nullptr) {
 	if (!QFileInfo(QDir(extractPath).filePath(QStringLiteral("QEGTRAIN.exe"))).isFile()) {
