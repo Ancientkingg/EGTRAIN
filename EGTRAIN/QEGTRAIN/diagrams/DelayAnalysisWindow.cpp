@@ -145,7 +145,7 @@ void setChoices(TrainFilterButton* button, const QStringList& labels) {
 }
 
 QTableWidget* makeTable(QWidget* parent, const char* name, const QStringList& headers) {
-	auto* table = new QTableWidget(0, headers.size(), parent);
+	auto* table = new QTableWidget(0, static_cast<int>(headers.size()), parent);
 	table->setObjectName(name);
 	table->setHorizontalHeaderLabels(headers);
 	table->setEditTriggers(QAbstractItemView::NoEditTriggers);

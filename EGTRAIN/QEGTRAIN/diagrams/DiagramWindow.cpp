@@ -847,7 +847,7 @@ void DiagramWindow::rebuildFilterGroups() {
 			SeriesGroup group;
 			group.trainId = trainId;
 			m_groups.append(group);
-			groupIndex = m_groups.size() - 1;
+			groupIndex = static_cast<int>(m_groups.size()) - 1;
 			indexByTrain.insert(trainId, groupIndex);
 		} else {
 			groupIndex = it.value();
@@ -857,7 +857,7 @@ void DiagramWindow::rebuildFilterGroups() {
 
 	for (const QString& trainId : m_csvTrainIds)
 		if (!trainId.isEmpty() && !indexByTrain.contains(trainId)) {
-			indexByTrain.insert(trainId, m_groups.size());
+			indexByTrain.insert(trainId, static_cast<int>(m_groups.size()));
 			m_groups.append({trainId, {}});
 		}
 
@@ -1061,7 +1061,11 @@ QAbstractSeries* DiagramWindow::inspectAt(const QPoint& position) {
 	for (auto* series : chart->series()) {
 		auto* xy = qobject_cast<QXYSeries*>(series);
 		if (!xy || !xy->isVisible()) continue;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		const auto points = xy->points();
+#else
 		const auto points = xy->pointsVector();
+#endif
 		bool inside = false;
 		if (xy->property("inspectionFilled").toBool() && points.size() >= 4
 			&& points.first() == points.last() && !qobject_cast<QScatterSeries*>(xy)) {

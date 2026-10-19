@@ -2422,9 +2422,9 @@ void NetworkPresenter::stackPassengerIcons(const std::vector<PassengerItem*>& re
 		return;
 	const std::unordered_set<const PassengerItem*> moved(restack.cbegin(), restack.cend());
 	PassengerItem* above = nullptr;
-	for (int platform = allPlatforms.size() - 1; platform >= 0; --platform) {
+	for (auto platform = allPlatforms.size() - 1; platform >= 0; --platform) {
 		const QList<PassengerItem*>& icons = allPlatforms[platform]->passengerIcons;
-		for (int i = icons.size() - 1; i >= 0; --i) {
+		for (auto i = icons.size() - 1; i >= 0; --i) {
 			if (above && moved.count(icons[i]))
 				icons[i]->stackBefore(above);
 			above = icons[i];

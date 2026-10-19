@@ -178,7 +178,7 @@ public:
 	QByteArray header(const QByteArray& name) const override {
 		std::lock_guard<std::mutex> lock(m_mutex);
 		for (const QByteArray& line : m_headers.split('\n')) {
-			const int colon = line.indexOf(':');
+			const auto colon = line.indexOf(':');
 			if (colon > 0 && line.left(colon).trimmed().toLower() == name.toLower())
 				return line.mid(colon + 1).trimmed();
 		}

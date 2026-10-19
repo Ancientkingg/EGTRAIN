@@ -4174,7 +4174,7 @@ void MainWindowTestAccess::runEditorSmoke(MainWindow& w) {
 			for (int row = 0; row < w.m_stopTableWidget->rowCount(); ++row) {
 				for (int column = 3; column < 5; ++column) {
 					const QModelIndex cell = w.m_stopTableWidget->model()->index(row, column);
-					if (w.m_stopTableWidget->itemDelegate(cell)->sizeHint(option, cell).width() > w.m_stopTableWidget->columnWidth(column))
+					if (w.m_stopTableWidget->itemDelegate()->sizeHint(option, cell).width() > w.m_stopTableWidget->columnWidth(column))
 						failure = QString("the clock time '%1' is elided on the Timetable tab").arg(cell.data().toString());
 				}
 			}

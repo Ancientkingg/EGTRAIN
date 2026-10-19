@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
 		view.setScene(&scene);
 		NetworkPresenter presenter(&scene, &view);
 		const SceneModel model = previewModel();
-		int drawnItems = 0;
+		qsizetype drawnItems = 0;
 		for (int cycle = 0; cycle < 25; ++cycle) {
 			const NetworkPresenter::PreviewOutcome outcome = presenter.showPreview(model);
 			ok &= expect(outcome.available && outcome.trackLines == 2 && outcome.fitted,
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 		options.selectedId = "B1";
 		presenter.showPreview(model, options);
 		ok &= expect(presenter.m_previewHasSelectedTrack, "a selected track is marked");
-		const int stationDecorations = presenter.m_stationDecorations.size();
+		const auto stationDecorations = presenter.m_stationDecorations.size();
 		presenter.clear();
 		options.platformBars = true;
 		presenter.showPreview(model, options);
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 		presenter.clear();
 
 		options.markSelection = true;
-		int drawnWithOptions = 0;
+		qsizetype drawnWithOptions = 0;
 		for (int cycle = 0; cycle < 25; ++cycle) {
 			presenter.showPreview(model, options);
 			if (cycle == 0)

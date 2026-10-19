@@ -34,7 +34,7 @@ public:
 	/// the window clears the list.
 	void setGroupedSignals(const QVector<QPair<int, bool>>& aspects);
 	/// The number of heads grouped with this one.
-	int groupedSignalCount() const { return m_groupedSignals.size(); }
+	int groupedSignalCount() const { return static_cast<int>(m_groupedSignals.size()); }
 	/// Sets the text that names the head in its tooltip, the inspector and Find.
 	void setInspectionIdentity(const QString& identity) { m_inspectionIdentity = identity; }
 	/// That text, or without one a text of the track line, the position in kilometres and the sections ahead

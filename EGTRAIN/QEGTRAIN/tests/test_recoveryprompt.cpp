@@ -24,7 +24,7 @@ bool check(bool condition, const char* message) {
 }
 
 QDateTime writtenTime() {
-	return QDateTime(QDate(2026, 10, 14), QTime(9, 5), Qt::LocalTime).toUTC();
+	return QDateTime(QDate(2026, 10, 14), QTime(9, 5)).toUTC();
 }
 
 RecoveryCandidate makeCandidate(const QString& name, RecoverySourceKind kind, const QString& path, RecoverySourceStatus status,
