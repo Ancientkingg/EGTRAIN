@@ -158,4 +158,4 @@ A move needs a matching edit in the same change:
 
 - `.github/workflows/cmake.yml` skips the build for changes under `docs/`, and `.github/workflows/release.yml` filters on `docs/**`.
 - `.github/workflows/telemetry-contract.yml`, `tools/e2e/test_telemetry_contract.py`, `tools/e2e/telemetry_smoke.py`, `CMakeLists.txt`, `EGTRAIN/QEGTRAIN/io/LiveFrame.h` and `EGTRAIN/QEGTRAIN/tests/test_liveframe.cpp` read the schemas.
-- `.clang-tidy` names `coding-guidelines.md`; `tests/live_client.cpp`, `tests/test_sceneversions.cpp`, `tools/e2e/lsan_suppressions.txt` and `installer/README.md` name pages in comments or links.
+- `.clang-tidy` names `coding-guidelines.md`; `EGTRAIN/QEGTRAIN/tests/live_client.cpp`, `EGTRAIN/QEGTRAIN/tests/test_sceneversions.cpp`, `tools/e2e/lsan_suppressions.txt` and `installer/README.md` name pages in comments or links.

@@ -93,7 +93,7 @@ The site keeps its table of contents in `docs/index.md`, the only Sphinx directi
 
 ## Screenshots
 
-What exists. The offscreen smokes already save the main window and some dialogs with `grab()` (`tests/e2e/VisualPolish.cpp`, `tests/e2e/Dialogs.cpp`). No script makes the 12 `docs/images/guide-*.png` files or the two README images, and the window sizes differ. The application has no dark theme.
+What exists. The offscreen smokes already save the main window and some dialogs with `grab()` (`EGTRAIN/QEGTRAIN/tests/e2e/VisualPolish.cpp`, `EGTRAIN/QEGTRAIN/tests/e2e/Dialogs.cpp`). No script makes the 12 `docs/images/guide-*.png` files or the two README images, and the window sizes differ. The application has no dark theme.
 
 Process:
 
@@ -108,7 +108,7 @@ Process:
 
 A stale picture is found in two ways:
 
-- `check_docs.py` fails when a PNG is not in `captures.json`, an entry has no file, a size differs from the manifest, or the recorded version differs from `EGTRAIN_VERSION` in its major or minor part.
+- `check_docs.py` fails when a PNG under `docs/images/` is not in `captures.json`, an entry has no file, a size differs from the manifest, or the recorded version differs from `EGTRAIN_VERSION` in its major or minor part.
 - `capture_screenshots.sh --check` captures again into a temporary folder and lists pictures where more than 2 percent of the pixels differ. It runs from the release checklist, not on every pull request, because fonts differ between systems.
 
 ## Onboarding path
