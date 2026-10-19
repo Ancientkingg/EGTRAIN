@@ -113,7 +113,7 @@ include_directories(${SRC_DIR})
 
 # --- Dependencies ---
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Charts Svg Network Help)
 
 # --- ZeroMQ / nlohmann_json ---
 find_package(cppzmq REQUIRED)
@@ -261,10 +261,12 @@ add_library(egtrain_widgets STATIC
     ${SRC_DIR}/widgets/FindDialog.cpp
     ${SRC_DIR}/widgets/InfoDockWidget.cpp
     ${SRC_DIR}/widgets/InspectorPanel.cpp
+    ${SRC_DIR}/widgets/ManualWindow.cpp
     ${SRC_DIR}/widgets/NetworkLegendWidget.cpp
     ${SRC_DIR}/widgets/TimeProgressBar.cpp)
 target_link_libraries(egtrain_widgets
-    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_graphics egtrain_util)
+    PUBLIC Qt::Core Qt::Gui Qt::Widgets egtrain_graphics egtrain_util
+    PRIVATE Qt::Help)
 
 # The scene document and the panels of the scene editors. SceneEditorPanel.h has no source file, so it is listed here for moc.
 add_library(egtrain_editors STATIC
@@ -1024,6 +1026,12 @@ if(EGTRAIN_BUILD_TESTS)
     add_test(NAME test_settingsdialog COMMAND test_settingsdialog)
     set_tests_properties(test_settingsdialog PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+    add_executable(test_manualwindow ${SRC_DIR}/tests/test_manualwindow.cpp)
+    target_link_libraries(test_manualwindow PRIVATE egtrain_widgets Qt::Core Qt::Gui Qt::Widgets Qt::Help)
+    target_compile_definitions(test_manualwindow PRIVATE EGTRAIN_QHELPGENERATOR="$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::qhelpgenerator>")
+    add_test(NAME test_manualwindow COMMAND test_manualwindow)
+    set_tests_properties(test_manualwindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
     add_executable(test_dialoglayout
         ${SRC_DIR}/tests/test_dialoglayout.cpp)
     target_link_libraries(test_dialoglayout PRIVATE Qt::Core Qt::Gui Qt::Widgets)
@@ -1662,7 +1670,7 @@ if(EGTRAIN_BUILD_TESTS)
 			test_delayanalysis test_delayanalysiswindow test_areacapacity test_areacapacitywindow test_blockingtimediagram test_capacityanalysis test_routediagramcoordinates
 			test_diagramwindow test_timetabletablewindow test_routereferencechoice test_tractioncurve
 			test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection
-			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog
+			test_networkpresenter test_networkview test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_manualwindow
 			test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_highlighteffect
 			test_consolestream test_qt_resource_images test_followavailability test_followcamera test_replaycoverage test_livecommand test_liveserver live_client)
 		egtrain_target_warnings(${egtrain_test} STRICT)
@@ -1696,7 +1704,7 @@ if(EGTRAIN_BUILD_TESTS)
 		test_routestations test_routereferencechoice
 		test_timetabletablewindow test_visualpolish test_networklegend test_stationoverlay
 		test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas test_playbackprofiler test_playback_profile test_networkview test_followcamera
-		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar
+		test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_infrastructureguidance test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_timeprogressbar test_manualwindow
 		test_highlighteffect test_csvwriter test_tractioncurve test_consolestream test_qt_resources
 		test_app_icon_config test_check_docs test_check_undocumented docs_check test_qt_resource_images test_scenevalidator test_stopinsertion test_scenereferences test_scenedocument test_runselection test_sceneimporter
 		test_scenesavepolicy test_dialogfolders test_cannotopenmessage test_pathmessages test_updateprompttext test_releasenotes test_scenewriter test_sceneexporter test_scenebundle test_scenehistory test_scenecompatibility test_sceneopenrequest test_scenebuilder test_stopdwell
@@ -1721,7 +1729,7 @@ if(EGTRAIN_BUILD_TESTS)
 	egtrain_label_tests(gui
 		test_telemetryconsent test_telemetryoperations test_updatetelemetrycontroller test_diagramwindow test_timetabletablewindow test_areacapacitywindow test_delayanalysiswindow
 		test_visualpolish test_networklegend test_stationoverlay test_networkscene_selection test_networkpresenter test_inspectorpanel test_runtimecanvas
-		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel
+		test_releasenotes test_networkview test_followcamera test_compactdoublespinbox test_colorchoicebutton test_aboutdialog test_settingsdialog test_dialoglayout test_casechooserdialog test_choicecombo test_editorlayout test_userprompts test_editor_casesettings test_editor_passenger test_editor_service test_editor_timetablestops test_editor_scenario test_editor_incident test_editor_entrancedelay test_editor_infrastructure test_editor_infrastructure_blocks test_editor_infrastructure_signals test_editor_infrastructure_stations test_editor_infrastructure_topology test_editor_composition test_editor_trainunit test_editor_validation test_trainunitsourcelinker test_elidedlabel test_manualwindow
 		test_routereferencechoice test_recoveryprompt test_timeprogressbar test_highlighteffect test_qt_resource_images test_scene_drop test_output_folder
 		test_startup_launch_contract test_case_chooser_contract test_gui_autostart_smoke test_live_stream_smoke
 		test_close_during_run_smoke test_csv_export_smoke test_creator_acceptance_smoke test_editor_smoke test_recovery_smoke test_dialog_presentation_contract
@@ -1840,4 +1848,32 @@ else()
 			COMMAND "${CMAKE_COMMAND}" -E false
 			VERBATIM)
 	endforeach()
+endif()
+
+# The manual of the application: the pages of docs/guides built a second time with Sphinx's qthelp builder into the Qt help file
+# EGTRAIN.qch, which goes next to the program, or into the resources of the macOS app. It needs Sphinx in the virtual environment of
+# the docs targets. Without it the application opens the published guides in the web browser instead.
+if(EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
+	set(egtrain_manual "${CMAKE_BINARY_DIR}/manual/EGTRAIN.qch")
+	file(GLOB egtrain_manual_sources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/docs/guides/*" "${CMAKE_SOURCE_DIR}/docs/images/*")
+	add_custom_command(OUTPUT "${egtrain_manual}"
+		COMMAND "${egtrain_docs_bin}/sphinx-build" -q -b qthelp -t manual -D "version=${PROJECT_VERSION}"
+			-D "html_title=EGTRAIN ${PROJECT_VERSION} manual" "${CMAKE_SOURCE_DIR}/docs" "${CMAKE_BINARY_DIR}/manual/qthelp"
+		COMMAND Qt${QT_VERSION_MAJOR}::qhelpgenerator "${CMAKE_BINARY_DIR}/manual/qthelp/EGTRAIN.qhp" -o "${egtrain_manual}"
+		DEPENDS ${egtrain_manual_sources} "${CMAKE_SOURCE_DIR}/docs/conf.py" "${CMAKE_SOURCE_DIR}/docs/index.md"
+		COMMENT "Building the manual ${egtrain_manual}"
+		VERBATIM)
+	add_custom_target(manual DEPENDS "${egtrain_manual}")
+	add_dependencies(QEGTRAIN manual)
+	if(APPLE)
+		set(egtrain_manual_dir "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources")
+	else()
+		set(egtrain_manual_dir "$<TARGET_FILE_DIR:QEGTRAIN>")
+	endif()
+	add_custom_command(TARGET QEGTRAIN POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy "${egtrain_manual}" "${egtrain_manual_dir}/EGTRAIN.qch"
+		VERBATIM)
+	message(STATUS "Manual: built from docs/guides into ${egtrain_manual}")
+else()
+	message(STATUS "Manual: not built, Sphinx is not in ${egtrain_docs_venv}; the application opens the published guides")
 endif()

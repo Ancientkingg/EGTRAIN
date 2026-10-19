@@ -66,6 +66,7 @@ TimetableTableWindow::TimetableTableWindow(std::vector<TimetableResultRow> rows,
 	  m_csvProvider(std::move(csvProvider)) {
 	setModal(false);
 	setProperty("dialogPresentation", true);
+	setProperty("manualSection", QStringLiteral("timetable-results"));
 	setWindowTitle("Timetable");
 	const QRect available = screen() ? screen()->availableGeometry() : QRect(0, 0, 1280, 800);
 	setMaximumSize(available.width() * 9 / 10, available.height() * 4 / 5);

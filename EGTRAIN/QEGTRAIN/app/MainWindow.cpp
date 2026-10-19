@@ -78,6 +78,7 @@
 #include "widgets/ConsoleWidget.h"
 #include "widgets/ChoiceComboBox.h"
 #include "widgets/ColorChoiceButton.h"
+#include "widgets/ManualWindow.h"
 #include "widgets/DialogLayout.h"
 #include "widgets/EditorLayout.h"
 #include "widgets/UserPrompts.h"
@@ -456,6 +457,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		qApp->setStyleSheet(QString::fromUtf8(themeFile.readAll()));
 
 	ui->setupUi(this);
+	setProperty("manualSection", QStringLiteral("main-window"));
 	m_userPrompts = std::make_unique<UserPrompts>(e2eDialogsSuppressed);
 	m_history = std::make_unique<SceneHistory>();
 	m_document = new SceneDocument(this);
@@ -472,6 +474,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 		});
 	m_updateTelemetry->setupUpdateActions(ui->menuHelp);
 	if (ui->menuHelp) {
+		// The help key works in every window of the application and opens the section of the widget that has the focus.
+		auto* manual = new QAction(QStringLiteral("EGTRAIN Manual"), this);
+		manual->setObjectName(QStringLiteral("actionManual"));
+		manual->setShortcut(QKeySequence::HelpContents);
+		manual->setShortcutContext(Qt::ApplicationShortcut);
+		connect(manual, &QAction::triggered, this, [this] {
+			const QWidget* focus = QApplication::focusWidget() ? QApplication::focusWidget() : QApplication::activeWindow();
+			ManualWindow::open(this, ManualWindow::sectionOf(focus ? focus : this));
+		});
+		ui->menuHelp->insertAction(ui->actionAbout, manual);
 		auto* privacy = ui->menuHelp->addAction(QStringLiteral("Privacy && diagnostics..."));
 		privacy->setObjectName(QStringLiteral("actionPrivacyDiagnostics"));
 		connect(privacy, &QAction::triggered, this, [this] { m_updateTelemetry->showPrivacySettings(false); });
@@ -1180,6 +1192,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 
 	m_caseSettingsDock = new QDockWidget("Case Settings", this);
 	m_caseSettingsDock->setObjectName("caseSettingsDock");
+	m_caseSettingsDock->setProperty("manualSection", QStringLiteral("case-settings"));
 	m_caseSettingsPanel = new CaseSettingsPanel(m_caseSettingsDock);
 	m_caseNameEdit = m_caseSettingsPanel->nameEdit();
 	m_caseDescriptionEdit = m_caseSettingsPanel->descriptionEdit();
@@ -1378,6 +1391,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent),
 	m_selectNoneOccurrencesButton = m_servicePanel->selectNoneButton();
 
 	m_timetableStopsPanel = new TimetableStopsPanel(m_servicePanel);
+	m_timetableStopsPanel->setProperty("manualSection", QStringLiteral("timetable-editor"));
 	m_stopTableWidget = m_timetableStopsPanel->table();
 	m_addStopButton = m_timetableStopsPanel->addButton();
 	m_insertStopAfterButton = m_timetableStopsPanel->insertAfterButton();
@@ -3432,6 +3446,7 @@ void MainWindow::setupRunResultsDock() {
 	connect(m_resultViews, &ResultViews::trainSelected, this, &MainWindow::focusTrainInScene);
 	m_runResultsPanel.reset(new RunResultsDock(this, m_runController, m_resultViews, *this));
 	m_runResultsDock = m_runResultsPanel->dock();
+	m_runResultsDock->setProperty("manualSection", QStringLiteral("run-results"));
 	m_runResultsTable = m_runResultsPanel->table();
 	m_runResultsSummaryLabel = m_runResultsPanel->summaryLabel();
 	m_delayFeedbackLabel = m_runResultsPanel->delayFeedbackLabel();
