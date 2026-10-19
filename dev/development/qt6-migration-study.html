@@ -606,6 +606,18 @@ jobs, <code class="docutils literal notranslate"><span class="pre">util/QtMsvcCo
 <li><p><strong>Decide on Qt Charts.</strong> Weigh Qt Graphs against keeping Qt Charts while Qt ships it. Include the size of the Qt
 Quick runtime in the decision.</p></li>
 </ol>
+<p>Status on 2026-10-19: steps 1 and 2 are done. With Qt 6.8.3 on macOS the application and all tests build. On the
+offscreen platform these tests fail:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_creator_acceptance_smoke</span></code>, <code class="docutils literal notranslate"><span class="pre">test_dialog_presentation_contract</span></code> and <code class="docutils literal notranslate"><span class="pre">test_editor_smoke</span></code> pass their checks, then
+the application crashes when <code class="docutils literal notranslate"><span class="pre">MainWindow</span></code> deletes the infrastructure panel: a <code class="docutils literal notranslate"><span class="pre">destroyed</span></code> connection of a line
+edit in its table runs on freed memory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_live</span></code> crashes while the network view paints, in the BSP index of the scene.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_visual_polish_smoke_stations</span></code> fails at <code class="docutils literal notranslate"><span class="pre">QT_SCALE_FACTOR=2</span></code>: the station artwork pixmap no longer has the
+station size, and a click on a painted pixel does not find the station picture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_startup_launch_contract</span></code> looks for non-ASCII recent cases in the settings file as <code class="docutils literal notranslate"><span class="pre">\xe9</span></code> escapes; Qt 6
+writes INI files in UTF-8.</p></li>
+</ul>
 </section>
 </section>
 
