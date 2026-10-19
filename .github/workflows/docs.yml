@@ -2,11 +2,13 @@ name: Docs
 
 # Builds the documentation site: the pages of docs/ with Sphinx and the C++ reference with Doxygen. A pull request also
 # fails when it adds undocumented classes or members to the files it changes. A push to main publishes the site to dev/
-# on the gh-pages branch; a push to production that makes a release publishes it to <version>/ and latest/.
+# on the gh-pages branch; a push to production that makes a release, or a release tag v*, publishes it to <version>/ and
+# latest/.
 on:
   pull_request:
   push:
     branches: [main, production]
+    tags: ['v*']
 
 permissions:
   contents: read
@@ -28,15 +30,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      # The release workflow selects the version of a production push in the same way when its run starts, and does not
-      # run for a push that changes only documentation. Such a push publishes no copy either.
+      # The release workflow selects the version of a production push or a tag in the same way when its run starts, and
+      # does not run for a production push that changes only documentation. Such a push publishes no copy either, nor
+      # does a prerelease tag.
       - name: Select the release version
         id: version
-        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v'))
         env:
           GH_TOKEN: ${{ github.token }}
           BEFORE: ${{ github.event.before }}
         run: |
+          case "$GITHUB_REF" in refs/tags/v*-*) echo "A prerelease tag publishes no copy."; exit 0 ;; esac
           files=$(git -c core.quotepath=false diff --name-only "$BEFORE" HEAD) || files=unknown
           while IFS= read -r file; do
             case "$file" in

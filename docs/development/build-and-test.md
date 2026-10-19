@@ -1680,12 +1680,13 @@ application; CTest and the smoke scripts set it themselves.
   and the checks are described in the [coding guidelines](coding-guidelines.md#static-checks).
   The result check is named `Tidy result`.
 - The documentation workflow (`docs.yml`) builds the [documentation site](#documentation-site)
-  for every pull request and every push to `main` and `production`. A pull request fails when
+  for every pull request and every push to `main`, `production` or a `v*` tag. A pull request fails when
   it adds undocumented classes or members to the files it changes, as
   `tools/docs/check_undocumented.py` finds them against the base branch. A push to `main`
   publishes the site to `dev/` on the `gh-pages` branch. A push to `production` that makes a
-  release publishes it to `<version>/` and `latest/`, with the version that
-  `tools/release/version.py` selects for the release. The root page lists the copies.
+  release, or a release tag without a prerelease suffix, publishes it to `<version>/` and `latest/`,
+  with the version that `tools/release/version.py` selects for the release. The root page lists
+  the copies.
 - A pull request to `main` that changes a packaging input also runs the
   package check (`package-check.yml`). The inputs are the workflow files
   `package-check.yml`, `package.yml` and `release.yml`, `tools/release/`,
@@ -2431,5 +2432,5 @@ reference, so run `docs` first.
 A page links to a class with the address of the published reference, such as
 `https://ancientkingg.github.io/EGTRAIN/latest/api/struct_scene_model.html`, so the link also
 works on GitHub. The site build points such a link to the reference next to the page.
-`python3 tools/docs/check_undocumented.py main` lists the undocumented classes and members that
-your branch adds, as the pull request check does.
+`build/docs-venv/bin/python tools/docs/check_undocumented.py main` lists the undocumented classes
+and members that your branch adds since it forked from `main`, as the pull request check does.
