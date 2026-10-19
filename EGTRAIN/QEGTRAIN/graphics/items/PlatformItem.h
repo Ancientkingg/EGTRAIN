@@ -26,7 +26,8 @@ public:
 	std::string stationId;
 	/// The id of the platform; empty when the run has no such platform and in the preview.
 	std::string platformId;
-	/// The largest number of passengers on the platform when it was drawn; 0 when the run has no such platform.
+	/// The passenger capacity of the platform, computed from its area; 0 when the run has no such platform and
+	/// in the preview.
 	int maxVolume;
 
 	/// The label with the number of passengers on the platform, which the scene owns; null in the preview.

@@ -409,12 +409,13 @@ struct PreviewStationMembership {
 	std::string stationId;
 	/// The name of the station, or its id when it has no name.
 	std::string name;
-	/// The id of the platform; empty for a node that a station without platforms takes by its position.
+	/// The id of the platform; empty for a node that only a station without platforms takes by its position.
+	/// Such a station keeps the platform id that an earlier station gave the node.
 	std::string platformId;
 };
 /// The station and the platform of each node of the model by node id. A node belongs to the platforms that list
 /// it; a station without platforms takes the nodes at its position, within 1e-8 km. A later station in the model
-/// replaces an earlier one.
+/// replaces the station id and name of an earlier one.
 std::map<std::string, PreviewStationMembership> previewStationMemberships(const SceneModel& model);
 
 /// The point of a preview line at a node, moved down by offset scene units (the display offset of the line).

@@ -11,9 +11,9 @@
 #include <QPair>
 #include <QtMath>
 
-/// A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour and mark show
-/// the state of the aspect code. A transparent child of 12 by 12 logical pixels at its centre keeps it clickable
-/// when the head is smaller on screen.
+/// A signal head: the lamp of one direction of a signal, in rect in scene coordinates. Its colour, and a mark for
+/// any state but Proceed, show the state of the aspect code. A transparent child of 12 by 12 logical pixels at
+/// its centre keeps it clickable when the head is smaller on screen.
 class SignalItem : public QGraphicsEllipseItem {
 public:
 	/// A head in rect with aspect code 180, on no track line and at no position.
@@ -43,7 +43,8 @@ public:
 	/// The head with a margin of 2 scene units.
 	QRectF boundingRect() const override;
 
-	/// Draws the lamp, and a mark of the state when the head is at least 6 device pixels wide.
+	/// Draws the lamp and, when the head is at least 6 device pixels wide, the mark of a failed, Stop, Caution or
+	/// unavailable head; Proceed has no mark.
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 	/// The index of the track line of the signal in the run; -1 in the preview.

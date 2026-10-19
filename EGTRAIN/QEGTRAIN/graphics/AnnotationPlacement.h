@@ -44,9 +44,8 @@ inline bool annotationSignalNormal(const TrackPreviewLine& line, double rawX,
 	return foundEndpoint;
 }
 
-/// The vertical offset of the name and the picture of a station that the historical renderer moved by name,
-/// in historical presentation distances, positive downwards: 900, -920, -2800, -3500 or -2200 for the names
-/// listed here, 0 for any other name.
+/// The historical vertical offset of the name and the picture of a station by name, in historical presentation
+/// distances, positive downwards; 0 for any other name.
 inline double stationNamedYOffset(const std::string& name) {
 	if (name == "Koge"
 		|| name == "Olby"
@@ -136,12 +135,9 @@ inline double stationNamedYOffset(const std::string& name) {
 	return 0.0;
 }
 
-/// Reproduces the historical first, interior and last regional shift of the name and the picture of a station
-/// from its ordered geographic station views. The shift is 1200 historical presentation distances against the
-/// mean, over the regions of the station, of the unit vector that bisects the angle at the station between its
-/// neighbours along the region. The first station takes the angle at the second and the last the angle at the
-/// one before it; in a region of two stations it is the normal of the line between them. Invalid or
-/// insufficient regions contribute no shift, and without a valid region the shift is (0, 0).
+/// The historical regional shift of the name and the picture of a station, in historical presentation distances:
+/// 1200 against the mean bisector of its regions. Invalid or insufficient regions contribute no shift; without a
+/// valid region it is (0, 0).
 inline std::pair<double, double> annotationStationShift(
 	const std::vector<SceneStationView>& views, const std::string& stationId) {
 	struct Position {

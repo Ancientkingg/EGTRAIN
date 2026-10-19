@@ -37,7 +37,7 @@ public:
 	int wagonCount;
 	/// The number of passengers on board.
 	int currentOnboardPassengers;
-	/// The largest number of passengers on board.
+	/// The passenger capacity of the train, from its number of wagons.
 	int maxOnboardPassengers;
 	/// The train has left the network.
 	bool outOfSimulation;

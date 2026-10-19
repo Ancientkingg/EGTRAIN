@@ -96,8 +96,8 @@ TrainVisual resolveTrainVisual(const std::string& type, const std::string& descr
 TrainBadgeShape classifyTrainBadgeShape(TrainVisualKind kind);
 /// The corner radius of a badge shape in pixels.
 int trainBadgeCornerRadius(TrainBadgeShape shape);
-/// The lamp colour, state and icon of a signal head for an aspect code: red for 0 and 751, yellow for 75,
-/// green for 180 and 270, and grey RGB (128, 128, 128) for any other code.
+/// The lamp colour, state and icon of a signal head for an aspect code: red, yellow or green by SignalCueKind,
+/// grey RGB (128, 128, 128) otherwise.
 SignalVisual classifySignalAspect(int code);
 /// The state of a signal head for an aspect code, as SignalCueKind lists it.
 SignalCueKind classifySignalCue(int code);

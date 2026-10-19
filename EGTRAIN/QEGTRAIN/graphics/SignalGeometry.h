@@ -16,10 +16,9 @@ struct SignalGeometry {
 };
 
 /// The geometry of a signal at center on the track. before and after are the track points on either side of
-/// it, which the callers take 8 metres away, and normal is the unit normal of the track. A base runs across
-/// the track from 0.10 to 0.30 separation away from it; a post runs at 0.20 separation from the signal to the
-/// point before or after it, where its head is. separation is the distance in scene units between two display
-/// levels of track lines. Preview and playback take the points from the same authored track interpolation.
+/// it, which the callers take 8 metres away, and normal is the unit normal of the track. separation is the
+/// distance in scene units between two display levels of track lines. Preview and playback take the points from
+/// the same authored track interpolation.
 inline SignalGeometry signalGeometry(const QPointF& center, const QPointF& before,
 	const QPointF& after, const QPointF& normal, qreal separation) {
 	SignalGeometry geometry;
