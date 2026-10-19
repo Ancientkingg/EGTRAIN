@@ -1863,16 +1863,17 @@ if(EXISTS "${egtrain_docs_bin}/sphinx-build${CMAKE_EXECUTABLE_SUFFIX}")
 		DEPENDS ${egtrain_manual_sources} "${CMAKE_SOURCE_DIR}/docs/conf.py" "${CMAKE_SOURCE_DIR}/docs/index.md"
 		COMMENT "Building the manual ${egtrain_manual}"
 		VERBATIM)
-	add_custom_target(manual DEPENDS "${egtrain_manual}")
-	add_dependencies(QEGTRAIN manual)
+	# Each build copies the manual again when it changes.
 	if(APPLE)
-		set(egtrain_manual_dir "$<TARGET_BUNDLE_CONTENT_DIR:QEGTRAIN>/Resources")
+		target_sources(QEGTRAIN PRIVATE "${egtrain_manual}")
+		set_source_files_properties("${egtrain_manual}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		add_custom_target(manual DEPENDS "${egtrain_manual}")
 	else()
-		set(egtrain_manual_dir "$<TARGET_FILE_DIR:QEGTRAIN>")
+		add_custom_target(manual ALL
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${egtrain_manual}" "$<TARGET_FILE_DIR:QEGTRAIN>/EGTRAIN.qch"
+			DEPENDS "${egtrain_manual}"
+			VERBATIM)
 	endif()
-	add_custom_command(TARGET QEGTRAIN POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy "${egtrain_manual}" "${egtrain_manual_dir}/EGTRAIN.qch"
-		VERBATIM)
 	message(STATUS "Manual: built from docs/guides into ${egtrain_manual}")
 else()
 	message(STATUS "Manual: not built, Sphinx is not in ${egtrain_docs_venv}; the application opens the published guides")
